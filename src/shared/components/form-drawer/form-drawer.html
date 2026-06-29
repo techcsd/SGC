@@ -1,0 +1,33 @@
+@if (open()) {
+  <div
+    class="drawer-backdrop"
+    role="dialog"
+    [attr.aria-label]="title()"
+    aria-modal="true"
+    (click)="onBackdropClick($event)"
+    (keydown)="onKeydown($event)"
+  >
+    <aside class="drawer-panel">
+
+      <header class="drawer-header">
+        <h2 class="drawer-title">{{ title() }}</h2>
+        <button
+          type="button"
+          class="drawer-close"
+          (click)="close()"
+          aria-label="Cerrar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="drawer-body">
+        <ng-content />
+      </div>
+
+    </aside>
+  </div>
+}

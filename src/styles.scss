@@ -1,1 +1,257 @@
-/* You can add global styles to this file, and also import other style files */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  // SGC brand colors
+  --sgc-primary: #1f4e79;
+  --sgc-primary-mid: #2e75b6;
+  --sgc-primary-light: #d6e4f0;
+  --sgc-success: #2d7d46;
+  --sgc-success-light: #d4edda;
+  --sgc-danger: #c0392b;
+  --sgc-danger-light: #fde8e6;
+  --sgc-warning: #b45309;
+  --sgc-warning-light: #fef3c7;
+  --sgc-info: #0284c7;
+  --sgc-info-light: #e0f2fe;
+
+  // Surface & backgrounds
+  --sgc-bg: #f0f4f8;
+  --sgc-surface: #ffffff;
+  --sgc-surface-hover: #f8fafc;
+  --sgc-border: #e2e8f0;
+  --sgc-border-active: var(--sgc-primary-mid);
+
+  // Sidebar
+  --sgc-sidebar-bg: #1a2e44;
+  --sgc-sidebar-hover: #243d58;
+  --sgc-sidebar-active: #1f4e79;
+  --sgc-sidebar-text: #ffffff;
+  --sgc-sidebar-text-muted: #94b4cc;
+  --sgc-sidebar-width: 240px;
+  --sgc-sidebar-collapsed-width: 60px;
+
+  // Header
+  --sgc-header-height: 60px;
+
+  // Text
+  --sgc-text: #1e293b;
+  --sgc-text-secondary: #64748b;
+  --sgc-text-muted: #94a3b8;
+
+  // Typography — using system fonts until custom fonts are added
+  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+
+  // Shadows
+  --sgc-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --sgc-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --sgc-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --sgc-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  // Radius
+  --sgc-radius-sm: 4px;
+  --sgc-radius: 8px;
+  --sgc-radius-md: 10px;
+  --sgc-radius-lg: 14px;
+
+  // Transitions
+  --sgc-transition: all 0.2s ease;
+  --sgc-transition-fast: all 0.15s ease;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--sgc-text);
+  background: var(--sgc-bg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--sgc-primary-mid);
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+}
+
+// Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--sgc-border);
+  border-radius: 3px;
+
+  &:hover {
+    background: var(--sgc-text-muted);
+  }
+}
+
+// Global utility classes
+.sgc-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
+  box-shadow: var(--sgc-shadow-sm);
+}
+
+.sgc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &--success {
+    background: var(--sgc-success-light);
+    color: var(--sgc-success);
+  }
+
+  &--danger {
+    background: var(--sgc-danger-light);
+    color: var(--sgc-danger);
+  }
+
+  &--warning {
+    background: var(--sgc-warning-light);
+    color: var(--sgc-warning);
+  }
+
+  &--info {
+    background: var(--sgc-info-light);
+    color: var(--sgc-info);
+  }
+
+  &--neutral {
+    background: var(--sgc-border);
+    color: var(--sgc-text-secondary);
+  }
+}
+
+.sgc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--sgc-radius);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  transition: var(--sgc-transition-fast);
+
+  &--primary {
+    background: var(--sgc-primary);
+    color: #fff;
+
+    &:hover {
+      background: var(--sgc-primary-mid);
+    }
+  }
+
+  &--secondary {
+    background: var(--sgc-border);
+    color: var(--sgc-text);
+
+    &:hover {
+      background: #d1d9e0;
+    }
+  }
+
+  &--danger {
+    background: var(--sgc-danger);
+    color: #fff;
+
+    &:hover {
+      background: #a93226;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--sgc-text-secondary);
+    border: 1px solid var(--sgc-border);
+
+    &:hover {
+      background: var(--sgc-surface-hover);
+      color: var(--sgc-text);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Form field global styles
+.sgc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sgc-text-secondary);
+
+    .required {
+      color: var(--sgc-danger);
+      margin-left: 2px;
+    }
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    font-size: 14px;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    transition: border-color 0.15s ease;
+    outline: none;
+
+    &:focus {
+      border-color: var(--sgc-primary-mid);
+      box-shadow: 0 0 0 3px rgb(46 117 182 / 0.15);
+    }
+
+    &.invalid {
+      border-color: var(--sgc-danger);
+    }
+  }
+
+  .field-error {
+    font-size: 12px;
+    color: var(--sgc-danger);
+  }
+}

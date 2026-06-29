@@ -1,0 +1,388 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Artículos</h1>
+    <span class="page-count">{{ filtered().length }} artículo{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo artículo
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por nombre o código…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar artículos"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedCategory() ?? ''"
+      (change)="onCategoryChange($any($event.target).value)"
+      aria-label="Filtrar por categoría"
+    >
+      <option value="">Todas las categorías</option>
+      @for (cat of categories(); track cat.id) {
+        <option [value]="cat.id">{{ cat.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedStatus()"
+      (change)="onStatusChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="inactive">Inactivos</option>
+    </select>
+  </div>
+
+  @if (searchQuery() || selectedCategory() || selectedStatus() !== 'all') {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando artículos…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+      </svg>
+      <p>
+        @if (searchQuery() || selectedCategory() || selectedStatus() !== 'all') {
+          No se encontraron artículos con los filtros aplicados.
+        } @else {
+          No hay artículos registrados. Crea el primero.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de artículos">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Unidad</th>
+            <th class="text-right">Stock actual</th>
+            <th class="text-right">Stock mín.</th>
+            <th>Estado</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (art of paginated(); track art.id) {
+            <tr [class.row--inactive]="!art.activo">
+              <td>
+                <code class="code-tag">{{ art.codigo }}</code>
+              </td>
+              <td>
+                <span class="article-name">{{ art.nombre }}</span>
+                @if (art.descripcion) {
+                  <span class="article-desc">{{ art.descripcion }}</span>
+                }
+              </td>
+              <td>{{ art.categoria?.nombre ?? getCategoryName(art.categoria_id) }}</td>
+              <td>{{ art.unidad }}</td>
+              <td class="text-right">
+                <span
+                  class="stock-value"
+                  [class.stock-value--low]="getStockStatus(art) === 'low'"
+                >
+                  {{ getStock(art.id) | number:'1.0-2' }}
+                </span>
+              </td>
+              <td class="text-right text-muted">{{ art.stock_minimo | number:'1.0-2' }}</td>
+              <td>
+                @switch (getStockStatus(art)) {
+                  @case ('low') {
+                    <span class="sgc-badge sgc-badge--warning">Stock bajo</span>
+                  }
+                  @case ('inactive') {
+                    <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+                  }
+                  @default {
+                    <span class="sgc-badge sgc-badge--success">Activo</span>
+                  }
+                }
+              </td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="action-btn action-btn--edit"
+                    (click)="openEdit(art)"
+                    aria-label="Editar {{ art.nombre }}"
+                    title="Editar"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn"
+                    [class.action-btn--deactivate]="art.activo"
+                    [class.action-btn--activate]="!art.activo"
+                    (click)="toggleActivo(art)"
+                    [attr.aria-label]="(art.activo ? 'Desactivar' : 'Activar') + ' ' + art.nombre"
+                    [title]="art.activo ? 'Desactivar' : 'Activar'"
+                  >
+                    @if (art.activo) {
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                      </svg>
+                    } @else {
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="9 11 12 14 22 4"/>
+                      </svg>
+                    }
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination ── -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination__info">
+          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
+          de {{ filtered().length }}
+        </span>
+        <div class="pagination__controls">
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() - 1)"
+            [disabled]="currentPage() === 1"
+            aria-label="Página anterior"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          @for (p of pages; track p) {
+            <button
+              class="page-btn"
+              type="button"
+              (click)="goToPage(p)"
+              [class.page-btn--active]="p === currentPage()"
+            >{{ p }}</button>
+          }
+
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() + 1)"
+            [disabled]="currentPage() === totalPages()"
+            aria-label="Página siguiente"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="codigo">Código <span class="required">*</span></label>
+        <input
+          id="codigo"
+          type="text"
+          formControlName="codigo"
+          placeholder="Ej: ACE-001"
+          [class.invalid]="f.codigo.invalid && f.codigo.touched"
+        />
+        @if (f.codigo.invalid && f.codigo.touched) {
+          <span class="field-error">El código es obligatorio.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="unidad">Unidad <span class="required">*</span></label>
+        <select
+          id="unidad"
+          formControlName="unidad"
+          [class.invalid]="f.unidad.invalid && f.unidad.touched"
+        >
+          <option value="">Seleccionar…</option>
+          @for (u of UNIDADES; track u.value) {
+            <option [value]="u.value">{{ u.label }}</option>
+          }
+        </select>
+        @if (f.unidad.invalid && f.unidad.touched) {
+          <span class="field-error">La unidad es obligatoria.</span>
+        }
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="nombre">Nombre <span class="required">*</span></label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        placeholder="Nombre del artículo"
+        [class.invalid]="f.nombre.invalid && f.nombre.touched"
+      />
+      @if (f.nombre.invalid && f.nombre.touched) {
+        <span class="field-error">El nombre es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="descripcion">Descripción</label>
+      <textarea
+        id="descripcion"
+        formControlName="descripcion"
+        rows="3"
+        placeholder="Descripción opcional del artículo…"
+      ></textarea>
+    </div>
+
+    <div class="sgc-field">
+      <label for="categoria_id">Categoría <span class="required">*</span></label>
+      <select
+        id="categoria_id"
+        formControlName="categoria_id"
+        [class.invalid]="f.categoria_id.invalid && f.categoria_id.touched"
+      >
+        <option [value]="null">Seleccionar categoría…</option>
+        @for (cat of categories(); track cat.id) {
+          <option [value]="cat.id">{{ cat.label }}</option>
+        }
+      </select>
+      @if (f.categoria_id.invalid && f.categoria_id.touched) {
+        <span class="field-error">La categoría es obligatoria.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="stock_minimo">Stock mínimo <span class="required">*</span></label>
+        <input
+          id="stock_minimo"
+          type="number"
+          formControlName="stock_minimo"
+          min="0"
+          step="0.01"
+          [class.invalid]="f.stock_minimo.invalid && f.stock_minimo.touched"
+        />
+        @if (f.stock_minimo.invalid && f.stock_minimo.touched) {
+          <span class="field-error">Debe ser 0 o mayor.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="stock_maximo">Stock máximo</label>
+        <input
+          id="stock_maximo"
+          type="number"
+          formControlName="stock_maximo"
+          min="0"
+          step="0.01"
+          placeholder="Sin límite"
+        />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="precio_estimado">Precio unitario estimado (DOP)</label>
+      <input
+        id="precio_estimado"
+        type="number"
+        formControlName="precio_estimado"
+        min="0"
+        step="0.01"
+        placeholder="0.00"
+      />
+    </div>
+
+    <div class="form-toggle">
+      <label class="toggle-label" for="activo">
+        <input
+          id="activo"
+          type="checkbox"
+          formControlName="activo"
+          class="toggle-input"
+        />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Artículo activo
+      </label>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          {{ editingId() ? 'Guardar cambios' : 'Crear artículo' }}
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>
