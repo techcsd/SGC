@@ -1,0 +1,221 @@
+<!-- Page header -->
+<div class="admin-usuarios__header">
+  <div class="admin-usuarios__title">
+    <h1>Gestión de Usuarios</h1>
+    <p>Administra los accesos y roles del sistema</p>
+  </div>
+</div>
+
+<!-- Notice: creating users requires backend -->
+<div class="admin-usuarios__notice">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+  <span>Para crear nuevos usuarios, regístralos primero en Supabase Authentication y luego aparecerán aquí automáticamente.</span>
+</div>
+
+<!-- Filters -->
+<div class="admin-usuarios__filters">
+  <input
+    class="admin-usuarios__search"
+    type="search"
+    placeholder="Buscar por nombre o correo..."
+    [value]="searchQuery()"
+    (input)="onSearch($any($event.target).value)"
+    aria-label="Buscar usuarios"
+  />
+  <select
+    class="admin-usuarios__select"
+    [value]="selectedStatus()"
+    (change)="onStatusChange($any($event.target).value)"
+    aria-label="Filtrar por estado"
+  >
+    <option value="all">Todos los estados</option>
+    <option value="active">Activos</option>
+    <option value="inactive">Inactivos</option>
+  </select>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="admin-usuarios__loading" aria-live="polite">
+    <div class="admin-usuarios__spinner" aria-hidden="true"></div>
+    <span>Cargando usuarios...</span>
+  </div>
+}
+
+<!-- Error -->
+@if (error()) {
+  <div class="admin-usuarios__error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- Table -->
+@if (!loading() && !error()) {
+  <div class="admin-usuarios__table-wrap">
+    <table class="admin-usuarios__table" aria-label="Lista de usuarios">
+      <thead>
+        <tr>
+          <th scope="col">Usuario</th>
+          <th scope="col">Correo</th>
+          <th scope="col">Roles</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Miembro desde</th>
+          <th scope="col"><span class="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (usuario of filtered(); track usuario.id) {
+          <tr [class.inactive]="!usuario.activo">
+            <td class="admin-usuarios__name-cell">
+              <div class="admin-usuarios__avatar" aria-hidden="true">
+                {{ usuario.nombre[0]?.toUpperCase() }}
+              </div>
+              <span>{{ usuario.nombre }}</span>
+            </td>
+            <td class="admin-usuarios__email">{{ usuario.email }}</td>
+            <td>
+              <div class="admin-usuarios__roles">
+                @for (ur of usuario.roles; track ur.rol.id) {
+                  <span class="sgc-badge sgc-badge--info">{{ ur.rol.nombre }}</span>
+                } @empty {
+                  <span class="sgc-badge sgc-badge--neutral">Sin rol</span>
+                }
+              </div>
+            </td>
+            <td>
+              @if (usuario.activo) {
+                <span class="sgc-badge sgc-badge--success">Activo</span>
+              } @else {
+                <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+              }
+            </td>
+            <td class="admin-usuarios__date">
+              {{ usuario.created_at | date:'dd MMM yyyy' }}
+            </td>
+            <td class="admin-usuarios__actions">
+              <button
+                class="sgc-btn sgc-btn--ghost admin-usuarios__btn-edit"
+                type="button"
+                (click)="openEdit(usuario)"
+                [attr.aria-label]="'Editar ' + usuario.nombre"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Editar
+              </button>
+              <button
+                class="admin-usuarios__toggle"
+                type="button"
+                (click)="toggleActivo(usuario)"
+                [class.active]="usuario.activo"
+                [attr.aria-label]="(usuario.activo ? 'Desactivar ' : 'Activar ') + usuario.nombre"
+                [attr.aria-pressed]="usuario.activo"
+              >
+                <span class="admin-usuarios__toggle-knob"></span>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="admin-usuarios__empty">
+              No se encontraron usuarios con los filtros aplicados.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="admin-usuarios__count">
+    {{ filtered().length }} usuario{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+  </p>
+}
+
+<!-- Edit Drawer -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+
+    <!-- Name -->
+    <div class="sgc-field">
+      <label for="nombre">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        [class.invalid]="f.nombre.invalid && f.nombre.touched"
+        autocomplete="name"
+        aria-required="true"
+      />
+      @if (f.nombre.invalid && f.nombre.touched) {
+        <span class="field-error" role="alert">El nombre es requerido.</span>
+      }
+    </div>
+
+    <!-- Status -->
+    <div class="sgc-field">
+      <label>Estado de la cuenta</label>
+      <div class="admin-usuarios__status-toggle">
+        <button
+          type="button"
+          class="admin-usuarios__status-btn"
+          [class.active]="f.activo.value"
+          (click)="f.activo.setValue(!f.activo.value)"
+          [attr.aria-pressed]="f.activo.value"
+        >
+          <span class="admin-usuarios__status-knob"></span>
+        </button>
+        <span>{{ f.activo.value ? 'Cuenta activa' : 'Cuenta inactiva' }}</span>
+      </div>
+    </div>
+
+    <!-- Roles -->
+    <div class="admin-usuarios__roles-section">
+      <p class="admin-usuarios__roles-label">Roles asignados</p>
+      <div class="admin-usuarios__roles-grid" role="group" aria-label="Seleccionar roles">
+        @for (rol of roles(); track rol.id) {
+          <label class="admin-usuarios__role-option" [class.selected]="isRolSelected(rol.id)">
+            <input
+              type="checkbox"
+              [checked]="isRolSelected(rol.id)"
+              (change)="toggleRol(rol.id)"
+              [attr.aria-label]="rol.nombre"
+            />
+            <div class="admin-usuarios__role-info">
+              <span class="admin-usuarios__role-name">{{ rol.nombre }}</span>
+              <span class="admin-usuarios__role-code">{{ rol.codigo }}</span>
+            </div>
+          </label>
+        }
+      </div>
+    </div>
+
+    <!-- Save error -->
+    @if (saveError()) {
+      <p class="admin-usuarios__save-error" role="alert">{{ saveError() }}</p>
+    }
+
+    <!-- Actions -->
+    <div class="admin-usuarios__drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { Guardando... } @else { Guardar cambios }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

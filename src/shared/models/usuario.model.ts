@@ -3,6 +3,7 @@ export interface Rol {
   codigo: string;
   nombre: string;
   modulos: string[];
+  descripcion?: string | null;
 }
 
 export interface UsuarioRol {

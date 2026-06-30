@@ -1,0 +1,268 @@
+<!-- Header -->
+<div class="flota-vehiculos__header">
+  <div class="flota-vehiculos__title">
+    <h1>Flota de Vehículos</h1>
+    <p>Gestiona los vehículos y maquinaria de la empresa</p>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Agregar vehículo
+  </button>
+</div>
+
+<!-- DB not ready notice -->
+@if (dbNotReady()) {
+  <div class="flota-vehiculos__setup-notice">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+    </svg>
+    <div>
+      <strong>Tabla de vehículos no configurada</strong>
+      <p>Ejecuta el SQL del archivo <code>vehiculos.service.ts</code> en el SQL Editor de Supabase para habilitar este módulo.</p>
+    </div>
+  </div>
+}
+
+<!-- Filters -->
+@if (!dbNotReady()) {
+  <div class="flota-vehiculos__filters">
+    <input
+      class="flota-vehiculos__search"
+      type="search"
+      placeholder="Buscar por placa, marca o modelo..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar vehículos"
+    />
+    <select
+      class="flota-vehiculos__select"
+      [value]="selectedTipo()"
+      (change)="onTipoChange($any($event.target).value)"
+      aria-label="Filtrar por tipo"
+    >
+      <option value="">Todos los tipos</option>
+      @for (t of TIPOS; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+    <select
+      class="flota-vehiculos__select"
+      [value]="selectedEstado()"
+      (change)="onEstadoChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (e of ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+  </div>
+}
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="flota-vehiculos__loading" aria-live="polite">
+    <div class="flota-vehiculos__spinner" aria-hidden="true"></div>
+    <span>Cargando vehículos...</span>
+  </div>
+}
+
+<!-- Error -->
+@if (error()) {
+  <div class="flota-vehiculos__error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- Grid -->
+@if (!loading() && !error() && !dbNotReady()) {
+  @if (filtered().length === 0) {
+    <div class="flota-vehiculos__empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 6v4h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+      <p>No hay vehículos registrados</p>
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+        Agregar primer vehículo
+      </button>
+    </div>
+  } @else {
+    <div class="flota-vehiculos__grid">
+      @for (v of filtered(); track v.id) {
+        <div class="flota-vehiculos__card" [class.inactive]="!v.activo">
+          <div class="flota-vehiculos__card-header">
+            <div class="flota-vehiculos__card-tipo">
+              <span class="flota-vehiculos__tipo-icon" aria-hidden="true">🚛</span>
+              <span class="flota-vehiculos__tipo-label">{{ getTipoLabel(v.tipo) }}</span>
+            </div>
+            <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(v.estado)">
+              {{ v.estado === 'activo' ? 'Activo' : v.estado === 'mantenimiento' ? 'Mantenimiento' : 'Baja' }}
+            </span>
+          </div>
+
+          <div class="flota-vehiculos__card-body">
+            <p class="flota-vehiculos__placa">{{ v.placa }}</p>
+            <p class="flota-vehiculos__name">{{ v.marca }} {{ v.modelo }}</p>
+            <p class="flota-vehiculos__anio">Año {{ v.anio }}</p>
+          </div>
+
+          <div class="flota-vehiculos__card-stats">
+            <div class="flota-vehiculos__stat">
+              <span class="flota-vehiculos__stat-label">Kilometraje</span>
+              <span class="flota-vehiculos__stat-value">{{ v.kilometraje | number }} km</span>
+            </div>
+            @if (v.capacidad_carga) {
+              <div class="flota-vehiculos__stat">
+                <span class="flota-vehiculos__stat-label">Capacidad</span>
+                <span class="flota-vehiculos__stat-value">{{ v.capacidad_carga }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="flota-vehiculos__card-actions">
+            <button
+              class="sgc-btn sgc-btn--ghost"
+              type="button"
+              (click)="openEdit(v)"
+              [attr.aria-label]="'Editar ' + v.placa"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar
+            </button>
+            <button
+              class="flota-vehiculos__toggle"
+              type="button"
+              [class.active]="v.activo"
+              (click)="toggleActivo(v)"
+              [attr.aria-label]="(v.activo ? 'Desactivar ' : 'Activar ') + v.placa"
+              [attr.aria-pressed]="v.activo"
+            >
+              <span class="flota-vehiculos__toggle-knob"></span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <p class="flota-vehiculos__count">
+      {{ filtered().length }} vehículo{{ filtered().length !== 1 ? 's' : '' }}
+    </p>
+  }
+}
+
+<!-- Drawer -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="placa">Placa <span class="required" aria-hidden="true">*</span></label>
+        <input id="placa" type="text" formControlName="placa"
+          [class.invalid]="f.placa.invalid && f.placa.touched"
+          placeholder="Ej: A123BC" aria-required="true" style="text-transform:uppercase" />
+        @if (f.placa.invalid && f.placa.touched) {
+          <span class="field-error" role="alert">La placa es requerida.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="anio">Año <span class="required" aria-hidden="true">*</span></label>
+        <input id="anio" type="number" formControlName="anio"
+          [class.invalid]="f.anio.invalid && f.anio.touched" aria-required="true" />
+        @if (f.anio.invalid && f.anio.touched) {
+          <span class="field-error" role="alert">Año inválido.</span>
+        }
+      </div>
+    </div>
+
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="marca">Marca <span class="required" aria-hidden="true">*</span></label>
+        <input id="marca" type="text" formControlName="marca"
+          [class.invalid]="f.marca.invalid && f.marca.touched" aria-required="true" />
+        @if (f.marca.invalid && f.marca.touched) {
+          <span class="field-error" role="alert">La marca es requerida.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="modelo">Modelo <span class="required" aria-hidden="true">*</span></label>
+        <input id="modelo" type="text" formControlName="modelo"
+          [class.invalid]="f.modelo.invalid && f.modelo.touched" aria-required="true" />
+        @if (f.modelo.invalid && f.modelo.touched) {
+          <span class="field-error" role="alert">El modelo es requerido.</span>
+        }
+      </div>
+    </div>
+
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="tipo">Tipo <span class="required" aria-hidden="true">*</span></label>
+        <select id="tipo" formControlName="tipo" aria-required="true">
+          @for (t of TIPOS; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="sgc-field">
+        <label for="estado">Estado <span class="required" aria-hidden="true">*</span></label>
+        <select id="estado" formControlName="estado" aria-required="true">
+          @for (e of ESTADOS; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="color">Color</label>
+        <input id="color" type="text" formControlName="color" placeholder="Ej: Blanco" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="kilometraje">Kilometraje <span class="required" aria-hidden="true">*</span></label>
+        <input id="kilometraje" type="number" formControlName="kilometraje" min="0" aria-required="true" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="capacidad">Capacidad de carga</label>
+      <input id="capacidad" type="text" formControlName="capacidad_carga"
+        placeholder="Ej: 10 toneladas" />
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea id="notas" formControlName="notas" rows="3"
+        placeholder="Observaciones sobre el vehículo..."></textarea>
+    </div>
+
+    @if (saveError()) {
+      <p class="flota-vehiculos__save-error" role="alert">{{ saveError() }}</p>
+    }
+
+    <div class="flota-vehiculos__drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { Guardando... } @else { Guardar }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

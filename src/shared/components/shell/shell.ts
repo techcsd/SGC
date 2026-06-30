@@ -82,7 +82,13 @@ export class Shell implements OnInit {
       label: 'Flota',
       icon: 'fleet',
       modulo: 'flota',
-      phase: 'Fase 3',
+      children: [
+        { label: 'Vehículos', route: '/flota/vehiculos' },
+        { label: 'Mantenimientos', route: '/flota/mantenimientos' },
+        { label: 'Conductores', route: '/flota/conductores' },
+        { label: 'Combustible', route: '/flota/combustible' },
+        { label: 'Reportes', route: '/flota/reportes' },
+      ],
     },
   ];
 

@@ -28,6 +28,11 @@ export const routes: Routes = [
         canActivate: [moduleGuard('admin')],
         loadChildren: () => import('./pages/admin/admin.routes').then((m) => m.adminRoutes),
       },
+      {
+        path: 'flota',
+        canActivate: [moduleGuard('flota')],
+        loadChildren: () => import('./pages/flota/flota.routes').then((m) => m.flotaRoutes),
+      },
     ],
   },
   {
