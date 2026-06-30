@@ -18,11 +18,11 @@
   gap: 6px;
 
   &--active {
-    border-color: var(--sgc-success, #22c55e);
+    border-color: var(--sgc-success);
   }
 
   &--contract {
-    border-color: var(--sgc-warning, #f59e0b);
+    border-color: var(--sgc-warning);
   }
 }
 

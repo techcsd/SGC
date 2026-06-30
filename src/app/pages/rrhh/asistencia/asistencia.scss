@@ -68,19 +68,19 @@
   flex: 1;
 
   &--presente {
-    border-left: 3px solid var(--sgc-success, #22c55e);
+    border-left: 3px solid var(--sgc-success);
   }
 
   &--ausente {
-    border-left: 3px solid var(--sgc-danger, #ef4444);
+    border-left: 3px solid var(--sgc-danger);
   }
 
   &--tardanza {
-    border-left: 3px solid var(--sgc-warning, #f59e0b);
+    border-left: 3px solid var(--sgc-warning);
   }
 
   &--permiso {
-    border-left: 3px solid var(--sgc-info, #3b82f6);
+    border-left: 3px solid var(--sgc-info);
   }
 }
 
@@ -103,10 +103,10 @@
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: color-mix(in srgb, var(--sgc-danger, #ef4444) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sgc-danger, #ef4444) 30%, transparent);
+  background: var(--sgc-danger-light);
+  border: 1px solid var(--sgc-danger);
   border-radius: 8px;
-  color: var(--sgc-danger, #ef4444);
+  color: var(--sgc-danger);
   font-size: 13px;
   margin-bottom: 16px;
 }
