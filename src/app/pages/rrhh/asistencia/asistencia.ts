@@ -112,7 +112,7 @@ export class Asistencia implements OnInit {
     this.drawerOpen.set(true);
   }
 
-  openEdit(registro: Asistencia) {
+  openEdit(registro: AsistenciaModel) {
     this.editingId.set(registro.id);
     this.saveError.set('');
     this.form.reset({
@@ -185,7 +185,7 @@ export class Asistencia implements OnInit {
     return this.registros().some((r) => r.empleado_id === empleadoId);
   }
 
-  getRegistroByEmpleado(empleadoId: string): Asistencia | undefined {
+  getRegistroByEmpleado(empleadoId: string): AsistenciaModel | undefined {
     return this.registros().find((r) => r.empleado_id === empleadoId);
   }
 
