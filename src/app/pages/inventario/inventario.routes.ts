@@ -13,37 +13,27 @@ export const inventarioRoutes: Routes = [
   },
   {
     path: 'activos',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Activos Fijos' },
+    loadComponent: () => import('./activos/activos').then((m) => m.Activos),
     title: 'Activos Fijos — Inventario',
   },
   {
     path: 'entradas',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Entradas' },
+    loadComponent: () => import('./entradas/entradas').then((m) => m.Entradas),
     title: 'Entradas — Inventario',
   },
   {
     path: 'salidas',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Salidas' },
+    loadComponent: () => import('./salidas/salidas').then((m) => m.Salidas),
     title: 'Salidas — Inventario',
   },
   {
     path: 'bodegas',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Bodegas' },
+    loadComponent: () => import('./bodegas/bodegas').then((m) => m.Bodegas),
     title: 'Bodegas — Inventario',
   },
   {
     path: 'reportes',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Reportes' },
+    loadComponent: () => import('./reportes/reportes').then((m) => m.Reportes),
     title: 'Reportes — Inventario',
   },
 ];

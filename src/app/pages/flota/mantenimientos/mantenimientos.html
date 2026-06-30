@@ -1,0 +1,317 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Mantenimientos</h1>
+    <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo mantenimiento
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por vehículo o proveedor…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar mantenimientos"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedTipo()"
+      (change)="onTipoChange($any($event.target).value)"
+      aria-label="Filtrar por tipo"
+    >
+      <option value="">Todos los tipos</option>
+      @for (t of MANT_TIPOS; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedEstado()"
+      (change)="onEstadoChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (e of MANT_ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (searchQuery() || selectedTipo() || selectedEstado()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando mantenimientos…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+      </svg>
+      <p>
+        @if (searchQuery() || selectedTipo() || selectedEstado()) {
+          No se encontraron mantenimientos con los filtros aplicados.
+        } @else {
+          No hay mantenimientos registrados. Crea el primero.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de mantenimientos">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Vehículo</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th class="text-right">Costo (DOP)</th>
+            <th>Proveedor</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of paginated(); track m.id) {
+            <tr>
+              <td class="mantenimientos__fecha">{{ m.fecha }}</td>
+              <td>
+                <span class="mantenimientos__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
+                @if (m.vehiculo) {
+                  <span class="mantenimientos__vehiculo-sub">{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}</span>
+                }
+              </td>
+              <td>{{ getTipoLabel(m.tipo) }}</td>
+              <td>
+                <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) }}</span>
+              </td>
+              <td class="text-right">
+                @if (m.costo !== null) {
+                  {{ m.costo | number:'1.2-2' }}
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td>{{ m.proveedor ?? '—' }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="action-btn action-btn--edit"
+                    (click)="openEdit(m)"
+                    [attr.aria-label]="'Editar mantenimiento del ' + m.fecha"
+                    title="Editar"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination ── -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination__info">
+          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
+          de {{ filtered().length }}
+        </span>
+        <div class="pagination__controls">
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() - 1)"
+            [disabled]="currentPage() === 1"
+            aria-label="Página anterior"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          @for (p of pages; track p) {
+            <button
+              class="page-btn"
+              type="button"
+              (click)="goToPage(p)"
+              [class.page-btn--active]="p === currentPage()"
+            >{{ p }}</button>
+          }
+
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() + 1)"
+            [disabled]="currentPage() === totalPages()"
+            aria-label="Página siguiente"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
+      <select
+        id="vehiculo_id"
+        formControlName="vehiculo_id"
+        [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
+      >
+        <option value="">Seleccionar vehículo…</option>
+        @for (v of vehiculos(); track v.id) {
+          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
+        }
+      </select>
+      @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
+        <span class="field-error">El vehículo es obligatorio.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="tipo">Tipo <span class="required">*</span></label>
+        <select
+          id="tipo"
+          formControlName="tipo"
+          [class.invalid]="f.tipo.invalid && f.tipo.touched"
+        >
+          @for (t of MANT_TIPOS; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="sgc-field">
+        <label for="estado">Estado <span class="required">*</span></label>
+        <select id="estado" formControlName="estado">
+          @for (e of MANT_ESTADOS; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="fecha">Fecha <span class="required">*</span></label>
+      <input
+        id="fecha"
+        type="date"
+        formControlName="fecha"
+        [class.invalid]="f.fecha.invalid && f.fecha.touched"
+      />
+      @if (f.fecha.invalid && f.fecha.touched) {
+        <span class="field-error">La fecha es obligatoria.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="descripcion">Descripción <span class="required">*</span></label>
+      <textarea
+        id="descripcion"
+        formControlName="descripcion"
+        rows="3"
+        placeholder="Descripción del mantenimiento…"
+        [class.invalid]="f.descripcion.invalid && f.descripcion.touched"
+      ></textarea>
+      @if (f.descripcion.invalid && f.descripcion.touched) {
+        <span class="field-error">La descripción es obligatoria.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="costo">Costo (DOP)</label>
+        <input id="costo" type="number" formControlName="costo" min="0" step="0.01" placeholder="0.00" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="kilometraje_al_mantenimiento">Kilometraje</label>
+        <input id="kilometraje_al_mantenimiento" type="number" formControlName="kilometraje_al_mantenimiento" min="0" placeholder="km" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="proveedor">Proveedor / Taller</label>
+      <input id="proveedor" type="text" formControlName="proveedor" placeholder="Nombre del taller o proveedor" />
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          {{ editingId() ? 'Guardar cambios' : 'Crear mantenimiento' }}
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

@@ -1,0 +1,168 @@
+// ── Summary cards ─────────────────────────────────────────
+.empleados__summary {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+
+.empleados__summary-card {
+  flex: 1;
+  min-width: 140px;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &--active {
+    border-color: var(--sgc-success, #22c55e);
+  }
+
+  &--contract {
+    border-color: var(--sgc-warning, #f59e0b);
+  }
+}
+
+.empleados__summary-label {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.empleados__summary-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  line-height: 1;
+}
+
+// ── Page header ──────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  &__left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  letter-spacing: -0.02em;
+}
+
+.page-count {
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+}
+
+// ── Filters ──────────────────────────────────────────────
+.filters-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+
+  &__search {
+    flex: 1;
+    min-width: 200px;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  &__select {
+    min-width: 170px;
+
+    select {
+      width: 100%;
+    }
+  }
+
+  &__clear {
+    flex-shrink: 0;
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}
+
+// ── Error ────────────────────────────────────────────────
+.page-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--sgc-danger, #ef4444) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sgc-danger, #ef4444) 30%, transparent);
+  border-radius: 8px;
+  color: var(--sgc-danger, #ef4444);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+// ── Name cell ────────────────────────────────────────────
+.empleados__name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.empleados__name {
+  font-weight: 500;
+  color: var(--sgc-text);
+}
+
+.empleados__email {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+}
+
+.empleados__salary {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--sgc-text);
+}
+
+// ── Responsive ───────────────────────────────────────────
+@media (max-width: 768px) {
+  .empleados__summary {
+    gap: 10px;
+  }
+
+  .empleados__summary-card {
+    min-width: 100px;
+    padding: 12px 14px;
+  }
+
+  .empleados__summary-value {
+    font-size: 22px;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+
+    &__search,
+    &__select {
+      min-width: unset;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .empleados__summary {
+    flex-direction: column;
+  }
+}

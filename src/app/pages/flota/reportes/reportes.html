@@ -1,0 +1,190 @@
+<!-- Header -->
+<div class="flota-reportes__header">
+  <h1>Reportes de Flota</h1>
+  <p>Resumen del estado de vehículos, mantenimientos y combustible</p>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="flota-reportes__loading" aria-live="polite">
+    <div class="flota-reportes__spinner" aria-hidden="true"></div>
+    <span>Cargando reportes...</span>
+  </div>
+}
+
+<!-- Error -->
+@if (error()) {
+  <div class="flota-reportes__error" role="alert">{{ error() }}</div>
+}
+
+@if (!loading()) {
+  <!-- Summary cards -->
+  <div class="flota-reportes__summary">
+    <div class="flota-reportes__card flota-reportes__card--success">
+      <div class="flota-reportes__card-value">{{ totalActivos() }}</div>
+      <div class="flota-reportes__card-label">Vehículos activos</div>
+    </div>
+    <div class="flota-reportes__card flota-reportes__card--warning">
+      <div class="flota-reportes__card-value">{{ enMantenimiento() }}</div>
+      <div class="flota-reportes__card-label">En mantenimiento</div>
+    </div>
+    <div class="flota-reportes__card flota-reportes__card--info">
+      <div class="flota-reportes__card-value">{{ mantenimientosEsteMes() }}</div>
+      <div class="flota-reportes__card-label">Mantenimientos este mes</div>
+    </div>
+    <div class="flota-reportes__card flota-reportes__card--primary">
+      <div class="flota-reportes__card-value">RD$ {{ gastoCombustibleMes() | number:'1.0-0' }}</div>
+      <div class="flota-reportes__card-label">Combustible este mes</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Estado de la flota -->
+  <section class="flota-reportes__section" aria-labelledby="flota-estado-title">
+    <h2 id="flota-estado-title" class="flota-reportes__section-title">Estado de la Flota</h2>
+    @if (flotaOrdenada().length === 0) {
+      <p class="flota-reportes__empty">No hay vehículos registrados.</p>
+    } @else {
+      <div class="flota-reportes__table-wrap">
+        <table class="flota-reportes__table" aria-label="Estado de vehículos">
+          <thead>
+            <tr>
+              <th scope="col">Placa</th>
+              <th scope="col">Marca / Modelo</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Kilometraje</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of flotaOrdenada(); track v.id) {
+              <tr>
+                <td class="flota-reportes__placa">{{ v.placa }}</td>
+                <td>{{ v.marca }} {{ v.modelo }}</td>
+                <td>{{ getTipoLabel(v.tipo) }}</td>
+                <td>
+                  <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(v.estado)">
+                    {{ v.estado === 'activo' ? 'Activo' : v.estado === 'mantenimiento' ? 'Mantenimiento' : 'Baja' }}
+                  </span>
+                </td>
+                <td>{{ v.kilometraje | number }} km</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Section 2: Mantenimientos recientes -->
+  <section class="flota-reportes__section" aria-labelledby="mant-recientes-title">
+    <h2 id="mant-recientes-title" class="flota-reportes__section-title">Mantenimientos Recientes</h2>
+    @if (mantenimientosRecientes().length === 0) {
+      <p class="flota-reportes__empty">No hay mantenimientos registrados.</p>
+    } @else {
+      <div class="flota-reportes__table-wrap">
+        <table class="flota-reportes__table" aria-label="Mantenimientos recientes">
+          <thead>
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col">Vehículo</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Costo</th>
+              <th scope="col">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of mantenimientosRecientes(); track m.id) {
+              <tr>
+                <td>{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+                <td class="flota-reportes__placa">
+                  {{ m.vehiculo?.placa ?? '—' }}
+                  <span class="flota-reportes__sub">{{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }}</span>
+                </td>
+                <td>
+                  <span [class]="'sgc-badge sgc-badge--' + (m.tipo === 'emergencia' ? 'danger' : m.tipo === 'correctivo' ? 'warning' : 'info')">
+                    {{ m.tipo | titlecase }}
+                  </span>
+                </td>
+                <td class="flota-reportes__desc">{{ m.descripcion }}</td>
+                <td>{{ m.costo != null ? ('RD$ ' + (m.costo | number:'1.0-0')) : '—' }}</td>
+                <td>
+                  <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(m.estado)">
+                    {{ m.estado | titlecase }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Section 3: Combustible últimos 30 días -->
+  <section class="flota-reportes__section" aria-labelledby="combustible-title">
+    <h2 id="combustible-title" class="flota-reportes__section-title">Combustible — Últimos 30 días</h2>
+    @if (combustiblePorVehiculo().length === 0) {
+      <p class="flota-reportes__empty">No hay registros de combustible en los últimos 30 días.</p>
+    } @else {
+      <div class="flota-reportes__table-wrap">
+        <table class="flota-reportes__table" aria-label="Consumo de combustible por vehículo">
+          <thead>
+            <tr>
+              <th scope="col">Vehículo</th>
+              <th scope="col">Litros totales</th>
+              <th scope="col">Gasto total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of combustiblePorVehiculo(); track r.placa) {
+              <tr>
+                <td class="flota-reportes__placa">{{ r.placa }} <span class="flota-reportes__sub">{{ r.marca }}</span></td>
+                <td>{{ r.litros | number:'1.1-1' }} L</td>
+                <td>RD$ {{ r.gasto | number:'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="flota-reportes__total-row">
+              <td><strong>Total</strong></td>
+              <td><strong>{{ totalCombustibleLitros() | number:'1.1-1' }} L</strong></td>
+              <td><strong>RD$ {{ totalCombustibleGasto() | number:'1.0-0' }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Section 4: Pendientes -->
+  <section class="flota-reportes__section" aria-labelledby="pendientes-title">
+    <h2 id="pendientes-title" class="flota-reportes__section-title">Mantenimientos Pendientes</h2>
+    @if (mantenimientosPendientes().length === 0) {
+      <p class="flota-reportes__empty">No hay mantenimientos pendientes.</p>
+    } @else {
+      <div class="flota-reportes__table-wrap">
+        <table class="flota-reportes__table" aria-label="Mantenimientos pendientes">
+          <thead>
+            <tr>
+              <th scope="col">Vehículo</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Fecha programada</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of mantenimientosPendientes(); track m.id) {
+              <tr>
+                <td class="flota-reportes__placa">{{ m.vehiculo?.placa ?? '—' }}</td>
+                <td>{{ m.tipo | titlecase }}</td>
+                <td>{{ m.descripcion }}</td>
+                <td>{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

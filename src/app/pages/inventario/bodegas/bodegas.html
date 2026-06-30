@@ -1,0 +1,249 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Bodegas</h1>
+    <span class="page-count">{{ filtered().length }} bodega{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nueva bodega
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por nombre o ubicación…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar bodegas"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedStatus()"
+      (change)="onStatusChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="all">Todos los estados</option>
+      <option value="active">Activas</option>
+      <option value="inactive">Inactivas</option>
+    </select>
+  </div>
+
+  @if (searchQuery() || selectedStatus() !== 'all') {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando bodegas…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <p>
+        @if (searchQuery() || selectedStatus() !== 'all') {
+          No se encontraron bodegas con los filtros aplicados.
+        } @else {
+          No hay bodegas registradas. Crea la primera.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de bodegas">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Responsable</th>
+            <th>Estado</th>
+            <th>Fecha creación</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (bodega of paginated(); track bodega.id) {
+            <tr [class.row--inactive]="!bodega.activo">
+              <td>
+                <span class="bodega-nombre">{{ bodega.nombre }}</span>
+              </td>
+              <td class="text-muted">{{ bodega.ubicacion ?? '—' }}</td>
+              <td class="text-muted">{{ bodega.responsable?.nombre ?? '—' }}</td>
+              <td>
+                <label class="toggle-label toggle-label--inline" [attr.aria-label]="(bodega.activo ? 'Desactivar' : 'Activar') + ' ' + bodega.nombre">
+                  <input
+                    type="checkbox"
+                    class="toggle-input"
+                    [checked]="bodega.activo"
+                    (change)="toggleActivo(bodega)"
+                  />
+                  <span class="toggle-switch" aria-hidden="true"></span>
+                  <span class="toggle-text">{{ bodega.activo ? 'Activa' : 'Inactiva' }}</span>
+                </label>
+              </td>
+              <td class="text-muted">{{ bodega.created_at | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="action-btn action-btn--edit"
+                    (click)="openEdit(bodega)"
+                    [attr.aria-label]="'Editar ' + bodega.nombre"
+                    title="Editar"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination ── -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination__info">
+          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
+          de {{ filtered().length }}
+        </span>
+        <div class="pagination__controls">
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() - 1)"
+            [disabled]="currentPage() === 1"
+            aria-label="Página anterior"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          @for (p of pages; track p) {
+            <button
+              class="page-btn"
+              type="button"
+              (click)="goToPage(p)"
+              [class.page-btn--active]="p === currentPage()"
+            >{{ p }}</button>
+          }
+
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() + 1)"
+            [disabled]="currentPage() === totalPages()"
+            aria-label="Página siguiente"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="nombre">Nombre <span class="required">*</span></label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        placeholder="Ej: Bodega Principal"
+        [class.invalid]="f.nombre.invalid && f.nombre.touched"
+      />
+      @if (f.nombre.invalid && f.nombre.touched) {
+        <span class="field-error">El nombre es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="ubicacion">Ubicación</label>
+      <textarea
+        id="ubicacion"
+        formControlName="ubicacion"
+        rows="3"
+        placeholder="Dirección o descripción de la ubicación…"
+      ></textarea>
+    </div>
+
+    <div class="form-toggle">
+      <label class="toggle-label" for="activo">
+        <input
+          id="activo"
+          type="checkbox"
+          formControlName="activo"
+          class="toggle-input"
+        />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Bodega activa
+      </label>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          {{ editingId() ? 'Guardar cambios' : 'Crear bodega' }}
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

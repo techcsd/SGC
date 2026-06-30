@@ -1,0 +1,109 @@
+<!-- Header -->
+<div class="rrhh-reportes__header">
+  <h1>Reportes de RRHH</h1>
+  <p>Análisis de personal, asistencia y nómina — últimos 30 días</p>
+</div>
+
+@if (loading()) {
+  <div class="rrhh-reportes__loading" aria-live="polite">
+    <div class="rrhh-reportes__spinner" aria-hidden="true"></div>
+    <span>Cargando reportes...</span>
+  </div>
+}
+
+@if (error()) {
+  <div class="rrhh-reportes__error" role="alert">{{ error() }}</div>
+}
+
+@if (!loading()) {
+  <!-- Summary cards -->
+  <div class="rrhh-reportes__summary">
+    <div class="rrhh-reportes__card rrhh-reportes__card--primary">
+      <div class="rrhh-reportes__card-value">{{ empleadosActivos() }}</div>
+      <div class="rrhh-reportes__card-label">Empleados activos</div>
+    </div>
+    <div class="rrhh-reportes__card rrhh-reportes__card--info">
+      <div class="rrhh-reportes__card-value">{{ totalEmpleados() }}</div>
+      <div class="rrhh-reportes__card-label">Total registrados</div>
+    </div>
+    <div class="rrhh-reportes__card rrhh-reportes__card--success">
+      <div class="rrhh-reportes__card-value">RD$ {{ salarioMasaNominal() | number:'1.0-0' }}</div>
+      <div class="rrhh-reportes__card-label">Masa salarial nominal</div>
+    </div>
+    <div class="rrhh-reportes__card rrhh-reportes__card--warning">
+      <div class="rrhh-reportes__card-value">{{ contratosTemporales() }}</div>
+      <div class="rrhh-reportes__card-label">Contratos no indefinidos</div>
+    </div>
+  </div>
+
+  <!-- Asistencia 30 días -->
+  <section class="rrhh-reportes__section" aria-labelledby="asistencia-title">
+    <h2 id="asistencia-title" class="rrhh-reportes__section-title">Asistencia — Últimos 30 días</h2>
+    <div class="rrhh-reportes__asist-grid">
+      <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--success">
+        <div class="rrhh-reportes__asist-count">{{ asistenciaStats().presente }}</div>
+        <div class="rrhh-reportes__asist-label">Presente</div>
+      </div>
+      <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--warning">
+        <div class="rrhh-reportes__asist-count">{{ asistenciaStats().tardanza }}</div>
+        <div class="rrhh-reportes__asist-label">Tardanza</div>
+      </div>
+      <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--danger">
+        <div class="rrhh-reportes__asist-count">{{ asistenciaStats().ausente }}</div>
+        <div class="rrhh-reportes__asist-label">Ausente</div>
+      </div>
+      <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--info">
+        <div class="rrhh-reportes__asist-count">{{ asistenciaStats().permiso }}</div>
+        <div class="rrhh-reportes__asist-label">Permiso</div>
+      </div>
+      <div class="rrhh-reportes__asist-card rrhh-reportes__asist-card--neutral">
+        <div class="rrhh-reportes__asist-count">{{ asistenciaStats().feriado }}</div>
+        <div class="rrhh-reportes__asist-label">Feriado</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Departamentos -->
+  <section class="rrhh-reportes__section" aria-labelledby="dept-title">
+    <h2 id="dept-title" class="rrhh-reportes__section-title">Empleados por Departamento</h2>
+    @if (deptStats().length === 0) {
+      <p class="rrhh-reportes__empty">Sin datos de departamentos.</p>
+    } @else {
+      <div class="rrhh-reportes__table-wrap">
+        <table class="rrhh-reportes__table" aria-label="Empleados por departamento">
+          <thead>
+            <tr>
+              <th scope="col">Departamento</th>
+              <th scope="col">Total</th>
+              <th scope="col">Activos</th>
+              <th scope="col">Salario promedio</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of deptStats(); track d.departamento) {
+              <tr>
+                <td class="rrhh-reportes__dept-name">{{ d.departamento }}</td>
+                <td>{{ d.total }}</td>
+                <td>{{ d.activos }}</td>
+                <td>RD$ {{ d.salarioPromedio | number:'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Tipo de contrato -->
+  <section class="rrhh-reportes__section" aria-labelledby="contrato-title">
+    <h2 id="contrato-title" class="rrhh-reportes__section-title">Distribución por Contrato</h2>
+    <div class="rrhh-reportes__contrato-grid">
+      @for (c of contratoStats(); track c.label) {
+        <div class="rrhh-reportes__contrato-card">
+          <div class="rrhh-reportes__contrato-count">{{ c.value }}</div>
+          <div class="rrhh-reportes__contrato-label">{{ c.label }}</div>
+        </div>
+      }
+    </div>
+  </section>
+}

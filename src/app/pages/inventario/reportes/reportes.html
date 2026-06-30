@@ -1,0 +1,271 @@
+<!-- Page header -->
+<div class="inv-reportes__header">
+  <div class="inv-reportes__header-left">
+    <h1 class="inv-reportes__title">Reportes de Inventario</h1>
+    <span class="inv-reportes__subtitle">Resumen general del estado del inventario</span>
+  </div>
+</div>
+
+<!-- Error -->
+@if (error()) {
+  <div class="inv-reportes__error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="inv-reportes__loading" aria-busy="true" aria-label="Cargando reportes">
+    <div class="inv-reportes__spinner" aria-hidden="true"></div>
+    <span>Cargando reportes…</span>
+  </div>
+}
+
+@if (!loading() && !error()) {
+  <!-- Summary cards -->
+  <div class="inv-reportes__cards" role="region" aria-label="Resumen del inventario">
+    <article class="inv-reportes__card">
+      <div class="inv-reportes__card-icon inv-reportes__card-icon--primary" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <div class="inv-reportes__card-body">
+        <span class="inv-reportes__card-label">Total artículos activos</span>
+        <strong class="inv-reportes__card-value">{{ totalActivos() | number }}</strong>
+      </div>
+    </article>
+
+    <article class="inv-reportes__card">
+      <div class="inv-reportes__card-icon inv-reportes__card-icon--warning" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="inv-reportes__card-body">
+        <span class="inv-reportes__card-label">Stock bajo</span>
+        <strong class="inv-reportes__card-value inv-reportes__card-value--warning">{{ stockBajo() | number }}</strong>
+      </div>
+    </article>
+
+    <article class="inv-reportes__card">
+      <div class="inv-reportes__card-icon inv-reportes__card-icon--danger" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <div class="inv-reportes__card-body">
+        <span class="inv-reportes__card-label">Sin stock</span>
+        <strong class="inv-reportes__card-value inv-reportes__card-value--danger">{{ sinStock() | number }}</strong>
+      </div>
+    </article>
+
+    <article class="inv-reportes__card">
+      <div class="inv-reportes__card-icon inv-reportes__card-icon--success" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="inv-reportes__card-body">
+        <span class="inv-reportes__card-label">Valor total inventario</span>
+        <strong class="inv-reportes__card-value inv-reportes__card-value--success">{{ valorTotal() | currency:'DOP ':'symbol':'1.0-0' }}</strong>
+      </div>
+    </article>
+  </div>
+
+  <!-- Section 1: Stock por categoría -->
+  <section class="inv-reportes__section" aria-labelledby="sec-categorias">
+    <h2 class="inv-reportes__section-title" id="sec-categorias">Stock por categoría</h2>
+    <div class="inv-reportes__table-wrap">
+      @if (categoriaStats().length === 0) {
+        <p class="inv-reportes__empty">No hay categorías con artículos.</p>
+      } @else {
+        <table class="inv-reportes__table" aria-label="Stock por categoría">
+          <thead>
+            <tr>
+              <th scope="col">Categoría</th>
+              <th scope="col" class="inv-reportes__table-num"># Artículos</th>
+              <th scope="col" class="inv-reportes__table-num">Stock total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of categoriaStats(); track cat.nombre) {
+              <tr>
+                <td>{{ cat.nombre }}</td>
+                <td class="inv-reportes__table-num">{{ cat.articulosCount | number }}</td>
+                <td class="inv-reportes__table-num">{{ cat.stockTotal | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+
+  <!-- Section 2: Artículos con stock crítico -->
+  <section class="inv-reportes__section" aria-labelledby="sec-criticos">
+    <h2 class="inv-reportes__section-title" id="sec-criticos">Artículos con stock crítico</h2>
+    <div class="inv-reportes__table-wrap">
+      @if (articulosCriticos().length === 0) {
+        <p class="inv-reportes__empty">Ningún artículo activo tiene stock crítico.</p>
+      } @else {
+        <div class="inv-reportes__table-scroll">
+          <table class="inv-reportes__table" aria-label="Artículos con stock crítico">
+            <thead>
+              <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Nombre</th>
+                <th scope="col" class="inv-reportes__table-num">Stock mínimo</th>
+                <th scope="col" class="inv-reportes__table-num">Stock actual</th>
+                <th scope="col" class="inv-reportes__table-num">Diferencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (art of articulosCriticos(); track art.codigo) {
+                <tr>
+                  <td><span class="inv-reportes__code">{{ art.codigo }}</span></td>
+                  <td>{{ art.nombre }}</td>
+                  <td class="inv-reportes__table-num">{{ art.stockMinimo | number }}</td>
+                  <td class="inv-reportes__table-num">{{ art.stockActual | number }}</td>
+                  <td class="inv-reportes__table-num inv-reportes__diferencia">{{ art.diferencia | number }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Section 3: Movimientos recientes -->
+  <section class="inv-reportes__section" aria-labelledby="sec-movimientos">
+    <h2 class="inv-reportes__section-title" id="sec-movimientos">Movimientos recientes</h2>
+    <div class="inv-reportes__movimientos">
+      <!-- Entradas -->
+      <div class="inv-reportes__mov-col">
+        <h3 class="inv-reportes__mov-title inv-reportes__mov-title--entrada">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/>
+          </svg>
+          Últimas 10 entradas
+        </h3>
+        <div class="inv-reportes__table-wrap">
+          @if (entradasList().length === 0) {
+            <p class="inv-reportes__empty">Sin entradas recientes.</p>
+          } @else {
+            <table class="inv-reportes__table" aria-label="Últimas entradas">
+              <thead>
+                <tr>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Artículo</th>
+                  <th scope="col" class="inv-reportes__table-num">Cantidad</th>
+                  <th scope="col">Bodega</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of entradasList(); track e.id) {
+                  <tr>
+                    <td class="inv-reportes__date">{{ e.created_at | date:'dd/MM/yy' }}</td>
+                    <td>
+                      @if (e.articulo) {
+                        <span class="inv-reportes__code inv-reportes__code--sm">{{ e.articulo.codigo }}</span>
+                        {{ e.articulo.nombre }}
+                      } @else {
+                        <span class="inv-reportes__muted">—</span>
+                      }
+                    </td>
+                    <td class="inv-reportes__table-num inv-reportes__qty--entrada">+{{ e.cantidad | number }}</td>
+                    <td>{{ e.bodega?.nombre ?? '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+
+      <!-- Salidas -->
+      <div class="inv-reportes__mov-col">
+        <h3 class="inv-reportes__mov-title inv-reportes__mov-title--salida">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/>
+          </svg>
+          Últimas 10 salidas
+        </h3>
+        <div class="inv-reportes__table-wrap">
+          @if (salidasList().length === 0) {
+            <p class="inv-reportes__empty">Sin salidas recientes.</p>
+          } @else {
+            <table class="inv-reportes__table" aria-label="Últimas salidas">
+              <thead>
+                <tr>
+                  <th scope="col">Fecha</th>
+                  <th scope="col">Artículo</th>
+                  <th scope="col" class="inv-reportes__table-num">Cantidad</th>
+                  <th scope="col">Bodega</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of salidasList(); track s.id) {
+                  <tr>
+                    <td class="inv-reportes__date">{{ s.created_at | date:'dd/MM/yy' }}</td>
+                    <td>
+                      @if (s.articulo) {
+                        <span class="inv-reportes__code inv-reportes__code--sm">{{ s.articulo.codigo }}</span>
+                        {{ s.articulo.nombre }}
+                      } @else {
+                        <span class="inv-reportes__muted">—</span>
+                      }
+                    </td>
+                    <td class="inv-reportes__table-num inv-reportes__qty--salida">-{{ s.cantidad | number }}</td>
+                    <td>{{ s.bodega?.nombre ?? '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Top 10 más movidos -->
+  <section class="inv-reportes__section" aria-labelledby="sec-top">
+    <h2 class="inv-reportes__section-title" id="sec-top">Top 10 artículos más movidos</h2>
+    <div class="inv-reportes__table-wrap">
+      @if (topArticulos().length === 0) {
+        <p class="inv-reportes__empty">Sin movimientos registrados.</p>
+      } @else {
+        <div class="inv-reportes__table-scroll">
+          <table class="inv-reportes__table" aria-label="Top 10 artículos más movidos">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Código</th>
+                <th scope="col">Artículo</th>
+                <th scope="col" class="inv-reportes__table-num">Total entradas</th>
+                <th scope="col" class="inv-reportes__table-num">Total salidas</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (art of topArticulos(); track art.codigo; let i = $index) {
+                <tr>
+                  <td class="inv-reportes__rank">{{ i + 1 }}</td>
+                  <td><span class="inv-reportes__code">{{ art.codigo }}</span></td>
+                  <td>{{ art.nombre }}</td>
+                  <td class="inv-reportes__table-num inv-reportes__qty--entrada">{{ art.totalEntradas | number }}</td>
+                  <td class="inv-reportes__table-num inv-reportes__qty--salida">{{ art.totalSalidas | number }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+}

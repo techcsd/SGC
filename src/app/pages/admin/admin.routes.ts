@@ -11,4 +11,9 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./usuarios/usuarios').then((m) => m.AdminUsuarios),
     title: 'Usuarios — Administración',
   },
+  {
+    path: 'roles',
+    loadComponent: () => import('./roles/roles').then((m) => m.AdminRoles),
+    title: 'Roles — Administración',
+  },
 ];

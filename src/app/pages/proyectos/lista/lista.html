@@ -1,0 +1,552 @@
+<section class="proyectos">
+  <!-- Header -->
+  <div class="proyectos__header">
+    <div class="proyectos__header-left">
+      <h1 class="proyectos__title">Proyectos</h1>
+      <p class="proyectos__subtitle">Gestión y seguimiento de proyectos de construcción</p>
+    </div>
+    <button class="proyectos__btn-new" (click)="openCreate()">
+      + Nuevo proyecto
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="proyectos__stats">
+    <div class="proyectos__stat-card">
+      <span class="proyectos__stat-value">{{ statsTotal() }}</span>
+      <span class="proyectos__stat-label">Total</span>
+    </div>
+    <div class="proyectos__stat-card proyectos__stat-card--info">
+      <span class="proyectos__stat-value">{{ statsEnProgreso() }}</span>
+      <span class="proyectos__stat-label">En progreso</span>
+    </div>
+    <div class="proyectos__stat-card proyectos__stat-card--success">
+      <span class="proyectos__stat-value">{{ statsCompletados() }}</span>
+      <span class="proyectos__stat-label">Completados</span>
+    </div>
+    <div class="proyectos__stat-card proyectos__stat-card--hub">
+      <span class="proyectos__stat-value">${{ statsPresupuesto() | number:'1.0-0' }}</span>
+      <span class="proyectos__stat-label">Presupuesto total</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="proyectos__filters">
+    <input
+      class="proyectos__search"
+      type="search"
+      placeholder="Buscar por nombre, código o cliente..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar proyectos"
+    />
+    <select
+      class="proyectos__select"
+      [value]="filterEstado()"
+      (change)="onEstadoChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (e of PROYECTO_ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+    <select
+      class="proyectos__select"
+      [value]="filterTipo()"
+      (change)="onTipoChange($any($event.target).value)"
+      aria-label="Filtrar por tipo"
+    >
+      <option value="">Todos los tipos</option>
+      @for (t of PROYECTO_TIPOS; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+    @if (searchQuery() || filterEstado() || filterTipo()) {
+      <button class="proyectos__btn-clear" (click)="clearFilters()">Limpiar</button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="proyectos__loading" aria-live="polite">Cargando proyectos...</div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="proyectos__error" role="alert">{{ error() }}</div>
+  }
+
+  <!-- Grid -->
+  @if (!loading()) {
+    @if (filtered().length === 0) {
+      <div class="proyectos__empty">No se encontraron proyectos.</div>
+    } @else {
+      <div class="proyectos__grid">
+        @for (p of filtered(); track p.id) {
+          <article class="proyectos__card" (click)="openDetail(p)" role="button" tabindex="0" (keydown.enter)="openDetail(p)" [attr.aria-label]="'Ver detalle de ' + p.nombre">
+            <!-- Card Header -->
+            <div class="proyectos__card-header">
+              <span class="proyectos__codigo">{{ p.codigo }}</span>
+              <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }}">
+                {{ getEstadoLabel(p.estado) }}
+              </span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="proyectos__card-body">
+              <h2 class="proyectos__card-nombre">{{ p.nombre }}</h2>
+              @if (p.cliente) {
+                <p class="proyectos__card-cliente">{{ p.cliente }}</p>
+              }
+              @if (p.tipo) {
+                <p class="proyectos__card-tipo">{{ getTipoLabel(p.tipo) }}</p>
+              }
+
+              @if (p.fecha_inicio || p.fecha_fin_estimada) {
+                <div class="proyectos__card-fechas">
+                  @if (p.fecha_inicio) {
+                    <span>Inicio: {{ p.fecha_inicio }}</span>
+                  }
+                  @if (p.fecha_fin_estimada) {
+                    <span>Fin est.: {{ p.fecha_fin_estimada }}</span>
+                  }
+                </div>
+              }
+
+              @if (p.presupuesto) {
+                <p class="proyectos__card-presupuesto">${{ p.presupuesto | number:'1.0-0' }}</p>
+              }
+
+              <!-- Progress -->
+              <div class="proyectos__card-progress">
+                <div class="proyectos__progress-bar">
+                  <div
+                    class="proyectos__progress-fill"
+                    [style.width.%]="getProgresoPromedio(p)"
+                    role="progressbar"
+                    [attr.aria-valuenow]="getProgresoPromedio(p)"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  ></div>
+                </div>
+                <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+              </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="proyectos__card-footer">
+              @if (p.responsable?.nombre) {
+                <span class="proyectos__responsable">👤 {{ p.responsable!.nombre }}</span>
+              }
+              <button
+                class="proyectos__btn-edit"
+                (click)="openEdit(p, $event)"
+                aria-label="Editar {{ p.nombre }}"
+              >
+                Editar
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+</section>
+
+<!-- ── Create / Edit Drawer ──────────────────────────────────── -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" class="proyectos__form" novalidate>
+    <div class="proyectos__form-grid">
+      <!-- Código -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="codigo">Código *</label>
+        <input
+          id="codigo"
+          class="proyectos__input"
+          [class.proyectos__input--error]="f['codigo'].invalid && f['codigo'].touched"
+          formControlName="codigo"
+          type="text"
+          placeholder="PRY-001"
+        />
+        @if (f['codigo'].invalid && f['codigo'].touched) {
+          <span class="proyectos__field-error">El código es requerido.</span>
+        }
+      </div>
+
+      <!-- Nombre -->
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="nombre">Nombre *</label>
+        <input
+          id="nombre"
+          class="proyectos__input"
+          [class.proyectos__input--error]="f['nombre'].invalid && f['nombre'].touched"
+          formControlName="nombre"
+          type="text"
+          placeholder="Nombre del proyecto"
+        />
+        @if (f['nombre'].invalid && f['nombre'].touched) {
+          <span class="proyectos__field-error">El nombre es requerido.</span>
+        }
+      </div>
+
+      <!-- Cliente -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="cliente">Cliente</label>
+        <input
+          id="cliente"
+          class="proyectos__input"
+          formControlName="cliente"
+          type="text"
+          placeholder="Nombre del cliente"
+        />
+      </div>
+
+      <!-- Tipo -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="tipo">Tipo</label>
+        <select id="tipo" class="proyectos__select proyectos__input" formControlName="tipo">
+          <option [value]="null">Seleccionar tipo</option>
+          @for (t of PROYECTO_TIPOS; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Estado -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="estado">Estado *</label>
+        <select id="estado" class="proyectos__select proyectos__input" formControlName="estado">
+          @for (e of PROYECTO_ESTADOS; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Responsable -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="responsable_id">Responsable</label>
+        <select id="responsable_id" class="proyectos__select proyectos__input" formControlName="responsable_id">
+          <option [value]="null">Sin responsable</option>
+          @for (u of usuarios(); track u.id) {
+            <option [value]="u.id">{{ u.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Fecha inicio -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fecha_inicio">Fecha de inicio</label>
+        <input
+          id="fecha_inicio"
+          class="proyectos__input"
+          formControlName="fecha_inicio"
+          type="date"
+        />
+      </div>
+
+      <!-- Fecha fin estimada -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fecha_fin_estimada">Fecha fin estimada</label>
+        <input
+          id="fecha_fin_estimada"
+          class="proyectos__input"
+          formControlName="fecha_fin_estimada"
+          type="date"
+        />
+      </div>
+
+      <!-- Presupuesto -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="presupuesto">Presupuesto</label>
+        <input
+          id="presupuesto"
+          class="proyectos__input"
+          formControlName="presupuesto"
+          type="number"
+          min="0"
+          placeholder="0.00"
+        />
+      </div>
+
+      <!-- Ubicación -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="ubicacion">Ubicación</label>
+        <input
+          id="ubicacion"
+          class="proyectos__input"
+          formControlName="ubicacion"
+          type="text"
+          placeholder="Ciudad, dirección..."
+        />
+      </div>
+
+      <!-- Descripción -->
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="descripcion">Descripción</label>
+        <textarea
+          id="descripcion"
+          class="proyectos__textarea"
+          formControlName="descripcion"
+          rows="3"
+          placeholder="Descripción del proyecto..."
+        ></textarea>
+      </div>
+    </div>
+
+    @if (saveError()) {
+      <div class="proyectos__save-error" role="alert">{{ saveError() }}</div>
+    }
+
+    <div class="proyectos__form-actions">
+      <button type="button" class="proyectos__btn-cancel" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="proyectos__btn-save" [disabled]="saving()">
+        {{ saving() ? 'Guardando...' : (editingId() ? 'Actualizar' : 'Crear') }}
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detail Drawer ──────────────────────────────────────────── -->
+<app-form-drawer
+  title="Detalle del proyecto"
+  [open]="detailDrawerOpen()"
+  (closed)="closeDetailDrawer()"
+>
+  @if (selectedProyecto(); as p) {
+    <div class="proyectos__detail">
+      <!-- Header info -->
+      <div class="proyectos__detail-header">
+        <div>
+          <span class="proyectos__codigo">{{ p.codigo }}</span>
+          <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }} proyectos__badge--lg">
+            {{ getEstadoLabel(p.estado) }}
+          </span>
+        </div>
+        <h2 class="proyectos__detail-nombre">{{ p.nombre }}</h2>
+      </div>
+
+      <!-- Info grid -->
+      <div class="proyectos__detail-grid">
+        @if (p.cliente) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Cliente</span>
+            <span class="proyectos__detail-val">{{ p.cliente }}</span>
+          </div>
+        }
+        @if (p.tipo) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Tipo</span>
+            <span class="proyectos__detail-val">{{ getTipoLabel(p.tipo) }}</span>
+          </div>
+        }
+        @if (p.fecha_inicio) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Fecha inicio</span>
+            <span class="proyectos__detail-val">{{ p.fecha_inicio }}</span>
+          </div>
+        }
+        @if (p.fecha_fin_estimada) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Fin estimado</span>
+            <span class="proyectos__detail-val">{{ p.fecha_fin_estimada }}</span>
+          </div>
+        }
+        @if (p.fecha_fin_real) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Fin real</span>
+            <span class="proyectos__detail-val">{{ p.fecha_fin_real }}</span>
+          </div>
+        }
+        @if (p.presupuesto) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Presupuesto</span>
+            <span class="proyectos__detail-val">${{ p.presupuesto | number:'1.0-0' }}</span>
+          </div>
+        }
+        @if (p.ubicacion) {
+          <div class="proyectos__detail-item proyectos__detail-item--full">
+            <span class="proyectos__detail-key">Ubicación</span>
+            <span class="proyectos__detail-val">{{ p.ubicacion }}</span>
+          </div>
+        }
+        @if (p.responsable?.nombre) {
+          <div class="proyectos__detail-item">
+            <span class="proyectos__detail-key">Responsable</span>
+            <span class="proyectos__detail-val">{{ p.responsable!.nombre }}</span>
+          </div>
+        }
+        @if (p.descripcion) {
+          <div class="proyectos__detail-item proyectos__detail-item--full">
+            <span class="proyectos__detail-key">Descripción</span>
+            <span class="proyectos__detail-val">{{ p.descripcion }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Progreso general -->
+      <div class="proyectos__detail-progress-section">
+        <span class="proyectos__detail-key">Progreso general</span>
+        <div class="proyectos__progress-bar">
+          <div
+            class="proyectos__progress-fill"
+            [style.width.%]="getProgresoPromedio(p)"
+            role="progressbar"
+            [attr.aria-valuenow]="getProgresoPromedio(p)"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          ></div>
+        </div>
+        <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+      </div>
+
+      <!-- Fases -->
+      <div class="proyectos__fases">
+        <div class="proyectos__fases-header">
+          <h3 class="proyectos__fases-title">Fases del proyecto</h3>
+          <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
+        </div>
+
+        @if (detailLoading()) {
+          <p class="proyectos__fases-loading">Cargando fases...</p>
+        }
+
+        @if (!detailLoading() && (p.fases?.length ?? 0) === 0) {
+          <p class="proyectos__fases-empty">Sin fases registradas.</p>
+        }
+
+        @for (fase of p.fases; track fase.id) {
+          <div class="proyectos__fase-card">
+            <div class="proyectos__fase-header">
+              <div class="proyectos__fase-info">
+                <span class="proyectos__fase-orden">{{ fase.orden }}</span>
+                <div>
+                  <p class="proyectos__fase-nombre">{{ fase.nombre }}</p>
+                  @if (fase.descripcion) {
+                    <p class="proyectos__fase-desc">{{ fase.descripcion }}</p>
+                  }
+                </div>
+              </div>
+              <div class="proyectos__fase-actions">
+                <span class="proyectos__badge proyectos__badge--{{ fase.estado === 'completada' ? 'success' : fase.estado === 'en_progreso' ? 'info' : 'neutral' }}">
+                  {{ fase.estado }}
+                </span>
+                <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase">✏️</button>
+                <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase">🗑️</button>
+              </div>
+            </div>
+            <div class="proyectos__fase-progress">
+              <div class="proyectos__progress-bar">
+                <div
+                  class="proyectos__progress-fill"
+                  [style.width.%]="fase.progreso"
+                  role="progressbar"
+                  [attr.aria-valuenow]="fase.progreso"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <span class="proyectos__progress-pct">{{ fase.progreso }}%</span>
+            </div>
+            @if (fase.fecha_inicio || fase.fecha_fin) {
+              <div class="proyectos__fase-fechas">
+                @if (fase.fecha_inicio) { <span>{{ fase.fecha_inicio }}</span> }
+                @if (fase.fecha_fin) { <span>→ {{ fase.fecha_fin }}</span> }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+<!-- ── Fase Drawer ─────────────────────────────────────────────── -->
+<app-form-drawer
+  [title]="editingFaseId() ? 'Editar fase' : 'Nueva fase'"
+  [open]="faseDrawerOpen()"
+  (closed)="closeFaseDrawer()"
+>
+  <form [formGroup]="faseForm" (ngSubmit)="onSaveFase()" class="proyectos__form" novalidate>
+    <div class="proyectos__form-grid">
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="fase-nombre">Nombre *</label>
+        <input
+          id="fase-nombre"
+          class="proyectos__input"
+          [class.proyectos__input--error]="ff['nombre'].invalid && ff['nombre'].touched"
+          formControlName="nombre"
+          type="text"
+          placeholder="Nombre de la fase"
+        />
+        @if (ff['nombre'].invalid && ff['nombre'].touched) {
+          <span class="proyectos__field-error">El nombre es requerido.</span>
+        }
+      </div>
+
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="fase-desc">Descripción</label>
+        <textarea
+          id="fase-desc"
+          class="proyectos__textarea"
+          formControlName="descripcion"
+          rows="2"
+        ></textarea>
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-estado">Estado</label>
+        <select id="fase-estado" class="proyectos__input" formControlName="estado">
+          @for (e of FASE_ESTADOS; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-orden">Orden</label>
+        <input id="fase-orden" class="proyectos__input" formControlName="orden" type="number" min="1" />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-inicio">Fecha inicio</label>
+        <input id="fase-inicio" class="proyectos__input" formControlName="fecha_inicio" type="date" />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-fin">Fecha fin</label>
+        <input id="fase-fin" class="proyectos__input" formControlName="fecha_fin" type="date" />
+      </div>
+
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="fase-progreso">Progreso: {{ ff['progreso'].value }}%</label>
+        <input
+          id="fase-progreso"
+          class="proyectos__range"
+          formControlName="progreso"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+        />
+      </div>
+    </div>
+
+    @if (faseError()) {
+      <div class="proyectos__save-error" role="alert">{{ faseError() }}</div>
+    }
+
+    <div class="proyectos__form-actions">
+      <button type="button" class="proyectos__btn-cancel" (click)="closeFaseDrawer()">Cancelar</button>
+      <button type="submit" class="proyectos__btn-save" [disabled]="faseSaving()">
+        {{ faseSaving() ? 'Guardando...' : 'Guardar fase' }}
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

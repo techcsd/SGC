@@ -1,0 +1,156 @@
+<section class="admin-roles">
+
+  <!-- Header -->
+  <div class="admin-roles__header">
+    <div class="admin-roles__header-text">
+      <h1 class="admin-roles__title">Roles del Sistema</h1>
+      <p class="admin-roles__subtitle">Gestiona los roles y sus permisos de acceso por módulo.</p>
+    </div>
+  </div>
+
+  <!-- Info banner -->
+  <div class="admin-roles__banner" role="note">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <span>Los roles definen qué módulos puede acceder cada usuario. No es posible crear ni eliminar roles desde esta pantalla.</span>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="admin-roles__loading" aria-live="polite" aria-busy="true">
+      <span class="admin-roles__spinner" aria-hidden="true"></span>
+      <span>Cargando roles...</span>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="admin-roles__error" role="alert">
+      <strong>Error:</strong> {{ error() }}
+    </div>
+  }
+
+  <!-- Roles grid -->
+  @if (!loading() && !error()) {
+    <div class="admin-roles__grid" role="list">
+      @for (rol of roles(); track rol.id) {
+        <article class="admin-roles__card" role="listitem">
+          <div class="admin-roles__card-top">
+            <div class="admin-roles__card-name-row">
+              <h2 class="admin-roles__card-name">{{ rol.nombre }}</h2>
+              <span class="admin-roles__card-codigo">{{ rol.codigo }}</span>
+            </div>
+            @if (rol.descripcion) {
+              <p class="admin-roles__card-desc">{{ rol.descripcion }}</p>
+            }
+          </div>
+
+          <div class="admin-roles__card-modulos">
+            @if (rol.modulos && rol.modulos.length > 0) {
+              @for (mod of rol.modulos; track mod) {
+                <span class="admin-roles__modulo-badge">{{ getModuloLabel(mod) }}</span>
+              }
+            } @else {
+              <span class="admin-roles__no-modulos">Sin módulos asignados</span>
+            }
+          </div>
+
+          <div class="admin-roles__card-footer">
+            <button
+              class="admin-roles__edit-btn"
+              type="button"
+              (click)="openEdit(rol)"
+              [attr.aria-label]="'Editar permisos del rol ' + rol.nombre"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              Editar permisos
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+</section>
+
+<!-- Edit Drawer -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" class="roles-form" novalidate>
+
+    <!-- Nombre -->
+    <div class="roles-form__field">
+      <label class="roles-form__label" for="rol-nombre">Nombre del rol</label>
+      <input
+        id="rol-nombre"
+        class="roles-form__input"
+        type="text"
+        formControlName="nombre"
+        autocomplete="off"
+        [class.roles-form__input--error]="f['nombre'].invalid && f['nombre'].touched"
+      />
+      @if (f['nombre'].invalid && f['nombre'].touched) {
+        <span class="roles-form__error" role="alert">
+          @if (f['nombre'].errors?.['required']) { El nombre es obligatorio. }
+          @if (f['nombre'].errors?.['maxlength']) { Máximo 100 caracteres. }
+        </span>
+      }
+    </div>
+
+    <!-- Módulos -->
+    <fieldset class="roles-form__fieldset">
+      <legend class="roles-form__legend">Módulos accesibles</legend>
+      <div class="roles-form__modulos">
+        @for (mod of modulos; track mod.key) {
+          <label class="roles-form__checkbox-label" [for]="'mod-' + mod.key">
+            <input
+              [id]="'mod-' + mod.key"
+              class="roles-form__checkbox"
+              type="checkbox"
+              [checked]="isModuloSelected(mod.key)"
+              (change)="toggleModulo(mod.key)"
+            />
+            <span class="roles-form__checkbox-text">{{ mod.label }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <!-- Save error -->
+    @if (saveError()) {
+      <div class="roles-form__save-error" role="alert">{{ saveError() }}</div>
+    }
+
+    <!-- Actions -->
+    <div class="roles-form__actions">
+      <button
+        class="roles-form__cancel"
+        type="button"
+        (click)="closeDrawer()"
+        [disabled]="saving()"
+      >
+        Cancelar
+      </button>
+      <button
+        class="roles-form__submit"
+        type="submit"
+        [disabled]="saving()"
+        [attr.aria-busy]="saving()"
+      >
+        @if (saving()) { Guardando... } @else { Guardar cambios }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

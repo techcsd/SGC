@@ -1,0 +1,348 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Combustible</h1>
+    <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo registro
+  </button>
+</div>
+
+<!-- ── Monthly totals bar ── -->
+<div class="combustible__totals-bar">
+  <div class="combustible__total-item">
+    <span class="combustible__total-label">Litros este mes</span>
+    <span class="combustible__total-value">{{ totalLitrosMes() | number:'1.2-2' }} L</span>
+  </div>
+  <div class="combustible__totals-divider"></div>
+  <div class="combustible__total-item">
+    <span class="combustible__total-label">Gasto este mes</span>
+    <span class="combustible__total-value combustible__total-value--primary">
+      DOP {{ totalGastoMes() | number:'1.2-2' }}
+    </span>
+  </div>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por placa o estación…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar registros de combustible"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedVehiculoId()"
+      (change)="onVehiculoChange($any($event.target).value)"
+      aria-label="Filtrar por vehículo"
+    >
+      <option value="">Todos los vehículos</option>
+      @for (v of vehiculos(); track v.id) {
+        <option [value]="v.id">{{ v.placa }} — {{ v.marca }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__date">
+    <input
+      type="date"
+      [value]="dateFrom()"
+      (change)="onDateFromChange($any($event.target).value)"
+      aria-label="Fecha desde"
+      title="Fecha desde"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__date">
+    <input
+      type="date"
+      [value]="dateTo()"
+      (change)="onDateToChange($any($event.target).value)"
+      aria-label="Fecha hasta"
+      title="Fecha hasta"
+    />
+  </div>
+
+  @if (hasFilters()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando registros…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+      </svg>
+      <p>
+        @if (hasFilters()) {
+          No se encontraron registros con los filtros aplicados.
+        } @else {
+          No hay registros de combustible. Crea el primero.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Registros de combustible">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Vehículo</th>
+            <th>Conductor</th>
+            <th class="text-right">Litros</th>
+            <th class="text-right">Costo/L</th>
+            <th class="text-right">Total (DOP)</th>
+            <th class="text-right">Km</th>
+            <th>Estación</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of paginated(); track r.id) {
+            <tr>
+              <td class="combustible__fecha">{{ r.fecha }}</td>
+              <td>
+                <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
+                @if (r.vehiculo?.marca) {
+                  <span class="combustible__marca">{{ r.vehiculo!.marca }}</span>
+                }
+              </td>
+              <td>{{ r.conductor?.nombre ?? '—' }}</td>
+              <td class="text-right">{{ r.litros | number:'1.2-2' }}</td>
+              <td class="text-right text-muted">
+                @if (r.costo_por_litro !== null) {
+                  {{ r.costo_por_litro | number:'1.2-2' }}
+                } @else {
+                  —
+                }
+              </td>
+              <td class="text-right">
+                @if (r.total !== null) {
+                  <strong>{{ r.total | number:'1.2-2' }}</strong>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td class="text-right text-muted">
+                @if (r.kilometraje !== null) {
+                  {{ r.kilometraje | number:'1.0-0' }}
+                } @else {
+                  —
+                }
+              </td>
+              <td>{{ r.estacion ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination ── -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination__info">
+          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
+          de {{ filtered().length }}
+        </span>
+        <div class="pagination__controls">
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() - 1)"
+            [disabled]="currentPage() === 1"
+            aria-label="Página anterior"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          @for (p of pages; track p) {
+            <button
+              class="page-btn"
+              type="button"
+              (click)="goToPage(p)"
+              [class.page-btn--active]="p === currentPage()"
+            >{{ p }}</button>
+          }
+
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() + 1)"
+            [disabled]="currentPage() === totalPages()"
+            aria-label="Página siguiente"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Form Drawer (create only) ── -->
+<app-form-drawer
+  title="Nuevo registro de combustible"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
+      <select
+        id="vehiculo_id"
+        formControlName="vehiculo_id"
+        [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
+      >
+        <option value="">Seleccionar vehículo…</option>
+        @for (v of vehiculos(); track v.id) {
+          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
+        }
+      </select>
+      @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
+        <span class="field-error">El vehículo es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="conductor_id">Conductor</label>
+      <select id="conductor_id" formControlName="conductor_id">
+        <option [value]="null">Sin conductor asignado</option>
+        @for (c of conductores(); track c.id) {
+          <option [value]="c.id">{{ c.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="sgc-field">
+      <label for="fecha">Fecha <span class="required">*</span></label>
+      <input
+        id="fecha"
+        type="date"
+        formControlName="fecha"
+        [class.invalid]="f.fecha.invalid && f.fecha.touched"
+      />
+      @if (f.fecha.invalid && f.fecha.touched) {
+        <span class="field-error">La fecha es obligatoria.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="litros">Litros <span class="required">*</span></label>
+        <input
+          id="litros"
+          type="number"
+          formControlName="litros"
+          min="0.01"
+          step="0.01"
+          placeholder="0.00"
+          [class.invalid]="f.litros.invalid && f.litros.touched"
+        />
+        @if (f.litros.invalid && f.litros.touched) {
+          <span class="field-error">Los litros son obligatorios.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="costo_por_litro">Costo por litro (DOP)</label>
+        <input
+          id="costo_por_litro"
+          type="number"
+          formControlName="costo_por_litro"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+        />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="total">Total (DOP)</label>
+      <input
+        id="total"
+        type="number"
+        formControlName="total"
+        placeholder="Se calcula automáticamente"
+        readonly
+        class="combustible__total-input"
+      />
+      @if (computedTotal() !== null) {
+        <span class="field-hint">= {{ computedTotal() | number:'1.2-2' }} DOP</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="kilometraje">Kilometraje</label>
+        <input id="kilometraje" type="number" formControlName="kilometraje" min="0" placeholder="km" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="estacion">Estación / Gasolinera</label>
+        <input id="estacion" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          Registrar combustible
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

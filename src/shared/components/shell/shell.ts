@@ -64,19 +64,27 @@ export class Shell implements OnInit {
       label: 'Compras',
       icon: 'purchases',
       modulo: 'compras',
-      phase: 'Fase 2',
+      children: [
+        { label: 'Proveedores', route: '/compras/proveedores' },
+        { label: 'Órdenes de Compra', route: '/compras/ordenes' },
+        { label: 'Reportes', route: '/compras/reportes' },
+      ],
     },
     {
       label: 'RRHH',
       icon: 'hr',
       modulo: 'rrhh',
-      phase: 'Fase 2',
+      children: [
+        { label: 'Empleados', route: '/rrhh/empleados' },
+        { label: 'Asistencia', route: '/rrhh/asistencia' },
+        { label: 'Reportes', route: '/rrhh/reportes' },
+      ],
     },
     {
       label: 'Proyectos',
       icon: 'projects',
       modulo: 'proyectos',
-      phase: 'Fase 2',
+      route: '/proyectos',
     },
     {
       label: 'Flota',

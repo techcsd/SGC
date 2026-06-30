@@ -1,0 +1,121 @@
+<!-- Header -->
+<div class="compras-reportes__header">
+  <h1>Reportes de Compras</h1>
+  <p>Análisis de órdenes de compra y proveedores</p>
+</div>
+
+@if (loading()) {
+  <div class="compras-reportes__loading" aria-live="polite">
+    <div class="compras-reportes__spinner" aria-hidden="true"></div>
+    <span>Cargando reportes...</span>
+  </div>
+}
+
+@if (error()) {
+  <div class="compras-reportes__error" role="alert">{{ error() }}</div>
+}
+
+@if (!loading()) {
+  <!-- Summary cards -->
+  <div class="compras-reportes__summary">
+    <div class="compras-reportes__card compras-reportes__card--primary">
+      <div class="compras-reportes__card-value">{{ totalOrdenes() }}</div>
+      <div class="compras-reportes__card-label">Total órdenes</div>
+    </div>
+    <div class="compras-reportes__card compras-reportes__card--info">
+      <div class="compras-reportes__card-value">{{ ordenesMes() }}</div>
+      <div class="compras-reportes__card-label">Órdenes este mes</div>
+    </div>
+    <div class="compras-reportes__card compras-reportes__card--success">
+      <div class="compras-reportes__card-value">{{ proveedoresActivos() }}</div>
+      <div class="compras-reportes__card-label">Proveedores activos</div>
+    </div>
+    <div class="compras-reportes__card compras-reportes__card--warning">
+      <div class="compras-reportes__card-value">RD$ {{ totalGasto() | number:'1.0-0' }}</div>
+      <div class="compras-reportes__card-label">Total gasto aprobado</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Órdenes por estado -->
+  <section class="compras-reportes__section" aria-labelledby="estado-title">
+    <h2 id="estado-title" class="compras-reportes__section-title">Órdenes por Estado</h2>
+    <div class="compras-reportes__estado-grid">
+      @for (item of ordenesByEstado(); track item.estado) {
+        <div class="compras-reportes__estado-card">
+          <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(item.estado)">
+            {{ getEstadoLabel(item.estado) }}
+          </span>
+          <span class="compras-reportes__estado-count">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Section 2: Top proveedores -->
+  <section class="compras-reportes__section" aria-labelledby="proveedores-title">
+    <h2 id="proveedores-title" class="compras-reportes__section-title">Top 10 Proveedores por Compra</h2>
+    @if (topProveedores().length === 0) {
+      <p class="compras-reportes__empty">Sin órdenes registradas.</p>
+    } @else {
+      <div class="compras-reportes__table-wrap">
+        <table class="compras-reportes__table" aria-label="Top proveedores">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Proveedor</th>
+              <th scope="col">Órdenes</th>
+              <th scope="col">Total comprado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of topProveedores(); track p.nombre; let i = $index) {
+              <tr>
+                <td class="compras-reportes__rank">{{ i + 1 }}</td>
+                <td class="compras-reportes__nombre">{{ p.nombre }}</td>
+                <td>{{ p.ordenes }}</td>
+                <td>RD$ {{ p.total | number:'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Section 3: Órdenes recientes -->
+  <section class="compras-reportes__section" aria-labelledby="recientes-title">
+    <h2 id="recientes-title" class="compras-reportes__section-title">Órdenes Recientes</h2>
+    @if (ordenesRecientes().length === 0) {
+      <p class="compras-reportes__empty">No hay órdenes registradas.</p>
+    } @else {
+      <div class="compras-reportes__table-wrap">
+        <table class="compras-reportes__table" aria-label="Órdenes recientes">
+          <thead>
+            <tr>
+              <th scope="col">Número</th>
+              <th scope="col">Proveedor</th>
+              <th scope="col">Fecha</th>
+              <th scope="col">Estado</th>
+              <th scope="col">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (o of ordenesRecientes(); track o.id) {
+              <tr>
+                <td class="compras-reportes__numero">{{ o.numero }}</td>
+                <td>{{ o.proveedor?.nombre ?? '—' }}</td>
+                <td>{{ o.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(o.estado)">
+                    {{ getEstadoLabel(o.estado) }}
+                  </span>
+                </td>
+                <td>RD$ {{ o.total | number:'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

@@ -13,30 +13,22 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'mantenimientos',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Mantenimientos' },
+    loadComponent: () => import('./mantenimientos/mantenimientos').then((m) => m.Mantenimientos),
     title: 'Mantenimientos — Flota',
   },
   {
     path: 'conductores',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Conductores' },
+    loadComponent: () => import('./conductores/conductores').then((m) => m.Conductores),
     title: 'Conductores — Flota',
   },
   {
     path: 'combustible',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Combustible' },
+    loadComponent: () => import('./combustible/combustible').then((m) => m.Combustible),
     title: 'Combustible — Flota',
   },
   {
     path: 'reportes',
-    loadComponent: () =>
-      import('../../../shared/components/coming-soon/coming-soon').then((m) => m.ComingSoon),
-    data: { section: 'Reportes de Flota' },
+    loadComponent: () => import('./reportes/reportes').then((m) => m.FlotaReportes),
     title: 'Reportes — Flota',
   },
 ];

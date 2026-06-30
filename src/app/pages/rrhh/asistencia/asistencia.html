@@ -1,0 +1,248 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Asistencia</h1>
+    <span class="page-count">{{ registros().length }} registro{{ registros().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Registrar asistencia
+  </button>
+</div>
+
+<!-- ── Date picker ── -->
+<div class="asistencia__date-bar">
+  <label class="asistencia__date-label" for="fecha-picker">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    </svg>
+    Fecha
+  </label>
+  <div class="sgc-field asistencia__date-field">
+    <input
+      id="fecha-picker"
+      type="date"
+      [value]="selectedDate()"
+      (change)="onDateChange($any($event.target).value)"
+      aria-label="Seleccionar fecha"
+    />
+  </div>
+</div>
+
+<!-- ── Summary bar ── -->
+<div class="asistencia__summary">
+  <div class="asistencia__summary-item asistencia__summary-item--presente">
+    <span class="asistencia__summary-count">{{ summary().presentes }}</span>
+    <span class="asistencia__summary-label">Presentes</span>
+  </div>
+  <div class="asistencia__summary-item asistencia__summary-item--ausente">
+    <span class="asistencia__summary-count">{{ summary().ausentes }}</span>
+    <span class="asistencia__summary-label">Ausentes</span>
+  </div>
+  <div class="asistencia__summary-item asistencia__summary-item--tardanza">
+    <span class="asistencia__summary-count">{{ summary().tardanzas }}</span>
+    <span class="asistencia__summary-label">Tardanzas</span>
+  </div>
+  <div class="asistencia__summary-item asistencia__summary-item--permiso">
+    <span class="asistencia__summary-count">{{ summary().permisos }}</span>
+    <span class="asistencia__summary-label">Permisos</span>
+  </div>
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando asistencia…
+    </div>
+  } @else if (registros().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      <p>No hay registros de asistencia para esta fecha.</p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Registros de asistencia">
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Hora entrada</th>
+            <th>Hora salida</th>
+            <th>Horas trabajadas</th>
+            <th>Estado</th>
+            <th>Notas</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (reg of registros(); track reg.id) {
+            <tr>
+              <td>
+                <div class="asistencia__emp-cell">
+                  <span class="asistencia__emp-name">
+                    {{ reg.empleado ? reg.empleado.apellido + ', ' + reg.empleado.nombre : getEmpleadoNombre(reg.empleado_id) }}
+                  </span>
+                  @if (reg.empleado?.cargo) {
+                    <span class="asistencia__emp-cargo">{{ reg.empleado!.cargo }}</span>
+                  }
+                </div>
+              </td>
+              <td class="asistencia__time">{{ reg.hora_entrada ?? '—' }}</td>
+              <td class="asistencia__time">{{ reg.hora_salida ?? '—' }}</td>
+              <td class="asistencia__time">{{ getHorasTrabajadas(reg.hora_entrada, reg.hora_salida) }}</td>
+              <td>
+                <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(reg.estado)">
+                  {{ getEstadoLabel(reg.estado) }}
+                </span>
+              </td>
+              <td class="text-muted asistencia__notas">{{ reg.notas ?? '—' }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="action-btn action-btn--edit"
+                    (click)="openEdit(reg)"
+                    [attr.aria-label]="'Editar registro de ' + (reg.empleado?.nombre ?? '')"
+                    title="Editar"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer
+  [title]="drawerTitle()"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="empleado_id">Empleado <span class="required">*</span></label>
+      <select
+        id="empleado_id"
+        formControlName="empleado_id"
+        [class.invalid]="f.empleado_id.invalid && f.empleado_id.touched"
+      >
+        <option value="">Seleccionar empleado…</option>
+        @for (emp of empleadosActivos(); track emp.id) {
+          <option [value]="emp.id">{{ emp.apellido }}, {{ emp.nombre }} — {{ emp.cargo }}</option>
+        }
+      </select>
+      @if (f.empleado_id.invalid && f.empleado_id.touched) {
+        <span class="field-error">El empleado es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="fecha">Fecha <span class="required">*</span></label>
+      <input
+        id="fecha"
+        type="date"
+        formControlName="fecha"
+        [class.invalid]="f.fecha.invalid && f.fecha.touched"
+      />
+      @if (f.fecha.invalid && f.fecha.touched) {
+        <span class="field-error">La fecha es obligatoria.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="hora_entrada">Hora de entrada</label>
+        <input
+          id="hora_entrada"
+          type="time"
+          formControlName="hora_entrada"
+        />
+      </div>
+
+      <div class="sgc-field">
+        <label for="hora_salida">Hora de salida</label>
+        <input
+          id="hora_salida"
+          type="time"
+          formControlName="hora_salida"
+        />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="estado">Estado <span class="required">*</span></label>
+      <select
+        id="estado"
+        formControlName="estado"
+        [class.invalid]="f.estado.invalid && f.estado.touched"
+      >
+        @for (est of ESTADOS_ASISTENCIA; track est.value) {
+          <option [value]="est.value">{{ est.label }}</option>
+        }
+      </select>
+      @if (f.estado.invalid && f.estado.touched) {
+        <span class="field-error">El estado es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea
+        id="notas"
+        formControlName="notas"
+        rows="3"
+        placeholder="Observaciones opcionales…"
+      ></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          {{ editingId() ? 'Guardar cambios' : 'Registrar' }}
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

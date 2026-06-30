@@ -1,0 +1,358 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Salidas de Inventario</h1>
+    <span class="page-count">{{ filtered().length }} salida{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Registrar salida
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por artículo o código…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar salidas"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedBodega()"
+      (change)="onBodegaChange($any($event.target).value)"
+      aria-label="Filtrar por bodega"
+    >
+      <option value="">Todas las bodegas</option>
+      @for (b of bodegas(); track b.id) {
+        <option [value]="b.id">{{ b.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedMotivo()"
+      (change)="onMotivoChange($any($event.target).value)"
+      aria-label="Filtrar por motivo"
+    >
+      <option value="">Todos los motivos</option>
+      @for (m of MOTIVOS_SALIDA; track m.value) {
+        <option [value]="m.value">{{ m.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__date">
+    <input
+      type="date"
+      [value]="dateFrom()"
+      (change)="onDateFromChange($any($event.target).value)"
+      aria-label="Fecha desde"
+      title="Fecha desde"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__date">
+    <input
+      type="date"
+      [value]="dateTo()"
+      (change)="onDateToChange($any($event.target).value)"
+      aria-label="Fecha hasta"
+      title="Fecha hasta"
+    />
+  </div>
+
+  @if (hasActiveFilters()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando salidas…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+      </svg>
+      <p>
+        @if (hasActiveFilters()) {
+          No se encontraron salidas con los filtros aplicados.
+        } @else {
+          No hay salidas registradas. Registra la primera.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de salidas de inventario">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Artículo</th>
+            <th>Código</th>
+            <th>Bodega</th>
+            <th class="text-right">Cantidad</th>
+            <th>Motivo</th>
+            <th>Ref. / Proyecto</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of paginated(); track s.id) {
+            <tr>
+              <td class="salidas__date">{{ s.fecha | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="salidas__art-name">{{ s.articulo?.nombre ?? '—' }}</span>
+              </td>
+              <td>
+                <code class="code-tag">{{ s.articulo?.codigo ?? '—' }}</code>
+              </td>
+              <td>{{ s.bodega?.nombre ?? '—' }}</td>
+              <td class="text-right">
+                <span class="salidas__qty">{{ s.cantidad | number:'1.0-2' }}</span>
+                <span class="salidas__unit">{{ s.articulo?.unidad }}</span>
+              </td>
+              <td>
+                <span class="sgc-badge" [class]="'sgc-badge--' + getMotivoModifier(s.motivo)">
+                  {{ getMotivoLabel(s.motivo) }}
+                </span>
+              </td>
+              <td class="salidas__ref">
+                {{ s.proyecto_referencia || s.referencia || '—' }}
+              </td>
+              <td class="salidas__notes">
+                {{ s.notas || '—' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination ── -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <span class="pagination__info">
+          {{ (currentPage() - 1) * PAGE_SIZE + 1 }}–{{ currentPage() * PAGE_SIZE > filtered().length ? filtered().length : currentPage() * PAGE_SIZE }}
+          de {{ filtered().length }}
+        </span>
+        <div class="pagination__controls">
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() - 1)"
+            [disabled]="currentPage() === 1"
+            aria-label="Página anterior"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          @for (p of pages; track p) {
+            <button
+              class="page-btn"
+              type="button"
+              (click)="goToPage(p)"
+              [class.page-btn--active]="p === currentPage()"
+            >{{ p }}</button>
+          }
+
+          <button
+            class="page-btn"
+            type="button"
+            (click)="goToPage(currentPage() + 1)"
+            [disabled]="currentPage() === totalPages()"
+            aria-label="Página siguiente"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer
+  title="Registrar salida"
+  [open]="drawerOpen()"
+  (closed)="closeDrawer()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <!-- Artículo -->
+    <div class="sgc-field">
+      <label for="articulo_id">Artículo <span class="required">*</span></label>
+      <select
+        id="articulo_id"
+        formControlName="articulo_id"
+        [class.invalid]="f.articulo_id.invalid && f.articulo_id.touched"
+      >
+        <option value="">Seleccionar artículo…</option>
+        @for (art of articulos(); track art.id) {
+          <option [value]="art.id">{{ art.nombre }} ({{ art.codigo }})</option>
+        }
+      </select>
+      @if (f.articulo_id.invalid && f.articulo_id.touched) {
+        <span class="field-error">El artículo es obligatorio.</span>
+      }
+    </div>
+
+    <!-- Bodega -->
+    <div class="sgc-field">
+      <label for="bodega_id">Bodega <span class="required">*</span></label>
+      <select
+        id="bodega_id"
+        formControlName="bodega_id"
+        [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
+      >
+        <option value="">Seleccionar bodega…</option>
+        @for (b of bodegas(); track b.id) {
+          <option [value]="b.id">{{ b.nombre }}</option>
+        }
+      </select>
+      @if (f.bodega_id.invalid && f.bodega_id.touched) {
+        <span class="field-error">La bodega es obligatoria.</span>
+      }
+    </div>
+
+    <!-- Cantidad + Fecha -->
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="cantidad">Cantidad <span class="required">*</span></label>
+        <input
+          id="cantidad"
+          type="number"
+          formControlName="cantidad"
+          min="0.01"
+          step="0.01"
+          placeholder="0.00"
+          [class.invalid]="f.cantidad.invalid && f.cantidad.touched"
+        />
+        @if (f.cantidad.invalid && f.cantidad.touched) {
+          <span class="field-error">Debe ser mayor a 0.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="fecha">Fecha <span class="required">*</span></label>
+        <input
+          id="fecha"
+          type="date"
+          formControlName="fecha"
+          [class.invalid]="f.fecha.invalid && f.fecha.touched"
+        />
+        @if (f.fecha.invalid && f.fecha.touched) {
+          <span class="field-error">La fecha es obligatoria.</span>
+        }
+      </div>
+    </div>
+
+    <!-- Motivo -->
+    <div class="sgc-field">
+      <label for="motivo">Motivo <span class="required">*</span></label>
+      <select
+        id="motivo"
+        formControlName="motivo"
+        [class.invalid]="f.motivo.invalid && f.motivo.touched"
+      >
+        <option value="">Seleccionar motivo…</option>
+        @for (m of MOTIVOS_SALIDA; track m.value) {
+          <option [value]="m.value">{{ m.label }}</option>
+        }
+      </select>
+      @if (f.motivo.invalid && f.motivo.touched) {
+        <span class="field-error">El motivo es obligatorio.</span>
+      }
+    </div>
+
+    <!-- Proyecto referencia (solo si motivo = uso_proyecto) -->
+    @if (showProyectoField()) {
+      <div class="sgc-field">
+        <label for="proyecto_referencia">Proyecto de referencia</label>
+        <input
+          id="proyecto_referencia"
+          type="text"
+          formControlName="proyecto_referencia"
+          placeholder="Nombre o código del proyecto…"
+        />
+      </div>
+    }
+
+    <!-- Referencia -->
+    <div class="sgc-field">
+      <label for="referencia">Referencia</label>
+      <input
+        id="referencia"
+        type="text"
+        formControlName="referencia"
+        placeholder="Número de orden, factura, etc."
+      />
+    </div>
+
+    <!-- Notas -->
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea
+        id="notas"
+        formControlName="notas"
+        rows="3"
+        placeholder="Observaciones opcionales…"
+      ></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          Registrar salida
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

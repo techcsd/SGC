@@ -33,6 +33,23 @@ export const routes: Routes = [
         canActivate: [moduleGuard('flota')],
         loadChildren: () => import('./pages/flota/flota.routes').then((m) => m.flotaRoutes),
       },
+      {
+        path: 'compras',
+        canActivate: [moduleGuard('compras')],
+        loadChildren: () =>
+          import('./pages/compras/compras.routes').then((m) => m.comprasRoutes),
+      },
+      {
+        path: 'rrhh',
+        canActivate: [moduleGuard('rrhh')],
+        loadChildren: () => import('./pages/rrhh/rrhh.routes').then((m) => m.rrhhRoutes),
+      },
+      {
+        path: 'proyectos',
+        canActivate: [moduleGuard('proyectos')],
+        loadChildren: () =>
+          import('./pages/proyectos/proyectos.routes').then((m) => m.proyectosRoutes),
+      },
     ],
   },
   {
