@@ -330,6 +330,63 @@ textarea {
   margin-top: 4px;
 }
 
+// ── Items (multi-row form) ───────────────────────────────
+.items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+}
+
+.sgc-btn--sm {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr 100px auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  select,
+  input {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  &__remove {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-surface);
+    color: var(--sgc-danger);
+    font-size: 16px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--sgc-danger-light);
+      border-color: var(--sgc-danger);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
 // ── Responsive ───────────────────────────────────────────
 @media (max-width: 768px) {
   .filters-bar {
@@ -344,6 +401,10 @@ textarea {
   }
 
   .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .item-row {
     grid-template-columns: 1fr;
   }
 }

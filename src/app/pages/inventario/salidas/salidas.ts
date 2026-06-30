@@ -11,10 +11,12 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { ObrasService } from '../../../../shared/services/obras.service';
 import { UserService } from '../../../core/services/user.service';
-import { SalidaInventario, SalidaFormData, MotivoSalida, MOTIVOS_SALIDA } from '../../../../shared/models/salida.model';
+import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
+import { Obra } from '../../../../shared/models/obra.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 @Component({
@@ -28,12 +30,14 @@ export class Salidas implements OnInit {
   private salidasService = inject(SalidasService);
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);
+  private obrasService = inject(ObrasService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
   salidas = signal<SalidaInventario[]>([]);
   articulos = signal<Articulo[]>([]);
   bodegas = signal<Bodega[]>([]);
+  obras = signal<Obra[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -52,23 +56,24 @@ export class Salidas implements OnInit {
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
+  formItems = signal<SalidaItemFormData[]>([{ articulo_id: '', cantidad: 1 }]);
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
 
   readonly today = new Date().toISOString().slice(0, 10);
 
   form = new FormGroup({
-    articulo_id: new FormControl<string>('', [Validators.required]),
     bodega_id: new FormControl<string>('', [Validators.required]),
-    cantidad: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    motivo: new FormControl<MotivoSalida | ''>('', [Validators.required]),
+    obra_id: new FormControl<string | null>(null),
+    motivo: new FormControl<string>('', [Validators.required]),
     fecha: new FormControl<string>(this.today, [Validators.required]),
-    proyecto_referencia: new FormControl<string | null>(null),
-    referencia: new FormControl<string | null>(null),
-    notas: new FormControl<string | null>(null),
+    responsable: new FormControl<string | null>(null),
+    observaciones: new FormControl<string | null>(null),
   });
 
   // ── Computed ─────────────────────────────────────────────
+  activeObras = computed(() => this.obras().filter((o) => o.activo));
+
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const bodega = this.selectedBodega();
@@ -79,8 +84,8 @@ export class Salidas implements OnInit {
     return this.salidas().filter((s) => {
       if (
         q &&
-        !s.articulo?.nombre.toLowerCase().includes(q) &&
-        !s.articulo?.codigo.toLowerCase().includes(q)
+        !(s.responsable ?? '').toLowerCase().includes(q) &&
+        !(s.obra?.nombre ?? '').toLowerCase().includes(q)
       ) {
         return false;
       }
@@ -99,7 +104,7 @@ export class Salidas implements OnInit {
 
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
-  showProyectoField = computed(() => this.form.controls.motivo.value === 'uso_proyecto');
+  showObraField = computed(() => this.form.controls.motivo.value === 'uso_proyecto');
 
   hasActiveFilters = computed(
     () =>
@@ -118,14 +123,16 @@ export class Salidas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [salidas, arts, bods] = await Promise.all([
+      const [salidas, arts, bods, obras] = await Promise.all([
         this.salidasService.getAll(),
         this.articulosService.getAll(),
         this.bodegasService.getAll(),
+        this.obrasService.getAll(),
       ]);
       this.salidas.set(salidas);
       this.articulos.set(arts);
       this.bodegas.set(bods);
+      this.obras.set(obras);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -190,6 +197,7 @@ export class Salidas implements OnInit {
   openCreate() {
     this.saveError.set('');
     this.form.reset({ fecha: this.today });
+    this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
     this.drawerOpen.set(true);
   }
 
@@ -197,29 +205,50 @@ export class Salidas implements OnInit {
     this.drawerOpen.set(false);
   }
 
+  addItem() {
+    this.formItems.update((items) => [...items, { articulo_id: '', cantidad: 1 }]);
+  }
+
+  removeItem(index: number) {
+    this.formItems.update((items) => items.filter((_, i) => i !== index));
+  }
+
+  updateItemArticulo(index: number, value: string) {
+    this.formItems.update((items) =>
+      items.map((item, i) => (i === index ? { ...item, articulo_id: value } : item)),
+    );
+  }
+
+  updateItemCantidad(index: number, value: string) {
+    this.formItems.update((items) =>
+      items.map((item, i) => (i === index ? { ...item, cantidad: Number(value) } : item)),
+    );
+  }
+
   async onSave() {
     this.form.markAllAsTouched();
-    if (this.form.invalid || this.saving()) return;
+    const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
+    if (this.form.invalid || this.saving() || items.length === 0) return;
 
     this.saving.set(true);
     this.saveError.set('');
 
     const v = this.form.value;
-    const payload: SalidaFormData = {
-      articulo_id: v.articulo_id!,
-      bodega_id: v.bodega_id!,
-      cantidad: v.cantidad!,
-      motivo: v.motivo as MotivoSalida,
-      fecha: v.fecha!,
-      proyecto_referencia: v.motivo === 'uso_proyecto' ? (v.proyecto_referencia ?? null) : null,
-      referencia: v.referencia ?? null,
-      notas: v.notas ?? null,
-    };
 
     try {
-      // TODO: pass authenticated user id when auth context is wired up
       const userId = this.userService.profile()?.id ?? null;
-      const created = await this.salidasService.create(payload, userId);
+      const created = await this.salidasService.create(
+        {
+          bodega_id: v.bodega_id!,
+          obra_id: v.motivo === 'uso_proyecto' ? (v.obra_id ?? null) : null,
+          motivo: v.motivo!,
+          fecha: v.fecha!,
+          responsable: v.responsable ?? null,
+          observaciones: v.observaciones ?? null,
+          items,
+        },
+        userId,
+      );
       this.salidas.update((list) => [created, ...list]);
       this.drawerOpen.set(false);
     } catch (e: unknown) {
@@ -230,12 +259,12 @@ export class Salidas implements OnInit {
   }
 
   // ── Helpers ──────────────────────────────────────────────
-  getMotivoLabel(motivo: MotivoSalida): string {
+  getMotivoLabel(motivo: string): string {
     return MOTIVOS_SALIDA.find((m) => m.value === motivo)?.label ?? motivo;
   }
 
-  getMotivoModifier(motivo: MotivoSalida): string {
-    const map: Record<MotivoSalida, string> = {
+  getMotivoModifier(motivo: string): string {
+    const map: Record<string, string> = {
       uso_proyecto: 'info',
       venta: 'success',
       merma: 'danger',

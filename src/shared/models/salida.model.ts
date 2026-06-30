@@ -1,33 +1,42 @@
-export type MotivoSalida = 'uso_proyecto' | 'venta' | 'merma' | 'devolucion' | 'ajuste' | 'otro';
+export interface DetalleSalida {
+  id: string;
+  salida_id: string;
+  articulo_id: string;
+  articulo?: { nombre: string; codigo: string; unidad: string };
+  cantidad: number;
+}
 
 export interface SalidaInventario {
   id: string;
-  articulo_id: string;
-  articulo?: { nombre: string; codigo: string; unidad: string };
+  fecha: string;
   bodega_id: string;
   bodega?: { nombre: string };
-  cantidad: number;
-  motivo: MotivoSalida;
-  proyecto_referencia: string | null;
-  fecha: string;
-  referencia: string | null;
-  notas: string | null;
+  obra_id: string | null;
+  obra?: { nombre: string };
+  motivo: string;
+  responsable: string | null;
+  observaciones: string | null;
   creado_por: string | null;
   created_at: string;
+  detalle_salidas?: DetalleSalida[];
+}
+
+export interface SalidaItemFormData {
+  articulo_id: string;
+  cantidad: number;
 }
 
 export interface SalidaFormData {
-  articulo_id: string;
-  bodega_id: string;
-  cantidad: number;
-  motivo: MotivoSalida;
-  proyecto_referencia: string | null;
   fecha: string;
-  referencia: string | null;
-  notas: string | null;
+  bodega_id: string;
+  obra_id: string | null;
+  motivo: string;
+  responsable: string | null;
+  observaciones: string | null;
+  items: SalidaItemFormData[];
 }
 
-export const MOTIVOS_SALIDA: { value: MotivoSalida; label: string }[] = [
+export const MOTIVOS_SALIDA: { value: string; label: string }[] = [
   { value: 'uso_proyecto', label: 'Uso en proyecto' },
   { value: 'venta', label: 'Venta' },
   { value: 'merma', label: 'Merma / Pérdida' },

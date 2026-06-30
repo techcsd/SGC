@@ -17,7 +17,7 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por artículo o código…"
+      placeholder="Buscar por proveedor o referencia…"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
       aria-label="Buscar entradas"
@@ -102,51 +102,28 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Artículo</th>
-            <th>Código</th>
             <th>Bodega</th>
-            <th class="text-right">Cantidad</th>
-            <th class="text-right">Costo unit.</th>
             <th>Proveedor</th>
             <th>Referencia</th>
+            <th class="text-right">Artículos</th>
+            <th class="text-right">Total</th>
           </tr>
         </thead>
         <tbody>
           @for (e of paginated(); track e.id) {
             <tr>
               <td class="entradas__fecha">{{ e.fecha | date:'dd/MM/yyyy' }}</td>
-              <td>
-                <span class="entradas__nombre">{{ e.articulo?.nombre ?? '—' }}</span>
-                @if (e.articulo?.unidad) {
-                  <span class="entradas__unidad">{{ e.articulo!.unidad }}</span>
-                }
-              </td>
-              <td>
-                <code class="code-tag">{{ e.articulo?.codigo ?? '—' }}</code>
-              </td>
               <td>{{ e.bodega?.nombre ?? '—' }}</td>
-              <td class="text-right">
-                <span class="entradas__cantidad">{{ e.cantidad | number:'1.0-2' }}</span>
-              </td>
-              <td class="text-right text-muted">
-                @if (e.costo_unitario !== null) {
-                  {{ e.costo_unitario | number:'1.2-2' }}
-                } @else {
-                  —
-                }
-              </td>
-              <td class="text-muted">{{ e.proveedor ?? '—' }}</td>
+              <td class="text-muted">{{ e.proveedor?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
+              <td class="text-right">{{ (e.detalle_entradas ?? []).length }}</td>
+              <td class="text-right">
+                <span class="entradas__cantidad">{{ entryTotal(e) | number:'1.2-2' }}</span>
+              </td>
             </tr>
           }
         </tbody>
       </table>
-    </div>
-
-    <!-- ── Total ── -->
-    <div class="entradas__total-bar">
-      <span class="entradas__total-label">Costo total filtrado</span>
-      <span class="entradas__total-value">{{ totalCost() | number:'1.2-2' }}</span>
     </div>
 
     <!-- ── Pagination ── -->
@@ -203,57 +180,22 @@
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
-    <!-- Artículo -->
-    <div class="sgc-field">
-      <label for="articulo_id">Artículo <span class="required">*</span></label>
-      <select
-        id="articulo_id"
-        formControlName="articulo_id"
-        [class.invalid]="f.articulo_id.invalid && f.articulo_id.touched"
-      >
-        <option value="">Seleccionar artículo…</option>
-        @for (a of articulos(); track a.id) {
-          <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
-        }
-      </select>
-      @if (f.articulo_id.invalid && f.articulo_id.touched) {
-        <span class="field-error">El artículo es obligatorio.</span>
-      }
-    </div>
-
-    <!-- Bodega -->
-    <div class="sgc-field">
-      <label for="bodega_id">Bodega <span class="required">*</span></label>
-      <select
-        id="bodega_id"
-        formControlName="bodega_id"
-        [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
-      >
-        <option value="">Seleccionar bodega…</option>
-        @for (b of bodegas(); track b.id) {
-          <option [value]="b.id">{{ b.nombre }}</option>
-        }
-      </select>
-      @if (f.bodega_id.invalid && f.bodega_id.touched) {
-        <span class="field-error">La bodega es obligatoria.</span>
-      }
-    </div>
-
     <div class="form-row">
-      <!-- Cantidad -->
+      <!-- Bodega -->
       <div class="sgc-field">
-        <label for="cantidad">Cantidad <span class="required">*</span></label>
-        <input
-          id="cantidad"
-          type="number"
-          formControlName="cantidad"
-          min="0.01"
-          step="0.01"
-          placeholder="0.00"
-          [class.invalid]="f.cantidad.invalid && f.cantidad.touched"
-        />
-        @if (f.cantidad.invalid && f.cantidad.touched) {
-          <span class="field-error">La cantidad debe ser mayor a 0.</span>
+        <label for="bodega_id">Bodega <span class="required">*</span></label>
+        <select
+          id="bodega_id"
+          formControlName="bodega_id"
+          [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
+        >
+          <option value="">Seleccionar bodega…</option>
+          @for (b of bodegas(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }}</option>
+          }
+        </select>
+        @if (f.bodega_id.invalid && f.bodega_id.touched) {
+          <span class="field-error">La bodega es obligatoria.</span>
         }
       </div>
 
@@ -272,28 +214,15 @@
       </div>
     </div>
 
-    <!-- Costo unitario -->
-    <div class="sgc-field">
-      <label for="costo_unitario">Costo unitario (DOP)</label>
-      <input
-        id="costo_unitario"
-        type="number"
-        formControlName="costo_unitario"
-        min="0"
-        step="0.01"
-        placeholder="0.00"
-      />
-    </div>
-
     <!-- Proveedor -->
     <div class="sgc-field">
-      <label for="proveedor">Proveedor</label>
-      <input
-        id="proveedor"
-        type="text"
-        formControlName="proveedor"
-        placeholder="Nombre del proveedor"
-      />
+      <label for="proveedor_id">Proveedor</label>
+      <select id="proveedor_id" formControlName="proveedor_id">
+        <option [ngValue]="null">Sin proveedor</option>
+        @for (p of activeProveedores(); track p.id) {
+          <option [value]="p.id">{{ p.nombre }}</option>
+        }
+      </select>
     </div>
 
     <!-- Referencia -->
@@ -307,15 +236,71 @@
       />
     </div>
 
-    <!-- Motivo -->
+    <!-- Observaciones -->
     <div class="sgc-field">
-      <label for="motivo">Motivo</label>
+      <label for="observaciones">Observaciones</label>
       <textarea
-        id="motivo"
-        formControlName="motivo"
-        rows="3"
-        placeholder="Motivo de la entrada (opcional)…"
+        id="observaciones"
+        formControlName="observaciones"
+        rows="2"
+        placeholder="Notas adicionales (opcional)…"
       ></textarea>
+    </div>
+
+    <!-- Items -->
+    <div class="sgc-field">
+      <div class="items-header">
+        <label>Artículos <span class="required">*</span></label>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
+          + Agregar artículo
+        </button>
+      </div>
+
+      @for (item of formItems(); track $index) {
+        <div class="item-row">
+          <select
+            class="item-row__articulo"
+            [value]="item.articulo_id"
+            (change)="updateItemArticulo($index, $any($event.target).value)"
+          >
+            <option value="">Seleccionar artículo…</option>
+            @for (a of articulos(); track a.id) {
+              <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+            }
+          </select>
+          <input
+            class="item-row__cantidad"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="Cant."
+            [value]="item.cantidad"
+            (input)="updateItemCantidad($index, $any($event.target).value)"
+          />
+          <input
+            class="item-row__precio"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Precio unit."
+            [value]="item.precio_unit"
+            (input)="updateItemPrecio($index, $any($event.target).value)"
+          />
+          <span class="item-row__total">{{ itemTotal(item) | number:'1.2-2' }}</span>
+          <button
+            type="button"
+            class="item-row__remove"
+            (click)="removeItem($index)"
+            [disabled]="formItems().length === 1"
+            aria-label="Eliminar artículo"
+          >×</button>
+        </div>
+      }
+
+      <div class="items-subtotal">
+        <span>Subtotal</span>
+        <span>{{ itemsSubtotal() | number:'1.2-2' }}</span>
+      </div>
     </div>
 
     @if (saveError()) {

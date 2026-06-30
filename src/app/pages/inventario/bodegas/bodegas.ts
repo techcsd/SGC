@@ -44,6 +44,7 @@ export class Bodegas implements OnInit {
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     ubicacion: new FormControl<string | null>(null),
+    descripcion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
   });
 
@@ -131,7 +132,7 @@ export class Bodegas implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, ubicacion: null });
+    this.form.reset({ activo: true, ubicacion: null, descripcion: null });
     this.drawerOpen.set(true);
   }
 
@@ -141,6 +142,7 @@ export class Bodegas implements OnInit {
     this.form.reset({
       nombre: bodega.nombre,
       ubicacion: bodega.ubicacion,
+      descripcion: bodega.descripcion,
       activo: bodega.activo,
     });
     this.drawerOpen.set(true);

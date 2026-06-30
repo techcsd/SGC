@@ -31,6 +31,20 @@ interface SalidaRow {
   bodega: { nombre: string } | null;
 }
 
+interface EntradaHeaderRow {
+  id: string;
+  created_at: string;
+  bodega: { nombre: string } | null;
+  detalle_entradas: { articulo_id: string; cantidad: number; articulo: { nombre: string; codigo: string } | null }[];
+}
+
+interface SalidaHeaderRow {
+  id: string;
+  created_at: string;
+  bodega: { nombre: string } | null;
+  detalle_salidas: { articulo_id: string; cantidad: number; articulo: { nombre: string; codigo: string } | null }[];
+}
+
 interface CategoriaStat {
   nombre: string;
   articulosCount: number;
@@ -191,19 +205,19 @@ export class Reportes implements OnInit {
       const [entradasRes, salidasRes, allEntradasRes, allSalidasRes] = await Promise.all([
         this.supabase.client
           .from('entradas_inventario')
-          .select('*, articulo:articulos(nombre,codigo), bodega:bodegas(nombre)')
+          .select('id, created_at, bodega:bodegas(nombre), detalle_entradas(articulo_id, cantidad, articulo:articulos(nombre,codigo))')
           .order('created_at', { ascending: false })
           .limit(10),
         this.supabase.client
           .from('salidas_inventario')
-          .select('*, articulo:articulos(nombre,codigo), bodega:bodegas(nombre)')
+          .select('id, created_at, bodega:bodegas(nombre), detalle_salidas(articulo_id, cantidad, articulo:articulos(nombre,codigo))')
           .order('created_at', { ascending: false })
           .limit(10),
         this.supabase.client
-          .from('entradas_inventario')
+          .from('detalle_entradas')
           .select('articulo_id, cantidad'),
         this.supabase.client
-          .from('salidas_inventario')
+          .from('detalle_salidas')
           .select('articulo_id, cantidad'),
       ]);
 
@@ -212,8 +226,37 @@ export class Reportes implements OnInit {
       if (allEntradasRes.error) throw new Error(allEntradasRes.error.message);
       if (allSalidasRes.error) throw new Error(allSalidasRes.error.message);
 
-      this.entradas.set((entradasRes.data ?? []) as unknown as EntradaRow[]);
-      this.salidas.set((salidasRes.data ?? []) as unknown as SalidaRow[]);
+      const entradaHeaders = (entradasRes.data ?? []) as unknown as EntradaHeaderRow[];
+      const salidaHeaders = (salidasRes.data ?? []) as unknown as SalidaHeaderRow[];
+
+      this.entradas.set(
+        entradaHeaders
+          .flatMap((h) =>
+            h.detalle_entradas.map((d) => ({
+              id: h.id,
+              created_at: h.created_at,
+              cantidad: d.cantidad,
+              articulo: d.articulo,
+              bodega: h.bodega,
+            })),
+          )
+          .slice(0, 10),
+      );
+
+      this.salidas.set(
+        salidaHeaders
+          .flatMap((h) =>
+            h.detalle_salidas.map((d) => ({
+              id: h.id,
+              created_at: h.created_at,
+              cantidad: d.cantidad,
+              articulo: d.articulo,
+              bodega: h.bodega,
+            })),
+          )
+          .slice(0, 10),
+      );
+
       this.allEntradas.set(
         (allEntradasRes.data ?? []) as unknown as { articulo_id: string; cantidad: number }[]
       );

@@ -17,7 +17,7 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por artículo o código…"
+      placeholder="Buscar por responsable u obra…"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
       aria-label="Buscar salidas"
@@ -115,41 +115,26 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Artículo</th>
-            <th>Código</th>
             <th>Bodega</th>
-            <th class="text-right">Cantidad</th>
             <th>Motivo</th>
-            <th>Ref. / Proyecto</th>
-            <th>Notas</th>
+            <th>Obra</th>
+            <th>Responsable</th>
+            <th class="text-right">Artículos</th>
           </tr>
         </thead>
         <tbody>
           @for (s of paginated(); track s.id) {
             <tr>
               <td class="salidas__date">{{ s.fecha | date:'dd/MM/yyyy' }}</td>
-              <td>
-                <span class="salidas__art-name">{{ s.articulo?.nombre ?? '—' }}</span>
-              </td>
-              <td>
-                <code class="code-tag">{{ s.articulo?.codigo ?? '—' }}</code>
-              </td>
               <td>{{ s.bodega?.nombre ?? '—' }}</td>
-              <td class="text-right">
-                <span class="salidas__qty">{{ s.cantidad | number:'1.0-2' }}</span>
-                <span class="salidas__unit">{{ s.articulo?.unidad }}</span>
-              </td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getMotivoModifier(s.motivo)">
                   {{ getMotivoLabel(s.motivo) }}
                 </span>
               </td>
-              <td class="salidas__ref">
-                {{ s.proyecto_referencia || s.referencia || '—' }}
-              </td>
-              <td class="salidas__notes">
-                {{ s.notas || '—' }}
-              </td>
+              <td class="text-muted">{{ s.obra?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ s.responsable || '—' }}</td>
+              <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
             </tr>
           }
         </tbody>
@@ -210,57 +195,22 @@
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
-    <!-- Artículo -->
-    <div class="sgc-field">
-      <label for="articulo_id">Artículo <span class="required">*</span></label>
-      <select
-        id="articulo_id"
-        formControlName="articulo_id"
-        [class.invalid]="f.articulo_id.invalid && f.articulo_id.touched"
-      >
-        <option value="">Seleccionar artículo…</option>
-        @for (art of articulos(); track art.id) {
-          <option [value]="art.id">{{ art.nombre }} ({{ art.codigo }})</option>
-        }
-      </select>
-      @if (f.articulo_id.invalid && f.articulo_id.touched) {
-        <span class="field-error">El artículo es obligatorio.</span>
-      }
-    </div>
-
-    <!-- Bodega -->
-    <div class="sgc-field">
-      <label for="bodega_id">Bodega <span class="required">*</span></label>
-      <select
-        id="bodega_id"
-        formControlName="bodega_id"
-        [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
-      >
-        <option value="">Seleccionar bodega…</option>
-        @for (b of bodegas(); track b.id) {
-          <option [value]="b.id">{{ b.nombre }}</option>
-        }
-      </select>
-      @if (f.bodega_id.invalid && f.bodega_id.touched) {
-        <span class="field-error">La bodega es obligatoria.</span>
-      }
-    </div>
-
-    <!-- Cantidad + Fecha -->
+    <!-- Bodega + Fecha -->
     <div class="form-row">
       <div class="sgc-field">
-        <label for="cantidad">Cantidad <span class="required">*</span></label>
-        <input
-          id="cantidad"
-          type="number"
-          formControlName="cantidad"
-          min="0.01"
-          step="0.01"
-          placeholder="0.00"
-          [class.invalid]="f.cantidad.invalid && f.cantidad.touched"
-        />
-        @if (f.cantidad.invalid && f.cantidad.touched) {
-          <span class="field-error">Debe ser mayor a 0.</span>
+        <label for="bodega_id">Bodega <span class="required">*</span></label>
+        <select
+          id="bodega_id"
+          formControlName="bodega_id"
+          [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
+        >
+          <option value="">Seleccionar bodega…</option>
+          @for (b of bodegas(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }}</option>
+          }
+        </select>
+        @if (f.bodega_id.invalid && f.bodega_id.touched) {
+          <span class="field-error">La bodega es obligatoria.</span>
         }
       </div>
 
@@ -296,39 +246,80 @@
       }
     </div>
 
-    <!-- Proyecto referencia (solo si motivo = uso_proyecto) -->
-    @if (showProyectoField()) {
+    <!-- Obra (solo si motivo = uso_proyecto) -->
+    @if (showObraField()) {
       <div class="sgc-field">
-        <label for="proyecto_referencia">Proyecto de referencia</label>
-        <input
-          id="proyecto_referencia"
-          type="text"
-          formControlName="proyecto_referencia"
-          placeholder="Nombre o código del proyecto…"
-        />
+        <label for="obra_id">Obra</label>
+        <select id="obra_id" formControlName="obra_id">
+          <option [ngValue]="null">Sin obra</option>
+          @for (o of activeObras(); track o.id) {
+            <option [value]="o.id">{{ o.nombre }}</option>
+          }
+        </select>
       </div>
     }
 
-    <!-- Referencia -->
+    <!-- Responsable -->
     <div class="sgc-field">
-      <label for="referencia">Referencia</label>
+      <label for="responsable">Responsable</label>
       <input
-        id="referencia"
+        id="responsable"
         type="text"
-        formControlName="referencia"
-        placeholder="Número de orden, factura, etc."
+        formControlName="responsable"
+        placeholder="Nombre de quien retira el material"
       />
     </div>
 
-    <!-- Notas -->
+    <!-- Observaciones -->
     <div class="sgc-field">
-      <label for="notas">Notas</label>
+      <label for="observaciones">Observaciones</label>
       <textarea
-        id="notas"
-        formControlName="notas"
-        rows="3"
-        placeholder="Observaciones opcionales…"
+        id="observaciones"
+        formControlName="observaciones"
+        rows="2"
+        placeholder="Notas adicionales (opcional)…"
       ></textarea>
+    </div>
+
+    <!-- Items -->
+    <div class="sgc-field">
+      <div class="items-header">
+        <label>Artículos <span class="required">*</span></label>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
+          + Agregar artículo
+        </button>
+      </div>
+
+      @for (item of formItems(); track $index) {
+        <div class="item-row">
+          <select
+            class="item-row__articulo"
+            [value]="item.articulo_id"
+            (change)="updateItemArticulo($index, $any($event.target).value)"
+          >
+            <option value="">Seleccionar artículo…</option>
+            @for (a of articulos(); track a.id) {
+              <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+            }
+          </select>
+          <input
+            class="item-row__cantidad"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="Cant."
+            [value]="item.cantidad"
+            (input)="updateItemCantidad($index, $any($event.target).value)"
+          />
+          <button
+            type="button"
+            class="item-row__remove"
+            (click)="removeItem($index)"
+            [disabled]="formItems().length === 1"
+            aria-label="Eliminar artículo"
+          >×</button>
+        </div>
+      }
     </div>
 
     @if (saveError()) {

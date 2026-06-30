@@ -1,15 +1,15 @@
 export interface Bodega {
   id: string;
   nombre: string;
+  descripcion: string | null;
   ubicacion: string | null;
-  responsable_id: string | null;
-  responsable?: { nombre: string };
   activo: boolean;
   created_at: string;
 }
 
 export interface BodegaFormData {
   nombre: string;
+  descripcion: string | null;
   ubicacion: string | null;
   activo: boolean;
 }

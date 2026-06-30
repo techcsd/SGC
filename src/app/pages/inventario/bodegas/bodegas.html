@@ -82,7 +82,7 @@
           <tr>
             <th>Nombre</th>
             <th>Ubicación</th>
-            <th>Responsable</th>
+            <th>Descripción</th>
             <th>Estado</th>
             <th>Fecha creación</th>
             <th class="text-center">Acciones</th>
@@ -95,7 +95,7 @@
                 <span class="bodega-nombre">{{ bodega.nombre }}</span>
               </td>
               <td class="text-muted">{{ bodega.ubicacion ?? '—' }}</td>
-              <td class="text-muted">{{ bodega.responsable?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ bodega.descripcion ?? '—' }}</td>
               <td>
                 <label class="toggle-label toggle-label--inline" [attr.aria-label]="(bodega.activo ? 'Desactivar' : 'Activar') + ' ' + bodega.nombre">
                   <input
@@ -204,8 +204,18 @@
       <textarea
         id="ubicacion"
         formControlName="ubicacion"
-        rows="3"
+        rows="2"
         placeholder="Dirección o descripción de la ubicación…"
+      ></textarea>
+    </div>
+
+    <div class="sgc-field">
+      <label for="descripcion">Descripción</label>
+      <textarea
+        id="descripcion"
+        formControlName="descripcion"
+        rows="2"
+        placeholder="Notas adicionales sobre la bodega…"
       ></textarea>
     </div>
 

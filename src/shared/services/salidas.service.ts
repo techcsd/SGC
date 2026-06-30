@@ -1,24 +1,9 @@
-// -- create table sgc.salidas_inventario (
-//   id uuid primary key default gen_random_uuid(),
-//   articulo_id uuid not null references sgc.articulos(id),
-//   bodega_id uuid not null references sgc.bodegas(id),
-//   cantidad numeric(12,2) not null check (cantidad > 0),
-//   motivo text not null,
-//   proyecto_referencia text,
-//   fecha date not null default current_date,
-//   referencia text,
-//   notas text,
-//   creado_por uuid references sgc.usuarios(id),
-//   created_at timestamptz default now()
-// );
-// -- alter table sgc.salidas_inventario enable row level security;
-// -- create policy "salidas: read" on sgc.salidas_inventario for select to authenticated using (true);
-// -- create policy "salidas: insert" on sgc.salidas_inventario for insert to authenticated with check (true);
-// -- grant select, insert on sgc.salidas_inventario to authenticated;
-
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SalidaInventario, SalidaFormData } from '../models/salida.model';
+
+const SELECT_QUERY =
+  '*, bodega:bodegas(nombre), obra:obras(nombre), detalle_salidas(*, articulo:articulos(nombre, codigo, unidad))';
 
 @Injectable({ providedIn: 'root' })
 export class SalidasService {
@@ -27,7 +12,7 @@ export class SalidasService {
   async getAll(): Promise<SalidaInventario[]> {
     const { data, error } = await this.supabase.client
       .from('salidas_inventario')
-      .select('*, articulo:articulos(nombre, codigo, unidad), bodega:bodegas(nombre)')
+      .select(SELECT_QUERY)
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -35,10 +20,28 @@ export class SalidasService {
   }
 
   async create(payload: SalidaFormData, userId: string | null): Promise<SalidaInventario> {
+    const { items, ...header } = payload;
+
+    const { data: salida, error: salidaError } = await this.supabase.client
+      .from('salidas_inventario')
+      .insert({ ...header, creado_por: userId })
+      .select('id')
+      .single();
+
+    if (salidaError) throw new Error(salidaError.message);
+
+    const salidaId = (salida as { id: string }).id;
+
+    const { error: itemsError } = await this.supabase.client
+      .from('detalle_salidas')
+      .insert(items.map((item) => ({ ...item, salida_id: salidaId })));
+
+    if (itemsError) throw new Error(itemsError.message);
+
     const { data, error } = await this.supabase.client
       .from('salidas_inventario')
-      .insert({ ...payload, creado_por: userId })
-      .select('*, articulo:articulos(nombre, codigo, unidad), bodega:bodegas(nombre)')
+      .select(SELECT_QUERY)
+      .eq('id', salidaId)
       .single();
 
     if (error) throw new Error(error.message);
