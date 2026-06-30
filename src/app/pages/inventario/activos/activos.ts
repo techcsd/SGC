@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivosService } from '../../../../shared/services/activos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ActivoFijo, ActivoFormData, ACTIVO_ESTADOS, ActivoEstado } from '../../../../shared/models/activo.model';
@@ -16,7 +16,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 
 @Component({
   selector: 'app-activos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, CurrencyPipe, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DatePipe],
   templateUrl: './activos.html',
   styleUrl: './activos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

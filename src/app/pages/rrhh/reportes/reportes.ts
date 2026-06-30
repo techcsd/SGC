@@ -6,7 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 interface EmpleadoReport {
@@ -46,7 +46,7 @@ interface DeptStat {
 
 @Component({
   selector: 'app-rrhh-reportes',
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -104,7 +104,7 @@ export class RrhhReportes implements OnInit {
     for (const a of this.asistencia()) {
       stats.total++;
       if (a.estado in stats) {
-        (stats as Record<string, number>)[a.estado]++;
+        (stats as unknown as Record<string, number>)[a.estado]++;
       }
     }
     return stats;

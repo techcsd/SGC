@@ -9,7 +9,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsistenciaService } from '../../../../shared/services/asistencia.service';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
-import { Asistencia, AsistenciaFormData, ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../../shared/models/asistencia.model';
+import { Asistencia as AsistenciaModel, AsistenciaFormData, ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../../shared/models/asistencia.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
@@ -25,7 +25,7 @@ export class Asistencia implements OnInit {
   private empleadosService = inject(EmpleadosService);
 
   // ── Data state ──────────────────────────────────────────
-  registros = signal<Asistencia[]>([]);
+  registros = signal<AsistenciaModel[]>([]);
   empleadosActivos = signal<Empleado[]>([]);
   loading = signal(true);
   saving = signal(false);
