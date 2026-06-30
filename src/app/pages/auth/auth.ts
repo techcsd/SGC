@@ -67,7 +67,15 @@ export class Auth {
     await this.userService.loadProfile(user.id);
 
     const profile = this.userService.profile();
-    if (!profile || !profile.activo) {
+
+    if (!profile) {
+      await this.authService.signOut();
+      this.loading.set(false);
+      this.errorMessage.set('No se pudo cargar tu perfil. Contacta al administrador.');
+      return;
+    }
+
+    if (!profile.activo) {
       await this.authService.signOut();
       this.loading.set(false);
       this.errorMessage.set('Tu cuenta está desactivada. Contacta al administrador.');
