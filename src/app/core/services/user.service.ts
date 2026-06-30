@@ -29,7 +29,7 @@ export class UserService {
   async loadProfile(userId: string): Promise<void> {
     const { data, error } = await this.supabase.client
       .from('usuarios')
-      .select('*, roles:usuarios_roles(rol:roles(codigo, nombre, modulos))')
+      .select('*, roles:usuarios_roles!usuario_id(rol:roles(codigo, nombre, modulos))')
       .eq('id', userId)
       .single();
 
