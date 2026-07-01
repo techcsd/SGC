@@ -515,6 +515,37 @@
   &__detail-val {
     font-size: 0.9rem;
     color: var(--sgc-text);
+
+    &--over {
+      color: var(--sgc-danger);
+      font-weight: 600;
+    }
+  }
+
+  &__add-miembro {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr auto;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    select, input {
+      background: var(--sgc-surface);
+      border: 1px solid var(--sgc-border);
+      border-radius: var(--sgc-radius);
+      color: var(--sgc-text);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__btn-icon--danger {
+    color: var(--sgc-danger);
+
+    &:hover { background: var(--sgc-danger-light); }
   }
 
   &__detail-progress-section {
@@ -647,4 +678,8 @@
     font-size: 0.75rem;
     color: var(--sgc-text-muted);
   }
+}
+
+.text-muted {
+  color: var(--sgc-text-muted);
 }

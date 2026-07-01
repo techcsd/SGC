@@ -9,7 +9,7 @@ export class ConductoresService {
   async getAll(): Promise<Conductor[]> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .select('*')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo)')
       .order('nombre');
 
     if (error) throw new Error(error.message);
@@ -20,7 +20,7 @@ export class ConductoresService {
     const { data, error } = await this.supabase.client
       .from('conductores')
       .insert(payload)
-      .select('*')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo)')
       .single();
 
     if (error) throw new Error(error.message);
@@ -32,7 +32,7 @@ export class ConductoresService {
       .from('conductores')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select('*')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo)')
       .single();
 
     if (error) throw new Error(error.message);

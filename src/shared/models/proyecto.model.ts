@@ -21,6 +21,15 @@ export interface Proyecto {
   fases?: FaseProyecto[];
 }
 
+export interface ProyectoEmpleado {
+  id: string;
+  proyecto_id: string;
+  empleado_id: string;
+  empleado?: { nombre: string; apellido: string; cargo: string };
+  rol: string | null;
+  created_at: string;
+}
+
 export interface FaseProyecto {
   id: string;
   proyecto_id: string;

@@ -8,11 +8,13 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
+import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import {
   Conductor,
   ConductorFormData,
   LICENCIA_TIPOS,
 } from '../../../../shared/models/conductor.model';
+import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 @Component({
@@ -24,9 +26,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 })
 export class Conductores implements OnInit {
   private conductoresService = inject(ConductoresService);
+  private vehiculosService = inject(VehiculosService);
 
   // ── Data state ──────────────────────────────────────────
   conductores = signal<Conductor[]>([]);
+  vehiculos = signal<Vehiculo[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -53,6 +57,7 @@ export class Conductores implements OnInit {
     licencia_tipo: new FormControl<string>('B', [Validators.required]),
     licencia_numero: new FormControl<string | null>(null),
     licencia_vencimiento: new FormControl<string | null>(null),
+    vehiculo_id: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
   });
 
@@ -82,6 +87,18 @@ export class Conductores implements OnInit {
     this.editingId() ? 'Editar conductor' : 'Nuevo conductor',
   );
 
+  // Vehicles available to assign: unassigned ones, plus the one already
+  // assigned to the conductor being edited (so it stays selectable).
+  availableVehiculos = computed(() => {
+    const assignedIds = new Set(
+      this.conductores()
+        .filter((c) => c.id !== this.editingId())
+        .map((c) => c.vehiculo_id)
+        .filter((id): id is string => !!id),
+    );
+    return this.vehiculos().filter((v) => v.activo && !assignedIds.has(v.id));
+  });
+
   async ngOnInit() {
     await this.loadAll();
   }
@@ -90,8 +107,12 @@ export class Conductores implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const conductores = await this.conductoresService.getAll();
+      const [conductores, vehiculos] = await Promise.all([
+        this.conductoresService.getAll(),
+        this.vehiculosService.getAll(),
+      ]);
       this.conductores.set(conductores);
+      this.vehiculos.set(vehiculos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -152,6 +173,7 @@ export class Conductores implements OnInit {
       licencia_tipo: c.licencia_tipo,
       licencia_numero: c.licencia_numero,
       licencia_vencimiento: c.licencia_vencimiento,
+      vehiculo_id: c.vehiculo_id,
       activo: c.activo,
     });
     this.drawerOpen.set(true);

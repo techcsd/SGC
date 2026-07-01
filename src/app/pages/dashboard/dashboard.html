@@ -194,6 +194,44 @@
         }
       </section>
 
+      <!-- Empleados por departamento -->
+      <section class="chart-card" aria-labelledby="dept-title">
+        <h2 class="chart-title" id="dept-title">Empleados por departamento</h2>
+        @if (empleadosPorDepartamento().length === 0) {
+          <p class="chart-empty">Sin empleados registrados.</p>
+        } @else {
+          <div class="hbar-chart">
+            @for (d of empleadosPorDepartamento(); track d.label) {
+              <div class="hbar-chart__row">
+                <span class="hbar-chart__label">{{ d.label }}</span>
+                <div class="hbar-chart__track">
+                  <div class="hbar-chart__fill" [style.width.%]="(d.value / empleadosPorDepartamentoMax()) * 100" [style.background]="d.color"></div>
+                </div>
+                <span class="hbar-chart__value">{{ d.value }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Próximos mantenimientos -->
+      <section class="chart-card" aria-labelledby="proximos-mant-title">
+        <h2 class="chart-title" id="proximos-mant-title">Próximos mantenimientos (7 días)</h2>
+        @if (proximosMantenimientos().length === 0) {
+          <p class="chart-empty">Sin mantenimientos programados esta semana.</p>
+        } @else {
+          <ul class="upcoming-list">
+            @for (m of proximosMantenimientos(); track m.fecha + (m.vehiculo?.placa ?? '')) {
+              <li class="upcoming-list__item">
+                <span class="upcoming-list__dot"></span>
+                <span class="upcoming-list__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
+                <span class="upcoming-list__fecha">{{ m.fecha }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
     </div>
   }
 

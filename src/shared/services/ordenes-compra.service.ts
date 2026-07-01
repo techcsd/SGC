@@ -4,6 +4,7 @@ import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../models/orden-compr
 
 export interface OrdenCompraPayload {
   proveedor_id: string;
+  proyecto_id?: string | null;
   estado: OrdenEstado;
   fecha: string;
   fecha_entrega_esperada?: string | null;
@@ -25,7 +26,7 @@ export class OrdenesCompraService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('ordenes_compra')
-      .select('*, proveedor:proveedores(nombre)')
+      .select('*, proveedor:proveedores(nombre), proyecto:proyectos(nombre)')
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -36,7 +37,7 @@ export class OrdenesCompraService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('ordenes_compra')
-      .select('*, proveedor:proveedores(nombre), items:orden_compra_items(*)')
+      .select('*, proveedor:proveedores(nombre), proyecto:proyectos(nombre), items:orden_compra_items(*)')
       .eq('id', id)
       .single();
 

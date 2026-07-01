@@ -95,6 +95,7 @@ export class Shell implements OnInit {
         { label: 'Mantenimientos', route: '/flota/mantenimientos' },
         { label: 'Conductores', route: '/flota/conductores' },
         { label: 'Combustible', route: '/flota/combustible' },
+        { label: 'Rutas', route: '/flota/rutas' },
         { label: 'Reportes', route: '/flota/reportes' },
       ],
     },

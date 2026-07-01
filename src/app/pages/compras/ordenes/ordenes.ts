@@ -10,8 +10,10 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DecimalPipe } from '@angular/common';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../../../../shared/models/orden-compra.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 interface ItemRow {
@@ -30,10 +32,12 @@ interface ItemRow {
 export class Ordenes implements OnInit {
   private ordenesService = inject(OrdenesCompraService);
   private proveedoresService = inject(ProveedoresService);
+  private proyectosService = inject(ProyectosService);
 
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OrdenCompra[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -59,6 +63,7 @@ export class Ordenes implements OnInit {
 
   form = new FormGroup({
     proveedor_id: new FormControl('', [Validators.required]),
+    proyecto_id: new FormControl<string | null>(null),
     fecha: new FormControl('', [Validators.required]),
     fecha_entrega_esperada: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
@@ -98,12 +103,14 @@ export class Ordenes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [ordenes, proveedores] = await Promise.all([
+      const [ordenes, proveedores, proyectos] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
+        this.proyectosService.getAll(),
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
+      this.proyectos.set(proyectos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -181,6 +188,7 @@ export class Ordenes implements OnInit {
 
     const payload: OrdenCompraPayload = {
       proveedor_id: fv.proveedor_id!,
+      proyecto_id: fv.proyecto_id ?? null,
       estado: 'borrador',
       fecha: fv.fecha!,
       fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,

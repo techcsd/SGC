@@ -8,7 +8,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { FaseProyecto, Proyecto, ProyectoEstado } from '../models/proyecto.model';
+import { FaseProyecto, Proyecto, ProyectoEmpleado, ProyectoEstado } from '../models/proyecto.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProyectosService {
@@ -130,6 +130,52 @@ export class ProyectosService {
       .schema('sgc')
       .from('fases_proyecto')
       .update({ progreso })
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
+  /** Real spend: sum of approved/received órdenes de compra tagged to this project. */
+  async getGastoReal(proyectoId: string): Promise<number> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('ordenes_compra')
+      .select('total, estado')
+      .eq('proyecto_id', proyectoId)
+      .in('estado', ['aprobada', 'recibida']);
+
+    if (error) throw new Error(error.message);
+    return (data ?? []).reduce((sum, o) => sum + (o.total ?? 0), 0);
+  }
+
+  async getEquipo(proyectoId: string): Promise<ProyectoEmpleado[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_empleados')
+      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .eq('proyecto_id', proyectoId);
+
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ProyectoEmpleado[];
+  }
+
+  async addEmpleado(proyectoId: string, empleadoId: string, rol: string | null): Promise<ProyectoEmpleado> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_empleados')
+      .insert({ proyecto_id: proyectoId, empleado_id: empleadoId, rol })
+      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as unknown as ProyectoEmpleado;
+  }
+
+  async removeEmpleado(id: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_empleados')
+      .delete()
       .eq('id', id);
 
     if (error) throw new Error(error.message);

@@ -204,6 +204,16 @@
       }
     </div>
 
+    <div class="sgc-field">
+      <label for="proyecto_id">Proyecto (opcional)</label>
+      <select id="proyecto_id" formControlName="proyecto_id">
+        <option [value]="null">Sin proyecto asociado</option>
+        @for (proy of proyectos(); track proy.id) {
+          <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
+        }
+      </select>
+    </div>
+
     <div class="form-row">
       <div class="sgc-field">
         <label for="fecha">Fecha <span class="required">*</span></label>

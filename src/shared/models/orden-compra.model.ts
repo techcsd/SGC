@@ -15,6 +15,8 @@ export interface OrdenCompra {
   numero: string;
   proveedor_id: string;
   proveedor?: { nombre: string };
+  proyecto_id: string | null;
+  proyecto?: { nombre: string };
   estado: OrdenEstado;
   fecha: string;
   fecha_entrega_esperada: string | null;

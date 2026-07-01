@@ -97,11 +97,11 @@ export class Dashboard implements OnInit {
   private stock = signal<{ articulo_id: string; cantidad: number }[]>([]);
   private movimientos7d = signal<DayMovement[]>([]);
   private ordenes = signal<{ estado: string; fecha: string; total: number }[]>([]);
-  private empleados = signal<{ activo: boolean }[]>([]);
+  private empleados = signal<{ activo: boolean; departamento: string | null }[]>([]);
   private asistenciaHoy = signal<{ estado: string }[]>([]);
   private proyectos = signal<{ estado: string; presupuesto: number | null }[]>([]);
   private vehiculos = signal<{ estado: string; activo: boolean }[]>([]);
-  private mantenimientos = signal<{ estado: string }[]>([]);
+  private mantenimientos = signal<{ estado: string; fecha: string; vehiculo?: { placa: string } }[]>([]);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -270,6 +270,35 @@ export class Dashboard implements OnInit {
     () => this.mantenimientos().filter((m) => m.estado === 'pendiente' || m.estado === 'en_proceso').length,
   );
 
+  // ── Chart: empleados por departamento ─────────────────────
+  empleadosPorDepartamento = computed((): BarItem[] => {
+    const colors = ['#1F4E79', '#2E75B6', '#5B3A8E', '#2D7D46', '#B45309', '#C0392B'];
+    const map = new Map<string, number>();
+    for (const e of this.empleados()) {
+      if (!e.activo) continue;
+      const dept = e.departamento || 'Sin departamento';
+      map.set(dept, (map.get(dept) ?? 0) + 1);
+    }
+    return [...map.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([label, value], i) => ({ label, value, color: colors[i % colors.length] }));
+  });
+
+  empleadosPorDepartamentoMax = computed(() => Math.max(1, ...this.empleadosPorDepartamento().map((d) => d.value)));
+
+  // ── Alerta: próximos mantenimientos (7 días) ──────────────
+  proximosMantenimientos = computed(() => {
+    const today = this.toDateStr(new Date());
+    const in7 = new Date();
+    in7.setDate(in7.getDate() + 7);
+    const in7Str = this.toDateStr(in7);
+
+    return this.mantenimientos()
+      .filter((m) => m.estado !== 'completado' && m.fecha >= today && m.fecha <= in7Str)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  });
+
   // ── Donut helper (conic-gradient background) ──────────────
   donutBackground(slices: DonutSlice[]): string {
     const total = slices.reduce((s, x) => s + x.value, 0);
@@ -293,14 +322,18 @@ export class Dashboard implements OnInit {
     await this.loadAll();
   }
 
+  private toDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   private async loadAll() {
     this.loading.set(true);
     this.error.set('');
     try {
       const hace7 = new Date();
       hace7.setDate(hace7.getDate() - 6);
-      const fechaDesde = hace7.toISOString().split('T')[0];
-      const hoy = new Date().toISOString().split('T')[0];
+      const fechaDesde = this.toDateStr(hace7);
+      const hoy = this.toDateStr(new Date());
 
       const [
         articulosRes,
@@ -325,11 +358,11 @@ export class Dashboard implements OnInit {
           .select('fecha, detalle_salidas(cantidad)')
           .gte('fecha', fechaDesde),
         this.supabase.client.from('ordenes_compra').select('estado, fecha, total'),
-        this.supabase.client.from('empleados').select('activo'),
+        this.supabase.client.from('empleados').select('activo, departamento'),
         this.supabase.client.from('asistencia').select('estado').eq('fecha', hoy),
         this.supabase.client.from('proyectos').select('estado, presupuesto'),
         this.supabase.client.from('vehiculos').select('estado, activo'),
-        this.supabase.client.from('mantenimientos').select('estado'),
+        this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa)'),
       ]);
 
       this.articulos.set(
@@ -344,11 +377,13 @@ export class Dashboard implements OnInit {
       );
       this.stock.set((stockRes.data ?? []) as { articulo_id: string; cantidad: number }[]);
       this.ordenes.set((ordenesRes.data ?? []) as { estado: string; fecha: string; total: number }[]);
-      this.empleados.set((empleadosRes.data ?? []) as { activo: boolean }[]);
+      this.empleados.set((empleadosRes.data ?? []) as unknown as { activo: boolean; departamento: string | null }[]);
       this.asistenciaHoy.set((asistenciaRes.data ?? []) as { estado: string }[]);
       this.proyectos.set((proyectosRes.data ?? []) as { estado: string; presupuesto: number | null }[]);
       this.vehiculos.set((vehiculosRes.data ?? []) as { estado: string; activo: boolean }[]);
-      this.mantenimientos.set((mantenimientosRes.data ?? []) as { estado: string }[]);
+      this.mantenimientos.set(
+        (mantenimientosRes.data ?? []) as unknown as { estado: string; fecha: string; vehiculo?: { placa: string } }[],
+      );
 
       // Build 7-day movement series
       const entradasByDay = new Map<string, number>();
@@ -367,7 +402,7 @@ export class Dashboard implements OnInit {
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const key = d.toISOString().split('T')[0];
+        const key = this.toDateStr(d);
         dias.push({
           label: dayNames[d.getDay()],
           entradas: entradasByDay.get(key) ?? 0,

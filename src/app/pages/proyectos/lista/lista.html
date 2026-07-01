@@ -367,6 +367,18 @@
             <span class="proyectos__detail-val">${{ p.presupuesto | number:'1.0-0' }}</span>
           </div>
         }
+        <div class="proyectos__detail-item">
+          <span class="proyectos__detail-key">Gasto real (compras)</span>
+          <span
+            class="proyectos__detail-val"
+            [class.proyectos__detail-val--over]="p.presupuesto != null && gastoReal() > p.presupuesto"
+          >
+            ${{ gastoReal() | number:'1.0-0' }}
+            @if (p.presupuesto) {
+              ({{ (gastoReal() / p.presupuesto * 100) | number:'1.0-0' }}% del presupuesto)
+            }
+          </span>
+        </div>
         @if (p.ubicacion) {
           <div class="proyectos__detail-item proyectos__detail-item--full">
             <span class="proyectos__detail-key">Ubicación</span>
@@ -401,6 +413,65 @@
           ></div>
         </div>
         <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+      </div>
+
+      <!-- Equipo asignado -->
+      <div class="proyectos__fases">
+        <div class="proyectos__fases-header">
+          <h3 class="proyectos__fases-title">Equipo asignado</h3>
+        </div>
+
+        @if (equipoLoading()) {
+          <p class="proyectos__fases-loading">Cargando equipo…</p>
+        } @else {
+          @if (equipo().length === 0) {
+            <p class="proyectos__fases-empty">Sin empleados asignados a este proyecto.</p>
+          } @else {
+            @for (m of equipo(); track m.id) {
+              <div class="proyectos__fase-card">
+                <div class="proyectos__fase-info">
+                  <div>
+                    <p class="proyectos__fase-nombre">
+                      {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
+                      @if (m.rol) {
+                        <span class="text-muted"> — {{ m.rol }}</span>
+                      }
+                    </p>
+                    <p class="proyectos__fase-desc">{{ m.empleado?.cargo }}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="proyectos__btn-icon proyectos__btn-icon--danger"
+                  (click)="removeMiembro(m.id)"
+                  [attr.aria-label]="'Quitar ' + m.empleado?.nombre + ' del equipo'"
+                >✕</button>
+              </div>
+            }
+          }
+
+          <div class="proyectos__add-miembro">
+            <select
+              [value]="nuevoMiembroEmpleadoId()"
+              (change)="onNuevoMiembroChange($any($event.target).value)"
+              aria-label="Seleccionar empleado"
+            >
+              <option value="">Seleccionar empleado…</option>
+              @for (e of empleadosDisponibles(); track e.id) {
+                <option [value]="e.id">{{ e.apellido }}, {{ e.nombre }} — {{ e.cargo }}</option>
+              }
+            </select>
+            <input
+              type="text"
+              placeholder="Rol en el proyecto (opcional)"
+              [value]="nuevoMiembroRol()"
+              (input)="onNuevoMiembroRolChange($any($event.target).value)"
+            />
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()" [disabled]="!nuevoMiembroEmpleadoId()">
+              + Agregar
+            </button>
+          </div>
+        }
       </div>
 
       <!-- Fases -->

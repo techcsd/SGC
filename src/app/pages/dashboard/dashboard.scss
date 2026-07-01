@@ -423,3 +423,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+// ── Upcoming list (próximos mantenimientos) ────────────────
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-warning-light);
+    font-size: 13px;
+  }
+
+  &__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--sgc-warning);
+    flex-shrink: 0;
+  }
+
+  &__placa {
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+
+  &__fecha {
+    margin-left: auto;
+    color: var(--sgc-text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+}

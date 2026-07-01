@@ -27,6 +27,11 @@ export const flotaRoutes: Routes = [
     title: 'Combustible — Flota',
   },
   {
+    path: 'rutas',
+    loadComponent: () => import('./rutas/rutas').then((m) => m.Rutas),
+    title: 'Rutas — Flota',
+  },
+  {
     path: 'reportes',
     loadComponent: () => import('./reportes/reportes').then((m) => m.FlotaReportes),
     title: 'Reportes — Flota',

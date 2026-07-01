@@ -12,9 +12,12 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import {
   FaseProyecto,
   Proyecto,
+  ProyectoEmpleado,
   PROYECTO_ESTADOS,
   PROYECTO_TIPOS,
 } from '../../../../shared/models/proyecto.model';
+import { Empleado } from '../../../../shared/models/empleado.model';
+import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
@@ -32,15 +35,24 @@ interface UsuarioSimple {
 })
 export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
+  private empleadosService = inject(EmpleadosService);
   private supabase = inject(SupabaseService);
 
   // ── Data ─────────────────────────────────────────────────
   proyectos = signal<Proyecto[]>([]);
   usuarios = signal<UsuarioSimple[]>([]);
+  empleados = signal<Empleado[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
   saveError = signal('');
+
+  // ── Detail: real spend + team ─────────────────────────────
+  gastoReal = signal<number>(0);
+  equipo = signal<ProyectoEmpleado[]>([]);
+  equipoLoading = signal(false);
+  nuevoMiembroEmpleadoId = signal<string>('');
+  nuevoMiembroRol = signal<string>('');
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -127,8 +139,22 @@ export class Lista implements OnInit {
   drawerTitle = computed(() => (this.editingId() ? 'Editar proyecto' : 'Nuevo proyecto'));
 
   async ngOnInit() {
-    await Promise.all([this.loadProyectos(), this.loadUsuarios()]);
+    await Promise.all([this.loadProyectos(), this.loadUsuarios(), this.loadEmpleados()]);
   }
+
+  private async loadEmpleados() {
+    try {
+      const all = await this.empleadosService.getAll();
+      this.empleados.set(all.filter((e) => e.activo));
+    } catch {
+      // non-blocking
+    }
+  }
+
+  empleadosDisponibles = computed(() => {
+    const asignados = new Set(this.equipo().map((e) => e.empleado_id));
+    return this.empleados().filter((e) => !asignados.has(e.id));
+  });
 
   private async loadProyectos() {
     this.loading.set(true);
@@ -233,19 +259,66 @@ export class Lista implements OnInit {
     this.detailDrawerOpen.set(true);
     this.selectedProyecto.set(p);
     this.detailLoading.set(true);
+    this.equipoLoading.set(true);
+    this.gastoReal.set(0);
+    this.equipo.set([]);
     try {
-      const full = await this.proyectosService.getById(p.id);
+      const [full, gasto, equipo] = await Promise.all([
+        this.proyectosService.getById(p.id),
+        this.proyectosService.getGastoReal(p.id),
+        this.proyectosService.getEquipo(p.id),
+      ]);
       this.selectedProyecto.set(full);
+      this.gastoReal.set(gasto);
+      this.equipo.set(equipo);
     } catch {
       // keep basic data
     } finally {
       this.detailLoading.set(false);
+      this.equipoLoading.set(false);
     }
   }
 
   closeDetailDrawer() {
     this.detailDrawerOpen.set(false);
     this.selectedProyecto.set(null);
+  }
+
+  // ── Team assignment ────────────────────────────────────────
+  onNuevoMiembroChange(value: string) {
+    this.nuevoMiembroEmpleadoId.set(value);
+  }
+
+  onNuevoMiembroRolChange(value: string) {
+    this.nuevoMiembroRol.set(value);
+  }
+
+  async addMiembro() {
+    const proyecto = this.selectedProyecto();
+    const empleadoId = this.nuevoMiembroEmpleadoId();
+    if (!proyecto || !empleadoId) return;
+
+    try {
+      const added = await this.proyectosService.addEmpleado(
+        proyecto.id,
+        empleadoId,
+        this.nuevoMiembroRol() || null,
+      );
+      this.equipo.update((list) => [...list, added]);
+      this.nuevoMiembroEmpleadoId.set('');
+      this.nuevoMiembroRol.set('');
+    } catch (e: unknown) {
+      console.error('Error adding team member:', e);
+    }
+  }
+
+  async removeMiembro(id: string) {
+    this.equipo.update((list) => list.filter((m) => m.id !== id));
+    try {
+      await this.proyectosService.removeEmpleado(id);
+    } catch (e: unknown) {
+      console.error('Error removing team member:', e);
+    }
   }
 
   // ── Fase Drawer ──────────────────────────────────────────

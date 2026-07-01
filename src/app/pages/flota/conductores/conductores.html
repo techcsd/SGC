@@ -85,6 +85,7 @@
             <th>Licencia tipo</th>
             <th>Nº Licencia</th>
             <th>Vencimiento</th>
+            <th>Vehículo asignado</th>
             <th>Estado</th>
             <th class="text-center">Acciones</th>
           </tr>
@@ -115,6 +116,13 @@
                   </span>
                 } @else {
                   <span class="text-muted">—</span>
+                }
+              </td>
+              <td>
+                @if (c.vehiculo) {
+                  <span class="conductores__vehiculo">{{ c.vehiculo.placa }} — {{ c.vehiculo.marca }} {{ c.vehiculo.modelo }}</span>
+                } @else {
+                  <span class="text-muted">Sin asignar</span>
                 }
               </td>
               <td>
@@ -282,6 +290,16 @@
           La licencia está por vencer o ya venció.
         </span>
       }
+    </div>
+
+    <div class="sgc-field">
+      <label for="vehiculo_id">Vehículo asignado</label>
+      <select id="vehiculo_id" formControlName="vehiculo_id">
+        <option [value]="null">Sin asignar</option>
+        @for (v of availableVehiculos(); track v.id) {
+          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
+        }
+      </select>
     </div>
 
     <div class="form-toggle">

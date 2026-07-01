@@ -98,6 +98,19 @@ export class Mantenimientos implements OnInit {
     this.editingId() ? 'Editar mantenimiento' : 'Nuevo mantenimiento',
   );
 
+  // ── Upcoming maintenance alert (next 7 days) ──────────────
+  proximosMantenimientos = computed(() => {
+    const today = new Date();
+    const in7Days = new Date();
+    in7Days.setDate(today.getDate() + 7);
+    const todayStr = this.toDateStr(today);
+    const in7Str = this.toDateStr(in7Days);
+
+    return this.mantenimientos()
+      .filter((m) => m.estado !== 'completado' && m.fecha >= todayStr && m.fecha <= in7Str)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  });
+
   async ngOnInit() {
     await this.loadAll();
   }
@@ -193,10 +206,18 @@ export class Mantenimientos implements OnInit {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
 
+    const payload = this.form.value as MantenimientoFormData;
+
+    const conflict = this.findWeekConflict(payload);
+    if (conflict) {
+      this.saveError.set(
+        `Conflicto de calendario: el vehículo ${conflict.vehiculo?.placa ?? ''} ya tiene un mantenimiento programado la semana del ${conflict.fecha}. No se pueden programar dos vehículos en mantenimiento la misma semana.`,
+      );
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
-
-    const payload = this.form.value as MantenimientoFormData;
 
     try {
       const id = this.editingId();
@@ -216,6 +237,37 @@ export class Mantenimientos implements OnInit {
   }
 
   // ── Helpers ──────────────────────────────────────────────
+  private toDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  /** ISO-ish week key ("2026-W27") derived from a YYYY-MM-DD string, no UTC parsing. */
+  private getWeekKey(dateStr: string): string {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+    const yearStart = new Date(date.getFullYear(), 0, 1);
+    const weekNo = Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    return `${date.getFullYear()}-W${weekNo}`;
+  }
+
+  /** Two different vehicles can't both be scheduled for maintenance the same week. */
+  private findWeekConflict(payload: MantenimientoFormData): Mantenimiento | null {
+    if (payload.estado === 'completado') return null;
+    const targetWeek = this.getWeekKey(payload.fecha);
+    const editing = this.editingId();
+
+    return (
+      this.mantenimientos().find((m) => {
+        if (m.id === editing) return false;
+        if (m.estado === 'completado') return false;
+        if (m.vehiculo_id === payload.vehiculo_id) return false;
+        return this.getWeekKey(m.fecha) === targetWeek;
+      }) ?? null
+    );
+  }
+
   getEstadoBadge(estado: string): string {
     switch (estado) {
       case 'pendiente': return 'sgc-badge sgc-badge--warning';

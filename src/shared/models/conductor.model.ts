@@ -8,6 +8,8 @@ export interface Conductor {
   licencia_tipo: LicenciaTipo;
   licencia_numero: string | null;
   licencia_vencimiento: string | null;
+  vehiculo_id: string | null;
+  vehiculo?: { placa: string; marca: string; modelo: string };
   activo: boolean;
   created_at: string;
 }
@@ -19,6 +21,7 @@ export interface ConductorFormData {
   licencia_tipo: LicenciaTipo;
   licencia_numero: string | null;
   licencia_vencimiento: string | null;
+  vehiculo_id: string | null;
   activo: boolean;
 }
 
