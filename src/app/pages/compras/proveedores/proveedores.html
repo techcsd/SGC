@@ -17,24 +17,11 @@
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por nombre, RUC o email…"
+      placeholder="Buscar por nombre, RNC o email…"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
       aria-label="Buscar proveedores"
     />
-  </div>
-
-  <div class="sgc-field filters-bar__select">
-    <select
-      [value]="selectedCategoria()"
-      (change)="onCategoriaChange($any($event.target).value)"
-      aria-label="Filtrar por categoría"
-    >
-      <option value="">Todas las categorías</option>
-      @for (cat of CATEGORIAS; track cat) {
-        <option [value]="cat">{{ cat | titlecase }}</option>
-      }
-    </select>
   </div>
 
   <div class="sgc-field filters-bar__select">
@@ -49,7 +36,7 @@
     </select>
   </div>
 
-  @if (searchQuery() || selectedCategoria() || selectedActivo() !== 'all') {
+  @if (searchQuery() || selectedActivo() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros
     </button>
@@ -82,7 +69,7 @@
         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
       <p>
-        @if (searchQuery() || selectedCategoria() || selectedActivo() !== 'all') {
+        @if (searchQuery() || selectedActivo() !== 'all') {
           No se encontraron proveedores con los filtros aplicados.
         } @else {
           No hay proveedores registrados. Crea el primero.
@@ -95,10 +82,9 @@
         <thead>
           <tr>
             <th>Nombre</th>
-            <th>RUC</th>
+            <th>RNC</th>
             <th>Teléfono</th>
             <th>Email</th>
-            <th>Categoría</th>
             <th>Contacto</th>
             <th>Estado</th>
             <th class="text-center">Acciones</th>
@@ -111,8 +97,8 @@
                 <span class="prov-name">{{ p.nombre }}</span>
               </td>
               <td>
-                @if (p.ruc) {
-                  <code class="code-tag">{{ p.ruc }}</code>
+                @if (p.rnc) {
+                  <code class="code-tag">{{ p.rnc }}</code>
                 } @else {
                   <span class="text-muted">—</span>
                 }
@@ -125,14 +111,7 @@
                   <span class="text-muted">—</span>
                 }
               </td>
-              <td>
-                @if (p.categoria) {
-                  <span class="sgc-badge sgc-badge--info">{{ p.categoria | titlecase }}</span>
-                } @else {
-                  <span class="text-muted">—</span>
-                }
-              </td>
-              <td>{{ p.contacto_nombre ?? '—' }}</td>
+              <td>{{ p.contacto ?? '—' }}</td>
               <td>
                 <button
                   type="button"
@@ -198,12 +177,12 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="ruc">RUC</label>
+        <label for="rnc">RNC</label>
         <input
-          id="ruc"
+          id="rnc"
           type="text"
-          formControlName="ruc"
-          placeholder="RUC del proveedor"
+          formControlName="rnc"
+          placeholder="RNC del proveedor"
         />
       </div>
 
@@ -213,35 +192,23 @@
           id="telefono"
           type="tel"
           formControlName="telefono"
-          placeholder="Ej: +57 300 000 0000"
+          placeholder="Ej: 809 000 0000"
         />
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="sgc-field">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          formControlName="email"
-          placeholder="correo@empresa.com"
-          [class.invalid]="f.email.invalid && f.email.touched"
-        />
-        @if (f.email.invalid && f.email.touched) {
-          <span class="field-error">Email inválido.</span>
-        }
-      </div>
-
-      <div class="sgc-field">
-        <label for="categoria">Categoría</label>
-        <select id="categoria" formControlName="categoria">
-          <option [value]="null">Sin categoría</option>
-          @for (cat of CATEGORIAS; track cat) {
-            <option [value]="cat">{{ cat | titlecase }}</option>
-          }
-        </select>
-      </div>
+    <div class="sgc-field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="correo@empresa.com"
+        [class.invalid]="f.email.invalid && f.email.touched"
+      />
+      @if (f.email.invalid && f.email.touched) {
+        <span class="field-error">Email inválido.</span>
+      }
     </div>
 
     <div class="sgc-field">
@@ -255,23 +222,13 @@
     </div>
 
     <div class="sgc-field">
-      <label for="contacto_nombre">Nombre de contacto</label>
+      <label for="contacto">Nombre de contacto</label>
       <input
-        id="contacto_nombre"
+        id="contacto"
         type="text"
-        formControlName="contacto_nombre"
+        formControlName="contacto"
         placeholder="Persona de contacto"
       />
-    </div>
-
-    <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea
-        id="notas"
-        formControlName="notas"
-        rows="3"
-        placeholder="Notas adicionales…"
-      ></textarea>
     </div>
 
     <div class="form-toggle">

@@ -21,7 +21,6 @@ interface OrdenReport {
 interface ProveedorReport {
   id: string;
   nombre: string;
-  categoria: string | null;
   activo: boolean;
 }
 
@@ -109,7 +108,7 @@ export class ComprasReportes implements OnInit {
           .from('ordenes_compra')
           .select('id, numero, proveedor:proveedores(nombre), estado, fecha, total')
           .order('fecha', { ascending: false }),
-        this.supabase.client.from('proveedores').select('id, nombre, categoria, activo'),
+        this.supabase.client.from('proveedores').select('id, nombre, activo'),
       ]);
 
       if (oRes.error) throw new Error(oRes.error.message);

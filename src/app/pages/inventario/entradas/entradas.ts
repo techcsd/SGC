@@ -12,7 +12,7 @@ import { EntradasService } from '../../../../shared/services/entradas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
-import { AuthService } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
 import { EntradaInventario, EntradaItemFormData } from '../../../../shared/models/entrada.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
@@ -31,7 +31,7 @@ export class Entradas implements OnInit {
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);
   private proveedoresService = inject(ProveedoresService);
-  private authService = inject(AuthService);
+  private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
   entries = signal<EntradaInventario[]>([]);
@@ -225,7 +225,7 @@ export class Entradas implements OnInit {
     this.saveError.set('');
 
     try {
-      const user = await this.authService.getUser();
+      const userId = this.userService.profile()?.id ?? null;
       const v = this.form.value;
       const created = await this.entradasService.create(
         {
@@ -236,7 +236,7 @@ export class Entradas implements OnInit {
           observaciones: v.observaciones ?? null,
           items,
         },
-        user?.id ?? null,
+        userId,
       );
       this.entries.update((list) => [created, ...list]);
       this.drawerOpen.set(false);

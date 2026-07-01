@@ -7,14 +7,13 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TitleCasePipe } from '@angular/common';
 import { ProveedoresService, ProveedorPayload } from '../../../../shared/services/proveedores.service';
-import { Proveedor, PROVEEDOR_CATEGORIAS } from '../../../../shared/models/proveedor.model';
+import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 @Component({
   selector: 'app-proveedores',
-  imports: [ReactiveFormsModule, FormDrawer, TitleCasePipe],
+  imports: [ReactiveFormsModule, FormDrawer],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,43 +30,36 @@ export class Proveedores implements OnInit {
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
-  selectedCategoria = signal('');
   selectedActivo = signal<'all' | 'active' | 'inactive'>('all');
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
-  readonly CATEGORIAS = PROVEEDOR_CATEGORIAS;
-
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
-    ruc: new FormControl<string | null>(null),
+    rnc: new FormControl<string | null>(null),
+    contacto: new FormControl<string | null>(null),
     telefono: new FormControl<string | null>(null),
     email: new FormControl<string | null>(null, [Validators.email]),
     direccion: new FormControl<string | null>(null),
-    categoria: new FormControl<string | null>(null),
-    contacto_nombre: new FormControl<string | null>(null),
-    notas: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
   });
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
-    const cat = this.selectedCategoria();
     const activo = this.selectedActivo();
 
     return this.proveedores().filter((p) => {
       if (
         q &&
         !p.nombre.toLowerCase().includes(q) &&
-        !(p.ruc ?? '').toLowerCase().includes(q) &&
+        !(p.rnc ?? '').toLowerCase().includes(q) &&
         !(p.email ?? '').toLowerCase().includes(q)
       ) {
         return false;
       }
-      if (cat && p.categoria !== cat) return false;
       if (activo === 'active' && !p.activo) return false;
       if (activo === 'inactive' && p.activo) return false;
       return true;
@@ -100,17 +92,12 @@ export class Proveedores implements OnInit {
     this.searchQuery.set(value);
   }
 
-  onCategoriaChange(value: string) {
-    this.selectedCategoria.set(value);
-  }
-
   onActivoChange(value: string) {
     this.selectedActivo.set(value as 'all' | 'active' | 'inactive');
   }
 
   clearFilters() {
     this.searchQuery.set('');
-    this.selectedCategoria.set('');
     this.selectedActivo.set('all');
   }
 
@@ -127,13 +114,11 @@ export class Proveedores implements OnInit {
     this.saveError.set('');
     this.form.reset({
       nombre: p.nombre,
-      ruc: p.ruc,
+      rnc: p.rnc,
+      contacto: p.contacto,
       telefono: p.telefono,
       email: p.email,
       direccion: p.direccion,
-      categoria: p.categoria,
-      contacto_nombre: p.contacto_nombre,
-      notas: p.notas,
       activo: p.activo,
     });
     this.drawerOpen.set(true);

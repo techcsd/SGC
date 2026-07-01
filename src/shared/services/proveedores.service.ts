@@ -4,13 +4,11 @@ import { Proveedor } from '../models/proveedor.model';
 
 export interface ProveedorPayload {
   nombre: string;
-  ruc?: string | null;
+  rnc?: string | null;
+  contacto?: string | null;
   telefono?: string | null;
   email?: string | null;
   direccion?: string | null;
-  categoria?: string | null;
-  contacto_nombre?: string | null;
-  notas?: string | null;
   activo?: boolean;
 }
 
@@ -45,7 +43,7 @@ export class ProveedoresService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proveedores')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update(payload)
       .eq('id', id)
       .select('*')
       .single();
@@ -58,7 +56,7 @@ export class ProveedoresService {
     const { error } = await this.supabase.client
       .schema('sgc')
       .from('proveedores')
-      .update({ activo, updated_at: new Date().toISOString() })
+      .update({ activo })
       .eq('id', id);
 
     if (error) throw new Error(error.message);
