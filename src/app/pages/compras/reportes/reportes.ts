@@ -54,10 +54,8 @@ export class ComprasReportes implements OnInit {
 
   ordenesMes = computed(() => {
     const now = new Date();
-    return this.ordenes().filter((o) => {
-      const d = new Date(o.fecha);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return this.ordenes().filter((o) => o.fecha.slice(0, 7) === currentYearMonth).length;
   });
 
   totalGasto = computed(() =>

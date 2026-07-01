@@ -70,23 +70,15 @@ export class FlotaReportes implements OnInit {
 
   mantenimientosEsteMes = computed(() => {
     const now = new Date();
-    const mes = now.getMonth();
-    const anio = now.getFullYear();
-    return this.mantenimientos().filter((m) => {
-      const d = new Date(m.fecha);
-      return d.getMonth() === mes && d.getFullYear() === anio;
-    }).length;
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return this.mantenimientos().filter((m) => m.fecha.slice(0, 7) === currentYearMonth).length;
   });
 
   gastoCombustibleMes = computed(() => {
     const now = new Date();
-    const mes = now.getMonth();
-    const anio = now.getFullYear();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     return this.combustible()
-      .filter((r) => {
-        const d = new Date(r.fecha);
-        return d.getMonth() === mes && d.getFullYear() === anio;
-      })
+      .filter((r) => r.fecha.slice(0, 7) === currentYearMonth)
       .reduce((sum, r) => sum + (r.total ?? 0), 0);
   });
 
@@ -111,9 +103,10 @@ export class FlotaReportes implements OnInit {
   );
 
   combustiblePorVehiculo = computed((): CombustiblePorVehiculo[] => {
-    const now = new Date();
-    const hace30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const recientes = this.combustible().filter((r) => new Date(r.fecha) >= hace30);
+    const hace30 = new Date();
+    hace30.setDate(hace30.getDate() - 30);
+    const hace30Str = `${hace30.getFullYear()}-${String(hace30.getMonth() + 1).padStart(2, '0')}-${String(hace30.getDate()).padStart(2, '0')}`;
+    const recientes = this.combustible().filter((r) => r.fecha >= hace30Str);
 
     const map = new Map<string, CombustiblePorVehiculo>();
     for (const r of recientes) {

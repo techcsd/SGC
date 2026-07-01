@@ -125,13 +125,12 @@ export class Dashboard implements OnInit {
 
   gastoComprasDelMes = computed(() => {
     const now = new Date();
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     return this.ordenes()
       .filter((o) => {
-        const d = new Date(o.fecha);
         return (
           (o.estado === 'aprobada' || o.estado === 'recibida') &&
-          d.getMonth() === now.getMonth() &&
-          d.getFullYear() === now.getFullYear()
+          o.fecha.slice(0, 7) === currentYearMonth
         );
       })
       .reduce((sum, o) => sum + o.total, 0);
