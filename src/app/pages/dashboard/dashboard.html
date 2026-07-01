@@ -8,25 +8,202 @@
     </div>
   </div>
 
+  @if (error()) {
+    <div class="dashboard-error" role="alert">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="dashboard-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando indicadores…
+    </div>
+  } @else {
+
+    <!-- KPI cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-card--primary">
+        <span class="kpi-label">Valor de inventario</span>
+        <span class="kpi-value">RD$ {{ valorInventario() | number:'1.0-0' }}</span>
+      </div>
+      <div class="kpi-card kpi-card--warning">
+        <span class="kpi-label">Artículos en stock crítico</span>
+        <span class="kpi-value">{{ stockCritico() }}</span>
+      </div>
+      <div class="kpi-card kpi-card--info">
+        <span class="kpi-label">Compras este mes</span>
+        <span class="kpi-value">RD$ {{ gastoComprasDelMes() | number:'1.0-0' }}</span>
+      </div>
+      <div class="kpi-card kpi-card--success">
+        <span class="kpi-label">Empleados activos</span>
+        <span class="kpi-value">{{ empleadosActivos() }}</span>
+      </div>
+      <div class="kpi-card kpi-card--purple">
+        <span class="kpi-label">Proyectos en progreso</span>
+        <span class="kpi-value">{{ proyectosActivos() }}</span>
+      </div>
+      <div class="kpi-card kpi-card--danger">
+        <span class="kpi-label">Vehículos activos</span>
+        <span class="kpi-value">{{ vehiculosActivos() }}</span>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-grid">
+
+      <!-- Movimientos de inventario (7 días) -->
+      <section class="chart-card chart-card--wide" aria-labelledby="mov-title">
+        <h2 class="chart-title" id="mov-title">Movimientos de inventario — últimos 7 días</h2>
+        @if (movimientosMax() <= 1 && movimientosChart().length === 0) {
+          <p class="chart-empty">Sin movimientos registrados.</p>
+        } @else {
+          <div class="bar-chart bar-chart--dual">
+            @for (d of movimientosChart(); track d.label) {
+              <div class="bar-chart__col">
+                <div class="bar-chart__bars">
+                  <div class="bar-chart__bar bar-chart__bar--entrada" [style.height.%]="(d.entradas / movimientosMax()) * 100" [title]="'Entradas: ' + d.entradas"></div>
+                  <div class="bar-chart__bar bar-chart__bar--salida" [style.height.%]="(d.salidas / movimientosMax()) * 100" [title]="'Salidas: ' + d.salidas"></div>
+                </div>
+                <span class="bar-chart__label">{{ d.label }}</span>
+              </div>
+            }
+          </div>
+          <div class="chart-legend">
+            <span class="chart-legend__item"><i class="chart-legend__dot chart-legend__dot--entrada"></i>Entradas</span>
+            <span class="chart-legend__item"><i class="chart-legend__dot chart-legend__dot--salida"></i>Salidas</span>
+          </div>
+        }
+      </section>
+
+      <!-- Órdenes de compra por estado -->
+      <section class="chart-card" aria-labelledby="ordenes-title">
+        <h2 class="chart-title" id="ordenes-title">Órdenes de compra por estado</h2>
+        @if (donutTotal(ordenesPorEstado()) === 0) {
+          <p class="chart-empty">Sin órdenes registradas.</p>
+        } @else {
+          <div class="donut-wrap">
+            <div class="donut" [style.background]="donutBackground(ordenesPorEstado())">
+              <div class="donut__hole">
+                <span class="donut__total">{{ donutTotal(ordenesPorEstado()) }}</span>
+                <span class="donut__total-label">órdenes</span>
+              </div>
+            </div>
+            <ul class="chart-legend chart-legend--vertical">
+              @for (s of ordenesPorEstado(); track s.label) {
+                <li class="chart-legend__item">
+                  <i class="chart-legend__dot" [style.background]="s.color"></i>
+                  {{ s.label }}
+                  <span class="chart-legend__value">{{ s.value }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
+
+      <!-- Asistencia de hoy -->
+      <section class="chart-card" aria-labelledby="asistencia-title">
+        <h2 class="chart-title" id="asistencia-title">Asistencia de hoy</h2>
+        @if (donutTotal(asistenciaChart()) === 0) {
+          <p class="chart-empty">Sin registros de asistencia hoy.</p>
+        } @else {
+          <div class="donut-wrap">
+            <div class="donut" [style.background]="donutBackground(asistenciaChart())">
+              <div class="donut__hole">
+                <span class="donut__total">{{ donutTotal(asistenciaChart()) }}</span>
+                <span class="donut__total-label">registros</span>
+              </div>
+            </div>
+            <ul class="chart-legend chart-legend--vertical">
+              @for (s of asistenciaChart(); track s.label) {
+                <li class="chart-legend__item">
+                  <i class="chart-legend__dot" [style.background]="s.color"></i>
+                  {{ s.label }}
+                  <span class="chart-legend__value">{{ s.value }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
+
+      <!-- Stock por categoría -->
+      <section class="chart-card" aria-labelledby="stock-title">
+        <h2 class="chart-title" id="stock-title">Stock por categoría (top 6)</h2>
+        @if (stockPorCategoria().length === 0) {
+          <p class="chart-empty">Sin datos de stock.</p>
+        } @else {
+          <div class="hbar-chart">
+            @for (c of stockPorCategoria(); track c.label) {
+              <div class="hbar-chart__row">
+                <span class="hbar-chart__label">{{ c.label }}</span>
+                <div class="hbar-chart__track">
+                  <div class="hbar-chart__fill" [style.width.%]="(c.value / stockPorCategoriaMax()) * 100" [style.background]="c.color"></div>
+                </div>
+                <span class="hbar-chart__value">{{ c.value | number:'1.0-0' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Proyectos por estado -->
+      <section class="chart-card" aria-labelledby="proyectos-title">
+        <h2 class="chart-title" id="proyectos-title">Proyectos por estado</h2>
+        @if (proyectosPorEstado().length === 0) {
+          <p class="chart-empty">Sin proyectos registrados.</p>
+        } @else {
+          <div class="hbar-chart">
+            @for (p of proyectosPorEstado(); track p.label) {
+              <div class="hbar-chart__row">
+                <span class="hbar-chart__label">{{ p.label }}</span>
+                <div class="hbar-chart__track">
+                  <div class="hbar-chart__fill" [style.width.%]="(p.value / proyectosPorEstadoMax()) * 100" [style.background]="p.color"></div>
+                </div>
+                <span class="hbar-chart__value">{{ p.value }}</span>
+              </div>
+            }
+          </div>
+          <div class="chart-footnote">Presupuesto total: RD$ {{ presupuestoTotalProyectos() | number:'1.0-0' }}</div>
+        }
+      </section>
+
+      <!-- Flota -->
+      <section class="chart-card" aria-labelledby="flota-title">
+        <h2 class="chart-title" id="flota-title">Estado de la flota</h2>
+        @if (donutTotal(vehiculosPorEstado()) === 0) {
+          <p class="chart-empty">Sin vehículos registrados.</p>
+        } @else {
+          <div class="donut-wrap">
+            <div class="donut" [style.background]="donutBackground(vehiculosPorEstado())">
+              <div class="donut__hole">
+                <span class="donut__total">{{ donutTotal(vehiculosPorEstado()) }}</span>
+                <span class="donut__total-label">vehículos</span>
+              </div>
+            </div>
+            <ul class="chart-legend chart-legend--vertical">
+              @for (s of vehiculosPorEstado(); track s.label) {
+                <li class="chart-legend__item">
+                  <i class="chart-legend__dot" [style.background]="s.color"></i>
+                  {{ s.label }}
+                  <span class="chart-legend__value">{{ s.value }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="chart-footnote">Mantenimientos pendientes: {{ mantenimientosPendientes() }}</div>
+        }
+      </section>
+
+    </div>
+  }
+
   <!-- Module cards -->
   <section class="dashboard-section" aria-labelledby="modulos-heading">
     <h2 class="section-title" id="modulos-heading">Módulos del sistema</h2>
 
     <div class="module-grid">
       @for (mod of allModules; track mod.modulo) {
-        @if (mod.phase) {
-          <!-- Locked module -->
-          <div class="module-card module-card--locked" [attr.style]="'--card-color: ' + mod.color">
-            <div class="module-card-icon">
-              <ng-container [ngTemplateOutlet]="moduleIcon" [ngTemplateOutletContext]="{ icon: mod.icon }" />
-            </div>
-            <div class="module-card-body">
-              <span class="module-card-title">{{ mod.label }}</span>
-              <span class="module-card-desc">{{ mod.description }}</span>
-            </div>
-            <span class="module-card-phase">{{ mod.phase }}</span>
-          </div>
-        } @else if (canAccess(mod.modulo)) {
+        @if (canAccess(mod.modulo)) {
           <!-- Accessible module -->
           <a class="module-card module-card--active" [routerLink]="mod.route" [attr.style]="'--card-color: ' + mod.color">
             <div class="module-card-icon">
@@ -81,16 +258,6 @@
       }
     </div>
   </section>
-
-  <!-- Info strip -->
-  <div class="dashboard-info">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    Los módulos marcados como <strong>Fase 2</strong> o <strong>Fase 3</strong> están en desarrollo y estarán disponibles próximamente.
-  </div>
 
 </div>
 

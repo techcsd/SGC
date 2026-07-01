@@ -1,8 +1,305 @@
 .dashboard {
-  max-width: 1100px;
+  max-width: 1400px;
   display: flex;
   flex-direction: column;
   gap: 32px;
+}
+
+// ── Loading / error ──────────────────────────────────────
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+  justify-content: center;
+}
+
+.spinner-dark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--sgc-border);
+  border-top-color: var(--sgc-primary-mid);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-error {
+  background: var(--sgc-danger-light);
+  color: var(--sgc-danger);
+  border-radius: var(--sgc-radius);
+  padding: 12px 16px;
+  font-size: 13px;
+}
+
+// ── KPI cards ─────────────────────────────────────────────
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
+  padding: 16px 18px;
+  border-left: 4px solid var(--sgc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &--primary { border-left-color: var(--sgc-primary-mid); }
+  &--info    { border-left-color: var(--sgc-info); }
+  &--success { border-left-color: var(--sgc-success); }
+  &--warning { border-left-color: var(--sgc-warning); }
+  &--danger  { border-left-color: var(--sgc-danger); }
+  &--purple  { border-left-color: #5B3A8E; }
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--sgc-text-secondary);
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Charts ────────────────────────────────────────────────
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &--wide {
+    grid-column: span 2;
+
+    @media (max-width: 640px) {
+      grid-column: span 1;
+    }
+  }
+}
+
+.chart-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sgc-text);
+}
+
+.chart-empty {
+  color: var(--sgc-text-muted);
+  font-size: 13px;
+  padding: 30px 0;
+  text-align: center;
+}
+
+.chart-footnote {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+  border-top: 1px solid var(--sgc-border);
+  padding-top: 10px;
+}
+
+// ── Bar chart (dual series) ────────────────────────────────
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 140px;
+
+  &__col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+  }
+
+  &__bars {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  &__bar {
+    width: 10px;
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+    transition: height 0.3s ease;
+
+    &--entrada { background: var(--sgc-success); }
+    &--salida  { background: var(--sgc-danger); }
+  }
+
+  &__label {
+    font-size: 11px;
+    color: var(--sgc-text-muted);
+  }
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  &--vertical {
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+
+    &--entrada { background: var(--sgc-success); }
+    &--salida  { background: var(--sgc-danger); }
+  }
+
+  &__value {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+}
+
+// ── Donut chart ───────────────────────────────────────────
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.donut {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__hole {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: var(--sgc-surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--sgc-text);
+    line-height: 1;
+  }
+
+  &__total-label {
+    font-size: 9px;
+    color: var(--sgc-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+// ── Horizontal bar chart ────────────────────────────────────
+.hbar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 110px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__label {
+    font-size: 12px;
+    color: var(--sgc-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__track {
+    height: 10px;
+    background: var(--sgc-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  &__value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sgc-text);
+    text-align: right;
+  }
 }
 
 .dashboard-header {
@@ -74,7 +371,6 @@
     }
   }
 
-  &--locked,
   &--noaccess {
     border-left: 3px solid transparent;
     opacity: 0.55;
@@ -114,48 +410,12 @@
   line-height: 1.4;
 }
 
-.module-card-phase {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: var(--sgc-border);
-  color: var(--sgc-text-muted);
-  padding: 3px 7px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-
 .module-card-arrow {
   color: var(--sgc-text-muted);
   display: flex;
   align-items: center;
   transition: transform 0.15s ease, color 0.15s ease;
   flex-shrink: 0;
-}
-
-// Info strip
-.dashboard-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--sgc-text-muted);
-  padding: 12px 16px;
-  background: var(--sgc-surface);
-  border: 1px solid var(--sgc-border);
-  border-radius: var(--sgc-radius);
-
-  svg {
-    flex-shrink: 0;
-    margin-top: 1px;
-    color: var(--sgc-info);
-  }
-
-  strong {
-    color: var(--sgc-text-secondary);
-    font-weight: 600;
-  }
 }
 
 @media (max-width: 768px) {
