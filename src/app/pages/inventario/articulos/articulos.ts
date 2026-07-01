@@ -52,7 +52,7 @@ export class Articulos implements OnInit {
   readonly UNIDADES = UNIDADES;
 
   form = new FormGroup({
-    codigo: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    codigo: new FormControl({ value: '', disabled: true }),
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     descripcion: new FormControl<string | null>(null),
     categoria_id: new FormControl<number | null>(null, [Validators.required]),
@@ -231,9 +231,10 @@ export class Articulos implements OnInit {
     return this.stockMap().get(articuloId) ?? 0;
   }
 
-  getStockStatus(article: Articulo): 'low' | 'ok' | 'inactive' {
+  getStockStatus(article: Articulo): 'none' | 'low' | 'ok' | 'inactive' {
     if (!article.activo) return 'inactive';
     const total = this.getStock(article.id);
+    if (total <= 0) return 'none';
     return total <= article.stock_minimo ? 'low' : 'ok';
   }
 

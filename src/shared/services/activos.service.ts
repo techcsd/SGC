@@ -40,10 +40,26 @@ export class ActivosService {
     return (data ?? []) as unknown as ActivoFijo[];
   }
 
-  async create(payload: ActivoFormData): Promise<ActivoFijo> {
+  async generateNextCode(): Promise<string> {
     const { data, error } = await this.supabase.client
       .from('activos_fijos')
-      .insert(payload)
+      .select('codigo')
+      .like('codigo', 'ACT-%')
+      .order('codigo', { ascending: false })
+      .limit(1);
+
+    if (error) throw new Error(error.message);
+
+    const last = data?.[0]?.codigo as string | undefined;
+    const lastNumber = last ? parseInt(last.replace('ACT-', ''), 10) || 0 : 0;
+    return `ACT-${String(lastNumber + 1).padStart(4, '0')}`;
+  }
+
+  async create(payload: ActivoFormData): Promise<ActivoFijo> {
+    const codigo = await this.generateNextCode();
+    const { data, error } = await this.supabase.client
+      .from('activos_fijos')
+      .insert({ ...payload, codigo })
       .select(SELECT_QUERY)
       .single();
 

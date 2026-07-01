@@ -49,7 +49,7 @@ export class Activos implements OnInit {
   readonly ACTIVO_ESTADOS = ACTIVO_ESTADOS;
 
   form = new FormGroup({
-    codigo: new FormControl('', [Validators.required, Validators.maxLength(50)]),
+    codigo: new FormControl({ value: '', disabled: true }),
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     descripcion: new FormControl<string | null>(null),
     categoria_id: new FormControl<number | null>(null),

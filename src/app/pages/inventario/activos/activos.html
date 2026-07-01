@@ -239,17 +239,14 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="codigo">Código <span class="required">*</span></label>
+        <label for="codigo">Código</label>
         <input
           id="codigo"
           type="text"
           formControlName="codigo"
-          placeholder="Ej: AF-001"
-          [class.invalid]="f.codigo.invalid && f.codigo.touched"
+          placeholder="Se genera automáticamente"
+          readonly
         />
-        @if (f.codigo.invalid && f.codigo.touched) {
-          <span class="field-error">El código es obligatorio.</span>
-        }
       </div>
 
       <div class="sgc-field">

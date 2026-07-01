@@ -194,7 +194,7 @@
         formControlName="proveedor_id"
         [class.invalid]="f.proveedor_id.invalid && f.proveedor_id.touched"
       >
-        <option value="">Seleccionar proveedor…</option>
+        <option [value]="null">Seleccionar proveedor…</option>
         @for (p of activeProveedores(); track p.id) {
           <option [value]="p.id">{{ p.nombre }}</option>
         }

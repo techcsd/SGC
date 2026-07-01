@@ -20,7 +20,7 @@ export interface ActivoFijo {
 }
 
 export interface ActivoFormData {
-  codigo: string;
+  codigo?: string;
   nombre: string;
   descripcion: string | null;
   categoria_id: number | null;

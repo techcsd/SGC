@@ -119,7 +119,7 @@
               <td class="text-right">
                 <span
                   class="stock-value"
-                  [class.stock-value--low]="getStockStatus(art) === 'low'"
+                  [class.stock-value--low]="getStockStatus(art) === 'low' || getStockStatus(art) === 'none'"
                 >
                   {{ getStock(art.id) | number:'1.0-2' }}
                 </span>
@@ -127,6 +127,9 @@
               <td class="text-right text-muted">{{ art.stock_minimo | number:'1.0-2' }}</td>
               <td>
                 @switch (getStockStatus(art)) {
+                  @case ('none') {
+                    <span class="sgc-badge sgc-badge--danger">Sin stock</span>
+                  }
                   @case ('low') {
                     <span class="sgc-badge sgc-badge--warning">Stock bajo</span>
                   }
@@ -235,17 +238,14 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="codigo">Código <span class="required">*</span></label>
+        <label for="codigo">Código</label>
         <input
           id="codigo"
           type="text"
           formControlName="codigo"
-          placeholder="Ej: ACE-001"
-          [class.invalid]="f.codigo.invalid && f.codigo.touched"
+          placeholder="Se genera automáticamente"
+          readonly
         />
-        @if (f.codigo.invalid && f.codigo.touched) {
-          <span class="field-error">El código es obligatorio.</span>
-        }
       </div>
 
       <div class="sgc-field">
@@ -255,7 +255,7 @@
           formControlName="unidad"
           [class.invalid]="f.unidad.invalid && f.unidad.touched"
         >
-          <option value="">Seleccionar…</option>
+          <option [value]="null">Seleccionar…</option>
           @for (u of UNIDADES; track u.value) {
             <option [value]="u.value">{{ u.label }}</option>
           }

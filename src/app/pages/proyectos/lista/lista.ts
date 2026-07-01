@@ -72,7 +72,7 @@ export class Lista implements OnInit {
 
   // ── Main form ─────────────────────────────────────────────
   form = new FormGroup({
-    codigo: new FormControl('', [Validators.required]),
+    codigo: new FormControl({ value: '', disabled: true }),
     nombre: new FormControl('', [Validators.required]),
     cliente: new FormControl<string | null>(null),
     tipo: new FormControl<string | null>(null),

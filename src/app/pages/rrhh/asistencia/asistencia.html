@@ -152,7 +152,7 @@
         formControlName="empleado_id"
         [class.invalid]="f.empleado_id.invalid && f.empleado_id.touched"
       >
-        <option value="">Seleccionar empleado…</option>
+        <option [value]="null">Seleccionar empleado…</option>
         @for (emp of empleadosActivos(); track emp.id) {
           <option [value]="emp.id">{{ emp.apellido }}, {{ emp.nombre }} — {{ emp.cargo }}</option>
         }

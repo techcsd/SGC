@@ -164,18 +164,15 @@
     <div class="proyectos__form-grid">
       <!-- Código -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="codigo">Código *</label>
+        <label class="proyectos__label" for="codigo">Código</label>
         <input
           id="codigo"
           class="proyectos__input"
-          [class.proyectos__input--error]="f['codigo'].invalid && f['codigo'].touched"
           formControlName="codigo"
           type="text"
-          placeholder="PRY-001"
+          placeholder="Se genera automáticamente"
+          readonly
         />
-        @if (f['codigo'].invalid && f['codigo'].touched) {
-          <span class="proyectos__field-error">El código es requerido.</span>
-        }
       </div>
 
       <!-- Nombre -->

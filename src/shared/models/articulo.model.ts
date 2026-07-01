@@ -16,7 +16,7 @@ export interface Articulo {
 }
 
 export interface ArticuloFormData {
-  codigo: string;
+  codigo?: string;
   nombre: string;
   descripcion: string | null;
   categoria_id: number | null;

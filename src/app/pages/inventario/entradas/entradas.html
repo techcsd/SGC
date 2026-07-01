@@ -189,7 +189,7 @@
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option value="">Seleccionar bodega…</option>
+          <option [value]="null">Seleccionar bodega…</option>
           @for (b of bodegas(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }

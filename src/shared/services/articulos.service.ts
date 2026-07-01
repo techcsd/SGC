@@ -27,10 +27,26 @@ export class ArticulosService {
     return data as unknown as Articulo;
   }
 
-  async create(formData: ArticuloFormData): Promise<Articulo> {
+  async generateNextCode(): Promise<string> {
     const { data, error } = await this.supabase.client
       .from('articulos')
-      .insert(formData)
+      .select('codigo')
+      .like('codigo', 'ART-%')
+      .order('codigo', { ascending: false })
+      .limit(1);
+
+    if (error) throw new Error(error.message);
+
+    const last = data?.[0]?.codigo as string | undefined;
+    const lastNumber = last ? parseInt(last.replace('ART-', ''), 10) || 0 : 0;
+    return `ART-${String(lastNumber + 1).padStart(4, '0')}`;
+  }
+
+  async create(formData: ArticuloFormData): Promise<Articulo> {
+    const codigo = await this.generateNextCode();
+    const { data, error } = await this.supabase.client
+      .from('articulos')
+      .insert({ ...formData, codigo })
       .select('*, categoria:categorias_inventario(nombre)')
       .single();
 

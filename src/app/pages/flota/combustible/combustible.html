@@ -226,7 +226,7 @@
         formControlName="vehiculo_id"
         [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
       >
-        <option value="">Seleccionar vehículo…</option>
+        <option [value]="null">Seleccionar vehículo…</option>
         @for (v of vehiculos(); track v.id) {
           <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
         }

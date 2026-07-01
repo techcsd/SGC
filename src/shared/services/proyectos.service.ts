@@ -38,11 +38,28 @@ export class ProyectosService {
     return data as unknown as Proyecto;
   }
 
-  async create(payload: Partial<Proyecto>): Promise<Proyecto> {
+  async generateNextCode(): Promise<string> {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyectos')
-      .insert(payload)
+      .select('codigo')
+      .like('codigo', 'PROY-%')
+      .order('codigo', { ascending: false })
+      .limit(1);
+
+    if (error) throw new Error(error.message);
+
+    const last = data?.[0]?.codigo as string | undefined;
+    const lastNumber = last ? parseInt(last.replace('PROY-', ''), 10) || 0 : 0;
+    return `PROY-${String(lastNumber + 1).padStart(4, '0')}`;
+  }
+
+  async create(payload: Partial<Proyecto>): Promise<Proyecto> {
+    const codigo = await this.generateNextCode();
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyectos')
+      .insert({ ...payload, codigo })
       .select('*, responsable:usuarios(nombre)')
       .single();
 
