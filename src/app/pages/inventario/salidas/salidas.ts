@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -21,7 +21,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 
 @Component({
   selector: 'app-salidas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
