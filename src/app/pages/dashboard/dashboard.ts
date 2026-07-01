@@ -40,7 +40,6 @@ export class Dashboard {
       route: '/compras',
       modulo: 'compras',
       icon: 'purchases',
-      phase: 'Fase 2',
       color: '#5B3A8E',
     },
     {
@@ -49,7 +48,6 @@ export class Dashboard {
       route: '/rrhh',
       modulo: 'rrhh',
       icon: 'hr',
-      phase: 'Fase 2',
       color: '#2D7D46',
     },
     {
@@ -58,7 +56,6 @@ export class Dashboard {
       route: '/proyectos',
       modulo: 'proyectos',
       icon: 'projects',
-      phase: 'Fase 2',
       color: '#B45309',
     },
     {
@@ -67,7 +64,6 @@ export class Dashboard {
       route: '/flota',
       modulo: 'flota',
       icon: 'fleet',
-      phase: 'Fase 3',
       color: '#C0392B',
     },
   ];
