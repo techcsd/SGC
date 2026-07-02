@@ -45,6 +45,18 @@
         <span class="kpi-label">Vehículos activos</span>
         <span class="kpi-value">{{ vehiculosActivos() }}</span>
       </div>
+      @if (canSeeSolicitudes()) {
+        <div class="kpi-card kpi-card--warning">
+          <span class="kpi-label">Solicitudes pendientes</span>
+          <span class="kpi-value">{{ solicitudesPendientesTotal() }}</span>
+        </div>
+      }
+      @if (canSeeBitacora()) {
+        <div class="kpi-card kpi-card--info">
+          <span class="kpi-label">Bitácoras esta semana</span>
+          <span class="kpi-value">{{ bitacorasSemana() }}</span>
+        </div>
+      }
     </div>
 
     <!-- Charts -->
@@ -214,6 +226,29 @@
         }
       </section>
 
+      <!-- Solicitudes pendientes (Bitácora → Inventario/Compras) -->
+      @if (canSeeSolicitudes()) {
+        <section class="chart-card" aria-labelledby="solicitudes-title">
+          <h2 class="chart-title" id="solicitudes-title">Solicitudes pendientes</h2>
+          @if (solicitudesRecientes().length === 0) {
+            <p class="chart-empty">Sin solicitudes pendientes de ingenieros de campo.</p>
+          } @else {
+            <ul class="upcoming-list">
+              @for (s of solicitudesRecientes(); track s.created_at + s.tipo) {
+                <li class="upcoming-list__item">
+                  <a [routerLink]="s.tipo === 'material' ? '/inventario/salidas' : '/compras/ordenes'" class="upcoming-list__link">
+                    <span class="upcoming-list__dot" [class.upcoming-list__dot--urgente]="s.urgencia === 'urgente'"></span>
+                    <span class="upcoming-list__placa">{{ s.tipo === 'material' ? 'Material' : 'Compra' }} — {{ s.proyecto }}</span>
+                    <span class="upcoming-list__fecha">{{ s.solicitante }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+            <div class="chart-footnote">{{ solicitudesPendientesTotal() }} pendiente(s) en total — ver en Inventario o Compras.</div>
+          }
+        </section>
+      }
+
       <!-- Próximos mantenimientos -->
       <section class="chart-card" aria-labelledby="proximos-mant-title">
         <h2 class="chart-title" id="proximos-mant-title">Próximos mantenimientos (7 días)</h2>
@@ -332,6 +367,19 @@
         <rect x="1" y="3" width="15" height="13" rx="1"/>
         <path d="M16 8h4l3 4v4h-7V8z"/>
         <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    }
+    @case ('bitacora') {
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z"/>
+        <line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="12" y2="19"/>
+      </svg>
+    }
+    @case ('documentos') {
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
       </svg>
     }
   }

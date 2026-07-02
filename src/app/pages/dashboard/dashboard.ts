@@ -89,9 +89,32 @@ export class Dashboard implements OnInit {
       icon: 'fleet',
       color: '#C0392B',
     },
+    {
+      label: 'Bitácora',
+      description: 'Registro diario de obra e ingenieros de campo.',
+      route: '/bitacora',
+      modulo: 'bitacora',
+      icon: 'bitacora',
+      color: '#0E7490',
+    },
+    {
+      label: 'Documentos',
+      description: 'Plantillas, contratos y documentos generados.',
+      route: '/documentos',
+      modulo: 'documentos',
+      icon: 'documentos',
+      color: '#4D4D4D',
+    },
   ];
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
+
+  canSeeSolicitudes = computed(
+    () => this.isAdmin() || this.canAccess('inventario') || this.canAccess('compras'),
+  );
+  canSeeBitacora = computed(
+    () => this.isAdmin() || this.canAccess('proyectos') || this.canAccess('bitacora'),
+  );
 
   // ── Raw data signals ─────────────────────────────────────
   private articulos = signal<{ id: string; precio_estimado: number | null; stock_minimo: number; activo: boolean; categoria_id: number; categoria?: { nombre: string } }[]>([]);
@@ -103,6 +126,12 @@ export class Dashboard implements OnInit {
   private proyectos = signal<{ estado: string; presupuesto: number | null }[]>([]);
   private vehiculos = signal<{ estado: string; activo: boolean }[]>([]);
   private mantenimientos = signal<{ estado: string; fecha: string; vehiculo?: { placa: string } }[]>([]);
+  private solicitudesMaterialCount = signal(0);
+  private solicitudesCompraCount = signal(0);
+  solicitudesRecientes = signal<
+    { tipo: 'material' | 'compra'; proyecto: string; solicitante: string; urgencia: string; created_at: string }[]
+  >([]);
+  bitacorasSemana = signal(0);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -142,6 +171,8 @@ export class Dashboard implements OnInit {
   proyectosActivos = computed(() => this.proyectos().filter((p) => p.estado === 'en_progreso').length);
 
   vehiculosActivos = computed(() => this.vehiculos().filter((v) => v.activo).length);
+
+  solicitudesPendientesTotal = computed(() => this.solicitudesMaterialCount() + this.solicitudesCompraCount());
 
   // ── Chart: movimientos de inventario (7 días) ─────────────
   movimientosChart = computed(() => this.movimientos7d());
@@ -339,6 +370,9 @@ export class Dashboard implements OnInit {
         proyectosRes,
         vehiculosRes,
         mantenimientosRes,
+        solicitudesMaterialRes,
+        solicitudesCompraRes,
+        bitacorasSemanaRes,
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
@@ -356,6 +390,22 @@ export class Dashboard implements OnInit {
         this.supabase.client.from('proyectos').select('estado, presupuesto'),
         this.supabase.client.from('vehiculos').select('estado, activo'),
         this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa)'),
+        this.supabase.client
+          .from('solicitudes_material')
+          .select('proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre), urgencia, created_at', { count: 'exact' })
+          .eq('estado', 'pendiente')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        this.supabase.client
+          .from('solicitudes_compra')
+          .select('proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_compra_solicitante_id_fkey(nombre), created_at', { count: 'exact' })
+          .eq('estado', 'pendiente')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        this.supabase.client
+          .from('bitacoras')
+          .select('id', { count: 'exact', head: true })
+          .gte('fecha', fechaDesde),
       ]);
 
       this.articulos.set(
@@ -376,6 +426,36 @@ export class Dashboard implements OnInit {
       this.vehiculos.set((vehiculosRes.data ?? []) as { estado: string; activo: boolean }[]);
       this.mantenimientos.set(
         (mantenimientosRes.data ?? []) as unknown as { estado: string; fecha: string; vehiculo?: { placa: string } }[],
+      );
+
+      this.solicitudesMaterialCount.set(solicitudesMaterialRes.count ?? 0);
+      this.solicitudesCompraCount.set(solicitudesCompraRes.count ?? 0);
+      this.bitacorasSemana.set(bitacorasSemanaRes.count ?? 0);
+
+      const materialItems = (
+        (solicitudesMaterialRes.data ?? []) as unknown as {
+          proyecto?: { nombre: string }; solicitante?: { nombre: string }; urgencia: string; created_at: string;
+        }[]
+      ).map((s) => ({
+        tipo: 'material' as const,
+        proyecto: s.proyecto?.nombre ?? '—',
+        solicitante: s.solicitante?.nombre ?? '—',
+        urgencia: s.urgencia,
+        created_at: s.created_at,
+      }));
+      const compraItems = (
+        (solicitudesCompraRes.data ?? []) as unknown as {
+          proyecto?: { nombre: string }; solicitante?: { nombre: string }; created_at: string;
+        }[]
+      ).map((s) => ({
+        tipo: 'compra' as const,
+        proyecto: s.proyecto?.nombre ?? '—',
+        solicitante: s.solicitante?.nombre ?? '—',
+        urgencia: 'normal',
+        created_at: s.created_at,
+      }));
+      this.solicitudesRecientes.set(
+        [...materialItems, ...compraItems].sort((a, b) => b.created_at.localeCompare(a.created_at)).slice(0, 5),
       );
 
       // Build 7-day movement series

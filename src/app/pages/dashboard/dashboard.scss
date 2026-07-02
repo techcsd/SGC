@@ -441,12 +441,25 @@
     font-size: 13px;
   }
 
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
   &__dot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: var(--sgc-warning);
     flex-shrink: 0;
+
+    &--urgente {
+      background: var(--sgc-danger, #c0392b);
+    }
   }
 
   &__placa {
