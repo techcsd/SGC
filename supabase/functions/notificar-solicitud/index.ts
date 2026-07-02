@@ -4,11 +4,14 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Basic email notifications for the solicitudes workflow. Called directly
 // by the frontend right after a solicitud is created/approved/rejected —
 // no DB webhook/pg_net involved, deliberately simple for a first version.
-// Requires a Resend account: set RESEND_API_KEY (and optionally
-// NOTIFICATIONS_FROM_EMAIL, must be a verified sending address/domain in
-// Resend) as function secrets via `supabase secrets set` or the dashboard.
-// If RESEND_API_KEY isn't set yet, this no-ops instead of failing — a
-// missing notification should never block the real workflow.
+//
+// The Resend API key is stored in Supabase Vault (see
+// sql/2026-07-02-vault-resend-key.sql) rather than a plain
+// RESEND_API_KEY env var — fetched here via sgc.get_resend_api_key(),
+// which is only executable by service_role, so the key is never exposed
+// to the Angular frontend. If the key isn't set yet, this no-ops instead
+// of failing — a missing notification should never block the real
+// workflow.
 
 Deno.serve(async (req: Request) => {
   try {
@@ -22,19 +25,19 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Parámetros inválidos." }), { status: 400 });
     }
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
-      return new Response(JSON.stringify({ skipped: true, reason: "RESEND_API_KEY no configurada." }), {
-        status: 200,
-      });
-    }
-    const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
-
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { db: { schema: "sgc" } },
     );
+
+    const { data: resendApiKey } = await supabase.rpc("get_resend_api_key");
+    if (!resendApiKey) {
+      return new Response(JSON.stringify({ skipped: true, reason: "Resend API key no configurada en Vault." }), {
+        status: 200,
+      });
+    }
+    const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
 
     const table = tipo === "material" ? "solicitudes_material" : "solicitudes_compra";
     const fkey =
