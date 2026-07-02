@@ -1,0 +1,26 @@
+-- Seeds sgc.plantillas_documento with 5 real CSD document templates, drafted from
+-- actual company files in "Constructora SD/EXTRACTO DE ONE DRIVE" (Claude Fable 5):
+--
+--   1. Contrato de Servicios (subcontrato de obra) — from
+--      "EXTRACTO DE ONE DRIVE/MODELO DE CONTRADO DE ENCOFRADOS.docx"
+--   2. Recibo de Pago (estándar) — from ".RECIBO DE PAGO.xlsx"
+--   3. Orden de Pago (estándar) — from ".ORDENES DE PAGO - PLANTILLA.xlsx"
+--   4. Acta de Incidencia (estándar) — from ".ACTA_INCIDENCIA.xlsx"
+--   5. Carta de Entrega (estándar) — drafted generically; the real source file
+--      (".PLANTILLA-CARTA DE ENTREGA.doc") is an old binary .doc format that
+--      mammoth (used for .docx parsing throughout this app) cannot read. If the
+--      real template's exact wording is needed later, re-save it as .docx with
+--      {{token}} placeholders and upload it via Documentos > Plantillas — no
+--      code change required, custom templates are auto-detected.
+--
+-- These 5 rows were applied directly to the live DB via the Supabase MCP
+-- (mcp__supabase__apply_migration) rather than pasted into this file verbatim,
+-- since the HTML bodies are large (the contrato alone is ~9KB) and the exact
+-- content is preserved both in the live `sgc.plantillas_documento` table and in
+-- the session transcript that produced it. To reproduce from scratch:
+--
+--   select nombre, categoria, contenido_html, campos from sgc.plantillas_documento
+--   where origen = 'sistema';
+--
+-- ...and re-insert via the same `insert into sgc.plantillas_documento (...) values (...)`
+-- shape used by sql/2026-07-02-plantillas-documento.sql's table definition.
