@@ -220,8 +220,20 @@ export class Ordenes implements OnInit {
   async onSave() {
     this.form.markAllAsTouched();
     const items = this.formItems();
-    const validItems = items.filter((item) => item.descripcion.trim());
+    // cantidad > 0 / precio_unitario > 0 also rejects NaN from a non-numeric
+    // input (Number('abc') is NaN, and NaN > 0 is always false).
+    const validItems = items.filter(
+      (item) => item.descripcion.trim() && item.cantidad > 0 && item.precio_unitario > 0,
+    );
     if (this.form.invalid || this.saving() || validItems.length === 0) return;
+
+    const hasIncompleteLine = items.some(
+      (item) => item.descripcion.trim() && (!(item.cantidad > 0) || !(item.precio_unitario > 0)),
+    );
+    if (hasIncompleteLine) {
+      this.saveError.set('Cada línea necesita una cantidad y un precio unitario mayores que cero.');
+      return;
+    }
 
     this.saving.set(true);
     this.saveError.set('');

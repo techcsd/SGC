@@ -276,6 +276,11 @@ export class Salidas implements OnInit {
 
     const v = this.form.value;
 
+    if (v.motivo === 'uso_proyecto' && !v.proyecto_id) {
+      this.saveError.set('Selecciona el proyecto para una salida por uso en proyecto.');
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 

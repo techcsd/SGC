@@ -60,8 +60,8 @@ export class Mantenimientos implements OnInit {
     estado: new FormControl('pendiente', [Validators.required]),
     descripcion: new FormControl('', [Validators.required]),
     fecha: new FormControl('', [Validators.required]),
-    costo: new FormControl<number | null>(null),
-    kilometraje_al_mantenimiento: new FormControl<number | null>(null),
+    costo: new FormControl<number | null>(null, [Validators.min(0)]),
+    kilometraje_al_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
     proveedor: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
   });

@@ -229,6 +229,14 @@ export class Entradas implements OnInit {
       return;
     }
 
+    // precio_unit is optional (some entries have no known cost yet), but if
+    // provided it must be a real non-negative number — catches both a
+    // typo'd negative value and a non-numeric input silently becoming NaN.
+    if (items.some((i) => i.precio_unit !== null && !(i.precio_unit >= 0))) {
+      this.saveError.set('El precio unitario debe ser un número mayor o igual a cero.');
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 

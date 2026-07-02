@@ -58,9 +58,9 @@ export class Combustible implements OnInit {
     conductor_id: new FormControl<string | null>(null),
     fecha: new FormControl(this.today, [Validators.required]),
     litros: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    costo_por_litro: new FormControl<number | null>(null),
+    costo_por_litro: new FormControl<number | null>(null, [Validators.min(0)]),
     total: new FormControl<number | null>({ value: null, disabled: true }),
-    kilometraje: new FormControl<number | null>(null),
+    kilometraje: new FormControl<number | null>(null, [Validators.min(0)]),
     estacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
   });
