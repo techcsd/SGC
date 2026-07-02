@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, SecurityContext, inject, signal, computed, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
@@ -79,7 +79,9 @@ export class Generar implements OnInit {
   }
 
   onPreviewEdit(value: string) {
-    this.previewHtml.set(value);
+    // The preview is contenteditable — sanitize on every edit so a pasted or
+    // devtools-injected payload never lingers in state even before saving.
+    this.previewHtml.set(this.sanitizer.sanitize(SecurityContext.HTML, value) ?? '');
   }
 
   async guardar() {
@@ -90,13 +92,16 @@ export class Generar implements OnInit {
     this.saving.set(true);
     this.error.set('');
     try {
+      // Belt-and-suspenders: re-sanitize right before persisting, since this is
+      // what every future viewer's bypassSecurityTrustHtml renders unsanitized.
+      const safeHtml = this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
       const generadoPor = this.userService.profile()?.id ?? null;
       const doc = await this.plantillasService.generar({
         plantillaId: plantilla.id,
         nombre: `${plantilla.nombre} — ${todayIso()}`,
         proyectoId: this.proyectoId() || null,
         valores: this.valores(),
-        contenidoHtmlFinal: html,
+        contenidoHtmlFinal: safeHtml,
         generadoPor,
       });
       this.router.navigate(['/documentos/ver', doc.id]);
