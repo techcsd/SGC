@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SolicitudMaterial, SolicitudMaterialFormData } from '../models/solicitud.model';
+import { notificarSolicitud } from '../utils/notificar-solicitud.util';
 
 // usuarios is joined twice (solicitante_id, atendido_por) — the relationship must be
 // disambiguated with !fkey_name or PostgREST rejects the embed as ambiguous.
@@ -40,6 +41,7 @@ export class SolicitudesMaterialService {
       .single();
 
     if (fetchError) throw new Error(fetchError.message);
+    notificarSolicitud(this.supabase.client, 'material', id as string, 'creada');
     return data as unknown as SolicitudMaterial;
   }
 
@@ -64,6 +66,7 @@ export class SolicitudesMaterialService {
     });
 
     if (error) throw new Error(error.message);
+    notificarSolicitud(this.supabase.client, 'material', id, 'aprobada');
     return salidaId as string;
   }
 
@@ -74,5 +77,6 @@ export class SolicitudesMaterialService {
     });
 
     if (error) throw new Error(error.message);
+    notificarSolicitud(this.supabase.client, 'material', id, 'rechazada');
   }
 }
