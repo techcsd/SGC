@@ -18,6 +18,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
+        path: 'soporte',
+        loadComponent: () => import('./pages/soporte/soporte').then((m) => m.Soporte),
+      },
+      {
         path: 'inventario',
         canActivate: [moduleGuard('inventario')],
         loadChildren: () =>

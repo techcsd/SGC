@@ -1,0 +1,154 @@
+<!-- Page header -->
+<div class="admin-reportes__header">
+  <div class="admin-reportes__title">
+    <h1>Comentarios y Reportes</h1>
+    <p>Comentarios, errores y sugerencias enviados por los usuarios del sistema</p>
+  </div>
+</div>
+
+<!-- "Working on now" section -->
+@if (misEnProgreso().length > 0) {
+  <section class="admin-reportes__enprogreso" aria-labelledby="enprogreso-title">
+    <h2 id="enprogreso-title">En progreso (asignados a mí)</h2>
+    <div class="admin-reportes__enprogreso-list">
+      @for (r of misEnProgreso(); track r.id) {
+        <button type="button" class="admin-reportes__enprogreso-card" (click)="openDetail(r)">
+          <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
+          <span class="admin-reportes__enprogreso-asunto">{{ r.asunto }}</span>
+          <span class="admin-reportes__enprogreso-user">{{ r.usuario?.nombre ?? '—' }}</span>
+        </button>
+      }
+    </div>
+  </section>
+}
+
+<!-- Filters -->
+<div class="admin-reportes__filters">
+  <input
+    class="admin-reportes__search"
+    type="search"
+    placeholder="Buscar por asunto o usuario..."
+    [value]="searchQuery()"
+    (input)="onSearch($any($event.target).value)"
+    aria-label="Buscar reportes"
+  />
+  <select class="admin-reportes__select" [value]="filterEstado()" (change)="onFilterEstado($any($event.target).value)" aria-label="Filtrar por estado">
+    <option value="all">Todos los estados</option>
+    <option value="abierto">Abierto</option>
+    <option value="en_progreso">En progreso</option>
+    <option value="resuelto">Resuelto</option>
+    <option value="descartado">Descartado</option>
+  </select>
+  <select class="admin-reportes__select" [value]="filterTipo()" (change)="onFilterTipo($any($event.target).value)" aria-label="Filtrar por tipo">
+    <option value="all">Todos los tipos</option>
+    <option value="comentario">Comentario</option>
+    <option value="bug">Error / Bug</option>
+    <option value="sugerencia">Sugerencia</option>
+  </select>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <div class="admin-reportes__loading" aria-live="polite">
+    <div class="admin-reportes__spinner" aria-hidden="true"></div>
+    <span>Cargando reportes...</span>
+  </div>
+}
+
+<!-- Error -->
+@if (error()) {
+  <div class="admin-reportes__error" role="alert">{{ error() }}</div>
+}
+
+<!-- Table -->
+@if (!loading() && !error()) {
+  <div class="admin-reportes__table-wrap">
+    <table class="admin-reportes__table" aria-label="Lista de reportes">
+      <thead>
+        <tr>
+          <th scope="col">Tipo</th>
+          <th scope="col">Asunto</th>
+          <th scope="col">Usuario</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Fecha</th>
+          <th scope="col"><span class="sr-only">Acciones</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of filtered(); track r.id) {
+          <tr>
+            <td><span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span></td>
+            <td class="admin-reportes__asunto">{{ r.asunto }}</td>
+            <td>{{ r.usuario?.nombre ?? '—' }}</td>
+            <td>
+              <span
+                class="sgc-badge"
+                [class.sgc-badge--neutral]="r.estado === 'abierto'"
+                [class.sgc-badge--warning]="r.estado === 'en_progreso'"
+                [class.sgc-badge--success]="r.estado === 'resuelto'"
+                [class.sgc-badge--danger]="r.estado === 'descartado'"
+              >{{ ESTADO_LABELS[r.estado] }}</span>
+            </td>
+            <td class="admin-reportes__date">{{ r.created_at | date:'dd MMM yyyy' }}</td>
+            <td class="admin-reportes__actions">
+              @if (r.estado === 'abierto') {
+                <button class="sgc-btn sgc-btn--ghost" type="button" (click)="tomar(r)">Tomar</button>
+              }
+              <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openDetail(r)">Ver</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="admin-reportes__empty">No se encontraron reportes con los filtros aplicados.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="admin-reportes__count">
+    {{ filtered().length }} reporte{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+  </p>
+}
+
+<!-- Detail drawer -->
+<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
+  @if (selected(); as r) {
+    <div class="admin-reportes__detail">
+      <div class="admin-reportes__detail-meta">
+        <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
+        <span>{{ r.usuario?.nombre ?? '—' }} · {{ r.usuario?.email }}</span>
+        <span>{{ r.created_at | date:'dd MMM yyyy, HH:mm' }}</span>
+      </div>
+      <p class="admin-reportes__detail-desc">{{ r.descripcion }}</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+      <div class="sgc-field">
+        <label for="estado">Estado</label>
+        <select id="estado" formControlName="estado">
+          <option value="abierto">Abierto</option>
+          <option value="en_progreso">En progreso</option>
+          <option value="resuelto">Resuelto</option>
+          <option value="descartado">Descartado</option>
+        </select>
+      </div>
+
+      <div class="sgc-field">
+        <label for="respuesta_admin">Respuesta (opcional, visible para el usuario)</label>
+        <textarea id="respuesta_admin" rows="4" formControlName="respuesta_admin" placeholder="Escribe una respuesta o nota de resolución..."></textarea>
+      </div>
+
+      @if (saveError()) {
+        <p class="admin-reportes__save-error" role="alert">{{ saveError() }}</p>
+      }
+
+      <div class="admin-reportes__drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+          @if (saving()) { Guardando... } @else { Guardar }
+        </button>
+      </div>
+    </form>
+  }
+</app-form-drawer>

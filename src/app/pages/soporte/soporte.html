@@ -1,0 +1,112 @@
+<div class="soporte">
+
+  <!-- Page header -->
+  <div class="soporte__header">
+    <div>
+      <h1>Soporte y Comentarios</h1>
+      <p>Reporta un error, envía una sugerencia o déjanos un comentario sobre el sistema.</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <section class="soporte__form-card">
+    <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
+
+      <div class="sgc-field">
+        <label for="tipo">Tipo</label>
+        <select id="tipo" formControlName="tipo">
+          @for (t of TIPOS; track t) {
+            <option [value]="t">{{ TIPO_LABELS[t] }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="sgc-field">
+        <label for="asunto">Asunto <span class="required" aria-hidden="true">*</span></label>
+        <input
+          id="asunto"
+          type="text"
+          formControlName="asunto"
+          [class.invalid]="f.asunto.invalid && f.asunto.touched"
+          placeholder="Resumen breve"
+          aria-required="true"
+        />
+        @if (f.asunto.invalid && f.asunto.touched) {
+          <span class="field-error" role="alert">El asunto es requerido.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="descripcion">Descripción <span class="required" aria-hidden="true">*</span></label>
+        <textarea
+          id="descripcion"
+          rows="4"
+          formControlName="descripcion"
+          [class.invalid]="f.descripcion.invalid && f.descripcion.touched"
+          placeholder="Cuéntanos con detalle qué pasó o qué sugieres..."
+          aria-required="true"
+        ></textarea>
+        @if (f.descripcion.invalid && f.descripcion.touched) {
+          <span class="field-error" role="alert">La descripción es requerida.</span>
+        }
+      </div>
+
+      @if (saveError()) {
+        <p class="soporte__save-error" role="alert">{{ saveError() }}</p>
+      }
+      @if (sent()) {
+        <p class="soporte__sent" role="status">¡Gracias! Tu reporte fue enviado.</p>
+      }
+
+      <div class="soporte__form-actions">
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+          @if (saving()) { Enviando... } @else { Enviar }
+        </button>
+      </div>
+
+    </form>
+  </section>
+
+  <!-- History -->
+  <section class="soporte__history">
+    <h2>Mis reportes</h2>
+
+    @if (loading()) {
+      <div class="soporte__loading" aria-live="polite">
+        <div class="soporte__spinner" aria-hidden="true"></div>
+        <span>Cargando...</span>
+      </div>
+    } @else if (error()) {
+      <p class="soporte__save-error" role="alert">{{ error() }}</p>
+    } @else if (reportes().length === 0) {
+      <p class="soporte__empty">Aún no has enviado ningún reporte.</p>
+    } @else {
+      <ul class="soporte__list">
+        @for (r of reportes(); track r.id) {
+          <li class="soporte__item">
+            <div class="soporte__item-top">
+              <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
+              <span
+                class="sgc-badge"
+                [class.sgc-badge--neutral]="r.estado === 'abierto'"
+                [class.sgc-badge--warning]="r.estado === 'en_progreso'"
+                [class.sgc-badge--success]="r.estado === 'resuelto'"
+                [class.sgc-badge--danger]="r.estado === 'descartado'"
+              >{{ ESTADO_LABELS[r.estado] }}</span>
+              <span class="soporte__item-date">{{ r.created_at | date:'dd MMM yyyy, HH:mm' }}</span>
+            </div>
+            <p class="soporte__item-asunto">{{ r.asunto }}</p>
+            <p class="soporte__item-desc">{{ r.descripcion }}</p>
+            @if (r.respuesta_admin) {
+              <div class="soporte__item-respuesta">
+                <strong>Respuesta del equipo:</strong>
+                <p>{{ r.respuesta_admin }}</p>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+</div>

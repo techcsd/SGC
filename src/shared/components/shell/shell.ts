@@ -126,6 +126,11 @@ export class Shell implements OnInit {
         { label: 'Historial', route: '/documentos/historial' },
       ],
     },
+    {
+      label: 'Soporte',
+      icon: 'soporte',
+      route: '/soporte',
+    },
   ];
 
   adminNavItem: NavItem = {
@@ -135,6 +140,7 @@ export class Shell implements OnInit {
     children: [
       { label: 'Usuarios', route: '/admin/usuarios' },
       { label: 'Roles', route: '/admin/roles' },
+      { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
   };
 
