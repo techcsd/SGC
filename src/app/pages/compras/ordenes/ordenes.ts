@@ -187,10 +187,8 @@ export class Ordenes implements OnInit {
   }
 
   async rechazarSolicitud(s: SolicitudCompra) {
-    const userId = this.userService.profile()?.id;
-    if (!userId) return;
     try {
-      await this.solicitudesCompraService.marcarAtendida(s.id, { estado: 'rechazada', atendidoPor: userId });
+      await this.solicitudesCompraService.rechazar(s.id);
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
@@ -233,18 +231,6 @@ export class Ordenes implements OnInit {
     const tot = this.total();
     const fv = this.form.value;
 
-    const payload: OrdenCompraPayload = {
-      proveedor_id: fv.proveedor_id!,
-      proyecto_id: fv.proyecto_id ?? null,
-      estado: 'borrador',
-      fecha: fv.fecha!,
-      fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,
-      subtotal: sub,
-      impuesto: imp,
-      total: tot,
-      notas: fv.notas ?? null,
-    };
-
     const itemPayloads: Omit<OrdenCompraItem, 'id' | 'orden_id'>[] = validItems.map((item) => ({
       articulo_id: null,
       descripcion: item.descripcion,
@@ -255,18 +241,39 @@ export class Ordenes implements OnInit {
 
     try {
       const creadoPor = this.userService.profile()?.id ?? null;
-      const created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
-      this.ordenes.update((list) => [created, ...list]);
-
       const solicitud = this.solicitudEnAtencion();
-      if (solicitud && creadoPor) {
-        await this.solicitudesCompraService.marcarAtendida(solicitud.id, {
-          estado: 'convertida',
-          orden_compra_id: created.id,
-          atendidoPor: creadoPor,
+
+      let created;
+      if (solicitud) {
+        // Atomic: creates the orden and marks the solicitud convertida in one transaction —
+        // no window where an orden exists but the solicitud is still stuck at "pendiente".
+        const ordenId = await this.solicitudesCompraService.aprobar(solicitud.id, {
+          proveedor_id: fv.proveedor_id!,
+          fecha: fv.fecha!,
+          fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,
+          subtotal: sub,
+          impuesto: imp,
+          total: tot,
+          notas: fv.notas ?? null,
+          items: itemPayloads,
         });
+        created = await this.ordenesService.getById(ordenId);
         this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
+      } else {
+        const payload: OrdenCompraPayload = {
+          proveedor_id: fv.proveedor_id!,
+          proyecto_id: fv.proyecto_id ?? null,
+          estado: 'borrador',
+          fecha: fv.fecha!,
+          fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,
+          subtotal: sub,
+          impuesto: imp,
+          total: tot,
+          notas: fv.notas ?? null,
+        };
+        created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }
+      this.ordenes.update((list) => [created, ...list]);
 
       this.createDrawerOpen.set(false);
     } catch (e: unknown) {

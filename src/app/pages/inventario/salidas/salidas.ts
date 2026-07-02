@@ -231,10 +231,8 @@ export class Salidas implements OnInit {
   }
 
   async rechazarSolicitud(s: SolicitudMaterial) {
-    const userId = this.userService.profile()?.id;
-    if (!userId) return;
     try {
-      await this.solicitudesMaterialService.marcarAtendida(s.id, { estado: 'rechazada', atendidoPor: userId });
+      await this.solicitudesMaterialService.rechazar(s.id);
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
@@ -283,29 +281,36 @@ export class Salidas implements OnInit {
 
     try {
       const userId = this.userService.profile()?.id ?? null;
-      const created = await this.salidasService.create(
-        {
+      const solicitud = this.solicitudEnAtencion();
+
+      let created;
+      if (solicitud) {
+        // Atomic: creates the salida and marks the solicitud entregada in one transaction —
+        // no window where a salida exists but the solicitud is still stuck at "pendiente".
+        const salidaId = await this.solicitudesMaterialService.aprobar(solicitud.id, {
           bodega_id: v.bodega_id!,
-          proyecto_id: v.motivo === 'uso_proyecto' ? (v.proyecto_id ?? null) : null,
-          motivo: v.motivo!,
           fecha: v.fecha!,
           responsable: v.responsable ?? null,
           observaciones: v.observaciones ?? null,
           items,
-        },
-        userId,
-      );
-      this.salidas.update((list) => [created, ...list]);
-
-      const solicitud = this.solicitudEnAtencion();
-      if (solicitud && userId) {
-        await this.solicitudesMaterialService.marcarAtendida(solicitud.id, {
-          estado: 'entregada',
-          salida_id: created.id,
-          atendidoPor: userId,
         });
+        created = await this.salidasService.getById(salidaId);
         this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
+      } else {
+        created = await this.salidasService.create(
+          {
+            bodega_id: v.bodega_id!,
+            proyecto_id: v.motivo === 'uso_proyecto' ? (v.proyecto_id ?? null) : null,
+            motivo: v.motivo!,
+            fecha: v.fecha!,
+            responsable: v.responsable ?? null,
+            observaciones: v.observaciones ?? null,
+            items,
+          },
+          userId,
+        );
       }
+      this.salidas.update((list) => [created, ...list]);
 
       this.drawerOpen.set(false);
     } catch (e: unknown) {

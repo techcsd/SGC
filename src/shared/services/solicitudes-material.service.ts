@@ -43,20 +43,35 @@ export class SolicitudesMaterialService {
     return data as unknown as SolicitudMaterial;
   }
 
-  async marcarAtendida(
+  /** Atomic: creates the real salida (with server-side stock validation) and marks the solicitud entregada, in one transaction. */
+  async aprobar(
     id: string,
-    payload: { estado: 'aprobada' | 'rechazada' | 'entregada'; salida_id?: string | null; atendidoPor: string },
-  ): Promise<void> {
-    const { error } = await this.supabase.client
-      .from('solicitudes_material')
-      .update({
-        estado: payload.estado,
-        salida_id: payload.salida_id ?? null,
-        atendido_por: payload.atendidoPor,
-        atendido_en: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
+    payload: {
+      bodega_id: string;
+      fecha: string;
+      responsable: string | null;
+      observaciones: string | null;
+      items: { articulo_id: string; cantidad: number }[];
+    },
+  ): Promise<string> {
+    const { data: salidaId, error } = await this.supabase.client.rpc('aprobar_solicitud_material', {
+      p_solicitud_id: id,
+      p_bodega_id: payload.bodega_id,
+      p_fecha: payload.fecha,
+      p_responsable: payload.responsable,
+      p_observaciones: payload.observaciones,
+      p_items: payload.items,
+    });
+
+    if (error) throw new Error(error.message);
+    return salidaId as string;
+  }
+
+  async rechazar(id: string, notas?: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('rechazar_solicitud_material', {
+      p_solicitud_id: id,
+      p_notas: notas ?? null,
+    });
 
     if (error) throw new Error(error.message);
   }

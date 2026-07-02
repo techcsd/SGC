@@ -42,20 +42,41 @@ export class SolicitudesCompraService {
     return data as unknown as SolicitudCompra;
   }
 
-  async marcarAtendida(
+  /** Atomic: creates the real orden de compra and marks the solicitud convertida, in one transaction. */
+  async aprobar(
     id: string,
-    payload: { estado: 'convertida' | 'rechazada'; orden_compra_id?: string | null; atendidoPor: string },
-  ): Promise<void> {
-    const { error } = await this.supabase.client
-      .from('solicitudes_compra')
-      .update({
-        estado: payload.estado,
-        orden_compra_id: payload.orden_compra_id ?? null,
-        atendido_por: payload.atendidoPor,
-        atendido_en: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
+    payload: {
+      proveedor_id: string;
+      fecha: string;
+      fecha_entrega_esperada: string | null;
+      subtotal: number;
+      impuesto: number;
+      total: number;
+      notas: string | null;
+      items: { articulo_id: string | null; descripcion: string; cantidad: number; precio_unitario: number; total: number }[];
+    },
+  ): Promise<string> {
+    const { data: ordenId, error } = await this.supabase.client.rpc('aprobar_solicitud_compra', {
+      p_solicitud_id: id,
+      p_proveedor_id: payload.proveedor_id,
+      p_fecha: payload.fecha,
+      p_fecha_entrega_esperada: payload.fecha_entrega_esperada,
+      p_subtotal: payload.subtotal,
+      p_impuesto: payload.impuesto,
+      p_total: payload.total,
+      p_notas: payload.notas,
+      p_items: payload.items,
+    });
+
+    if (error) throw new Error(error.message);
+    return ordenId as string;
+  }
+
+  async rechazar(id: string, notas?: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('rechazar_solicitud_compra', {
+      p_solicitud_id: id,
+      p_notas: notas ?? null,
+    });
 
     if (error) throw new Error(error.message);
   }
