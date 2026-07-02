@@ -1,0 +1,73 @@
+<div class="docs-proyecto">
+  <div class="docs-proyecto__header">
+    <h3 class="docs-proyecto__title">Documentos</h3>
+  </div>
+
+  @if (error()) {
+    <p class="docs-proyecto__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (canManage()) {
+    <div class="docs-proyecto__upload">
+      <select [value]="uploadTipo()" (change)="onUploadTipoChange($any($event.target).value)">
+        @for (t of DOCUMENTO_TIPOS; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+      <label class="docs-proyecto__upload-btn">
+        @if (uploading()) { Subiendo… } @else { + Subir archivo }
+        <input type="file" (change)="onFileSelected($event)" [disabled]="uploading()" accept=".pdf,.docx,.doc,.xlsx,.xls,.jpg,.jpeg,.png" hidden />
+      </label>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="docs-proyecto__loading">Cargando documentos…</p>
+  } @else {
+    @for (t of DOCUMENTO_TIPOS; track t.value) {
+      @if (porTipo(t.value).length > 0) {
+        <div class="docs-proyecto__grupo">
+          <p class="docs-proyecto__grupo-label">{{ t.label }}</p>
+          @for (doc of porTipo(t.value); track doc.id) {
+            <div class="docs-proyecto__item">
+              <button type="button" class="docs-proyecto__item-name" (click)="abrirVisor(doc)">{{ doc.nombre }}</button>
+              @if (canManage()) {
+                <button type="button" class="docs-proyecto__item-remove" (click)="eliminar(doc)" aria-label="Eliminar documento">✕</button>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+    @if (documentos().length === 0) {
+      <p class="docs-proyecto__empty">Sin documentos cargados para este proyecto.</p>
+    }
+  }
+
+  @if (viewerDoc(); as doc) {
+    <div class="docs-proyecto__viewer-backdrop" (click)="cerrarVisor()">
+      <div class="docs-proyecto__viewer" (click)="$event.stopPropagation()">
+        <div class="docs-proyecto__viewer-header">
+          <span>{{ doc.nombre }}</span>
+          <button type="button" (click)="cerrarVisor()" aria-label="Cerrar">✕</button>
+        </div>
+        <div class="docs-proyecto__viewer-body">
+          @if (doc.contenido_html) {
+            <div class="docs-proyecto__manual" [innerHTML]="doc.contenido_html"></div>
+          } @else if (viewerUrl() && esPdf(doc)) {
+            <iframe [src]="viewerUrl()" title="Documento" class="docs-proyecto__frame"></iframe>
+          } @else if (viewerUrl() && esImagen(doc)) {
+            <img [src]="viewerUrl()" [alt]="doc.nombre" class="docs-proyecto__image" />
+          } @else if (viewerUrl()) {
+            <p>
+              Este tipo de archivo no tiene vista previa en la página.
+              <a [href]="viewerUrl()" target="_blank" rel="noopener">Abrir / descargar {{ doc.nombre }}</a>
+            </p>
+          } @else {
+            <p>Cargando vista previa…</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

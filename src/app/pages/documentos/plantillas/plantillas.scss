@@ -1,0 +1,139 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  &__left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  letter-spacing: -0.02em;
+}
+
+.page-count {
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+}
+
+.page-hint {
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-primary-light);
+  padding: 10px 14px;
+  border-radius: var(--sgc-radius);
+  margin-bottom: 20px;
+
+  code {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+  }
+
+  a {
+    font-weight: 600;
+  }
+}
+
+.page-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.table-loading {
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+}
+
+.plantillas-grupo {
+  margin-bottom: 22px;
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+    margin-bottom: 10px;
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+}
+
+.plantilla-card {
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+
+  &__nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sgc-text);
+    margin-bottom: 6px;
+  }
+
+  &__campos {
+    margin-left: 8px;
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+  }
+
+  &__remove {
+    background: none;
+    border: none;
+    color: var(--sgc-danger);
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+}
+
+// ── Drawer form ──────────────────────────────────────────
+.drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.save-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sgc-border);
+  margin-top: 4px;
+}

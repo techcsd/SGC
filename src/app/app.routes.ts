@@ -34,6 +34,16 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/flota/flota.routes').then((m) => m.flotaRoutes),
       },
       {
+        path: 'bitacora',
+        canActivate: [moduleGuard('bitacora')],
+        loadChildren: () => import('./pages/bitacora/bitacora.routes').then((m) => m.bitacoraRoutes),
+      },
+      {
+        path: 'documentos',
+        canActivate: [moduleGuard('documentos')],
+        loadChildren: () => import('./pages/documentos/documentos.routes').then((m) => m.documentosRoutes),
+      },
+      {
         path: 'compras',
         canActivate: [moduleGuard('compras')],
         loadChildren: () =>

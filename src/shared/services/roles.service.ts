@@ -20,6 +20,8 @@ export const MODULOS_DISPONIBLES = [
   { key: 'rrhh', label: 'RRHH' },
   { key: 'proyectos', label: 'Proyectos' },
   { key: 'flota', label: 'Flota' },
+  { key: 'bitacora', label: 'Bitácora' },
+  { key: 'documentos', label: 'Documentos' },
   { key: 'admin', label: 'Administración' },
 ];
 

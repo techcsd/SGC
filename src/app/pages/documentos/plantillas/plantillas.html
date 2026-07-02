@@ -1,0 +1,81 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Plantillas de Documentos</h1>
+    <span class="page-count">{{ plantillas().length }} plantilla{{ plantillas().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openUpload()">
+    + Subir plantilla personalizada
+  </button>
+</div>
+
+<p class="page-hint">
+  Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en
+  <a routerLink="/documentos/generar">Generar Documento</a>. Para agregar la tuya: guarda tu documento en Word (.docx) con los
+  espacios a rellenar escritos como <code>{{ '{' + '{campo}' + '}' }}</code> (ej: <code>{{ '{' + '{cliente}' + '}' }}</code>), y súbelo aquí — la página detecta esos campos automáticamente.
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="table-loading">Cargando plantillas…</p>
+} @else {
+  @for (cat of CATEGORIAS; track cat) {
+    @if (porCategoria(cat).length > 0) {
+      <div class="plantillas-grupo">
+        <h2 class="plantillas-grupo__title">{{ CATEGORIA_LABELS[cat] }}</h2>
+        <div class="plantillas-grupo__list">
+          @for (p of porCategoria(cat); track p.id) {
+            <div class="sgc-card plantilla-card">
+              <div>
+                <p class="plantilla-card__nombre">{{ p.nombre }}</p>
+                <span class="sgc-badge sgc-badge--neutral">{{ p.origen === 'sistema' ? 'Del sistema' : 'Personalizada' }}</span>
+                <span class="plantilla-card__campos">{{ p.campos.length }} campo{{ p.campos.length !== 1 ? 's' : '' }}</span>
+              </div>
+              <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" aria-label="Eliminar plantilla">✕</button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+}
+
+<!-- Upload Drawer -->
+<app-form-drawer title="Subir plantilla personalizada" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="nombre">Nombre de la plantilla <span class="required">*</span></label>
+      <input id="nombre" type="text" formControlName="nombre" [class.invalid]="f.nombre.invalid && f.nombre.touched" />
+      @if (f.nombre.invalid && f.nombre.touched) {
+        <span class="field-error">El nombre es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="categoria">Categoría</label>
+      <select id="categoria" formControlName="categoria">
+        @for (cat of CATEGORIAS; track cat) {
+          <option [value]="cat">{{ CATEGORIA_LABELS[cat] }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="sgc-field">
+      <label for="archivo">Archivo Word (.docx) <span class="required">*</span></label>
+      <input id="archivo" type="file" accept=".docx" (change)="onFileSelected($event)" />
+    </div>
+
+    @if (saveError()) {
+      <p class="save-error" role="alert">{{ saveError() }}</p>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { Subiendo… } @else { Subir plantilla }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

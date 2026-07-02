@@ -1,0 +1,79 @@
+<div class="page-header">
+  <h1 class="page-title">Generar Documento</h1>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="table-loading">Cargando…</p>
+} @else {
+  <div class="generar-layout">
+    <div class="generar-form sgc-card">
+      <div class="sgc-field">
+        <label for="plantilla">Plantilla</label>
+        <select id="plantilla" (change)="onPlantillaChange($any($event.target).value)">
+          <option value="">Seleccionar plantilla…</option>
+          @for (p of plantillas(); track p.id) {
+            <option [value]="p.id">{{ CATEGORIA_LABELS[p.categoria] }} — {{ p.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      @if (plantillaSeleccionada(); as plantilla) {
+        <div class="sgc-field">
+          <label for="proyecto">Proyecto (opcional)</label>
+          <select id="proyecto" (change)="onProyectoChange($any($event.target).value)">
+            <option value="">Sin proyecto asociado</option>
+            @for (proy of proyectos(); track proy.id) {
+              <option [value]="proy.id">{{ proy.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <hr class="generar-divider" />
+
+        @for (campo of plantilla.campos; track campo.key) {
+          <div class="sgc-field">
+            <label [for]="campo.key">{{ campo.label }}</label>
+            @if (campo.tipo === 'textarea') {
+              <textarea [id]="campo.key" rows="3" (input)="onValorChange(campo.key, $any($event.target).value)"></textarea>
+            } @else {
+              <input
+                [id]="campo.key"
+                [type]="campo.tipo === 'numero' ? 'number' : campo.tipo === 'fecha' ? 'date' : 'text'"
+                (input)="onValorChange(campo.key, $any($event.target).value)"
+              />
+            }
+          </div>
+        }
+
+        <button type="button" class="sgc-btn sgc-btn--primary generar-btn" (click)="generarVistaPrevia()">
+          Generar vista previa
+        </button>
+      }
+    </div>
+
+    <div class="generar-preview">
+      @if (previewHtml(); as html) {
+        <div class="generar-preview__toolbar">
+          <span>Vista previa — puedes editar el texto antes de guardar</span>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
+            @if (saving()) { Guardando… } @else { Guardar y ver documento }
+          </button>
+        </div>
+        <div
+          class="documento-preview"
+          contenteditable="true"
+          [innerHTML]="previewSafe()"
+          (blur)="onPreviewEdit($any($event.target).innerHTML)"
+        ></div>
+      } @else {
+        <div class="generar-preview__empty">
+          <p>Selecciona una plantilla, completa los campos y presiona "Generar vista previa".</p>
+        </div>
+      }
+    </div>
+  </div>
+}

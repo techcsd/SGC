@@ -99,6 +99,28 @@ export class Shell implements OnInit {
         { label: 'Reportes', route: '/flota/reportes' },
       ],
     },
+    {
+      label: 'Bitácora',
+      icon: 'bitacora',
+      modulo: 'bitacora',
+      children: [
+        { label: 'Nueva bitácora', route: '/bitacora/nueva' },
+        { label: 'Mis bitácoras', route: '/bitacora/historial' },
+        { label: 'Mi proyecto', route: '/bitacora/mi-proyecto' },
+        { label: 'Solicitar materiales', route: '/bitacora/solicitudes-material' },
+        { label: 'Solicitar compra', route: '/bitacora/solicitudes-compra' },
+      ],
+    },
+    {
+      label: 'Documentos',
+      icon: 'documentos',
+      modulo: 'documentos',
+      children: [
+        { label: 'Generar documento', route: '/documentos/generar' },
+        { label: 'Plantillas', route: '/documentos/plantillas' },
+        { label: 'Historial', route: '/documentos/historial' },
+      ],
+    },
   ];
 
   adminNavItem: NavItem = {
@@ -139,11 +161,7 @@ export class Shell implements OnInit {
   canAccess(item: NavItem): boolean {
     if (!item.modulo) return true;
     if (item.phase) return false;
-    return (
-      this.userService.hasModulo(item.modulo) ||
-      this.userService.hasRole('admin') ||
-      this.userService.hasRole('gerencia')
-    );
+    return this.userService.hasModulo(item.modulo);
   }
 
   async logout() {

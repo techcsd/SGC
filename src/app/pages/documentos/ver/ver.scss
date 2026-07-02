@@ -1,0 +1,53 @@
+.ver-toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.ver-error {
+  color: var(--sgc-danger);
+}
+
+.documento-final {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+  background: #fff;
+  color: #111;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  font-size: 14px;
+  line-height: 1.6;
+
+  ::ng-deep h1,
+  ::ng-deep h2 {
+    margin: 16px 0 8px;
+  }
+
+  ::ng-deep p {
+    margin-bottom: 10px;
+  }
+
+  ::ng-deep table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  ::ng-deep td,
+  ::ng-deep th {
+    border: 1px solid #999;
+    padding: 6px 10px;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .documento-final {
+    border: none;
+    max-width: none;
+    padding: 0;
+  }
+}

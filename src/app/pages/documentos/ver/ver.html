@@ -1,0 +1,14 @@
+<div class="ver-toolbar no-print">
+  <a routerLink="/documentos/historial" class="sgc-btn sgc-btn--ghost">← Volver al historial</a>
+  @if (documento()) {
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
+  }
+</div>
+
+@if (loading()) {
+  <p class="no-print">Cargando…</p>
+} @else if (error()) {
+  <p class="no-print ver-error">{{ error() }}</p>
+} @else if (documento(); as doc) {
+  <div class="documento-final" [innerHTML]="contenidoSafe()"></div>
+}

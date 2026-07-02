@@ -1,0 +1,181 @@
+.docs-proyecto {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sgc-border);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  &__title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+  }
+
+  &__error {
+    font-size: 13px;
+    color: var(--sgc-danger);
+    margin-bottom: 8px;
+  }
+
+  &__upload {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    select {
+      padding: 6px 10px;
+      border: 1px solid var(--sgc-border);
+      border-radius: var(--sgc-radius-sm);
+      font-size: 13px;
+    }
+  }
+
+  &__upload-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-primary);
+    color: #fff;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--sgc-primary-mid);
+    }
+  }
+
+  &__loading,
+  &__empty {
+    font-size: 13px;
+    color: var(--sgc-text-muted);
+  }
+
+  &__grupo {
+    margin-bottom: 12px;
+  }
+
+  &__grupo-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+    margin-bottom: 4px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+  }
+
+  &__item-name {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--sgc-primary-mid);
+    font-size: 13.5px;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__item-remove {
+    background: none;
+    border: none;
+    color: var(--sgc-danger);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 6px;
+  }
+
+  &__viewer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  &__viewer {
+    width: min(900px, 92vw);
+    height: min(80vh, 900px);
+    background: var(--sgc-surface);
+    border-radius: var(--sgc-radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  &__viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--sgc-border);
+    font-weight: 600;
+    font-size: 14px;
+
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--sgc-text-muted);
+    }
+  }
+
+  &__viewer-body {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+  }
+
+  &__frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  &__image {
+    max-width: 100%;
+  }
+
+  // ::ng-deep: content here is injected via [innerHTML] (raw HTML from an uploaded
+  // .docx, parsed by mammoth), so it never receives Angular's scoping attribute.
+  &__manual {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--sgc-text);
+
+    ::ng-deep table {
+      border-collapse: collapse;
+      margin: 12px 0;
+    }
+
+    ::ng-deep td,
+    ::ng-deep th {
+      border: 1px solid var(--sgc-border);
+      padding: 6px 10px;
+    }
+
+    ::ng-deep img {
+      max-width: 100%;
+    }
+  }
+}

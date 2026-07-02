@@ -1,0 +1,42 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Historial de Documentos Generados</h1>
+    <span class="page-count">{{ documentos().length }} documento{{ documentos().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <a class="sgc-btn sgc-btn--primary" routerLink="/documentos/generar">+ Generar documento</a>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <p class="table-loading">Cargando…</p>
+  } @else if (documentos().length === 0) {
+    <div class="table-empty">
+      <p>Aún no se ha generado ningún documento.</p>
+    </div>
+  } @else {
+    <table class="data-table" aria-label="Historial de documentos">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Categoría</th>
+          <th>Documento</th>
+          <th>Proyecto</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of documentos(); track d.id) {
+          <tr class="clickable-row" [routerLink]="['/documentos/ver', d.id]">
+            <td>{{ formatFecha(d.created_at.slice(0, 10)) }}</td>
+            <td>{{ d.plantilla ? CATEGORIA_LABELS[d.plantilla.categoria] : '—' }}</td>
+            <td>{{ d.nombre }}</td>
+            <td class="text-muted">{{ d.proyecto?.nombre ?? '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>

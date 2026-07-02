@@ -1,0 +1,124 @@
+.page-header {
+  margin-bottom: 18px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  letter-spacing: -0.02em;
+}
+
+.page-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.table-loading {
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+}
+
+.generar-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .generar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.generar-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.generar-divider {
+  border: none;
+  border-top: 1px solid var(--sgc-border);
+  margin: 4px 0;
+}
+
+.generar-btn {
+  margin-top: 8px;
+}
+
+.generar-preview {
+  min-height: 400px;
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--sgc-text-muted);
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    color: var(--sgc-text-muted);
+    font-size: 14px;
+    background: var(--sgc-surface);
+    border: 1px dashed var(--sgc-border);
+    border-radius: var(--sgc-radius-lg);
+  }
+}
+
+.documento-preview {
+  background: #fff;
+  color: #111;
+  padding: 40px;
+  border-radius: var(--sgc-radius);
+  border: 1px solid var(--sgc-border);
+  min-height: 500px;
+  font-size: 14px;
+  line-height: 1.6;
+  outline: none;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgb(46 117 182 / 0.15);
+  }
+
+  ::ng-deep h1,
+  ::ng-deep h2 {
+    margin: 16px 0 8px;
+    font-size: 16px;
+  }
+
+  ::ng-deep p {
+    margin-bottom: 10px;
+  }
+
+  ::ng-deep table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  ::ng-deep td,
+  ::ng-deep th {
+    border: 1px solid #999;
+    padding: 6px 10px;
+  }
+}
