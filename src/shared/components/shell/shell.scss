@@ -138,6 +138,7 @@
 }
 
 .nav-icon {
+  position: relative;
   width: 20px;
   height: 20px;
   flex-shrink: 0;
@@ -149,6 +150,40 @@
 
   .nav-item:hover:not(.disabled) & {
     color: var(--sgc-sidebar-text);
+  }
+}
+
+.nav-icon-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c0392b;
+  border: 1.5px solid var(--sgc-sidebar-bg, #121212);
+}
+
+.nav-badge {
+  flex-shrink: 0;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  transition: opacity 0.2s ease;
+
+  .shell.collapsed & {
+    opacity: 0;
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
   }
 }
 

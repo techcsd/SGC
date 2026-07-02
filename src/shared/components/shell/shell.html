@@ -66,8 +66,14 @@
             >
               <span class="nav-icon" aria-hidden="true">
                 <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: item.icon }" />
+                @if (pendingBadge(item) > 0) {
+                  <span class="nav-icon-dot" aria-hidden="true"></span>
+                }
               </span>
               <span class="nav-label">{{ item.label }}</span>
+              @if (pendingBadge(item) > 0) {
+                <span class="nav-badge" [attr.aria-label]="pendingBadge(item) + ' solicitudes pendientes'">{{ pendingBadge(item) }}</span>
+              }
               <span class="nav-chevron" aria-hidden="true">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <polyline points="6 9 12 15 18 9"/>

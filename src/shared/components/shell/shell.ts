@@ -10,6 +10,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/rou
 import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { AuthService } from '../../../app/core/services/auth.service';
 import { UserService } from '../../../app/core/services/user.service';
+import { SupabaseService } from '../../../app/core/services/supabase.service';
 
 interface NavItem {
   label: string;
@@ -36,10 +37,14 @@ export class Shell implements OnInit {
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private router = inject(Router);
+  private supabase = inject(SupabaseService);
 
   profile = this.userService.profile;
   collapsed = signal(false);
   expandedSection = signal<string | null>('inventario');
+
+  /** Pending-solicitud counts per module, for the red-dot nav badge. */
+  private pendingByModulo = signal<Record<string, number>>({});
 
   navItems: NavItem[] = [
     {
@@ -140,6 +145,33 @@ export class Shell implements OnInit {
     if (saved !== null) {
       this.collapsed.set(saved === 'true');
     }
+    this.loadPendingBadges();
+  }
+
+  private async loadPendingBadges() {
+    const checks: Promise<void>[] = [];
+
+    if (this.userService.hasModulo('inventario') || this.isAdmin()) {
+      checks.push(this.loadPendingCount('solicitudes_material', 'inventario'));
+    }
+    if (this.userService.hasModulo('compras') || this.isAdmin()) {
+      checks.push(this.loadPendingCount('solicitudes_compra', 'compras'));
+    }
+
+    await Promise.all(checks);
+  }
+
+  private async loadPendingCount(table: string, modulo: string): Promise<void> {
+    const { count } = await this.supabase.client
+      .from(table)
+      .select('id', { count: 'exact', head: true })
+      .eq('estado', 'pendiente');
+    this.pendingByModulo.update((m) => ({ ...m, [modulo]: count ?? 0 }));
+  }
+
+  pendingBadge(item: NavItem): number {
+    if (!item.modulo) return 0;
+    return this.pendingByModulo()[item.modulo] ?? 0;
   }
 
   toggleCollapsed() {
