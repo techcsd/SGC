@@ -46,6 +46,21 @@ export class AdminUsuarios implements OnInit {
     activo: new FormControl<boolean>(true),
   });
 
+  // ── Create drawer ────────────────────────────────────────
+  createDrawerOpen = signal(false);
+  creating = signal(false);
+  createError = signal('');
+
+  createForm = new FormGroup({
+    email: new FormControl('', [Validators.required, Validators.email]),
+    fullName: new FormControl('', [Validators.required, Validators.maxLength(150)]),
+    roleId: new FormControl<number | null>(null),
+  });
+
+  // ── Password reset ───────────────────────────────────────
+  resettingId = signal<string | null>(null);
+  resetMessage = signal<{ userId: string; text: string } | null>(null);
+
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -106,6 +121,64 @@ export class AdminUsuarios implements OnInit {
     this.drawerOpen.set(false);
   }
 
+  openCreate() {
+    this.createError.set('');
+    this.createForm.reset({ email: '', fullName: '', roleId: null });
+    this.createDrawerOpen.set(true);
+  }
+
+  closeCreateDrawer() {
+    this.createDrawerOpen.set(false);
+  }
+
+  async onCreateSave() {
+    this.createForm.markAllAsTouched();
+    if (this.createForm.invalid || this.creating()) return;
+
+    this.creating.set(true);
+    this.createError.set('');
+
+    try {
+      await this.adminService.createUsuario({
+        email: this.createForm.value.email!.trim(),
+        fullName: this.createForm.value.fullName!.trim(),
+        roleId: this.createForm.value.roleId ?? null,
+      });
+      const updated = await this.adminService.getAllUsuarios();
+      this.usuarios.set(updated);
+      this.createDrawerOpen.set(false);
+    } catch (e: unknown) {
+      this.createError.set(e instanceof Error ? e.message : 'Error al crear el usuario.');
+    } finally {
+      this.creating.set(false);
+    }
+  }
+
+  async resetPassword(usuario: UsuarioAdmin) {
+    this.resettingId.set(usuario.id);
+    this.resetMessage.set(null);
+    try {
+      const result = await this.adminService.resetPassword(usuario.id);
+      this.resetMessage.set({
+        userId: usuario.id,
+        text: result.sent
+          ? 'Correo de restablecimiento enviado.'
+          : `No se pudo enviar el correo. Enlace: ${result.actionLink}`,
+      });
+    } catch (e: unknown) {
+      this.resetMessage.set({
+        userId: usuario.id,
+        text: e instanceof Error ? e.message : 'Error al restablecer la contraseña.',
+      });
+    } finally {
+      this.resettingId.set(null);
+    }
+  }
+
+  get cf() {
+    return this.createForm.controls;
+  }
+
   isRolSelected(rolId: number): boolean {
     return this.selectedRolIds().includes(rolId);
   }
@@ -142,10 +215,13 @@ export class AdminUsuarios implements OnInit {
 
     try {
       const currentUserId = this.userService.profile()?.id ?? '';
-      await this.adminService.updateUsuario(usuario.id, {
-        nombre: this.form.value.nombre!,
-        activo: this.form.value.activo!,
-      });
+      await this.adminService.updateUsuario(usuario.id, this.form.value.nombre!);
+      if (this.form.value.activo !== usuario.activo) {
+        // Routed through toggleActivo (not a direct field update) so a
+        // deactivation here also bans the user at the Auth layer, same as
+        // the row-level toggle.
+        await this.adminService.toggleActivo(usuario.id, this.form.value.activo!);
+      }
       await this.adminService.assignRoles(usuario.id, this.selectedRolIds(), currentUserId);
 
       // Reload to get updated roles

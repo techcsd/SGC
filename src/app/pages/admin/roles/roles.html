@@ -6,18 +6,17 @@
       <h1 class="admin-roles__title">Roles del Sistema</h1>
       <p class="admin-roles__subtitle">Gestiona los roles y sus permisos de acceso por módulo.</p>
     </div>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Crear Rol
+    </button>
   </div>
 
-  <!-- Info banner -->
-  <div class="admin-roles__banner" role="note">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-    <span>Los roles definen qué módulos puede acceder cada usuario. No es posible crear ni eliminar roles desde esta pantalla.</span>
-  </div>
+  @if (deleteError()) {
+    <div class="admin-roles__error" role="alert">{{ deleteError() }}</div>
+  }
 
   <!-- Loading -->
   @if (loading()) {
@@ -73,6 +72,17 @@
               </svg>
               Editar permisos
             </button>
+            @if (rol.codigo !== 'admin') {
+              <button
+                class="admin-roles__delete-btn"
+                type="button"
+                (click)="deleteRol(rol)"
+                [disabled]="deletingId() === rol.id"
+                [attr.aria-label]="'Eliminar rol ' + rol.nombre"
+              >
+                @if (deletingId() === rol.id) { Eliminando... } @else { Eliminar }
+              </button>
+            }
           </div>
         </article>
       }
@@ -149,6 +159,66 @@
         [attr.aria-busy]="saving()"
       >
         @if (saving()) { Guardando... } @else { Guardar cambios }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>
+
+<!-- Create Drawer -->
+<app-form-drawer
+  title="Crear Rol"
+  [open]="createDrawerOpen()"
+  (closed)="closeCreateDrawer()"
+>
+  <form [formGroup]="createForm" (ngSubmit)="onCreateSave()" class="roles-form" novalidate>
+
+    <div class="roles-form__field">
+      <label class="roles-form__label" for="create-rol-nombre">Nombre del rol</label>
+      <input
+        id="create-rol-nombre"
+        class="roles-form__input"
+        type="text"
+        formControlName="nombre"
+        autocomplete="off"
+        [class.roles-form__input--error]="cf['nombre'].invalid && cf['nombre'].touched"
+      />
+      @if (cf['nombre'].invalid && cf['nombre'].touched) {
+        <span class="roles-form__error" role="alert">
+          @if (cf['nombre'].errors?.['required']) { El nombre es obligatorio. }
+          @if (cf['nombre'].errors?.['maxlength']) { Máximo 100 caracteres. }
+        </span>
+      }
+    </div>
+
+    <fieldset class="roles-form__fieldset">
+      <legend class="roles-form__legend">Módulos accesibles</legend>
+      <div class="roles-form__modulos">
+        @for (mod of modulos; track mod.key) {
+          <label class="roles-form__checkbox-label" [for]="'create-mod-' + mod.key">
+            <input
+              [id]="'create-mod-' + mod.key"
+              class="roles-form__checkbox"
+              type="checkbox"
+              [checked]="isCreateModuloSelected(mod.key)"
+              (change)="toggleCreateModulo(mod.key)"
+            />
+            <span class="roles-form__checkbox-text">{{ mod.label }}</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    @if (createError()) {
+      <div class="roles-form__save-error" role="alert">{{ createError() }}</div>
+    }
+
+    <div class="roles-form__actions">
+      <button class="roles-form__cancel" type="button" (click)="closeCreateDrawer()" [disabled]="creating()">
+        Cancelar
+      </button>
+      <button class="roles-form__submit" type="submit" [disabled]="creating()" [attr.aria-busy]="creating()">
+        @if (creating()) { Creando... } @else { Crear rol }
       </button>
     </div>
 

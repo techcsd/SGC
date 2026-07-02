@@ -4,16 +4,12 @@
     <h1>Gestión de Usuarios</h1>
     <p>Administra los accesos y roles del sistema</p>
   </div>
-</div>
-
-<!-- Notice: creating users requires backend -->
-<div class="admin-usuarios__notice">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <circle cx="12" cy="12" r="10"/>
-    <line x1="12" y1="8" x2="12" y2="12"/>
-    <line x1="12" y1="16" x2="12.01" y2="16"/>
-  </svg>
-  <span>Para crear nuevos usuarios, regístralos primero en Supabase Authentication y luego aparecerán aquí automáticamente.</span>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Crear Usuario
+  </button>
 </div>
 
 <!-- Filters -->
@@ -113,6 +109,15 @@
                 Editar
               </button>
               <button
+                class="sgc-btn sgc-btn--ghost admin-usuarios__btn-reset"
+                type="button"
+                (click)="resetPassword(usuario)"
+                [disabled]="resettingId() === usuario.id"
+                [attr.aria-label]="'Restablecer contraseña de ' + usuario.nombre"
+              >
+                @if (resettingId() === usuario.id) { Enviando... } @else { Restablecer contraseña }
+              </button>
+              <button
                 class="admin-usuarios__toggle"
                 type="button"
                 (click)="toggleActivo(usuario)"
@@ -126,6 +131,11 @@
               </button>
             </td>
           </tr>
+          @if (resetMessage() && resetMessage()?.userId === usuario.id) {
+            <tr>
+              <td colspan="6" class="admin-usuarios__reset-message" role="status">{{ resetMessage()?.text }}</td>
+            </tr>
+          }
         } @empty {
           <tr>
             <td colspan="6" class="admin-usuarios__empty">
@@ -216,6 +226,74 @@
       </button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) { Guardando... } @else { Guardar cambios }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>
+
+<!-- Create Drawer -->
+<app-form-drawer
+  title="Crear Usuario"
+  [open]="createDrawerOpen()"
+  (closed)="closeCreateDrawer()"
+>
+  <form [formGroup]="createForm" (ngSubmit)="onCreateSave()" novalidate>
+
+    <p class="admin-usuarios__create-hint">
+      Se enviará una invitación por correo para que el usuario elija su propia contraseña — nunca la verás ni la definirás tú.
+    </p>
+
+    <div class="sgc-field">
+      <label for="create-email">Correo electrónico <span class="required" aria-hidden="true">*</span></label>
+      <input
+        id="create-email"
+        type="email"
+        formControlName="email"
+        [class.invalid]="cf.email.invalid && cf.email.touched"
+        autocomplete="off"
+        aria-required="true"
+      />
+      @if (cf.email.invalid && cf.email.touched) {
+        <span class="field-error" role="alert">Ingresa un correo válido.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="create-fullname">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+      <input
+        id="create-fullname"
+        type="text"
+        formControlName="fullName"
+        [class.invalid]="cf.fullName.invalid && cf.fullName.touched"
+        autocomplete="off"
+        aria-required="true"
+      />
+      @if (cf.fullName.invalid && cf.fullName.touched) {
+        <span class="field-error" role="alert">El nombre es requerido.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="create-role">Rol inicial</label>
+      <select id="create-role" formControlName="roleId">
+        <option [ngValue]="null">Sin rol (asignar después)</option>
+        @for (rol of roles(); track rol.id) {
+          <option [ngValue]="rol.id">{{ rol.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    @if (createError()) {
+      <p class="admin-usuarios__save-error" role="alert">{{ createError() }}</p>
+    }
+
+    <div class="admin-usuarios__drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">
+        Cancelar
+      </button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
+        @if (creating()) { Creando... } @else { Enviar invitación }
       </button>
     </div>
 

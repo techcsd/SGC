@@ -14,6 +14,11 @@ export interface RolUpdatePayload {
   modulos: string[];
 }
 
+export interface RolCreatePayload {
+  nombre: string;
+  modulos: string[];
+}
+
 export const MODULOS_DISPONIBLES = [
   { key: 'inventario', label: 'Inventario' },
   { key: 'compras', label: 'Compras' },
@@ -45,6 +50,36 @@ export class RolesService {
       .update({ nombre: payload.nombre, modulos: payload.modulos })
       .eq('id', id);
 
+    if (error) throw new Error(error.message);
+  }
+
+  async create(payload: RolCreatePayload): Promise<Rol> {
+    const codigo = payload.nombre
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '') // strip accents (combining diacritical marks)
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+
+    const { data, error } = await this.supabase.client
+      .from('roles')
+      .insert({ codigo, nombre: payload.nombre, modulos: payload.modulos })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('Ya existe un rol con un nombre muy similar. Usa un nombre distinto.');
+      }
+      throw new Error(error.message);
+    }
+    return data as unknown as Rol;
+  }
+
+  /** Guarded server-side: refuses to delete the admin role or a role currently assigned to users. */
+  async delete(id: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('eliminar_rol', { p_rol_id: id });
     if (error) throw new Error(error.message);
   }
 }

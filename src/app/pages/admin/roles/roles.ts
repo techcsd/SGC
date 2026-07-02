@@ -38,6 +38,19 @@ export class AdminRoles implements OnInit {
     nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
   });
 
+  // ── Create drawer ────────────────────────────────────────
+  createDrawerOpen = signal(false);
+  creating = signal(false);
+  createError = signal('');
+  createSelectedModulos = signal<string[]>([]);
+
+  createForm = new FormGroup({
+    nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+  });
+
+  deletingId = signal<number | null>(null);
+  deleteError = signal('');
+
   // ── Computed ─────────────────────────────────────────────
   drawerTitle = computed(() => {
     const r = this.editingRol();
@@ -81,6 +94,68 @@ export class AdminRoles implements OnInit {
     this.selectedModulos.update((mods) =>
       mods.includes(key) ? mods.filter((m) => m !== key) : [...mods, key],
     );
+  }
+
+  openCreate() {
+    this.createError.set('');
+    this.createForm.reset({ nombre: '' });
+    this.createSelectedModulos.set([]);
+    this.createDrawerOpen.set(true);
+  }
+
+  closeCreateDrawer() {
+    this.createDrawerOpen.set(false);
+  }
+
+  isCreateModuloSelected(key: string): boolean {
+    return this.createSelectedModulos().includes(key);
+  }
+
+  toggleCreateModulo(key: string) {
+    this.createSelectedModulos.update((mods) =>
+      mods.includes(key) ? mods.filter((m) => m !== key) : [...mods, key],
+    );
+  }
+
+  async onCreateSave() {
+    this.createForm.markAllAsTouched();
+    if (this.createForm.invalid || this.creating()) return;
+
+    this.creating.set(true);
+    this.createError.set('');
+
+    try {
+      await this.rolesService.create({
+        nombre: this.createForm.value.nombre!,
+        modulos: this.createSelectedModulos(),
+      });
+      const updated = await this.rolesService.getAll();
+      this.roles.set(updated);
+      this.createDrawerOpen.set(false);
+    } catch (e: unknown) {
+      this.createError.set(e instanceof Error ? e.message : 'Error al crear el rol.');
+    } finally {
+      this.creating.set(false);
+    }
+  }
+
+  async deleteRol(rol: Rol) {
+    if (!confirm(`¿Eliminar el rol "${rol.nombre}"? Esta acción no se puede deshacer.`)) return;
+
+    this.deletingId.set(rol.id);
+    this.deleteError.set('');
+    try {
+      await this.rolesService.delete(rol.id);
+      this.roles.update((list) => list.filter((r) => r.id !== rol.id));
+    } catch (e: unknown) {
+      this.deleteError.set(e instanceof Error ? e.message : 'Error al eliminar el rol.');
+    } finally {
+      this.deletingId.set(null);
+    }
+  }
+
+  get cf() {
+    return this.createForm.controls;
   }
 
   getModuloLabel(key: string): string {

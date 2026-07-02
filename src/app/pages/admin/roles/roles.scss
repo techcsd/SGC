@@ -30,26 +30,6 @@
     margin: 0;
   }
 
-  // Banner
-  &__banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.625rem;
-    padding: 0.875rem 1rem;
-    background: var(--sgc-primary-light);
-    border: 1px solid var(--sgc-primary-mid);
-    border-radius: 10px;
-    color: var(--sgc-text);
-    font-size: 0.875rem;
-    margin-bottom: 2rem;
-
-    svg {
-      flex-shrink: 0;
-      margin-top: 1px;
-      color: var(--sgc-primary-mid);
-    }
-  }
-
   // Loading
   &__loading {
     display: flex;
@@ -81,6 +61,7 @@
     border-radius: 10px;
     color: var(--sgc-danger);
     font-size: 0.875rem;
+    margin-bottom: 1.25rem;
   }
 
   // Grid
@@ -171,6 +152,8 @@
 
   // Card footer
   &__card-footer {
+    display: flex;
+    gap: 0.625rem;
     border-top: 1px solid var(--sgc-border);
     padding-top: 0.875rem;
   }
@@ -197,6 +180,29 @@
     &:focus-visible {
       outline: 2px solid var(--sgc-primary-mid);
       outline-offset: 2px;
+    }
+  }
+
+  &__delete-btn {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--sgc-danger);
+    background: transparent;
+    border: 1px solid var(--sgc-danger);
+    border-radius: 8px;
+    padding: 0.45rem 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--sgc-danger-light);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 
