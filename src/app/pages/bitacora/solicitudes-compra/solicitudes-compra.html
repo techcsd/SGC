@@ -1,0 +1,122 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Solicitar Compra</h1>
+    <span class="page-count">{{ solicitudes().length }} solicitud{{ solicitudes().length !== 1 ? 'es' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nueva solicitud
+  </button>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando…
+    </div>
+  } @else if (solicitudes().length === 0) {
+    <div class="table-empty">
+      <p>Aún no has hecho solicitudes de compra.</p>
+    </div>
+  } @else {
+    <table class="data-table" aria-label="Solicitudes de compra">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Obra</th>
+          <th>Artículos</th>
+          <th>Estado</th>
+          <th>Atendida</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of solicitudes(); track s.id) {
+          <tr>
+            <td>{{ formatFecha(s.created_at.slice(0, 10)) }}</td>
+            <td>{{ s.proyecto?.nombre ?? '—' }}</td>
+            <td class="text-muted">{{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}</td>
+            <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ s.estado }}</span></td>
+            <td class="text-muted">{{ s.atendido_en ? formatFecha(s.atendido_en.slice(0, 10)) : '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+<!-- Create Drawer -->
+<app-form-drawer title="Nueva solicitud de compra" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="proyecto_id">Obra <span class="required">*</span></label>
+      <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
+        <option [value]="null">Seleccionar obra…</option>
+        @for (p of activeProyectos(); track p.id) {
+          <option [value]="p.id">{{ p.nombre }}</option>
+        }
+      </select>
+      @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
+        <span class="field-error">La obra es obligatoria.</span>
+      }
+    </div>
+
+    <div class="items-header">
+      <label>Artículos a comprar</label>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">+ Agregar</button>
+    </div>
+
+    @for (item of formItems(); track $index; let i = $index) {
+      <div class="item-row item-row--compra">
+        <input
+          type="text"
+          placeholder="Descripción"
+          [value]="item.descripcion"
+          (input)="updateItem(i, 'descripcion', $any($event.target).value)"
+        />
+        <input
+          type="number"
+          min="1"
+          placeholder="Cant."
+          [value]="item.cantidad"
+          (input)="updateItem(i, 'cantidad', $any($event.target).value)"
+        />
+        <input
+          type="text"
+          placeholder="Proveedor sugerido (opcional)"
+          [value]="item.proveedor_sugerido"
+          (input)="updateItem(i, 'proveedor_sugerido', $any($event.target).value)"
+        />
+        <button
+          type="button"
+          class="item-row__remove"
+          (click)="removeItem(i)"
+          [disabled]="formItems().length === 1"
+          aria-label="Quitar artículo"
+        >✕</button>
+      </div>
+    }
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea id="notas" rows="2" formControlName="notas"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <p class="save-error" role="alert">{{ saveError() }}</p>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { Enviando… } @else { Enviar solicitud }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

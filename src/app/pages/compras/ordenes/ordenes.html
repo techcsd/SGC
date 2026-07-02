@@ -12,6 +12,32 @@
   </button>
 </div>
 
+<!-- ── Solicitudes de compra pendientes (from ingenieros de campo) ── -->
+@if (solicitudesPendientes().length > 0) {
+  <div class="solicitudes-panel sgc-card">
+    <h2 class="solicitudes-panel__title">
+      Solicitudes de compra pendientes ({{ solicitudesPendientes().length }})
+    </h2>
+    @for (s of solicitudesPendientes(); track s.id) {
+      <div class="solicitudes-panel__item">
+        <div class="solicitudes-panel__info">
+          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? '—' }}</span>
+          <span class="solicitudes-panel__solicitante">{{ s.solicitante?.nombre }}</span>
+        </div>
+        <p class="solicitudes-panel__items">
+          @for (item of s.items; track item.id) {
+            <span>{{ item.cantidad }} — {{ item.descripcion }}</span>
+          }
+        </p>
+        <div class="solicitudes-panel__actions">
+          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">Crear orden</button>
+          <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="rechazarSolicitud(s)">Rechazar</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">

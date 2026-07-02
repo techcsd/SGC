@@ -171,6 +171,30 @@ export class ProyectosService {
     return data as unknown as ProyectoEmpleado;
   }
 
+  /** Proyectos the given usuario is assigned to as team member (via empleados -> proyecto_empleados). */
+  async getAsignadosA(usuarioId: string): Promise<Proyecto[]> {
+    const { data: empleado, error: empError } = await this.supabase.client
+      .schema('sgc')
+      .from('empleados')
+      .select('id')
+      .eq('usuario_id', usuarioId)
+      .maybeSingle();
+
+    if (empError) throw new Error(empError.message);
+    if (!empleado) return [];
+
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_empleados')
+      .select('proyecto:proyectos(*, fases:fases_proyecto(*))')
+      .eq('empleado_id', (empleado as { id: string }).id);
+
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as unknown as { proyecto: Proyecto }[])
+      .map((row) => row.proyecto)
+      .filter(Boolean);
+  }
+
   async removeEmpleado(id: string): Promise<void> {
     const { error } = await this.supabase.client
       .schema('sgc')

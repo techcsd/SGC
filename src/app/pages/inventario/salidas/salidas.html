@@ -12,12 +12,41 @@
   </button>
 </div>
 
+<!-- ── Solicitudes pendientes (from ingenieros de campo) ── -->
+@if (solicitudesPendientes().length > 0) {
+  <div class="solicitudes-panel sgc-card">
+    <h2 class="solicitudes-panel__title">
+      Solicitudes de materiales pendientes ({{ solicitudesPendientes().length }})
+    </h2>
+    @for (s of solicitudesPendientes(); track s.id) {
+      <div class="solicitudes-panel__item">
+        <div class="solicitudes-panel__info">
+          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? '—' }}</span>
+          @if (s.urgencia === 'urgente') {
+            <span class="sgc-badge sgc-badge--danger">Urgente</span>
+          }
+          <span class="solicitudes-panel__solicitante">{{ s.solicitante?.nombre }}</span>
+        </div>
+        <p class="solicitudes-panel__items">
+          @for (item of s.items; track item.id) {
+            <span>{{ item.cantidad }}{{ item.unidad ? ' ' + item.unidad : '' }} — {{ item.descripcion }}</span>
+          }
+        </p>
+        <div class="solicitudes-panel__actions">
+          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">Crear salida</button>
+          <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="rechazarSolicitud(s)">Rechazar</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por responsable u obra…"
+      placeholder="Buscar por responsable o proyecto…"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
       aria-label="Buscar salidas"
@@ -117,24 +146,28 @@
             <th>Fecha</th>
             <th>Bodega</th>
             <th>Motivo</th>
-            <th>Obra</th>
+            <th>Proyecto</th>
             <th>Responsable</th>
             <th class="text-right">Artículos</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           @for (s of paginated(); track s.id) {
             <tr>
-              <td class="salidas__date">{{ s.fecha | date:'dd/MM/yyyy' }}</td>
+              <td class="salidas__date">{{ formatFecha(s.fecha) }}</td>
               <td>{{ s.bodega?.nombre ?? '—' }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getMotivoModifier(s.motivo)">
                   {{ getMotivoLabel(s.motivo) }}
                 </span>
               </td>
-              <td class="text-muted">{{ s.obra?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ s.responsable || '—' }}</td>
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
+              <td>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', s.id, 'conduce']">Conduce</a>
+              </td>
             </tr>
           }
         </tbody>
@@ -246,14 +279,14 @@
       }
     </div>
 
-    <!-- Obra (solo si motivo = uso_proyecto) -->
-    @if (showObraField()) {
+    <!-- Proyecto (solo si motivo = uso_proyecto) -->
+    @if (showProyectoField()) {
       <div class="sgc-field">
-        <label for="obra_id">Obra</label>
-        <select id="obra_id" formControlName="obra_id">
-          <option [ngValue]="null">Sin obra</option>
-          @for (o of activeObras(); track o.id) {
-            <option [value]="o.id">{{ o.nombre }}</option>
+        <label for="proyecto_id">Proyecto</label>
+        <select id="proyecto_id" formControlName="proyecto_id">
+          <option [ngValue]="null">Sin proyecto</option>
+          @for (p of activeProyectos(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
           }
         </select>
       </div>

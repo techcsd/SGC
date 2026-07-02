@@ -18,10 +18,6 @@ export interface OrdenCompraPayload {
 export class OrdenesCompraService {
   private supabase = inject(SupabaseService);
 
-  generateNumero(): string {
-    return 'OC-' + Date.now();
-  }
-
   async getAll(): Promise<OrdenCompra[]> {
     const { data, error } = await this.supabase.client
       .schema('sgc')
@@ -45,38 +41,27 @@ export class OrdenesCompraService {
     return data as unknown as OrdenCompra;
   }
 
-  async create(orden: OrdenCompraPayload, items: Omit<OrdenCompraItem, 'id' | 'orden_id'>[]): Promise<OrdenCompra> {
-    const numero = this.generateNumero();
+  async create(
+    orden: OrdenCompraPayload,
+    items: Omit<OrdenCompraItem, 'id' | 'orden_id'>[],
+    creadoPor: string | null,
+  ): Promise<OrdenCompra> {
+    const { data: ordenId, error } = await this.supabase.client.rpc('crear_orden_compra', {
+      p_proveedor_id: orden.proveedor_id,
+      p_proyecto_id: orden.proyecto_id ?? null,
+      p_estado: orden.estado,
+      p_fecha: orden.fecha,
+      p_fecha_entrega_esperada: orden.fecha_entrega_esperada ?? null,
+      p_subtotal: orden.subtotal,
+      p_impuesto: orden.impuesto,
+      p_total: orden.total,
+      p_notas: orden.notas ?? null,
+      p_creado_por: creadoPor,
+      p_items: items,
+    });
 
-    const { data: ordenData, error: ordenError } = await this.supabase.client
-      .schema('sgc')
-      .from('ordenes_compra')
-      .insert({ ...orden, numero })
-      .select('*')
-      .single();
-
-    if (ordenError) throw new Error(ordenError.message);
-    const created = ordenData as unknown as OrdenCompra;
-
-    if (items.length > 0) {
-      const itemRows = items.map((item) => ({
-        orden_id: created.id,
-        articulo_id: item.articulo_id,
-        descripcion: item.descripcion,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario,
-        total: item.total,
-      }));
-
-      const { error: itemsError } = await this.supabase.client
-        .schema('sgc')
-        .from('orden_compra_items')
-        .insert(itemRows);
-
-      if (itemsError) throw new Error(itemsError.message);
-    }
-
-    return this.getById(created.id);
+    if (error) throw new Error(error.message);
+    return this.getById(ordenId as string);
   }
 
   async updateEstado(id: string, estado: OrdenEstado): Promise<void> {

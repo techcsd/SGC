@@ -13,6 +13,7 @@ export interface Proyecto {
   fecha_fin_real: string | null;
   presupuesto: number | null;
   ubicacion: string | null;
+  localidad: string | null;
   descripcion: string | null;
   responsable_id: string | null;
   responsable?: { nombre: string };

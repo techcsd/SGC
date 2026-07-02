@@ -1,0 +1,61 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Mi Proyecto</h1>
+    <span class="page-count">Obras a las que estás asignado</span>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true">
+    <span class="spinner-dark"></span>
+    Cargando…
+  </div>
+} @else if (proyectos().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>Aún no tienes una obra asignada. Contacta a tu supervisor para que te agreguen al equipo de un proyecto.</p>
+  </div>
+} @else {
+  <div class="mi-proyecto-list">
+    @for (p of proyectos(); track p.id) {
+      <div class="sgc-card mi-proyecto-card">
+        <div class="mi-proyecto-card__header">
+          <h2>{{ p.nombre }}</h2>
+          <span class="sgc-badge sgc-badge--info">{{ p.codigo }}</span>
+        </div>
+        @if (p.ubicacion || p.localidad) {
+          <p class="mi-proyecto-card__meta">{{ p.ubicacion ?? p.localidad }}</p>
+        }
+        @if (p.descripcion) {
+          <p class="mi-proyecto-card__desc">{{ p.descripcion }}</p>
+        }
+        @if (p.presupuesto) {
+          <p class="mi-proyecto-card__meta">Presupuesto: RD$ {{ p.presupuesto | number:'1.0-0' }}</p>
+        }
+
+        <app-documentos-proyecto [proyectoId]="p.id" />
+
+        @if ((p.fases ?? []).length > 0) {
+          <div class="mi-proyecto-card__fases">
+            <h3>Fases</h3>
+            @for (fase of p.fases; track fase.id) {
+              <div class="mi-proyecto-fase">
+                <div class="mi-proyecto-fase__header">
+                  <span>{{ fase.nombre }}</span>
+                  <span class="sgc-badge" [class]="'sgc-badge--' + faseBadge(fase.estado)">{{ fase.estado }}</span>
+                </div>
+                <div class="mi-proyecto-fase__bar">
+                  <div class="mi-proyecto-fase__fill" [style.width.%]="fase.progreso"></div>
+                </div>
+                <span class="mi-proyecto-fase__pct">{{ fase.progreso }}%</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

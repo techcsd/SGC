@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { EntradasService } from '../../../../shared/services/entradas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -18,10 +18,11 @@ import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-entradas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,10 +58,11 @@ export class Entradas implements OnInit {
   drawerOpen = signal(false);
   formItems = signal<EntradaItemFormData[]>([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
 
-  readonly today = new Date().toISOString().split('T')[0];
+  formatFecha = formatFechaDisplay;
+  readonly today = todayIso();
 
   form = new FormGroup({
-    bodega_id: new FormControl('', [Validators.required]),
+    bodega_id: new FormControl<string | null>(null, [Validators.required]),
     proveedor_id: new FormControl<string | null>(null),
     fecha: new FormControl(this.today, [Validators.required]),
     referencia: new FormControl<string | null>(null),
@@ -220,6 +222,12 @@ export class Entradas implements OnInit {
     this.form.markAllAsTouched();
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
     if (this.form.invalid || this.saving() || items.length === 0) return;
+
+    const articuloIds = items.map((i) => i.articulo_id);
+    if (new Set(articuloIds).size !== articuloIds.length) {
+      this.saveError.set('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.');
+      return;
+    }
 
     this.saving.set(true);
     this.saveError.set('');

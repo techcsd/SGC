@@ -6,7 +6,15 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import {
@@ -19,6 +27,7 @@ import {
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
 import { SupabaseService } from '../../../core/services/supabase.service';
 
 interface UsuarioSimple {
@@ -26,9 +35,20 @@ interface UsuarioSimple {
   nombre: string;
 }
 
+function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
+  return (group: AbstractControl): ValidationErrors | null => {
+    const start = group.get(startKey)?.value;
+    const end = group.get(endKey)?.value;
+    if (start && end && start > end) {
+      return { fechaOrden: true };
+    }
+    return null;
+  };
+}
+
 @Component({
   selector: 'app-lista',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,30 +103,36 @@ export class Lista implements OnInit {
   ];
 
   // ── Main form ─────────────────────────────────────────────
-  form = new FormGroup({
-    codigo: new FormControl({ value: '', disabled: true }),
-    nombre: new FormControl('', [Validators.required]),
-    cliente: new FormControl<string | null>(null),
-    tipo: new FormControl<string | null>(null),
-    estado: new FormControl('planificacion', [Validators.required]),
-    fecha_inicio: new FormControl<string | null>(null),
-    fecha_fin_estimada: new FormControl<string | null>(null),
-    presupuesto: new FormControl<number | null>(null, [Validators.min(0)]),
-    ubicacion: new FormControl<string | null>(null),
-    descripcion: new FormControl<string | null>(null),
-    responsable_id: new FormControl<string | null>(null),
-  });
+  form = new FormGroup(
+    {
+      codigo: new FormControl({ value: '', disabled: true }),
+      nombre: new FormControl('', [Validators.required]),
+      cliente: new FormControl<string | null>(null),
+      tipo: new FormControl<string | null>(null),
+      estado: new FormControl('planificacion', [Validators.required]),
+      fecha_inicio: new FormControl<string | null>(null),
+      fecha_fin_estimada: new FormControl<string | null>(null),
+      presupuesto: new FormControl<number | null>(null, [Validators.min(0)]),
+      ubicacion: new FormControl<string | null>(null),
+      descripcion: new FormControl<string | null>(null),
+      responsable_id: new FormControl<string | null>(null),
+    },
+    { validators: fechaOrdenValidator('fecha_inicio', 'fecha_fin_estimada') },
+  );
 
   // ── Fase form ─────────────────────────────────────────────
-  faseForm = new FormGroup({
-    nombre: new FormControl('', [Validators.required]),
-    descripcion: new FormControl<string | null>(null),
-    estado: new FormControl('pendiente', [Validators.required]),
-    fecha_inicio: new FormControl<string | null>(null),
-    fecha_fin: new FormControl<string | null>(null),
-    progreso: new FormControl<number>(0, [Validators.min(0), Validators.max(100)]),
-    orden: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
-  });
+  faseForm = new FormGroup(
+    {
+      nombre: new FormControl('', [Validators.required]),
+      descripcion: new FormControl<string | null>(null),
+      estado: new FormControl('pendiente', [Validators.required]),
+      fecha_inicio: new FormControl<string | null>(null),
+      fecha_fin: new FormControl<string | null>(null),
+      progreso: new FormControl<number>(0, [Validators.min(0), Validators.max(100)]),
+      orden: new FormControl<number>(1, [Validators.required, Validators.min(1)]),
+    },
+    { validators: fechaOrdenValidator('fecha_inicio', 'fecha_fin') },
+  );
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -231,7 +257,12 @@ export class Lista implements OnInit {
 
   async onSave() {
     this.form.markAllAsTouched();
-    if (this.form.invalid || this.saving()) return;
+    if (this.form.invalid || this.saving()) {
+      if (this.form.errors?.['fechaOrden']) {
+        this.saveError.set('La fecha de inicio no puede ser posterior a la fecha de fin estimada.');
+      }
+      return;
+    }
 
     this.saving.set(true);
     this.saveError.set('');
@@ -313,11 +344,13 @@ export class Lista implements OnInit {
   }
 
   async removeMiembro(id: string) {
+    const previous = this.equipo();
     this.equipo.update((list) => list.filter((m) => m.id !== id));
     try {
       await this.proyectosService.removeEmpleado(id);
     } catch (e: unknown) {
       console.error('Error removing team member:', e);
+      this.equipo.set(previous);
     }
   }
 
@@ -355,7 +388,12 @@ export class Lista implements OnInit {
 
   async onSaveFase() {
     this.faseForm.markAllAsTouched();
-    if (this.faseForm.invalid || this.faseSaving()) return;
+    if (this.faseForm.invalid || this.faseSaving()) {
+      if (this.faseForm.errors?.['fechaOrden']) {
+        this.faseError.set('La fecha de inicio no puede ser posterior a la fecha de fin.');
+      }
+      return;
+    }
 
     this.faseSaving.set(true);
     this.faseError.set('');

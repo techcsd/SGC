@@ -1,0 +1,252 @@
+// ── Page header ──────────────────────────────────────────
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  &__left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  letter-spacing: -0.02em;
+}
+
+.page-count {
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+}
+
+.page-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+}
+
+.table-loading {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+}
+
+.spinner-dark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--sgc-border);
+  border-top-color: var(--sgc-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.bitacora-draft-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--sgc-info-light);
+  border: 1px solid var(--sgc-info);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-text);
+  font-size: 14px;
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+}
+
+.bitacora-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.bitacora-section {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+    margin-top: -8px;
+  }
+}
+
+.bitacora-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+
+  &--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .bitacora-form-row,
+  .bitacora-form-row--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Actividades matrix (accordion by estructura) ──────────────
+.bitacora-matriz {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  overflow: hidden;
+
+  &__grupo {
+    border-bottom: 1px solid var(--sgc-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--sgc-surface);
+    border: none;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--sgc-text);
+
+    &:hover {
+      background: var(--sgc-surface-hover);
+    }
+
+    span:first-child {
+      flex: 1;
+    }
+  }
+
+  &__chevron {
+    display: flex;
+    transition: var(--sgc-transition-fast);
+  }
+
+  &__grupo.expanded &__chevron {
+    transform: rotate(180deg);
+  }
+
+  &__checks {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 12px 14px 14px;
+    background: var(--sgc-bg);
+  }
+}
+
+@media (max-width: 480px) {
+  .bitacora-matriz__checks {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bitacora-matriz__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sgc-text);
+}
+
+// ── Restricciones ───────────────────────────────────────────
+.bitacora-restricciones {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    font-size: 13px;
+    color: var(--sgc-text);
+
+    &.selected {
+      border-color: var(--sgc-primary-mid);
+      background: var(--sgc-primary-light);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .bitacora-restricciones {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Archivos ─────────────────────────────────────────────────
+.bitacora-archivos-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: var(--sgc-bg);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+
+    button {
+      padding: 2px 8px;
+    }
+  }
+}
+
+.bitacora-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,0 +1,238 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Nueva Bitácora</h1>
+    <span class="page-count">Registro diario de obra</span>
+  </div>
+</div>
+
+@if (draftAvailable()) {
+  <div class="bitacora-draft-banner" role="status">
+    <span>Se encontró un borrador sin enviar de una sesión anterior.</span>
+    <div class="bitacora-draft-banner__actions">
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="recuperarDraft()">Recuperar</button>
+      <button class="sgc-btn sgc-btn--ghost" type="button" (click)="descartarDraft()">Descartar</button>
+    </div>
+  </div>
+}
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true">
+    <span class="spinner-dark"></span>
+    Cargando…
+  </div>
+} @else {
+  <form class="bitacora-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+    <!-- Sección 1: Información General -->
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">1. Información general</h2>
+
+      <div class="bitacora-form-row">
+        <div class="sgc-field">
+          <label for="fecha">Fecha <span class="required">*</span></label>
+          <input id="fecha" type="date" formControlName="fecha" [max]="today" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
+          @if (f.fecha.invalid && f.fecha.touched) {
+            <span class="field-error">La fecha es obligatoria.</span>
+          }
+        </div>
+
+        <div class="sgc-field">
+          <label for="proyecto_id">Obra / Proyecto <span class="required">*</span></label>
+          <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
+            <option [value]="null">Seleccionar obra…</option>
+            @for (p of activeProyectos(); track p.id) {
+              <option [value]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+          @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
+            <span class="field-error">La obra es obligatoria.</span>
+          }
+        </div>
+      </div>
+
+      <div class="bitacora-form-row">
+        <div class="sgc-field">
+          <label for="bloque_entrepiso">Bloque / Entrepiso <span class="required">*</span></label>
+          <input
+            id="bloque_entrepiso"
+            type="text"
+            formControlName="bloque_entrepiso"
+            placeholder="Ej: Bloque A - Entrepiso 3"
+            [class.invalid]="f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched"
+          />
+          @if (f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched) {
+            <span class="field-error">Este campo es obligatorio.</span>
+          }
+        </div>
+
+        <div class="sgc-field">
+          <label for="hora_fin_trabajo">Hasta qué hora se trabajó <span class="required">*</span></label>
+          <input
+            id="hora_fin_trabajo"
+            type="time"
+            formControlName="hora_fin_trabajo"
+            [class.invalid]="f.hora_fin_trabajo.invalid && f.hora_fin_trabajo.touched"
+          />
+          @if (f.hora_fin_trabajo.invalid && f.hora_fin_trabajo.touched) {
+            <span class="field-error">Este campo es obligatorio.</span>
+          }
+        </div>
+      </div>
+
+      <div class="sgc-field">
+        <label for="ingeniero_responsable">Ingeniero responsable <span class="required">*</span></label>
+        <input
+          id="ingeniero_responsable"
+          type="text"
+          formControlName="ingeniero_responsable"
+          [class.invalid]="f.ingeniero_responsable.invalid && f.ingeniero_responsable.touched"
+        />
+        @if (f.ingeniero_responsable.invalid && f.ingeniero_responsable.touched) {
+          <span class="field-error">Este campo es obligatorio.</span>
+        }
+      </div>
+    </section>
+
+    <!-- Sección 2: Actividades -->
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">2. Actividades</h2>
+      <p class="bitacora-section__hint">Opcional. Marca las actividades realizadas por estructura.</p>
+
+      <div class="bitacora-matriz">
+        @for (estructura of ESTRUCTURAS; track estructura) {
+          <div class="bitacora-matriz__grupo" [class.expanded]="isEstructuraExpanded(estructura)">
+            <button
+              type="button"
+              class="bitacora-matriz__header"
+              (click)="toggleEstructura(estructura)"
+              [attr.aria-expanded]="isEstructuraExpanded(estructura)"
+            >
+              <span>{{ estructura }}</span>
+              @if (countForEstructura(estructura) > 0) {
+                <span class="sgc-badge sgc-badge--info">{{ countForEstructura(estructura) }}</span>
+              }
+              <span class="bitacora-matriz__chevron" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </span>
+            </button>
+
+            @if (isEstructuraExpanded(estructura)) {
+              <div class="bitacora-matriz__checks">
+                @for (actividad of ACTIVIDADES; track actividad) {
+                  <label class="bitacora-matriz__check">
+                    <input
+                      type="checkbox"
+                      [checked]="isActividadChecked(estructura, actividad)"
+                      (change)="toggleActividad(estructura, actividad)"
+                    />
+                    <span>{{ actividad }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Sección 3: Personal -->
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">3. Personal</h2>
+
+      <div class="bitacora-form-row bitacora-form-row--3">
+        <div class="sgc-field">
+          <label for="personal_carpinteria">Carpintería <span class="required">*</span></label>
+          <input id="personal_carpinteria" type="number" min="0" formControlName="personal_carpinteria"
+            [class.invalid]="f.personal_carpinteria.invalid && f.personal_carpinteria.touched" />
+          @if (f.personal_carpinteria.invalid && f.personal_carpinteria.touched) {
+            <span class="field-error">Requerido.</span>
+          }
+        </div>
+        <div class="sgc-field">
+          <label for="personal_acero">Acero <span class="required">*</span></label>
+          <input id="personal_acero" type="number" min="0" formControlName="personal_acero"
+            [class.invalid]="f.personal_acero.invalid && f.personal_acero.touched" />
+          @if (f.personal_acero.invalid && f.personal_acero.touched) {
+            <span class="field-error">Requerido.</span>
+          }
+        </div>
+        <div class="sgc-field">
+          <label for="trabajadores_casa">Trabajadores por la casa <span class="required">*</span></label>
+          <input id="trabajadores_casa" type="number" min="0" formControlName="trabajadores_casa"
+            [class.invalid]="f.trabajadores_casa.invalid && f.trabajadores_casa.touched" />
+          @if (f.trabajadores_casa.invalid && f.trabajadores_casa.touched) {
+            <span class="field-error">Requerido.</span>
+          }
+        </div>
+      </div>
+
+      <div class="sgc-field">
+        <label for="otro_personal">Otro personal (subcontratistas, equipos alquilados, etc.)</label>
+        <textarea id="otro_personal" rows="2" maxlength="500" formControlName="otro_personal"></textarea>
+      </div>
+    </section>
+
+    <!-- Sección 4: Restricciones, comentarios y archivos -->
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">4. Restricciones, comentarios y archivos</h2>
+
+      <div class="sgc-field">
+        <label>Restricciones que afectaron el rendimiento <span class="required">*</span></label>
+        <div class="bitacora-restricciones">
+          @for (r of RESTRICCIONES; track r.value) {
+            <label class="bitacora-restricciones__item" [class.selected]="isRestriccionChecked(r.value)">
+              <input type="checkbox" [checked]="isRestriccionChecked(r.value)" (change)="toggleRestriccion(r.value)" />
+              <span>{{ r.label }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      @if (showOtroRestriccion()) {
+        <div class="sgc-field">
+          <label for="descripcion_otro_restriccion">Describe la restricción</label>
+          <input id="descripcion_otro_restriccion" type="text" formControlName="descripcion_otro_restriccion" />
+        </div>
+      }
+
+      <div class="sgc-field">
+        <label for="comentarios">Comentarios</label>
+        <textarea id="comentarios" rows="3" maxlength="2000" formControlName="comentarios"></textarea>
+      </div>
+
+      <div class="sgc-field">
+        <label for="archivos">Imágenes y archivos ({{ archivos().length }}/{{ maxArchivos }})</label>
+        <input
+          id="archivos"
+          type="file"
+          multiple
+          accept="image/*,.pdf,.mp4,.docx,.xlsx"
+          (change)="onFilesSelected($event)"
+          [disabled]="archivos().length >= maxArchivos"
+        />
+        @if (archivos().length > 0) {
+          <ul class="bitacora-archivos-list">
+            @for (file of archivos(); track file.name; let i = $index) {
+              <li>
+                <span>{{ file.name }}</span>
+                <button type="button" class="sgc-btn sgc-btn--ghost" (click)="removeArchivo(i)" aria-label="Quitar archivo">✕</button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </section>
+
+    @if (saveError()) {
+      <div class="page-error" role="alert">{{ saveError() }}</div>
+    }
+
+    <div class="bitacora-form-actions">
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { Enviando… } @else { Enviar bitácora }
+      </button>
+    </div>
+  </form>
+}

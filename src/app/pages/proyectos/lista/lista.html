@@ -415,6 +415,9 @@
         <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
       </div>
 
+      <!-- Documentos: contrato, presupuesto, cronograma, manual de ejecución -->
+      <app-documentos-proyecto [proyectoId]="p.id" />
+
       <!-- Equipo asignado -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">

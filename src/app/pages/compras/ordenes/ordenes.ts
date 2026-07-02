@@ -11,10 +11,20 @@ import { DecimalPipe } from '@angular/common';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
 import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../../../../shared/models/orden-compra.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
+import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { UserService } from '../../../core/services/user.service';
+
+const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
+  borrador: ['aprobada', 'cancelada'],
+  aprobada: ['recibida', 'cancelada'],
+  recibida: [],
+  cancelada: [],
+};
 
 interface ItemRow {
   descripcion: string;
@@ -33,15 +43,21 @@ export class Ordenes implements OnInit {
   private ordenesService = inject(OrdenesCompraService);
   private proveedoresService = inject(ProveedoresService);
   private proyectosService = inject(ProyectosService);
+  private solicitudesCompraService = inject(SolicitudesCompraService);
+  private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OrdenCompra[]>([]);
   proveedores = signal<Proveedor[]>([]);
   proyectos = signal<Proyecto[]>([]);
+  solicitudesPendientes = signal<SolicitudCompra[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
   saveError = signal('');
+
+  // ── Solicitud being attended (set when "Crear orden" is triggered from a solicitud) ──
+  solicitudEnAtencion = signal<SolicitudCompra | null>(null);
 
   // ── Filters ──────────────────────────────────────────────
   searchProveedor = signal('');
@@ -103,14 +119,16 @@ export class Ordenes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [ordenes, proveedores, proyectos] = await Promise.all([
+      const [ordenes, proveedores, proyectos, solicitudes] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
         this.proyectosService.getAll(),
+        this.solicitudesCompraService.getAll(),
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
       this.proyectos.set(proyectos);
+      this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -145,9 +163,38 @@ export class Ordenes implements OnInit {
   // ── Create drawer ────────────────────────────────────────
   openCreate() {
     this.saveError.set('');
+    this.solicitudEnAtencion.set(null);
     this.form.reset();
     this.formItems.set([{ descripcion: '', cantidad: 1, precio_unitario: 0 }]);
     this.createDrawerOpen.set(true);
+  }
+
+  /** Opens the create drawer pre-filled from a pending solicitud de compra. */
+  atenderSolicitud(s: SolicitudCompra) {
+    this.saveError.set('');
+    this.solicitudEnAtencion.set(s);
+    this.form.reset({
+      proyecto_id: s.proyecto_id,
+      notas: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}${s.notas ? ' — ' + s.notas : ''}`,
+    });
+    const items = (s.items ?? []).map((i) => ({
+      descripcion: i.proveedor_sugerido ? `${i.descripcion} (sugerido: ${i.proveedor_sugerido})` : i.descripcion,
+      cantidad: i.cantidad,
+      precio_unitario: 0,
+    }));
+    this.formItems.set(items.length > 0 ? items : [{ descripcion: '', cantidad: 1, precio_unitario: 0 }]);
+    this.createDrawerOpen.set(true);
+  }
+
+  async rechazarSolicitud(s: SolicitudCompra) {
+    const userId = this.userService.profile()?.id;
+    if (!userId) return;
+    try {
+      await this.solicitudesCompraService.marcarAtendida(s.id, { estado: 'rechazada', atendidoPor: userId });
+      this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
+    }
   }
 
   closeCreate() {
@@ -207,8 +254,20 @@ export class Ordenes implements OnInit {
     }));
 
     try {
-      const created = await this.ordenesService.create(payload, itemPayloads);
+      const creadoPor = this.userService.profile()?.id ?? null;
+      const created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       this.ordenes.update((list) => [created, ...list]);
+
+      const solicitud = this.solicitudEnAtencion();
+      if (solicitud && creadoPor) {
+        await this.solicitudesCompraService.marcarAtendida(solicitud.id, {
+          estado: 'convertida',
+          orden_compra_id: created.id,
+          atendidoPor: creadoPor,
+        });
+        this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
+      }
+
       this.createDrawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
@@ -276,7 +335,7 @@ export class Ordenes implements OnInit {
   }
 
   nextEstados(current: OrdenEstado): OrdenEstado[] {
-    return this.ESTADOS.filter((e) => e !== current);
+    return ESTADO_TRANSICIONES[current];
   }
 
   itemTotal(item: ItemRow): number {

@@ -1,0 +1,86 @@
+<div class="conduce-toolbar no-print">
+  <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">← Volver a Salidas</a>
+  @if (salida()) {
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
+  }
+</div>
+
+@if (loading()) {
+  <p class="no-print">Cargando…</p>
+} @else if (error()) {
+  <p class="no-print conduce-error">{{ error() }}</p>
+} @else if (salida(); as s) {
+  <div class="conduce">
+    <header class="conduce__header">
+      <div>
+        <h1>Constructora Scheker &amp; Domínguez</h1>
+        <p>Conduce de Materiales y Equipos</p>
+      </div>
+      <div class="conduce__meta">
+        <p><strong>No. Conduce:</strong> {{ numeroConduce }}</p>
+        <p><strong>Fecha de emisión:</strong> {{ formatFecha(hoy) }}</p>
+      </div>
+    </header>
+
+    <section class="conduce__info">
+      <div>
+        <span class="conduce__label">Fecha de salida</span>
+        <span>{{ formatFecha(s.fecha) }}</span>
+      </div>
+      <div>
+        <span class="conduce__label">Obra / Proyecto destino</span>
+        <span>{{ s.proyecto?.nombre ?? '—' }}</span>
+      </div>
+      <div>
+        <span class="conduce__label">Bodega de origen</span>
+        <span>{{ s.bodega?.nombre ?? '—' }}</span>
+      </div>
+      <div>
+        <span class="conduce__label">Motivo</span>
+        <span>{{ s.motivo }}</span>
+      </div>
+      <div>
+        <span class="conduce__label">Responsable que recibe</span>
+        <span>{{ s.responsable ?? '—' }}</span>
+      </div>
+    </section>
+
+    <table class="conduce__table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Artículo</th>
+          <th>Código</th>
+          <th class="text-right">Cantidad</th>
+          <th>Unidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of s.detalle_salidas; track item.id; let i = $index) {
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.articulo?.nombre ?? '—' }}</td>
+            <td>{{ item.articulo?.codigo ?? '—' }}</td>
+            <td class="text-right">{{ item.cantidad }}</td>
+            <td>{{ item.articulo?.unidad ?? '—' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (s.observaciones) {
+      <p class="conduce__obs"><strong>Observaciones:</strong> {{ s.observaciones }}</p>
+    }
+
+    <section class="conduce__firmas">
+      <div class="conduce__firma">
+        <span class="conduce__firma-line"></span>
+        <span>Entregado por (Almacén)</span>
+      </div>
+      <div class="conduce__firma">
+        <span class="conduce__firma-line"></span>
+        <span>Recibido por</span>
+      </div>
+    </section>
+  </div>
+}

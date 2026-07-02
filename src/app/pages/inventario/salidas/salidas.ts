@@ -7,21 +7,24 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
-import { ObrasService } from '../../../../shared/services/obras.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
-import { Obra } from '../../../../shared/models/obra.model';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
+import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-salidas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,18 +33,23 @@ export class Salidas implements OnInit {
   private salidasService = inject(SalidasService);
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);
-  private obrasService = inject(ObrasService);
+  private proyectosService = inject(ProyectosService);
+  private solicitudesMaterialService = inject(SolicitudesMaterialService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
   salidas = signal<SalidaInventario[]>([]);
   articulos = signal<Articulo[]>([]);
   bodegas = signal<Bodega[]>([]);
-  obras = signal<Obra[]>([]);
+  proyectos = signal<Proyecto[]>([]);
+  solicitudesPendientes = signal<SolicitudMaterial[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
   saveError = signal('');
+
+  // ── Solicitud being attended (set when "Crear salida" is triggered from a solicitud) ──
+  solicitudEnAtencion = signal<SolicitudMaterial | null>(null);
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -60,19 +68,20 @@ export class Salidas implements OnInit {
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
 
-  readonly today = new Date().toISOString().slice(0, 10);
+  formatFecha = formatFechaDisplay;
+  readonly today = todayIso();
 
   form = new FormGroup({
-    bodega_id: new FormControl<string>('', [Validators.required]),
-    obra_id: new FormControl<string | null>(null),
-    motivo: new FormControl<string>('', [Validators.required]),
+    bodega_id: new FormControl<string | null>(null, [Validators.required]),
+    proyecto_id: new FormControl<string | null>(null),
+    motivo: new FormControl<string | null>(null, [Validators.required]),
     fecha: new FormControl<string>(this.today, [Validators.required]),
     responsable: new FormControl<string | null>(null),
     observaciones: new FormControl<string | null>(null),
   });
 
   // ── Computed ─────────────────────────────────────────────
-  activeObras = computed(() => this.obras().filter((o) => o.activo));
+  activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -85,7 +94,7 @@ export class Salidas implements OnInit {
       if (
         q &&
         !(s.responsable ?? '').toLowerCase().includes(q) &&
-        !(s.obra?.nombre ?? '').toLowerCase().includes(q)
+        !(s.proyecto?.nombre ?? '').toLowerCase().includes(q)
       ) {
         return false;
       }
@@ -104,7 +113,7 @@ export class Salidas implements OnInit {
 
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
-  showObraField = computed(() => this.form.controls.motivo.value === 'uso_proyecto');
+  showProyectoField = computed(() => this.form.controls.motivo.value === 'uso_proyecto');
 
   hasActiveFilters = computed(
     () =>
@@ -123,16 +132,18 @@ export class Salidas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [salidas, arts, bods, obras] = await Promise.all([
+      const [salidas, arts, bods, proyectos, solicitudes] = await Promise.all([
         this.salidasService.getAll(),
         this.articulosService.getAll(),
         this.bodegasService.getAll(),
-        this.obrasService.getAll(),
+        this.proyectosService.getAll(),
+        this.solicitudesMaterialService.getAll(),
       ]);
       this.salidas.set(salidas);
       this.articulos.set(arts);
       this.bodegas.set(bods);
-      this.obras.set(obras);
+      this.proyectos.set(proyectos);
+      this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -196,9 +207,38 @@ export class Salidas implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   openCreate() {
     this.saveError.set('');
+    this.solicitudEnAtencion.set(null);
     this.form.reset({ fecha: this.today });
     this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
     this.drawerOpen.set(true);
+  }
+
+  /** Opens the create drawer pre-filled from a pending solicitud de materiales. */
+  atenderSolicitud(s: SolicitudMaterial) {
+    this.saveError.set('');
+    this.solicitudEnAtencion.set(s);
+    const resumen = (s.items ?? [])
+      .map((i) => `${i.cantidad}${i.unidad ? ' ' + i.unidad : ''} — ${i.descripcion}`)
+      .join('; ');
+    this.form.reset({
+      fecha: this.today,
+      motivo: 'uso_proyecto',
+      proyecto_id: s.proyecto_id,
+      observaciones: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}: ${resumen}${s.notas ? ' — ' + s.notas : ''}`,
+    });
+    this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
+    this.drawerOpen.set(true);
+  }
+
+  async rechazarSolicitud(s: SolicitudMaterial) {
+    const userId = this.userService.profile()?.id;
+    if (!userId) return;
+    try {
+      await this.solicitudesMaterialService.marcarAtendida(s.id, { estado: 'rechazada', atendidoPor: userId });
+      this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
+    }
   }
 
   closeDrawer() {
@@ -230,17 +270,23 @@ export class Salidas implements OnInit {
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
     if (this.form.invalid || this.saving() || items.length === 0) return;
 
-    this.saving.set(true);
-    this.saveError.set('');
+    const articuloIds = items.map((i) => i.articulo_id);
+    if (new Set(articuloIds).size !== articuloIds.length) {
+      this.saveError.set('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.');
+      return;
+    }
 
     const v = this.form.value;
+
+    this.saving.set(true);
+    this.saveError.set('');
 
     try {
       const userId = this.userService.profile()?.id ?? null;
       const created = await this.salidasService.create(
         {
           bodega_id: v.bodega_id!,
-          obra_id: v.motivo === 'uso_proyecto' ? (v.obra_id ?? null) : null,
+          proyecto_id: v.motivo === 'uso_proyecto' ? (v.proyecto_id ?? null) : null,
           motivo: v.motivo!,
           fecha: v.fecha!,
           responsable: v.responsable ?? null,
@@ -250,6 +296,17 @@ export class Salidas implements OnInit {
         userId,
       );
       this.salidas.update((list) => [created, ...list]);
+
+      const solicitud = this.solicitudEnAtencion();
+      if (solicitud && userId) {
+        await this.solicitudesMaterialService.marcarAtendida(solicitud.id, {
+          estado: 'entregada',
+          salida_id: created.id,
+          atendidoPor: userId,
+        });
+        this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
+      }
+
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');

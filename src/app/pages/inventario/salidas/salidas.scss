@@ -208,6 +208,65 @@
   }
 }
 
+// ── Solicitudes pendientes panel ─────────────────────────
+.solicitudes-panel {
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 3px solid var(--sgc-warning);
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 0;
+    border-top: 1px solid var(--sgc-border);
+
+    &:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+  }
+
+  &__info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+  }
+
+  &__proyecto {
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+
+  &__solicitante {
+    color: var(--sgc-text-muted);
+    font-size: 12.5px;
+  }
+
+  &__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 13px;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
 // ── Pagination ───────────────────────────────────────────
 .pagination {
   display: flex;

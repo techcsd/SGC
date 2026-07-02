@@ -1,0 +1,153 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  &__left {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  letter-spacing: -0.02em;
+}
+
+.page-count {
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+}
+
+.page-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.table-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+}
+
+.table-empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--sgc-text-muted);
+  font-size: 14px;
+}
+
+.spinner-dark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--sgc-border);
+  border-top-color: var(--sgc-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.mi-proyecto-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 700px;
+}
+
+.mi-proyecto-card {
+  padding: 20px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--sgc-text);
+    }
+  }
+
+  &__meta {
+    font-size: 13px;
+    color: var(--sgc-text-secondary);
+    margin-top: 4px;
+  }
+
+  &__desc {
+    font-size: 13.5px;
+    color: var(--sgc-text-secondary);
+    margin-top: 8px;
+  }
+
+  &__fases {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--sgc-border);
+
+    h3 {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--sgc-text-muted);
+      margin-bottom: 10px;
+    }
+  }
+}
+
+.mi-proyecto-fase {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  align-items: center;
+  margin-bottom: 10px;
+
+  &__header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13.5px;
+    color: var(--sgc-text);
+  }
+
+  &__bar {
+    height: 6px;
+    background: var(--sgc-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: var(--sgc-primary-mid);
+  }
+
+  &__pct {
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}

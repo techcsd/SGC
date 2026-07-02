@@ -11,8 +11,8 @@ export interface SalidaInventario {
   fecha: string;
   bodega_id: string;
   bodega?: { nombre: string };
-  obra_id: string | null;
-  obra?: { nombre: string };
+  proyecto_id: string | null;
+  proyecto?: { nombre: string };
   motivo: string;
   responsable: string | null;
   observaciones: string | null;
@@ -29,7 +29,7 @@ export interface SalidaItemFormData {
 export interface SalidaFormData {
   fecha: string;
   bodega_id: string;
-  obra_id: string | null;
+  proyecto_id: string | null;
   motivo: string;
   responsable: string | null;
   observaciones: string | null;

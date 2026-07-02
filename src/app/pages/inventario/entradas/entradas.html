@@ -112,7 +112,7 @@
         <tbody>
           @for (e of paginated(); track e.id) {
             <tr>
-              <td class="entradas__fecha">{{ e.fecha | date:'dd/MM/yyyy' }}</td>
+              <td class="entradas__fecha">{{ formatFecha(e.fecha) }}</td>
               <td>{{ e.bodega?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ e.proveedor?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
