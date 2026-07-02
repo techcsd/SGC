@@ -11,11 +11,28 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Every call independently re-verifies the caller is authenticated AND
 // holds the admin module — this function does not trust the frontend.
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No autenticado." }), { status: 401 });
+      return json({ error: "No autenticado." }, 401);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -30,18 +47,16 @@ Deno.serve(async (req: Request) => {
     });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) {
-      return new Response(JSON.stringify({ error: "Sesión inválida." }), { status: 401 });
+      return json({ error: "Sesión inválida." }, 401);
     }
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "No autorizado. Solo un administrador puede crear usuarios." }), {
-        status: 403,
-      });
+      return json({ error: "No autorizado. Solo un administrador puede crear usuarios." }, 403);
     }
 
     const { email, fullName, roleId } = await req.json();
     if (typeof email !== "string" || !email.includes("@") || typeof fullName !== "string" || !fullName.trim()) {
-      return new Response(JSON.stringify({ error: "Correo y nombre completo son requeridos." }), { status: 400 });
+      return json({ error: "Correo y nombre completo son requeridos." }, 400);
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
@@ -50,9 +65,7 @@ Deno.serve(async (req: Request) => {
       data: { nombre: fullName.trim() },
     });
     if (createError || !created.user) {
-      return new Response(JSON.stringify({ error: createError?.message ?? "Error al crear el usuario." }), {
-        status: 400,
-      });
+      return json({ error: createError?.message ?? "Error al crear el usuario." }, 400);
     }
     const newUserId = created.user.id;
 
@@ -62,10 +75,7 @@ Deno.serve(async (req: Request) => {
 
     if (profileError) {
       await admin.auth.admin.deleteUser(newUserId);
-      return new Response(
-        JSON.stringify({ error: `No se pudo crear el perfil, se revirtió la creación: ${profileError.message}` }),
-        { status: 400 },
-      );
+      return json({ error: `No se pudo crear el perfil, se revirtió la creación: ${profileError.message}` }, 400);
     }
 
     if (roleId != null) {
@@ -76,10 +86,7 @@ Deno.serve(async (req: Request) => {
       if (roleError) {
         await admin.from("usuarios").delete().eq("id", newUserId);
         await admin.auth.admin.deleteUser(newUserId);
-        return new Response(
-          JSON.stringify({ error: `No se pudo asignar el rol, se revirtió la creación: ${roleError.message}` }),
-          { status: 400 },
-        );
+        return json({ error: `No se pudo asignar el rol, se revirtió la creación: ${roleError.message}` }, 400);
       }
     }
 
@@ -90,13 +97,8 @@ Deno.serve(async (req: Request) => {
       metadata: { email, fullName, roleId },
     });
 
-    return new Response(JSON.stringify({ userId: newUserId, email, fullName }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ userId: newUserId, email, fullName });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Error desconocido." }), {
-      status: 500,
-    });
+    return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
 });

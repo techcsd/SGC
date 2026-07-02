@@ -11,11 +11,28 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Re-verifies the caller is admin independently; blocks an admin from
 // deactivating their own account.
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No autenticado." }), { status: 401 });
+      return json({ error: "No autenticado." }, 401);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -27,20 +44,20 @@ Deno.serve(async (req: Request) => {
     });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) {
-      return new Response(JSON.stringify({ error: "Sesión inválida." }), { status: 401 });
+      return json({ error: "Sesión inválida." }, 401);
     }
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "No autorizado." }), { status: 403 });
+      return json({ error: "No autorizado." }, 403);
     }
 
     const { userId, activo } = await req.json();
     if (typeof userId !== "string" || typeof activo !== "boolean") {
-      return new Response(JSON.stringify({ error: "Parámetros inválidos." }), { status: 400 });
+      return json({ error: "Parámetros inválidos." }, 400);
     }
 
     if (!activo && userId === callerData.user.id) {
-      return new Response(JSON.stringify({ error: "No puedes desactivar tu propia cuenta." }), { status: 400 });
+      return json({ error: "No puedes desactivar tu propia cuenta." }, 400);
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
@@ -52,14 +69,14 @@ Deno.serve(async (req: Request) => {
       ban_duration: activo ? "none" : "876000h",
     });
     if (banError) {
-      return new Response(JSON.stringify({ error: banError.message }), { status: 400 });
+      return json({ error: banError.message }, 400);
     }
 
     const { error: updateError } = await admin.from("usuarios").update({ activo }).eq("id", userId);
     if (updateError) {
       // Revert the ban change so Auth state and the profile flag don't disagree.
       await admin.auth.admin.updateUserById(userId, { ban_duration: activo ? "876000h" : "none" });
-      return new Response(JSON.stringify({ error: updateError.message }), { status: 400 });
+      return json({ error: updateError.message }, 400);
     }
 
     await admin.from("audit_log").insert({
@@ -69,13 +86,8 @@ Deno.serve(async (req: Request) => {
       metadata: {},
     });
 
-    return new Response(JSON.stringify({ userId, activo }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ userId, activo });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Error desconocido." }), {
-      status: 500,
-    });
+    return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
 });

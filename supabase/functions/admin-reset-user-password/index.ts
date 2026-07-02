@@ -8,11 +8,28 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // is returned in the response instead of silently doing nothing — an
 // admin is the only one who ever sees that response.
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No autenticado." }), { status: 401 });
+      return json({ error: "No autenticado." }, 401);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -24,16 +41,16 @@ Deno.serve(async (req: Request) => {
     });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) {
-      return new Response(JSON.stringify({ error: "Sesión inválida." }), { status: 401 });
+      return json({ error: "Sesión inválida." }, 401);
     }
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "No autorizado." }), { status: 403 });
+      return json({ error: "No autorizado." }, 403);
     }
 
     const { userId } = await req.json();
     if (typeof userId !== "string") {
-      return new Response(JSON.stringify({ error: "Parámetros inválidos." }), { status: 400 });
+      return json({ error: "Parámetros inválidos." }, 400);
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
@@ -44,7 +61,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", userId)
       .single();
     if (usuarioError || !usuario) {
-      return new Response(JSON.stringify({ error: "Usuario no encontrado." }), { status: 404 });
+      return json({ error: "Usuario no encontrado." }, 404);
     }
 
     const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
@@ -52,9 +69,7 @@ Deno.serve(async (req: Request) => {
       email: usuario.email,
     });
     if (linkError || !linkData) {
-      return new Response(JSON.stringify({ error: linkError?.message ?? "Error al generar el enlace." }), {
-        status: 400,
-      });
+      return json({ error: linkError?.message ?? "Error al generar el enlace." }, 400);
     }
     const actionLink = linkData.properties.action_link;
 
@@ -82,13 +97,8 @@ Deno.serve(async (req: Request) => {
       metadata: { emailSent: sent },
     });
 
-    return new Response(JSON.stringify({ sent, actionLink: sent ? undefined : actionLink }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ sent, actionLink: sent ? undefined : actionLink });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Error desconocido." }), {
-      status: 500,
-    });
+    return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
 });

@@ -13,7 +13,24 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // of failing — a missing notification should never block the real
 // workflow.
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   try {
     const { tipo, solicitudId, evento } = await req.json();
 
@@ -22,7 +39,7 @@ Deno.serve(async (req: Request) => {
       !["creada", "aprobada", "rechazada"].includes(evento) ||
       !solicitudId
     ) {
-      return new Response(JSON.stringify({ error: "Parámetros inválidos." }), { status: 400 });
+      return json({ error: "Parámetros inválidos." }, 400);
     }
 
     const supabase = createClient(
@@ -33,9 +50,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: resendApiKey } = await supabase.rpc("get_resend_api_key");
     if (!resendApiKey) {
-      return new Response(JSON.stringify({ skipped: true, reason: "Resend API key no configurada en Vault." }), {
-        status: 200,
-      });
+      return json({ skipped: true, reason: "Resend API key no configurada en Vault." });
     }
     const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
 
@@ -50,7 +65,7 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (error || !solicitud) {
-      return new Response(JSON.stringify({ error: error?.message ?? "Solicitud no encontrada." }), { status: 404 });
+      return json({ error: error?.message ?? "Solicitud no encontrada." }, 404);
     }
 
     // Confirm the event actually happened (persisted state matches) before
@@ -59,15 +74,11 @@ Deno.serve(async (req: Request) => {
     if (evento === "aprobada") {
       const expected = tipo === "material" ? "entregada" : "convertida";
       if (solicitud.estado !== expected) {
-        return new Response(JSON.stringify({ skipped: true, reason: "Estado no coincide con el evento." }), {
-          status: 200,
-        });
+        return json({ skipped: true, reason: "Estado no coincide con el evento." });
       }
     }
     if (evento === "rechazada" && solicitud.estado !== "rechazada") {
-      return new Response(JSON.stringify({ skipped: true, reason: "Estado no coincide con el evento." }), {
-        status: 200,
-      });
+      return json({ skipped: true, reason: "Estado no coincide con el evento." });
     }
 
     const tipoLabel = tipo === "material" ? "materiales" : "compra";
@@ -90,7 +101,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (to.length === 0) {
-      return new Response(JSON.stringify({ skipped: true, reason: "Sin destinatarios." }), { status: 200 });
+      return json({ skipped: true, reason: "Sin destinatarios." });
     }
 
     const res = await fetch("https://api.resend.com/emails", {
@@ -104,16 +115,11 @@ Deno.serve(async (req: Request) => {
 
     if (!res.ok) {
       const text = await res.text();
-      return new Response(JSON.stringify({ error: `Resend error: ${text}` }), { status: 502 });
+      return json({ error: `Resend error: ${text}` }, 502);
     }
 
-    return new Response(JSON.stringify({ sent: true, to }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ sent: true, to });
   } catch (e) {
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Error desconocido." }), {
-      status: 500,
-    });
+    return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
 });
