@@ -7,7 +7,7 @@ export const moduleGuard = (modulo: string): CanActivateFn => {
     const userService = inject(UserService);
     const router = inject(Router);
 
-    if (userService.hasModulo(modulo) || userService.hasRole('admin')) {
+    if (userService.hasModulo(modulo)) {
       return true;
     }
 

@@ -15,6 +15,7 @@ import { RegistroCombustible, RegistroCombustibleFormData } from '../../../../sh
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-combustible',
@@ -50,7 +51,7 @@ export class Combustible implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
 
-  readonly today = new Date().toISOString().slice(0, 10);
+  readonly today = todayIso();
 
   form = new FormGroup({
     vehiculo_id: new FormControl('', [Validators.required]),

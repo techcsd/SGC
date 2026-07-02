@@ -54,26 +54,13 @@ export class AdminService {
   }
 
   async assignRoles(usuarioId: string, rolIds: number[], asignadoPor: string): Promise<void> {
-    // Delete all current role assignments for this user
-    const { error: delError } = await this.supabase.client
-      .from('usuarios_roles')
-      .delete()
-      .eq('usuario_id', usuarioId);
+    // Atomic delete+insert via RPC — a failed insert must not leave the user with zero roles
+    const { error } = await this.supabase.client.rpc('assign_roles', {
+      p_usuario_id: usuarioId,
+      p_rol_ids: rolIds,
+      p_asignado_por: asignadoPor,
+    });
 
-    if (delError) throw new Error(delError.message);
-
-    if (rolIds.length === 0) return;
-
-    const rows = rolIds.map((rolId) => ({
-      usuario_id: usuarioId,
-      rol_id: rolId,
-      asignado_por: asignadoPor,
-    }));
-
-    const { error: insError } = await this.supabase.client
-      .from('usuarios_roles')
-      .insert(rows);
-
-    if (insError) throw new Error(insError.message);
+    if (error) throw new Error(error.message);
   }
 }

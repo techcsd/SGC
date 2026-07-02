@@ -13,8 +13,13 @@ export const authGuard: CanActivateFn = async () => {
     return router.createUrlTree(['/auth']);
   }
 
-  if (!userService.profile()) {
-    await userService.loadProfile(session.user.id);
+  await userService.ensureFreshProfile(session.user.id);
+
+  const profile = userService.profile();
+  if (!profile || !profile.activo) {
+    await authService.signOut();
+    userService.clearProfile();
+    return router.createUrlTree(['/auth']);
   }
 
   return true;

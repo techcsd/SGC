@@ -16,6 +16,7 @@ import {
 } from '../../../../shared/models/conductor.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { daysUntil } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-conductores',
@@ -227,17 +228,12 @@ export class Conductores implements OnInit {
   // ── Helpers ──────────────────────────────────────────────
   isLicenciaExpiringSoon(vencimiento: string | null): boolean {
     if (!vencimiento) return false;
-    const today = new Date();
-    const exp = new Date(vencimiento);
-    const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
-    return diff <= 30;
+    return daysUntil(vencimiento) <= 30;
   }
 
   isLicenciaExpired(vencimiento: string | null): boolean {
     if (!vencimiento) return false;
-    const today = new Date();
-    const exp = new Date(vencimiento);
-    return exp < today;
+    return daysUntil(vencimiento) < 0;
   }
 
   getLicenciaClass(vencimiento: string | null): string {

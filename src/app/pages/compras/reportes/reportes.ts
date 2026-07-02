@@ -6,8 +6,9 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { DecimalPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { DecimalPipe, CurrencyPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface OrdenReport {
   id: string;
@@ -32,13 +33,15 @@ interface ProveedorStat {
 
 @Component({
   selector: 'app-compras-reportes',
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ComprasReportes implements OnInit {
   private supabase = inject(SupabaseService);
+
+  formatFecha = formatFechaDisplay;
 
   ordenes = signal<OrdenReport[]>([]);
   proveedores = signal<ProveedorReport[]>([]);
@@ -86,9 +89,7 @@ export class ComprasReportes implements OnInit {
   });
 
   ordenesRecientes = computed(() =>
-    [...this.ordenes()]
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-      .slice(0, 10),
+    [...this.ordenes()].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10),
   );
 
   proveedoresActivos = computed(() => this.proveedores().filter((p) => p.activo).length);

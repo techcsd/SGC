@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet, DecimalPipe } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { daysAgoIso, daysFromNowIso, todayIso } from '../../../shared/utils/fecha.util';
 
 interface ModuleCard {
   label: string;
@@ -289,10 +290,8 @@ export class Dashboard implements OnInit {
 
   // ── Alerta: próximos mantenimientos (7 días) ──────────────
   proximosMantenimientos = computed(() => {
-    const today = this.toDateStr(new Date());
-    const in7 = new Date();
-    in7.setDate(in7.getDate() + 7);
-    const in7Str = this.toDateStr(in7);
+    const today = todayIso();
+    const in7Str = daysFromNowIso(7);
 
     return this.mantenimientos()
       .filter((m) => m.estado !== 'completado' && m.fecha >= today && m.fecha <= in7Str)
@@ -322,18 +321,12 @@ export class Dashboard implements OnInit {
     await this.loadAll();
   }
 
-  private toDateStr(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }
-
   private async loadAll() {
     this.loading.set(true);
     this.error.set('');
     try {
-      const hace7 = new Date();
-      hace7.setDate(hace7.getDate() - 6);
-      const fechaDesde = this.toDateStr(hace7);
-      const hoy = this.toDateStr(new Date());
+      const fechaDesde = daysAgoIso(6);
+      const hoy = todayIso();
 
       const [
         articulosRes,
@@ -400,11 +393,10 @@ export class Dashboard implements OnInit {
       const dias: DayMovement[] = [];
       const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
       for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const key = this.toDateStr(d);
+        const key = daysAgoIso(i);
+        const [y, m, day] = key.split('-').map(Number);
         dias.push({
-          label: dayNames[d.getDay()],
+          label: dayNames[new Date(y, m - 1, day).getDay()],
           entradas: entradasByDay.get(key) ?? 0,
           salidas: salidasByDay.get(key) ?? 0,
         });
@@ -418,7 +410,7 @@ export class Dashboard implements OnInit {
   }
 
   canAccess(modulo: string): boolean {
-    return this.userService.hasModulo(modulo) || this.userService.hasRole('admin');
+    return this.userService.hasModulo(modulo);
   }
 
   getGreeting(): string {

@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { daysAgoIso, yearsSince } from '../../../../shared/utils/fecha.util';
 
 interface EmpleadoReport {
   id: string;
@@ -131,9 +132,7 @@ export class RrhhReportes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const now = new Date();
-      const hace30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const fechaDesde = hace30.toISOString().split('T')[0];
+      const fechaDesde = daysAgoIso(30);
 
       const [eRes, aRes] = await Promise.all([
         this.supabase.client
@@ -172,7 +171,7 @@ export class RrhhReportes implements OnInit {
   }
 
   getAntiguedad(fecha: string): string {
-    const years = Math.floor((Date.now() - new Date(fecha).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+    const years = yearsSince(fecha);
     return years === 0 ? '< 1 año' : `${years} año${years !== 1 ? 's' : ''}`;
   }
 }

@@ -7,7 +7,6 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { RutasService } from '../../../../shared/services/rutas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -16,15 +15,18 @@ import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS } from '../../../../shared
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Rutas implements OnInit {
+  formatFecha = formatFechaDisplay;
+
   private rutasService = inject(RutasService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
@@ -44,7 +46,7 @@ export class Rutas implements OnInit {
   selectedEstado = signal('');
 
   readonly RUTA_ESTADOS = RUTA_ESTADOS;
-  readonly today = new Date().toISOString().split('T')[0];
+  readonly today = todayIso();
 
   // ── Create/edit drawer ────────────────────────────────────
   drawerOpen = signal(false);

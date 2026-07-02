@@ -116,12 +116,26 @@ export class AdminUsuarios implements OnInit {
     );
   }
 
+  isSelf(usuario: UsuarioAdmin): boolean {
+    return usuario.id === this.userService.profile()?.id;
+  }
+
   async onSave() {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
 
     const usuario = this.editingUser();
     if (!usuario) return;
+
+    if (this.isSelf(usuario)) {
+      const keepsAdmin = this.roles()
+        .filter((r) => this.selectedRolIds().includes(r.id))
+        .some((r) => r.codigo === 'admin');
+      if (!this.form.value.activo || !keepsAdmin) {
+        this.saveError.set('No puedes desactivar tu propia cuenta ni quitarte el rol de administrador a ti mismo.');
+        return;
+      }
+    }
 
     this.saving.set(true);
     this.saveError.set('');
@@ -146,6 +160,8 @@ export class AdminUsuarios implements OnInit {
   }
 
   async toggleActivo(usuario: UsuarioAdmin) {
+    if (this.isSelf(usuario)) return;
+
     const next = !usuario.activo;
     this.usuarios.update((list) =>
       list.map((u) => (u.id === usuario.id ? { ...u, activo: next } : u)),

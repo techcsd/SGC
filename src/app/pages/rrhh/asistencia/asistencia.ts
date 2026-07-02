@@ -12,6 +12,7 @@ import { EmpleadosService } from '../../../../shared/services/empleados.service'
 import { Asistencia as AsistenciaModel, AsistenciaFormData, ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../../shared/models/asistencia.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-asistencia',
@@ -158,8 +159,7 @@ export class Asistencia implements OnInit {
 
   // ── Helpers ──────────────────────────────────────────────
   todayISO(): string {
-    const d = new Date();
-    return d.toISOString().split('T')[0];
+    return todayIso();
   }
 
   getHorasTrabajadas(entrada: string | null, salida: string | null): string {

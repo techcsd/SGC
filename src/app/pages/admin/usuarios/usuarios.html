@@ -117,6 +117,8 @@
                 type="button"
                 (click)="toggleActivo(usuario)"
                 [class.active]="usuario.activo"
+                [disabled]="isSelf(usuario)"
+                [attr.title]="isSelf(usuario) ? 'No puedes desactivar tu propia cuenta' : null"
                 [attr.aria-label]="(usuario.activo ? 'Desactivar ' : 'Activar ') + usuario.nombre"
                 [attr.aria-pressed]="usuario.activo"
               >

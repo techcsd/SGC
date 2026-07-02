@@ -1,6 +1,8 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
   input,
   output,
   effect,
@@ -20,6 +22,10 @@ export class FormDrawer {
   constructor() {
     effect(() => {
       document.body.style.overflow = this.open() ? 'hidden' : '';
+    });
+
+    inject(DestroyRef).onDestroy(() => {
+      document.body.style.overflow = '';
     });
   }
 

@@ -7,21 +7,24 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { ActivosService } from '../../../../shared/services/activos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ActivoFijo, ActivoFormData, ACTIVO_ESTADOS, ActivoEstado } from '../../../../shared/models/activo.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-activos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
   templateUrl: './activos.html',
   styleUrl: './activos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Activos implements OnInit {
+  formatFecha = formatFechaDisplay;
+
   private activosService = inject(ActivosService);
   private categoriasService = inject(CategoriasService);
 

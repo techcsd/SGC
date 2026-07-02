@@ -2,12 +2,15 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { Usuario } from '../../../shared/models/usuario.model';
 
+const PROFILE_MAX_AGE_MS = 5 * 60 * 1000;
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private supabase = inject(SupabaseService);
 
   private _profile = signal<Usuario | null>(null);
   profile = this._profile.asReadonly();
+  private loadedAt: number | null = null;
 
   /** Flat list of role codes the current user has, e.g. ['admin', 'logistica'] */
   roles = computed(() => this._profile()?.roles?.map((ur) => ur.rol.codigo) ?? []);
@@ -40,9 +43,19 @@ export class UserService {
     }
 
     this._profile.set(data as Usuario);
+    this.loadedAt = Date.now();
+  }
+
+  /** Reloads the profile if missing or older than PROFILE_MAX_AGE_MS, so a role/activo change made elsewhere takes effect without forcing a manual logout. */
+  async ensureFreshProfile(userId: string): Promise<void> {
+    const stale = this.loadedAt === null || Date.now() - this.loadedAt > PROFILE_MAX_AGE_MS;
+    if (!this._profile() || stale) {
+      await this.loadProfile(userId);
+    }
   }
 
   clearProfile(): void {
     this._profile.set(null);
+    this.loadedAt = null;
   }
 }

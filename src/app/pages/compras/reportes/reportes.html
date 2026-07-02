@@ -104,7 +104,7 @@
               <tr>
                 <td class="compras-reportes__numero">{{ o.numero }}</td>
                 <td>{{ o.proveedor?.nombre ?? '—' }}</td>
-                <td>{{ o.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ formatFecha(o.fecha) }}</td>
                 <td>
                   <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(o.estado)">
                     {{ getEstadoLabel(o.estado) }}

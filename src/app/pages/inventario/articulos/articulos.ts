@@ -56,7 +56,7 @@ export class Articulos implements OnInit {
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     descripcion: new FormControl<string | null>(null),
     categoria_id: new FormControl<number | null>(null, [Validators.required]),
-    unidad: new FormControl('', [Validators.required]),
+    unidad: new FormControl<string | null>(null, [Validators.required]),
     stock_minimo: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
     stock_maximo: new FormControl<number | null>(null, [Validators.min(0)]),
     precio_estimado: new FormControl<number | null>(null, [Validators.min(0)]),

@@ -6,8 +6,9 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { DecimalPipe, DatePipe, TitleCasePipe } from '@angular/common';
+import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface VehiculoReport {
   id: string;
@@ -50,13 +51,15 @@ interface CombustiblePorVehiculo {
 
 @Component({
   selector: 'app-flota-reportes',
-  imports: [DecimalPipe, DatePipe, TitleCasePipe],
+  imports: [DecimalPipe, TitleCasePipe],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlotaReportes implements OnInit {
   private supabase = inject(SupabaseService);
+
+  formatFecha = formatFechaDisplay;
 
   vehiculos = signal<VehiculoReport[]>([]);
   mantenimientos = signal<MantenimientoReport[]>([]);
@@ -91,21 +94,17 @@ export class FlotaReportes implements OnInit {
   );
 
   mantenimientosRecientes = computed(() =>
-    [...this.mantenimientos()]
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-      .slice(0, 10),
+    [...this.mantenimientos()].sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10),
   );
 
   mantenimientosPendientes = computed(() =>
     this.mantenimientos()
       .filter((m) => m.estado === 'pendiente')
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime()),
+      .sort((a, b) => a.fecha.localeCompare(b.fecha)),
   );
 
   combustiblePorVehiculo = computed((): CombustiblePorVehiculo[] => {
-    const hace30 = new Date();
-    hace30.setDate(hace30.getDate() - 30);
-    const hace30Str = `${hace30.getFullYear()}-${String(hace30.getMonth() + 1).padStart(2, '0')}-${String(hace30.getDate()).padStart(2, '0')}`;
+    const hace30Str = daysAgoIso(30);
     const recientes = this.combustible().filter((r) => r.fecha >= hace30Str);
 
     const map = new Map<string, CombustiblePorVehiculo>();

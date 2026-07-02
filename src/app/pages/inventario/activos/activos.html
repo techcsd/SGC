@@ -133,7 +133,7 @@
               <td class="text-right">
                 <span class="activos__valor">{{ activo.valor_adquisicion | number:'1.2-2' }}</span>
               </td>
-              <td class="text-muted">{{ activo.fecha_adquisicion | date:'dd/MM/yyyy' }}</td>
+              <td class="text-muted">{{ formatFecha(activo.fecha_adquisicion) }}</td>
               <td class="text-right text-muted">
                 @if (getDepreciacionAnual(activo) !== null) {
                   {{ getDepreciacionAnual(activo) | number:'1.2-2' }}

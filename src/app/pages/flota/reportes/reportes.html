@@ -96,7 +96,7 @@
           <tbody>
             @for (m of mantenimientosRecientes(); track m.id) {
               <tr>
-                <td>{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ formatFecha(m.fecha) }}</td>
                 <td class="flota-reportes__placa">
                   {{ m.vehiculo?.placa ?? '—' }}
                   <span class="flota-reportes__sub">{{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }}</span>
@@ -179,7 +179,7 @@
                 <td class="flota-reportes__placa">{{ m.vehiculo?.placa ?? '—' }}</td>
                 <td>{{ m.tipo | titlecase }}</td>
                 <td>{{ m.descripcion }}</td>
-                <td>{{ m.fecha | date:'dd/MM/yyyy' }}</td>
+                <td>{{ formatFecha(m.fecha) }}</td>
               </tr>
             }
           </tbody>
