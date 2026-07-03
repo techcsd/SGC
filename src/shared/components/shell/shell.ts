@@ -6,11 +6,11 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { AuthService } from '../../../app/core/services/auth.service';
 import { UserService } from '../../../app/core/services/user.service';
-import { SupabaseService } from '../../../app/core/services/supabase.service';
+import { NotificacionesService } from '../../services/notificaciones.service';
 
 interface NavItem {
   label: string;
@@ -37,14 +37,11 @@ export class Shell implements OnInit {
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private router = inject(Router);
-  private supabase = inject(SupabaseService);
+  private notificaciones = inject(NotificacionesService);
 
   profile = this.userService.profile;
   collapsed = signal(false);
   expandedSection = signal<string | null>('inventario');
-
-  /** Pending-solicitud counts per module, for the red-dot nav badge. */
-  private pendingByModulo = signal<Record<string, number>>({});
 
   navItems: NavItem[] = [
     {
@@ -147,43 +144,26 @@ export class Shell implements OnInit {
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
 
+  pendingBadge(item: NavItem): number {
+    if (!item.modulo) return 0;
+    return this.notificaciones.pendingByModulo()[item.modulo] ?? 0;
+  }
+
   ngOnInit() {
     const saved = localStorage.getItem('sgc-sidebar-collapsed');
     if (saved !== null) {
       this.collapsed.set(saved === 'true');
     }
-    this.loadPendingBadges();
-  }
+    this.notificaciones.refresh();
 
-  private async loadPendingBadges() {
-    const checks: Promise<void>[] = [];
-
-    if (this.userService.hasModulo('inventario') || this.isAdmin()) {
-      checks.push(this.loadPendingCount('solicitudes_material', 'pendiente', 'inventario'));
-    }
-    if (this.userService.hasModulo('compras') || this.isAdmin()) {
-      checks.push(this.loadPendingCount('solicitudes_compra', 'pendiente', 'compras'));
-    }
-    if (this.userService.hasModulo('bitacora') || this.isAdmin()) {
-      // RLS already scopes this to the caller's own project(s) for an
-      // engineer, or every despachado delivery for admin/inventario.
-      checks.push(this.loadPendingCount('salidas_inventario', 'despachado', 'bitacora'));
-    }
-
-    await Promise.all(checks);
-  }
-
-  private async loadPendingCount(table: string, estado: string, modulo: string): Promise<void> {
-    const { count } = await this.supabase.client
-      .from(table)
-      .select('id', { count: 'exact', head: true })
-      .eq('estado', estado);
-    this.pendingByModulo.update((m) => ({ ...m, [modulo]: count ?? 0 }));
-  }
-
-  pendingBadge(item: NavItem): number {
-    if (!item.modulo) return 0;
-    return this.pendingByModulo()[item.modulo] ?? 0;
+    // Catches any count-affecting mutation that doesn't already call
+    // refresh() directly (belt-and-suspenders alongside the explicit calls
+    // in solicitudes-material/compra.service.ts and salidas.service.ts).
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.notificaciones.refresh();
+      }
+    });
   }
 
   toggleCollapsed() {
@@ -211,6 +191,7 @@ export class Shell implements OnInit {
   async logout() {
     await this.authService.signOut();
     this.userService.clearProfile();
+    this.notificaciones.clear();
     this.router.navigate(['/auth']);
   }
 

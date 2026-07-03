@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SalidaInventario, SalidaFormData } from '../models/salida.model';
+import { NotificacionesService } from './notificaciones.service';
 
 // usuarios is joined twice (creado_por, recibido_por) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
@@ -12,6 +13,7 @@ const SELECT_QUERY =
 @Injectable({ providedIn: 'root' })
 export class SalidasService {
   private supabase = inject(SupabaseService);
+  private notificaciones = inject(NotificacionesService);
 
   async getAll(): Promise<SalidaInventario[]> {
     const { data, error } = await this.supabase.client
@@ -67,6 +69,7 @@ export class SalidasService {
       .single();
 
     if (fetchError) throw new Error(fetchError.message);
+    this.notificaciones.refresh();
     return data as unknown as SalidaInventario;
   }
 
@@ -95,6 +98,7 @@ export class SalidasService {
     });
 
     if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
     return data as boolean;
   }
 }

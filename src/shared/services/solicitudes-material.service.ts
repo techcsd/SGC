@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SolicitudMaterial, SolicitudMaterialFormData } from '../models/solicitud.model';
 import { notificarSolicitud } from '../utils/notificar-solicitud.util';
+import { NotificacionesService } from './notificaciones.service';
 
 // usuarios is joined twice (solicitante_id, atendido_por) — the relationship must be
 // disambiguated with !fkey_name or PostgREST rejects the embed as ambiguous.
@@ -11,6 +12,7 @@ const SELECT_QUERY =
 @Injectable({ providedIn: 'root' })
 export class SolicitudesMaterialService {
   private supabase = inject(SupabaseService);
+  private notificaciones = inject(NotificacionesService);
 
   /** RLS scopes this: engineers see their own, Inventario staff/admin see all. */
   async getAll(): Promise<SolicitudMaterial[]> {
@@ -42,6 +44,7 @@ export class SolicitudesMaterialService {
 
     if (fetchError) throw new Error(fetchError.message);
     notificarSolicitud(this.supabase.client, 'material', id as string, 'creada');
+    this.notificaciones.refresh();
     return data as unknown as SolicitudMaterial;
   }
 
@@ -67,6 +70,7 @@ export class SolicitudesMaterialService {
 
     if (error) throw new Error(error.message);
     notificarSolicitud(this.supabase.client, 'material', id, 'aprobada');
+    this.notificaciones.refresh();
     return salidaId as string;
   }
 
@@ -78,5 +82,6 @@ export class SolicitudesMaterialService {
 
     if (error) throw new Error(error.message);
     notificarSolicitud(this.supabase.client, 'material', id, 'rechazada');
+    this.notificaciones.refresh();
   }
 }
