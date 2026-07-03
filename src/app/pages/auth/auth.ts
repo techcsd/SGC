@@ -21,6 +21,10 @@ export class Auth {
   errorMessage = signal('');
   showPassword = signal(false);
 
+  forgotMode = signal(false);
+  forgotSent = signal(false);
+  forgotLoading = signal(false);
+
   form = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required]),
@@ -83,5 +87,29 @@ export class Auth {
     }
 
     this.router.navigate(['/dashboard']);
+  }
+
+  openForgot() {
+    this.errorMessage.set('');
+    this.forgotSent.set(false);
+    this.forgotMode.set(true);
+  }
+
+  closeForgot() {
+    this.forgotMode.set(false);
+  }
+
+  async onForgotSubmit() {
+    if (this.email.invalid || this.forgotLoading()) {
+      this.email.markAsTouched();
+      return;
+    }
+
+    this.forgotLoading.set(true);
+    // Always show the same confirmation regardless of whether the email
+    // matches a real account — prevents leaking which emails are registered.
+    await this.authService.resetPassword(this.email.value!);
+    this.forgotLoading.set(false);
+    this.forgotSent.set(true);
   }
 }

@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: "No autorizado." }, 403);
     }
 
-    const { userId } = await req.json();
+    const { userId, redirectTo } = await req.json();
     if (typeof userId !== "string") {
       return json({ error: "Parámetros inválidos." }, 400);
     }
@@ -64,9 +64,12 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Usuario no encontrado." }, 404);
     }
 
+    // Same redirectTo-from-caller-origin pattern as admin-create-user — see
+    // the comment there. Without it this fell back to the Site URL (localhost).
     const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
       type: "recovery",
       email: usuario.email,
+      ...(typeof redirectTo === "string" && redirectTo ? { options: { redirectTo } } : {}),
     });
     if (linkError || !linkData) {
       return json({ error: linkError?.message ?? "Error al generar el enlace." }, 400);

@@ -63,7 +63,15 @@ export class AdminService {
   /** Invite-flow: the user sets their own password via an emailed link. Rolls back on partial failure. */
   async createUsuario(payload: { email: string; fullName: string; roleId: number | null }): Promise<void> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-create-user', {
-      body: { email: payload.email, fullName: payload.fullName, roleId: payload.roleId },
+      body: {
+        email: payload.email,
+        fullName: payload.fullName,
+        roleId: payload.roleId,
+        // The browser knows its own real domain (dev, Vercel, or a future
+        // custom domain) — passing it avoids hardcoding a URL server-side,
+        // which is what previously made every invite link point at localhost.
+        redirectTo: `${window.location.origin}/auth/set-password`,
+      },
     });
     if (error) throw new Error(await edgeFunctionErrorMessage(error));
     if (data?.error) throw new Error(data.error);
@@ -72,7 +80,7 @@ export class AdminService {
   /** Sends a password-reset email; never exposes the password to the admin. */
   async resetPassword(id: string): Promise<{ sent: boolean; actionLink?: string }> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-reset-user-password', {
-      body: { userId: id },
+      body: { userId: id, redirectTo: `${window.location.origin}/auth/set-password` },
     });
     if (error) throw new Error(await edgeFunctionErrorMessage(error));
     if (data?.error) throw new Error(data.error);

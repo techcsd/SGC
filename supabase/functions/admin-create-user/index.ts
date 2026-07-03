@@ -54,15 +54,21 @@ Deno.serve(async (req: Request) => {
       return json({ error: "No autorizado. Solo un administrador puede crear usuarios." }, 403);
     }
 
-    const { email, fullName, roleId } = await req.json();
+    const { email, fullName, roleId, redirectTo } = await req.json();
     if (typeof email !== "string" || !email.includes("@") || typeof fullName !== "string" || !fullName.trim()) {
       return json({ error: "Correo y nombre completo son requeridos." }, 400);
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
 
+    // redirectTo comes from the caller's own window.location.origin (see
+    // admin.service.ts) so the invite link lands on whatever domain the app
+    // is actually running on — no hardcoded domain here, works in dev and
+    // prod alike. Without it, Supabase falls back to the project's Site URL,
+    // which is what caused invite links to always point at localhost.
     const { data: created, error: createError } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { nombre: fullName.trim() },
+      ...(typeof redirectTo === "string" && redirectTo ? { redirectTo } : {}),
     });
     if (createError || !created.user) {
       return json({ error: createError?.message ?? "Error al crear el usuario." }, 400);
