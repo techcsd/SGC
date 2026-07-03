@@ -104,6 +104,7 @@
             <th>Fecha</th>
             <th>Bodega</th>
             <th>Proveedor</th>
+            <th>Orden</th>
             <th>Referencia</th>
             <th class="text-right">Artículos</th>
             <th class="text-right">Total</th>
@@ -115,6 +116,13 @@
               <td class="entradas__fecha">{{ formatFecha(e.fecha) }}</td>
               <td>{{ e.bodega?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ e.proveedor?.nombre ?? '—' }}</td>
+              <td class="text-muted">
+                @if (e.orden_compra?.numero) {
+                  <code class="code-tag">{{ e.orden_compra?.numero }}</code>
+                } @else {
+                  —
+                }
+              </td>
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
               <td class="text-right">{{ (e.detalle_entradas ?? []).length }}</td>
               <td class="text-right">
@@ -221,6 +229,17 @@
         <option [ngValue]="null">Sin proveedor</option>
         @for (p of activeProveedores(); track p.id) {
           <option [value]="p.id">{{ p.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Orden de compra -->
+    <div class="sgc-field">
+      <label for="orden_compra_id">Orden de compra (opcional)</label>
+      <select id="orden_compra_id" formControlName="orden_compra_id">
+        <option [ngValue]="null">Sin orden asociada</option>
+        @for (o of ordenesRecibibles(); track o.id) {
+          <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
         }
       </select>
     </div>

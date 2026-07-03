@@ -14,6 +14,8 @@ export interface EntradaInventario {
   bodega?: { nombre: string };
   proveedor_id: string | null;
   proveedor?: { nombre: string };
+  orden_compra_id: string | null;
+  orden_compra?: { numero: string };
   referencia: string | null;
   observaciones: string | null;
   creado_por: string | null;
@@ -31,6 +33,7 @@ export interface EntradaFormData {
   fecha: string;
   bodega_id: string;
   proveedor_id: string | null;
+  orden_compra_id: string | null;
   referencia: string | null;
   observaciones: string | null;
   items: EntradaItemFormData[];

@@ -1,4 +1,4 @@
-export type OrdenEstado = 'borrador' | 'aprobada' | 'recibida' | 'cancelada';
+export type OrdenEstado = 'borrador' | 'aprobada' | 'recibida' | 'recibida_parcial' | 'cancelada';
 
 export interface OrdenCompraItem {
   id?: string;

@@ -12,16 +12,20 @@ import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/ser
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
+import { EntradasService } from '../../../../shared/services/entradas.service';
 import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../../../../shared/models/orden-compra.model';
+import { EntradaInventario } from '../../../../shared/models/entrada.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { UserService } from '../../../core/services/user.service';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
   borrador: ['aprobada', 'cancelada'],
-  aprobada: ['recibida', 'cancelada'],
+  aprobada: ['recibida', 'recibida_parcial', 'cancelada'],
+  recibida_parcial: ['recibida', 'cancelada'],
   recibida: [],
   cancelada: [],
 };
@@ -44,7 +48,10 @@ export class Ordenes implements OnInit {
   private proveedoresService = inject(ProveedoresService);
   private proyectosService = inject(ProyectosService);
   private solicitudesCompraService = inject(SolicitudesCompraService);
+  private entradasService = inject(EntradasService);
   private userService = inject(UserService);
+
+  formatFecha = formatFechaDisplay;
 
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OrdenCompra[]>([]);
@@ -73,8 +80,9 @@ export class Ordenes implements OnInit {
   detailDrawerOpen = signal(false);
   detailOrden = signal<OrdenCompra | null>(null);
   detailLoading = signal(false);
+  detailEntradas = signal<EntradaInventario[]>([]);
 
-  readonly ESTADOS: OrdenEstado[] = ['borrador', 'aprobada', 'recibida', 'cancelada'];
+  readonly ESTADOS: OrdenEstado[] = ['borrador', 'aprobada', 'recibida_parcial', 'recibida', 'cancelada'];
   readonly IMPUESTO_RATE = 0.18;
 
   form = new FormGroup({
@@ -300,9 +308,14 @@ export class Ordenes implements OnInit {
     this.detailDrawerOpen.set(true);
     this.detailOrden.set(orden);
     this.detailLoading.set(true);
+    this.detailEntradas.set([]);
     try {
-      const full = await this.ordenesService.getById(orden.id);
+      const [full, entradas] = await Promise.all([
+        this.ordenesService.getById(orden.id),
+        this.entradasService.getByOrdenCompra(orden.id),
+      ]);
       this.detailOrden.set(full);
+      this.detailEntradas.set(entradas);
     } catch {
       // keep partial data
     } finally {
@@ -313,6 +326,11 @@ export class Ordenes implements OnInit {
   closeDetail() {
     this.detailDrawerOpen.set(false);
     this.detailOrden.set(null);
+    this.detailEntradas.set([]);
+  }
+
+  entradaTotal(entrada: EntradaInventario): number {
+    return (entrada.detalle_entradas ?? []).reduce((acc, d) => acc + d.cantidad * (d.precio_unit ?? 0), 0);
   }
 
   // ── Estado ───────────────────────────────────────────────
@@ -339,6 +357,7 @@ export class Ordenes implements OnInit {
     switch (estado) {
       case 'borrador': return 'sgc-badge sgc-badge--neutral';
       case 'aprobada': return 'sgc-badge sgc-badge--info';
+      case 'recibida_parcial': return 'sgc-badge sgc-badge--warning';
       case 'recibida': return 'sgc-badge sgc-badge--success';
       case 'cancelada': return 'sgc-badge sgc-badge--danger';
     }
@@ -348,6 +367,7 @@ export class Ordenes implements OnInit {
     switch (estado) {
       case 'borrador': return 'Borrador';
       case 'aprobada': return 'Aprobada';
+      case 'recibida_parcial': return 'Recibida parcial';
       case 'recibida': return 'Recibida';
       case 'cancelada': return 'Cancelada';
     }

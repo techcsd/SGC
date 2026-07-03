@@ -490,6 +490,39 @@
         </div>
       </div>
 
+      <!-- Receiving history -->
+      <div class="detail-items">
+        <h3 class="detail-items__title">Entradas recibidas ({{ detailEntradas().length }})</h3>
+        @if (detailEntradas().length === 0) {
+          <p class="text-muted">Aún no se ha registrado ninguna entrada de inventario contra esta orden.</p>
+        } @else {
+          <div class="detail-items__scroll">
+            <table class="data-table" aria-label="Entradas recibidas de la orden">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Bodega</th>
+                  <th>Referencia</th>
+                  <th class="text-right">Artículos</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (entrada of detailEntradas(); track entrada.id) {
+                  <tr>
+                    <td>{{ formatFecha(entrada.fecha) }}</td>
+                    <td>{{ entrada.bodega?.nombre ?? '—' }}</td>
+                    <td class="text-muted">{{ entrada.referencia ?? '—' }}</td>
+                    <td class="text-right">{{ (entrada.detalle_entradas ?? []).length }}</td>
+                    <td class="text-right">{{ entradaTotal(entrada) | number:'1.2-2' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
     </div>
   }
 </app-form-drawer>

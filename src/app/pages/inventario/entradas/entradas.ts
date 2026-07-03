@@ -12,11 +12,13 @@ import { EntradasService } from '../../../../shared/services/entradas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
+import { OrdenesCompraService } from '../../../../shared/services/ordenes-compra.service';
 import { UserService } from '../../../core/services/user.service';
 import { EntradaInventario, EntradaItemFormData } from '../../../../shared/models/entrada.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
+import { OrdenCompra } from '../../../../shared/models/orden-compra.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
@@ -32,6 +34,7 @@ export class Entradas implements OnInit {
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);
   private proveedoresService = inject(ProveedoresService);
+  private ordenesCompraService = inject(OrdenesCompraService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
@@ -39,6 +42,7 @@ export class Entradas implements OnInit {
   articulos = signal<Articulo[]>([]);
   bodegas = signal<Bodega[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  ordenesCompra = signal<OrdenCompra[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -64,6 +68,7 @@ export class Entradas implements OnInit {
   form = new FormGroup({
     bodega_id: new FormControl<string | null>(null, [Validators.required]),
     proveedor_id: new FormControl<string | null>(null),
+    orden_compra_id: new FormControl<string | null>(null),
     fecha: new FormControl(this.today, [Validators.required]),
     referencia: new FormControl<string | null>(null),
     observaciones: new FormControl<string | null>(null),
@@ -71,6 +76,12 @@ export class Entradas implements OnInit {
 
   // ── Computed ─────────────────────────────────────────────
   activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
+
+  // Only orders still awaiting (full or partial) delivery are valid link targets —
+  // matches sgc.registrar_entrada_inventario()'s own check server-side.
+  ordenesRecibibles = computed(() =>
+    this.ordenesCompra().filter((o) => o.estado === 'aprobada' || o.estado === 'recibida_parcial'),
+  );
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -112,16 +123,18 @@ export class Entradas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [entries, arts, bods, provs] = await Promise.all([
+      const [entries, arts, bods, provs, ordenes] = await Promise.all([
         this.entradasService.getAll(),
         this.articulosService.getAll(),
         this.bodegasService.getAll(),
         this.proveedoresService.getAll(),
+        this.ordenesCompraService.getAll(),
       ]);
       this.entries.set(entries);
       this.articulos.set(arts);
       this.bodegas.set(bods);
       this.proveedores.set(provs);
+      this.ordenesCompra.set(ordenes);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -247,6 +260,7 @@ export class Entradas implements OnInit {
         {
           bodega_id: v.bodega_id!,
           proveedor_id: v.proveedor_id ?? null,
+          orden_compra_id: v.orden_compra_id ?? null,
           fecha: v.fecha!,
           referencia: v.referencia ?? null,
           observaciones: v.observaciones ?? null,
