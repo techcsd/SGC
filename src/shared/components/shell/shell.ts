@@ -129,6 +129,11 @@ export class Shell implements OnInit {
       icon: 'soporte',
       route: '/soporte',
     },
+    {
+      label: 'Dudas',
+      icon: 'dudas',
+      route: '/dudas',
+    },
   ];
 
   adminNavItem: NavItem = {

@@ -1,0 +1,67 @@
+<div class="dudas">
+
+  <!-- Page header -->
+  <div class="dudas__header">
+    <div>
+      <h1>Dudas y Ayuda</h1>
+      <p>Encuentra cómo usar cada sección del sistema, o busca una pregunta frecuente.</p>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="sgc-field dudas__search">
+    <input
+      type="search"
+      placeholder="Buscar, por ejemplo: cómo creo una orden de compra…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar en las preguntas frecuentes"
+    />
+  </div>
+
+  <!-- Categories -->
+  @if (!hasResults()) {
+    <div class="dudas__empty sgc-card">
+      <p>No encontramos nada con esa búsqueda. Prueba con otras palabras, o contáctanos.</p>
+      <a routerLink="/soporte" class="sgc-btn sgc-btn--secondary">Ir a Soporte</a>
+    </div>
+  } @else {
+    @for (categoria of filteredCategorias(); track categoria.id) {
+      <section class="dudas__categoria sgc-card">
+        <h2 class="dudas__categoria-title">{{ categoria.titulo }}</h2>
+
+        <div class="dudas__lista">
+          @for (item of categoria.items; track item.pregunta; let i = $index) {
+            <div class="dudas__item" [class.expanded]="!!searchQuery() || isExpanded(categoria.id + '::' + i)">
+              <button
+                type="button"
+                class="dudas__pregunta"
+                (click)="toggle(categoria.id + '::' + i)"
+                [attr.aria-expanded]="!!searchQuery() || isExpanded(categoria.id + '::' + i)"
+              >
+                <span>{{ item.pregunta }}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="dudas__chevron" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              @if (searchQuery() || isExpanded(categoria.id + '::' + i)) {
+                <p class="dudas__respuesta">{{ item.respuesta }}</p>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+
+  <!-- Contact fallback -->
+  <div class="dudas__footer">
+    <p>
+      ¿No encontraste lo que buscabas? Escríbenos en
+      <a routerLink="/soporte">Soporte</a>
+      o contacta directamente a
+      <a href="mailto:tecnologia@constructorasd.com">Tecnología CSD</a>.
+    </p>
+  </div>
+
+</div>
