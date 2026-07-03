@@ -64,12 +64,11 @@ export class OrdenesCompraService {
     return this.getById(ordenId as string);
   }
 
+  /** Transition validity (borrador -> aprobada|cancelada, aprobada -> recibida|cancelada) is enforced server-side. */
   async updateEstado(id: string, estado: OrdenEstado): Promise<void> {
     const { error } = await this.supabase.client
       .schema('sgc')
-      .from('ordenes_compra')
-      .update({ estado, updated_at: new Date().toISOString() })
-      .eq('id', id);
+      .rpc('actualizar_estado_orden', { p_orden_id: id, p_nuevo_estado: estado });
 
     if (error) throw new Error(error.message);
   }

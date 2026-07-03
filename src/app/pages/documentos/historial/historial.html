@@ -30,7 +30,7 @@
       <tbody>
         @for (d of documentos(); track d.id) {
           <tr class="clickable-row" [routerLink]="['/documentos/ver', d.id]">
-            <td>{{ formatFecha(d.created_at.slice(0, 10)) }}</td>
+            <td>{{ formatTimestamp(d.created_at) }}</td>
             <td>{{ d.plantilla ? CATEGORIA_LABELS[d.plantilla.categoria] : '—' }}</td>
             <td>{{ d.nombre }}</td>
             <td class="text-muted">{{ d.proyecto?.nombre ?? '—' }}</td>

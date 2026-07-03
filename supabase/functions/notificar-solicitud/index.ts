@@ -26,12 +26,42 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// solicitante/proyecto nombres are user-controlled text (a profile name, a
+// project name) interpolated into HTML sent to real inboxes — escape before
+// building the email body.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
+    // This isn't a privileged action (it only ever sends an informational
+    // email reflecting real, already-persisted state — see the
+    // estado-matches-evento check below), so unlike the admin-* functions
+    // there's no is_admin()/module check here. Still requires a real,
+    // valid session — not just "reachable" — matching verify_jwt=true at
+    // the platform level with an explicit check in code too.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return json({ error: "No autenticado." }, 401);
+    }
+    const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: callerData, error: callerError } = await callerClient.auth.getUser();
+    if (callerError || !callerData.user) {
+      return json({ error: "Sesión inválida." }, 401);
+    }
+
     const { tipo, solicitudId, evento } = await req.json();
 
     if (
@@ -82,6 +112,8 @@ Deno.serve(async (req: Request) => {
     }
 
     const tipoLabel = tipo === "material" ? "materiales" : "compra";
+    const solicitanteNombre = escapeHtml(solicitud.solicitante?.nombre ?? "Un ingeniero de campo");
+    const proyectoNombre = escapeHtml(solicitud.proyecto?.nombre ?? "—");
     let to: string[] = [];
     let subject = "";
     let html = "";
@@ -90,14 +122,14 @@ Deno.serve(async (req: Request) => {
       const modulo = tipo === "material" ? "inventario" : "compras";
       const { data: usuarios } = await supabase.rpc("usuarios_con_modulo", { p_modulo: modulo });
       to = ((usuarios ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
-      subject = `Nueva solicitud de ${tipoLabel} — ${solicitud.proyecto?.nombre ?? "Proyecto"}`;
-      html = `<p><strong>${solicitud.solicitante?.nombre ?? "Un ingeniero de campo"}</strong> solicitó ${tipoLabel} para el proyecto <strong>${solicitud.proyecto?.nombre ?? "—"}</strong>.</p><p>Ingresa a SGC para revisarla.</p>`;
+      subject = `Nueva solicitud de ${tipoLabel} — ${proyectoNombre}`;
+      html = `<p><strong>${solicitanteNombre}</strong> solicitó ${tipoLabel} para el proyecto <strong>${proyectoNombre}</strong>.</p><p>Ingresa a SGC para revisarla.</p>`;
     } else {
       const email = solicitud.solicitante?.email;
       if (email) to = [email];
       const estadoLabel = evento === "aprobada" ? "aprobada" : "rechazada";
       subject = `Tu solicitud de ${tipoLabel} fue ${estadoLabel}`;
-      html = `<p>Tu solicitud de ${tipoLabel} para el proyecto <strong>${solicitud.proyecto?.nombre ?? "—"}</strong> fue <strong>${estadoLabel}</strong>.</p><p>Ingresa a SGC para ver el detalle.</p>`;
+      html = `<p>Tu solicitud de ${tipoLabel} para el proyecto <strong>${proyectoNombre}</strong> fue <strong>${estadoLabel}</strong>.</p><p>Ingresa a SGC para ver el detalle.</p>`;
     }
 
     if (to.length === 0) {

@@ -6,7 +6,7 @@ import { UserService } from '../../../core/services/user.service';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
 interface ItemRow {
   descripcion: string;
@@ -33,6 +33,7 @@ export class SolicitudesCompra implements OnInit {
   private userService = inject(UserService);
 
   formatFecha = formatFechaDisplay;
+  formatTimestamp = formatTimestampDisplay;
   estadoBadge = (estado: string) => ESTADO_BADGE[estado] ?? 'neutral';
 
   solicitudes = signal<SolicitudCompra[]>([]);

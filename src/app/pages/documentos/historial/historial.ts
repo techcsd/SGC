@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { RouterLink } from '@angular/router';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { DocumentoGenerado, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-documentos-historial',
@@ -16,6 +16,7 @@ export class Historial implements OnInit {
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
   formatFecha = formatFechaDisplay;
+  formatTimestamp = formatTimestampDisplay;
 
   documentos = signal<DocumentoGenerado[]>([]);
   loading = signal(true);

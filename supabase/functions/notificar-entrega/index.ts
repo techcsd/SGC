@@ -20,12 +20,39 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// notas_recepcion is free-text typed by whoever confirmed the delivery —
+// the least trusted input in this function — plus article/project/recibido
+// names. All interpolated into HTML sent to real inboxes; escape first.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   try {
+    // Not a privileged action (informational only, and gated below on the
+    // salida's actual persisted estado) — but still requires a real
+    // session, matching verify_jwt=true with an explicit check in code.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return json({ error: "No autenticado." }, 401);
+    }
+    const callerClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: callerData, error: callerError } = await callerClient.auth.getUser();
+    if (callerError || !callerData.user) {
+      return json({ error: "Sesión inválida." }, 401);
+    }
+
     const { salidaId } = await req.json();
     if (!salidaId) {
       return json({ error: "Parámetros inválidos." }, 400);
@@ -65,15 +92,24 @@ Deno.serve(async (req: Request) => {
       return json({ skipped: true, reason: "Sin destinatarios." });
     }
 
+    const proyectoNombre = escapeHtml(salida.proyecto?.nombre ?? "Proyecto");
+    const recibidoNombre = escapeHtml(salida.recibido?.nombre ?? "el receptor");
+
     const faltantes = (
       (salida.detalle_salidas ?? []) as { cantidad: number; cantidad_recibida: number | null; articulo?: { nombre: string } }[]
     )
       .filter((d) => d.cantidad_recibida == null || d.cantidad_recibida < d.cantidad)
-      .map((d) => `<li>${d.articulo?.nombre ?? "Artículo"}: enviado ${d.cantidad}, recibido ${d.cantidad_recibida ?? 0}</li>`)
+      .map(
+        (d) =>
+          `<li>${escapeHtml(d.articulo?.nombre ?? "Artículo")}: enviado ${d.cantidad}, recibido ${d.cantidad_recibida ?? 0}</li>`,
+      )
       .join("");
 
-    const subject = `Entrega incompleta — ${salida.proyecto?.nombre ?? "Proyecto"}`;
-    const html = `<p>Se confirmó una entrega <strong>incompleta</strong> para el proyecto <strong>${salida.proyecto?.nombre ?? "—"}</strong>, reportada por ${salida.recibido?.nombre ?? "el receptor"}.</p><ul>${faltantes}</ul>${salida.notas_recepcion ? `<p><strong>Nota:</strong> ${salida.notas_recepcion}</p>` : ""}<p>Ingresa a SGC para revisarla.</p>`;
+    const subject = `Entrega incompleta — ${proyectoNombre}`;
+    const notaHtml = salida.notas_recepcion
+      ? `<p><strong>Nota:</strong> ${escapeHtml(salida.notas_recepcion)}</p>`
+      : "";
+    const html = `<p>Se confirmó una entrega <strong>incompleta</strong> para el proyecto <strong>${proyectoNombre}</strong>, reportada por ${recibidoNombre}.</p><ul>${faltantes}</ul>${notaHtml}<p>Ingresa a SGC para revisarla.</p>`;
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",

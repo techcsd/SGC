@@ -24,6 +24,24 @@ export function formatFechaDisplay(fecha: string | null | undefined): string {
   return `${d}/${m}/${y}`;
 }
 
+/**
+ * Formats a full ISO timestamp (e.g. a `timestamptz` column like `created_at`) as a local
+ * calendar date, e.g. `2026-07-03T01:00:00Z` → `02/07/2026` for someone in Santo Domingo
+ * (UTC-4). Do NOT `.slice(0, 10)` a timestamp before calling formatFechaDisplay — that
+ * extracts the UTC calendar date, which is the wrong day for anything submitted roughly
+ * 8pm–midnight local time. `new Date(timestamp)` is correct here specifically because the
+ * string carries an explicit UTC offset (`Z`), unlike a bare `YYYY-MM-DD` date-only string.
+ */
+export function formatTimestampDisplay(timestamp: string | null | undefined): string {
+  if (!timestamp) return '—';
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return '—';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${day}/${m}/${y}`;
+}
+
 /** Whether a `YYYY-MM-DD` fecha falls within [from, to] (inclusive), both optional. */
 export function isDateInRange(fecha: string, from?: string | null, to?: string | null): boolean {
   if (from && fecha < from) return false;

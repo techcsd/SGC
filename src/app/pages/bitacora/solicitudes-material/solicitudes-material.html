@@ -40,7 +40,7 @@
       <tbody>
         @for (s of solicitudes(); track s.id) {
           <tr>
-            <td>{{ formatFecha(s.created_at.slice(0, 10)) }}</td>
+            <td>{{ formatTimestamp(s.created_at) }}</td>
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
             <td class="text-muted">{{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}</td>
             <td>
@@ -51,7 +51,7 @@
               }
             </td>
             <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ s.estado }}</span></td>
-            <td class="text-muted">{{ s.atendido_en ? formatFecha(s.atendido_en.slice(0, 10)) : '—' }}</td>
+            <td class="text-muted">{{ s.atendido_en ? formatTimestamp(s.atendido_en) : '—' }}</td>
           </tr>
         }
       </tbody>
