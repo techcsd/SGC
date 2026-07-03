@@ -111,6 +111,13 @@
   overflow-x: auto;
 }
 
+.salidas__incidencia {
+  padding: 8px 16px !important;
+  font-size: 13px;
+  color: var(--sgc-danger);
+  background: var(--sgc-danger-light);
+}
+
 // ── Data table ───────────────────────────────────────────
 .data-table {
   width: 100%;

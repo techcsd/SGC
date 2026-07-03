@@ -149,6 +149,7 @@
             <th>Proyecto</th>
             <th>Responsable</th>
             <th class="text-right">Artículos</th>
+            <th>Entrega</th>
             <th></th>
           </tr>
         </thead>
@@ -166,9 +167,25 @@
               <td class="text-muted">{{ s.responsable || '—' }}</td>
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
               <td>
+                <span
+                  class="sgc-badge"
+                  [class.sgc-badge--warning]="s.estado === 'despachado'"
+                  [class.sgc-badge--success]="s.estado === 'entregado'"
+                  [class.sgc-badge--danger]="s.estado === 'entregado_incompleto'"
+                  [attr.title]="s.recibido?.nombre ? ('Confirmado por ' + s.recibido?.nombre) : null"
+                >{{ ESTADO_LABELS[s.estado] }}</span>
+              </td>
+              <td>
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', s.id, 'conduce']">Conduce</a>
               </td>
             </tr>
+            @if (s.estado === 'entregado_incompleto' && s.notas_recepcion) {
+              <tr>
+                <td colspan="8" class="salidas__incidencia">
+                  <strong>Incidencia:</strong> {{ s.notas_recepcion }}
+                </td>
+              </tr>
+            }
           }
         </tbody>
       </table>

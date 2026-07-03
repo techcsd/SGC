@@ -1,9 +1,18 @@
+export type SalidaEstado = 'despachado' | 'entregado' | 'entregado_incompleto';
+
+export const SALIDA_ESTADO_LABELS: Record<SalidaEstado, string> = {
+  despachado: 'Despachado',
+  entregado: 'Entregado',
+  entregado_incompleto: 'Entregado (incompleto)',
+};
+
 export interface DetalleSalida {
   id: string;
   salida_id: string;
   articulo_id: string;
   articulo?: { nombre: string; codigo: string; unidad: string };
   cantidad: number;
+  cantidad_recibida: number | null;
 }
 
 export interface SalidaInventario {
@@ -18,6 +27,15 @@ export interface SalidaInventario {
   observaciones: string | null;
   creado_por: string | null;
   created_at: string;
+  estado: SalidaEstado;
+  conductor_id: string | null;
+  conductor?: { nombre: string } | null;
+  vehiculo_id: string | null;
+  vehiculo?: { placa: string } | null;
+  recibido_por: string | null;
+  recibido?: { nombre: string } | null;
+  recibido_en: string | null;
+  notas_recepcion: string | null;
   detalle_salidas?: DetalleSalida[];
 }
 
@@ -33,6 +51,8 @@ export interface SalidaFormData {
   motivo: string;
   responsable: string | null;
   observaciones: string | null;
+  conductor_id: string | null;
+  vehiculo_id: string | null;
   items: SalidaItemFormData[];
 }
 

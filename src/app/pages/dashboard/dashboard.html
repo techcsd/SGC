@@ -57,6 +57,16 @@
           <span class="kpi-value">{{ bitacorasSemana() }}</span>
         </div>
       }
+      @if (canSeeEntregas()) {
+        <div class="kpi-card kpi-card--warning">
+          <span class="kpi-label">Entregas por confirmar</span>
+          <span class="kpi-value">{{ entregasPendientesCount() }}</span>
+        </div>
+        <div class="kpi-card kpi-card--danger">
+          <span class="kpi-label">Entregas incompletas (30 días)</span>
+          <span class="kpi-value">{{ entregasIncompletasCount() }}</span>
+        </div>
+      }
     </div>
 
     <!-- Charts -->

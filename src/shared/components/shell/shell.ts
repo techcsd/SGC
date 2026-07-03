@@ -114,6 +114,7 @@ export class Shell implements OnInit {
         { label: 'Mi proyecto', route: '/bitacora/mi-proyecto' },
         { label: 'Solicitar materiales', route: '/bitacora/solicitudes-material' },
         { label: 'Solicitar compra', route: '/bitacora/solicitudes-compra' },
+        { label: 'Confirmar entregas', route: '/bitacora/entregas' },
       ],
     },
     {
@@ -158,20 +159,25 @@ export class Shell implements OnInit {
     const checks: Promise<void>[] = [];
 
     if (this.userService.hasModulo('inventario') || this.isAdmin()) {
-      checks.push(this.loadPendingCount('solicitudes_material', 'inventario'));
+      checks.push(this.loadPendingCount('solicitudes_material', 'pendiente', 'inventario'));
     }
     if (this.userService.hasModulo('compras') || this.isAdmin()) {
-      checks.push(this.loadPendingCount('solicitudes_compra', 'compras'));
+      checks.push(this.loadPendingCount('solicitudes_compra', 'pendiente', 'compras'));
+    }
+    if (this.userService.hasModulo('bitacora') || this.isAdmin()) {
+      // RLS already scopes this to the caller's own project(s) for an
+      // engineer, or every despachado delivery for admin/inventario.
+      checks.push(this.loadPendingCount('salidas_inventario', 'despachado', 'bitacora'));
     }
 
     await Promise.all(checks);
   }
 
-  private async loadPendingCount(table: string, modulo: string): Promise<void> {
+  private async loadPendingCount(table: string, estado: string, modulo: string): Promise<void> {
     const { count } = await this.supabase.client
       .from(table)
       .select('id', { count: 'exact', head: true })
-      .eq('estado', 'pendiente');
+      .eq('estado', estado);
     this.pendingByModulo.update((m) => ({ ...m, [modulo]: count ?? 0 }));
   }
 

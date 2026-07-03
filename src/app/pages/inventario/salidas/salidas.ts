@@ -14,7 +14,7 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { UserService } from '../../../core/services/user.service';
-import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA } from '../../../../shared/models/salida.model';
+import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -67,6 +67,7 @@ export class Salidas implements OnInit {
   formItems = signal<SalidaItemFormData[]>([{ articulo_id: '', cantidad: 1 }]);
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
+  readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
 
   formatFecha = formatFechaDisplay;
   readonly today = todayIso();
@@ -310,6 +311,8 @@ export class Salidas implements OnInit {
             fecha: v.fecha!,
             responsable: v.responsable ?? null,
             observaciones: v.observaciones ?? null,
+            conductor_id: null,
+            vehiculo_id: null,
             items,
           },
           userId,

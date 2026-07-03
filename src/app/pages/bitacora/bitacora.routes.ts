@@ -13,4 +13,8 @@ export const bitacoraRoutes: Routes = [
     path: 'solicitudes-compra',
     loadComponent: () => import('./solicitudes-compra/solicitudes-compra').then((m) => m.SolicitudesCompra),
   },
+  {
+    path: 'entregas',
+    loadComponent: () => import('./entregas/entregas').then((m) => m.Entregas),
+  },
 ];

@@ -1,0 +1,117 @@
+<div class="entregas">
+
+  <!-- Page header -->
+  <div class="entregas__header">
+    <div>
+      <h1>Confirmar Entregas</h1>
+      <p>Materiales despachados hacia tu proyecto, pendientes de confirmar recepción.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="entregas__loading" aria-live="polite">
+      <span class="entregas__spinner" aria-hidden="true"></span>
+      <span>Cargando entregas...</span>
+    </div>
+  } @else if (error()) {
+    <div class="entregas__error" role="alert">{{ error() }}</div>
+  } @else if (entregas().length === 0) {
+    <p class="entregas__empty">No hay entregas pendientes de confirmar.</p>
+  } @else {
+    <ul class="entregas__list">
+      @for (s of entregas(); track s.id) {
+        <li class="entregas__card">
+          <div class="entregas__card-top">
+            <span class="entregas__card-fecha">{{ formatFecha(s.fecha) }}</span>
+            <span class="entregas__card-proyecto">{{ s.proyecto?.nombre ?? '—' }}</span>
+            <span class="sgc-badge sgc-badge--warning">Despachado</span>
+          </div>
+          <ul class="entregas__items-preview">
+            @for (d of s.detalle_salidas ?? []; track d.id) {
+              <li>{{ d.articulo?.nombre }} — {{ d.cantidad }} {{ d.articulo?.unidad }}</li>
+            }
+          </ul>
+          @if (s.observaciones) {
+            <p class="entregas__card-obs">{{ s.observaciones }}</p>
+          }
+          <button class="sgc-btn sgc-btn--primary" type="button" (click)="openConfirm(s)">
+            Confirmar recepción
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+</div>
+
+<!-- Confirm drawer -->
+<app-form-drawer title="Confirmar recepción" [open]="drawerOpen()" (closed)="closeDrawer()">
+  @if (selected(); as s) {
+    <div class="entregas__detail-meta">
+      <span>{{ formatFecha(s.fecha) }}</span>
+      <span>{{ s.proyecto?.nombre ?? '—' }}</span>
+    </div>
+
+    <table class="entregas__confirm-table" aria-label="Artículos a confirmar">
+      <thead>
+        <tr>
+          <th>Artículo</th>
+          <th class="text-right">Enviado</th>
+          <th class="text-right">Recibido</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of recepcionItems(); track item.detalle_id; let i = $index) {
+          <tr [class.entregas__row--short]="item.cantidad_recibida < item.cantidad_enviada">
+            <td>{{ item.articulo_nombre }}</td>
+            <td class="text-right">{{ item.cantidad_enviada }} {{ item.unidad }}</td>
+            <td class="text-right">
+              <input
+                type="number"
+                min="0"
+                [value]="item.cantidad_recibida"
+                (input)="updateCantidadRecibida(i, $any($event.target).value)"
+                class="entregas__qty-input"
+                [attr.aria-label]="'Cantidad recibida de ' + item.articulo_nombre"
+              />
+            </td>
+            <td>
+              @if (item.cantidad_recibida < item.cantidad_enviada) {
+                <button type="button" class="entregas__ok-btn" (click)="marcarCompleto(i)">Todo llegó</button>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (hayFaltante()) {
+      <p class="entregas__warning">
+        Hay artículos con menos cantidad de la enviada — la entrega se marcará como <strong>incompleta</strong> e Inventario será notificado.
+      </p>
+    }
+
+    <div class="sgc-field">
+      <label for="notas-recepcion">Notas (opcional)</label>
+      <textarea
+        id="notas-recepcion"
+        rows="3"
+        [value]="notas()"
+        (input)="notas.set($any($event.target).value)"
+        placeholder="Ej: llegó un tubo dañado, faltaron 2 sacos de cemento..."
+      ></textarea>
+    </div>
+
+    @if (saveError()) {
+      <p class="entregas__save-error" role="alert">{{ saveError() }}</p>
+    }
+
+    <div class="entregas__drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="onConfirm()">
+        @if (saving()) { Confirmando... } @else { Confirmar recepción }
+      </button>
+    </div>
+  }
+</app-form-drawer>

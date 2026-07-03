@@ -115,6 +115,9 @@ export class Dashboard implements OnInit {
   canSeeBitacora = computed(
     () => this.isAdmin() || this.canAccess('proyectos') || this.canAccess('bitacora'),
   );
+  canSeeEntregas = computed(
+    () => this.isAdmin() || this.canAccess('inventario') || this.canAccess('proyectos'),
+  );
 
   // ── Raw data signals ─────────────────────────────────────
   private articulos = signal<{ id: string; precio_estimado: number | null; stock_minimo: number; activo: boolean; categoria_id: number; categoria?: { nombre: string } }[]>([]);
@@ -132,6 +135,8 @@ export class Dashboard implements OnInit {
     { tipo: 'material' | 'compra'; proyecto: string; solicitante: string; urgencia: string; created_at: string }[]
   >([]);
   bitacorasSemana = signal(0);
+  entregasPendientesCount = signal(0);
+  entregasIncompletasCount = signal(0);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -373,6 +378,8 @@ export class Dashboard implements OnInit {
         solicitudesMaterialRes,
         solicitudesCompraRes,
         bitacorasSemanaRes,
+        entregasPendientesRes,
+        entregasIncompletasRes,
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
@@ -406,6 +413,15 @@ export class Dashboard implements OnInit {
           .from('bitacoras')
           .select('id', { count: 'exact', head: true })
           .gte('fecha', fechaDesde),
+        this.supabase.client
+          .from('salidas_inventario')
+          .select('id', { count: 'exact', head: true })
+          .eq('estado', 'despachado'),
+        this.supabase.client
+          .from('salidas_inventario')
+          .select('id', { count: 'exact', head: true })
+          .eq('estado', 'entregado_incompleto')
+          .gte('fecha', daysAgoIso(29)),
       ]);
 
       this.articulos.set(
@@ -431,6 +447,8 @@ export class Dashboard implements OnInit {
       this.solicitudesMaterialCount.set(solicitudesMaterialRes.count ?? 0);
       this.solicitudesCompraCount.set(solicitudesCompraRes.count ?? 0);
       this.bitacorasSemana.set(bitacorasSemanaRes.count ?? 0);
+      this.entregasPendientesCount.set(entregasPendientesRes.count ?? 0);
+      this.entregasIncompletasCount.set(entregasIncompletasRes.count ?? 0);
 
       const materialItems = (
         (solicitudesMaterialRes.data ?? []) as unknown as {
