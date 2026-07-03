@@ -61,6 +61,9 @@ export class AdminUsuarios implements OnInit {
   resettingId = signal<string | null>(null);
   resetMessage = signal<{ userId: string; text: string } | null>(null);
 
+  // ── Delete ───────────────────────────────────────────────
+  deletingId = signal<string | null>(null);
+
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -172,6 +175,23 @@ export class AdminUsuarios implements OnInit {
       });
     } finally {
       this.resettingId.set(null);
+    }
+  }
+
+  /** Only actually removes the user if they have zero associated records anywhere — Postgres enforces this. */
+  async deleteUsuario(usuario: UsuarioAdmin) {
+    if (this.isSelf(usuario)) return;
+    if (!confirm(`¿Eliminar permanentemente a "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
+
+    this.deletingId.set(usuario.id);
+    this.error.set('');
+    try {
+      await this.adminService.deleteUsuario(usuario.id);
+      this.usuarios.update((list) => list.filter((u) => u.id !== usuario.id));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al eliminar el usuario.');
+    } finally {
+      this.deletingId.set(null);
     }
   }
 

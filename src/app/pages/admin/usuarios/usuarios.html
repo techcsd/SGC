@@ -129,6 +129,16 @@
               >
                 <span class="admin-usuarios__toggle-knob"></span>
               </button>
+              <button
+                class="admin-usuarios__btn-delete"
+                type="button"
+                (click)="deleteUsuario(usuario)"
+                [disabled]="isSelf(usuario) || deletingId() === usuario.id"
+                [attr.title]="isSelf(usuario) ? 'No puedes eliminar tu propia cuenta' : 'Solo se puede eliminar un usuario sin actividad registrada'"
+                [attr.aria-label]="'Eliminar ' + usuario.nombre"
+              >
+                @if (deletingId() === usuario.id) { Eliminando... } @else { Eliminar }
+              </button>
             </td>
           </tr>
           @if (resetMessage() && resetMessage()?.userId === usuario.id) {

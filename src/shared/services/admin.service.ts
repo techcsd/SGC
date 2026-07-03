@@ -79,6 +79,15 @@ export class AdminService {
     return data as { sent: boolean; actionLink?: string };
   }
 
+  /** Only succeeds for a user with zero associated records anywhere (Postgres enforces this, not app code). */
+  async deleteUsuario(id: string): Promise<void> {
+    const { data, error } = await this.supabase.client.functions.invoke('admin-delete-user', {
+      body: { userId: id },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+  }
+
   async assignRoles(usuarioId: string, rolIds: number[], asignadoPor: string): Promise<void> {
     // Atomic delete+insert via RPC — a failed insert must not leave the user with zero roles
     const { error } = await this.supabase.client.rpc('assign_roles', {
