@@ -19,6 +19,7 @@
     "@angular/router": "^21.2.0",
     "@supabase/supabase-js": "^2.108.2",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^1.1.0",
     "mammoth": "^1.12.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
