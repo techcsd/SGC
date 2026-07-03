@@ -21,9 +21,9 @@
 }
 
 .soporte__form-card {
-  background: #161616;
-  border: 1px solid #2d2d2d;
-  border-radius: 14px;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
   padding: 24px;
 }
 
@@ -90,9 +90,9 @@
 }
 
 .soporte__item {
-  background: #161616;
-  border: 1px solid #2d2d2d;
-  border-radius: 14px;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
   padding: 16px;
 }
 
