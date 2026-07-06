@@ -4,7 +4,7 @@ import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bitacora, BitacoraArchivo } from '../../../../shared/models/bitacora.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 @Component({
@@ -19,6 +19,7 @@ export class Historial implements OnInit {
   private proyectosService = inject(ProyectosService);
 
   formatFecha = formatFechaDisplay;
+  formatHora = formatHora12;
 
   bitacoras = signal<Bitacora[]>([]);
   proyectos = signal<Proyecto[]>([]);

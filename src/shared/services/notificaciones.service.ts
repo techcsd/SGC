@@ -29,6 +29,9 @@ export class NotificacionesService {
       // engineer, or every despachado delivery for admin/inventario.
       checks.push(this.loadCount('salidas_inventario', 'despachado', 'bitacora'));
     }
+    if (this.userService.hasModulo('legal') || isAdmin) {
+      checks.push(this.loadCount('aprobaciones_legales', 'pendiente', 'legal'));
+    }
 
     await Promise.all(checks);
   }

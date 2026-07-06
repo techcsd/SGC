@@ -29,6 +29,7 @@ import { EmpleadosService } from '../../../../shared/services/empleados.service'
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface UsuarioSimple {
   id: string;
@@ -57,6 +58,8 @@ export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
   private empleadosService = inject(EmpleadosService);
   private supabase = inject(SupabaseService);
+
+  formatFecha = formatFechaDisplay;
 
   // ── Data ─────────────────────────────────────────────────
   proyectos = signal<Proyecto[]>([]);

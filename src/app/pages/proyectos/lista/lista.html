@@ -106,10 +106,10 @@
               @if (p.fecha_inicio || p.fecha_fin_estimada) {
                 <div class="proyectos__card-fechas">
                   @if (p.fecha_inicio) {
-                    <span>Inicio: {{ p.fecha_inicio }}</span>
+                    <span>Inicio: {{ formatFecha(p.fecha_inicio) }}</span>
                   }
                   @if (p.fecha_fin_estimada) {
-                    <span>Fin est.: {{ p.fecha_fin_estimada }}</span>
+                    <span>Fin est.: {{ formatFecha(p.fecha_fin_estimada) }}</span>
                   }
                 </div>
               }
@@ -346,19 +346,19 @@
         @if (p.fecha_inicio) {
           <div class="proyectos__detail-item">
             <span class="proyectos__detail-key">Fecha inicio</span>
-            <span class="proyectos__detail-val">{{ p.fecha_inicio }}</span>
+            <span class="proyectos__detail-val">{{ formatFecha(p.fecha_inicio) }}</span>
           </div>
         }
         @if (p.fecha_fin_estimada) {
           <div class="proyectos__detail-item">
             <span class="proyectos__detail-key">Fin estimado</span>
-            <span class="proyectos__detail-val">{{ p.fecha_fin_estimada }}</span>
+            <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_estimada) }}</span>
           </div>
         }
         @if (p.fecha_fin_real) {
           <div class="proyectos__detail-item">
             <span class="proyectos__detail-key">Fin real</span>
-            <span class="proyectos__detail-val">{{ p.fecha_fin_real }}</span>
+            <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_real) }}</span>
           </div>
         }
         @if (p.presupuesto) {
@@ -527,8 +527,8 @@
             </div>
             @if (fase.fecha_inicio || fase.fecha_fin) {
               <div class="proyectos__fase-fechas">
-                @if (fase.fecha_inicio) { <span>{{ fase.fecha_inicio }}</span> }
-                @if (fase.fecha_fin) { <span>→ {{ fase.fecha_fin }}</span> }
+                @if (fase.fecha_inicio) { <span>{{ formatFecha(fase.fecha_inicio) }}</span> }
+                @if (fase.fecha_fin) { <span>→ {{ formatFecha(fase.fecha_fin) }}</span> }
               </div>
             }
           </div>

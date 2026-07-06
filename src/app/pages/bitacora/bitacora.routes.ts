@@ -17,4 +17,12 @@ export const bitacoraRoutes: Routes = [
     path: 'entregas',
     loadComponent: () => import('./entregas/entregas').then((m) => m.Entregas),
   },
+  {
+    // Engineers reach a conduce for their own delivery here (RLS scopes the
+    // salida to their project). The /inventario/... conduce route is behind the
+    // inventario module guard, which field engineers don't have.
+    path: 'entregas/:id/conduce',
+    loadComponent: () => import('../inventario/conduce/conduce').then((m) => m.Conduce),
+    title: 'Conduce',
+  },
 ];

@@ -23,7 +23,7 @@
       <strong>{{ proximosMantenimientos().length }} mantenimiento{{ proximosMantenimientos().length !== 1 ? 's' : '' }} próximo{{ proximosMantenimientos().length !== 1 ? 's' : '' }}</strong>
       <span>
         @for (m of proximosMantenimientos(); track m.id; let last = $last) {
-          {{ m.vehiculo?.placa ?? '—' }} ({{ m.fecha }}){{ !last ? ', ' : '' }}
+          {{ m.vehiculo?.placa ?? '—' }} ({{ formatFecha(m.fecha) }}){{ !last ? ', ' : '' }}
         }
       </span>
     </div>
@@ -123,7 +123,7 @@
         <tbody>
           @for (m of paginated(); track m.id) {
             <tr>
-              <td class="mantenimientos__fecha">{{ m.fecha }}</td>
+              <td class="mantenimientos__fecha">{{ formatFecha(m.fecha) }}</td>
               <td>
                 <span class="mantenimientos__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
                 @if (m.vehiculo) {

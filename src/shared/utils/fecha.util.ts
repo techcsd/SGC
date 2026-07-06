@@ -42,6 +42,43 @@ export function formatTimestampDisplay(timestamp: string | null | undefined): st
   return `${day}/${m}/${y}`;
 }
 
+/**
+ * Formats a time-of-day string as 12-hour with AM/PM. Accepts `HH:mm` or
+ * `HH:mm:ss` (Postgres `time` columns), e.g. `17:30:00` → `5:30 PM`, `08:00` → `8:00 AM`.
+ */
+export function formatHora12(hora: string | null | undefined): string {
+  if (!hora) return '—';
+  const parts = hora.split(':');
+  let h = Number(parts[0]);
+  const m = parts[1] ?? '00';
+  if (isNaN(h)) return hora;
+  const period = h >= 12 ? 'p.m.' : 'a.m.';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m.padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Human-readable tenure since a `YYYY-MM-DD` ingreso date — accurate to the month,
+ * e.g. `Menos de 1 mes`, `5 meses`, `1 año`, `2 años 3 meses`. Computed from local
+ * date parts (never `new Date(dateOnlyString)`, which would shift a day in UTC-4).
+ */
+export function formatAntiguedad(fecha: string | null | undefined): string {
+  if (!fecha) return '—';
+  const [y, m, d] = fecha.split('-').map(Number);
+  if (!y || !m || !d) return '—';
+  const today = new Date();
+  let months = (today.getFullYear() - y) * 12 + (today.getMonth() + 1 - m);
+  if (today.getDate() < d) months--; // current month not yet completed
+  if (months < 0) return '—';
+  if (months === 0) return 'Menos de 1 mes';
+  if (months < 12) return `${months} mes${months !== 1 ? 'es' : ''}`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  const yearPart = `${years} año${years !== 1 ? 's' : ''}`;
+  return remMonths > 0 ? `${yearPart} ${remMonths} mes${remMonths !== 1 ? 'es' : ''}` : yearPart;
+}
+
 /** Whether a `YYYY-MM-DD` fecha falls within [from, to] (inclusive), both optional. */
 export function isDateInRange(fecha: string, from?: string | null, to?: string | null): boolean {
   if (from && fecha < from) return false;

@@ -144,52 +144,26 @@
               <td>
                 <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
               </td>
-              <td>{{ orden.fecha }}</td>
-              <td>{{ orden.fecha_entrega_esperada ?? '—' }}</td>
+              <td>{{ formatFecha(orden.fecha) }}</td>
+              <td>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</td>
               <td class="text-right">
                 <span class="orden-total">DOP {{ orden.total | number:'1.2-2' }}</span>
               </td>
               <td>
                 <div class="row-actions">
-                  <!-- Ver detalle -->
+                  <!-- Ver detalle (estado se cambia dentro del detalle) -->
                   <button
                     type="button"
                     class="action-btn action-btn--view"
                     (click)="openDetail(orden)"
                     [attr.aria-label]="'Ver orden ' + orden.numero"
-                    title="Ver detalle"
+                    title="Ver detalle y cambiar estado"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                       <circle cx="12" cy="12" r="3"/>
                     </svg>
                   </button>
-
-                  <!-- Cambiar estado -->
-                  <div class="estado-menu">
-                    <button
-                      type="button"
-                      class="action-btn action-btn--estado"
-                      [attr.aria-label]="'Cambiar estado de orden ' + orden.numero"
-                      title="Cambiar estado"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </button>
-                    <div class="estado-dropdown" role="menu">
-                      @for (e of nextEstados(orden.estado); track e) {
-                        <button
-                          type="button"
-                          class="estado-option"
-                          (click)="cambiarEstado(orden, e)"
-                          role="menuitem"
-                        >
-                          <span [class]="estadoBadgeClass(e)">{{ estadoLabel(e) }}</span>
-                        </button>
-                      }
-                    </div>
-                  </div>
                 </div>
               </td>
             </tr>
@@ -417,11 +391,11 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha</span>
-          <span>{{ orden.fecha }}</span>
+          <span>{{ formatFecha(orden.fecha) }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Entrega esperada</span>
-          <span>{{ orden.fecha_entrega_esperada ?? '—' }}</span>
+          <span>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</span>
         </div>
         @if (orden.notas) {
           <div class="detail-field detail-field--full">

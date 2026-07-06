@@ -28,6 +28,8 @@ export class DocumentosProyecto implements OnInit {
 
   viewerDoc = signal<DocumentoProyecto | null>(null);
   viewerUrl = signal<SafeResourceUrl | null>(null);
+  rawViewerUrl = signal<string | null>(null);
+  downloading = signal(false);
 
   canManage = computed(
     () => this.userService.hasRole('admin') || this.userService.hasModulo('proyectos'),
@@ -89,9 +91,11 @@ export class DocumentosProyecto implements OnInit {
   async abrirVisor(doc: DocumentoProyecto) {
     this.viewerDoc.set(doc);
     this.viewerUrl.set(null);
+    this.rawViewerUrl.set(null);
     if (!doc.contenido_html) {
       try {
         const url = await this.documentosService.getSignedUrl(doc.archivo_path);
+        this.rawViewerUrl.set(url);
         this.viewerUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
       } catch (e: unknown) {
         this.error.set(e instanceof Error ? e.message : 'Error al abrir el documento.');
@@ -102,6 +106,34 @@ export class DocumentosProyecto implements OnInit {
   cerrarVisor() {
     this.viewerDoc.set(null);
     this.viewerUrl.set(null);
+    this.rawViewerUrl.set(null);
+  }
+
+  /** Saves the file to the user's computer with its original name. */
+  async descargar(doc: DocumentoProyecto) {
+    if (this.downloading()) return;
+    this.downloading.set(true);
+    this.error.set('');
+    try {
+      const blob = await this.documentosService.downloadBlob(doc.archivo_path);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.nombre;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al descargar el documento.');
+    } finally {
+      this.downloading.set(false);
+    }
+  }
+
+  abrirEnPestana() {
+    const url = this.rawViewerUrl();
+    if (url) window.open(url, '_blank', 'noopener');
   }
 
   esPdf(doc: DocumentoProyecto): boolean {

@@ -48,23 +48,45 @@
     <div class="docs-proyecto__viewer-backdrop" (click)="cerrarVisor()">
       <div class="docs-proyecto__viewer" (click)="$event.stopPropagation()">
         <div class="docs-proyecto__viewer-header">
-          <span>{{ doc.nombre }}</span>
-          <button type="button" (click)="cerrarVisor()" aria-label="Cerrar">✕</button>
+          <span class="docs-proyecto__viewer-name">{{ doc.nombre }}</span>
+          <div class="docs-proyecto__viewer-actions">
+            @if (rawViewerUrl()) {
+              <button type="button" class="docs-proyecto__viewer-action" (click)="abrirEnPestana()">
+                Abrir en pestaña
+              </button>
+            }
+            <button
+              type="button"
+              class="docs-proyecto__viewer-action docs-proyecto__viewer-action--primary"
+              (click)="descargar(doc)"
+              [disabled]="downloading()"
+            >
+              @if (downloading()) { Descargando… } @else { Descargar }
+            </button>
+            <button type="button" class="docs-proyecto__viewer-close" (click)="cerrarVisor()" aria-label="Cerrar">✕</button>
+          </div>
         </div>
         <div class="docs-proyecto__viewer-body">
           @if (doc.contenido_html) {
             <div class="docs-proyecto__manual" [innerHTML]="doc.contenido_html"></div>
           } @else if (viewerUrl() && esPdf(doc)) {
-            <iframe [src]="viewerUrl()" title="Documento" class="docs-proyecto__frame"></iframe>
+            <iframe [src]="viewerUrl()" title="Vista previa del documento" class="docs-proyecto__frame"></iframe>
           } @else if (viewerUrl() && esImagen(doc)) {
             <img [src]="viewerUrl()" [alt]="doc.nombre" class="docs-proyecto__image" />
           } @else if (viewerUrl()) {
-            <p>
-              Este tipo de archivo no tiene vista previa en la página.
-              <a [href]="viewerUrl()" target="_blank" rel="noopener">Abrir / descargar {{ doc.nombre }}</a>
-            </p>
+            <div class="docs-proyecto__no-preview">
+              <p>Este tipo de archivo no se puede previsualizar en la página.</p>
+              <button
+                type="button"
+                class="sgc-btn sgc-btn--primary"
+                (click)="descargar(doc)"
+                [disabled]="downloading()"
+              >
+                @if (downloading()) { Descargando… } @else { Descargar {{ doc.nombre }} }
+              </button>
+            </div>
           } @else {
-            <p>Cargando vista previa…</p>
+            <p class="docs-proyecto__viewer-loading">Cargando vista previa…</p>
           }
         </div>
       </div>

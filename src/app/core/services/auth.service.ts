@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { AuthError, Session, User } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
+import { environment } from '../../../environments/environment';
 
 export interface AuthResult {
   user: User | null;
@@ -36,7 +37,7 @@ export class AuthService {
 
   async resetPassword(email: string): Promise<{ error: AuthError | null }> {
     const { error } = await this.supabase.client.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/set-password`,
+      redirectTo: `${environment.appUrl || window.location.origin}/auth/set-password`,
     });
     return { error };
   }

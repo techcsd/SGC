@@ -72,6 +72,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/proyectos/proyectos.routes').then((m) => m.proyectosRoutes),
       },
+      {
+        path: 'legal',
+        canActivate: [moduleGuard('legal')],
+        loadChildren: () => import('./pages/legal/legal.routes').then((m) => m.legalRoutes),
+      },
     ],
   },
   {

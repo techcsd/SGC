@@ -27,6 +27,11 @@ export const inventarioRoutes: Routes = [
     title: 'Salidas — Inventario',
   },
   {
+    path: 'conduces',
+    loadComponent: () => import('./conduces/conduces').then((m) => m.Conduces),
+    title: 'Conduces — Inventario',
+  },
+  {
     path: 'salidas/:id/conduce',
     loadComponent: () => import('./conduce/conduce').then((m) => m.Conduce),
     title: 'Conduce',

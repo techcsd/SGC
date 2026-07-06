@@ -60,10 +60,20 @@ export class DocumentosProyectoService {
     return data as unknown as DocumentoProyecto;
   }
 
+  /** Inline URL for the in-page viewer (browser renders PDFs/images directly). */
   async getSignedUrl(path: string): Promise<string> {
     const { data, error } = await this.supabase.client.storage.from(BUCKET).createSignedUrl(path, 3600);
     if (error) throw new Error(error.message);
     return data.signedUrl;
+  }
+
+  /** Downloads the raw bytes so the caller can save them with the original
+   *  filename. Goes through the authenticated client (not a signed URL), which
+   *  sidesteps cross-origin download-attribute quirks entirely. */
+  async downloadBlob(path: string): Promise<Blob> {
+    const { data, error } = await this.supabase.client.storage.from(BUCKET).download(path);
+    if (error) throw new Error(error.message);
+    return data;
   }
 
   async remove(id: string, path: string): Promise<void> {

@@ -18,6 +18,7 @@ import {
 } from '../../../../shared/models/mantenimiento.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-mantenimientos',
@@ -29,6 +30,8 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 export class Mantenimientos implements OnInit {
   private mantenimientosService = inject(MantenimientosService);
   private vehiculosService = inject(VehiculosService);
+
+  formatFecha = formatFechaDisplay;
 
   // ── Data state ──────────────────────────────────────────
   mantenimientos = signal<Mantenimiento[]>([]);

@@ -1,0 +1,15 @@
+// ── Conduces-specific ────────────────────────────────────
+.conduces {
+  &__intro {
+    font-size: 13.5px;
+    color: var(--sgc-text-muted);
+    margin: -4px 0 16px;
+  }
+
+  &__numero {
+    font-weight: 600;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+}

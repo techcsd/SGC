@@ -128,7 +128,7 @@
         <tbody>
           @for (r of paginated(); track r.id) {
             <tr>
-              <td class="combustible__fecha">{{ r.fecha }}</td>
+              <td class="combustible__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
                 @if (r.vehiculo?.marca) {

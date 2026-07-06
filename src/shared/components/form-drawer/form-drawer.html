@@ -7,7 +7,7 @@
     (click)="onBackdropClick($event)"
     (keydown)="onKeydown($event)"
   >
-    <aside class="drawer-panel">
+    <aside class="drawer-panel" #panel tabindex="-1">
 
       <header class="drawer-header">
         <h2 class="drawer-title">{{ title() }}</h2>

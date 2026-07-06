@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
@@ -15,7 +16,7 @@ import { RegistroCombustible, RegistroCombustibleFormData } from '../../../../sh
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { todayIso } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-combustible',
@@ -28,6 +29,8 @@ export class Combustible implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
+
+  formatFecha = formatFechaDisplay;
 
   // ── Data state ──────────────────────────────────────────
   registros = signal<RegistroCombustible[]>([]);
@@ -110,9 +113,18 @@ export class Combustible implements OnInit {
   );
 
   // ── Computed total in form ────────────────────────────────
+  // FormControl.value isn't a signal, so a plain computed() reading it would
+  // cache its initial (null) value forever and the hint below would never
+  // show. Bridge the two controls through valueChanges instead.
+  private litrosValue = toSignal(this.form.controls.litros.valueChanges, {
+    initialValue: this.form.controls.litros.value,
+  });
+  private cplValue = toSignal(this.form.controls.costo_por_litro.valueChanges, {
+    initialValue: this.form.controls.costo_por_litro.value,
+  });
   computedTotal = computed(() => {
-    const litros = this.form.controls.litros.value ?? 0;
-    const cpl = this.form.controls.costo_por_litro.value ?? 0;
+    const litros = this.litrosValue() ?? 0;
+    const cpl = this.cplValue() ?? 0;
     return litros && cpl ? litros * cpl : null;
   });
 

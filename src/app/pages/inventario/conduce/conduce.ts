@@ -1,23 +1,33 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { SalidasService } from '../../../../shared/services/salidas.service';
-import { SalidaInventario } from '../../../../shared/models/salida.model';
-import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import {
+  SalidaInventario,
+  SALIDA_ESTADO_LABELS,
+  MOTIVOS_SALIDA,
+  conduceNumero,
+} from '../../../../shared/models/salida.model';
+import { formatFechaDisplay, formatTimestampDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-conduce',
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Conduce implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private location = inject(Location);
   private salidasService = inject(SalidasService);
 
   formatFecha = formatFechaDisplay;
+  formatTimestamp = formatTimestampDisplay;
   readonly hoy = todayIso();
   readonly numeroConduce: string;
+  readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
 
   salida = signal<SalidaInventario | null>(null);
   loading = signal(true);
@@ -25,7 +35,11 @@ export class Conduce implements OnInit {
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
-    this.numeroConduce = 'CND-' + id.slice(0, 8).toUpperCase();
+    this.numeroConduce = conduceNumero(id);
+  }
+
+  motivoLabel(motivo: string): string {
+    return MOTIVOS_SALIDA.find((m) => m.value === motivo)?.label ?? motivo;
   }
 
   async ngOnInit() {
@@ -46,5 +60,15 @@ export class Conduce implements OnInit {
 
   imprimir() {
     window.print();
+  }
+
+  /** Go back to wherever the user came from (Salidas, the Conduces list, or the
+   *  engineer's Entregas page). Falls back to the dashboard on a direct hit. */
+  volver() {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
   }
 }

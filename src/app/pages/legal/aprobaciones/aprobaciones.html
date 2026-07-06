@@ -1,0 +1,130 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Aprobaciones legales</h1>
+    <span class="page-count">{{ pendientes().length }} pendiente{{ pendientes().length !== 1 ? 's' : '' }}</span>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar">
+  <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'pendientes'" (click)="setTab('pendientes')">
+    Pendientes ({{ pendientes().length }})
+  </button>
+  <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todas'" (click)="setTab('todas')">
+    Todas
+  </button>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando solicitudes…
+    </div>
+  } @else if (visible().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (tab() === 'pendientes') {
+          No hay solicitudes pendientes de revisión.
+        } @else {
+          No hay solicitudes registradas todavía.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Solicitudes de aprobación legal">
+        <thead>
+          <tr>
+            <th>Módulo</th>
+            <th>Título</th>
+            <th>Solicitado por</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of visible(); track a.id) {
+            <tr>
+              <td>{{ moduloLabel(a.modulo_origen) }}</td>
+              <td>
+                <span class="apr-title">{{ a.titulo }}</span>
+                @if (a.descripcion) {
+                  <span class="apr-desc">{{ a.descripcion }}</span>
+                }
+              </td>
+              <td>{{ a.solicitante?.nombre ?? '—' }}</td>
+              <td>{{ a.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td><span [class]="estadoBadgeClass(a.estado)">{{ estadoLabel(a.estado) }}</span></td>
+              <td class="text-center">
+                @if (a.estado === 'pendiente') {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolver(a)">
+                    Revisar
+                  </button>
+                } @else {
+                  <span class="text-muted">{{ a.revisor?.nombre ?? '—' }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Resolve Drawer ── -->
+<app-form-drawer title="Revisar solicitud" [open]="drawerOpen()" (closed)="closeDrawer()">
+  @if (drawerAprobacion(); as a) {
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-field detail-field--full">
+          <span class="detail-field__label">Título</span>
+          <span>{{ a.titulo }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Módulo origen</span>
+          <span>{{ moduloLabel(a.modulo_origen) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Solicitado por</span>
+          <span>{{ a.solicitante?.nombre ?? '—' }}</span>
+        </div>
+        @if (a.descripcion) {
+          <div class="detail-field detail-field--full">
+            <span class="detail-field__label">Descripción</span>
+            <span>{{ a.descripcion }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="comentario">Comentario (opcional)</label>
+        <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="Motivo de la decisión…"></textarea>
+      </div>
+
+      @if (resolveError()) {
+        <div class="save-error" role="alert">{{ resolveError() }}</div>
+      }
+
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazado')">
+          Rechazar
+        </button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolving()" (click)="resolver('aprobado')">
+          @if (resolving()) {
+            <span class="spinner" aria-hidden="true"></span>
+          } @else {
+            Aprobar
+          }
+        </button>
+      </div>
+    </div>
+  }
+</app-form-drawer>

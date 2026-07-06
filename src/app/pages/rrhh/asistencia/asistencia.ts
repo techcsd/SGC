@@ -12,7 +12,7 @@ import { EmpleadosService } from '../../../../shared/services/empleados.service'
 import { Asistencia as AsistenciaModel, AsistenciaFormData, ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../../shared/models/asistencia.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { todayIso } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatHora12 } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-asistencia',
@@ -36,11 +36,16 @@ export class Asistencia implements OnInit {
   // ── Date picker ──────────────────────────────────────────
   selectedDate = signal(this.todayISO());
 
+  // ── Filters ──────────────────────────────────────────────
+  searchQuery = signal('');
+  selectedEstado = signal<string>('');
+
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
   readonly ESTADOS_ASISTENCIA = ESTADOS_ASISTENCIA;
+  formatHora = formatHora12;
 
   form = new FormGroup({
     empleado_id: new FormControl('', [Validators.required]),
@@ -65,6 +70,23 @@ export class Asistencia implements OnInit {
   drawerTitle = computed(() =>
     this.editingId() ? 'Editar registro' : 'Registrar asistencia',
   );
+
+  filteredRegistros = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    const estado = this.selectedEstado();
+    return this.registros().filter((r) => {
+      if (estado && r.estado !== estado) return false;
+      if (q) {
+        const nombre = r.empleado
+          ? `${r.empleado.apellido} ${r.empleado.nombre} ${r.empleado.cargo ?? ''}`
+          : this.getEmpleadoNombre(r.empleado_id);
+        if (!nombre.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  });
+
+  hasActiveFilters = computed(() => !!this.searchQuery() || !!this.selectedEstado());
 
   async ngOnInit() {
     await Promise.all([this.loadRegistros(), this.loadEmpleados()]);
@@ -96,6 +118,20 @@ export class Asistencia implements OnInit {
   async onDateChange(value: string) {
     this.selectedDate.set(value);
     await this.loadRegistros();
+  }
+
+  // ── Filters ──────────────────────────────────────────────
+  onSearch(value: string) {
+    this.searchQuery.set(value);
+  }
+
+  onEstadoFilter(value: string) {
+    this.selectedEstado.set(value);
+  }
+
+  clearFilters() {
+    this.searchQuery.set('');
+    this.selectedEstado.set('');
   }
 
   // ── Drawer ───────────────────────────────────────────────

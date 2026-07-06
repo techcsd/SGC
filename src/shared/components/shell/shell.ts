@@ -58,6 +58,7 @@ export class Shell implements OnInit {
         { label: 'Activos Fijos', route: '/inventario/activos' },
         { label: 'Entradas', route: '/inventario/entradas' },
         { label: 'Salidas', route: '/inventario/salidas' },
+        { label: 'Conduces', route: '/inventario/conduces' },
         { label: 'Bodegas', route: '/inventario/bodegas' },
         { label: 'Reportes', route: '/inventario/reportes' },
       ],
@@ -122,6 +123,16 @@ export class Shell implements OnInit {
         { label: 'Generar documento', route: '/documentos/generar' },
         { label: 'Plantillas', route: '/documentos/plantillas' },
         { label: 'Historial', route: '/documentos/historial' },
+      ],
+    },
+    {
+      label: 'Legal',
+      icon: 'legal',
+      modulo: 'legal',
+      children: [
+        { label: 'Expedientes', route: '/legal/expedientes' },
+        { label: 'Contratos', route: '/legal/contratos' },
+        { label: 'Aprobaciones', route: '/legal/aprobaciones' },
       ],
     },
     {

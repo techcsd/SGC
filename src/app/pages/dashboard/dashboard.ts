@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet, DecimalPipe } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { daysAgoIso, daysFromNowIso, todayIso } from '../../../shared/utils/fecha.util';
+import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 
 interface ModuleCard {
   label: string;
@@ -42,6 +42,8 @@ interface BarItem {
 export class Dashboard implements OnInit {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
+
+  formatFecha = formatFechaDisplay;
 
   profile = this.userService.profile;
 
@@ -105,6 +107,14 @@ export class Dashboard implements OnInit {
       icon: 'documentos',
       color: '#4D4D4D',
     },
+    {
+      label: 'Legal',
+      description: 'Expedientes, contratos y aprobaciones legales.',
+      route: '/legal',
+      modulo: 'legal',
+      icon: 'legal',
+      color: '#6B4226',
+    },
   ];
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
@@ -137,6 +147,8 @@ export class Dashboard implements OnInit {
   bitacorasSemana = signal(0);
   entregasPendientesCount = signal(0);
   entregasIncompletasCount = signal(0);
+  expedientesLegalesAbiertos = signal(0);
+  contratosPorVencer = signal(0);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -380,6 +392,8 @@ export class Dashboard implements OnInit {
         bitacorasSemanaRes,
         entregasPendientesRes,
         entregasIncompletasRes,
+        expedientesLegalesRes,
+        contratosPorVencerRes,
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
@@ -422,6 +436,16 @@ export class Dashboard implements OnInit {
           .select('id', { count: 'exact', head: true })
           .eq('estado', 'entregado_incompleto')
           .gte('fecha', daysAgoIso(29)),
+        this.supabase.client
+          .from('expedientes_legales')
+          .select('id', { count: 'exact', head: true })
+          .neq('estado', 'cerrado'),
+        this.supabase.client
+          .from('contratos')
+          .select('id', { count: 'exact', head: true })
+          .in('estado', ['firmado', 'en_revision'])
+          .not('fecha_vencimiento', 'is', null)
+          .lte('fecha_vencimiento', daysFromNowIso(30)),
       ]);
 
       this.articulos.set(
@@ -449,6 +473,8 @@ export class Dashboard implements OnInit {
       this.bitacorasSemana.set(bitacorasSemanaRes.count ?? 0);
       this.entregasPendientesCount.set(entregasPendientesRes.count ?? 0);
       this.entregasIncompletasCount.set(entregasIncompletasRes.count ?? 0);
+      this.expedientesLegalesAbiertos.set(expedientesLegalesRes.count ?? 0);
+      this.contratosPorVencer.set(contratosPorVencerRes.count ?? 0);
 
       const materialItems = (
         (solicitudesMaterialRes.data ?? []) as unknown as {

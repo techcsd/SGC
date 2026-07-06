@@ -32,6 +32,36 @@
   </div>
 </div>
 
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por nombre o cargo…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar empleado"
+    />
+  </div>
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedEstado()"
+      (change)="onEstadoFilter($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (est of ESTADOS_ASISTENCIA; track est.value) {
+        <option [value]="est.value">{{ est.label }}</option>
+      }
+    </select>
+  </div>
+  @if (hasActiveFilters()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
 <!-- ── Summary bar ── -->
 <div class="asistencia__summary">
   <div class="asistencia__summary-item asistencia__summary-item--presente">
@@ -70,12 +100,18 @@
       <span class="spinner-dark"></span>
       Cargando asistencia…
     </div>
-  } @else if (registros().length === 0) {
+  } @else if (filteredRegistros().length === 0) {
     <div class="table-empty">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
       </svg>
-      <p>No hay registros de asistencia para esta fecha.</p>
+      <p>
+        @if (hasActiveFilters()) {
+          No se encontraron registros con los filtros aplicados.
+        } @else {
+          No hay registros de asistencia para esta fecha.
+        }
+      </p>
     </div>
   } @else {
     <div class="table-scroll">
@@ -92,7 +128,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (reg of registros(); track reg.id) {
+          @for (reg of filteredRegistros(); track reg.id) {
             <tr>
               <td>
                 <div class="asistencia__emp-cell">
@@ -104,8 +140,8 @@
                   }
                 </div>
               </td>
-              <td class="asistencia__time">{{ reg.hora_entrada ?? '—' }}</td>
-              <td class="asistencia__time">{{ reg.hora_salida ?? '—' }}</td>
+              <td class="asistencia__time">{{ formatHora(reg.hora_entrada) }}</td>
+              <td class="asistencia__time">{{ formatHora(reg.hora_salida) }}</td>
               <td class="asistencia__time">{{ getHorasTrabajadas(reg.hora_entrada, reg.hora_salida) }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(reg.estado)">

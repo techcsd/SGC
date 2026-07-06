@@ -118,7 +118,7 @@
       <div class="admin-reportes__detail-meta">
         <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
         <span>{{ r.usuario?.nombre ?? '—' }} · {{ r.usuario?.email }}</span>
-        <span>{{ r.created_at | date:'dd MMM yyyy, HH:mm' }}</span>
+        <span>{{ r.created_at | date:'dd MMM yyyy, h:mm a' }}</span>
       </div>
       <p class="admin-reportes__detail-desc">{{ r.descripcion }}</p>
     </div>

@@ -1,5 +1,5 @@
 <div class="conduce-toolbar no-print">
-  <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">← Volver a Salidas</a>
+  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()">← Volver</button>
   @if (salida()) {
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
   }
@@ -37,12 +37,30 @@
       </div>
       <div>
         <span class="conduce__label">Motivo</span>
-        <span>{{ s.motivo }}</span>
+        <span>{{ motivoLabel(s.motivo) }}</span>
       </div>
       <div>
         <span class="conduce__label">Responsable que recibe</span>
         <span>{{ s.responsable ?? '—' }}</span>
       </div>
+      <div>
+        <span class="conduce__label">Estado</span>
+        <span>{{ ESTADO_LABELS[s.estado] }}</span>
+      </div>
+      @if (s.conductor?.nombre || s.vehiculo?.placa) {
+        <div>
+          <span class="conduce__label">Transporte</span>
+          <span>
+            {{ s.conductor?.nombre ?? 'Sin conductor' }}@if (s.vehiculo?.placa) { — {{ s.vehiculo?.placa }}}
+          </span>
+        </div>
+      }
+      @if (s.recibido_en) {
+        <div>
+          <span class="conduce__label">Recepción confirmada</span>
+          <span>{{ formatTimestamp(s.recibido_en) }}@if (s.recibido?.nombre) { por {{ s.recibido?.nombre }}}</span>
+        </div>
+      }
     </section>
 
     <table class="conduce__table">
@@ -51,7 +69,10 @@
           <th>#</th>
           <th>Artículo</th>
           <th>Código</th>
-          <th class="text-right">Cantidad</th>
+          <th class="text-right">Cant. enviada</th>
+          @if (s.estado !== 'despachado') {
+            <th class="text-right">Cant. recibida</th>
+          }
           <th>Unidad</th>
         </tr>
       </thead>
@@ -62,6 +83,12 @@
             <td>{{ item.articulo?.nombre ?? '—' }}</td>
             <td>{{ item.articulo?.codigo ?? '—' }}</td>
             <td class="text-right">{{ item.cantidad }}</td>
+            @if (s.estado !== 'despachado') {
+              <td
+                class="text-right"
+                [class.conduce__short]="item.cantidad_recibida !== null && item.cantidad_recibida < item.cantidad"
+              >{{ item.cantidad_recibida ?? '—' }}</td>
+            }
             <td>{{ item.articulo?.unidad ?? '—' }}</td>
           </tr>
         }
@@ -70,6 +97,9 @@
 
     @if (s.observaciones) {
       <p class="conduce__obs"><strong>Observaciones:</strong> {{ s.observaciones }}</p>
+    }
+    @if (s.notas_recepcion) {
+      <p class="conduce__obs"><strong>Notas de recepción:</strong> {{ s.notas_recepcion }}</p>
     }
 
     <section class="conduce__firmas">

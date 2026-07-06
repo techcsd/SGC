@@ -56,6 +56,12 @@ export interface SalidaFormData {
   items: SalidaItemFormData[];
 }
 
+/** Human-facing conduce number derived from the salida id — single source of
+ *  truth so the list, the printable view, and any export all agree. */
+export function conduceNumero(salidaId: string): string {
+  return 'CND-' + salidaId.slice(0, 8).toUpperCase();
+}
+
 export const MOTIVOS_SALIDA: { value: string; label: string }[] = [
   { value: 'uso_proyecto', label: 'Uso en proyecto' },
   { value: 'venta', label: 'Venta' },

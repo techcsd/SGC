@@ -1,7 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { environment } from '../../environments/environment';
 import { Usuario, Rol } from '../models/usuario.model';
+
+/** Where auth-email links (invite / reset) should land. Uses the configured
+ *  canonical app URL so links always point at the live site, falling back to
+ *  the current origin only if it isn't set. */
+const SET_PASSWORD_URL = `${environment.appUrl || window.location.origin}/auth/set-password`;
 
 export interface UsuarioAdmin extends Usuario {
   roles: { rol: Rol }[];
@@ -67,10 +73,10 @@ export class AdminService {
         email: payload.email,
         fullName: payload.fullName,
         roleId: payload.roleId,
-        // The browser knows its own real domain (dev, Vercel, or a future
-        // custom domain) — passing it avoids hardcoding a URL server-side,
-        // which is what previously made every invite link point at localhost.
-        redirectTo: `${window.location.origin}/auth/set-password`,
+        // Always the live-site set-password URL (see SET_PASSWORD_URL) so the
+        // invited user lands on the deployed app, not on whatever origin the
+        // admin created them from.
+        redirectTo: SET_PASSWORD_URL,
       },
     });
     if (error) throw new Error(await edgeFunctionErrorMessage(error));
@@ -80,7 +86,7 @@ export class AdminService {
   /** Sends a password-reset email; never exposes the password to the admin. */
   async resetPassword(id: string): Promise<{ sent: boolean; actionLink?: string }> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-reset-user-password', {
-      body: { userId: id, redirectTo: `${window.location.origin}/auth/set-password` },
+      body: { userId: id, redirectTo: SET_PASSWORD_URL },
     });
     if (error) throw new Error(await edgeFunctionErrorMessage(error));
     if (data?.error) throw new Error(data.error);

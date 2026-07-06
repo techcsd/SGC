@@ -34,9 +34,14 @@
           @if (s.observaciones) {
             <p class="entregas__card-obs">{{ s.observaciones }}</p>
           }
-          <button class="sgc-btn sgc-btn--primary" type="button" (click)="openConfirm(s)">
-            Confirmar recepción
-          </button>
+          <div class="entregas__card-actions">
+            <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/bitacora/entregas', s.id, 'conduce']">
+              Ver conduce
+            </a>
+            <button class="sgc-btn sgc-btn--primary" type="button" (click)="openConfirm(s)">
+              Confirmar recepción
+            </button>
+          </div>
         </li>
       }
     </ul>

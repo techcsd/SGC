@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
@@ -114,7 +115,12 @@ export class Salidas implements OnInit {
 
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
-  showProyectoField = computed(() => this.form.controls.motivo.value === 'uso_proyecto');
+  // FormControl.value isn't a signal — bridge valueChanges so this actually
+  // recomputes when the user picks a motivo (a plain computed() never re-ran).
+  private motivoValue = toSignal(this.form.controls.motivo.valueChanges, {
+    initialValue: this.form.controls.motivo.value,
+  });
+  showProyectoField = computed(() => this.motivoValue() === 'uso_proyecto');
 
   hasActiveFilters = computed(
     () =>

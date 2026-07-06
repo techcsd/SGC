@@ -11,7 +11,7 @@ import { DecimalPipe } from '@angular/common';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { Empleado, EmpleadoFormData, TIPOS_CONTRATO, DEPARTAMENTOS, TipoContrato } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { yearsSince } from '../../../../shared/utils/fecha.util';
+import { formatAntiguedad } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-empleados',
@@ -241,9 +241,7 @@ export class Empleados implements OnInit {
 
   // ── Helpers ──────────────────────────────────────────────
   getAntiguedad(fecha: string): string {
-    const years = yearsSince(fecha);
-    if (years === 0) return '< 1 año';
-    return `${years} año${years !== 1 ? 's' : ''}`;
+    return formatAntiguedad(fecha);
   }
 
   getTipoContratoBadge(tipo: TipoContrato): string {

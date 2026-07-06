@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .conduce-toolbar {
   display: flex;
   justify-content: space-between;
@@ -6,6 +10,11 @@
 
 .conduce-error {
   color: var(--sgc-danger);
+}
+
+.conduce__short {
+  color: var(--sgc-danger);
+  font-weight: 600;
 }
 
 .conduce {
@@ -113,9 +122,37 @@
     display: none !important;
   }
 
+  :host {
+    display: block;
+    width: 100%;
+  }
+
   .conduce {
     border: none;
-    max-width: none;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
     padding: 0;
+    color: #000;
+
+    &__header h1 {
+      font-size: 17px;
+    }
+
+    // Keep column widths sensible on paper and avoid an awkwardly narrow table.
+    &__table {
+      width: 100%;
+      table-layout: auto;
+
+      th,
+      td {
+        padding: 6px 8px;
+      }
+    }
+
+    // Never split the signature block across pages.
+    &__firmas {
+      break-inside: avoid;
+    }
   }
 }

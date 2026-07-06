@@ -27,6 +27,7 @@ export const MODULOS_DISPONIBLES = [
   { key: 'flota', label: 'Flota' },
   { key: 'bitacora', label: 'Bitácora' },
   { key: 'documentos', label: 'Documentos' },
+  { key: 'legal', label: 'Legal' },
   { key: 'admin', label: 'Administración' },
 ];
 

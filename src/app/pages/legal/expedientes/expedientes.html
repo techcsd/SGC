@@ -1,0 +1,332 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Expedientes legales</h1>
+    <span class="page-count">{{ filtered().length }} expediente{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo expediente
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por título, código o contraparte…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar expedientes"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="Filtrar por estado">
+      <option value="all">Todos los estados</option>
+      @for (e of ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedTipo()" (change)="onTipoChange($any($event.target).value)" aria-label="Filtrar por tipo">
+      <option value="all">Todos los tipos</option>
+      @for (t of TIPOS; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (searchQuery() || selectedEstado() !== 'all' || selectedTipo() !== 'all') {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando expedientes…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (searchQuery() || selectedEstado() !== 'all' || selectedTipo() !== 'all') {
+          No se encontraron expedientes con los filtros aplicados.
+        } @else {
+          No hay expedientes registrados. Crea el primero.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de expedientes legales">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Título</th>
+            <th>Tipo</th>
+            <th>Prioridad</th>
+            <th>Proyecto</th>
+            <th>Fecha límite</th>
+            <th>Estado</th>
+            <th class="text-center">Ver</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of filtered(); track e.id) {
+            <tr>
+              <td><code class="code-tag">{{ e.codigo }}</code></td>
+              <td>
+                <span class="exp-title">{{ e.titulo }}</span>
+                @if (e.contraparte) {
+                  <span class="exp-contraparte">{{ e.contraparte }}</span>
+                }
+              </td>
+              <td>{{ tipoLabel(e.tipo) }}</td>
+              <td><span [class]="prioridadBadgeClass(e.prioridad)">{{ prioridadLabel(e.prioridad) }}</span></td>
+              <td>{{ e.proyecto?.nombre ?? '—' }}</td>
+              <td>
+                @if (e.fecha_limite) {
+                  <span [class.text-danger]="isVencido(e)">{{ e.fecha_limite | date:'dd/MM/yyyy' }}</span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td><span [class]="estadoBadgeClass(e.estado)">{{ estadoLabel(e.estado) }}</span></td>
+              <td>
+                <div class="row-actions">
+                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(e)" [attr.aria-label]="'Ver ' + e.titulo" title="Ver detalle">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="action-btn action-btn--edit" (click)="openEdit(e)" [attr.aria-label]="'Editar ' + e.titulo" title="Editar">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      {{ filtered().length }} expediente{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
+    </div>
+  }
+</div>
+
+<!-- ── Create/Edit Drawer ── -->
+<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="titulo">Título <span class="required">*</span></label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="Ej: Reclamación laboral - Juan Pérez" [class.invalid]="f.titulo.invalid && f.titulo.touched" />
+      @if (f.titulo.invalid && f.titulo.touched) {
+        <span class="field-error">El título es obligatorio.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="tipo">Tipo <span class="required">*</span></label>
+        <select id="tipo" formControlName="tipo">
+          @for (t of TIPOS; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="prioridad">Prioridad <span class="required">*</span></label>
+        <select id="prioridad" formControlName="prioridad">
+          @for (p of PRIORIDADES; track p.value) {
+            <option [value]="p.value">{{ p.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="proyecto_id">Proyecto relacionado</label>
+        <select id="proyecto_id" formControlName="proyecto_id">
+          <option [value]="null">Sin proyecto</option>
+          @for (p of proyectos(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="contraparte">Contraparte</label>
+        <input id="contraparte" type="text" formControlName="contraparte" placeholder="Empleado, subcontratista, institución…" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="fecha_limite">Fecha límite / próxima audiencia</label>
+      <input id="fecha_limite" type="date" formControlName="fecha_limite" />
+    </div>
+
+    <div class="sgc-field">
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" formControlName="descripcion" rows="4" placeholder="Detalle del caso…"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">{{ saveError() }}</div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          {{ editingId() ? 'Guardar cambios' : 'Crear expediente' }}
+        }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detail Drawer ── -->
+<app-form-drawer [title]="detailExpediente()?.codigo ?? 'Expediente'" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detailExpediente(); as e) {
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-field detail-field--full">
+          <span class="detail-field__label">Título</span>
+          <span>{{ e.titulo }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Tipo</span>
+          <span>{{ tipoLabel(e.tipo) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Prioridad</span>
+          <span [class]="prioridadBadgeClass(e.prioridad)">{{ prioridadLabel(e.prioridad) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Proyecto</span>
+          <span>{{ e.proyecto?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Contraparte</span>
+          <span>{{ e.contraparte ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Fecha de apertura</span>
+          <span>{{ e.fecha_apertura | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Fecha límite</span>
+          <span [class.text-danger]="isVencido(e)">{{ e.fecha_limite ? (e.fecha_limite | date:'dd/MM/yyyy') : '—' }}</span>
+        </div>
+        @if (e.descripcion) {
+          <div class="detail-field detail-field--full">
+            <span class="detail-field__label">Descripción</span>
+            <span>{{ e.descripcion }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="detail-estado">
+        <span class="detail-estado__label">Cambiar estado:</span>
+        @for (estado of nextEstados(e.estado); track estado) {
+          <button type="button" class="sgc-btn sgc-btn--ghost detail-estado__btn" (click)="cambiarEstado(estado)">
+            {{ estadoLabel(estado) }}
+          </button>
+        }
+        @if (nextEstados(e.estado).length === 0) {
+          <span [class]="estadoBadgeClass(e.estado)">{{ estadoLabel(e.estado) }}</span>
+        }
+      </div>
+
+      <!-- ── Archivos ── -->
+      <div class="detail-section">
+        <div class="detail-section__header">
+          <span class="detail-section__title">Archivos</span>
+          <label class="sgc-btn sgc-btn--ghost sgc-btn--sm file-upload-btn">
+            @if (uploadingArchivo()) {
+              <span class="spinner" aria-hidden="true"></span> Subiendo…
+            } @else {
+              Adjuntar archivo
+            }
+            <input type="file" class="sr-only" multiple (change)="onFileSelected($event)" [disabled]="uploadingArchivo()" />
+          </label>
+        </div>
+        @if (detailArchivos().length === 0) {
+          <p class="detail-section__empty">Sin archivos adjuntos.</p>
+        } @else {
+          <ul class="archivo-list">
+            @for (a of detailArchivos(); track a.id) {
+              <li class="archivo-item">
+                <button type="button" class="archivo-item__name" (click)="descargarArchivo(a)">{{ a.nombre }}</button>
+                <button type="button" class="archivo-item__remove" (click)="eliminarArchivo(a)" [attr.aria-label]="'Eliminar ' + a.nombre" title="Eliminar">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <!-- ── Notas / bitácora del caso ── -->
+      <div class="detail-section">
+        <span class="detail-section__title">Notas del caso</span>
+        <div class="nota-form">
+          <textarea [formControl]="nuevaNota" rows="2" placeholder="Agregar una nota…"></textarea>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="onAddNota()" [disabled]="savingNota() || !nuevaNota.value?.trim()">
+            @if (savingNota()) {
+              <span class="spinner" aria-hidden="true"></span>
+            } @else {
+              Agregar
+            }
+          </button>
+        </div>
+
+        @if (detailLoading()) {
+          <div class="detail-loading"><span class="spinner-dark"></span> Cargando…</div>
+        } @else if (detailNotas().length === 0) {
+          <p class="detail-section__empty">Sin notas todavía.</p>
+        } @else {
+          <ul class="nota-list">
+            @for (n of detailNotas(); track n.id) {
+              <li class="nota-item">
+                <div class="nota-item__meta">
+                  <span class="nota-item__autor">{{ n.usuario?.nombre ?? 'Usuario' }}</span>
+                  <span class="nota-item__fecha">{{ n.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <p class="nota-item__texto">{{ n.nota }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+</app-form-drawer>

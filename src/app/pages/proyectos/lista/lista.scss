@@ -529,6 +529,11 @@
     margin-top: 0.5rem;
 
     select, input {
+      // min-width:0 lets grid children shrink below their content size —
+      // without it the long option text / placeholder forced the row to
+      // overflow the drawer horizontally.
+      min-width: 0;
+      width: 100%;
       background: var(--sgc-surface);
       border: 1px solid var(--sgc-border);
       border-radius: var(--sgc-radius);

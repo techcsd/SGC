@@ -18,6 +18,12 @@
   box-shadow: var(--sgc-shadow-lg);
   animation: slideIn 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+
+  // Focus lands here only as a fallback (non-interactive container); the first
+  // field/button inside gets focus instead, so this outline would be noise.
+  &:focus {
+    outline: none;
+  }
 }
 
 .drawer-header {

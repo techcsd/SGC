@@ -5,6 +5,12 @@
   max-width: 900px;
 }
 
+.entregas__card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .entregas__header {
   h1 {
     margin: 0 0 4px;
