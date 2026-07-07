@@ -77,5 +77,59 @@
         </div>
       </div>
     </section>
+
+    <!-- Mi actividad: stat tiles -->
+    <section class="perfil-card sgc-card">
+      <h3 class="perfil-section-title">Mi actividad</h3>
+      <div class="perfil-tiles">
+        <div class="perfil-tile">
+          <span class="perfil-tile__num">{{ tareasActivas() }}</span>
+          <span class="perfil-tile__lbl">Tareas activas</span>
+        </div>
+        <div class="perfil-tile">
+          <span class="perfil-tile__num">{{ tareasCompletadas() }}</span>
+          <span class="perfil-tile__lbl">Tareas completadas</span>
+        </div>
+        <div class="perfil-tile">
+          <span class="perfil-tile__num">{{ bitacorasCount() }}</span>
+          <span class="perfil-tile__lbl">Bitácoras registradas</span>
+        </div>
+        <div class="perfil-tile">
+          <span class="perfil-tile__num">{{ reportesEnviados() }}</span>
+          <span class="perfil-tile__lbl">Reportes enviados</span>
+        </div>
+      </div>
+
+      @if (tareasPorEstado().length > 0 || tareasPorPrioridad().length > 0) {
+        <div class="perfil-charts">
+          @if (tareasPorEstado().length > 0) {
+            <div class="perfil-chart"><app-donut-chart titulo="Mis tareas por estado" [data]="tareasPorEstado()" /></div>
+          }
+          @if (tareasPorPrioridad().length > 0) {
+            <div class="perfil-chart"><app-bar-chart titulo="Mis tareas por prioridad" [data]="tareasPorPrioridad()" /></div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Historial de actividad -->
+    <section class="perfil-card sgc-card">
+      <h3 class="perfil-section-title">Historial reciente</h3>
+      @if (loadingStats()) {
+        <p class="text-muted">Cargando…</p>
+      } @else if (actividad().length === 0) {
+        <p class="text-muted">Sin actividad reciente.</p>
+      } @else {
+        <ul class="perfil-actividad">
+          @for (a of actividad(); track $index) {
+            <li class="perfil-actividad__item">
+              <span class="perfil-actividad__icon" aria-hidden="true">{{ a.icono }}</span>
+              <span class="perfil-actividad__texto">{{ a.texto }}</span>
+              <span class="perfil-actividad__fecha">{{ a.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
   </div>
 }
