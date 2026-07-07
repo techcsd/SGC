@@ -29,10 +29,10 @@ begin
   return query
   select
     p.id,
-    p.codigo,
-    p.nombre,
+    p.codigo::text,
+    p.nombre::text,
     p.responsable_id,
-    u.nombre as responsable_nombre,
+    u.nombre::text as responsable_nombre,
     coalesce((select avg(f.progreso) from sgc.fases_proyecto f where f.proyecto_id = p.id), 0)::numeric as avance_promedio,
     (select count(*) from sgc.bitacoras b
        where b.proyecto_id = p.id and b.tipo = 'parte_diario'

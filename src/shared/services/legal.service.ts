@@ -11,9 +11,13 @@ import {
   ExpedienteNota,
 } from '../models/legal.model';
 
-const EXPEDIENTE_SELECT = '*, proyecto:proyectos(nombre), responsable:usuarios(nombre)';
+// expedientes_legales / contratos each have TWO fks to usuarios (responsable_id
+// + creado_por), so the usuarios embed must name the fk explicitly or PostgREST
+// 300s with an ambiguous-embedding error.
+const EXPEDIENTE_SELECT =
+  '*, proyecto:proyectos(nombre), responsable:usuarios!expedientes_legales_responsable_id_fkey(nombre)';
 const CONTRATO_SELECT =
-  '*, proyecto:proyectos(nombre), proveedor:proveedores(nombre), responsable:usuarios(nombre)';
+  '*, proyecto:proyectos(nombre), proveedor:proveedores(nombre), responsable:usuarios!contratos_responsable_id_fkey(nombre)';
 const APROBACION_SELECT =
   '*, solicitante:usuarios!aprobaciones_legales_solicitado_por_fkey(nombre), revisor:usuarios!aprobaciones_legales_revisado_por_fkey(nombre)';
 

@@ -2,7 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Empleado, EmpleadoDocumento } from '../models/empleado.model';
 
-const EMPLEADO_SELECT = '*, jefe:empleados!empleados_jefe_id_fkey(nombre, apellido)';
+// No self-referential jefe embed here: PostgREST resolves the empleados→empleados
+// self-join as to-many (returns an array) which doesn't match the model, so the
+// supervisor's name is resolved client-side from the already-loaded list instead.
+const EMPLEADO_SELECT = '*';
 
 @Injectable({ providedIn: 'root' })
 export class EmpleadosService {
