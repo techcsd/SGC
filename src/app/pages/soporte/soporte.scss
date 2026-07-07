@@ -150,3 +150,31 @@
     width: 100%;
   }
 }
+
+// ── Ayuda rápida / novedades ─────────────────────────────
+.soporte__ayuda {
+  background: var(--sgc-primary-light);
+  border: 1px solid var(--sgc-primary-mid);
+  border-radius: var(--sgc-radius);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.soporte__ayuda-titulo {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  margin: 0 0 4px;
+}
+
+.soporte__ayuda-texto {
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  margin: 0;
+  line-height: 1.55;
+
+  a {
+    color: var(--sgc-primary);
+    font-weight: 600;
+  }
+}

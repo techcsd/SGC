@@ -1,13 +1,14 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ReportesUsuarioService } from '../../../shared/services/reportes-usuario.service';
 import { UserService } from '../../core/services/user.service';
 import { ReporteUsuario, REPORTE_TIPO_LABELS, REPORTE_ESTADO_LABELS, ReporteTipo } from '../../../shared/models/reporte-usuario.model';
 
 @Component({
   selector: 'app-soporte',
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink],
   templateUrl: './soporte.html',
   styleUrl: './soporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
