@@ -20,6 +20,30 @@
     </p>
   </section>
 
+  <!-- Dashboard de mis reportes -->
+  @if (!loading() && total() > 0) {
+    <section class="soporte__dashboard">
+      <div class="soporte__dash-tiles">
+        <div class="soporte__dash-tile">
+          <span class="soporte__dash-num">{{ total() }}</span>
+          <span class="soporte__dash-lbl">Reportes enviados</span>
+        </div>
+        <div class="soporte__dash-tile">
+          <span class="soporte__dash-num">{{ resueltos() }}</span>
+          <span class="soporte__dash-lbl">Resueltos</span>
+        </div>
+      </div>
+      <div class="soporte__dash-charts">
+        <div class="soporte__dash-card">
+          <app-donut-chart titulo="Por estado" [data]="porEstado()" />
+        </div>
+        <div class="soporte__dash-card">
+          <app-bar-chart titulo="Por tipo" [data]="porTipo()" />
+        </div>
+      </div>
+    </section>
+  }
+
   <!-- Form -->
   <section class="soporte__form-card">
     <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>

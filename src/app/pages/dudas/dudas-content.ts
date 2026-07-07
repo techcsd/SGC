@@ -140,6 +140,33 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
     ],
   },
   {
+    id: 'clima-ubicacion',
+    titulo: 'Clima y ubicación de obra',
+    modulo: 'proyectos',
+    items: [
+      {
+        pregunta: '¿Cómo asigno la ubicación de un proyecto en el mapa?',
+        respuesta:
+          'Al crear o editar un proyecto (Proyectos > Nuevo/Editar) hay un mapa: busca la dirección o haz clic en el punto de la obra. Se guardan las coordenadas y la dirección. Con eso el sistema muestra el clima de esa obra.',
+      },
+      {
+        pregunta: '¿De dónde sale el clima y cuánto cuesta?',
+        respuesta:
+          'Usamos Open-Meteo, un servicio meteorológico gratuito y sin límites de clave. No hay costo ni configuración. El clima se cachea para no consultarlo en cada carga.',
+      },
+      {
+        pregunta: '¿Qué recomendaciones da el sistema según el clima?',
+        respuesta:
+          'En el detalle del proyecto verás una tarjeta de clima con condiciones actuales, pronóstico de 7 días y recomendaciones de obra: evitar vaciado de concreto si hay/viene lluvia, suspender grúas con viento fuerte, protección solar con UV alto, pausas por calor extremo.',
+      },
+      {
+        pregunta: '¿El clima queda registrado en la bitácora?',
+        respuesta:
+          'Sí. Al registrar una bitácora de un proyecto con ubicación, el sistema captura automáticamente el clima del momento (temperatura, lluvia, viento…) y lo guarda junto a la entrada, sin que tengas que escribirlo.',
+      },
+    ],
+  },
+  {
     id: 'inventario',
     titulo: 'Inventario',
     modulo: 'inventario',
