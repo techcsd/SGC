@@ -32,6 +32,12 @@ export class NotificacionesService {
     if (this.userService.hasModulo('legal') || isAdmin) {
       checks.push(this.loadCount('aprobaciones_legales', 'pendiente', 'legal'));
     }
+    // Tareas badge is per-user (tasks assigned to me that are still open),
+    // not module-gated — every user can be assigned tasks.
+    const userId = this.userService.profile()?.id;
+    if (userId) {
+      checks.push(this.loadTareasPendientes(userId));
+    }
 
     await Promise.all(checks);
   }
@@ -42,6 +48,15 @@ export class NotificacionesService {
       .select('id', { count: 'exact', head: true })
       .eq('estado', estado);
     this._pendingByModulo.update((m) => ({ ...m, [modulo]: count ?? 0 }));
+  }
+
+  private async loadTareasPendientes(usuarioId: string): Promise<void> {
+    const { count } = await this.supabase.client
+      .from('tareas')
+      .select('id', { count: 'exact', head: true })
+      .eq('asignado_a', usuarioId)
+      .in('estado', ['pendiente', 'en_progreso']);
+    this._pendingByModulo.update((m) => ({ ...m, tareas: count ?? 0 }));
   }
 
   clear(): void {

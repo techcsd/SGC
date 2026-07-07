@@ -1,0 +1,75 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Mis tareas</h1>
+    <span class="page-count">{{ countActivas() }} activa{{ countActivas() !== 1 ? 's' : '' }}</span>
+  </div>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="Filtrar por estado">
+      <option value="activas">Activas</option>
+      <option value="all">Todas</option>
+      @for (e of ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true">
+    <span class="spinner-dark"></span>
+    Cargando tus tareas…
+  </div>
+} @else if (filtered().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>
+      @if (selectedEstado() === 'activas') {
+        No tienes tareas activas. ¡Buen trabajo!
+      } @else {
+        No hay tareas con este filtro.
+      }
+    </p>
+  </div>
+} @else {
+  <div class="tarea-grid">
+    @for (t of filtered(); track t.id) {
+      <button type="button" class="tarea-card sgc-card" [class.tarea-card--vencida]="isVencida(t)" (click)="openDetail(t)">
+        <div class="tarea-card__top">
+          <span [class]="prioridadBadgeClass(t.prioridad)">{{ prioridadLabel(t.prioridad) }}</span>
+          <span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span>
+        </div>
+        <span class="tarea-card__title">{{ t.titulo }}</span>
+        @if (t.descripcion) {
+          <span class="tarea-card__desc">{{ t.descripcion }}</span>
+        }
+        <div class="tarea-card__foot">
+          @if (t.proyecto?.nombre) {
+            <span class="tarea-card__proyecto">{{ t.proyecto?.nombre }}</span>
+          }
+          @if (t.fecha_limite) {
+            <span class="tarea-card__fecha" [class.text-danger]="isVencida(t)">
+              Vence {{ t.fecha_limite | date:'dd/MM/yyyy' }}
+            </span>
+          }
+        </div>
+        <span class="tarea-card__asignador">Asignada por {{ t.asignador?.nombre ?? '—' }}</span>
+      </button>
+    }
+  </div>
+}
+
+<app-tarea-detalle
+  [tarea]="detailTarea()"
+  [open]="detailOpen()"
+  [canManage]="false"
+  (closed)="closeDetail()"
+  (updated)="onUpdated($event)"
+/>

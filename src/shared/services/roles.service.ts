@@ -28,6 +28,7 @@ export const MODULOS_DISPONIBLES = [
   { key: 'bitacora', label: 'Bitácora' },
   { key: 'documentos', label: 'Documentos' },
   { key: 'legal', label: 'Legal' },
+  { key: 'tareas', label: 'Tareas (asignar)' },
   { key: 'admin', label: 'Administración' },
 ];
 

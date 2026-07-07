@@ -77,6 +77,12 @@ export const routes: Routes = [
         canActivate: [moduleGuard('legal')],
         loadChildren: () => import('./pages/legal/legal.routes').then((m) => m.legalRoutes),
       },
+      {
+        // No module guard here: any authenticated user has "Mis tareas".
+        // The manager-only "gestion" child guards itself with moduleGuard('tareas').
+        path: 'tareas',
+        loadChildren: () => import('./pages/tareas/tareas.routes').then((m) => m.tareasRoutes),
+      },
     ],
   },
   {

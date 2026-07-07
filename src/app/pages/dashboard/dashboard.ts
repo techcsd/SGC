@@ -115,6 +115,14 @@ export class Dashboard implements OnInit {
       icon: 'legal',
       color: '#6B4226',
     },
+    {
+      label: 'Tareas',
+      description: 'Asigna y da seguimiento a las tareas del equipo.',
+      route: '/tareas/gestion',
+      modulo: 'tareas',
+      icon: 'tareas',
+      color: '#0F766E',
+    },
   ];
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
@@ -149,6 +157,7 @@ export class Dashboard implements OnInit {
   entregasIncompletasCount = signal(0);
   expedientesLegalesAbiertos = signal(0);
   contratosPorVencer = signal(0);
+  misTareasPendientes = signal(0);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -394,6 +403,7 @@ export class Dashboard implements OnInit {
         entregasIncompletasRes,
         expedientesLegalesRes,
         contratosPorVencerRes,
+        misTareasRes,
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
@@ -446,6 +456,11 @@ export class Dashboard implements OnInit {
           .in('estado', ['firmado', 'en_revision'])
           .not('fecha_vencimiento', 'is', null)
           .lte('fecha_vencimiento', daysFromNowIso(30)),
+        this.supabase.client
+          .from('tareas')
+          .select('id', { count: 'exact', head: true })
+          .eq('asignado_a', this.profile()?.id ?? '00000000-0000-0000-0000-000000000000')
+          .in('estado', ['pendiente', 'en_progreso']),
       ]);
 
       this.articulos.set(
@@ -475,6 +490,7 @@ export class Dashboard implements OnInit {
       this.entregasIncompletasCount.set(entregasIncompletasRes.count ?? 0);
       this.expedientesLegalesAbiertos.set(expedientesLegalesRes.count ?? 0);
       this.contratosPorVencer.set(contratosPorVencerRes.count ?? 0);
+      this.misTareasPendientes.set(misTareasRes.count ?? 0);
 
       const materialItems = (
         (solicitudesMaterialRes.data ?? []) as unknown as {

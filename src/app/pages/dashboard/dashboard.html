@@ -77,6 +77,10 @@
           <span class="kpi-value">{{ contratosPorVencer() }}</span>
         </div>
       }
+      <div class="kpi-card kpi-card--purple">
+        <span class="kpi-label">Mis tareas pendientes</span>
+        <span class="kpi-value">{{ misTareasPendientes() }}</span>
+      </div>
     </div>
 
     <!-- Charts -->
@@ -406,6 +410,11 @@
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <path d="M12 3v18"/><path d="M5 7l-3 6a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6a3 3 0 0 0 6 0z"/>
         <path d="M5 7h14"/><path d="M9 21h6"/>
+      </svg>
+    }
+    @case ('tareas') {
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
       </svg>
     }
   }

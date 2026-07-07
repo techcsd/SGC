@@ -1,0 +1,95 @@
+<app-form-drawer [title]="tarea()?.titulo ?? 'Tarea'" [open]="open()" (closed)="close()">
+  @if (tarea(); as t) {
+    <div class="detail-body">
+      <div class="detail-badges">
+        <span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span>
+        <span [class]="prioridadBadgeClass(t.prioridad)">{{ prioridadLabel(t.prioridad) }}</span>
+        @if (isVencida(t)) {
+          <span class="sgc-badge sgc-badge--danger">Vencida</span>
+        }
+      </div>
+
+      @if (t.descripcion) {
+        <div class="detail-field">
+          <span class="detail-field__label">Descripción</span>
+          <span class="detail-field__text">{{ t.descripcion }}</span>
+        </div>
+      }
+
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">Asignada a</span>
+          <span>{{ t.asignado?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Asignada por</span>
+          <span>{{ t.asignador?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Proyecto</span>
+          <span>{{ t.proyecto?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Fecha límite</span>
+          <span [class.text-danger]="isVencida(t)">{{ t.fecha_limite ? (t.fecha_limite | date:'dd/MM/yyyy') : '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Estado transitions -->
+      <div class="detail-estado">
+        <span class="detail-estado__label">Cambiar estado:</span>
+        @for (estado of nextEstados(t.estado); track estado) {
+          <button type="button" class="sgc-btn sgc-btn--ghost detail-estado__btn" [disabled]="working()" (click)="cambiarEstado(estado)">
+            {{ estadoLabel(estado) }}
+          </button>
+        }
+        @if (canManage() && t.estado !== 'cancelada' && t.estado !== 'completada') {
+          <button type="button" class="sgc-btn sgc-btn--ghost detail-estado__btn detail-estado__btn--cancel" [disabled]="working()" (click)="cambiarEstado('cancelada')">
+            Cancelar tarea
+          </button>
+        }
+      </div>
+
+      <!-- Comments / activity -->
+      <div class="detail-section">
+        <span class="detail-section__title">Comentarios</span>
+        <div class="comentario-form">
+          <textarea [formControl]="nuevoComentario" rows="2" placeholder="Escribe un comentario…"></textarea>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="savingComentario() || !nuevoComentario.value?.trim()" (click)="onAddComentario()">
+            @if (savingComentario()) {
+              <span class="spinner" aria-hidden="true"></span>
+            } @else {
+              Enviar
+            }
+          </button>
+        </div>
+
+        @if (loadingComentarios()) {
+          <div class="detail-loading"><span class="spinner-dark"></span> Cargando…</div>
+        } @else if (comentarios().length === 0) {
+          <p class="detail-section__empty">Sin comentarios todavía.</p>
+        } @else {
+          <ul class="comentario-list">
+            @for (c of comentarios(); track c.id) {
+              <li class="comentario-item">
+                <div class="comentario-item__meta">
+                  <span class="comentario-item__autor">{{ c.usuario?.nombre ?? 'Usuario' }}</span>
+                  <span class="comentario-item__fecha">{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <p class="comentario-item__texto">{{ c.comentario }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      @if (canManage()) {
+        <div class="detail-danger">
+          <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="working()" (click)="eliminar()">
+            Eliminar tarea
+          </button>
+        </div>
+      }
+    </div>
+  }
+</app-form-drawer>

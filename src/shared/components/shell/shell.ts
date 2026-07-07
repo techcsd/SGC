@@ -17,6 +17,9 @@ interface NavItem {
   icon: string;
   route?: string;
   modulo?: string;
+  /** Nav badge counter key, when it differs from `modulo` (e.g. Tareas has no
+   *  module gate on the parent but still shows a per-user pending count). */
+  badgeKey?: string;
   phase?: string;
   children?: NavSubItem[];
 }
@@ -24,6 +27,8 @@ interface NavItem {
 interface NavSubItem {
   label: string;
   route: string;
+  /** When set, this child only renders if the user has the given module. */
+  modulo?: string;
 }
 
 @Component({
@@ -136,6 +141,17 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // No `modulo`: visible to everyone (all users have "Mis tareas").
+      // The "Gestión" child is gated to the 'tareas' module (managers).
+      label: 'Tareas',
+      icon: 'tareas',
+      badgeKey: 'tareas',
+      children: [
+        { label: 'Mis tareas', route: '/tareas/mis-tareas' },
+        { label: 'Gestión de tareas', route: '/tareas/gestion', modulo: 'tareas' },
+      ],
+    },
+    {
       label: 'Soporte',
       icon: 'soporte',
       route: '/soporte',
@@ -161,8 +177,14 @@ export class Shell implements OnInit {
   isAdmin = computed(() => this.userService.hasRole('admin'));
 
   pendingBadge(item: NavItem): number {
-    if (!item.modulo) return 0;
-    return this.notificaciones.pendingByModulo()[item.modulo] ?? 0;
+    const key = item.badgeKey ?? item.modulo;
+    if (!key) return 0;
+    return this.notificaciones.pendingByModulo()[key] ?? 0;
+  }
+
+  canAccessChild(child: NavSubItem): boolean {
+    if (!child.modulo) return true;
+    return this.userService.hasModulo(child.modulo);
   }
 
   ngOnInit() {

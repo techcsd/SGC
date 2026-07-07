@@ -1,0 +1,198 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Gestión de tareas</h1>
+    <span class="page-count">{{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nueva tarea
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por título o responsable…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar tareas"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedEstado()" (change)="onEstadoChange($any($event.target).value)" aria-label="Filtrar por estado">
+      <option value="activas">Activas</option>
+      <option value="all">Todas</option>
+      @for (e of ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedAsignado()" (change)="onAsignadoChange($any($event.target).value)" aria-label="Filtrar por responsable">
+      <option value="all">Todos los responsables</option>
+      @for (u of usuarios(); track u.id) {
+        <option [value]="u.id">{{ u.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  @if (searchQuery() || selectedEstado() !== 'activas' || selectedAsignado() !== 'all') {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando tareas…
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <p>No hay tareas con los filtros aplicados.</p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Lista de tareas">
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Responsable</th>
+            <th>Prioridad</th>
+            <th>Proyecto</th>
+            <th>Fecha límite</th>
+            <th>Estado</th>
+            <th class="text-center">Ver</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of filtered(); track t.id) {
+            <tr>
+              <td><span class="tarea-title">{{ t.titulo }}</span></td>
+              <td>{{ t.asignado?.nombre ?? '—' }}</td>
+              <td><span [class]="prioridadBadgeClass(t.prioridad)">{{ prioridadLabel(t.prioridad) }}</span></td>
+              <td>{{ t.proyecto?.nombre ?? '—' }}</td>
+              <td>
+                @if (t.fecha_limite) {
+                  <span [class.text-danger]="isVencida(t)">{{ t.fecha_limite | date:'dd/MM/yyyy' }}</span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td><span [class]="estadoBadgeClass(t.estado)">{{ estadoLabel(t.estado) }}</span></td>
+              <td>
+                <div class="row-actions">
+                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(t)" [attr.aria-label]="'Ver ' + t.titulo" title="Ver detalle">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      {{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}
+    </div>
+  }
+</div>
+
+<!-- ── Create Drawer ── -->
+<app-form-drawer title="Nueva tarea" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="titulo">Título <span class="required">*</span></label>
+      <input id="titulo" type="text" formControlName="titulo" placeholder="Ej: Preparar informe de avance semanal" [class.invalid]="f.titulo.invalid && f.titulo.touched" />
+      @if (f.titulo.invalid && f.titulo.touched) {
+        <span class="field-error">El título es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" formControlName="descripcion" rows="3" placeholder="Detalle de lo que se debe hacer…"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="asignado_a">Responsable <span class="required">*</span></label>
+        <select id="asignado_a" formControlName="asignado_a" [class.invalid]="f.asignado_a.invalid && f.asignado_a.touched">
+          <option [value]="null">Selecciona…</option>
+          @for (u of usuarios(); track u.id) {
+            <option [value]="u.id">{{ u.nombre }}</option>
+          }
+        </select>
+        @if (f.asignado_a.invalid && f.asignado_a.touched) {
+          <span class="field-error">Selecciona un responsable.</span>
+        }
+      </div>
+      <div class="sgc-field">
+        <label for="prioridad">Prioridad <span class="required">*</span></label>
+        <select id="prioridad" formControlName="prioridad">
+          @for (p of PRIORIDADES; track p.value) {
+            <option [value]="p.value">{{ p.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="proyecto_id">Proyecto (opcional)</label>
+        <select id="proyecto_id" formControlName="proyecto_id">
+          <option [value]="null">Sin proyecto</option>
+          @for (p of proyectos(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="fecha_limite">Fecha límite</label>
+        <input id="fecha_limite" type="date" formControlName="fecha_limite" />
+      </div>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">{{ saveError() }}</div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          Crear tarea
+        }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detail Drawer ── -->
+<app-tarea-detalle
+  [tarea]="detailTarea()"
+  [open]="detailOpen()"
+  [canManage]="true"
+  (closed)="closeDetail()"
+  (updated)="onUpdated($event)"
+  (deleted)="onDeleted($event)"
+/>
