@@ -71,22 +71,34 @@
       <thead>
         <tr>
           <th>Fecha</th>
+          <th>Tipo</th>
           <th>Obra</th>
-          <th>Bloque/Entrepiso</th>
-          <th>Ingeniero</th>
-          <th>Actividades</th>
-          <th>Restricciones</th>
+          <th>Detalle</th>
+          <th>Responsable / visitante</th>
+          <th>Resumen</th>
         </tr>
       </thead>
       <tbody>
         @for (b of paginated(); track b.id) {
           <tr class="clickable-row" (click)="openDetail(b)">
             <td>{{ formatFecha(b.fecha) }}</td>
+            <td><span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span></td>
             <td>{{ b.proyecto?.nombre ?? '—' }}</td>
-            <td>{{ b.bloque_entrepiso }}</td>
-            <td>{{ b.ingeniero_responsable }}</td>
-            <td class="text-muted">{{ actividadesResumen(b) }}</td>
-            <td class="text-muted">{{ restriccionesResumen(b) }}</td>
+            <td>{{ resumenEntrada(b) }}</td>
+            <td>
+              @switch (b.tipo) {
+                @case ('parte_diario') { {{ b.ingeniero_responsable ?? '—' }} }
+                @case ('visita') { {{ b.visita_nombre ?? '—' }} }
+                @case ('incidente') { {{ b.incidente_subcontratista ?? '—' }} }
+              }
+            </td>
+            <td class="text-muted">
+              @switch (b.tipo) {
+                @case ('parte_diario') { {{ actividadesResumen(b) }} }
+                @case ('visita') { {{ visitanteLabel(b.visita_tipo_visitante) }} }
+                @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }} }
+              }
+            </td>
           </tr>
         }
       </tbody>
@@ -123,30 +135,89 @@
   @if (detail(); as b) {
     <div class="bitacora-detail">
       <div class="bitacora-detail__row">
+        <span class="bitacora-detail__label">Tipo</span>
+        <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+      </div>
+      <div class="bitacora-detail__row">
         <span class="bitacora-detail__label">Obra</span>
         <span>{{ b.proyecto?.nombre ?? '—' }}</span>
       </div>
-      <div class="bitacora-detail__row">
-        <span class="bitacora-detail__label">Bloque/Entrepiso</span>
-        <span>{{ b.bloque_entrepiso }}</span>
-      </div>
-      <div class="bitacora-detail__row">
-        <span class="bitacora-detail__label">Ingeniero</span>
-        <span>{{ b.ingeniero_responsable }}</span>
-      </div>
-      <div class="bitacora-detail__row">
-        <span class="bitacora-detail__label">Hasta qué hora</span>
-        <span>{{ formatHora(b.hora_fin_trabajo) }}</span>
-      </div>
-      <div class="bitacora-detail__row">
-        <span class="bitacora-detail__label">Personal</span>
-        <span>Carpintería: {{ b.personal_carpinteria }} · Acero: {{ b.personal_acero }} · Casa: {{ b.trabajadores_casa }}</span>
-      </div>
-      @if (b.otro_personal) {
+
+      @if (b.tipo === 'parte_diario') {
         <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Otro personal</span>
-          <span>{{ b.otro_personal }}</span>
+          <span class="bitacora-detail__label">Bloque/Entrepiso</span>
+          <span>{{ b.bloque_entrepiso ?? '—' }}</span>
         </div>
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Ingeniero</span>
+          <span>{{ b.ingeniero_responsable ?? '—' }}</span>
+        </div>
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Hasta qué hora</span>
+          <span>{{ b.hora_fin_trabajo ? formatHora(b.hora_fin_trabajo) : '—' }}</span>
+        </div>
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Personal</span>
+          <span>Carpintería: {{ b.personal_carpinteria }} · Acero: {{ b.personal_acero }} · Casa: {{ b.trabajadores_casa }}</span>
+        </div>
+        @if (b.otro_personal) {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Otro personal</span>
+            <span>{{ b.otro_personal }}</span>
+          </div>
+        }
+      }
+
+      @if (b.tipo === 'visita') {
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Tipo de visitante</span>
+          <span>{{ visitanteLabel(b.visita_tipo_visitante) }}</span>
+        </div>
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Visitante</span>
+          <span>{{ b.visita_nombre ?? '—' }}</span>
+        </div>
+        @if (b.visita_organizacion) {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Organización</span>
+            <span>{{ b.visita_organizacion }}</span>
+          </div>
+        }
+        @if (b.visita_motivo) {
+          <div class="bitacora-detail__section">
+            <h3>Motivo de la visita</h3>
+            <p>{{ b.visita_motivo }}</p>
+          </div>
+        }
+      }
+
+      @if (b.tipo === 'incidente') {
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Clasificación</span>
+          <span>{{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }}</span>
+        </div>
+        @if (b.incidente_subcontratista) {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Subcontratista</span>
+            <span>{{ b.incidente_subcontratista }}</span>
+          </div>
+        }
+        <div class="bitacora-detail__row">
+          <span class="bitacora-detail__label">Lesionados</span>
+          <span>{{ b.incidente_lesionados ?? 0 }}</span>
+        </div>
+        @if (b.incidente_descripcion) {
+          <div class="bitacora-detail__section">
+            <h3>Descripción</h3>
+            <p>{{ b.incidente_descripcion }}</p>
+          </div>
+        }
+        @if (b.incidente_acciones) {
+          <div class="bitacora-detail__section">
+            <h3>Acciones tomadas</h3>
+            <p>{{ b.incidente_acciones }}</p>
+          </div>
+        }
       }
 
       @if ((b.actividades ?? []).length > 0) {

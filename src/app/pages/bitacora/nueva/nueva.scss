@@ -188,3 +188,45 @@
   display: flex;
   justify-content: flex-end;
 }
+
+// ── Tipo de entrada tabs ─────────────────────────────────
+.bitacora-tipo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bitacora-tipo-tab {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--sgc-text-secondary);
+  text-align: center;
+  transition: var(--sgc-transition-fast);
+
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  &:hover {
+    border-color: var(--sgc-primary-mid);
+  }
+
+  &.selected {
+    background: var(--sgc-primary-light);
+    border-color: var(--sgc-primary);
+    color: var(--sgc-primary);
+  }
+}

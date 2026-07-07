@@ -35,10 +35,12 @@ export class BitacoraService {
   }
 
   async create(payload: BitacoraFormData): Promise<Bitacora> {
-    const { data: bitacoraId, error } = await this.supabase.client.rpc('crear_bitacora', {
+    const { data: bitacoraId, error } = await this.supabase.client.rpc('crear_entrada_bitacora', {
       p_usuario_id: payload.usuario_id,
       p_proyecto_id: payload.proyecto_id,
       p_fecha: payload.fecha,
+      p_tipo: payload.tipo,
+      p_comentarios: payload.comentarios,
       p_bloque_entrepiso: payload.bloque_entrepiso,
       p_ingeniero_responsable: payload.ingeniero_responsable,
       p_hora_fin_trabajo: payload.hora_fin_trabajo,
@@ -46,9 +48,18 @@ export class BitacoraService {
       p_personal_acero: payload.personal_acero,
       p_trabajadores_casa: payload.trabajadores_casa,
       p_otro_personal: payload.otro_personal,
-      p_comentarios: payload.comentarios,
       p_actividades: payload.actividades,
       p_restricciones: payload.restricciones,
+      p_visita_tipo_visitante: payload.visita_tipo_visitante,
+      p_visita_nombre: payload.visita_nombre,
+      p_visita_organizacion: payload.visita_organizacion,
+      p_visita_motivo: payload.visita_motivo,
+      p_incidente_tipo: payload.incidente_tipo,
+      p_incidente_gravedad: payload.incidente_gravedad,
+      p_incidente_subcontratista: payload.incidente_subcontratista,
+      p_incidente_lesionados: payload.incidente_lesionados,
+      p_incidente_descripcion: payload.incidente_descripcion,
+      p_incidente_acciones: payload.incidente_acciones,
     });
 
     if (error) throw new Error(error.message);

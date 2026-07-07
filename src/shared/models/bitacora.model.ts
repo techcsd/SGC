@@ -55,20 +55,62 @@ export interface BitacoraArchivo {
   created_at: string;
 }
 
+export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente';
+
+export const BITACORA_TIPOS: { value: BitacoraTipo; label: string }[] = [
+  { value: 'parte_diario', label: 'Parte diario de obra' },
+  { value: 'visita', label: 'Visita a obra' },
+  { value: 'incidente', label: 'Incidente / accidente' },
+];
+
+export const VISITANTE_TIPOS: { value: string; label: string }[] = [
+  { value: 'institucion', label: 'Institución (MIVED, ayuntamiento, etc.)' },
+  { value: 'propietario', label: 'Propietario' },
+  { value: 'cliente', label: 'Cliente' },
+  { value: 'supervisor_externo', label: 'Supervisor externo' },
+  { value: 'proveedor', label: 'Proveedor' },
+  { value: 'otro', label: 'Otro' },
+];
+
+export const INCIDENTE_TIPOS: { value: string; label: string }[] = [
+  { value: 'incidente', label: 'Incidente (sin lesionados)' },
+  { value: 'accidente', label: 'Accidente (con lesionados)' },
+];
+
+export const INCIDENTE_GRAVEDADES: { value: string; label: string }[] = [
+  { value: 'leve', label: 'Leve' },
+  { value: 'moderado', label: 'Moderado' },
+  { value: 'grave', label: 'Grave' },
+  { value: 'critico', label: 'Crítico' },
+];
+
 export interface Bitacora {
   id: string;
   usuario_id: string;
   proyecto_id: string;
   proyecto?: { nombre: string; codigo: string };
   fecha: string;
-  bloque_entrepiso: string;
-  ingeniero_responsable: string;
-  hora_fin_trabajo: string;
+  tipo: BitacoraTipo;
+  bloque_entrepiso: string | null;
+  ingeniero_responsable: string | null;
+  hora_fin_trabajo: string | null;
   personal_carpinteria: number;
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
   comentarios: string | null;
+  // Visita
+  visita_tipo_visitante: string | null;
+  visita_nombre: string | null;
+  visita_organizacion: string | null;
+  visita_motivo: string | null;
+  // Incidente
+  incidente_tipo: string | null;
+  incidente_gravedad: string | null;
+  incidente_subcontratista: string | null;
+  incidente_lesionados: number | null;
+  incidente_descripcion: string | null;
+  incidente_acciones: string | null;
   created_at: string;
   actividades?: BitacoraActividad[];
   restricciones?: BitacoraRestriccion[];
@@ -79,14 +121,28 @@ export interface BitacoraFormData {
   usuario_id: string;
   proyecto_id: string;
   fecha: string;
-  bloque_entrepiso: string;
-  ingeniero_responsable: string;
-  hora_fin_trabajo: string;
+  tipo: BitacoraTipo;
+  comentarios: string | null;
+  // Parte diario
+  bloque_entrepiso: string | null;
+  ingeniero_responsable: string | null;
+  hora_fin_trabajo: string | null;
   personal_carpinteria: number;
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
-  comentarios: string | null;
   actividades: { estructura: Estructura; actividad: Actividad }[];
   restricciones: { tipo_restriccion: string; descripcion_otro: string | null }[];
+  // Visita
+  visita_tipo_visitante: string | null;
+  visita_nombre: string | null;
+  visita_organizacion: string | null;
+  visita_motivo: string | null;
+  // Incidente
+  incidente_tipo: string | null;
+  incidente_gravedad: string | null;
+  incidente_subcontratista: string | null;
+  incidente_lesionados: number | null;
+  incidente_descripcion: string | null;
+  incidente_acciones: string | null;
 }

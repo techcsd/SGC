@@ -23,6 +23,19 @@
 } @else {
   <form class="bitacora-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
+    <!-- Sección 0: Tipo de entrada -->
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">Tipo de entrada</h2>
+      <div class="bitacora-tipo-tabs">
+        @for (t of TIPOS; track t.value) {
+          <label class="bitacora-tipo-tab" [class.selected]="tipoActual() === t.value">
+            <input type="radio" formControlName="tipo" [value]="t.value" />
+            <span>{{ t.label }}</span>
+          </label>
+        }
+      </div>
+    </section>
+
     <!-- Sección 1: Información General -->
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">1. Información general</h2>
@@ -50,50 +63,143 @@
         </div>
       </div>
 
-      <div class="bitacora-form-row">
+      @if (tipoActual() === 'parte_diario') {
+        <div class="bitacora-form-row">
+          <div class="sgc-field">
+            <label for="bloque_entrepiso">Bloque / Entrepiso <span class="required">*</span></label>
+            <input
+              id="bloque_entrepiso"
+              type="text"
+              formControlName="bloque_entrepiso"
+              placeholder="Ej: Bloque A - Entrepiso 3"
+              [class.invalid]="f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched"
+            />
+            @if (f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched) {
+              <span class="field-error">Este campo es obligatorio.</span>
+            }
+          </div>
+
+          <div class="sgc-field">
+            <label for="hora_fin_trabajo">Hasta qué hora se trabajó <span class="required">*</span></label>
+            <input
+              id="hora_fin_trabajo"
+              type="time"
+              formControlName="hora_fin_trabajo"
+              [class.invalid]="f.hora_fin_trabajo.invalid && f.hora_fin_trabajo.touched"
+            />
+            @if (f.hora_fin_trabajo.invalid && f.hora_fin_trabajo.touched) {
+              <span class="field-error">Este campo es obligatorio.</span>
+            }
+          </div>
+        </div>
+
         <div class="sgc-field">
-          <label for="bloque_entrepiso">Bloque / Entrepiso <span class="required">*</span></label>
+          <label for="ingeniero_responsable">Ingeniero responsable <span class="required">*</span></label>
           <input
-            id="bloque_entrepiso"
+            id="ingeniero_responsable"
             type="text"
-            formControlName="bloque_entrepiso"
-            placeholder="Ej: Bloque A - Entrepiso 3"
-            [class.invalid]="f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched"
+            formControlName="ingeniero_responsable"
+            [class.invalid]="f.ingeniero_responsable.invalid && f.ingeniero_responsable.touched"
           />
-          @if (f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched) {
+          @if (f.ingeniero_responsable.invalid && f.ingeniero_responsable.touched) {
             <span class="field-error">Este campo es obligatorio.</span>
           }
         </div>
-
-        <div class="sgc-field">
-          <label for="hora_fin_trabajo">Hasta qué hora se trabajó <span class="required">*</span></label>
-          <input
-            id="hora_fin_trabajo"
-            type="time"
-            formControlName="hora_fin_trabajo"
-            [class.invalid]="f.hora_fin_trabajo.invalid && f.hora_fin_trabajo.touched"
-          />
-          @if (f.hora_fin_trabajo.invalid && f.hora_fin_trabajo.touched) {
-            <span class="field-error">Este campo es obligatorio.</span>
-          }
-        </div>
-      </div>
-
-      <div class="sgc-field">
-        <label for="ingeniero_responsable">Ingeniero responsable <span class="required">*</span></label>
-        <input
-          id="ingeniero_responsable"
-          type="text"
-          formControlName="ingeniero_responsable"
-          [class.invalid]="f.ingeniero_responsable.invalid && f.ingeniero_responsable.touched"
-        />
-        @if (f.ingeniero_responsable.invalid && f.ingeniero_responsable.touched) {
-          <span class="field-error">Este campo es obligatorio.</span>
-        }
-      </div>
+      }
     </section>
 
-    <!-- Sección 2: Actividades -->
+    <!-- Sección: Visita a obra -->
+    @if (tipoActual() === 'visita') {
+      <section class="bitacora-section sgc-card">
+        <h2 class="bitacora-section__title">Detalle de la visita</h2>
+        <div class="bitacora-form-row">
+          <div class="sgc-field">
+            <label for="visita_tipo_visitante">Tipo de visitante <span class="required">*</span></label>
+            <select id="visita_tipo_visitante" formControlName="visita_tipo_visitante" [class.invalid]="f.visita_tipo_visitante.invalid && f.visita_tipo_visitante.touched">
+              <option [value]="null">Seleccionar…</option>
+              @for (vt of VISITANTE_TIPOS; track vt.value) {
+                <option [value]="vt.value">{{ vt.label }}</option>
+              }
+            </select>
+            @if (f.visita_tipo_visitante.invalid && f.visita_tipo_visitante.touched) {
+              <span class="field-error">Requerido.</span>
+            }
+          </div>
+          <div class="sgc-field">
+            <label for="visita_nombre">Nombre del visitante <span class="required">*</span></label>
+            <input id="visita_nombre" type="text" formControlName="visita_nombre" placeholder="Nombre completo" [class.invalid]="f.visita_nombre.invalid && f.visita_nombre.touched" />
+            @if (f.visita_nombre.invalid && f.visita_nombre.touched) {
+              <span class="field-error">Requerido.</span>
+            }
+          </div>
+        </div>
+        <div class="sgc-field">
+          <label for="visita_organizacion">Institución / organización</label>
+          <input id="visita_organizacion" type="text" formControlName="visita_organizacion" placeholder="Ej: MIVED, Ayuntamiento, propietario…" />
+        </div>
+        <div class="sgc-field">
+          <label for="visita_motivo">Motivo de la visita</label>
+          <textarea id="visita_motivo" rows="2" maxlength="500" formControlName="visita_motivo" placeholder="¿A qué vino la visita?"></textarea>
+        </div>
+      </section>
+    }
+
+    <!-- Sección: Incidente / accidente -->
+    @if (tipoActual() === 'incidente') {
+      <section class="bitacora-section sgc-card">
+        <h2 class="bitacora-section__title">Detalle del incidente / accidente</h2>
+        <div class="bitacora-form-row">
+          <div class="sgc-field">
+            <label for="incidente_tipo">Tipo <span class="required">*</span></label>
+            <select id="incidente_tipo" formControlName="incidente_tipo" [class.invalid]="f.incidente_tipo.invalid && f.incidente_tipo.touched">
+              <option [value]="null">Seleccionar…</option>
+              @for (it of INCIDENTE_TIPOS; track it.value) {
+                <option [value]="it.value">{{ it.label }}</option>
+              }
+            </select>
+            @if (f.incidente_tipo.invalid && f.incidente_tipo.touched) {
+              <span class="field-error">Requerido.</span>
+            }
+          </div>
+          <div class="sgc-field">
+            <label for="incidente_gravedad">Gravedad <span class="required">*</span></label>
+            <select id="incidente_gravedad" formControlName="incidente_gravedad" [class.invalid]="f.incidente_gravedad.invalid && f.incidente_gravedad.touched">
+              <option [value]="null">Seleccionar…</option>
+              @for (g of INCIDENTE_GRAVEDADES; track g.value) {
+                <option [value]="g.value">{{ g.label }}</option>
+              }
+            </select>
+            @if (f.incidente_gravedad.invalid && f.incidente_gravedad.touched) {
+              <span class="field-error">Requerido.</span>
+            }
+          </div>
+        </div>
+        <div class="bitacora-form-row">
+          <div class="sgc-field">
+            <label for="incidente_subcontratista">Subcontratista involucrado</label>
+            <input id="incidente_subcontratista" type="text" formControlName="incidente_subcontratista" placeholder="Empresa/persona subcontratada" />
+          </div>
+          <div class="sgc-field">
+            <label for="incidente_lesionados">Número de lesionados</label>
+            <input id="incidente_lesionados" type="number" min="0" formControlName="incidente_lesionados" />
+          </div>
+        </div>
+        <div class="sgc-field">
+          <label for="incidente_descripcion">Descripción de lo ocurrido <span class="required">*</span></label>
+          <textarea id="incidente_descripcion" rows="3" maxlength="2000" formControlName="incidente_descripcion" placeholder="¿Qué pasó, dónde y cómo?" [class.invalid]="f.incidente_descripcion.invalid && f.incidente_descripcion.touched"></textarea>
+          @if (f.incidente_descripcion.invalid && f.incidente_descripcion.touched) {
+            <span class="field-error">Requerido.</span>
+          }
+        </div>
+        <div class="sgc-field">
+          <label for="incidente_acciones">Acciones tomadas</label>
+          <textarea id="incidente_acciones" rows="2" maxlength="2000" formControlName="incidente_acciones" placeholder="Medidas inmediatas / correctivas"></textarea>
+        </div>
+      </section>
+    }
+
+    <!-- Sección 2: Actividades (solo parte diario) -->
+    @if (tipoActual() === 'parte_diario') {
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">2. Actividades</h2>
       <p class="bitacora-section__hint">Opcional. Marca las actividades realizadas por estructura.</p>
@@ -173,28 +279,34 @@
         <textarea id="otro_personal" rows="2" maxlength="500" formControlName="otro_personal"></textarea>
       </div>
     </section>
+    }
 
     <!-- Sección 4: Restricciones, comentarios y archivos -->
     <section class="bitacora-section sgc-card">
-      <h2 class="bitacora-section__title">4. Restricciones, comentarios y archivos</h2>
+      <h2 class="bitacora-section__title">
+        @if (tipoActual() === 'parte_diario') { 4. Restricciones, comentarios y archivos }
+        @else { Comentarios y archivos }
+      </h2>
 
-      <div class="sgc-field">
-        <label>Restricciones que afectaron el rendimiento <span class="required">*</span></label>
-        <div class="bitacora-restricciones">
-          @for (r of RESTRICCIONES; track r.value) {
-            <label class="bitacora-restricciones__item" [class.selected]="isRestriccionChecked(r.value)">
-              <input type="checkbox" [checked]="isRestriccionChecked(r.value)" (change)="toggleRestriccion(r.value)" />
-              <span>{{ r.label }}</span>
-            </label>
-          }
-        </div>
-      </div>
-
-      @if (showOtroRestriccion()) {
+      @if (tipoActual() === 'parte_diario') {
         <div class="sgc-field">
-          <label for="descripcion_otro_restriccion">Describe la restricción</label>
-          <input id="descripcion_otro_restriccion" type="text" formControlName="descripcion_otro_restriccion" />
+          <label>Restricciones que afectaron el rendimiento <span class="required">*</span></label>
+          <div class="bitacora-restricciones">
+            @for (r of RESTRICCIONES; track r.value) {
+              <label class="bitacora-restricciones__item" [class.selected]="isRestriccionChecked(r.value)">
+                <input type="checkbox" [checked]="isRestriccionChecked(r.value)" (change)="toggleRestriccion(r.value)" />
+                <span>{{ r.label }}</span>
+              </label>
+            }
+          </div>
         </div>
+
+        @if (showOtroRestriccion()) {
+          <div class="sgc-field">
+            <label for="descripcion_otro_restriccion">Describe la restricción</label>
+            <input id="descripcion_otro_restriccion" type="text" formControlName="descripcion_otro_restriccion" />
+          </div>
+        }
       }
 
       <div class="sgc-field">

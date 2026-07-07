@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
-import { Bitacora, BitacoraArchivo } from '../../../../shared/models/bitacora.model';
+import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_TIPOS, INCIDENTE_GRAVEDADES } from '../../../../shared/models/bitacora.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -50,8 +50,10 @@ export class Historial implements OnInit {
     return this.bitacoras().filter((b) => {
       if (
         q &&
-        !b.bloque_entrepiso.toLowerCase().includes(q) &&
-        !b.ingeniero_responsable.toLowerCase().includes(q)
+        !(b.bloque_entrepiso ?? '').toLowerCase().includes(q) &&
+        !(b.ingeniero_responsable ?? '').toLowerCase().includes(q) &&
+        !(b.visita_nombre ?? '').toLowerCase().includes(q) &&
+        !(b.incidente_subcontratista ?? '').toLowerCase().includes(q)
       ) {
         return false;
       }
@@ -191,5 +193,36 @@ export class Historial implements OnInit {
     const restricciones = b.restricciones ?? [];
     if (restricciones.length === 0) return '—';
     return restricciones.map((r) => r.tipo_restriccion).join(', ');
+  }
+
+  tipoLabel(tipo: string): string {
+    return BITACORA_TIPOS.find((t) => t.value === tipo)?.label ?? tipo;
+  }
+
+  tipoBadgeClass(tipo: string): string {
+    switch (tipo) {
+      case 'visita': return 'sgc-badge sgc-badge--info';
+      case 'incidente': return 'sgc-badge sgc-badge--danger';
+      default: return 'sgc-badge sgc-badge--neutral';
+    }
+  }
+
+  visitanteLabel(v: string | null): string {
+    return VISITANTE_TIPOS.find((x) => x.value === v)?.label ?? (v ?? '—');
+  }
+
+  incidenteTipoLabel(v: string | null): string {
+    return INCIDENTE_TIPOS.find((x) => x.value === v)?.label ?? (v ?? '—');
+  }
+
+  gravedadLabel(v: string | null): string {
+    return INCIDENTE_GRAVEDADES.find((x) => x.value === v)?.label ?? (v ?? '—');
+  }
+
+  /** Short subject line for a row/title, adapting to entry type. */
+  resumenEntrada(b: Bitacora): string {
+    if (b.tipo === 'visita') return b.visita_nombre ?? 'Visita';
+    if (b.tipo === 'incidente') return b.incidente_subcontratista ?? this.incidenteTipoLabel(b.incidente_tipo);
+    return b.bloque_entrepiso ?? '—';
   }
 }

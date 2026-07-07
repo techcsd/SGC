@@ -8,7 +8,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -20,6 +20,11 @@ import {
   ESTRUCTURAS,
   Estructura,
   RESTRICCIONES,
+  BITACORA_TIPOS,
+  BitacoraTipo,
+  VISITANTE_TIPOS,
+  INCIDENTE_TIPOS,
+  INCIDENTE_GRAVEDADES,
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 
@@ -48,6 +53,10 @@ export class Nueva implements OnInit {
   readonly ESTRUCTURAS = ESTRUCTURAS;
   readonly ACTIVIDADES = ACTIVIDADES;
   readonly RESTRICCIONES = RESTRICCIONES;
+  readonly TIPOS = BITACORA_TIPOS;
+  readonly VISITANTE_TIPOS = VISITANTE_TIPOS;
+  readonly INCIDENTE_TIPOS = INCIDENTE_TIPOS;
+  readonly INCIDENTE_GRAVEDADES = INCIDENTE_GRAVEDADES;
   readonly today = todayIso();
   readonly maxArchivos = this.bitacoraService.maxArchivos;
 
@@ -57,12 +66,25 @@ export class Nueva implements OnInit {
   saveError = signal('');
   draftAvailable = signal(false);
 
+  tipoActual = signal<BitacoraTipo>('parte_diario');
+
   actividadesSeleccionadas = signal<Set<string>>(new Set());
   restriccionesSeleccionadas = signal<Set<string>>(new Set());
   archivos = signal<File[]>([]);
   expandedEstructura = signal<Estructura | null>(null);
 
+  // Daily-log controls carry required validators toggled off for visita/incidente.
+  private readonly PARTE_CONTROLS = [
+    'bloque_entrepiso',
+    'ingeniero_responsable',
+    'hora_fin_trabajo',
+    'personal_carpinteria',
+    'personal_acero',
+    'trabajadores_casa',
+  ] as const;
+
   form = new FormGroup({
+    tipo: new FormControl<BitacoraTipo>('parte_diario', [Validators.required]),
     fecha: new FormControl(this.today, [Validators.required]),
     proyecto_id: new FormControl<string | null>(null, [Validators.required]),
     bloque_entrepiso: new FormControl('', [Validators.required, Validators.maxLength(100)]),
@@ -74,14 +96,58 @@ export class Nueva implements OnInit {
     otro_personal: new FormControl<string | null>(null, [Validators.maxLength(500)]),
     comentarios: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
     descripcion_otro_restriccion: new FormControl<string | null>(null),
+    // Visita
+    visita_tipo_visitante: new FormControl<string | null>(null),
+    visita_nombre: new FormControl<string | null>(null, [Validators.maxLength(150)]),
+    visita_organizacion: new FormControl<string | null>(null, [Validators.maxLength(150)]),
+    visita_motivo: new FormControl<string | null>(null, [Validators.maxLength(500)]),
+    // Incidente
+    incidente_tipo: new FormControl<string | null>(null),
+    incidente_gravedad: new FormControl<string | null>(null),
+    incidente_subcontratista: new FormControl<string | null>(null, [Validators.maxLength(150)]),
+    incidente_lesionados: new FormControl<number | null>(0, [Validators.min(0)]),
+    incidente_descripcion: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
+    incidente_acciones: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
   });
 
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
   showOtroRestriccion = computed(() => this.restriccionesSeleccionadas().has('OTRO'));
 
+  /** Toggle required validators to match the selected entry type. */
+  onTipoChange(tipo: BitacoraTipo) {
+    this.tipoActual.set(tipo);
+
+    const numericos = ['personal_carpinteria', 'personal_acero', 'trabajadores_casa'];
+    for (const name of this.PARTE_CONTROLS) {
+      const ctrl = this.form.get(name)!;
+      if (tipo === 'parte_diario') {
+        ctrl.setValidators(numericos.includes(name) ? [Validators.required, Validators.min(0)] : [Validators.required]);
+      } else {
+        ctrl.clearValidators();
+      }
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    }
+
+    const setReq = (name: string, required: boolean, extra: ValidatorFn[] = []) => {
+      const ctrl = this.form.get(name)!;
+      ctrl.setValidators(required ? [Validators.required, ...extra] : extra);
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    };
+
+    setReq('visita_tipo_visitante', tipo === 'visita');
+    setReq('visita_nombre', tipo === 'visita', [Validators.maxLength(150)]);
+    setReq('incidente_tipo', tipo === 'incidente');
+    setReq('incidente_gravedad', tipo === 'incidente');
+    setReq('incidente_descripcion', tipo === 'incidente', [Validators.maxLength(2000)]);
+  }
+
   async ngOnInit() {
     this.form.controls.ingeniero_responsable.setValue(this.userService.profile()?.nombre ?? '');
     this.draftAvailable.set(sessionStorage.getItem(DRAFT_KEY) !== null);
+
+    this.form.controls.tipo.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((t) => this.onTipoChange((t ?? 'parte_diario') as BitacoraTipo));
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saveDraft());
 
@@ -193,7 +259,9 @@ export class Nueva implements OnInit {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
 
-    if (this.restriccionesSeleccionadas().size === 0) {
+    const tipo = this.tipoActual();
+
+    if (tipo === 'parte_diario' && this.restriccionesSeleccionadas().size === 0) {
       this.saveError.set('Selecciona al menos una restricción ("Ninguna" si no hubo ninguna).');
       return;
     }
@@ -202,14 +270,19 @@ export class Nueva implements OnInit {
     this.saveError.set('');
 
     const v = this.form.getRawValue();
-    const actividades = [...this.actividadesSeleccionadas()].map((k) => {
-      const [estructura, actividad] = k.split('|') as [Estructura, Actividad];
-      return { estructura, actividad };
-    });
-    const restricciones = [...this.restriccionesSeleccionadas()].map((tipo) => ({
-      tipo_restriccion: tipo,
-      descripcion_otro: tipo === 'OTRO' ? (v.descripcion_otro_restriccion ?? null) : null,
-    }));
+    const esParte = tipo === 'parte_diario';
+    const actividades = esParte
+      ? [...this.actividadesSeleccionadas()].map((k) => {
+          const [estructura, actividad] = k.split('|') as [Estructura, Actividad];
+          return { estructura, actividad };
+        })
+      : [];
+    const restricciones = esParte
+      ? [...this.restriccionesSeleccionadas()].map((r) => ({
+          tipo_restriccion: r,
+          descripcion_otro: r === 'OTRO' ? (v.descripcion_otro_restriccion ?? null) : null,
+        }))
+      : [];
 
     try {
       const usuarioId = this.userService.profile()?.id;
@@ -219,16 +292,27 @@ export class Nueva implements OnInit {
         usuario_id: usuarioId,
         proyecto_id: v.proyecto_id!,
         fecha: v.fecha!,
-        bloque_entrepiso: v.bloque_entrepiso!,
-        ingeniero_responsable: v.ingeniero_responsable!,
-        hora_fin_trabajo: v.hora_fin_trabajo!,
-        personal_carpinteria: v.personal_carpinteria!,
-        personal_acero: v.personal_acero!,
-        trabajadores_casa: v.trabajadores_casa!,
-        otro_personal: v.otro_personal ?? null,
+        tipo,
         comentarios: v.comentarios ?? null,
+        bloque_entrepiso: esParte ? v.bloque_entrepiso! : null,
+        ingeniero_responsable: esParte ? v.ingeniero_responsable! : null,
+        hora_fin_trabajo: esParte ? v.hora_fin_trabajo! : null,
+        personal_carpinteria: esParte ? v.personal_carpinteria! : 0,
+        personal_acero: esParte ? v.personal_acero! : 0,
+        trabajadores_casa: esParte ? v.trabajadores_casa! : 0,
+        otro_personal: esParte ? (v.otro_personal ?? null) : null,
         actividades,
         restricciones,
+        visita_tipo_visitante: tipo === 'visita' ? (v.visita_tipo_visitante ?? null) : null,
+        visita_nombre: tipo === 'visita' ? (v.visita_nombre ?? null) : null,
+        visita_organizacion: tipo === 'visita' ? (v.visita_organizacion ?? null) : null,
+        visita_motivo: tipo === 'visita' ? (v.visita_motivo ?? null) : null,
+        incidente_tipo: tipo === 'incidente' ? (v.incidente_tipo ?? null) : null,
+        incidente_gravedad: tipo === 'incidente' ? (v.incidente_gravedad ?? null) : null,
+        incidente_subcontratista: tipo === 'incidente' ? (v.incidente_subcontratista ?? null) : null,
+        incidente_lesionados: tipo === 'incidente' ? (v.incidente_lesionados ?? 0) : 0,
+        incidente_descripcion: tipo === 'incidente' ? (v.incidente_descripcion ?? null) : null,
+        incidente_acciones: tipo === 'incidente' ? (v.incidente_acciones ?? null) : null,
       });
 
       for (const file of this.archivos()) {
