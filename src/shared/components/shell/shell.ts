@@ -130,7 +130,7 @@ export class Shell implements OnInit {
       modulo: 'documentos',
       children: [
         { label: 'Generar documento', route: '/documentos/generar' },
-        { label: 'Plantillas', route: '/documentos/plantillas' },
+        { label: 'Plantillas', route: '/documentos/plantillas', modulo: 'plantillas' },
         { label: 'Historial', route: '/documentos/historial' },
       ],
     },

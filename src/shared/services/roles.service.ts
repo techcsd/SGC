@@ -27,6 +27,7 @@ export const MODULOS_DISPONIBLES = [
   { key: 'flota', label: 'Flota' },
   { key: 'bitacora', label: 'Bitácora' },
   { key: 'documentos', label: 'Documentos' },
+  { key: 'plantillas', label: 'Plantillas (crear/editar)' },
   { key: 'legal', label: 'Legal' },
   { key: 'tareas', label: 'Tareas (asignar)' },
   { key: 'admin', label: 'Administración' },
