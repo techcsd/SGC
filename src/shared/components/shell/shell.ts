@@ -162,6 +162,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Mis tareas', route: '/tareas/mis-tareas' },
         { label: 'Gestión de tareas', route: '/tareas/gestion', modulo: 'tareas' },
+        { label: 'Historial', route: '/tareas/historial' },
       ],
     },
     {

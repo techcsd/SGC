@@ -11,4 +11,9 @@ export const tareasRoutes: Routes = [
     canActivate: [moduleGuard('tareas')],
     loadComponent: () => import('./gestion/gestion').then((m) => m.Gestion),
   },
+  // History is visible to everyone (RLS scopes: own tasks, or all for managers).
+  {
+    path: 'historial',
+    loadComponent: () => import('./historial/historial').then((m) => m.TareasHistorial),
+  },
 ];
