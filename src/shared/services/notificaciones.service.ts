@@ -40,6 +40,7 @@ export class NotificacionesService {
     const userId = this.userService.profile()?.id;
     if (userId) {
       checks.push(this.loadTareasPendientes(userId));
+      checks.push(this.loadMensajesNoLeidos());
     }
 
     await Promise.all(checks);
@@ -60,6 +61,11 @@ export class NotificacionesService {
       .eq('asignado_a', usuarioId)
       .in('estado', ['pendiente', 'en_progreso']);
     this._pendingByModulo.update((m) => ({ ...m, tareas: count ?? 0 }));
+  }
+
+  private async loadMensajesNoLeidos(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('contar_mensajes_no_leidos');
+    this._pendingByModulo.update((m) => ({ ...m, mensajes: (data as number) ?? 0 }));
   }
 
   clear(): void {

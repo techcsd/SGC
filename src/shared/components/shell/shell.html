@@ -36,8 +36,14 @@
           >
             <span class="nav-icon" aria-hidden="true">
               <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: item.icon }" />
+              @if (pendingBadge(item) > 0) {
+                <span class="nav-icon-dot" aria-hidden="true"></span>
+              }
             </span>
             <span class="nav-label">{{ item.label }}</span>
+            @if (pendingBadge(item) > 0) {
+              <span class="nav-badge" [attr.aria-label]="pendingBadge(item) + ' sin leer'">{{ pendingBadge(item) }}</span>
+            }
             @if (item.phase) {
               <span class="nav-phase">{{ item.phase }}</span>
             }
@@ -252,6 +258,11 @@
     @case ('tareas') {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+    }
+    @case ('mensajes') {
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
       </svg>
     }
     @case ('admin') {

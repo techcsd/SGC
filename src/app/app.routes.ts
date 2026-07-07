@@ -83,6 +83,11 @@ export const routes: Routes = [
         path: 'tareas',
         loadChildren: () => import('./pages/tareas/tareas.routes').then((m) => m.tareasRoutes),
       },
+      {
+        // Internal messaging — available to every authenticated user.
+        path: 'mensajes',
+        loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),
+      },
     ],
   },
   {

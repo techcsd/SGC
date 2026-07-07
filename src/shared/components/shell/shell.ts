@@ -153,6 +153,13 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // Internal chat — no module gate, everyone can message.
+      label: 'Mensajes',
+      icon: 'mensajes',
+      route: '/mensajes',
+      badgeKey: 'mensajes',
+    },
+    {
       label: 'Soporte',
       icon: 'soporte',
       route: '/soporte',

@@ -1,0 +1,198 @@
+<div class="mensajeria">
+  <!-- ── Conversation list ── -->
+  <aside class="conv-list">
+    <div class="conv-list__header">
+      <h1 class="page-title">Mensajes</h1>
+      <div class="conv-list__actions">
+        <button type="button" class="icon-btn" title="Nuevo mensaje directo" (click)="openNuevo('directa')" aria-label="Nuevo mensaje directo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+        <button type="button" class="icon-btn" title="Nuevo grupo" (click)="openNuevo('grupo')" aria-label="Nuevo grupo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="sgc-field conv-list__search">
+      <input type="search" placeholder="Buscar conversación…" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" aria-label="Buscar conversación" />
+    </div>
+
+    @if (loading()) {
+      <div class="conv-list__loading"><span class="spinner-dark"></span> Cargando…</div>
+    } @else if (conversacionesFiltradas().length === 0) {
+      <p class="conv-list__empty">No tienes conversaciones. Inicia una con los botones de arriba.</p>
+    } @else {
+      <ul class="conv-items">
+        @for (c of conversacionesFiltradas(); track c.id) {
+          <li>
+            <button type="button" class="conv-item" [class.conv-item--active]="c.id === selectedId()" (click)="selectConversacion(c)">
+              <span class="conv-item__avatar" [class.conv-item__avatar--group]="c.tipo === 'grupo'">
+                {{ iniciales(c.tituloMostrado ?? '?') }}
+              </span>
+              <span class="conv-item__body">
+                <span class="conv-item__top">
+                  <span class="conv-item__title">{{ c.tituloMostrado }}</span>
+                  @if (c.ultimoMensaje) {
+                    <span class="conv-item__time">{{ c.ultimoMensaje.created_at | date:'dd/MM HH:mm' }}</span>
+                  }
+                </span>
+                <span class="conv-item__preview">
+                  @if (c.ultimoMensaje) {
+                    {{ c.ultimoMensaje.contenido || '📎 Archivo' }}
+                  } @else {
+                    Sin mensajes aún
+                  }
+                </span>
+              </span>
+              @if ((c.noLeidos ?? 0) > 0) {
+                <span class="conv-item__badge">{{ c.noLeidos }}</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </aside>
+
+  <!-- ── Thread ── -->
+  <section class="thread">
+    @if (!selectedConv()) {
+      <div class="thread__empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p>Selecciona una conversación o inicia una nueva.</p>
+      </div>
+    } @else {
+      <div class="thread__header">
+        <span class="thread__avatar" [class.thread__avatar--group]="selectedConv()!.tipo === 'grupo'">
+          {{ iniciales(selectedConv()!.tituloMostrado ?? '?') }}
+        </span>
+        <div class="thread__titles">
+          <span class="thread__title">{{ selectedConv()!.tituloMostrado }}</span>
+          @if (selectedConv()!.tipo === 'grupo') {
+            <span class="thread__sub">{{ selectedConv()!.participantes?.length }} participantes</span>
+          }
+        </div>
+      </div>
+
+      <div class="thread__messages">
+        @if (loadingThread()) {
+          <div class="thread__loading"><span class="spinner-dark"></span> Cargando…</div>
+        } @else {
+          @for (m of mensajes(); track m.id) {
+            <div class="msg" [class.msg--mine]="esMio(m)">
+              @if (!esMio(m) && selectedConv()!.tipo === 'grupo') {
+                <span class="msg__autor">{{ m.autor?.nombre ?? 'Usuario' }}</span>
+              }
+              <div class="msg__bubble">
+                @if (m.contenido) {
+                  <span class="msg__text">{{ m.contenido }}</span>
+                }
+                @if (m.archivo_path) {
+                  <button type="button" class="msg__file" (click)="descargarArchivo(m)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                    </svg>
+                    {{ m.archivo_nombre }}
+                  </button>
+                }
+                <span class="msg__time">{{ m.created_at | date:'HH:mm' }}</span>
+              </div>
+            </div>
+          }
+          <div #threadEnd></div>
+        }
+      </div>
+
+      <div class="composer">
+        @if (pendingFile(); as file) {
+          <div class="composer__file">
+            <span>📎 {{ file.name }}</span>
+            <button type="button" (click)="clearFile()" aria-label="Quitar archivo">✕</button>
+          </div>
+        }
+        <div class="composer__row">
+          <label class="icon-btn composer__attach" title="Adjuntar archivo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+            <input type="file" class="sr-only" (change)="onFileSelected($event)" />
+          </label>
+          <textarea
+            [formControl]="composer"
+            rows="1"
+            placeholder="Escribe un mensaje…"
+            (keydown)="onComposerKeydown($event)"
+            aria-label="Mensaje"
+          ></textarea>
+          <button type="button" class="sgc-btn sgc-btn--primary composer__send" [disabled]="sending()" (click)="enviar()">
+            @if (sending()) {
+              <span class="spinner" aria-hidden="true"></span>
+            } @else {
+              Enviar
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</div>
+
+@if (error()) {
+  <div class="page-error mensajeria__error" role="alert">{{ error() }}</div>
+}
+
+<!-- ── New conversation drawer ── -->
+<app-form-drawer [title]="nuevoModo() === 'directa' ? 'Nuevo mensaje' : 'Nuevo grupo'" [open]="nuevoOpen()" (closed)="closeNuevo()">
+  <div class="nuevo-body">
+    @if (nuevoModo() === 'grupo') {
+      <div class="sgc-field">
+        <label for="grupo_nombre">Nombre del grupo</label>
+        <input id="grupo_nombre" type="text" [formControl]="grupoNombre" placeholder="Ej: Obra Torre Norte" />
+      </div>
+    }
+
+    <div class="sgc-field">
+      <label for="buscar_usuario">{{ nuevoModo() === 'directa' ? 'Elige a quién escribir' : 'Agregar participantes' }}</label>
+      <input id="buscar_usuario" type="search" placeholder="Buscar persona…" [value]="nuevoBuscar()" (input)="nuevoBuscar.set($any($event.target).value)" />
+    </div>
+
+    <ul class="usuario-list">
+      @for (u of directorioFiltrado(); track u.id) {
+        @if (nuevoModo() === 'directa') {
+          <li>
+            <button type="button" class="usuario-item" [disabled]="creating()" (click)="iniciarDirecta(u.id)">
+              <span class="usuario-item__avatar">{{ iniciales(u.nombre) }}</span>
+              <span class="usuario-item__nombre">{{ u.nombre }}</span>
+            </button>
+          </li>
+        } @else {
+          <li>
+            <button type="button" class="usuario-item" [class.usuario-item--selected]="estaSeleccionado(u.id)" (click)="toggleSeleccion(u.id)">
+              <span class="usuario-item__avatar">{{ iniciales(u.nombre) }}</span>
+              <span class="usuario-item__nombre">{{ u.nombre }}</span>
+              @if (estaSeleccionado(u.id)) {
+                <svg class="usuario-item__check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              }
+            </button>
+          </li>
+        }
+      }
+    </ul>
+
+    @if (nuevoModo() === 'grupo') {
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeNuevo()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creating() || !grupoNombre.value?.trim() || seleccionados().size === 0" (click)="crearGrupo()">
+          Crear grupo ({{ seleccionados().size }})
+        </button>
+      </div>
+    }
+  </div>
+</app-form-drawer>
