@@ -260,6 +260,12 @@
         </button>
       </div>
 
+      <datalist id="articulos-catalogo">
+        @for (nombre of articuloNombres(); track nombre) {
+          <option [value]="nombre"></option>
+        }
+      </datalist>
+
       <div class="items-list">
         @for (item of formItems(); track $index) {
           <div class="item-row">
@@ -268,9 +274,10 @@
               <input
                 [id]="'desc-' + $index"
                 type="text"
+                list="articulos-catalogo"
                 [value]="item.descripcion"
                 (input)="updateItem($index, 'descripcion', $any($event.target).value)"
-                placeholder="Descripción del ítem"
+                placeholder="Descripción del ítem (elige del catálogo si aplica)"
               />
             </div>
             <div class="item-row__qty sgc-field">

@@ -23,6 +23,7 @@ inventario · compras · rrhh · proyectos · flota · bitacora · documentos ·
 4. **Verify before reporting done**: `npm run build` must pass and the affected workflow must be tested end-to-end.
 5. **URLs**: auth/email redirect links must point to the production domain — never localhost.
 6. Real workflows first: model features on how the company actually works (reference docs below), ERP patterns (Odoo/Oracle style) where they add real value.
+7. **Architect mindset**: think like a Senior Software Architect building an ERP that will be maintained for many years, not like a developer completing a single feature. You are encouraged to challenge existing architectural decisions when a better long-term design exists — propose it (or apply it, per the working agreement) instead of silently following the current pattern.
 
 ## Reference docs (real company documents/templates)
 - `C:\Users\xavie\Desktop\X Dev\Constructora SD\` → `EXTRACTO DE ONE DRIVE\` and `...\PLANTILLAS\`

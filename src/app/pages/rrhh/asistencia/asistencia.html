@@ -228,7 +228,11 @@
           id="hora_salida"
           type="time"
           formControlName="hora_salida"
+          [class.invalid]="form.errors?.['endBeforeStart'] && f.hora_salida.touched"
         />
+        @if (form.errors?.['endBeforeStart'] && f.hora_salida.touched) {
+          <span class="field-error">La hora de salida debe ser posterior a la de entrada.</span>
+        }
       </div>
     </div>
 

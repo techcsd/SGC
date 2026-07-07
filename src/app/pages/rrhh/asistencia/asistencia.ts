@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { endTimeAfterStart } from '../../../../shared/utils/form-validators.util';
 import { AsistenciaService } from '../../../../shared/services/asistencia.service';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { Asistencia as AsistenciaModel, AsistenciaFormData, ESTADOS_ASISTENCIA, EstadoAsistencia } from '../../../../shared/models/asistencia.model';
@@ -54,7 +55,7 @@ export class Asistencia implements OnInit {
     hora_salida: new FormControl<string | null>(null),
     estado: new FormControl<EstadoAsistencia>('presente', [Validators.required]),
     notas: new FormControl<string | null>(null),
-  });
+  }, { validators: endTimeAfterStart('hora_entrada', 'hora_salida') });
 
   // ── Computed ─────────────────────────────────────────────
   summary = computed(() => {

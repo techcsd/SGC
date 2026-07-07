@@ -36,20 +36,24 @@
 
         @for (campo of plantilla.campos; track campo.key) {
           <div class="sgc-field">
-            <label [for]="campo.key">{{ campo.label }}</label>
+            <label [for]="campo.key">{{ campo.label }} <span class="required">*</span></label>
             @if (campo.tipo === 'textarea') {
               <textarea [id]="campo.key" rows="3" (input)="onValorChange(campo.key, $any($event.target).value)"></textarea>
             } @else {
               <input
                 [id]="campo.key"
                 [type]="campo.tipo === 'numero' ? 'number' : campo.tipo === 'fecha' ? 'date' : 'text'"
+                [attr.min]="campo.tipo === 'numero' ? 0 : null"
                 (input)="onValorChange(campo.key, $any($event.target).value)"
               />
             }
           </div>
         }
 
-        <button type="button" class="sgc-btn sgc-btn--primary generar-btn" (click)="generarVistaPrevia()">
+        @if (camposIncompletos().length > 0) {
+          <p class="generar-faltantes">Completa todos los campos para generar el documento.</p>
+        }
+        <button type="button" class="sgc-btn sgc-btn--primary generar-btn" [disabled]="!puedeGenerar()" (click)="generarVistaPrevia()">
           Generar vista previa
         </button>
       }

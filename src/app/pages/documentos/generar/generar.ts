@@ -40,6 +40,17 @@ export class Generar implements OnInit {
     return html ? this.sanitizer.bypassSecurityTrustHtml(html) : null;
   });
 
+  // Every detected {{campo}} is required — a document generated with blank
+  // fields is almost always a mistake. Preview/generate is blocked until filled.
+  camposIncompletos = computed(() => {
+    const plantilla = this.plantillaSeleccionada();
+    if (!plantilla) return [];
+    const valores = this.valores();
+    return (plantilla.campos ?? []).filter((c) => !(valores[c.key] ?? '').trim());
+  });
+
+  puedeGenerar = computed(() => !!this.plantillaSeleccionada() && this.camposIncompletos().length === 0);
+
   async ngOnInit() {
     this.loading.set(true);
     this.error.set('');
@@ -74,7 +85,7 @@ export class Generar implements OnInit {
 
   generarVistaPrevia() {
     const plantilla = this.plantillaSeleccionada();
-    if (!plantilla) return;
+    if (!plantilla || !this.puedeGenerar()) return;
     this.previewHtml.set(this.plantillasService.renderizar(plantilla.contenido_html, this.valores()));
   }
 

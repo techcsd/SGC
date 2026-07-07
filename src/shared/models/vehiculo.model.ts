@@ -23,6 +23,8 @@ export interface Vehiculo {
   color: string | null;
   kilometraje: number;
   capacidad_carga: string | null;
+  capacidad_valor: number | null;
+  capacidad_unidad: string | null;
   responsable_id: string | null;
   responsable?: { nombre: string };
   notas: string | null;
@@ -40,9 +42,16 @@ export interface VehiculoFormData {
   estado: VehiculoEstado;
   color: string | null;
   kilometraje: number;
-  capacidad_carga: string | null;
+  capacidad_valor: number | null;
+  capacidad_unidad: string | null;
   notas: string | null;
 }
+
+export const CAPACIDAD_UNIDADES: { value: string; label: string }[] = [
+  { value: 't', label: 'Toneladas (t)' },
+  { value: 'kg', label: 'Kilogramos (kg)' },
+  { value: 'm3', label: 'Metros cúbicos (m³)' },
+];
 
 export const VEHICULO_TIPOS: { value: VehiculoTipo; label: string }[] = [
   { value: 'camion', label: 'Camión' },

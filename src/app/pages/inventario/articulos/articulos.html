@@ -332,7 +332,11 @@
           min="0"
           step="0.01"
           placeholder="Sin límite"
+          [class.invalid]="form.errors?.['maxLtMin'] && f.stock_maximo.touched"
         />
+        @if (form.errors?.['maxLtMin'] && f.stock_maximo.touched) {
+          <span class="field-error">El stock máximo no puede ser menor que el mínimo.</span>
+        }
       </div>
     </div>
 

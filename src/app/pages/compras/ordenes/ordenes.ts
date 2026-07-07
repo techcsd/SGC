@@ -9,6 +9,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
+import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
@@ -45,6 +46,7 @@ interface ItemRow {
 })
 export class Ordenes implements OnInit {
   private ordenesService = inject(OrdenesCompraService);
+  private articulosService = inject(ArticulosService);
   private proveedoresService = inject(ProveedoresService);
   private proyectosService = inject(ProyectosService);
   private solicitudesCompraService = inject(SolicitudesCompraService);
@@ -56,6 +58,7 @@ export class Ordenes implements OnInit {
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OrdenCompra[]>([]);
   proveedores = signal<Proveedor[]>([]);
+  articuloNombres = signal<string[]>([]);
   proyectos = signal<Proyecto[]>([]);
   solicitudesPendientes = signal<SolicitudCompra[]>([]);
   loading = signal(true);
@@ -127,16 +130,18 @@ export class Ordenes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [ordenes, proveedores, proyectos, solicitudes] = await Promise.all([
+      const [ordenes, proveedores, proyectos, solicitudes, articulos] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
         this.proyectosService.getAll(),
         this.solicitudesCompraService.getAll(),
+        this.articulosService.getAll(),
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
       this.proyectos.set(proyectos);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
+      this.articuloNombres.set(articulos.filter((a) => a.activo).map((a) => a.nombre));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {

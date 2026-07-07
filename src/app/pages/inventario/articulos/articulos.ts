@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { maxGteMin } from '../../../../shared/utils/form-validators.util';
 import { DecimalPipe } from '@angular/common';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -61,7 +62,7 @@ export class Articulos implements OnInit {
     stock_maximo: new FormControl<number | null>(null, [Validators.min(0)]),
     precio_estimado: new FormControl<number | null>(null, [Validators.min(0)]),
     activo: new FormControl<boolean>(true),
-  });
+  }, { validators: maxGteMin('stock_minimo', 'stock_maximo') });
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {

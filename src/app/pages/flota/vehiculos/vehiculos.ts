@@ -14,6 +14,7 @@ import {
   VehiculoFormData,
   VEHICULO_TIPOS,
   VEHICULO_ESTADOS,
+  CAPACIDAD_UNIDADES,
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
@@ -46,6 +47,7 @@ export class FlotaVehiculos implements OnInit {
 
   readonly TIPOS = VEHICULO_TIPOS;
   readonly ESTADOS = VEHICULO_ESTADOS;
+  readonly CAPACIDAD_UNIDADES = CAPACIDAD_UNIDADES;
 
   form = new FormGroup({
     placa: new FormControl('', [Validators.required, Validators.maxLength(20)]),
@@ -60,7 +62,8 @@ export class FlotaVehiculos implements OnInit {
     estado: new FormControl('activo', [Validators.required]),
     color: new FormControl<string | null>(null),
     kilometraje: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
-    capacidad_carga: new FormControl<string | null>(null),
+    capacidad_valor: new FormControl<number | null>(null, [Validators.min(0)]),
+    capacidad_unidad: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
   });
 
@@ -133,7 +136,8 @@ export class FlotaVehiculos implements OnInit {
       estado: vehiculo.estado,
       color: vehiculo.color,
       kilometraje: vehiculo.kilometraje,
-      capacidad_carga: vehiculo.capacidad_carga,
+      capacidad_valor: vehiculo.capacidad_valor,
+      capacidad_unidad: vehiculo.capacidad_unidad,
       notas: vehiculo.notas,
     });
     this.drawerOpen.set(true);
@@ -148,7 +152,13 @@ export class FlotaVehiculos implements OnInit {
     this.saving.set(true);
     this.saveError.set('');
 
-    const payload = this.form.value as VehiculoFormData;
+    const raw = this.form.value;
+    // Normalize plate (uppercase, trimmed, single spaces) so "a123bc" and
+    // "A123 BC" don't become two different vehicles.
+    const payload = {
+      ...raw,
+      placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' '),
+    } as VehiculoFormData;
 
     try {
       const id = this.editingId();

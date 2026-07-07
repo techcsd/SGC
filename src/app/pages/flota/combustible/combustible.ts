@@ -238,10 +238,21 @@ export class Combustible implements OnInit {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
 
+    const raw = this.form.getRawValue();
+
+    // Odometer can't go backwards: a new reading must be >= the vehicle's
+    // current registered kilometraje.
+    if (raw.kilometraje != null) {
+      const veh = this.vehiculos().find((v) => v.id === raw.vehiculo_id);
+      if (veh && raw.kilometraje < veh.kilometraje) {
+        this.saveError.set(`El kilometraje no puede ser menor al actual del vehículo (${veh.kilometraje} km).`);
+        return;
+      }
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 
-    const raw = this.form.getRawValue();
     const payload: RegistroCombustibleFormData = {
       vehiculo_id: raw.vehiculo_id!,
       conductor_id: raw.conductor_id || null,
