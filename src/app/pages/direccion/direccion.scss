@@ -54,3 +54,51 @@
     grid-column: 1 / -1;
   }
 }
+
+// ── Alertas panel ────────────────────────────────────────
+.direccion-alertas {
+  margin-top: 18px;
+  padding: 16px 18px;
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+    margin: 0 0 12px;
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+  }
+}
+
+.alerta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--sgc-radius);
+  border-left: 4px solid var(--sgc-text-muted);
+  background: var(--sgc-surface-hover);
+  text-decoration: none;
+  color: var(--sgc-text);
+  transition: var(--sgc-transition-fast);
+
+  &:hover { transform: translateX(2px); }
+
+  &--peligro { border-left-color: var(--sgc-danger); }
+  &--precaucion { border-left-color: var(--sgc-warning); }
+  &--info { border-left-color: var(--sgc-primary); }
+
+  &__icono { font-size: 18px; }
+  &__texto { flex: 1; font-size: 13px; }
+  &__cantidad {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--sgc-text);
+  }
+}

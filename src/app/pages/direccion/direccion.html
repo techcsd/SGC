@@ -41,7 +41,27 @@
       <span class="kpi-label">Gasto en compras (activos)</span>
       <span class="kpi-value">RD$ {{ gastoTotal() | number:'1.0-0' }}</span>
     </div>
+    <div class="kpi-card" [class.kpi-card--danger]="tareasVencidas() > 0" [class.kpi-card--success]="tareasVencidas() === 0">
+      <span class="kpi-label">Tareas vencidas</span>
+      <span class="kpi-value">{{ tareasVencidas() }}</span>
+    </div>
   </div>
+
+  <!-- Alertas que requieren atención -->
+  @if (alertas().length > 0) {
+    <section class="direccion-alertas sgc-card">
+      <h3 class="direccion-alertas__title">Requiere atención</h3>
+      <div class="direccion-alertas__list">
+        @for (a of alertas(); track a.texto) {
+          <a class="alerta" [class]="alertaClass(a.nivel)" [routerLink]="a.ruta">
+            <span class="alerta__icono" aria-hidden="true">{{ a.icono }}</span>
+            <span class="alerta__texto">{{ a.texto }}</span>
+            <span class="alerta__cantidad">{{ a.cantidad }}</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
 
   <!-- Charts -->
   <div class="direccion-charts">
@@ -51,8 +71,16 @@
     <div class="sgc-card chart-card">
       <app-donut-chart titulo="Tareas por estado" [data]="tareasPorEstado()" />
     </div>
+    <div class="sgc-card chart-card">
+      <app-donut-chart titulo="Empleados por departamento" [data]="empleadosPorDepto()" />
+    </div>
     <div class="sgc-card chart-card chart-card--wide">
       <app-bar-chart titulo="Desempeño por proyecto (0-100)" [data]="scoresBars()" />
     </div>
+    @if (presupuestoBars().length > 0) {
+      <div class="sgc-card chart-card chart-card--wide">
+        <app-bar-chart titulo="Uso de presupuesto por proyecto (% gastado)" [data]="presupuestoBars()" sufijo="%" />
+      </div>
+    }
   </div>
 }

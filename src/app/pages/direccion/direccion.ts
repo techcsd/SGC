@@ -1,13 +1,23 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
+import { todayIso, daysFromNowIso } from '../../../shared/utils/fecha.util';
+
+interface Alerta {
+  icono: string;
+  texto: string;
+  cantidad: number;
+  ruta: string;
+  nivel: 'peligro' | 'precaucion' | 'info';
+}
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, BarChart, DonutChart],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,15 +31,47 @@ export class Direccion implements OnInit {
 
   private kpi = signal<KpiProyectoRaw[]>([]);
   private proyectosEstado = signal<{ estado: string }[]>([]);
-  private tareasEstado = signal<{ estado: string }[]>([]);
+  private tareas = signal<{ estado: string; fecha_limite: string | null }[]>([]);
+  private empleados = signal<{ departamento: string | null }[]>([]);
   empleadosActivos = signal(0);
   expedientesAbiertos = signal(0);
+  contratosPorVencer = signal(0);
+  aprobacionesPendientes = signal(0);
+  ausenciasPendientes = signal(0);
+  solicitudesMaterial = signal(0);
+  solicitudesCompra = signal(0);
 
   // ── Stat tiles ───────────────────────────────────────────
   proyectosActivos = computed(() => this.kpi().length);
   incidentesTotal = computed(() => this.kpi().reduce((s, k) => s + k.incidentes_90d, 0));
   presupuestoTotal = computed(() => this.kpi().reduce((s, k) => s + Number(k.presupuesto ?? 0), 0));
   gastoTotal = computed(() => this.kpi().reduce((s, k) => s + Number(k.gasto_real ?? 0), 0));
+  tareasVencidas = computed(() => {
+    const hoy = todayIso();
+    return this.tareas().filter(
+      (t) => t.fecha_limite && t.fecha_limite < hoy && (t.estado === 'pendiente' || t.estado === 'en_progreso'),
+    ).length;
+  });
+
+  // ── Alerts panel (attention needed) ──────────────────────
+  alertas = computed<Alerta[]>(() => {
+    const a: Alerta[] = [];
+    if (this.tareasVencidas() > 0)
+      a.push({ icono: '⏰', texto: 'Tareas vencidas', cantidad: this.tareasVencidas(), ruta: '/tareas/gestion', nivel: 'peligro' });
+    if (this.incidentesTotal() > 0)
+      a.push({ icono: '⚠️', texto: 'Incidentes (90 días)', cantidad: this.incidentesTotal(), ruta: '/bitacora/historial', nivel: 'peligro' });
+    if (this.contratosPorVencer() > 0)
+      a.push({ icono: '📄', texto: 'Contratos por vencer (30 días)', cantidad: this.contratosPorVencer(), ruta: '/legal/contratos', nivel: 'precaucion' });
+    if (this.aprobacionesPendientes() > 0)
+      a.push({ icono: '⚖️', texto: 'Aprobaciones legales pendientes', cantidad: this.aprobacionesPendientes(), ruta: '/legal/aprobaciones', nivel: 'precaucion' });
+    if (this.ausenciasPendientes() > 0)
+      a.push({ icono: '🏖️', texto: 'Solicitudes de ausencia pendientes', cantidad: this.ausenciasPendientes(), ruta: '/rrhh/ausencias', nivel: 'precaucion' });
+    if (this.solicitudesMaterial() > 0)
+      a.push({ icono: '📦', texto: 'Solicitudes de material pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
+    if (this.solicitudesCompra() > 0)
+      a.push({ icono: '🛒', texto: 'Solicitudes de compra pendientes', cantidad: this.solicitudesCompra(), ruta: '/compras/ordenes', nivel: 'info' });
+    return a;
+  });
 
   // ── Charts ───────────────────────────────────────────────
   proyectosPorEstado = computed<DonutDatum[]>(() => {
@@ -53,19 +95,25 @@ export class Direccion implements OnInit {
     const labels: Record<string, string> = {
       pendiente: 'Pendiente', en_progreso: 'En progreso', completada: 'Completada', cancelada: 'Cancelada',
     };
-    return this.groupCount(this.tareasEstado().map((t) => t.estado)).map((g) => ({
+    return this.groupCount(this.tareas().map((t) => t.estado)).map((g) => ({
       label: labels[g.key] ?? g.key,
       value: g.count,
       color: colors[g.key] ?? '#94a3b8',
     }));
   });
 
+  empleadosPorDepto = computed<DonutDatum[]>(() => {
+    const palette = ['#1F4E79', '#2D7D46', '#B45309', '#5B3A8E', '#0E7490', '#C0392B', '#64748b'];
+    return this.groupCount(this.empleados().map((e) => e.departamento ?? 'Sin depto.')).map((g, i) => ({
+      label: g.key,
+      value: g.count,
+      color: palette[i % palette.length],
+    }));
+  });
+
   scoresBars = computed<BarDatum[]>(() =>
     [...this.kpi()]
-      .map((k) => ({
-        nombre: k.nombre,
-        score: scoreTotal(k),
-      }))
+      .map((k) => ({ nombre: k.nombre, score: scoreTotal(k) }))
       .sort((a, b) => b.score - a.score)
       .map((k) => ({
         label: k.nombre,
@@ -74,22 +122,50 @@ export class Direccion implements OnInit {
       })),
   );
 
+  // Budget usage % per project (gasto / presupuesto).
+  presupuestoBars = computed<BarDatum[]>(() =>
+    this.kpi()
+      .filter((k) => k.presupuesto && k.presupuesto > 0)
+      .map((k) => {
+        const pct = Math.round((Number(k.gasto_real) / Number(k.presupuesto)) * 100);
+        return { label: k.nombre, value: pct, color: pct > 100 ? 'var(--sgc-danger)' : pct > 80 ? 'var(--sgc-warning)' : 'var(--sgc-success)' };
+      }),
+  );
+
   async ngOnInit() {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [kpi, proyectos, tareas, empleados, expedientes] = await Promise.all([
-        this.proyectosService.getKpiProyectos(),
-        this.supabase.client.from('proyectos').select('estado').eq('activo', true),
-        this.supabase.client.from('tareas').select('estado'),
-        this.supabase.client.from('empleados').select('id', { count: 'exact', head: true }).eq('activo', true),
-        this.supabase.client.from('expedientes_legales').select('id', { count: 'exact', head: true }).neq('estado', 'cerrado'),
-      ]);
+      const [kpi, proyectos, tareas, empleados, empAct, expedientes, contratos, aprob, ausencias, solMat, solCom] =
+        await Promise.all([
+          this.proyectosService.getKpiProyectos(),
+          this.supabase.client.from('proyectos').select('estado').eq('activo', true),
+          this.supabase.client.from('tareas').select('estado, fecha_limite'),
+          this.supabase.client.from('empleados').select('departamento').eq('activo', true),
+          this.supabase.client.from('empleados').select('id', { count: 'exact', head: true }).eq('activo', true),
+          this.supabase.client.from('expedientes_legales').select('id', { count: 'exact', head: true }).neq('estado', 'cerrado'),
+          this.supabase.client
+            .from('contratos')
+            .select('id', { count: 'exact', head: true })
+            .in('estado', ['firmado', 'en_revision'])
+            .not('fecha_vencimiento', 'is', null)
+            .lte('fecha_vencimiento', daysFromNowIso(30)),
+          this.supabase.client.from('aprobaciones_legales').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+          this.supabase.client.from('solicitudes_ausencia').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+          this.supabase.client.from('solicitudes_material').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+          this.supabase.client.from('solicitudes_compra').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+        ]);
       this.kpi.set(kpi);
       this.proyectosEstado.set((proyectos.data ?? []) as { estado: string }[]);
-      this.tareasEstado.set((tareas.data ?? []) as { estado: string }[]);
-      this.empleadosActivos.set(empleados.count ?? 0);
+      this.tareas.set((tareas.data ?? []) as { estado: string; fecha_limite: string | null }[]);
+      this.empleados.set((empleados.data ?? []) as { departamento: string | null }[]);
+      this.empleadosActivos.set(empAct.count ?? 0);
       this.expedientesAbiertos.set(expedientes.count ?? 0);
+      this.contratosPorVencer.set(contratos.count ?? 0);
+      this.aprobacionesPendientes.set(aprob.count ?? 0);
+      this.ausenciasPendientes.set(ausencias.count ?? 0);
+      this.solicitudesMaterial.set(solMat.count ?? 0);
+      this.solicitudesCompra.set(solCom.count ?? 0);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el panel de dirección.');
     } finally {
@@ -102,9 +178,12 @@ export class Direccion implements OnInit {
     for (const v of values) map.set(v, (map.get(v) ?? 0) + 1);
     return [...map.entries()].map(([key, count]) => ({ key, count }));
   }
+
+  alertaClass(nivel: string): string {
+    return `alerta--${nivel}`;
+  }
 }
 
-// Same weighting as the Ranking de Encargados page.
 function scoreTotal(k: KpiProyectoRaw): number {
   const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
   const avance = clamp(Number(k.avance_promedio));
