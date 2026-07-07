@@ -1,0 +1,44 @@
+<section class="obras-clima sgc-card">
+  <div class="obras-clima__head">
+    <h2 class="obras-clima__title">🌦️ Clima en obras</h2>
+    @if (!loading() && obras().length > 0) {
+      <button type="button" class="obras-clima__refresh" (click)="recargar()" aria-label="Actualizar clima">
+        ↻
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="obras-clima__state" aria-busy="true"><span class="spinner-dark"></span> Cargando clima…</div>
+  } @else if (error()) {
+    <div class="obras-clima__state obras-clima__state--error" role="alert">{{ error() }}</div>
+  } @else if (obras().length === 0) {
+    <div class="obras-clima__state">
+      No hay obras activas con ubicación. Agrega coordenadas a un proyecto en
+      <a routerLink="/proyectos">Proyectos</a> para ver su clima aquí.
+    </div>
+  } @else {
+    <div class="obras-clima__grid">
+      @for (o of obras(); track o.proyectoId) {
+        <a class="obra" [class.obra--peligro]="o.peorNivel === 'peligro'"
+           [class.obra--precaucion]="o.peorNivel === 'precaucion'" routerLink="/proyectos">
+          <div class="obra__top">
+            <span class="obra__nombre" [title]="o.nombre">{{ o.nombre }}</span>
+            <code class="obra__codigo">{{ o.codigo }}</code>
+          </div>
+
+          <div class="obra__now">
+            <span class="obra__icon">{{ tiempo(o).icono }}</span>
+            <span class="obra__temp">{{ o.contexto.pronostico.actual.temperatura | number:'1.0-0' }}°C</span>
+            <span class="obra__cond">{{ tiempo(o).label }}</span>
+          </div>
+
+          <div class="obra__rec obra__rec--{{ o.peorNivel }}">
+            <span class="obra__rec-icon">{{ destacada(o).icono }}</span>
+            <span class="obra__rec-txt">{{ destacada(o).titulo }}</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

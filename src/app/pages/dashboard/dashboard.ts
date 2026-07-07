@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet, DecimalPipe } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 
 interface ModuleCard {
@@ -34,7 +35,7 @@ interface BarItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, NgTemplateOutlet, DecimalPipe],
+  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, ObrasClima],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

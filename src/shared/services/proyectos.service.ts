@@ -25,6 +25,29 @@ export class ProyectosService {
     return (data ?? []) as unknown as Proyecto[];
   }
 
+  /** Active, in-progress projects that have geographic coordinates — used by the
+   *  Intelligent Context System to show weather across all live obras without
+   *  loading heavy joins (fases/responsable). */
+  async getActivasConUbicacion(): Promise<
+    Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud' | 'direccion_geo'>[]
+  > {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyectos')
+      .select('id, codigo, nombre, latitud, longitud, direccion_geo')
+      .eq('activo', true)
+      .eq('estado', 'en_progreso')
+      .not('latitud', 'is', null)
+      .not('longitud', 'is', null)
+      .order('nombre', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as Pick<
+      Proyecto,
+      'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud' | 'direccion_geo'
+    >[];
+  }
+
   async getById(id: string): Promise<Proyecto> {
     const { data, error } = await this.supabase.client
       .schema('sgc')

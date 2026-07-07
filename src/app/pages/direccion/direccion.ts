@@ -5,6 +5,8 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
+import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
+import { ObrasClimaService } from '../../../shared/context/obras-clima.service';
 import { todayIso, daysFromNowIso } from '../../../shared/utils/fecha.util';
 
 interface Alerta {
@@ -17,7 +19,7 @@ interface Alerta {
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, ObrasClima],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +27,7 @@ interface Alerta {
 export class Direccion implements OnInit {
   private supabase = inject(SupabaseService);
   private proyectosService = inject(ProyectosService);
+  private obrasClimaService = inject(ObrasClimaService);
 
   loading = signal(true);
   error = signal('');
@@ -40,6 +43,8 @@ export class Direccion implements OnInit {
   ausenciasPendientes = signal(0);
   solicitudesMaterial = signal(0);
   solicitudesCompra = signal(0);
+  obrasClimaPeligro = signal(0);
+  obrasClimaPrecaucion = signal(0);
 
   // ── Stat tiles ───────────────────────────────────────────
   proyectosActivos = computed(() => this.kpi().length);
@@ -56,6 +61,10 @@ export class Direccion implements OnInit {
   // ── Alerts panel (attention needed) ──────────────────────
   alertas = computed<Alerta[]>(() => {
     const a: Alerta[] = [];
+    if (this.obrasClimaPeligro() > 0)
+      a.push({ icono: '🌩️', texto: 'Obras con clima peligroso', cantidad: this.obrasClimaPeligro(), ruta: '/proyectos', nivel: 'peligro' });
+    else if (this.obrasClimaPrecaucion() > 0)
+      a.push({ icono: '🌦️', texto: 'Obras con precaución climática', cantidad: this.obrasClimaPrecaucion(), ruta: '/proyectos', nivel: 'precaucion' });
     if (this.tareasVencidas() > 0)
       a.push({ icono: '⏰', texto: 'Tareas vencidas', cantidad: this.tareasVencidas(), ruta: '/tareas/gestion', nivel: 'peligro' });
     if (this.incidentesTotal() > 0)
@@ -170,6 +179,15 @@ export class Direccion implements OnInit {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el panel de dirección.');
     } finally {
       this.loading.set(false);
+    }
+
+    // Weather alerts across active obras — best-effort, never blocks the panel.
+    try {
+      const clima = await this.obrasClimaService.getClimaObrasActivas();
+      this.obrasClimaPeligro.set(clima.filter((o) => o.peorNivel === 'peligro').length);
+      this.obrasClimaPrecaucion.set(clima.filter((o) => o.peorNivel === 'precaucion').length);
+    } catch {
+      /* clima is enrichment only */
     }
   }
 
