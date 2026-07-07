@@ -58,3 +58,21 @@ export const PROYECTO_TIPOS = [
   { value: 'infraestructura', label: 'Infraestructura' },
   { value: 'otro', label: 'Otro' },
 ];
+
+export const FASE_ESTADOS = [
+  { value: 'pendiente', label: 'Pendiente', badge: 'neutral' },
+  { value: 'en_progreso', label: 'En progreso', badge: 'info' },
+  { value: 'completada', label: 'Completada', badge: 'success' },
+];
+
+// Suggested roles for project team members (datalist — keeps labels consistent).
+export const ROLES_PROYECTO = [
+  'Encargado de obra',
+  'Ingeniero residente',
+  'Maestro constructor',
+  'Supervisor',
+  'Capataz',
+  'Topógrafo',
+  'Administrativo de obra',
+  'Seguridad',
+];

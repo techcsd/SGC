@@ -252,7 +252,10 @@
           [class.invalid]="f.cedula.invalid && f.cedula.touched"
         />
         @if (f.cedula.invalid && f.cedula.touched) {
-          <span class="field-error">La cédula es obligatoria.</span>
+          <span class="field-error">
+            @if (f.cedula.errors?.['required']) { La cédula es obligatoria. }
+            @else { Formato inválido. Usa 000-0000000-0. }
+          </span>
         }
       </div>
     </div>

@@ -13,7 +13,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { ActivoFijo, ActivoFormData, ACTIVO_ESTADOS, ActivoEstado } from '../../../../shared/models/activo.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-activos',
@@ -50,6 +50,7 @@ export class Activos implements OnInit {
   editingId = signal<string | null>(null);
 
   readonly ACTIVO_ESTADOS = ACTIVO_ESTADOS;
+  readonly today = todayIso();
 
   form = new FormGroup({
     codigo: new FormControl({ value: '', disabled: true }),

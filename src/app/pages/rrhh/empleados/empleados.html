@@ -271,7 +271,10 @@
           [class.invalid]="f.cedula.invalid && f.cedula.touched"
         />
         @if (f.cedula.invalid && f.cedula.touched) {
-          <span class="field-error">La cédula es obligatoria.</span>
+          <span class="field-error">
+            @if (f.cedula.errors?.['required']) { La cédula es obligatoria. }
+            @else { Formato inválido. Usa 000-0000000-0. }
+          </span>
         }
       </div>
 
@@ -329,9 +332,15 @@
           id="cargo"
           type="text"
           formControlName="cargo"
-          placeholder="Cargo o puesto"
+          list="cargos-list"
+          placeholder="Selecciona o escribe el cargo"
           [class.invalid]="f.cargo.invalid && f.cargo.touched"
         />
+        <datalist id="cargos-list">
+          @for (c of CARGOS; track c) {
+            <option [value]="c"></option>
+          }
+        </datalist>
         @if (f.cargo.invalid && f.cargo.touched) {
           <span class="field-error">El cargo es obligatorio.</span>
         }
@@ -368,13 +377,13 @@
           id="salario"
           type="number"
           formControlName="salario"
-          min="0"
+          min="1"
           step="0.01"
           placeholder="0.00"
           [class.invalid]="f.salario.invalid && f.salario.touched"
         />
         @if (f.salario.invalid && f.salario.touched) {
-          <span class="field-error">El salario es obligatorio.</span>
+          <span class="field-error">Ingresa un salario mayor a 0.</span>
         }
       </div>
     </div>
@@ -420,7 +429,7 @@
     <div class="form-row">
       <div class="sgc-field">
         <label for="fecha_nacimiento">Fecha de nacimiento</label>
-        <input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" />
+        <input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" [max]="today" />
       </div>
       <div class="sgc-field">
         <label for="genero">Género</label>
@@ -478,17 +487,20 @@
     <div class="form-row">
       <div class="sgc-field">
         <label for="afp">AFP (pensiones)</label>
-        <input id="afp" type="text" formControlName="afp" placeholder="Fondo de pensiones" />
+        <input id="afp" type="text" formControlName="afp" list="afp-list" placeholder="Fondo de pensiones" />
+        <datalist id="afp-list">@for (a of AFPS; track a) { <option [value]="a"></option> }</datalist>
       </div>
       <div class="sgc-field">
         <label for="ars">ARS (salud)</label>
-        <input id="ars" type="text" formControlName="ars" placeholder="Seguro de salud" />
+        <input id="ars" type="text" formControlName="ars" list="ars-list" placeholder="Seguro de salud" />
+        <datalist id="ars-list">@for (a of ARS_LIST; track a) { <option [value]="a"></option> }</datalist>
       </div>
     </div>
     <div class="form-row">
       <div class="sgc-field">
         <label for="banco">Banco</label>
-        <input id="banco" type="text" formControlName="banco" placeholder="Banco para nómina" />
+        <input id="banco" type="text" formControlName="banco" list="banco-list" placeholder="Banco para nómina" />
+        <datalist id="banco-list">@for (b of BANCOS; track b) { <option [value]="b"></option> }</datalist>
       </div>
       <div class="sgc-field">
         <label for="cuenta_banco">No. de cuenta</label>
@@ -514,7 +526,7 @@
       <div class="form-row">
         <div class="sgc-field">
           <label for="fecha_egreso">Fecha de salida</label>
-          <input id="fecha_egreso" type="date" formControlName="fecha_egreso" />
+          <input id="fecha_egreso" type="date" formControlName="fecha_egreso" [max]="today" />
         </div>
         <div class="sgc-field">
           <label for="motivo_egreso">Motivo de salida</label>

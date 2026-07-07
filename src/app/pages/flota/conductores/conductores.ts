@@ -52,11 +52,11 @@ export class Conductores implements OnInit {
   readonly LICENCIA_TIPOS = LICENCIA_TIPOS;
 
   form = new FormGroup({
-    cedula: new FormControl('', [Validators.required]),
+    cedula: new FormControl('', [Validators.required, Validators.pattern(/^\d{3}-?\d{7}-?\d$/)]),
     nombre: new FormControl('', [Validators.required]),
-    telefono: new FormControl<string | null>(null),
+    telefono: new FormControl<string | null>(null, [Validators.maxLength(20)]),
     licencia_tipo: new FormControl<string>('B', [Validators.required]),
-    licencia_numero: new FormControl<string | null>(null),
+    licencia_numero: new FormControl<string | null>(null, [Validators.maxLength(30)]),
     licencia_vencimiento: new FormControl<string | null>(null),
     vehiculo_id: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),

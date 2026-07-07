@@ -270,6 +270,7 @@
           id="fecha"
           type="date"
           formControlName="fecha"
+          [max]="today"
           [class.invalid]="f.fecha.invalid && f.fecha.touched"
         />
         @if (f.fecha.invalid && f.fecha.touched) {
@@ -301,7 +302,7 @@
       <div class="sgc-field">
         <label for="proyecto_id">Proyecto</label>
         <select id="proyecto_id" formControlName="proyecto_id">
-          <option [ngValue]="null">Sin proyecto</option>
+          <option [value]="null">Sin proyecto</option>
           @for (p of activeProyectos(); track p.id) {
             <option [value]="p.id">{{ p.nombre }}</option>
           }

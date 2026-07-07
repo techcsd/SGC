@@ -214,6 +214,7 @@
           id="fecha"
           type="date"
           formControlName="fecha"
+          [max]="today"
           [class.invalid]="f.fecha.invalid && f.fecha.touched"
         />
         @if (f.fecha.invalid && f.fecha.touched) {
@@ -226,7 +227,7 @@
     <div class="sgc-field">
       <label for="proveedor_id">Proveedor</label>
       <select id="proveedor_id" formControlName="proveedor_id">
-        <option [ngValue]="null">Sin proveedor</option>
+        <option [value]="null">Sin proveedor</option>
         @for (p of activeProveedores(); track p.id) {
           <option [value]="p.id">{{ p.nombre }}</option>
         }
@@ -237,7 +238,7 @@
     <div class="sgc-field">
       <label for="orden_compra_id">Orden de compra (opcional)</label>
       <select id="orden_compra_id" formControlName="orden_compra_id">
-        <option [ngValue]="null">Sin orden asociada</option>
+        <option [value]="null">Sin orden asociada</option>
         @for (o of ordenesRecibibles(); track o.id) {
           <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
         }

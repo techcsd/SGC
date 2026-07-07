@@ -320,6 +320,7 @@
           id="fecha_adquisicion"
           type="date"
           formControlName="fecha_adquisicion"
+          [max]="today"
           [class.invalid]="f.fecha_adquisicion.invalid && f.fecha_adquisicion.touched"
         />
         @if (f.fecha_adquisicion.invalid && f.fecha_adquisicion.touched) {

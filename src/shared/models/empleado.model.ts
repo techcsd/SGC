@@ -86,3 +86,61 @@ export const DEPARTAMENTOS = [
   'Gerencia',
   'Seguridad',
 ];
+
+// Suggested catalogs used as <datalist> options — they guide input to keep data
+// consistent while still allowing a custom value when genuinely needed.
+export const CARGOS = [
+  'Ingeniero Civil',
+  'Ingeniero Residente',
+  'Arquitecto',
+  'Maestro Constructor',
+  'Supervisor de Obra',
+  'Capataz',
+  'Albañil',
+  'Ayudante de Albañil',
+  'Ferrallero (acero)',
+  'Carpintero',
+  'Plomero',
+  'Electricista',
+  'Operador de Equipo Pesado',
+  'Chofer',
+  'Vigilante / Seguridad',
+  'Almacenista',
+  'Auxiliar Administrativo',
+  'Contador',
+  'Gerente',
+];
+
+export const AFPS = ['AFP Popular', 'AFP Siembra', 'AFP Reservas', 'AFP Romana', 'AFP Crecer', 'AFP Atlántico'];
+
+export const ARS_LIST = [
+  'SeNaSa',
+  'ARS Humano',
+  'ARS Universal',
+  'ARS Palic Salud',
+  'ARS Monumental',
+  'ARS Reservas',
+  'ARS Futuro',
+  'ARS Simag',
+  'ARS CMD',
+];
+
+export const BANCOS = [
+  'Banreservas',
+  'Banco Popular',
+  'Banco BHD',
+  'Scotiabank',
+  'Banco Santa Cruz',
+  'Banco Caribe',
+  'Banco Promerica',
+  'Banco Ademi',
+  'Banco BanFondesa',
+  'APAP',
+  'Asociación Cibao',
+  'Asociación La Nacional',
+];
+
+/** Dominican cédula: 3-7-1 digits, optionally hyphenated. */
+export const CEDULA_PATTERN = /^\d{3}-?\d{7}-?\d$/;
+/** Dominican RNC: 9 or 11 digits (with optional hyphens). */
+export const RNC_PATTERN = /^[\d-]{9,13}$/;

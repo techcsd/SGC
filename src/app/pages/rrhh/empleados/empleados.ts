@@ -19,9 +19,14 @@ import {
   GENEROS,
   ESTADOS_CIVILES,
   TIPOS_DOCUMENTO_EMPLEADO,
+  CARGOS,
+  AFPS,
+  ARS_LIST,
+  BANCOS,
+  CEDULA_PATTERN,
 } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { formatAntiguedad } from '../../../../shared/utils/fecha.util';
+import { formatAntiguedad, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-empleados',
@@ -60,6 +65,11 @@ export class Empleados implements OnInit {
   readonly GENEROS = GENEROS;
   readonly ESTADOS_CIVILES = ESTADOS_CIVILES;
   readonly TIPOS_DOCUMENTO = TIPOS_DOCUMENTO_EMPLEADO;
+  readonly CARGOS = CARGOS;
+  readonly AFPS = AFPS;
+  readonly ARS_LIST = ARS_LIST;
+  readonly BANCOS = BANCOS;
+  readonly today = todayIso();
 
   // ── Employee documents (edit mode) ───────────────────────
   documentos = signal<EmpleadoDocumento[]>([]);
@@ -68,14 +78,14 @@ export class Empleados implements OnInit {
   docTipo = new FormControl<string>('contrato');
 
   form = new FormGroup({
-    cedula: new FormControl('', [Validators.required, Validators.maxLength(20)]),
+    cedula: new FormControl('', [Validators.required, Validators.pattern(CEDULA_PATTERN)]),
     nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     apellido: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     cargo: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     departamento: new FormControl<string | null>(null),
     tipo_contrato: new FormControl<TipoContrato>('indefinido', [Validators.required]),
     fecha_ingreso: new FormControl('', [Validators.required]),
-    salario: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
+    salario: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
     telefono: new FormControl<string | null>(null),
     email: new FormControl<string | null>(null, [Validators.email]),
     direccion: new FormControl<string | null>(null),
@@ -214,7 +224,7 @@ export class Empleados implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.documentos.set([]);
-    this.form.reset({ activo: true, tipo_contrato: 'indefinido', salario: 0, dias_vacaciones_anuales: 14 });
+    this.form.reset({ activo: true, tipo_contrato: 'indefinido', dias_vacaciones_anuales: 14 });
     this.drawerOpen.set(true);
   }
 

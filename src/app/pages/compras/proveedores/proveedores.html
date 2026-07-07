@@ -182,8 +182,12 @@
           id="rnc"
           type="text"
           formControlName="rnc"
-          placeholder="RNC del proveedor"
+          placeholder="9 u 11 dígitos"
+          [class.invalid]="f.rnc.invalid && f.rnc.touched"
         />
+        @if (f.rnc.invalid && f.rnc.touched) {
+          <span class="field-error">RNC inválido (9 u 11 dígitos).</span>
+        }
       </div>
 
       <div class="sgc-field">

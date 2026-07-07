@@ -10,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DecimalPipe } from '@angular/common';
 import { MantenimientosService } from '../../../../shared/services/mantenimientos.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import {
   Mantenimiento,
   MantenimientoFormData,
@@ -30,8 +31,12 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 export class Mantenimientos implements OnInit {
   private mantenimientosService = inject(MantenimientosService);
   private vehiculosService = inject(VehiculosService);
+  private proveedoresService = inject(ProveedoresService);
 
   formatFecha = formatFechaDisplay;
+
+  // Existing supplier names → datalist so "taller" spellings stay consistent.
+  proveedorNombres = signal<string[]>([]);
 
   // ── Data state ──────────────────────────────────────────
   mantenimientos = signal<Mantenimiento[]>([]);
@@ -122,12 +127,14 @@ export class Mantenimientos implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [mantenimientos, vehiculos] = await Promise.all([
+      const [mantenimientos, vehiculos, proveedores] = await Promise.all([
         this.mantenimientosService.getAll(),
         this.vehiculosService.getAll(),
+        this.proveedoresService.getAll(),
       ]);
       this.mantenimientos.set(mantenimientos);
       this.vehiculos.set(vehiculos);
+      this.proveedorNombres.set(proveedores.filter((p) => p.activo).map((p) => p.nombre));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {

@@ -300,7 +300,12 @@
 
     <div class="sgc-field">
       <label for="proveedor">Proveedor / Taller</label>
-      <input id="proveedor" type="text" formControlName="proveedor" placeholder="Nombre del taller o proveedor" />
+      <input id="proveedor" type="text" formControlName="proveedor" list="proveedores-list" placeholder="Selecciona o escribe el taller/proveedor" />
+      <datalist id="proveedores-list">
+        @for (p of proveedorNombres(); track p) {
+          <option [value]="p"></option>
+        }
+      </datalist>
     </div>
 
     <div class="sgc-field">

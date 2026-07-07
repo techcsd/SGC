@@ -466,10 +466,16 @@
             </select>
             <input
               type="text"
+              list="roles-proyecto-list"
               placeholder="Rol en el proyecto (opcional)"
               [value]="nuevoMiembroRol()"
               (input)="onNuevoMiembroRolChange($any($event.target).value)"
             />
+            <datalist id="roles-proyecto-list">
+              @for (r of ROLES_PROYECTO; track r) {
+                <option [value]="r"></option>
+              }
+            </datalist>
             <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()" [disabled]="!nuevoMiembroEmpleadoId()">
               + Agregar
             </button>
@@ -505,8 +511,8 @@
                 </div>
               </div>
               <div class="proyectos__fase-actions">
-                <span class="proyectos__badge proyectos__badge--{{ fase.estado === 'completada' ? 'success' : fase.estado === 'en_progreso' ? 'info' : 'neutral' }}">
-                  {{ fase.estado }}
+                <span class="proyectos__badge proyectos__badge--{{ getFaseEstadoBadge(fase.estado) }}">
+                  {{ getFaseEstadoLabel(fase.estado) }}
                 </span>
                 <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase">✏️</button>
                 <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase">🗑️</button>

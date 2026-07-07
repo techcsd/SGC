@@ -38,10 +38,10 @@ export class Proveedores implements OnInit {
 
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
-    rnc: new FormControl<string | null>(null),
-    contacto: new FormControl<string | null>(null),
-    telefono: new FormControl<string | null>(null),
-    email: new FormControl<string | null>(null, [Validators.email]),
+    rnc: new FormControl<string | null>(null, [Validators.pattern(/^[\d-]{9,13}$/)]),
+    contacto: new FormControl<string | null>(null, [Validators.maxLength(150)]),
+    telefono: new FormControl<string | null>(null, [Validators.maxLength(20)]),
+    email: new FormControl<string | null>(null, [Validators.email, Validators.maxLength(150)]),
     direccion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
   });

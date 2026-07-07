@@ -23,6 +23,8 @@ import {
   ProyectoEmpleado,
   PROYECTO_ESTADOS,
   PROYECTO_TIPOS,
+  FASE_ESTADOS,
+  ROLES_PROYECTO,
 } from '../../../../shared/models/proyecto.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
@@ -99,6 +101,7 @@ export class Lista implements OnInit {
 
   readonly PROYECTO_ESTADOS = PROYECTO_ESTADOS;
   readonly PROYECTO_TIPOS = PROYECTO_TIPOS;
+  readonly ROLES_PROYECTO = ROLES_PROYECTO;
   readonly FASE_ESTADOS = [
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'en_progreso', label: 'En progreso' },
@@ -449,6 +452,14 @@ export class Lista implements OnInit {
   // ── Helpers ──────────────────────────────────────────────
   getEstadoLabel(value: string): string {
     return PROYECTO_ESTADOS.find((e) => e.value === value)?.label ?? value;
+  }
+
+  getFaseEstadoLabel(value: string): string {
+    return FASE_ESTADOS.find((e) => e.value === value)?.label ?? value;
+  }
+
+  getFaseEstadoBadge(value: string): string {
+    return FASE_ESTADOS.find((e) => e.value === value)?.badge ?? 'neutral';
   }
 
   getEstadoBadge(value: string): string {

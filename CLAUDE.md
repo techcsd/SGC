@@ -11,7 +11,10 @@ Angular 21 (standalone + signals) · Supabase (schema `sgc`: auth, RLS, edge fun
 - SQL history lives in `sql/` and `supabase/`.
 
 ## Modules (keep this list updated)
-Dashboard (KPIs) · Bitácora de obra · Inventario · Flota · Solicitudes (materiales, órdenes de compra) · Conduces / trazabilidad de transporte · Documentos (plantillas → rellenar → descargar) · Reportes y comentarios (admin) · Administración (usuarios, roles, permisos) · Dudas (ayuda)
+Dashboard (KPIs) · Bitácora de obra (parte diario, visita a obra, incidente/accidente) · Inventario · Flota · Solicitudes (materiales, órdenes de compra) · Conduces / trazabilidad de transporte · Documentos (plantillas → rellenar → descargar; template creation gated by `plantillas` module) · Legal (expedientes, contratos, aprobaciones — `legal` module, `abogado` role) · Tareas (asignar/seguir — `tareas` module gates assigning; everyone has "Mis tareas") · Mensajería (chat interno realtime, DMs + grupos + archivos, sin gate de módulo) · RRHH (empleados, asistencia, ausencias/vacaciones, docs de empleado) · Proyectos (+ Ranking de Encargados KPI) · Reportes y comentarios (admin) · Administración (usuarios, roles, permisos) · Dudas (ayuda)
+
+## Módulos de permisos (sgc.roles.modulos text[])
+inventario · compras · rrhh · proyectos · flota · bitacora · documentos · plantillas · legal · tareas · admin. (Mensajería y "Mis tareas" no requieren módulo — todo usuario autenticado.) Cuando agregues un módulo nuevo: añádelo a MODULOS_DISPONIBLES en roles.service.ts, ponle guard en las rutas, entrada en shell.ts, y `array_append` al rol admin (gotcha recurrente).
 
 ## Hard rules (recurring feedback from Xavier — never skip)
 1. **Interconnection**: any change in one module must update every related module — dashboard KPIs, notification badges, and the receiving side of any request (a Solicitud must show up where its approver/receiver works).

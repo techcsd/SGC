@@ -121,6 +121,11 @@ export class AdminRoles implements OnInit {
     this.createForm.markAllAsTouched();
     if (this.createForm.invalid || this.creating()) return;
 
+    if (this.createSelectedModulos().length === 0) {
+      this.createError.set('Selecciona al menos un módulo para el rol.');
+      return;
+    }
+
     this.creating.set(true);
     this.createError.set('');
 
@@ -168,6 +173,11 @@ export class AdminRoles implements OnInit {
 
     const rol = this.editingRol();
     if (!rol) return;
+
+    if (this.selectedModulos().length === 0) {
+      this.saveError.set('El rol debe tener al menos un módulo.');
+      return;
+    }
 
     this.saving.set(true);
     this.saveError.set('');

@@ -204,6 +204,7 @@
         id="fecha"
         type="date"
         formControlName="fecha"
+        [max]="todayISO()"
         [class.invalid]="f.fecha.invalid && f.fecha.touched"
       />
       @if (f.fecha.invalid && f.fecha.touched) {
