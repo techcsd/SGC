@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, input, signal, computed, ef
 import { DecimalPipe } from '@angular/common';
 import { ContextService, ContextoObra } from '../context.service';
 import { interpretarCodigoTiempo } from '../weather.model';
+import { interpretarAqi } from '../air-quality.model';
 
 @Component({
   selector: 'app-weather-card',
@@ -22,6 +23,7 @@ export class WeatherCard {
   error = signal('');
 
   tiempo = computed(() => interpretarCodigoTiempo(this.contexto()?.pronostico.actual.codigoTiempo ?? null));
+  aqi = computed(() => interpretarAqi(this.contexto()?.aire?.usAqi ?? null));
 
   constructor() {
     effect(() => {

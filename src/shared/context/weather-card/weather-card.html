@@ -34,6 +34,15 @@
       <div class="weather-card__stat"><span>Nubes</span><strong>{{ ctx.pronostico.actual.nubosidad ?? '—' }}%</strong></div>
     </div>
 
+    <!-- Air quality -->
+    @if (ctx.aire; as aire) {
+      <div class="weather-card__air">
+        <span class="air-badge" [style.background]="aqi().color">{{ aqi().label }}</span>
+        <span class="air-aqi">AQI {{ aire.usAqi ?? '—' }}</span>
+        <span class="air-part">PM2.5 {{ aire.pm25 | number:'1.0-0' }} · PM10 {{ aire.pm10 | number:'1.0-0' }} · Polvo {{ aire.polvo | number:'1.0-0' }} µg/m³</span>
+      </div>
+    }
+
     <!-- Recommendations -->
     <div class="weather-card__recs">
       @for (r of ctx.recomendaciones; track r.titulo) {

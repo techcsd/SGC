@@ -82,13 +82,20 @@ them with **no schema change**.
 **Architecture doc:** `docs/intelligent-context-system.md` (spec deliverable #7) —
 vision, components, data model, flows, ops, extensibility, decisions, roadmap.
 
+**Air quality (LIVE):** `air-quality.model.ts` + `AirQualityProvider`/`AIR_QUALITY_PROVIDER`
++ `OpenMeteoAirProvider` (keyless) + `AirQualityService` (30-min cache), folded into
+`ContextService.getContexto` (parallel fetch; `aire` field + merged air advisories).
+Weather-card shows an air-quality row (AQI badge + PM2.5/PM10/dust). Cron edge fn also
+detects hazardous air → `aire_peligroso` alert (env `ALERT_AQI`, default 200). Verified
+open+resolve lifecycle in prod.
+
 ### ⏳ Next (pick a batch)
 
-1. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
-   otherwise OSM stays (recommended).
-2. **New context sources** — traffic / air quality / sunrise-sunset (plug into
-   ContextService facade per the doc's "Extending" section).
-3. **AI assistant** over accumulated context (weather + bitácora + logistics).
+1. **Traffic** — no keyless provider exists; needs TomTom/HERE/Google key. Plan: edge
+   fn proxy (keeps key server-side) + `TrafficProvider` seam + ETA/delay on ruta
+   destination. **Awaiting Xavier's choice of provider + key.**
+2. **Google Maps swap** — only if Xavier provides a billing-enabled API key.
+3. **Sunrise/sunset** (keyless, easy) · **AI assistant** over accumulated context.
 
 ### 📌 Pending decision
 - 9 commits on local `main` are **NOT pushed** to origin. Pushing likely triggers a

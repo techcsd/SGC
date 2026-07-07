@@ -134,3 +134,26 @@
   &__min { color: var(--sgc-text-muted); }
   &__rain { color: var(--sgc-primary); }
 }
+
+// ── Air quality (Intelligent Context System) ──
+.weather-card__air {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--sgc-radius-sm);
+  background: var(--sgc-surface-hover);
+  font-size: 12px;
+
+  .air-badge {
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  .air-aqi { font-weight: 700; color: var(--sgc-text); }
+  .air-part { color: var(--sgc-text-secondary); }
+}

@@ -16,6 +16,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // authed by the x-sync-secret shared secret. Thresholds are env-tunable.
 
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
+const OPEN_METEO_AIR = "https://air-quality-api.open-meteo.com/v1/air-quality";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -87,6 +88,23 @@ async function fetchActual(lat: number, lng: number) {
   return mapActual((await res.json()) as OMResponse);
 }
 
+async function fetchAqi(lat: number, lng: number): Promise<number | null> {
+  try {
+    const params = new URLSearchParams({
+      latitude: String(lat),
+      longitude: String(lng),
+      current: "us_aqi",
+      timezone: "auto",
+    });
+    const res = await fetch(`${OPEN_METEO_AIR}?${params.toString()}`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { current?: { us_aqi?: number } };
+    return data.current?.us_aqi ?? null;
+  } catch {
+    return null;
+  }
+}
+
 type Actual = ReturnType<typeof mapActual>;
 interface AlertaDetectada {
   tipo: string;
@@ -96,10 +114,11 @@ interface AlertaDetectada {
 
 /** Severe (peligro-level) conditions worth a notification. Stricter than the
  *  in-app RecommendationService advisories, so the bell stays meaningful. */
-function detectarSeveras(a: Actual): AlertaDetectada[] {
+function detectarSeveras(a: Actual, aqi: number | null): AlertaDetectada[] {
   const LLUVIA_MM = envNum("ALERT_LLUVIA_MM", 4);
   const VIENTO_KMH = envNum("ALERT_VIENTO_KMH", 40);
   const CALOR = envNum("ALERT_CALOR_SENSACION", 38);
+  const AQI = envNum("ALERT_AQI", 200);
   const out: AlertaDetectada[] = [];
 
   if ((a.codigo_tiempo ?? 0) >= 95) {
@@ -129,6 +148,13 @@ function detectarSeveras(a: Actual): AlertaDetectada[] {
       tipo: "calor_extremo",
       titulo: "Calor extremo",
       detalle: `Sensación térmica de ${Math.round(calor)}°C. Programa pausas e hidratación frecuente.`,
+    });
+  }
+  if (aqi != null && aqi >= AQI) {
+    out.push({
+      tipo: "aire_peligroso",
+      titulo: "Mala calidad del aire",
+      detalle: `Índice de calidad del aire ${Math.round(aqi)}. Limita el trabajo prolongado al aire libre y usa protección respiratoria.`,
     });
   }
   return out;
@@ -168,9 +194,13 @@ Deno.serve(async (req: Request) => {
 
   for (const o of (obras ?? []) as { id: string; latitud: number; longitud: number }[]) {
     try {
-      const actual = await fetchActual(o.latitud, o.longitud);
+      // Weather is required; air quality is best-effort enrichment.
+      const [actual, aqi] = await Promise.all([
+        fetchActual(o.latitud, o.longitud),
+        fetchAqi(o.latitud, o.longitud),
+      ]);
       snapRows.push({ proyecto_id: o.id, latitud: o.latitud, longitud: o.longitud, ...actual });
-      severasPorObra.set(o.id, detectarSeveras(actual));
+      severasPorObra.set(o.id, detectarSeveras(actual, aqi));
     } catch (e) {
       fallos.push({ proyecto: o.id, error: e instanceof Error ? e.message : "error" });
     }

@@ -13,8 +13,9 @@ Module (Proyectos, Bitácora, Flota, Dashboard, Dirección)
       │
       ▼
 ContextService ──────────── facade (single entry point)
-      ├── WeatherService ──── WEATHER_PROVIDER (OpenMeteoProvider)  ← swappable
-      ├── RecommendationService (pure rules → construction advice)
+      ├── WeatherService ────── WEATHER_PROVIDER (OpenMeteoProvider)       ← swappable
+      ├── AirQualityService ─── AIR_QUALITY_PROVIDER (OpenMeteoAirProvider) ← swappable
+      ├── RecommendationService (pure rules → weather + air advice)
       └── GeocodingService (Nominatim; reverse/forward)
 
 Domain aggregators (combine Context + domain data):
@@ -48,9 +49,13 @@ Background: pg_cron (3h) → edge fn sync-weather-obras → weather_snapshots + 
 |------|----------------|
 | `weather.model.ts` | Provider-independent domain shapes (`WeatherActual/Hora/Dia/Pronostico`, `Recomendacion`, `RiesgoNivel`) + WMO code interpretation. |
 | `weather-provider.ts` | `WeatherProvider` interface + `WEATHER_PROVIDER` token. |
-| `open-meteo.provider.ts` | Concrete provider (Open-Meteo). Maps raw payload → domain models. |
+| `open-meteo.provider.ts` | Concrete weather provider (Open-Meteo). Maps raw payload → domain models. |
 | `weather.service.ts` | Fetch-through **30-min TTL cache** + snapshot persistence. |
-| `recommendation.service.ts` | Pure rules: rain/wind/UV/heat → construction advice with risk levels. |
+| `air-quality.model.ts` | Provider-independent `CalidadAire` + US-AQI band interpretation. |
+| `air-quality-provider.ts` | `AirQualityProvider` interface + `AIR_QUALITY_PROVIDER` token. |
+| `open-meteo-air.provider.ts` | Concrete air-quality provider (Open-Meteo Air Quality; keyless). |
+| `air-quality.service.ts` | Fetch-through 30-min TTL cache for air quality. |
+| `recommendation.service.ts` | Pure rules: rain/wind/UV/heat + air (AQI/PM/dust) → construction advice. |
 | `geocoding.service.ts` | Reverse/forward geocoding (Nominatim, DR-biased). |
 | `context.service.ts` | **Facade**: `getContexto(coords)` → weather + recommendations. |
 | `location-picker/` | Leaflet map picker; emits `{lat, lng, address}`. |
@@ -68,8 +73,9 @@ Background: pg_cron (3h) → edge fn sync-weather-obras → weather_snapshots + 
   `crudo` jsonb). Written on Bitácora creation and by the cron. Powers BI.
 - **`bitacoras.weather_snapshot_id`** — links a log entry to the weather captured at
   creation (auto, no manual input).
-- **`weather_alerts`** — self-healing severe-weather alerts. `vigente=true` = active
-  condition. One open row per `(proyecto, tipo)`. In the `supabase_realtime`
+- **`weather_alerts`** — self-healing severe-condition alerts. `vigente=true` = active.
+  One open row per `(proyecto, tipo)`; tipos: `tormenta`, `lluvia_intensa`,
+  `viento_fuerte`, `calor_extremo`, `aire_peligroso`. In the `supabase_realtime`
   publication (drives toast + badge).
 - **`rutas.destino_lat / destino_lng / destino_proyecto_id`** — route destination
   coordinates (obra link preferred over explicit point).
@@ -119,7 +125,7 @@ weather + dispatch advisory) · nav badge + realtime toasts.
 - **Cron:** `select * from cron.job where jobname='weather-sync-obras';`
   Unschedule: `select cron.unschedule('weather-sync-obras');`
 - **Tune alert thresholds** (no redeploy): set function secrets `ALERT_LLUVIA_MM`,
-  `ALERT_VIENTO_KMH`, `ALERT_CALOR_SENSACION` (`supabase secrets set …`).
+  `ALERT_VIENTO_KMH`, `ALERT_CALOR_SENSACION`, `ALERT_AQI` (`supabase secrets set …`).
 - **Manual run:** POST the function with header `x-sync-secret` (or trigger the cron
   SQL). Returns `{obras, insertados, alertas_abiertas, alertas_resueltas}`.
 - **Redeploy:** `supabase functions deploy sync-weather-obras --no-verify-jwt`.
@@ -161,7 +167,9 @@ provider-independent — no schema change.
 ## Roadmap
 
 Done: geolocation · weather cards · Bitácora auto-capture · dashboards · background
-sync · BI reports · severe-weather alerts + notifications · transport/route weather.
-Next: additional context sources (traffic/air quality/sunrise-sunset) · optional
-Google Maps swap · AI assistant that reasons over the accumulated context
-(weather + logistics + bitácora) to answer "why is Project A delayed?".
+sync · BI reports · severe-weather alerts + notifications · transport/route weather ·
+**air quality** (context + advisories + hazardous-air alerts).
+Next: **traffic** (needs a commercial key — TomTom/HERE/Google; abstraction ready to
+add behind an edge-function proxy) · sunrise-sunset · optional Google Maps swap · AI
+assistant that reasons over accumulated context (weather + air + logistics + bitácora)
+to answer "why is Project A delayed?".
