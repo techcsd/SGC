@@ -73,10 +73,13 @@ export class UserService {
     if (!userId) throw new Error('Sesión inválida.');
 
     const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+    // Random filename → never collides, so a plain insert (no upsert) is correct.
+    // Upsert would take the INSERT-ON-CONFLICT path, which the storage RLS
+    // rejects ("new row violates row-level security policy").
     const path = `${userId}/${crypto.randomUUID()}.${ext}`;
     const { error: upErr } = await this.supabase.client.storage
       .from('sgc-avatars')
-      .upload(path, file, { upsert: true });
+      .upload(path, file);
     if (upErr) throw new Error(upErr.message);
 
     const { error: rpcErr } = await this.supabase.client.rpc('actualizar_mi_avatar', { p_path: path });
