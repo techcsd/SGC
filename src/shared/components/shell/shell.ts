@@ -105,6 +105,8 @@ export class Shell implements OnInit {
       children: [
         { label: 'Proyectos', route: '/proyectos' },
         { label: 'Ranking de Encargados', route: '/proyectos/kpi' },
+        { label: 'Reportes de clima', route: '/proyectos/clima' },
+        { label: 'Historial', route: '/proyectos/historial' },
       ],
     },
     {

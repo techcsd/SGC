@@ -11,4 +11,14 @@ export const proyectosRoutes: Routes = [
     loadComponent: () => import('./kpi/kpi').then((m) => m.Kpi),
     title: 'Ranking de Encargados — Proyectos',
   },
+  {
+    path: 'historial',
+    loadComponent: () => import('./historial/historial').then((m) => m.ProyectosHistorial),
+    title: 'Historial de proyectos',
+  },
+  {
+    path: 'clima',
+    loadComponent: () => import('./clima/clima').then((m) => m.ProyectosClima),
+    title: 'Reportes de clima — Proyectos',
+  },
 ];

@@ -1,0 +1,88 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Reportes de clima</h1>
+    <span class="page-count">Impacto del clima en las obras</span>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- Range selector -->
+<div class="tabs-bar">
+  <button type="button" class="tab-btn" [class.tab-btn--active]="rango() === 7" (click)="setRango(7)">7 días</button>
+  <button type="button" class="tab-btn" [class.tab-btn--active]="rango() === 30" (click)="setRango(30)">30 días</button>
+  <button type="button" class="tab-btn" [class.tab-btn--active]="rango() === 90" (click)="setRango(90)">90 días</button>
+</div>
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando…</div>
+} @else if (reporte(); as r) {
+  @if (r.totalSnapshots === 0) {
+    <div class="clima-empty sgc-card">
+      <p>Aún no hay datos de clima en este período.</p>
+      <p class="clima-empty__hint">
+        El sistema registra el clima de cada obra activa con ubicación cada 3 horas.
+        Los indicadores aparecerán a medida que se acumulen lecturas.
+      </p>
+    </div>
+  } @else {
+    <!-- Stat tiles -->
+    <div class="clima-tiles">
+      <div class="clima-tile"><span class="clima-tile__num">{{ r.obrasMonitoreadas }}</span><span class="clima-tile__lbl">Obras monitoreadas</span></div>
+      <div class="clima-tile"><span class="clima-tile__num">{{ r.diasConLluviaTotal }}</span><span class="clima-tile__lbl">Días con lluvia</span></div>
+      <div class="clima-tile clima-tile--warn"><span class="clima-tile__num">{{ r.diasAdversosTotal }}</span><span class="clima-tile__lbl">Días adversos (lluvia/viento)</span></div>
+      <div class="clima-tile"><span class="clima-tile__num">{{ r.totalSnapshots }}</span><span class="clima-tile__lbl">Lecturas registradas</span></div>
+    </div>
+
+    <!-- Chart -->
+    @if (diasAdversosBars().length > 0) {
+      <div class="sgc-card clima-chart">
+        <app-bar-chart titulo="Días adversos por obra" [data]="diasAdversosBars()" />
+      </div>
+    }
+
+    <!-- Table -->
+    <div class="table-wrapper sgc-card">
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Impacto del clima por obra">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Obra</th>
+              <th>Días monitoreados</th>
+              <th>Días con lluvia</th>
+              <th>Días adversos</th>
+              <th>% adverso</th>
+              <th>Última lectura</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (o of r.porObra; track o.proyectoId) {
+              <tr>
+                <td><code class="code-tag">{{ o.codigo }}</code></td>
+                <td>{{ o.nombre }}</td>
+                <td>{{ o.diasMonitoreados }}</td>
+                <td>{{ o.diasConLluvia }}</td>
+                <td>{{ o.diasAdversos }}</td>
+                <td>
+                  <span class="pct" [class.pct--danger]="o.pctAdverso >= 50" [class.pct--warn]="o.pctAdverso >= 25 && o.pctAdverso < 50">
+                    {{ o.pctAdverso }}%
+                  </span>
+                </td>
+                <td>{{ o.ultimaLectura ? (o.ultimaLectura | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="clima-note">
+      Un día se cuenta como <strong>adverso</strong> cuando hubo lluvia significativa (≥0.5&nbsp;mm)
+      o viento alto (≥40&nbsp;km/h) en alguna lectura de ese día — condiciones que suelen afectar el vaciado,
+      izajes y trabajos en altura.
+    </p>
+  }
+}

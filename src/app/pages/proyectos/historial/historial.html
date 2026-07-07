@@ -1,0 +1,74 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Historial de proyectos</h1>
+    <span class="page-count">{{ visibles().length }} proyecto{{ visibles().length !== 1 ? 's' : '' }}</span>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando…</div>
+} @else {
+  <!-- Stat tiles -->
+  <div class="hist-tiles">
+    <div class="hist-tile"><span class="hist-tile__num">{{ totalActivos() }}</span><span class="hist-tile__lbl">En progreso</span></div>
+    <div class="hist-tile"><span class="hist-tile__num">{{ totalCompletados() }}</span><span class="hist-tile__lbl">Completados</span></div>
+    <div class="hist-tile"><span class="hist-tile__num">{{ totalCancelados() }}</span><span class="hist-tile__lbl">Cancelados</span></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="hist-charts">
+    <div class="sgc-card hist-chart"><app-donut-chart titulo="Por estado" [data]="porEstado()" /></div>
+    <div class="sgc-card hist-chart"><app-bar-chart titulo="Por tipo" [data]="porTipo()" /></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'finalizados'" (click)="setTab('finalizados')">
+      Finalizados ({{ finalizados().length }})
+    </button>
+    <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todos'" (click)="setTab('todos')">
+      Todos
+    </button>
+  </div>
+
+  <div class="table-wrapper sgc-card">
+    @if (visibles().length === 0) {
+      <div class="table-empty"><p>No hay proyectos en esta vista.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Historial de proyectos">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Inicio</th>
+              <th>Fin real</th>
+              <th>Duración</th>
+              <th>Presupuesto</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of visibles(); track p.id) {
+              <tr>
+                <td><code class="code-tag">{{ p.codigo }}</code></td>
+                <td>{{ p.nombre }}</td>
+                <td>{{ tipoLabel(p.tipo) }}</td>
+                <td>{{ p.fecha_inicio ? (p.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ p.fecha_fin_real ? (p.fecha_fin_real | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ duracion(p) }}</td>
+                <td>{{ p.presupuesto ? ('RD$ ' + (p.presupuesto | number:'1.0-0')) : '—' }}</td>
+                <td><span [class]="estadoBadge(p.estado)">{{ estadoLabel(p.estado) }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

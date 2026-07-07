@@ -164,6 +164,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Sí. Al registrar una bitácora de un proyecto con ubicación, el sistema captura automáticamente el clima del momento (temperatura, lluvia, viento…) y lo guarda junto a la entrada, sin que tengas que escribirlo.',
       },
+      {
+        pregunta: '¿Dónde veo el clima de todas las obras de un vistazo?',
+        respuesta:
+          'En el Dashboard y en el Panel de Dirección hay un panel "Clima en obras" con las condiciones actuales y la advertencia principal de cada obra activa que tenga ubicación. En Dirección, además, las obras con clima peligroso o de precaución aparecen en "Requiere atención".',
+      },
+      {
+        pregunta: '¿Puedo ver cuántos días se han perdido por lluvia?',
+        respuesta:
+          'Sí. En Proyectos > Reportes de clima verás, por rango de 7/30/90 días, los días con lluvia y los "días adversos" (lluvia significativa o viento alto) de cada obra, con un ranking de las más afectadas. El sistema registra el clima de cada obra activa cada 3 horas, así que el histórico crece solo.',
+      },
     ],
   },
   {
@@ -285,6 +295,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Qué es el Ranking de Encargados y cómo se calcula?',
         respuesta:
           'Es un puntaje de 0 a 100 por proyecto (Proyectos > Ranking de Encargados) que mide el desempeño del encargado: avance de fases (30%), cumplimiento de bitácora en 30 días (25%), seguridad / cero incidentes en 90 días (25%) y control de presupuesto (20%). Incluye gráficos comparativos. Es una competencia sana entre encargados.',
+      },
+      {
+        pregunta: '¿Dónde veo los proyectos ya finalizados?',
+        respuesta:
+          'En Proyectos > Historial. Verás los proyectos completados y cancelados con su duración real, presupuesto y fecha de fin, además de tiles y gráficos por estado y por tipo. Puedes cambiar entre "Finalizados" y "Todos".',
       },
     ],
   },
