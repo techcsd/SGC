@@ -204,4 +204,24 @@ export class ProyectosService {
 
     if (error) throw new Error(error.message);
   }
+
+  /** Raw per-project KPI metrics for the Encargados leaderboard (SECURITY DEFINER RPC). */
+  async getKpiProyectos(): Promise<KpiProyectoRaw[]> {
+    const { data, error } = await this.supabase.client.rpc('kpi_proyectos');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as KpiProyectoRaw[];
+  }
+}
+
+export interface KpiProyectoRaw {
+  proyecto_id: string;
+  codigo: string;
+  nombre: string;
+  responsable_id: string | null;
+  responsable_nombre: string | null;
+  avance_promedio: number;
+  bitacoras_30d: number;
+  incidentes_90d: number;
+  presupuesto: number | null;
+  gasto_real: number;
 }

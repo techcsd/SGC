@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Ranking de Encargados</h1>
+    <span class="page-count">Desempeño por proyecto</span>
+  </div>
+</div>
+
+<p class="kpi-intro">
+  Puntaje combinado de <strong>avance de fases</strong> (30%), <strong>cumplimiento de bitácora</strong> (25%),
+  <strong>seguridad / cero incidentes</strong> (25%) y <strong>control de presupuesto</strong> (20%).
+</p>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true">
+    <span class="spinner-dark"></span>
+    Calculando ranking…
+  </div>
+} @else if (ranking().length === 0) {
+  <div class="table-empty sgc-card"><p>No hay proyectos activos para evaluar.</p></div>
+} @else {
+  <div class="ranking">
+    @for (k of ranking(); track k.proyecto_id) {
+      <div class="ranking-card sgc-card" [class.ranking-card--podium]="k.posicion <= 3">
+        <div class="ranking-card__pos">{{ medalla(k.posicion) }}</div>
+        <div class="ranking-card__main">
+          <div class="ranking-card__head">
+            <div>
+              <span class="ranking-card__proyecto">{{ k.nombre }}</span>
+              <span class="ranking-card__encargado">Encargado: {{ k.responsable_nombre ?? 'Sin asignar' }}</span>
+            </div>
+            <div class="ranking-card__total" [class]="scoreClass(k.scoreTotal)">
+              {{ k.scoreTotal | number:'1.0-0' }}<span class="ranking-card__total-max">/100</span>
+            </div>
+          </div>
+
+          <div class="ranking-card__metrics">
+            <div class="metric">
+              <div class="metric__head"><span>Avance de fases</span><span>{{ k.scoreAvance }}</span></div>
+              <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scoreAvance)" [style.width.%]="k.scoreAvance"></div></div>
+            </div>
+            <div class="metric">
+              <div class="metric__head"><span>Bitácora (30d)</span><span>{{ k.scoreBitacora }}</span></div>
+              <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scoreBitacora)" [style.width.%]="k.scoreBitacora"></div></div>
+              <span class="metric__note">{{ k.bitacoras_30d }} parte(s) diario(s)</span>
+            </div>
+            <div class="metric">
+              <div class="metric__head"><span>Seguridad</span><span>{{ k.scoreSeguridad }}</span></div>
+              <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scoreSeguridad)" [style.width.%]="k.scoreSeguridad"></div></div>
+              <span class="metric__note">{{ k.incidentes_90d }} incidente(s) (90d)</span>
+            </div>
+            <div class="metric">
+              <div class="metric__head"><span>Presupuesto</span><span>{{ k.scorePresupuesto }}</span></div>
+              <div class="metric__bar"><div class="metric__fill" [class]="scoreClass(k.scorePresupuesto)" [style.width.%]="k.scorePresupuesto"></div></div>
+              <span class="metric__note">
+                RD$ {{ k.gasto_real | number:'1.0-0' }} / {{ k.presupuesto ? ('RD$ ' + (k.presupuesto | number:'1.0-0')) : 's/ presupuesto' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

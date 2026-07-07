@@ -1,0 +1,132 @@
+.kpi-intro {
+  font-size: 13.5px;
+  color: var(--sgc-text-secondary);
+  margin-bottom: 18px;
+}
+
+.ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking-card {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  padding: 16px;
+
+  &--podium {
+    border-color: var(--sgc-primary-mid);
+  }
+
+  &__pos {
+    flex-shrink: 0;
+    width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--sgc-text-muted);
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__proyecto {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--sgc-text);
+  }
+
+  &__encargado {
+    display: block;
+    font-size: 12.5px;
+    color: var(--sgc-text-muted);
+  }
+
+  &__total {
+    font-size: 26px;
+    font-weight: 800;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  &__total-max {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text-muted);
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__bar {
+    height: 7px;
+    background: var(--sgc-border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  &__note {
+    font-size: 11px;
+    color: var(--sgc-text-muted);
+  }
+}
+
+// Score color scale (reused for the big total and each bar).
+.score--good { color: var(--sgc-success); }
+.score--mid  { color: var(--sgc-warning); }
+.score--low  { color: var(--sgc-danger); }
+
+.metric__fill.score--good { background: var(--sgc-success); }
+.metric__fill.score--mid  { background: var(--sgc-warning); }
+.metric__fill.score--low  { background: var(--sgc-danger); }
+
+@media (max-width: 640px) {
+  .ranking-card {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ranking-card__pos {
+    width: auto;
+    justify-content: flex-start;
+  }
+}

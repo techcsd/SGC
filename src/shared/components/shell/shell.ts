@@ -93,7 +93,10 @@ export class Shell implements OnInit {
       label: 'Proyectos',
       icon: 'projects',
       modulo: 'proyectos',
-      route: '/proyectos',
+      children: [
+        { label: 'Proyectos', route: '/proyectos' },
+        { label: 'Ranking de Encargados', route: '/proyectos/kpi' },
+      ],
     },
     {
       label: 'Flota',
