@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Ruta, RutaFormData, RutaEstado } from '../models/ruta.model';
 
-const SELECT_QUERY = '*, vehiculo:vehiculos(placa, marca, modelo), conductor:conductores(nombre)';
+const SELECT_QUERY =
+  '*, vehiculo:vehiculos(placa, marca, modelo), conductor:conductores(nombre), destino_proyecto:proyectos!destino_proyecto_id(nombre, latitud, longitud)';
 
 @Injectable({ providedIn: 'root' })
 export class RutasService {

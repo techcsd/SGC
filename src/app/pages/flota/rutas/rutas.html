@@ -97,6 +97,11 @@
               <td>{{ r.conductor?.nombre ?? '—' }}</td>
               <td>
                 <span class="rutas__trip">{{ r.origen }} <span class="rutas__arrow">→</span> {{ r.destino }}</span>
+                @if (climaRuta(r); as rec) {
+                  <span class="clima-chip" [class]="nivelClima(rec.nivel)" [title]="rec.detalle">
+                    {{ rec.nivel === 'peligro' ? '⛈️' : '🌦️' }} {{ rec.titulo }}
+                  </span>
+                }
               </td>
               <td class="text-right">
                 {{ r.km_estimado ?? '—' }} / {{ r.km_real ?? '—' }}
@@ -207,10 +212,33 @@
       </div>
     </div>
 
+    <!-- Destination location → weather at destination -->
+    <div class="sgc-field">
+      <label for="destino_proyecto_id">Obra de destino (opcional)</label>
+      <select id="destino_proyecto_id" formControlName="destino_proyecto_id" (change)="onObraChange($any($event.target).value)">
+        <option [value]="null">No es una obra / seleccionar en el mapa</option>
+        @for (o of obrasDestino(); track o.id) {
+          <option [value]="o.id">{{ o.codigo }} — {{ o.nombre }}</option>
+        }
+      </select>
+      <span class="field-hint">Vincula el destino a una obra para ver su clima y recibir avisos de despacho.</span>
+    </div>
+
+    @if (!obraSeleccionada()) {
+      <div class="sgc-field">
+        <label>O marca el punto de destino en el mapa (opcional)</label>
+        <app-location-picker
+          [latitud]="f.destino_lat.value"
+          [longitud]="f.destino_lng.value"
+          (ubicacionChange)="onDestinoPicked($event)"
+        />
+      </div>
+    }
+
     <div class="form-row">
       <div class="sgc-field">
         <label for="fecha">Fecha <span class="required">*</span></label>
-        <input id="fecha" type="date" formControlName="fecha" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
+        <input id="fecha" type="date" formControlName="fecha" (change)="onFechaChange($any($event.target).value)" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
       </div>
 
       <div class="sgc-field">
@@ -239,6 +267,21 @@
       <label for="notas">Notas</label>
       <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
     </div>
+
+    <!-- Weather at destination + dispatch advisory -->
+    @if (drawerDestinoCoords(); as c) {
+      @if (drawerClima()?.recomendacion; as rec) {
+        <div class="dispatch-advisory" [class.dispatch-advisory--peligro]="rec.nivel === 'peligro'">
+          <strong>🚚 {{ rec.titulo }}</strong>
+          <span>{{ rec.detalle }}</span>
+        </div>
+      } @else if (drawerClima()?.dia) {
+        <div class="dispatch-advisory dispatch-advisory--ok">
+          <span>Sin alertas de clima para la fecha del viaje en el destino.</span>
+        </div>
+      }
+      <app-weather-card [latitud]="c.latitud" [longitud]="c.longitud" titulo="Clima en el destino" />
+    }
 
     @if (saveError()) {
       <div class="save-error" role="alert">

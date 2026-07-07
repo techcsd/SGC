@@ -4,22 +4,30 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RutasService } from '../../../../shared/services/rutas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
-import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS } from '../../../../shared/models/ruta.model';
+import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS, destinoCoords } from '../../../../shared/models/ruta.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
+import { LocationPicker, UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
+import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+
+type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,16 +38,27 @@ export class Rutas implements OnInit {
   private rutasService = inject(RutasService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
+  private proyectosService = inject(ProyectosService);
+  private rutasClima = inject(RutasClimaService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
   rutas = signal<Ruta[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
   conductores = signal<Conductor[]>([]);
+  obrasDestino = signal<ObraDestino[]>([]);
+  rutasClimaMap = signal<Map<string, RutaClima>>(new Map());
   loading = signal(true);
   saving = signal(false);
   error = signal('');
   saveError = signal('');
+
+  // ── Destination weather (drawer) ─────────────────────────
+  private destinoProyectoId = signal<string | null>(null);
+  private destinoLat = signal<number | null>(null);
+  private destinoLng = signal<number | null>(null);
+  private formFecha = signal<string>('');
+  drawerClima = signal<RutaClima | null>(null);
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -57,12 +76,28 @@ export class Rutas implements OnInit {
     conductor_id: new FormControl<string | null>(null),
     origen: new FormControl('', [Validators.required]),
     destino: new FormControl('', [Validators.required]),
+    destino_proyecto_id: new FormControl<string | null>(null),
+    destino_lat: new FormControl<number | null>(null),
+    destino_lng: new FormControl<number | null>(null),
     fecha: new FormControl(this.today, [Validators.required]),
     km_estimado: new FormControl<number | null>(null, [Validators.min(0)]),
     tiempo_estimado_min: new FormControl<number | null>(null, [Validators.min(0)]),
     estado: new FormControl<RutaEstado>('planificada', [Validators.required]),
     notas: new FormControl<string | null>(null),
   });
+
+  constructor() {
+    // Keep the drawer's destination weather in sync with the picked obra/point + date.
+    effect(() => {
+      const coords = this.drawerDestinoCoords();
+      const fecha = this.formFecha();
+      if (!this.drawerOpen() || !coords || !fecha) {
+        this.drawerClima.set(null);
+        return;
+      }
+      void this.cargarDrawerClima(coords.latitud, coords.longitud, fecha);
+    });
+  }
 
   // ── Registrar real drawer ──────────────────────────────────
   registrarDrawerOpen = signal(false);
@@ -95,7 +130,31 @@ export class Rutas implements OnInit {
   activeVehiculos = computed(() => this.vehiculos().filter((v) => v.activo));
   activeConductores = computed(() => this.conductores().filter((c) => c.activo));
 
+  private obrasMap = computed(() => new Map(this.obrasDestino().map((o) => [o.id, o])));
+
+  /** Destination coordinates currently selected in the drawer (obra wins over point). */
+  drawerDestinoCoords = computed<{ latitud: number; longitud: number } | null>(() => {
+    const pid = this.destinoProyectoId();
+    if (pid) {
+      const o = this.obrasMap().get(pid);
+      if (o?.latitud != null && o?.longitud != null) return { latitud: o.latitud, longitud: o.longitud };
+    }
+    const lat = this.destinoLat();
+    const lng = this.destinoLng();
+    if (lat != null && lng != null) return { latitud: lat, longitud: lng };
+    return null;
+  });
+
   drawerTitle = computed(() => (this.editingId() ? 'Editar ruta' : 'Planificar ruta'));
+  obraSeleccionada = computed(() => !!this.destinoProyectoId());
+
+  private async cargarDrawerClima(latitud: number, longitud: number, fecha: string) {
+    try {
+      this.drawerClima.set(await this.rutasClima.getClimaDestino({ latitud, longitud }, fecha));
+    } catch {
+      this.drawerClima.set(null);
+    }
+  }
 
   async ngOnInit() {
     await this.loadAll();
@@ -105,19 +164,43 @@ export class Rutas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [rutas, vehiculos, conductores] = await Promise.all([
+      const [rutas, vehiculos, conductores, obras] = await Promise.all([
         this.rutasService.getAll(),
         this.vehiculosService.getAll(),
         this.conductoresService.getAll(),
+        this.proyectosService.getActivasConUbicacion(),
       ]);
       this.rutas.set(rutas);
       this.vehiculos.set(vehiculos);
       this.conductores.set(conductores);
+      this.obrasDestino.set(obras as ObraDestino[]);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
       this.loading.set(false);
     }
+    // Weather-at-destination for upcoming trips — best-effort, after the list shows.
+    void this.cargarClimaRutas();
+  }
+
+  /** Trip-day weather for upcoming (not-yet-done) rutas that have a destination point. */
+  private async cargarClimaRutas() {
+    const hoy = this.today;
+    const proximas = this.rutas()
+      .filter((r) => (r.estado === 'planificada' || r.estado === 'en_curso') && r.fecha >= hoy)
+      .map((r) => ({ id: r.id, coords: destinoCoords(r), fecha: r.fecha }))
+      .filter((r): r is { id: string; coords: { latitud: number; longitud: number }; fecha: string } => r.coords !== null);
+    if (proximas.length === 0) return;
+    try {
+      this.rutasClimaMap.set(await this.rutasClima.getClimaRutas(proximas));
+    } catch {
+      /* enrichment only */
+    }
+  }
+
+  /** Advisory chip for a ruta row (null = none/favorable/past). */
+  climaRuta(r: Ruta): RutaClima['recomendacion'] | null {
+    return this.rutasClimaMap().get(r.id)?.recomendacion ?? null;
   }
 
   // ── Filters ──────────────────────────────────────────────
@@ -139,6 +222,7 @@ export class Rutas implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.form.reset({ fecha: this.today, estado: 'planificada' });
+    this.syncDestinoSignals(null, null, null, this.today);
     this.drawerOpen.set(true);
   }
 
@@ -150,17 +234,59 @@ export class Rutas implements OnInit {
       conductor_id: r.conductor_id,
       origen: r.origen,
       destino: r.destino,
+      destino_proyecto_id: r.destino_proyecto_id,
+      destino_lat: r.destino_lat,
+      destino_lng: r.destino_lng,
       fecha: r.fecha,
       km_estimado: r.km_estimado,
       tiempo_estimado_min: r.tiempo_estimado_min,
       estado: r.estado,
       notas: r.notas,
     });
+    this.syncDestinoSignals(r.destino_proyecto_id, r.destino_lat, r.destino_lng, r.fecha);
     this.drawerOpen.set(true);
   }
 
   closeDrawer() {
     this.drawerOpen.set(false);
+  }
+
+  private syncDestinoSignals(pid: string | null, lat: number | null, lng: number | null, fecha: string) {
+    this.destinoProyectoId.set(pid);
+    this.destinoLat.set(lat);
+    this.destinoLng.set(lng);
+    this.formFecha.set(fecha);
+  }
+
+  // ── Destination selection ────────────────────────────────
+  onObraChange(proyectoId: string) {
+    const id = proyectoId || null;
+    // Picking an obra takes over the destination point; clear any manual point.
+    this.form.patchValue({ destino_proyecto_id: id, destino_lat: null, destino_lng: null });
+    this.destinoProyectoId.set(id);
+    this.destinoLat.set(null);
+    this.destinoLng.set(null);
+    if (id) {
+      const o = this.obrasMap().get(id);
+      if (o && !this.form.controls.destino.value?.trim()) {
+        this.form.patchValue({ destino: o.nombre });
+      }
+    }
+  }
+
+  onDestinoPicked(u: UbicacionSeleccionada) {
+    // A manual map point clears the obra link.
+    this.form.patchValue({ destino_lat: u.latitud, destino_lng: u.longitud, destino_proyecto_id: null });
+    this.destinoLat.set(u.latitud);
+    this.destinoLng.set(u.longitud);
+    this.destinoProyectoId.set(null);
+    if (!this.form.controls.destino.value?.trim() && u.direccion) {
+      this.form.patchValue({ destino: u.direccion });
+    }
+  }
+
+  onFechaChange(fecha: string) {
+    this.formFecha.set(fecha);
   }
 
   async onSave() {
@@ -183,11 +309,16 @@ export class Rutas implements OnInit {
         this.rutas.update((list) => [created, ...list]);
       }
       this.drawerOpen.set(false);
+      void this.cargarClimaRutas();
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
       this.saving.set(false);
     }
+  }
+
+  nivelClima(nivel: string): string {
+    return nivel === 'peligro' ? 'clima-chip--peligro' : 'clima-chip--precaucion';
   }
 
   // ── Registrar real (actual km/time) ───────────────────────

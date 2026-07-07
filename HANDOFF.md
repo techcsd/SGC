@@ -68,12 +68,21 @@ them with **no schema change**.
   → /proyectos/clima), and "Alertas activas" list on the Reportes de clima page
   (`WeatherAlertsService`). Dudas FAQ updated.
 
+**Transport/route weather (uncommitted):**
+- `sgc.rutas` + `destino_lat`/`destino_lng`/`destino_proyecto_id`
+  (`sql/2026-07-07-rutas-destino-coords.sql`). `Ruta`/`RutaFormData` extended +
+  `destinoCoords()` helper (obra coords win over explicit point).
+- `RutasClimaService` — trip-day forecast for a destination + dispatch advisory
+  (storm / lluvia ≥60% / viento ≥40km/h).
+- Rutas form: "Obra de destino" select OR map picker (app-location-picker), live
+  `app-weather-card` for the destination + dispatch advisory for the trip date.
+- Rutas list: weather chip on upcoming trips with adverse destination weather.
+- Dudas FAQ updated. Verified: build green + PostgREST embed hint resolves.
+
 ### ⏳ Next (pick a batch)
 
-1. **Transport/route weather** — Flota/rutas/conduces: weather at destination,
-   dispatch-earlier advice.
-2. **Architecture doc** (spec deliverable #7) — currently only in-code comments.
-3. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
+1. **Architecture doc** (spec deliverable #7) — currently only in-code comments.
+2. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
    otherwise OSM stays (recommended).
 
 ### Notes / gotchas

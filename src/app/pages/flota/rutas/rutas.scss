@@ -108,3 +108,47 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+// ── Weather at destination (Intelligent Context System) ──
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--sgc-text-muted);
+}
+
+.clima-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--sgc-surface-hover);
+  color: var(--sgc-text);
+  border-left: 3px solid var(--sgc-warning);
+
+  &--peligro { border-left-color: var(--sgc-danger); }
+  &--precaucion { border-left-color: var(--sgc-warning); }
+}
+
+.dispatch-advisory {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border-radius: var(--sgc-radius-sm);
+  background: var(--sgc-surface-hover);
+  border-left: 3px solid var(--sgc-warning);
+  font-size: 12.5px;
+  color: var(--sgc-text-secondary);
+
+  strong { color: var(--sgc-text); font-size: 13px; }
+
+  &--peligro { border-left-color: var(--sgc-danger); }
+  &--ok { border-left-color: var(--sgc-success); }
+}

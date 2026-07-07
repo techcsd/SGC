@@ -321,6 +321,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo registro combustible o una ruta?',
         respuesta: 'Usa Flota > Combustible o Flota > Rutas respectivamente, ambos con su propio formulario de registro.',
       },
+      {
+        pregunta: '¿La ruta muestra el clima del destino?',
+        respuesta:
+          'Sí. Al planificar una ruta puedes elegir una obra de destino (o marcar el punto en el mapa). Con eso el formulario muestra el clima del destino y un aviso de despacho para el día del viaje (p. ej. "lluvia probable, despacha temprano"). En la lista de rutas, los viajes próximos con clima adverso muestran un aviso.',
+      },
     ],
   },
   {
