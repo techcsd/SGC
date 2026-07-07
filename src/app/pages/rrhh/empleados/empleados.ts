@@ -9,7 +9,17 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
-import { Empleado, EmpleadoFormData, TIPOS_CONTRATO, DEPARTAMENTOS, TipoContrato } from '../../../../shared/models/empleado.model';
+import { UserService } from '../../../core/services/user.service';
+import {
+  Empleado,
+  EmpleadoDocumento,
+  TIPOS_CONTRATO,
+  DEPARTAMENTOS,
+  TipoContrato,
+  GENEROS,
+  ESTADOS_CIVILES,
+  TIPOS_DOCUMENTO_EMPLEADO,
+} from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatAntiguedad } from '../../../../shared/utils/fecha.util';
 
@@ -22,6 +32,7 @@ import { formatAntiguedad } from '../../../../shared/utils/fecha.util';
 })
 export class Empleados implements OnInit {
   private empleadosService = inject(EmpleadosService);
+  private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
   empleados = signal<Empleado[]>([]);
@@ -46,6 +57,15 @@ export class Empleados implements OnInit {
 
   readonly TIPOS_CONTRATO = TIPOS_CONTRATO;
   readonly DEPARTAMENTOS = DEPARTAMENTOS;
+  readonly GENEROS = GENEROS;
+  readonly ESTADOS_CIVILES = ESTADOS_CIVILES;
+  readonly TIPOS_DOCUMENTO = TIPOS_DOCUMENTO_EMPLEADO;
+
+  // ── Employee documents (edit mode) ───────────────────────
+  documentos = signal<EmpleadoDocumento[]>([]);
+  documentosLoading = signal(false);
+  uploadingDoc = signal(false);
+  docTipo = new FormControl<string>('contrato');
 
   form = new FormGroup({
     cedula: new FormControl('', [Validators.required, Validators.maxLength(20)]),
@@ -60,7 +80,29 @@ export class Empleados implements OnInit {
     email: new FormControl<string | null>(null, [Validators.email]),
     direccion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
+    // ── Datos personales ──
+    fecha_nacimiento: new FormControl<string | null>(null),
+    genero: new FormControl<string | null>(null),
+    estado_civil: new FormControl<string | null>(null),
+    contacto_emergencia_nombre: new FormControl<string | null>(null),
+    contacto_emergencia_telefono: new FormControl<string | null>(null),
+    // ── Organización / RRHH ──
+    jefe_id: new FormControl<string | null>(null),
+    dias_vacaciones_anuales: new FormControl<number>(14, [Validators.min(0), Validators.max(60)]),
+    fecha_egreso: new FormControl<string | null>(null),
+    motivo_egreso: new FormControl<string | null>(null),
+    // ── Seguridad social / nómina ──
+    numero_tss: new FormControl<string | null>(null),
+    afp: new FormControl<string | null>(null),
+    ars: new FormControl<string | null>(null),
+    banco: new FormControl<string | null>(null),
+    cuenta_banco: new FormControl<string | null>(null),
   });
+
+  // Possible supervisors: any active employee other than the one being edited.
+  jefeOptions = computed(() =>
+    this.empleados().filter((e) => e.activo && e.id !== this.editingId()),
+  );
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -171,7 +213,8 @@ export class Empleados implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, tipo_contrato: 'indefinido', salario: 0 });
+    this.documentos.set([]);
+    this.form.reset({ activo: true, tipo_contrato: 'indefinido', salario: 0, dias_vacaciones_anuales: 14 });
     this.drawerOpen.set(true);
   }
 
@@ -191,12 +234,73 @@ export class Empleados implements OnInit {
       email: emp.email,
       direccion: emp.direccion,
       activo: emp.activo,
+      fecha_nacimiento: emp.fecha_nacimiento,
+      genero: emp.genero,
+      estado_civil: emp.estado_civil,
+      contacto_emergencia_nombre: emp.contacto_emergencia_nombre,
+      contacto_emergencia_telefono: emp.contacto_emergencia_telefono,
+      jefe_id: emp.jefe_id,
+      dias_vacaciones_anuales: emp.dias_vacaciones_anuales,
+      fecha_egreso: emp.fecha_egreso,
+      motivo_egreso: emp.motivo_egreso,
+      numero_tss: emp.numero_tss,
+      afp: emp.afp,
+      ars: emp.ars,
+      banco: emp.banco,
+      cuenta_banco: emp.cuenta_banco,
     });
     this.drawerOpen.set(true);
+    void this.loadDocumentos(emp.id);
   }
 
   closeDrawer() {
     this.drawerOpen.set(false);
+  }
+
+  // ── Employee documents ───────────────────────────────────
+  private async loadDocumentos(empleadoId: string) {
+    this.documentosLoading.set(true);
+    this.documentos.set([]);
+    try {
+      this.documentos.set(await this.empleadosService.getDocumentos(empleadoId));
+    } finally {
+      this.documentosLoading.set(false);
+    }
+  }
+
+  async onDocSelected(event: Event) {
+    const empleadoId = this.editingId();
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    if (!empleadoId || !files || files.length === 0) return;
+
+    this.uploadingDoc.set(true);
+    try {
+      const tipo = this.docTipo.value || 'otro';
+      for (const file of Array.from(files)) {
+        const doc = await this.empleadosService.subirDocumento(empleadoId, tipo, file, this.userService.profile()?.id ?? null);
+        this.documentos.update((list) => [doc, ...list]);
+      }
+    } catch (e: unknown) {
+      this.saveError.set(e instanceof Error ? e.message : 'Error al subir el documento.');
+    } finally {
+      this.uploadingDoc.set(false);
+      input.value = '';
+    }
+  }
+
+  async descargarDoc(doc: EmpleadoDocumento) {
+    const url = await this.empleadosService.getDocumentoUrl(doc.archivo_path);
+    window.open(url, '_blank');
+  }
+
+  async eliminarDoc(doc: EmpleadoDocumento) {
+    await this.empleadosService.eliminarDocumento(doc.id, doc.archivo_path);
+    this.documentos.update((list) => list.filter((d) => d.id !== doc.id));
+  }
+
+  docTipoLabel(tipo: string): string {
+    return this.TIPOS_DOCUMENTO.find((t) => t.value === tipo)?.label ?? tipo;
   }
 
   async onSave() {
@@ -206,7 +310,35 @@ export class Empleados implements OnInit {
     this.saving.set(true);
     this.saveError.set('');
 
-    const payload = this.form.value as EmpleadoFormData;
+    const raw = this.form.value;
+    const payload: Partial<Empleado> = {
+      cedula: raw.cedula!,
+      nombre: raw.nombre!,
+      apellido: raw.apellido!,
+      cargo: raw.cargo!,
+      departamento: raw.departamento || null,
+      tipo_contrato: raw.tipo_contrato!,
+      fecha_ingreso: raw.fecha_ingreso!,
+      salario: raw.salario ?? 0,
+      telefono: raw.telefono || null,
+      email: raw.email || null,
+      direccion: raw.direccion || null,
+      activo: raw.activo ?? true,
+      fecha_nacimiento: raw.fecha_nacimiento || null,
+      genero: (raw.genero as Empleado['genero']) || null,
+      estado_civil: (raw.estado_civil as Empleado['estado_civil']) || null,
+      contacto_emergencia_nombre: raw.contacto_emergencia_nombre || null,
+      contacto_emergencia_telefono: raw.contacto_emergencia_telefono || null,
+      jefe_id: raw.jefe_id || null,
+      dias_vacaciones_anuales: raw.dias_vacaciones_anuales ?? 14,
+      fecha_egreso: raw.fecha_egreso || null,
+      motivo_egreso: raw.motivo_egreso || null,
+      numero_tss: raw.numero_tss || null,
+      afp: raw.afp || null,
+      ars: raw.ars || null,
+      banco: raw.banco || null,
+      cuenta_banco: raw.cuenta_banco || null,
+    };
 
     try {
       const id = this.editingId();

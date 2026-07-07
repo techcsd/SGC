@@ -32,6 +32,9 @@ export class NotificacionesService {
     if (this.userService.hasModulo('legal') || isAdmin) {
       checks.push(this.loadCount('aprobaciones_legales', 'pendiente', 'legal'));
     }
+    if (this.userService.hasModulo('rrhh') || isAdmin) {
+      checks.push(this.loadCount('solicitudes_ausencia', 'pendiente', 'rrhh'));
+    }
     // Tareas badge is per-user (tasks assigned to me that are still open),
     // not module-gated — every user can be assigned tasks.
     const userId = this.userService.profile()?.id;

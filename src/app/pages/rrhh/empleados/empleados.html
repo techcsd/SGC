@@ -415,6 +415,87 @@
       ></textarea>
     </div>
 
+    <!-- ── Datos personales ── -->
+    <div class="form-section-title">Datos personales</div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="fecha_nacimiento">Fecha de nacimiento</label>
+        <input id="fecha_nacimiento" type="date" formControlName="fecha_nacimiento" />
+      </div>
+      <div class="sgc-field">
+        <label for="genero">Género</label>
+        <select id="genero" formControlName="genero">
+          <option [value]="null">—</option>
+          @for (g of GENEROS; track g.value) {
+            <option [value]="g.value">{{ g.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="estado_civil">Estado civil</label>
+        <select id="estado_civil" formControlName="estado_civil">
+          <option [value]="null">—</option>
+          @for (ec of ESTADOS_CIVILES; track ec.value) {
+            <option [value]="ec.value">{{ ec.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="jefe_id">Supervisor / Jefe directo</label>
+        <select id="jefe_id" formControlName="jefe_id">
+          <option [value]="null">Sin supervisor</option>
+          @for (j of jefeOptions(); track j.id) {
+            <option [value]="j.id">{{ j.nombre }} {{ j.apellido }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="contacto_emergencia_nombre">Contacto de emergencia</label>
+        <input id="contacto_emergencia_nombre" type="text" formControlName="contacto_emergencia_nombre" placeholder="Nombre" />
+      </div>
+      <div class="sgc-field">
+        <label for="contacto_emergencia_telefono">Teléfono de emergencia</label>
+        <input id="contacto_emergencia_telefono" type="tel" formControlName="contacto_emergencia_telefono" placeholder="Ej: 809 000 0000" />
+      </div>
+    </div>
+
+    <!-- ── Seguridad social y nómina ── -->
+    <div class="form-section-title">Seguridad social y nómina</div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="numero_tss">No. TSS</label>
+        <input id="numero_tss" type="text" formControlName="numero_tss" placeholder="Seguridad Social" />
+      </div>
+      <div class="sgc-field">
+        <label for="dias_vacaciones_anuales">Días de vacaciones al año</label>
+        <input id="dias_vacaciones_anuales" type="number" min="0" max="60" formControlName="dias_vacaciones_anuales" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="afp">AFP (pensiones)</label>
+        <input id="afp" type="text" formControlName="afp" placeholder="Fondo de pensiones" />
+      </div>
+      <div class="sgc-field">
+        <label for="ars">ARS (salud)</label>
+        <input id="ars" type="text" formControlName="ars" placeholder="Seguro de salud" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="banco">Banco</label>
+        <input id="banco" type="text" formControlName="banco" placeholder="Banco para nómina" />
+      </div>
+      <div class="sgc-field">
+        <label for="cuenta_banco">No. de cuenta</label>
+        <input id="cuenta_banco" type="text" formControlName="cuenta_banco" placeholder="Cuenta bancaria" />
+      </div>
+    </div>
+
     <div class="form-toggle">
       <label class="toggle-label" for="activo">
         <input
@@ -427,6 +508,59 @@
         Empleado activo
       </label>
     </div>
+
+    <!-- ── Salida / egreso (solo si está inactivo) ── -->
+    @if (!f.activo.value) {
+      <div class="form-row">
+        <div class="sgc-field">
+          <label for="fecha_egreso">Fecha de salida</label>
+          <input id="fecha_egreso" type="date" formControlName="fecha_egreso" />
+        </div>
+        <div class="sgc-field">
+          <label for="motivo_egreso">Motivo de salida</label>
+          <input id="motivo_egreso" type="text" formControlName="motivo_egreso" placeholder="Renuncia, despido, fin de obra…" />
+        </div>
+      </div>
+    }
+
+    <!-- ── Documentos del empleado (solo en edición) ── -->
+    @if (editingId()) {
+      <div class="form-section-title">Documentos del empleado</div>
+      <div class="doc-upload-row">
+        <select [formControl]="docTipo" aria-label="Tipo de documento" class="doc-tipo-select">
+          @for (t of TIPOS_DOCUMENTO; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm doc-upload-btn">
+          @if (uploadingDoc()) {
+            <span class="spinner" aria-hidden="true"></span> Subiendo…
+          } @else {
+            Adjuntar documento
+          }
+          <input type="file" class="sr-only" (change)="onDocSelected($event)" [disabled]="uploadingDoc()" />
+        </label>
+      </div>
+      @if (documentosLoading()) {
+        <p class="doc-empty">Cargando documentos…</p>
+      } @else if (documentos().length === 0) {
+        <p class="doc-empty">Sin documentos adjuntos.</p>
+      } @else {
+        <ul class="doc-list">
+          @for (d of documentos(); track d.id) {
+            <li class="doc-item">
+              <span class="doc-item__tipo">{{ docTipoLabel(d.tipo) }}</span>
+              <button type="button" class="doc-item__name" (click)="descargarDoc(d)">{{ d.nombre }}</button>
+              <button type="button" class="doc-item__remove" (click)="eliminarDoc(d)" [attr.aria-label]="'Eliminar ' + d.nombre" title="Eliminar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    }
 
     @if (saveError()) {
       <div class="save-error" role="alert">

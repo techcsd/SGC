@@ -85,6 +85,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Empleados', route: '/rrhh/empleados' },
         { label: 'Asistencia', route: '/rrhh/asistencia' },
+        { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias' },
         { label: 'Reportes', route: '/rrhh/reportes' },
       ],
     },

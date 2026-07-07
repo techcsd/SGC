@@ -1,0 +1,215 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Ausencias y vacaciones</h1>
+    <span class="page-count">{{ pendientes().length }} pendiente{{ pendientes().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nueva solicitud
+  </button>
+</div>
+
+<!-- ── Tabs + filter ── -->
+<div class="tabs-bar">
+  <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'pendientes'" (click)="setTab('pendientes')">
+    Pendientes ({{ pendientes().length }})
+  </button>
+  <button type="button" class="tab-btn" [class.tab-btn--active]="tab() === 'todas'" (click)="setTab('todas')">
+    Todas
+  </button>
+  <div class="sgc-field tabs-bar__filter">
+    <select [value]="selectedTipo()" (change)="onTipoChange($any($event.target).value)" aria-label="Filtrar por tipo">
+      <option value="all">Todos los tipos</option>
+      @for (t of TIPOS; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <div class="table-loading" aria-busy="true">
+      <span class="spinner-dark"></span>
+      Cargando solicitudes…
+    </div>
+  } @else if (visible().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (tab() === 'pendientes') {
+          No hay solicitudes pendientes.
+        } @else {
+          No hay solicitudes registradas.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Solicitudes de ausencia">
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Tipo</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+            <th class="text-center">Días</th>
+            <th>Estado</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of visible(); track s.id) {
+            <tr>
+              <td>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</td>
+              <td>{{ tipoLabel(s.tipo) }}</td>
+              <td>{{ s.fecha_inicio | date:'dd/MM/yyyy' }}</td>
+              <td>{{ s.fecha_fin | date:'dd/MM/yyyy' }}</td>
+              <td class="text-center">{{ s.dias }}</td>
+              <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
+              <td class="text-center">
+                @if (s.estado === 'pendiente') {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolve(s)">Revisar</button>
+                } @else {
+                  <span class="text-muted">{{ s.aprobador?.nombre ?? '—' }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Create Drawer ── -->
+<app-form-drawer title="Nueva solicitud de ausencia" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="empleado_id">Empleado <span class="required">*</span></label>
+      <select id="empleado_id" formControlName="empleado_id" (change)="onEmpleadoChange($any($event.target).value)" [class.invalid]="f.empleado_id.invalid && f.empleado_id.touched">
+        <option [value]="null">Selecciona…</option>
+        @for (e of empleados(); track e.id) {
+          <option [value]="e.id">{{ e.nombre }} {{ e.apellido }}</option>
+        }
+      </select>
+      @if (f.empleado_id.invalid && f.empleado_id.touched) {
+        <span class="field-error">Selecciona un empleado.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="tipo">Tipo <span class="required">*</span></label>
+      <select id="tipo" formControlName="tipo">
+        @for (t of TIPOS; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (f.tipo.value === 'vacaciones' && balanceEmpleado(); as bal) {
+      <div class="balance-hint">
+        Vacaciones {{ anioActual }}: <strong>{{ bal.tomadas }}</strong> de <strong>{{ bal.anuales }}</strong> días usados
+        · <strong>{{ bal.anuales - bal.tomadas }}</strong> disponibles
+      </div>
+    }
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="fecha_inicio">Desde <span class="required">*</span></label>
+        <input id="fecha_inicio" type="date" formControlName="fecha_inicio" />
+      </div>
+      <div class="sgc-field">
+        <label for="fecha_fin">Hasta <span class="required">*</span></label>
+        <input id="fecha_fin" type="date" formControlName="fecha_fin" />
+      </div>
+    </div>
+
+    @if (diasCalculados() > 0) {
+      <div class="dias-hint">{{ diasCalculados() }} día(s) laborable(s)</div>
+    }
+
+    <div class="sgc-field">
+      <label for="motivo">Motivo / notas</label>
+      <textarea id="motivo" formControlName="motivo" rows="3" placeholder="Detalle de la solicitud…"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">{{ saveError() }}</div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          Crear solicitud
+        }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Resolve Drawer ── -->
+<app-form-drawer title="Revisar solicitud" [open]="resolveOpen()" (closed)="closeResolve()">
+  @if (resolveSolicitud(); as s) {
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">Empleado</span>
+          <span>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Tipo</span>
+          <span>{{ tipoLabel(s.tipo) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Desde</span>
+          <span>{{ s.fecha_inicio | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Hasta</span>
+          <span>{{ s.fecha_fin | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Días</span>
+          <span>{{ s.dias }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Solicitado por</span>
+          <span>{{ s.solicitante?.nombre ?? '—' }}</span>
+        </div>
+        @if (s.motivo) {
+          <div class="detail-field detail-field--full">
+            <span class="detail-field__label">Motivo</span>
+            <span>{{ s.motivo }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="comentario">Comentario (opcional)</label>
+        <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="Motivo de la decisión…"></textarea>
+      </div>
+
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazada')">Rechazar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolving()" (click)="resolver('aprobada')">
+          @if (resolving()) {
+            <span class="spinner" aria-hidden="true"></span>
+          } @else {
+            Aprobar
+          }
+        </button>
+      </div>
+    </div>
+  }
+</app-form-drawer>

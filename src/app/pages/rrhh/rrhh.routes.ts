@@ -13,6 +13,11 @@ export const rrhhRoutes: Routes = [
     title: 'Asistencia — RRHH',
   },
   {
+    path: 'ausencias',
+    loadComponent: () => import('./ausencias/ausencias').then((m) => m.Ausencias),
+    title: 'Ausencias y vacaciones — RRHH',
+  },
+  {
     path: 'reportes',
     loadComponent: () => import('./reportes/reportes').then((m) => m.RrhhReportes),
     title: 'Reportes — RRHH',
