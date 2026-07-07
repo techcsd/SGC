@@ -1,0 +1,19 @@
+<div class="toast-stack" aria-live="polite" aria-atomic="false">
+  @for (t of toasts(); track t.id) {
+    <div
+      class="toast toast--{{ t.tipo }}"
+      [class.toast--clickable]="!!t.route"
+      role="status"
+      (click)="onClick(t)"
+    >
+      <span class="toast__icon" aria-hidden="true">{{ iconFor(t.tipo) }}</span>
+      <div class="toast__body">
+        <span class="toast__titulo">{{ t.titulo }}</span>
+        @if (t.mensaje) {
+          <span class="toast__mensaje">{{ t.mensaje }}</span>
+        }
+      </div>
+      <button type="button" class="toast__close" (click)="dismiss(t.id, $event)" aria-label="Cerrar">✕</button>
+    </div>
+  }
+</div>

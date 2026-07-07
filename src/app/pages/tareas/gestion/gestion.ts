@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { TareasService, DirectorioUsuario } from '../../../../shared/services/tareas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
@@ -17,11 +18,12 @@ import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Gestion implements OnInit {
+export class Gestion implements OnInit, OnDestroy {
   private tareasService = inject(TareasService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
+  private channel: RealtimeChannel | null = null;
 
   readonly ESTADOS = TAREA_ESTADOS;
   readonly PRIORIDADES = TAREA_PRIORIDADES;
@@ -72,6 +74,19 @@ export class Gestion implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    this.channel = this.tareasService.subscribeTareas(() => void this.reloadTareas());
+  }
+
+  ngOnDestroy() {
+    if (this.channel) void this.tareasService.unsubscribe(this.channel);
+  }
+
+  private async reloadTareas() {
+    try {
+      this.tareas.set(await this.tareasService.getAll());
+    } catch {
+      // ignore transient realtime-triggered reload errors
+    }
   }
 
   private async loadAll() {

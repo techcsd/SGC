@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { TareasService } from '../../../../shared/services/tareas.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
@@ -13,10 +14,11 @@ import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-
   styleUrl: './mis-tareas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MisTareas implements OnInit {
+export class MisTareas implements OnInit, OnDestroy {
   private tareasService = inject(TareasService);
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
+  private channel: RealtimeChannel | null = null;
 
   readonly ESTADOS = TAREA_ESTADOS;
 
@@ -43,6 +45,12 @@ export class MisTareas implements OnInit {
 
   async ngOnInit() {
     await this.load();
+    // Live-refresh when any of my tasks changes state elsewhere (no manual reload).
+    this.channel = this.tareasService.subscribeTareas(() => void this.load());
+  }
+
+  ngOnDestroy() {
+    if (this.channel) void this.tareasService.unsubscribe(this.channel);
   }
 
   private async load() {

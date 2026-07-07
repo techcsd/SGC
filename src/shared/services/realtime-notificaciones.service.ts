@@ -1,0 +1,104 @@
+import { Injectable, inject } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { Router } from '@angular/router';
+import { SupabaseService } from '../../app/core/services/supabase.service';
+import { UserService } from '../../app/core/services/user.service';
+import { ToastService } from './toast.service';
+import { NotificacionesService } from './notificaciones.service';
+
+/** Subscribes (once, app-wide) to the realtime tables and raises on-screen
+ *  toasts + refreshes nav badges when something relevant to the current user
+ *  happens — no page refresh needed. Realtime respects RLS, so a subscriber
+ *  only receives rows they can already SELECT. */
+@Injectable({ providedIn: 'root' })
+export class RealtimeNotificacionesService {
+  private supabase = inject(SupabaseService);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private notificaciones = inject(NotificacionesService);
+  private router = inject(Router);
+
+  private channels: RealtimeChannel[] = [];
+  private started = false;
+
+  start() {
+    const userId = this.userService.profile()?.id;
+    if (this.started || !userId) return;
+    this.started = true;
+
+    const isAdmin = this.userService.hasRole('admin');
+
+    // ── Tareas: new assignment to me → toast; any change → refresh badge ──
+    this.channels.push(
+      this.supabase.client
+        .channel('rt-tareas')
+        .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'tareas' }, (p) => {
+          const t = p.new as { asignado_a: string; asignado_por: string; titulo: string };
+          if (t.asignado_a === userId && t.asignado_por !== userId) {
+            this.toast.info('Nueva tarea asignada', t.titulo, '/tareas/mis-tareas');
+          }
+          this.notificaciones.refresh();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'sgc', table: 'tareas' }, () => {
+          this.notificaciones.refresh();
+        })
+        .subscribe(),
+    );
+
+    // ── Mensajes: new message from someone else → toast (unless already on chat) ──
+    this.channels.push(
+      this.supabase.client
+        .channel('rt-mensajes-global')
+        .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'mensajes' }, (p) => {
+          const m = p.new as { autor_id: string };
+          if (m.autor_id !== userId) {
+            if (!this.router.url.startsWith('/mensajes')) {
+              this.toast.info('Nuevo mensaje', undefined, '/mensajes');
+            }
+            this.notificaciones.refresh();
+          }
+        })
+        .subscribe(),
+    );
+
+    // ── Legal approvals (for legal/admin) ──
+    if (isAdmin || this.userService.hasModulo('legal')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-aprobaciones')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'aprobaciones_legales' }, (p) => {
+            const a = p.new as { titulo: string; solicitado_por: string };
+            if (a.solicitado_por !== userId) {
+              this.toast.warning('Nueva solicitud de aprobación legal', a.titulo, '/legal/aprobaciones');
+            }
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
+
+    // ── Leave requests (for rrhh/admin) ──
+    if (isAdmin || this.userService.hasModulo('rrhh')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-ausencias')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'solicitudes_ausencia' }, (p) => {
+            const a = p.new as { solicitado_por: string };
+            if (a.solicitado_por !== userId) {
+              this.toast.warning('Nueva solicitud de ausencia', 'Revisa RRHH → Ausencias', '/rrhh/ausencias');
+            }
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
+  }
+
+  stop() {
+    for (const ch of this.channels) {
+      void this.supabase.client.removeChannel(ch);
+    }
+    this.channels = [];
+    this.started = false;
+  }
+}

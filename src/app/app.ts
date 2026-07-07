@@ -2,10 +2,11 @@ import { Component, ChangeDetectionStrategy, OnInit, inject } from '@angular/cor
 import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { UserService } from './core/services/user.service';
+import { ToastComponent } from '../shared/components/toast/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

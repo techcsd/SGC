@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Tarea, TareaComentario, TareaEstado } from '../models/tarea.model';
 
@@ -114,6 +115,19 @@ export class TareasService {
 
     if (error) throw new Error(error.message);
     return data as unknown as TareaComentario;
+  }
+
+  /** Live task changes (INSERT/UPDATE/DELETE) the caller can see — RLS-scoped.
+   *  Lets the Tareas views reflect state changes without a page refresh. */
+  subscribeTareas(onChange: () => void): RealtimeChannel {
+    return this.supabase.client
+      .channel('tareas-feed')
+      .on('postgres_changes', { event: '*', schema: 'sgc', table: 'tareas' }, () => onChange())
+      .subscribe();
+  }
+
+  async unsubscribe(channel: RealtimeChannel): Promise<void> {
+    await this.supabase.client.removeChannel(channel);
   }
 
   /** Count of open (pendiente/en_progreso) tasks assigned to a user — for the nav badge. */

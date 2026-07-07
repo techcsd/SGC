@@ -11,6 +11,7 @@ import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { AuthService } from '../../../app/core/services/auth.service';
 import { UserService } from '../../../app/core/services/user.service';
 import { NotificacionesService } from '../../services/notificaciones.service';
+import { RealtimeNotificacionesService } from '../../services/realtime-notificaciones.service';
 
 interface NavItem {
   label: string;
@@ -43,6 +44,7 @@ export class Shell implements OnInit {
   private userService = inject(UserService);
   private router = inject(Router);
   private notificaciones = inject(NotificacionesService);
+  private realtimeNotificaciones = inject(RealtimeNotificacionesService);
 
   profile = this.userService.profile;
   collapsed = signal(false);
@@ -204,6 +206,7 @@ export class Shell implements OnInit {
       this.collapsed.set(saved === 'true');
     }
     this.notificaciones.refresh();
+    this.realtimeNotificaciones.start();
 
     // Catches any count-affecting mutation that doesn't already call
     // refresh() directly (belt-and-suspenders alongside the explicit calls
@@ -238,6 +241,7 @@ export class Shell implements OnInit {
   }
 
   async logout() {
+    this.realtimeNotificaciones.stop();
     await this.authService.signOut();
     this.userService.clearProfile();
     this.notificaciones.clear();
