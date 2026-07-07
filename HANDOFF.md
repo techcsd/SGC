@@ -79,11 +79,20 @@ them with **no schema change**.
 - Rutas list: weather chip on upcoming trips with adverse destination weather.
 - Dudas FAQ updated. Verified: build green + PostgREST embed hint resolves.
 
+**Architecture doc:** `docs/intelligent-context-system.md` (spec deliverable #7) —
+vision, components, data model, flows, ops, extensibility, decisions, roadmap.
+
 ### ⏳ Next (pick a batch)
 
-1. **Architecture doc** (spec deliverable #7) — currently only in-code comments.
-2. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
+1. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
    otherwise OSM stays (recommended).
+2. **New context sources** — traffic / air quality / sunrise-sunset (plug into
+   ContextService facade per the doc's "Extending" section).
+3. **AI assistant** over accumulated context (weather + bitácora + logistics).
+
+### 📌 Pending decision
+- 9 commits on local `main` are **NOT pushed** to origin. Pushing likely triggers a
+  Vercel prod deploy to sgcconstructorasd.com — awaiting Xavier's go-ahead.
 
 ### Notes / gotchas
 - No `supabase/migrations/` dir — SQL lives in `sql/`. Verify migrations actually
