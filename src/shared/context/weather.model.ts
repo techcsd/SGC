@@ -46,6 +46,21 @@ export interface WeatherPronostico {
   porDia: WeatherDia[];
 }
 
+/** A persisted weather_snapshots row (historical conditions captured at a moment,
+ *  e.g. when a bitácora entry was created). Snake_case to match the DB columns. */
+export interface WeatherSnapshot {
+  id: string;
+  capturado_en: string;
+  temperatura: number | null;
+  sensacion: number | null;
+  humedad: number | null;
+  viento_kmh: number | null;
+  precipitacion_mm: number | null;
+  prob_precipitacion: number | null;
+  uv: number | null;
+  codigo_tiempo: number | null;
+}
+
 export type RiesgoNivel = 'info' | 'precaucion' | 'peligro';
 
 export interface Recomendacion {

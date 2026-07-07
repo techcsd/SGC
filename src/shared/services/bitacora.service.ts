@@ -3,7 +3,7 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
 
 const SELECT_QUERY =
-  '*, proyecto:proyectos(nombre, codigo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*)';
+  '*, proyecto:proyectos(nombre, codigo), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*)';
 
 const MAX_ARCHIVOS = 10;
 const MAX_TAMANO_BYTES = 50 * 1024 * 1024;

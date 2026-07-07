@@ -5,6 +5,7 @@ import { TareasService } from '../../services/tareas.service';
 import { UserService } from '../../../app/core/services/user.service';
 import { Tarea, TareaComentario, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../models/tarea.model';
 import { FormDrawer } from '../form-drawer/form-drawer';
+import { WeatherCard } from '../../context/weather-card/weather-card';
 
 // Allowed forward transitions. Assignees drive pendiente→en_progreso→completada;
 // cancelada is a manager-only escape hatch handled separately in the template.
@@ -17,7 +18,7 @@ const ESTADO_TRANSICIONES: Record<TareaEstado, TareaEstado[]> = {
 
 @Component({
   selector: 'app-tarea-detalle',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, WeatherCard],
   templateUrl: './tarea-detalle.html',
   styleUrl: './tarea-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

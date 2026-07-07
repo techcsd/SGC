@@ -89,6 +89,16 @@ Weather-card shows an air-quality row (AQI badge + PM2.5/PM10/dust). Cron edge f
 detects hazardous air → `aire_peligroso` alert (env `ALERT_AQI`, default 200). Verified
 open+resolve lifecycle in prod.
 
+**Weather interconnection fixes (uncommitted):**
+- **Bitácora** captured weather was write-only/orphaned — now DISPLAYED. `Bitacora`
+  model gained `weather_snapshot_id` + joined `weather_snapshot`; service SELECT joins
+  `weather_snapshots`; historial detail drawer shows a "Clima registrado" block
+  (emphasized for incidentes). `WeatherSnapshot` type added to weather.model.ts.
+- **Bitácora → Mi Proyecto**: live `app-weather-card` per assigned obra.
+- **Tareas**: tarea-detalle shows live weather at the linked obra (query now selects
+  proyecto latitud/longitud). Dudas FAQ updated. (Conduces skipped — weather adds no
+  value on a transactional PDF; route weather is Flota's job.)
+
 ### ⏳ Next (pick a batch)
 
 1. **Traffic** — no keyless provider exists; needs TomTom/HERE/Google key. Plan: edge

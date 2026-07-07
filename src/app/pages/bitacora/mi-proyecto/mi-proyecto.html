@@ -36,6 +36,10 @@
           <p class="mi-proyecto-card__meta">Presupuesto: RD$ {{ p.presupuesto | number:'1.0-0' }}</p>
         }
 
+        @if (p.latitud != null && p.longitud != null) {
+          <app-weather-card [latitud]="p.latitud" [longitud]="p.longitud" titulo="Clima en la obra" />
+        }
+
         <app-documentos-proyecto [proyectoId]="p.id" />
 
         @if ((p.fases ?? []).length > 0) {

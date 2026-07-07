@@ -220,6 +220,27 @@
         }
       }
 
+      @if (b.weather_snapshot; as w) {
+        <div class="bitacora-detail__section">
+          <h3>Clima registrado @if (b.tipo === 'incidente') { <span class="bitacora-clima__tag">al momento del incidente</span> }</h3>
+          <div class="bitacora-clima">
+            <span class="bitacora-clima__icon" aria-hidden="true">{{ detailTiempo().icono }}</span>
+            <div class="bitacora-clima__main">
+              <span class="bitacora-clima__temp">{{ w.temperatura != null ? (w.temperatura | number:'1.0-0') + '°C' : '—' }}</span>
+              <span class="bitacora-clima__cond">{{ detailTiempo().label }}</span>
+            </div>
+          </div>
+          <div class="bitacora-clima__stats">
+            <span>Sensación {{ w.sensacion != null ? (w.sensacion | number:'1.0-0') + '°' : '—' }}</span>
+            <span>Humedad {{ w.humedad ?? '—' }}%</span>
+            <span>Viento {{ w.viento_kmh != null ? (w.viento_kmh | number:'1.0-0') + ' km/h' : '—' }}</span>
+            <span>Lluvia {{ w.precipitacion_mm ?? 0 }} mm</span>
+            <span>UV {{ w.uv != null ? (w.uv | number:'1.0-0') : '—' }}</span>
+          </div>
+          <span class="bitacora-clima__note">Capturado automáticamente al registrar la bitácora.</span>
+        </div>
+      }
+
       @if ((b.actividades ?? []).length > 0) {
         <div class="bitacora-detail__section">
           <h3>Actividades</h3>

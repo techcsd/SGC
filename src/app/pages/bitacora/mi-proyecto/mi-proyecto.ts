@@ -4,10 +4,11 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { UserService } from '../../../core/services/user.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
+import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 
 @Component({
   selector: 'app-bitacora-mi-proyecto',
-  imports: [DecimalPipe, DocumentosProyecto],
+  imports: [DecimalPipe, DocumentosProyecto, WeatherCard],
   templateUrl: './mi-proyecto.html',
   styleUrl: './mi-proyecto.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

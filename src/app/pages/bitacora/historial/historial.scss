@@ -43,3 +43,38 @@
     }
   }
 }
+
+// ── Captured weather (Intelligent Context System) ──
+.bitacora-clima {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  &__icon { font-size: 30px; line-height: 1; }
+  &__main { display: flex; flex-direction: column; }
+  &__temp { font-size: 20px; font-weight: 800; color: var(--sgc-text); }
+  &__cond { font-size: 12.5px; color: var(--sgc-text-secondary); }
+
+  &__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12.5px;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__note {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--sgc-text-muted);
+    font-style: italic;
+  }
+
+  &__tag {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sgc-danger);
+  }
+}

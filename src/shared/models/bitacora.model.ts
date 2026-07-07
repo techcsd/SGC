@@ -31,6 +31,8 @@ export const RESTRICCIONES: { value: string; label: string }[] = [
   { value: 'OTRO', label: 'Otro' },
 ];
 
+import { WeatherSnapshot } from '../context/weather.model';
+
 export interface BitacoraActividad {
   id: string;
   bitacora_id: string;
@@ -112,6 +114,8 @@ export interface Bitacora {
   incidente_descripcion: string | null;
   incidente_acciones: string | null;
   created_at: string;
+  weather_snapshot_id: string | null;
+  weather_snapshot?: WeatherSnapshot | null;
   actividades?: BitacoraActividad[];
   restricciones?: BitacoraRestriccion[];
   archivos?: BitacoraArchivo[];

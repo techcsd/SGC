@@ -162,7 +162,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿El clima queda registrado en la bitácora?',
         respuesta:
-          'Sí. Al registrar una bitácora de un proyecto con ubicación, el sistema captura automáticamente el clima del momento (temperatura, lluvia, viento…) y lo guarda junto a la entrada, sin que tengas que escribirlo.',
+          'Sí. Al registrar una bitácora de un proyecto con ubicación, el sistema captura automáticamente el clima del momento (temperatura, lluvia, viento…) y lo guarda junto a la entrada. Ese clima se muestra luego en el detalle de la bitácora (en Historial), y es especialmente útil en incidentes/accidentes para ver las condiciones al momento del hecho.',
       },
       {
         pregunta: '¿Dónde veo el clima de todas las obras de un vistazo?',

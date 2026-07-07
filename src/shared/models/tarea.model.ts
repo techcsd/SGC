@@ -12,7 +12,7 @@ export interface Tarea {
   asignado_por: string;
   asignador?: { nombre: string } | null;
   proyecto_id: string | null;
-  proyecto?: { nombre: string } | null;
+  proyecto?: { nombre: string; latitud: number | null; longitud: number | null } | null;
   fecha_limite: string | null;
   fecha_completada: string | null;
   created_at: string;

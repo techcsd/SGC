@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -6,10 +7,11 @@ import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_T
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { interpretarCodigoTiempo } from '../../../../shared/context/weather.model';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [RouterLink, FormDrawer],
+  imports: [RouterLink, FormDrawer, DecimalPipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +42,9 @@ export class Historial implements OnInit {
   detailOpen = signal(false);
   detail = signal<Bitacora | null>(null);
   archivoUrls = signal<Map<string, string>>(new Map());
+
+  /** Icon + label for the captured weather of the entry being viewed. */
+  detailTiempo = computed(() => interpretarCodigoTiempo(this.detail()?.weather_snapshot?.codigo_tiempo ?? null));
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();

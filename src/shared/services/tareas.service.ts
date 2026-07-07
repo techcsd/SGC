@@ -4,7 +4,7 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Tarea, TareaComentario, TareaEstado } from '../models/tarea.model';
 
 const TAREA_SELECT =
-  '*, asignado:usuarios!tareas_asignado_a_fkey(nombre), asignador:usuarios!tareas_asignado_por_fkey(nombre), proyecto:proyectos(nombre)';
+  '*, asignado:usuarios!tareas_asignado_a_fkey(nombre), asignador:usuarios!tareas_asignado_por_fkey(nombre), proyecto:proyectos(nombre, latitud, longitud)';
 
 export interface DirectorioUsuario {
   id: string;

@@ -35,6 +35,10 @@
         </div>
       </div>
 
+      @if (t.proyecto?.latitud != null && t.proyecto?.longitud != null) {
+        <app-weather-card [latitud]="t.proyecto!.latitud" [longitud]="t.proyecto!.longitud" titulo="Clima en la obra" />
+      }
+
       <!-- Estado transitions -->
       <div class="detail-estado">
         <span class="detail-estado__label">Cambiar estado:</span>
