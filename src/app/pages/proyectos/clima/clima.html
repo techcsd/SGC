@@ -9,6 +9,24 @@
   <div class="page-error" role="alert">{{ error() }}</div>
 }
 
+<!-- Active severe-weather alerts -->
+@if (alertas().length > 0) {
+  <section class="alertas-vigentes sgc-card">
+    <h2 class="alertas-vigentes__title">⚠️ Alertas activas ({{ alertas().length }})</h2>
+    <div class="alertas-vigentes__list">
+      @for (a of alertas(); track a.id) {
+        <div class="alerta-item alerta-item--{{ a.nivel }}">
+          <div class="alerta-item__head">
+            <span class="alerta-item__titulo">{{ a.titulo }}</span>
+            <span class="alerta-item__obra">{{ a.nombre }}</span>
+          </div>
+          <p class="alerta-item__detalle">{{ a.detalle }}</p>
+        </div>
+      }
+    </div>
+  </section>
+}
+
 <!-- Range selector -->
 <div class="tabs-bar">
   <button type="button" class="tab-btn" [class.tab-btn--active]="rango() === 7" (click)="setRango(7)">7 días</button>

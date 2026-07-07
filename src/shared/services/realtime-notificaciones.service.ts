@@ -92,6 +92,20 @@ export class RealtimeNotificacionesService {
           .subscribe(),
       );
     }
+
+    // ── Severe-weather alerts (for proyectos/bitacora/admin) ──
+    if (isAdmin || this.userService.hasModulo('proyectos') || this.userService.hasModulo('bitacora')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-weather-alerts')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'weather_alerts' }, (p) => {
+            const a = p.new as { titulo: string; detalle: string };
+            this.toast.warning(`Alerta climática: ${a.titulo}`, a.detalle, '/proyectos/clima');
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
   }
 
   stop() {

@@ -55,14 +55,25 @@ them with **no schema change**.
   `/proyectos/clima` + shell nav + Dudas FAQ. 7/30/90-day ranges, tiles, bar chart,
   ranking table. Verified query returns real aggregated data.
 
+**Severe-weather alerts (LIVE in prod):**
+- Table `sgc.weather_alerts` (`sql/2026-07-07-weather-alerts.sql`): self-healing
+  alert set, `vigente=true` = active severe condition. RLS authenticated-select;
+  added to `supabase_realtime` publication.
+- Edge fn `sync-weather-obras` now also detects severe conditions (storm /
+  lluvia_intensa ≥4mm / viento_fuerte ≥40km/h / calor_extremo ≥38°C, env-tunable
+  ALERT_* vars) and maintains alerts: opens new, dedups, resolves cleared.
+  Verified end-to-end (open + dedup + resolve) in prod.
+- Frontend: badge on Proyectos nav (`NotificacionesService.loadWeatherAlertas`,
+  key `proyectos`), realtime toast (`RealtimeNotificacionesService` rt-weather-alerts
+  → /proyectos/clima), and "Alertas activas" list on the Reportes de clima page
+  (`WeatherAlertsService`). Dudas FAQ updated.
+
 ### ⏳ Next (pick a batch)
 
-1. **Severe-weather alerts persisted + notification badge** — currently recs are
-   computed on-demand only; persist alerts + push to notification system.
-2. **Transport/route weather** — Flota/rutas/conduces: weather at destination,
+1. **Transport/route weather** — Flota/rutas/conduces: weather at destination,
    dispatch-earlier advice.
-3. **Architecture doc** (spec deliverable #7) — currently only in-code comments.
-4. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
+2. **Architecture doc** (spec deliverable #7) — currently only in-code comments.
+3. **Google Maps swap** — only if Xavier provides a billing-enabled API key;
    otherwise OSM stays (recommended).
 
 ### Notes / gotchas

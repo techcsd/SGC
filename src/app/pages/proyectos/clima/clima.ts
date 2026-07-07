@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { WeatherBiService, ReporteClima } from '../../../../shared/context/weather-bi.service';
+import { WeatherAlertsService, WeatherAlerta } from '../../../../shared/context/weather-alerts.service';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { daysAgoIso, todayIso } from '../../../../shared/utils/fecha.util';
 
@@ -15,8 +16,10 @@ type RangoDias = 7 | 30 | 90;
 })
 export class ProyectosClima implements OnInit {
   private bi = inject(WeatherBiService);
+  private alertsService = inject(WeatherAlertsService);
 
   reporte = signal<ReporteClima | null>(null);
+  alertas = signal<WeatherAlerta[]>([]);
   loading = signal(true);
   error = signal('');
   rango = signal<RangoDias>(30);
@@ -32,7 +35,15 @@ export class ProyectosClima implements OnInit {
   );
 
   async ngOnInit() {
-    await this.cargar();
+    await Promise.all([this.cargar(), this.cargarAlertas()]);
+  }
+
+  private async cargarAlertas() {
+    try {
+      this.alertas.set(await this.alertsService.getVigentes());
+    } catch {
+      /* alerts are enrichment; a failure shouldn't blank the report */
+    }
   }
 
   async setRango(d: RangoDias) {

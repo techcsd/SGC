@@ -35,6 +35,11 @@ export class NotificacionesService {
     if (this.userService.hasModulo('rrhh') || isAdmin) {
       checks.push(this.loadCount('solicitudes_ausencia', 'pendiente', 'rrhh'));
     }
+    // Severe-weather alerts (Intelligent Context System): active alerts across
+    // obras, shown on the Proyectos nav. Same audience as the weather panels.
+    if (this.userService.hasModulo('proyectos') || this.userService.hasModulo('bitacora') || isAdmin) {
+      checks.push(this.loadWeatherAlertas());
+    }
     // Tareas badge is per-user (tasks assigned to me that are still open),
     // not module-gated — every user can be assigned tasks.
     const userId = this.userService.profile()?.id;
@@ -61,6 +66,14 @@ export class NotificacionesService {
       .eq('asignado_a', usuarioId)
       .in('estado', ['pendiente', 'en_progreso']);
     this._pendingByModulo.update((m) => ({ ...m, tareas: count ?? 0 }));
+  }
+
+  private async loadWeatherAlertas(): Promise<void> {
+    const { count } = await this.supabase.client
+      .from('weather_alerts')
+      .select('id', { count: 'exact', head: true })
+      .eq('vigente', true);
+    this._pendingByModulo.update((m) => ({ ...m, proyectos: count ?? 0 }));
   }
 
   private async loadMensajesNoLeidos(): Promise<void> {

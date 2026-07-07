@@ -1,19 +1,19 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Background weather sync for the Intelligent Context System.
+// Background weather sync + severe-weather alerting for the Intelligent Context System.
 //
-// Snapshots current conditions for every active, in-progress obra that has
-// coordinates and stores them in sgc.weather_snapshots — so weather history
-// accumulates on its own (for BI like "días perdidos por lluvia") without
-// depending on a user opening a project or creating a bitácora.
+// Every run (pg_cron, every 3h) this:
+//   1. Snapshots current conditions for each active obra with coords into
+//      sgc.weather_snapshots (so weather history accumulates for BI).
+//   2. Maintains a self-healing set of sgc.weather_alerts: opens a peligro-level
+//      alert when a severe condition appears (storm / heavy rain / high wind /
+//      extreme heat) and resolves it (vigente=false) when the condition clears.
+//      One open alert per (obra, tipo) — no spam. New inserts hit the
+//      supabase_realtime publication, so the frontend shows a toast + badge.
 //
-// Invoked on a schedule by pg_cron (see sql/2026-07-07-weather-cron.sql), which
-// passes a shared secret in the x-sync-secret header. Deployed with
-// --no-verify-jwt because the caller is the database, not a logged-in user;
-// the secret is the auth boundary. Provider mapping mirrors
-// src/shared/context/open-meteo.provider.ts so cron snapshots match what the
-// frontend shows.
+// Deployed with --no-verify-jwt; the caller is the DB (or a manual admin invoke),
+// authed by the x-sync-secret shared secret. Thresholds are env-tunable.
 
 const OPEN_METEO = "https://api.open-meteo.com/v1/forecast";
 
@@ -30,13 +30,17 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function envNum(name: string, fallback: number): number {
+  const v = Number(Deno.env.get(name));
+  return Number.isFinite(v) && v > 0 ? v : fallback;
+}
+
 interface OMResponse {
   current?: Record<string, number> & { time?: string };
   hourly?: { time: string[]; [k: string]: (number | null)[] | string[] };
 }
 
-/** Mirror of OpenMeteoProvider.mapActual — current conditions + current-hour
- *  extras (UV, visibility, precip probability) pulled from the hourly arrays. */
+/** Mirror of OpenMeteoProvider.mapActual. */
 function mapActual(data: OMResponse) {
   const c = data.current ?? {};
   const hourly = data.hourly;
@@ -83,13 +87,58 @@ async function fetchActual(lat: number, lng: number) {
   return mapActual((await res.json()) as OMResponse);
 }
 
+type Actual = ReturnType<typeof mapActual>;
+interface AlertaDetectada {
+  tipo: string;
+  titulo: string;
+  detalle: string;
+}
+
+/** Severe (peligro-level) conditions worth a notification. Stricter than the
+ *  in-app RecommendationService advisories, so the bell stays meaningful. */
+function detectarSeveras(a: Actual): AlertaDetectada[] {
+  const LLUVIA_MM = envNum("ALERT_LLUVIA_MM", 4);
+  const VIENTO_KMH = envNum("ALERT_VIENTO_KMH", 40);
+  const CALOR = envNum("ALERT_CALOR_SENSACION", 38);
+  const out: AlertaDetectada[] = [];
+
+  if ((a.codigo_tiempo ?? 0) >= 95) {
+    out.push({
+      tipo: "tormenta",
+      titulo: "Tormenta eléctrica",
+      detalle: "Tormenta en la zona de la obra. Suspende trabajos en exterior y en altura.",
+    });
+  }
+  if ((a.precipitacion_mm ?? 0) >= LLUVIA_MM) {
+    out.push({
+      tipo: "lluvia_intensa",
+      titulo: "Lluvia intensa",
+      detalle: `Lluvia de ${a.precipitacion_mm} mm. Evita el vaciado de concreto y protege materiales.`,
+    });
+  }
+  if ((a.viento_kmh ?? 0) >= VIENTO_KMH) {
+    out.push({
+      tipo: "viento_fuerte",
+      titulo: "Vientos fuertes",
+      detalle: `Viento de ${Math.round(a.viento_kmh!)} km/h. Suspende grúas y trabajos en altura.`,
+    });
+  }
+  const calor = a.sensacion ?? a.temperatura ?? 0;
+  if (calor >= CALOR) {
+    out.push({
+      tipo: "calor_extremo",
+      titulo: "Calor extremo",
+      detalle: `Sensación térmica de ${Math.round(calor)}°C. Programa pausas e hidratación frecuente.`,
+    });
+  }
+  return out;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  // Shared-secret auth: the DB cron (or a manual admin invoke) must present the
-  // secret. Never runs open — if the secret isn't configured, refuse.
   const expected = Deno.env.get("WEATHER_SYNC_SECRET");
   if (!expected) return json({ error: "WEATHER_SYNC_SECRET no configurado." }, 500);
   if (req.headers.get("x-sync-secret") !== expected) {
@@ -112,24 +161,98 @@ Deno.serve(async (req: Request) => {
 
   if (error) return json({ error: error.message }, 500);
 
-  const rows: Record<string, unknown>[] = [];
+  // 1) Fetch weather + build snapshot rows + detect severe conditions per obra.
+  const snapRows: Record<string, unknown>[] = [];
+  const severasPorObra = new Map<string, AlertaDetectada[]>();
   const fallos: { proyecto: string; error: string }[] = [];
 
   for (const o of (obras ?? []) as { id: string; latitud: number; longitud: number }[]) {
     try {
       const actual = await fetchActual(o.latitud, o.longitud);
-      rows.push({ proyecto_id: o.id, latitud: o.latitud, longitud: o.longitud, ...actual });
+      snapRows.push({ proyecto_id: o.id, latitud: o.latitud, longitud: o.longitud, ...actual });
+      severasPorObra.set(o.id, detectarSeveras(actual));
     } catch (e) {
       fallos.push({ proyecto: o.id, error: e instanceof Error ? e.message : "error" });
     }
   }
 
-  let insertados = 0;
-  if (rows.length > 0) {
-    const { error: insErr } = await supabase.from("weather_snapshots").insert(rows);
+  // 2) Insert snapshots, keep proyecto_id -> snapshot_id to link alerts.
+  const snapshotIdPorObra = new Map<string, string>();
+  if (snapRows.length > 0) {
+    const { data: inserted, error: insErr } = await supabase
+      .from("weather_snapshots")
+      .insert(snapRows)
+      .select("id, proyecto_id");
     if (insErr) return json({ error: insErr.message, obras: obras?.length ?? 0 }, 500);
-    insertados = rows.length;
+    for (const r of (inserted ?? []) as { id: string; proyecto_id: string }[]) {
+      snapshotIdPorObra.set(r.proyecto_id, r.id);
+    }
   }
 
-  return json({ ok: true, obras: obras?.length ?? 0, insertados, fallos });
+  // 3) Maintain alerts: open new severe conditions, resolve cleared ones.
+  const obraIds = [...severasPorObra.keys()];
+  let abiertas = 0;
+  let resueltas = 0;
+
+  if (obraIds.length > 0) {
+    const { data: vigentes } = await supabase
+      .from("weather_alerts")
+      .select("id, proyecto_id, tipo")
+      .eq("vigente", true)
+      .in("proyecto_id", obraIds);
+
+    const vigentesPorObra = new Map<string, Map<string, string>>(); // obra -> tipo -> alertId
+    for (const v of (vigentes ?? []) as { id: string; proyecto_id: string; tipo: string }[]) {
+      if (!vigentesPorObra.has(v.proyecto_id)) vigentesPorObra.set(v.proyecto_id, new Map());
+      vigentesPorObra.get(v.proyecto_id)!.set(v.tipo, v.id);
+    }
+
+    const nuevas: Record<string, unknown>[] = [];
+    const resolverIds: string[] = [];
+
+    for (const obraId of obraIds) {
+      const severas = severasPorObra.get(obraId) ?? [];
+      const actuales = new Set(severas.map((s) => s.tipo));
+      const abiertasObra = vigentesPorObra.get(obraId) ?? new Map<string, string>();
+
+      // Open alerts for severe conditions not already open.
+      for (const s of severas) {
+        if (!abiertasObra.has(s.tipo)) {
+          nuevas.push({
+            proyecto_id: obraId,
+            snapshot_id: snapshotIdPorObra.get(obraId) ?? null,
+            tipo: s.tipo,
+            nivel: "peligro",
+            titulo: s.titulo,
+            detalle: s.detalle,
+          });
+        }
+      }
+      // Resolve open alerts whose condition is no longer present.
+      for (const [tipo, alertId] of abiertasObra) {
+        if (!actuales.has(tipo)) resolverIds.push(alertId);
+      }
+    }
+
+    if (nuevas.length > 0) {
+      const { error: e } = await supabase.from("weather_alerts").insert(nuevas);
+      if (!e) abiertas = nuevas.length;
+    }
+    if (resolverIds.length > 0) {
+      const { error: e } = await supabase
+        .from("weather_alerts")
+        .update({ vigente: false, resuelto_en: new Date().toISOString() })
+        .in("id", resolverIds);
+      if (!e) resueltas = resolverIds.length;
+    }
+  }
+
+  return json({
+    ok: true,
+    obras: obras?.length ?? 0,
+    insertados: snapRows.length,
+    alertas_abiertas: abiertas,
+    alertas_resueltas: resueltas,
+    fallos,
+  });
 });

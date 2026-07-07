@@ -174,6 +174,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Sí. En Proyectos > Reportes de clima verás, por rango de 7/30/90 días, los días con lluvia y los "días adversos" (lluvia significativa o viento alto) de cada obra, con un ranking de las más afectadas. El sistema registra el clima de cada obra activa cada 3 horas, así que el histórico crece solo.',
       },
+      {
+        pregunta: '¿El sistema avisa cuando hay clima peligroso en una obra?',
+        respuesta:
+          'Sí. Cuando se detecta una condición severa en una obra (tormenta, lluvia intensa, viento fuerte o calor extremo) aparece un aviso emergente y se marca un contador en el menú de Proyectos. Las alertas activas se listan en Proyectos > Reportes de clima y se resuelven solas cuando la condición pasa.',
+      },
     ],
   },
   {
