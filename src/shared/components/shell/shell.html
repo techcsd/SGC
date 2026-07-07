@@ -170,13 +170,17 @@
       </div>
 
       <div class="header-right">
-        <div class="header-user">
-          <div class="user-avatar" aria-hidden="true">{{ getUserInitials() }}</div>
+        <a class="header-user" routerLink="/perfil" title="Mi perfil">
+          @if (avatarUrl(); as url) {
+            <img class="user-avatar user-avatar--img" [src]="url" alt="" />
+          } @else {
+            <div class="user-avatar" aria-hidden="true">{{ getUserInitials() }}</div>
+          }
           <div class="user-info">
             <span class="user-name">{{ profile()?.nombre ?? 'Usuario' }}</span>
             <span class="user-email">{{ profile()?.email ?? '' }}</span>
           </div>
-        </div>
+        </a>
         <button class="header-logout" type="button" (click)="logout()" aria-label="Cerrar sesión">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>

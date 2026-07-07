@@ -47,6 +47,7 @@ export class Shell implements OnInit {
   private realtimeNotificaciones = inject(RealtimeNotificacionesService);
 
   profile = this.userService.profile;
+  avatarUrl = this.userService.avatarUrl;
   collapsed = signal(false);
   expandedSection = signal<string | null>('inventario');
 

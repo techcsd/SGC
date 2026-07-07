@@ -363,6 +363,19 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--sgc-radius);
+  padding: 4px 6px;
+  transition: var(--sgc-transition-fast);
+
+  &:hover {
+    background: var(--sgc-surface-hover);
+  }
+}
+
+.user-avatar--img {
+  object-fit: cover;
 }
 
 .user-avatar {

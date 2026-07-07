@@ -1,0 +1,81 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Mi perfil</h1>
+  </div>
+</div>
+
+@if (profile(); as p) {
+  <div class="perfil">
+    <!-- Avatar + identidad -->
+    <section class="perfil-card sgc-card">
+      <div class="perfil-avatar">
+        @if (avatarUrl(); as url) {
+          <img [src]="url" alt="Foto de perfil" class="perfil-avatar__img" />
+        } @else {
+          <span class="perfil-avatar__initials">{{ iniciales() }}</span>
+        }
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm perfil-avatar__upload">
+          @if (uploading()) {
+            <span class="spinner" aria-hidden="true"></span> Subiendo…
+          } @else {
+            Cambiar foto
+          }
+          <input type="file" class="sr-only" accept="image/png,image/jpeg,image/webp" (change)="onAvatarSelected($event)" [disabled]="uploading()" />
+        </label>
+      </div>
+
+      <div class="perfil-identidad">
+        <h2 class="perfil-nombre">{{ p.nombre }}</h2>
+        <p class="perfil-email">{{ p.email }}</p>
+        <p class="perfil-nota">
+          Tu nombre y correo los administra el equipo de Administración. Si necesitas cambiarlos, contáctalos.
+        </p>
+      </div>
+    </section>
+
+    @if (error()) {
+      <div class="page-error" role="alert">{{ error() }}</div>
+    }
+
+    <!-- Roles y permisos -->
+    <section class="perfil-card sgc-card">
+      <h3 class="perfil-section-title">Mis roles y accesos</h3>
+      @if (roles().length === 0) {
+        <p class="text-muted">No tienes roles asignados. Contacta a Administración.</p>
+      } @else {
+        <div class="rol-list">
+          @for (r of roles(); track r.id) {
+            <div class="rol-item">
+              <span class="rol-item__nombre">{{ r.nombre }}</span>
+              <div class="rol-item__modulos">
+                @for (m of r.modulos; track m) {
+                  <span class="sgc-badge sgc-badge--info">{{ moduloLabel(m) }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        <p class="perfil-nota">
+          ¿Qué significa cada acceso? Revísalo en <a routerLink="/dudas">Dudas → Roles y permisos</a>.
+        </p>
+      }
+    </section>
+
+    <!-- Datos de cuenta -->
+    <section class="perfil-card sgc-card">
+      <h3 class="perfil-section-title">Datos de la cuenta</h3>
+      <div class="perfil-datos">
+        <div class="perfil-dato">
+          <span class="perfil-dato__label">Estado</span>
+          <span [class]="p.activo ? 'sgc-badge sgc-badge--success' : 'sgc-badge sgc-badge--danger'">
+            {{ p.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </div>
+        <div class="perfil-dato">
+          <span class="perfil-dato__label">Miembro desde</span>
+          <span>{{ p.created_at | date:'dd/MM/yyyy' }}</span>
+        </div>
+      </div>
+    </section>
+  </div>
+}

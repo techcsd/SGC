@@ -30,6 +30,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dudas/dudas').then((m) => m.Dudas),
       },
       {
+        path: 'perfil',
+        loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
+      },
+      {
         path: 'inventario',
         canActivate: [moduleGuard('inventario')],
         loadChildren: () =>

@@ -1,0 +1,155 @@
+.sgc-btn--sm {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+.perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 720px;
+}
+
+.perfil-card {
+  padding: 20px;
+}
+
+.perfil-card:first-child {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.perfil-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  &__img,
+  &__initials {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  &__initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--sgc-primary-mid);
+    color: #fff;
+    font-size: 34px;
+    font-weight: 700;
+  }
+
+  &__upload {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.perfil-identidad {
+  min-width: 0;
+}
+
+.perfil-nombre {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  margin: 0;
+}
+
+.perfil-email {
+  font-size: 14px;
+  color: var(--sgc-text-secondary);
+  margin: 2px 0 8px;
+}
+
+.perfil-nota {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+  margin: 8px 0 0;
+
+  a {
+    color: var(--sgc-primary);
+  }
+}
+
+.perfil-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-muted);
+  margin: 0 0 14px;
+}
+
+.rol-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rol-item {
+  padding: 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+
+  &__nombre {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--sgc-text);
+    margin-bottom: 8px;
+  }
+
+  &__modulos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
+.perfil-datos {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.perfil-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sgc-text-muted);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 560px) {
+  .perfil-card:first-child {
+    flex-direction: column;
+    text-align: center;
+  }
+}

@@ -29,6 +29,13 @@ export class UserService {
     return this.modulos().includes(modulo);
   }
 
+  /** Public avatar URL for the current user, or null if none uploaded. */
+  avatarUrl = computed(() => {
+    const path = this._profile()?.avatar_path;
+    if (!path) return null;
+    return this.supabase.client.storage.from('sgc-avatars').getPublicUrl(path).data.publicUrl;
+  });
+
   async loadProfile(userId: string): Promise<void> {
     const { data, error } = await this.supabase.client
       .from('usuarios')
@@ -57,5 +64,24 @@ export class UserService {
   clearProfile(): void {
     this._profile.set(null);
     this.loadedAt = null;
+  }
+
+  /** Uploads a new avatar for the current user and refreshes the profile.
+   *  Name/email are NOT touched here — those stay admin-managed. */
+  async uploadAvatar(file: File): Promise<void> {
+    const userId = this._profile()?.id;
+    if (!userId) throw new Error('Sesión inválida.');
+
+    const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await this.supabase.client.storage
+      .from('sgc-avatars')
+      .upload(path, file, { upsert: true });
+    if (upErr) throw new Error(upErr.message);
+
+    const { error: rpcErr } = await this.supabase.client.rpc('actualizar_mi_avatar', { p_path: path });
+    if (rpcErr) throw new Error(rpcErr.message);
+
+    await this.loadProfile(userId);
   }
 }
