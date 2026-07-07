@@ -58,6 +58,12 @@ export class Shell implements OnInit {
       route: '/dashboard',
     },
     {
+      label: 'Dirección',
+      icon: 'direccion',
+      modulo: 'direccion',
+      route: '/direccion',
+    },
+    {
       label: 'Inventario',
       icon: 'inventory',
       modulo: 'inventario',

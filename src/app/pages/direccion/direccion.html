@@ -1,0 +1,58 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Panel de Dirección</h1>
+    <span class="page-count">Vista ejecutiva del negocio</span>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true">
+    <span class="spinner-dark"></span>
+    Cargando panel…
+  </div>
+} @else {
+  <!-- Stat tiles -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--purple">
+      <span class="kpi-label">Proyectos activos</span>
+      <span class="kpi-value">{{ proyectosActivos() }}</span>
+    </div>
+    <div class="kpi-card kpi-card--success">
+      <span class="kpi-label">Empleados activos</span>
+      <span class="kpi-value">{{ empleadosActivos() }}</span>
+    </div>
+    <div class="kpi-card" [class.kpi-card--danger]="incidentesTotal() > 0" [class.kpi-card--success]="incidentesTotal() === 0">
+      <span class="kpi-label">Incidentes (90 días)</span>
+      <span class="kpi-value">{{ incidentesTotal() }}</span>
+    </div>
+    <div class="kpi-card kpi-card--info">
+      <span class="kpi-label">Expedientes legales abiertos</span>
+      <span class="kpi-value">{{ expedientesAbiertos() }}</span>
+    </div>
+    <div class="kpi-card kpi-card--primary">
+      <span class="kpi-label">Presupuesto total (activos)</span>
+      <span class="kpi-value">RD$ {{ presupuestoTotal() | number:'1.0-0' }}</span>
+    </div>
+    <div class="kpi-card kpi-card--warning">
+      <span class="kpi-label">Gasto en compras (activos)</span>
+      <span class="kpi-value">RD$ {{ gastoTotal() | number:'1.0-0' }}</span>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="direccion-charts">
+    <div class="sgc-card chart-card">
+      <app-donut-chart titulo="Proyectos por estado" [data]="proyectosPorEstado()" />
+    </div>
+    <div class="sgc-card chart-card">
+      <app-donut-chart titulo="Tareas por estado" [data]="tareasPorEstado()" />
+    </div>
+    <div class="sgc-card chart-card chart-card--wide">
+      <app-bar-chart titulo="Desempeño por proyecto (0-100)" [data]="scoresBars()" />
+    </div>
+  </div>
+}

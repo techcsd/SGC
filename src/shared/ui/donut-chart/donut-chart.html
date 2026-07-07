@@ -1,0 +1,35 @@
+<div class="donut">
+  @if (titulo()) {
+    <h4 class="donut__title">{{ titulo() }}</h4>
+  }
+  @if (total() === 0) {
+    <p class="donut__empty">Sin datos</p>
+  } @else {
+    <div class="donut__body">
+      <svg viewBox="0 0 160 160" class="donut__svg" role="img" [attr.aria-label]="titulo()">
+        <g transform="rotate(-90 80 80)">
+          @for (a of arcs(); track a.label) {
+            <circle
+              cx="80" cy="80" [attr.r]="radius"
+              fill="none"
+              [attr.stroke]="a.color"
+              stroke-width="20"
+              [attr.stroke-dasharray]="a.dasharray"
+              [attr.stroke-dashoffset]="a.dashoffset"
+            />
+          }
+        </g>
+        <text x="80" y="86" text-anchor="middle" class="donut__total">{{ total() }}</text>
+      </svg>
+      <ul class="donut__legend">
+        @for (a of arcs(); track a.label) {
+          <li class="donut__legend-item">
+            <span class="donut__swatch" [style.background]="a.color"></span>
+            <span class="donut__legend-label">{{ a.label }}</span>
+            <span class="donut__legend-val">{{ a.value }} ({{ a.pct | number:'1.0-0' }}%)</span>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</div>

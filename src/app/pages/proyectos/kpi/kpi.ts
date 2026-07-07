@@ -1,6 +1,8 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { ProyectosService, KpiProyectoRaw } from '../../../../shared/services/proyectos.service';
+import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 
 // Score weights (sum = 1). Tunable here without a migration.
 const PESO_AVANCE = 0.3;
@@ -24,7 +26,7 @@ interface KpiProyecto extends KpiProyectoRaw {
 
 @Component({
   selector: 'app-proyectos-kpi',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, BarChart, DonutChart],
   templateUrl: './kpi.html',
   styleUrl: './kpi.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +55,32 @@ export class Kpi implements OnInit {
     scored.forEach((s, i) => (s.posicion = i + 1));
     return scored;
   });
+
+  // Bar chart: total score per project.
+  scoreBars = computed<BarDatum[]>(() =>
+    this.ranking().map((k) => ({
+      label: k.nombre,
+      value: k.scoreTotal,
+      color:
+        k.scoreTotal >= 80 ? 'var(--sgc-success)' : k.scoreTotal >= 50 ? 'var(--sgc-warning)' : 'var(--sgc-danger)',
+    })),
+  );
+
+  // Donut: performance distribution across projects.
+  desempenoDonut = computed<DonutDatum[]>(() => {
+    const r = this.ranking();
+    return [
+      { label: 'Buen desempeño (80+)', value: r.filter((k) => k.scoreTotal >= 80).length, color: 'var(--sgc-success)' },
+      { label: 'Aceptable (50-79)', value: r.filter((k) => k.scoreTotal >= 50 && k.scoreTotal < 80).length, color: 'var(--sgc-warning)' },
+      { label: 'Necesita atención (<50)', value: r.filter((k) => k.scoreTotal < 50).length, color: 'var(--sgc-danger)' },
+    ];
+  });
+
+  incidentesBars = computed<BarDatum[]>(() =>
+    this.ranking()
+      .filter((k) => k.incidentes_90d > 0)
+      .map((k) => ({ label: k.nombre, value: k.incidentes_90d, color: 'var(--sgc-danger)' })),
+  );
 
   private presupuestoScore(r: KpiProyectoRaw): number {
     // No budget set → neutral (don't reward or punish).

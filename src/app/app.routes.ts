@@ -22,6 +22,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
+        path: 'direccion',
+        canActivate: [moduleGuard('direccion')],
+        loadComponent: () => import('./pages/direccion/direccion').then((m) => m.Direccion),
+      },
+      {
         path: 'soporte',
         loadComponent: () => import('./pages/soporte/soporte').then((m) => m.Soporte),
       },

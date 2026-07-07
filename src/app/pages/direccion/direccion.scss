@@ -1,0 +1,56 @@
+// KPI tiles (same look as the dashboard; kept local since dashboard's are scoped).
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+
+  @media (max-width: 1200px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.kpi-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg);
+  padding: 16px 18px;
+  border-left: 4px solid var(--sgc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &--primary { border-left-color: var(--sgc-primary-mid); }
+  &--info    { border-left-color: var(--sgc-info); }
+  &--success { border-left-color: var(--sgc-success); }
+  &--warning { border-left-color: var(--sgc-warning); }
+  &--danger  { border-left-color: var(--sgc-danger); }
+  &--purple  { border-left-color: #5B3A8E; }
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--sgc-text-secondary);
+}
+
+.kpi-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--sgc-text);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.direccion-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.chart-card {
+  padding: 18px;
+
+  &--wide {
+    grid-column: 1 / -1;
+  }
+}

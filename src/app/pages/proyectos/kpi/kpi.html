@@ -22,6 +22,20 @@
 } @else if (ranking().length === 0) {
   <div class="table-empty sgc-card"><p>No hay proyectos activos para evaluar.</p></div>
 } @else {
+  <div class="kpi-charts">
+    <div class="sgc-card kpi-chart-card">
+      <app-bar-chart titulo="Puntaje por proyecto" [data]="scoreBars()" />
+    </div>
+    <div class="sgc-card kpi-chart-card">
+      <app-donut-chart titulo="Distribución de desempeño" [data]="desempenoDonut()" />
+    </div>
+    @if (incidentesBars().length > 0) {
+      <div class="sgc-card kpi-chart-card">
+        <app-bar-chart titulo="Incidentes (90 días)" [data]="incidentesBars()" />
+      </div>
+    }
+  </div>
+
   <div class="ranking">
     @for (k of ranking(); track k.proyecto_id) {
       <div class="ranking-card sgc-card" [class.ranking-card--podium]="k.posicion <= 3">

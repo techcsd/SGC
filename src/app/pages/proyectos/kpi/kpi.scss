@@ -4,6 +4,17 @@
   margin-bottom: 18px;
 }
 
+.kpi-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.kpi-chart-card {
+  padding: 16px;
+}
+
 .ranking {
   display: flex;
   flex-direction: column;

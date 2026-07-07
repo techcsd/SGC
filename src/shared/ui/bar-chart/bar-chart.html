@@ -1,0 +1,20 @@
+<div class="barc">
+  @if (titulo()) {
+    <h4 class="barc__title">{{ titulo() }}</h4>
+  }
+  @if (bars().length === 0) {
+    <p class="barc__empty">Sin datos</p>
+  } @else {
+    <div class="barc__rows">
+      @for (b of bars(); track b.label) {
+        <div class="barc__row">
+          <span class="barc__label">{{ b.label }}</span>
+          <div class="barc__track">
+            <div class="barc__fill" [style.width.%]="b.pct" [style.background]="b.color"></div>
+          </div>
+          <span class="barc__value">{{ b.value }}{{ sufijo() }}</span>
+        </div>
+      }
+    </div>
+  }
+</div>
