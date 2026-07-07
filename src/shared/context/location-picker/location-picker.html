@@ -1,0 +1,28 @@
+<div class="location-picker">
+  <div class="location-picker__search">
+    <input
+      type="search"
+      placeholder="Buscar dirección o lugar…"
+      (input)="onBuscar($any($event.target).value)"
+      aria-label="Buscar ubicación"
+    />
+    @if (resultados().length > 0) {
+      <ul class="location-picker__results">
+        @for (r of resultados(); track r.nombre) {
+          <li>
+            <button type="button" (click)="seleccionarResultado(r)">{{ r.nombre }}</button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <div #map class="location-picker__map"></div>
+
+  <p class="location-picker__hint">
+    Haz clic en el mapa para fijar la ubicación de la obra.
+    @if (direccion()) {
+      <br /><strong>{{ direccion() }}</strong>
+    }
+  </p>
+</div>

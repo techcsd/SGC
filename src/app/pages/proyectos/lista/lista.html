@@ -272,13 +272,23 @@
 
       <!-- Ubicación -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="ubicacion">Ubicación</label>
+        <label class="proyectos__label" for="ubicacion">Ubicación (texto)</label>
         <input
           id="ubicacion"
           class="proyectos__input"
           formControlName="ubicacion"
           type="text"
           placeholder="Ciudad, dirección..."
+        />
+      </div>
+
+      <!-- Geolocalización (mapa) -->
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label">Ubicación en el mapa (para clima y contexto)</label>
+        <app-location-picker
+          [latitud]="formLat()"
+          [longitud]="formLng()"
+          (ubicacionChange)="onUbicacionChange($event)"
         />
       </div>
 
@@ -398,6 +408,13 @@
           </div>
         }
       </div>
+
+      <!-- Clima en obra (Context System) -->
+      @if (p.latitud != null && p.longitud != null) {
+        <div class="proyectos__detail-weather">
+          <app-weather-card [latitud]="p.latitud" [longitud]="p.longitud" [titulo]="'Clima en ' + p.nombre" />
+        </div>
+      }
 
       <!-- Progreso general -->
       <div class="proyectos__detail-progress-section">

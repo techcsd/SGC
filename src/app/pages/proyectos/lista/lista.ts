@@ -30,6 +30,8 @@ import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
+import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
+import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
@@ -51,7 +53,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, LocationPicker, WeatherCard],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -91,6 +93,11 @@ export class Lista implements OnInit {
   // ── Drawer: detail/fases ─────────────────────────────────
   detailDrawerOpen = signal(false);
   selectedProyecto = signal<Proyecto | null>(null);
+
+  // Geolocation picked in the form (merged into the payload on save).
+  formLat = signal<number | null>(null);
+  formLng = signal<number | null>(null);
+  formDireccionGeo = signal<string | null>(null);
   detailLoading = signal(false);
 
   // ── Fase form ─────────────────────────────────────────────
@@ -234,7 +241,16 @@ export class Lista implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.form.reset({ estado: 'planificacion' });
+    this.formLat.set(null);
+    this.formLng.set(null);
+    this.formDireccionGeo.set(null);
     this.drawerOpen.set(true);
+  }
+
+  onUbicacionChange(u: { latitud: number; longitud: number; direccion: string }) {
+    this.formLat.set(u.latitud);
+    this.formLng.set(u.longitud);
+    this.formDireccionGeo.set(u.direccion);
   }
 
   openEdit(p: Proyecto, event: Event) {
@@ -254,6 +270,9 @@ export class Lista implements OnInit {
       descripcion: p.descripcion,
       responsable_id: p.responsable_id,
     });
+    this.formLat.set(p.latitud);
+    this.formLng.set(p.longitud);
+    this.formDireccionGeo.set(p.direccion_geo);
     this.drawerOpen.set(true);
   }
 
@@ -272,7 +291,12 @@ export class Lista implements OnInit {
 
     this.saving.set(true);
     this.saveError.set('');
-    const payload = this.form.value as Partial<Proyecto>;
+    const payload = {
+      ...this.form.value,
+      latitud: this.formLat(),
+      longitud: this.formLng(),
+      direccion_geo: this.formDireccionGeo(),
+    } as Partial<Proyecto>;
 
     try {
       const id = this.editingId();

@@ -14,6 +14,9 @@ export interface Proyecto {
   presupuesto: number | null;
   ubicacion: string | null;
   localidad: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  direccion_geo: string | null;
   descripcion: string | null;
   responsable_id: string | null;
   responsable?: { nombre: string };

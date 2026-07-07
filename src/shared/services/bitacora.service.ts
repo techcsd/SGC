@@ -60,6 +60,7 @@ export class BitacoraService {
       p_incidente_lesionados: payload.incidente_lesionados,
       p_incidente_descripcion: payload.incidente_descripcion,
       p_incidente_acciones: payload.incidente_acciones,
+      p_weather_snapshot_id: payload.weather_snapshot_id ?? null,
     });
 
     if (error) throw new Error(error.message);

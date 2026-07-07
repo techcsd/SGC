@@ -145,4 +145,5 @@ export interface BitacoraFormData {
   incidente_lesionados: number | null;
   incidente_descripcion: string | null;
   incidente_acciones: string | null;
+  weather_snapshot_id?: string | null;
 }

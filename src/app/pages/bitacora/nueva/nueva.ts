@@ -13,6 +13,8 @@ import { Router } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
+import { ContextService } from '../../../../shared/context/context.service';
+import { WeatherService } from '../../../../shared/context/weather.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import {
   ACTIVIDADES,
@@ -49,6 +51,8 @@ export class Nueva implements OnInit {
   private userService = inject(UserService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private contextService = inject(ContextService);
+  private weatherService = inject(WeatherService);
 
   readonly ESTRUCTURAS = ESTRUCTURAS;
   readonly ACTIVIDADES = ACTIVIDADES;
@@ -288,6 +292,20 @@ export class Nueva implements OnInit {
       const usuarioId = this.userService.profile()?.id;
       if (!usuarioId) throw new Error('Sesión inválida. Vuelve a iniciar sesión.');
 
+      // Auto-capture the weather at the obra when the project has coordinates,
+      // so every entry carries its climate context with no manual input.
+      let weatherSnapshotId: string | null = null;
+      const proyecto = this.proyectos().find((p) => p.id === v.proyecto_id);
+      if (proyecto?.latitud != null && proyecto.longitud != null) {
+        try {
+          const coords = { latitud: proyecto.latitud, longitud: proyecto.longitud };
+          const ctx = await this.contextService.getContexto(coords);
+          weatherSnapshotId = await this.weatherService.guardarSnapshot(coords, ctx.pronostico.actual, proyecto.id);
+        } catch {
+          // Weather capture is best-effort; never block saving the bitácora.
+        }
+      }
+
       const created = await this.bitacoraService.create({
         usuario_id: usuarioId,
         proyecto_id: v.proyecto_id!,
@@ -313,6 +331,7 @@ export class Nueva implements OnInit {
         incidente_lesionados: tipo === 'incidente' ? (v.incidente_lesionados ?? 0) : 0,
         incidente_descripcion: tipo === 'incidente' ? (v.incidente_descripcion ?? null) : null,
         incidente_acciones: tipo === 'incidente' ? (v.incidente_acciones ?? null) : null,
+        weather_snapshot_id: weatherSnapshotId,
       });
 
       for (const file of this.archivos()) {

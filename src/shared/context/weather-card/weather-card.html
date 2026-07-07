@@ -1,0 +1,62 @@
+@if (latitud() == null || longitud() == null) {
+  <div class="weather-card weather-card--empty">
+    <span class="weather-card__title">{{ titulo() }}</span>
+    <p class="weather-card__sinubi">Sin ubicación registrada. Asigna la ubicación del proyecto para ver el clima.</p>
+  </div>
+} @else if (loading()) {
+  <div class="weather-card weather-card--empty">
+    <span class="spinner-dark"></span> Cargando clima…
+  </div>
+} @else if (error()) {
+  <div class="weather-card weather-card--empty">
+    <span class="weather-card__title">{{ titulo() }}</span>
+    <p class="weather-card__error">{{ error() }}</p>
+  </div>
+} @else if (contexto(); as ctx) {
+  <div class="weather-card">
+    <div class="weather-card__head">
+      <div class="weather-card__now">
+        <span class="weather-card__icon" aria-hidden="true">{{ tiempo().icono }}</span>
+        <div>
+          <span class="weather-card__temp">{{ ctx.pronostico.actual.temperatura | number:'1.0-0' }}°C</span>
+          <span class="weather-card__cond">{{ tiempo().label }}</span>
+        </div>
+      </div>
+      <span class="weather-card__title">{{ titulo() }}</span>
+    </div>
+
+    <div class="weather-card__stats">
+      <div class="weather-card__stat"><span>Sensación</span><strong>{{ ctx.pronostico.actual.sensacion | number:'1.0-0' }}°</strong></div>
+      <div class="weather-card__stat"><span>Humedad</span><strong>{{ ctx.pronostico.actual.humedad ?? '—' }}%</strong></div>
+      <div class="weather-card__stat"><span>Viento</span><strong>{{ ctx.pronostico.actual.vientoKmh | number:'1.0-0' }} km/h</strong></div>
+      <div class="weather-card__stat"><span>Lluvia</span><strong>{{ ctx.pronostico.actual.probPrecipitacion ?? 0 }}%</strong></div>
+      <div class="weather-card__stat"><span>UV</span><strong>{{ ctx.pronostico.actual.uv | number:'1.0-0' }}</strong></div>
+      <div class="weather-card__stat"><span>Nubes</span><strong>{{ ctx.pronostico.actual.nubosidad ?? '—' }}%</strong></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="weather-card__recs">
+      @for (r of ctx.recomendaciones; track r.titulo) {
+        <div class="rec" [class]="nivelClass(r.nivel)">
+          <span class="rec__icon" aria-hidden="true">{{ r.icono }}</span>
+          <div class="rec__body">
+            <span class="rec__titulo">{{ r.titulo }}</span>
+            <span class="rec__detalle">{{ r.detalle }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- 7-day mini forecast -->
+    <div class="weather-card__forecast">
+      @for (d of ctx.pronostico.porDia; track d.fecha) {
+        <div class="fc-day">
+          <span class="fc-day__dow">{{ d.fecha.slice(5) }}</span>
+          <span class="fc-day__max">{{ d.tempMax | number:'1.0-0' }}°</span>
+          <span class="fc-day__min">{{ d.tempMin | number:'1.0-0' }}°</span>
+          <span class="fc-day__rain">{{ d.probPrecipitacionMax ?? 0 }}%</span>
+        </div>
+      }
+    </div>
+  </div>
+}
