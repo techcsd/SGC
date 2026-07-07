@@ -48,3 +48,6 @@ Thumbs.db
 .claude/projects/
 .vercel
 .env*
+
+# Supabase CLI local scratch
+supabase/.temp/
