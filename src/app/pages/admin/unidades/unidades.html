@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Unidades de medida</h1>
+    <span class="page-count">{{ unidades().length }} unidad{{ unidades().length !== 1 ? 'es' : '' }}</span>
+  </div>
+</div>
+
+<p class="und-lead">
+  Estas unidades aparecen al crear o editar un artículo del inventario. Agrega las que uses en obra;
+  desactiva las que no.
+</p>
+
+<div class="und-add">
+  <input
+    class="und-add__input"
+    type="text"
+    [ngModel]="nuevoNombre()"
+    (ngModelChange)="nuevoNombre.set($event)"
+    (keyup.enter)="agregar()"
+    placeholder="Nueva unidad (ej: Cubeta, Rollo, Galón)"
+  />
+  <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="agregar()">
+    Agregar
+  </button>
+</div>
+
+@if (error()) {
+  <p class="und-error">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="und-muted">Cargando…</p>
+} @else {
+  <table class="und-table">
+    <thead>
+      <tr><th>Nombre</th><th>Código</th><th>Estado</th><th></th></tr>
+    </thead>
+    <tbody>
+      @for (u of unidades(); track u.id) {
+        <tr [class.und-row--off]="!u.activo">
+          <td>
+            @if (editingId() === u.id) {
+              <input class="und-edit" type="text" [ngModel]="editNombre()" (ngModelChange)="editNombre.set($event)" (keyup.enter)="guardarNombre(u)" />
+            } @else {
+              {{ u.nombre }}
+            }
+          </td>
+          <td><code>{{ u.codigo }}</code></td>
+          <td>
+            <span class="und-badge" [class.und-badge--on]="u.activo">{{ u.activo ? 'Activa' : 'Inactiva' }}</span>
+          </td>
+          <td class="und-actions">
+            @if (editingId() === u.id) {
+              <button class="sgc-btn sgc-btn--sm" type="button" (click)="guardarNombre(u)">Guardar</button>
+              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="cancelEdit()">Cancelar</button>
+            } @else {
+              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="startEdit(u)">Editar</button>
+              <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(u)">
+                {{ u.activo ? 'Desactivar' : 'Activar' }}
+              </button>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

@@ -200,6 +200,7 @@ export class Shell implements OnInit {
     children: [
       { label: 'Usuarios', route: '/admin/usuarios' },
       { label: 'Roles', route: '/admin/roles' },
+      { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
   };

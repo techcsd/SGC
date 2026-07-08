@@ -256,8 +256,8 @@
           [class.invalid]="f.unidad.invalid && f.unidad.touched"
         >
           <option [value]="null">Seleccionar…</option>
-          @for (u of UNIDADES; track u.value) {
-            <option [value]="u.value">{{ u.label }}</option>
+          @for (u of unidades(); track u.codigo) {
+            <option [value]="u.codigo">{{ u.nombre }}</option>
           }
         </select>
         @if (f.unidad.invalid && f.unidad.touched) {

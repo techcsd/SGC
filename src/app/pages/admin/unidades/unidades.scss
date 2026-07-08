@@ -1,0 +1,79 @@
+.und-lead {
+  color: var(--sgc-text-secondary);
+  max-width: 70ch;
+  margin: 0 0 16px;
+}
+.und-add {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.und-add__input {
+  flex: 1;
+  max-width: 420px;
+  padding: 10px 14px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  font-size: 15px;
+}
+.und-error {
+  color: var(--sgc-danger);
+  margin: 0 0 12px;
+}
+.und-muted {
+  color: var(--sgc-text-secondary);
+  padding: 16px 0;
+}
+.und-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  overflow: hidden;
+}
+.und-table th,
+.und-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sgc-border);
+}
+.und-table th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-surface-hover);
+}
+.und-row--off {
+  opacity: 0.55;
+}
+.und-edit {
+  padding: 6px 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  font-size: 15px;
+  width: 220px;
+}
+.und-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--sgc-border);
+  color: var(--sgc-text-secondary);
+}
+.und-badge--on {
+  background: var(--sgc-success-light);
+  color: var(--sgc-success);
+}
+.und-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.sgc-btn--sm {
+  padding: 5px 12px;
+  font-size: 13px;
+}

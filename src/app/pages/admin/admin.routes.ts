@@ -21,4 +21,9 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./reportes/reportes').then((m) => m.AdminReportes),
     title: 'Comentarios y Reportes — Administración',
   },
+  {
+    path: 'unidades',
+    loadComponent: () => import('./unidades/unidades').then((m) => m.AdminUnidades),
+    title: 'Unidades — Administración',
+  },
 ];

@@ -12,7 +12,9 @@ import { DecimalPipe } from '@angular/common';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { StockService } from '../../../../shared/services/stock.service';
-import { Articulo, ArticuloFormData, UNIDADES } from '../../../../shared/models/articulo.model';
+import { UnidadesService } from '../../../../shared/services/unidades.service';
+import { Articulo, ArticuloFormData } from '../../../../shared/models/articulo.model';
+import { Unidad } from '../../../../shared/models/unidad.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
@@ -27,6 +29,7 @@ export class Articulos implements OnInit {
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
   private stockService = inject(StockService);
+  private unidadesService = inject(UnidadesService);
 
   // ── Data state ──────────────────────────────────────────
   articles = signal<Articulo[]>([]);
@@ -50,7 +53,7 @@ export class Articulos implements OnInit {
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
-  readonly UNIDADES = UNIDADES;
+  unidades = signal<Unidad[]>([]);
 
   form = new FormGroup({
     codigo: new FormControl({ value: '', disabled: true }),
@@ -100,14 +103,16 @@ export class Articulos implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [cats, arts, stock] = await Promise.all([
+      const [cats, arts, stock, unidades] = await Promise.all([
         this.categoriasService.getAll(),
         this.articulosService.getAll(),
         this.stockService.getAll(),
+        this.unidadesService.getActivas(),
       ]);
       this.categories.set(this.categoriasService.buildFlatList(cats));
       this.articles.set(arts);
       this.stockMap.set(this.stockService.buildTotalMap(stock));
+      this.unidades.set(unidades);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {

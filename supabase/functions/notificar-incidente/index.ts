@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
     const { data: bitacora, error } = await supabase
       .from("bitacoras")
       .select(
-        "id, tipo, fecha, incidente_tipo, incidente_gravedad, incidente_lesionados, incidente_descripcion, proyecto:proyectos(nombre), usuario:usuarios(nombre)",
+        "id, tipo, fecha, proyecto_id, incidente_tipo, incidente_gravedad, incidente_lesionados, incidente_descripcion, proyecto:proyectos(nombre), usuario:usuarios(nombre)",
       )
       .eq("id", bitacoraId)
       .single();
@@ -75,18 +75,23 @@ Deno.serve(async (req: Request) => {
       return json({ skipped: true, reason: "La bitácora no es un incidente." });
     }
 
-    // Management + project oversight get the alert (dedup emails).
-    const [{ data: admins }, { data: pm }] = await Promise.all([
+    // Recipients: the incident PROJECT's team (supervisores/ingenieros asignados
+    // a esa obra) + admins for oversight. Dedup emails.
+    const [teamRes, adminRes] = await Promise.all([
+      bitacora.proyecto_id
+        ? supabase
+            .from("proyecto_empleados")
+            .select("empleado:empleados(activo, usuario:usuarios(email))")
+            .eq("proyecto_id", bitacora.proyecto_id)
+        : Promise.resolve({ data: [] as unknown[] }),
       supabase.rpc("usuarios_con_modulo", { p_modulo: "admin" }),
-      supabase.rpc("usuarios_con_modulo", { p_modulo: "proyectos" }),
     ]);
-    const to = [
-      ...new Set(
-        [...((admins ?? []) as { email: string }[]), ...((pm ?? []) as { email: string }[])]
-          .map((u) => u.email)
-          .filter(Boolean),
-      ),
-    ];
+    const teamEmails = ((teamRes.data ?? []) as Array<{ empleado: { activo: boolean; usuario: { email: string } | null } | null }>)
+      .filter((r) => r.empleado?.activo !== false)
+      .map((r) => r.empleado?.usuario?.email)
+      .filter((e): e is string => !!e);
+    const adminEmails = ((adminRes.data ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+    const to = [...new Set([...teamEmails, ...adminEmails])];
     if (to.length === 0) return json({ skipped: true, reason: "Sin destinatarios." });
 
     const proyecto = escapeHtml(bitacora.proyecto?.nombre ?? "—");
