@@ -32,6 +32,12 @@ export const flotaRoutes: Routes = [
     title: 'Rutas — Flota',
   },
   {
+    path: 'responsabilidad',
+    loadComponent: () =>
+      import('./responsabilidad/responsabilidad').then((m) => m.Responsabilidad),
+    title: 'Responsabilidad — Flota',
+  },
+  {
     path: 'reportes',
     loadComponent: () => import('./reportes/reportes').then((m) => m.FlotaReportes),
     title: 'Reportes — Flota',

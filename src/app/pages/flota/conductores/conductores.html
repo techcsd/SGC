@@ -305,6 +305,19 @@
       </select>
     </div>
 
+    <div class="sgc-field">
+      <label for="usuario_id">Usuario de la app (CSD App)</label>
+      <select id="usuario_id" formControlName="usuario_id">
+        <option [value]="null">Sin vincular</option>
+        @for (u of usuarios(); track u.id) {
+          <option [value]="u.id">{{ u.nombre }}</option>
+        }
+      </select>
+      <small class="sgc-field__hint">
+        Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo.
+      </small>
+    </div>
+
     <div class="form-toggle">
       <label class="toggle-label" for="activo">
         <input id="activo" type="checkbox" formControlName="activo" class="toggle-input" />

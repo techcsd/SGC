@@ -10,6 +10,10 @@ export interface Conductor {
   licencia_vencimiento: string | null;
   vehiculo_id: string | null;
   vehiculo?: { placa: string; marca: string; modelo: string };
+  // Links this driver to their CSD App user, so their conduces/rutas show up
+  // in the mobile app (mis_conduces_hoy / mis_rutas_hoy).
+  usuario_id: string | null;
+  usuario?: { nombre: string };
   activo: boolean;
   created_at: string;
 }
@@ -22,6 +26,7 @@ export interface ConductorFormData {
   licencia_numero: string | null;
   licencia_vencimiento: string | null;
   vehiculo_id: string | null;
+  usuario_id: string | null;
   activo: boolean;
 }
 

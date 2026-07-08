@@ -9,7 +9,7 @@ export class ConductoresService {
   async getAll(): Promise<Conductor[]> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .select('*, vehiculo:vehiculos(placa, marca, modelo)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre)')
       .order('nombre');
 
     if (error) throw new Error(error.message);
@@ -20,7 +20,7 @@ export class ConductoresService {
     const { data, error } = await this.supabase.client
       .from('conductores')
       .insert(payload)
-      .select('*, vehiculo:vehiculos(placa, marca, modelo)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
@@ -32,11 +32,23 @@ export class ConductoresService {
       .from('conductores')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select('*, vehiculo:vehiculos(placa, marca, modelo)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
     return data as unknown as Conductor;
+  }
+
+  /** Active app users, for linking a driver to their CSD App account. */
+  async getUsuariosVinculables(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from('usuarios')
+      .select('id, nombre')
+      .eq('activo', true)
+      .order('nombre');
+
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string }[];
   }
 
   async toggleActivo(id: string, activo: boolean): Promise<void> {

@@ -32,6 +32,7 @@ export class Conductores implements OnInit {
   // ── Data state ──────────────────────────────────────────
   conductores = signal<Conductor[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
+  usuarios = signal<{ id: string; nombre: string }[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -59,6 +60,7 @@ export class Conductores implements OnInit {
     licencia_numero: new FormControl<string | null>(null, [Validators.maxLength(30)]),
     licencia_vencimiento: new FormControl<string | null>(null),
     vehiculo_id: new FormControl<string | null>(null),
+    usuario_id: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
   });
 
@@ -108,12 +110,14 @@ export class Conductores implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [conductores, vehiculos] = await Promise.all([
+      const [conductores, vehiculos, usuarios] = await Promise.all([
         this.conductoresService.getAll(),
         this.vehiculosService.getAll(),
+        this.conductoresService.getUsuariosVinculables(),
       ]);
       this.conductores.set(conductores);
       this.vehiculos.set(vehiculos);
+      this.usuarios.set(usuarios);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -175,6 +179,7 @@ export class Conductores implements OnInit {
       licencia_numero: c.licencia_numero,
       licencia_vencimiento: c.licencia_vencimiento,
       vehiculo_id: c.vehiculo_id,
+      usuario_id: c.usuario_id,
       activo: c.activo,
     });
     this.drawerOpen.set(true);
