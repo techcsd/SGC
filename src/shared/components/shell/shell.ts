@@ -176,6 +176,12 @@ export class Shell implements OnInit {
       badgeKey: 'mensajes',
     },
     {
+      // App móvil de campo (APK Android + PWA iPhone) — visible para todos.
+      label: 'CSD App (móvil)',
+      icon: 'soporte',
+      route: '/app-movil',
+    },
+    {
       label: 'Soporte',
       icon: 'soporte',
       route: '/soporte',

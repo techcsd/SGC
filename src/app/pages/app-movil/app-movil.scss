@@ -1,0 +1,70 @@
+.am-lead {
+  color: var(--sgc-text-secondary);
+  max-width: 70ch;
+  margin: 0 0 20px;
+}
+
+.am-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.am-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  box-shadow: var(--sgc-shadow-sm);
+  padding: 24px;
+  text-align: center;
+}
+
+.am-card__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.am-version {
+  font-weight: 700;
+  color: var(--sgc-text);
+  margin: 0 0 6px;
+}
+
+.am-changelog {
+  color: var(--sgc-text-secondary);
+  margin: 0 0 16px;
+}
+
+.am-download {
+  display: inline-flex;
+  margin-bottom: 16px;
+}
+
+.am-qr {
+  display: block;
+  margin: 8px auto;
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+}
+
+.am-hint {
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  margin: 8px 0 16px;
+}
+
+.am-steps {
+  text-align: left;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--sgc-text);
+  line-height: 1.6;
+}
+
+.am-muted {
+  color: var(--sgc-text-secondary);
+  padding: 20px 0;
+}

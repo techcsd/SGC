@@ -31,6 +31,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/soporte/soporte').then((m) => m.Soporte),
       },
       {
+        path: 'app-movil',
+        loadComponent: () => import('./pages/app-movil/app-movil').then((m) => m.AppMovil),
+        title: 'CSD App (móvil)',
+      },
+      {
         path: 'dudas',
         loadComponent: () => import('./pages/dudas/dudas').then((m) => m.Dudas),
       },

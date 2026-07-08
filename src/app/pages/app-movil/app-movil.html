@@ -1,0 +1,49 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">CSD App (móvil)</h1>
+  </div>
+</div>
+
+<p class="am-lead">
+  App de campo para choferes, encargados, ingenieros y bodegueros. Bitácora, transporte con
+  responsabilidad de vehículos, inventario de bodega y solicitudes — funciona sin señal.
+</p>
+
+<div class="am-grid">
+  <!-- Android -->
+  <section class="am-card">
+    <h2 class="am-card__title">📱 Android</h2>
+    @if (loading()) {
+      <p class="am-muted">Cargando versión…</p>
+    } @else if (info(); as v) {
+      <p class="am-version">Versión {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} MB</p>
+      <p class="am-changelog">{{ v.changelog }}</p>
+      <a class="sgc-btn sgc-btn--primary am-download" [href]="v.url" download>⬇️ Descargar APK</a>
+      <img class="am-qr" [src]="apkQr()" alt="QR para descargar el APK" />
+      <p class="am-hint">Escanea el código con el teléfono para descargar e instalar.</p>
+      <ol class="am-steps">
+        <li>Abre el archivo descargado.</li>
+        <li>Si te lo pide, permite “instalar de orígenes desconocidos”.</li>
+        <li>Instala y abre CSD App. Entra con tu usuario del sistema.</li>
+      </ol>
+    } @else {
+      <p class="am-muted">Aún no hay un APK publicado.</p>
+    }
+  </section>
+
+  <!-- iPhone -->
+  <section class="am-card">
+    <h2 class="am-card__title"> iPhone / iPad</h2>
+    <p class="am-changelog">En iPhone se instala como app web (PWA), sin App Store.</p>
+    <a class="sgc-btn sgc-btn--primary am-download" [href]="pwaUrl" target="_blank" rel="noopener">
+      Abrir app web
+    </a>
+    <img class="am-qr" [src]="pwaQr()" alt="QR para abrir la app web" />
+    <p class="am-hint">Escanea con el iPhone, o abre <b>{{ pwaUrl }}</b> en Safari.</p>
+    <ol class="am-steps">
+      <li>Abre el enlace en <b>Safari</b>.</li>
+      <li>Toca “Compartir” → “Añadir a pantalla de inicio”.</li>
+      <li>Ábrela desde el ícono. Entra con tu usuario del sistema.</li>
+    </ol>
+  </section>
+</div>
