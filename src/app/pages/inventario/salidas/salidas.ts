@@ -21,11 +21,12 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-salidas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

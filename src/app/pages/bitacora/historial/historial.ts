@@ -7,11 +7,12 @@ import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_T
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { interpretarCodigoTiempo } from '../../../../shared/context/weather.model';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [RouterLink, FormDrawer, DecimalPipe],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

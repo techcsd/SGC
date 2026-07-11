@@ -1,0 +1,26 @@
+<div class="sk" [attr.data-variant]="variant()" aria-busy="true" aria-live="polite">
+  <span class="sk__sr">Cargando…</span>
+  @for (i of items(); track i) {
+    @switch (variant()) {
+      @case ('cards') {
+        <div class="sk__card">
+          <div class="sk__bar sk__bar--title"></div>
+          <div class="sk__bar sk__bar--sm"></div>
+          <div class="sk__bar sk__bar--sm"></div>
+        </div>
+      }
+      @case ('list') {
+        <div class="sk__list-item">
+          <div class="sk__avatar"></div>
+          <div class="sk__list-lines">
+            <div class="sk__bar sk__bar--title"></div>
+            <div class="sk__bar sk__bar--sm"></div>
+          </div>
+        </div>
+      }
+      @default {
+        <div class="sk__row"></div>
+      }
+    }
+  }
+</div>

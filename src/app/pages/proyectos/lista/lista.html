@@ -69,7 +69,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="proyectos__loading" aria-live="polite">Cargando proyectos...</div>
+    <app-skeleton variant="cards" [rows]="6" />
   }
 
   <!-- Error -->

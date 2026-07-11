@@ -20,6 +20,7 @@ import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserService } from '../../../core/services/user.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
@@ -39,7 +40,7 @@ interface ItemRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

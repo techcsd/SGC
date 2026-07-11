@@ -17,10 +17,11 @@ import { Articulo, ArticuloFormData } from '../../../../shared/models/articulo.m
 import { Unidad } from '../../../../shared/models/unidad.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-articulos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

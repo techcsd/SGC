@@ -20,11 +20,12 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { OrdenCompra } from '../../../../shared/models/orden-compra.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-entradas',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

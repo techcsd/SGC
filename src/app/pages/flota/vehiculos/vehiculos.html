@@ -63,10 +63,7 @@
 
 <!-- Loading -->
 @if (loading()) {
-  <div class="flota-vehiculos__loading" aria-live="polite">
-    <div class="flota-vehiculos__spinner" aria-hidden="true"></div>
-    <span>Cargando vehículos...</span>
-  </div>
+  <app-skeleton variant="cards" [rows]="6" />
 }
 
 <!-- Error -->

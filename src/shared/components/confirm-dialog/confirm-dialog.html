@@ -1,0 +1,24 @@
+@if (open()) {
+  <div class="cfd-backdrop" (click)="cancelled.emit()">
+    <div class="cfd-card" role="alertdialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h2 class="cfd-title">{{ title() }}</h2>
+      @if (message()) {
+        <p class="cfd-message">{{ message() }}</p>
+      }
+      <div class="cfd-actions">
+        <button type="button" class="cfd-btn cfd-btn--ghost" (click)="cancelled.emit()">
+          {{ cancelLabel() }}
+        </button>
+        <button
+          type="button"
+          class="cfd-btn"
+          [class.cfd-btn--danger]="tone() === 'danger'"
+          [class.cfd-btn--primary]="tone() !== 'danger'"
+          (click)="confirmed.emit()"
+        >
+          {{ confirmLabel() }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -13,6 +13,7 @@ import { UserService } from '../../../app/core/services/user.service';
 import { NotificacionesService } from '../../services/notificaciones.service';
 import { RealtimeNotificacionesService } from '../../services/realtime-notificaciones.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
+import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
 interface NavItem {
   label: string;
@@ -35,7 +36,7 @@ interface NavSubItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, ConfirmDialog],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -204,11 +205,13 @@ export class Shell implements OnInit {
       { label: 'Roles', route: '/admin/roles' },
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
+      { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
   };
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
+  confirmLogoutOpen = signal(false);
 
   pendingBadge(item: NavItem): number {
     const key = item.badgeKey ?? item.modulo;
@@ -261,7 +264,17 @@ export class Shell implements OnInit {
     return this.userService.hasModulo(item.modulo);
   }
 
+  /** Ask before signing out — a mis-click shouldn't drop the user's session. */
+  requestLogout() {
+    this.confirmLogoutOpen.set(true);
+  }
+
+  cancelLogout() {
+    this.confirmLogoutOpen.set(false);
+  }
+
   async logout() {
+    this.confirmLogoutOpen.set(false);
     this.realtimeNotificaciones.stop();
     await this.authService.signOut();
     this.userService.clearProfile();

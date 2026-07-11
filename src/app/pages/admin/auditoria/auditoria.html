@@ -1,0 +1,130 @@
+<div class="aud">
+  <header class="aud__head">
+    <div>
+      <h1 class="aud__title">Auditoría</h1>
+      <p class="aud__sub">Registro de todo lo que cada usuario crea, modifica o elimina — web y app.</p>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <div class="aud__filters">
+    <input
+      class="aud__input"
+      type="search"
+      placeholder="Buscar por registro o tabla…"
+      [value]="fBuscar()"
+      (input)="fBuscar.set($any($event.target).value)"
+      (keyup.enter)="applyFilters()"
+    />
+    <select class="aud__input" [value]="fActor()" (change)="fActor.set($any($event.target).value)">
+      <option value="">Todos los usuarios</option>
+      @for (a of actores(); track a.actor_id) {
+        <option [value]="a.actor_id">{{ a.nombre }}</option>
+      }
+    </select>
+    <select class="aud__input" [value]="fTabla()" (change)="fTabla.set($any($event.target).value)">
+      <option value="">Todas las áreas</option>
+      @for (t of tablas(); track t) {
+        <option [value]="t">{{ tablaLabel(t) }}</option>
+      }
+    </select>
+    <select class="aud__input" [value]="fAccion()" (change)="fAccion.set($any($event.target).value)">
+      <option value="">Toda acción</option>
+      <option value="INSERT">Creó</option>
+      <option value="UPDATE">Modificó</option>
+      <option value="DELETE">Eliminó</option>
+    </select>
+    <input class="aud__input" type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" />
+    <input class="aud__input" type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" />
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="applyFilters()">Filtrar</button>
+    @if (hasFilters()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearFilters()">Limpiar</button>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="aud__error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="aud__skeleton">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="aud__skel-row"></div>
+      }
+    </div>
+  } @else {
+    <div class="aud__table-wrap">
+      <table class="data-table aud__table" aria-label="Registro de auditoría">
+        <thead>
+          <tr>
+            <th>Fecha y hora</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Área</th>
+            <th>Registro</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.id) {
+            <tr class="aud__row" (click)="toggle(r.id)">
+              <td class="aud__ts">{{ formatTs(r.creado_en) }}</td>
+              <td>{{ r.actor?.nombre ?? 'Sistema' }}</td>
+              <td>
+                <span class="aud__badge" [attr.data-accion]="r.accion">{{ accionLabel(r.accion) }}</span>
+              </td>
+              <td>{{ tablaLabel(r.tabla) }}</td>
+              <td class="aud__reg"><code>{{ r.registro_id }}</code></td>
+              <td class="aud__chev">{{ expandedId() === r.id ? '▲' : '▼' }}</td>
+            </tr>
+            @if (expandedId() === r.id) {
+              <tr class="aud__detail-row">
+                <td colspan="6">
+                  @if (r.accion === 'UPDATE') {
+                    <table class="aud__diff">
+                      <thead>
+                        <tr><th>Campo</th><th>Antes</th><th>Después</th></tr>
+                      </thead>
+                      <tbody>
+                        @for (c of cambiosList(r); track c.campo) {
+                          <tr>
+                            <td class="aud__diff-campo">{{ c.campo }}</td>
+                            <td class="aud__diff-antes">{{ c.antes }}</td>
+                            <td class="aud__diff-despues">{{ c.despues }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  } @else {
+                    <div class="aud__datos">
+                      @for (d of datosList(r); track d.campo) {
+                        <div class="aud__dato">
+                          <span class="aud__dato-campo">{{ d.campo }}</span>
+                          <span class="aud__dato-valor">{{ d.valor }}</span>
+                        </div>
+                      } @empty {
+                        <p class="aud__muted">Sin detalles adicionales.</p>
+                      }
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="6" class="aud__muted aud__empty">No hay movimientos que coincidan con el filtro.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (total() > 0) {
+      <div class="aud__pager">
+        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() === 0" (click)="goToPage(page() - 1)">← Anterior</button>
+        <span class="aud__pager-info">{{ rangeLabel() }}</span>
+        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() >= totalPages() - 1" (click)="goToPage(page() + 1)">Siguiente →</button>
+      </div>
+    }
+  }
+</div>

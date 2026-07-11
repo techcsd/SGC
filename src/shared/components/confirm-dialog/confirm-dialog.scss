@@ -1,0 +1,76 @@
+.cfd-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.cfd-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--sgc-surface);
+  border-radius: var(--sgc-radius-lg);
+  box-shadow: var(--sgc-shadow-lg);
+  padding: 26px 24px 20px;
+  animation: cfd-pop 0.18s ease;
+}
+@keyframes cfd-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.cfd-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sgc-text);
+}
+.cfd-message {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--sgc-text-secondary);
+}
+
+.cfd-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.cfd-btn {
+  min-width: 100px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--sgc-radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--sgc-transition);
+}
+.cfd-btn--ghost {
+  background: var(--sgc-surface);
+  color: var(--sgc-text-secondary);
+  border: 1px solid var(--sgc-border);
+}
+.cfd-btn--ghost:hover {
+  background: var(--sgc-surface-hover);
+}
+.cfd-btn--primary {
+  background: var(--sgc-primary);
+  color: #fff;
+}
+.cfd-btn--primary:hover {
+  background: var(--sgc-primary-mid);
+}
+.cfd-btn--danger {
+  background: var(--sgc-danger);
+  color: #fff;
+}
+.cfd-btn--danger:hover {
+  filter: brightness(0.93);
+}

@@ -29,6 +29,7 @@ import {
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
@@ -53,7 +54,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, LocationPicker, WeatherCard],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, LocationPicker, WeatherCard],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

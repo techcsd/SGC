@@ -17,10 +17,11 @@ import {
   CAPACIDAD_UNIDADES,
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

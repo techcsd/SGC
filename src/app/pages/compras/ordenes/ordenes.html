@@ -103,10 +103,7 @@
 <!-- ── Table ── -->
 <div class="table-wrapper sgc-card">
   @if (loading()) {
-    <div class="table-loading" aria-busy="true">
-      <span class="spinner-dark"></span>
-      Cargando órdenes…
-    </div>
+    <app-skeleton variant="table" [rows]="8" />
   } @else if (filtered().length === 0) {
     <div class="table-empty">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
