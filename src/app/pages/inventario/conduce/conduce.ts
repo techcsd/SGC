@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { SalidasService } from '../../../../shared/services/salidas.service';
+import { SupabaseService } from '../../../../app/core/services/supabase.service';
 import {
   SalidaInventario,
   SALIDA_ESTADO_LABELS,
@@ -22,6 +23,7 @@ export class Conduce implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   private salidasService = inject(SalidasService);
+  private supabase = inject(SupabaseService);
 
   formatFecha = formatFechaDisplay;
   formatTimestamp = formatTimestampDisplay;
@@ -32,6 +34,9 @@ export class Conduce implements OnInit {
   salida = signal<SalidaInventario | null>(null);
   loading = signal(true);
   error = signal('');
+  // Delivery evidence (photo + receiver signature) captured by the mobile app.
+  entregaFotoUrl = signal<string | null>(null);
+  entregaFirmaUrl = signal<string | null>(null);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -50,12 +55,27 @@ export class Conduce implements OnInit {
       return;
     }
     try {
-      this.salida.set(await this.salidasService.getById(id));
+      const s = await this.salidasService.getById(id);
+      this.salida.set(s);
+      await this.loadEvidencia(s);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar la salida.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Resolve the private conduce bucket paths to time-limited signed URLs. */
+  private async loadEvidencia(s: SalidaInventario) {
+    const sign = async (path: string | null): Promise<string | null> => {
+      if (!path) return null;
+      const { data } = await this.supabase.client.storage
+        .from('conduces')
+        .createSignedUrl(path, 3600);
+      return data?.signedUrl ?? null;
+    };
+    this.entregaFotoUrl.set(await sign(s.entrega_foto_path));
+    this.entregaFirmaUrl.set(await sign(s.entrega_firma_path));
   }
 
   imprimir() {

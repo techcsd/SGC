@@ -55,10 +55,22 @@
           </span>
         </div>
       }
-      @if (s.recibido_en) {
+      @if (s.recibido_en && !s.entregado_en) {
         <div>
           <span class="conduce__label">Recepción confirmada</span>
           <span>{{ formatTimestamp(s.recibido_en) }}@if (s.recibido?.nombre) { por {{ s.recibido?.nombre }}}</span>
+        </div>
+      }
+      @if (s.entrega_receptor) {
+        <div>
+          <span class="conduce__label">Recibido en obra por</span>
+          <span>{{ s.entrega_receptor }}</span>
+        </div>
+      }
+      @if (s.entregado_en) {
+        <div>
+          <span class="conduce__label">Entrega registrada</span>
+          <span>{{ formatTimestamp(s.entregado_en) }}@if (s.entregado?.nombre) { por {{ s.entregado?.nombre }}}</span>
         </div>
       }
     </section>
@@ -100,6 +112,26 @@
     }
     @if (s.notas_recepcion) {
       <p class="conduce__obs"><strong>Notas de recepción:</strong> {{ s.notas_recepcion }}</p>
+    }
+
+    @if (entregaFotoUrl() || entregaFirmaUrl()) {
+      <section class="conduce__evidencia">
+        <h2 class="conduce__evidencia-title">Evidencia de entrega (app de campo)</h2>
+        <div class="conduce__evidencia-grid">
+          @if (entregaFotoUrl(); as url) {
+            <figure class="conduce__evidencia-item">
+              <img [src]="url" alt="Foto de la entrega" />
+              <figcaption>Foto de la entrega</figcaption>
+            </figure>
+          }
+          @if (entregaFirmaUrl(); as url) {
+            <figure class="conduce__evidencia-item">
+              <img [src]="url" alt="Firma de quien recibe" />
+              <figcaption>Firma de quien recibe@if (s.entrega_receptor) { — {{ s.entrega_receptor }}}</figcaption>
+            </figure>
+          }
+        </div>
+      </section>
     }
 
     <section class="conduce__firmas">
