@@ -273,17 +273,29 @@
       @if ((b.archivos ?? []).length > 0) {
         <div class="bitacora-detail__section">
           <h3>Archivos</h3>
-          <ul class="bitacora-detail__list">
+          <div class="bitacora-archivos">
             @for (a of b.archivos; track a.id) {
-              <li>
-                @if (getArchivoUrl(a)) {
-                  <a [href]="getArchivoUrl(a)" target="_blank" rel="noopener">{{ a.nombre }}</a>
-                } @else {
-                  {{ a.nombre }}
-                }
-              </li>
+              @let url = getArchivoUrl(a);
+              @if (url && isImagen(a)) {
+                <a class="bitacora-archivo bitacora-archivo--img" [href]="url" target="_blank" rel="noopener">
+                  <img [src]="url" [alt]="a.nombre" loading="lazy" />
+                </a>
+              } @else if (url && isAudio(a)) {
+                <div class="bitacora-archivo bitacora-archivo--audio">
+                  <span class="bitacora-archivo__cap">🎤 Nota de voz</span>
+                  <audio controls preload="none" [src]="url"></audio>
+                </div>
+              } @else {
+                <div class="bitacora-archivo bitacora-archivo--file">
+                  @if (url) {
+                    <a [href]="url" target="_blank" rel="noopener">📎 {{ a.nombre }}</a>
+                  } @else {
+                    📎 {{ a.nombre }}
+                  }
+                </div>
+              }
             }
-          </ul>
+          </div>
         </div>
       }
     </div>

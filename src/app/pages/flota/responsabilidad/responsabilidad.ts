@@ -92,6 +92,8 @@ export class Responsabilidad implements OnInit {
     const items = [
       ...(entrega.fotos ?? []).map((f) => ({ key: f.slot, path: f.storage_path })),
       ...(entrega.danos ?? []).map((d, i) => ({ key: `dano_${i}`, path: d.foto_path })),
+      // The receiver's signature — legal custody evidence, was never shown before.
+      ...(entrega.firma_url ? [{ key: '__firma', path: entrega.firma_url }] : []),
     ];
     await Promise.all(
       items.map(async (it) => {
@@ -105,9 +107,16 @@ export class Responsabilidad implements OnInit {
     this.fotoUrls.update((all) => ({ ...all, [entrega.id]: map }));
   }
 
+  /** Checklist photos (excludes the signature, which renders on its own). */
   fotosDe(entregaId: string): { key: string; url: string }[] {
     const map = this.fotoUrls()[entregaId] ?? {};
-    return Object.entries(map).map(([key, url]) => ({ key, url }));
+    return Object.entries(map)
+      .filter(([key]) => key !== '__firma')
+      .map(([key, url]) => ({ key, url }));
+  }
+
+  firmaDe(entregaId: string): string | null {
+    return this.fotoUrls()[entregaId]?.['__firma'] ?? null;
   }
 
   isExpanded(id: string): boolean {

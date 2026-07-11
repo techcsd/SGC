@@ -150,3 +150,15 @@
   color: var(--sgc-text-secondary);
   background: var(--sgc-surface);
 }
+
+// Signature renders on white and shows its full height (not cropped like photos).
+.resp-firma {
+  margin-top: 12px;
+  max-width: 260px;
+}
+.resp-foto--firma img {
+  height: auto;
+  max-height: 160px;
+  object-fit: contain;
+  background: #fff;
+}

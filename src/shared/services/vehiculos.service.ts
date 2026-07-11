@@ -13,6 +13,7 @@ export interface VehiculoEntrega {
   tiene_danos: boolean;
   requiere_revision: boolean;
   observacion: string | null;
+  firma_url: string | null;
   capturado_en: string;
   created_at: string;
   vehiculo?: { placa: string; marca: string; modelo: string } | null;

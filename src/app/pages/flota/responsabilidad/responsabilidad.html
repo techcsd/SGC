@@ -99,6 +99,14 @@
                 <span class="resp-muted">Cargando fotos…</span>
               }
             </div>
+            @if (firmaDe(e.id); as firma) {
+              <div class="resp-firma">
+                <a class="resp-foto resp-foto--firma" [href]="firma" target="_blank" rel="noopener">
+                  <img [src]="firma" alt="Firma de quien recibe" loading="lazy" />
+                  <span class="resp-foto__cap">Firma de {{ e.conductor?.nombre ?? 'quien recibe' }}</span>
+                </a>
+              </div>
+            }
           </div>
         }
       </div>

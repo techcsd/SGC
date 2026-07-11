@@ -12,6 +12,7 @@ import { AuthService } from '../../../app/core/services/auth.service';
 import { UserService } from '../../../app/core/services/user.service';
 import { NotificacionesService } from '../../services/notificaciones.service';
 import { RealtimeNotificacionesService } from '../../services/realtime-notificaciones.service';
+import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 
 interface NavItem {
   label: string;
@@ -34,7 +35,7 @@ interface NavSubItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

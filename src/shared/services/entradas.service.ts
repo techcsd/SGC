@@ -19,6 +19,15 @@ export class EntradasService {
     return (data ?? []) as unknown as EntradaInventario[];
   }
 
+  /** Signed URL for the field-captured evidence photo (private `inventario` bucket). */
+  async getFotoUrl(path: string): Promise<string> {
+    const { data, error } = await this.supabase.client.storage
+      .from('inventario')
+      .createSignedUrl(path, 3600);
+    if (error) throw new Error(error.message);
+    return data.signedUrl;
+  }
+
   async getByOrdenCompra(ordenCompraId: string): Promise<EntradaInventario[]> {
     const { data, error } = await this.supabase.client
       .from('entradas_inventario')

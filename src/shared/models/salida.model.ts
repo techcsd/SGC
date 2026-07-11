@@ -36,6 +36,8 @@ export interface SalidaInventario {
   recibido?: { nombre: string } | null;
   recibido_en: string | null;
   notas_recepcion: string | null;
+  // Evidence photo captured by the mobile CSD app when the salida was created.
+  foto_path: string | null;
   // Delivery evidence captured by the mobile CSD app (driver closes the conduce).
   entregado_por: string | null;
   entregado?: { nombre: string } | null;

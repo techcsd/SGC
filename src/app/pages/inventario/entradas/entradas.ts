@@ -64,6 +64,19 @@ export class Entradas implements OnInit {
 
   formatFecha = formatFechaDisplay;
   readonly today = todayIso();
+  fotoError = signal('');
+
+  /** Open the field evidence photo in a new tab via a fresh signed URL. */
+  async verFoto(e: EntradaInventario) {
+    if (!e.foto_path) return;
+    this.fotoError.set('');
+    try {
+      const url = await this.entradasService.getFotoUrl(e.foto_path);
+      window.open(url, '_blank', 'noopener');
+    } catch {
+      this.fotoError.set('No se pudo abrir la foto.');
+    }
+  }
 
   form = new FormGroup({
     bodega_id: new FormControl<string | null>(null, [Validators.required]),

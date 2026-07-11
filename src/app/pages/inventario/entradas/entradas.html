@@ -106,6 +106,7 @@
             <th>Proveedor</th>
             <th>Orden</th>
             <th>Referencia</th>
+            <th class="text-center">Foto</th>
             <th class="text-right">Artículos</th>
             <th class="text-right">Total</th>
           </tr>
@@ -124,6 +125,14 @@
                 }
               </td>
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
+              <td class="text-center">
+                @if (e.foto_path) {
+                  <button type="button" class="entradas__foto-btn" (click)="verFoto(e)"
+                    title="Ver foto de la app de campo">📷</button>
+                } @else {
+                  —
+                }
+              </td>
               <td class="text-right">{{ (e.detalle_entradas ?? []).length }}</td>
               <td class="text-right">
                 <span class="entradas__cantidad">{{ entryTotal(e) | number:'1.2-2' }}</span>

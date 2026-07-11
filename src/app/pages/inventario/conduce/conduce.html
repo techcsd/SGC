@@ -114,10 +114,16 @@
       <p class="conduce__obs"><strong>Notas de recepción:</strong> {{ s.notas_recepcion }}</p>
     }
 
-    @if (entregaFotoUrl() || entregaFirmaUrl()) {
+    @if (entregaFotoUrl() || entregaFirmaUrl() || salidaFotoUrl()) {
       <section class="conduce__evidencia">
-        <h2 class="conduce__evidencia-title">Evidencia de entrega (app de campo)</h2>
+        <h2 class="conduce__evidencia-title">Evidencia (app de campo)</h2>
         <div class="conduce__evidencia-grid">
+          @if (salidaFotoUrl(); as url) {
+            <figure class="conduce__evidencia-item">
+              <img [src]="url" alt="Foto de la salida" />
+              <figcaption>Foto al registrar la salida</figcaption>
+            </figure>
+          }
           @if (entregaFotoUrl(); as url) {
             <figure class="conduce__evidencia-item">
               <img [src]="url" alt="Foto de la entrega" />

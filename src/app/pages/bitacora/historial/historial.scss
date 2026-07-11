@@ -78,3 +78,51 @@
     color: var(--sgc-danger);
   }
 }
+
+// Field media captured in the app: photos inline, voice notes with a player.
+.bitacora-archivos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.bitacora-archivo {
+  &--img {
+    display: block;
+    width: 130px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 110px;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  &--audio {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-surface);
+
+    audio {
+      height: 36px;
+    }
+  }
+
+  &--file {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  &__cap {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sgc-text-secondary);
+  }
+}

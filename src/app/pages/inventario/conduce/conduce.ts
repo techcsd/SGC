@@ -37,6 +37,8 @@ export class Conduce implements OnInit {
   // Delivery evidence (photo + receiver signature) captured by the mobile app.
   entregaFotoUrl = signal<string | null>(null);
   entregaFirmaUrl = signal<string | null>(null);
+  // Evidence photo taken when the salida itself was captured in the field.
+  salidaFotoUrl = signal<string | null>(null);
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -65,17 +67,18 @@ export class Conduce implements OnInit {
     }
   }
 
-  /** Resolve the private conduce bucket paths to time-limited signed URLs. */
+  /** Resolve the private storage paths to time-limited signed URLs. Delivery
+   *  evidence lives in the `conduces` bucket; the salida capture photo in
+   *  `inventario`. */
   private async loadEvidencia(s: SalidaInventario) {
-    const sign = async (path: string | null): Promise<string | null> => {
+    const sign = async (bucket: string, path: string | null): Promise<string | null> => {
       if (!path) return null;
-      const { data } = await this.supabase.client.storage
-        .from('conduces')
-        .createSignedUrl(path, 3600);
+      const { data } = await this.supabase.client.storage.from(bucket).createSignedUrl(path, 3600);
       return data?.signedUrl ?? null;
     };
-    this.entregaFotoUrl.set(await sign(s.entrega_foto_path));
-    this.entregaFirmaUrl.set(await sign(s.entrega_firma_path));
+    this.entregaFotoUrl.set(await sign('conduces', s.entrega_foto_path));
+    this.entregaFirmaUrl.set(await sign('conduces', s.entrega_firma_path));
+    this.salidaFotoUrl.set(await sign('inventario', s.foto_path));
   }
 
   imprimir() {

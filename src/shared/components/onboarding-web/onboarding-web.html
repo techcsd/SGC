@@ -1,0 +1,28 @@
+@if (visible()) {
+  <div class="onbw-backdrop" role="dialog" aria-modal="true" aria-labelledby="onbw-title">
+    <div class="onbw-card">
+      <button type="button" class="onbw-skip" (click)="skip()">Saltar guía</button>
+
+      @if (slides[index()]; as s) {
+        <div class="onbw-icon">{{ s.icon }}</div>
+        <h2 class="onbw-title" id="onbw-title">{{ s.title }}</h2>
+        <p class="onbw-text">{{ s.text }}</p>
+      }
+
+      <div class="onbw-dots">
+        @for (s of slides; track $index) {
+          <span class="onbw-dot" [class.onbw-dot--on]="$index === index()"></span>
+        }
+      </div>
+
+      <div class="onbw-actions">
+        @if (index() > 0) {
+          <button type="button" class="onbw-btn onbw-btn--ghost" (click)="prev()">Atrás</button>
+        }
+        <button type="button" class="onbw-btn onbw-btn--primary" (click)="next()">
+          {{ isLast() ? 'Empezar' : 'Siguiente' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -20,6 +20,8 @@ export interface EntradaInventario {
   observaciones: string | null;
   creado_por: string | null;
   created_at: string;
+  // Evidence photo captured by the mobile CSD app when the entrada was created.
+  foto_path: string | null;
   detalle_entradas?: DetalleEntrada[];
 }
 

@@ -189,6 +189,15 @@ export class Historial implements OnInit {
     return this.archivoUrls().get(archivo.id) ?? '';
   }
 
+  /** Photos captured in the field render inline; voice notes get an audio
+   *  player. Anything else stays a download link. */
+  isImagen(a: BitacoraArchivo): boolean {
+    return (a.tipo_mime ?? '').startsWith('image/') || /\.(jpe?g|png|webp|gif)$/i.test(a.nombre);
+  }
+  isAudio(a: BitacoraArchivo): boolean {
+    return (a.tipo_mime ?? '').startsWith('audio/') || /\.(webm|m4a|mp3|ogg|wav)$/i.test(a.nombre);
+  }
+
   actividadesResumen(b: Bitacora): string {
     const count = b.actividades?.length ?? 0;
     return count === 0 ? 'Sin actividades' : `${count} actividad${count !== 1 ? 'es' : ''}`;
