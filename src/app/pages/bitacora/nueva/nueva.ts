@@ -12,15 +12,14 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } 
 import { Router } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { BitacoraCatalogosService } from '../../../../shared/services/bitacora-catalogos.service';
 import { UserService } from '../../../core/services/user.service';
 import { ContextService } from '../../../../shared/context/context.service';
 import { WeatherService } from '../../../../shared/context/weather.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import {
   ACTIVIDADES,
-  Actividad,
   ESTRUCTURAS,
-  Estructura,
   RESTRICCIONES,
   BITACORA_TIPOS,
   BitacoraTipo,
@@ -53,10 +52,12 @@ export class Nueva implements OnInit {
   private destroyRef = inject(DestroyRef);
   private contextService = inject(ContextService);
   private weatherService = inject(WeatherService);
+  private catalogosService = inject(BitacoraCatalogosService);
 
-  readonly ESTRUCTURAS = ESTRUCTURAS;
-  readonly ACTIVIDADES = ACTIVIDADES;
-  readonly RESTRICCIONES = RESTRICCIONES;
+  // Default to the built-in lists, then override with the admin-managed catalog.
+  estructuras = signal<readonly string[]>(ESTRUCTURAS);
+  actividades = signal<readonly string[]>(ACTIVIDADES);
+  restricciones = signal<{ value: string; label: string }[]>(RESTRICCIONES);
   readonly TIPOS = BITACORA_TIPOS;
   readonly VISITANTE_TIPOS = VISITANTE_TIPOS;
   readonly INCIDENTE_TIPOS = INCIDENTE_TIPOS;
@@ -75,7 +76,7 @@ export class Nueva implements OnInit {
   actividadesSeleccionadas = signal<Set<string>>(new Set());
   restriccionesSeleccionadas = signal<Set<string>>(new Set());
   archivos = signal<File[]>([]);
-  expandedEstructura = signal<Estructura | null>(null);
+  expandedEstructura = signal<string | null>(null);
 
   // Daily-log controls carry required validators toggled off for visita/incidente.
   private readonly PARTE_CONTROLS = [
@@ -162,6 +163,16 @@ export class Nueva implements OnInit {
     } finally {
       this.loading.set(false);
     }
+
+    // Override the built-in lists with the admin-managed catalog (best-effort).
+    try {
+      const cat = await this.catalogosService.getCatalogos();
+      if (cat.estructuras.length) this.estructuras.set(cat.estructuras);
+      if (cat.actividades.length) this.actividades.set(cat.actividades);
+      if (cat.restricciones.length) this.restricciones.set(cat.restricciones);
+    } catch {
+      /* keep the built-in lists */
+    }
   }
 
   // ── Draft (sessionStorage) ─────────────────────────────────
@@ -195,15 +206,15 @@ export class Nueva implements OnInit {
   }
 
   // ── Actividades matrix ───────────────────────────────────────
-  private key(estructura: Estructura, actividad: Actividad): string {
+  private key(estructura: string, actividad: string): string {
     return `${estructura}|${actividad}`;
   }
 
-  isActividadChecked(estructura: Estructura, actividad: Actividad): boolean {
+  isActividadChecked(estructura: string, actividad: string): boolean {
     return this.actividadesSeleccionadas().has(this.key(estructura, actividad));
   }
 
-  toggleActividad(estructura: Estructura, actividad: Actividad) {
+  toggleActividad(estructura: string, actividad: string) {
     this.actividadesSeleccionadas.update((set) => {
       const next = new Set(set);
       const k = this.key(estructura, actividad);
@@ -214,15 +225,15 @@ export class Nueva implements OnInit {
     this.saveDraft();
   }
 
-  toggleEstructura(estructura: Estructura) {
+  toggleEstructura(estructura: string) {
     this.expandedEstructura.update((cur) => (cur === estructura ? null : estructura));
   }
 
-  isEstructuraExpanded(estructura: Estructura): boolean {
+  isEstructuraExpanded(estructura: string): boolean {
     return this.expandedEstructura() === estructura;
   }
 
-  countForEstructura(estructura: Estructura): number {
+  countForEstructura(estructura: string): number {
     const prefix = `${estructura}|`;
     return [...this.actividadesSeleccionadas()].filter((k) => k.startsWith(prefix)).length;
   }
@@ -277,7 +288,7 @@ export class Nueva implements OnInit {
     const esParte = tipo === 'parte_diario';
     const actividades = esParte
       ? [...this.actividadesSeleccionadas()].map((k) => {
-          const [estructura, actividad] = k.split('|') as [Estructura, Actividad];
+          const [estructura, actividad] = k.split('|') as [string, string];
           return { estructura, actividad };
         })
       : [];

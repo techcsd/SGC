@@ -73,6 +73,7 @@ export class Shell implements OnInit {
         { label: 'Entradas', route: '/inventario/entradas' },
         { label: 'Salidas', route: '/inventario/salidas' },
         { label: 'Conduces', route: '/inventario/conduces' },
+        { label: 'Conteos y ajustes', route: '/inventario/conteos' },
         { label: 'Bodegas', route: '/inventario/bodegas' },
         { label: 'Reportes', route: '/inventario/reportes' },
       ],
@@ -201,6 +202,7 @@ export class Shell implements OnInit {
       { label: 'Usuarios', route: '/admin/usuarios' },
       { label: 'Roles', route: '/admin/roles' },
       { label: 'Unidades', route: '/admin/unidades' },
+      { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
   };

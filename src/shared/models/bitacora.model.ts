@@ -36,8 +36,10 @@ import { WeatherSnapshot } from '../context/weather.model';
 export interface BitacoraActividad {
   id: string;
   bitacora_id: string;
-  estructura: Estructura;
-  actividad: Actividad;
+  // Catalog-validated (sgc.bitacora_catalogos) — admin-managed, so widened from
+  // the old fixed unions to allow new values.
+  estructura: string;
+  actividad: string;
 }
 
 export interface BitacoraRestriccion {
@@ -135,7 +137,7 @@ export interface BitacoraFormData {
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
-  actividades: { estructura: Estructura; actividad: Actividad }[];
+  actividades: { estructura: string; actividad: string }[];
   restricciones: { tipo_restriccion: string; descripcion_otro: string | null }[];
   // Visita
   visita_tipo_visitante: string | null;

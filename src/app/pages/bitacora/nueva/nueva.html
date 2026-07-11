@@ -205,7 +205,7 @@
       <p class="bitacora-section__hint">Opcional. Marca las actividades realizadas por estructura.</p>
 
       <div class="bitacora-matriz">
-        @for (estructura of ESTRUCTURAS; track estructura) {
+        @for (estructura of estructuras(); track estructura) {
           <div class="bitacora-matriz__grupo" [class.expanded]="isEstructuraExpanded(estructura)">
             <button
               type="button"
@@ -226,7 +226,7 @@
 
             @if (isEstructuraExpanded(estructura)) {
               <div class="bitacora-matriz__checks">
-                @for (actividad of ACTIVIDADES; track actividad) {
+                @for (actividad of actividades(); track actividad) {
                   <label class="bitacora-matriz__check">
                     <input
                       type="checkbox"
@@ -292,7 +292,7 @@
         <div class="sgc-field">
           <label>Restricciones que afectaron el rendimiento <span class="required">*</span></label>
           <div class="bitacora-restricciones">
-            @for (r of RESTRICCIONES; track r.value) {
+            @for (r of restricciones(); track r.value) {
               <label class="bitacora-restricciones__item" [class.selected]="isRestriccionChecked(r.value)">
                 <input type="checkbox" [checked]="isRestriccionChecked(r.value)" (change)="toggleRestriccion(r.value)" />
                 <span>{{ r.label }}</span>

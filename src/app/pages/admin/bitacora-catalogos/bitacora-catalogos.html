@@ -1,0 +1,53 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Catálogos de bitácora</h1>
+    <span class="page-count">{{ catalogos().length }} valores</span>
+  </div>
+</div>
+
+<p class="bc-lead">
+  Estructuras, actividades y restricciones que aparecen al llenar una bitácora (en la web y en la
+  app de campo). Agrega o desactiva valores; los cambios se reflejan en ambos lados.
+</p>
+
+<div class="bc-add">
+  <select [ngModel]="nuevoTipo()" (ngModelChange)="nuevoTipo.set($event)">
+    @for (g of grupos; track g.tipo) {
+      <option [value]="g.tipo">{{ g.label }}</option>
+    }
+  </select>
+  <input
+    type="text"
+    [ngModel]="nuevoValor()"
+    (ngModelChange)="nuevoValor.set($event)"
+    (keyup.enter)="agregar()"
+    placeholder="Nuevo valor (ej: ESCALERAS)"
+  />
+  <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="agregar()">
+    Agregar
+  </button>
+</div>
+
+@if (error()) {
+  <p class="bc-error">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="bc-muted">Cargando…</p>
+} @else {
+  <div class="bc-grid">
+    @for (g of grupos; track g.tipo) {
+      <section class="bc-col">
+        <h2 class="bc-col__title">{{ g.label }}</h2>
+        @for (c of porTipo()[g.tipo]; track c.id) {
+          <div class="bc-item" [class.bc-item--off]="!c.activo">
+            <span>{{ c.valor }}</span>
+            <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(c)">
+              {{ c.activo ? 'Desactivar' : 'Activar' }}
+            </button>
+          </div>
+        }
+      </section>
+    }
+  </div>
+}

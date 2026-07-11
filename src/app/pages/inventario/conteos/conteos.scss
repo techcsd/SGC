@@ -1,0 +1,81 @@
+.cn-lead {
+  color: var(--sgc-text-secondary);
+  max-width: 75ch;
+  margin: 0 0 16px;
+}
+.cn-muted {
+  color: var(--sgc-text-secondary);
+  padding: 16px 0;
+}
+.cn-error {
+  color: var(--sgc-danger);
+  padding: 12px 0;
+}
+.cn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cn-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  box-shadow: var(--sgc-shadow-sm);
+  overflow: hidden;
+}
+.cn-card__row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.cn-card__row:hover {
+  background: var(--sgc-surface-hover);
+}
+.cn-card__bodega {
+  display: block;
+  font-weight: 700;
+  color: var(--sgc-text);
+}
+.cn-card__meta {
+  display: block;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+}
+.cn-card__count {
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  white-space: nowrap;
+}
+.cn-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 1px solid var(--sgc-border);
+}
+.cn-table th,
+.cn-table td {
+  text-align: left;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--sgc-border);
+  font-size: 14px;
+}
+.cn-table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-surface-hover);
+}
+.cn-up {
+  color: var(--sgc-success);
+  font-weight: 700;
+}
+.cn-down {
+  color: var(--sgc-danger);
+  font-weight: 700;
+}
