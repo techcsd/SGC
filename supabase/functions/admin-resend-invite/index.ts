@@ -1,12 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// Lets an admin trigger a password reset for a user without ever seeing
-// or setting the password themselves. Generates a real recovery link via
-// the Admin API, then emails it via Resend (reusing the same Vault-backed
-// key as notificar-solicitud). If Resend isn't configured yet, the link
-// is returned in the response instead of silently doing nothing — an
-// admin is the only one who ever sees that response.
+// Resends a user's invitation for when the original link expired before they
+// accepted it. Delivers through Supabase's own Auth mailer (the same channel
+// that sends the original invite) — NOT Resend, which has no verified sending
+// domain on this project. Falls back to returning a fresh link only if the
+// mailer send fails, so the admin can share it manually. Admin-only.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,9 +27,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return json({ error: "No autenticado." }, 401);
-    }
+    if (!authHeader) return json({ error: "No autenticado." }, 401);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -40,18 +37,12 @@ Deno.serve(async (req: Request) => {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
-    if (callerError || !callerData.user) {
-      return json({ error: "Sesión inválida." }, 401);
-    }
+    if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
-    if (!isAdmin) {
-      return json({ error: "No autorizado." }, 403);
-    }
+    if (!isAdmin) return json({ error: "No autorizado." }, 403);
 
     const { userId, redirectTo } = await req.json();
-    if (typeof userId !== "string") {
-      return json({ error: "Parámetros inválidos." }, 400);
-    }
+    if (typeof userId !== "string") return json({ error: "Parámetros inválidos." }, 400);
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
 
@@ -60,17 +51,12 @@ Deno.serve(async (req: Request) => {
       .select("email, nombre")
       .eq("id", userId)
       .single();
-    if (usuarioError || !usuario) {
-      return json({ error: "Usuario no encontrado." }, 404);
-    }
+    if (usuarioError || !usuario) return json({ error: "Usuario no encontrado." }, 404);
 
-    // Same redirectTo-from-caller-origin pattern as admin-create-user — see
-    // the comment there. Without it this fell back to the Site URL (localhost).
-    // Deliver via Supabase's Auth mailer (reliable — same channel that sends
-    // the original invites). Resend is not used here because this project has
-    // no verified Resend sending domain. Fall back to returning a fresh link
-    // only if the send fails, so the admin can share it manually.
     const redirect = typeof redirectTo === "string" && redirectTo ? redirectTo : undefined;
+
+    // Primary path: send via Supabase's Auth mailer (works — it's what delivers
+    // the original invites). Uses a plain anon client so it triggers the email.
     const mailer = createClient(supabaseUrl, anonKey);
     const { error: sendError } = await mailer.auth.resetPasswordForEmail(
       usuario.email,
@@ -82,6 +68,7 @@ Deno.serve(async (req: Request) => {
     if (!sendError) {
       sent = true;
     } else {
+      // Fallback: hand the admin a fresh link to share manually.
       const { data: linkData } = await admin.auth.admin.generateLink({
         type: "recovery",
         email: usuario.email,
@@ -92,7 +79,7 @@ Deno.serve(async (req: Request) => {
 
     await admin.from("audit_log").insert({
       actor_id: callerData.user.id,
-      action: "password_reset_solicitado",
+      action: "invitacion_reenviada",
       target_user_id: userId,
       metadata: { emailSent: sent },
     });

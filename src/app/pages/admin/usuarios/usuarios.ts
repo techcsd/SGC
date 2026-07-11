@@ -178,6 +178,28 @@ export class AdminUsuarios implements OnInit {
     }
   }
 
+  /** Resends the invitation link to a user who hasn't accepted yet. */
+  async resendInvite(usuario: UsuarioAdmin) {
+    this.resettingId.set(usuario.id);
+    this.resetMessage.set(null);
+    try {
+      const result = await this.adminService.resendInvite(usuario.id);
+      this.resetMessage.set({
+        userId: usuario.id,
+        text: result.sent
+          ? 'Invitación reenviada por correo (válida 24 h).'
+          : `No se pudo enviar el correo. Enlace: ${result.actionLink}`,
+      });
+    } catch (e: unknown) {
+      this.resetMessage.set({
+        userId: usuario.id,
+        text: e instanceof Error ? e.message : 'Error al reenviar la invitación.',
+      });
+    } finally {
+      this.resettingId.set(null);
+    }
+  }
+
   /** Only actually removes the user if they have zero associated records anywhere — Postgres enforces this. */
   async deleteUsuario(usuario: UsuarioAdmin) {
     if (this.isSelf(usuario)) return;

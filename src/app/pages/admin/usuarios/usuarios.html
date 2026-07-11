@@ -91,6 +91,9 @@
               } @else {
                 <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
               }
+              @if (usuario.pendiente) {
+                <span class="sgc-badge sgc-badge--warning" title="Invitado pero aún no ha entrado">Pendiente</span>
+              }
             </td>
             <td class="admin-usuarios__date">
               {{ usuario.created_at | date:'dd MMM yyyy' }}
@@ -108,6 +111,17 @@
                 </svg>
                 Editar
               </button>
+              @if (usuario.pendiente) {
+                <button
+                  class="sgc-btn sgc-btn--primary admin-usuarios__btn-resend"
+                  type="button"
+                  (click)="resendInvite(usuario)"
+                  [disabled]="resettingId() === usuario.id"
+                  [attr.aria-label]="'Reenviar invitación a ' + usuario.nombre"
+                >
+                  @if (resettingId() === usuario.id) { Enviando... } @else { ✉️ Reenviar invitación }
+                </button>
+              }
               <button
                 class="sgc-btn sgc-btn--ghost admin-usuarios__btn-reset"
                 type="button"

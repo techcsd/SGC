@@ -11,6 +11,8 @@ const SET_PASSWORD_URL = `${environment.appUrl || window.location.origin}/auth/s
 
 export interface UsuarioAdmin extends Usuario {
   roles: { rol: Rol }[];
+  /** True when the user was invited but never signed in (invite still pending). */
+  pendiente?: boolean;
 }
 
 /** Edge Functions return {error: "..."} in the body on failure, but functions.invoke()
@@ -38,7 +40,22 @@ export class AdminService {
       .order('nombre');
 
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as UsuarioAdmin[];
+    const usuarios = (data ?? []) as unknown as UsuarioAdmin[];
+
+    // Flag invited-but-not-accepted users (never signed in) so the UI can show
+    // "Pendiente" + a resend button. Best-effort: if it fails, list still works.
+    try {
+      const { data: estados } = await this.supabase.client.rpc('usuarios_estado_auth');
+      if (estados) {
+        const pend = new Map<string, boolean>(
+          (estados as { id: string; pendiente: boolean }[]).map((e) => [e.id, e.pendiente]),
+        );
+        for (const u of usuarios) u.pendiente = pend.get(u.id) ?? false;
+      }
+    } catch {
+      /* non-fatal */
+    }
+    return usuarios;
   }
 
   async getAllRoles(): Promise<Rol[]> {
@@ -86,6 +103,17 @@ export class AdminService {
   /** Sends a password-reset email; never exposes the password to the admin. */
   async resetPassword(id: string): Promise<{ sent: boolean; actionLink?: string }> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-reset-user-password', {
+      body: { userId: id, redirectTo: SET_PASSWORD_URL },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { sent: boolean; actionLink?: string };
+  }
+
+  /** Regenerates + resends a pending user's invitation link (24h validity),
+   *  for when the original one expired before they accepted it. */
+  async resendInvite(id: string): Promise<{ sent: boolean; actionLink?: string }> {
+    const { data, error } = await this.supabase.client.functions.invoke('admin-resend-invite', {
       body: { userId: id, redirectTo: SET_PASSWORD_URL },
     });
     if (error) throw new Error(await edgeFunctionErrorMessage(error));
