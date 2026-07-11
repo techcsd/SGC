@@ -20,7 +20,7 @@
     </div>
 
     <!-- Nav -->
-    <nav class="sidebar-nav" aria-label="Módulos del sistema">
+    <nav class="sidebar-nav" aria-label="Módulos del sistema" data-tour="sidebar">
 
       @for (item of navItems; track item.label) {
         @if (canAccess(item)) {
@@ -33,6 +33,7 @@
             [class.disabled]="!!item.phase"
             [attr.aria-disabled]="!!item.phase"
             [attr.title]="collapsed() ? item.label : null"
+            [attr.data-tour]="tourKey(item)"
           >
             <span class="nav-icon" aria-hidden="true">
               <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: item.icon }" />
@@ -170,7 +171,7 @@
       </div>
 
       <div class="header-right">
-        <a class="header-user" routerLink="/perfil" title="Mi perfil">
+        <a class="header-user" routerLink="/perfil" title="Mi perfil" data-tour="user">
           @if (avatarUrl(); as url) {
             <img class="user-avatar user-avatar--img" [src]="url" alt="" />
           } @else {

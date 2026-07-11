@@ -1,110 +1,126 @@
-.onbw-backdrop {
+.tour {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(15, 23, 42, 0.62);
-  backdrop-filter: blur(2px);
+  /* Captures clicks so the underlying page is inert during the tour. */
 }
 
-.onbw-card {
-  position: relative;
-  width: 100%;
-  max-width: 460px;
+.tour__dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.68);
+}
+
+/* The spotlight: a transparent box whose huge box-shadow dims everything else. */
+.tour__spot {
+  position: fixed;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.68);
+  outline: 3px solid var(--sgc-primary-mid);
+  outline-offset: 2px;
+  pointer-events: none;
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+.tour__pop {
+  position: fixed;
+  width: 330px;
+  max-width: calc(100vw - 24px);
   background: var(--sgc-surface);
   border-radius: var(--sgc-radius-lg);
   box-shadow: var(--sgc-shadow-lg);
-  padding: 40px 32px 28px;
+  padding: 22px 22px 18px;
+  animation: tour-pop 0.2s ease;
+}
+.tour__pop--center {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%);
   text-align: center;
-  animation: onbw-pop 0.22s ease;
+}
+@keyframes tour-pop {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; }
+}
+.tour__pop--center {
+  animation: tour-pop-center 0.2s ease;
+}
+@keyframes tour-pop-center {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
-@keyframes onbw-pop {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-.onbw-skip {
+.tour__skip {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  top: 12px;
+  right: 14px;
   background: none;
   border: none;
   color: var(--sgc-text-secondary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  padding: 4px 6px;
 }
-.onbw-skip:hover {
+.tour__skip:hover {
   color: var(--sgc-text);
 }
 
-.onbw-icon {
-  width: 84px;
-  height: 84px;
-  margin: 0 auto 18px;
+.tour__icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 14px;
   border-radius: 50%;
   background: var(--sgc-primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 44px;
+  font-size: 38px;
   line-height: 1;
 }
 
-.onbw-title {
-  margin: 0 0 12px;
-  font-size: 22px;
+.tour__title {
+  margin: 0 0 8px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--sgc-text);
 }
-
-.onbw-text {
-  margin: 0 auto;
-  max-width: 40ch;
-  font-size: 15px;
-  line-height: 1.6;
+.tour__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
   color: var(--sgc-text-secondary);
 }
 
-.onbw-dots {
+.tour__dots {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin: 24px 0;
+  gap: 7px;
+  margin: 18px 0;
 }
-
-.onbw-dot {
-  width: 8px;
-  height: 8px;
+.tour__pop--center .tour__dots {
+  justify-content: center;
+}
+.tour__dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--sgc-border);
   transition: var(--sgc-transition);
 }
-.onbw-dot--on {
+.tour__dot--on {
   background: var(--sgc-primary-mid);
   transform: scale(1.35);
 }
 
-.onbw-actions {
+.tour__actions {
   display: flex;
-  justify-content: center;
   gap: 10px;
 }
-
-.onbw-btn {
-  min-width: 120px;
-  padding: 11px 22px;
+.tour__pop--center .tour__actions {
+  justify-content: center;
+}
+.tour__btn {
+  min-width: 104px;
+  padding: 10px 18px;
   border: none;
   border-radius: var(--sgc-radius);
   font-size: 14px;
@@ -112,18 +128,18 @@
   cursor: pointer;
   transition: var(--sgc-transition);
 }
-.onbw-btn--primary {
+.tour__btn--primary {
   background: var(--sgc-primary);
   color: #fff;
 }
-.onbw-btn--primary:hover {
+.tour__btn--primary:hover {
   background: var(--sgc-primary-mid);
 }
-.onbw-btn--ghost {
+.tour__btn--ghost {
   background: var(--sgc-surface);
   color: var(--sgc-text-secondary);
   border: 1px solid var(--sgc-border);
 }
-.onbw-btn--ghost:hover {
+.tour__btn--ghost:hover {
   background: var(--sgc-surface-hover);
 }

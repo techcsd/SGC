@@ -224,6 +224,13 @@ export class Shell implements OnInit {
     return this.userService.hasModulo(child.modulo);
   }
 
+  /** Stable anchor id for the first-run guided tour to spotlight this item. */
+  tourKey(item: NavItem): string | null {
+    if (item.route === '/app-movil') return 'csd-app';
+    if (item.route === '/soporte') return 'soporte';
+    return null;
+  }
+
   ngOnInit() {
     const saved = localStorage.getItem('sgc-sidebar-collapsed');
     if (saved !== null) {

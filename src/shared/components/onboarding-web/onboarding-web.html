@@ -1,25 +1,37 @@
 @if (visible()) {
-  <div class="onbw-backdrop" role="dialog" aria-modal="true" aria-labelledby="onbw-title">
-    <div class="onbw-card">
-      <button type="button" class="onbw-skip" (click)="skip()">Saltar guía</button>
+  <div class="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+    <!-- Dim + spotlight -->
+    @if (rect(); as r) {
+      <div class="tour__spot" [style]="spotStyle()"></div>
+    } @else {
+      <div class="tour__dim"></div>
+    }
 
-      @if (slides[index()]; as s) {
-        <div class="onbw-icon">{{ s.icon }}</div>
-        <h2 class="onbw-title" id="onbw-title">{{ s.title }}</h2>
-        <p class="onbw-text">{{ s.text }}</p>
+    <!-- Callout -->
+    <div
+      class="tour__pop"
+      [class.tour__pop--center]="!rect()"
+      [style]="rect() ? popStyle() : null"
+    >
+      <button type="button" class="tour__skip" (click)="skip()">Saltar</button>
+
+      @if (current().icon; as ic) {
+        <div class="tour__icon">{{ ic }}</div>
       }
+      <h2 class="tour__title" id="tour-title">{{ current().title }}</h2>
+      <p class="tour__text">{{ current().text }}</p>
 
-      <div class="onbw-dots">
-        @for (s of slides; track $index) {
-          <span class="onbw-dot" [class.onbw-dot--on]="$index === index()"></span>
+      <div class="tour__dots">
+        @for (s of steps; track $index) {
+          <span class="tour__dot" [class.tour__dot--on]="$index === index()"></span>
         }
       </div>
 
-      <div class="onbw-actions">
+      <div class="tour__actions">
         @if (index() > 0) {
-          <button type="button" class="onbw-btn onbw-btn--ghost" (click)="prev()">Atrás</button>
+          <button type="button" class="tour__btn tour__btn--ghost" (click)="prev()">Atrás</button>
         }
-        <button type="button" class="onbw-btn onbw-btn--primary" (click)="next()">
+        <button type="button" class="tour__btn tour__btn--primary" (click)="next()">
           {{ isLast() ? 'Empezar' : 'Siguiente' }}
         </button>
       </div>

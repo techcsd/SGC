@@ -226,3 +226,23 @@
   border-radius: var(--sgc-radius);
   padding: 16px;
 }
+
+.soporte__guia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--sgc-primary-mid);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-primary-light);
+  color: var(--sgc-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--sgc-transition);
+}
+.soporte__guia:hover {
+  background: var(--sgc-primary-mid);
+  color: #fff;
+}

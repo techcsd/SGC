@@ -56,6 +56,13 @@ export class Soporte implements OnInit {
     descripcion: new FormControl('', [Validators.required, Validators.maxLength(2000)]),
   });
 
+  /** Replays the first-run guided tour: clear the flag and reload into the
+   *  dashboard so the shell re-triggers it. */
+  verGuia(): void {
+    localStorage.removeItem('sgc_onboarding_v1_done');
+    window.location.assign('/dashboard');
+  }
+
   async ngOnInit() {
     await this.load();
   }
