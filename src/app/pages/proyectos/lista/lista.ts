@@ -33,6 +33,7 @@ import { EmpleadosService } from '../../../../shared/services/empleados.service'
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
+import { ExpedienteObra } from '../../../../shared/components/expediente-obra/expediente-obra';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -56,7 +57,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, LocationPicker, WeatherCard],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, LocationPicker, WeatherCard],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -45,6 +45,7 @@ export class Direccion implements OnInit {
   solicitudesCompra = signal(0);
   obrasClimaPeligro = signal(0);
   obrasClimaPrecaucion = signal(0);
+  expedientesObraIncompletos = signal(0);
 
   // ── Stat tiles ───────────────────────────────────────────
   proyectosActivos = computed(() => this.kpi().length);
@@ -79,6 +80,8 @@ export class Direccion implements OnInit {
       a.push({ icono: '📦', texto: 'Requisiciones pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
     if (this.solicitudesCompra() > 0)
       a.push({ icono: '🛒', texto: 'Solicitudes de compra pendientes', cantidad: this.solicitudesCompra(), ruta: '/compras/ordenes', nivel: 'info' });
+    if (this.expedientesObraIncompletos() > 0)
+      a.push({ icono: '📋', texto: 'Obras con expediente de inicio incompleto', cantidad: this.expedientesObraIncompletos(), ruta: '/proyectos', nivel: 'precaucion' });
     return a;
   });
 
@@ -188,6 +191,14 @@ export class Direccion implements OnInit {
       this.obrasClimaPrecaucion.set(clima.filter((o) => o.peorNivel === 'precaucion').length);
     } catch {
       /* clima is enrichment only */
+    }
+
+    // A8 — obras con expediente de inicio incompleto (best-effort, no bloquea).
+    try {
+      const resumen = await this.proyectosService.getExpedienteResumen();
+      this.expedientesObraIncompletos.set(resumen.filter((r) => !r.completo).length);
+    } catch {
+      /* vista de expediente: enrichment only */
     }
   }
 

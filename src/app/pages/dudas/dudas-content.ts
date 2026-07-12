@@ -297,9 +297,14 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
     modulo: 'proyectos',
     items: [
       {
-        pregunta: '¿Cómo creo un proyecto y le asigno equipo?',
+        pregunta: '¿Cómo creo un proyecto y le asigno el Equipo de Obra?',
         respuesta:
-          'Ve a Proyectos > Nuevo proyecto. Una vez creado, entra al detalle para agregar miembros del equipo y fases — esto también determina qué ingenieros pueden ver y trabajar sobre ese proyecto en Bitácora.',
+          'Ve a Proyectos > Nuevo proyecto. Una vez creado, entra al detalle: en "Equipo de Obra" asignas los roles del procedimiento (Ingeniero Responsable, Ingeniero Residente, Capataz, Maestro de Acero, Maestro de Encofrado, Encargado de Seguridad, Guarda-Almacén, Topógrafo, cuadrillas y subcontratistas). Cada miembro puede ser un empleado de RRHH o una entidad externa (topógrafo/subcontratista). Esto también determina qué ingenieros trabajan ese proyecto en Bitácora.',
+      },
+      {
+        pregunta: '¿Qué es el Expediente de inicio de obra y cómo lo completo?',
+        respuesta:
+          'Es el checklist de documentos obligatorios de la Fase 0 (CSD-OPE-01): resumen de contrato sin montos, alcance, materiales mínimos, cronograma, plan de trabajo, organigrama, diseño de encofrado, planos, tolerancias y acuerdos de inicio. En el detalle del proyecto pulsa "Inicializar expediente estándar" y, por cada documento, marca su estado (pendiente/cargado/validado/no aplica), asigna responsable y adjunta el archivo. La barra de completitud muestra el avance; ninguna obra debería iniciar sin el expediente completo. Los montos de contrato nunca se manejan aquí.',
       },
       {
         pregunta: '¿Qué es el Ranking de Encargados y cómo se calcula?',

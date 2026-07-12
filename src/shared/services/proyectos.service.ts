@@ -14,7 +14,11 @@ import {
   ProyectoEmpleado,
   ProyectoEstado,
   EquipoMiembroFormData,
+  ExpedienteDoc,
+  ExpedienteResumen,
 } from '../models/proyecto.model';
+
+const EXPEDIENTE_BUCKET = 'sgc-documentos';
 
 @Injectable({ providedIn: 'root' })
 export class ProyectosService {
@@ -266,6 +270,72 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client.rpc('kpi_proyectos');
     if (error) throw new Error(error.message);
     return (data ?? []) as KpiProyectoRaw[];
+  }
+
+  // ── A8 — Expediente de inicio de obra ──────────────────────
+  async getExpediente(proyectoId: string): Promise<ExpedienteDoc[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('expediente_obra')
+      .select('*')
+      .eq('proyecto_id', proyectoId)
+      .order('orden', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ExpedienteDoc[];
+  }
+
+  /** Siembra los 11 documentos estándar (idempotente). Devuelve nº insertados. */
+  async sembrarExpediente(proyectoId: string): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('sembrar_expediente_obra', {
+      p_proyecto_id: proyectoId,
+    });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
+  async updateExpedienteDoc(
+    id: string,
+    patch: Partial<Pick<ExpedienteDoc, 'estado' | 'responsable_id' | 'notas' | 'archivo_path'>>,
+    userId: string | null,
+  ): Promise<void> {
+    const extra: Record<string, unknown> = { ...patch, updated_at: new Date().toISOString() };
+    if (patch.estado === 'validado') {
+      extra['validado_por'] = userId;
+      extra['validado_en'] = new Date().toISOString();
+    }
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('expediente_obra')
+      .update(extra)
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  async uploadExpedienteArchivo(proyectoId: string, codigo: string, file: File): Promise<string> {
+    const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `expediente/${proyectoId}/${codigo}-${safe}`;
+    const { error } = await this.supabase.client.storage
+      .from(EXPEDIENTE_BUCKET)
+      .upload(path, file, { upsert: true });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  async getExpedienteArchivoUrl(path: string): Promise<string | null> {
+    const { data, error } = await this.supabase.client.storage
+      .from(EXPEDIENTE_BUCKET)
+      .createSignedUrl(path, 3600);
+    if (error) return null;
+    return data?.signedUrl ?? null;
+  }
+
+  async getExpedienteResumen(): Promise<ExpedienteResumen[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('v_expediente_obra_resumen')
+      .select('*');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ExpedienteResumen[];
   }
 }
 

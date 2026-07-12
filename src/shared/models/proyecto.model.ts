@@ -52,6 +52,38 @@ export interface EquipoMiembroFormData {
   notas: string | null;
 }
 
+// A8 — Expediente de inicio de obra
+export type ExpedienteEstado = 'pendiente' | 'cargado' | 'validado' | 'no_aplica';
+export interface ExpedienteDoc {
+  id: string;
+  proyecto_id: string;
+  codigo: string;
+  nombre: string;
+  area: string | null;
+  estado: ExpedienteEstado;
+  responsable_id: string | null;
+  archivo_path: string | null;
+  enlace: string | null;
+  notas: string | null;
+  orden: number;
+  validado_por: string | null;
+  validado_en: string | null;
+}
+export const EXPEDIENTE_ESTADOS: { value: ExpedienteEstado; label: string; badge: string }[] = [
+  { value: 'pendiente', label: 'Pendiente', badge: 'warning' },
+  { value: 'cargado', label: 'Cargado', badge: 'info' },
+  { value: 'validado', label: 'Validado', badge: 'success' },
+  { value: 'no_aplica', label: 'No aplica', badge: 'neutral' },
+];
+export interface ExpedienteResumen {
+  proyecto_id: string;
+  nombre: string;
+  total: number;
+  validados: number;
+  pendientes: number;
+  completo: boolean;
+}
+
 export interface FaseProyecto {
   id: string;
   proyecto_id: string;
