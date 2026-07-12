@@ -44,7 +44,24 @@ End-to-end click-through (his manual QA workflow):
 3. Verify: a conduce (salida) exists for the in-stock part **and** a new
    Solicitud de compra appears in Compras → Órdenes for the shortfall.
 
-### ⏳ Pending — A3–A9 (not started)
+### ✅ Done — A6 + A7 (commit `9205f69`, build passing, migrations live on prod)
+- **A6 Flota checklists:** `sql/2026-07-12-flota-checklists.sql` (+ `-seed.sql`) →
+  `checklist_plantillas`/`_items`, `checklists_vehiculo` (+`_respuestas`/`_fotos`),
+  RLS + grants; RPC `registrar_checklist_vehiculo` (SECURITY DEFINER, idempotent by
+  client UUID → CSD-App-ready) + `atender_checklist_vehiculo`. Seeded 3 templates
+  (Pre-Uso Liviano 8, Inspección Seguridad 19, Pre-Uso Camión 12) by categoría
+  liviano/camión/equipo. Critical NO → realtime toast to Flota + `flota` badge until atended.
+  Page `/flota/checklists` (fill OK/NO/NA, per-tipo template auto-suggest, history, atender), route+nav.
+- **A7 Tecnología module:** permission `tecnologia` (roles.service + admin array_append),
+  parent route ungated (guide for all) + gated children, nav+icon, dashboard card.
+  Tables: `tec_herramientas` (seeded Drive/Claude/Fireflies/Meet), `tec_matriz`,
+  `tec_equipos` + `tec_equipo_historial` (dedicated tech inventory → empleado + history;
+  architect choice: NOT activos_fijos, to keep asset-accounting register clean).
+  Compras tec: `solicitudes_compra.proyecto_id` nullable + `categoria`; RPC
+  `crear_solicitud_compra_tec` → flows to Compras/Gerencia. 5 pages (guia/homologacion/matriz/inventario/compras).
+- Dudas FAQ updated (Tecnología, flota checklists, requisición flow). Dashboard card added.
+
+### ⏳ Pending — A3, A4, A5, A8, A9 (not started)
 - **A3 + A3.1 + A3.2** — cuadre inicial + 4 fases 25/50/75/100 (extend `fases_proyecto`,
   new `cuadre_*` tables), Kit de inicio plantilla (3 cats ALMACÉN/OFICINA/COCINA Y BAÑO,
   flag prorrateado, seed from the Excel; also = A8 "materiales mínimos" + stock mínimo por obra),
@@ -57,13 +74,6 @@ End-to-end click-through (his manual QA workflow):
 - **A5** — Chequeo semanal de almacén (build on `conteos_inventario`); recurring weekly
   task via pg_cron (pattern: `sql/2026-07-07-weather-cron.sql`) assigned to Guarda-Almacén;
   differences feed A4.
-- **A6** — Flota pre-use/inspection checklists (OK/NO/NA, per-tipo templates, photos,
-  critical-item alert). Model on the existing `vehiculo_entregas`+fotos+danos trio;
-  new `/flota/checklists` route + shell nav; SECURITY DEFINER idempotent RPC for mobile capture.
-- **A7** — New `tecnologia` permission module (add to MODULOS_DISPONIBLES in
-  roles.service.ts + route guard + shell entry + `array_append` to admin role).
-  Homologación (seed Drive/Claude/Fireflies/Meet), matriz puesto×herramienta,
-  inventario tech (reuse `activos_fijos` with own view — decide), compras tech via A2 flow.
 - **A8** — Expediente de inicio de obra (checklist de docs con estado/responsable/adjunto;
   links kit A3.1 + equipo A3.2; **regla dura: obra NUNCA ve montos de contrato**).
   Design roadmap-compatible schemas for CL-01–CL-07, registro de vaciado, NC, etc. (don't build).
