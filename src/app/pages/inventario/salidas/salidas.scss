@@ -54,6 +54,67 @@
 }
 
 // ── Solicitudes pendientes panel ─────────────────────────
+// A2 — nota de aprobación de requisición (auto-división)
+.req-approve-note {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--sgc-border);
+  border-left: 3px solid var(--sgc-primary, #ff5f00);
+  border-radius: 10px;
+  background: var(--sgc-surface-2, rgba(0, 0, 0, 0.02));
+
+  &__lead {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--sgc-text-muted, #666);
+    margin: 0 0 8px;
+  }
+
+  &__items {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12.5px;
+    color: var(--sgc-text);
+  }
+}
+
+.req-map-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 72px 40px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--sgc-border);
+
+  &:last-child { border-bottom: none; }
+
+  &__desc {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  &__text {
+    font-size: 12.5px;
+    color: var(--sgc-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &__tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--sgc-primary, #ff5f00);
+  }
+  &__unidad {
+    font-size: 11.5px;
+    color: var(--sgc-text-muted, #888);
+  }
+}
+
 .solicitudes-panel {
   padding: 16px 20px;
   margin-bottom: 18px;

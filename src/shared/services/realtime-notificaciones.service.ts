@@ -93,6 +93,46 @@ export class RealtimeNotificacionesService {
       );
     }
 
+    // ── Requisiciones (materiales) → bandeja de Almacén (inventario/admin) ──
+    if (isAdmin || this.userService.hasModulo('inventario')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-requisiciones')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'solicitudes_material' }, (p) => {
+            const s = p.new as { solicitante_id: string };
+            if (s.solicitante_id !== userId) {
+              this.toast.info('Nueva requisición', 'Revisa Inventario → Salidas', '/inventario/salidas');
+            }
+            this.notificaciones.refresh();
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'sgc', table: 'solicitudes_material' }, () => {
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
+
+    // ── Solicitudes de compra (incl. auto-generadas por faltante) → Compras/admin ──
+    if (isAdmin || this.userService.hasModulo('compras')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-solicitudes-compra')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'solicitudes_compra' }, (p) => {
+            const s = p.new as { origen_requisicion_id: string | null };
+            this.toast.info(
+              'Nueva solicitud de compra',
+              s.origen_requisicion_id ? 'Generada por el faltante de una requisición' : 'Revisa Compras → Órdenes',
+              '/compras/ordenes',
+            );
+            this.notificaciones.refresh();
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'sgc', table: 'solicitudes_compra' }, () => {
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
+
     // ── Severe-weather alerts (for proyectos/bitacora/admin) ──
     if (isAdmin || this.userService.hasModulo('proyectos') || this.userService.hasModulo('bitacora')) {
       this.channels.push(

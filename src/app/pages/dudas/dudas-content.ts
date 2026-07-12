@@ -52,7 +52,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, bodegas y conduces. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible y rutas. · Bitácora: parte diario de obra, visitas e incidentes, y solicitudes desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes y conduces. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible y rutas. · Bitácora: parte diario de obra, visitas e incidentes, y solicitudes desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -189,7 +189,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo registro una entrada de inventario?',
         respuesta:
-          'Ve a Inventario > Entradas > Nueva entrada. Indica bodega, proveedor y los artículos recibidos. Si la entrada corresponde a una orden de compra, selecciónala en el campo "Orden de compra" — así queda vinculada y visible en el historial de esa orden.',
+          'Ve a Inventario > Entradas > Nueva entrada. Indica almacén, proveedor y los artículos recibidos. Si la entrada corresponde a una orden de compra, selecciónala en el campo "Orden de compra" — así queda vinculada y visible en el historial de esa orden.',
       },
       {
         pregunta: '¿Cómo registro una salida de inventario?',
@@ -199,17 +199,17 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significan los estados de una salida (despachado, entregado, entregado incompleto)?',
         respuesta:
-          '"Despachado" es cuando el material sale de bodega pero aún no ha sido confirmado por quien lo recibe en el proyecto. Cuando el receptor confirma en Bitácora > Confirmar entregas, la salida pasa a "Entregado" (si todo llegó completo) o "Entregado incompleto" (si alguna cantidad recibida fue menor a la enviada).',
+          '"Despachado" es cuando el material sale del almacén pero aún no ha sido confirmado por quien lo recibe en el proyecto. Cuando el receptor confirma en Bitácora > Confirmar entregas, la salida pasa a "Entregado" (si todo llegó completo) o "Entregado incompleto" (si alguna cantidad recibida fue menor a la enviada).',
       },
       {
         pregunta: '¿Dónde veo qué entradas se han recibido contra una orden de compra?',
         respuesta:
-          'Abre la orden en Compras > Órdenes de Compra y revisa la sección "Entradas recibidas" en el detalle. Ahí aparece cada entrada registrada contra esa orden, con fecha, bodega y total.',
+          'Abre la orden en Compras > Órdenes de Compra y revisa la sección "Entradas recibidas" en el detalle. Ahí aparece cada entrada registrada contra esa orden, con fecha, almacén y total.',
       },
       {
-        pregunta: '¿Cómo agrego un nuevo artículo, categoría o bodega?',
+        pregunta: '¿Cómo agrego un nuevo artículo, categoría o almacén?',
         respuesta:
-          'En Inventario > Artículos usa "Nuevo artículo" (las categorías se gestionan desde el mismo formulario). Las bodegas se administran en Inventario > Bodegas.',
+          'En Inventario > Artículos usa "Nuevo artículo" (las categorías se gestionan desde el mismo formulario). Los almacenes se administran en Inventario > Almacenes.',
       },
       {
         pregunta: '¿Qué es un conduce y dónde lo descargo?',

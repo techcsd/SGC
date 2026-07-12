@@ -74,7 +74,7 @@ export class Bodegas implements OnInit {
 
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
-  drawerTitle = computed(() => (this.editingId() ? 'Editar bodega' : 'Nueva bodega'));
+  drawerTitle = computed(() => (this.editingId() ? 'Editar almacén' : 'Nuevo almacén'));
 
   async ngOnInit() {
     await this.loadAll();
@@ -87,7 +87,7 @@ export class Bodegas implements OnInit {
       const bodegas = await this.bodegasService.getAll();
       this.bodegas.set(bodegas);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar las bodegas.');
+      this.error.set(e instanceof Error ? e.message : 'Error al cargar los almacenes.');
     } finally {
       this.loading.set(false);
     }

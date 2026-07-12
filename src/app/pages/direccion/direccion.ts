@@ -76,7 +76,7 @@ export class Direccion implements OnInit {
     if (this.ausenciasPendientes() > 0)
       a.push({ icono: '🏖️', texto: 'Solicitudes de ausencia pendientes', cantidad: this.ausenciasPendientes(), ruta: '/rrhh/ausencias', nivel: 'precaucion' });
     if (this.solicitudesMaterial() > 0)
-      a.push({ icono: '📦', texto: 'Solicitudes de material pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
+      a.push({ icono: '📦', texto: 'Requisiciones pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
     if (this.solicitudesCompra() > 0)
       a.push({ icono: '🛒', texto: 'Solicitudes de compra pendientes', cantidad: this.solicitudesCompra(), ruta: '/compras/ordenes', nivel: 'info' });
     return a;

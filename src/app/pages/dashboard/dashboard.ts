@@ -54,7 +54,7 @@ export class Dashboard implements OnInit {
   allModules: ModuleCard[] = [
     {
       label: 'Inventario',
-      description: 'Artículos, activos, entradas, salidas y bodegas.',
+      description: 'Artículos, activos, entradas, salidas y almacenes.',
       route: '/inventario',
       modulo: 'inventario',
       icon: 'inventory',
