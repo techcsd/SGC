@@ -61,12 +61,22 @@ End-to-end click-through (his manual QA workflow):
   `crear_solicitud_compra_tec` → flows to Compras/Gerencia. 5 pages (guia/homologacion/matriz/inventario/compras).
 - Dudas FAQ updated (Tecnología, flota checklists, requisición flow). Dashboard card added.
 
-### ⏳ Pending — A3, A4, A5, A8, A9 (not started)
-- **A3 + A3.1 + A3.2** — cuadre inicial + 4 fases 25/50/75/100 (extend `fases_proyecto`,
+### ✅ Done — A3.2 Equipo de Obra (commit `997e9b2`, build passing, migration live)
+- `sql/2026-07-12-equipo-obra.sql`: `proyecto_empleados` empleado_id nullable +
+  externo_nombre/tipo, desde/hasta, activo, notas + CHECK (empleado OR externo).
+- Model `ROLES_OBRA` (authoritative CSD-OPE-01 §5 catalog) + `ROLES_GERENCIA_OBRA`
+  (2 mgmt roles, informational) + `rolObraLabel()`. Service `addMiembro`.
+- UI: Proyectos > detalle → "Equipo de Obra" (rol catalog, empleado/externo toggle, vigencia).
+- **Deferred (note):** (a) mgmt roles gerente_produccion/ing_supervisor_general have a
+  catalog but no company-level assignment UI yet; (b) "only assigned Residente/Responsable
+  can requisition" validation NOT enforced in the shared RPC (do it when extending A2/A4).
+  Guarda-Almacén role value `guarda_almacen` is queryable for A5.
+
+### ⏳ Pending — A3(.1) cuadre+kit, A4, A5, A8, A9 (not started)
+- **A3 + A3.1** — cuadre inicial + 4 fases 25/50/75/100 (extend `fases_proyecto`,
   new `cuadre_*` tables), Kit de inicio plantilla (3 cats ALMACÉN/OFICINA/COCINA Y BAÑO,
-  flag prorrateado, seed from the Excel; also = A8 "materiales mínimos" + stock mínimo por obra),
-  Equipo de Obra (extend `proyecto_empleados` → role catalog + external entities + vigencia;
-  Guarda-Almacén = default assignee for A5). Roles list authoritative in CSD-OPE-01 §5.
+  flag prorrateado, seed from the Excel; also = A8 "materiales mínimos" + stock mínimo por obra).
+  Consumption discount hooks INTO `aprobar_requisicion` (needs A2 QA first).
 - **A4** — silent antifraud engine: hook consumption vs cuadre-por-fase INTO
   `aprobar_requisicion`; alerts table (weather_alerts realtime+RLS pattern) → Dirección panel;
   configurable threshold (needs a new `sgc.parametros` table — none exists). Default 80% warn / 100% alert.
