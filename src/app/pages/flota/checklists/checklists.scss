@@ -1,0 +1,301 @@
+.cl-lead {
+  color: var(--sgc-text-secondary);
+  margin: 0 0 16px;
+  max-width: 72ch;
+}
+
+.cl-muted {
+  color: var(--sgc-text-secondary);
+  padding: 16px 0;
+}
+
+// ── Table ────────────────────────────────────────────────
+.cl-row {
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+
+  &:hover { background: var(--sgc-surface-hover); }
+  &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
+}
+
+.cl-fecha {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cl-placa {
+  display: block;
+  font-weight: 700;
+  color: var(--sgc-text);
+}
+
+.cl-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+  margin-top: 2px;
+}
+
+.cl-badge-gap { margin-left: 6px; }
+
+// ── Create: plantilla items ──────────────────────────────
+.cl-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  padding: 12px;
+  background: var(--sgc-surface-hover);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+
+  &--alert {
+    border-color: var(--sgc-danger);
+    background: var(--sgc-danger-light);
+  }
+
+  &--read {
+    grid-template-columns: 1fr auto;
+  }
+
+  &__label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 13.5px;
+    color: var(--sgc-text);
+  }
+}
+
+// In the create form each item has: label | segmented | comment (3 rows on mobile).
+.cl-items .item-row {
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'label seg'
+    'coment coment';
+  row-gap: 8px;
+
+  .item-row__label { grid-area: label; }
+  .cl-seg { grid-area: seg; }
+  .cl-coment { grid-area: coment; }
+}
+
+.cl-critico {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sgc-danger);
+  letter-spacing: 0.02em;
+}
+
+.cl-coment-read {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--sgc-text-secondary);
+}
+
+// ── Segmented OK / NO / N/A control ──────────────────────
+.cl-seg {
+  display: inline-flex;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  overflow: hidden;
+  background: var(--sgc-surface);
+
+  &__opt {
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    background: none;
+    color: var(--sgc-text-secondary);
+    cursor: pointer;
+    transition: var(--sgc-transition-fast);
+
+    & + & { border-left: 1px solid var(--sgc-border); }
+
+    &:hover { background: var(--sgc-surface-hover); }
+
+    &--active[data-val='ok'] { background: var(--sgc-success); color: #fff; }
+    &--active[data-val='no'] { background: var(--sgc-danger); color: #fff; }
+    &--active[data-val='na'] { background: var(--sgc-border); color: var(--sgc-text); }
+  }
+}
+
+.cl-coment {
+  width: 100%;
+}
+
+// ── Drawer form (shared list-page primitives, kept local per convention) ──
+.drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.save-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sgc-border);
+  margin-top: 4px;
+}
+
+// ── Detail ───────────────────────────────────────────────
+.cl-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+}
+
+.cl-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0;
+
+  dt {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+    font-weight: 600;
+  }
+  dd {
+    margin: 2px 0 0;
+    font-size: 14px;
+    color: var(--sgc-text);
+    font-weight: 500;
+  }
+}
+
+.cl-obs {
+  font-style: italic;
+  color: var(--sgc-text-secondary);
+  margin: 0;
+}
+
+.cl-section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-secondary);
+  margin: 4px 0 0;
+}
+
+.cl-respuestas {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cl-fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.cl-foto {
+  display: block;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  overflow: hidden;
+  text-decoration: none;
+
+  img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__cap {
+    display: block;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--sgc-text-secondary);
+    background: var(--sgc-surface);
+  }
+}
+
+.cl-atender {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--sgc-danger);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-danger-light);
+
+  &__nota { width: 100%; }
+
+  .sgc-btn { align-self: flex-start; }
+}
+
+.cl-atendido {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// ── Responsive ───────────────────────────────────────────
+@media (max-width: 768px) {
+  .form-row,
+  .cl-meta {
+    grid-template-columns: 1fr;
+  }
+}

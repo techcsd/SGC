@@ -32,6 +32,11 @@ export const flotaRoutes: Routes = [
     title: 'Rutas — Flota',
   },
   {
+    path: 'checklists',
+    loadComponent: () => import('./checklists/checklists').then((m) => m.Checklists),
+    title: 'Checklists — Flota',
+  },
+  {
     path: 'responsabilidad',
     loadComponent: () =>
       import('./responsabilidad/responsabilidad').then((m) => m.Responsabilidad),

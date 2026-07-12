@@ -52,7 +52,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, almacenes y conduces. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible y rutas. · Bitácora: parte diario de obra, visitas e incidentes, y solicitudes desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: parte diario de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -197,6 +197,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Ve a Inventario > Salidas > Nueva salida. El sistema valida automáticamente que haya stock suficiente antes de permitir guardar.',
       },
       {
+        pregunta: '¿Cómo apruebo una requisición del ingeniero de obra?',
+        respuesta:
+          'Las requisiciones pendientes aparecen en un panel arriba de la tabla en Inventario > Salidas. Pulsa "Aprobar": elige el almacén y confirma a qué artículo del catálogo corresponde cada renglón (los que dejes sin artículo se irán a compra). Al aprobar, el sistema despacha lo que hay en stock (genera el conduce) y crea automáticamente una solicitud de compra por el faltante en el módulo Compras. Es un solo paso.',
+      },
+      {
         pregunta: '¿Qué significan los estados de una salida (despachado, entregado, entregado incompleto)?',
         respuesta:
           '"Despachado" es cuando el material sale del almacén pero aún no ha sido confirmado por quien lo recibe en el proyecto. Cuando el receptor confirma en Bitácora > Confirmar entregas, la salida pasa a "Entregado" (si todo llegó completo) o "Entregado incompleto" (si alguna cantidad recibida fue menor a la enviada).',
@@ -233,9 +238,9 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           '"Borrador" aún se puede editar. "Aprobada" ya está lista para recibir mercancía. "Recibida parcial" indica que ya llegó algo pero no todo lo pedido. "Recibida" es el estado final cuando todo llegó. "Cancelada" cierra la orden sin recibir nada.',
       },
       {
-        pregunta: '¿Cómo atiendo una solicitud de compra enviada por un ingeniero de campo?',
+        pregunta: '¿De dónde salen las solicitudes de compra que veo pendientes?',
         respuesta:
-          'Las solicitudes pendientes aparecen en un panel arriba de la tabla en Compras > Órdenes de Compra. Haz clic en "Crear orden" para convertirla en una orden real (precarga los ítems), o en "Rechazar" si no procede.',
+          'La mayoría se generan automáticamente cuando Almacén aprueba una requisición y no hay stock suficiente: el faltante llega aquí como solicitud de compra. También pueden venir de compras tecnológicas. Aparecen en un panel arriba de la tabla en Compras > Órdenes de Compra: pulsa "Crear orden" para convertirla en una orden real (precarga los ítems y eliges proveedor), o "Rechazar" si no procede.',
       },
     ],
   },
@@ -249,9 +254,9 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta: 'Ve a Bitácora > Nueva bitácora, completa las secciones y guarda. Puedes ver tus envíos anteriores en Bitácora > Mis bitácoras.',
       },
       {
-        pregunta: '¿Cómo solicito materiales o una compra para mi proyecto?',
+        pregunta: '¿Cómo pido materiales para mi proyecto (requisición)?',
         respuesta:
-          'Usa Bitácora > Solicitar materiales o Bitácora > Solicitar compra. Tu solicitud queda pendiente hasta que Inventario o Compras la apruebe o rechace; te notificaremos por correo cuando eso pase.',
+          'Usa Bitácora > Requisición > Nueva requisición y lista lo que necesitas (materiales de catálogo o texto libre). Ya no eliges entre "material" y "compra": el sistema decide al aprobar. Cuando Almacén la aprueba, despacha automáticamente lo que hay en stock (te genera un conduce) y crea una solicitud de compra por el faltante hacia Compras. Tu requisición queda "Pendiente" → "Aprobada (en compra)" si hubo faltante, o "Entregada" si salió completa del almacén.',
       },
       {
         pregunta: '¿Cómo confirmo que recibí una entrega de materiales?',
@@ -325,6 +330,27 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿La ruta muestra el clima del destino?',
         respuesta:
           'Sí. Al planificar una ruta puedes elegir una obra de destino (o marcar el punto en el mapa). Con eso el formulario muestra el clima del destino y un aviso de despacho para el día del viaje (p. ej. "lluvia probable, despacha temprano"). En la lista de rutas, los viajes próximos con clima adverso muestran un aviso.',
+      },
+      {
+        pregunta: '¿Cómo lleno un checklist de pre-uso o inspección de un vehículo?',
+        respuesta:
+          'Ve a Flota > Checklists > Nuevo checklist. Elige el vehículo (se sugiere la plantilla según el tipo: liviano, camión o equipo), responde cada punto con OK / NO / N/A y agrega comentarios. Si marcas NO en un punto crítico (frenos, luces, neumáticos, cinturón, extintor, alarma de retroceso…), se genera una alerta a Flota/Mantenimiento y el checklist queda marcado como crítico hasta que alguien lo atienda desde el mismo módulo.',
+      },
+    ],
+  },
+  {
+    id: 'tecnologia',
+    titulo: 'Tecnología',
+    items: [
+      {
+        pregunta: '¿Qué herramienta oficial usamos para cada cosa?',
+        respuesta:
+          'En Tecnología > Guía de herramientas (visible para todos) verás la homologación de la empresa: Google Drive para la nube, Claude para IA, Fireflies para notas de reuniones y Google Meet para reuniones (no Teams). La lista se mantiene actualizada por el área de Tecnología.',
+      },
+      {
+        pregunta: '¿Dónde se gestionan el inventario tecnológico y las compras de tecnología?',
+        respuesta:
+          'Con el módulo "Tecnología": en Tecnología > Inventario tecnológico se registran laptops, cámaras, teléfonos, impresoras, etc., con su estado y a qué empleado están asignados (con historial). En Tecnología > Compras tecnológicas el encargado crea solicitudes que van a Compras/Gerencia para aprobación, igual que cualquier compra. La matriz puesto × herramienta define qué necesita cada puesto.',
       },
     ],
   },

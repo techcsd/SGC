@@ -124,6 +124,14 @@ export class Dashboard implements OnInit {
       icon: 'tareas',
       color: '#0F766E',
     },
+    {
+      label: 'Tecnología',
+      description: 'Homologación de herramientas, inventario tecnológico y compras.',
+      route: '/tecnologia/homologacion',
+      modulo: 'tecnologia',
+      icon: 'tecnologia',
+      color: '#1D4ED8',
+    },
   ];
 
   isAdmin = computed(() => this.userService.hasRole('admin'));

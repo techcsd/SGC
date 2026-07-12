@@ -133,6 +133,26 @@ export class RealtimeNotificacionesService {
       );
     }
 
+    // ── Checklists de flota con ítem crítico en NO → alerta operativa (flota/admin) ──
+    if (isAdmin || this.userService.hasModulo('flota')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-checklists-flota')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'checklists_vehiculo' }, (p) => {
+            const c = p.new as { tiene_criticos: boolean };
+            if (c.tiene_criticos) {
+              this.toast.warning(
+                'Checklist con ítem crítico',
+                'Un vehículo reportó un punto crítico en NO. Revisa Flota → Checklists.',
+                '/flota/checklists',
+              );
+            }
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
+
     // ── Severe-weather alerts (for proyectos/bitacora/admin) ──
     if (isAdmin || this.userService.hasModulo('proyectos') || this.userService.hasModulo('bitacora')) {
       this.channels.push(

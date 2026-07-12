@@ -122,6 +122,7 @@ export class Shell implements OnInit {
         { label: 'Conductores', route: '/flota/conductores' },
         { label: 'Combustible', route: '/flota/combustible' },
         { label: 'Rutas', route: '/flota/rutas' },
+        { label: 'Checklists', route: '/flota/checklists' },
         { label: 'Responsabilidad', route: '/flota/responsabilidad' },
         { label: 'Reportes', route: '/flota/reportes' },
       ],
@@ -168,6 +169,19 @@ export class Shell implements OnInit {
         { label: 'Mis tareas', route: '/tareas/mis-tareas' },
         { label: 'Gestión de tareas', route: '/tareas/gestion', modulo: 'tareas' },
         { label: 'Historial', route: '/tareas/historial' },
+      ],
+    },
+    {
+      // Sin `modulo`: la guía de homologación es informativa para todos.
+      // Las secciones de gestión se gatean con el módulo 'tecnologia'.
+      label: 'Tecnología',
+      icon: 'tecnologia',
+      children: [
+        { label: 'Guía de herramientas', route: '/tecnologia/guia' },
+        { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
+        { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
+        { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
+        { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
       ],
     },
     {
