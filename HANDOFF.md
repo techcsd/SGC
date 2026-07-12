@@ -72,10 +72,19 @@ End-to-end click-through (his manual QA workflow):
   can requisition" validation NOT enforced in the shared RPC (do it when extending A2/A4).
   Guarda-Almacén role value `guarda_almacen` is queryable for A5.
 
-### ⏳ Pending — A3(.1) cuadre+kit, A4, A5, A8, A9 (not started)
+### ✅ Done — A8 Expediente de inicio de obra (commit `a1cf7b2`, build passing, migration live)
+- `sql/2026-07-12-expediente-obra.sql`: `expediente_obra` (checklist por doc/proyecto,
+  estado pendiente/cargado/validado/no_aplica), RLS (proyectos/legal/admin) + grants,
+  RPC `sembrar_expediente_obra` (11 docs §6.1.1, idempotent), view
+  `v_expediente_obra_resumen` (security_invoker) for KPI.
+- Component `<app-expediente-obra>` in Proyectos detail (init, per-doc estado/responsable/
+  file upload to `sgc-documentos`, completeness bar). Dirección KPI "expediente incompleto".
+- No montos exposed (section under proyectos module; obra roles lack it).
+
+### ⏳ Pending — A3.1 cuadre+kit, A4, A5, A9, Parte B
 - **A3 + A3.1** — cuadre inicial + 4 fases 25/50/75/100 (extend `fases_proyecto`,
   new `cuadre_*` tables), Kit de inicio plantilla (3 cats ALMACÉN/OFICINA/COCINA Y BAÑO,
-  flag prorrateado, seed from the Excel; also = A8 "materiales mínimos" + stock mínimo por obra).
+  flag prorrateado, seed from the Excel; also feeds A8 "materiales mínimos" + stock mínimo por obra).
   Consumption discount hooks INTO `aprobar_requisicion` (needs A2 QA first).
 - **A4** — silent antifraud engine: hook consumption vs cuadre-por-fase INTO
   `aprobar_requisicion`; alerts table (weather_alerts realtime+RLS pattern) → Dirección panel;
