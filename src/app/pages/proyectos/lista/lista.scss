@@ -547,6 +547,37 @@
     }
   }
 
+  // A3.2 — alta de miembro del Equipo de Obra (rol + modo + persona + fecha)
+  &__add-miembro--obra {
+    grid-template-columns: 1fr auto 1.4fr auto auto;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__miembro-modo {
+    display: inline-flex;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    overflow: hidden;
+  }
+
+  &__toggle {
+    border: none;
+    background: var(--sgc-surface);
+    color: var(--sgc-text-muted);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--sgc-transition-fast);
+
+    &--active {
+      background: var(--sgc-primary);
+      color: #fff;
+    }
+  }
+
   &__btn-icon--danger {
     color: var(--sgc-danger);
 

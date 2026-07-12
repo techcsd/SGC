@@ -25,6 +25,8 @@ import {
   PROYECTO_TIPOS,
   FASE_ESTADOS,
   ROLES_PROYECTO,
+  ROLES_OBRA,
+  rolObraLabel,
 } from '../../../../shared/models/proyecto.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
@@ -79,8 +81,15 @@ export class Lista implements OnInit {
   gastoReal = signal<number>(0);
   equipo = signal<ProyectoEmpleado[]>([]);
   equipoLoading = signal(false);
-  nuevoMiembroEmpleadoId = signal<string>('');
+  // A3.2 — alta de miembro del Equipo de Obra
   nuevoMiembroRol = signal<string>('');
+  nuevoMiembroModo = signal<'empleado' | 'externo'>('empleado');
+  nuevoMiembroEmpleadoId = signal<string>('');
+  nuevoMiembroExternoNombre = signal<string>('');
+  nuevoMiembroExternoTipo = signal<string>('');
+  nuevoMiembroDesde = signal<string>('');
+  miembroError = signal<string>('');
+  rolObraLabel = rolObraLabel;
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -110,6 +119,7 @@ export class Lista implements OnInit {
   readonly PROYECTO_ESTADOS = PROYECTO_ESTADOS;
   readonly PROYECTO_TIPOS = PROYECTO_TIPOS;
   readonly ROLES_PROYECTO = ROLES_PROYECTO;
+  readonly ROLES_OBRA = ROLES_OBRA;
   readonly FASE_ESTADOS = [
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'en_progreso', label: 'En progreso' },
@@ -346,31 +356,66 @@ export class Lista implements OnInit {
     this.selectedProyecto.set(null);
   }
 
-  // ── Team assignment ────────────────────────────────────────
+  // ── Equipo de Obra (A3.2) ──────────────────────────────────
   onNuevoMiembroChange(value: string) {
     this.nuevoMiembroEmpleadoId.set(value);
   }
 
+  /** Al elegir rol, sugiere el modo (los roles externos → entidad externa). */
   onNuevoMiembroRolChange(value: string) {
     this.nuevoMiembroRol.set(value);
+    const rol = ROLES_OBRA.find((r) => r.value === value);
+    this.nuevoMiembroModo.set(rol?.externo ? 'externo' : 'empleado');
+    if (rol?.value === 'topografo') this.nuevoMiembroExternoTipo.set('topografia');
+    else if (rol?.value === 'subcontratista') this.nuevoMiembroExternoTipo.set('subcontratista');
+  }
+
+  setMiembroModo(modo: 'empleado' | 'externo') {
+    this.nuevoMiembroModo.set(modo);
   }
 
   async addMiembro() {
     const proyecto = this.selectedProyecto();
-    const empleadoId = this.nuevoMiembroEmpleadoId();
-    if (!proyecto || !empleadoId) return;
+    if (!proyecto) return;
+    this.miembroError.set('');
+
+    const rol = this.nuevoMiembroRol();
+    if (!rol) {
+      this.miembroError.set('Selecciona el rol del miembro.');
+      return;
+    }
+    const modo = this.nuevoMiembroModo();
+    const empleadoId = modo === 'empleado' ? this.nuevoMiembroEmpleadoId() : '';
+    const externoNombre = modo === 'externo' ? this.nuevoMiembroExternoNombre().trim() : '';
+
+    if (modo === 'empleado' && !empleadoId) {
+      this.miembroError.set('Selecciona el empleado.');
+      return;
+    }
+    if (modo === 'externo' && !externoNombre) {
+      this.miembroError.set('Escribe el nombre de la entidad externa.');
+      return;
+    }
 
     try {
-      const added = await this.proyectosService.addEmpleado(
-        proyecto.id,
-        empleadoId,
-        this.nuevoMiembroRol() || null,
-      );
+      const added = await this.proyectosService.addMiembro(proyecto.id, {
+        empleado_id: empleadoId || null,
+        externo_nombre: externoNombre || null,
+        externo_tipo: modo === 'externo' ? this.nuevoMiembroExternoTipo() || 'otro' : null,
+        rol,
+        desde: this.nuevoMiembroDesde() || null,
+        hasta: null,
+        notas: null,
+      });
       this.equipo.update((list) => [...list, added]);
-      this.nuevoMiembroEmpleadoId.set('');
       this.nuevoMiembroRol.set('');
+      this.nuevoMiembroEmpleadoId.set('');
+      this.nuevoMiembroExternoNombre.set('');
+      this.nuevoMiembroExternoTipo.set('');
+      this.nuevoMiembroDesde.set('');
+      this.nuevoMiembroModo.set('empleado');
     } catch (e: unknown) {
-      console.error('Error adding team member:', e);
+      this.miembroError.set(e instanceof Error ? e.message : 'Error al agregar el miembro.');
     }
   }
 

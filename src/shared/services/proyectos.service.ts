@@ -8,7 +8,13 @@
 
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { FaseProyecto, Proyecto, ProyectoEmpleado, ProyectoEstado } from '../models/proyecto.model';
+import {
+  FaseProyecto,
+  Proyecto,
+  ProyectoEmpleado,
+  ProyectoEstado,
+  EquipoMiembroFormData,
+} from '../models/proyecto.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProyectosService {
@@ -176,22 +182,49 @@ export class ProyectosService {
       .schema('sgc')
       .from('proyecto_empleados')
       .select('*, empleado:empleados(nombre, apellido, cargo)')
-      .eq('proyecto_id', proyectoId);
+      .eq('proyecto_id', proyectoId)
+      .order('created_at', { ascending: true });
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as ProyectoEmpleado[];
   }
 
-  async addEmpleado(proyectoId: string, empleadoId: string, rol: string | null): Promise<ProyectoEmpleado> {
+  /**
+   * A3.2 — Agrega un miembro al Equipo de Obra: empleado de RRHH o entidad externa
+   * (topógrafo/subcontratista), con rol del catálogo y vigencia opcional.
+   */
+  async addMiembro(proyectoId: string, m: EquipoMiembroFormData): Promise<ProyectoEmpleado> {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyecto_empleados')
-      .insert({ proyecto_id: proyectoId, empleado_id: empleadoId, rol })
+      .insert({
+        proyecto_id: proyectoId,
+        empleado_id: m.empleado_id,
+        externo_nombre: m.externo_nombre,
+        externo_tipo: m.externo_tipo,
+        rol: m.rol,
+        desde: m.desde,
+        hasta: m.hasta,
+        notas: m.notas,
+      })
       .select('*, empleado:empleados(nombre, apellido, cargo)')
       .single();
 
     if (error) throw new Error(error.message);
     return data as unknown as ProyectoEmpleado;
+  }
+
+  /** @deprecated Usa addMiembro (A3.2). Se conserva por compatibilidad. */
+  async addEmpleado(proyectoId: string, empleadoId: string, rol: string | null): Promise<ProyectoEmpleado> {
+    return this.addMiembro(proyectoId, {
+      empleado_id: empleadoId,
+      externo_nombre: null,
+      externo_tipo: null,
+      rol: rol ?? '',
+      desde: null,
+      hasta: null,
+      notas: null,
+    });
   }
 
   /** Proyectos the given usuario is assigned to as team member (via empleados -> proyecto_empleados). */

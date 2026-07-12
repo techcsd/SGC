@@ -435,68 +435,107 @@
       <!-- Documentos: contrato, presupuesto, cronograma, manual de ejecución -->
       <app-documentos-proyecto [proyectoId]="p.id" />
 
-      <!-- Equipo asignado -->
+      <!-- Equipo de Obra (A3.2) -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Equipo asignado</h3>
+          <h3 class="proyectos__fases-title">Equipo de Obra</h3>
         </div>
 
         @if (equipoLoading()) {
           <p class="proyectos__fases-loading">Cargando equipo…</p>
         } @else {
           @if (equipo().length === 0) {
-            <p class="proyectos__fases-empty">Sin empleados asignados a este proyecto.</p>
+            <p class="proyectos__fases-empty">Sin miembros asignados a esta obra.</p>
           } @else {
             @for (m of equipo(); track m.id) {
               <div class="proyectos__fase-card">
                 <div class="proyectos__fase-info">
                   <div>
                     <p class="proyectos__fase-nombre">
-                      {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
                       @if (m.rol) {
-                        <span class="text-muted"> — {{ m.rol }}</span>
+                        <span class="sgc-badge sgc-badge--info">{{ rolObraLabel(m.rol) }}</span>
+                      }
+                      @if (m.empleado_id) {
+                        {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
+                      } @else {
+                        {{ m.externo_nombre }}
+                        <span class="text-muted"> (externo)</span>
                       }
                     </p>
-                    <p class="proyectos__fase-desc">{{ m.empleado?.cargo }}</p>
+                    <p class="proyectos__fase-desc">
+                      @if (m.empleado_id) {
+                        {{ m.empleado?.cargo }}
+                      } @else {
+                        {{ m.externo_tipo === 'topografia' ? 'Topografía subcontratada' : (m.externo_tipo === 'subcontratista' ? 'Subcontratista' : 'Entidad externa') }}
+                      }
+                      @if (m.desde) { · desde {{ formatFecha(m.desde) }} }
+                    </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   class="proyectos__btn-icon proyectos__btn-icon--danger"
                   (click)="removeMiembro(m.id)"
-                  [attr.aria-label]="'Quitar ' + m.empleado?.nombre + ' del equipo'"
+                  [attr.aria-label]="'Quitar miembro del equipo'"
                 >✕</button>
               </div>
             }
           }
 
-          <div class="proyectos__add-miembro">
+          <!-- Alta de miembro -->
+          <div class="proyectos__add-miembro proyectos__add-miembro--obra">
             <select
-              [value]="nuevoMiembroEmpleadoId()"
-              (change)="onNuevoMiembroChange($any($event.target).value)"
-              aria-label="Seleccionar empleado"
+              [value]="nuevoMiembroRol()"
+              (change)="onNuevoMiembroRolChange($any($event.target).value)"
+              aria-label="Rol en la obra"
             >
-              <option value="">Seleccionar empleado…</option>
-              @for (e of empleadosDisponibles(); track e.id) {
-                <option [value]="e.id">{{ e.apellido }}, {{ e.nombre }} — {{ e.cargo }}</option>
+              <option value="">Rol en la obra…</option>
+              @for (r of ROLES_OBRA; track r.value) {
+                <option [value]="r.value">{{ r.label }}</option>
               }
             </select>
+
+            <div class="proyectos__miembro-modo">
+              <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'empleado'" (click)="setMiembroModo('empleado')">Empleado</button>
+              <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'externo'" (click)="setMiembroModo('externo')">Externo</button>
+            </div>
+
+            @if (nuevoMiembroModo() === 'empleado') {
+              <select
+                [value]="nuevoMiembroEmpleadoId()"
+                (change)="onNuevoMiembroChange($any($event.target).value)"
+                aria-label="Seleccionar empleado"
+              >
+                <option value="">Seleccionar empleado…</option>
+                @for (e of empleadosDisponibles(); track e.id) {
+                  <option [value]="e.id">{{ e.apellido }}, {{ e.nombre }} — {{ e.cargo }}</option>
+                }
+              </select>
+            } @else {
+              <input
+                type="text"
+                placeholder="Nombre de la empresa/entidad externa"
+                [value]="nuevoMiembroExternoNombre()"
+                (input)="nuevoMiembroExternoNombre.set($any($event.target).value)"
+                aria-label="Nombre de la entidad externa"
+              />
+            }
+
             <input
-              type="text"
-              list="roles-proyecto-list"
-              placeholder="Rol en el proyecto (opcional)"
-              [value]="nuevoMiembroRol()"
-              (input)="onNuevoMiembroRolChange($any($event.target).value)"
+              type="date"
+              [value]="nuevoMiembroDesde()"
+              (change)="nuevoMiembroDesde.set($any($event.target).value)"
+              aria-label="Vigente desde"
+              title="Vigente desde (opcional)"
             />
-            <datalist id="roles-proyecto-list">
-              @for (r of ROLES_PROYECTO; track r) {
-                <option [value]="r"></option>
-              }
-            </datalist>
-            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()" [disabled]="!nuevoMiembroEmpleadoId()">
+
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()">
               + Agregar
             </button>
           </div>
+          @if (miembroError()) {
+            <p class="proyectos__save-error" role="alert">{{ miembroError() }}</p>
+          }
         }
       </div>
 
