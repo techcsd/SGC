@@ -76,6 +76,7 @@ export class Shell implements OnInit {
         { label: 'Salidas', route: '/inventario/salidas' },
         { label: 'Conduces', route: '/inventario/conduces' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos' },
+        { label: 'Reposición', route: '/inventario/reposicion' },
         { label: 'Almacenes', route: '/inventario/bodegas' },
         { label: 'Reportes', route: '/inventario/reportes' },
       ],

@@ -21,8 +21,13 @@
     @for (s of solicitudesPendientes(); track s.id) {
       <div class="solicitudes-panel__item">
         <div class="solicitudes-panel__info">
-          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? '—' }}</span>
+          <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? 'Sin proyecto' }}</span>
           <span class="solicitudes-panel__solicitante">{{ s.solicitante?.nombre }}</span>
+          @if (s.origen_requisicion_id) {
+            <span class="sgc-badge sgc-badge--info" title="Faltante generado automáticamente al aprobar una requisición">Desde requisición</span>
+          } @else if (s.categoria === 'tecnologia') {
+            <span class="sgc-badge sgc-badge--neutral">Tecnología</span>
+          }
         </div>
         <p class="solicitudes-panel__items">
           @for (item of s.items; track item.id) {

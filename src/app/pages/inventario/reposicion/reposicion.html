@@ -1,0 +1,71 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Reposición de almacén</h1>
+    <span class="page-count">{{ rows().length }} por reponer</span>
+  </div>
+</div>
+
+<p class="rep-lead">
+  Artículos que están en o por debajo de su <strong>stock mínimo</strong> en el almacén seleccionado.
+  Úsalo para reponer a tiempo el almacén de obra.
+</p>
+
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedBodega()"
+      (change)="onBodegaChange($any($event.target).value)"
+      aria-label="Seleccionar almacén"
+    >
+      <option value="">Seleccionar almacén…</option>
+      @for (b of bodegas(); track b.id) {
+        <option [value]="b.id">{{ b.nombre }}</option>
+      }
+    </select>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="text-muted">Cargando…</p>
+} @else if (cargado()) {
+  <div class="table-wrapper sgc-card">
+    @if (rows().length === 0) {
+      <div class="table-empty">
+        <p>Todo el stock de este almacén está por encima del mínimo. 👍</p>
+      </div>
+    } @else {
+      <table class="data-table" aria-label="Artículos por reponer">
+        <thead>
+          <tr>
+            <th>Artículo</th>
+            <th>Código</th>
+            <th class="text-right">Mínimo</th>
+            <th class="text-right">Actual</th>
+            <th class="text-right">Faltante</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.articulo_id) {
+            <tr [class.rep-row--critico]="r.actual === 0">
+              <td>{{ r.nombre }}</td>
+              <td class="text-muted">{{ r.codigo }}</td>
+              <td class="text-right">{{ r.minimo }} {{ r.unidad }}</td>
+              <td class="text-right">{{ r.actual }}</td>
+              <td class="text-right">
+                <span class="sgc-badge" [class.sgc-badge--danger]="r.actual === 0" [class.sgc-badge--warning]="r.actual > 0">
+                  {{ r.faltante }} {{ r.unidad }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+} @else {
+  <p class="text-muted">Elige un almacén para ver qué hay que reponer.</p>
+}

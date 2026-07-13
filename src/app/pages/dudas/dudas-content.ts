@@ -217,6 +217,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'En Inventario > Artículos usa "Nuevo artículo" (las categorías se gestionan desde el mismo formulario). Los almacenes se administran en Inventario > Almacenes.',
       },
       {
+        pregunta: '¿Cómo sé qué materiales hay que reponer en un almacén?',
+        respuesta:
+          'Ve a Inventario > Reposición y elige el almacén. Verás los artículos que están en o por debajo de su stock mínimo, con la cantidad faltante (los que están en cero se marcan como críticos). Es una guía operativa de reposición para el almacén de obra — no maneja montos ni presupuesto.',
+      },
+      {
         pregunta: '¿Cómo hago el chequeo semanal de un almacén?',
         respuesta:
           'Ve a Inventario > Conteos > "Nuevo chequeo semanal", elige el almacén y ajusta la cantidad física de cada artículo (el sistema precarga la cantidad registrada). Al guardar, el stock se ajusta al conteo físico y las diferencias se reportan automáticamente a Dirección. Cada almacén de obra tiene además una tarea semanal recordatoria asignada a su Guarda-Almacén.',
@@ -305,6 +310,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo creo un proyecto y le asigno el Equipo de Obra?',
         respuesta:
           'Ve a Proyectos > Nuevo proyecto. Una vez creado, entra al detalle: en "Equipo de Obra" asignas los roles del procedimiento (Ingeniero Responsable, Ingeniero Residente, Capataz, Maestro de Acero, Maestro de Encofrado, Encargado de Seguridad, Guarda-Almacén, Topógrafo, cuadrillas y subcontratistas). Cada miembro puede ser un empleado de RRHH o una entidad externa (topógrafo/subcontratista). Esto también determina qué ingenieros trabajan ese proyecto en Bitácora.',
+      },
+      {
+        pregunta: '¿Qué es el "Cuadre inicial de materiales" y cómo lo uso?',
+        respuesta:
+          'Es la estimación de materiales de la obra distribuida en las 4 fases de avance (25/50/75/100%). En el detalle del proyecto pulsa "Inicializar cuadre + kit de inicio": se copia el Kit de inicio de obra (almacén, oficina, cocina y baño) y puedes agregar los materiales estimados con su reparto por fase. A medida que se aprueban requisiciones, el sistema descuenta el consumo real contra el cuadre de la fase activa; si se excede, genera una alerta silenciosa a Dirección (el ingeniero nunca ve el cuadre ni los límites). Es información de gerencia — vive en el módulo Proyectos.',
       },
       {
         pregunta: '¿Qué es el Expediente de inicio de obra y cómo lo completo?',
@@ -418,6 +428,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Una vista ejecutiva del negocio: proyectos activos, empleados, incidentes, expedientes legales, presupuesto vs. gasto, y gráficos de proyectos por estado, tareas por estado y desempeño por proyecto. Está pensado para la gerencia.',
       },
+      {
+        pregunta: '¿Qué son las alertas de "Control de materiales" y quién las ve?',
+        respuesta:
+          'Son alertas antifraude silenciosas: el sistema compara el consumo real de materiales de cada obra contra lo estimado en su cuadre por fase (25/50/75/100%) y avisa cuando una obra consume más de lo previsto, o cuando un chequeo de almacén arroja diferencias. Solo las ven Dirección, Gerencia y Administración — nunca el ingeniero ni el personal de obra, y nunca bloquean la operación. Desde el panel puedes marcar cada alerta "en revisión" o "resuelta". Los umbrales (80% advertencia / 100% alerta) se ajustan en Administración > Parámetros.',
+      },
     ],
   },
   {
@@ -447,6 +462,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo creo un nuevo rol?',
         respuesta: 'Ve a Administración > Roles > Nuevo rol y selecciona los módulos que ese rol debe poder ver.',
+      },
+      {
+        pregunta: '¿Dónde ajusto los umbrales de las alertas de materiales?',
+        respuesta:
+          'En Administración > Parámetros. `alerta_cuadre_umbral_advertencia` (por defecto 80) dispara una advertencia temprana y `alerta_cuadre_umbral_alerta` (por defecto 100) dispara la alerta cuando el consumo llega a ese % del estimado de la fase. Edita el valor y guarda.',
       },
     ],
   },
