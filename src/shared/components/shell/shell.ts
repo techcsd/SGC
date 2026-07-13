@@ -56,6 +56,8 @@ export class Shell implements OnInit {
   profile = this.userService.profile;
   avatarUrl = this.userService.avatarUrl;
   collapsed = signal(false);
+  /** Mobile off-canvas drawer (≤768px); independent of the desktop `collapsed`. */
+  mobileNavOpen = signal(false);
   expandedSection = signal<string | null>('inventario');
 
   // ── Notification center (header bell) ──
@@ -277,8 +279,9 @@ export class Shell implements OnInit {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.notificaciones.refresh();
-        // Close the bell dropdown when navigating away.
+        // Close the bell dropdown + mobile drawer when navigating away.
         this.notifOpen.set(false);
+        this.mobileNavOpen.set(false);
       }
     });
   }
@@ -324,6 +327,14 @@ export class Shell implements OnInit {
       localStorage.setItem('sgc-sidebar-collapsed', String(next));
       return next;
     });
+  }
+
+  toggleMobileNav() {
+    this.mobileNavOpen.update((v) => !v);
+  }
+
+  closeMobileNav() {
+    this.mobileNavOpen.set(false);
   }
 
   toggleSection(label: string) {
