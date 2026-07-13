@@ -102,7 +102,18 @@ End-to-end click-through (his manual QA workflow):
   expediente % counts no_aplica; requisición split-result numeric defaults; Compras shows origin ("Desde requisición"/"Tecnología").
 - **New: Inventario > Reposición** — artículos en/bajo stock mínimo por almacén (obra-safe, sin montos) = the A3.1 reposición signal.
 - Dudas expanded (antifraud panel, cuadre/kit, Parámetros, Reposición); CLAUDE.md módulos list updated.
-- **Known deferred (recommendations, not built):** requisición↔Equipo-de-Obra enforcement; `cuadre_obra.fase_activa` auto-advance from real avance; A2 `cerrada` closeout state; kit→catálogo auto-mapping so reposición reflects the kit-minimum (today uses `articulos.stock_minimo`); A8 elemento/frente + N° de vaciado entities for CL-01..07.
+### ✅ Recommendations round (all 5 built + deployed to prod) — `sql/2026-07-13-recomendaciones.sql`
+1. **Requisición↔Equipo enforcement** — `sgc.requisicion_permitida` + parámetro `requisicion_validar_equipo`
+   (default **FALSE** = no behavior change). Set to `true` in Admin>Parámetros once equipos are configured;
+   then only the assigned Ing. Residente/Responsable (or Almacén/Admin) requisitions; projects w/o equipo not blocked.
+2. **fase_activa auto-advance** — `cuadre_obra.fase_auto` + `fase_por_avance()` + trigger on `fases_proyecto`;
+   cuadre editor has an "auto" toggle (manual change disables it).
+3. **`cerrada` estado** — CHECK expanded + trigger auto-closes a requisición when its salida is confirmed
+   entregado (and no pending purchase). Web + app labels updated.
+4. **Reposición uses kit-minimum** — `sgc.reposicion_almacen` (SECURITY DEFINER, obra-safe) overlays the
+   cuadre kit-min on `articulos.stock_minimo`; Reposición page uses it; cuadre add-item exposes "es_min_stock".
+5. **Roadmap CL-01..07 schema** — `obra_elementos` / `obra_vaciados` (N° de vaciado) / `obra_no_conformidades`
+   (NC-abierta-bloquea-vaciado) tables + RLS/grants. Schema only (no UI yet).
 
 ### ✅ PARTE A COMPLETE (A1–A9) + review round. Pending: Parte B mobile APK publish (Xavier's device step).
 - **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
