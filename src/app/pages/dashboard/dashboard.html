@@ -21,30 +21,40 @@
 
     <!-- KPI cards -->
     <div class="kpi-grid">
-      <div class="kpi-card kpi-card--primary">
-        <span class="kpi-label">Valor de inventario</span>
-        <span class="kpi-value">RD$ {{ valorInventario() | number:'1.0-0' }}</span>
-      </div>
-      <div class="kpi-card kpi-card--warning">
-        <span class="kpi-label">Artículos en stock crítico</span>
-        <span class="kpi-value">{{ stockCritico() }}</span>
-      </div>
-      <div class="kpi-card kpi-card--info">
-        <span class="kpi-label">Compras este mes</span>
-        <span class="kpi-value">RD$ {{ gastoComprasDelMes() | number:'1.0-0' }}</span>
-      </div>
-      <div class="kpi-card kpi-card--success">
-        <span class="kpi-label">Empleados activos</span>
-        <span class="kpi-value">{{ empleadosActivos() }}</span>
-      </div>
-      <div class="kpi-card kpi-card--purple">
-        <span class="kpi-label">Proyectos en progreso</span>
-        <span class="kpi-value">{{ proyectosActivos() }}</span>
-      </div>
-      <div class="kpi-card kpi-card--danger">
-        <span class="kpi-label">Vehículos activos</span>
-        <span class="kpi-value">{{ vehiculosActivos() }}</span>
-      </div>
+      @if (canSee('inventario')) {
+        <div class="kpi-card kpi-card--primary">
+          <span class="kpi-label">Valor de inventario</span>
+          <span class="kpi-value">RD$ {{ valorInventario() | number:'1.0-0' }}</span>
+        </div>
+        <div class="kpi-card kpi-card--warning">
+          <span class="kpi-label">Artículos en stock crítico</span>
+          <span class="kpi-value">{{ stockCritico() }}</span>
+        </div>
+      }
+      @if (canSee('compras')) {
+        <div class="kpi-card kpi-card--info">
+          <span class="kpi-label">Compras este mes</span>
+          <span class="kpi-value">RD$ {{ gastoComprasDelMes() | number:'1.0-0' }}</span>
+        </div>
+      }
+      @if (canSee('rrhh')) {
+        <div class="kpi-card kpi-card--success">
+          <span class="kpi-label">Empleados activos</span>
+          <span class="kpi-value">{{ empleadosActivos() }}</span>
+        </div>
+      }
+      @if (canSee('proyectos')) {
+        <div class="kpi-card kpi-card--purple">
+          <span class="kpi-label">Proyectos en progreso</span>
+          <span class="kpi-value">{{ proyectosActivos() }}</span>
+        </div>
+      }
+      @if (canSee('flota')) {
+        <div class="kpi-card kpi-card--danger">
+          <span class="kpi-label">Vehículos activos</span>
+          <span class="kpi-value">{{ vehiculosActivos() }}</span>
+        </div>
+      }
       @if (canSeeSolicitudes()) {
         <div class="kpi-card kpi-card--warning">
           <span class="kpi-label">Solicitudes pendientes</span>
@@ -92,6 +102,7 @@
     <div class="chart-grid">
 
       <!-- Movimientos de inventario (7 días) -->
+      @if (canSee('inventario')) {
       <section class="chart-card chart-card--wide" aria-labelledby="mov-title">
         <h2 class="chart-title" id="mov-title">Movimientos de inventario — últimos 7 días</h2>
         @if (movimientosMax() <= 1 && movimientosChart().length === 0) {
@@ -114,8 +125,10 @@
           </div>
         }
       </section>
+      }
 
       <!-- Órdenes de compra por estado -->
+      @if (canSee('compras')) {
       <section class="chart-card" aria-labelledby="ordenes-title">
         <h2 class="chart-title" id="ordenes-title">Órdenes de compra por estado</h2>
         @if (donutTotal(ordenesPorEstado()) === 0) {
@@ -140,8 +153,10 @@
           </div>
         }
       </section>
+      }
 
       <!-- Asistencia de hoy -->
+      @if (canSee('rrhh')) {
       <section class="chart-card" aria-labelledby="asistencia-title">
         <h2 class="chart-title" id="asistencia-title">Asistencia de hoy</h2>
         @if (donutTotal(asistenciaChart()) === 0) {
@@ -166,8 +181,10 @@
           </div>
         }
       </section>
+      }
 
       <!-- Stock por categoría -->
+      @if (canSee('inventario')) {
       <section class="chart-card" aria-labelledby="stock-title">
         <h2 class="chart-title" id="stock-title">Stock por categoría (top 6)</h2>
         @if (stockPorCategoria().length === 0) {
@@ -186,8 +203,10 @@
           </div>
         }
       </section>
+      }
 
       <!-- Proyectos por estado -->
+      @if (canSee('proyectos') || canSee('direccion')) {
       <section class="chart-card" aria-labelledby="proyectos-title">
         <h2 class="chart-title" id="proyectos-title">Proyectos por estado</h2>
         @if (proyectosPorEstado().length === 0) {
@@ -204,11 +223,15 @@
               </div>
             }
           </div>
-          <div class="chart-footnote">Presupuesto total: RD$ {{ presupuestoTotalProyectos() | number:'1.0-0' }}</div>
+          @if (canVerMontos()) {
+            <div class="chart-footnote">Presupuesto total: RD$ {{ presupuestoTotalProyectos() | number:'1.0-0' }}</div>
+          }
         }
       </section>
+      }
 
       <!-- Flota -->
+      @if (canSee('flota')) {
       <section class="chart-card" aria-labelledby="flota-title">
         <h2 class="chart-title" id="flota-title">Estado de la flota</h2>
         @if (donutTotal(vehiculosPorEstado()) === 0) {
@@ -234,8 +257,10 @@
           <div class="chart-footnote">Mantenimientos pendientes: {{ mantenimientosPendientes() }}</div>
         }
       </section>
+      }
 
       <!-- Empleados por departamento -->
+      @if (canSee('rrhh')) {
       <section class="chart-card" aria-labelledby="dept-title">
         <h2 class="chart-title" id="dept-title">Empleados por departamento</h2>
         @if (empleadosPorDepartamento().length === 0) {
@@ -254,6 +279,27 @@
           </div>
         }
       </section>
+      }
+
+      <!-- Ranking de Encargados (compacto) -->
+      @if (canSeeRanking() && ranking().length > 0) {
+        <section class="chart-card" aria-labelledby="ranking-title">
+          <h2 class="chart-title" id="ranking-title">Ranking de encargados</h2>
+          <ol class="rank-list">
+            @for (r of ranking(); track r.proyecto) {
+              <li class="rank-list__item">
+                <span class="rank-list__pos">{{ r.pos }}</span>
+                <span class="rank-list__name">
+                  {{ r.encargado }}
+                  <small class="rank-list__proy">{{ r.proyecto }} · avance {{ r.avance }}%</small>
+                </span>
+                <span class="rank-list__score">{{ r.score }}</span>
+              </li>
+            }
+          </ol>
+          <a class="chart-footnote chart-footnote--link" routerLink="/proyectos/kpi">Ver ranking completo →</a>
+        </section>
+      }
 
       <!-- Solicitudes pendientes (Bitácora → Inventario/Compras) -->
       @if (canSeeSolicitudes()) {

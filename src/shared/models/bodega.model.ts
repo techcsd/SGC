@@ -5,6 +5,9 @@ export interface Bodega {
   ubicacion: string | null;
   activo: boolean;
   created_at: string;
+  proyecto_id?: string | null;
+  es_principal?: boolean;
+  proyecto?: { nombre: string } | null;
 }
 
 export interface BodegaFormData {
@@ -12,4 +15,6 @@ export interface BodegaFormData {
   descripcion: string | null;
   ubicacion: string | null;
   activo: boolean;
+  proyecto_id: string | null;
+  es_principal: boolean;
 }

@@ -9,7 +9,7 @@ export class BodegasService {
   async getAll(): Promise<Bodega[]> {
     const { data, error } = await this.supabase.client
       .from('bodegas')
-      .select('*')
+      .select('*, proyecto:proyectos(nombre)')
       .order('nombre');
 
     if (error) throw new Error(error.message);
@@ -20,7 +20,7 @@ export class BodegasService {
     const { data, error } = await this.supabase.client
       .from('bodegas')
       .insert(formData)
-      .select('*')
+      .select('*, proyecto:proyectos(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
@@ -32,7 +32,7 @@ export class BodegasService {
       .from('bodegas')
       .update(formData)
       .eq('id', id)
-      .select('*')
+      .select('*, proyecto:proyectos(nombre)')
       .single();
 
     if (error) throw new Error(error.message);

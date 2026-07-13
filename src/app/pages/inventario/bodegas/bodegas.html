@@ -81,6 +81,7 @@
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Obra</th>
             <th>Ubicación</th>
             <th>Descripción</th>
             <th>Estado</th>
@@ -93,6 +94,15 @@
             <tr [class.row--inactive]="!bodega.activo">
               <td>
                 <span class="bodega-nombre">{{ bodega.nombre }}</span>
+              </td>
+              <td>
+                @if (bodega.es_principal) {
+                  <span class="sgc-badge sgc-badge--info">Principal (global)</span>
+                } @else if (bodega.proyecto?.nombre) {
+                  <span class="text-muted">{{ bodega.proyecto?.nombre }}</span>
+                } @else {
+                  <span class="text-muted">General</span>
+                }
               </td>
               <td class="text-muted">{{ bodega.ubicacion ?? '—' }}</td>
               <td class="text-muted">{{ bodega.descripcion ?? '—' }}</td>
@@ -217,6 +227,29 @@
         rows="2"
         placeholder="Notas adicionales sobre el almacén…"
       ></textarea>
+    </div>
+
+    <div class="sgc-field">
+      <label for="proyecto_id">Obra (almacén de obra)</label>
+      <select id="proyecto_id" formControlName="proyecto_id">
+        <option [value]="null">Almacén general (sin obra)</option>
+        @for (proyecto of proyectos(); track proyecto.id) {
+          <option [value]="proyecto.id">{{ proyecto.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-toggle">
+      <label class="toggle-label" for="es_principal">
+        <input
+          id="es_principal"
+          type="checkbox"
+          formControlName="es_principal"
+          class="toggle-input"
+        />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Almacén principal (global)
+      </label>
     </div>
 
     <div class="form-toggle">
