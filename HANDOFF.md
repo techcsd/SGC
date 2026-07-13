@@ -94,7 +94,17 @@ End-to-end click-through (his manual QA workflow):
 - **A9** audit: all 16 new tables RLS on; sensitive (cuadre/consumo/alertas/parametros) gated to
   proyectos/compras/direccion/admin — never bitacora; grants + RPC EXECUTE verified; no montos exposed.
 
-### ✅ PARTE A COMPLETE (A1–A9). Pending: Parte B (mobile) + optional deploy.
+### ✅ Post-review round (merged to main + prod) — 3 adversarial review passes + fixes
+- Alert engine hardened: only cuadre-tracked articles alert; "sin estimado en fase" → advertencia
+  (no flood); consumo ledger records DISPATCHED qty (no double-count). Re-verified in DB.
+- New role **Encargado de Tecnología** (module was admin-only); flota **'equipo'** checklist template seeded.
+- Web: Dirección badge refresh + realtime UPDATE on alerts; conteos `tipo` (chequeo badge) + numeric fix;
+  expediente % counts no_aplica; requisición split-result numeric defaults; Compras shows origin ("Desde requisición"/"Tecnología").
+- **New: Inventario > Reposición** — artículos en/bajo stock mínimo por almacén (obra-safe, sin montos) = the A3.1 reposición signal.
+- Dudas expanded (antifraud panel, cuadre/kit, Parámetros, Reposición); CLAUDE.md módulos list updated.
+- **Known deferred (recommendations, not built):** requisición↔Equipo-de-Obra enforcement; `cuadre_obra.fase_activa` auto-advance from real avance; A2 `cerrada` closeout state; kit→catálogo auto-mapping so reposición reflects the kit-minimum (today uses `articulos.stock_minimo`); A8 elemento/frente + N° de vaciado entities for CL-01..07.
+
+### ✅ PARTE A COMPLETE (A1–A9) + review round. Pending: Parte B mobile APK publish (Xavier's device step).
 - **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
   ALREADY applied to prod DB (additive, mobile-safe). Merge to `main` → Vercel prod deploy when ready.
 - **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
