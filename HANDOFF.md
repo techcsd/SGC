@@ -81,11 +81,25 @@ End-to-end click-through (his manual QA workflow):
   file upload to `sgc-documentos`, completeness bar). Dirección KPI "expediente incompleto".
 - No montos exposed (section under proyectos module; obra roles lack it).
 
-### ⏳ Pending — A3.1 cuadre+kit, A4, A5, A9, Parte B
-- **A3 + A3.1** — cuadre inicial + 4 fases 25/50/75/100 (extend `fases_proyecto`,
-  new `cuadre_*` tables), Kit de inicio plantilla (3 cats ALMACÉN/OFICINA/COCINA Y BAÑO,
-  flag prorrateado, seed from the Excel; also feeds A8 "materiales mínimos" + stock mínimo por obra).
-  Consumption discount hooks INTO `aprobar_requisicion` (needs A2 QA first).
+### ✅ Done — A3.1 + A4 + A5 (commits `295bfce`, `11532eb`; build passing; migrations live; A9 audited)
+- **A3.1** cuadre + kit: `kit_inicio_plantilla` (seeded from Excel: 86 items), `cuadre_obra`,
+  `cuadre_items` (per-phase est), `cuadre_consumo` (ledger). `copiar_kit_a_cuadre`.
+  `aprobar_requisicion` records consumo vs active phase. `<app-cuadre-obra>` in Proyectos detail.
+- **A4** silent antifraud: `parametros` (80/100 thresholds) + Admin>Parámetros; `alertas_cuadre` +
+  `evaluar_alerta_cuadre`; Dirección panel + badge + realtime; Gerencia granted `direccion`.
+  Verified end-to-end (90%→advertencia, 120%→alerta, dedup). RLS: obra roles see NOTHING.
+- **A5** chequeo semanal: `registrar_chequeo_semanal` (diff→alerts), conteos `tipo`,
+  Inventario>Conteos "Nuevo chequeo semanal", pg_cron `chequeo-semanal-almacenes` (Mon 06:00)
+  → task to each obra's Guarda-Almacén.
+- **A9** audit: all 16 new tables RLS on; sensitive (cuadre/consumo/alertas/parametros) gated to
+  proyectos/compras/direccion/admin — never bitacora; grants + RPC EXECUTE verified; no montos exposed.
+
+### ✅ PARTE A COMPLETE (A1–A9). Pending: Parte B (mobile) + optional deploy.
+- **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
+  ALREADY applied to prod DB (additive, mobile-safe). Merge to `main` → Vercel prod deploy when ready.
+- **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
+  (Requisición/Almacén), requisición state display, pre-use vehicle checklists (offline outbox,
+  RPC `registrar_checklist_vehiculo` already exists + idempotent). NEVER add cuadre/límites/alertas/montos.
 - **A4** — silent antifraud engine: hook consumption vs cuadre-por-fase INTO
   `aprobar_requisicion`; alerts table (weather_alerts realtime+RLS pattern) → Dirección panel;
   configurable threshold (needs a new `sgc.parametros` table — none exists). Default 80% warn / 100% alert.
