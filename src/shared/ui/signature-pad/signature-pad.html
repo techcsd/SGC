@@ -1,0 +1,18 @@
+<!-- Pad de firma manuscrita -->
+<div class="sigpad">
+  <canvas
+    #canvas
+    class="sigpad__canvas"
+    [attr.aria-label]="ariaLabel()"
+    role="img"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp()"
+    (pointerleave)="onPointerUp()"
+  ></canvas>
+
+  <div class="sigpad__footer">
+    <span class="sigpad__hint">{{ empty() ? 'Firme aquí con el dedo o el mouse' : 'Firma capturada' }}</span>
+    <button type="button" class="sigpad__clear" (click)="clear()" [disabled]="empty()">Borrar</button>
+  </div>
+</div>
