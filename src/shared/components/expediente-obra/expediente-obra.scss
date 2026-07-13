@@ -1,0 +1,185 @@
+.expediente {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sgc-border);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  &__title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+  }
+
+  &__note {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  &__error {
+    font-size: 13px;
+    color: var(--sgc-danger);
+    margin-bottom: 8px;
+  }
+
+  &__loading {
+    font-size: 13px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+
+  // ── Completeness bar (mirrors proyectos list fase progress) ──
+  &__completitud {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  &__progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--sgc-border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: var(--sgc-success);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+
+  &__progress-pct {
+    font-size: 12px;
+    color: var(--sgc-text-secondary);
+    white-space: nowrap;
+  }
+
+  // ── Doc rows ──
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__doc {
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    padding: 10px 12px;
+    background: var(--sgc-surface);
+  }
+
+  &__doc-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  &__doc-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--sgc-text);
+    flex: 1;
+    min-width: 120px;
+  }
+
+  &__doc-area {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--sgc-border);
+    color: var(--sgc-text-secondary);
+  }
+
+  &__doc-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  &__control {
+    gap: 3px;
+
+    select {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+  }
+
+  &__control-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sgc-text-muted);
+  }
+
+  &__control--file {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__file-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  &__file-btn {
+    cursor: pointer;
+  }
+
+  // Local: global .sgc-btn has no --sm modifier, so define the compact size here.
+  .sgc-btn--sm {
+    padding: 5px 12px;
+    font-size: 12.5px;
+    border-radius: var(--sgc-radius-sm);
+  }
+
+  &__validado {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--sgc-success);
+  }
+
+  &__notas {
+    margin-top: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    transition: var(--sgc-transition-fast);
+    outline: none;
+
+    &:focus {
+      border-color: var(--sgc-primary-mid);
+    }
+  }
+}

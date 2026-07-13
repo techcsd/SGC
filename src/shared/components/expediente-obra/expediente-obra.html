@@ -1,0 +1,128 @@
+<div class="expediente">
+  <!-- Header -->
+  <div class="expediente__header">
+    <h3 class="expediente__title">Expediente de inicio de obra</h3>
+  </div>
+  <p class="expediente__note text-muted">
+    Ningún frente inicia sin el expediente completo (CSD-OPE-01).
+  </p>
+
+  @if (error()) {
+    <p class="expediente__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="expediente__loading text-muted">Cargando expediente…</p>
+  } @else if (docs().length === 0) {
+    <!-- Empty state -->
+    <div class="expediente__empty">
+      <p class="text-muted">Este proyecto aún no tiene expediente de inicio.</p>
+      <button
+        type="button"
+        class="sgc-btn sgc-btn--primary"
+        (click)="inicializar()"
+        [disabled]="sembrando()"
+      >
+        @if (sembrando()) { Inicializando… } @else { Inicializar expediente estándar }
+      </button>
+    </div>
+  } @else {
+    <!-- Completeness bar -->
+    <div class="expediente__completitud">
+      <div class="expediente__progress-bar">
+        <div class="expediente__progress-fill" [style.width.%]="completitud().pct"></div>
+      </div>
+      <span class="expediente__progress-pct">
+        {{ completitud().validados }}/{{ completitud().total }} validados
+        @if (completitud().noAplica > 0) {
+          <span class="text-muted"> · {{ completitud().noAplica }} N/A</span>
+        }
+      </span>
+    </div>
+
+    <!-- Doc rows -->
+    <div class="expediente__list">
+      @for (doc of docs(); track doc.id) {
+        <div class="expediente__doc">
+          <div class="expediente__doc-top">
+            <span class="expediente__doc-name">{{ doc.nombre }}</span>
+            @if (doc.area) {
+              <span class="expediente__doc-area">{{ doc.area }}</span>
+            }
+            <span class="sgc-badge sgc-badge--{{ badgeDeEstado(doc.estado) }}">
+              {{ labelDeEstado(doc.estado) }}
+            </span>
+          </div>
+
+          <div class="expediente__doc-controls">
+            <label class="expediente__control sgc-field">
+              <span class="expediente__control-label">Estado</span>
+              <select [value]="doc.estado" (change)="onEstadoChange(doc, $any($event.target).value)">
+                @for (e of EXPEDIENTE_ESTADOS; track e.value) {
+                  <option [value]="e.value">{{ e.label }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="expediente__control sgc-field">
+              <span class="expediente__control-label">Responsable</span>
+              <select
+                [value]="doc.responsable_id"
+                (change)="onResponsableChange(doc, $any($event.target).value)"
+              >
+                <option [value]="null">Responsable…</option>
+                @for (u of usuarios(); track u.id) {
+                  <option [value]="u.id">{{ u.nombre }}</option>
+                }
+              </select>
+            </label>
+
+            <div class="expediente__control expediente__control--file">
+              <span class="expediente__control-label">Archivo</span>
+              <div class="expediente__file-actions">
+                @if (doc.archivo_path) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verArchivo(doc)">
+                    Ver
+                  </button>
+                  <label class="sgc-btn sgc-btn--secondary sgc-btn--sm expediente__file-btn">
+                    @if (estaSubiendo(doc.id)) { Subiendo… } @else { Reemplazar }
+                    <input
+                      type="file"
+                      (change)="onArchivoSelected(doc, $event)"
+                      [disabled]="estaSubiendo(doc.id)"
+                      accept=".pdf,.docx,.doc,.xlsx,.xls,.jpg,.jpeg,.png"
+                      hidden
+                    />
+                  </label>
+                } @else {
+                  <label class="sgc-btn sgc-btn--primary sgc-btn--sm expediente__file-btn">
+                    @if (estaSubiendo(doc.id)) { Subiendo… } @else { Subir }
+                    <input
+                      type="file"
+                      (change)="onArchivoSelected(doc, $event)"
+                      [disabled]="estaSubiendo(doc.id)"
+                      accept=".pdf,.docx,.doc,.xlsx,.xls,.jpg,.jpeg,.png"
+                      hidden
+                    />
+                  </label>
+                }
+              </div>
+            </div>
+          </div>
+
+          @if (doc.estado === 'validado' && doc.validado_en) {
+            <p class="expediente__validado">Validado {{ formatFecha(doc.validado_en) }}</p>
+          }
+
+          <input
+            type="text"
+            class="expediente__notas"
+            [value]="doc.notas ?? ''"
+            placeholder="Notas…"
+            (change)="onNotasChange(doc, $any($event.target).value)"
+          />
+        </div>
+      }
+    </div>
+  }
+</div>

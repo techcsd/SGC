@@ -7,7 +7,9 @@ import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
 import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { ObrasClimaService } from '../../../shared/context/obras-clima.service';
-import { todayIso, daysFromNowIso } from '../../../shared/utils/fecha.util';
+import { AlertasCuadreService } from '../../../shared/services/alertas-cuadre.service';
+import { AlertaCuadre, AlertaEstado, ALERTA_SEVERIDADES } from '../../../shared/models/cuadre.model';
+import { todayIso, daysFromNowIso, formatTimestampDisplay } from '../../../shared/utils/fecha.util';
 
 interface Alerta {
   icono: string;
@@ -28,6 +30,12 @@ export class Direccion implements OnInit {
   private supabase = inject(SupabaseService);
   private proyectosService = inject(ProyectosService);
   private obrasClimaService = inject(ObrasClimaService);
+  private alertasCuadreService = inject(AlertasCuadreService);
+
+  // A4 — panel de alertas antifraude (silenciosas para obra; visibles aquí).
+  alertasControl = signal<AlertaCuadre[]>([]);
+  readonly ALERTA_SEV = ALERTA_SEVERIDADES;
+  formatTimestamp = formatTimestampDisplay;
 
   loading = signal(true);
   error = signal('');
@@ -45,6 +53,7 @@ export class Direccion implements OnInit {
   solicitudesCompra = signal(0);
   obrasClimaPeligro = signal(0);
   obrasClimaPrecaucion = signal(0);
+  expedientesObraIncompletos = signal(0);
 
   // ── Stat tiles ───────────────────────────────────────────
   proyectosActivos = computed(() => this.kpi().length);
@@ -76,9 +85,11 @@ export class Direccion implements OnInit {
     if (this.ausenciasPendientes() > 0)
       a.push({ icono: '🏖️', texto: 'Solicitudes de ausencia pendientes', cantidad: this.ausenciasPendientes(), ruta: '/rrhh/ausencias', nivel: 'precaucion' });
     if (this.solicitudesMaterial() > 0)
-      a.push({ icono: '📦', texto: 'Solicitudes de material pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
+      a.push({ icono: '📦', texto: 'Requisiciones pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
     if (this.solicitudesCompra() > 0)
       a.push({ icono: '🛒', texto: 'Solicitudes de compra pendientes', cantidad: this.solicitudesCompra(), ruta: '/compras/ordenes', nivel: 'info' });
+    if (this.expedientesObraIncompletos() > 0)
+      a.push({ icono: '📋', texto: 'Obras con expediente de inicio incompleto', cantidad: this.expedientesObraIncompletos(), ruta: '/proyectos', nivel: 'precaucion' });
     return a;
   });
 
@@ -188,6 +199,38 @@ export class Direccion implements OnInit {
       this.obrasClimaPrecaucion.set(clima.filter((o) => o.peorNivel === 'precaucion').length);
     } catch {
       /* clima is enrichment only */
+    }
+
+    // A8 — obras con expediente de inicio incompleto (best-effort, no bloquea).
+    try {
+      const resumen = await this.proyectosService.getExpedienteResumen();
+      this.expedientesObraIncompletos.set(resumen.filter((r) => !r.completo).length);
+    } catch {
+      /* vista de expediente: enrichment only */
+    }
+
+    // A4 — alertas antifraude abiertas (best-effort).
+    try {
+      this.alertasControl.set(await this.alertasCuadreService.getAlertas(true));
+    } catch {
+      /* alertas: enrichment only */
+    }
+  }
+
+  async atenderAlerta(a: AlertaCuadre, estado: AlertaEstado) {
+    const previo = a.estado;
+    this.alertasControl.update((list) =>
+      estado === 'resuelta' ? list.filter((x) => x.id !== a.id) : list.map((x) => (x.id === a.id ? { ...x, estado } : x)),
+    );
+    try {
+      await this.alertasCuadreService.atender(a.id, estado, null);
+    } catch {
+      // rollback: recargar
+      try {
+        this.alertasControl.set(await this.alertasCuadreService.getAlertas(true));
+      } catch {
+        this.alertasControl.update((list) => list.map((x) => (x.id === a.id ? { ...x, estado: previo } : x)));
+      }
     }
   }
 

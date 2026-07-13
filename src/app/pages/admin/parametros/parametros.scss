@@ -1,0 +1,76 @@
+.param-lead {
+  color: var(--sgc-text-secondary);
+  max-width: 80ch;
+  margin: 0 0 16px;
+}
+
+.param-error {
+  color: var(--sgc-danger);
+  margin: 0 0 12px;
+}
+
+.param-muted {
+  color: var(--sgc-text-secondary);
+  padding: 16px 0;
+}
+
+.param-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  overflow: hidden;
+}
+
+.param-table th,
+.param-table td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sgc-border);
+  vertical-align: middle;
+}
+
+.param-table th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-surface-hover);
+}
+
+.param-clave {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--sgc-primary);
+}
+
+.param-desc {
+  color: var(--sgc-text-secondary);
+  max-width: 44ch;
+}
+
+.param-input {
+  width: 160px;
+  padding: 7px 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  font-size: 14px;
+  color: var(--sgc-text);
+  background: var(--sgc-surface);
+  outline: none;
+
+  &:focus {
+    border-color: var(--sgc-primary-mid);
+  }
+}
+
+.param-actions {
+  text-align: right;
+}
+
+// Global .sgc-btn has no --sm modifier; define the compact size locally.
+.sgc-btn--sm {
+  padding: 5px 12px;
+  font-size: 13px;
+}

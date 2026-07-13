@@ -12,11 +12,11 @@
   </button>
 </div>
 
-<!-- ── Solicitudes pendientes (from ingenieros de campo) ── -->
+<!-- ── Requisiciones pendientes (from ingenieros de campo) ── -->
 @if (solicitudesPendientes().length > 0) {
   <div class="solicitudes-panel sgc-card">
     <h2 class="solicitudes-panel__title">
-      Solicitudes de materiales pendientes ({{ solicitudesPendientes().length }})
+      Requisiciones pendientes ({{ solicitudesPendientes().length }})
     </h2>
     @for (s of solicitudesPendientes(); track s.id) {
       <div class="solicitudes-panel__item">
@@ -33,7 +33,7 @@
           }
         </p>
         <div class="solicitudes-panel__actions">
-          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">Crear salida</button>
+          <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="atenderSolicitud(s)">Aprobar</button>
           <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="rechazarSolicitud(s)">Rechazar</button>
         </div>
       </div>
@@ -57,9 +57,9 @@
     <select
       [value]="selectedBodega()"
       (change)="onBodegaChange($any($event.target).value)"
-      aria-label="Filtrar por bodega"
+      aria-label="Filtrar por almacén"
     >
-      <option value="">Todas las bodegas</option>
+      <option value="">Todos los almacenes</option>
       @for (b of bodegas(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -141,7 +141,7 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Bodega</th>
+            <th>Almacén</th>
             <th>Motivo</th>
             <th>Proyecto</th>
             <th>Responsable</th>
@@ -236,28 +236,74 @@
 
 <!-- ── Form Drawer ── -->
 <app-form-drawer
-  title="Registrar salida"
+  [title]="drawerTitle()"
   [open]="drawerOpen()"
   (closed)="closeDrawer()"
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
-    <!-- Bodega + Fecha -->
+    @if (atendiendoRequisicion()) {
+      <!-- A2: aprobación de requisición — mapea cada renglón al catálogo; el sistema divide -->
+      <div class="req-approve-note">
+        <p class="req-approve-note__lead">
+          Elige el <strong>almacén</strong> y confirma a qué artículo del catálogo corresponde cada renglón.
+          El sistema despachará lo que haya en stock (con su conduce) y generará automáticamente una
+          <strong>solicitud de compra</strong> por el faltante y por los renglones sin artículo del catálogo.
+        </p>
+
+        <div class="sgc-field">
+          <label>Renglones de la requisición</label>
+          @for (item of reqItems(); track $index) {
+            <div class="req-map-row">
+              <div class="req-map-row__desc">
+                <span class="req-map-row__text">{{ item.descripcion }}</span>
+                @if (!item.articulo_id) {
+                  <span class="req-map-row__tag">→ compra</span>
+                }
+              </div>
+              <select
+                class="req-map-row__articulo"
+                [value]="item.articulo_id ?? ''"
+                (change)="updateReqItemArticulo($index, $any($event.target).value)"
+                aria-label="Artículo del catálogo"
+              >
+                <option value="">Sin artículo (comprar)</option>
+                @for (a of articulos(); track a.id) {
+                  <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+                }
+              </select>
+              <input
+                class="req-map-row__cantidad"
+                type="number"
+                min="0.01"
+                step="0.01"
+                [value]="item.cantidad"
+                (input)="updateReqItemCantidad($index, $any($event.target).value)"
+                aria-label="Cantidad"
+              />
+              <span class="req-map-row__unidad">{{ item.unidad || '' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Almacén + Fecha -->
     <div class="form-row">
       <div class="sgc-field">
-        <label for="bodega_id">Bodega <span class="required">*</span></label>
+        <label for="bodega_id">Almacén <span class="required">*</span></label>
         <select
           id="bodega_id"
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option [value]="null">Seleccionar bodega…</option>
+          <option [value]="null">Seleccionar almacén…</option>
           @for (b of bodegas(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
         </select>
         @if (f.bodega_id.invalid && f.bodega_id.touched) {
-          <span class="field-error">La bodega es obligatoria.</span>
+          <span class="field-error">El almacén es obligatorio.</span>
         }
       </div>
 
@@ -276,35 +322,37 @@
       </div>
     </div>
 
-    <!-- Motivo -->
-    <div class="sgc-field">
-      <label for="motivo">Motivo <span class="required">*</span></label>
-      <select
-        id="motivo"
-        formControlName="motivo"
-        [class.invalid]="f.motivo.invalid && f.motivo.touched"
-      >
-        <option [value]="null">Seleccionar motivo…</option>
-        @for (m of MOTIVOS_SALIDA; track m.value) {
-          <option [value]="m.value">{{ m.label }}</option>
-        }
-      </select>
-      @if (f.motivo.invalid && f.motivo.touched) {
-        <span class="field-error">El motivo es obligatorio.</span>
-      }
-    </div>
-
-    <!-- Proyecto (solo si motivo = uso_proyecto) -->
-    @if (showProyectoField()) {
+    @if (!atendiendoRequisicion()) {
+      <!-- Motivo -->
       <div class="sgc-field">
-        <label for="proyecto_id">Proyecto</label>
-        <select id="proyecto_id" formControlName="proyecto_id">
-          <option [value]="null">Sin proyecto</option>
-          @for (p of activeProyectos(); track p.id) {
-            <option [value]="p.id">{{ p.nombre }}</option>
+        <label for="motivo">Motivo <span class="required">*</span></label>
+        <select
+          id="motivo"
+          formControlName="motivo"
+          [class.invalid]="f.motivo.invalid && f.motivo.touched"
+        >
+          <option [value]="null">Seleccionar motivo…</option>
+          @for (m of MOTIVOS_SALIDA; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
           }
         </select>
+        @if (f.motivo.invalid && f.motivo.touched) {
+          <span class="field-error">El motivo es obligatorio.</span>
+        }
       </div>
+
+      <!-- Proyecto (solo si motivo = uso_proyecto) -->
+      @if (showProyectoField()) {
+        <div class="sgc-field">
+          <label for="proyecto_id">Proyecto</label>
+          <select id="proyecto_id" formControlName="proyecto_id">
+            <option [value]="null">Sin proyecto</option>
+            @for (p of activeProyectos(); track p.id) {
+              <option [value]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+        </div>
+      }
     }
 
     <!-- Responsable -->
@@ -329,46 +377,48 @@
       ></textarea>
     </div>
 
-    <!-- Items -->
-    <div class="sgc-field">
-      <div class="items-header">
-        <label>Artículos <span class="required">*</span></label>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
-          + Agregar artículo
-        </button>
-      </div>
-
-      @for (item of formItems(); track $index) {
-        <div class="item-row">
-          <select
-            class="item-row__articulo"
-            [value]="item.articulo_id"
-            (change)="updateItemArticulo($index, $any($event.target).value)"
-          >
-            <option value="">Seleccionar artículo…</option>
-            @for (a of articulos(); track a.id) {
-              <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
-            }
-          </select>
-          <input
-            class="item-row__cantidad"
-            type="number"
-            min="0.01"
-            step="0.01"
-            placeholder="Cant."
-            [value]="item.cantidad"
-            (input)="updateItemCantidad($index, $any($event.target).value)"
-          />
-          <button
-            type="button"
-            class="item-row__remove"
-            (click)="removeItem($index)"
-            [disabled]="formItems().length === 1"
-            aria-label="Eliminar artículo"
-          >×</button>
+    @if (!atendiendoRequisicion()) {
+      <!-- Items -->
+      <div class="sgc-field">
+        <div class="items-header">
+          <label>Artículos <span class="required">*</span></label>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
+            + Agregar artículo
+          </button>
         </div>
-      }
-    </div>
+
+        @for (item of formItems(); track $index) {
+          <div class="item-row">
+            <select
+              class="item-row__articulo"
+              [value]="item.articulo_id"
+              (change)="updateItemArticulo($index, $any($event.target).value)"
+            >
+              <option value="">Seleccionar artículo…</option>
+              @for (a of articulos(); track a.id) {
+                <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+              }
+            </select>
+            <input
+              class="item-row__cantidad"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="Cant."
+              [value]="item.cantidad"
+              (input)="updateItemCantidad($index, $any($event.target).value)"
+            />
+            <button
+              type="button"
+              class="item-row__remove"
+              (click)="removeItem($index)"
+              [disabled]="formItems().length === 1"
+              aria-label="Eliminar artículo"
+            >×</button>
+          </div>
+        }
+      </div>
+    }
 
     @if (saveError()) {
       <div class="save-error" role="alert">
@@ -387,6 +437,8 @@
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
           Guardando…
+        } @else if (atendiendoRequisicion()) {
+          Aprobar y despachar
         } @else {
           Registrar salida
         }

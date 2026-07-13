@@ -54,7 +54,7 @@ export class Dashboard implements OnInit {
   allModules: ModuleCard[] = [
     {
       label: 'Inventario',
-      description: 'Artículos, activos, entradas, salidas y bodegas.',
+      description: 'Artículos, activos, entradas, salidas y almacenes.',
       route: '/inventario',
       modulo: 'inventario',
       icon: 'inventory',
@@ -123,6 +123,14 @@ export class Dashboard implements OnInit {
       modulo: 'tareas',
       icon: 'tareas',
       color: '#0F766E',
+    },
+    {
+      label: 'Tecnología',
+      description: 'Homologación de herramientas, inventario tecnológico y compras.',
+      route: '/tecnologia/homologacion',
+      modulo: 'tecnologia',
+      icon: 'tecnologia',
+      color: '#1D4ED8',
     },
   ];
 

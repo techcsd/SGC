@@ -1,0 +1,75 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Herramientas oficiales de la empresa</h1>
+    <span class="page-count">{{ herramientas().length }} herramienta{{ herramientas().length !== 1 ? 's' : '' }}</span>
+  </div>
+  @if (puedeGestionar()) {
+    <a class="sgc-btn sgc-btn--secondary" routerLink="/tecnologia/homologacion">
+      Gestionar herramientas
+    </a>
+  }
+</div>
+
+<!-- ── Intro ── -->
+<div class="guia-intro sgc-card">
+  <p>
+    Estas son las herramientas <strong>oficiales homologadas</strong> por Constructora SD.
+    Úsalas para tu trabajo diario según tu puesto: garantizan que la información quede
+    resguardada, sea compartible con el equipo y cumpla con los estándares de la empresa.
+    Si necesitas una herramienta que no aparezca aquí, coordínala con Tecnología antes de usarla.
+  </p>
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Content ── -->
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="6" />
+} @else if (herramientas().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>Aún no hay herramientas registradas.</p>
+  </div>
+} @else {
+  @for (grupo of grupos(); track grupo.value) {
+    <section class="guia-group">
+      <h2 class="guia-group__title">{{ grupo.label }}</h2>
+      <div class="guia-cards">
+        @for (h of grupo.herramientas; track h.id) {
+          <article class="guia-card sgc-card">
+            <h3 class="guia-card__name">{{ h.nombre }}</h3>
+            @if (h.para_que) {
+              <div class="guia-card__block">
+                <span class="guia-card__label">Para qué</span>
+                <p class="guia-card__text">{{ h.para_que }}</p>
+              </div>
+            }
+            @if (h.quien_usa) {
+              <div class="guia-card__block">
+                <span class="guia-card__label">Quién la usa</span>
+                <p class="guia-card__text">{{ h.quien_usa }}</p>
+              </div>
+            }
+            @if (h.url) {
+              <a class="guia-card__link" [href]="h.url" target="_blank" rel="noopener">
+                Abrir herramienta
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+              </a>
+            }
+          </article>
+        }
+      </div>
+    </section>
+  }
+}

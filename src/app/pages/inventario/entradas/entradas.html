@@ -28,9 +28,9 @@
     <select
       [value]="selectedBodega()"
       (change)="onBodegaChange($any($event.target).value)"
-      aria-label="Filtrar por bodega"
+      aria-label="Filtrar por almacén"
     >
-      <option value="">Todas las bodegas</option>
+      <option value="">Todos los almacenes</option>
       @for (b of bodegas(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -99,7 +99,7 @@
         <thead>
           <tr>
             <th>Fecha</th>
-            <th>Bodega</th>
+            <th>Almacén</th>
             <th>Proveedor</th>
             <th>Orden</th>
             <th>Referencia</th>
@@ -195,21 +195,21 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="form-row">
-      <!-- Bodega -->
+      <!-- Almacén -->
       <div class="sgc-field">
-        <label for="bodega_id">Bodega <span class="required">*</span></label>
+        <label for="bodega_id">Almacén <span class="required">*</span></label>
         <select
           id="bodega_id"
           formControlName="bodega_id"
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
-          <option [value]="null">Seleccionar bodega…</option>
+          <option [value]="null">Seleccionar almacén…</option>
           @for (b of bodegas(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
         </select>
         @if (f.bodega_id.invalid && f.bodega_id.touched) {
-          <span class="field-error">La bodega es obligatoria.</span>
+          <span class="field-error">El almacén es obligatorio.</span>
         }
       </div>
 

@@ -30,6 +30,7 @@ export const MODULOS_DISPONIBLES = [
   { key: 'plantillas', label: 'Plantillas (crear/editar)' },
   { key: 'legal', label: 'Legal' },
   { key: 'tareas', label: 'Tareas (asignar)' },
+  { key: 'tecnologia', label: 'Tecnología' },
   { key: 'direccion', label: 'Dirección (vista ejecutiva)' },
   { key: 'admin', label: 'Administración' },
 ];

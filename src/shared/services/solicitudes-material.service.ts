@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { SolicitudMaterial, SolicitudMaterialFormData } from '../models/solicitud.model';
+import {
+  SolicitudMaterial,
+  SolicitudMaterialFormData,
+  AprobacionRequisicionResultado,
+} from '../models/solicitud.model';
 import { notificarSolicitud } from '../utils/notificar-solicitud.util';
 import { NotificacionesService } from './notificaciones.service';
 
@@ -48,7 +52,10 @@ export class SolicitudesMaterialService {
     return data as unknown as SolicitudMaterial;
   }
 
-  /** Atomic: creates the real salida (with server-side stock validation) and marks the solicitud entregada, in one transaction. */
+  /**
+   * @deprecated Usa aprobarRequisicion (A2). Se conserva por retro-compatibilidad.
+   * Atomic: creates the real salida (full-stock only) and marks the solicitud entregada.
+   */
   async aprobar(
     id: string,
     payload: {
@@ -72,6 +79,37 @@ export class SolicitudesMaterialService {
     notificarSolicitud(this.supabase.client, 'material', id, 'aprobada');
     this.notificaciones.refresh();
     return salidaId as string;
+  }
+
+  /**
+   * A2 — Aprobación unificada de la Requisición con auto-división:
+   *   parte en stock del almacén -> DESPACHO (salida/conduce);
+   *   faltante -> SOLICITUD DE COMPRA automática (bandeja de Compras).
+   * Un solo paso atómico. Devuelve el resumen de la división.
+   */
+  async aprobarRequisicion(
+    id: string,
+    payload: {
+      bodega_id: string;
+      fecha: string;
+      responsable: string | null;
+      observaciones: string | null;
+      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number }[];
+    },
+  ): Promise<AprobacionRequisicionResultado> {
+    const { data, error } = await this.supabase.client.rpc('aprobar_requisicion', {
+      p_solicitud_id: id,
+      p_bodega_id: payload.bodega_id,
+      p_fecha: payload.fecha,
+      p_responsable: payload.responsable,
+      p_observaciones: payload.observaciones,
+      p_items: payload.items,
+    });
+
+    if (error) throw new Error(error.message);
+    notificarSolicitud(this.supabase.client, 'material', id, 'aprobada');
+    this.notificaciones.refresh();
+    return (data ?? {}) as AprobacionRequisicionResultado;
   }
 
   async rechazar(id: string, notas?: string | null): Promise<void> {

@@ -21,6 +21,14 @@ const ESTADO_BADGE: Record<string, string> = {
   rechazada: 'danger',
 };
 
+// A2: "aprobada" = despachada en parte y con compra pendiente por el faltante.
+const ESTADO_LABEL: Record<string, string> = {
+  pendiente: 'Pendiente',
+  aprobada: 'Aprobada (en compra)',
+  entregada: 'Entregada',
+  rechazada: 'Rechazada',
+};
+
 @Component({
   selector: 'app-bitacora-solicitudes-material',
   imports: [ReactiveFormsModule, FormDrawer],
@@ -36,6 +44,7 @@ export class SolicitudesMaterial implements OnInit {
   formatFecha = formatFechaDisplay;
   formatTimestamp = formatTimestampDisplay;
   estadoBadge = (estado: string) => ESTADO_BADGE[estado] ?? 'neutral';
+  estadoLabel = (estado: string) => ESTADO_LABEL[estado] ?? estado;
 
   solicitudes = signal<SolicitudMaterial[]>([]);
   proyectos = signal<Proyecto[]>([]);

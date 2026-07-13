@@ -1,0 +1,287 @@
+<div class="cuadre">
+  <!-- Header -->
+  <div class="cuadre__header">
+    <h3 class="cuadre__title">Cuadre inicial por fases</h3>
+  </div>
+
+  @if (error()) {
+    <p class="cuadre__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="cuadre__loading text-muted">Cargando cuadre…</p>
+  } @else if (!cuadre()) {
+    <!-- Empty state -->
+    <div class="cuadre__empty">
+      <p class="text-muted">
+        Este proyecto aún no tiene cuadre inicial. Al inicializarlo se copia el kit de inicio
+        estándar (almacén, oficina, cocina y baño).
+      </p>
+      <label class="sgc-field cuadre__empty-field">
+        <span class="cuadre__control-label">Almacén de obra (opcional)</span>
+        <select
+          [value]="initBodegaId()"
+          (change)="initBodegaId.set($any($event.target).value || null)"
+        >
+          <option [value]="null">Sin almacén asignado…</option>
+          @for (b of bodegas(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }}</option>
+          }
+        </select>
+      </label>
+      <button
+        type="button"
+        class="sgc-btn sgc-btn--primary"
+        (click)="inicializar()"
+        [disabled]="saving()"
+      >
+        @if (saving()) { Inicializando… } @else { Inicializar cuadre + kit de inicio }
+      </button>
+    </div>
+  } @else {
+    <!-- Controls -->
+    <div class="cuadre__controls">
+      <label class="sgc-field cuadre__control">
+        <span class="cuadre__control-label">Fase activa</span>
+        <select
+          [value]="cuadre()!.fase_activa"
+          (change)="onFaseChange($any($event.target).value)"
+        >
+          @for (f of FASES_CUADRE; track f.num) {
+            <option [value]="f.num">Fase {{ f.num }} — {{ f.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="sgc-field cuadre__control">
+        <span class="cuadre__control-label">Almacén de obra</span>
+        <select
+          [value]="cuadre()!.bodega_id"
+          (change)="onBodegaChange($any($event.target).value)"
+        >
+          <option [value]="null">Sin almacén asignado…</option>
+          @for (b of bodegas(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }}</option>
+          }
+        </select>
+      </label>
+
+      <button type="button" class="sgc-btn sgc-btn--secondary cuadre__add-btn" (click)="openAdd()">
+        + Agregar material
+      </button>
+    </div>
+
+    <p class="cuadre__note text-muted">
+      El cuadre y sus límites son internos de gerencia; el ingeniero no los ve.
+    </p>
+
+    <!-- Add-material inline form -->
+    @if (showAddForm()) {
+      <div class="sgc-card cuadre__form">
+        <div class="cuadre__form-grid">
+          <label class="sgc-field">
+            <span class="cuadre__control-label">Artículo (opcional)</span>
+            <select [value]="fArticuloId()" (change)="onArticuloPick($any($event.target).value)">
+              <option [value]="null">Renglón libre (sin artículo)…</option>
+              @for (a of articulos(); track a.id) {
+                <option [value]="a.id">{{ a.codigo }} — {{ a.nombre }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="sgc-field">
+            <span class="cuadre__control-label">Descripción @if (!fArticuloId()) { <span class="required">*</span> }</span>
+            <input
+              type="text"
+              [ngModel]="fDescripcion()"
+              (ngModelChange)="fDescripcion.set($event)"
+              placeholder="Descripción del renglón"
+            />
+          </label>
+
+          <label class="sgc-field cuadre__form-narrow">
+            <span class="cuadre__control-label">Unidad</span>
+            <input
+              type="text"
+              [ngModel]="fUnidad()"
+              (ngModelChange)="fUnidad.set($event)"
+              placeholder="ud, m³…"
+            />
+          </label>
+
+          <label class="sgc-field cuadre__form-narrow">
+            <span class="cuadre__control-label">Cantidad total</span>
+            <input
+              type="number"
+              [ngModel]="fCantidadTotal()"
+              (ngModelChange)="onTotalInput($any($event))"
+              placeholder="0"
+            />
+          </label>
+        </div>
+
+        <div class="cuadre__form-phases">
+          <label class="sgc-field cuadre__form-narrow">
+            <span class="cuadre__control-label">25%</span>
+            <input type="number" [ngModel]="fF1()" (ngModelChange)="fF1.set(+$event)" />
+          </label>
+          <label class="sgc-field cuadre__form-narrow">
+            <span class="cuadre__control-label">50%</span>
+            <input type="number" [ngModel]="fF2()" (ngModelChange)="fF2.set(+$event)" />
+          </label>
+          <label class="sgc-field cuadre__form-narrow">
+            <span class="cuadre__control-label">75%</span>
+            <input type="number" [ngModel]="fF3()" (ngModelChange)="fF3.set(+$event)" />
+          </label>
+          <label class="sgc-field cuadre__form-narrow">
+            <span class="cuadre__control-label">100%</span>
+            <input type="number" [ngModel]="fF4()" (ngModelChange)="fF4.set(+$event)" />
+          </label>
+        </div>
+
+        <!-- CEPOS: base × factor -->
+        <div class="cuadre__form-advanced">
+          <span class="cuadre__control-label">Método base × factor (opcional)</span>
+          <div class="cuadre__form-advanced-row">
+            <input
+              type="number"
+              class="cuadre__advanced-input"
+              [ngModel]="fBase()"
+              (ngModelChange)="onBaseInput($any($event))"
+              placeholder="base"
+            />
+            <span class="cuadre__times">×</span>
+            <input
+              type="number"
+              class="cuadre__advanced-input"
+              [ngModel]="fFactor()"
+              (ngModelChange)="onFactorInput($any($event))"
+              placeholder="factor"
+            />
+          </div>
+        </div>
+
+        @if (addError()) {
+          <p class="field-error">{{ addError() }}</p>
+        }
+
+        <div class="cuadre__form-actions">
+          <button
+            type="button"
+            class="sgc-btn sgc-btn--primary"
+            (click)="submitAdd()"
+            [disabled]="saving()"
+          >
+            @if (saving()) { Guardando… } @else { Agregar }
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelAdd()">Cancelar</button>
+        </div>
+      </div>
+    }
+
+    <!-- Grouped item tables -->
+    @for (grupo of grupos(); track grupo.value) {
+      <div class="cuadre__group">
+        <h4 class="cuadre__group-title">{{ grupo.label }}</h4>
+        <div class="cuadre__table-wrap">
+          <table class="data-table cuadre__table">
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th>Unidad</th>
+                <th class="text-right">Total</th>
+                <th class="text-right">25%</th>
+                <th class="text-right">50%</th>
+                <th class="text-right">75%</th>
+                <th class="text-right">100%</th>
+                <th class="text-right">Consumido</th>
+                <th class="text-right">Disp.</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of grupo.items; track item.id) {
+                <tr>
+                  <td>
+                    <span class="cuadre__desc">{{ item.descripcion }}</span>
+                    @if (item.es_kit) {
+                      <span class="sgc-badge sgc-badge--info cuadre__chip">kit</span>
+                    }
+                    @if (item.prorrateado) {
+                      <span class="sgc-badge sgc-badge--neutral cuadre__chip">prorrateado</span>
+                    }
+                  </td>
+                  <td class="text-muted">{{ item.unidad || '—' }}</td>
+                  <td class="text-right">
+                    <input
+                      type="number"
+                      class="cuadre__cell"
+                      [value]="item.cantidad_total"
+                      (change)="onCellChange(item, 'cantidad_total', $any($event.target).value)"
+                    />
+                  </td>
+                  <td class="text-right">
+                    <input
+                      type="number"
+                      class="cuadre__cell"
+                      [value]="item.est_f1"
+                      (change)="onCellChange(item, 'est_f1', $any($event.target).value)"
+                    />
+                  </td>
+                  <td class="text-right">
+                    <input
+                      type="number"
+                      class="cuadre__cell"
+                      [value]="item.est_f2"
+                      (change)="onCellChange(item, 'est_f2', $any($event.target).value)"
+                    />
+                  </td>
+                  <td class="text-right">
+                    <input
+                      type="number"
+                      class="cuadre__cell"
+                      [value]="item.est_f3"
+                      (change)="onCellChange(item, 'est_f3', $any($event.target).value)"
+                    />
+                  </td>
+                  <td class="text-right">
+                    <input
+                      type="number"
+                      class="cuadre__cell"
+                      [value]="item.est_f4"
+                      (change)="onCellChange(item, 'est_f4', $any($event.target).value)"
+                    />
+                  </td>
+                  @if (item.articulo_id) {
+                    <td class="text-right" [class.cuadre__over]="sobreConsumido(item)">
+                      {{ consumido(item) | number: '1.0-2' }}
+                    </td>
+                    <td class="text-right" [class.cuadre__over]="sobreConsumido(item)">
+                      {{ disponible(item) | number: '1.0-2' }}
+                      @if (sobreConsumido(item)) {
+                        <span class="cuadre__over-hint">excedido</span>
+                      }
+                    </td>
+                  } @else {
+                    <td class="text-right text-muted">—</td>
+                    <td class="text-right text-muted">—</td>
+                  }
+                  <td class="text-right">
+                    <button
+                      type="button"
+                      class="cuadre__remove"
+                      title="Quitar renglón"
+                      (click)="remove(item)"
+                    >
+                      ×
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+</div>

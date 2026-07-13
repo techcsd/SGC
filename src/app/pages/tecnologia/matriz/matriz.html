@@ -1,0 +1,147 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Matriz puesto × herramienta</h1>
+    <span class="page-count">{{ grupos().length }} puesto{{ grupos().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Agregar
+  </button>
+</div>
+
+<div class="matriz-intro sgc-card">
+  <p>
+    Define qué herramientas debe usar cada puesto de la empresa. Marca como
+    <strong>obligatorias</strong> las imprescindibles para el rol y como
+    <strong>opcionales</strong> las recomendadas.
+  </p>
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Content ── -->
+@if (loading()) {
+  <app-skeleton variant="list" [rows]="5" />
+} @else if (grupos().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>No hay asignaciones aún. Agrega la primera herramienta a un puesto.</p>
+  </div>
+} @else {
+  @for (grupo of grupos(); track grupo.puesto) {
+    <section class="puesto-group sgc-card">
+      <h2 class="puesto-group__title">{{ grupo.puesto }}</h2>
+      <ul class="puesto-group__list">
+        @for (entry of grupo.entries; track entry.id) {
+          <li class="matriz-entry">
+            <div class="matriz-entry__main">
+              <span class="matriz-entry__name">{{ entry.herramienta?.nombre ?? '—' }}</span>
+              @if (entry.obligatorio) {
+                <span class="sgc-badge sgc-badge--info">Obligatorio</span>
+              } @else {
+                <span class="sgc-badge sgc-badge--neutral">Opcional</span>
+              }
+            </div>
+            @if (entry.notas) {
+              <p class="matriz-entry__notas">{{ entry.notas }}</p>
+            }
+            <button
+              type="button"
+              class="matriz-entry__remove"
+              (click)="remove(entry)"
+              [attr.aria-label]="'Quitar ' + (entry.herramienta?.nombre ?? 'herramienta')"
+              title="Quitar"
+            >×</button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+}
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer title="Agregar a la matriz" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="puesto">Puesto <span class="required">*</span></label>
+      <input
+        id="puesto"
+        type="text"
+        formControlName="puesto"
+        placeholder="Ej: Ingeniero de campo"
+        [class.invalid]="f.puesto.invalid && f.puesto.touched"
+      />
+      @if (f.puesto.invalid && f.puesto.touched) {
+        <span class="field-error">El puesto es obligatorio.</span>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label for="herramienta_id">Herramienta <span class="required">*</span></label>
+      <select
+        id="herramienta_id"
+        formControlName="herramienta_id"
+        [class.invalid]="f.herramienta_id.invalid && f.herramienta_id.touched"
+      >
+        <option [value]="null">Seleccionar herramienta…</option>
+        @for (h of herramientas(); track h.id) {
+          <option [value]="h.id">{{ h.nombre }}</option>
+        }
+      </select>
+      @if (f.herramienta_id.invalid && f.herramienta_id.touched) {
+        <span class="field-error">La herramienta es obligatoria.</span>
+      }
+    </div>
+
+    <div class="form-toggle">
+      <label class="toggle-label" for="obligatorio">
+        <input id="obligatorio" type="checkbox" formControlName="obligatorio" class="toggle-input" />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Obligatoria para este puesto
+      </label>
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea
+        id="notas"
+        formControlName="notas"
+        rows="2"
+        placeholder="Aclaraciones (opcional)…"
+      ></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          Agregar
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

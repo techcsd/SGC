@@ -1,120 +1,124 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-07_
+_Last updated: 2026-07-12_
 
-## Current focus: Intelligent Context System (Maps + Weather + external context)
+## Current focus: Reunión 07/07/2026 — Parte A (A1–A9)
 
-A centralized, provider-independent platform service (`src/shared/context/`) that
-enriches ERP modules with real-world data. Weather provider = **Open-Meteo**
-(keyless, free); maps/geocoding = **Leaflet + OpenStreetMap/Nominatim** (keyless).
-All behind swappable boundaries so Google Maps / another weather API can replace
-them with **no schema change**.
+Big multi-phase build from the 07/07/2026 meeting. Source of truth:
+`C:\Users\xavie\Desktop\X Dev\Constructora SD\SGC meet improvements\07072026 meet.md`
+(+ `...- Claude Code prompt.md`, CSD-OPE-01 docx, kit xlsx, org pptx).
+Branch: **`feat/meet-07072026`**. Prod DB is **shared with the CSD mobile app** —
+everything must stay retro-compatible (mobile RPCs: `crear_solicitud_app`,
+`crear_entrega_vehiculo`, `registrar_*_app`, `recibir_conduce_app`, `registrar_conteo_app`).
 
-### ✅ Done
+### Locked decisions (Xavier, 2026-07-12)
+1. **Requisición** = repurpose `sgc.solicitudes_material`; on approval auto-split
+   (in-stock → despacho/conduce, shortfall + non-catalog → auto `solicitudes_compra`).
+   No new table. `solicitudes_compra` = purchase side owned by Compras.
+2. **Approver** stays permission-based (`inventario`/`compras` module holders).
+3. **Antifraud alerts** (A4) silent to obra; panel in Dirección; notify roles
+   Dirección General + Gerencia + Administrador.
+4. Execute autonomously phase-by-phase, commit+verify each, checkpoint at forks.
 
-**Phase 1 (commit `9ec7a92`)** — foundation:
-- Architecture: `WeatherProvider` interface + `WEATHER_PROVIDER` token +
-  `OpenMeteoProvider`; `ContextService` facade; `WeatherService` (30-min TTL cache +
-  snapshot persistence); `GeocodingService`; `RecommendationService` (rain/wind/UV/
-  heat → construction advice, with `peligro/precaucion/info` levels).
-- Components: `weather-card` (current + 7-day + recs), `location-picker` (Leaflet,
-  provider-independent `{lat,lng,address}` output).
-- DB (`sql/2026-07-07-context-system.sql`, `sql/2026-07-07-bitacora-weather.sql`):
-  `proyectos.latitud/longitud/direccion_geo`, `weather_snapshots` history table
-  (RLS on), `bitacoras.weather_snapshot_id`, RPC `crear_entrada_bitacora` accepts it.
-- Consumers: Proyectos form (picker) + detail (weather card); Bitácora auto-captures
-  obra weather on save.
+### ✅ Done — A1 + A2 (commit `1e5efc1`, build passing, migration live on prod)
+- **A1 renames (UI-only, DB/routes/embeds untouched):** "Bodega"→"Almacén"
+  across Inventario/conduces/salidas/entradas/reportes/dashboard/dudas/auditoría/nav;
+  "Solicitud de material"→"Requisición" (engineer page, nav, badges, Dirección, auditoría).
+- **A2 unified flow:** `sql/2026-07-12-requisiciones-flujo.sql` applied →
+  - RPC `sgc.aprobar_requisicion(p_solicitud_id, p_bodega_id, p_fecha, p_responsable, p_observaciones, p_items)`
+    `SECURITY DEFINER`, returns `{salida_id, solicitud_compra_id, despachado_total, faltante_total}`.
+    Splits: dispatchable = `min(req, stock@bodega)` → `registrar_salida_inventario`; rest → auto `solicitudes_compra` (pendiente) linked via `origen_requisicion_id`.
+  - New cols: `solicitudes_material.{solicitud_compra_id,bodega_id}`, `solicitudes_compra.origen_requisicion_id`.
+  - Old `aprobar_solicitud_material` kept (deprecated). Estados stay in app-known set.
+  - Approval UI (`inventario/salidas`): approver **maps each free-text requisición line to a catalog article** (auto-matched by name/code); unmapped → purchase. Shows split summary toast.
+  - Realtime added for `solicitudes_material/compra` + `salidas_inventario` (live badges).
+  - **Fork flagged:** removed "Solicitar compra" from the engineer's Bitácora nav
+    (route still exists). Non-catalog needs now flow through the requisición as
+    free-text → auto-compra. Confirm with Xavier if he wants it back.
 
-**This session (uncommitted)** — surfacing + interconnection:
-- `ProyectosService.getActivasConUbicacion()` — light query of active/in-progress
-  projects that have coords.
-- `ObrasClimaService` (`src/shared/context/obras-clima.service.ts`) — domain
-  aggregator: weather + worst risk level per active obra, sorted worst-first.
-- `ObrasClima` component (`src/shared/context/obras-clima/`) — reusable
-  `<app-obras-clima />` panel (self-loading grid of per-obra weather + top advisory).
-- Wired into **Dashboard** (gated by proyectos/bitácora access) and **Panel de
-  Dirección** (panel + climate danger/precaución fed into "Requiere atención").
-- Dudas FAQ updated (clima-ubicación: "clima de todas las obras de un vistazo").
-- **Also this session:** finished the interrupted **Proyectos → Historial** page
-  (route + nav + Dudas + Soporte). Build green.
+### 🔜 Needs Xavier QA before extending (A3/A4 hook into aprobar_requisicion)
+End-to-end click-through (his manual QA workflow):
+1. Engineer → Bitácora → Requisición → nueva requisición (free-text items).
+2. Almacén → Inventario → Salidas → "Requisiciones pendientes" → Aprobar →
+   pick almacén, confirm article mapping → "Aprobar y despachar".
+3. Verify: a conduce (salida) exists for the in-stock part **and** a new
+   Solicitud de compra appears in Compras → Órdenes for the shortfall.
 
-**Background sync (LIVE in prod):**
-- Edge function `supabase/functions/sync-weather-obras/` — snapshots current
-  weather for every active obra with coords into `weather_snapshots`. Deployed
-  with `--no-verify-jwt`, auth via `x-sync-secret` shared secret (in Supabase
-  Vault as `weather_sync_secret` + function env `WEATHER_SYNC_SECRET`).
-- **pg_cron** job `weather-sync-obras` runs every 3h (`sql/2026-07-07-weather-cron.sql`).
-  Verified end-to-end: net.http_post → function → Open-Meteo → insert (HTTP 200,
-  real rows landed for CSD-001 BRISAS CITY CENTER).
+### ✅ Done — A6 + A7 (commit `9205f69`, build passing, migrations live on prod)
+- **A6 Flota checklists:** `sql/2026-07-12-flota-checklists.sql` (+ `-seed.sql`) →
+  `checklist_plantillas`/`_items`, `checklists_vehiculo` (+`_respuestas`/`_fotos`),
+  RLS + grants; RPC `registrar_checklist_vehiculo` (SECURITY DEFINER, idempotent by
+  client UUID → CSD-App-ready) + `atender_checklist_vehiculo`. Seeded 3 templates
+  (Pre-Uso Liviano 8, Inspección Seguridad 19, Pre-Uso Camión 12) by categoría
+  liviano/camión/equipo. Critical NO → realtime toast to Flota + `flota` badge until atended.
+  Page `/flota/checklists` (fill OK/NO/NA, per-tipo template auto-suggest, history, atender), route+nav.
+- **A7 Tecnología module:** permission `tecnologia` (roles.service + admin array_append),
+  parent route ungated (guide for all) + gated children, nav+icon, dashboard card.
+  Tables: `tec_herramientas` (seeded Drive/Claude/Fireflies/Meet), `tec_matriz`,
+  `tec_equipos` + `tec_equipo_historial` (dedicated tech inventory → empleado + history;
+  architect choice: NOT activos_fijos, to keep asset-accounting register clean).
+  Compras tec: `solicitudes_compra.proyecto_id` nullable + `categoria`; RPC
+  `crear_solicitud_compra_tec` → flows to Compras/Gerencia. 5 pages (guia/homologacion/matriz/inventario/compras).
+- Dudas FAQ updated (Tecnología, flota checklists, requisición flow). Dashboard card added.
 
-**BI weather reports (uncommitted):**
-- `WeatherBiService` (`src/shared/context/weather-bi.service.ts`) — aggregates
-  `weather_snapshots` into días con lluvia / días adversos (rain ≥0.5mm OR wind
-  ≥40km/h) / % adverso per obra.
-- `Proyectos > Reportes de clima` page (`src/app/pages/proyectos/clima/`), route
-  `/proyectos/clima` + shell nav + Dudas FAQ. 7/30/90-day ranges, tiles, bar chart,
-  ranking table. Verified query returns real aggregated data.
+### ✅ Done — A3.2 Equipo de Obra (commit `997e9b2`, build passing, migration live)
+- `sql/2026-07-12-equipo-obra.sql`: `proyecto_empleados` empleado_id nullable +
+  externo_nombre/tipo, desde/hasta, activo, notas + CHECK (empleado OR externo).
+- Model `ROLES_OBRA` (authoritative CSD-OPE-01 §5 catalog) + `ROLES_GERENCIA_OBRA`
+  (2 mgmt roles, informational) + `rolObraLabel()`. Service `addMiembro`.
+- UI: Proyectos > detalle → "Equipo de Obra" (rol catalog, empleado/externo toggle, vigencia).
+- **Deferred (note):** (a) mgmt roles gerente_produccion/ing_supervisor_general have a
+  catalog but no company-level assignment UI yet; (b) "only assigned Residente/Responsable
+  can requisition" validation NOT enforced in the shared RPC (do it when extending A2/A4).
+  Guarda-Almacén role value `guarda_almacen` is queryable for A5.
 
-**Severe-weather alerts (LIVE in prod):**
-- Table `sgc.weather_alerts` (`sql/2026-07-07-weather-alerts.sql`): self-healing
-  alert set, `vigente=true` = active severe condition. RLS authenticated-select;
-  added to `supabase_realtime` publication.
-- Edge fn `sync-weather-obras` now also detects severe conditions (storm /
-  lluvia_intensa ≥4mm / viento_fuerte ≥40km/h / calor_extremo ≥38°C, env-tunable
-  ALERT_* vars) and maintains alerts: opens new, dedups, resolves cleared.
-  Verified end-to-end (open + dedup + resolve) in prod.
-- Frontend: badge on Proyectos nav (`NotificacionesService.loadWeatherAlertas`,
-  key `proyectos`), realtime toast (`RealtimeNotificacionesService` rt-weather-alerts
-  → /proyectos/clima), and "Alertas activas" list on the Reportes de clima page
-  (`WeatherAlertsService`). Dudas FAQ updated.
+### ✅ Done — A8 Expediente de inicio de obra (commit `a1cf7b2`, build passing, migration live)
+- `sql/2026-07-12-expediente-obra.sql`: `expediente_obra` (checklist por doc/proyecto,
+  estado pendiente/cargado/validado/no_aplica), RLS (proyectos/legal/admin) + grants,
+  RPC `sembrar_expediente_obra` (11 docs §6.1.1, idempotent), view
+  `v_expediente_obra_resumen` (security_invoker) for KPI.
+- Component `<app-expediente-obra>` in Proyectos detail (init, per-doc estado/responsable/
+  file upload to `sgc-documentos`, completeness bar). Dirección KPI "expediente incompleto".
+- No montos exposed (section under proyectos module; obra roles lack it).
 
-**Transport/route weather (uncommitted):**
-- `sgc.rutas` + `destino_lat`/`destino_lng`/`destino_proyecto_id`
-  (`sql/2026-07-07-rutas-destino-coords.sql`). `Ruta`/`RutaFormData` extended +
-  `destinoCoords()` helper (obra coords win over explicit point).
-- `RutasClimaService` — trip-day forecast for a destination + dispatch advisory
-  (storm / lluvia ≥60% / viento ≥40km/h).
-- Rutas form: "Obra de destino" select OR map picker (app-location-picker), live
-  `app-weather-card` for the destination + dispatch advisory for the trip date.
-- Rutas list: weather chip on upcoming trips with adverse destination weather.
-- Dudas FAQ updated. Verified: build green + PostgREST embed hint resolves.
+### ✅ Done — A3.1 + A4 + A5 (commits `295bfce`, `11532eb`; build passing; migrations live; A9 audited)
+- **A3.1** cuadre + kit: `kit_inicio_plantilla` (seeded from Excel: 86 items), `cuadre_obra`,
+  `cuadre_items` (per-phase est), `cuadre_consumo` (ledger). `copiar_kit_a_cuadre`.
+  `aprobar_requisicion` records consumo vs active phase. `<app-cuadre-obra>` in Proyectos detail.
+- **A4** silent antifraud: `parametros` (80/100 thresholds) + Admin>Parámetros; `alertas_cuadre` +
+  `evaluar_alerta_cuadre`; Dirección panel + badge + realtime; Gerencia granted `direccion`.
+  Verified end-to-end (90%→advertencia, 120%→alerta, dedup). RLS: obra roles see NOTHING.
+- **A5** chequeo semanal: `registrar_chequeo_semanal` (diff→alerts), conteos `tipo`,
+  Inventario>Conteos "Nuevo chequeo semanal", pg_cron `chequeo-semanal-almacenes` (Mon 06:00)
+  → task to each obra's Guarda-Almacén.
+- **A9** audit: all 16 new tables RLS on; sensitive (cuadre/consumo/alertas/parametros) gated to
+  proyectos/compras/direccion/admin — never bitacora; grants + RPC EXECUTE verified; no montos exposed.
 
-**Architecture doc:** `docs/intelligent-context-system.md` (spec deliverable #7) —
-vision, components, data model, flows, ops, extensibility, decisions, roadmap.
+### ✅ PARTE A COMPLETE (A1–A9). Pending: Parte B (mobile) + optional deploy.
+- **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
+  ALREADY applied to prod DB (additive, mobile-safe). Merge to `main` → Vercel prod deploy when ready.
+- **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
+  (Requisición/Almacén), requisición state display, pre-use vehicle checklists (offline outbox,
+  RPC `registrar_checklist_vehiculo` already exists + idempotent). NEVER add cuadre/límites/alertas/montos.
+- **A4** — silent antifraud engine: hook consumption vs cuadre-por-fase INTO
+  `aprobar_requisicion`; alerts table (weather_alerts realtime+RLS pattern) → Dirección panel;
+  configurable threshold (needs a new `sgc.parametros` table — none exists). Default 80% warn / 100% alert.
+  **NEVER expose montos/cuadres/límites/alerts to obra roles or the mobile app.**
+- **A5** — Chequeo semanal de almacén (build on `conteos_inventario`); recurring weekly
+  task via pg_cron (pattern: `sql/2026-07-07-weather-cron.sql`) assigned to Guarda-Almacén;
+  differences feed A4.
+- **A8** — Expediente de inicio de obra (checklist de docs con estado/responsable/adjunto;
+  links kit A3.1 + equipo A3.2; **regla dura: obra NUNCA ve montos de contrato**).
+  Design roadmap-compatible schemas for CL-01–CL-07, registro de vaciado, NC, etc. (don't build).
+- **A9** — full end-to-end verification + RLS/grants audit on every new table +
+  verify ingeniero role sees no límites/cuadres/alertas/montos.
+- **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
+  (Requisición/Almacén), requisición state display, pre-use vehicle checklists (offline outbox).
 
-**Air quality (LIVE):** `air-quality.model.ts` + `AirQualityProvider`/`AIR_QUALITY_PROVIDER`
-+ `OpenMeteoAirProvider` (keyless) + `AirQualityService` (30-min cache), folded into
-`ContextService.getContexto` (parallel fetch; `aire` field + merged air advisories).
-Weather-card shows an air-quality row (AQI badge + PM2.5/PM10/dust). Cron edge fn also
-detects hazardous air → `aire_peligroso` alert (env `ALERT_AQI`, default 200). Verified
-open+resolve lifecycle in prod.
+### Also pending (per feedback memory)
+- Update **Dudas FAQ + Soporte** for the rename + new requisición flow (not yet done).
 
-**Weather interconnection fixes (uncommitted):**
-- **Bitácora** captured weather was write-only/orphaned — now DISPLAYED. `Bitacora`
-  model gained `weather_snapshot_id` + joined `weather_snapshot`; service SELECT joins
-  `weather_snapshots`; historial detail drawer shows a "Clima registrado" block
-  (emphasized for incidentes). `WeatherSnapshot` type added to weather.model.ts.
-- **Bitácora → Mi Proyecto**: live `app-weather-card` per assigned obra.
-- **Tareas**: tarea-detalle shows live weather at the linked obra (query now selects
-  proyecto latitud/longitud). Dudas FAQ updated. (Conduces skipped — weather adds no
-  value on a transactional PDF; route weather is Flota's job.)
-
-### ⏳ Next (pick a batch)
-
-1. **Traffic** — no keyless provider exists; needs TomTom/HERE/Google key. Plan: edge
-   fn proxy (keeps key server-side) + `TrafficProvider` seam + ETA/delay on ruta
-   destination. **Awaiting Xavier's choice of provider + key.**
-2. **Google Maps swap** — only if Xavier provides a billing-enabled API key.
-3. **Sunrise/sunset** (keyless, easy) · **AI assistant** over accumulated context.
-
-### 📌 Pending decision
-- 9 commits on local `main` are **NOT pushed** to origin. Pushing likely triggers a
-  Vercel prod deploy to sgcconstructorasd.com — awaiting Xavier's go-ahead.
-
-### Notes / gotchas
-- No `supabase/migrations/` dir — SQL lives in `sql/`. Verify migrations actually
-  ran against live DB (committed .sql ≠ applied).
-- `weather_snapshots` RLS is open read/insert to authenticated — revisit if scoping
-  tightens.
-- Stale worktree `.claude/worktrees/agent-a52123a0...` (Flota reportes, already on
-  main) — safe to `git worktree remove`.
+### Tooling
+- DB introspection/migrations: `node <scratchpad>/sql.mjs "<SQL>"` or `--file x.sql`
+  (Management API, SUPABASE_ACCESS_TOKEN, project ref `jeeqhgccqefbqilntcpu`).
+- Build check: `npm run build`.

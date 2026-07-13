@@ -14,6 +14,7 @@ import { ArticulosService } from '../../../../shared/services/articulos.service'
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
@@ -37,6 +38,7 @@ export class Salidas implements OnInit {
   private bodegasService = inject(BodegasService);
   private proyectosService = inject(ProyectosService);
   private solicitudesMaterialService = inject(SolicitudesMaterialService);
+  private toast = inject(ToastService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
@@ -68,6 +70,11 @@ export class Salidas implements OnInit {
   drawerOpen = signal(false);
   formItems = signal<SalidaItemFormData[]>([{ articulo_id: '', cantidad: 1 }]);
 
+  // A2 — al aprobar una requisición, el aprobador MAPEA cada renglón (texto libre del
+  // ingeniero) a un artículo del catálogo. Mapeado -> puede despacharse de stock; sin
+  // mapear -> va 100% a la solicitud de compra automática.
+  reqItems = signal<{ descripcion: string; unidad: string | null; articulo_id: string | null; cantidad: number }[]>([]);
+
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
 
@@ -85,6 +92,10 @@ export class Salidas implements OnInit {
 
   // ── Computed ─────────────────────────────────────────────
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+
+  /** True cuando el drawer está aprobando una requisición (auto-división), no una salida manual. */
+  atendiendoRequisicion = computed(() => !!this.solicitudEnAtencion());
+  drawerTitle = computed(() => (this.atendiendoRequisicion() ? 'Aprobar requisición' : 'Registrar salida'));
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -221,21 +232,39 @@ export class Salidas implements OnInit {
     this.drawerOpen.set(true);
   }
 
-  /** Opens the create drawer pre-filled from a pending solicitud de materiales. */
+  /** Opens the approval drawer for a pending requisición, auto-matching each line to the catalog. */
   atenderSolicitud(s: SolicitudMaterial) {
     this.saveError.set('');
     this.solicitudEnAtencion.set(s);
-    const resumen = (s.items ?? [])
-      .map((i) => `${i.cantidad}${i.unidad ? ' ' + i.unidad : ''} — ${i.descripcion}`)
-      .join('; ');
+    const arts = this.articulos();
+    const norm = (t: string) => t.toLowerCase().trim();
+    this.reqItems.set(
+      (s.items ?? []).map((i) => {
+        const d = norm(i.descripcion);
+        // auto-match por nombre o código exacto; si no, queda sin mapear (irá a compra).
+        const match = arts.find((a) => norm(a.nombre) === d || norm(a.codigo) === d);
+        return { descripcion: i.descripcion, unidad: i.unidad, articulo_id: match?.id ?? null, cantidad: i.cantidad };
+      }),
+    );
     this.form.reset({
       fecha: this.today,
       motivo: 'uso_proyecto',
       proyecto_id: s.proyecto_id,
-      observaciones: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}: ${resumen}${s.notas ? ' — ' + s.notas : ''}`,
+      observaciones: s.notas ?? null,
     });
-    this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
     this.drawerOpen.set(true);
+  }
+
+  updateReqItemArticulo(index: number, value: string) {
+    this.reqItems.update((items) =>
+      items.map((it, i) => (i === index ? { ...it, articulo_id: value || null } : it)),
+    );
+  }
+
+  updateReqItemCantidad(index: number, value: string) {
+    this.reqItems.update((items) =>
+      items.map((it, i) => (i === index ? { ...it, cantidad: Number(value) } : it)),
+    );
   }
 
   async rechazarSolicitud(s: SolicitudMaterial) {
@@ -272,6 +301,15 @@ export class Salidas implements OnInit {
   }
 
   async onSave() {
+    const solicitud = this.solicitudEnAtencion();
+    // A2 — Aprobación de requisición: el sistema divide (despacho + compra automática).
+    // Enviamos los renglones ORIGINALES de la requisición (incluye los de texto libre
+    // sin artículo, que van 100% a compra) — no los del editor de salida manual.
+    if (solicitud) {
+      await this.aprobarRequisicion(solicitud);
+      return;
+    }
+
     this.form.markAllAsTouched();
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
     if (this.form.invalid || this.saving() || items.length === 0) return;
@@ -294,42 +332,86 @@ export class Salidas implements OnInit {
 
     try {
       const userId = this.userService.profile()?.id ?? null;
-      const solicitud = this.solicitudEnAtencion();
-
-      let created;
-      if (solicitud) {
-        // Atomic: creates the salida and marks the solicitud entregada in one transaction —
-        // no window where a salida exists but the solicitud is still stuck at "pendiente".
-        const salidaId = await this.solicitudesMaterialService.aprobar(solicitud.id, {
+      const created = await this.salidasService.create(
+        {
           bodega_id: v.bodega_id!,
+          proyecto_id: v.motivo === 'uso_proyecto' ? (v.proyecto_id ?? null) : null,
+          motivo: v.motivo!,
           fecha: v.fecha!,
           responsable: v.responsable ?? null,
           observaciones: v.observaciones ?? null,
+          conductor_id: null,
+          vehiculo_id: null,
           items,
-        });
-        created = await this.salidasService.getById(salidaId);
-        this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
-      } else {
-        created = await this.salidasService.create(
-          {
-            bodega_id: v.bodega_id!,
-            proyecto_id: v.motivo === 'uso_proyecto' ? (v.proyecto_id ?? null) : null,
-            motivo: v.motivo!,
-            fecha: v.fecha!,
-            responsable: v.responsable ?? null,
-            observaciones: v.observaciones ?? null,
-            conductor_id: null,
-            vehiculo_id: null,
-            items,
-          },
-          userId,
-        );
-      }
+        },
+        userId,
+      );
       this.salidas.update((list) => [created, ...list]);
-
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  /** A2 — Aprueba una requisición con auto-división (despacho en stock + compra del faltante). */
+  private async aprobarRequisicion(solicitud: SolicitudMaterial) {
+    this.form.markAllAsTouched();
+    if (!this.form.controls.bodega_id.value) {
+      this.saveError.set('Selecciona el almacén desde el que se despachará.');
+      return;
+    }
+    if (this.saving()) return;
+
+    const reqItems = this.reqItems().filter((i) => i.cantidad > 0);
+    if (reqItems.length === 0) {
+      this.saveError.set('La requisición no tiene renglones válidos.');
+      return;
+    }
+    // Un mismo artículo mapeado no puede repetirse (el despacho fallaría al sumar stock).
+    const mapped = reqItems.map((i) => i.articulo_id).filter((x): x is string => !!x);
+    if (new Set(mapped).size !== mapped.length) {
+      this.saveError.set('Un mismo artículo está mapeado en más de un renglón. Combínalos en uno solo.');
+      return;
+    }
+
+    this.saving.set(true);
+    this.saveError.set('');
+    try {
+      const v = this.form.value;
+      const res = await this.solicitudesMaterialService.aprobarRequisicion(solicitud.id, {
+        bodega_id: v.bodega_id!,
+        fecha: v.fecha!,
+        responsable: v.responsable ?? null,
+        observaciones: v.observaciones ?? null,
+        items: reqItems,
+      });
+
+      this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
+      if (res.salida_id) {
+        const created = await this.salidasService.getById(res.salida_id);
+        this.salidas.update((list) => [created, ...list]);
+      }
+
+      // Resumen de la división para el aprobador.
+      if (res.faltante_total > 0 && res.despachado_total > 0) {
+        this.toast.success(
+          'Requisición aprobada',
+          `Se despachó lo disponible (${res.despachado_total}) y se generó una solicitud de compra por el faltante (${res.faltante_total}) en Compras.`,
+        );
+      } else if (res.faltante_total > 0) {
+        this.toast.warning(
+          'Requisición aprobada — sin stock',
+          `No había stock disponible. Se generó una solicitud de compra por ${res.faltante_total} en el módulo Compras.`,
+        );
+      } else {
+        this.toast.success('Requisición aprobada', 'Se despachó completa desde el almacén. Genera el conduce para la entrega.');
+      }
+
+      this.drawerOpen.set(false);
+    } catch (e: unknown) {
+      this.saveError.set(e instanceof Error ? e.message : 'Error al aprobar la requisición.');
     } finally {
       this.saving.set(false);
     }

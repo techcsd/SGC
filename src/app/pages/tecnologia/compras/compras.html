@@ -1,0 +1,155 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Compras tecnológicas</h1>
+    <span class="page-count">{{ compras().length }} solicitud{{ compras().length !== 1 ? 'es' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nueva compra
+  </button>
+</div>
+
+<div class="compras-intro sgc-card">
+  <p>
+    Solicita aquí la compra de equipos, software o servicios tecnológicos. Cada solicitud
+    se envía al módulo de <strong>Compras / Gerencia</strong> para su aprobación; podrás
+    seguir su estado en esta lista.
+  </p>
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="6" />
+  } @else if (compras().length === 0) {
+    <div class="table-empty">
+      <p>No hay solicitudes de compra tecnológica. Crea la primera.</p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Solicitudes de compra tecnológica">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th class="text-right">Renglones</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of compras(); track c.id) {
+            <tr>
+              <td class="compra-fecha">{{ formatTimestamp(c.created_at) }}</td>
+              <td>
+                <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">
+                  {{ getEstadoLabel(c.estado) }}
+                </span>
+              </td>
+              <td class="text-right">{{ (c.items ?? []).length }}</td>
+              <td class="text-muted cell-clamp">{{ c.notas ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Form Drawer ── -->
+<app-form-drawer title="Nueva compra tecnológica" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="notas">Notas / justificación</label>
+      <textarea
+        id="notas"
+        formControlName="notas"
+        rows="2"
+        placeholder="Motivo de la compra, urgencia, presupuesto aproximado…"
+      ></textarea>
+    </div>
+
+    <!-- Items -->
+    <div class="sgc-field">
+      <div class="items-header">
+        <label>Artículos <span class="required">*</span></label>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">
+          + Agregar artículo
+        </button>
+      </div>
+
+      @for (item of formItems(); track $index) {
+        <div class="item-row">
+          <input
+            class="item-row__desc"
+            type="text"
+            placeholder="Descripción (ej: Laptop 16GB RAM)"
+            [value]="item.descripcion"
+            (input)="updateItemDescripcion($index, $any($event.target).value)"
+            aria-label="Descripción"
+          />
+          <input
+            class="item-row__cantidad"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Cant."
+            [value]="item.cantidad"
+            (input)="updateItemCantidad($index, $any($event.target).value)"
+            aria-label="Cantidad"
+          />
+          <input
+            class="item-row__proveedor"
+            type="text"
+            placeholder="Proveedor sugerido"
+            [value]="item.proveedor_sugerido"
+            (input)="updateItemProveedor($index, $any($event.target).value)"
+            aria-label="Proveedor sugerido"
+          />
+          <button
+            type="button"
+            class="item-row__remove"
+            (click)="removeItem($index)"
+            [disabled]="formItems().length === 1"
+            aria-label="Eliminar artículo"
+          >×</button>
+        </div>
+      }
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Enviando…
+        } @else {
+          Enviar a Compras
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>

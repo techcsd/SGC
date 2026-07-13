@@ -98,6 +98,13 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/tareas/tareas.routes').then((m) => m.tareasRoutes),
       },
       {
+        // No module guard on the parent: the homologación guide is informative for
+        // every authenticated user. Management children self-guard with moduleGuard('tecnologia').
+        path: 'tecnologia',
+        loadChildren: () =>
+          import('./pages/tecnologia/tecnologia.routes').then((m) => m.tecnologiaRoutes),
+      },
+      {
         // Internal messaging — available to every authenticated user.
         path: 'mensajes',
         loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),

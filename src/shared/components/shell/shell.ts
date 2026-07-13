@@ -76,7 +76,7 @@ export class Shell implements OnInit {
         { label: 'Salidas', route: '/inventario/salidas' },
         { label: 'Conduces', route: '/inventario/conduces' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos' },
-        { label: 'Bodegas', route: '/inventario/bodegas' },
+        { label: 'Almacenes', route: '/inventario/bodegas' },
         { label: 'Reportes', route: '/inventario/reportes' },
       ],
     },
@@ -122,6 +122,7 @@ export class Shell implements OnInit {
         { label: 'Conductores', route: '/flota/conductores' },
         { label: 'Combustible', route: '/flota/combustible' },
         { label: 'Rutas', route: '/flota/rutas' },
+        { label: 'Checklists', route: '/flota/checklists' },
         { label: 'Responsabilidad', route: '/flota/responsabilidad' },
         { label: 'Reportes', route: '/flota/reportes' },
       ],
@@ -134,8 +135,7 @@ export class Shell implements OnInit {
         { label: 'Nueva bitácora', route: '/bitacora/nueva' },
         { label: 'Mis bitácoras', route: '/bitacora/historial' },
         { label: 'Mi proyecto', route: '/bitacora/mi-proyecto' },
-        { label: 'Solicitar materiales', route: '/bitacora/solicitudes-material' },
-        { label: 'Solicitar compra', route: '/bitacora/solicitudes-compra' },
+        { label: 'Requisición', route: '/bitacora/solicitudes-material' },
         { label: 'Confirmar entregas', route: '/bitacora/entregas' },
       ],
     },
@@ -172,6 +172,19 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // Sin `modulo`: la guía de homologación es informativa para todos.
+      // Las secciones de gestión se gatean con el módulo 'tecnologia'.
+      label: 'Tecnología',
+      icon: 'tecnologia',
+      children: [
+        { label: 'Guía de herramientas', route: '/tecnologia/guia' },
+        { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
+        { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
+        { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
+        { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
+      ],
+    },
+    {
       // Internal chat — no module gate, everyone can message.
       label: 'Mensajes',
       icon: 'mensajes',
@@ -205,6 +218,7 @@ export class Shell implements OnInit {
       { label: 'Roles', route: '/admin/roles' },
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
+      { label: 'Parámetros', route: '/admin/parametros' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],

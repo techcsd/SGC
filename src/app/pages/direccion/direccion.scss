@@ -76,6 +76,33 @@
   }
 }
 
+// A4 — alertas de control de materiales
+.control-alertas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.control-alerta {
+  border: 1px solid var(--sgc-border);
+  border-left: 3px solid var(--sgc-warning);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--sgc-surface);
+
+  &--danger { border-left-color: var(--sgc-danger); }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  &__proyecto { font-weight: 600; color: var(--sgc-text); }
+  &__fase { font-size: 12px; color: var(--sgc-text-muted); }
+  &__msg { margin: 6px 0 8px; font-size: 13px; color: var(--sgc-text); }
+  &__actions { display: flex; gap: 6px; }
+}
+
 .alerta {
   display: flex;
   align-items: center;

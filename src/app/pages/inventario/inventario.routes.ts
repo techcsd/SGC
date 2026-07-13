@@ -39,7 +39,7 @@ export const inventarioRoutes: Routes = [
   {
     path: 'bodegas',
     loadComponent: () => import('./bodegas/bodegas').then((m) => m.Bodegas),
-    title: 'Bodegas — Inventario',
+    title: 'Almacenes — Inventario',
   },
   {
     path: 'conteos',

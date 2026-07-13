@@ -33,6 +33,11 @@ export const adminRoutes: Routes = [
     title: 'Catálogos de bitácora — Administración',
   },
   {
+    path: 'parametros',
+    loadComponent: () => import('./parametros/parametros').then((m) => m.AdminParametros),
+    title: 'Parámetros — Administración',
+  },
+  {
     path: 'auditoria',
     loadComponent: () => import('./auditoria/auditoria').then((m) => m.AdminAuditoria),
     title: 'Auditoría — Administración',

@@ -1,0 +1,312 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Inventario tecnológico</h1>
+    <span class="page-count">{{ filtered().length }} equipo{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo equipo
+  </button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input
+      type="search"
+      placeholder="Buscar por nombre, código o serie…"
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar equipos"
+    />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedEstado()"
+      (change)="onEstadoChange($any($event.target).value)"
+      aria-label="Filtrar por estado"
+    >
+      <option value="">Todos los estados</option>
+      @for (e of ESTADOS; track e.value) {
+        <option [value]="e.value">{{ e.label }}</option>
+      }
+    </select>
+  </div>
+
+  @if (hasActiveFilters()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+<!-- ── Error ── -->
+@if (error()) {
+  <div class="page-error" role="alert">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+  </div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (hasActiveFilters()) {
+          No se encontraron equipos con los filtros aplicados.
+        } @else {
+          No hay equipos registrados. Registra el primero.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Inventario de equipos tecnológicos">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Marca / Modelo</th>
+            <th>Estado</th>
+            <th>Asignado a</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of filtered(); track e.id) {
+            <tr>
+              <td class="equipo-codigo">{{ e.codigo ?? '—' }}</td>
+              <td><span class="equipo-nombre">{{ e.nombre }}</span></td>
+              <td class="text-muted">{{ getTipoLabel(e.tipo) }}</td>
+              <td class="text-muted">
+                {{ e.marca || '—' }}@if (e.modelo) { / {{ e.modelo }} }
+              </td>
+              <td>
+                <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(e.estado)">
+                  {{ getEstadoLabel(e.estado) }}
+                </span>
+              </td>
+              <td class="text-muted">{{ getEmpleadoNombre(e) }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="action-btn"
+                    (click)="openDetail(e)"
+                    [attr.aria-label]="'Ver historial de ' + e.nombre"
+                    title="Ver detalle e historial"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn action-btn--edit"
+                    (click)="openEdit(e)"
+                    [attr.aria-label]="'Editar ' + e.nombre"
+                    title="Editar"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="action-btn action-btn--delete"
+                    (click)="remove(e)"
+                    [attr.aria-label]="'Eliminar ' + e.nombre"
+                    title="Eliminar"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Create/Edit Drawer ── -->
+<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <div class="sgc-field">
+      <label for="nombre">Nombre <span class="required">*</span></label>
+      <input
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        placeholder="Ej: Laptop Dell Latitude"
+        [class.invalid]="f.nombre.invalid && f.nombre.touched"
+      />
+      @if (f.nombre.invalid && f.nombre.touched) {
+        <span class="field-error">El nombre es obligatorio.</span>
+      }
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="tipo">Tipo <span class="required">*</span></label>
+        <select
+          id="tipo"
+          formControlName="tipo"
+          [class.invalid]="f.tipo.invalid && f.tipo.touched"
+        >
+          <option [value]="null">Seleccionar tipo…</option>
+          @for (t of TIPOS; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+        @if (f.tipo.invalid && f.tipo.touched) {
+          <span class="field-error">El tipo es obligatorio.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="estado">Estado <span class="required">*</span></label>
+        <select
+          id="estado"
+          formControlName="estado"
+          [class.invalid]="f.estado.invalid && f.estado.touched"
+        >
+          @for (es of ESTADOS; track es.value) {
+            <option [value]="es.value">{{ es.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="marca">Marca</label>
+        <input id="marca" type="text" formControlName="marca" placeholder="Ej: Dell" />
+      </div>
+      <div class="sgc-field">
+        <label for="modelo">Modelo</label>
+        <input id="modelo" type="text" formControlName="modelo" placeholder="Ej: Latitude 5420" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="serie">Número de serie</label>
+      <input id="serie" type="text" formControlName="serie" placeholder="Ej: SN-123456" />
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="empleado_id">Asignado a</label>
+        <select id="empleado_id" formControlName="empleado_id">
+          <option [value]="null">Sin asignar</option>
+          @for (emp of empleados(); track emp.id) {
+            <option [value]="emp.id">{{ emp.nombre }} {{ emp.apellido }}</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="asignado_en">Fecha de asignación</label>
+        <input id="asignado_en" type="date" formControlName="asignado_en" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="ubicacion">Ubicación</label>
+      <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Ej: Oficina central, piso 2" />
+    </div>
+
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea id="notas" formControlName="notas" rows="2" placeholder="Observaciones (opcional)…"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <div class="save-error" role="alert">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ saveError() }}
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Guardando…
+        } @else {
+          {{ editingId() ? 'Guardar cambios' : 'Registrar equipo' }}
+        }
+      </button>
+    </div>
+
+  </form>
+</app-form-drawer>
+
+<!-- ── Detail / History Drawer ── -->
+<app-form-drawer title="Detalle del equipo" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detailEquipo(); as eq) {
+    <div class="detail">
+      <dl class="detail__grid">
+        <div><dt>Código</dt><dd>{{ eq.codigo ?? '—' }}</dd></div>
+        <div><dt>Nombre</dt><dd>{{ eq.nombre }}</dd></div>
+        <div><dt>Tipo</dt><dd>{{ getTipoLabel(eq.tipo) }}</dd></div>
+        <div>
+          <dt>Estado</dt>
+          <dd>
+            <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(eq.estado)">
+              {{ getEstadoLabel(eq.estado) }}
+            </span>
+          </dd>
+        </div>
+        <div><dt>Marca / Modelo</dt><dd>{{ eq.marca || '—' }}@if (eq.modelo) { / {{ eq.modelo }} }</dd></div>
+        <div><dt>Serie</dt><dd>{{ eq.serie ?? '—' }}</dd></div>
+        <div><dt>Asignado a</dt><dd>{{ getEmpleadoNombre(eq) }}</dd></div>
+        <div><dt>Fecha de asignación</dt><dd>{{ formatFecha(eq.asignado_en) }}</dd></div>
+        <div><dt>Ubicación</dt><dd>{{ eq.ubicacion ?? '—' }}</dd></div>
+      </dl>
+      @if (eq.notas) {
+        <p class="detail__notas">{{ eq.notas }}</p>
+      }
+
+      <h3 class="detail__hist-title">Historial</h3>
+      @if (historialLoading()) {
+        <app-skeleton variant="list" [rows]="3" />
+      } @else if (historial().length === 0) {
+        <p class="detail__hist-empty">Sin movimientos registrados.</p>
+      } @else {
+        <ul class="hist-list">
+          @for (h of historial(); track h.id) {
+            <li class="hist-item">
+              <div class="hist-item__head">
+                <span class="hist-item__tipo">{{ h.tipo_cambio }}</span>
+                <span class="hist-item__fecha">{{ formatTimestamp(h.created_at) }}</span>
+              </div>
+              @if (h.descripcion) {
+                <p class="hist-item__desc">{{ h.descripcion }}</p>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</app-form-drawer>

@@ -63,6 +63,33 @@
     </section>
   }
 
+  <!-- A4 — Alertas de control de materiales (antifraude, solo Dirección/Gerencia) -->
+  @if (alertasControl().length > 0) {
+    <section class="direccion-alertas sgc-card">
+      <h3 class="direccion-alertas__title">Control de materiales — alertas ({{ alertasControl().length }})</h3>
+      <div class="control-alertas">
+        @for (a of alertasControl(); track a.id) {
+          <div class="control-alerta" [class.control-alerta--danger]="a.severidad === 'alerta'">
+            <div class="control-alerta__main">
+              <span class="sgc-badge" [class]="'sgc-badge--' + ALERTA_SEV[a.severidad].badge">{{ ALERTA_SEV[a.severidad].label }}</span>
+              <span class="control-alerta__proyecto">{{ a.proyecto?.nombre ?? a.bodega?.nombre ?? '—' }}</span>
+              @if (a.fase) { <span class="control-alerta__fase">Fase {{ a.fase }}</span> }
+              @if (a.tipo === 'chequeo_diferencia') { <span class="control-alerta__fase">Chequeo</span> }
+              @if (a.estado === 'en_revision') { <span class="sgc-badge sgc-badge--warning">En revisión</span> }
+            </div>
+            <p class="control-alerta__msg">{{ a.mensaje }}</p>
+            <div class="control-alerta__actions">
+              @if (a.estado === 'nueva') {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="atenderAlerta(a, 'en_revision')">Marcar en revisión</button>
+              }
+              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="atenderAlerta(a, 'resuelta')">Resolver</button>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
   <!-- Clima en obras (Sistema de Contexto Inteligente) -->
   <app-obras-clima />
 
