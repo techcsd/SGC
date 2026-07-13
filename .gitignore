@@ -51,3 +51,7 @@ Thumbs.db
 
 # Supabase CLI local scratch
 supabase/.temp/
+
+# Local secrets (SMTP app password, etc.) — never commit
+.smtp.local
+*.local
