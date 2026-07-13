@@ -18,6 +18,7 @@ const ESTADO_BADGE: Record<string, string> = {
   pendiente: 'warning',
   aprobada: 'info',
   entregada: 'success',
+  cerrada: 'success',
   rechazada: 'danger',
 };
 
@@ -26,6 +27,7 @@ const ESTADO_LABEL: Record<string, string> = {
   pendiente: 'Pendiente',
   aprobada: 'Aprobada (en compra)',
   entregada: 'Entregada',
+  cerrada: 'Cerrada',
   rechazada: 'Rechazada',
 };
 

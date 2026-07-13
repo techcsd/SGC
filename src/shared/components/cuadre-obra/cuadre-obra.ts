@@ -72,6 +72,7 @@ export class CuadreObraComponent {
   fF4 = signal<number>(0);
   fBase = signal<number | null>(null);
   fFactor = signal<number | null>(null);
+  fEsMinStock = signal(false);
   addError = signal('');
 
   // ── Grouped items (ordered, non-empty only) ──────────────
@@ -131,12 +132,28 @@ export class CuadreObraComponent {
     const fase_activa = Number(value);
     const previo = this.cuadre();
     if (!previo || fase_activa === previo.fase_activa) return;
-    this.cuadre.update((c) => (c ? { ...c, fase_activa } : c));
+    // Cambiar la fase a mano desactiva el avance automático.
+    this.cuadre.update((c) => (c ? { ...c, fase_activa, fase_auto: false } : c));
     try {
-      await this.cuadreService.setBodegaYFase(this.proyectoId(), { fase_activa });
+      await this.cuadreService.setBodegaYFase(this.proyectoId(), { fase_activa, fase_auto: false });
     } catch (e: unknown) {
       this.cuadre.set(previo);
       this.toast.error('No se pudo cambiar la fase', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  /** Reactiva el avance automático de la fase según el % del proyecto. */
+  async toggleFaseAuto() {
+    const previo = this.cuadre();
+    if (!previo) return;
+    const fase_auto = !(previo.fase_auto ?? true);
+    this.cuadre.update((c) => (c ? { ...c, fase_auto } : c));
+    try {
+      await this.cuadreService.setBodegaYFase(this.proyectoId(), { fase_auto });
+      if (fase_auto) await this.load(this.proyectoId()); // el trigger recalcula la fase
+    } catch (e: unknown) {
+      this.cuadre.set(previo);
+      this.toast.error('No se pudo cambiar el modo de fase', e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -217,6 +234,7 @@ export class CuadreObraComponent {
     this.fF4.set(0);
     this.fBase.set(null);
     this.fFactor.set(null);
+    this.fEsMinStock.set(false);
     this.addError.set('');
   }
 
@@ -278,6 +296,7 @@ export class CuadreObraComponent {
       descripcion,
       unidad: this.fUnidad().trim() || null,
       categoria: 'material',
+      es_min_stock: this.fEsMinStock(),
       cantidad_total: this.fCantidadTotal() ?? 0,
       est_f1: this.fF1(),
       est_f2: this.fF2(),

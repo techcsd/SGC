@@ -41,45 +41,16 @@ export class StockService {
    * Guarda-Almacén — cantidades solamente, sin cuadre ni montos.
    */
   async getReposicion(bodegaId: string): Promise<ReposicionRow[]> {
-    // Artículos activos con mínimo > 0, y su stock en este almacén (si existe).
-    const [artsRes, stockRes] = await Promise.all([
-      this.supabase.client
-        .from('articulos')
-        .select('id, nombre, codigo, unidad, stock_minimo')
-        .eq('activo', true)
-        .gt('stock_minimo', 0),
-      this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad').eq('bodega_id', bodegaId),
-    ]);
-    if (artsRes.error) throw new Error(artsRes.error.message);
-    if (stockRes.error) throw new Error(stockRes.error.message);
-    const stockMap = new Map<string, number>();
-    for (const s of (stockRes.data ?? []) as { articulo_id: string; cantidad: number }[]) {
-      stockMap.set(s.articulo_id, Number(s.cantidad));
-    }
-    const rows: ReposicionRow[] = [];
-    for (const a of (artsRes.data ?? []) as {
-      id: string;
-      nombre: string;
-      codigo: string;
-      unidad: string;
-      stock_minimo: number;
-    }[]) {
-      const actual = stockMap.get(a.id) ?? 0;
-      const minimo = Number(a.stock_minimo);
-      if (actual <= minimo) {
-        rows.push({
-          articulo_id: a.id,
-          nombre: a.nombre,
-          codigo: a.codigo,
-          unidad: a.unidad,
-          minimo,
-          actual,
-          faltante: Math.max(0, minimo - actual),
-        });
-      }
-    }
-    // Más urgente primero (mayor faltante).
-    return rows.sort((x, y) => y.faltante - x.faltante);
+    // RPC security-definer: superpone el mínimo del kit del cuadre sobre el
+    // stock_minimo del artículo, sin exponer cuadre ni montos (apta para obra).
+    const { data, error } = await this.supabase.client.rpc('reposicion_almacen', { p_bodega_id: bodegaId });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as ReposicionRow[]).map((r) => ({
+      ...r,
+      minimo: Number(r.minimo),
+      actual: Number(r.actual),
+      faltante: Number(r.faltante),
+    }));
   }
 
   /** Returns a map of articulo_id → total quantity across all bodegas */

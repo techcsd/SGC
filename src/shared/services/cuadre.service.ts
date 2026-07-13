@@ -37,7 +37,10 @@ export class CuadreService {
     return (data as number) ?? 0;
   }
 
-  async setBodegaYFase(proyectoId: string, patch: { bodega_id?: string | null; fase_activa?: number }): Promise<void> {
+  async setBodegaYFase(
+    proyectoId: string,
+    patch: { bodega_id?: string | null; fase_activa?: number; fase_auto?: boolean },
+  ): Promise<void> {
     const { error } = await this.supabase.client
       .from('cuadre_obra')
       .update({ ...patch, updated_at: new Date().toISOString() })

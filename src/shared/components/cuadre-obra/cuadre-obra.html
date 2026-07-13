@@ -42,7 +42,12 @@
     <!-- Controls -->
     <div class="cuadre__controls">
       <label class="sgc-field cuadre__control">
-        <span class="cuadre__control-label">Fase activa</span>
+        <span class="cuadre__control-label">
+          Fase activa
+          @if (cuadre()!.fase_auto ?? true) {
+            <span class="sgc-badge sgc-badge--info" title="Avanza automáticamente según el % de avance del proyecto">auto</span>
+          }
+        </span>
         <select
           [value]="cuadre()!.fase_activa"
           (change)="onFaseChange($any($event.target).value)"
@@ -51,6 +56,9 @@
             <option [value]="f.num">Fase {{ f.num }} — {{ f.label }}</option>
           }
         </select>
+        @if (!(cuadre()!.fase_auto ?? true)) {
+          <button type="button" class="cuadre__link" (click)="toggleFaseAuto()">Volver a fase automática por avance</button>
+        }
       </label>
 
       <label class="sgc-field cuadre__control">
@@ -160,6 +168,11 @@
             />
           </div>
         </div>
+
+        <label class="cuadre__minstock">
+          <input type="checkbox" [ngModel]="fEsMinStock()" (ngModelChange)="fEsMinStock.set($any($event))" />
+          <span>Es stock mínimo del almacén de obra (aparece en Reposición cuando falta)</span>
+        </label>
 
         @if (addError()) {
           <p class="field-error">{{ addError() }}</p>
