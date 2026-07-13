@@ -1,4 +1,7 @@
-<div class="shell" [class.collapsed]="collapsed()">
+<div class="shell" [class.collapsed]="collapsed()" [class.mobile-open]="mobileNavOpen()">
+
+  <!-- Mobile drawer backdrop -->
+  <div class="shell-backdrop" (click)="closeMobileNav()" aria-hidden="true"></div>
 
   <!-- ── Sidebar ── -->
   <aside class="shell-sidebar" [attr.aria-label]="'Navegación principal'">
@@ -88,7 +91,7 @@
               </span>
             </button>
 
-            @if (isSectionExpanded(item.label) && !collapsed()) {
+            @if (isSectionExpanded(item.label) && (!collapsed() || mobileNavOpen())) {
               <div class="nav-children">
                 @for (child of item.children; track child.route) {
                   @if (canAccessChild(child)) {
@@ -130,7 +133,7 @@
             </span>
           </button>
 
-          @if (isSectionExpanded('admin') && !collapsed()) {
+          @if (isSectionExpanded('admin') && (!collapsed() || mobileNavOpen())) {
             <div class="nav-children">
               @for (child of adminNavItem.children!; track child.route) {
                 <a
@@ -165,6 +168,19 @@
     <!-- Header -->
     <header class="shell-header">
       <div class="header-left">
+        <button
+          class="header-hamburger"
+          type="button"
+          (click)="toggleMobileNav()"
+          [attr.aria-expanded]="mobileNavOpen()"
+          aria-label="Abrir menú"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
         <span class="header-system">SGC</span>
         <span class="header-sep" aria-hidden="true">/</span>
         <span class="header-module">Constructora Scheker &amp; Domínguez</span>

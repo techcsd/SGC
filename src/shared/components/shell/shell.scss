@@ -609,23 +609,94 @@
   padding: 28px;
 }
 
+// ── Hamburger (mobile only) + drawer backdrop ────────────
+.header-hamburger {
+  display: none; // shown on mobile
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-right: 4px;
+  border-radius: var(--sgc-radius);
+  background: none;
+  border: 1px solid var(--sgc-border);
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+
+  &:hover {
+    background: var(--sgc-surface-hover);
+    color: var(--sgc-text);
+  }
+}
+
+.shell-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.45);
+}
+
 // ── Responsive ───────────────────────────────────────────
 @media (max-width: 768px) {
+  // The sidebar becomes an off-canvas drawer with FULL labels — not an icon rail.
   .shell-sidebar {
-    width: var(--sgc-sidebar-collapsed-width);
-    min-width: var(--sgc-sidebar-collapsed-width);
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--sgc-sidebar-width);
+    min-width: var(--sgc-sidebar-width);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 200;
+  }
+
+  // While the drawer is open, force full labels regardless of desktop `collapsed`.
+  .shell.mobile-open .shell-sidebar {
+    transform: translateX(0);
 
     .sidebar-brand-text,
     .nav-label,
     .nav-phase,
-    .nav-chevron {
-      opacity: 0;
-      width: 0;
+    .nav-chevron,
+    .nav-badge {
+      opacity: 1;
+      width: auto;
+      min-width: 0;
     }
+  }
+
+  .shell.mobile-open .shell-backdrop {
+    display: block;
+  }
+
+  // The desktop collapse toggle is meaningless on mobile.
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .header-hamburger {
+    display: flex;
+  }
+
+  // The long company name crowds the header on a phone; keep just "SGC".
+  .header-module,
+  .header-sep {
+    display: none;
+  }
+
+  .shell-header {
+    padding: 0 14px;
   }
 
   .shell-content {
     padding: 16px;
+  }
+
+  .header-right {
+    gap: 8px;
   }
 
   .user-info {
@@ -633,12 +704,10 @@
   }
 }
 
-@media (max-width: 480px) {
-  .shell:not(.collapsed) .shell-sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 200;
+@media (max-width: 380px) {
+  // On very small screens the drawer shouldn't cover the whole viewport.
+  .shell-sidebar {
+    width: 86vw;
+    min-width: 86vw;
   }
 }

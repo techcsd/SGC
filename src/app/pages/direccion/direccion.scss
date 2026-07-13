@@ -45,6 +45,10 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 14px;
   margin-top: 18px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .chart-card {
