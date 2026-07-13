@@ -7,6 +7,7 @@ export interface CuadreObra {
   proyecto_id: string;
   bodega_id: string | null;
   fase_activa: number; // 1..4
+  fase_auto?: boolean; // true = avanza automáticamente según el % de avance
   estado: 'borrador' | 'aprobado';
   aprobado_por: string | null;
   aprobado_en: string | null;
@@ -37,6 +38,7 @@ export interface CuadreItemFormData {
   descripcion: string;
   unidad: string | null;
   categoria: CuadreCategoria | string;
+  es_min_stock?: boolean;
   cantidad_total: number;
   est_f1: number;
   est_f2: number;

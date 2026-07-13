@@ -1,4 +1,4 @@
-export type SolicitudMaterialEstado = 'pendiente' | 'aprobada' | 'rechazada' | 'entregada';
+export type SolicitudMaterialEstado = 'pendiente' | 'aprobada' | 'rechazada' | 'entregada' | 'cerrada';
 export type SolicitudCompraEstado = 'pendiente' | 'convertida' | 'rechazada';
 
 export interface SolicitudMaterialItem {
