@@ -72,8 +72,9 @@
           <div class="control-alerta" [class.control-alerta--danger]="a.severidad === 'alerta'">
             <div class="control-alerta__main">
               <span class="sgc-badge" [class]="'sgc-badge--' + ALERTA_SEV[a.severidad].badge">{{ ALERTA_SEV[a.severidad].label }}</span>
-              <span class="control-alerta__proyecto">{{ a.proyecto?.nombre ?? '—' }}</span>
+              <span class="control-alerta__proyecto">{{ a.proyecto?.nombre ?? a.bodega?.nombre ?? '—' }}</span>
               @if (a.fase) { <span class="control-alerta__fase">Fase {{ a.fase }}</span> }
+              @if (a.tipo === 'chequeo_diferencia') { <span class="control-alerta__fase">Chequeo</span> }
               @if (a.estado === 'en_revision') { <span class="sgc-badge sgc-badge--warning">En revisión</span> }
             </div>
             <p class="control-alerta__msg">{{ a.mensaje }}</p>

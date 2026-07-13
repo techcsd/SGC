@@ -70,6 +70,8 @@ export interface AlertaCuadre {
   proyecto?: { nombre: string };
   articulo_id: string | null;
   articulo?: { nombre: string };
+  bodega_id?: string | null;
+  bodega?: { nombre: string };
   fase: number | null;
   tipo: string;
   severidad: AlertaSeveridad;

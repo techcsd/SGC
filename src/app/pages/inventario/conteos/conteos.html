@@ -3,6 +3,12 @@
     <h1 class="page-title">Conteos y ajustes</h1>
     <span class="page-count">{{ filtered().length }} conteo{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
+  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openChequeo()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nuevo chequeo semanal
+  </button>
 </div>
 
 <p class="cn-lead">
@@ -32,7 +38,10 @@
       <div class="cn-card">
         <button type="button" class="cn-card__row" (click)="toggle(c.id)">
           <div class="cn-card__info">
-            <span class="cn-card__bodega">{{ c.bodega?.nombre ?? 'Almacén' }}</span>
+            <span class="cn-card__bodega">
+              {{ c.bodega?.nombre ?? 'Almacén' }}
+              @if (esChequeo(c)) { <span class="sgc-badge sgc-badge--info">Chequeo semanal</span> }
+            </span>
             <span class="cn-card__meta">
               {{ c.creado?.nombre ?? '—' }} · {{ c.created_at | date: 'dd/MM/yyyy HH:mm' }}
               @if (c.motivo) { · {{ c.motivo }} }
@@ -65,3 +74,67 @@
     }
   </div>
 }
+
+<!-- ── Nuevo chequeo semanal ── -->
+<app-form-drawer title="Chequeo semanal de almacén" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <div class="drawer-form">
+    <p class="cn-muted">
+      Cuenta físicamente el almacén y ajusta el sistema. Las diferencias se notifican automáticamente a Dirección.
+    </p>
+
+    <div class="sgc-field">
+      <label for="chq-bodega">Almacén <span class="required">*</span></label>
+      <select id="chq-bodega" [value]="chequeoBodegaId()" (change)="onChequeoBodegaChange($any($event.target).value)">
+        <option [value]="''">Seleccionar almacén…</option>
+        @for (b of bodegas(); track b.id) {
+          <option [value]="b.id">{{ b.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    @if (loadingStock()) {
+      <p class="cn-muted">Cargando stock…</p>
+    } @else if (chequeoBodegaId() && chequeoRows().length === 0) {
+      <p class="cn-muted">Este almacén no tiene artículos con stock.</p>
+    } @else if (chequeoRows().length > 0) {
+      <table class="cn-table">
+        <thead>
+          <tr><th>Material</th><th>Sistema</th><th>Físico</th></tr>
+        </thead>
+        <tbody>
+          @for (r of chequeoRows(); track r.articulo_id; let i = $index) {
+            <tr>
+              <td>{{ r.articulo?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ r.cantidad }}</td>
+              <td>
+                <input
+                  type="number" min="0" step="0.01"
+                  [value]="r.contada"
+                  (input)="updateContada(i, $any($event.target).value)"
+                  [class.cn-diff]="r.contada !== r.cantidad"
+                  aria-label="Cantidad física"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <div class="sgc-field">
+      <label for="chq-obs">Observaciones</label>
+      <textarea id="chq-obs" rows="2" [value]="chequeoObs()" (input)="chequeoObs.set($any($event.target).value)"></textarea>
+    </div>
+
+    @if (saveError()) {
+      <p class="cn-error" role="alert">{{ saveError() }}</p>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="onSaveChequeo()">
+        @if (saving()) { Guardando… } @else { Registrar chequeo }
+      </button>
+    </div>
+  </div>
+</app-form-drawer>

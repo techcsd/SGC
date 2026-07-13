@@ -3,7 +3,7 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { AlertaCuadre, AlertaEstado, Parametro } from '../models/cuadre.model';
 
 const SELECT =
-  '*, proyecto:proyectos(nombre), articulo:articulos(nombre)';
+  '*, proyecto:proyectos(nombre), articulo:articulos(nombre), bodega:bodegas(nombre)';
 
 @Injectable({ providedIn: 'root' })
 export class AlertasCuadreService {

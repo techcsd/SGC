@@ -217,6 +217,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'En Inventario > Artículos usa "Nuevo artículo" (las categorías se gestionan desde el mismo formulario). Los almacenes se administran en Inventario > Almacenes.',
       },
       {
+        pregunta: '¿Cómo hago el chequeo semanal de un almacén?',
+        respuesta:
+          'Ve a Inventario > Conteos > "Nuevo chequeo semanal", elige el almacén y ajusta la cantidad física de cada artículo (el sistema precarga la cantidad registrada). Al guardar, el stock se ajusta al conteo físico y las diferencias se reportan automáticamente a Dirección. Cada almacén de obra tiene además una tarea semanal recordatoria asignada a su Guarda-Almacén.',
+      },
+      {
         pregunta: '¿Qué es un conduce y dónde lo descargo?',
         respuesta:
           'Cada salida de inventario genera automáticamente un conduce (nota de entrega). En Inventario > Conduces ves el historial completo; abre cualquiera con "Ver conduce" y usa "Imprimir / Guardar PDF" para descargarlo. Queda siempre disponible para reimprimir.',
