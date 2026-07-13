@@ -131,7 +131,18 @@ End-to-end click-through (his manual QA workflow):
 - Web prod: sgcconstructorasd.com · PWA móvil prod: app.sgcconstructorasd.com (ya desplegada).
 - APK nativo: NO se pudo compilar aquí (sin Android SDK/adb en este entorno). La PWA cubre el piloto.
 
-### PARTE A (A1–A9) + review + recomendaciones + pre-piloto — todo en prod. Pendiente: APK nativo (device).
+### ✅ Ronda flota/proyectos (deployed prod) — pilot enhancements
+- **Rutas**: distancia/tiempo automáticos por mapa (origen por GPS "usar mi ubicación" o punto + destino) vía `context/routing.service.ts` (OSRM keyless, swappable a Google con key). `rutas.origen_lat/lng`.
+- **Fotos** en vehículos y mantenimientos (bucket `vehiculos`, `fotos text[]`). Multi-chofer por vehículo (se quitó la exclusión).
+- **Proyectos — estrellas** (`v_proyecto_readiness`): equipo + cuadre + expediente + almacén de obra; sin las 4 no pasa a "En progreso".
+- **Almacén por obra** (`bodegas.proyecto_id/es_principal`) + **catálogo de 86 artículos** sembrado del kit (para entradas rápidas).
+- **Dashboard por rol** (cada quien ve solo sus áreas; montos solo Dirección/Admin) + Ranking de encargados en el dashboard.
+- **Móvil v1.2.0** (repo csd-app): reportar mantenimiento con fotos + "Cómo llegar" en rutas; renames + checklist pre-uso. **APK firmado construido, instalado al dispositivo (`adb install -r`, smoke-test OK) y publicado** al bucket app-releases (la página CSD App muestra v1.2.0). PWA prod al día.
+- RPC nueva compartida: `crear_mantenimiento_app` (captura offline de mantenimiento).
+
+### 🟢 PILOTO LISTO. Nota Google Maps: rutas usan OSRM (keyless) hoy; para métricas de Google dar una Google Directions API key (swap de 1 archivo: context/routing.service.ts).
+
+### PARTE A (A1–A9) + review + recomendaciones + pre-piloto + flota/proyectos — todo en prod.
 - **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
   ALREADY applied to prod DB (additive, mobile-safe). Merge to `main` → Vercel prod deploy when ready.
 - **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
