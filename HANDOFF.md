@@ -115,7 +115,23 @@ End-to-end click-through (his manual QA workflow):
 5. **Roadmap CL-01..07 schema** — `obra_elementos` / `obra_vaciados` (N° de vaciado) / `obra_no_conformidades`
    (NC-abierta-bloquea-vaciado) tables + RLS/grants. Schema only (no UI yet).
 
-### ✅ PARTE A COMPLETE (A1–A9) + review round. Pending: Parte B mobile APK publish (Xavier's device step).
+### ✅ Pre-piloto round (deployed to prod) — dashboard por rol + almacén por obra + enforcement
+- **Dashboard varía por rol**: cada KPI/gráfico gateado por módulo (`canSee()`); montos de contrato
+  solo Dirección/Admin (`canVerMontos`). El ingeniero de obra ya no ve inventario/compras/otras áreas.
+  + **Ranking de encargados** compacto en el dashboard (proyectos/dirección; sin montos).
+- **Almacén por obra**: `bodegas.proyecto_id` + `es_principal` (migración `sql/2026-07-13-almacen-obra.sql`);
+  UI en Almacenes para enlazar un almacén a una obra o marcarlo principal global.
+- **Requisición↔Equipo ENCENDIDO** (`requisicion_validar_equipo='true'`). Grace activa: como
+  `proyecto_empleados` está vacío, nadie se bloquea hasta que se asignen Residentes/Responsables.
+  ⚠️ Al asignar un Ing. Residente a una obra, SOLO ese usuario (empleado con `usuario_id` enlazado)
+  podrá requisar esa obra. Para el piloto: dejar el equipo vacío o asignar al ingeniero real.
+  Se apaga al instante en Admin → Parámetros si estorba.
+
+### 🟢 LISTO PARA PILOTO (mañana): ingenieros (requisición) + transportistas (checklists pre-uso) vía PWA.
+- Web prod: sgcconstructorasd.com · PWA móvil prod: app.sgcconstructorasd.com (ya desplegada).
+- APK nativo: NO se pudo compilar aquí (sin Android SDK/adb en este entorno). La PWA cubre el piloto.
+
+### PARTE A (A1–A9) + review + recomendaciones + pre-piloto — todo en prod. Pendiente: APK nativo (device).
 - **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
   ALREADY applied to prod DB (additive, mobile-safe). Merge to `main` → Vercel prod deploy when ready.
 - **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
