@@ -21,7 +21,8 @@ export class AdminParametros implements OnInit {
   error = signal('');
 
   /** Working copy of each valor, keyed by clave. */
-  valores = signal<Record<string, string>>({});
+  // Puede no tener todavía una entrada por clave → el `?? p.valor` en la vista es correcto.
+  valores = signal<Record<string, string | undefined>>({});
   savingClave = signal<string | null>(null);
 
   async ngOnInit() {
