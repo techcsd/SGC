@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { SupabaseService } from '../../app/core/services/supabase.service';
 
 /** Resultado de una ruta calculada entre dos puntos. */
 export interface RutaCalculada {
@@ -9,14 +10,16 @@ export interface RutaCalculada {
 /**
  * Cálculo de distancia/tiempo de una ruta entre dos coordenadas.
  *
- * Proveedor independiente (igual que el clima/geocodificación): hoy usa OSRM
- * (keyless, OpenStreetMap). Para cambiar a Google Directions basta reescribir
- * SOLO este archivo y guardar la GOOGLE key — el contrato (origen+destino →
- * {distancia_km, duracion_min}) no cambia para los consumidores.
+ * Proveedor independiente: usa **Google Directions** vía la edge function
+ * `routing-directions` (la API key vive como secreto del servidor, nunca en el
+ * frontend) y cae a **OSRM** (keyless) si Google falla o no hay ruta. El
+ * contrato (origen+destino → {distancia_km, duracion_min}) no cambia para los
+ * consumidores.
  */
 @Injectable({ providedIn: 'root' })
 export class RoutingService {
-  private readonly base = 'https://router.project-osrm.org/route/v1/driving';
+  private supabase = inject(SupabaseService);
+  private readonly osrm = 'https://router.project-osrm.org/route/v1/driving';
 
   /** Devuelve la distancia (km) y duración (min) manejando en auto, o null si falla. */
   async calcular(
@@ -25,8 +28,22 @@ export class RoutingService {
     destinoLat: number,
     destinoLng: number,
   ): Promise<RutaCalculada | null> {
+    // 1) Google Directions (server-side, key protegida)
     try {
-      const url = `${this.base}/${origenLng},${origenLat};${destinoLng},${destinoLat}?overview=false&alternatives=false`;
+      const { data } = await this.supabase.client.functions.invoke('routing-directions', {
+        body: { origen_lat: origenLat, origen_lng: origenLng, destino_lat: destinoLat, destino_lng: destinoLng },
+      });
+      const g = data as { distancia_km?: number; duracion_min?: number } | null;
+      if (g && typeof g.distancia_km === 'number' && typeof g.duracion_min === 'number') {
+        return { distancia_km: g.distancia_km, duracion_min: g.duracion_min };
+      }
+    } catch {
+      /* cae a OSRM */
+    }
+
+    // 2) Fallback keyless OSRM
+    try {
+      const url = `${this.osrm}/${origenLng},${origenLat};${destinoLng},${destinoLat}?overview=false&alternatives=false`;
       const res = await fetch(url);
       if (!res.ok) return null;
       const data = (await res.json()) as { routes?: { distance: number; duration: number }[] };
@@ -37,7 +54,7 @@ export class RoutingService {
         duracion_min: Math.round(r.duration / 60),
       };
     } catch {
-      return null; // sin conexión / servicio caído → el usuario puede escribir a mano
+      return null; // sin conexión → el usuario puede escribir a mano
     }
   }
 }
