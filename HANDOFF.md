@@ -140,7 +140,9 @@ End-to-end click-through (his manual QA workflow):
 - **Móvil v1.2.0** (repo csd-app): reportar mantenimiento con fotos + "Cómo llegar" en rutas; renames + checklist pre-uso. **APK firmado construido, instalado al dispositivo (`adb install -r`, smoke-test OK) y publicado** al bucket app-releases (la página CSD App muestra v1.2.0). PWA prod al día.
 - RPC nueva compartida: `crear_mantenimiento_app` (captura offline de mantenimiento).
 
-### 🟢 PILOTO LISTO. Nota Google Maps: rutas usan OSRM (keyless) hoy; para métricas de Google dar una Google Directions API key (swap de 1 archivo: context/routing.service.ts).
+### 🟢 PILOTO LISTO.
+- **Rutas usan Google Directions** vía edge function `routing-directions` (key = secreto de Supabase `GOOGLE_MAPS_API_KEY`, NO en repo/frontend; evita CORS). Fallback a OSRM si falla. Verificado (SD→Santiago 151.2km/126min). ⚠️ La key se compartió por chat: conviene restringirla en Google Cloud (solo Directions API + referrer/IP) o rotarla.
+- **Validación de equipo en requisiciones: OFF** (`requisicion_validar_equipo=false`) para el piloto — nadie se bloquea al pedir. Encender en Admin>Parámetros cuando el organigrama esté cargado.
 
 ### PARTE A (A1–A9) + review + recomendaciones + pre-piloto + flota/proyectos — todo en prod.
 - **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
