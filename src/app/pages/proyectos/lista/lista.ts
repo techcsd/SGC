@@ -42,6 +42,7 @@ import { EjecucionObra } from '../../../../shared/components/ejecucion-obra/ejec
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { UserService } from '../../../core/services/user.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface UsuarioSimple {
@@ -71,8 +72,12 @@ export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
   private empleadosService = inject(EmpleadosService);
   private supabase = inject(SupabaseService);
+  private userService = inject(UserService);
 
   formatFecha = formatFechaDisplay;
+
+  /** Cuadre + antifraude solo para roles financieros/dirección (no obra). */
+  verCuadre = this.userService.verCuadre;
 
   // ── Data ─────────────────────────────────────────────────
   proyectos = signal<Proyecto[]>([]);

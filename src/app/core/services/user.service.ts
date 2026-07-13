@@ -29,6 +29,16 @@ export class UserService {
     return this.modulos().includes(modulo);
   }
 
+  /**
+   * Quién puede ver el cuadre de materiales + señales antifraude (límites por
+   * fase, consumo). Regla dura: los roles de obra/campo NUNCA lo ven. Se limita a
+   * roles financieros/dirección aunque tengan el módulo `proyectos`.
+   */
+  verCuadre = computed(() => {
+    const m = this.modulos();
+    return m.includes('compras') || m.includes('direccion') || m.includes('admin');
+  });
+
   /** Public avatar URL for the current user, or null if none uploaded. */
   avatarUrl = computed(() => {
     const path = this._profile()?.avatar_path;
