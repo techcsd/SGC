@@ -47,6 +47,11 @@ export const inventarioRoutes: Routes = [
     title: 'Conteos y ajustes — Inventario',
   },
   {
+    path: 'reposicion',
+    loadComponent: () => import('./reposicion/reposicion').then((m) => m.Reposicion),
+    title: 'Reposición — Inventario',
+  },
+  {
     path: 'reportes',
     loadComponent: () => import('./reportes/reportes').then((m) => m.Reportes),
     title: 'Reportes — Inventario',

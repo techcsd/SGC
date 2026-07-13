@@ -8,6 +8,7 @@ import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-cha
 import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { ObrasClimaService } from '../../../shared/context/obras-clima.service';
 import { AlertasCuadreService } from '../../../shared/services/alertas-cuadre.service';
+import { NotificacionesService } from '../../../shared/services/notificaciones.service';
 import { AlertaCuadre, AlertaEstado, ALERTA_SEVERIDADES } from '../../../shared/models/cuadre.model';
 import { todayIso, daysFromNowIso, formatTimestampDisplay } from '../../../shared/utils/fecha.util';
 
@@ -31,6 +32,7 @@ export class Direccion implements OnInit {
   private proyectosService = inject(ProyectosService);
   private obrasClimaService = inject(ObrasClimaService);
   private alertasCuadreService = inject(AlertasCuadreService);
+  private notificaciones = inject(NotificacionesService);
 
   // A4 — panel de alertas antifraude (silenciosas para obra; visibles aquí).
   alertasControl = signal<AlertaCuadre[]>([]);
@@ -224,6 +226,7 @@ export class Direccion implements OnInit {
     );
     try {
       await this.alertasCuadreService.atender(a.id, estado, null);
+      void this.notificaciones.refresh(); // mantener el badge de Dirección al día
     } catch {
       // rollback: recargar
       try {

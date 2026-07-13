@@ -36,7 +36,8 @@ export class ExpedienteObra {
     const validados = list.filter((d) => d.estado === 'validado').length;
     const noAplica = list.filter((d) => d.estado === 'no_aplica').length;
     const resueltos = validados + noAplica;
-    const pct = total > 0 ? Math.round((validados / total) * 100) : 0;
+    // "No aplica" cuenta como resuelto para que el expediente pueda llegar a 100%.
+    const pct = total > 0 ? Math.round((resueltos / total) * 100) : 0;
     return { total, validados, noAplica, resueltos, pct };
   });
 

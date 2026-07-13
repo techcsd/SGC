@@ -167,6 +167,10 @@ export class RealtimeNotificacionesService {
             );
             this.notificaciones.refresh();
           })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'sgc', table: 'alertas_cuadre' }, () => {
+            // resuelta / escalada por otro usuario → mantener el badge al día
+            this.notificaciones.refresh();
+          })
           .subscribe(),
       );
     }

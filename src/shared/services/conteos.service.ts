@@ -33,7 +33,7 @@ export class ConteosService {
     const { data, error } = await this.supabase.client
       .from('conteos_inventario')
       .select(
-        'id, motivo, created_at, bodega:bodegas(nombre), creado:usuarios(nombre), items:conteo_items(cantidad_antes, cantidad_contada, articulo:articulos(nombre, codigo))',
+        'id, motivo, tipo, observaciones, created_at, bodega:bodegas(nombre), creado:usuarios(nombre), items:conteo_items(cantidad_antes, cantidad_contada, articulo:articulos(nombre, codigo))',
       )
       .order('created_at', { ascending: false })
       .limit(200);
@@ -48,7 +48,8 @@ export class ConteosService {
       .select('articulo_id, cantidad, articulo:articulos(nombre, codigo)')
       .eq('bodega_id', bodegaId);
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as StockBodegaRow[];
+    // PostgREST devuelve numeric como string; normaliza para comparaciones fiables.
+    return ((data ?? []) as unknown as StockBodegaRow[]).map((r) => ({ ...r, cantidad: Number(r.cantidad) }));
   }
 
   /** A5 — registra un chequeo semanal (conteo físico) y genera alertas de diferencia. */

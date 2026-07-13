@@ -109,7 +109,13 @@ export class SolicitudesMaterialService {
     if (error) throw new Error(error.message);
     notificarSolicitud(this.supabase.client, 'material', id, 'aprobada');
     this.notificaciones.refresh();
-    return (data ?? {}) as AprobacionRequisicionResultado;
+    const r = (data ?? {}) as Partial<AprobacionRequisicionResultado>;
+    return {
+      salida_id: r.salida_id ?? null,
+      solicitud_compra_id: r.solicitud_compra_id ?? null,
+      despachado_total: Number(r.despachado_total ?? 0),
+      faltante_total: Number(r.faltante_total ?? 0),
+    };
   }
 
   async rechazar(id: string, notas?: string | null): Promise<void> {

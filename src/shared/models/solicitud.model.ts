@@ -65,6 +65,8 @@ export interface SolicitudCompra {
   orden_compra_id: string | null;
   /** A2: requisición que originó esta compra por faltante (si aplica). */
   origen_requisicion_id?: string | null;
+  /** A7: categoría de la compra (p.ej. 'tecnologia'). */
+  categoria?: string | null;
   atendido_por: string | null;
   atendido_en: string | null;
   created_at: string;
