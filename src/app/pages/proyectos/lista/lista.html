@@ -597,6 +597,14 @@
         <app-cuadre-obra [proyectoId]="p.id" [bodegas]="bodegasList()" [articulos]="articulosList()" />
       </div>
 
+      <!-- Vaciados y No Conformidades (CSD-OPE-01) -->
+      <div class="proyectos__fases">
+        <div class="proyectos__fases-header">
+          <h3 class="proyectos__fases-title">Vaciados y No Conformidades</h3>
+        </div>
+        <app-ejecucion-obra [proyectoId]="p.id" />
+      </div>
+
       <!-- Fases -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">

@@ -1,0 +1,266 @@
+<div class="ejec">
+  @if (error()) {
+    <p class="ejec__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="ejec__loading text-muted">Cargando ejecución de obra…</p>
+  } @else {
+    <!-- ── No Conformidades ─────────────────────────────────── -->
+    <section class="ejec__section">
+      <div class="ejec__section-head">
+        <h4 class="ejec__section-title">No Conformidades</h4>
+        @if (openBlockingCount() > 0) {
+          <span class="sgc-badge sgc-badge--danger" title="NC abiertas que bloquean el vaciado">
+            {{ openBlockingCount() }} bloqueando vaciado
+          </span>
+        } @else if (openCount() > 0) {
+          <span class="sgc-badge sgc-badge--warning">{{ openCount() }} abierta(s)</span>
+        } @else {
+          <span class="sgc-badge sgc-badge--success">Sin NC abiertas</span>
+        }
+      </div>
+
+      <!-- Alta de NC -->
+      <div class="sgc-card ejec__form">
+        <label class="sgc-field">
+          <span class="ejec__label">Descripción <span class="required">*</span></span>
+          <input
+            type="text"
+            [ngModel]="ncDescripcion()"
+            (ngModelChange)="ncDescripcion.set($event)"
+            placeholder="Describe la no conformidad detectada"
+          />
+        </label>
+
+        <div class="ejec__form-grid">
+          <label class="sgc-field">
+            <span class="ejec__label">Severidad</span>
+            <select [value]="ncSeveridad()" (change)="ncSeveridad.set($any($event.target).value)">
+              @for (s of NC_SEVERIDADES; track s.value) {
+                <option [value]="s.value">{{ s.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="sgc-field">
+            <span class="ejec__label">Elemento (opcional)</span>
+            <select
+              [value]="ncElementoId()"
+              (change)="ncElementoId.set($any($event.target).value || null)"
+            >
+              <option [value]="null">Todo el proyecto…</option>
+              @for (el of elementos(); track el.id) {
+                <option [value]="el.id">{{ elementoLabel(el.id) }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="sgc-field">
+            <span class="ejec__label">Vaciado (opcional)</span>
+            <select
+              [value]="ncVaciadoId()"
+              (change)="ncVaciadoId.set($any($event.target).value || null)"
+            >
+              <option [value]="null">Ninguno…</option>
+              @for (v of vaciados(); track v.id) {
+                <option [value]="v.id">N° {{ v.numero ?? '—' }} — {{ vaciadoLabel(v) }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <label class="ejec__check">
+          <input
+            type="checkbox"
+            [ngModel]="ncBloquea()"
+            (ngModelChange)="ncBloquea.set($any($event))"
+          />
+          <span>Bloquea el vaciado mientras esté abierta (regla de oro)</span>
+        </label>
+
+        @if (ncError()) {
+          <p class="field-error">{{ ncError() }}</p>
+        }
+
+        <div class="ejec__form-actions">
+          <button
+            type="button"
+            class="sgc-btn sgc-btn--primary"
+            (click)="crearNC()"
+            [disabled]="ncSaving()"
+          >
+            @if (ncSaving()) { Guardando… } @else { Registrar No Conformidad }
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de NC -->
+      @if (ncs().length === 0) {
+        <p class="text-muted ejec__empty">No hay No Conformidades registradas.</p>
+      } @else {
+        <div class="ejec__nc-list">
+          @for (nc of ncsOrdenadas(); track nc.id) {
+            <div class="ejec__nc" [class.ejec__nc--cerrada]="nc.estado === 'cerrada'">
+              <div class="ejec__nc-top">
+                <span class="sgc-badge" [class]="'sgc-badge--' + severidadBadge(nc.severidad)">
+                  {{ severidadLabel(nc.severidad) }}
+                </span>
+                @if (nc.estado === 'abierta') {
+                  <span class="sgc-badge sgc-badge--warning">Abierta</span>
+                } @else {
+                  <span class="sgc-badge sgc-badge--success">Cerrada</span>
+                }
+                @if (nc.bloquea_vaciado && nc.estado === 'abierta') {
+                  <span class="sgc-badge sgc-badge--danger">bloquea vaciado</span>
+                }
+              </div>
+              <p class="ejec__nc-desc">{{ nc.descripcion }}</p>
+              <div class="ejec__nc-meta text-muted">
+                @if (nc.elemento_id) {
+                  <span>{{ elementoLabel(nc.elemento_id) }}</span>
+                }
+                <span>{{ formatFecha(nc.created_at) }}</span>
+              </div>
+              @if (nc.estado === 'abierta') {
+                <button type="button" class="sgc-btn sgc-btn--ghost ejec__nc-close" (click)="cerrarNC(nc)">
+                  Cerrar
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ── Registro de Vaciado ──────────────────────────────── -->
+    <section class="ejec__section">
+      <div class="ejec__section-head">
+        <h4 class="ejec__section-title">Registro de Vaciado</h4>
+        <button type="button" class="sgc-btn sgc-btn--secondary ejec__mini-btn" (click)="openElementoForm()">
+          + Elemento de obra
+        </button>
+      </div>
+
+      <!-- Alta de elemento (compacta) -->
+      @if (showElementoForm()) {
+        <div class="sgc-card ejec__form">
+          <div class="ejec__form-grid">
+            <label class="sgc-field">
+              <span class="ejec__label">Tipo</span>
+              <select [value]="elTipo()" (change)="elTipo.set($any($event.target).value || null)">
+                <option [value]="null">Sin tipo…</option>
+                @for (t of TIPOS_ELEMENTO; track t) {
+                  <option [value]="t">{{ t }}</option>
+                }
+              </select>
+            </label>
+            <label class="sgc-field">
+              <span class="ejec__label">Código</span>
+              <input type="text" [ngModel]="elCodigo()" (ngModelChange)="elCodigo.set($event)" placeholder="C-01" />
+            </label>
+            <label class="sgc-field">
+              <span class="ejec__label">Eje</span>
+              <input type="text" [ngModel]="elEje()" (ngModelChange)="elEje.set($event)" placeholder="A-1" />
+            </label>
+            <label class="sgc-field">
+              <span class="ejec__label">Bloque</span>
+              <input type="text" [ngModel]="elBloque()" (ngModelChange)="elBloque.set($event)" placeholder="Edificio A" />
+            </label>
+          </div>
+          @if (elError()) {
+            <p class="field-error">{{ elError() }}</p>
+          }
+          <div class="ejec__form-actions">
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearElemento()" [disabled]="elSaving()">
+              @if (elSaving()) { Guardando… } @else { Agregar elemento }
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelElementoForm()">Cancelar</button>
+          </div>
+        </div>
+      }
+
+      <!-- Alta de vaciado -->
+      <div class="sgc-card ejec__form">
+        <div class="ejec__form-grid">
+          <label class="sgc-field">
+            <span class="ejec__label">Elemento</span>
+            <select [value]="vElementoId()" (change)="vElementoId.set($any($event.target).value || null)">
+              <option [value]="null">Sin elemento…</option>
+              @for (el of elementos(); track el.id) {
+                <option [value]="el.id">{{ elementoLabel(el.id) }}</option>
+              }
+            </select>
+          </label>
+          <label class="sgc-field ejec__narrow">
+            <span class="ejec__label">N°</span>
+            <input
+              type="number"
+              [ngModel]="vNumero()"
+              (ngModelChange)="vNumero.set($event === '' || $event === null ? null : +$event)"
+              placeholder="1"
+            />
+          </label>
+          <label class="sgc-field">
+            <span class="ejec__label">Fecha</span>
+            <input type="date" [ngModel]="vFecha()" (ngModelChange)="vFecha.set($event)" />
+          </label>
+        </div>
+        @if (vError()) {
+          <p class="field-error">{{ vError() }}</p>
+        }
+        <div class="ejec__form-actions">
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearVaciado()" [disabled]="vSaving()">
+            @if (vSaving()) { Guardando… } @else { Agregar vaciado }
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de vaciados -->
+      @if (vaciados().length === 0) {
+        <p class="text-muted ejec__empty">No hay vaciados registrados.</p>
+      } @else {
+        <div class="ejec__table-wrap">
+          <table class="data-table ejec__table">
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Elemento / eje / bloque</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of vaciados(); track v.id) {
+                <tr [class.ejec__row--anulado]="v.estado === 'anulado'">
+                  <td>{{ v.numero ?? '—' }}</td>
+                  <td>{{ vaciadoLabel(v) }}</td>
+                  <td class="text-muted">{{ formatFecha(v.fecha) }}</td>
+                  <td>
+                    <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(v.estado)">
+                      {{ estadoLabel(v.estado) }}
+                    </span>
+                  </td>
+                  <td class="text-right ejec__actions">
+                    @if (v.estado === 'planificado') {
+                      <button type="button" class="ejec__link" (click)="setEstado(v, 'liberado')">Liberar</button>
+                      <button type="button" class="ejec__link ejec__link--danger" (click)="setEstado(v, 'anulado')">Anular</button>
+                    } @else if (v.estado === 'liberado') {
+                      <button type="button" class="ejec__link" (click)="setEstado(v, 'vaciado')">Marcar vaciado</button>
+                      <button type="button" class="ejec__link ejec__link--danger" (click)="setEstado(v, 'anulado')">Anular</button>
+                    } @else if (v.estado === 'anulado') {
+                      <button type="button" class="ejec__link" (click)="setEstado(v, 'planificado')">Reactivar</button>
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  }
+</div>

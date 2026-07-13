@@ -1,0 +1,167 @@
+.ejec {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  &__error {
+    font-size: 13px;
+    color: var(--sgc-danger);
+  }
+
+  &__loading {
+    font-size: 13px;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  &__section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sgc-text);
+    margin: 0;
+  }
+
+  &__mini-btn {
+    margin-left: auto;
+  }
+
+  &__empty {
+    font-size: 13px;
+  }
+
+  // ── Forms ──
+  &__form {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  &__narrow {
+    max-width: 110px;
+  }
+
+  &__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sgc-text-muted);
+  }
+
+  &__check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--sgc-text-muted);
+    cursor: pointer;
+
+    input {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__form-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  // ── NC list ──
+  &__nc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__nc {
+    position: relative;
+    padding: 12px 14px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    background: var(--sgc-surface);
+
+    &--cerrada {
+      opacity: 0.7;
+    }
+  }
+
+  &__nc-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  &__nc-desc {
+    font-size: 13.5px;
+    color: var(--sgc-text);
+    margin: 0 0 6px;
+  }
+
+  &__nc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 12px;
+  }
+
+  &__nc-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+  }
+
+  // ── Vaciado table ──
+  &__table-wrap {
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    min-width: 560px;
+  }
+
+  &__row--anulado {
+    opacity: 0.6;
+    text-decoration: line-through;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  &__link {
+    background: none;
+    border: none;
+    color: var(--sgc-primary, #ff5f00);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 0;
+
+    &--danger {
+      color: var(--sgc-danger);
+    }
+  }
+}
