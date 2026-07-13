@@ -8,6 +8,9 @@ export interface Ruta {
   conductor?: { nombre: string };
   origen: string;
   destino: string;
+  // Origin coordinates — feed the auto route estimate (distance/time via OSRM).
+  origen_lat?: number | null;
+  origen_lng?: number | null;
   // Destination coordinates for the Intelligent Context System (weather at
   // destination). Resolved from the linked obra when set, else the explicit point.
   destino_lat: number | null;
@@ -31,6 +34,8 @@ export interface RutaFormData {
   conductor_id: string | null;
   origen: string;
   destino: string;
+  origen_lat?: number | null;
+  origen_lng?: number | null;
   destino_lat: number | null;
   destino_lng: number | null;
   destino_proyecto_id: string | null;

@@ -313,6 +313,39 @@
       <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
     </div>
 
+    <!-- Fotos (evidencia de la reparación) -->
+    <div class="sgc-field">
+      <label>Fotos de la reparación</label>
+      <div class="fotos-grid">
+        @for (path of fotoPaths(); track path) {
+          <div class="fotos-thumb">
+            @if (fotoUrls()[path]) {
+              <img [src]="fotoUrls()[path]" alt="Foto del mantenimiento" />
+            } @else {
+              <span class="fotos-thumb__loading" aria-hidden="true"></span>
+            }
+            <button type="button" class="fotos-thumb__remove" (click)="removeExistingFoto(path)"
+              aria-label="Quitar foto">&times;</button>
+          </div>
+        }
+        @for (p of fotoFiles(); track p.preview; let i = $index) {
+          <div class="fotos-thumb fotos-thumb--pending">
+            <img [src]="p.preview" alt="Foto pendiente de subir" />
+            <button type="button" class="fotos-thumb__remove" (click)="removePending(i)"
+              aria-label="Quitar foto">&times;</button>
+          </div>
+        }
+        <label class="fotos-add">
+          <input type="file" accept="image/*" capture multiple (change)="onFilesPicked($event)" hidden />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+            <line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/>
+          </svg>
+          <span>Agregar</span>
+        </label>
+      </div>
+    </div>
+
     @if (saveError()) {
       <div class="save-error" role="alert">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

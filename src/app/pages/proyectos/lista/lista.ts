@@ -21,6 +21,9 @@ import {
   FaseProyecto,
   Proyecto,
   ProyectoEmpleado,
+  ProyectoReadiness,
+  READINESS_ESTRELLAS,
+  contarEstrellas,
   PROYECTO_ESTADOS,
   PROYECTO_TIPOS,
   FASE_ESTADOS,
@@ -81,6 +84,10 @@ export class Lista implements OnInit {
   saving = signal(false);
   error = signal('');
   saveError = signal('');
+
+  // ── Sistema de estrellas: readiness por proyecto ─────────
+  readiness = signal<Record<string, ProyectoReadiness>>({});
+  readonly READINESS_ESTRELLAS = READINESS_ESTRELLAS;
 
   // ── Detail: real spend + team ─────────────────────────────
   gastoReal = signal<number>(0);
@@ -194,7 +201,37 @@ export class Lista implements OnInit {
   drawerTitle = computed(() => (this.editingId() ? 'Editar proyecto' : 'Nuevo proyecto'));
 
   async ngOnInit() {
-    await Promise.all([this.loadProyectos(), this.loadUsuarios(), this.loadEmpleados()]);
+    await Promise.all([
+      this.loadProyectos(),
+      this.loadUsuarios(),
+      this.loadEmpleados(),
+      this.loadReadiness(),
+    ]);
+  }
+
+  /** Carga el readiness (estrellas) de cada proyecto — best-effort, no bloquea. */
+  private async loadReadiness() {
+    try {
+      const rows = await this.proyectosService.getReadiness();
+      const map: Record<string, ProyectoReadiness> = {};
+      for (const r of rows) map[r.proyecto_id] = r;
+      this.readiness.set(map);
+    } catch {
+      // non-blocking: sin readiness las tarjetas muestran 0 estrellas
+    }
+  }
+
+  // ── Estrellas / readiness ────────────────────────────────
+  readinessDe(proyectoId: string): ProyectoReadiness | undefined {
+    return this.readiness()[proyectoId];
+  }
+
+  estrellas(proyectoId: string): number {
+    return contarEstrellas(this.readiness()[proyectoId]);
+  }
+
+  listoParaIniciar(proyectoId: string): boolean {
+    return this.estrellas(proyectoId) === 4;
   }
 
   private async loadEmpleados() {
@@ -302,6 +339,21 @@ export class Lista implements OnInit {
       if (this.form.errors?.['fechaOrden']) {
         this.saveError.set('La fecha de inicio no puede ser posterior a la fecha de fin estimada.');
       }
+      return;
+    }
+
+    // Gate del sistema de estrellas: no se puede iniciar una obra existente
+    // hasta cumplir los 4 parámetros de preparación. (Un proyecto nuevo aún no
+    // tiene readiness y arranca en 'planificacion', así que no aplica.)
+    const editId = this.editingId();
+    if (
+      editId &&
+      this.form.get('estado')?.value === 'en_progreso' &&
+      !this.listoParaIniciar(editId)
+    ) {
+      this.saveError.set(
+        'No se puede iniciar la obra: faltan estrellas (equipo, cuadre, expediente y almacén de obra).',
+      );
       return;
     }
 

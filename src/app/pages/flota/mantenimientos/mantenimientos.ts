@@ -20,6 +20,12 @@ import {
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { ToastService } from '../../../../shared/services/toast.service';
+
+interface PendingFoto {
+  file: File;
+  preview: string;
+}
 
 @Component({
   selector: 'app-mantenimientos',
@@ -32,6 +38,13 @@ export class Mantenimientos implements OnInit {
   private mantenimientosService = inject(MantenimientosService);
   private vehiculosService = inject(VehiculosService);
   private proveedoresService = inject(ProveedoresService);
+  private toast = inject(ToastService);
+
+  // ── Drawer photos ────────────────────────────────────────
+  fotoPaths = signal<string[]>([]); // existing persisted photo paths
+  fotoFiles = signal<PendingFoto[]>([]); // newly picked, not yet uploaded
+  fotoUrls = signal<Record<string, string>>({}); // path → signed URL for thumbnails
+  private originalFotos: string[] = [];
 
   formatFecha = formatFechaDisplay;
 
@@ -187,6 +200,7 @@ export class Mantenimientos implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
+    this.resetFotos([]);
     this.form.reset({ tipo: 'preventivo', estado: 'pendiente' });
     this.drawerOpen.set(true);
   }
@@ -194,6 +208,7 @@ export class Mantenimientos implements OnInit {
   openEdit(m: Mantenimiento) {
     this.editingId.set(m.id);
     this.saveError.set('');
+    this.resetFotos(m.fotos ?? []);
     this.form.reset({
       vehiculo_id: m.vehiculo_id,
       tipo: m.tipo,
@@ -210,6 +225,45 @@ export class Mantenimientos implements OnInit {
 
   closeDrawer() {
     this.drawerOpen.set(false);
+    this.revokePreviews();
+  }
+
+  // ── Photos ───────────────────────────────────────────────
+  private resetFotos(existing: string[]) {
+    this.revokePreviews();
+    this.originalFotos = [...existing];
+    this.fotoPaths.set([...existing]);
+    this.fotoFiles.set([]);
+    this.fotoUrls.set({});
+    for (const path of existing) {
+      this.mantenimientosService.getFotoUrl(path).then((url) => {
+        if (url) this.fotoUrls.update((m) => ({ ...m, [path]: url }));
+      });
+    }
+  }
+
+  private revokePreviews() {
+    for (const p of this.fotoFiles()) URL.revokeObjectURL(p.preview);
+  }
+
+  onFilesPicked(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const picked = Array.from(input.files ?? []).filter((f) => f.type.startsWith('image/'));
+    const pending = picked.map((file) => ({ file, preview: URL.createObjectURL(file) }));
+    this.fotoFiles.update((list) => [...list, ...pending]);
+    input.value = ''; // allow re-picking the same file
+  }
+
+  removePending(index: number) {
+    this.fotoFiles.update((list) => {
+      const target = list[index];
+      if (target) URL.revokeObjectURL(target.preview);
+      return list.filter((_, i) => i !== index);
+    });
+  }
+
+  removeExistingFoto(path: string) {
+    this.fotoPaths.update((list) => list.filter((p) => p !== path));
   }
 
   async onSave() {
@@ -231,13 +285,45 @@ export class Mantenimientos implements OnInit {
 
     try {
       const id = this.editingId();
+      let saved: Mantenimiento;
       if (id) {
-        const updated = await this.mantenimientosService.update(id, payload);
-        this.mantenimientos.update((list) => list.map((m) => (m.id === id ? updated : m)));
+        saved = await this.mantenimientosService.update(id, payload);
       } else {
-        const created = await this.mantenimientosService.create(payload);
-        this.mantenimientos.update((list) => [created, ...list]);
+        saved = await this.mantenimientosService.create(payload);
       }
+
+      // Photos: upload any newly-picked files to the (now known) record id,
+      // then persist the full list. A failed upload never blocks the save.
+      const uploaded: string[] = [];
+      for (const pending of this.fotoFiles()) {
+        try {
+          uploaded.push(await this.mantenimientosService.uploadFoto(saved.id, pending.file));
+        } catch {
+          this.toast.warning('Foto no subida', `No se pudo subir "${pending.file.name}".`);
+        }
+      }
+
+      const finalFotos = [...this.fotoPaths(), ...uploaded];
+      const changed =
+        finalFotos.length !== this.originalFotos.length ||
+        finalFotos.some((p, i) => p !== this.originalFotos[i]);
+      if (changed) {
+        try {
+          await this.mantenimientosService.setFotos(saved.id, finalFotos);
+          saved = { ...saved, fotos: finalFotos };
+        } catch {
+          this.toast.warning('Fotos no guardadas', 'El mantenimiento se guardó, pero las fotos no.');
+        }
+      } else {
+        saved = { ...saved, fotos: finalFotos };
+      }
+
+      if (id) {
+        this.mantenimientos.update((list) => list.map((m) => (m.id === id ? saved : m)));
+      } else {
+        this.mantenimientos.update((list) => [saved, ...list]);
+      }
+      this.revokePreviews();
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');

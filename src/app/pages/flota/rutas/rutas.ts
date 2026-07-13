@@ -20,6 +20,8 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { LocationPicker, UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
+import { RoutingService } from '../../../../shared/context/routing.service';
+import { GeocodingService } from '../../../../shared/context/geocoding.service';
 import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
@@ -40,6 +42,8 @@ export class Rutas implements OnInit {
   private conductoresService = inject(ConductoresService);
   private proyectosService = inject(ProyectosService);
   private rutasClima = inject(RutasClimaService);
+  private routingService = inject(RoutingService);
+  private geocoding = inject(GeocodingService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
@@ -60,6 +64,12 @@ export class Rutas implements OnInit {
   private formFecha = signal<string>('');
   drawerClima = signal<RutaClima | null>(null);
 
+  // ── Origin + auto route estimate (drawer) ────────────────
+  private origenLat = signal<number | null>(null);
+  private origenLng = signal<number | null>(null);
+  calculandoRuta = signal(false);
+  autoEstimado = signal(false);
+
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedEstado = signal('');
@@ -76,6 +86,8 @@ export class Rutas implements OnInit {
     conductor_id: new FormControl<string | null>(null),
     origen: new FormControl('', [Validators.required]),
     destino: new FormControl('', [Validators.required]),
+    origen_lat: new FormControl<number | null>(null),
+    origen_lng: new FormControl<number | null>(null),
     destino_proyecto_id: new FormControl<string | null>(null),
     destino_lat: new FormControl<number | null>(null),
     destino_lng: new FormControl<number | null>(null),
@@ -222,6 +234,9 @@ export class Rutas implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.form.reset({ fecha: this.today, estado: 'planificada' });
+    this.origenLat.set(null);
+    this.origenLng.set(null);
+    this.autoEstimado.set(false);
     this.syncDestinoSignals(null, null, null, this.today);
     this.drawerOpen.set(true);
   }
@@ -234,6 +249,8 @@ export class Rutas implements OnInit {
       conductor_id: r.conductor_id,
       origen: r.origen,
       destino: r.destino,
+      origen_lat: r.origen_lat ?? null,
+      origen_lng: r.origen_lng ?? null,
       destino_proyecto_id: r.destino_proyecto_id,
       destino_lat: r.destino_lat,
       destino_lng: r.destino_lng,
@@ -243,6 +260,9 @@ export class Rutas implements OnInit {
       estado: r.estado,
       notas: r.notas,
     });
+    this.origenLat.set(r.origen_lat ?? null);
+    this.origenLng.set(r.origen_lng ?? null);
+    this.autoEstimado.set(false);
     this.syncDestinoSignals(r.destino_proyecto_id, r.destino_lat, r.destino_lng, r.fecha);
     this.drawerOpen.set(true);
   }
@@ -256,6 +276,66 @@ export class Rutas implements OnInit {
     this.destinoLat.set(lat);
     this.destinoLng.set(lng);
     this.formFecha.set(fecha);
+  }
+
+  // ── Origin selection + auto route estimate ───────────────
+  onOrigenPicked(u: UbicacionSeleccionada) {
+    this.form.patchValue({ origen_lat: u.latitud, origen_lng: u.longitud });
+    this.origenLat.set(u.latitud);
+    this.origenLng.set(u.longitud);
+    if (u.direccion) {
+      this.form.patchValue({ origen: u.direccion });
+    }
+    void this.recalcularRuta();
+  }
+
+  /** "Usar mi ubicación actual" — geolocate the browser, set origin, then estimate. */
+  usarUbicacionActual() {
+    if (!('geolocation' in navigator)) {
+      this.saveError.set('Tu navegador no permite obtener la ubicación actual.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        this.form.patchValue({ origen_lat: lat, origen_lng: lng });
+        this.origenLat.set(lat);
+        this.origenLng.set(lng);
+        const dir = await this.geocoding.reverse({ latitud: lat, longitud: lng });
+        if (dir) this.form.patchValue({ origen: dir });
+        void this.recalcularRuta();
+      },
+      () => {
+        this.saveError.set('No se pudo obtener tu ubicación actual. Marca el origen en el mapa.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
+  /**
+   * Auto-fill km/tiempo from the map (OSRM) whenever both origin and destination
+   * points are known. Fields stay editable — this only patches the estimate.
+   */
+  async recalcularRuta() {
+    const oLat = this.origenLat();
+    const oLng = this.origenLng();
+    const dest = this.drawerDestinoCoords();
+    if (oLat == null || oLng == null || !dest) return;
+
+    this.calculandoRuta.set(true);
+    try {
+      const res = await this.routingService.calcular(oLat, oLng, dest.latitud, dest.longitud);
+      if (res) {
+        this.form.patchValue({
+          km_estimado: res.distancia_km,
+          tiempo_estimado_min: res.duracion_min,
+        });
+        this.autoEstimado.set(true);
+      }
+    } finally {
+      this.calculandoRuta.set(false);
+    }
   }
 
   // ── Destination selection ────────────────────────────────
@@ -272,6 +352,7 @@ export class Rutas implements OnInit {
         this.form.patchValue({ destino: o.nombre });
       }
     }
+    void this.recalcularRuta();
   }
 
   onDestinoPicked(u: UbicacionSeleccionada) {
@@ -283,6 +364,7 @@ export class Rutas implements OnInit {
     if (!this.form.controls.destino.value?.trim() && u.direccion) {
       this.form.patchValue({ destino: u.direccion });
     }
+    void this.recalcularRuta();
   }
 
   onFechaChange(fecha: string) {

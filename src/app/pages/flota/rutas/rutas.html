@@ -212,6 +212,25 @@
       </div>
     </div>
 
+    <!-- Origin location → auto km/tiempo estimate -->
+    <div class="sgc-field">
+      <div class="rutas__origen-head">
+        <label>Punto de origen (calcula distancia y tiempo)</label>
+        <button type="button" class="sgc-btn sgc-btn--ghost rutas__geo-btn" (click)="usarUbicacionActual()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/>
+          </svg>
+          Usar mi ubicación actual
+        </button>
+      </div>
+      <app-location-picker
+        [latitud]="f.origen_lat.value"
+        [longitud]="f.origen_lng.value"
+        (ubicacionChange)="onOrigenPicked($event)"
+      />
+      <span class="field-hint">Marca el origen en el mapa o usa tu ubicación. La distancia y el tiempo se llenan solos.</span>
+    </div>
+
     <!-- Destination location → weather at destination -->
     <div class="sgc-field">
       <label for="destino_proyecto_id">Obra de destino (opcional)</label>
@@ -262,6 +281,14 @@
         <input id="tiempo_estimado_min" type="number" min="0" formControlName="tiempo_estimado_min" placeholder="0" />
       </div>
     </div>
+
+    @if (calculandoRuta()) {
+      <span class="field-hint rutas__estimando">
+        <span class="spinner-dark" aria-hidden="true"></span> Calculando distancia y tiempo por mapa…
+      </span>
+    } @else if (autoEstimado()) {
+      <span class="field-hint">✓ Distancia y tiempo estimados por mapa — puedes ajustarlos.</span>
+    }
 
     <div class="sgc-field">
       <label for="notas">Notas</label>

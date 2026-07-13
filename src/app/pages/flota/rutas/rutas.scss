@@ -24,6 +24,31 @@
     }
   }
 
+  &__origen-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__geo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+
+    svg { flex-shrink: 0; }
+  }
+
+  &__estimando {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   &__registrar-info {
     font-size: 13px;
     color: var(--sgc-text-secondary);

@@ -84,6 +84,25 @@ export interface ExpedienteResumen {
   completo: boolean;
 }
 
+// Sistema de estrellas: parámetros que debe cumplir un proyecto para iniciar.
+export interface ProyectoReadiness {
+  proyecto_id: string;
+  cuadre_ok: boolean;
+  expediente_ok: boolean;
+  equipo_ok: boolean;
+  almacen_ok: boolean;
+}
+export const READINESS_ESTRELLAS: { key: keyof Omit<ProyectoReadiness, 'proyecto_id'>; label: string }[] = [
+  { key: 'equipo_ok', label: 'Equipo de obra (Responsable + Residente)' },
+  { key: 'cuadre_ok', label: 'Cuadre inicial de materiales' },
+  { key: 'expediente_ok', label: 'Expediente de inicio de obra' },
+  { key: 'almacen_ok', label: 'Almacén de obra asignado' },
+];
+export function contarEstrellas(r: ProyectoReadiness | undefined): number {
+  if (!r) return 0;
+  return [r.cuadre_ok, r.expediente_ok, r.equipo_ok, r.almacen_ok].filter(Boolean).length;
+}
+
 export interface FaseProyecto {
   id: string;
   proyecto_id: string;

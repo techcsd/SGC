@@ -90,17 +90,9 @@ export class Conductores implements OnInit {
     this.editingId() ? 'Editar conductor' : 'Nuevo conductor',
   );
 
-  // Vehicles available to assign: unassigned ones, plus the one already
-  // assigned to the conductor being edited (so it stays selectable).
-  availableVehiculos = computed(() => {
-    const assignedIds = new Set(
-      this.conductores()
-        .filter((c) => c.id !== this.editingId())
-        .map((c) => c.vehiculo_id)
-        .filter((id): id is string => !!id),
-    );
-    return this.vehiculos().filter((v) => v.activo && !assignedIds.has(v.id));
-  });
+  // Un vehículo puede tener más de un chofer (p. ej. varios turnos en el día),
+  // así que NO se excluyen los ya asignados — solo se listan los activos.
+  availableVehiculos = computed(() => this.vehiculos().filter((v) => v.activo));
 
   async ngOnInit() {
     await this.loadAll();
