@@ -34,6 +34,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Usa la flecha en la parte inferior del menú lateral (junto al botón de colapsar). El estado se recuerda la próxima vez que entres.',
       },
       {
+        pregunta: '¿Para qué es la campana de notificaciones (arriba a la derecha)?',
+        respuesta:
+          'Te avisa de cosas que te conciernen directamente: por ejemplo, cuando aprueban o rechazan tu requisición. El número rojo son las no leídas; ábrela para verlas y toca una para ir a donde ocurrió. Es distinta de los puntos rojos del menú (esos son pendientes por módulo).',
+      },
+      {
         pregunta: '¿Qué significan los puntos rojos y números junto a un módulo?',
         respuesta:
           'Indican solicitudes u órdenes pendientes de atender en ese módulo (por ejemplo, solicitudes de materiales sin aprobar, o entregas despachadas sin confirmar). Se actualizan automáticamente al crear, aprobar o rechazar una solicitud.',
@@ -310,6 +315,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo creo un proyecto y le asigno el Equipo de Obra?',
         respuesta:
           'Ve a Proyectos > Nuevo proyecto. Una vez creado, entra al detalle: en "Equipo de Obra" asignas los roles del procedimiento (Ingeniero Responsable, Ingeniero Residente, Capataz, Maestro de Acero, Maestro de Encofrado, Encargado de Seguridad, Guarda-Almacén, Topógrafo, cuadrillas y subcontratistas). Cada miembro puede ser un empleado de RRHH o una entidad externa (topógrafo/subcontratista). Esto también determina qué ingenieros trabajan ese proyecto en Bitácora.',
+      },
+      {
+        pregunta: '¿Qué son los Vaciados y las No Conformidades? (CSD-OPE-01)',
+        respuesta:
+          'En el detalle del proyecto, la sección "Vaciados y No Conformidades" lleva el control de ejecución: registras cada vaciado (N°, elemento/eje/bloque, fecha) y su avance planificado → liberado → vaciado. Una No Conformidad (NC) es un problema detectado; si está abierta y marcada como "bloquea vaciado", el sistema NO deja liberar ni vaciar ese elemento hasta cerrarla (regla de oro del procedimiento). Los checklists de liberación CL-01…07 con firmas Maestro→Residente→Responsable→Cliente vienen en la próxima entrega.',
       },
       {
         pregunta: '¿Qué es el "Cuadre inicial de materiales" y cómo lo uso?',

@@ -144,7 +144,25 @@ End-to-end click-through (his manual QA workflow):
 - **Rutas usan Google Directions** vía edge function `routing-directions` (key = secreto de Supabase `GOOGLE_MAPS_API_KEY`, NO en repo/frontend; evita CORS). Fallback a OSRM si falla. Verificado (SD→Santiago 151.2km/126min). ⚠️ La key se compartió por chat: conviene restringirla en Google Cloud (solo Directions API + referrer/IP) o rotarla.
 - **Validación de equipo en requisiciones: OFF** (`requisicion_validar_equipo=false`) para el piloto — nadie se bloquea al pedir. Encender en Admin>Parámetros cuando el organigrama esté cargado.
 
-### PARTE A (A1–A9) + review + recomendaciones + pre-piloto + flota/proyectos — todo en prod.
+### ✅ Ola 1 + Ola 2 (deployed prod)
+- **Centro de notificaciones** (campana header, `sgc.notificaciones` + `notificar()` + trigger que avisa al solicitante al cambiar estado de su requisición; realtime).
+- **Kit↔artículos**: `kit_inicio_plantilla.articulo_id` mapeado a los 86 artículos; `copiar_kit_a_cuadre` lo copia → reposición + antifraude ven el kit.
+- **Reportar problema/mejora** en la app móvil (offline, RPC `crear_reporte_app`) — para feedback del piloto. Móvil **v1.2.1** (instalado al device + publicado).
+- **CSD-OPE-01 (Ola 2)**: **Registro de Vaciado + No Conformidades** con la regla "NC abierta bloquea vaciado" (trigger) — UI en Proyectos > detalle. Esquema completo de CL-01..07 (cl_plantillas/registros/firmas/fotos), informes_semanales, reportes_perdidas, charlas_seguridad (RLS+grants, sin UI aún).
+- **Rutas**: Google Directions vía edge function (key = secreto); OSRM fallback.
+- Fix NG8102. RLS/grants auditados en las 13 tablas nuevas.
+
+### ⏳ Ola 3 (siguiente entrega — no construido; esquema listo)
+- **CL-01..07 liberación completa**: llenar checklist + ciclo de firmas Maestro→Residente→Responsable→Cliente/MIVHED + plano mapeado + fotos + captura offline en la app. (Compliance — merece build dedicado y probado.)
+- **Informe semanal, Charlas de seguridad, Reporte de pérdidas/daños** UIs (tablas listas).
+- **Cubicaciones, minuta de cliente, RFI/Órdenes de Trabajo/Solicitudes de Servicio**.
+- **Exportar PDF/Excel** (requisiciones, cuadre, alertas, conduces ya imprime).
+- **Push nativas (FCM)** — requiere proyecto/credenciales Firebase de Xavier.
+- **Manual/dictado con IA** — requiere una API key de IA (Claude).
+- **Restringir/rotar la Google API key** en Google Cloud (consola de Xavier).
+- Pendiente polish menor: preview "despacha X / compra Y" al aprobar requisición.
+
+### PARTE A (A1–A9) + review + recomendaciones + pre-piloto + flota/proyectos + Ola1/Ola2 — todo en prod.
 - **Not pushed/merged yet** — branch `feat/meet-07072026` is local, ~15 commits. Migrations
   ALREADY applied to prod DB (additive, mobile-safe). Merge to `main` → Vercel prod deploy when ready.
 - **Parte B** — CSD mobile app (`C:\Users\xavie\Desktop\X Dev\dev2\csd-app`): UI renames
