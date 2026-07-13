@@ -153,6 +153,24 @@ export class RealtimeNotificacionesService {
       );
     }
 
+    // ── Alertas antifraude de control de materiales (dirección/gerencia/admin) ──
+    if (isAdmin || this.userService.hasModulo('direccion')) {
+      this.channels.push(
+        this.supabase.client
+          .channel('rt-alertas-cuadre')
+          .on('postgres_changes', { event: 'INSERT', schema: 'sgc', table: 'alertas_cuadre' }, (p) => {
+            const a = p.new as { severidad: string };
+            this.toast.warning(
+              a.severidad === 'alerta' ? 'Alerta de control de materiales' : 'Advertencia de control de materiales',
+              'Revisa el panel de Dirección.',
+              '/direccion',
+            );
+            this.notificaciones.refresh();
+          })
+          .subscribe(),
+      );
+    }
+
     // ── Severe-weather alerts (for proyectos/bitacora/admin) ──
     if (isAdmin || this.userService.hasModulo('proyectos') || this.userService.hasModulo('bitacora')) {
       this.channels.push(

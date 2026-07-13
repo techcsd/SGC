@@ -547,6 +547,14 @@
         <app-expediente-obra [proyectoId]="p.id" [usuarios]="usuarios()" />
       </div>
 
+      <!-- Cuadre inicial + Kit de inicio (A3.1) -->
+      <div class="proyectos__fases">
+        <div class="proyectos__fases-header">
+          <h3 class="proyectos__fases-title">Cuadre inicial de materiales</h3>
+        </div>
+        <app-cuadre-obra [proyectoId]="p.id" [bodegas]="bodegasList()" [articulos]="articulosList()" />
+      </div>
+
       <!-- Fases -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">

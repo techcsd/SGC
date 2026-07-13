@@ -34,6 +34,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
 import { ExpedienteObra } from '../../../../shared/components/expediente-obra/expediente-obra';
+import { CuadreObraComponent } from '../../../../shared/components/cuadre-obra/cuadre-obra';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { SupabaseService } from '../../../core/services/supabase.service';
@@ -57,7 +58,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, LocationPicker, WeatherCard],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, LocationPicker, WeatherCard],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,6 +74,9 @@ export class Lista implements OnInit {
   proyectos = signal<Proyecto[]>([]);
   usuarios = signal<UsuarioSimple[]>([]);
   empleados = signal<Empleado[]>([]);
+  // A3.1 — catálogos para el cuadre (almacenes + artículos), cargados al abrir detalle.
+  bodegasList = signal<{ id: string; nombre: string }[]>([]);
+  articulosList = signal<{ id: string; nombre: string; codigo: string }[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -349,6 +353,19 @@ export class Lista implements OnInit {
     } finally {
       this.detailLoading.set(false);
       this.equipoLoading.set(false);
+    }
+    // A3.1 — catálogos para el cuadre (best-effort, no bloquea el detalle).
+    if (this.bodegasList().length === 0 || this.articulosList().length === 0) {
+      try {
+        const [b, a] = await Promise.all([
+          this.supabase.client.from('bodegas').select('id, nombre').eq('activo', true).order('nombre'),
+          this.supabase.client.from('articulos').select('id, nombre, codigo').eq('activo', true).order('nombre'),
+        ]);
+        this.bodegasList.set((b.data ?? []) as { id: string; nombre: string }[]);
+        this.articulosList.set((a.data ?? []) as { id: string; nombre: string; codigo: string }[]);
+      } catch {
+        /* catálogos: enrichment only */
+      }
     }
   }
 

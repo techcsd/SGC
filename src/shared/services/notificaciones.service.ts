@@ -36,6 +36,10 @@ export class NotificacionesService {
       // A6: checklists con ítem crítico en NO sin atender -> badge en Flota.
       checks.push(this.loadChecklistsCriticos());
     }
+    if (this.userService.hasModulo('direccion') || isAdmin) {
+      // A4: alertas antifraude abiertas -> badge en Dirección.
+      checks.push(this.loadAlertasCuadre());
+    }
     if (this.userService.hasModulo('rrhh') || isAdmin) {
       checks.push(this.loadCount('solicitudes_ausencia', 'pendiente', 'rrhh'));
     }
@@ -79,6 +83,14 @@ export class NotificacionesService {
       .eq('tiene_criticos', true)
       .eq('atendido', false);
     this._pendingByModulo.update((m) => ({ ...m, flota: count ?? 0 }));
+  }
+
+  private async loadAlertasCuadre(): Promise<void> {
+    const { count } = await this.supabase.client
+      .from('alertas_cuadre')
+      .select('id', { count: 'exact', head: true })
+      .neq('estado', 'resuelta');
+    this._pendingByModulo.update((m) => ({ ...m, direccion: count ?? 0 }));
   }
 
   private async loadWeatherAlertas(): Promise<void> {

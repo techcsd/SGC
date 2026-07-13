@@ -1,0 +1,216 @@
+.cuadre {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sgc-border);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  &__title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+  }
+
+  &__error {
+    font-size: 13px;
+    color: var(--sgc-danger);
+    margin-bottom: 8px;
+  }
+
+  &__loading {
+    font-size: 13px;
+  }
+
+  &__note {
+    font-size: 12px;
+    margin: 4px 0 14px;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+
+  &__empty-field {
+    min-width: 240px;
+  }
+
+  // ── Controls row ──
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 4px;
+  }
+
+  &__control {
+    gap: 3px;
+
+    select {
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+  }
+
+  &__control-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sgc-text-muted);
+  }
+
+  &__add-btn {
+    margin-left: auto;
+  }
+
+  // ── Add-material form ──
+  &__form {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  &__form-phases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  &__form-narrow {
+    max-width: 130px;
+  }
+
+  &__form-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__form-advanced-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__advanced-input {
+    max-width: 110px;
+    padding: 9px 12px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    font-size: 14px;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    outline: none;
+
+    &:focus {
+      border-color: var(--sgc-primary-mid);
+    }
+  }
+
+  &__times {
+    font-weight: 600;
+    color: var(--sgc-text-muted);
+  }
+
+  &__form-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  // ── Group tables ──
+  &__group {
+    margin-top: 18px;
+  }
+
+  &__group-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sgc-text);
+    margin-bottom: 8px;
+  }
+
+  &__table-wrap {
+    overflow-x: auto;
+  }
+
+  &__table {
+    width: 100%;
+    min-width: 760px;
+  }
+
+  &__desc {
+    font-weight: 500;
+  }
+
+  &__chip {
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  &__cell {
+    width: 72px;
+    padding: 5px 7px;
+    text-align: right;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    outline: none;
+
+    &:focus {
+      border-color: var(--sgc-primary-mid);
+    }
+  }
+
+  &__over {
+    color: var(--sgc-danger);
+    font-weight: 600;
+  }
+
+  &__over-hint {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--sgc-danger);
+  }
+
+  &__remove {
+    border: none;
+    background: transparent;
+    color: var(--sgc-text-muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--sgc-radius-sm);
+    transition: var(--sgc-transition-fast);
+
+    &:hover {
+      background: var(--sgc-danger-light);
+      color: var(--sgc-danger);
+    }
+  }
+}

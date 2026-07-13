@@ -1,0 +1,60 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Parámetros del sistema</h1>
+    <span class="page-count">{{ parametros().length }} parámetro{{ parametros().length !== 1 ? 's' : '' }}</span>
+  </div>
+</div>
+
+<p class="param-lead">
+  Estos valores controlan los umbrales de las alertas antifraude del cuadre de obra: por ejemplo, el
+  porcentaje de consumo frente a lo estimado que dispara una advertencia o una alerta. Ajústalos con
+  cuidado; afectan a todos los proyectos.
+</p>
+
+@if (error()) {
+  <p class="param-error" role="alert">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="param-muted">Cargando…</p>
+} @else if (parametros().length === 0) {
+  <p class="param-muted">No hay parámetros configurados.</p>
+} @else {
+  <table class="param-table">
+    <thead>
+      <tr>
+        <th>Clave</th>
+        <th>Descripción</th>
+        <th>Valor</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of parametros(); track p.clave) {
+        <tr>
+          <td><code class="param-clave">{{ p.clave }}</code></td>
+          <td class="param-desc">{{ p.descripcion || '—' }}</td>
+          <td>
+            <input
+              class="param-input"
+              type="text"
+              [ngModel]="valores()[p.clave] ?? p.valor"
+              (ngModelChange)="setValor(p.clave, $event)"
+              (keyup.enter)="guardar(p)"
+            />
+          </td>
+          <td class="param-actions">
+            <button
+              class="sgc-btn sgc-btn--primary sgc-btn--sm"
+              type="button"
+              [disabled]="!isDirty(p) || savingClave() === p.clave"
+              (click)="guardar(p)"
+            >
+              @if (savingClave() === p.clave) { Guardando… } @else { Guardar }
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

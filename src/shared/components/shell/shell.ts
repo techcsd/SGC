@@ -218,6 +218,7 @@ export class Shell implements OnInit {
       { label: 'Roles', route: '/admin/roles' },
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
+      { label: 'Parámetros', route: '/admin/parametros' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
