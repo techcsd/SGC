@@ -16,6 +16,7 @@ import {
   EquipoMiembroFormData,
   ExpedienteDoc,
   ExpedienteResumen,
+  ProyectoReadiness,
 } from '../models/proyecto.model';
 
 const EXPEDIENTE_BUCKET = 'sgc-documentos';
@@ -327,6 +328,16 @@ export class ProyectosService {
       .createSignedUrl(path, 3600);
     if (error) return null;
     return data?.signedUrl ?? null;
+  }
+
+  /** Estrellas de preparación por proyecto (para el gate de "iniciar obra"). */
+  async getReadiness(): Promise<ProyectoReadiness[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('v_proyecto_readiness')
+      .select('*');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ProyectoReadiness[];
   }
 
   async getExpedienteResumen(): Promise<ExpedienteResumen[]> {

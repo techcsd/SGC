@@ -714,6 +714,81 @@
     font-size: 0.75rem;
     color: var(--sgc-text-muted);
   }
+
+  // ── Estrellas de preparación (tarjeta + detalle) ──────────
+  &__stars {
+    display: flex;
+    gap: 0.1rem;
+    font-size: 0.9rem;
+    line-height: 1;
+    color: var(--sgc-warning);
+  }
+
+  &__readiness {
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  &__readiness-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  &__readiness-score {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--sgc-warning);
+
+    &--complete { color: var(--sgc-success); }
+  }
+
+  &__readiness-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__readiness-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--sgc-text-secondary);
+
+    &--ok { color: var(--sgc-text); }
+  }
+
+  &__readiness-mark {
+    display: inline-flex;
+    width: 1.1rem;
+    justify-content: center;
+    color: var(--sgc-text-muted);
+
+    .proyectos__readiness-item--ok & {
+      color: var(--sgc-success);
+      font-weight: 700;
+    }
+  }
+
+  &__readiness-note {
+    margin: 0.6rem 0 0;
+    font-size: 0.8rem;
+    color: var(--sgc-text-muted);
+
+    &--ok {
+      color: var(--sgc-success);
+      font-weight: 600;
+    }
+  }
 }
 
 .text-muted {

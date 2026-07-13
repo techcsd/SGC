@@ -121,4 +121,38 @@ export class VehiculosService {
     if (error) throw new Error(error.message);
     return data.signedUrl;
   }
+
+  // ── Vehicle photos (sgc.vehiculos.fotos text[] + `vehiculos` bucket) ──────
+
+  /** Uploads one photo for a vehicle and returns its storage path. */
+  async uploadFoto(vehiculoId: string, file: File): Promise<string> {
+    const safeName = (file.name || 'foto')
+      .replace(/\.[^.]+$/, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+      .slice(0, 40) || 'foto';
+    const path = `vehiculo/${vehiculoId}/${crypto.randomUUID()}-${safeName}.jpg`;
+    const { error } = await this.supabase.client.storage
+      .from('vehiculos')
+      .upload(path, file, { upsert: true });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** Resolves a stored photo path to a time-limited signed URL (null on failure). */
+  async getFotoUrl(path: string): Promise<string | null> {
+    const { data, error } = await this.supabase.client.storage
+      .from('vehiculos')
+      .createSignedUrl(path, 3600);
+    if (error) return null;
+    return data.signedUrl;
+  }
+
+  /** Persists the full list of photo paths on the vehicle row. */
+  async setFotos(vehiculoId: string, fotos: string[]): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('vehiculos')
+      .update({ fotos })
+      .eq('id', vehiculoId);
+    if (error) throw new Error(error.message);
+  }
 }

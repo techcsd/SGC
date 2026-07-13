@@ -13,6 +13,7 @@ export interface Mantenimiento {
   proveedor: string | null;
   estado: MantenimientoEstado;
   notas: string | null;
+  fotos?: string[];
   created_at: string;
 }
 

@@ -18,6 +18,12 @@ import {
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ToastService } from '../../../../shared/services/toast.service';
+
+interface PendingFoto {
+  file: File;
+  preview: string;
+}
 
 @Component({
   selector: 'app-flota-vehiculos',
@@ -28,6 +34,13 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 })
 export class FlotaVehiculos implements OnInit {
   private vehiculosService = inject(VehiculosService);
+  private toast = inject(ToastService);
+
+  // ── Drawer photos ────────────────────────────────────────
+  fotoPaths = signal<string[]>([]); // existing persisted photo paths
+  fotoFiles = signal<PendingFoto[]>([]); // newly picked, not yet uploaded
+  fotoUrls = signal<Record<string, string>>({}); // path → signed URL for thumbnails
+  private originalFotos: string[] = [];
 
   // ── Data ─────────────────────────────────────────────────
   vehiculos = signal<Vehiculo[]>([]);
@@ -121,6 +134,7 @@ export class FlotaVehiculos implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
+    this.resetFotos([]);
     this.form.reset({ tipo: 'camion', estado: 'activo', kilometraje: 0, anio: new Date().getFullYear() });
     this.drawerOpen.set(true);
   }
@@ -128,6 +142,7 @@ export class FlotaVehiculos implements OnInit {
   openEdit(vehiculo: Vehiculo) {
     this.editingId.set(vehiculo.id);
     this.saveError.set('');
+    this.resetFotos(vehiculo.fotos ?? []);
     this.form.reset({
       placa: vehiculo.placa,
       marca: vehiculo.marca,
@@ -144,7 +159,48 @@ export class FlotaVehiculos implements OnInit {
     this.drawerOpen.set(true);
   }
 
-  closeDrawer() { this.drawerOpen.set(false); }
+  closeDrawer() {
+    this.drawerOpen.set(false);
+    this.revokePreviews();
+  }
+
+  // ── Photos ───────────────────────────────────────────────
+  private resetFotos(existing: string[]) {
+    this.revokePreviews();
+    this.originalFotos = [...existing];
+    this.fotoPaths.set([...existing]);
+    this.fotoFiles.set([]);
+    this.fotoUrls.set({});
+    for (const path of existing) {
+      this.vehiculosService.getFotoUrl(path).then((url) => {
+        if (url) this.fotoUrls.update((m) => ({ ...m, [path]: url }));
+      });
+    }
+  }
+
+  private revokePreviews() {
+    for (const p of this.fotoFiles()) URL.revokeObjectURL(p.preview);
+  }
+
+  onFilesPicked(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const picked = Array.from(input.files ?? []).filter((f) => f.type.startsWith('image/'));
+    const pending = picked.map((file) => ({ file, preview: URL.createObjectURL(file) }));
+    this.fotoFiles.update((list) => [...list, ...pending]);
+    input.value = ''; // allow re-picking the same file
+  }
+
+  removePending(index: number) {
+    this.fotoFiles.update((list) => {
+      const target = list[index];
+      if (target) URL.revokeObjectURL(target.preview);
+      return list.filter((_, i) => i !== index);
+    });
+  }
+
+  removeExistingFoto(path: string) {
+    this.fotoPaths.update((list) => list.filter((p) => p !== path));
+  }
 
   async onSave() {
     this.form.markAllAsTouched();
@@ -163,13 +219,45 @@ export class FlotaVehiculos implements OnInit {
 
     try {
       const id = this.editingId();
+      let saved: Vehiculo;
       if (id) {
-        const updated = await this.vehiculosService.update(id, payload);
-        this.vehiculos.update((list) => list.map((v) => (v.id === id ? updated : v)));
+        saved = await this.vehiculosService.update(id, payload);
       } else {
-        const created = await this.vehiculosService.create(payload);
-        this.vehiculos.update((list) => [created, ...list]);
+        saved = await this.vehiculosService.create(payload);
       }
+
+      // Photos: upload any newly-picked files to the (now known) vehicle id,
+      // then persist the full list. A failed upload never blocks the save.
+      const uploaded: string[] = [];
+      for (const pending of this.fotoFiles()) {
+        try {
+          uploaded.push(await this.vehiculosService.uploadFoto(saved.id, pending.file));
+        } catch {
+          this.toast.warning('Foto no subida', `No se pudo subir "${pending.file.name}".`);
+        }
+      }
+
+      const finalFotos = [...this.fotoPaths(), ...uploaded];
+      const changed =
+        finalFotos.length !== this.originalFotos.length ||
+        finalFotos.some((p, i) => p !== this.originalFotos[i]);
+      if (changed) {
+        try {
+          await this.vehiculosService.setFotos(saved.id, finalFotos);
+          saved = { ...saved, fotos: finalFotos };
+        } catch {
+          this.toast.warning('Fotos no guardadas', 'El vehículo se guardó, pero las fotos no.');
+        }
+      } else {
+        saved = { ...saved, fotos: finalFotos };
+      }
+
+      if (id) {
+        this.vehiculos.update((list) => list.map((v) => (v.id === id ? saved : v)));
+      } else {
+        this.vehiculos.update((list) => [saved, ...list]);
+      }
+      this.revokePreviews();
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');

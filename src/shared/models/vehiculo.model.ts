@@ -28,6 +28,7 @@ export interface Vehiculo {
   responsable_id: string | null;
   responsable?: { nombre: string };
   notas: string | null;
+  fotos?: string[];
   activo: boolean;
   created_at: string;
   updated_at: string;

@@ -93,6 +93,17 @@
               </span>
             </div>
 
+            <!-- Estrellas de preparación -->
+            <div
+              class="proyectos__stars"
+              [attr.title]="'Preparación para iniciar: ' + estrellas(p.id) + '/4'"
+              [attr.aria-label]="'Preparación para iniciar: ' + estrellas(p.id) + ' de 4'"
+            >
+              @for (s of READINESS_ESTRELLAS; track s.key; let i = $index) {
+                <span>{{ i < estrellas(p.id) ? '★' : '☆' }}</span>
+              }
+            </div>
+
             <!-- Card Body -->
             <div class="proyectos__card-body">
               <h2 class="proyectos__card-nombre">{{ p.nombre }}</h2>
@@ -430,6 +441,37 @@
           ></div>
         </div>
         <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+      </div>
+
+      <!-- Preparación para iniciar (sistema de estrellas) -->
+      <div class="proyectos__readiness">
+        <div class="proyectos__readiness-head">
+          <span class="proyectos__detail-key">Preparación para iniciar</span>
+          <span
+            class="proyectos__readiness-score"
+            [class.proyectos__readiness-score--complete]="listoParaIniciar(p.id)"
+          >{{ estrellas(p.id) }}/4 ★</span>
+        </div>
+        <ul class="proyectos__readiness-list">
+          @for (s of READINESS_ESTRELLAS; track s.key) {
+            <li
+              class="proyectos__readiness-item"
+              [class.proyectos__readiness-item--ok]="readinessDe(p.id)?.[s.key]"
+            >
+              <span class="proyectos__readiness-mark">{{ readinessDe(p.id)?.[s.key] ? '✓' : '○' }}</span>
+              <span>{{ s.label }}</span>
+            </li>
+          }
+        </ul>
+        @if (listoParaIniciar(p.id)) {
+          <p class="proyectos__readiness-note proyectos__readiness-note--ok">
+            ✓ Lista para iniciar — puedes cambiar el estado a "En progreso".
+          </p>
+        } @else {
+          <p class="proyectos__readiness-note">
+            Aún no se puede iniciar: completa los 4 parámetros para habilitar el estado "En progreso".
+          </p>
+        }
       </div>
 
       <!-- Documentos: contrato, presupuesto, cronograma, manual de ejecución -->
