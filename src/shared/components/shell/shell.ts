@@ -5,7 +5,9 @@ import {
   signal,
   computed,
   OnInit,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import { AuthService } from '../../../app/core/services/auth.service';
@@ -49,6 +51,7 @@ export class Shell implements OnInit {
   private notificaciones = inject(NotificacionesService);
   private realtimeNotificaciones = inject(RealtimeNotificacionesService);
   private centro = inject(NotificacionesCentroService);
+  private destroyRef = inject(DestroyRef);
 
   profile = this.userService.profile;
   avatarUrl = this.userService.avatarUrl;
@@ -271,7 +274,7 @@ export class Shell implements OnInit {
     // Catches any count-affecting mutation that doesn't already call
     // refresh() directly (belt-and-suspenders alongside the explicit calls
     // in solicitudes-material/compra.service.ts and salidas.service.ts).
-    this.router.events.subscribe((event) => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.notificaciones.refresh();
         // Close the bell dropdown when navigating away.

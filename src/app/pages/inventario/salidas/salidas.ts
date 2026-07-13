@@ -388,11 +388,11 @@ export class Salidas implements OnInit {
         items: reqItems,
       });
 
+      // La RPC es atómica y ya hizo commit: a partir de aquí es ÉXITO. Cerramos
+      // y avisamos ANTES de leer nada más, para que un fallo de lectura posterior
+      // no se muestre como "error al aprobar" (y no deje reintentar algo ya hecho).
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== solicitud.id));
-      if (res.salida_id) {
-        const created = await this.salidasService.getById(res.salida_id);
-        this.salidas.update((list) => [created, ...list]);
-      }
+      this.drawerOpen.set(false);
 
       // Resumen de la división para el aprobador.
       if (res.faltante_total > 0 && res.despachado_total > 0) {
@@ -409,7 +409,15 @@ export class Salidas implements OnInit {
         this.toast.success('Requisición aprobada', 'Se despachó completa desde el almacén. Genera el conduce para la entrega.');
       }
 
-      this.drawerOpen.set(false);
+      // Refrescar la lista de salidas es secundario; si falla, se repone al recargar.
+      if (res.salida_id) {
+        try {
+          const created = await this.salidasService.getById(res.salida_id);
+          this.salidas.update((list) => [created, ...list]);
+        } catch {
+          /* la salida sí se creó; la lista se actualizará en la próxima carga */
+        }
+      }
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al aprobar la requisición.');
     } finally {

@@ -255,11 +255,14 @@ export class CuadreObraComponent {
     const total = value === '' ? null : Number(value);
     this.fCantidadTotal.set(total);
     if (total != null && !Number.isNaN(total)) {
+      // Reparte en 4, y la última fase absorbe el residuo del redondeo para que
+      // la suma de fases sea EXACTAMENTE el total (si no, el presupuesto de la
+      // alerta antifraude —que suma est_fN— no cuadra con cantidad_total).
       const per = Math.round((total / 4) * 100) / 100;
       this.fF1.set(per);
       this.fF2.set(per);
       this.fF3.set(per);
-      this.fF4.set(per);
+      this.fF4.set(Math.round((total - per * 3) * 100) / 100);
     }
   }
 

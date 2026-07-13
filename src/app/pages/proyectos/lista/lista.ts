@@ -542,10 +542,11 @@ export class Lista implements OnInit {
       return;
     }
 
-    this.faseSaving.set(true);
-    this.faseError.set('');
     const proyecto = this.selectedProyecto();
     if (!proyecto) return;
+
+    this.faseSaving.set(true);
+    this.faseError.set('');
 
     const payload = this.faseForm.value as Partial<FaseProyecto>;
 
