@@ -9,7 +9,9 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bodega, BodegaFormData } from '../../../../shared/models/bodega.model';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 @Component({
@@ -21,9 +23,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 })
 export class Bodegas implements OnInit {
   private bodegasService = inject(BodegasService);
+  private proyectosService = inject(ProyectosService);
 
   // ── Data state ──────────────────────────────────────────
   bodegas = signal<Bodega[]>([]);
+  proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -46,6 +50,8 @@ export class Bodegas implements OnInit {
     ubicacion: new FormControl<string | null>(null),
     descripcion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
+    proyecto_id: new FormControl<string | null>(null),
+    es_principal: new FormControl<boolean>(false),
   });
 
   // ── Computed ─────────────────────────────────────────────
@@ -84,8 +90,12 @@ export class Bodegas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const bodegas = await this.bodegasService.getAll();
+      const [bodegas, proyectos] = await Promise.all([
+        this.bodegasService.getAll(),
+        this.proyectosService.getAll(),
+      ]);
       this.bodegas.set(bodegas);
+      this.proyectos.set(proyectos.filter((p) => p.activo));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los almacenes.');
     } finally {
@@ -132,7 +142,13 @@ export class Bodegas implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, ubicacion: null, descripcion: null });
+    this.form.reset({
+      activo: true,
+      ubicacion: null,
+      descripcion: null,
+      proyecto_id: null,
+      es_principal: false,
+    });
     this.drawerOpen.set(true);
   }
 
@@ -144,6 +160,8 @@ export class Bodegas implements OnInit {
       ubicacion: bodega.ubicacion,
       descripcion: bodega.descripcion,
       activo: bodega.activo,
+      proyecto_id: bodega.proyecto_id ?? null,
+      es_principal: bodega.es_principal ?? false,
     });
     this.drawerOpen.set(true);
   }

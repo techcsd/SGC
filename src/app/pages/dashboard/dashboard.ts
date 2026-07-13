@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet, DecimalPipe } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
 import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 
@@ -43,10 +44,18 @@ interface BarItem {
 export class Dashboard implements OnInit {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
+  private proyectosService = inject(ProyectosService);
 
   formatFecha = formatFechaDisplay;
 
   profile = this.userService.profile;
+
+  /** El dashboard varía por rol: cada usuario solo ve las áreas de sus módulos. */
+  canSee(modulo: string): boolean {
+    return this.userService.hasRole('admin') || this.userService.hasModulo(modulo);
+  }
+  /** Montos de contrato: solo Dirección/Admin (regla dura — obra nunca ve montos). */
+  canVerMontos = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('direccion'));
 
   loading = signal(true);
   error = signal('');
@@ -364,6 +373,23 @@ export class Dashboard implements OnInit {
       .sort((a, b) => a.fecha.localeCompare(b.fecha));
   });
 
+  // ── Ranking de Encargados (compacto; sin exponer montos) ──
+  private kpiRaw = signal<KpiProyectoRaw[]>([]);
+  canSeeRanking = computed(() => this.canSee('proyectos') || this.canSee('direccion'));
+  ranking = computed(() => {
+    return [...this.kpiRaw()]
+      .map((k) => {
+        const avance = Math.max(0, Math.min(100, Number(k.avance_promedio ?? 0)));
+        const bitacora = Math.min(1, Number(k.bitacoras_30d ?? 0) / 20) * 100;
+        const seguridad = Math.max(0, 100 - Number(k.incidentes_90d ?? 0) * 25);
+        const score = Math.round(avance * 0.4 + bitacora * 0.3 + seguridad * 0.3);
+        return { proyecto: k.nombre, encargado: k.responsable_nombre || '—', avance: Math.round(avance), score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map((r, i) => ({ ...r, pos: i + 1 }));
+  });
+
   // ── Donut helper (conic-gradient background) ──────────────
   donutBackground(slices: DonutSlice[]): string {
     const total = slices.reduce((s, x) => s + x.value, 0);
@@ -555,6 +581,15 @@ export class Dashboard implements OnInit {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los indicadores del sistema.');
     } finally {
       this.loading.set(false);
+    }
+
+    // Ranking de Encargados — solo para quien ve proyectos/dirección (best-effort).
+    if (this.canSeeRanking()) {
+      try {
+        this.kpiRaw.set(await this.proyectosService.getKpiProyectos());
+      } catch {
+        /* ranking is enrichment only */
+      }
     }
   }
 
