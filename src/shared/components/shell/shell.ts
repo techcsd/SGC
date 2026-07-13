@@ -12,6 +12,7 @@ import { AuthService } from '../../../app/core/services/auth.service';
 import { UserService } from '../../../app/core/services/user.service';
 import { NotificacionesService } from '../../services/notificaciones.service';
 import { RealtimeNotificacionesService } from '../../services/realtime-notificaciones.service';
+import { NotificacionesCentroService, Notif } from '../../services/notificaciones-centro.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
@@ -47,11 +48,17 @@ export class Shell implements OnInit {
   private router = inject(Router);
   private notificaciones = inject(NotificacionesService);
   private realtimeNotificaciones = inject(RealtimeNotificacionesService);
+  private centro = inject(NotificacionesCentroService);
 
   profile = this.userService.profile;
   avatarUrl = this.userService.avatarUrl;
   collapsed = signal(false);
   expandedSection = signal<string | null>('inventario');
+
+  // ── Notification center (header bell) ──
+  notifItems = this.centro.items;
+  notifNoLeidas = this.centro.noLeidas;
+  notifOpen = signal(false);
 
   navItems: NavItem[] = [
     {
@@ -254,14 +261,58 @@ export class Shell implements OnInit {
     this.notificaciones.refresh();
     this.realtimeNotificaciones.start();
 
+    // Notification center: load recent items + go live for this user.
+    this.centro.cargar();
+    const userId = this.userService.profile()?.id;
+    if (userId) {
+      this.centro.escuchar(userId);
+    }
+
     // Catches any count-affecting mutation that doesn't already call
     // refresh() directly (belt-and-suspenders alongside the explicit calls
     // in solicitudes-material/compra.service.ts and salidas.service.ts).
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.notificaciones.refresh();
+        // Close the bell dropdown when navigating away.
+        this.notifOpen.set(false);
       }
     });
+  }
+
+  toggleNotif() {
+    this.notifOpen.update((v) => !v);
+  }
+
+  closeNotif() {
+    this.notifOpen.set(false);
+  }
+
+  async abrirNotif(n: Notif) {
+    this.notifOpen.set(false);
+    await this.centro.marcarLeida(n.id);
+    if (n.ruta) {
+      this.router.navigate([n.ruta]);
+    }
+  }
+
+  marcarTodasLeidas() {
+    this.centro.marcarTodasLeidas();
+  }
+
+  /** Compact relative time in Spanish, e.g. "hace 5 min", "hace 2 h", "ayer". */
+  tiempoRelativo(iso: string): string {
+    const then = new Date(iso).getTime();
+    const diffMs = Date.now() - then;
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'ahora';
+    if (min < 60) return `hace ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `hace ${h} h`;
+    const d = Math.floor(h / 24);
+    if (d === 1) return 'ayer';
+    if (d < 7) return `hace ${d} d`;
+    return new Date(iso).toLocaleDateString('es-DO', { day: 'numeric', month: 'short' });
   }
 
   toggleCollapsed() {
@@ -298,6 +349,7 @@ export class Shell implements OnInit {
   async logout() {
     this.confirmLogoutOpen.set(false);
     this.realtimeNotificaciones.stop();
+    this.centro.stop();
     await this.authService.signOut();
     this.userService.clearProfile();
     this.notificaciones.clear();
