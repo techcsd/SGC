@@ -1,7 +1,13 @@
-/** Versión de la app móvil publicada por etapas (R15, staged rollout). */
+export type Plataforma = 'web' | 'movil';
+
+/** Versión de la app (móvil o web) — rollout por etapas (R15) + historial/timeline. */
 export interface AppVersion {
   id: string;
   version: string;
+  plataforma: Plataforma;
+  fecha: string | null;
+  titulo: string | null;
+  cambios: string[];
   notas: string | null;
   apk_url: string | null;
   publicada: boolean;

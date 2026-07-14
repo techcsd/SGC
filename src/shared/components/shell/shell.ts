@@ -237,6 +237,7 @@ export class Shell implements OnInit {
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
       { label: 'Parámetros', route: '/admin/parametros' },
       { label: 'Versiones de la app', route: '/admin/app-versiones' },
+      { label: 'Historial de versiones', route: '/admin/historial-versiones' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],

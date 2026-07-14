@@ -1,0 +1,63 @@
+<!-- ── Header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Historial de versiones</h1>
+    <span class="page-count">Línea de tiempo de la plataforma</span>
+  </div>
+</div>
+
+<!-- ── Selector de plataforma ── -->
+<div class="hv-tabs" role="tablist" aria-label="Plataforma">
+  <button
+    type="button"
+    role="tab"
+    class="hv-tab"
+    [class.hv-tab--active]="plataforma() === 'web'"
+    [attr.aria-selected]="plataforma() === 'web'"
+    (click)="setPlataforma('web')"
+  >
+    🖥️ Página web <span class="hv-tab__count">{{ totalWeb() }}</span>
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="hv-tab"
+    [class.hv-tab--active]="plataforma() === 'movil'"
+    [attr.aria-selected]="plataforma() === 'movil'"
+    (click)="setPlataforma('movil')"
+  >
+    📱 App móvil <span class="hv-tab__count">{{ totalMovil() }}</span>
+  </button>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="5" />
+} @else if (versiones().length === 0) {
+  <div class="table-empty sgc-card"><p>Aún no hay versiones registradas para esta plataforma.</p></div>
+} @else {
+  <!-- ── Timeline ── -->
+  <ol class="hv-timeline">
+    @for (v of versiones(); track v.id; let first = $first) {
+      <li class="hv-item">
+        <div class="hv-item__rail" aria-hidden="true">
+          <span class="hv-item__dot" [class.hv-item__dot--latest]="first"></span>
+        </div>
+        <div class="hv-item__card sgc-card">
+          <div class="hv-item__head">
+            <span class="hv-ver">v{{ v.version }}</span>
+            @if (first) { <span class="sgc-badge sgc-badge--success">Actual</span> }
+            @if (v.titulo) { <span class="hv-item__title">{{ v.titulo }}</span> }
+            @if (v.fecha) { <span class="hv-item__fecha">{{ formatFecha(v.fecha) }}</span> }
+          </div>
+          @if (v.cambios.length) {
+            <ul class="hv-cambios">
+              @for (c of v.cambios; track c) { <li>{{ c }}</li> }
+            </ul>
+          }
+        </div>
+      </li>
+    }
+  </ol>
+}
