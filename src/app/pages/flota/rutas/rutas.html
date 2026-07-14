@@ -112,7 +112,7 @@
                 }
               </td>
               <td class="text-right">
-                {{ r.tiempo_estimado_min ?? '—' }} / {{ r.tiempo_real_min ?? '—' }} min
+                {{ r.tiempo_estimado_min != null ? formatDur(r.tiempo_estimado_min) : '—' }} / {{ r.tiempo_real_min != null ? formatDur(r.tiempo_real_min) : '—' }}
                 @if (tiempoDesvio(r) !== null) {
                   <span class="rutas__desvio" [class.rutas__desvio--over]="tiempoDesvio(r)! > 0">
                     ({{ tiempoDesvio(r)! > 0 ? '+' : '' }}{{ tiempoDesvio(r) }})

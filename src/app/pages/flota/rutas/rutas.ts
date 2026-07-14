@@ -23,7 +23,7 @@ import { LocationPicker, UbicacionSeleccionada } from '../../../../shared/contex
 import { RoutingService } from '../../../../shared/context/routing.service';
 import { GeocodingService } from '../../../../shared/context/geocoding.service';
 import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
-import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../shared/utils/fecha.util';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -36,6 +36,7 @@ type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'long
 })
 export class Rutas implements OnInit {
   formatFecha = formatFechaDisplay;
+  formatDur = formatearDuracion; // U23 — duración legible ("1 h 28 min")
 
   private rutasService = inject(RutasService);
   private vehiculosService = inject(VehiculosService);
