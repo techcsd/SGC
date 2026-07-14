@@ -1,6 +1,14 @@
 export type ReporteTipo = 'comentario' | 'bug' | 'sugerencia';
 export type ReporteEstado = 'abierto' | 'en_progreso' | 'resuelto' | 'descartado';
 
+/** A photo attached to a user report (captured from the app, bucket `reportes`). */
+export interface ReporteFoto {
+  id: string;
+  reporte_id: string;
+  storage_path: string;
+  created_at: string;
+}
+
 export interface ReporteUsuario {
   id: string;
   usuario_id: string;
@@ -15,6 +23,7 @@ export interface ReporteUsuario {
   created_at: string;
   updated_at: string;
   resuelto_en: string | null;
+  fotos?: ReporteFoto[];
 }
 
 export const REPORTE_TIPO_LABELS: Record<ReporteTipo, string> = {

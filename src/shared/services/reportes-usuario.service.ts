@@ -5,7 +5,7 @@ import { ReporteUsuario, ReporteEstado, ReporteTipo } from '../models/reporte-us
 // usuarios is joined twice (usuario_id, asignado_a) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
 const SELECT_QUERY =
-  '*, usuario:usuarios!reportes_usuario_usuario_id_fkey(nombre, email), asignado:usuarios!reportes_usuario_asignado_a_fkey(nombre)';
+  '*, usuario:usuarios!reportes_usuario_usuario_id_fkey(nombre, email), asignado:usuarios!reportes_usuario_asignado_a_fkey(nombre), fotos:reportes_usuario_fotos(*)';
 
 @Injectable({ providedIn: 'root' })
 export class ReportesUsuarioService {
@@ -31,6 +31,15 @@ export class ReportesUsuarioService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as ReporteUsuario[];
+  }
+
+  /** Signed URL for a report photo (private `reportes` bucket). */
+  async getSignedUrl(path: string): Promise<string> {
+    const { data, error } = await this.supabase.client.storage
+      .from('reportes')
+      .createSignedUrl(path, 3600);
+    if (error) throw new Error(error.message);
+    return data.signedUrl;
   }
 
   async crear(payload: { usuario_id: string; tipo: ReporteTipo; asunto: string; descripcion: string }): Promise<ReporteUsuario> {
