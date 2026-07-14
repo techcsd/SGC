@@ -13,6 +13,7 @@ import {
   Conductor,
   ConductorFormData,
   LICENCIA_TIPOS,
+  TIPO_VEHICULO_AUTORIZADO,
 } from '../../../../shared/models/conductor.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -51,6 +52,7 @@ export class Conductores implements OnInit {
   editingId = signal<string | null>(null);
 
   readonly LICENCIA_TIPOS = LICENCIA_TIPOS;
+  readonly TIPOS_AUTORIZADOS = TIPO_VEHICULO_AUTORIZADO;
 
   form = new FormGroup({
     cedula: new FormControl('', [Validators.required, Validators.pattern(/^\d{3}-?\d{7}-?\d$/)]),
@@ -59,6 +61,7 @@ export class Conductores implements OnInit {
     licencia_tipo: new FormControl<string>('B', [Validators.required]),
     licencia_numero: new FormControl<string | null>(null, [Validators.maxLength(30)]),
     licencia_vencimiento: new FormControl<string | null>(null),
+    tipo_vehiculo_autorizado: new FormControl<string>('Ambos', [Validators.required]),
     vehiculo_id: new FormControl<string | null>(null),
     usuario_id: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
@@ -156,7 +159,7 @@ export class Conductores implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, licencia_tipo: 'B' });
+    this.form.reset({ activo: true, licencia_tipo: 'B', tipo_vehiculo_autorizado: 'Ambos' });
     this.drawerOpen.set(true);
   }
 
@@ -170,6 +173,7 @@ export class Conductores implements OnInit {
       licencia_tipo: c.licencia_tipo,
       licencia_numero: c.licencia_numero,
       licencia_vencimiento: c.licencia_vencimiento,
+      tipo_vehiculo_autorizado: c.tipo_vehiculo_autorizado ?? 'Ambos',
       vehiculo_id: c.vehiculo_id,
       usuario_id: c.usuario_id,
       activo: c.activo,

@@ -4,25 +4,33 @@
     <h1 class="page-title">Combustible</h1>
     <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nuevo registro
-  </button>
+  <div class="page-header__actions">
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/combustible-dashboard">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/>
+      </svg>
+      Dashboards
+    </a>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo registro
+    </button>
+  </div>
 </div>
 
 <!-- ── Monthly totals bar ── -->
 <div class="combustible__totals-bar">
   <div class="combustible__total-item">
-    <span class="combustible__total-label">Litros este mes</span>
-    <span class="combustible__total-value">{{ totalLitrosMes() | number:'1.2-2' }} L</span>
+    <span class="combustible__total-label">Galones este mes</span>
+    <span class="combustible__total-value">{{ totalGalonesMes() | number:'1.1-1' }} gal</span>
   </div>
   <div class="combustible__totals-divider"></div>
   <div class="combustible__total-item">
     <span class="combustible__total-label">Gasto este mes</span>
     <span class="combustible__total-value combustible__total-value--primary">
-      DOP {{ totalGastoMes() | number:'1.2-2' }}
+      RD$ {{ totalGastoMes() | number:'1.2-2' }}
     </span>
   </div>
 </div>
@@ -30,48 +38,27 @@
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">
-    <input
-      type="search"
-      placeholder="Buscar por placa o estación…"
-      [value]="searchQuery()"
-      (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar registros de combustible"
-    />
+    <input type="search" placeholder="Buscar por placa o estación…"
+      [value]="searchQuery()" (input)="onSearch($any($event.target).value)"
+      aria-label="Buscar registros de combustible" />
   </div>
-
   <div class="sgc-field filters-bar__select">
-    <select
-      [value]="selectedVehiculoId()"
-      (change)="onVehiculoChange($any($event.target).value)"
-      aria-label="Filtrar por vehículo"
-    >
+    <select [value]="selectedVehiculoId()" (change)="onVehiculoChange($any($event.target).value)"
+      aria-label="Filtrar por vehículo">
       <option value="">Todos los vehículos</option>
       @for (v of vehiculos(); track v.id) {
         <option [value]="v.id">{{ v.placa }} — {{ v.marca }}</option>
       }
     </select>
   </div>
-
   <div class="sgc-field filters-bar__date">
-    <input
-      type="date"
-      [value]="dateFrom()"
-      (change)="onDateFromChange($any($event.target).value)"
-      aria-label="Fecha desde"
-      title="Fecha desde"
-    />
+    <input type="date" [value]="dateFrom()" (change)="onDateFromChange($any($event.target).value)"
+      aria-label="Fecha desde" title="Fecha desde" />
   </div>
-
   <div class="sgc-field filters-bar__date">
-    <input
-      type="date"
-      [value]="dateTo()"
-      (change)="onDateToChange($any($event.target).value)"
-      aria-label="Fecha hasta"
-      title="Fecha hasta"
-    />
+    <input type="date" [value]="dateTo()" (change)="onDateToChange($any($event.target).value)"
+      aria-label="Fecha hasta" title="Fecha hasta" />
   </div>
-
   @if (hasFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros
@@ -91,23 +78,16 @@
 
 <!-- ── Table ── -->
 <div class="table-wrapper sgc-card">
-
   @if (loading()) {
-    <div class="table-loading" aria-busy="true">
-      <span class="spinner-dark"></span>
-      Cargando registros…
-    </div>
+    <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando registros…</div>
   } @else if (filtered().length === 0) {
     <div class="table-empty">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
-        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+        <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17"/>
       </svg>
       <p>
-        @if (hasFilters()) {
-          No se encontraron registros con los filtros aplicados.
-        } @else {
-          No hay registros de combustible. Crea el primero.
-        }
+        @if (hasFilters()) { No se encontraron registros con los filtros aplicados. }
+        @else { No hay registros de combustible. Crea el primero. }
       </p>
     </div>
   } @else {
@@ -117,55 +97,49 @@
           <tr>
             <th>Fecha</th>
             <th>Vehículo</th>
-            <th>Conductor</th>
-            <th class="text-right">Litros</th>
-            <th class="text-right">Costo/L</th>
-            <th class="text-right">Total (DOP)</th>
             <th class="text-right">Km</th>
-            <th>Estación</th>
+            <th class="text-right">Galones</th>
+            <th class="text-right">Monto (RD$)</th>
+            <th class="text-right">RD$/gal</th>
+            <th class="text-right">km/gal</th>
+            <th class="text-right">RD$/km</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           @for (r of paginated(); track r.id) {
-            <tr>
+            <tr class="combustible__row" (click)="openDetail(r)" [class.combustible__row--alerta]="r.alerta_consumo">
               <td class="combustible__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
-                @if (r.vehiculo?.marca) {
-                  <span class="combustible__marca">{{ r.vehiculo!.marca }}</span>
-                }
+                @if (r.vehiculo?.marca) { <span class="combustible__marca">{{ r.vehiculo!.marca }}</span> }
               </td>
-              <td>{{ r.conductor?.nombre ?? '—' }}</td>
-              <td class="text-right">{{ r.litros | number:'1.2-2' }}</td>
               <td class="text-right text-muted">
-                @if (r.costo_por_litro !== null) {
-                  {{ r.costo_por_litro | number:'1.2-2' }}
-                } @else {
-                  —
-                }
+                @if (r.kilometraje !== null) { {{ r.kilometraje | number:'1.0-0' }} } @else { — }
               </td>
               <td class="text-right">
-                @if (r.total !== null) {
-                  <strong>{{ r.total | number:'1.2-2' }}</strong>
-                } @else {
-                  <span class="text-muted">—</span>
+                @if (esV2(r)) { {{ r.galones | number:'1.1-2' }} }
+                @else { <span class="text-muted" title="Registro legacy en litros">{{ r.litros | number:'1.1-2' }} L</span> }
+              </td>
+              <td class="text-right"><strong>{{ (r.monto ?? r.total) | number:'1.2-2' }}</strong></td>
+              <td class="text-right text-muted">{{ r.precio_por_galon ? (r.precio_por_galon | number:'1.2-2') : '—' }}</td>
+              <td class="text-right">
+                @if (r.rendimiento_km_gal !== null) {
+                  <span [class.combustible__rend--alerta]="r.alerta_consumo">{{ r.rendimiento_km_gal | number:'1.1-2' }}</span>
+                } @else { <span class="text-muted">—</span> }
+              </td>
+              <td class="text-right text-muted">{{ r.costo_por_km ? (r.costo_por_km | number:'1.2-2') : '—' }}</td>
+              <td class="text-right">
+                @if (r.alerta_consumo) {
+                  <span class="sgc-badge sgc-badge--danger" title="Consumo anormal">⚠ Alerta</span>
                 }
               </td>
-              <td class="text-right text-muted">
-                @if (r.kilometraje !== null) {
-                  {{ r.kilometraje | number:'1.0-0' }}
-                } @else {
-                  —
-                }
-              </td>
-              <td>{{ r.estacion ?? '—' }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
 
-    <!-- ── Pagination ── -->
     @if (totalPages() > 1) {
       <div class="pagination">
         <span class="pagination__info">
@@ -173,37 +147,14 @@
           de {{ filtered().length }}
         </span>
         <div class="pagination__controls">
-          <button
-            class="page-btn"
-            type="button"
-            (click)="goToPage(currentPage() - 1)"
-            [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="Página anterior">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-
           @for (p of pages; track p) {
-            <button
-              class="page-btn"
-              type="button"
-              (click)="goToPage(p)"
-              [class.page-btn--active]="p === currentPage()"
-            >{{ p }}</button>
+            <button class="page-btn" type="button" (click)="goToPage(p)" [class.page-btn--active]="p === currentPage()">{{ p }}</button>
           }
-
-          <button
-            class="page-btn"
-            type="button"
-            (click)="goToPage(currentPage() + 1)"
-            [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
@@ -211,115 +162,122 @@
   }
 </div>
 
-<!-- ── Form Drawer (create only) ── -->
-<app-form-drawer
-  title="Nuevo registro de combustible"
-  [open]="drawerOpen()"
-  (closed)="closeDrawer()"
->
+<!-- ── Create drawer ── -->
+<app-form-drawer title="Nuevo registro de combustible" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
-      <select
-        id="vehiculo_id"
-        formControlName="vehiculo_id"
-        [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
-      >
-        <option [value]="null">Seleccionar vehículo…</option>
+      <select id="vehiculo_id" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
+        <option value="">Seleccionar vehículo…</option>
         @for (v of vehiculos(); track v.id) {
           <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
         }
       </select>
-      @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
-        <span class="field-error">El vehículo es obligatorio.</span>
+      @if (kmAnterior() !== null) {
+        <span class="field-hint">Última echada: {{ kmAnterior() | number:'1.0-0' }} km</span>
       }
+      @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) { <span class="field-error">El vehículo es obligatorio.</span> }
     </div>
 
     <div class="sgc-field">
       <label for="conductor_id">Conductor</label>
       <select id="conductor_id" formControlName="conductor_id">
         <option [value]="null">Sin conductor asignado</option>
-        @for (c of conductores(); track c.id) {
-          <option [value]="c.id">{{ c.nombre }}</option>
-        }
+        @for (c of conductores(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>
 
     <div class="sgc-field">
       <label for="fecha">Fecha <span class="required">*</span></label>
-      <input
-        id="fecha"
-        type="date"
-        formControlName="fecha"
-        [max]="today"
-        [class.invalid]="f.fecha.invalid && f.fecha.touched"
-      />
-      @if (f.fecha.invalid && f.fecha.touched) {
-        <span class="field-error">La fecha es obligatoria.</span>
-      }
+      <input id="fecha" type="date" formControlName="fecha" [max]="today" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
+    </div>
+
+    <!-- Los 3 datos que digita el chofer -->
+    <div class="sgc-field">
+      <label for="kilometraje">Kilometraje actual <span class="required">*</span></label>
+      <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1" placeholder="km en el tablero"
+        [class.invalid]="f.kilometraje.invalid && f.kilometraje.touched" />
+      @if (f.kilometraje.invalid && f.kilometraje.touched) { <span class="field-error">El kilometraje es obligatorio.</span> }
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="litros">Litros <span class="required">*</span></label>
-        <input
-          id="litros"
-          type="number"
-          formControlName="litros"
-          min="0.01"
-          step="0.01"
-          placeholder="0.00"
-          [class.invalid]="f.litros.invalid && f.litros.touched"
-        />
-        @if (f.litros.invalid && f.litros.touched) {
-          <span class="field-error">Los litros son obligatorios.</span>
+        <label for="galones">Galones echados <span class="required">*</span></label>
+        <input id="galones" type="number" formControlName="galones" min="0.01" step="0.01" placeholder="0.00"
+          [class.invalid]="f.galones.invalid && f.galones.touched" />
+        @if (f.galones.invalid && f.galones.touched) { <span class="field-error">Requerido.</span> }
+      </div>
+      <div class="sgc-field">
+        <label for="monto">Monto pagado (RD$) <span class="required">*</span></label>
+        <input id="monto" type="number" formControlName="monto" min="0.01" step="0.01" placeholder="0.00"
+          [class.invalid]="f.monto.invalid && f.monto.touched" />
+        @if (f.monto.invalid && f.monto.touched) { <span class="field-error">Requerido.</span> }
+      </div>
+    </div>
+
+    <!-- Cálculo en vivo -->
+    @if (calc().precio !== null) {
+      <div class="calc-card" [class.calc-card--alerta]="calc().alerta">
+        <div class="calc-card__grid">
+          <div class="calc-card__item">
+            <span class="calc-card__label">Precio / galón</span>
+            <span class="calc-card__value">RD$ {{ calc().precio | number:'1.2-2' }}</span>
+          </div>
+          <div class="calc-card__item">
+            <span class="calc-card__label">Km recorridos</span>
+            <span class="calc-card__value">{{ calc().kmRec !== null ? (calc().kmRec | number:'1.0-0') : '—' }}</span>
+          </div>
+          <div class="calc-card__item">
+            <span class="calc-card__label">Rendimiento</span>
+            <span class="calc-card__value">{{ calc().rend !== null ? (calc().rend | number:'1.1-2') + ' km/gal' : '—' }}</span>
+          </div>
+          <div class="calc-card__item">
+            <span class="calc-card__label">Costo / km</span>
+            <span class="calc-card__value">{{ calc().costoKm !== null ? 'RD$ ' + (calc().costoKm | number:'1.2-2') : '—' }}</span>
+          </div>
+        </div>
+        @if (calc().rend === null) {
+          <div class="calc-card__banda calc-card__banda--info">Primera echada del vehículo: aún sin rendimiento.</div>
+        } @else if (calc().alerta) {
+          <div class="calc-card__banda calc-card__banda--alerta">
+            ⚠ Consumo por debajo del promedio ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota.
+          </div>
+        } @else {
+          <div class="calc-card__banda calc-card__banda--ok">✓ Consumo dentro de lo normal.</div>
         }
       </div>
+    }
 
-      <div class="sgc-field">
-        <label for="costo_por_litro">Costo por litro (DOP)</label>
-        <input
-          id="costo_por_litro"
-          type="number"
-          formControlName="costo_por_litro"
-          min="0"
-          step="0.01"
-          placeholder="0.00"
-        />
+    <!-- 2 fotos obligatorias -->
+    <div class="form-row">
+      <div class="sgc-field photo-field">
+        <label>Foto del recibo <span class="required">*</span></label>
+        <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()">
+          @if (reciboPreview()) { <img [src]="reciboPreview()" alt="Recibo" /> }
+          @else { <span>📷 Subir recibo</span> }
+          <input type="file" accept="image/*" (change)="onFileSelected('recibo', $event)" hidden />
+        </label>
       </div>
-    </div>
-
-    <div class="sgc-field">
-      <label for="total">Total (DOP)</label>
-      <input
-        id="total"
-        type="number"
-        formControlName="total"
-        placeholder="Se calcula automáticamente"
-        readonly
-        class="combustible__total-input"
-      />
-      @if (computedTotal() !== null) {
-        <span class="field-hint">= {{ computedTotal() | number:'1.2-2' }} DOP</span>
-      }
+      <div class="sgc-field photo-field">
+        <label>Foto del tablero (km) <span class="required">*</span></label>
+        <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()">
+          @if (tableroPreview()) { <img [src]="tableroPreview()" alt="Tablero" /> }
+          @else { <span>📷 Subir tablero</span> }
+          <input type="file" accept="image/*" (change)="onFileSelected('tablero', $event)" hidden />
+        </label>
+      </div>
     </div>
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="kilometraje">Kilometraje</label>
-        <input id="kilometraje" type="number" formControlName="kilometraje" min="0" placeholder="km" />
-      </div>
-
-      <div class="sgc-field">
-        <label for="estacion">Estación / Gasolinera</label>
+        <label for="estacion">Estación (opcional)</label>
         <input id="estacion" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
       </div>
-    </div>
-
-    <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" formControlName="notas" rows="2" placeholder="Notas adicionales…"></textarea>
+      <div class="sgc-field">
+        <label for="notas">Notas (opcional)</label>
+        <input id="notas" type="text" formControlName="notas" placeholder="Notas adicionales" />
+      </div>
     </div>
 
     @if (saveError()) {
@@ -332,18 +290,76 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
-      </button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) {
-          <span class="spinner" aria-hidden="true"></span>
-          Guardando…
-        } @else {
-          Registrar combustible
-        }
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… }
+        @else { Registrar combustible }
       </button>
     </div>
-
   </form>
+</app-form-drawer>
+
+<!-- ── Detail drawer ── -->
+<app-form-drawer title="Detalle de echada" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (selected(); as r) {
+    <div class="detail">
+      <div class="detail__header">
+        <div>
+          <span class="detail__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
+          <span class="detail__sub">{{ r.vehiculo?.marca }} · {{ formatFecha(r.fecha) }}</span>
+        </div>
+        @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger">⚠ Consumo anormal</span> }
+        @else if (esV2(r)) { <span class="sgc-badge sgc-badge--success">Consumo normal</span> }
+      </div>
+
+      <div class="detail__grid">
+        <div class="detail__item"><span class="detail__label">Kilometraje</span><span class="detail__value">{{ r.kilometraje | number:'1.0-0' }} km</span></div>
+        <div class="detail__item"><span class="detail__label">Galones</span><span class="detail__value">{{ (r.galones ?? r.litros) | number:'1.1-2' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Monto</span><span class="detail__value">RD$ {{ (r.monto ?? r.total) | number:'1.2-2' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Precio / galón</span><span class="detail__value">{{ r.precio_por_galon ? ('RD$ ' + (r.precio_por_galon | number:'1.2-2')) : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Km recorridos</span><span class="detail__value">{{ r.km_recorridos !== null ? (r.km_recorridos | number:'1.0-0') : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Rendimiento</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Costo / km</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
+      </div>
+
+      <!-- Análisis automático -->
+      <div class="detail__analysis">
+        <h3 class="detail__analysis-title">Análisis automático</h3>
+        @if (r.rendimiento_km_gal === null) {
+          <p class="detail__analysis-line">Primera echada registrada del vehículo — sin rendimiento comparable todavía.</p>
+        } @else if (r.alerta_consumo) {
+          <p class="detail__analysis-line detail__analysis-line--alerta">⚠ Consumo anormal: rinde por debajo del promedio del vehículo. Posible fuga, problema mecánico o combustible desviado.</p>
+        } @else {
+          <p class="detail__analysis-line detail__analysis-line--ok">✓ Consumo dentro de lo normal para este vehículo.</p>
+        }
+        @if (precioPromedioFlotaMes(r); as prom) {
+          <p class="detail__analysis-line">
+            Precio pagado: RD$ {{ r.precio_por_galon | number:'1.2-2' }}/gal ·
+            promedio de la flota este mes: RD$ {{ prom | number:'1.2-2' }}/gal
+            @if (r.precio_por_galon && r.precio_por_galon > prom * 1.05) { <span class="detail__analysis-warn">(por encima del promedio)</span> }
+          </p>
+        }
+      </div>
+
+      <!-- Evidencia -->
+      <h3 class="detail__analysis-title">Evidencia</h3>
+      @if (loadingDetail()) {
+        <div class="table-loading"><span class="spinner-dark"></span> Cargando fotos…</div>
+      } @else {
+        <div class="detail__photos">
+          <div class="detail__photo">
+            <span class="detail__label">Recibo</span>
+            @if (detailReciboUrl()) { <a [href]="detailReciboUrl()" target="_blank" rel="noopener"><img [src]="detailReciboUrl()" alt="Recibo" /></a> }
+            @else { <div class="detail__photo-empty">Sin foto</div> }
+          </div>
+          <div class="detail__photo">
+            <span class="detail__label">Tablero</span>
+            @if (detailTableroUrl()) { <a [href]="detailTableroUrl()" target="_blank" rel="noopener"><img [src]="detailTableroUrl()" alt="Tablero" /></a> }
+            @else { <div class="detail__photo-empty">Sin foto</div> }
+          </div>
+        </div>
+      }
+    </div>
+  }
 </app-form-drawer>

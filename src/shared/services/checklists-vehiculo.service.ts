@@ -11,7 +11,9 @@ const BUCKET = 'vehiculos';
 const LIST_QUERY =
   '*, vehiculo:vehiculos(placa, marca, modelo, tipo), conductor:conductores(nombre), plantilla:checklist_plantillas(nombre)';
 const DETAIL_QUERY =
-  '*, vehiculo:vehiculos(placa, marca, modelo, tipo), conductor:conductores(nombre), plantilla:checklist_plantillas(nombre), ' +
+  '*, vehiculo:vehiculos(placa, marca, modelo, tipo, vencimiento_matricula, vencimiento_seguro), ' +
+  'conductor:conductores(nombre, licencia_tipo, licencia_numero, licencia_vencimiento, tipo_vehiculo_autorizado), ' +
+  'plantilla:checklist_plantillas(nombre), ' +
   'respuestas:checklist_vehiculo_respuestas(*), fotos:checklist_vehiculo_fotos(*)';
 
 @Injectable({ providedIn: 'root' })
@@ -70,9 +72,34 @@ export class ChecklistsVehiculoService {
       p_firma_path: null,
       p_observaciones: payload.observaciones,
       p_capturado_en: null, // el servidor usa now()
+      p_nivel_combustible: payload.nivel_combustible,
     });
     if (error) throw new Error(error.message);
     return (data as string) ?? id;
+  }
+
+  /** Email (no bloqueante) a Flota según el veredicto/alerta del checklist. */
+  async notificarEvento(c: ChecklistVehiculo): Promise<void> {
+    const eventos: { tipo: string; titulo: string; detalle: string }[] = [];
+    if (c.resultado === 'bloqueado') {
+      eventos.push({ tipo: 'bloqueo_critico', titulo: 'Vehículo bloqueado en pre-uso', detalle: 'Falló un ítem crítico del checklist. El vehículo queda fuera de servicio hasta corrección.' });
+    } else if (c.resultado === 'con_hallazgos') {
+      eventos.push({ tipo: 'hallazgos', titulo: 'Pre-uso con hallazgos', detalle: 'El vehículo salió con hallazgos no críticos. Coordinar corrección.' });
+    }
+    if (c.alerta_mantenimiento === 'vencido') {
+      eventos.push({ tipo: 'mantenimiento_vencido', titulo: 'Mantenimiento vencido', detalle: 'El vehículo superó su intervalo de mantenimiento.' });
+    } else if (c.alerta_mantenimiento === 'pre_cita') {
+      eventos.push({ tipo: 'pre_cita', titulo: 'Agendar pre-cita de mantenimiento', detalle: 'Faltan pocos km para el próximo mantenimiento.' });
+    }
+    for (const e of eventos) {
+      try {
+        await this.supabase.client.functions.invoke('notificar-flota', {
+          body: { tipo: e.tipo, titulo: e.titulo, detalleHtml: `<p>${e.detalle}</p>`, vehiculo: c.vehiculo?.placa, conductor: c.conductor?.nombre },
+        });
+      } catch {
+        /* el email nunca bloquea el flujo */
+      }
+    }
   }
 
   async atender(id: string, nota: string | null): Promise<void> {

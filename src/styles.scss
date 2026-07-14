@@ -534,3 +534,17 @@ textarea {
   transform: rotate(-45deg);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
+
+// ── Print: aísla un reporte imprimible (#*-report-print) del resto de la UI ──
+// Patrón de visibilidad: oculta todo, muestra solo el reporte. Debe ser global
+// (sin scope de componente) para poder ocultar el shell y el backdrop del drawer.
+@media print {
+  body * { visibility: hidden !important; }
+  [id$='-report-print'], [id$='-report-print'] * { visibility: visible !important; }
+  [id$='-report-print'] {
+    position: absolute !important;
+    left: 0; top: 0; width: 100%;
+    padding: 0 !important; margin: 0 !important;
+  }
+  .no-print, .cl-report__actions, .cl-atender { display: none !important; }
+}

@@ -27,6 +27,12 @@ export const flotaRoutes: Routes = [
     title: 'Combustible — Flota',
   },
   {
+    path: 'combustible-dashboard',
+    loadComponent: () =>
+      import('./combustible-dashboard/combustible-dashboard').then((m) => m.CombustibleDashboard),
+    title: 'Dashboards de combustible — Flota',
+  },
+  {
     path: 'rutas',
     loadComponent: () => import('./rutas/rutas').then((m) => m.Rutas),
     title: 'Rutas — Flota',
@@ -35,6 +41,16 @@ export const flotaRoutes: Routes = [
     path: 'checklists',
     loadComponent: () => import('./checklists/checklists').then((m) => m.Checklists),
     title: 'Checklists — Flota',
+  },
+  {
+    path: 'panel-dia',
+    loadComponent: () => import('./panel-dia/panel-dia').then((m) => m.PanelDia),
+    title: 'Panel del día — Flota',
+  },
+  {
+    path: 'avisos',
+    loadComponent: () => import('./avisos/avisos').then((m) => m.Avisos),
+    title: 'Avisos — Flota',
   },
   {
     path: 'responsabilidad',

@@ -1,8 +1,49 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-12_
+_Last updated: 2026-07-13_
 
-## Current focus: Reunión 07/07/2026 — Parte A (A1–A9)
+## Current focus: Flota v2 — Pre-uso + Combustible (13/07/2026)
+
+Source of truth: `C:\Users\xavie\Desktop\X Dev\Constructora SD\developer csd\fp ideas\13072026\x solution\CONTEXTO.md`.
+Web (this repo) done; **mobile side pending in the csd-app repo**. All DB changes are
+**additive & retro-compatible** (mobile still calls `registrar_checklist_vehiculo`,
+`crear_mantenimiento_app`, `crear_entrega_vehiculo`, `mis_pendientes_transporte`).
+
+### ✅ Done (build passing; SQL applied & verified on prod DB; nothing committed yet)
+- **SQL** `sql/2026-07-13-flota-v2.sql` (+ `...-flota-checklists-seed-v2.sql`), applied:
+  - New cols: `vehiculos.{vencimiento_matricula,vencimiento_seguro,km_ultimo_mantenimiento,intervalo_mantenimiento_km}`,
+    `conductores.tipo_vehiculo_autorizado`, `registros_combustible.{galones,monto,precio_por_galon,km_anterior,km_recorridos,rendimiento_km_gal,costo_por_km,foto_recibo_path,foto_tablero_path,alerta_consumo,client_uuid}`,
+    `checklists_vehiculo.{nivel_combustible,resultado,km_faltan_mantenimiento,alerta_mantenimiento}`,
+    `checklist_plantilla_items.{numero,aplica_a}`. **Made `registros_combustible.litros` NULLABLE** (v2 uses galones).
+  - New tables `sgc.avisos_flota` (bandeja + RLS + realtime) and `sgc.flota_config`
+    (umbrales: consumo 20%, pre-cita 500km, licencia 30d).
+  - RPC `registrar_combustible_app` (SECURITY DEFINER, idempotente por `client_uuid`,
+    calcula derivados + alerta consumo + aviso + notifica). RPC `atender_aviso_flota`. Helper `notificar_modulo`.
+  - **Extended `registrar_checklist_vehiculo`**: dropped 13-arg sig, single 14-arg with
+    `p_nivel_combustible default null` → old mobile 13-named-arg calls still resolve.
+    Computes tri-estado `resultado`, `alerta_mantenimiento`, rejects on licencia/matrícula/seguro vencidos, inserts avisos + notifica.
+  - Seed v2: one active plantilla `PRE-USO-V2` (33 ítems: LSC 10 + Seguridad 19 + Herramienta Pesado 4, críticos por Excel); v1 plantillas desactivadas.
+- **Web**: Combustible v2 page (galones/monto + 2 fotos + live calc + detalle);
+  `flota/combustible-dashboard` (por vehículo + flotilla); Checklists v2 (tri-estado,
+  nivel, secciones filtradas por clase, reporte de inspección imprimible con 7 fotos);
+  `flota/panel-dia`; `flota/avisos` (gestión + genera vencimientos idempotente/día);
+  Vehículos/Conductores forms con campos nuevos + badges de vencimiento/mantenimiento.
+  Nav (shell) + flota badge ahora cuenta `avisos_flota` pendientes. Dudas actualizado.
+- **Edge function** `notificar-flota` deployed (Resend, `usuarios_con_modulo('flota')`),
+  invocada (no bloqueante) desde combustible (consumo) y checklists (bloqueo/hallazgos/pre-cita/vencido).
+- **Verificado (rolled-back SQL tests)**: derivados de combustible, consumo anormal→aviso,
+  checklist bloqueado→aviso, bloqueo por matrícula vencida, y **retrocompatibilidad del RPC 13-arg**.
+
+### 🔜 Pendiente
+- **QA manual en navegador** (flujo real logueado): registrar combustible con/sin histórico
+  y con rendimiento bajo; checklist con crítico en NO; pre-cita por km; panel del día; flotilla; atender avisos; imprimir reporte.
+- **Mobile (csd-app)**: pre-uso v2 (nivel, 7 fotos, secciones, veredicto, PDF jsPDF+share) y combustible v2 (3 datos + 2 fotos) usando los RPCs ya listos.
+- Confirmar con negocio: ítems críticos oficiales, caja herramienta pesada (P1–P4 placeholder), correos del BLOQUEADO, frecuencia de inspección.
+- **No commit / no deploy Vercel** hasta autorización de Xavier.
+
+---
+
+## Previous focus: Reunión 07/07/2026 — Parte A (A1–A9)
 
 Big multi-phase build from the 07/07/2026 meeting. Source of truth:
 `C:\Users\xavie\Desktop\X Dev\Constructora SD\SGC meet improvements\07072026 meet.md`

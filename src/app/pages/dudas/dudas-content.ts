@@ -353,8 +353,18 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta: 'Ve a Flota > Mantenimientos > Nuevo mantenimiento y selecciona el vehículo.',
       },
       {
-        pregunta: '¿Cómo registro combustible o una ruta?',
-        respuesta: 'Usa Flota > Combustible o Flota > Rutas respectivamente, ambos con su propio formulario de registro.',
+        pregunta: '¿Cómo registro combustible (v2)?',
+        respuesta:
+          'En Flota > Combustible > Nuevo registro digitas solo 3 datos: kilometraje actual, galones echados y monto pagado (RD$), más 2 fotos obligatorias (recibo y tablero). El sistema calcula solo el precio/galón, los km recorridos, el rendimiento (km/gal) y el costo/km, y te los muestra en vivo antes de guardar. Si el rendimiento cae más de 20% bajo el promedio del vehículo, se marca "consumo anormal" y se avisa a Flota (posible fuga o problema mecánico). Toca una fila para ver el detalle con las 2 fotos y el análisis.',
+      },
+      {
+        pregunta: '¿Dónde veo los dashboards de combustible?',
+        respuesta:
+          'En Flota > Combustible > Dashboards. "Por vehículo" muestra gasto, galones, km, costo/km, rendimiento promedio, tabla de echadas y gráficos (rango por defecto 6 meses). "Flotilla" resume el gasto total, costo/km ponderado, alertas activas y el estado de cada vehículo (NORMAL / REVISAR / ALERTA).',
+      },
+      {
+        pregunta: '¿Cómo registro una ruta?',
+        respuesta: 'Usa Flota > Rutas, con su propio formulario de registro.',
       },
       {
         pregunta: '¿La ruta muestra el clima del destino?',
@@ -362,9 +372,19 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Sí. Al planificar una ruta puedes elegir una obra de destino (o marcar el punto en el mapa). Con eso el formulario muestra el clima del destino y un aviso de despacho para el día del viaje (p. ej. "lluvia probable, despacha temprano"). En la lista de rutas, los viajes próximos con clima adverso muestran un aviso.',
       },
       {
-        pregunta: '¿Cómo lleno un checklist de pre-uso o inspección de un vehículo?',
+        pregunta: '¿Cómo lleno un checklist de pre-uso (v2) y qué significa el resultado?',
         respuesta:
-          'Ve a Flota > Checklists > Nuevo checklist. Elige el vehículo (se sugiere la plantilla según el tipo: liviano, camión o equipo), responde cada punto con OK / NO / N/A y agrega comentarios. Si marcas NO en un punto crítico (frenos, luces, neumáticos, cinturón, extintor, alarma de retroceso…), se genera una alerta a Flota/Mantenimiento y el checklist queda marcado como crítico hasta que alguien lo atienda desde el mismo módulo.',
+          'Ve a Flota > Checklists > Nuevo checklist. Elige el vehículo, el nivel de combustible y responde cada punto (agrupado por secciones: LSC "Autorizado y Apto", Seguridad y —solo para equipo pesado— Herramienta Pesado) con OK / NO / N/A. El resultado es tri-estado: APROBADO (todo bien), CON HALLAZGOS (algún NO no crítico → puede salir pero se avisa a Flota para corregir) o BLOQUEADO (algún NO en un punto crítico → el vehículo NO puede salir y se notifica de inmediato). El sistema también rechaza el registro si la licencia del conductor, la matrícula o el seguro del vehículo están vencidos, y avisa cuando el mantenimiento por kilómetros está por vencer (pre-cita ≤500 km) o vencido. Desde el detalle puedes imprimir/descargar el reporte de inspección.',
+      },
+      {
+        pregunta: '¿Qué es el Panel del día de Flota?',
+        respuesta:
+          'En Flota > Panel del día ves, para hoy: cuántos choferes activos ya reportaron su pre-uso (y quiénes faltan), cuántas inspecciones salieron aprobadas / con hallazgos / bloqueadas, la tabla de inspecciones del día, las alertas activas y un gráfico de la última semana.',
+      },
+      {
+        pregunta: '¿Dónde gestiono los avisos de Flota (bloqueos, consumos, vencimientos)?',
+        respuesta:
+          'En Flota > Avisos hay una bandeja con todos los avisos operativos: bloqueos por checklist, hallazgos, pre-citas y mantenimiento vencido, consumo anormal de combustible, y vencimientos de licencia, matrícula y seguro (estos se generan solos al abrir la página). Filtra por estado/tipo/vehículo y pulsa "Atender" para dejar una nota y cerrarlos. El punto rojo del menú de Flota cuenta los avisos pendientes. Además llega un correo automático a quienes tienen el módulo Flota.',
       },
     ],
   },

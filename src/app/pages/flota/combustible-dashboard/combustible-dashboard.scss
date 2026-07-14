@@ -1,0 +1,58 @@
+// ── Controls / tabs ──────────────────────────────────────
+.dash-controls {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 18px; flex-wrap: wrap;
+  &__right { display: flex; gap: 10px; }
+}
+
+.dash-tabs {
+  display: inline-flex; background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius); padding: 3px;
+}
+.dash-tab {
+  padding: 7px 16px; border: none; background: transparent; border-radius: var(--sgc-radius-sm);
+  font-size: 14px; font-weight: 600; color: var(--sgc-text-secondary); cursor: pointer;
+  transition: all 0.15s ease;
+  &--active { background: var(--sgc-primary); color: #fff; }
+}
+
+// ── Stat cards ───────────────────────────────────────────
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px; margin-bottom: 18px;
+}
+.stat-card {
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  &--alerta { border-color: var(--sgc-danger); }
+  &__label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--sgc-text-muted);
+  }
+  &__value { font-size: 20px; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
+}
+
+// ── Charts ───────────────────────────────────────────────
+.dash-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+.dash-chart { padding: 16px; }
+
+.dash-alerts {
+  padding: 16px;
+  &__title { font-size: 14px; font-weight: 700; margin: 0 0 12px; }
+  &__item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--sgc-border); }
+  &__item:last-child { border-bottom: none; }
+  &__msg { font-size: 13px; color: var(--sgc-text-secondary); }
+}
+
+.dash-alert {
+  padding: 12px 16px; margin-bottom: 18px; border-radius: var(--sgc-radius);
+  background: var(--sgc-danger-light); color: var(--sgc-danger); font-weight: 600; font-size: 14px;
+}
+
+.dash-placa { font-weight: 600; }
+.dash-row--alerta { background: var(--sgc-danger-light); }
+
+@media (max-width: 900px) {
+  .dash-charts { grid-template-columns: 1fr; }
+}

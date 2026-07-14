@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ChecklistsVehiculoService } from '../../../../shared/services/checklists-vehiculo.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -17,14 +18,22 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import {
   ChecklistPlantilla,
+  ChecklistPlantillaItem,
   ChecklistVehiculo,
   ChecklistFormData,
   ChecklistTipo,
   ChecklistRespuestaValor,
+  ChecklistResultado,
+  AlertaMantenimiento,
   CHECKLIST_TIPOS,
   RESPUESTA_OPCIONES,
+  NIVEL_COMBUSTIBLE_OPCIONES,
+  RESULTADO_META,
+  ALERTA_MANT_META,
+  FOTO_SLOTS,
   categoriaPorTipoVehiculo,
 } from '../../../../shared/models/flota-checklist.model';
+import { claseVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
@@ -36,7 +45,7 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,6 +93,8 @@ export class Checklists implements OnInit {
 
   readonly TIPOS = CHECKLIST_TIPOS;
   readonly OPCIONES = RESPUESTA_OPCIONES;
+  readonly NIVELES = NIVEL_COMBUSTIBLE_OPCIONES;
+  readonly FOTO_SLOTS = FOTO_SLOTS;
 
   form = new FormGroup({
     vehiculo_id: new FormControl<string | null>(null, [Validators.required]),
@@ -92,6 +103,7 @@ export class Checklists implements OnInit {
     tipo: new FormControl<ChecklistTipo>('pre_uso', [Validators.required]),
     fecha: new FormControl(todayIso(), [Validators.required]),
     kilometraje: new FormControl<number | null>(null, [Validators.min(0)]),
+    nivel_combustible: new FormControl<string | null>(null),
     observaciones: new FormControl<string | null>(null),
   });
 
@@ -122,12 +134,53 @@ export class Checklists implements OnInit {
     this.plantillas().find((p) => p.id === this.selectedPlantillaId()) ?? null,
   );
 
+  /** Vehículo elegido en el formulario (para clase y validaciones). */
+  private selectedVehiculoForm = signal<string | null>(null);
+  selectedVehiculo = computed(() =>
+    this.vehiculos().find((v) => v.id === this.selectedVehiculoForm()) ?? null,
+  );
+
+  /** Ítems visibles según la clase del vehículo (Pesado ve los P1–P4). */
+  visibleItems = computed<ChecklistPlantillaItem[]>(() => {
+    const items = this.selectedPlantilla()?.items ?? [];
+    const clase = claseVehiculo(this.selectedVehiculo()?.tipo);
+    return items.filter((it) => it.aplica_a === 'Ambos' || it.aplica_a === clase);
+  });
+
+  /** Ítems visibles agrupados por sección (para renderizar el formulario). */
+  itemsPorSeccion = computed(() => {
+    const grupos = new Map<string, ChecklistPlantillaItem[]>();
+    for (const it of this.visibleItems()) {
+      const g = grupos.get(it.seccion) ?? [];
+      g.push(it);
+      grupos.set(it.seccion, g);
+    }
+    return [...grupos.entries()].map(([seccion, items]) => ({ seccion, items }));
+  });
+
   /** Ítems críticos marcados en NO en el formulario actual. */
   private criticosEnNo = computed(() => {
-    const items = this.selectedPlantilla()?.items ?? [];
     const resp = this.respuestas();
-    return items.filter((it) => it.es_critico && (resp[it.id] ?? 'na') === 'no');
+    return this.visibleItems().filter((it) => it.es_critico && (resp[it.id] ?? 'na') === 'no');
   });
+
+  /** Progreso: ítems respondidos (OK/NO) sobre el total visible. */
+  progreso = computed(() => {
+    const items = this.visibleItems();
+    const resp = this.respuestas();
+    const respondidos = items.filter((it) => (resp[it.id] ?? 'na') !== 'na').length;
+    return { respondidos, total: items.length };
+  });
+
+  /** Veredicto en vivo del formulario. */
+  veredictoForm = computed<ChecklistResultado>(() => {
+    const resp = this.respuestas();
+    const items = this.visibleItems();
+    const criticoNo = items.some((it) => it.es_critico && resp[it.id] === 'no');
+    const hayNo = items.some((it) => resp[it.id] === 'no');
+    return criticoNo ? 'bloqueado' : hayNo ? 'con_hallazgos' : 'aprobado';
+  });
+  veredictoFormMeta = computed(() => RESULTADO_META[this.veredictoForm()]);
 
   criticosEnNoCount = computed(() => this.criticosEnNo().length);
 
@@ -177,6 +230,7 @@ export class Checklists implements OnInit {
   openCreate() {
     this.saveError.set('');
     this.selectedPlantillaId.set('');
+    this.selectedVehiculoForm.set(null);
     this.respuestas.set({});
     this.comentarios.set({});
     this.form.reset({
@@ -186,6 +240,7 @@ export class Checklists implements OnInit {
       tipo: 'pre_uso',
       fecha: todayIso(),
       kilometraje: null,
+      nivel_combustible: null,
       observaciones: null,
     });
     this.drawerOpen.set(true);
@@ -195,6 +250,7 @@ export class Checklists implements OnInit {
 
   /** Al elegir vehículo, sugiere la plantilla de su categoría (o 'general'). */
   onVehiculoChange(vehiculoId: string) {
+    this.selectedVehiculoForm.set(vehiculoId);
     // Autosugerir conductor asignado a ese vehículo, si aún no eligió otro.
     if (!this.form.controls.conductor_id.value) {
       const asignado = this.conductores().find((c) => c.vehiculo_id === vehiculoId);
@@ -267,8 +323,9 @@ export class Checklists implements OnInit {
       fecha: raw.fecha ?? todayIso(),
       datos: {},
       kilometraje: raw.kilometraje ?? null,
+      nivel_combustible: raw.nivel_combustible || null,
       observaciones: raw.observaciones?.trim() || null,
-      respuestas: (plantilla.items ?? []).map((it) => ({
+      respuestas: this.visibleItems().map((it) => ({
         etiqueta: it.etiqueta,
         seccion: it.seccion,
         es_critico: it.es_critico,
@@ -283,14 +340,20 @@ export class Checklists implements OnInit {
       const created = await this.checklistsService.getById(id);
       this.checklists.update((list) => [created, ...list]);
       this.drawerOpen.set(false);
+      this.checklistsService.notificarEvento(created); // email no bloqueante
 
-      if (criticosNo > 0) {
+      if (created.resultado === 'bloqueado') {
+        this.toast.error(
+          'Vehículo BLOQUEADO',
+          `${criticosNo} ítem(s) crítico(s) en NO. El vehículo no puede salir. Se notificó a Flota.`,
+        );
+      } else if (created.resultado === 'con_hallazgos') {
         this.toast.warning(
-          'Checklist registrado con ítems críticos',
-          `${criticosNo} ítem${criticosNo !== 1 ? 's' : ''} crítico${criticosNo !== 1 ? 's' : ''} en NO. Requiere atención.`,
+          'Aprobado con hallazgos',
+          'Hay ítems no críticos en NO. Coordinar corrección.',
         );
       } else {
-        this.toast.success('Checklist registrado', 'El checklist se guardó correctamente.');
+        this.toast.success('Checklist aprobado', 'El vehículo puede operar.');
       }
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar el checklist.');
@@ -384,6 +447,35 @@ export class Checklists implements OnInit {
   vehiculoLabel(c: ChecklistVehiculo): string {
     if (!c.vehiculo) return '—';
     return `${c.vehiculo.marca} ${c.vehiculo.modelo}`;
+  }
+
+  // ── Reporte de inspección (detalle v2) ───────────────────
+  /** Meta del resultado tri-estado (fallback para registros legacy). */
+  resultadoMeta(c: ChecklistVehiculo): { label: string; badge: string } {
+    if (c.resultado) return RESULTADO_META[c.resultado];
+    return c.tiene_criticos ? RESULTADO_META.bloqueado : RESULTADO_META.aprobado;
+  }
+
+  alertaMantMeta(a: AlertaMantenimiento | null): { label: string; badge: string } {
+    return ALERTA_MANT_META[a ?? 'ok'];
+  }
+
+  /** Hallazgos = respuestas en NO (crítico primero). */
+  hallazgos = computed(() => {
+    const c = this.selected();
+    return (c?.respuestas ?? [])
+      .filter((r) => r.respuesta === 'no')
+      .sort((a, b) => Number(b.es_critico) - Number(a.es_critico));
+  });
+
+  /** 7 slots fijos con su URL firmada (o null) para la grilla de evidencia. */
+  fotosGrid = computed(() => {
+    const map = this.fotoUrls();
+    return FOTO_SLOTS.map((s) => ({ ...s, url: map[s.slot] ?? null }));
+  });
+
+  imprimir() {
+    window.print();
   }
 
   get f() { return this.form.controls; }

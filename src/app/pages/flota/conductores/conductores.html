@@ -296,6 +296,13 @@
     </div>
 
     <div class="sgc-field">
+      <label for="tipo_vehiculo_autorizado">Tipo de vehículo autorizado <span class="required">*</span></label>
+      <select id="tipo_vehiculo_autorizado" formControlName="tipo_vehiculo_autorizado">
+        @for (t of TIPOS_AUTORIZADOS; track t) { <option [value]="t">{{ t }}</option> }
+      </select>
+    </div>
+
+    <div class="sgc-field">
       <label for="vehiculo_id">Vehículo asignado</label>
       <select id="vehiculo_id" formControlName="vehiculo_id">
         <option [value]="null">Sin asignar</option>

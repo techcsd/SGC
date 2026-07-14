@@ -9,10 +9,16 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
-import { RegistroCombustible, RegistroCombustibleFormData } from '../../../../shared/models/combustible.model';
+import { ToastService } from '../../../../shared/services/toast.service';
+import {
+  RegistroCombustible,
+  RegistroCombustibleFormData,
+  esRegistroV2,
+} from '../../../../shared/models/combustible.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -20,7 +26,7 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 
 @Component({
   selector: 'app-combustible',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink],
   templateUrl: './combustible.html',
   styleUrl: './combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,8 +35,10 @@ export class Combustible implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
+  private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
+  esV2 = esRegistroV2;
 
   // ── Data state ──────────────────────────────────────────
   registros = signal<RegistroCombustible[]>([]);
@@ -51,8 +59,19 @@ export class Combustible implements OnInit {
   currentPage = signal(1);
   readonly PAGE_SIZE = 20;
 
-  // ── Drawer ───────────────────────────────────────────────
+  // ── Create drawer ────────────────────────────────────────
   drawerOpen = signal(false);
+  reciboFile = signal<File | null>(null);
+  tableroFile = signal<File | null>(null);
+  reciboPreview = signal<string | null>(null);
+  tableroPreview = signal<string | null>(null);
+
+  // ── Detail drawer ────────────────────────────────────────
+  detailOpen = signal(false);
+  selected = signal<RegistroCombustible | null>(null);
+  detailReciboUrl = signal<string | null>(null);
+  detailTableroUrl = signal<string | null>(null);
+  loadingDetail = signal(false);
 
   readonly today = todayIso();
 
@@ -60,15 +79,14 @@ export class Combustible implements OnInit {
     vehiculo_id: new FormControl('', [Validators.required]),
     conductor_id: new FormControl<string | null>(null),
     fecha: new FormControl(this.today, [Validators.required]),
-    litros: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
-    costo_por_litro: new FormControl<number | null>(null, [Validators.min(0)]),
-    total: new FormControl<number | null>({ value: null, disabled: true }),
-    kilometraje: new FormControl<number | null>(null, [Validators.min(0)]),
+    kilometraje: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
+    galones: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
+    monto: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
     estacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
   });
 
-  // ── Computed ─────────────────────────────────────────────
+  // ── Filtering ────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const vId = this.selectedVehiculoId();
@@ -76,11 +94,7 @@ export class Combustible implements OnInit {
     const to = this.dateTo();
 
     return this.registros().filter((r) => {
-      if (
-        q &&
-        !r.vehiculo?.placa.toLowerCase().includes(q) &&
-        !r.estacion?.toLowerCase().includes(q)
-      ) {
+      if (q && !r.vehiculo?.placa.toLowerCase().includes(q) && !r.estacion?.toLowerCase().includes(q)) {
         return false;
       }
       if (vId && r.vehiculo_id !== vId) return false;
@@ -98,49 +112,63 @@ export class Combustible implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   // ── Monthly totals (current month) ───────────────────────
-  mesActual = computed(() => {
-    const now = new Date();
-    const ym = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  private mesActual = computed(() => {
+    const ym = todayIso().slice(0, 7);
     return this.registros().filter((r) => r.fecha.startsWith(ym));
   });
-
-  totalLitrosMes = computed(() =>
-    this.mesActual().reduce((sum, r) => sum + r.litros, 0),
+  totalGalonesMes = computed(() =>
+    this.mesActual().reduce((s, r) => s + (r.galones ?? r.litros ?? 0), 0),
   );
-
   totalGastoMes = computed(() =>
-    this.mesActual().reduce((sum, r) => sum + (r.total ?? 0), 0),
+    this.mesActual().reduce((s, r) => s + (r.monto ?? r.total ?? 0), 0),
   );
 
-  // ── Computed total in form ────────────────────────────────
-  // FormControl.value isn't a signal, so a plain computed() reading it would
-  // cache its initial (null) value forever and the hint below would never
-  // show. Bridge the two controls through valueChanges instead.
-  private litrosValue = toSignal(this.form.controls.litros.valueChanges, {
-    initialValue: this.form.controls.litros.value,
+  // ── Live calculation (reactive to form value changes) ────
+  private galonesVal = toSignal(this.form.controls.galones.valueChanges, { initialValue: null });
+  private montoVal = toSignal(this.form.controls.monto.valueChanges, { initialValue: null });
+  private kmVal = toSignal(this.form.controls.kilometraje.valueChanges, { initialValue: null });
+  private vehiculoVal = toSignal(this.form.controls.vehiculo_id.valueChanges, { initialValue: '' });
+
+  /** Km de la última echada del vehículo seleccionado (calc. local = server). */
+  kmAnterior = computed<number | null>(() => {
+    const vId = this.vehiculoVal();
+    if (!vId) return null;
+    const kms = this.registros()
+      .filter((r) => r.vehiculo_id === vId && r.kilometraje != null)
+      .map((r) => r.kilometraje as number);
+    return kms.length ? Math.max(...kms) : null;
   });
-  private cplValue = toSignal(this.form.controls.costo_por_litro.valueChanges, {
-    initialValue: this.form.controls.costo_por_litro.value,
+
+  /** Promedio de rendimiento histórico del vehículo (para la alerta preview). */
+  private promedioRendimientoVeh = computed<number | null>(() => {
+    const vId = this.vehiculoVal();
+    if (!vId) return null;
+    const rends = this.registros()
+      .filter((r) => r.vehiculo_id === vId && r.rendimiento_km_gal != null)
+      .map((r) => r.rendimiento_km_gal as number);
+    return rends.length >= 3 ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
   });
-  computedTotal = computed(() => {
-    const litros = this.litrosValue() ?? 0;
-    const cpl = this.cplValue() ?? 0;
-    return litros && cpl ? litros * cpl : null;
+
+  calc = computed(() => {
+    const gal = this.galonesVal() ?? 0;
+    const monto = this.montoVal() ?? 0;
+    const km = this.kmVal() ?? 0;
+    const kmAnt = this.kmAnterior();
+    const precio = gal > 0 && monto > 0 ? monto / gal : null;
+    const kmRec = kmAnt != null && km > kmAnt ? km - kmAnt : null;
+    const rend = kmRec != null && gal > 0 ? kmRec / gal : null;
+    const costoKm = kmRec != null && kmRec > 0 ? monto / kmRec : null;
+    const prom = this.promedioRendimientoVeh();
+    const alerta = rend != null && prom != null && rend < prom * 0.8;
+    return { precio, kmRec, rend, costoKm, prom, alerta };
   });
+
+  hasFilters = computed(() =>
+    !!(this.searchQuery() || this.selectedVehiculoId() || this.dateFrom() || this.dateTo()),
+  );
 
   async ngOnInit() {
     await this.loadAll();
-
-    // Auto-compute total when litros/costo_por_litro change
-    this.form.controls.litros.valueChanges.subscribe(() => this.updateTotal());
-    this.form.controls.costo_por_litro.valueChanges.subscribe(() => this.updateTotal());
-  }
-
-  private updateTotal() {
-    const litros = this.form.controls.litros.value ?? 0;
-    const cpl = this.form.controls.costo_por_litro.value ?? 0;
-    const total = litros && cpl ? litros * cpl : null;
-    this.form.controls.total.setValue(total, { emitEvent: false });
   }
 
   private async loadAll() {
@@ -163,91 +191,76 @@ export class Combustible implements OnInit {
   }
 
   // ── Filters ──────────────────────────────────────────────
-  onSearch(value: string) {
-    this.searchQuery.set(value);
-    this.currentPage.set(1);
-  }
-
-  onVehiculoChange(value: string) {
-    this.selectedVehiculoId.set(value);
-    this.currentPage.set(1);
-  }
-
-  onDateFromChange(value: string) {
-    this.dateFrom.set(value);
-    this.currentPage.set(1);
-  }
-
-  onDateToChange(value: string) {
-    this.dateTo.set(value);
-    this.currentPage.set(1);
-  }
-
+  onSearch(v: string) { this.searchQuery.set(v); this.currentPage.set(1); }
+  onVehiculoChange(v: string) { this.selectedVehiculoId.set(v); this.currentPage.set(1); }
+  onDateFromChange(v: string) { this.dateFrom.set(v); this.currentPage.set(1); }
+  onDateToChange(v: string) { this.dateTo.set(v); this.currentPage.set(1); }
   clearFilters() {
-    this.searchQuery.set('');
-    this.selectedVehiculoId.set('');
-    this.dateFrom.set('');
-    this.dateTo.set('');
-    this.currentPage.set(1);
+    this.searchQuery.set(''); this.selectedVehiculoId.set('');
+    this.dateFrom.set(''); this.dateTo.set(''); this.currentPage.set(1);
   }
-
-  hasFilters = computed(() =>
-    !!(this.searchQuery() || this.selectedVehiculoId() || this.dateFrom() || this.dateTo()),
-  );
 
   // ── Pagination ───────────────────────────────────────────
   goToPage(page: number) {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
-    }
+    if (page >= 1 && page <= this.totalPages()) this.currentPage.set(page);
   }
-
   get pages(): number[] {
     const total = this.totalPages();
     const current = this.currentPage();
-    const delta = 2;
     const range: number[] = [];
-    for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
-      range.push(i);
-    }
+    for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) range.push(i);
     return range;
   }
 
-  // ── Drawer ───────────────────────────────────────────────
+  // ── Create ───────────────────────────────────────────────
   openCreate() {
     this.saveError.set('');
-    this.form.reset({
-      fecha: this.today,
-      vehiculo_id: '',
-      conductor_id: null,
-      litros: null,
-      costo_por_litro: null,
-      total: null,
-      kilometraje: null,
-      estacion: null,
-      notas: null,
-    });
+    this.clearFiles();
+    this.form.reset({ fecha: this.today, vehiculo_id: '', conductor_id: null,
+      kilometraje: null, galones: null, monto: null, estacion: null, notas: null });
     this.drawerOpen.set(true);
   }
 
-  closeDrawer() {
-    this.drawerOpen.set(false);
+  closeDrawer() { this.drawerOpen.set(false); this.clearFiles(); }
+
+  private clearFiles() {
+    const r = this.reciboPreview(); if (r) URL.revokeObjectURL(r);
+    const t = this.tableroPreview(); if (t) URL.revokeObjectURL(t);
+    this.reciboFile.set(null); this.tableroFile.set(null);
+    this.reciboPreview.set(null); this.tableroPreview.set(null);
+  }
+
+  onFileSelected(slot: 'recibo' | 'tablero', event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (slot === 'recibo') {
+      const prev = this.reciboPreview(); if (prev) URL.revokeObjectURL(prev);
+      this.reciboFile.set(file);
+      this.reciboPreview.set(file ? URL.createObjectURL(file) : null);
+    } else {
+      const prev = this.tableroPreview(); if (prev) URL.revokeObjectURL(prev);
+      this.tableroFile.set(file);
+      this.tableroPreview.set(file ? URL.createObjectURL(file) : null);
+    }
   }
 
   async onSave() {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
 
-    const raw = this.form.getRawValue();
+    const recibo = this.reciboFile();
+    const tablero = this.tableroFile();
+    if (!recibo || !tablero) {
+      this.saveError.set('Ambas fotos (recibo y tablero) son obligatorias.');
+      return;
+    }
 
-    // Odometer can't go backwards: a new reading must be >= the vehicle's
-    // current registered kilometraje.
-    if (raw.kilometraje != null) {
-      const veh = this.vehiculos().find((v) => v.id === raw.vehiculo_id);
-      if (veh && raw.kilometraje < veh.kilometraje) {
-        this.saveError.set(`El kilometraje no puede ser menor al actual del vehículo (${veh.kilometraje} km).`);
-        return;
-      }
+    const raw = this.form.getRawValue();
+    // El odómetro no retrocede: km > última echada del vehículo.
+    const kmAnt = this.kmAnterior();
+    if (kmAnt != null && (raw.kilometraje ?? 0) <= kmAnt) {
+      this.saveError.set(`El kilometraje debe ser mayor al de la última echada (${kmAnt} km).`);
+      return;
     }
 
     this.saving.set(true);
@@ -257,18 +270,30 @@ export class Combustible implements OnInit {
       vehiculo_id: raw.vehiculo_id!,
       conductor_id: raw.conductor_id || null,
       fecha: raw.fecha!,
-      litros: raw.litros!,
-      costo_por_litro: raw.costo_por_litro,
-      total: raw.total,
-      kilometraje: raw.kilometraje,
-      estacion: raw.estacion,
-      notas: raw.notas,
+      kilometraje: raw.kilometraje!,
+      galones: raw.galones!,
+      monto: raw.monto!,
+      estacion: raw.estacion?.trim() || null,
+      notas: raw.notas?.trim() || null,
     };
 
     try {
-      const created = await this.combustibleService.create(payload);
-      this.registros.update((list) => [created, ...list]);
+      const { registro, derivados } = await this.combustibleService.registrar(payload, recibo, tablero);
+      this.registros.update((list) => [registro, ...list]);
       this.drawerOpen.set(false);
+      this.clearFiles();
+
+      if (derivados.alerta_consumo) {
+        this.combustibleService.notificarConsumoAnormal(registro); // email no bloqueante
+        this.toast.warning(
+          'Consumo anormal detectado',
+          `${derivados.rendimiento_km_gal} km/gal, bajo el promedio del vehículo (${derivados.promedio_rendimiento} km/gal). Se notificó a Flota.`,
+        );
+      } else {
+        const rendTxt = derivados.rendimiento_km_gal != null
+          ? `${derivados.rendimiento_km_gal} km/gal` : 'primera echada del vehículo';
+        this.toast.success('Combustible registrado', `Rendimiento: ${rendTxt}.`);
+      }
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
@@ -276,7 +301,34 @@ export class Combustible implements OnInit {
     }
   }
 
-  get f() {
-    return this.form.controls;
+  // ── Detail ───────────────────────────────────────────────
+  async openDetail(row: RegistroCombustible) {
+    this.detailOpen.set(true);
+    this.selected.set(row);
+    this.detailReciboUrl.set(null);
+    this.detailTableroUrl.set(null);
+    this.loadingDetail.set(true);
+    try {
+      const [recibo, tablero] = await Promise.all([
+        this.combustibleService.getFotoUrl(row.foto_recibo_path),
+        this.combustibleService.getFotoUrl(row.foto_tablero_path),
+      ]);
+      this.detailReciboUrl.set(recibo);
+      this.detailTableroUrl.set(tablero);
+    } finally {
+      this.loadingDetail.set(false);
+    }
   }
+  closeDetail() { this.detailOpen.set(false); }
+
+  /** Precio/galón promedio de la flota en el mes del registro (análisis). */
+  precioPromedioFlotaMes(row: RegistroCombustible): number | null {
+    const ym = row.fecha.slice(0, 7);
+    const precios = this.registros()
+      .filter((r) => r.fecha.startsWith(ym) && r.precio_por_galon != null)
+      .map((r) => r.precio_por_galon as number);
+    return precios.length ? precios.reduce((a, b) => a + b, 0) / precios.length : null;
+  }
+
+  get f() { return this.form.controls; }
 }

@@ -1,0 +1,101 @@
+<!-- ── Header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Panel del día</h1>
+    <span class="page-count">{{ formatFecha(hoy) }}</span>
+  </div>
+  <div class="page-header__actions">
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/avisos">Avisos</a>
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/checklists">Checklists</a>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando…</div>
+} @else {
+  <!-- ── Cobertura + conteos ── -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-card__label">Inspecciones hoy</span>
+      <span class="stat-card__value">{{ cobertura().reportaron }} / {{ cobertura().total }}</span>
+      <span class="stat-card__hint">choferes activos que reportaron</span>
+    </div>
+    <div class="stat-card stat-card--ok">
+      <span class="stat-card__label">Aprobadas</span>
+      <span class="stat-card__value">{{ conteo().aprobado }}</span>
+    </div>
+    <div class="stat-card stat-card--warn">
+      <span class="stat-card__label">Con hallazgos</span>
+      <span class="stat-card__value">{{ conteo().con_hallazgos }}</span>
+    </div>
+    <div class="stat-card stat-card--danger">
+      <span class="stat-card__label">Bloqueadas</span>
+      <span class="stat-card__value">{{ conteo().bloqueado }}</span>
+    </div>
+  </div>
+
+  <div class="pd-cols">
+    <!-- Tabla del día -->
+    <div class="table-wrapper sgc-card pd-col-main">
+      <div class="pd-card-title">Inspecciones de hoy</div>
+      @if (inspeccionesHoy().length === 0) {
+        <div class="table-empty"><p>Aún no hay inspecciones registradas hoy.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Inspecciones de hoy">
+            <thead><tr><th>Hora</th><th>Chofer</th><th>Vehículo</th><th class="text-right">Km</th><th>Comb.</th><th class="text-right">Faltan mant.</th><th>Resultado</th></tr></thead>
+            <tbody>
+              @for (c of inspeccionesHoy(); track c.id) {
+                <tr>
+                  <td>{{ hora(c.capturado_en) }}</td>
+                  <td>{{ c.conductor?.nombre ?? '—' }}</td>
+                  <td><span class="pd-placa">{{ c.vehiculo?.placa ?? '—' }}</span></td>
+                  <td class="text-right">{{ c.kilometraje != null ? (c.kilometraje | number:'1.0-0') : '—' }}</td>
+                  <td>{{ c.nivel_combustible ?? '—' }}</td>
+                  <td class="text-right">{{ c.km_faltan_mantenimiento != null ? (c.km_faltan_mantenimiento | number:'1.0-0') : '—' }}</td>
+                  <td><span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Choferes sin reportar -->
+    <div class="sgc-card pd-col-side">
+      <div class="pd-card-title">Choferes sin reportar ({{ choferesSinReportar().length }})</div>
+      @if (choferesSinReportar().length === 0) {
+        <p class="pd-muted">Todos los choferes activos reportaron. ✓</p>
+      } @else {
+        <ul class="pd-list">
+          @for (c of choferesSinReportar(); track c.id) {
+            <li>{{ c.nombre }} @if (c.vehiculo) { <span class="pd-muted">· {{ c.vehiculo.placa }}</span> }</li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <div class="pd-cols">
+    <!-- Gráfico semana -->
+    <div class="sgc-card pd-col-main pd-chart"><app-bar-chart titulo="Inspecciones por día (últimos 7 días)" [data]="semanaChart()" /></div>
+
+    <!-- Alertas activas -->
+    <div class="sgc-card pd-col-side">
+      <div class="pd-card-title">Alertas activas ({{ alertasActivas().length }})</div>
+      @if (alertasActivas().length === 0) {
+        <p class="pd-muted">Sin alertas activas. ✓</p>
+      } @else {
+        @for (a of alertasActivas(); track a.id) {
+          <div class="pd-alert">
+            <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span>
+            <span class="pd-alert__msg">{{ a.mensaje }}</span>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}

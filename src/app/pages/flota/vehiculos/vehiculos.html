@@ -137,6 +137,18 @@
             }
           </div>
 
+          <div class="flota-vehiculos__badges">
+            @if (vencMeta(v.vencimiento_matricula); as m) {
+              <span class="sgc-badge sgc-badge--{{ m.badge }}">Matrícula: {{ m.label }}</span>
+            }
+            @if (vencMeta(v.vencimiento_seguro); as s) {
+              <span class="sgc-badge sgc-badge--{{ s.badge }}">Seguro: {{ s.label }}</span>
+            }
+            @if (mantMeta(v); as mm) {
+              <span class="sgc-badge sgc-badge--{{ mm.badge }}">{{ mm.label }}</span>
+            }
+          </div>
+
           <div class="flota-vehiculos__card-actions">
             <button
               class="sgc-btn sgc-btn--ghost"
@@ -265,6 +277,29 @@
             <option [value]="u.value">{{ u.label }}</option>
           }
         </select>
+      </div>
+    </div>
+
+    <!-- Vencimientos + mantenimiento (Flota v2) -->
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="vencimiento_matricula">Vencimiento matrícula</label>
+        <input id="vencimiento_matricula" type="date" formControlName="vencimiento_matricula" />
+      </div>
+      <div class="sgc-field">
+        <label for="vencimiento_seguro">Vencimiento seguro</label>
+        <input id="vencimiento_seguro" type="date" formControlName="vencimiento_seguro" />
+      </div>
+    </div>
+
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="km_ultimo_mantenimiento">Km último mantenimiento</label>
+        <input id="km_ultimo_mantenimiento" type="number" min="0" formControlName="km_ultimo_mantenimiento" placeholder="km" />
+      </div>
+      <div class="sgc-field">
+        <label for="intervalo_mantenimiento_km">Intervalo mantenimiento (km)</label>
+        <input id="intervalo_mantenimiento_km" type="number" min="1" formControlName="intervalo_mantenimiento_km" />
       </div>
     </div>
 

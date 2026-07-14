@@ -6,12 +6,20 @@
       {{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}
     </span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nuevo checklist
-  </button>
+  <div class="page-header__actions">
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/panel-dia">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Panel del día
+    </a>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo checklist
+    </button>
+  </div>
 </div>
 
 <p class="cl-lead">
@@ -124,15 +132,12 @@
                 <td><span class="sgc-badge sgc-badge--neutral">{{ getTipoLabel(c.tipo) }}</span></td>
                 <td class="text-muted">{{ c.plantilla?.nombre ?? '—' }}</td>
                 <td>
-                  @if (c.tiene_criticos) {
-                    <span class="sgc-badge sgc-badge--danger">⚠ Crítico</span>
-                    @if (!c.atendido) {
-                      <span class="sgc-badge sgc-badge--warning cl-badge-gap">Requiere atención</span>
-                    } @else {
-                      <span class="sgc-badge sgc-badge--neutral cl-badge-gap">Atendido</span>
-                    }
-                  } @else {
-                    <span class="sgc-badge sgc-badge--success">OK</span>
+                  <span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span>
+                  @if (c.tiene_criticos && !c.atendido) {
+                    <span class="sgc-badge sgc-badge--warning cl-badge-gap">Requiere atención</span>
+                  }
+                  @if (c.alerta_mantenimiento && c.alerta_mantenimiento !== 'ok') {
+                    <span class="sgc-badge sgc-badge--{{ alertaMantMeta(c.alerta_mantenimiento).badge }} cl-badge-gap">{{ alertaMantMeta(c.alerta_mantenimiento).label }}</span>
                   }
                 </td>
               </tr>
@@ -221,49 +226,49 @@
       </div>
     </div>
 
-    <!-- Ítems de la plantilla -->
-    @if (selectedPlantilla(); as plantilla) {
+    <div class="sgc-field">
+      <label for="nivel_combustible">Nivel de combustible</label>
+      <select id="nivel_combustible" formControlName="nivel_combustible">
+        <option [value]="null">—</option>
+        @for (n of NIVELES; track n) { <option [value]="n">{{ n }}</option> }
+      </select>
+    </div>
+
+    <!-- Ítems de la plantilla (agrupados por sección; filtrados por clase) -->
+    @if (selectedPlantilla()) {
       <div class="cl-items">
         <div class="cl-items__head">
-          <span>Ítems de inspección</span>
-          @if (criticosEnNoCount() > 0) {
-            <span class="sgc-badge sgc-badge--danger">{{ criticosEnNoCount() }} crítico(s) en NO</span>
-          }
+          <span>Ítems de inspección · {{ progreso().respondidos }}/{{ progreso().total }}</span>
+          <span class="sgc-badge sgc-badge--{{ veredictoFormMeta().badge }}">{{ veredictoFormMeta().label }}</span>
         </div>
 
-        @for (it of plantilla.items; track it.id) {
-          <div class="item-row" [class.item-row--alert]="it.es_critico && getRespuesta(it.id) === 'no'">
-            <div class="item-row__label">
-              <span>{{ it.etiqueta }}</span>
-              @if (it.es_critico) {
-                <span class="cl-critico" title="Ítem crítico">● crítico</span>
-              }
-            </div>
+        @for (grupo of itemsPorSeccion(); track grupo.seccion) {
+          <div class="cl-seccion-title">{{ grupo.seccion }}</div>
+          @for (it of grupo.items; track it.id) {
+            <div class="item-row" [class.item-row--alert]="it.es_critico && getRespuesta(it.id) === 'no'">
+              <div class="item-row__label">
+                <span>@if (it.numero) { <b class="cl-num">{{ it.numero }}</b> } {{ it.etiqueta }}</span>
+                @if (it.es_critico) { <span class="cl-critico" title="Ítem crítico">● crítico</span> }
+              </div>
 
-            <div class="cl-seg" role="group" [attr.aria-label]="it.etiqueta">
-              @for (o of OPCIONES; track o.value) {
-                <button
-                  type="button"
-                  class="cl-seg__opt"
-                  [class.cl-seg__opt--active]="getRespuesta(it.id) === o.value"
-                  [attr.data-val]="o.value"
-                  [attr.aria-pressed]="getRespuesta(it.id) === o.value"
-                  (click)="setRespuesta(it.id, o.value)"
-                >
-                  {{ o.label }}
-                </button>
-              }
-            </div>
+              <div class="cl-seg" role="group" [attr.aria-label]="it.etiqueta">
+                @for (o of OPCIONES; track o.value) {
+                  <button type="button" class="cl-seg__opt"
+                    [class.cl-seg__opt--active]="getRespuesta(it.id) === o.value"
+                    [attr.data-val]="o.value"
+                    [attr.aria-pressed]="getRespuesta(it.id) === o.value"
+                    (click)="setRespuesta(it.id, o.value)">
+                    {{ o.label }}
+                  </button>
+                }
+              </div>
 
-            <input
-              class="cl-coment"
-              type="text"
-              placeholder="Comentario (opcional)"
-              [value]="getComentario(it.id)"
-              (input)="setComentario(it.id, $any($event.target).value)"
-              [attr.aria-label]="'Comentario para ' + it.etiqueta"
-            />
-          </div>
+              <input class="cl-coment" type="text" placeholder="Comentario (opcional)"
+                [value]="getComentario(it.id)"
+                (input)="setComentario(it.id, $any($event.target).value)"
+                [attr.aria-label]="'Comentario para ' + it.etiqueta" />
+            </div>
+          }
         }
       </div>
     }
@@ -298,72 +303,127 @@
   </form>
 </app-form-drawer>
 
-<!-- ── Detail drawer ── -->
-<app-form-drawer [title]="'Detalle del checklist'" [open]="detailOpen()" (closed)="closeDetail()">
+<!-- ── Detail drawer: Reporte de inspección ── -->
+<app-form-drawer [title]="'Reporte de inspección'" [open]="detailOpen()" (closed)="closeDetail()">
   @if (loadingDetail()) {
     <p class="cl-muted">Cargando detalle…</p>
   } @else if (selected(); as c) {
-    <div class="cl-detail">
-      <!-- Encabezado -->
-      <div class="cl-detail__head">
-        <div>
-          <span class="cl-placa">{{ c.vehiculo?.placa ?? '—' }}</span>
-          <span class="cl-sub">{{ vehiculoLabel(c) }}</span>
-        </div>
-        @if (c.tiene_criticos) {
-          @if (c.atendido) {
-            <span class="sgc-badge sgc-badge--neutral">Crítico · Atendido</span>
-          } @else {
-            <span class="sgc-badge sgc-badge--danger">⚠ Crítico sin atender</span>
-          }
-        } @else {
-          <span class="sgc-badge sgc-badge--success">OK</span>
-        }
+    <div class="cl-report" id="cl-report-print">
+      <!-- Banda de resultado -->
+      <div class="cl-band cl-band--{{ resultadoMeta(c).badge }}">
+        <span class="cl-band__result">{{ resultadoMeta(c).label }}</span>
+        <span class="cl-band__sub">{{ c.vehiculo?.placa ?? '—' }} · {{ vehiculoLabel(c) }} · {{ formatFecha(c.fecha) }}</span>
       </div>
 
+      <!-- Tarjetas -->
+      <div class="cl-cards">
+        <div class="cl-card">
+          <span class="cl-card__label">Kilometraje</span>
+          <span class="cl-card__value">{{ c.kilometraje != null ? (c.kilometraje | number:'1.0-0') + ' km' : '—' }}</span>
+        </div>
+        <div class="cl-card">
+          <span class="cl-card__label">Mantenimiento</span>
+          <span class="cl-card__value">
+            <span class="sgc-badge sgc-badge--{{ alertaMantMeta(c.alerta_mantenimiento).badge }}">{{ alertaMantMeta(c.alerta_mantenimiento).label }}</span>
+          </span>
+          @if (c.km_faltan_mantenimiento != null) {
+            <span class="cl-card__hint">{{ c.km_faltan_mantenimiento > 0 ? (c.km_faltan_mantenimiento | number:'1.0-0') + ' km restantes' : 'vencido por ' + (-c.km_faltan_mantenimiento | number:'1.0-0') + ' km' }}</span>
+          }
+        </div>
+        <div class="cl-card">
+          <span class="cl-card__label">Checklist</span>
+          <span class="cl-card__value">{{ hallazgos().length }} hallazgo(s)</span>
+          <span class="cl-card__hint">{{ (c.respuestas?.length ?? 0) }} ítems evaluados</span>
+        </div>
+        <div class="cl-card">
+          <span class="cl-card__label">Combustible</span>
+          <span class="cl-card__value">{{ c.nivel_combustible ?? '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Datos -->
+      <h4 class="cl-section-title">Datos del chofer y vehículo</h4>
       <dl class="cl-meta">
         <div><dt>Conductor</dt><dd>{{ c.conductor?.nombre ?? '—' }}</dd></div>
-        <div><dt>Fecha</dt><dd>{{ formatFecha(c.fecha) }}</dd></div>
-        <div><dt>Tipo</dt><dd>{{ getTipoLabel(c.tipo) }}</dd></div>
-        <div><dt>Kilometraje</dt><dd>{{ c.kilometraje != null ? (c.kilometraje | number:'1.0-0') + ' km' : '—' }}</dd></div>
+        <div><dt>Licencia</dt><dd>
+          @if (c.conductor?.licencia_numero || c.conductor?.licencia_tipo) {
+            {{ c.conductor?.licencia_tipo }} {{ c.conductor?.licencia_numero }}
+            @if (c.conductor?.licencia_vencimiento) { · vence {{ formatFecha(c.conductor!.licencia_vencimiento!) }} }
+          } @else { — }
+        </dd></div>
+        <div><dt>Autorizado</dt><dd>{{ c.conductor?.tipo_vehiculo_autorizado ?? '—' }}</dd></div>
+        <div><dt>Tipo inspección</dt><dd>{{ getTipoLabel(c.tipo) }}</dd></div>
+        <div><dt>Matrícula</dt><dd>{{ c.vehiculo?.vencimiento_matricula ? formatFecha(c.vehiculo!.vencimiento_matricula!) : '—' }}</dd></div>
+        <div><dt>Seguro</dt><dd>{{ c.vehiculo?.vencimiento_seguro ? formatFecha(c.vehiculo!.vencimiento_seguro!) : '—' }}</dd></div>
       </dl>
 
-      @if (c.observaciones) {
-        <p class="cl-obs">“{{ c.observaciones }}”</p>
+      @if (c.observaciones) { <p class="cl-obs">“{{ c.observaciones }}”</p> }
+
+      <!-- Acción automática -->
+      <h4 class="cl-section-title">Acción automática</h4>
+      <div class="cl-accion cl-accion--{{ resultadoMeta(c).badge }}">
+        @switch (resultadoMeta(c).label) {
+          @case ('Bloqueado') { Vehículo fuera de servicio hasta corrección. Notificación inmediata a mantenimiento y supervisor. }
+          @case ('Con hallazgos') { El vehículo puede salir; corregir los hallazgos no críticos en el plazo definido. }
+          @default { El vehículo está apto para operar. }
+        }
+        @if (c.alerta_mantenimiento === 'vencido') { <br />⚠ Mantenimiento vencido: coordinar servicio de inmediato. }
+        @else if (c.alerta_mantenimiento === 'pre_cita') { <br />Agendar pre-cita de mantenimiento. }
+      </div>
+
+      <!-- Hallazgos -->
+      @if (hallazgos().length > 0) {
+        <h4 class="cl-section-title">Hallazgos ({{ hallazgos().length }})</h4>
+        <div class="cl-respuestas">
+          @for (r of hallazgos(); track r.id) {
+            <div class="item-row item-row--read" [class.item-row--alert]="r.es_critico">
+              <div class="item-row__label">
+                <span>{{ r.etiqueta }}</span>
+                @if (r.es_critico) { <span class="cl-critico">● crítico</span> }
+                @if (r.comentario) { <span class="cl-coment-read">{{ r.comentario }}</span> }
+              </div>
+              <span class="sgc-badge sgc-badge--danger">NO</span>
+            </div>
+          }
+        </div>
       }
 
-      <!-- Respuestas -->
-      <h4 class="cl-section-title">Respuestas</h4>
+      <!-- Respuestas completas -->
+      <h4 class="cl-section-title">Detalle del checklist</h4>
       <div class="cl-respuestas">
         @for (r of c.respuestas; track r.id) {
-          <div class="item-row item-row--read"
-               [class.item-row--alert]="r.es_critico && r.respuesta === 'no'">
+          <div class="item-row item-row--read" [class.item-row--alert]="r.es_critico && r.respuesta === 'no'">
             <div class="item-row__label">
               <span>{{ r.etiqueta }}</span>
               @if (r.es_critico) { <span class="cl-critico">● crítico</span> }
               @if (r.comentario) { <span class="cl-coment-read">{{ r.comentario }}</span> }
             </div>
-            <span [class]="'sgc-badge sgc-badge--' + getRespuestaBadge(r.respuesta)">
-              {{ getRespuestaLabel(r.respuesta) }}
-            </span>
+            <span [class]="'sgc-badge sgc-badge--' + getRespuestaBadge(r.respuesta)">{{ getRespuestaLabel(r.respuesta) }}</span>
           </div>
-        } @empty {
-          <p class="cl-muted">Sin respuestas registradas.</p>
+        } @empty { <p class="cl-muted">Sin respuestas registradas.</p> }
+      </div>
+
+      <!-- Evidencia: 7 slots -->
+      <h4 class="cl-section-title">Evidencia fotográfica</h4>
+      <div class="cl-fotos-grid">
+        @for (foto of fotosGrid(); track foto.slot) {
+          <div class="cl-foto-slot">
+            @if (foto.url) {
+              <a [href]="foto.url" target="_blank" rel="noopener"><img [src]="foto.url" [alt]="foto.label" loading="lazy" /></a>
+            } @else {
+              <div class="cl-foto-slot__empty">Sin foto</div>
+            }
+            <span class="cl-foto-slot__cap">{{ foto.label }}</span>
+          </div>
         }
       </div>
 
-      <!-- Fotos -->
-      @if (fotosDetalle().length > 0) {
-        <h4 class="cl-section-title">Evidencia</h4>
-        <div class="cl-fotos">
-          @for (foto of fotosDetalle(); track foto.key) {
-            <a class="cl-foto" [href]="foto.url" target="_blank" rel="noopener">
-              <img [src]="foto.url" [alt]="foto.key" loading="lazy" />
-              <span class="cl-foto__cap">{{ foto.key }}</span>
-            </a>
-          }
-        </div>
-      }
+      <div class="cl-report__actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimir()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir / PDF
+        </button>
+      </div>
 
       <!-- Atender -->
       @if (c.tiene_criticos && !c.atendido) {

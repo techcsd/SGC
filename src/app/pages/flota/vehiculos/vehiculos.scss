@@ -377,3 +377,8 @@
 
   &:hover { border-color: var(--sgc-primary-mid); color: var(--sgc-primary); }
 }
+
+// ── Flota v2: badges de vencimiento/mantenimiento ──
+.flota-vehiculos__badges {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px;
+}

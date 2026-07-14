@@ -15,6 +15,11 @@ import {
   VEHICULO_TIPOS,
   VEHICULO_ESTADOS,
   CAPACIDAD_UNIDADES,
+  estadoVencimiento,
+  VENCIMIENTO_LABEL,
+  VENCIMIENTO_BADGE,
+  proximoMantenimientoKm,
+  kmFaltanMantenimiento,
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -79,6 +84,10 @@ export class FlotaVehiculos implements OnInit {
     capacidad_valor: new FormControl<number | null>(null, [Validators.min(0)]),
     capacidad_unidad: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
+    vencimiento_matricula: new FormControl<string | null>(null),
+    vencimiento_seguro: new FormControl<string | null>(null),
+    km_ultimo_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
+    intervalo_mantenimiento_km: new FormControl<number>(5000, [Validators.min(1)]),
   });
 
   // ── Computed ─────────────────────────────────────────────
@@ -135,7 +144,7 @@ export class FlotaVehiculos implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.resetFotos([]);
-    this.form.reset({ tipo: 'camion', estado: 'activo', kilometraje: 0, anio: new Date().getFullYear() });
+    this.form.reset({ tipo: 'camion', estado: 'activo', kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000 });
     this.drawerOpen.set(true);
   }
 
@@ -155,6 +164,10 @@ export class FlotaVehiculos implements OnInit {
       capacidad_valor: vehiculo.capacidad_valor,
       capacidad_unidad: vehiculo.capacidad_unidad,
       notas: vehiculo.notas,
+      vencimiento_matricula: vehiculo.vencimiento_matricula,
+      vencimiento_seguro: vehiculo.vencimiento_seguro,
+      km_ultimo_mantenimiento: vehiculo.km_ultimo_mantenimiento,
+      intervalo_mantenimiento_km: vehiculo.intervalo_mantenimiento_km ?? 5000,
     });
     this.drawerOpen.set(true);
   }
@@ -288,6 +301,23 @@ export class FlotaVehiculos implements OnInit {
     if (estado === 'activo') return 'success';
     if (estado === 'mantenimiento') return 'warning';
     return 'neutral';
+  }
+
+  // ── Vencimientos / mantenimiento (badges derivados) ──────
+  vencMeta(fecha: string | null | undefined): { label: string; badge: string } | null {
+    const est = estadoVencimiento(fecha);
+    return est ? { label: VENCIMIENTO_LABEL[est], badge: VENCIMIENTO_BADGE[est] } : null;
+  }
+  proximoMant = proximoMantenimientoKm;
+  kmFaltanMant = kmFaltanMantenimiento;
+
+  /** Estado de mantenimiento por km para el badge de la lista. */
+  mantMeta(v: Vehiculo): { label: string; badge: string } | null {
+    const faltan = kmFaltanMantenimiento(v);
+    if (faltan == null) return null;
+    if (faltan <= 0) return { label: 'Mant. vencido', badge: 'danger' };
+    if (faltan <= 500) return { label: 'Agendar pre-cita', badge: 'warning' };
+    return { label: 'Mant. al día', badge: 'success' };
   }
 
   get f() { return this.form.controls; }

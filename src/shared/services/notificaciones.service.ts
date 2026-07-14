@@ -33,8 +33,9 @@ export class NotificacionesService {
       checks.push(this.loadCount('aprobaciones_legales', 'pendiente', 'legal'));
     }
     if (this.userService.hasModulo('flota') || isAdmin) {
-      // A6: checklists con ítem crítico en NO sin atender -> badge en Flota.
-      checks.push(this.loadChecklistsCriticos());
+      // Flota v2: avisos operativos pendientes (bloqueos, hallazgos, pre-citas,
+      // mantenimiento vencido, consumo anormal, vencimientos) -> badge en Flota.
+      checks.push(this.loadAvisosFlota());
     }
     if (this.userService.hasModulo('direccion') || isAdmin) {
       // A4: alertas antifraude abiertas -> badge en Dirección.
@@ -76,12 +77,11 @@ export class NotificacionesService {
     this._pendingByModulo.update((m) => ({ ...m, tareas: count ?? 0 }));
   }
 
-  private async loadChecklistsCriticos(): Promise<void> {
+  private async loadAvisosFlota(): Promise<void> {
     const { count } = await this.supabase.client
-      .from('checklists_vehiculo')
+      .from('avisos_flota')
       .select('id', { count: 'exact', head: true })
-      .eq('tiene_criticos', true)
-      .eq('atendido', false);
+      .eq('estado', 'pendiente');
     this._pendingByModulo.update((m) => ({ ...m, flota: count ?? 0 }));
   }
 
