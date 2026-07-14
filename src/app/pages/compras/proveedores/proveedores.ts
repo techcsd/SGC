@@ -10,10 +10,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ProveedoresService, ProveedorPayload } from '../../../../shared/services/proveedores.service';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 
 @Component({
   selector: 'app-proveedores',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

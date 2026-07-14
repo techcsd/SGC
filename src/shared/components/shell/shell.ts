@@ -87,6 +87,7 @@ export class Shell implements OnInit {
         { label: 'Activos Fijos', route: '/inventario/activos' },
         { label: 'Entradas', route: '/inventario/entradas' },
         { label: 'Salidas', route: '/inventario/salidas' },
+        { label: 'Movimientos', route: '/inventario/movimientos' },
         { label: 'Conduces', route: '/inventario/conduces' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos' },
         { label: 'Reposición', route: '/inventario/reposicion' },

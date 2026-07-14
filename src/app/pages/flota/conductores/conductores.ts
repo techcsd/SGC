@@ -20,11 +20,12 @@ import {
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { VehiculoAsignacion } from '../../../../shared/models/vehiculo-asignacion.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { daysUntil } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-conductores',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

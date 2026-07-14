@@ -26,12 +26,13 @@ import {
   CEDULA_PATTERN,
 } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatAntiguedad, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-empleados',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask],
   templateUrl: './empleados.html',
   styleUrl: './empleados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

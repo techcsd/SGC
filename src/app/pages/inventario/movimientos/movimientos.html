@@ -1,0 +1,71 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Movimientos de inventario</h1>
+    <span class="page-count">{{ filtered().length }} movimiento{{ filtered().length !== 1 ? 's' : '' }} · {{ totalSalidas() }} salidas · {{ totalEntradas() }} entradas</span>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedBodega()" (change)="onBodega($any($event.target).value)" aria-label="Almacén">
+      <option value="">Todos los almacenes</option>
+      @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
+    </select>
+  </div>
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedTipo()" (change)="onTipo($any($event.target).value)" aria-label="Tipo">
+      <option value="">Entradas y salidas</option>
+      <option value="salida">Salidas</option>
+      <option value="entrada">Entradas</option>
+    </select>
+  </div>
+  <div class="sgc-field filters-bar__date">
+    <input type="date" [value]="dateFrom()" (change)="onFrom($any($event.target).value)" aria-label="Desde" title="Desde" />
+  </div>
+  <div class="sgc-field filters-bar__date">
+    <input type="date" [value]="dateTo()" (change)="onTo($any($event.target).value)" aria-label="Hasta" title="Hasta" />
+  </div>
+  @if (hasActiveFilters()) {
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="clearFilters()">Limpiar filtros</button>
+  }
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (filtered().length === 0) {
+    <div class="table-empty"><p>No hay movimientos con los filtros aplicados.</p></div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Movimientos de inventario">
+        <thead>
+          <tr><th>Fecha</th><th>Tipo</th><th>Almacén</th><th>Concepto / referencia</th><th class="text-right">Artículos</th><th>Responsable</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (m of filtered(); track m.tipo + m.referencia_id) {
+            <tr>
+              <td>{{ formatFecha(m.fecha) }}</td>
+              <td>
+                <span class="sgc-badge" [class.sgc-badge--warning]="m.tipo === 'salida'" [class.sgc-badge--success]="m.tipo === 'entrada'">
+                  {{ m.tipo === 'salida' ? 'Salida' : 'Entrada' }}
+                </span>
+              </td>
+              <td>{{ bodegaNombre(m.bodega_id) }}</td>
+              <td class="text-muted">{{ m.concepto || '—' }}</td>
+              <td class="text-right">{{ m.items }}</td>
+              <td class="text-muted">{{ m.responsable || '—' }}</td>
+              <td>
+                @if (m.tipo === 'salida') {
+                  <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', m.referencia_id, 'conduce']">Conduce</a>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
