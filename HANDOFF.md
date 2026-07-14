@@ -13,6 +13,13 @@ git/HANDOFFs (7 versiones web + 9 móvil, incl. **1.4.0 móvil preparada, sin pu
   `getAll()`/`create()` de la gestión de rollout ahora se limitan a `plataforma='movil'`.
 - La 1.4.0 móvil queda lista para publicar desde `admin/app-versiones` cuando quieras (R15).
 Build verde. Móvil espeja esto (ver HANDOFF de csd-app).
+- **v2 del timeline** (research de changelogs "Keep a Changelog"): `cambios` ahora es `[{t,d}]`
+  con etiqueta de color (Nuevo/Mejora/Arreglo/Seguridad); filtro por tipo; resaltado "Actual".
+  Columna `url` nueva: **web** → enlace al deploy Vercel de esa versión (poblado v1.4–v1.7, SSO
+  del owner; viejas sin enlace, aplicar hacia adelante); **móvil** → `apk_url` a cada APK del bucket
+  (los 10 existen). Timeline y gestión traen botón Descargar/Abrir por versión + "Descargar última
+  versión" arriba de `admin/app-versiones`. Fechas reales de git (dev comprimido 06-30→07-14).
+  Migraciones: `sql/2026-07-14-app-versiones-timeline{,-fix,-v2}.sql` (todas aplicadas).
 
 
 

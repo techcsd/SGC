@@ -3,7 +3,12 @@
     <h1 class="page-title">Versiones de la app</h1>
     <span class="page-count">Publicación por etapas</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">Nueva versión</button>
+  <div class="page-header__actions">
+    <a class="sgc-btn sgc-btn--secondary" [href]="ultimaApkUrl" target="_blank" rel="noopener">
+      ⬇️ Descargar última versión{{ ultima() ? ' (v' + ultima()!.version + ')' : '' }}
+    </a>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">Nueva versión</button>
+  </div>
 </div>
 
 <p class="av-lead">
@@ -48,6 +53,9 @@
               <td>{{ formatFecha(v.created_at) }}</td>
               <td class="text-right">
                 <div class="av-actions">
+                  @if (v.apk_url) {
+                    <a class="sgc-btn sgc-btn--ghost" [href]="v.apk_url" target="_blank" rel="noopener">⬇️ Descargar</a>
+                  }
                   <button class="sgc-btn sgc-btn--secondary" type="button" (click)="togglePublicada(v)">
                     {{ v.publicada ? 'Despublicar' : 'Publicar' }}
                   </button>

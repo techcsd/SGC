@@ -32,6 +32,12 @@ export class AdminAppVersiones implements OnInit {
   publicadaActual = computed(() => this.versiones().find((v) => v.publicada) ?? null);
   minimaActual = computed(() => this.versiones().find((v) => v.minima) ?? null);
 
+  /** Última versión disponible (getAll viene ordenado created_at desc). */
+  ultima = computed(() => this.versiones()[0] ?? null);
+  /** Enlace fijo al APK más reciente publicado en el bucket. */
+  readonly ultimaApkUrl =
+    'https://jeeqhgccqefbqilntcpu.supabase.co/storage/v1/object/public/app-releases/csd-app-latest.apk';
+
   form = new FormGroup({
     version: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     notas: new FormControl<string | null>(null),

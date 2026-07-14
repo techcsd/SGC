@@ -1,5 +1,20 @@
 export type Plataforma = 'web' | 'movil';
 
+/** Etiqueta de cambio (estilo "Keep a Changelog"). */
+export type CambioTag = 'nuevo' | 'mejora' | 'arreglo' | 'seguridad';
+
+export interface CambioItem {
+  t: CambioTag | string;
+  d: string;
+}
+
+export const CAMBIO_META: Record<string, { label: string; badge: string }> = {
+  nuevo: { label: 'Nuevo', badge: 'success' },
+  mejora: { label: 'Mejora', badge: 'info' },
+  arreglo: { label: 'Arreglo', badge: 'warning' },
+  seguridad: { label: 'Seguridad', badge: 'purple' },
+};
+
 /** Versión de la app (móvil o web) — rollout por etapas (R15) + historial/timeline. */
 export interface AppVersion {
   id: string;
@@ -7,7 +22,8 @@ export interface AppVersion {
   plataforma: Plataforma;
   fecha: string | null;
   titulo: string | null;
-  cambios: string[];
+  cambios: CambioItem[];
+  url: string | null;
   notas: string | null;
   apk_url: string | null;
   publicada: boolean;
