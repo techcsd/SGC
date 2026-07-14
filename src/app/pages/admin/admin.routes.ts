@@ -43,6 +43,12 @@ export const adminRoutes: Routes = [
     title: 'Versiones de la App — Administración',
   },
   {
+    path: 'historial-versiones',
+    loadComponent: () =>
+      import('./historial-versiones/historial-versiones').then((m) => m.AdminHistorialVersiones),
+    title: 'Historial de versiones — Administración',
+  },
+  {
     path: 'auditoria',
     loadComponent: () => import('./auditoria/auditoria').then((m) => m.AdminAuditoria),
     title: 'Auditoría — Administración',

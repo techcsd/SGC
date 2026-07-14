@@ -7,17 +7,31 @@ import { AppVersion, AppVersionFormData, VersionPublicada } from '../models/app-
 export class AppVersionesService {
   private supabase = inject(SupabaseService);
 
+  /** Versiones de la app móvil (para la gestión de rollout — solo 'movil'). */
   async getAll(): Promise<AppVersion[]> {
     const { data, error } = await this.supabase.client
       .from('app_versiones')
       .select('*')
+      .eq('plataforma', 'movil')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as AppVersion[];
+  }
+
+  /** Historial/timeline completo (ambas plataformas), más reciente primero. */
+  async getHistorial(): Promise<AppVersion[]> {
+    const { data, error } = await this.supabase.client
+      .from('app_versiones')
+      .select('*')
+      .order('fecha', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as AppVersion[];
   }
 
   async create(payload: AppVersionFormData): Promise<AppVersion> {
-    const row: Record<string, unknown> = { ...payload };
+    // La gestión de rollout es solo de la app móvil.
+    const row: Record<string, unknown> = { ...payload, plataforma: 'movil' };
     if (payload.publicada) row['publicada_at'] = new Date().toISOString();
     const { data, error } = await this.supabase.client
       .from('app_versiones')

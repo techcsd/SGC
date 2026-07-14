@@ -2,6 +2,20 @@
 
 _Last updated: 2026-07-14_
 
+## Historial de versiones (timeline admin) — ✅ en prod
+Nueva feature transversal (web + móvil), **solo admin**. Fuente única: `sgc.app_versiones`
+extendida (`sql/2026-07-14-app-versiones-timeline.sql`, aplicado): `plataforma` ('web'|'movil'),
+`fecha`, `titulo`, `cambios jsonb`, unique (plataforma,version); `version_publicada()` ahora filtra
+`plataforma='movil'` (el gate de rollout sigue siendo solo de la app). Seed histórico curado desde
+git/HANDOFFs (7 versiones web + 9 móvil, incl. **1.4.0 móvil preparada, sin publicar**).
+- **Web**: página `admin/historial-versiones` (tabs Web/App móvil, timeline con versión+fecha+cambios),
+  ruta en `admin.routes.ts`, entrada en el nav del shell. `AppVersionesService.getHistorial()`;
+  `getAll()`/`create()` de la gestión de rollout ahora se limitan a `plataforma='movil'`.
+- La 1.4.0 móvil queda lista para publicar desde `admin/app-versiones` cuando quieras (R15).
+Build verde. Móvil espeja esto (ver HANDOFF de csd-app).
+
+
+
 ## Actualización 1 (14/07 tarde) — reporte semanal v2 + resumen inventario web — build verde, SQL aplicado a prod
 
 Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-1.md` (§A hojas, §B preguntas oficiales).
