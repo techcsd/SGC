@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
-import { DUDAS_CATEGORIAS, DudaCategoria } from './dudas-content';
+import { DUDAS_CATEGORIAS, DudaCategoria, GUIAS_VISUALES, GuiaVisual } from './dudas-content';
 
 @Component({
   selector: 'app-dudas',
@@ -17,6 +17,8 @@ export class Dudas {
   expandedKey = signal<string | null>(null);
 
   private visibleCategorias = computed(() => DUDAS_CATEGORIAS.filter((c) => this.canSee(c)));
+
+  guias = computed(() => GUIAS_VISUALES.filter((g) => this.canSeeGuia(g)));
 
   filteredCategorias = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -39,6 +41,12 @@ export class Dudas {
     if (this.userService.hasRole('admin')) return true;
     if (c.soloAdmin) return false;
     if (c.modulo) return this.userService.hasModulo(c.modulo);
+    return true;
+  }
+
+  private canSeeGuia(g: GuiaVisual): boolean {
+    if (this.userService.hasRole('admin')) return true;
+    if (g.modulo) return this.userService.hasModulo(g.modulo);
     return true;
   }
 

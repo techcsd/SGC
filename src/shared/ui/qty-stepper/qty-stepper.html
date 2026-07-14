@@ -1,0 +1,39 @@
+<div class="qty-stepper" [class.qty-stepper--disabled]="disabled()">
+  <button
+    type="button"
+    class="qty-stepper__btn"
+    (click)="dec()"
+    [disabled]="disabled()"
+    [attr.aria-label]="'Disminuir ' + ariaLabel()"
+    tabindex="-1"
+  >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  </button>
+
+  <input
+    class="qty-stepper__input"
+    type="number"
+    inputmode="decimal"
+    [min]="min()"
+    [step]="step()"
+    [value]="value()"
+    [disabled]="disabled()"
+    [attr.aria-label]="ariaLabel()"
+    (input)="onInput($any($event.target).value)"
+  />
+
+  <button
+    type="button"
+    class="qty-stepper__btn"
+    (click)="inc()"
+    [disabled]="disabled()"
+    [attr.aria-label]="'Aumentar ' + ariaLabel()"
+    tabindex="-1"
+  >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+      <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  </button>
+</div>

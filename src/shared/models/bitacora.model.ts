@@ -40,6 +40,7 @@ export interface BitacoraActividad {
   // the old fixed unions to allow new values.
   estructura: string;
   actividad: string;
+  cantidad: number | null; // R24 — cuántas se hicieron
 }
 
 export interface BitacoraRestriccion {
@@ -115,6 +116,11 @@ export interface Bitacora {
   incidente_lesionados: number | null;
   incidente_descripcion: string | null;
   incidente_acciones: string | null;
+  // Clima + migración (R21/R22) — el clima NO es incidente
+  llovio: boolean | null;
+  lluvia_detalle: string | null;
+  hubo_migracion: boolean | null;
+  migracion_obreros: unknown | null;
   created_at: string;
   weather_snapshot_id: string | null;
   weather_snapshot?: WeatherSnapshot | null;
@@ -137,7 +143,7 @@ export interface BitacoraFormData {
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
-  actividades: { estructura: string; actividad: string }[];
+  actividades: { estructura: string; actividad: string; cantidad?: number | null }[];
   restricciones: { tipo_restriccion: string; descripcion_otro: string | null }[];
   // Visita
   visita_tipo_visitante: string | null;
@@ -152,4 +158,9 @@ export interface BitacoraFormData {
   incidente_descripcion: string | null;
   incidente_acciones: string | null;
   weather_snapshot_id?: string | null;
+  // Clima + migración (R21/R22)
+  llovio?: boolean | null;
+  lluvia_detalle?: string | null;
+  hubo_migracion?: boolean | null;
+  migracion_obreros?: unknown | null;
 }

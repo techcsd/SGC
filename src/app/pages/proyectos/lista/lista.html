@@ -443,6 +443,76 @@
         <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
       </div>
 
+      <!-- R25: Pagado vs Trabajado -->
+      <div class="proyectos__pagado">
+        <span class="proyectos__detail-key">Pagado vs Trabajado</span>
+
+        @if (avance()?.pago_excede) {
+          <div class="proyectos__pagado-alert" role="alert">
+            ⚠ El % pagado supera al % trabajado
+          </div>
+        }
+
+        <div class="proyectos__pagado-row">
+          <span class="proyectos__pagado-tag">Trabajado</span>
+          <div class="proyectos__progress-bar">
+            <div
+              class="proyectos__progress-fill"
+              [style.width.%]="avance()?.avance_trabajado ?? 0"
+              role="progressbar"
+              [attr.aria-valuenow]="avance()?.avance_trabajado ?? 0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          <span class="proyectos__progress-pct">{{ avance()?.avance_trabajado ?? 0 }}%</span>
+        </div>
+
+        <div class="proyectos__pagado-row">
+          <span class="proyectos__pagado-tag">Pagado</span>
+          <div class="proyectos__progress-bar">
+            <div
+              class="proyectos__progress-fill proyectos__progress-fill--pagado"
+              [class.proyectos__progress-fill--excede]="avance()?.pago_excede"
+              [style.width.%]="avance()?.porcentaje_pagado ?? 0"
+              role="progressbar"
+              [attr.aria-valuenow]="avance()?.porcentaje_pagado ?? 0"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          <span class="proyectos__progress-pct">
+            {{ avance()?.porcentaje_pagado != null ? avance()!.porcentaje_pagado + '%' : '—' }}
+          </span>
+        </div>
+
+        @if (puedeEditarPagado()) {
+          <div class="proyectos__pagado-edit">
+            <label class="proyectos__label" for="pagado-input">Fijar % pagado (0-100)</label>
+            <div class="proyectos__pagado-edit-row">
+              <input
+                id="pagado-input"
+                class="proyectos__input"
+                type="number"
+                min="0"
+                max="100"
+                [value]="pagadoInput()"
+                (input)="pagadoInput.set($any($event.target).value === '' ? null : +$any($event.target).value)"
+                placeholder="—"
+              />
+              <button
+                type="button"
+                class="sgc-btn sgc-btn--secondary"
+                (click)="guardarPagado()"
+                [disabled]="avanceSaving()"
+              >
+                {{ avanceSaving() ? 'Guardando…' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
       <!-- Preparación para iniciar (sistema de estrellas) -->
       <div class="proyectos__readiness">
         <div class="proyectos__readiness-head">
@@ -605,6 +675,12 @@
           <h3 class="proyectos__fases-title">Vaciados y No Conformidades</h3>
         </div>
         <app-ejecucion-obra [proyectoId]="p.id" />
+      </div>
+
+      <!-- Partidas de obra + avance físico (R24) -->
+      <div class="proyectos__fases">
+        <h3 class="proyectos__fases-title">Partidas</h3>
+        <app-proyecto-partidas [proyectoId]="p.id" />
       </div>
 
       <!-- Checklists de Liberación CL-01..07 (CSD-OPE-01 §6.8/§9) -->

@@ -198,6 +198,52 @@
       </section>
     }
 
+    <!-- Sección: Condiciones del día (lluvia + migración) — solo parte diario -->
+    @if (tipoActual() === 'parte_diario') {
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">Condiciones del día</h2>
+      <p class="bitacora-section__hint">La lluvia se registra como información normal del parte, no como un incidente.</p>
+
+      <div class="sgc-field">
+        <label class="bitacora-check-line">
+          <input type="checkbox" formControlName="llovio" />
+          <span>¿Está lloviendo o llovió?</span>
+        </label>
+      </div>
+      @if (f.llovio.value) {
+        <div class="sgc-field">
+          <label for="lluvia_detalle">Detalle de la lluvia (opcional)</label>
+          <textarea
+            id="lluvia_detalle"
+            rows="2"
+            maxlength="1000"
+            formControlName="lluvia_detalle"
+            placeholder="Ej: llovió toda la mañana, se detuvo el vaciado…"
+          ></textarea>
+        </div>
+      }
+
+      <div class="sgc-field">
+        <label class="bitacora-check-line">
+          <input type="checkbox" formControlName="hubo_migracion" />
+          <span>¿Hubo problemas de migración?</span>
+        </label>
+      </div>
+      @if (f.hubo_migracion.value) {
+        <div class="sgc-field">
+          <label for="migracion_obreros_texto">Obreros afectados (opcional, uno por línea)</label>
+          <textarea
+            id="migracion_obreros_texto"
+            rows="3"
+            maxlength="2000"
+            formControlName="migracion_obreros_texto"
+            placeholder="Un nombre o cédula por línea…"
+          ></textarea>
+        </div>
+      }
+    </section>
+    }
+
     <!-- Sección 2: Actividades (solo parte diario) -->
     @if (tipoActual() === 'parte_diario') {
     <section class="bitacora-section sgc-card">
@@ -227,14 +273,28 @@
             @if (isEstructuraExpanded(estructura)) {
               <div class="bitacora-matriz__checks">
                 @for (actividad of actividades(); track actividad) {
-                  <label class="bitacora-matriz__check">
-                    <input
-                      type="checkbox"
-                      [checked]="isActividadChecked(estructura, actividad)"
-                      (change)="toggleActividad(estructura, actividad)"
-                    />
-                    <span>{{ actividad }}</span>
-                  </label>
+                  <div class="bitacora-matriz__row">
+                    <label class="bitacora-matriz__check">
+                      <input
+                        type="checkbox"
+                        [checked]="isActividadChecked(estructura, actividad)"
+                        (change)="toggleActividad(estructura, actividad)"
+                      />
+                      <span>{{ actividad }}</span>
+                    </label>
+                    @if (isActividadChecked(estructura, actividad)) {
+                      <div class="bitacora-matriz__qty">
+                        <span class="bitacora-matriz__qty-label">Cantidad</span>
+                        <app-qty-stepper
+                          [value]="getCantidad(estructura, actividad)"
+                          [min]="0"
+                          [step]="1"
+                          [ariaLabel]="'Cantidad de ' + actividad"
+                          (valueChange)="setCantidad(estructura, actividad, $event)"
+                        />
+                      </div>
+                    }
+                  </div>
                 }
               </div>
             }

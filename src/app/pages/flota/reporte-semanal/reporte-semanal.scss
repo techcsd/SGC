@@ -1,0 +1,58 @@
+// ── Stat cards (mismo patrón que panel-dia) ──────────────
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px; margin-bottom: 18px;
+}
+.stat-card {
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  border-left: 4px solid var(--sgc-border);
+  &--ok { border-left-color: var(--sgc-success); }
+  &--warn { border-left-color: var(--sgc-warning); }
+  &--danger { border-left-color: var(--sgc-danger); }
+  &--muted { border-left-color: var(--sgc-text-muted); }
+  &__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sgc-text-muted); }
+  &__value { font-size: 22px; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
+  &__hint { font-size: 11px; color: var(--sgc-text-secondary); }
+}
+
+// ── Bloques / tarjetas ───────────────────────────────────
+.rs-block { margin-bottom: 18px; overflow: hidden; }
+.table-wrapper.rs-block { padding: 0; }
+
+.rs-card-title { font-size: 14px; font-weight: 700; margin: 0; padding: 14px 16px; }
+
+.rs-placa { font-weight: 600; }
+.rs-muted { color: var(--sgc-text-secondary); font-size: 13px; }
+.rs-ok { color: var(--sgc-success); font-weight: 600; font-size: 14px; padding: 0 16px 14px; margin: 0; }
+
+.rs-list {
+  margin: 0; padding: 0 16px 14px; list-style: none;
+  display: flex; flex-direction: column; gap: 8px; font-size: 14px;
+}
+
+// ── Check / cross en tabla ───────────────────────────────
+.rs-check { color: var(--sgc-success); font-weight: 700; }
+.rs-cross { color: var(--sgc-danger); font-weight: 700; }
+
+// ── Acordeón de historial ────────────────────────────────
+.rs-accordion { display: flex; flex-direction: column; }
+.rs-acc-item { border-top: 1px solid var(--sgc-border); }
+
+.rs-acc-head {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: transparent; border: none; cursor: pointer;
+  text-align: left; font-size: 14px; color: var(--sgc-text);
+  transition: var(--sgc-transition-fast);
+  &:hover { background: var(--sgc-surface-hover); }
+  &--open { background: var(--sgc-surface-hover); }
+}
+.rs-acc-title { font-weight: 600; }
+.rs-acc-count {
+  margin-left: auto; font-size: 13px; color: var(--sgc-text-secondary);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.rs-acc-chevron { color: var(--sgc-text-muted); font-size: 12px; }
+
+.rs-acc-body { border-top: 1px solid var(--sgc-border); }

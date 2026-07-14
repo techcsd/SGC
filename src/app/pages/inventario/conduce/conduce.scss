@@ -185,6 +185,14 @@
       td {
         padding: 6px 8px;
       }
+
+      // Multi-ítem: repite el encabezado por página y no parte filas.
+      thead {
+        display: table-header-group;
+      }
+      tr {
+        break-inside: avoid;
+      }
     }
 
     // Never split the signature or evidence blocks across pages.

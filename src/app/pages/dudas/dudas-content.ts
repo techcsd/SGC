@@ -13,6 +13,84 @@ export interface DudaCategoria {
   items: DudaItem[];
 }
 
+export interface GuiaVisual {
+  id: string;
+  titulo: string;
+  /** Short key that the template maps to an inline SVG icon. */
+  icono: 'preuso' | 'combustible' | 'conduce' | 'bitacora' | 'inventario';
+  /** If set, only shown to users whose roles include this modulo (admin always sees everything). */
+  modulo?: string;
+  /** Ordered, one-line steps. */
+  pasos: string[];
+}
+
+export const GUIAS_VISUALES: GuiaVisual[] = [
+  {
+    id: 'preuso',
+    titulo: 'Pre-uso de vehículo',
+    icono: 'preuso',
+    modulo: 'flota',
+    pasos: [
+      'Entra a Flota → Checklists → Nuevo checklist.',
+      'Elige el vehículo y confirma el kilometraje y el nivel de combustible.',
+      'Responde cada ítem OK / NO / N-A (los críticos en NO bloquean la salida).',
+      'Adjunta las fotos requeridas y firma.',
+      'Guarda: el sistema calcula el veredicto (Aprobado / Con hallazgos / Bloqueado).',
+    ],
+  },
+  {
+    id: 'combustible',
+    titulo: 'Registrar combustible',
+    icono: 'combustible',
+    modulo: 'flota',
+    pasos: [
+      'Flota → Combustible → Nuevo registro.',
+      'Escribe kilometraje, galones echados y monto pagado.',
+      'Adjunta la foto del recibo y la del tablero.',
+      'El sistema calcula precio/galón, rendimiento y costo/km.',
+      'Si el rendimiento cae mucho, se genera un aviso automático.',
+    ],
+  },
+  {
+    id: 'conduce',
+    titulo: 'Conduces',
+    icono: 'conduce',
+    modulo: 'inventario',
+    pasos: [
+      'Inventario → Salidas: registra la salida (conduce).',
+      'Agrega los artículos y las cantidades.',
+      'Se genera el conduce con número CND-…',
+      'Ábrelo y usa "Imprimir / Guardar PDF".',
+      'El destino confirma la recepción desde su lista.',
+    ],
+  },
+  {
+    id: 'bitacora',
+    titulo: 'Bitácora',
+    icono: 'bitacora',
+    modulo: 'bitacora',
+    pasos: [
+      'Bitácora → Nueva bitácora.',
+      'Elige la obra y responde primero si llovió y si hubo migración.',
+      'Marca las actividades hechas y cuántas de cada una.',
+      'Registra el personal y las restricciones del día.',
+      'Guarda; el clima queda como dato, no como incidente.',
+    ],
+  },
+  {
+    id: 'inventario',
+    titulo: 'Inventario',
+    icono: 'inventario',
+    modulo: 'inventario',
+    pasos: [
+      'Inventario → Artículos: primero aparecen Clavos, Madera y Metales.',
+      'Filtra por categoría o busca por nombre.',
+      'Usa los botones − / + o escribe la cantidad.',
+      'En Almacenes, el nombre se guarda homologado (Primera Letra En Mayúscula).',
+    ],
+  },
+];
+
 export const DUDAS_CATEGORIAS: DudaCategoria[] = [
   {
     id: 'primeros-pasos',

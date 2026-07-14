@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import {
@@ -33,7 +34,7 @@ interface PendingFoto {
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -302,6 +303,7 @@ export class FlotaVehiculos implements OnInit {
   getEstadoBadge(estado: string): string {
     if (estado === 'activo') return 'success';
     if (estado === 'mantenimiento') return 'warning';
+    if (estado === 'no_disponible') return 'danger';
     return 'neutral';
   }
 

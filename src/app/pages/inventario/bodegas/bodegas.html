@@ -207,6 +207,9 @@
       @if (f.nombre.invalid && f.nombre.touched) {
         <span class="field-error">El nombre es obligatorio.</span>
       }
+      @if (nombreHint()) {
+        <span class="field-hint">Se guardará como: <strong>{{ nombreHint() }}</strong></span>
+      }
     </div>
 
     <div class="sgc-field">

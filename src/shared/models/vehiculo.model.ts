@@ -10,7 +10,7 @@ export type VehiculoTipo =
   | 'montacargas'
   | 'otro';
 
-export type VehiculoEstado = 'activo' | 'mantenimiento' | 'baja';
+export type VehiculoEstado = 'activo' | 'mantenimiento' | 'no_disponible' | 'baja';
 
 export interface Vehiculo {
   id: string;
@@ -125,5 +125,13 @@ export const VEHICULO_TIPOS: { value: VehiculoTipo; label: string }[] = [
 export const VEHICULO_ESTADOS: { value: VehiculoEstado; label: string }[] = [
   { value: 'activo', label: 'Activo' },
   { value: 'mantenimiento', label: 'En mantenimiento' },
+  { value: 'no_disponible', label: 'No disponible' },
   { value: 'baja', label: 'Dado de baja' },
 ];
+
+export const VEHICULO_ESTADO_BADGE: Record<VehiculoEstado, string> = {
+  activo: 'success',
+  mantenimiento: 'warning',
+  no_disponible: 'danger',
+  baja: 'neutral',
+};

@@ -62,11 +62,24 @@
                 @else { <span class="sgc-badge sgc-badge--success">Atendido</span> }
               </td>
               <td class="text-right">
-                @if (a.estado === 'pendiente') {
-                  <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Atender</button>
-                } @else {
-                  <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Ver</button>
-                }
+                <div class="av-actions">
+                  @if (a.estado === 'pendiente' && a.tipo === 'bloqueo_critico' && a.vehiculo_id) {
+                    <button class="sgc-btn sgc-btn--secondary" type="button"
+                      [disabled]="reactivando() === a.id" (click)="reactivarVehiculo(a)">
+                      @if (reactivando() === a.id) { Reactivando… } @else { Reactivar vehículo }
+                    </button>
+                  }
+                  @if (a.estado === 'pendiente' && (a.tipo === 'pre_cita' || a.tipo === 'mantenimiento_vencido') && a.vehiculo_id) {
+                    <button class="sgc-btn sgc-btn--secondary" type="button" (click)="crearCita(a)">
+                      Crear cita
+                    </button>
+                  }
+                  @if (a.estado === 'pendiente') {
+                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Atender</button>
+                  } @else {
+                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Ver</button>
+                  }
+                </div>
               </td>
             </tr>
           }

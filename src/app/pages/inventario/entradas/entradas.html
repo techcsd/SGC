@@ -290,18 +290,21 @@
             (change)="updateItemArticulo($index, $any($event.target).value)"
           >
             <option value="">Seleccionar artículo…</option>
-            @for (a of articulos(); track a.id) {
-              <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+            @for (g of articulosAgrupados(); track g.categoria) {
+              <optgroup [label]="g.categoria">
+                @for (a of g.articulos; track a.id) {
+                  <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+                }
+              </optgroup>
             }
           </select>
-          <input
+          <app-qty-stepper
             class="item-row__cantidad"
-            type="number"
-            min="0.01"
-            step="0.01"
-            placeholder="Cant."
             [value]="item.cantidad"
-            (input)="updateItemCantidad($index, $any($event.target).value)"
+            [min]="0"
+            [step]="1"
+            ariaLabel="Cantidad"
+            (valueChange)="updateItemCantidad($index, $event)"
           />
           <input
             class="item-row__precio"

@@ -7,12 +7,14 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bodega, BodegaFormData } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { homologarTexto } from '../../../../shared/utils/texto.util';
 
 @Component({
   selector: 'app-bodegas',
@@ -81,6 +83,16 @@ export class Bodegas implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   drawerTitle = computed(() => (this.editingId() ? 'Editar almacén' : 'Nuevo almacén'));
+
+  // R18 — vista previa de homologación del nombre. FormControl.value no es reactivo:
+  // puenteamos valueChanges a signal para que el hint recompute al escribir.
+  private nombreValue = toSignal(this.form.controls.nombre.valueChanges, { initialValue: '' });
+  nombreHint = computed(() => {
+    const raw = (this.nombreValue() ?? '').trim();
+    const homologado = homologarTexto(raw);
+    // Solo mostrar cuando la homologación realmente cambiaría lo escrito.
+    return homologado && homologado !== raw ? homologado : '';
+  });
 
   async ngOnInit() {
     await this.loadAll();

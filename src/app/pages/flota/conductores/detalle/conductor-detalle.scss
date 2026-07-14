@@ -1,0 +1,157 @@
+// ── Back link ────────────────────────────────────────────
+.cd-back {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sgc-text-secondary);
+  transition: var(--sgc-transition-fast);
+  &:hover { color: var(--sgc-primary); }
+}
+
+// ── Empty state ──────────────────────────────────────────
+.cd-empty {
+  padding: 32px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: var(--sgc-text-secondary);
+}
+
+// ── Header ───────────────────────────────────────────────
+.cd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+
+  &__nombre {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sgc-text);
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__lic {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+}
+
+.cd-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sgc-border);
+  color: var(--sgc-text);
+  font-size: 12px;
+  font-weight: 600;
+  &--veh { font-variant-numeric: tabular-nums; }
+}
+
+.cd-lic-badge {
+  font-size: 13px;
+  padding: 5px 12px;
+}
+.cd-lic-fecha {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+}
+
+// ── Aviso rojo (licencia vencida) ────────────────────────
+.page-error { margin-bottom: 18px; }
+
+// ── Sections ─────────────────────────────────────────────
+.cd-section {
+  padding: 18px 20px;
+  margin-bottom: 18px;
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--sgc-text);
+    margin: 0 0 14px;
+  }
+}
+
+// ── Definition list (licencia) ───────────────────────────
+.cd-dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+
+  &__item { display: flex; flex-direction: column; gap: 4px; }
+  &__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sgc-text-muted);
+  }
+  &__value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+}
+
+// ── Stat cards ───────────────────────────────────────────
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.stat-card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 4px solid var(--sgc-border);
+  &--danger { border-left-color: var(--sgc-danger); }
+  &__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sgc-text-muted);
+  }
+  &__value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sgc-text);
+    font-variant-numeric: tabular-nums;
+  }
+  &__hint { font-size: 11px; color: var(--sgc-text-secondary); }
+}
+.cd-fecha-value { font-size: 16px; }
+
+// ── Helpers ──────────────────────────────────────────────
+.cd-placa { font-weight: 600; }
+.cd-muted { color: var(--sgc-text-secondary); font-size: 13px; }
+.cd-danger { color: var(--sgc-danger); font-weight: 600; }
+
+@media (max-width: 768px) {
+  .cd-header__lic { align-items: flex-start; }
+}

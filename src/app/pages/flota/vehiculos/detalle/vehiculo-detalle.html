@@ -1,0 +1,278 @@
+<!-- ── Back link ── -->
+<a class="vd-back" routerLink="/flota/vehiculos">← Vehículos</a>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="sgc-card vd-card"><app-skeleton variant="list" [rows]="5" /></div>
+} @else if (!vehiculo()) {
+  <!-- ── Empty state ── -->
+  <div class="sgc-card vd-card vd-empty">
+    <p>No se encontró el vehículo solicitado.</p>
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/vehiculos">Volver a Vehículos</a>
+  </div>
+} @else {
+  @if (vehiculo(); as v) {
+    <!-- ── 1. Header ── -->
+    <div class="sgc-card vd-card vd-header">
+      @if (fotoUrl()) {
+        <img class="vd-header__foto" [src]="fotoUrl()" [alt]="'Foto de ' + v.placa" />
+      }
+      <div class="vd-header__body">
+        <div class="vd-header__top">
+          <h1 class="vd-placa">{{ v.placa }}</h1>
+          <span class="sgc-badge sgc-badge--{{ estadoBadge[v.estado] }}">{{ estadoLabel(v.estado) }}</span>
+        </div>
+        <p class="vd-header__sub">
+          {{ v.marca }} {{ v.modelo }} · {{ v.anio }} · {{ tipoLabel(v.tipo) }}
+        </p>
+        @if (v.responsable?.nombre) {
+          <p class="vd-header__resp">Responsable: {{ v.responsable!.nombre }}</p>
+        }
+        @if (v.estado === 'no_disponible') {
+          <button type="button" class="sgc-btn sgc-btn--primary vd-header__reactivar"
+            [disabled]="reactivando()" (click)="reactivar()">
+            @if (reactivando()) { Reactivando… } @else { Reactivar vehículo }
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ── 2. Stats ── -->
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-card__label">Km actual</span>
+        <span class="stat-card__value">{{ (stats()?.km_actual ?? v.kilometraje) | number:'1.0-0' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Combustible</span>
+        <span class="stat-card__value">{{ stats()?.combustible_echadas ?? 0 }}</span>
+        <span class="stat-card__hint">
+          {{ (stats()?.combustible_galones ?? 0) | number:'1.0-0' }} gal ·
+          RD$ {{ (stats()?.combustible_monto ?? 0) | number:'1.0-0' }}
+        </span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Rendimiento prom.</span>
+        <span class="stat-card__value">
+          @if (stats()?.rendimiento_promedio != null) { {{ stats()!.rendimiento_promedio | number:'1.0-1' }} }
+          @else { — }
+        </span>
+        <span class="stat-card__hint">km/gal</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Costo / km</span>
+        <span class="stat-card__value">
+          @if (stats()?.costo_por_km_promedio != null) { RD$ {{ stats()!.costo_por_km_promedio | number:'1.0-1' }} }
+          @else { — }
+        </span>
+      </div>
+      <div class="stat-card" [class.stat-card--danger]="(stats()?.checklists_bloqueos ?? 0) > 0">
+        <span class="stat-card__label">Checklists</span>
+        <span class="stat-card__value">{{ stats()?.checklists_total ?? 0 }}</span>
+        @if ((stats()?.checklists_bloqueos ?? 0) > 0) {
+          <span class="stat-card__hint vd-danger">{{ stats()!.checklists_bloqueos }} bloqueo(s)</span>
+        }
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Mantenimientos</span>
+        <span class="stat-card__value">{{ stats()?.mantenimientos_total ?? 0 }}</span>
+      </div>
+      <div class="stat-card"
+        [class.stat-card--danger]="kmFaltanMant() != null && kmFaltanMant()! <= 0"
+        [class.stat-card--warn]="kmFaltanMant() != null && kmFaltanMant()! > 0 && kmFaltanMant()! <= 500">
+        <span class="stat-card__label">Próximo mant.</span>
+        <span class="stat-card__value">
+          @if (proxKm(v) != null) { {{ proxKm(v) | number:'1.0-0' }} km } @else { — }
+        </span>
+        <span class="stat-card__hint">
+          @if (kmFaltanMant() == null) { sin dato }
+          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">VENCIDO ({{ -kmFaltanMant()! | number:'1.0-0' }} km)</span> }
+          @else { faltan {{ kmFaltanMant()! | number:'1.0-0' }} km }
+        </span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Última actividad</span>
+        <span class="stat-card__value vd-fecha-val">{{ fecha(stats()?.ultima_actividad) }}</span>
+      </div>
+    </div>
+
+    <!-- ── 3. Vencimientos ── -->
+    <div class="sgc-card vd-card">
+      <h2 class="vd-section-title">Vencimientos</h2>
+      <dl class="vd-venc">
+        <div>
+          <dt>Matrícula</dt>
+          <dd>
+            @if (v.vencimiento_matricula) {
+              <span>{{ fecha(v.vencimiento_matricula) }}</span>
+              @if (estadoVenc(v.vencimiento_matricula); as ev) {
+                <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] }}</span>
+              }
+            } @else { — }
+          </dd>
+        </div>
+        <div>
+          <dt>Seguro</dt>
+          <dd>
+            @if (v.vencimiento_seguro) {
+              <span>{{ fecha(v.vencimiento_seguro) }}</span>
+              @if (estadoVenc(v.vencimiento_seguro); as ev) {
+                <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] }}</span>
+              }
+            } @else { — }
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- ── 4. Asignaciones (R1) ── -->
+    <div class="sgc-card vd-card">
+      <div class="vd-section-head">
+        <h2 class="vd-section-title">Personas asignadas ({{ asignacionesActivas().length }})</h2>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAsignar()">Asignar persona</button>
+      </div>
+
+      @if (asignacionesActivas().length === 0) {
+        <p class="vd-muted">Este vehículo no tiene personas asignadas actualmente.</p>
+      } @else {
+        <ul class="vd-asig-list">
+          @for (a of asignacionesActivas(); track a.id) {
+            <li class="vd-asig">
+              <div class="vd-asig__info">
+                <span class="vd-asig__nombre">{{ asigNombre(a) }}</span>
+                <span class="sgc-badge sgc-badge--{{ a.origen === 'auto' ? 'info' : 'neutral' }}">
+                  {{ a.origen === 'auto' ? 'Auto' : 'Admin' }}
+                </span>
+                <span class="vd-muted">desde {{ fecha(a.desde) }}</span>
+                @if (a.notas) { <span class="vd-asig__notas">“{{ a.notas }}”</span> }
+              </div>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="retirar(a)">Retirar</button>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (asignacionesHistoricas().length > 0) {
+        <button type="button" class="vd-toggle" (click)="toggleHistorialAsig()">
+          {{ mostrarHistorialAsig() ? '▾' : '▸' }}
+          Historial de asignaciones ({{ asignacionesHistoricas().length }})
+        </button>
+        @if (mostrarHistorialAsig()) {
+          <ul class="vd-asig-list vd-asig-list--hist">
+            @for (a of asignacionesHistoricas(); track a.id) {
+              <li class="vd-asig">
+                <div class="vd-asig__info">
+                  <span class="vd-asig__nombre">{{ asigNombre(a) }}</span>
+                  <span class="sgc-badge sgc-badge--{{ a.origen === 'auto' ? 'info' : 'neutral' }}">
+                    {{ a.origen === 'auto' ? 'Auto' : 'Admin' }}
+                  </span>
+                  <span class="vd-muted">{{ fecha(a.desde) }} → {{ fecha(a.hasta) }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </div>
+
+    <!-- ── 5. Historial ── -->
+    <!-- Checklists -->
+    <div class="table-wrapper sgc-card vd-card">
+      <h2 class="vd-section-title vd-section-title--pad">Checklists recientes</h2>
+      @if (checklistsRecientes().length === 0) {
+        <div class="table-empty"><p>Sin checklists registrados.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Checklists del vehículo">
+            <thead><tr><th>Fecha</th><th>Resultado</th><th class="text-right">Km</th><th>Conductor</th></tr></thead>
+            <tbody>
+              @for (c of checklistsRecientes(); track c.id) {
+                <tr>
+                  <td class="vd-fecha-val">{{ fecha(c.fecha) }}</td>
+                  <td><span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span></td>
+                  <td class="text-right">{{ c.kilometraje != null ? (c.kilometraje | number:'1.0-0') : '—' }}</td>
+                  <td>{{ c.conductor?.nombre ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Mantenimientos -->
+    <div class="table-wrapper sgc-card vd-card">
+      <h2 class="vd-section-title vd-section-title--pad">Mantenimientos recientes</h2>
+      @if (mantenimientosRecientes().length === 0) {
+        <div class="table-empty"><p>Sin mantenimientos registrados.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Mantenimientos del vehículo">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th class="text-right">Km</th><th>Estado</th></tr></thead>
+            <tbody>
+              @for (m of mantenimientosRecientes(); track m.id) {
+                <tr>
+                  <td class="vd-fecha-val">{{ fecha(m.fecha) }}</td>
+                  <td>{{ mantTipoLabel(m.tipo) }}</td>
+                  <td class="vd-desc">{{ m.descripcion }}</td>
+                  <td class="text-right">{{ m.kilometraje_al_mantenimiento != null ? (m.kilometraje_al_mantenimiento | number:'1.0-0') : '—' }}</td>
+                  <td><span class="sgc-badge sgc-badge--{{ mantEstadoBadge(m.estado) }}">{{ mantEstadoLabel(m.estado) }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Combustible -->
+    <div class="table-wrapper sgc-card vd-card">
+      <h2 class="vd-section-title vd-section-title--pad">Combustible reciente</h2>
+      @if (combustiblesRecientes().length === 0) {
+        <div class="table-empty"><p>Sin registros de combustible.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Combustible del vehículo">
+            <thead><tr><th>Fecha</th><th class="text-right">Km</th><th class="text-right">Galones</th><th class="text-right">RD$</th><th class="text-right">Rend.</th><th></th></tr></thead>
+            <tbody>
+              @for (r of combustiblesRecientes(); track r.id) {
+                <tr>
+                  <td class="vd-fecha-val">{{ fecha(r.fecha) }}</td>
+                  <td class="text-right">{{ r.kilometraje != null ? (r.kilometraje | number:'1.0-0') : '—' }}</td>
+                  <td class="text-right">{{ r.galones != null ? (r.galones | number:'1.0-1') : '—' }}</td>
+                  <td class="text-right">{{ r.monto != null ? (r.monto | number:'1.0-0') : '—' }}</td>
+                  <td class="text-right">{{ r.rendimiento_km_gal != null ? (r.rendimiento_km_gal | number:'1.0-1') : '—' }}</td>
+                  <td>@if (r.alerta_consumo) { <span class="vd-danger" title="Consumo anormal">⚠</span> }</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- ── Drawer: Asignar persona ── -->
+<app-form-drawer title="Asignar persona" [open]="drawerOpen()" (closed)="closeDrawer()">
+  <form class="vd-form" [formGroup]="asignarForm" (ngSubmit)="asignar()">
+    <div class="sgc-field">
+      <label for="usuario">Persona</label>
+      <select id="usuario" formControlName="usuario_id">
+        <option [ngValue]="null" disabled>Selecciona una persona…</option>
+        @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="notas">Notas</label>
+      <textarea id="notas" rows="3" formControlName="notas" placeholder="Motivo / detalle de la asignación…"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
+        @if (guardando()) { Guardando… } @else { Asignar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

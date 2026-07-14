@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -19,15 +20,17 @@ import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-salidas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +39,7 @@ export class Salidas implements OnInit {
   private salidasService = inject(SalidasService);
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);
+  private categoriasService = inject(CategoriasService);
   private proyectosService = inject(ProyectosService);
   private solicitudesMaterialService = inject(SolicitudesMaterialService);
   private toast = inject(ToastService);
@@ -44,6 +48,7 @@ export class Salidas implements OnInit {
   // ── Data state ──────────────────────────────────────────
   salidas = signal<SalidaInventario[]>([]);
   articulos = signal<Articulo[]>([]);
+  categorias = signal<Categoria[]>([]);
   bodegas = signal<Bodega[]>([]);
   proyectos = signal<Proyecto[]>([]);
   solicitudesPendientes = signal<SolicitudMaterial[]>([]);
@@ -92,6 +97,36 @@ export class Salidas implements OnInit {
 
   // ── Computed ─────────────────────────────────────────────
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+
+  /**
+   * Artículos agrupados por categoría para los <select> (R16). Se itera categorias()
+   * — que ya viene destacada-first + orden — emitiendo un grupo por categoría con
+   * artículos; los artículos sin categoría activa caen en un grupo final "Otros".
+   */
+  articulosAgrupados = computed<{ categoria: string; destacada: boolean; articulos: Articulo[] }[]>(() => {
+    const arts = this.articulos();
+    const cats = this.categorias();
+    const byCat = new Map<number, Articulo[]>();
+    for (const a of arts) {
+      const list = byCat.get(a.categoria_id);
+      if (list) list.push(a);
+      else byCat.set(a.categoria_id, [a]);
+    }
+    const grupos: { categoria: string; destacada: boolean; articulos: Articulo[] }[] = [];
+    const catIds = new Set<number>();
+    for (const c of cats) {
+      catIds.add(c.id);
+      const list = byCat.get(c.id);
+      if (list && list.length) {
+        grupos.push({ categoria: c.nombre, destacada: c.destacada, articulos: list });
+      }
+    }
+    const otros = arts.filter((a) => !catIds.has(a.categoria_id));
+    if (otros.length) {
+      grupos.push({ categoria: 'Otros', destacada: false, articulos: otros });
+    }
+    return grupos;
+  });
 
   /** True cuando el drawer está aprobando una requisición (auto-división), no una salida manual. */
   atendiendoRequisicion = computed(() => !!this.solicitudEnAtencion());
@@ -151,15 +186,17 @@ export class Salidas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [salidas, arts, bods, proyectos, solicitudes] = await Promise.all([
+      const [salidas, arts, cats, bods, proyectos, solicitudes] = await Promise.all([
         this.salidasService.getAll(),
         this.articulosService.getAll(),
+        this.categoriasService.getAll(),
         this.bodegasService.getAll(),
         this.proyectosService.getAll(),
         this.solicitudesMaterialService.getAll(),
       ]);
       this.salidas.set(salidas);
       this.articulos.set(arts);
+      this.categorias.set(cats);
       this.bodegas.set(bods);
       this.proyectos.set(proyectos);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
@@ -261,9 +298,10 @@ export class Salidas implements OnInit {
     );
   }
 
-  updateReqItemCantidad(index: number, value: string) {
+  updateReqItemCantidad(index: number, value: number | string) {
+    const cantidad = Number(value);
     this.reqItems.update((items) =>
-      items.map((it, i) => (i === index ? { ...it, cantidad: Number(value) } : it)),
+      items.map((it, i) => (i === index ? { ...it, cantidad } : it)),
     );
   }
 
@@ -294,9 +332,10 @@ export class Salidas implements OnInit {
     );
   }
 
-  updateItemCantidad(index: number, value: string) {
+  updateItemCantidad(index: number, value: number | string) {
+    const cantidad = Number(value);
     this.formItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, cantidad: Number(value) } : item)),
+      items.map((item, i) => (i === index ? { ...item, cantidad } : item)),
     );
   }
 
