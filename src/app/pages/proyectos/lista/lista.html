@@ -607,6 +607,14 @@
         <app-ejecucion-obra [proyectoId]="p.id" />
       </div>
 
+      <!-- Checklists de Liberación CL-01..07 (CSD-OPE-01 §6.8/§9) -->
+      <div class="proyectos__fases">
+        <div class="proyectos__fases-header">
+          <h3 class="proyectos__fases-title">Checklists de Liberación (CL)</h3>
+        </div>
+        <app-cl-liberacion [proyectoId]="p.id" />
+      </div>
+
       <!-- Fases -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">

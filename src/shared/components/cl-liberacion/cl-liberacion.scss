@@ -1,0 +1,352 @@
+.cl {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__error {
+    color: var(--primary, #ff5f00);
+    font-size: 0.9rem;
+  }
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__intro {
+    font-size: 0.85rem;
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  &__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--main, #121212);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  &__form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  &__wide {
+    grid-column: 1 / -1;
+  }
+
+  &__form-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__empty {
+    font-size: 0.9rem;
+    padding: 8px 0;
+  }
+
+  // ── Ítems (alta) ─────────────────────────────────────────
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  &__item-group-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary, #ff5f00);
+    margin: 0 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #ededed;
+  }
+
+  &__item-label {
+    font-size: 0.9rem;
+  }
+
+  &__item-controls {
+    display: flex;
+    gap: 6px;
+  }
+
+  &__item-comment {
+    grid-column: 1 / -1;
+  }
+
+  &__toggle {
+    min-width: 46px;
+    padding: 5px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    background: #fff;
+    font-family: var(--font-btns);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &--si.cl__toggle--active {
+      background: #e6f5ec;
+      border-color: #2e9e5b;
+      color: #1f7a44;
+    }
+    &--no.cl__toggle--active {
+      background: #fdeaea;
+      border-color: #d64545;
+      color: #b32d2d;
+    }
+  }
+
+  // ── Lista de CL ──────────────────────────────────────────
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__card {
+    border: 1px solid #e2e2e2;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+
+    &--firmado {
+      border-color: #bfe3cd;
+    }
+  }
+
+  &__card-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    flex-wrap: wrap;
+  }
+
+  &__card-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+
+    strong {
+      color: var(--primary, #ff5f00);
+    }
+    span {
+      font-size: 0.9rem;
+    }
+  }
+
+  &__card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    flex-wrap: wrap;
+  }
+
+  &__firmas-progress {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 0 16px 12px;
+  }
+
+  &__firma-chip {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #f2f2f2;
+    color: var(--main-ultra-light, #929090);
+
+    &--done {
+      background: #e6f5ec;
+      color: #1f7a44;
+      font-weight: 600;
+    }
+  }
+
+  // ── Detalle expandido ────────────────────────────────────
+  &__detail {
+    padding: 4px 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-top: 1px solid #ededed;
+  }
+
+  &__detail-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+
+  &__item-review {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    li {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      font-size: 0.88rem;
+    }
+    &--no {
+      color: #b32d2d;
+    }
+  }
+
+  &__item-review-mark {
+    width: 14px;
+    font-weight: 700;
+  }
+
+  &__obs {
+    font-size: 0.88rem;
+    margin: 0;
+  }
+
+  &__plano {
+    max-width: 260px;
+    max-height: 200px;
+    border-radius: 10px;
+    border: 1px solid #e2e2e2;
+    object-fit: cover;
+  }
+
+  // ── Fotos ────────────────────────────────────────────────
+  &__fotos {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  &__foto {
+    width: 120px;
+    margin: 0;
+
+    img {
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 2px solid #2e9e5b;
+    }
+    figcaption {
+      font-size: 0.72rem;
+      color: var(--main-ultra-light, #929090);
+      margin-top: 2px;
+    }
+    &--no img {
+      border-color: #d64545;
+    }
+  }
+
+  &__foto-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__foto-desc {
+    flex: 1;
+    min-width: 160px;
+  }
+
+  &__foto-btn {
+    cursor: pointer;
+  }
+
+  // ── Firmas ───────────────────────────────────────────────
+  &__firmas {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  &__firma {
+    margin: 0;
+    text-align: center;
+
+    img {
+      width: 150px;
+      height: 80px;
+      object-fit: contain;
+      background: #fff;
+      border: 1px solid #e2e2e2;
+      border-radius: 8px;
+    }
+    figcaption {
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+  }
+
+  &__firma-add {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    background: #fafafa;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+  }
+
+  &__signed {
+    font-size: 0.9rem;
+    color: #1f7a44;
+  }
+
+  &__check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  &__mini-btn {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .cl__item {
+    grid-template-columns: 1fr;
+  }
+  .cl__item-controls {
+    justify-content: flex-start;
+  }
+}

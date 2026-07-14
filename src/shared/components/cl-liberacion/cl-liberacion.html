@@ -1,0 +1,326 @@
+<div class="cl">
+  @if (error()) {
+    <p class="cl__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="cl__loading text-muted">Cargando checklists de liberación…</p>
+  } @else {
+    <div class="cl__head">
+      <p class="cl__intro text-muted">
+        Regla de oro: ningún vaciado puede liberarse sin su checklist (CL) firmado por Residente,
+        Responsable y Cliente.
+      </p>
+      @if (!showForm()) {
+        <button type="button" class="sgc-btn sgc-btn--primary cl__mini-btn" (click)="openForm()">
+          + Nuevo checklist
+        </button>
+      }
+    </div>
+
+    <!-- ── Alta de CL ────────────────────────────────────────── -->
+    @if (showForm()) {
+      <div class="sgc-card cl__form">
+        <div class="cl__form-grid">
+          <label class="sgc-field">
+            <span class="cl__label">Tipo de checklist <span class="required">*</span></span>
+            <select
+              [value]="fPlantillaId()"
+              (change)="onPlantillaChange($any($event.target).value || null)"
+            >
+              <option [value]="null">Selecciona un CL…</option>
+              @for (p of plantillas(); track p.id) {
+                <option [value]="p.id">{{ p.codigo }} — {{ p.nombre }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="sgc-field">
+            <span class="cl__label">Elemento (opcional)</span>
+            <select [value]="fElementoId()" (change)="fElementoId.set($any($event.target).value || null)">
+              <option [value]="null">Sin elemento…</option>
+              @for (el of elementos(); track el.id) {
+                <option [value]="el.id">{{ elementoLabel(el.id) }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="sgc-field">
+            <span class="cl__label">Vaciado (opcional)</span>
+            <select [value]="fVaciadoId()" (change)="fVaciadoId.set($any($event.target).value || null)">
+              <option [value]="null">Sin vaciado…</option>
+              @for (v of vaciados(); track v.id) {
+                <option [value]="v.id">N° {{ v.numero ?? '—' }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="sgc-field">
+            <span class="cl__label">Bloque / edificio</span>
+            <input type="text" [ngModel]="fBloque()" (ngModelChange)="fBloque.set($event)" placeholder="Edificio A" />
+          </label>
+
+          <label class="sgc-field">
+            <span class="cl__label">Eje</span>
+            <input type="text" [ngModel]="fEje()" (ngModelChange)="fEje.set($event)" placeholder="A-1" />
+          </label>
+        </div>
+
+        <!-- Ítems del checklist agrupados por sección -->
+        @if (fItems().length > 0) {
+          <div class="cl__items">
+            @for (grupo of itemsPorSeccion(); track grupo.seccion) {
+              <div class="cl__item-group">
+                <h5 class="cl__item-group-title">{{ grupo.seccion }}</h5>
+                @for (item of grupo.items; track item.etiqueta) {
+                  <div class="cl__item">
+                    <span class="cl__item-label">{{ item.etiqueta }}</span>
+                    <div class="cl__item-controls">
+                      <button
+                        type="button"
+                        class="cl__toggle cl__toggle--si"
+                        [class.cl__toggle--active]="item.cumple === true"
+                        (click)="setItemCumple(item, true)"
+                      >
+                        Sí
+                      </button>
+                      <button
+                        type="button"
+                        class="cl__toggle cl__toggle--no"
+                        [class.cl__toggle--active]="item.cumple === false"
+                        (click)="setItemCumple(item, false)"
+                      >
+                        No
+                      </button>
+                    </div>
+                    @if (item.cumple === false) {
+                      <input
+                        type="text"
+                        class="cl__item-comment"
+                        [ngModel]="item.comentario"
+                        (ngModelChange)="setItemComentario(item, $event)"
+                        placeholder="Observación / acción correctiva"
+                      />
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else if (fPlantillaId()) {
+          <p class="text-muted cl__empty">Este checklist no tiene ítems configurados.</p>
+        }
+
+        <div class="cl__form-grid">
+          <label class="sgc-field">
+            <span class="cl__label">Plano mapeado (opcional)</span>
+            <input type="file" accept="image/*,.pdf" (change)="onPlanoSelected($event)" />
+          </label>
+          <label class="sgc-field cl__wide">
+            <span class="cl__label">Observaciones</span>
+            <input
+              type="text"
+              [ngModel]="fObservaciones()"
+              (ngModelChange)="fObservaciones.set($event)"
+              placeholder="Notas generales del checklist"
+            />
+          </label>
+        </div>
+
+        @if (formError()) {
+          <p class="field-error">{{ formError() }}</p>
+        }
+
+        <div class="cl__form-actions">
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardar()" [disabled]="saving()">
+            @if (saving()) { Guardando… } @else { Crear checklist }
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelForm()">Cancelar</button>
+        </div>
+      </div>
+    }
+
+    <!-- ── Lista de CL ───────────────────────────────────────── -->
+    @if (registros().length === 0) {
+      <p class="text-muted cl__empty">No hay checklists de liberación registrados.</p>
+    } @else {
+      <div class="cl__list">
+        @for (r of registros(); track r.id) {
+          <div class="cl__card" [class.cl__card--firmado]="r.estado === 'firmado'">
+            <button type="button" class="cl__card-head" (click)="toggleExpand(r.id)">
+              <div class="cl__card-title">
+                <strong>{{ r.plantilla?.codigo }}</strong>
+                <span>{{ r.plantilla?.nombre }}</span>
+              </div>
+              <div class="cl__card-meta">
+                @if (r.elemento_id) {
+                  <span class="text-muted">{{ elementoLabel(r.elemento_id) }}</span>
+                }
+                @if (r.bloque) { <span class="text-muted">· {{ r.bloque }}</span> }
+                @if (r.eje) { <span class="text-muted">· eje {{ r.eje }}</span> }
+                <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">
+                  {{ estadoLabel(r.estado) }}
+                </span>
+              </div>
+            </button>
+
+            <!-- Progreso de firmas obligatorias -->
+            <div class="cl__firmas-progress">
+              @for (f of firmasObligatorias(r); track f.rol) {
+                <span class="cl__firma-chip" [class.cl__firma-chip--done]="f.firmado">
+                  {{ f.firmado ? '✓' : '○' }} {{ f.label }}
+                </span>
+              }
+            </div>
+
+            @if (expandedId() === r.id) {
+              <div class="cl__detail">
+                <!-- Ítems -->
+                @if ((r.items?.length ?? 0) > 0) {
+                  <div class="cl__detail-block">
+                    <h5 class="cl__detail-title">
+                      Verificación ({{ itemsOk(r) }}/{{ r.items?.length }} conformes)
+                    </h5>
+                    <ul class="cl__item-review">
+                      @for (i of r.items; track i.etiqueta) {
+                        <li [class.cl__item-review--no]="i.cumple === false">
+                          <span class="cl__item-review-mark">
+                            {{ i.cumple === true ? '✓' : i.cumple === false ? '✗' : '—' }}
+                          </span>
+                          <span>{{ i.etiqueta }}</span>
+                          @if (i.comentario) {
+                            <em class="text-muted">— {{ i.comentario }}</em>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                @if (r.observaciones) {
+                  <p class="cl__obs"><strong>Observaciones:</strong> {{ r.observaciones }}</p>
+                }
+
+                <!-- Plano -->
+                @if (r.plano_path && urlOf(r.plano_path)) {
+                  <div class="cl__detail-block">
+                    <h5 class="cl__detail-title">Plano mapeado</h5>
+                    <a [href]="urlOf(r.plano_path)" target="_blank" rel="noopener">
+                      <img class="cl__plano" [src]="urlOf(r.plano_path)" alt="Plano mapeado" />
+                    </a>
+                  </div>
+                }
+
+                <!-- Fotos -->
+                <div class="cl__detail-block">
+                  <h5 class="cl__detail-title">Fotos ({{ r.fotos?.length ?? 0 }})</h5>
+                  @if ((r.fotos?.length ?? 0) > 0) {
+                    <div class="cl__fotos">
+                      @for (foto of r.fotos; track foto.id) {
+                        @if (urlOf(foto.storage_path)) {
+                          <figure class="cl__foto" [class.cl__foto--no]="foto.correcto === false">
+                            <img [src]="urlOf(foto.storage_path)" [alt]="foto.descripcion || 'Foto'" />
+                            <figcaption>
+                              {{ foto.correcto === false ? '✗ incorrecto' : '✓ correcto' }}
+                              @if (foto.descripcion) { — {{ foto.descripcion }} }
+                            </figcaption>
+                          </figure>
+                        }
+                      }
+                    </div>
+                  }
+                  <div class="cl__foto-add">
+                    <label class="cl__check">
+                      <input
+                        type="checkbox"
+                        [ngModel]="fotoCorrecto()"
+                        (ngModelChange)="fotoCorrecto.set($any($event))"
+                      />
+                      <span>Punto correcto</span>
+                    </label>
+                    <input
+                      type="text"
+                      class="cl__foto-desc"
+                      [ngModel]="fotoDescripcion()"
+                      (ngModelChange)="fotoDescripcion.set($event)"
+                      placeholder="Descripción de la foto"
+                    />
+                    <label class="sgc-btn sgc-btn--secondary cl__foto-btn">
+                      @if (fotoSaving()) { Subiendo… } @else { + Foto }
+                      <input type="file" accept="image/*" hidden (change)="onFotoSelected($event, r)" />
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Firmas -->
+                <div class="cl__detail-block">
+                  <h5 class="cl__detail-title">Ciclo de firmas</h5>
+                  @if ((r.firmas?.length ?? 0) > 0) {
+                    <div class="cl__firmas">
+                      @for (s of r.firmas; track s.id) {
+                        <figure class="cl__firma">
+                          @if (urlOf(s.firma_path)) {
+                            <img [src]="urlOf(s.firma_path)" [alt]="'Firma ' + rolLabel(s.rol)" />
+                          }
+                          <figcaption>
+                            {{ rolLabel(s.rol) }}
+                            @if (s.nombre) { <br /><span class="text-muted">{{ s.nombre }}</span> }
+                          </figcaption>
+                        </figure>
+                      }
+                    </div>
+                  }
+
+                  @if (r.estado !== 'firmado') {
+                    <div class="cl__firma-add">
+                      <div class="cl__form-grid">
+                        <label class="sgc-field">
+                          <span class="cl__label">Rol que firma</span>
+                          <select [value]="firmaRol()" (change)="firmaRol.set($any($event.target).value || null)">
+                            <option [value]="null">Selecciona…</option>
+                            @for (rol of CL_FIRMA_ROLES; track rol.value) {
+                              <option [value]="rol.value" [disabled]="rolYaFirmado(r, rol.value)">
+                                {{ rol.label }}{{ rolYaFirmado(r, rol.value) ? ' (firmado)' : '' }}
+                              </option>
+                            }
+                          </select>
+                        </label>
+                        <label class="sgc-field">
+                          <span class="cl__label">Nombre de quien firma</span>
+                          <input
+                            type="text"
+                            [ngModel]="firmaNombre()"
+                            (ngModelChange)="firmaNombre.set($event)"
+                            placeholder="Nombre y apellido"
+                          />
+                        </label>
+                      </div>
+                      <app-signature-pad ariaLabel="Firma del checklist de liberación" />
+                      @if (firmaError()) {
+                        <p class="field-error">{{ firmaError() }}</p>
+                      }
+                      <div class="cl__form-actions">
+                        <button
+                          type="button"
+                          class="sgc-btn sgc-btn--primary"
+                          (click)="guardarFirma(r)"
+                          [disabled]="firmaSaving()"
+                        >
+                          @if (firmaSaving()) { Guardando… } @else { Guardar firma }
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <p class="cl__signed text-muted">
+                      ✓ Checklist firmado — el vaciado asociado puede liberarse.
+                    </p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

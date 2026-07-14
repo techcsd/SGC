@@ -2,7 +2,13 @@
 
 _Last updated: 2026-07-13_
 
-## Current focus: Flota v2 — Pre-uso + Combustible (13/07/2026)
+## Current focus (2026-07-14): Flota v2 + CL-01..07 desplegados a prod
+
+Ambos mergeados a `main` y desplegados (autorización de Xavier "hazlo todo").
+Además se aplicó el endurecimiento del cuadre (RLS a compras/direccion/admin) y
+las correcciones de la auditoría (ver historial de commits). Detalle abajo.
+
+## Flota v2 — Pre-uso + Combustible (13/07/2026)
 
 Source of truth: `C:\Users\xavie\Desktop\X Dev\Constructora SD\developer csd\fp ideas\13072026\x solution\CONTEXTO.md`.
 Web (this repo) done; **mobile side pending in the csd-app repo**. All DB changes are
@@ -39,11 +45,48 @@ Web (this repo) done; **mobile side pending in the csd-app repo**. All DB change
   y con rendimiento bajo; checklist con crítico en NO; pre-cita por km; panel del día; flotilla; atender avisos; imprimir reporte.
 - **Mobile (csd-app)**: pre-uso v2 (nivel, 7 fotos, secciones, veredicto, PDF jsPDF+share) y combustible v2 (3 datos + 2 fotos) usando los RPCs ya listos.
 - Confirmar con negocio: ítems críticos oficiales, caja herramienta pesada (P1–P4 placeholder), correos del BLOQUEADO, frecuencia de inspección.
-- **No commit / no deploy Vercel** hasta autorización de Xavier.
+- (Nota histórica: decía "no commit hasta autorización" — Xavier autorizó el 14/07 con "hazlo todo".)
 
 ---
 
-## Previous focus: Reunión 07/07/2026 — Parte A (A1–A9)
+## Ola 3 — Checklists de Liberación (CL-01..07)
+
+Branch **`feat/ola3-cl-liberacion`** (web + mobile, both pushed for preview).
+Migration `sql/2026-07-13-ola3-cl-liberacion.sql` is **already applied to prod**
+(additive/retro-compatible; smoke-tested). App code is on the feature branch
+awaiting QA before merge/deploy.
+
+### ✅ Done — CL-01..07 (build verde en ambos repos; lógica de compliance probada)
+- **Migración (aplicada a prod):** ítems reales de los 7 CL sembrados
+  (11/9/7/8/11/7/7); nombres CL-05/06/07 corregidos (CL-06 = Encofrado horizontal
+  Golliat, CL-07 = Armado horizontal); bucket privado **`obra`** (+3 policies);
+  trigger **`trg_cl_firma`** (CL → `firmado` al firmar residente+responsable+cliente);
+  **`trg_nc_bloquea_vaciado`** reforzado (liberar/vaciar exige un CL `firmado`);
+  RPC **`registrar_cl_app`** (captura offline del móvil, idempotente por p_id).
+- **Web** (`src/shared/…`): `app-cl-liberacion` (componente + servicio + modelo)
+  embebido en el detalle de proyecto **antes de Vaciados**; llenar checklist por
+  secciones (Sí/No + observación), plano + fotos (correcto/incorrecto), y ciclo de
+  firmas con nuevo primitivo **`app-signature-pad`** (canvas). Sube al bucket `obra`
+  con URLs firmadas. `npm run build` verde.
+- **Móvil** (`dev2/csd-app`, **v1.3.0** / versionCode 13): página
+  `/bitacora/liberacion` + tile en el hub de Bitácora; asistente offline (obra →
+  CL → ítems → plano/fotos → firmas → confirmar) por el outbox `cl_liberacion` →
+  `registrar_cl_app`. Servicio registrado en `app.config.ts`. Build verde.
+- **Smoke test DB (rollback):** (1) CL nuevo=borrador, (2) 2 firmas=borrador,
+  (3) 3 obligatorias=firmado, (4) liberar sin CL → BLOQUEADO, (5) liberar con CL
+  firmado → OK. Sin datos de prueba filtrados a prod.
+
+### ⏳ Pendiente de Xavier (antes de cerrar el ciclo)
+- **QA en preview**: web `sgc-git-feat-ola3-cl-liberacion-xaviel-csd.vercel.app`,
+  móvil PWA `csd-app-git-feat-ola3-cl-liberacion-xaviel-csd.vercel.app`.
+- Al aprobar: **merge a `main` (ambos) + deploy** y **rebuild/reinstall APK v1.3.0**
+  (`node scripts/release-apk.mjs`, device 6dbf1af4).
+- Falta aún (Ola 3): UI de informe semanal / charlas / reporte de pérdidas;
+  cubicaciones/RFI; exports PDF/Excel; notificaciones WhatsApp.
+
+---
+
+## Reunión 07/07/2026 — Parte A (A1–A9)
 
 Big multi-phase build from the 07/07/2026 meeting. Source of truth:
 `C:\Users\xavie\Desktop\X Dev\Constructora SD\SGC meet improvements\07072026 meet.md`

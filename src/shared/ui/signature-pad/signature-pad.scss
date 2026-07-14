@@ -1,0 +1,50 @@
+.sigpad {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__canvas {
+    width: 100%;
+    height: 160px;
+    background: #fff;
+    border: 1px dashed var(--main-ultra-light, #929090);
+    border-radius: 10px;
+    touch-action: none;
+    cursor: crosshair;
+    display: block;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  &__hint {
+    font-size: 0.8rem;
+    color: var(--main-ultra-light, #929090);
+  }
+
+  &__clear {
+    font-family: var(--font-btns);
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    background: #f5f5f5;
+    color: var(--main, #121212);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover {
+      border-color: var(--primary, #ff5f00);
+      color: var(--primary, #ff5f00);
+    }
+  }
+}
