@@ -3,6 +3,10 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { AvisoFlota } from '../models/aviso-flota.model';
 import { Vehiculo } from '../models/vehiculo.model';
 import { Conductor } from '../models/conductor.model';
+import { todayIso } from '../utils/fecha.util';
+
+// Orden de prioridad real (no alfabético: 'alta' < 'baja' < 'media' saldría mal).
+const SEV_RANK: Record<string, number> = { alta: 0, media: 1, baja: 2 };
 
 const SELECT = '*, vehiculo:vehiculos(placa,marca), conductor:conductores(nombre)';
 
@@ -26,10 +30,12 @@ export class AvisosFlotaService {
       .from('avisos_flota')
       .select(SELECT)
       .eq('estado', 'pendiente')
-      .order('severidad', { ascending: true })
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as AvisoFlota[];
+    // Ordenar por prioridad real en el cliente (evita el orden alfabético de PostgREST).
+    return ((data ?? []) as unknown as AvisoFlota[]).sort(
+      (a, b) => (SEV_RANK[a.severidad] ?? 3) - (SEV_RANK[b.severidad] ?? 3),
+    );
   }
 
   async atender(id: string, nota: string | null): Promise<void> {
@@ -59,8 +65,9 @@ export class AvisosFlotaService {
     conductores: Conductor[],
     umbralLicenciaDias = 30,
   ): Promise<number> {
-    const hoy = new Date();
-    const hoyIso = hoy.toISOString().slice(0, 10);
+    // Fecha local (no UTC): toISOString() salta al día siguiente después de las
+    // ~20:00 en RD (UTC-4) → rompía la idempotencia diaria del dedup_key.
+    const hoyIso = todayIso();
     const rows: Array<Omit<AvisoFlota, 'id' | 'created_at' | 'vehiculo' | 'conductor'>> = [];
 
     const diasHasta = (fecha: string): number => {

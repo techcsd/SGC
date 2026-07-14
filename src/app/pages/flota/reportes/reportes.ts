@@ -37,8 +37,11 @@ interface CombustibleReport {
   vehiculo_id: string;
   vehiculo?: { placa: string; marca: string };
   fecha: string;
-  litros: number;
+  // v1 (litros/total) y v2 (galones/monto) coexisten; v2 deja litros/total en null.
+  litros: number | null;
   total: number | null;
+  galones: number | null;
+  monto: number | null;
   kilometraje: number | null;
 }
 
@@ -82,7 +85,8 @@ export class FlotaReportes implements OnInit {
     const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     return this.combustible()
       .filter((r) => r.fecha.slice(0, 7) === currentYearMonth)
-      .reduce((sum, r) => sum + (r.total ?? 0), 0);
+      // v2 guarda el gasto en `monto` (galones); legacy usaba `total` (litros).
+      .reduce((sum, r) => sum + (r.monto ?? r.total ?? 0), 0);
   });
 
   // ── Section data computed ─────────────────────────────────
@@ -115,8 +119,9 @@ export class FlotaReportes implements OnInit {
         map.set(placa, { placa, marca, litros: 0, gasto: 0 });
       }
       const entry = map.get(placa)!;
-      entry.litros += r.litros;
-      entry.gasto += r.total ?? 0;
+      // v2 usa galones/monto; legacy usaba litros/total. Prioriza v2.
+      entry.litros += r.galones ?? r.litros ?? 0;
+      entry.gasto += r.monto ?? r.total ?? 0;
     }
     return [...map.values()].sort((a, b) => b.gasto - a.gasto);
   });
