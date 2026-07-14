@@ -32,8 +32,12 @@ export class GeocodingService {
     }
   }
 
-  /** Address/place search → candidate locations (bias toward Dominican Republic). */
-  async buscar(texto: string): Promise<LugarBusqueda[]> {
+  /**
+   * Address/place search → candidate locations (bias RD). U19: propaga errores
+   * (throttle 429 / red) para que el UI distinga "sin resultados" de "fallo";
+   * acepta AbortSignal para cancelar búsquedas obsoletas (debounce en el UI).
+   */
+  async buscar(texto: string, signal?: AbortSignal): Promise<LugarBusqueda[]> {
     if (!texto.trim()) return [];
     const params = new URLSearchParams({
       q: texto,
@@ -41,14 +45,11 @@ export class GeocodingService {
       'accept-language': 'es',
       countrycodes: 'do',
       limit: '6',
+      dedupe: '1',
     });
-    try {
-      const res = await fetch(`${NOMINATIM}/search?${params.toString()}`);
-      if (!res.ok) return [];
-      const data = (await res.json()) as { display_name: string; lat: string; lon: string }[];
-      return data.map((d) => ({ nombre: d.display_name, latitud: Number(d.lat), longitud: Number(d.lon) }));
-    } catch {
-      return [];
-    }
+    const res = await fetch(`${NOMINATIM}/search?${params.toString()}`, { signal });
+    if (!res.ok) throw new Error(`El buscador de mapas respondió ${res.status}`);
+    const data = (await res.json()) as { display_name: string; lat: string; lon: string }[];
+    return data.map((d) => ({ nombre: d.display_name, latitud: Number(d.lat), longitud: Number(d.lon) }));
   }
 }

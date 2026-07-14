@@ -6,6 +6,11 @@
       (input)="onBuscar($any($event.target).value)"
       aria-label="Buscar ubicación"
     />
+    @if (buscando()) {
+      <p class="location-picker__msg">Buscando…</p>
+    } @else if (busquedaError()) {
+      <p class="location-picker__msg location-picker__msg--error">{{ busquedaError() }}</p>
+    }
     @if (resultados().length > 0) {
       <ul class="location-picker__results">
         @for (r of resultados(); track r.nombre) {

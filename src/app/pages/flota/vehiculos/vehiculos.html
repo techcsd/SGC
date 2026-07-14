@@ -94,6 +94,13 @@
     <div class="flota-vehiculos__grid">
       @for (v of filtered(); track v.id) {
         <div class="flota-vehiculos__card" [class.inactive]="!v.activo">
+          <div class="flota-vehiculos__photo">
+            @if (fotoDe(v); as url) {
+              <img [src]="url" [alt]="'Foto de ' + v.placa" loading="lazy" />
+            } @else {
+              <span class="flota-vehiculos__photo-ph" aria-hidden="true">🚛</span>
+            }
+          </div>
           <div class="flota-vehiculos__card-header">
             <div class="flota-vehiculos__card-tipo">
               <span class="flota-vehiculos__tipo-icon" aria-hidden="true">🚛</span>

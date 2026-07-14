@@ -18,6 +18,7 @@ import {
   TIPO_VEHICULO_AUTORIZADO,
 } from '../../../../shared/models/conductor.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
+import { VehiculoAsignacion } from '../../../../shared/models/vehiculo-asignacion.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { daysUntil } from '../../../../shared/utils/fecha.util';
 
@@ -96,9 +97,16 @@ export class Conductores implements OnInit {
     this.editingId() ? 'Editar conductor' : 'Nuevo conductor',
   );
 
-  // Un vehículo puede tener más de un chofer (p. ej. varios turnos en el día),
-  // así que NO se excluyen los ya asignados — solo se listan los activos.
-  availableVehiculos = computed(() => this.vehiculos().filter((v) => v.activo));
+  // U1 — pool compartido: los vehículos son seleccionables por todos; NO se
+  // excluyen los "ya asignados". Solo se listan los que pueden operar.
+  availableVehiculos = computed(() =>
+    this.vehiculos().filter((v) => v.activo && v.estado !== 'baja'),
+  );
+
+  // U2 — asignaciones activas del usuario vinculado (fuente de verdad:
+  // vehiculo_asignaciones). El form las MUESTRA para no ofrecer "asignar" como
+  // si el usuario no tuviera vehículo.
+  asignacionesUsuario = signal<VehiculoAsignacion[]>([]);
 
   async ngOnInit() {
     await this.loadAll();
@@ -162,6 +170,7 @@ export class Conductores implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
+    this.asignacionesUsuario.set([]);
     this.form.reset({ activo: true, licencia_tipo: 'B', tipo_vehiculo_autorizado: 'Ambos' });
     this.drawerOpen.set(true);
   }
@@ -181,7 +190,37 @@ export class Conductores implements OnInit {
       usuario_id: c.usuario_id,
       activo: c.activo,
     });
+    void this.cargarAsignacionesUsuario(c.usuario_id ?? null);
     this.drawerOpen.set(true);
+  }
+
+  /**
+   * U3 — al vincular un usuario existente, autollena lo que el perfil ya tiene
+   * (hoy `usuarios` solo guarda `nombre`; no cédula/teléfono). U2 — carga sus
+   * asignaciones activas para reflejarlas en el form.
+   */
+  onUsuarioChange(usuarioId: string) {
+    const id = usuarioId || null;
+    this.form.controls.usuario_id.setValue(id);
+    if (id) {
+      const u = this.usuarios().find((x) => x.id === id);
+      if (u && !this.form.controls.nombre.value?.trim()) {
+        this.form.controls.nombre.setValue(u.nombre);
+      }
+    }
+    void this.cargarAsignacionesUsuario(id);
+  }
+
+  private async cargarAsignacionesUsuario(usuarioId: string | null) {
+    if (!usuarioId) {
+      this.asignacionesUsuario.set([]);
+      return;
+    }
+    try {
+      this.asignacionesUsuario.set(await this.vehiculosService.getAsignacionesActivasByUsuario(usuarioId));
+    } catch {
+      this.asignacionesUsuario.set([]);
+    }
   }
 
   closeDrawer() {

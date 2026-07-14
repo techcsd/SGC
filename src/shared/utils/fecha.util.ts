@@ -79,6 +79,60 @@ export function formatAntiguedad(fecha: string | null | undefined): string {
   return remMonths > 0 ? `${yearPart} ${remMonths} mes${remMonths !== 1 ? 'es' : ''}` : yearPart;
 }
 
+const MESES_ABREV = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+/**
+ * U9 — Fecha+hora humana es-DO de un `timestamptz`, ej. `14 jul 2026, 3:45 p. m.`.
+ * Construida a mano (sin depender de datos de locale de Intl). El timestamp trae
+ * offset UTC (`Z`), así que `new Date` es correcto aquí.
+ */
+export function formatFechaHumana(ts: string | null | undefined): string {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  let h = d.getHours();
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const period = h >= 12 ? 'p. m.' : 'a. m.';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${d.getDate()} ${MESES_ABREV[d.getMonth()]} ${d.getFullYear()}, ${h}:${min} ${period}`;
+}
+
+/**
+ * U9 — Fecha relativa corta ("hace 5 min", "hace 2 h", "ayer") para lo reciente;
+ * para más de ~2 días cae a `formatFechaHumana`. Ideal para Avisos/notificaciones.
+ */
+export function formatFechaRelativa(ts: string | null | undefined): string {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  const secs = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (secs < 0) return formatFechaHumana(ts);
+  if (secs < 60) return 'hace un momento';
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `hace ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `hace ${hrs} h`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return 'ayer';
+  if (days < 3) return `hace ${days} días`;
+  return formatFechaHumana(ts);
+}
+
+/**
+ * U23 — Duración legible a partir de minutos: `88` → `1 h 28 min`, `45` → `45 min`,
+ * `120` → `2 h`. Acepta número o string; null/NaN → `—`.
+ */
+export function formatearDuracion(minutos: number | string | null | undefined): string {
+  if (minutos == null || minutos === '') return '—';
+  const total = Math.round(Number(minutos));
+  if (isNaN(total) || total < 0) return '—';
+  if (total < 60) return `${total} min`;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return m > 0 ? `${h} h ${m} min` : `${h} h`;
+}
+
 /** Whether a `YYYY-MM-DD` fecha falls within [from, to] (inclusive), both optional. */
 export function isDateInRange(fecha: string, from?: string | null, to?: string | null): boolean {
   if (from && fecha < from) return false;
