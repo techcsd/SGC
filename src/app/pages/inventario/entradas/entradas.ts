@@ -11,21 +11,24 @@ import { DecimalPipe } from '@angular/common';
 import { EntradasService } from '../../../../shared/services/entradas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import { OrdenesCompraService } from '../../../../shared/services/ordenes-compra.service';
 import { UserService } from '../../../core/services/user.service';
 import { EntradaInventario, EntradaItemFormData } from '../../../../shared/models/entrada.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { OrdenCompra } from '../../../../shared/models/orden-compra.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +37,7 @@ export class Entradas implements OnInit {
   private entradasService = inject(EntradasService);
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);
+  private categoriasService = inject(CategoriasService);
   private proveedoresService = inject(ProveedoresService);
   private ordenesCompraService = inject(OrdenesCompraService);
   private userService = inject(UserService);
@@ -41,6 +45,7 @@ export class Entradas implements OnInit {
   // ── Data state ──────────────────────────────────────────
   entries = signal<EntradaInventario[]>([]);
   articulos = signal<Articulo[]>([]);
+  categorias = signal<Categoria[]>([]);
   bodegas = signal<Bodega[]>([]);
   proveedores = signal<Proveedor[]>([]);
   ordenesCompra = signal<OrdenCompra[]>([]);
@@ -91,6 +96,36 @@ export class Entradas implements OnInit {
   // ── Computed ─────────────────────────────────────────────
   activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
 
+  /**
+   * Artículos agrupados por categoría para los <select> (R16). Se itera categorias()
+   * — que ya viene destacada-first + orden — emitiendo un grupo por categoría con
+   * artículos; los artículos sin categoría activa caen en un grupo final "Otros".
+   */
+  articulosAgrupados = computed<{ categoria: string; destacada: boolean; articulos: Articulo[] }[]>(() => {
+    const arts = this.articulos();
+    const cats = this.categorias();
+    const byCat = new Map<number, Articulo[]>();
+    for (const a of arts) {
+      const list = byCat.get(a.categoria_id);
+      if (list) list.push(a);
+      else byCat.set(a.categoria_id, [a]);
+    }
+    const grupos: { categoria: string; destacada: boolean; articulos: Articulo[] }[] = [];
+    const catIds = new Set<number>();
+    for (const c of cats) {
+      catIds.add(c.id);
+      const list = byCat.get(c.id);
+      if (list && list.length) {
+        grupos.push({ categoria: c.nombre, destacada: c.destacada, articulos: list });
+      }
+    }
+    const otros = arts.filter((a) => !catIds.has(a.categoria_id));
+    if (otros.length) {
+      grupos.push({ categoria: 'Otros', destacada: false, articulos: otros });
+    }
+    return grupos;
+  });
+
   // Only orders still awaiting (full or partial) delivery are valid link targets —
   // matches sgc.registrar_entrada_inventario()'s own check server-side.
   ordenesRecibibles = computed(() =>
@@ -137,15 +172,17 @@ export class Entradas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [entries, arts, bods, provs, ordenes] = await Promise.all([
+      const [entries, arts, cats, bods, provs, ordenes] = await Promise.all([
         this.entradasService.getAll(),
         this.articulosService.getAll(),
+        this.categoriasService.getAll(),
         this.bodegasService.getAll(),
         this.proveedoresService.getAll(),
         this.ordenesCompraService.getAll(),
       ]);
       this.entries.set(entries);
       this.articulos.set(arts);
+      this.categorias.set(cats);
       this.bodegas.set(bods);
       this.proveedores.set(provs);
       this.ordenesCompra.set(ordenes);
@@ -229,9 +266,10 @@ export class Entradas implements OnInit {
     );
   }
 
-  updateItemCantidad(index: number, value: string) {
+  updateItemCantidad(index: number, value: number | string) {
+    const cantidad = Number(value);
     this.formItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, cantidad: Number(value) } : item)),
+      items.map((item, i) => (i === index ? { ...item, cantidad } : item)),
     );
   }
 

@@ -9,7 +9,8 @@ export type AvisoFlotaTipo =
   | 'consumo_anormal'
   | 'licencia'
   | 'matricula'
-  | 'seguro';
+  | 'seguro'
+  | 'reporte_semanal';
 
 export type AvisoFlotaEstado = 'pendiente' | 'atendido';
 export type AvisoFlotaSeveridad = 'baja' | 'media' | 'alta';
@@ -41,6 +42,7 @@ export const AVISO_TIPO_LABEL: Record<AvisoFlotaTipo, string> = {
   licencia: 'Licencia por vencer',
   matricula: 'Matrícula por vencer',
   seguro: 'Seguro por vencer',
+  reporte_semanal: 'Reporte semanal pendiente',
 };
 
 export const AVISO_SEVERIDAD_BADGE: Record<AvisoFlotaSeveridad, string> = {

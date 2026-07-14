@@ -132,6 +132,34 @@
   color: var(--sgc-text);
 }
 
+.bitacora-matriz__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bitacora-matriz__qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 24px;
+
+  &-label {
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+  }
+}
+
+// Inline yes/no style checkbox line (lluvia / migración)
+.bitacora-check-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--sgc-text);
+  cursor: pointer;
+}
+
 // ── Restricciones ───────────────────────────────────────────
 .bitacora-restricciones {
   display: grid;

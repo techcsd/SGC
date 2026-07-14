@@ -61,6 +61,11 @@ export class BitacoraService {
       p_incidente_descripcion: payload.incidente_descripcion,
       p_incidente_acciones: payload.incidente_acciones,
       p_weather_snapshot_id: payload.weather_snapshot_id ?? null,
+      // Nuevos (14/07): clima + migración (R21/R22). Retrocompatible (default null).
+      p_llovio: payload.llovio ?? null,
+      p_lluvia_detalle: payload.lluvia_detalle ?? null,
+      p_hubo_migracion: payload.hubo_migracion ?? null,
+      p_migracion_obreros: payload.migracion_obreros ?? null,
     });
 
     if (error) throw new Error(error.message);

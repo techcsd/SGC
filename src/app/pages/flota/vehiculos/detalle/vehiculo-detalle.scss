@@ -1,0 +1,100 @@
+// ── Back link ──
+.vd-back {
+  display: inline-block; margin-bottom: 14px;
+  color: var(--sgc-text-secondary); font-size: 14px; font-weight: 500;
+  &:hover { color: var(--sgc-text); }
+}
+
+.vd-card { padding: 18px; margin-bottom: 18px; }
+
+.vd-empty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  color: var(--sgc-text-secondary);
+}
+
+.vd-muted { color: var(--sgc-text-secondary); font-size: 14px; margin: 0; }
+.vd-danger { color: var(--sgc-danger); font-weight: 600; }
+.vd-fecha-val { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+// ── Header ──
+.vd-header { display: flex; gap: 18px; align-items: flex-start; }
+.vd-header__foto {
+  width: 140px; height: 100px; object-fit: cover; border-radius: var(--sgc-radius);
+  border: 1px solid var(--sgc-border); flex-shrink: 0;
+}
+.vd-header__body { display: flex; flex-direction: column; gap: 6px; }
+.vd-header__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.vd-placa { font-size: 26px; font-weight: 700; margin: 0; color: var(--sgc-text); }
+.vd-header__sub { margin: 0; color: var(--sgc-text-secondary); font-size: 15px; }
+.vd-header__resp { margin: 0; color: var(--sgc-text-muted); font-size: 13px; }
+.vd-header__reactivar { margin-top: 8px; align-self: flex-start; }
+
+// ── Stat cards (mismo patrón que panel-dia) ──
+.stat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px; margin-bottom: 18px;
+}
+.stat-card {
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  border-left: 4px solid var(--sgc-border);
+  &--warn { border-left-color: var(--sgc-warning); }
+  &--danger { border-left-color: var(--sgc-danger); }
+  &__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sgc-text-muted); }
+  &__value { font-size: 22px; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
+  &__hint { font-size: 11px; color: var(--sgc-text-secondary); }
+}
+
+// ── Section titles ──
+.vd-section-title {
+  font-size: 15px; font-weight: 700; margin: 0 0 14px; color: var(--sgc-text);
+  &--pad { padding: 18px 18px 0; margin-bottom: 12px; }
+}
+.vd-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+  .vd-section-title { margin: 0; }
+}
+
+// ── Vencimientos ──
+.vd-venc {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 0;
+  dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sgc-text-muted); font-weight: 600; }
+  dd { margin: 4px 0 0; font-size: 14px; color: var(--sgc-text); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+}
+
+// ── Asignaciones ──
+.vd-asig-list {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column;
+  &--hist { margin-top: 8px; opacity: 0.85; }
+}
+.vd-asig {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--sgc-border);
+  &:last-child { border-bottom: none; }
+  &__info { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  &__nombre { font-weight: 600; color: var(--sgc-text); }
+  &__notas { font-size: 13px; color: var(--sgc-text-secondary); font-style: italic; }
+}
+.vd-toggle {
+  margin-top: 14px; background: none; border: none; padding: 0;
+  color: var(--sgc-text-secondary); font-size: 13px; font-weight: 600; cursor: pointer;
+  &:hover { color: var(--sgc-text); }
+}
+
+// ── Historial tables ──
+.vd-desc { max-width: 40ch; color: var(--sgc-text-secondary); font-size: 13px; }
+
+// ── Drawer form ──
+.vd-form { display: flex; flex-direction: column; gap: 14px; }
+.drawer-actions {
+  display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px;
+  border-top: 1px solid var(--sgc-border); margin-top: 4px;
+}
+textarea { resize: vertical; min-height: 72px; width: 100%; }
+
+@media (max-width: 768px) {
+  .vd-header { flex-direction: column; }
+  .vd-header__foto { width: 100%; height: 160px; }
+}

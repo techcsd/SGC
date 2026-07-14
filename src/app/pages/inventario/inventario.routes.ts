@@ -42,6 +42,11 @@ export const inventarioRoutes: Routes = [
     title: 'Almacenes — Inventario',
   },
   {
+    path: 'categorias',
+    loadComponent: () => import('./categorias/categorias').then((m) => m.InventarioCategorias),
+    title: 'Categorías — Inventario',
+  },
+  {
     path: 'conteos',
     loadComponent: () => import('./conteos/conteos').then((m) => m.Conteos),
     title: 'Conteos y ajustes — Inventario',

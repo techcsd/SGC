@@ -38,6 +38,11 @@ export const adminRoutes: Routes = [
     title: 'Parámetros — Administración',
   },
   {
+    path: 'app-versiones',
+    loadComponent: () => import('./app-versiones/app-versiones').then((m) => m.AdminAppVersiones),
+    title: 'Versiones de la App — Administración',
+  },
+  {
     path: 'auditoria',
     loadComponent: () => import('./auditoria/auditoria').then((m) => m.AdminAuditoria),
     title: 'Auditoría — Administración',

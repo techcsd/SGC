@@ -28,6 +28,7 @@ import {
   INCIDENTE_GRAVEDADES,
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -35,11 +36,12 @@ interface Draft {
   form: Record<string, unknown>;
   actividades: string[];
   restricciones: string[];
+  cantidades?: Record<string, number | null>;
 }
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, QtyStepper],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,6 +76,8 @@ export class Nueva implements OnInit {
   tipoActual = signal<BitacoraTipo>('parte_diario');
 
   actividadesSeleccionadas = signal<Set<string>>(new Set());
+  // R24 — cuántas se hicieron por actividad, misma llave `estructura|actividad`.
+  cantidadesActividad = signal<Record<string, number | null>>({});
   restriccionesSeleccionadas = signal<Set<string>>(new Set());
   archivos = signal<File[]>([]);
   expandedEstructura = signal<string | null>(null);
@@ -101,6 +105,11 @@ export class Nueva implements OnInit {
     otro_personal: new FormControl<string | null>(null, [Validators.maxLength(500)]),
     comentarios: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
     descripcion_otro_restriccion: new FormControl<string | null>(null),
+    // Clima + migración (R21/R22) — parte diario. La lluvia NO es un incidente.
+    llovio: new FormControl<boolean>(false, { nonNullable: true }),
+    lluvia_detalle: new FormControl<string | null>(null, [Validators.maxLength(1000)]),
+    hubo_migracion: new FormControl<boolean>(false, { nonNullable: true }),
+    migracion_obreros_texto: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
     // Visita
     visita_tipo_visitante: new FormControl<string | null>(null),
     visita_nombre: new FormControl<string | null>(null, [Validators.maxLength(150)]),
@@ -181,6 +190,7 @@ export class Nueva implements OnInit {
       form: this.form.getRawValue(),
       actividades: [...this.actividadesSeleccionadas()],
       restricciones: [...this.restriccionesSeleccionadas()],
+      cantidades: this.cantidadesActividad(),
     };
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
@@ -193,6 +203,7 @@ export class Nueva implements OnInit {
         this.form.patchValue(draft.form);
         this.actividadesSeleccionadas.set(new Set(draft.actividades));
         this.restriccionesSeleccionadas.set(new Set(draft.restricciones));
+        this.cantidadesActividad.set(draft.cantidades ?? {});
       } catch {
         sessionStorage.removeItem(DRAFT_KEY);
       }
@@ -215,14 +226,33 @@ export class Nueva implements OnInit {
   }
 
   toggleActividad(estructura: string, actividad: string) {
+    const k = this.key(estructura, actividad);
     this.actividadesSeleccionadas.update((set) => {
       const next = new Set(set);
-      const k = this.key(estructura, actividad);
       if (next.has(k)) next.delete(k);
       else next.add(k);
       return next;
     });
+    // Al desmarcar la actividad, olvida su cantidad.
+    if (!this.actividadesSeleccionadas().has(k)) {
+      this.cantidadesActividad.update((m) => {
+        const next = { ...m };
+        delete next[k];
+        return next;
+      });
+    }
     this.saveDraft();
+  }
+
+  // R24 — cantidad por actividad.
+  setCantidad(estructura: string, actividad: string, n: number) {
+    const k = this.key(estructura, actividad);
+    this.cantidadesActividad.update((m) => ({ ...m, [k]: n }));
+    this.saveDraft();
+  }
+
+  getCantidad(estructura: string, actividad: string): number | null {
+    return this.cantidadesActividad()[this.key(estructura, actividad)] ?? null;
   }
 
   toggleEstructura(estructura: string) {
@@ -289,7 +319,7 @@ export class Nueva implements OnInit {
     const actividades = esParte
       ? [...this.actividadesSeleccionadas()].map((k) => {
           const [estructura, actividad] = k.split('|') as [string, string];
-          return { estructura, actividad };
+          return { estructura, actividad, cantidad: this.cantidadesActividad()[k] ?? null };
         })
       : [];
     const restricciones = esParte
@@ -343,6 +373,17 @@ export class Nueva implements OnInit {
         incidente_descripcion: tipo === 'incidente' ? (v.incidente_descripcion ?? null) : null,
         incidente_acciones: tipo === 'incidente' ? (v.incidente_acciones ?? null) : null,
         weather_snapshot_id: weatherSnapshotId,
+        // Clima + migración (R21/R22) — solo aplican al parte diario.
+        llovio: esParte ? !!v.llovio : null,
+        lluvia_detalle: esParte && v.llovio ? (v.lluvia_detalle || null) : null,
+        hubo_migracion: esParte ? !!v.hubo_migracion : null,
+        migracion_obreros:
+          esParte && v.hubo_migracion && v.migracion_obreros_texto?.trim()
+            ? v.migracion_obreros_texto
+                .split('\n')
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : null,
       });
 
       for (const file of this.archivos()) {

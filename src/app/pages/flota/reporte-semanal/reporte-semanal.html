@@ -1,0 +1,143 @@
+<!-- ── Header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Reporte semanal de vehículos</h1>
+    @if (semanaActual(); as g) {
+      <span class="page-count">
+        Semana {{ g.semana }} · {{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }}
+      </span>
+    }
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="4" />
+  <app-skeleton variant="table" [rows]="6" />
+} @else if (!semanaActual()) {
+  <div class="table-empty sgc-card"><p>No hay datos de cumplimiento disponibles.</p></div>
+} @else {
+  <!-- ── Resumen de la semana actual ── -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-card__label">Reportados</span>
+      <span class="stat-card__value">{{ resumen().reportados | number:'1.0-0' }} / {{ resumen().total | number:'1.0-0' }}</span>
+      <span class="stat-card__hint">vehículos con reporte esta semana</span>
+    </div>
+    <div class="stat-card stat-card--ok">
+      <span class="stat-card__label">Aprobados</span>
+      <span class="stat-card__value">{{ resumen().aprobado | number:'1.0-0' }}</span>
+    </div>
+    <div class="stat-card stat-card--warn">
+      <span class="stat-card__label">Con hallazgos</span>
+      <span class="stat-card__value">{{ resumen().con_hallazgos | number:'1.0-0' }}</span>
+    </div>
+    <div class="stat-card stat-card--danger">
+      <span class="stat-card__label">Bloqueados</span>
+      <span class="stat-card__value">{{ resumen().bloqueado | number:'1.0-0' }}</span>
+    </div>
+    <div class="stat-card stat-card--muted">
+      <span class="stat-card__label">Faltantes</span>
+      <span class="stat-card__value">{{ resumen().faltantes | number:'1.0-0' }}</span>
+    </div>
+  </div>
+
+  <!-- ── Faltantes de esta semana ── -->
+  <div class="sgc-card rs-block">
+    <div class="rs-card-title">Faltantes de esta semana ({{ faltantes().length }})</div>
+    @if (faltantes().length === 0) {
+      <p class="rs-ok">Todos los vehículos reportaron esta semana ✓</p>
+    } @else {
+      <ul class="rs-list">
+        @for (f of faltantes(); track f.vehiculo_id) {
+          <li>
+            <span class="rs-placa">{{ f.placa }}</span>
+            <span class="rs-muted">· {{ f.chofer_nombre ?? 'sin chofer asignado' }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <!-- ── Detalle de la semana actual ── -->
+  <div class="table-wrapper sgc-card rs-block">
+    <div class="rs-card-title">Detalle de la semana actual</div>
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Detalle de la semana actual">
+        <thead>
+          <tr><th>Placa</th><th>Chofer</th><th class="text-center">¿Reportó?</th><th>Fecha reporte</th><th>Resultado</th></tr>
+        </thead>
+        <tbody>
+          @for (f of semanaActual()!.filas; track f.vehiculo_id) {
+            <tr>
+              <td><span class="rs-placa">{{ f.placa }}</span></td>
+              <td>{{ f.chofer_nombre ?? '—' }}</td>
+              <td class="text-center">
+                @if (f.tiene_reporte) { <span class="rs-check">✓</span> } @else { <span class="rs-cross">✕</span> }
+              </td>
+              <td>{{ f.reporte_fecha ? (toDate(f.reporte_fecha) | date:'dd/MM/yyyy') : '—' }}</td>
+              <td>
+                @if (f.tiene_reporte) {
+                  <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
+                } @else {
+                  <span class="rs-muted">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Historial por semanas ── -->
+  @if (historial().length > 0) {
+    <div class="sgc-card rs-block">
+      <div class="rs-card-title">Historial por semanas</div>
+      <div class="rs-accordion">
+        @for (g of historial(); track g.key) {
+          <div class="rs-acc-item">
+            <button type="button" class="rs-acc-head" [class.rs-acc-head--open]="expandida() === g.key"
+                    (click)="toggle(g.key)" [attr.aria-expanded]="expandida() === g.key">
+              <span class="rs-acc-title">
+                Semana {{ g.semana }}/{{ g.anio }}
+                <span class="rs-muted">({{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }})</span>
+              </span>
+              <span class="rs-acc-count">{{ g.reportados }}/{{ g.total }} reportados</span>
+              <span class="rs-acc-chevron" aria-hidden="true">{{ expandida() === g.key ? '▾' : '▸' }}</span>
+            </button>
+            @if (expandida() === g.key) {
+              <div class="table-scroll rs-acc-body">
+                <table class="data-table" aria-label="Detalle semana {{ g.semana }}/{{ g.anio }}">
+                  <thead>
+                    <tr><th>Placa</th><th>Chofer</th><th class="text-center">¿Reportó?</th><th>Fecha reporte</th><th>Resultado</th></tr>
+                  </thead>
+                  <tbody>
+                    @for (f of g.filas; track f.vehiculo_id) {
+                      <tr>
+                        <td><span class="rs-placa">{{ f.placa }}</span></td>
+                        <td>{{ f.chofer_nombre ?? '—' }}</td>
+                        <td class="text-center">
+                          @if (f.tiene_reporte) { <span class="rs-check">✓</span> } @else { <span class="rs-cross">✕</span> }
+                        </td>
+                        <td>{{ f.reporte_fecha ? (toDate(f.reporte_fecha) | date:'dd/MM/yyyy') : '—' }}</td>
+                        <td>
+                          @if (f.tiene_reporte) {
+                            <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
+                          } @else {
+                            <span class="rs-muted">—</span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+}

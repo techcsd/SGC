@@ -18,6 +18,12 @@ import {
   ExpedienteResumen,
   ProyectoReadiness,
 } from '../models/proyecto.model';
+import {
+  ProyectoPartida,
+  ProyectoPartidaFormData,
+  ProyectoAvance,
+  AvisoProyecto,
+} from '../models/proyecto-partida.model';
 
 const EXPEDIENTE_BUCKET = 'sgc-documentos';
 
@@ -347,6 +353,106 @@ export class ProyectosService {
       .select('*');
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as ExpedienteResumen[];
+  }
+
+  // ── Partidas planeadas (R24) ───────────────────────────────────────────────
+  async getPartidas(proyectoId: string): Promise<ProyectoPartida[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_partidas')
+      .select('*')
+      .eq('proyecto_id', proyectoId)
+      .eq('activa', true)
+      .order('orden', { ascending: true })
+      .order('nombre', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ProyectoPartida[];
+  }
+
+  async crearPartida(proyectoId: string, payload: ProyectoPartidaFormData): Promise<ProyectoPartida> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_partidas')
+      .insert({ ...payload, proyecto_id: proyectoId })
+      .select('*')
+      .single();
+    if (error) throw new Error(error.message);
+    return data as unknown as ProyectoPartida;
+  }
+
+  async actualizarPartida(id: string, payload: Partial<ProyectoPartidaFormData>): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_partidas')
+      .update(payload)
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  async eliminarPartida(id: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_partidas')
+      .update({ activa: false })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  // ── Avance físico vs pagado (R25) ──────────────────────────────────────────
+  async getAvance(): Promise<ProyectoAvance[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('v_proyecto_avance')
+      .select('*');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ProyectoAvance[];
+  }
+
+  async getAvanceById(proyectoId: string): Promise<ProyectoAvance | null> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('v_proyecto_avance')
+      .select('*')
+      .eq('proyecto_id', proyectoId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as unknown as ProyectoAvance) ?? null;
+  }
+
+  /** Actualiza el % pagado del contrato (Dirección/Admin). */
+  async setPorcentajePagado(proyectoId: string, pct: number | null): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyectos')
+      .update({ porcentaje_pagado: pct })
+      .eq('id', proyectoId);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Genera avisos idempotentes de "pagado > trabajado" (patrón vencimientos). */
+  async evaluarAvisosProyecto(): Promise<number> {
+    const { data, error } = await this.supabase.client.schema('sgc').rpc('evaluar_avisos_proyecto');
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
+  async getAvisosProyecto(soloPendientes = true): Promise<AvisoProyecto[]> {
+    let q = this.supabase.client
+      .schema('sgc')
+      .from('avisos_proyecto')
+      .select('*, proyecto:proyectos(nombre, codigo)')
+      .order('created_at', { ascending: false });
+    if (soloPendientes) q = q.eq('estado', 'pendiente');
+    const { data, error } = await q;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as AvisoProyecto[];
+  }
+
+  async atenderAvisoProyecto(id: string, nota: string | null): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .rpc('atender_aviso_proyecto', { p_id: id, p_nota: nota });
+    if (error) throw new Error(error.message);
   }
 }
 

@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { MantenimientosService } from '../../../../shared/services/mantenimientos.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
@@ -39,6 +40,7 @@ export class Mantenimientos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private proveedoresService = inject(ProveedoresService);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   // ── Drawer photos ────────────────────────────────────────
   fotoPaths = signal<string[]>([]); // existing persisted photo paths
@@ -134,6 +136,27 @@ export class Mantenimientos implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // R9: crear cita precargada desde un aviso de flota (?nuevo=1&vehiculo=..&tipo=..).
+    const qp = this.route.snapshot.queryParamMap;
+    if (qp.get('nuevo')) {
+      this.openCreateDesdeAviso(qp.get('vehiculo'), qp.get('tipo') ?? 'preventivo');
+    }
+  }
+
+  /** Abre el drawer de creación precargando vehículo, km actual, tipo y fecha. */
+  openCreateDesdeAviso(vehiculoId: string | null, tipo: string) {
+    this.openCreate();
+    const v = this.vehiculos().find((x) => x.id === vehiculoId);
+    this.form.patchValue({
+      vehiculo_id: vehiculoId ?? '',
+      tipo,
+      fecha: this.toDateStr(new Date()),
+      kilometraje_al_mantenimiento: v?.kilometraje ?? null,
+      descripcion:
+        tipo === 'correctivo'
+          ? 'Mantenimiento por alerta de kilometraje'
+          : 'Mantenimiento preventivo programado',
+    });
   }
 
   private async loadAll() {

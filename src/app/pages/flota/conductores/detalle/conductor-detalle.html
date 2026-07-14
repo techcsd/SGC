@@ -1,0 +1,143 @@
+<!-- ── Back link ── -->
+<a class="cd-back" routerLink="/flota/conductores">← Conductores</a>
+
+@if (loading()) {
+  <app-skeleton variant="list" [rows]="4" />
+} @else if (!conductor()) {
+  <!-- ── Empty state ── -->
+  <div class="sgc-card cd-empty">
+    <p>No se encontró el conductor.</p>
+    <a class="sgc-btn sgc-btn--secondary" routerLink="/flota/conductores">Volver a Conductores</a>
+  </div>
+} @else {
+  <!-- ── 1. Header ── -->
+  <section class="sgc-card cd-header">
+    <div class="cd-header__main">
+      <h1 class="cd-header__nombre">{{ conductor()!.nombre }}</h1>
+      <div class="cd-header__meta">
+        <span>Cédula: {{ conductor()!.cedula }}</span>
+        @if (conductor()!.telefono) { <span>· Tel: {{ conductor()!.telefono }}</span> }
+        <span class="cd-chip">{{ conductor()!.tipo_vehiculo_autorizado }}</span>
+        @if (conductor()!.vehiculo) {
+          <span class="cd-chip cd-chip--veh">{{ conductor()!.vehiculo!.placa }} · {{ conductor()!.vehiculo!.marca }} {{ conductor()!.vehiculo!.modelo }}</span>
+        }
+      </div>
+    </div>
+
+    @if (stats()) {
+      <div class="cd-header__lic">
+        <span class="sgc-badge sgc-badge--{{ estadoBadge[stats()!.estado_licencia] }} cd-lic-badge">
+          {{ estadoLabel[stats()!.estado_licencia] }}
+        </span>
+        @if (stats()!.licencia_vencimiento) {
+          <span class="cd-lic-fecha">Vence: {{ formatFecha(stats()!.licencia_vencimiento) }}</span>
+        }
+      </div>
+    }
+  </section>
+
+  @if (licenciaVencida()) {
+    <div class="page-error" role="alert">Licencia vencida — contacta a RRHH.</div>
+  }
+
+  <!-- ── 2. Licencia ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Licencia</h2>
+    <div class="cd-dl">
+      <div class="cd-dl__item">
+        <span class="cd-dl__label">Tipo</span>
+        <span class="cd-dl__value">{{ conductor()!.licencia_tipo }}</span>
+      </div>
+      <div class="cd-dl__item">
+        <span class="cd-dl__label">Número</span>
+        <span class="cd-dl__value">{{ conductor()!.licencia_numero ?? '—' }}</span>
+      </div>
+      <div class="cd-dl__item">
+        <span class="cd-dl__label">Vencimiento</span>
+        <span class="cd-dl__value">{{ formatFecha(conductor()!.licencia_vencimiento) }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 3. Stats ── -->
+  @if (stats()) {
+    <div class="stat-grid">
+      <div class="stat-card" [class.stat-card--danger]="stats()!.checklists_bloqueos > 0">
+        <span class="stat-card__label">Checklists</span>
+        <span class="stat-card__value">{{ stats()!.checklists_total | number: '1.0-0' }}</span>
+        @if (stats()!.checklists_bloqueos > 0) {
+          <span class="stat-card__hint cd-danger">{{ stats()!.checklists_bloqueos | number: '1.0-0' }} bloqueos</span>
+        }
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Echadas de combustible</span>
+        <span class="stat-card__value">{{ stats()!.combustible_echadas | number: '1.0-0' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Vehículos usados</span>
+        <span class="stat-card__value">{{ stats()!.vehiculos_usados | number: '1.0-0' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Última actividad</span>
+        <span class="stat-card__value cd-fecha-value">{{ formatFecha(stats()!.ultima_actividad) }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- ── 4. Historial de checklists ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Historial de checklists</h2>
+    @if (histChecklists().length === 0) {
+      <p class="cd-muted">Sin checklists registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Historial de checklists">
+          <thead>
+            <tr><th>Fecha</th><th>Vehículo</th><th>Resultado</th><th class="text-right">Km</th></tr>
+          </thead>
+          <tbody>
+            @for (c of histChecklists(); track c.id) {
+              <tr>
+                <td>{{ formatFecha(c.fecha) }}</td>
+                <td><span class="cd-placa">{{ c.vehiculo?.placa ?? '—' }}</span></td>
+                <td><span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span></td>
+                <td class="text-right">{{ c.kilometraje != null ? (c.kilometraje | number: '1.0-0') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- ── 5. Historial de combustible ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Historial de combustible</h2>
+    @if (histCombustible().length === 0) {
+      <p class="cd-muted">Sin echadas de combustible registradas.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Historial de combustible">
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Vehículo</th><th class="text-right">Km</th>
+              <th class="text-right">Galones</th><th class="text-right">RD$</th><th class="text-right">Rend.</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of histCombustible(); track r.id) {
+              <tr>
+                <td>{{ formatFecha(r.fecha) }}</td>
+                <td><span class="cd-placa">{{ r.vehiculo?.placa ?? '—' }}</span></td>
+                <td class="text-right">{{ r.kilometraje != null ? (r.kilometraje | number: '1.0-0') : '—' }}</td>
+                <td class="text-right">{{ r.galones != null ? (r.galones | number: '1.0-0') : '—' }}</td>
+                <td class="text-right">{{ r.monto != null ? (r.monto | number: '1.0-0') : '—' }}</td>
+                <td class="text-right">{{ r.rendimiento_km_gal != null ? (r.rendimiento_km_gal | number: '1.0-0') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+}

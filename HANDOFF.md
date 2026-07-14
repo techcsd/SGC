@@ -1,6 +1,74 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-13_
+_Last updated: 2026-07-14_
+
+## Mejoras reunión 14/07 (SGC web + SQL) — build verde, SQL aplicado a prod
+
+Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO.md` (R1–R29 + §4).
+**TODAS las migraciones son aditivas/retrocompatibles** (la app móvil sigue llamando
+`registrar_checklist_vehiculo`, `crear_entrada_bitacora`, etc. — verificado). **Nada commiteado
+ni desplegado aún** (Xavier debe autorizar). La **parte móvil (csd-app) queda pendiente**.
+
+### ✅ Fase 0 — SQL (7 migraciones aplicadas + verificadas en prod)
+- `sql/2026-07-14-mejoras-flota.sql` — R1 `vehiculo_asignaciones` + RPC `asignarme_vehiculo`;
+  R2 RPC `auto_registrar_conductor`; R4 vista `v_vehiculo_stats`; R5 vista `v_conductor_stats`;
+  R6 checklist `bloqueado`→`vehiculos.estado='no_disponible'` + RPC `reactivar_vehiculo`.
+- `sql/2026-07-14-mejoras-reporte-semanal.sql` — R3 `checklist_plantillas.frecuencia` +
+  plantilla seed `REPORTE-SEMANAL-V1` (5 ítems, **TODO negocio: preguntas exactas**) +
+  vista `v_reporte_semanal_cumplimiento` (12 semanas ISO × vehículo); + tipo aviso `reporte_semanal`.
+- `sql/2026-07-14-mejoras-inventario.sql` — R16 `categorias_inventario.orden/destacada`
+  (Clavos/Madera/**Acero y Metales** destacadas 1-3; movidos 4 clavos + varillitas);
+  R18 `sgc.homologar_texto()` + triggers en bodegas/categorias/articulos/partidas.
+- `sql/2026-07-14-mejoras-bitacora.sql` — R21 `bitacoras.llovio/lluvia_detalle`;
+  R22 `hubo_migracion/migracion_obreros`; R24 `bitacora_actividades.cantidad` +
+  `sgc.proyecto_partidas`; RPC `crear_entrada_bitacora` extendido (29 args, 4 nuevos con default).
+- `sql/2026-07-14-mejoras-proyectos.sql` — R25 `proyectos.porcentaje_pagado` +
+  vista `v_proyecto_avance` + `sgc.avisos_proyecto` + RPCs `evaluar_avisos_proyecto`/`atender_aviso_proyecto`.
+- `sql/2026-07-14-mejoras-app-versiones.sql` — R15 `sgc.app_versiones` + RPC público `version_publicada()`.
+- `sql/2026-07-14-mejoras-roles-seed.sql` — R27 roles **Chofer/Transportista** (flota) +
+  **Guarda-Almacén** (inventario). NO se crearon módulos nuevos.
+
+### ✅ Fase 1 — Flota web
+- `flota/vehiculos/:id` perfil (stats `v_vehiculo_stats` + vencimientos + asignaciones + historial) — R4.
+- `flota/conductores/:id` perfil (licencia + stats + historial) — R5.
+- Gestión de asignaciones multi-persona en el perfil del vehículo — R1.
+- `flota/reporte-semanal` (cumplimiento + faltantes + avisos idempotentes + historial) — R3.
+- Avisos: "Reactivar vehículo" (R6) + "Crear cita" que precarga mantenimiento (R9).
+- Links "Ver perfil" en listas; `no_disponible` en modelo/badges; nav actualizado.
+
+### ✅ Fase 2 — Inventario + Conduces
+- R16/R17 salidas/entradas: `<optgroup>` por categoría (destacadas primero) + `app-qty-stepper` (−/+).
+- Página `inventario/categorias` (CRUD: nombre/orden/destacada/activo) + nav.
+- R18 hint "Se guardará como:" en almacenes/categorías (util `homologarTexto`); server homologa via trigger.
+- **R19 PDF de conduces ARREGLADO**: root cause = bloque `@media print` global en `styles.scss:541`
+  que ocultaba todo salvo `[id$='-report-print']`; el conduce no tenía ese id → salía en blanco.
+  Fix: `id="conduce-report-print"` en el root del conduce + reglas de paginación de tabla.
+
+### ✅ Fase 3 — Proyectos + Bitácora
+- Componente `app-proyecto-partidas` embebido en el detalle de proyecto (CRUD + avance físico) — R24.
+- Métrica "Pagado vs Trabajado" + alerta roja `pago_excede` en el detalle; `evaluar_avisos_proyecto()`
+  al cargar la lista; edición de % pagado sólo Dirección/Admin — R25.
+- Bitácora `nueva`: preguntas "¿Está lloviendo o llovió?" y "¿Hubo problemas de migración?" primero;
+  cantidad por actividad (stepper); incidente_descripcion requerido — R21/R22/R23/R24.
+- Bitácora `historial`: muestra clima (NO como incidente), migración+obreros, cantidades, descripción.
+
+### ✅ Fase 4 — Dashboard / versiones / guías
+- R15 página `admin/app-versiones` (crear/publicar/mínima/eliminar) + servicio + nav.
+- R26 dashboard por rol: **ya satisfecho** por el gating `canSee(modulo)` existente (sin refactor).
+- R29 "Guías rápidas" visuales en Dudas (pre-uso, combustible, conduces, bitácora, inventario).
+- R28 historial de todo: cubierto por perfiles/reporte-semanal/avisos/partidas/combustible/bitácora.
+
+### 🔜 Pendiente
+- **QA manual en navegador** (flujo real logueado) de cada punto — no verificado end-to-end aquí.
+- **Commit/push + deploy Vercel** — esperar autorización de Xavier.
+- **csd-app (móvil)**: R7 rutas+combustible, R10 biometría, R11/R20 empty states, R12 paridad
+  (gestión de almacenes), R13 cancelar bitácora, R14 reportes con imágenes, + espejos de lo nuevo.
+- **TODO negocio (§5)**: preguntas exactas del reporte semanal; datos mínimos auto-registro conductor;
+  quién carga partidas; fuente real de % pagado (hoy manual en `proyectos.porcentaje_pagado`).
+- Roles nuevos: Xavier revisa/borra en Admin>Roles los que no use (no asignados a nadie aún).
+
+---
+
 
 ## Current focus (2026-07-14): Flota v2 + CL-01..07 desplegados a prod
 

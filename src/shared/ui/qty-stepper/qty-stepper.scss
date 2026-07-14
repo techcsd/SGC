@@ -1,0 +1,58 @@
+.qty-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  overflow: hidden;
+  background: var(--sgc-surface);
+  max-width: 100%;
+
+  &--disabled {
+    opacity: 0.55;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    border: none;
+    background: var(--sgc-surface-hover);
+    color: var(--sgc-primary);
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: var(--sgc-primary-light);
+    }
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  &__input {
+    width: 4.5rem;
+    border: none;
+    border-left: 1px solid var(--sgc-border);
+    border-right: 1px solid var(--sgc-border);
+    text-align: center;
+    font: inherit;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    padding: 0.4rem 0.25rem;
+
+    &:focus {
+      outline: 2px solid var(--sgc-primary-mid);
+      outline-offset: -2px;
+    }
+
+    // Oculta las flechas nativas (usamos los botones).
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}

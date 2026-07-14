@@ -165,6 +165,40 @@
             <span>{{ b.otro_personal }}</span>
           </div>
         }
+
+        <!-- R21 — lluvia (información normal, no incidente) -->
+        @if (b.llovio !== null) {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Clima</span>
+            <span>
+              @if (b.llovio) { 🌧 Llovió } @else { Sin lluvia }
+            </span>
+          </div>
+          @if (b.llovio && b.lluvia_detalle) {
+            <div class="bitacora-detail__section">
+              <h3>Detalle de la lluvia</h3>
+              <p>{{ b.lluvia_detalle }}</p>
+            </div>
+          }
+        }
+
+        <!-- R22 — migración -->
+        @if (b.hubo_migracion) {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Migración</span>
+            <span>Hubo problemas de migración</span>
+          </div>
+          @if (migracionObreros(b).length > 0) {
+            <div class="bitacora-detail__section">
+              <h3>Obreros afectados</h3>
+              <ul class="bitacora-detail__list">
+                @for (o of migracionObreros(b); track o) {
+                  <li>{{ o }}</li>
+                }
+              </ul>
+            </div>
+          }
+        }
       }
 
       @if (b.tipo === 'visita') {
@@ -245,7 +279,7 @@
           <h3>Actividades</h3>
           <ul class="bitacora-detail__list">
             @for (a of b.actividades; track a.id) {
-              <li>{{ a.estructura }} — {{ a.actividad }}</li>
+              <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× {{ a.cantidad }} }</li>
             }
           </ul>
         </div>

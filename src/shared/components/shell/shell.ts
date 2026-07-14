@@ -83,6 +83,7 @@ export class Shell implements OnInit {
       modulo: 'inventario',
       children: [
         { label: 'Artículos', route: '/inventario/articulos' },
+        { label: 'Categorías', route: '/inventario/categorias' },
         { label: 'Activos Fijos', route: '/inventario/activos' },
         { label: 'Entradas', route: '/inventario/entradas' },
         { label: 'Salidas', route: '/inventario/salidas' },
@@ -136,6 +137,7 @@ export class Shell implements OnInit {
         { label: 'Combustible', route: '/flota/combustible' },
         { label: 'Rutas', route: '/flota/rutas' },
         { label: 'Checklists', route: '/flota/checklists' },
+        { label: 'Reporte semanal', route: '/flota/reporte-semanal' },
         { label: 'Panel del día', route: '/flota/panel-dia' },
         { label: 'Avisos', route: '/flota/avisos' },
         { label: 'Responsabilidad', route: '/flota/responsabilidad' },
@@ -234,6 +236,7 @@ export class Shell implements OnInit {
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
       { label: 'Parámetros', route: '/admin/parametros' },
+      { label: 'Versiones de la app', route: '/admin/app-versiones' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],

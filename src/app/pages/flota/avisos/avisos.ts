@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AvisosFlotaService } from '../../../../shared/services/avisos-flota.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -26,6 +27,9 @@ export class Avisos implements OnInit {
   private conductoresService = inject(ConductoresService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
+  private router = inject(Router);
+
+  reactivando = signal<string | null>(null);
 
   formatFecha = formatFechaDisplay;
   tipoLabel = AVISO_TIPO_LABEL;
@@ -110,6 +114,31 @@ export class Avisos implements OnInit {
   }
   closeDrawer() { this.drawerOpen.set(false); }
   onNota(v: string) { this.nota.set(v); }
+
+  /** R6: reactiva el vehículo bloqueado (y atiende sus avisos de bloqueo). */
+  async reactivarVehiculo(a: AvisoFlota) {
+    if (!a.vehiculo_id || this.reactivando()) return;
+    this.reactivando.set(a.id);
+    try {
+      await this.vehiculosService.reactivar(a.vehiculo_id, 'Reactivado desde avisos');
+      await this.load(false);
+      this.notificaciones.refresh();
+      this.toast.success('Vehículo reactivado', 'El vehículo vuelve a estar disponible.');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo reactivar el vehículo.');
+    } finally {
+      this.reactivando.set(null);
+    }
+  }
+
+  /** R9: crea una cita de mantenimiento precargando el form del vehículo. */
+  crearCita(a: AvisoFlota) {
+    if (!a.vehiculo_id) return;
+    const tipo = a.tipo === 'mantenimiento_vencido' ? 'correctivo' : 'preventivo';
+    this.router.navigate(['/flota/mantenimientos'], {
+      queryParams: { nuevo: 1, vehiculo: a.vehiculo_id, tipo },
+    });
+  }
 
   async atender() {
     const a = this.selected();

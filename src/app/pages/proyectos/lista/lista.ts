@@ -31,14 +31,17 @@ import {
   ROLES_OBRA,
   rolObraLabel,
 } from '../../../../shared/models/proyecto.model';
+import { ProyectoAvance } from '../../../../shared/models/proyecto-partida.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DocumentosProyecto } from '../../../../shared/components/documentos-proyecto/documentos-proyecto';
 import { ExpedienteObra } from '../../../../shared/components/expediente-obra/expediente-obra';
 import { CuadreObraComponent } from '../../../../shared/components/cuadre-obra/cuadre-obra';
 import { EjecucionObra } from '../../../../shared/components/ejecucion-obra/ejecucion-obra';
+import { ProyectoPartidas } from '../../../../shared/components/proyecto-partidas/proyecto-partidas';
 import { ClLiberacion } from '../../../../shared/components/cl-liberacion/cl-liberacion';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
@@ -64,7 +67,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ClLiberacion, LocationPicker, WeatherCard],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,11 +77,21 @@ export class Lista implements OnInit {
   private empleadosService = inject(EmpleadosService);
   private supabase = inject(SupabaseService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
 
   /** Cuadre + antifraude solo para roles financieros/dirección (no obra). */
   verCuadre = this.userService.verCuadre;
+
+  // ── R25: Pagado vs Trabajado ─────────────────────────────
+  avance = signal<ProyectoAvance | null>(null);
+  pagadoInput = signal<number | null>(null);
+  avanceSaving = signal(false);
+  /** Solo Admin/Dirección pueden fijar el % pagado; el resto lo ve read-only. */
+  puedeEditarPagado = computed(
+    () => this.userService.hasRole('admin') || this.userService.hasModulo('direccion'),
+  );
 
   // ── Data ─────────────────────────────────────────────────
   proyectos = signal<Proyecto[]>([]);
@@ -260,6 +273,12 @@ export class Lista implements OnInit {
     this.error.set('');
     try {
       this.proyectos.set(await this.proyectosService.getAll());
+      // R25 — evaluar avisos de pago>trabajo una sola vez al cargar (idempotente, no bloquea).
+      try {
+        await this.proyectosService.evaluarAvisosProyecto();
+      } catch {
+        // best-effort: la evaluación de avisos nunca bloquea la lista
+      }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar proyectos.');
     } finally {
@@ -398,15 +417,20 @@ export class Lista implements OnInit {
     this.equipoLoading.set(true);
     this.gastoReal.set(0);
     this.equipo.set([]);
+    this.avance.set(null);
+    this.pagadoInput.set(null);
     try {
-      const [full, gasto, equipo] = await Promise.all([
+      const [full, gasto, equipo, avance] = await Promise.all([
         this.proyectosService.getById(p.id),
         this.proyectosService.getGastoReal(p.id),
         this.proyectosService.getEquipo(p.id),
+        this.proyectosService.getAvanceById(p.id),
       ]);
       this.selectedProyecto.set(full);
       this.gastoReal.set(gasto);
       this.equipo.set(equipo);
+      this.avance.set(avance);
+      this.pagadoInput.set(avance?.porcentaje_pagado ?? null);
     } catch {
       // keep basic data
     } finally {
@@ -431,6 +455,29 @@ export class Lista implements OnInit {
   closeDetailDrawer() {
     this.detailDrawerOpen.set(false);
     this.selectedProyecto.set(null);
+  }
+
+  // ── R25: guardar % pagado (Admin/Dirección) ───────────────
+  async guardarPagado() {
+    const p = this.selectedProyecto();
+    if (!p || this.avanceSaving() || !this.puedeEditarPagado()) return;
+    const val = this.pagadoInput();
+    if (val != null && (val < 0 || val > 100)) {
+      this.toast.error('El % pagado debe estar entre 0 y 100.');
+      return;
+    }
+    this.avanceSaving.set(true);
+    try {
+      await this.proyectosService.setPorcentajePagado(p.id, val);
+      const fresh = await this.proyectosService.getAvanceById(p.id);
+      this.avance.set(fresh);
+      this.pagadoInput.set(fresh?.porcentaje_pagado ?? null);
+      this.toast.success('% pagado actualizado');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo guardar el % pagado', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.avanceSaving.set(false);
+    }
   }
 
   // ── Equipo de Obra (A3.2) ──────────────────────────────────

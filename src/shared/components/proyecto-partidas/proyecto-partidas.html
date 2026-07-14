@@ -1,0 +1,150 @@
+<div class="partidas">
+  @if (error()) {
+    <p class="partidas__error" role="alert">{{ error() }}</p>
+  }
+
+  <!-- Encabezado: avance físico global -->
+  <div class="partidas__head">
+    <div class="partidas__avance">
+      <span class="partidas__avance-label">Avance físico</span>
+      @if (avanceFisico() === null) {
+        <span class="partidas__avance-empty text-muted">sin partidas</span>
+      } @else {
+        <span class="partidas__avance-val">{{ avanceFisico() }}%</span>
+      }
+    </div>
+    @if (avanceFisico() !== null) {
+      <div class="partidas__avance-bar">
+        <div
+          class="partidas__avance-fill"
+          [style.width.%]="avanceFisico()"
+          role="progressbar"
+          [attr.aria-valuenow]="avanceFisico()"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        ></div>
+      </div>
+    }
+    <button type="button" class="sgc-btn sgc-btn--secondary partidas__new-btn" (click)="openNew()">
+      + Nueva partida
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="partidas__loading text-muted">Cargando partidas…</p>
+  } @else {
+    <!-- Formulario inline (alta/edición) -->
+    @if (showForm()) {
+      <div class="sgc-card partidas__form">
+        <p class="partidas__form-title">{{ formTitle() }}</p>
+        <div class="partidas__form-grid">
+          <label class="sgc-field partidas__field--full">
+            <span class="partidas__label">Nombre <span class="required">*</span></span>
+            <input
+              type="text"
+              [ngModel]="fNombre()"
+              (ngModelChange)="fNombre.set($event)"
+              placeholder="Ej. Excavación, Fundación…"
+            />
+          </label>
+          <label class="sgc-field">
+            <span class="partidas__label">Unidad</span>
+            <input
+              type="text"
+              [ngModel]="fUnidad()"
+              (ngModelChange)="fUnidad.set($event)"
+              placeholder="m³, ml, und…"
+            />
+          </label>
+          <label class="sgc-field">
+            <span class="partidas__label">Cant. planeada</span>
+            <input
+              type="number"
+              min="0"
+              [ngModel]="fPlaneada()"
+              (ngModelChange)="fPlaneada.set($event === '' || $event === null ? 0 : +$event)"
+            />
+          </label>
+          <label class="sgc-field">
+            <span class="partidas__label">Cant. ejecutada</span>
+            <input
+              type="number"
+              min="0"
+              [ngModel]="fEjecutada()"
+              (ngModelChange)="fEjecutada.set($event === '' || $event === null ? 0 : +$event)"
+            />
+          </label>
+          <label class="sgc-field">
+            <span class="partidas__label">Orden</span>
+            <input
+              type="number"
+              min="0"
+              [ngModel]="fOrden()"
+              (ngModelChange)="fOrden.set($event === '' || $event === null ? 0 : +$event)"
+            />
+          </label>
+        </div>
+        @if (formError()) {
+          <p class="field-error">{{ formError() }}</p>
+        }
+        <div class="partidas__form-actions">
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="save()" [disabled]="saving()">
+            @if (saving()) { Guardando… } @else { Guardar partida }
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelForm()">Cancelar</button>
+        </div>
+      </div>
+    }
+
+    <!-- Lista de partidas -->
+    @if (partidas().length === 0) {
+      <p class="text-muted partidas__empty">No hay partidas registradas.</p>
+    } @else {
+      <div class="partidas__table-wrap">
+        <table class="data-table partidas__table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Partida</th>
+              <th>Unidad</th>
+              <th class="text-right">Planeada</th>
+              <th class="text-right">Ejecutada</th>
+              <th>Avance</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of partidas(); track p.id) {
+              <tr>
+                <td class="text-muted">{{ p.orden }}</td>
+                <td>{{ p.nombre }}</td>
+                <td class="text-muted">{{ p.unidad ?? '—' }}</td>
+                <td class="text-right">{{ p.cantidad_planeada | number:'1.0-2' }}</td>
+                <td class="text-right">{{ p.cantidad_ejecutada | number:'1.0-2' }}</td>
+                <td>
+                  <div class="partidas__row-progress">
+                    <div class="partidas__row-bar">
+                      <div
+                        class="partidas__row-fill"
+                        [style.width.%]="partidaPct(p)"
+                        role="progressbar"
+                        [attr.aria-valuenow]="partidaPct(p)"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                    <span class="partidas__row-pct">{{ partidaPct(p) }}%</span>
+                  </div>
+                </td>
+                <td class="text-right partidas__actions">
+                  <button type="button" class="partidas__link" (click)="openEdit(p)" aria-label="Editar partida">Editar</button>
+                  <button type="button" class="partidas__link partidas__link--danger" (click)="remove(p)" aria-label="Eliminar partida">Eliminar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

@@ -590,6 +590,60 @@
     gap: 0.75rem;
   }
 
+  // ── R25: Pagado vs Trabajado ──────────────────────────────
+  &__pagado {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  &__pagado-alert {
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--sgc-radius, 8px);
+    border-left: 4px solid var(--sgc-danger);
+    background: color-mix(in srgb, var(--sgc-danger) 12%, transparent);
+    color: var(--sgc-danger);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  &__pagado-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__pagado-tag {
+    flex: 0 0 5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sgc-text-secondary);
+  }
+
+  &__progress-fill--pagado {
+    background: var(--sgc-info, #2563eb);
+  }
+
+  &__progress-fill--excede {
+    background: var(--sgc-danger);
+  }
+
+  &__pagado-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__pagado-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .proyectos__input {
+      max-width: 8rem;
+    }
+  }
+
   // ── Fases ─────────────────────────────────────────────────
   &__fases {
     display: flex;

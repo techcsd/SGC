@@ -12,6 +12,18 @@ export const flotaRoutes: Routes = [
     title: 'Vehículos — Flota',
   },
   {
+    path: 'vehiculos/:id',
+    loadComponent: () =>
+      import('./vehiculos/detalle/vehiculo-detalle').then((m) => m.VehiculoDetalle),
+    title: 'Perfil de vehículo — Flota',
+  },
+  {
+    path: 'reporte-semanal',
+    loadComponent: () =>
+      import('./reporte-semanal/reporte-semanal').then((m) => m.ReporteSemanal),
+    title: 'Reporte semanal — Flota',
+  },
+  {
     path: 'mantenimientos',
     loadComponent: () => import('./mantenimientos/mantenimientos').then((m) => m.Mantenimientos),
     title: 'Mantenimientos — Flota',
@@ -20,6 +32,12 @@ export const flotaRoutes: Routes = [
     path: 'conductores',
     loadComponent: () => import('./conductores/conductores').then((m) => m.Conductores),
     title: 'Conductores — Flota',
+  },
+  {
+    path: 'conductores/:id',
+    loadComponent: () =>
+      import('./conductores/detalle/conductor-detalle').then((m) => m.ConductorDetalle),
+    title: 'Perfil de conductor — Flota',
   },
   {
     path: 'combustible',

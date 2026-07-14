@@ -1,0 +1,52 @@
+.av-lead {
+  color: var(--sgc-text-secondary);
+  margin: 0 0 1rem;
+  max-width: 60ch;
+}
+
+.av-current {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  &__card {
+    flex: 1 1 180px;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  &__label {
+    font-size: 0.8rem;
+    color: var(--sgc-text-muted);
+  }
+  &__value {
+    font-size: 1.4rem;
+    color: var(--sgc-primary);
+  }
+}
+
+.av-notas {
+  max-width: 36ch;
+  color: var(--sgc-text-secondary);
+}
+
+.av-actions {
+  display: inline-flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.av-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.4rem 0;
+  cursor: pointer;
+
+  span {
+    color: var(--sgc-text);
+  }
+}

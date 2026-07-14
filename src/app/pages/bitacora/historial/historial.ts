@@ -204,6 +204,13 @@ export class Historial implements OnInit {
     return count === 0 ? 'Sin actividades' : `${count} actividad${count !== 1 ? 'es' : ''}`;
   }
 
+  /** R22 — normaliza el jsonb `migracion_obreros` (unknown) a lista de textos. */
+  migracionObreros(b: Bitacora): string[] {
+    const m = b.migracion_obreros;
+    if (Array.isArray(m)) return m.map((x) => String(x).trim()).filter(Boolean);
+    return [];
+  }
+
   restriccionesResumen(b: Bitacora): string {
     const restricciones = b.restricciones ?? [];
     if (restricciones.length === 0) return '—';

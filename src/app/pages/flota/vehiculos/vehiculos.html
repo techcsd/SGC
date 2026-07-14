@@ -100,7 +100,7 @@
               <span class="flota-vehiculos__tipo-label">{{ getTipoLabel(v.tipo) }}</span>
             </div>
             <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(v.estado)">
-              {{ v.estado === 'activo' ? 'Activo' : v.estado === 'mantenimiento' ? 'Mantenimiento' : 'Baja' }}
+              {{ v.estado === 'activo' ? 'Activo' : v.estado === 'mantenimiento' ? 'Mantenimiento' : v.estado === 'no_disponible' ? 'No disponible' : 'Baja' }}
             </span>
           </div>
 
@@ -150,6 +150,16 @@
           </div>
 
           <div class="flota-vehiculos__card-actions">
+            <a
+              class="sgc-btn sgc-btn--ghost"
+              [routerLink]="['/flota/vehiculos', v.id]"
+              [attr.aria-label]="'Ver perfil de ' + v.placa"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              Ver perfil
+            </a>
             <button
               class="sgc-btn sgc-btn--ghost"
               type="button"

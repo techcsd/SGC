@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Vehiculo, VehiculoFormData } from '../models/vehiculo.model';
+import { VehiculoAsignacion, VehiculoStats } from '../models/vehiculo-asignacion.model';
 
 /** A vehicle custody handoff captured from the CSD field app. */
 export interface VehiculoEntrega {
@@ -58,6 +59,108 @@ export class VehiculosService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Vehiculo[];
+  }
+
+  /** Un vehículo con su responsable (perfil, R4). */
+  async getById(id: string): Promise<Vehiculo | null> {
+    const { data, error } = await this.supabase.client
+      .from('vehiculos')
+      .select('*, responsable:usuarios(nombre)')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as unknown as Vehiculo) ?? null;
+  }
+
+  // ── Stats agregados (vista sgc.v_vehiculo_stats, R4) ──────────────────────
+  async getStats(vehiculoId: string): Promise<VehiculoStats | null> {
+    const { data, error } = await this.supabase.client
+      .from('v_vehiculo_stats')
+      .select('*')
+      .eq('vehiculo_id', vehiculoId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as unknown as VehiculoStats) ?? null;
+  }
+
+  async getStatsAll(): Promise<VehiculoStats[]> {
+    const { data, error } = await this.supabase.client
+      .from('v_vehiculo_stats')
+      .select('*');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as VehiculoStats[];
+  }
+
+  // ── Asignaciones (multi-asignación, R1) ───────────────────────────────────
+  private readonly ASIG_SELECT =
+    '*, usuario:usuarios(nombre), conductor:conductores(nombre), vehiculo:vehiculos(placa, marca, modelo)';
+
+  /** Asignaciones (activas e históricas) de un vehículo. */
+  async getAsignaciones(vehiculoId: string): Promise<VehiculoAsignacion[]> {
+    const { data, error } = await this.supabase.client
+      .from('vehiculo_asignaciones')
+      .select(this.ASIG_SELECT)
+      .eq('vehiculo_id', vehiculoId)
+      .order('activa', { ascending: false })
+      .order('desde', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as VehiculoAsignacion[];
+  }
+
+  /** Mis vehículos asignados (asignaciones activas del usuario actual). */
+  async getMisAsignaciones(): Promise<VehiculoAsignacion[]> {
+    const { data: auth } = await this.supabase.client.auth.getUser();
+    const uid = auth?.user?.id;
+    if (!uid) return [];
+    const { data, error } = await this.supabase.client
+      .from('vehiculo_asignaciones')
+      .select(this.ASIG_SELECT)
+      .eq('usuario_id', uid)
+      .eq('activa', true)
+      .order('desde', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as VehiculoAsignacion[];
+  }
+
+  /** Auto-asignarme un vehículo (RPC SECURITY DEFINER, idempotente). */
+  async asignarme(vehiculoId: string): Promise<Record<string, unknown>> {
+    const { data, error } = await this.supabase.client.rpc('asignarme_vehiculo', {
+      p_vehiculo_id: vehiculoId,
+      p_client_uuid: crypto.randomUUID(),
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? {}) as Record<string, unknown>;
+  }
+
+  /** Asigna un vehículo a una persona (gestión flota/admin). */
+  async crearAsignacion(payload: {
+    vehiculo_id: string;
+    usuario_id?: string | null;
+    conductor_id?: string | null;
+    notas?: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('vehiculo_asignaciones')
+      .insert({ ...payload, origen: 'admin', activa: true });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Retira (desactiva) una asignación. */
+  async retirarAsignacion(id: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('vehiculo_asignaciones')
+      .update({ activa: false, hasta: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Reactiva un vehículo bloqueado (RPC flota/admin). */
+  async reactivar(id: string, nota?: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('reactivar_vehiculo', {
+      p_id: id,
+      p_nota: nota ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   async create(payload: VehiculoFormData): Promise<Vehiculo> {
