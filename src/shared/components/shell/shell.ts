@@ -151,6 +151,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Nueva bitácora', route: '/bitacora/nueva' },
         { label: 'Mis bitácoras', route: '/bitacora/historial' },
+        { label: 'Dashboard', route: '/bitacora/dashboard' },
         { label: 'Mi proyecto', route: '/bitacora/mi-proyecto' },
         { label: 'Requisición', route: '/bitacora/solicitudes-material' },
         { label: 'Confirmar entregas', route: '/bitacora/entregas' },
