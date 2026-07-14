@@ -361,10 +361,18 @@
           </div>
         </div>
 
-        @if (showOtroRestriccion()) {
+        @if (restriccionesADescribir().length > 0) {
           <div class="sgc-field">
-            <label for="descripcion_otro_restriccion">Describe la restricción</label>
-            <input id="descripcion_otro_restriccion" type="text" formControlName="descripcion_otro_restriccion" />
+            <label>Describe cada restricción <span class="required">*</span></label>
+            @for (r of restriccionesADescribir(); track r) {
+              <div class="bitacora-restriccion-desc">
+                <span class="bitacora-restriccion-desc__tag">{{ restriccionLabel(r) }}</span>
+                <input type="text"
+                  [value]="getRestriccionDescripcion(r)"
+                  (input)="setRestriccionDescripcion(r, $any($event.target).value)"
+                  placeholder="Explica brevemente qué pasó…" />
+              </div>
+            }
           </div>
         }
       }

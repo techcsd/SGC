@@ -247,4 +247,74 @@ export class Historial implements OnInit {
     if (b.tipo === 'incidente') return b.incidente_subcontratista ?? this.incidenteTipoLabel(b.incidente_tipo);
     return b.bloque_entrepiso ?? '—';
   }
+
+  proyectoNombre(b: Bitacora): string {
+    return b.proyecto?.nombre ?? this.proyectos().find((p) => p.id === b.proyecto_id)?.nombre ?? '—';
+  }
+
+  private personalTotal(b: Bitacora): number {
+    return (b.personal_carpinteria ?? 0) + (b.personal_acero ?? 0) + (b.trabajadores_casa ?? 0);
+  }
+
+  // ── U15 — Export PDF (impresión) + Excel (xlsx) ───────────
+  /** PDF vía impresión del navegador (reutiliza el print CSS global -report-print). */
+  imprimir() {
+    window.print();
+  }
+
+  /** Aplana una bitácora a una fila de resumen para Excel. */
+  private filaExcel(b: Bitacora): Record<string, string | number> {
+    return {
+      Fecha: this.formatFecha(b.fecha),
+      Obra: this.proyectoNombre(b),
+      Tipo: this.tipoLabel(b.tipo),
+      Ingeniero: b.ingeniero_responsable ?? '',
+      Personal: this.personalTotal(b),
+      Llovió: b.llovio == null ? '' : b.llovio ? 'Sí' : 'No',
+      Migración: b.hubo_migracion == null ? '' : b.hubo_migracion ? 'Sí' : 'No',
+      'Obreros afectados': this.migracionObreros(b).length,
+      Actividades: b.actividades?.length ?? 0,
+      Restricciones: this.restriccionesResumen(b),
+      Incidente: b.tipo === 'incidente' ? `${this.incidenteTipoLabel(b.incidente_tipo)} (${this.gravedadLabel(b.incidente_gravedad)})` : '',
+      Comentarios: b.comentarios ?? '',
+    };
+  }
+
+  /** Exporta el listado filtrado a Excel (lote). */
+  async exportarListaExcel() {
+    const XLSX = await import('xlsx');
+    const rows = this.filtered().map((b) => this.filaExcel(b));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bitácoras');
+    XLSX.writeFile(wb, `bitacoras-${this.dateFrom() || 'inicio'}_${this.dateTo() || 'hoy'}.xlsx`);
+  }
+
+  /** Exporta la bitácora abierta a Excel (individual): resumen + actividades + restricciones. */
+  async exportarDetalleExcel() {
+    const b = this.detail();
+    if (!b) return;
+    const XLSX = await import('xlsx');
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([this.filaExcel(b)]), 'Resumen');
+    if (b.actividades?.length) {
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(
+          b.actividades.map((a) => ({ Estructura: a.estructura, Actividad: a.actividad, Cantidad: a.cantidad ?? '' })),
+        ),
+        'Actividades',
+      );
+    }
+    if (b.restricciones?.length) {
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(
+          b.restricciones.map((r) => ({ Restricción: r.tipo_restriccion, Descripción: r.descripcion_otro ?? '' })),
+        ),
+        'Restricciones',
+      );
+    }
+    XLSX.writeFile(wb, `bitacora-${b.fecha}.xlsx`);
+  }
 }

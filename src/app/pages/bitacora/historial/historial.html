@@ -3,12 +3,18 @@
     <h1 class="page-title">Mis Bitácoras</h1>
     <span class="page-count">{{ filtered().length }} bitácora{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
-  <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nueva bitácora
-  </a>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarListaExcel()"
+            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+      ⬇️ Excel
+    </button>
+    <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nueva bitácora
+    </a>
+  </div>
 </div>
 
 <!-- Filters -->
@@ -132,14 +138,18 @@
 <!-- Detail Drawer -->
 <app-form-drawer [title]="drawerTitle()" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as b) {
-    <div class="bitacora-detail">
-      <div class="bitacora-detail__row">
-        <span class="bitacora-detail__label">Tipo</span>
+    <div class="bit-toolbar no-print">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()">🖨️ Imprimir / PDF</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarDetalleExcel()">⬇️ Excel</button>
+    </div>
+    <div class="bitacora-detail" id="bitacora-report-print">
+      <!-- U13 — banda de encabezado: obra · fecha · tipo -->
+      <div class="bit-band">
+        <div class="bit-band__main">
+          <span class="bit-band__obra">{{ proyectoNombre(b) }}</span>
+          <span class="bit-band__fecha">{{ formatFecha(b.fecha) }}</span>
+        </div>
         <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
-      </div>
-      <div class="bitacora-detail__row">
-        <span class="bitacora-detail__label">Obra</span>
-        <span>{{ b.proyecto?.nombre ?? '—' }}</span>
       </div>
 
       @if (b.tipo === 'parte_diario') {

@@ -258,3 +258,24 @@
     color: var(--sgc-primary);
   }
 }
+
+// U12 — descripción por restricción seleccionada
+.bitacora-restriccion-desc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+
+  &__tag {
+    flex-shrink: 0;
+    min-width: 140px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text-secondary);
+  }
+  input { flex: 1; }
+}
+@media (max-width: 560px) {
+  .bitacora-restriccion-desc { flex-direction: column; align-items: stretch; gap: 4px; }
+  .bitacora-restriccion-desc__tag { min-width: 0; }
+}
