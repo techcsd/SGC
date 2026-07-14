@@ -9,6 +9,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import {
   Conductor,
   ConductorFormData,
@@ -29,6 +30,7 @@ import { daysUntil } from '../../../../shared/utils/fecha.util';
 export class Conductores implements OnInit {
   private conductoresService = inject(ConductoresService);
   private vehiculosService = inject(VehiculosService);
+  private flotaConfig = inject(FlotaConfigService);
 
   // ── Data state ──────────────────────────────────────────
   conductores = signal<Conductor[]>([]);
@@ -229,7 +231,7 @@ export class Conductores implements OnInit {
   // ── Helpers ──────────────────────────────────────────────
   isLicenciaExpiringSoon(vencimiento: string | null): boolean {
     if (!vencimiento) return false;
-    return daysUntil(vencimiento) <= 30;
+    return daysUntil(vencimiento) <= this.flotaConfig.umbralLicenciaDias();
   }
 
   isLicenciaExpired(vencimiento: string | null): boolean {

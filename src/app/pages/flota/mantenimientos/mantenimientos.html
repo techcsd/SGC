@@ -144,6 +144,20 @@
               <td>{{ m.proveedor ?? '—' }}</td>
               <td>
                 <div class="row-actions">
+                  @if (m.estado !== 'completado') {
+                    <button
+                      type="button"
+                      class="action-btn action-btn--ok"
+                      (click)="completar(m)"
+                      [disabled]="completandoId() === m.id"
+                      [attr.aria-label]="'Marcar como completado el mantenimiento del ' + m.fecha"
+                      title="Marcar como completado"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </button>
+                  }
                   <button
                     type="button"
                     class="action-btn action-btn--edit"

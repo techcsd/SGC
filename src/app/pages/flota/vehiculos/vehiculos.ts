@@ -9,6 +9,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import {
   Vehiculo,
   VehiculoFormData,
@@ -39,6 +40,7 @@ interface PendingFoto {
 })
 export class FlotaVehiculos implements OnInit {
   private vehiculosService = inject(VehiculosService);
+  private flotaConfig = inject(FlotaConfigService);
   private toast = inject(ToastService);
 
   // ── Drawer photos ────────────────────────────────────────
@@ -316,7 +318,7 @@ export class FlotaVehiculos implements OnInit {
     const faltan = kmFaltanMantenimiento(v);
     if (faltan == null) return null;
     if (faltan <= 0) return { label: 'Mant. vencido', badge: 'danger' };
-    if (faltan <= 500) return { label: 'Agendar pre-cita', badge: 'warning' };
+    if (faltan <= this.flotaConfig.umbralPrecitaKm()) return { label: 'Agendar pre-cita', badge: 'warning' };
     return { label: 'Mant. al día', badge: 'success' };
   }
 

@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { AvisosFlotaService } from '../../../../shared/services/avisos-flota.service';
+import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import { RegistroCombustible } from '../../../../shared/models/combustible.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { AvisoFlota, AVISO_TIPO_LABEL, AVISO_SEVERIDAD_BADGE } from '../../../../shared/models/aviso-flota.model';
@@ -37,6 +38,7 @@ export class CombustibleDashboard implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
   private avisosService = inject(AvisosFlotaService);
+  private flotaConfig = inject(FlotaConfigService);
 
   formatFecha = formatFechaDisplay;
   tipoLabel = AVISO_TIPO_LABEL;
@@ -91,7 +93,7 @@ export class CombustibleDashboard implements OnInit {
     if (prom == null) return false;
     const ultimas3 = e.slice(-3).map((r) => r.rendimiento_km_gal as number);
     const promUlt = ultimas3.reduce((a, b) => a + b, 0) / ultimas3.length;
-    return promUlt < prom * 0.8;
+    return promUlt < prom * (1 - this.flotaConfig.umbralConsumoPct() / 100);
   });
 
   rendimientoChart = computed<BarDatum[]>(() =>
@@ -144,6 +146,7 @@ export class CombustibleDashboard implements OnInit {
       const ultimoRend = ordenados.filter((r) => r.rendimiento_km_gal != null).at(-1)?.rendimiento_km_gal ?? null;
       let estado: EstadoVeh = 'NORMAL';
       if (tieneAlerta) estado = 'ALERTA';
+      // Estado "REVISAR": umbral suave e independiente (no es el umbral de consumo configurable).
       else if (rendimiento != null && ultimoRend != null && ultimoRend < rendimiento * 0.9) estado = 'REVISAR';
       out.push({ vehiculo: v, echadas: e.length, galones, gastado, km, rendimiento, costoKm, estado });
     }

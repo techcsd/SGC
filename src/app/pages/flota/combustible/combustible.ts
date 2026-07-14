@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
+import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
   RegistroCombustible,
@@ -35,6 +36,7 @@ export class Combustible implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
+  private flotaConfig = inject(FlotaConfigService);
   private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
@@ -159,7 +161,8 @@ export class Combustible implements OnInit {
     const rend = kmRec != null && gal > 0 ? kmRec / gal : null;
     const costoKm = kmRec != null && kmRec > 0 ? monto / kmRec : null;
     const prom = this.promedioRendimientoVeh();
-    const alerta = rend != null && prom != null && rend < prom * 0.8;
+    const alerta =
+      rend != null && prom != null && rend < prom * (1 - this.flotaConfig.umbralConsumoPct() / 100);
     return { precio, kmRec, rend, costoKm, prom, alerta };
   });
 

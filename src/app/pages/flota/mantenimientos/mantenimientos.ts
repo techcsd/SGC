@@ -205,6 +205,23 @@ export class Mantenimientos implements OnInit {
     this.drawerOpen.set(true);
   }
 
+  completandoId = signal<string | null>(null);
+
+  /** Marca el mantenimiento como hecho: resetea el contador del vehículo + atiende avisos. */
+  async completar(m: Mantenimiento) {
+    if (this.completandoId()) return;
+    this.completandoId.set(m.id);
+    try {
+      await this.mantenimientosService.completar(m.id, m.kilometraje_al_mantenimiento ?? null);
+      await this.loadAll();
+      this.toast.success('Mantenimiento completado', 'Se actualizó el próximo mantenimiento del vehículo.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo completar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.completandoId.set(null);
+    }
+  }
+
   openEdit(m: Mantenimiento) {
     this.editingId.set(m.id);
     this.saveError.set('');

@@ -39,6 +39,20 @@ export class MantenimientosService {
     return data as unknown as Mantenimiento;
   }
 
+  /**
+   * Marca el mantenimiento como completado: resetea el contador de próximo
+   * mantenimiento del vehículo (km_ultimo_mantenimiento) y atiende los avisos
+   * vencido/pre_cita de ese vehículo. `km` = kilometraje real al que se hizo
+   * (si es null, usa el kilometraje_al_mantenimiento del registro).
+   */
+  async completar(id: string, km: number | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('completar_mantenimiento', {
+      p_id: id,
+      p_km: km,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   // ── Maintenance photos (sgc.mantenimientos.fotos text[] + `vehiculos` bucket) ──
 
   /** Uploads one photo for a maintenance record and returns its storage path. */
