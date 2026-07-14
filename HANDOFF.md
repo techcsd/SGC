@@ -2,6 +2,43 @@
 
 _Last updated: 2026-07-14_
 
+## Actualización 1 (14/07 tarde) — reporte semanal v2 + resumen inventario web — build verde, SQL aplicado a prod
+
+Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-1.md` (§A hojas, §B preguntas oficiales).
+Aditivo/retrocompatible. **Nada commiteado ni desplegado.** La parte móvil (PROMPT-4) queda pendiente.
+
+### ✅ Reporte semanal — plantilla OFICIAL v2 (R3 refinado)
+- `sql/2026-07-14-reporte-semanal-v2.sql` **aplicado + verificado en prod**:
+  desactiva `REPORTE-SEMANAL-V1` (activo=false, **frecuencia intacta** → históricos siguen
+  contando/visibles) e inserta `REPORTE-SEMANAL-V2` activa con las **9 preguntas oficiales**
+  (cada una su propia sección), **ninguna crítica**. Mismo patrón de versionado que Flota v2.
+- El ítem 10 "Algún comentario" **NO** es ítem OK/NO/NA → es el campo `observaciones` de la
+  cabecera del wizard (ya existente, opcional).
+- **Kilometraje**: se mantiene como dato de cabecera del wizard (coherencia + mant. por km).
+- **Nivel de combustible**: era **campo genérico opcional** de cabecera (`checklists_vehiculo.nivel_combustible`,
+  sin validación, compartido por todos los tipos) — **NO** fue sembrado como ítem del semanal,
+  así que no había nada que quitar; **queda opcional** tal cual (caso "déjalo opcional").
+- Un NO en cualquier ítem → veredicto `con_hallazgos` (verificado con la lógica exacta del RPC) →
+  `registrar_checklist_vehiculo` inserta aviso `hallazgos` y notifica a Flota (mecanismo existente, sin cambios).
+- El form web (`flota/checklists`) agrupa ítems por sección y el dashboard `flota/reporte-semanal`
+  muestra los veredictos — ambos genéricos, la v2 se ve bien sin cambios de código.
+
+### ✅ Inventario web — hoja de resumen/review (patrón "hojas" §A, versión web)
+- `salidas` y `entradas`: drawer ahora es wizard de 3 hojas dentro de la misma página:
+  **form** (categorías destacadas-first en `<optgroup>` + stepper −/+, ya existía) →
+  **resumen/review** (lista editable: ajustar cantidad con stepper / quitar renglón, con meta
+  almacén/motivo/proveedor/fecha) → **éxito** (✓ + "Registrar otra"/"Cerrar"; salida además
+  enlaza "Ver conduce"). Reusa `FormDrawer` + `QtyStepper`; sin nav nueva.
+- Aprobación de requisición (A2) NO cambia: sigue en un solo paso (ya tenía su mapeo inline).
+- El registro resultante se ve igual que siempre en listados/historial (regla madre); el conduce no se tocó.
+
+### 🔜 Pendiente
+- QA manual en navegador (crear reporte semanal v2 con un NO → hallazgo/aviso; salida multi-categoría por el resumen).
+- Commit/push + deploy — esperar autorización.
+- csd-app (PROMPT-4): patrón "hojas" completo + compartir WhatsApp + reporte semanal v2 móvil.
+
+---
+
 ## Mejoras reunión 14/07 (SGC web + SQL) — build verde, SQL aplicado a prod
 
 Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO.md` (R1–R29 + §4).

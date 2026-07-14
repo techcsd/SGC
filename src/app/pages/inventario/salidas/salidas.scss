@@ -271,6 +271,81 @@ textarea {
   }
 }
 
+// ── Hoja de resumen / review ─────────────────────────────
+.resumen-hoja__lead {
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+  margin: 0 0 12px;
+}
+
+.resumen-hoja__meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  margin: 0 0 16px;
+  padding: 12px;
+  background: var(--sgc-surface-2, var(--sgc-surface));
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+
+  div { display: flex; flex-direction: column; gap: 2px; }
+  dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sgc-text-muted); }
+  dd { margin: 0; font-size: 13px; font-weight: 600; color: var(--sgc-text); }
+}
+
+.resumen-hoja__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resumen-row {
+  display: grid;
+  grid-template-columns: 1fr 100px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+
+  &__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  &__nombre { font-size: 14px; font-weight: 600; color: var(--sgc-text); }
+  &__cat { font-size: 12px; color: var(--sgc-text-muted); }
+}
+
+// ── Hoja de éxito ────────────────────────────────────────
+.exito-hoja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 24px 8px;
+
+  &__icon {
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--sgc-success-light, rgba(39, 174, 96, 0.12));
+    color: var(--sgc-success);
+  }
+
+  &__title { margin: 4px 0 0; font-size: 18px; font-weight: 700; color: var(--sgc-text); }
+  &__sub { margin: 0; font-size: 14px; color: var(--sgc-text-muted); }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+}
+
 // ── Responsive ───────────────────────────────────────────
 @media (max-width: 768px) {
   .form-row {
@@ -278,6 +353,10 @@ textarea {
   }
 
   .item-row {
+    grid-template-columns: 1fr;
+  }
+
+  .resumen-hoja__meta {
     grid-template-columns: 1fr;
   }
 }

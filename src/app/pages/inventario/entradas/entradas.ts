@@ -68,6 +68,14 @@ export class Entradas implements OnInit {
   drawerOpen = signal(false);
   formItems = signal<EntradaItemFormData[]>([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
 
+  /**
+   * Paso del wizard dentro del drawer (patrón "hojas" en versión web): 'form'
+   * (elegir por categorías + cantidades) → 'resumen' (revisar/editar) → 'exito'.
+   */
+  step = signal<'form' | 'resumen' | 'exito'>('form');
+  /** Entrada ya creada, para la hoja de éxito. */
+  creado = signal<EntradaInventario | null>(null);
+
   formatFecha = formatFechaDisplay;
   readonly today = todayIso();
   fotoError = signal('');
@@ -164,6 +172,39 @@ export class Entradas implements OnInit {
     this.formItems().reduce((acc, i) => acc + i.cantidad * (i.precio_unit ?? 0), 0),
   );
 
+  drawerTitle = computed(() => {
+    switch (this.step()) {
+      case 'resumen': return 'Revisar entrada';
+      case 'exito': return '¡Entrada registrada!';
+      default: return 'Registrar entrada';
+    }
+  });
+
+  /**
+   * Renglones válidos resueltos con su artículo y categoría, para la hoja de
+   * resumen. Conserva el índice original en formItems para editar/quitar.
+   */
+  resumenItems = computed(() => {
+    const arts = this.articulos();
+    const catName = new Map(this.categorias().map((c) => [c.id, c.nombre] as const));
+    return this.formItems()
+      .map((it, index) => ({ it, index }))
+      .filter(({ it }) => it.articulo_id && it.cantidad > 0)
+      .map(({ it, index }) => {
+        const a = arts.find((x) => x.id === it.articulo_id);
+        return {
+          index,
+          nombre: a?.nombre ?? '—',
+          codigo: a?.codigo ?? '',
+          categoria: a ? (catName.get(a.categoria_id) ?? 'Otros') : 'Otros',
+          cantidad: it.cantidad,
+          precio_unit: it.precio_unit ?? null,
+        };
+      });
+  });
+
+  resumenValido = computed(() => this.resumenItems().length > 0);
+
   async ngOnInit() {
     await this.loadAll();
   }
@@ -243,9 +284,16 @@ export class Entradas implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   openCreate() {
     this.saveError.set('');
+    this.creado.set(null);
+    this.step.set('form');
     this.form.reset({ fecha: this.today });
     this.formItems.set([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
     this.drawerOpen.set(true);
+  }
+
+  /** Desde la hoja de éxito: limpia todo y vuelve a la hoja del formulario. */
+  registrarOtra() {
+    this.openCreate();
   }
 
   closeDrawer() {
@@ -283,10 +331,28 @@ export class Entradas implements OnInit {
     return item.cantidad * (item.precio_unit ?? 0);
   }
 
+  /**
+   * Submit del formulario: en la hoja 'form' valida y avanza al resumen; en la
+   * hoja 'resumen' confirma y ejecuta la entrada.
+   */
   async onSave() {
+    if (this.step() === 'resumen') {
+      await this.confirmar();
+      return;
+    }
+    this.irAResumen();
+  }
+
+  /** Valida la hoja del formulario y pasa a la hoja de resumen/review. */
+  irAResumen() {
     this.form.markAllAsTouched();
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
-    if (this.form.invalid || this.saving() || items.length === 0) return;
+    if (this.form.invalid || items.length === 0) {
+      if (items.length === 0) {
+        this.saveError.set('Agrega al menos un artículo con cantidad mayor a cero.');
+      }
+      return;
+    }
 
     const articuloIds = items.map((i) => i.articulo_id);
     if (new Set(articuloIds).size !== articuloIds.length) {
@@ -301,6 +367,21 @@ export class Entradas implements OnInit {
       this.saveError.set('El precio unitario debe ser un número mayor o igual a cero.');
       return;
     }
+
+    this.saveError.set('');
+    this.step.set('resumen');
+  }
+
+  /** Vuelve de la hoja de resumen a la del formulario para seguir editando. */
+  volverAForm() {
+    this.saveError.set('');
+    this.step.set('form');
+  }
+
+  /** Confirma la entrada desde la hoja de resumen y muestra la hoja de éxito. */
+  private async confirmar() {
+    const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
+    if (this.saving() || items.length === 0) return;
 
     this.saving.set(true);
     this.saveError.set('');
@@ -321,7 +402,8 @@ export class Entradas implements OnInit {
         userId,
       );
       this.entries.update((list) => [created, ...list]);
-      this.drawerOpen.set(false);
+      this.creado.set(created);
+      this.step.set('exito');
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
@@ -330,6 +412,18 @@ export class Entradas implements OnInit {
   }
 
   // ── Helpers ──────────────────────────────────────────────
+  /** Nombre del almacén elegido en el form (para la hoja de resumen). */
+  bodegaNombre(): string {
+    const id = this.form.controls.bodega_id.value;
+    return this.bodegas().find((b) => b.id === id)?.nombre ?? '—';
+  }
+
+  /** Nombre del proveedor elegido en el form (para la hoja de resumen). */
+  proveedorNombre(): string {
+    const id = this.form.controls.proveedor_id.value;
+    return this.proveedores().find((p) => p.id === id)?.nombre ?? '—';
+  }
+
   entryTotal(entry: EntradaInventario): number {
     return (entry.detalle_entradas ?? []).reduce(
       (acc, d) => acc + d.cantidad * (d.precio_unit ?? 0),

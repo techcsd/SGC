@@ -75,6 +75,16 @@ export class Salidas implements OnInit {
   drawerOpen = signal(false);
   formItems = signal<SalidaItemFormData[]>([{ articulo_id: '', cantidad: 1 }]);
 
+  /**
+   * Paso del wizard dentro del drawer (patrón "hojas" del jefe en versión web):
+   * 'form' (elegir por categorías + cantidades) → 'resumen' (revisar/editar todo
+   * lo seleccionado) → 'exito' (confirmación). La aprobación de requisición NO
+   * usa estos pasos (tiene su propio mapeo inline).
+   */
+  step = signal<'form' | 'resumen' | 'exito'>('form');
+  /** Salida ya creada, para la pantalla de éxito (link al conduce). */
+  creado = signal<SalidaInventario | null>(null);
+
   // A2 — al aprobar una requisición, el aprobador MAPEA cada renglón (texto libre del
   // ingeniero) a un artículo del catálogo. Mapeado -> puede despacharse de stock; sin
   // mapear -> va 100% a la solicitud de compra automática.
@@ -130,7 +140,40 @@ export class Salidas implements OnInit {
 
   /** True cuando el drawer está aprobando una requisición (auto-división), no una salida manual. */
   atendiendoRequisicion = computed(() => !!this.solicitudEnAtencion());
-  drawerTitle = computed(() => (this.atendiendoRequisicion() ? 'Aprobar requisición' : 'Registrar salida'));
+  drawerTitle = computed(() => {
+    if (this.atendiendoRequisicion()) return 'Aprobar requisición';
+    switch (this.step()) {
+      case 'resumen': return 'Revisar salida';
+      case 'exito': return '¡Salida registrada!';
+      default: return 'Registrar salida';
+    }
+  });
+
+  /**
+   * Renglones válidos seleccionados, resueltos con su artículo y categoría, para
+   * la hoja de resumen. Conserva el índice original en formItems para poder editar
+   * la cantidad / quitar el renglón desde el resumen.
+   */
+  resumenItems = computed(() => {
+    const arts = this.articulos();
+    const catName = new Map(this.categorias().map((c) => [c.id, c.nombre] as const));
+    return this.formItems()
+      .map((it, index) => ({ it, index }))
+      .filter(({ it }) => it.articulo_id && it.cantidad > 0)
+      .map(({ it, index }) => {
+        const a = arts.find((x) => x.id === it.articulo_id);
+        return {
+          index,
+          nombre: a?.nombre ?? '—',
+          codigo: a?.codigo ?? '',
+          categoria: a ? (catName.get(a.categoria_id) ?? 'Otros') : 'Otros',
+          cantidad: it.cantidad,
+        };
+      });
+  });
+
+  /** Hay al menos un renglón válido para confirmar. */
+  resumenValido = computed(() => this.resumenItems().length > 0);
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -264,14 +307,23 @@ export class Salidas implements OnInit {
   openCreate() {
     this.saveError.set('');
     this.solicitudEnAtencion.set(null);
+    this.creado.set(null);
+    this.step.set('form');
     this.form.reset({ fecha: this.today });
     this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
     this.drawerOpen.set(true);
   }
 
+  /** Desde la hoja de éxito: limpia todo y vuelve a la hoja del formulario. */
+  registrarOtra() {
+    this.openCreate();
+  }
+
   /** Opens the approval drawer for a pending requisición, auto-matching each line to the catalog. */
   atenderSolicitud(s: SolicitudMaterial) {
     this.saveError.set('');
+    this.creado.set(null);
+    this.step.set('form');
     this.solicitudEnAtencion.set(s);
     const arts = this.articulos();
     const norm = (t: string) => t.toLowerCase().trim();
@@ -339,6 +391,12 @@ export class Salidas implements OnInit {
     );
   }
 
+  /**
+   * Submit del formulario. Enruta según el contexto/paso:
+   *  - Aprobación de requisición: despacha directo (flujo A2, sin resumen).
+   *  - Paso 'form': valida y avanza a la hoja de resumen.
+   *  - Paso 'resumen': confirma y ejecuta la salida.
+   */
   async onSave() {
     const solicitud = this.solicitudEnAtencion();
     // A2 — Aprobación de requisición: el sistema divide (despacho + compra automática).
@@ -349,9 +407,23 @@ export class Salidas implements OnInit {
       return;
     }
 
+    if (this.step() === 'resumen') {
+      await this.confirmar();
+      return;
+    }
+    this.irAResumen();
+  }
+
+  /** Valida la hoja del formulario y pasa a la hoja de resumen/review. */
+  irAResumen() {
     this.form.markAllAsTouched();
     const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
-    if (this.form.invalid || this.saving() || items.length === 0) return;
+    if (this.form.invalid || items.length === 0) {
+      if (items.length === 0) {
+        this.saveError.set('Agrega al menos un artículo con cantidad mayor a cero.');
+      }
+      return;
+    }
 
     const articuloIds = items.map((i) => i.articulo_id);
     if (new Set(articuloIds).size !== articuloIds.length) {
@@ -360,16 +432,31 @@ export class Salidas implements OnInit {
     }
 
     const v = this.form.value;
-
     if (v.motivo === 'uso_proyecto' && !v.proyecto_id) {
       this.saveError.set('Selecciona el proyecto para una salida por uso en proyecto.');
       return;
     }
 
+    this.saveError.set('');
+    this.step.set('resumen');
+  }
+
+  /** Vuelve de la hoja de resumen a la del formulario para seguir editando. */
+  volverAForm() {
+    this.saveError.set('');
+    this.step.set('form');
+  }
+
+  /** Confirma la salida desde la hoja de resumen y muestra la hoja de éxito. */
+  private async confirmar() {
+    const items = this.formItems().filter((i) => i.articulo_id && i.cantidad > 0);
+    if (this.saving() || items.length === 0) return;
+
     this.saving.set(true);
     this.saveError.set('');
 
     try {
+      const v = this.form.value;
       const userId = this.userService.profile()?.id ?? null;
       const created = await this.salidasService.create(
         {
@@ -386,7 +473,8 @@ export class Salidas implements OnInit {
         userId,
       );
       this.salidas.update((list) => [created, ...list]);
-      this.drawerOpen.set(false);
+      this.creado.set(created);
+      this.step.set('exito');
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
@@ -465,6 +553,18 @@ export class Salidas implements OnInit {
   }
 
   // ── Helpers ──────────────────────────────────────────────
+  /** Nombre del almacén elegido en el form (para la hoja de resumen). */
+  bodegaNombre(): string {
+    const id = this.form.controls.bodega_id.value;
+    return this.bodegas().find((b) => b.id === id)?.nombre ?? '—';
+  }
+
+  /** Nombre del proyecto elegido en el form (para la hoja de resumen). */
+  proyectoNombre(): string {
+    const id = this.form.controls.proyecto_id.value;
+    return this.proyectos().find((p) => p.id === id)?.nombre ?? '—';
+  }
+
   getMotivoLabel(motivo: string): string {
     return MOTIVOS_SALIDA.find((m) => m.value === motivo)?.label ?? motivo;
   }

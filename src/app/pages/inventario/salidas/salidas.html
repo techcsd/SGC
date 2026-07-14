@@ -240,8 +240,32 @@
   [open]="drawerOpen()"
   (closed)="closeDrawer()"
 >
+  @if (step() === 'exito' && creado(); as c) {
+    <!-- ── Hoja de éxito ── -->
+    <div class="exito-hoja">
+      <div class="exito-hoja__icon" aria-hidden="true">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M20 6 9 17l-5-5"/>
+        </svg>
+      </div>
+      <h3 class="exito-hoja__title">Salida registrada con éxito</h3>
+      <p class="exito-hoja__sub">
+        Se registró la salida de {{ (c.detalle_salidas ?? []).length }} artículo(s) del almacén
+        <strong>{{ c.bodega?.nombre ?? '—' }}</strong>.
+      </p>
+
+      <div class="exito-hoja__actions">
+        <a class="sgc-btn sgc-btn--secondary" [routerLink]="['/inventario/salidas', c.id, 'conduce']">
+          Ver conduce
+        </a>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="registrarOtra()">Registrar otra</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDrawer()">Cerrar</button>
+      </div>
+    </div>
+  } @else {
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
+    @if (step() === 'form') {
     @if (atendiendoRequisicion()) {
       <!-- A2: aprobación de requisición — mapea cada renglón al catálogo; el sistema divide -->
       <div class="req-approve-note">
@@ -425,6 +449,47 @@
         }
       </div>
     }
+    }
+
+    @if (step() === 'resumen') {
+      <!-- ── Hoja de resumen / review ── -->
+      <p class="resumen-hoja__lead">Revisa lo que vas a retirar. Puedes ajustar cantidades o quitar renglones antes de confirmar.</p>
+
+      <dl class="resumen-hoja__meta">
+        <div><dt>Almacén</dt><dd>{{ bodegaNombre() }}</dd></div>
+        <div><dt>Motivo</dt><dd>{{ f.motivo.value ? getMotivoLabel(f.motivo.value) : '—' }}</dd></div>
+        @if (f.motivo.value === 'uso_proyecto') {
+          <div><dt>Proyecto</dt><dd>{{ proyectoNombre() }}</dd></div>
+        }
+        <div><dt>Fecha</dt><dd>{{ formatFecha(f.fecha.value) }}</dd></div>
+        @if (f.responsable.value) { <div><dt>Responsable</dt><dd>{{ f.responsable.value }}</dd></div> }
+      </dl>
+
+      <div class="resumen-hoja__list">
+        @for (r of resumenItems(); track r.index) {
+          <div class="resumen-row">
+            <div class="resumen-row__info">
+              <span class="resumen-row__nombre">{{ r.nombre }}</span>
+              <span class="resumen-row__cat">{{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }</span>
+            </div>
+            <app-qty-stepper
+              class="resumen-row__qty"
+              [value]="r.cantidad"
+              [min]="0"
+              [step]="1"
+              ariaLabel="Cantidad"
+              (valueChange)="updateItemCantidad(r.index, $event)"
+            />
+            <button
+              type="button"
+              class="item-row__remove"
+              (click)="removeItem(r.index)"
+              aria-label="Quitar artículo"
+            >×</button>
+          </div>
+        }
+      </div>
+    }
 
     @if (saveError()) {
       <div class="save-error" role="alert">
@@ -436,20 +501,35 @@
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
-        Cancelar
-      </button>
-      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) {
-          <span class="spinner" aria-hidden="true"></span>
-          Guardando…
-        } @else if (atendiendoRequisicion()) {
-          Aprobar y despachar
-        } @else {
-          Registrar salida
-        }
-      </button>
+      @if (step() === 'resumen') {
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="volverAForm()">
+          ← Volver
+        </button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving() || !resumenValido()">
+          @if (saving()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Confirmando…
+          } @else {
+            Confirmar salida
+          }
+        </button>
+      } @else {
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">
+          Cancelar
+        </button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+          @if (saving()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Guardando…
+          } @else if (atendiendoRequisicion()) {
+            Aprobar y despachar
+          } @else {
+            Revisar →
+          }
+        </button>
+      }
     </div>
 
   </form>
+  }
 </app-form-drawer>
