@@ -231,3 +231,38 @@
 @keyframes admin-reportes-spin {
   to { transform: rotate(360deg); }
 }
+
+.admin-reportes__fotos {
+  margin-top: 16px;
+}
+.admin-reportes__fotos-title {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sgc-text-secondary);
+}
+.admin-reportes__fotos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+.admin-reportes__foto {
+  display: block;
+  aspect-ratio: 1;
+  border-radius: var(--sgc-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-surface);
+}
+.admin-reportes__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.admin-reportes__foto--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sgc-text-muted);
+}

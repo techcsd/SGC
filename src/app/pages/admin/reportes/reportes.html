@@ -121,6 +121,24 @@
         <span>{{ r.created_at | date:'dd MMM yyyy, h:mm a' }}</span>
       </div>
       <p class="admin-reportes__detail-desc">{{ r.descripcion }}</p>
+
+      @if ((r.fotos ?? []).length > 0) {
+        <div class="admin-reportes__fotos">
+          <h4 class="admin-reportes__fotos-title">Fotos ({{ (r.fotos ?? []).length }})</h4>
+          <div class="admin-reportes__fotos-grid">
+            @for (foto of r.fotos; track foto.id) {
+              @let url = getFotoUrl(foto);
+              @if (url) {
+                <a class="admin-reportes__foto" [href]="url" target="_blank" rel="noopener">
+                  <img [src]="url" alt="Foto del reporte" loading="lazy" />
+                </a>
+              } @else {
+                <div class="admin-reportes__foto admin-reportes__foto--loading">…</div>
+              }
+            }
+          </div>
+        </div>
+      }
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>

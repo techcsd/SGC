@@ -6,6 +6,7 @@ import { UserService } from '../../../core/services/user.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import {
   ReporteUsuario,
+  ReporteFoto,
   ReporteEstado,
   ReporteTipo,
   REPORTE_TIPO_LABELS,
@@ -40,6 +41,8 @@ export class AdminReportes implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   selected = signal<ReporteUsuario | null>(null);
+  /** Resolved signed URLs for the selected report's photos, keyed by foto id. */
+  fotoUrls = signal<Map<string, string>>(new Map());
 
   form = new FormGroup({
     estado: new FormControl<ReporteEstado>('abierto', { nonNullable: true, validators: [Validators.required] }),
@@ -118,7 +121,26 @@ export class AdminReportes implements OnInit {
     this.selected.set(r);
     this.saveError.set('');
     this.form.reset({ estado: r.estado, respuesta_admin: r.respuesta_admin ?? '' });
+    this.fotoUrls.set(new Map());
     this.drawerOpen.set(true);
+    void this.resolveFotoUrls(r.fotos ?? []);
+  }
+
+  private async resolveFotoUrls(fotos: ReporteFoto[]) {
+    const entries = await Promise.all(
+      fotos.map(async (f) => {
+        try {
+          return [f.id, await this.reportesService.getSignedUrl(f.storage_path)] as const;
+        } catch {
+          return [f.id, ''] as const;
+        }
+      }),
+    );
+    this.fotoUrls.set(new Map(entries));
+  }
+
+  getFotoUrl(f: ReporteFoto): string {
+    return this.fotoUrls().get(f.id) ?? '';
   }
 
   closeDrawer() {
