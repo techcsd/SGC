@@ -8,13 +8,14 @@ import { ChecklistVehiculo, ChecklistResultado, RESULTADO_META } from '../../../
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { AvisoFlota, AVISO_TIPO_LABEL, AVISO_SEVERIDAD_BADGE } from '../../../../shared/models/aviso-flota.model';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 
 @Component({
   selector: 'app-panel-dia',
-  imports: [DecimalPipe, RouterLink, BarChart],
+  imports: [DecimalPipe, RouterLink, BarChart, Skeleton],
   templateUrl: './panel-dia.html',
   styleUrl: './panel-dia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

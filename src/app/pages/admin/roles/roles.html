@@ -20,10 +20,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="admin-roles__loading" aria-live="polite" aria-busy="true">
-      <span class="admin-roles__spinner" aria-hidden="true"></span>
-      <span>Cargando roles...</span>
-    </div>
+    <app-skeleton variant="table" [rows]="8" />
   }
 
   <!-- Error -->

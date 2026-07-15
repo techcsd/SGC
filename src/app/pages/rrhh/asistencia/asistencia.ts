@@ -14,10 +14,11 @@ import { Asistencia as AsistenciaModel, AsistenciaFormData, ESTADOS_ASISTENCIA, 
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { todayIso, formatHora12 } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-asistencia',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

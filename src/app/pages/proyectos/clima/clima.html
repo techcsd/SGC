@@ -35,7 +35,7 @@
 </div>
 
 @if (loading()) {
-  <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando…</div>
+  <app-skeleton variant="cards" />
 } @else if (reporte(); as r) {
   @if (r.totalSnapshots === 0) {
     <div class="clima-empty sgc-card">

@@ -7,7 +7,7 @@
 }
 
 @if (loading()) {
-  <p class="table-loading">Cargando…</p>
+  <app-skeleton variant="table" [rows]="8" />
 } @else {
   <div class="generar-layout">
     <div class="generar-form sgc-card">

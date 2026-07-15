@@ -11,6 +11,7 @@ import { AlertasCuadreService } from '../../../shared/services/alertas-cuadre.se
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
 import { AlertaCuadre, AlertaEstado, ALERTA_SEVERIDADES } from '../../../shared/models/cuadre.model';
 import { todayIso, daysFromNowIso, formatTimestampDisplay } from '../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 interface Alerta {
   icono: string;
@@ -22,7 +23,7 @@ interface Alerta {
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, ObrasClima],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, ObrasClima, Skeleton],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

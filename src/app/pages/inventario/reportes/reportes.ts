@@ -14,6 +14,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { StockPorBodega } from '../../../../shared/models/stock.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 interface EntradaRow {
   id: string;
@@ -71,7 +72,7 @@ interface TopArticulo {
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, DatePipe, CurrencyPipe],
+  imports: [DecimalPipe, DatePipe, CurrencyPipe, Skeleton],
 })
 export class Reportes implements OnInit {
   private articulosService = inject(ArticulosService);

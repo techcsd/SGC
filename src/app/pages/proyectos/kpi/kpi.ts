@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { ProyectosService, KpiProyectoRaw } from '../../../../shared/services/proyectos.service';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 // Score weights (sum = 1). Tunable here without a migration.
 const PESO_AVANCE = 0.3;
@@ -26,7 +27,7 @@ interface KpiProyecto extends KpiProyectoRaw {
 
 @Component({
   selector: 'app-proyectos-kpi',
-  imports: [DecimalPipe, BarChart, DonutChart],
+  imports: [DecimalPipe, BarChart, DonutChart, Skeleton],
   templateUrl: './kpi.html',
   styleUrl: './kpi.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

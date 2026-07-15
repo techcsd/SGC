@@ -37,7 +37,7 @@
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
 
 @if (loading()) {
-  <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando…</div>
+  <app-skeleton variant="cards" />
 } @else if (vista() === 'vehiculo') {
   <!-- ══ Por vehículo ══ -->
   @if (echadasVehiculo().length === 0) {

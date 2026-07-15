@@ -9,6 +9,7 @@ import {
 import { DecimalPipe, CurrencyPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 interface OrdenReport {
   id: string;
@@ -33,7 +34,7 @@ interface ProveedorStat {
 
 @Component({
   selector: 'app-compras-reportes',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Skeleton],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

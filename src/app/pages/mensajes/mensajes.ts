@@ -18,10 +18,11 @@ import { UserService } from '../../core/services/user.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
 import { Conversacion, Mensaje } from '../../../shared/models/mensaje.model';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

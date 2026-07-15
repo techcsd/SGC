@@ -9,6 +9,7 @@ import { RegistroCombustible } from '../../../../shared/models/combustible.model
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { AvisoFlota, AVISO_TIPO_LABEL, AVISO_SEVERIDAD_BADGE } from '../../../../shared/models/aviso-flota.model';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 type Vista = 'vehiculo' | 'flotilla';
@@ -29,7 +30,7 @@ const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'o
 
 @Component({
   selector: 'app-combustible-dashboard',
-  imports: [DecimalPipe, RouterLink, BarChart],
+  imports: [DecimalPipe, RouterLink, BarChart, Skeleton],
   templateUrl: './combustible-dashboard.html',
   styleUrl: './combustible-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -4,10 +4,11 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { Proyecto, PROYECTO_ESTADOS, PROYECTO_TIPOS } from '../../../../shared/models/proyecto.model';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-proyectos-historial',
-  imports: [DatePipe, DecimalPipe, DonutChart, BarChart],
+  imports: [DatePipe, DecimalPipe, DonutChart, BarChart, Skeleton],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

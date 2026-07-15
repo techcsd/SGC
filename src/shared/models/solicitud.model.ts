@@ -8,6 +8,8 @@ export interface SolicitudMaterialItem {
   descripcion: string;
   cantidad: number;
   unidad: string | null;
+  /** Talla indicada (obligatoria para EPP con requiere_talla). */
+  talla?: string | null;
 }
 
 export interface SolicitudMaterial {
@@ -43,7 +45,13 @@ export interface SolicitudMaterialFormData {
   solicitante_id: string;
   urgencia: 'normal' | 'urgente';
   notas: string | null;
-  items: { articulo_id: string | null; descripcion: string; cantidad: number; unidad: string | null }[];
+  items: {
+    articulo_id: string | null;
+    descripcion: string;
+    cantidad: number;
+    unidad: string | null;
+    talla?: string | null;
+  }[];
 }
 
 export interface SolicitudCompraItem {

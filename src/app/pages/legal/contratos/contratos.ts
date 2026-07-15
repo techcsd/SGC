@@ -9,6 +9,7 @@ import { CONTRATO_ESTADOS, CONTRATO_TIPOS, Contrato, ContratoEstado } from '../.
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
@@ -20,7 +21,7 @@ const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
 
 @Component({
   selector: 'app-contratos',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, Skeleton],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

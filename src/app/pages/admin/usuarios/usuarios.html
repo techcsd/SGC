@@ -36,10 +36,7 @@
 
 <!-- Loading -->
 @if (loading()) {
-  <div class="admin-usuarios__loading" aria-live="polite">
-    <div class="admin-usuarios__spinner" aria-hidden="true"></div>
-    <span>Cargando usuarios...</span>
-  </div>
+  <app-skeleton variant="table" [rows]="8" />
 }
 
 <!-- Error -->

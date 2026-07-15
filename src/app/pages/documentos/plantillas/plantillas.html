@@ -19,7 +19,7 @@
 }
 
 @if (loading()) {
-  <p class="table-loading">Cargando plantillas…</p>
+  <app-skeleton variant="cards" />
 } @else {
   @for (cat of CATEGORIAS; track cat) {
     @if (porCategoria(cat).length > 0) {

@@ -9,10 +9,7 @@
   </div>
 
   @if (loading()) {
-    <div class="entregas__loading" aria-live="polite">
-      <span class="entregas__spinner" aria-hidden="true"></span>
-      <span>Cargando entregas...</span>
-    </div>
+    <app-skeleton variant="table" [rows]="8" />
   } @else if (error()) {
     <div class="entregas__error" role="alert">{{ error() }}</div>
   } @else if (entregas().length === 0) {

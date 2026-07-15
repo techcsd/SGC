@@ -94,7 +94,7 @@ export class SolicitudesMaterialService {
       fecha: string;
       responsable: string | null;
       observaciones: string | null;
-      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number }[];
+      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number; talla?: string | null }[];
     },
   ): Promise<AprobacionRequisicionResultado> {
     const { data, error } = await this.supabase.client.rpc('aprobar_requisicion', {
@@ -116,6 +116,24 @@ export class SolicitudesMaterialService {
       despachado_total: Number(r.despachado_total ?? 0),
       faltante_total: Number(r.faltante_total ?? 0),
     };
+  }
+
+  /**
+   * U25/V14 — registra un valor "Otro" (texto libre) para la inteligencia de
+   * otros_valores (sugerir crear el artículo si se repite). No bloquea el flujo.
+   */
+  registrarOtro(valor: string, referenciaId: string | null): void {
+    const v = (valor ?? '').trim();
+    if (!v) return;
+    this.supabase.client
+      .rpc('registrar_otro_valor', {
+        p_contexto: 'requisicion_material',
+        p_valor: v,
+        p_referencia_id: referenciaId,
+      })
+      .then(({ error }) => {
+        if (error) console.error('registrar_otro_valor failed', error.message);
+      });
   }
 
   async rechazar(id: string, notas?: string | null): Promise<void> {

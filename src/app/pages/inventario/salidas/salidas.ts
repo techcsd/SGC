@@ -88,7 +88,7 @@ export class Salidas implements OnInit {
   // A2 — al aprobar una requisición, el aprobador MAPEA cada renglón (texto libre del
   // ingeniero) a un artículo del catálogo. Mapeado -> puede despacharse de stock; sin
   // mapear -> va 100% a la solicitud de compra automática.
-  reqItems = signal<{ descripcion: string; unidad: string | null; articulo_id: string | null; cantidad: number }[]>([]);
+  reqItems = signal<{ descripcion: string; unidad: string | null; articulo_id: string | null; cantidad: number; talla: string | null }[]>([]);
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -168,9 +168,29 @@ export class Salidas implements OnInit {
           codigo: a?.codigo ?? '',
           categoria: a ? (catName.get(a.categoria_id) ?? 'Otros') : 'Otros',
           cantidad: it.cantidad,
+          requiere_talla: a?.requiere_talla ?? false,
+          talla: it.talla ?? null,
         };
       });
   });
+
+  /** Artículo del catálogo por id (para talla/nota en la UI). */
+  private articuloById(id: string | null | undefined): Articulo | undefined {
+    return id ? this.articulos().find((a) => a.id === id) : undefined;
+  }
+  /** ¿El artículo de este renglón exige talla? */
+  itemRequiereTalla(articuloId: string): boolean {
+    return this.articuloById(articuloId)?.requiere_talla ?? false;
+  }
+  /** Nota/ayuda del artículo (empaque/referencia) para mostrar en el renglón. */
+  itemNota(articuloId: string): string | null {
+    return this.articuloById(articuloId)?.nota ?? null;
+  }
+  updateItemTalla(index: number, value: string) {
+    this.formItems.update((items) =>
+      items.map((item, i) => (i === index ? { ...item, talla: value } : item)),
+    );
+  }
 
   /** Hay al menos un renglón válido para confirmar. */
   resumenValido = computed(() => this.resumenItems().length > 0);
@@ -332,7 +352,7 @@ export class Salidas implements OnInit {
         const d = norm(i.descripcion);
         // auto-match por nombre o código exacto; si no, queda sin mapear (irá a compra).
         const match = arts.find((a) => norm(a.nombre) === d || norm(a.codigo) === d);
-        return { descripcion: i.descripcion, unidad: i.unidad, articulo_id: match?.id ?? null, cantidad: i.cantidad };
+        return { descripcion: i.descripcion, unidad: i.unidad, articulo_id: match?.id ?? null, cantidad: i.cantidad, talla: i.talla ?? null };
       }),
     );
     this.form.reset({
@@ -380,7 +400,8 @@ export class Salidas implements OnInit {
 
   updateItemArticulo(index: number, value: string) {
     this.formItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, articulo_id: value } : item)),
+      // Al cambiar de artículo, se limpia la talla previa (no aplica al nuevo).
+      items.map((item, i) => (i === index ? { ...item, articulo_id: value, talla: null } : item)),
     );
   }
 
@@ -428,6 +449,14 @@ export class Salidas implements OnInit {
     const articuloIds = items.map((i) => i.articulo_id);
     if (new Set(articuloIds).size !== articuloIds.length) {
       this.saveError.set('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.');
+      return;
+    }
+
+    // EPP: exige talla en los artículos que la requieren.
+    const sinTalla = items.filter((i) => this.itemRequiereTalla(i.articulo_id) && !(i.talla ?? '').trim());
+    if (sinTalla.length > 0) {
+      const nombres = sinTalla.map((i) => this.articuloById(i.articulo_id)?.nombre ?? 'artículo').join(', ');
+      this.saveError.set(`Indica la talla para: ${nombres}.`);
       return;
     }
 

@@ -8,10 +8,11 @@ import {
   conduceNumero,
 } from '../../../../shared/models/salida.model';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-conduces',
-  imports: [RouterLink],
+  imports: [RouterLink, Skeleton],
   templateUrl: './conduces.html',
   styleUrl: './conduces.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

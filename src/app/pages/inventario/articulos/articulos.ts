@@ -66,6 +66,8 @@ export class Articulos implements OnInit {
     stock_maximo: new FormControl<number | null>(null, [Validators.min(0)]),
     precio_estimado: new FormControl<number | null>(null, [Validators.min(0)]),
     activo: new FormControl<boolean>(true),
+    requiere_talla: new FormControl<boolean>(false, { nonNullable: true }),
+    nota: new FormControl<string | null>(null),
   }, { validators: maxGteMin('stock_minimo', 'stock_maximo') });
 
   // ── Computed ─────────────────────────────────────────────
@@ -183,6 +185,8 @@ export class Articulos implements OnInit {
       stock_maximo: article.stock_maximo,
       precio_estimado: article.precio_estimado,
       activo: article.activo,
+      requiere_talla: article.requiere_talla ?? false,
+      nota: article.nota ?? null,
     });
     this.drawerOpen.set(true);
   }

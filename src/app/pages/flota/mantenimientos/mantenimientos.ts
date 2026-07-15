@@ -20,6 +20,7 @@ import {
 } from '../../../../shared/models/mantenimiento.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { ToastService } from '../../../../shared/services/toast.service';
 
@@ -30,7 +31,7 @@ interface PendingFoto {
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

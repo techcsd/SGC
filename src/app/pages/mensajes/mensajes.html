@@ -23,7 +23,7 @@
     </div>
 
     @if (loading()) {
-      <div class="conv-list__loading"><span class="spinner-dark"></span> Cargando…</div>
+      <app-skeleton variant="list" />
     } @else if (conversacionesFiltradas().length === 0) {
       <p class="conv-list__empty">No tienes conversaciones. Inicia una con los botones de arriba.</p>
     } @else {
@@ -83,7 +83,7 @@
 
       <div class="thread__messages">
         @if (loadingThread()) {
-          <div class="thread__loading"><span class="spinner-dark"></span> Cargando…</div>
+          <app-skeleton variant="list" />
         } @else {
           @for (m of mensajes(); track m.id) {
             <div class="msg" [class.msg--mine]="esMio(m)">

@@ -7,10 +7,11 @@ import { UserService } from '../../../core/services/user.service';
 import { PlantillaDocumento, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-documentos-generar',
-  imports: [],
+  imports: [Skeleton],
   templateUrl: './generar.html',
   styleUrl: './generar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

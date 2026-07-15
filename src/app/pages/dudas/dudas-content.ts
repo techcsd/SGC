@@ -297,7 +297,17 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo agrego un nuevo artículo, categoría o almacén?',
         respuesta:
-          'En Inventario > Artículos usa "Nuevo artículo" (las categorías se gestionan desde el mismo formulario). Los almacenes se administran en Inventario > Almacenes.',
+          'En Inventario > Artículos usa "Nuevo artículo" (las categorías se gestionan desde el mismo formulario). Puedes marcar "Requiere indicar talla (EPP)" para que el sistema pida la talla al pedir ese artículo, y agregar una "Nota / ayuda" (empaque o referencia, ej. "ATADO 120 PZA", "REF. TOTAL") que se muestra al pedirlo. Los almacenes se administran en Inventario > Almacenes.',
+      },
+      {
+        pregunta: '¿Qué es el catálogo oficial de materiales y las 8 categorías?',
+        respuesta:
+          'El inventario usa el catálogo oficial CSD con 8 categorías en orden: 01 EPP, 02 Materia Prima (madera/plywood), 03 Materiales Consumibles, 04 Equipos de Apuntalamiento, 05 Moldes y Accesorios, 06 Equipos y Herramientas, 07 Material de Oficina y 08 Otros. Al pedir un artículo (salida o requisición) los ves agrupados por estas categorías. Los artículos anteriores que no coincidían con el catálogo quedaron en una categoría "(Revisión)" desactivada para revisarlos manualmente sin perder su historial.',
+      },
+      {
+        pregunta: '¿Cómo veo solo los almacenes de una obra?',
+        respuesta:
+          'En Inventario > Almacenes usa el filtro "Todas las obras" para mostrar solo los almacenes de una obra específica, el almacén general (sin obra) o todos. Un almacén se liga a una obra desde su formulario, en el campo "Obra (almacén de obra)".',
       },
       {
         pregunta: '¿Cómo sé qué materiales hay que reponer en un almacén?',
@@ -354,7 +364,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo pido materiales para mi proyecto (requisición)?',
         respuesta:
-          'Usa Bitácora > Requisición > Nueva requisición y lista lo que necesitas (materiales de catálogo o texto libre). Ya no eliges entre "material" y "compra": el sistema decide al aprobar. Cuando Almacén la aprueba, despacha automáticamente lo que hay en stock (te genera un conduce) y crea una solicitud de compra por el faltante hacia Compras. Tu requisición queda "Pendiente" → "Aprobada (en compra)" si hubo faltante, o "Entregada" si salió completa del almacén.',
+          'Usa Bitácora > Requisición > Nueva requisición. Elige la obra y, por cada renglón, selecciona el artículo del catálogo (agrupado por categorías) con su cantidad, o elige "Otro (escribir)" para pedir algo que no está en el catálogo (eso alimenta la lista de "otros" para valorar si conviene crearlo como artículo oficial). Si el artículo es de protección personal (EPP) que exige talla, el sistema te pedirá la talla. Antes de enviar verás una hoja de resumen para revisar y ajustar todo. Ya no eliges entre "material" y "compra": el sistema decide al aprobar — despacha lo que hay en stock (te genera un conduce) y crea una solicitud de compra por el faltante hacia Compras. Tu requisición queda "Pendiente" → "Aprobada (en compra)" si hubo faltante, o "Entregada" si salió completa.',
       },
       {
         pregunta: '¿Cómo confirmo que recibí una entrega de materiales?',
@@ -595,6 +605,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Dónde ajusto los umbrales de las alertas de materiales?',
         respuesta:
           'En Administración > Parámetros. `alerta_cuadre_umbral_advertencia` (por defecto 80) dispara una advertencia temprana y `alerta_cuadre_umbral_alerta` (por defecto 100) dispara la alerta cuando el consumo llega a ese % del estimado de la fase. Edita el valor y guarda.',
+      },
+      {
+        pregunta: '¿Cómo publico una nueva versión de la app móvil y subo su APK?',
+        respuesta:
+          'En Administración > Versiones de la app crea la versión (número, notas) y sube el archivo APK con "Subir APK" (verás una barra de progreso; queda descargable desde el servidor). La versión que ven los usuarios de campo es independiente de la que desarrollas: se quedan en la que tienen hasta que pulses "Publicar". Al publicar, TODOS los usuarios reciben una notificación en la app y un correo con el enlace de descarga. Usa "Marcar mínima" solo para forzar la actualización (bug crítico): quien tenga una versión menor a la mínima queda obligado a actualizar. La comparación de versiones es por número real (1.10 es mayor que 1.9).',
       },
     ],
   },

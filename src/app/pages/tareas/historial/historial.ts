@@ -6,10 +6,11 @@ import { Tarea, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../../.
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-tareas-historial',
-  imports: [DatePipe, TareaDetalle, DonutChart, BarChart],
+  imports: [DatePipe, TareaDetalle, DonutChart, BarChart, Skeleton],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

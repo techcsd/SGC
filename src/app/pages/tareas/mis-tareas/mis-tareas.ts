@@ -6,10 +6,11 @@ import { UserService } from '../../../core/services/user.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
 import { Tarea, TareaEstado, TAREA_ESTADOS } from '../../../../shared/models/tarea.model';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-mis-tareas',
-  imports: [DatePipe, TareaDetalle],
+  imports: [DatePipe, TareaDetalle, Skeleton],
   templateUrl: './mis-tareas.html',
   styleUrl: './mis-tareas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

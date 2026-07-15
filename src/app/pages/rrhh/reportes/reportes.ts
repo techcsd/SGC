@@ -9,6 +9,7 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { daysAgoIso, yearsSince } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 interface EmpleadoReport {
   id: string;
@@ -47,7 +48,7 @@ interface DeptStat {
 
 @Component({
   selector: 'app-rrhh-reportes',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Skeleton],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

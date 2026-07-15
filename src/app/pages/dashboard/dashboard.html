@@ -13,10 +13,7 @@
   }
 
   @if (loading()) {
-    <div class="dashboard-loading" aria-busy="true">
-      <span class="spinner-dark"></span>
-      Cargando indicadores…
-    </div>
+    <app-skeleton variant="cards" />
   } @else {
 
     <!-- KPI cards -->

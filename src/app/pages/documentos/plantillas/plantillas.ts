@@ -5,10 +5,11 @@ import { PlantillasDocumentoService } from '../../../../shared/services/plantill
 import { UserService } from '../../../core/services/user.service';
 import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

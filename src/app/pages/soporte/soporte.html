@@ -109,10 +109,7 @@
     <h2>Mis reportes</h2>
 
     @if (loading()) {
-      <div class="soporte__loading" aria-live="polite">
-        <div class="soporte__spinner" aria-hidden="true"></div>
-        <span>Cargando...</span>
-      </div>
+      <app-skeleton variant="list" />
     } @else if (error()) {
       <p class="soporte__save-error" role="alert">{{ error() }}</p>
     } @else if (reportes().length === 0) {
