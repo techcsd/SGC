@@ -28,7 +28,14 @@ main + deploy Vercel (pendiente OK de Xavier). Móvil (V2/V3-app/V5) = PROMPT-8 
 
 ### Migraciones aplicadas a prod (verificadas)
 `sql/2026-07-15-version-semver-code.sql` · `-app-releases-upload-notify.sql` ·
-`-catalogo-oficial-materiales.sql` · `-talla-en-movimientos.sql` · `-conteo-todo-conforme.sql`
+`-catalogo-oficial-materiales.sql` · `-talla-en-movimientos.sql` · `-conteo-todo-conforme.sql` ·
+`-act3-review-fixes.sql` (correcciones de la revisión).
+
+### Revisión de código (workflow high-effort) — 9 defectos, todos atendidos (commit cb77936)
+[1] gate is_admin en notificar-version · [2] talla arrastrada a aprobación/conduce · [3] version_publicada
+por semver del string (no version_code) · [4] rollback = despublicar (por diseño) · [5] drop overload
+4-arg de registrar_conteo_app · [6] correo en lotes de 45 · [7] notificar_todos ruta null · [8] botón
+descargar usa apk_url real · [9] cache-control 60s en subida de APK.
 
 ### Pendientes / notas
 - **Merge a main + deploy Vercel** — esperando OK de Xavier.
@@ -36,8 +43,6 @@ main + deploy Vercel (pendiente OK de Xavier). Móvil (V2/V3-app/V5) = PROMPT-8 
   fusionaron para no corromper stock) — homologar a mano. Basura/test a borrar: "TEST Artículo…",
   "aguacate/no se". Ver Inventario > Artículos, filtro categoría "(Revisión)".
 - **Correo de versión**: depende de Resend key en Vault (ya usada por notificar-flota); si falta, skip.
-- **Aprobación de requisición (salidas)**: el mapeo `reqItems` no arrastra talla al despacho/conduce
-  (la talla sí queda en `solicitud_material_items`). Follow-up menor si se quiere en el conduce.
 - QA en navegador: publicar versión con APK (progreso + notificación), catálogo 8 cats + tallas EPP,
   requisición con resumen, filtro almacén por obra, conteo "todo conforme".
 - Móvil (V2/V3/V5 firma/keystore/rolling update) = PROMPT-8 (csd-app).
