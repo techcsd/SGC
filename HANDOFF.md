@@ -2,10 +2,12 @@
 
 _Last updated: 2026-07-15_
 
-## Actualización 2 (QA + mejoras U1–U25) — build verde, SQL aplicado a prod, NADA pusheado
+## Actualización 2 (QA + mejoras U1–U25) — ✅ MERGED a main + DESPLEGADO a prod
 
 Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-2.md` (+ `-1` §B).
-Branch `feat/actualizacion2`. Todo aditivo/retrocompatible. Móvil (U24 = PROMPT-6) pendiente.
+Merged (`3c897e8`) a `main` y desplegado a **sgcconstructorasd.com** (Vercel dpl READY, ~40s,
+alias de prod OK, HTTP 200). SQL aplicado/verificado en prod. Todo aditivo/retrocompatible.
+Móvil (U24 = PROMPT-6) pendiente en csd-app.
 
 ### Rematado en esta sesión (lo que faltaba tras los commits F0–F5)
 - **U8 reporte semanal** (causa raíz: el dashboard solo cuenta plantillas `frecuencia='semanal'`
@@ -50,8 +52,10 @@ Branch `feat/actualizacion2`. Todo aditivo/retrocompatible. Móvil (U24 = PROMPT
   opciones por contexto para detectar las no usadas.
 - **U10 críticos**: PRE-USO-V3 marca críticas las 5 de seguridad vial (1-5) por decisión previa;
   confirmar con el jefe cuáles bloquean.
-- **U24 paridad móvil** (csd-app): fuera de este repo (PROMPT-6).
-- QA manual en navegador + commit/push/deploy: esperar autorización de Xavier.
+- **U24 paridad móvil** (csd-app): fuera de este repo (PROMPT-6) — **siguiente entrega**.
+- QA manual en navegador (prod ya vivo): probar reporte semanal (botón + CTA + conteo con
+  plantilla de 10 tópicos), selector de vehículo con foto, movimientos por almacén, foto en
+  compras-tec, y que los avisos de "Otro" lleguen a admin/tec/dirección.
 
 ---
 
