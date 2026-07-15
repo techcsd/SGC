@@ -124,6 +124,24 @@ export class TecnologiaService {
     if (error) throw new Error(error.message);
   }
 
+  // ── U17 — Foto del equipo (bucket privado `inventario`) ───────────────────
+  async uploadEquipoFoto(equipoId: string, file: File): Promise<string> {
+    const path = `tec-equipo/${equipoId}/${crypto.randomUUID()}.jpg`;
+    const { error } = await this.supabase.client.storage
+      .from('inventario')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  async getEquipoFotoUrl(path: string): Promise<string | null> {
+    const { data, error } = await this.supabase.client.storage
+      .from('inventario')
+      .createSignedUrl(path, 3600);
+    if (error) return null;
+    return data?.signedUrl ?? null;
+  }
+
   async getHistorial(equipoId: string): Promise<TecEquipoHistorial[]> {
     const { data, error } = await this.supabase.client
       .from('tec_equipo_historial')
