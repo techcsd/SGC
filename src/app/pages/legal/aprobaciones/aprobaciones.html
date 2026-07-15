@@ -22,10 +22,7 @@
 
 <div class="table-wrapper sgc-card">
   @if (loading()) {
-    <div class="table-loading" aria-busy="true">
-      <span class="spinner-dark"></span>
-      Cargando solicitudes…
-    </div>
+    <app-skeleton variant="table" [rows]="8" />
   } @else if (visible().length === 0) {
     <div class="table-empty">
       <p>

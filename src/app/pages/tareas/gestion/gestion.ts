@@ -10,10 +10,11 @@ import { Tarea, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../../.
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe, Skeleton],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

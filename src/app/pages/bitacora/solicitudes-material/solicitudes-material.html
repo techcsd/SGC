@@ -17,10 +17,7 @@
 
 <div class="table-wrapper sgc-card">
   @if (loading()) {
-    <div class="table-loading" aria-busy="true">
-      <span class="spinner-dark"></span>
-      Cargando…
-    </div>
+    <app-skeleton variant="table" [rows]="8" />
   } @else if (solicitudes().length === 0) {
     <div class="table-empty">
       <p>Aún no has hecho requisiciones.</p>
@@ -62,79 +59,159 @@
 </div>
 
 <!-- Create Drawer -->
-<app-form-drawer title="Nueva requisición" [open]="drawerOpen()" (closed)="closeDrawer()">
+<app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
-    <div class="sgc-field">
-      <label for="proyecto_id">Obra <span class="required">*</span></label>
-      <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
-        <option [value]="null">Seleccionar obra…</option>
-        @for (p of activeProyectos(); track p.id) {
-          <option [value]="p.id">{{ p.nombre }}</option>
+
+    @if (step() === 'form') {
+      <div class="sgc-field">
+        <label for="proyecto_id">Obra <span class="required">*</span></label>
+        <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
+          <option [value]="null">Seleccionar obra…</option>
+          @for (p of activeProyectos(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+        @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
+          <span class="field-error">La obra es obligatoria.</span>
         }
-      </select>
-      @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
-        <span class="field-error">La obra es obligatoria.</span>
+      </div>
+
+      <div class="sgc-field">
+        <label for="urgencia">Urgencia</label>
+        <select id="urgencia" formControlName="urgencia">
+          <option value="normal">Normal</option>
+          <option value="urgente">Urgente</option>
+        </select>
+      </div>
+
+      <div class="items-header">
+        <label>Artículos solicitados <span class="required">*</span></label>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">+ Agregar</button>
+      </div>
+
+      @for (item of formItems(); track $index; let i = $index) {
+        <div class="item-row">
+          <select
+            class="item-row__articulo"
+            [value]="item.articulo_id"
+            (change)="updateItemArticulo(i, $any($event.target).value)"
+            aria-label="Artículo"
+          >
+            <option value="">✏️ Otro (escribir)…</option>
+            @for (g of articulosAgrupados(); track g.categoria) {
+              <optgroup [label]="g.categoria">
+                @for (a of g.articulos; track a.id) {
+                  <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+                }
+              </optgroup>
+            }
+          </select>
+          <app-qty-stepper
+            class="item-row__cantidad"
+            [value]="item.cantidad"
+            [min]="0"
+            [step]="1"
+            ariaLabel="Cantidad"
+            (valueChange)="updateItemCantidad(i, $event)"
+          />
+          <button
+            type="button"
+            class="item-row__remove"
+            (click)="removeItem(i)"
+            [disabled]="formItems().length === 1"
+            aria-label="Quitar artículo"
+          >✕</button>
+        </div>
+
+        <!-- "Otro" (texto libre) → descripción + unidad; alimenta otros_valores -->
+        @if (!item.articulo_id) {
+          <div class="item-row__otro">
+            <input
+              type="text"
+              placeholder="Describe el artículo (Otro)…"
+              [value]="item.descripcion"
+              (input)="updateItem(i, 'descripcion', $any($event.target).value)"
+            />
+            <input
+              type="text"
+              class="item-row__otro-unidad"
+              placeholder="Unidad"
+              [value]="item.unidad"
+              (input)="updateItem(i, 'unidad', $any($event.target).value)"
+            />
+          </div>
+        }
+
+        <!-- Talla obligatoria (EPP) -->
+        @if (item.articulo_id && itemRequiereTalla(item.articulo_id)) {
+          <div class="item-row__talla">
+            <input
+              type="text"
+              [value]="item.talla ?? ''"
+              (input)="updateItem(i, 'talla', $any($event.target).value)"
+              placeholder="Talla (obligatoria) — ej. S, M, L, XL, 42…"
+              aria-label="Talla"
+            />
+          </div>
+        }
+
+        @if (item.articulo_id && itemNota(item.articulo_id); as nota) {
+          <span class="item-row__nota">ℹ️ {{ nota }}</span>
+        }
       }
-    </div>
 
-    <div class="sgc-field">
-      <label for="urgencia">Urgencia</label>
-      <select id="urgencia" formControlName="urgencia">
-        <option value="normal">Normal</option>
-        <option value="urgente">Urgente</option>
-      </select>
-    </div>
-
-    <div class="items-header">
-      <label>Artículos solicitados</label>
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItem()">+ Agregar</button>
-    </div>
-
-    @for (item of formItems(); track $index; let i = $index) {
-      <div class="item-row item-row--material">
-        <input
-          type="text"
-          placeholder="Descripción"
-          [value]="item.descripcion"
-          (input)="updateItem(i, 'descripcion', $any($event.target).value)"
-        />
-        <input
-          type="number"
-          min="1"
-          placeholder="Cant."
-          [value]="item.cantidad"
-          (input)="updateItem(i, 'cantidad', $any($event.target).value)"
-        />
-        <input
-          type="text"
-          placeholder="Unidad"
-          [value]="item.unidad"
-          (input)="updateItem(i, 'unidad', $any($event.target).value)"
-        />
-        <button
-          type="button"
-          class="item-row__remove"
-          (click)="removeItem(i)"
-          [disabled]="formItems().length === 1"
-          aria-label="Quitar artículo"
-        >✕</button>
+      <div class="sgc-field">
+        <label for="notas">Notas</label>
+        <textarea id="notas" rows="2" formControlName="notas"></textarea>
       </div>
     }
 
-    <div class="sgc-field">
-      <label for="notas">Notas</label>
-      <textarea id="notas" rows="2" formControlName="notas"></textarea>
-    </div>
+    @if (step() === 'resumen') {
+      <!-- ── Hoja de resumen / review ── -->
+      <p class="resumen-hoja__lead">Revisa lo que vas a solicitar. Puedes ajustar cantidades o quitar renglones antes de enviar.</p>
+
+      <dl class="resumen-hoja__meta">
+        <div><dt>Obra</dt><dd>{{ proyectoNombre() }}</dd></div>
+        <div><dt>Urgencia</dt><dd>{{ f.urgencia.value === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
+      </dl>
+
+      <div class="resumen-hoja__list">
+        @for (r of resumenItems(); track r.index) {
+          <div class="resumen-row">
+            <div class="resumen-row__info">
+              <span class="resumen-row__nombre">{{ r.nombre }}</span>
+              <span class="resumen-row__cat">
+                {{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.unidad) { · {{ r.unidad }} }@if (r.talla) { · Talla: {{ r.talla }} }
+              </span>
+            </div>
+            <app-qty-stepper
+              class="resumen-row__qty"
+              [value]="r.cantidad"
+              [min]="0"
+              [step]="1"
+              ariaLabel="Cantidad"
+              (valueChange)="updateItemCantidad(r.index, $event)"
+            />
+            <button type="button" class="item-row__remove" (click)="removeItem(r.index)" aria-label="Quitar artículo">✕</button>
+          </div>
+        }
+      </div>
+    }
 
     @if (saveError()) {
       <p class="save-error" role="alert">{{ saveError() }}</p>
     }
 
     <div class="drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
-      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-        @if (saving()) { Enviando… } @else { Enviar requisición }
-      </button>
+      @if (step() === 'resumen') {
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAForm()">← Volver</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving() || !resumenValido()">
+          @if (saving()) { Enviando… } @else { Enviar requisición }
+        </button>
+      } @else {
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeDrawer()">Cancelar</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary">Revisar →</button>
+      }
     </div>
   </form>
 </app-form-drawer>

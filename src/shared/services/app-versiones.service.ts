@@ -1,6 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { environment } from '../../environments/environment';
 import { AppVersion, AppVersionFormData, VersionPublicada } from '../models/app-version.model';
+
+const APK_BUCKET = 'app-releases';
 
 /** Versionado por etapas de la app móvil (R15). Escritura sólo admin (RLS). */
 @Injectable({ providedIn: 'root' })
@@ -79,5 +82,72 @@ export class AppVersionesService {
     const { data, error } = await this.supabase.client.rpc('version_publicada');
     if (error) throw new Error(error.message);
     return (data ?? {}) as VersionPublicada;
+  }
+
+  /**
+   * V3 — Sube un APK al bucket público `app-releases` con progreso real (XHR).
+   * Guarda el objeto como `csd-app-<version>.apk` y devuelve su URL pública.
+   * Usamos XHR (no supabase-js) porque necesitamos onprogress para la barra.
+   */
+  async uploadApk(
+    file: File,
+    version: string,
+    onProgress?: (pct: number) => void,
+  ): Promise<string> {
+    const safeVersion = version.replace(/[^0-9A-Za-z.\-_]/g, '_') || 'sin-version';
+    const path = `csd-app-${safeVersion}.apk`;
+
+    const { data: sessionData } = await this.supabase.client.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) throw new Error('Sesión no disponible. Vuelve a iniciar sesión.');
+
+    const url = `${environment.supabaseUrl}/storage/v1/object/${APK_BUCKET}/${path}`;
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.setRequestHeader('apikey', environment.supabaseAnonKey);
+      // Reemplaza si ya existe una versión con ese nombre.
+      xhr.setRequestHeader('x-upsert', 'true');
+      xhr.setRequestHeader('cache-control', '3600');
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new Error(`Error al subir (${xhr.status}): ${xhr.responseText}`));
+      };
+      xhr.onerror = () => reject(new Error('Error de red al subir el APK.'));
+      const fd = new FormData();
+      fd.append('file', file, path);
+      xhr.send(fd);
+    });
+
+    const { data } = this.supabase.client.storage.from(APK_BUCKET).getPublicUrl(path);
+    return data.publicUrl;
+  }
+
+  /**
+   * V4 — Notifica a TODOS los usuarios que hay una versión nueva: aviso in-app
+   * (RPC notificar_todos) + correo (edge function notificar-version).
+   * Fire-and-forget en el correo: un fallo de email nunca bloquea la publicación.
+   */
+  async notificarPublicacion(version: string, notas: string | null, apkUrl: string | null): Promise<void> {
+    // 1) Centro de notificaciones in-app (todos los usuarios activos).
+    const { error } = await this.supabase.client.rpc('notificar_todos', {
+      p_tipo: 'info',
+      p_titulo: `Nueva versión ${version} disponible`,
+      p_mensaje: 'Ya puedes actualizar la app CSD. Toca para ver los detalles.',
+      p_ruta: '/historial-versiones',
+    });
+    if (error) throw new Error(error.message);
+
+    // 2) Correo a todos (no bloqueante).
+    this.supabase.client.functions
+      .invoke('notificar-version', { body: { version, notas, apkUrl } })
+      .catch((e) => console.error('notificar-version email failed', e));
   }
 }

@@ -4,12 +4,13 @@ import { WeatherBiService, ReporteClima } from '../../../../shared/context/weath
 import { WeatherAlertsService, WeatherAlerta } from '../../../../shared/context/weather-alerts.service';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { daysAgoIso, todayIso } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 type RangoDias = 7 | 30 | 90;
 
 @Component({
   selector: 'app-proyectos-clima',
-  imports: [DatePipe, BarChart],
+  imports: [DatePipe, BarChart, Skeleton],
   templateUrl: './clima.html',
   styleUrl: './clima.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

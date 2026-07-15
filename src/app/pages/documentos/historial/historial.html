@@ -12,7 +12,7 @@
 
 <div class="table-wrapper sgc-card">
   @if (loading()) {
-    <p class="table-loading">Cargando…</p>
+    <app-skeleton variant="table" [rows]="8" />
   } @else if (documentos().length === 0) {
     <div class="table-empty">
       <p>Aún no se ha generado ningún documento.</p>

@@ -127,7 +127,7 @@
 
 <div class="table-wrapper sgc-card">
   @if (loading()) {
-    <div class="table-loading" aria-busy="true"><span class="spinner-dark"></span> Cargando…</div>
+    <app-skeleton variant="table" [rows]="8" />
   } @else if (versiones().length === 0) {
     <div class="table-empty"><p>No hay versiones registradas.</p></div>
   } @else {
@@ -186,8 +186,31 @@
     </div>
 
     <div class="sgc-field">
+      <label for="apk_file">Subir APK (opcional)</label>
+      <input
+        id="apk_file"
+        type="file"
+        accept=".apk,application/vnd.android.package-archive"
+        (change)="onApkSelected($event)"
+        [disabled]="uploading()"
+      />
+      @if (apkFile()) {
+        <span class="av-file-hint">
+          {{ apkFile()!.name }} ({{ (apkFile()!.size / 1048576) | number: '1.1-1' }} MB)
+        </span>
+      }
+      @if (uploading()) {
+        <div class="av-progress" role="progressbar" [attr.aria-valuenow]="uploadPct()">
+          <div class="av-progress__bar" [style.width.%]="uploadPct()"></div>
+          <span class="av-progress__label">Subiendo… {{ uploadPct() }}%</span>
+        </div>
+      }
+      <span class="field-hint">Se guarda como <code>csd-app-&lt;versión&gt;.apk</code> en el servidor y se usa como enlace de descarga.</span>
+    </div>
+
+    <div class="sgc-field">
       <label for="apk_url">URL del APK (opcional)</label>
-      <input id="apk_url" type="text" formControlName="apk_url" placeholder="https://…" />
+      <input id="apk_url" type="text" formControlName="apk_url" placeholder="https://… (se llena solo al subir)" />
     </div>
 
     <label class="av-check">

@@ -10,6 +10,14 @@ export interface Articulo {
   precio_estimado: number | null;
   imagen_url: string | null;
   activo: boolean;
+  /** EPP: exige indicar talla al pedir (salida/requisición). */
+  requiere_talla: boolean;
+  /** Ayuda visible: atado/paquete/referencia (ej. "ATADO 120 PZA", "REF. TOTAL"). */
+  nota: string | null;
+  /** Subgrupo dentro de la categoría (ej. Madera/Plywood, CSD/Externo). */
+  subgrupo: string | null;
+  /** Orden oficial dentro de la categoría (según el Excel). */
+  orden: number | null;
   created_at: string;
   updated_at: string;
   categoria?: { nombre: string };
@@ -25,6 +33,8 @@ export interface ArticuloFormData {
   stock_maximo: number | null;
   precio_estimado: number | null;
   activo: boolean;
+  requiere_talla?: boolean;
+  nota?: string | null;
 }
 
 export const UNIDADES = [

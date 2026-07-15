@@ -24,11 +24,12 @@ import {
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-combustible',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton],
   templateUrl: './combustible.html',
   styleUrl: './combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

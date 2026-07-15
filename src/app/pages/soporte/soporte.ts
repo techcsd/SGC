@@ -7,10 +7,11 @@ import { ReporteUsuario, REPORTE_TIPO_LABELS, REPORTE_ESTADO_LABELS, ReporteTipo
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { formatFechaHumana } from '../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-soporte',
-  imports: [ReactiveFormsModule, RouterLink, DonutChart, BarChart],
+  imports: [ReactiveFormsModule, RouterLink, DonutChart, BarChart, Skeleton],
   templateUrl: './soporte.html',
   styleUrl: './soporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

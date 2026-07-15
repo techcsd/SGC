@@ -118,6 +118,24 @@ export class SolicitudesMaterialService {
     };
   }
 
+  /**
+   * U25/V14 — registra un valor "Otro" (texto libre) para la inteligencia de
+   * otros_valores (sugerir crear el artículo si se repite). No bloquea el flujo.
+   */
+  registrarOtro(valor: string, referenciaId: string | null): void {
+    const v = (valor ?? '').trim();
+    if (!v) return;
+    this.supabase.client
+      .rpc('registrar_otro_valor', {
+        p_contexto: 'requisicion_material',
+        p_valor: v,
+        p_referencia_id: referenciaId,
+      })
+      .then(({ error }) => {
+        if (error) console.error('registrar_otro_valor failed', error.message);
+      });
+  }
+
   async rechazar(id: string, notas?: string | null): Promise<void> {
     const { error } = await this.supabase.client.rpc('rechazar_solicitud_material', {
       p_solicitud_id: id,

@@ -15,6 +15,7 @@ import {
 } from '../../../../shared/models/legal.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -25,7 +26,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

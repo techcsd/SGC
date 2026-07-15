@@ -15,12 +15,13 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { Bodega, BodegaFormData } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
 
 @Component({
   selector: 'app-bodegas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton],
   templateUrl: './bodegas.html',
   styleUrl: './bodegas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +41,8 @@ export class Bodegas implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
+  // V9 — filtro por obra: '' todas, 'general' sin obra, o el id de la obra.
+  selectedObra = signal<string>('');
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -72,6 +75,7 @@ export class Bodegas implements OnInit {
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const status = this.selectedStatus();
+    const obra = this.selectedObra();
 
     return this.bodegas().filter((b) => {
       if (
@@ -83,6 +87,8 @@ export class Bodegas implements OnInit {
       }
       if (status === 'active' && !b.activo) return false;
       if (status === 'inactive' && b.activo) return false;
+      if (obra === 'general' && b.proyecto_id) return false;
+      if (obra && obra !== 'general' && b.proyecto_id !== obra) return false;
       return true;
     });
   });
@@ -138,9 +144,15 @@ export class Bodegas implements OnInit {
     this.currentPage.set(1);
   }
 
+  onObraChange(value: string) {
+    this.selectedObra.set(value);
+    this.currentPage.set(1);
+  }
+
   clearFilters() {
     this.searchQuery.set('');
     this.selectedStatus.set('all');
+    this.selectedObra.set('');
     this.currentPage.set(1);
   }
 

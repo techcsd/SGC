@@ -349,6 +349,30 @@
       />
     </div>
 
+    <div class="sgc-field">
+      <label for="nota">Nota / ayuda (opcional)</label>
+      <input
+        id="nota"
+        type="text"
+        formControlName="nota"
+        placeholder="Ej: ATADO 120 PZA, PAQUETE DE 50 UDS, REF. TOTAL…"
+      />
+      <span class="field-hint">Se muestra como ayuda al pedir el artículo (empaque/referencia).</span>
+    </div>
+
+    <div class="form-toggle">
+      <label class="toggle-label" for="requiere_talla">
+        <input
+          id="requiere_talla"
+          type="checkbox"
+          formControlName="requiere_talla"
+          class="toggle-input"
+        />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Requiere indicar talla (EPP)
+      </label>
+    </div>
+
     <div class="form-toggle">
       <label class="toggle-label" for="activo">
         <input

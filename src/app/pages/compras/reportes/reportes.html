@@ -5,10 +5,7 @@
 </div>
 
 @if (loading()) {
-  <div class="compras-reportes__loading" aria-live="polite">
-    <div class="compras-reportes__spinner" aria-hidden="true"></div>
-    <span>Cargando reportes...</span>
-  </div>
+  <app-skeleton variant="cards" />
 }
 
 @if (error()) {

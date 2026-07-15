@@ -9,10 +9,11 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RolesService, Rol, MODULOS_DISPONIBLES } from '../../../../shared/services/roles.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
   templateUrl: './roles.html',
   styleUrl: './roles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

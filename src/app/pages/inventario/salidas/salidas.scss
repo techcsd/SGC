@@ -360,3 +360,21 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+// Talla obligatoria (EPP) + nota de ayuda del artículo en el renglón de salida.
+.item-row__talla {
+  margin: -0.25rem 0 0.4rem 0;
+  input {
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius, 8px);
+    font-size: 0.9rem;
+  }
+}
+.item-row__nota {
+  display: block;
+  margin: -0.15rem 0 0.5rem 0;
+  font-size: 0.8rem;
+  color: var(--sgc-text-secondary);
+}

@@ -13,11 +13,12 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { ActivoFijo, ActivoFormData, ACTIVO_ESTADOS, ActivoEstado } from '../../../../shared/models/activo.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-activos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
   templateUrl: './activos.html',
   styleUrl: './activos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

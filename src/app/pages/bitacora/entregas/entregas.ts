@@ -4,6 +4,7 @@ import { SalidasService } from '../../../../shared/services/salidas.service';
 import { NotificarEntregaService } from '../../../../shared/services/notificar-entrega.service';
 import { SalidaInventario } from '../../../../shared/models/salida.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface RecepcionItem {
@@ -16,7 +17,7 @@ interface RecepcionItem {
 
 @Component({
   selector: 'app-bitacora-entregas',
-  imports: [FormDrawer, RouterLink],
+  imports: [FormDrawer, RouterLink, Skeleton],
   templateUrl: './entregas.html',
   styleUrl: './entregas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

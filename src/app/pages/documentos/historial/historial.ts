@@ -3,10 +3,11 @@ import { RouterLink } from '@angular/router';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { DocumentoGenerado, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-documentos-historial',
-  imports: [RouterLink],
+  imports: [RouterLink, Skeleton],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

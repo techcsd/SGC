@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface VehiculoReport {
@@ -54,7 +55,7 @@ interface CombustiblePorVehiculo {
 
 @Component({
   selector: 'app-flota-reportes',
-  imports: [DecimalPipe, TitleCasePipe],
+  imports: [DecimalPipe, TitleCasePipe, Skeleton],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

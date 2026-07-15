@@ -446,6 +446,20 @@
               aria-label="Eliminar artículo"
             >×</button>
           </div>
+          @if (item.articulo_id && itemRequiereTalla(item.articulo_id)) {
+            <div class="item-row__talla">
+              <input
+                type="text"
+                [value]="item.talla ?? ''"
+                (input)="updateItemTalla($index, $any($event.target).value)"
+                placeholder="Talla (obligatoria) — ej. S, M, L, XL, 42…"
+                aria-label="Talla"
+              />
+            </div>
+          }
+          @if (item.articulo_id && itemNota(item.articulo_id); as nota) {
+            <span class="item-row__nota">ℹ️ {{ nota }}</span>
+          }
         }
       </div>
     }
@@ -470,7 +484,7 @@
           <div class="resumen-row">
             <div class="resumen-row__info">
               <span class="resumen-row__nombre">{{ r.nombre }}</span>
-              <span class="resumen-row__cat">{{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }</span>
+              <span class="resumen-row__cat">{{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.talla) { · Talla: {{ r.talla }} }</span>
             </div>
             <app-qty-stepper
               class="resumen-row__qty"

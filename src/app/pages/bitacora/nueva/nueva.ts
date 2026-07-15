@@ -29,6 +29,7 @@ import {
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -41,7 +42,7 @@ interface Draft {
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, QtyStepper],
+  imports: [ReactiveFormsModule, QtyStepper, Skeleton],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

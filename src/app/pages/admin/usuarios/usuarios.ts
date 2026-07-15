@@ -12,10 +12,11 @@ import { UserService } from '../../../core/services/user.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaMedia } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

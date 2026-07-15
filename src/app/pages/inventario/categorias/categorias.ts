@@ -12,11 +12,12 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Categoria, CategoriaFormData } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
 
 @Component({
   selector: 'app-inventario-categorias',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
   templateUrl: './categorias.html',
   styleUrl: './categorias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

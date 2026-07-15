@@ -10,6 +10,8 @@ export class ArticulosService {
     const { data, error } = await this.supabase.client
       .from('articulos')
       .select('*, categoria:categorias_inventario(nombre)')
+      // Orden oficial del catálogo (Excel) dentro de cada categoría, luego nombre.
+      .order('orden', { ascending: true, nullsFirst: false })
       .order('nombre');
 
     if (error) throw new Error(error.message);

@@ -51,6 +51,8 @@ export interface SalidaInventario {
 export interface SalidaItemFormData {
   articulo_id: string;
   cantidad: number;
+  /** Talla indicada (obligatoria para artículos EPP con requiere_talla). */
+  talla?: string | null;
 }
 
 export interface SalidaFormData {

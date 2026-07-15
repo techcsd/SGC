@@ -8,10 +8,11 @@ import { NotificacionesService } from '../../../../shared/services/notificacione
 import { SolicitudAusencia, AUSENCIA_TIPOS, AUSENCIA_ESTADOS } from '../../../../shared/models/ausencia.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-ausencias',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton],
   templateUrl: './ausencias.html',
   styleUrl: './ausencias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

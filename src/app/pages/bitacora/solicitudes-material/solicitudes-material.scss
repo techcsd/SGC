@@ -51,6 +51,7 @@ textarea {
 
 .item-row {
   display: grid;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
   align-items: center;
   margin-bottom: 8px;
@@ -63,6 +64,26 @@ textarea {
   input {
     width: 100%;
     font-size: 13px;
+  }
+
+  &__otro {
+    display: grid;
+    grid-template-columns: 1fr 90px;
+    gap: 8px;
+    margin: -2px 0 8px 0;
+  }
+
+  &__talla input {
+    width: 100%;
+    font-size: 13px;
+    margin: -2px 0 8px 0;
+  }
+
+  &__nota {
+    display: block;
+    margin: -2px 0 8px 0;
+    font-size: 12px;
+    color: var(--sgc-text-secondary);
   }
 
   &__remove {
@@ -94,4 +115,39 @@ textarea {
   .item-row--material {
     grid-template-columns: 1fr;
   }
+}
+
+// ── Hoja de resumen / review (V13) ───────────────────────────
+.resumen-hoja__lead {
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  margin: 0 0 12px;
+}
+.resumen-hoja__meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  margin: 0 0 14px;
+
+  dt { font-size: 11px; text-transform: uppercase; color: var(--sgc-text-secondary); }
+  dd { margin: 0; font-size: 14px; font-weight: 600; color: var(--sgc-text); }
+}
+.resumen-hoja__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.resumen-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+
+  &__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  &__nombre { font-size: 13px; font-weight: 600; color: var(--sgc-text); }
+  &__cat { font-size: 11px; color: var(--sgc-text-secondary); }
 }

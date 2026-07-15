@@ -15,10 +15,7 @@
 }
 
 @if (loading()) {
-  <div class="table-loading" aria-busy="true">
-    <span class="spinner-dark"></span>
-    Calculando ranking…
-  </div>
+  <app-skeleton variant="cards" />
 } @else if (ranking().length === 0) {
   <div class="table-empty sgc-card"><p>No hay proyectos activos para evaluar.</p></div>
 } @else {

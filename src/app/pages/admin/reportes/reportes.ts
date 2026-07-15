@@ -12,10 +12,11 @@ import {
   REPORTE_ESTADO_LABELS,
 } from '../../../../shared/models/reporte-usuario.model';
 import { formatFechaMedia, formatFechaHumana } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-admin-reportes',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

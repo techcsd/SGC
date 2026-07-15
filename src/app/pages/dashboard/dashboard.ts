@@ -6,6 +6,7 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
 import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 interface ModuleCard {
   label: string;
@@ -36,7 +37,7 @@ interface BarItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, ObrasClima],
+  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, ObrasClima, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

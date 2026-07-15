@@ -10,10 +10,7 @@
 }
 
 @if (loading()) {
-  <div class="table-loading" aria-busy="true">
-    <span class="spinner-dark"></span>
-    Cargando…
-  </div>
+  <app-skeleton variant="cards" />
 } @else if (proyectos().length === 0) {
   <div class="table-empty sgc-card">
     <p>Aún no tienes una obra asignada. Contacta a tu supervisor para que te agreguen al equipo de un proyecto.</p>

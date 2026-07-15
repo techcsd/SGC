@@ -5,10 +5,7 @@
 </div>
 
 @if (loading()) {
-  <div class="rrhh-reportes__loading" aria-live="polite">
-    <div class="rrhh-reportes__spinner" aria-hidden="true"></div>
-    <span>Cargando reportes...</span>
-  </div>
+  <app-skeleton variant="table" [rows]="8" />
 }
 
 @if (error()) {
