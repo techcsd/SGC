@@ -24,6 +24,27 @@ export class AdminAppVersiones implements OnInit {
   saving = signal(false);
   error = signal('');
 
+  /** Guía "¿cómo funciona?" — recuerda si el admin la ocultó. */
+  guiaAbierta = signal<boolean>(this.leerPrefGuia());
+
+  private leerPrefGuia(): boolean {
+    try {
+      return localStorage.getItem('av_guia_oculta') !== '1';
+    } catch {
+      return true;
+    }
+  }
+
+  toggleGuia() {
+    const abierta = !this.guiaAbierta();
+    this.guiaAbierta.set(abierta);
+    try {
+      localStorage.setItem('av_guia_oculta', abierta ? '0' : '1');
+    } catch {
+      /* localStorage no disponible: no persistimos, no pasa nada */
+    }
+  }
+
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
   drawerTitle = computed(() => (this.editingId() ? 'Editar versión' : 'Nueva versión'));
