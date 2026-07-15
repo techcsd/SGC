@@ -223,15 +223,41 @@
           Usar mi ubicación actual
         </button>
       </div>
+      <select class="rutas__lugar-select" aria-label="Origen desde obra o almacén"
+              (change)="onOrigenLugar($any($event.target).value); $any($event.target).value=''">
+        <option value="">O elegir una obra o almacén…</option>
+        <optgroup label="Obras">
+          @for (o of obrasDestino(); track o.id) { <option [value]="'obra:' + o.id">{{ o.codigo }} — {{ o.nombre }}</option> }
+        </optgroup>
+        <optgroup label="Almacenes">
+          @for (a of almacenes(); track a.id) { <option [value]="'alm:' + a.id">{{ a.nombre }}</option> }
+        </optgroup>
+      </select>
       <app-location-picker
         [latitud]="f.origen_lat.value"
         [longitud]="f.origen_lng.value"
         (ubicacionChange)="onOrigenPicked($event)"
       />
-      <span class="field-hint">Marca el origen en el mapa o usa tu ubicación. La distancia y el tiempo se llenan solos.</span>
+      <span class="field-hint">Marca el origen en el mapa, usa tu ubicación, o elige una obra/almacén. La distancia y el tiempo se llenan solos.</span>
     </div>
 
     <!-- Destination location → weather at destination -->
+    @if (almacenes().length > 0) {
+      <div class="sgc-field">
+        <label for="destino_lugar">Destino: obra o almacén (atajo)</label>
+        <select id="destino_lugar" class="rutas__lugar-select" aria-label="Destino desde obra o almacén"
+                (change)="onDestinoLugar($any($event.target).value); $any($event.target).value=''">
+          <option value="">Elegir una obra o almacén…</option>
+          <optgroup label="Obras">
+            @for (o of obrasDestino(); track o.id) { <option [value]="'obra:' + o.id">{{ o.codigo }} — {{ o.nombre }}</option> }
+          </optgroup>
+          <optgroup label="Almacenes">
+            @for (a of almacenes(); track a.id) { <option [value]="'alm:' + a.id">{{ a.nombre }}</option> }
+          </optgroup>
+        </select>
+        <span class="field-hint">Un almacén fija el punto de destino con sus coordenadas.</span>
+      </div>
+    }
     <div class="sgc-field">
       <label for="destino_proyecto_id">Obra de destino (opcional)</label>
       <select id="destino_proyecto_id" formControlName="destino_proyecto_id" (change)="onObraChange($any($event.target).value)">
