@@ -3,9 +3,11 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
 
 const SELECT_QUERY =
-  '*, proyecto:proyectos(nombre, codigo), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*)';
+  '*, proyecto:proyectos(nombre, codigo), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*), equipos:bitacora_equipos_alquilados(*)';
 
-const MAX_ARCHIVOS = 10;
+// W1: tope técnico ALTO (el modelo soporta N fotos; una fila por archivo). Espejo
+// del parámetro sgc.parametros.bitacora_max_fotos = 40.
+const MAX_ARCHIVOS = 40;
 const MAX_TAMANO_BYTES = 50 * 1024 * 1024;
 
 @Injectable({ providedIn: 'root' })
@@ -66,6 +68,9 @@ export class BitacoraService {
       p_lluvia_detalle: payload.lluvia_detalle ?? null,
       p_hubo_migracion: payload.hubo_migracion ?? null,
       p_migracion_obreros: payload.migracion_obreros ?? null,
+      // Nuevos (Act.4 W2): equipos alquilados. Retrocompatible (default en el RPC).
+      p_hubo_equipos: payload.hubo_equipos ?? null,
+      p_equipos_alquilados: payload.equipos_alquilados ?? [],
     });
 
     if (error) throw new Error(error.message);
@@ -117,5 +122,21 @@ export class BitacoraService {
 
   get maxArchivos(): number {
     return MAX_ARCHIVOS;
+  }
+
+  /** W2 — nombres de equipos alquilados usados antes, para sugerir (datalist). */
+  async getEquiposSugeridos(): Promise<string[]> {
+    const { data, error } = await this.supabase.client
+      .from('bitacora_equipos_alquilados')
+      .select('equipo')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) return [];
+    const vistos = new Set<string>();
+    for (const r of (data ?? []) as { equipo: string }[]) {
+      const e = (r.equipo ?? '').trim();
+      if (e) vistos.add(e);
+    }
+    return [...vistos].slice(0, 50);
   }
 }

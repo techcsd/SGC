@@ -6,7 +6,7 @@
 </div>
 
 @if (loading()) {
-  <p class="no-print">Cargando…</p>
+  <app-skeleton variant="table" [rows]="8" />
 } @else if (error()) {
   <p class="no-print conduce-error">{{ error() }}</p>
 } @else if (salida(); as s) {

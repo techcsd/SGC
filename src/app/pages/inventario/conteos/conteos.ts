@@ -6,6 +6,7 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
@@ -14,7 +15,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [DatePipe, FormsModule, FormDrawer],
+  imports: [DatePipe, FormsModule, FormDrawer, Skeleton],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

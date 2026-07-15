@@ -42,10 +42,102 @@
     }
   </div>
 
+  <!-- W6 — vistas: panel analítico (por defecto) / filas crudas (drill-down) -->
+  <div class="aud__tabs">
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'panel'" (click)="cambiarVista('panel')">📊 Panel</button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'filas'" (click)="cambiarVista('filas')">📄 Filas</button>
+  </div>
+
   @if (error()) {
     <p class="aud__error">{{ error() }}</p>
   }
 
+  <!-- ── Panel analítico ── -->
+  @if (vista() === 'panel') {
+    @if (resumenLoading()) {
+      <app-skeleton variant="cards" [rows]="6" />
+    } @else if (resumen(); as r) {
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-card--primary"><span class="kpi-label">Acciones</span><span class="kpi-value">{{ r.total | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">Usuarios activos</span><span class="kpi-value">{{ r.usuarios_activos | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">Módulos con actividad</span><span class="kpi-value">{{ r.modulos_activos | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">Días con actividad</span><span class="kpi-value">{{ r.por_dia.length | number }}</span></div>
+      </div>
+
+      <div class="direccion-charts">
+        @if (rankingUsuarios().length > 0) {
+          <div class="sgc-card chart-card chart-card--wide">
+            <app-bar-chart titulo="Usuarios con más interacción" [data]="rankingUsuarios()" />
+          </div>
+        }
+        @if (porAccionChart().length > 0) {
+          <div class="sgc-card chart-card">
+            <app-donut-chart titulo="Por tipo de acción" [data]="porAccionChart()" />
+          </div>
+        }
+        @if (porModuloChart().length > 0) {
+          <div class="sgc-card chart-card chart-card--wide">
+            <app-bar-chart titulo="Actividad por módulo" [data]="porModuloChart()" />
+          </div>
+        }
+        @if (porDiaChart().length > 0) {
+          <div class="sgc-card chart-card chart-card--wide">
+            <app-bar-chart titulo="Actividad por día" [data]="porDiaChart()" />
+          </div>
+        }
+        @if (porHoraChart().length > 0) {
+          <div class="sgc-card chart-card chart-card--wide">
+            <app-bar-chart titulo="Actividad por hora del día" [data]="porHoraChart()" />
+          </div>
+        }
+      </div>
+
+      <!-- Drill-down: cada métrica salta a las filas crudas ya filtradas -->
+      <div class="aud__drill">
+        <div class="sgc-card aud__drill-box">
+          <h3 class="aud__drill-title">Ranking de usuarios</h3>
+          <ul class="aud__drill-list">
+            @for (u of r.por_usuario; track u.actor_id) {
+              <li>
+                <span>{{ u.nombre }}</span>
+                <span class="aud__drill-n">{{ u.n | number }}</span>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verUsuario(u.actor_id)">Ver →</button>
+              </li>
+            } @empty { <li class="aud__muted">Sin datos en el período.</li> }
+          </ul>
+        </div>
+
+        <div class="sgc-card aud__drill-box">
+          <h3 class="aud__drill-title">Acciones más comunes</h3>
+          <ul class="aud__drill-list">
+            @for (a of r.acciones_comunes; track a.tabla + a.accion) {
+              <li>
+                <span>{{ accionLabel(a.accion) }} · {{ tablaLabel(a.tabla) }}</span>
+                <span class="aud__drill-n">{{ a.n | number }}</span>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verAccionComun(a.tabla, a.accion)">Ver →</button>
+              </li>
+            } @empty { <li class="aud__muted">Sin datos en el período.</li> }
+          </ul>
+        </div>
+
+        <div class="sgc-card aud__drill-box">
+          <h3 class="aud__drill-title">Actividad por módulo</h3>
+          <ul class="aud__drill-list">
+            @for (m of r.por_modulo; track m.tabla) {
+              <li>
+                <span>{{ tablaLabel(m.tabla) }}</span>
+                <span class="aud__drill-n">{{ m.n | number }}</span>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verModulo(m.tabla)">Ver →</button>
+              </li>
+            } @empty { <li class="aud__muted">Sin datos en el período.</li> }
+          </ul>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- ── Filas crudas (drill-down) ── -->
+  @if (vista() === 'filas') {
   @if (loading()) {
     <div class="aud__skeleton">
       @for (i of [1,2,3,4,5,6,7,8]; track i) {
@@ -126,5 +218,6 @@
         <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() >= totalPages() - 1" (click)="goToPage(page() + 1)">Siguiente →</button>
       </div>
     }
+  }
   }
 </div>

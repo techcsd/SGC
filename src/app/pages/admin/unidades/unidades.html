@@ -29,7 +29,7 @@
 }
 
 @if (loading()) {
-  <p class="und-muted">Cargando…</p>
+  <app-skeleton variant="table" [rows]="8" />
 } @else {
   <table class="und-table">
     <thead>

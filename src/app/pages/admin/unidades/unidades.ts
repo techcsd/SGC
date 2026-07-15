@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { UnidadesService } from '../../../../shared/services/unidades.service';
 import { Unidad } from '../../../../shared/models/unidad.model';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 /** Admin management of the unidades de medida used by the artículo form. */
 @Component({
   selector: 'app-admin-unidades',
-  imports: [FormsModule],
+  imports: [FormsModule, Skeleton],
   templateUrl: './unidades.html',
   styleUrl: './unidades.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

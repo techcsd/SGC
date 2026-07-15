@@ -42,6 +42,16 @@
     color: var(--sgc-text-muted);
     margin-top: 2px;
   }
+
+  &__notas {
+    display: block;
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+    font-style: italic;
+    margin-top: 3px;
+    max-width: 240px;
+    white-space: normal;
+  }
 }
 
 // ── Row actions ──────────────────────────────────────────

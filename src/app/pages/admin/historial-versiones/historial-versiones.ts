@@ -48,7 +48,10 @@ export class AdminHistorialVersiones implements OnInit {
         ...v,
         cambiosVisibles: f ? (v.cambios ?? []).filter((c) => c.t === f) : (v.cambios ?? []),
       }))
-      .filter((v) => v.cambiosVisibles.length > 0);
+      // Sin filtro: mostrar TODAS (incluye versiones auto-registradas que solo
+      // traen `notas` y aún no tienen cambios etiquetados). Con filtro activo:
+      // solo las que tienen cambios de ese tipo.
+      .filter((v) => (f ? v.cambiosVisibles.length > 0 : true));
   });
 
   async ngOnInit() {

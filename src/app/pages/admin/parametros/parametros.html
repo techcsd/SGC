@@ -16,7 +16,7 @@
 }
 
 @if (loading()) {
-  <p class="param-muted">Cargando…</p>
+  <app-skeleton variant="table" [rows]="8" />
 } @else if (parametros().length === 0) {
   <p class="param-muted">No hay parámetros configurados.</p>
 } @else {

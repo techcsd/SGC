@@ -14,7 +14,7 @@
   <section class="am-card">
     <h2 class="am-card__title">📱 Android</h2>
     @if (loading()) {
-      <p class="am-muted">Cargando versión…</p>
+      <app-skeleton variant="list" [rows]="3" />
     } @else if (info(); as v) {
       <p class="am-version">Versión {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} MB</p>
       <p class="am-changelog">{{ v.changelog }}</p>

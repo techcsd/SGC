@@ -337,10 +337,18 @@
         }
       </div>
 
+      <!-- Notas -->
+      @if (r.notas) {
+        <div class="detail__notas">
+          <span class="detail__label">Notas</span>
+          <span class="detail__value">{{ r.notas }}</span>
+        </div>
+      }
+
       <!-- Evidencia -->
       <h3 class="detail__analysis-title">Evidencia</h3>
       @if (loadingDetail()) {
-        <div class="table-loading"><span class="spinner-dark"></span> Cargando fotos…</div>
+        <app-skeleton variant="list" [rows]="3" />
       } @else {
         <div class="detail__photos">
           <div class="detail__photo">

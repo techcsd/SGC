@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { StockService, ReposicionRow } from '../../../../shared/services/stock.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 /**
  * A3.1 — Reposición por almacén: artículos en o bajo el stock mínimo de un almacén.
@@ -9,7 +10,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
  */
 @Component({
   selector: 'app-inventario-reposicion',
-  imports: [],
+  imports: [Skeleton],
   templateUrl: './reposicion.html',
   styleUrl: './reposicion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

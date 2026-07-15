@@ -6,10 +6,11 @@ import { DocumentoGenerado } from '../../../../shared/models/plantilla-documento
 import { LegalService } from '../../../../shared/services/legal.service';
 import { UserService } from '../../../core/services/user.service';
 import { AprobacionLegal } from '../../../../shared/models/legal.model';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-documentos-ver',
-  imports: [RouterLink],
+  imports: [RouterLink, Skeleton],
   templateUrl: './ver.html',
   styleUrl: './ver.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

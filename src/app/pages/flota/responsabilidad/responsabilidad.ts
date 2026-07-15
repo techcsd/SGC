@@ -4,6 +4,7 @@ import {
   VehiculosService,
   VehiculoEntrega,
 } from '../../../../shared/services/vehiculos.service';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 /**
  * Vehicle responsibility history captured by the CSD field app. Read-only
@@ -12,7 +13,7 @@ import {
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, DatePipe],
+  imports: [DecimalPipe, DatePipe, Skeleton],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

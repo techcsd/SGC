@@ -10,6 +10,7 @@ import { Tarea } from '../../../shared/models/tarea.model';
 import { ReporteUsuario } from '../../../shared/models/reporte-usuario.model';
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
+import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 interface ActividadItem {
   fecha: string;
@@ -20,7 +21,7 @@ interface ActividadItem {
 
 @Component({
   selector: 'app-perfil',
-  imports: [DatePipe, RouterLink, DonutChart, BarChart],
+  imports: [DatePipe, RouterLink, DonutChart, BarChart, Skeleton],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

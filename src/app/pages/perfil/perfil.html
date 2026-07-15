@@ -116,7 +116,7 @@
     <section class="perfil-card sgc-card">
       <h3 class="perfil-section-title">Historial reciente</h3>
       @if (loadingStats()) {
-        <p class="text-muted">Cargando…</p>
+        <app-skeleton variant="list" [rows]="5" />
       } @else if (actividad().length === 0) {
         <p class="text-muted">Sin actividad reciente.</p>
       } @else {

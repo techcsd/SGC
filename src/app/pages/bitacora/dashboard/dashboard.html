@@ -18,6 +18,7 @@
     <div class="kpi-card" [class.kpi-card--danger]="incidentes() > 0"><span class="kpi-label">Incidentes</span><span class="kpi-value">{{ incidentes() | number }}</span></div>
     <div class="kpi-card kpi-card--info"><span class="kpi-label">Días con lluvia</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
     <div class="kpi-card" [class.kpi-card--warning]="obrerosMigracion() > 0"><span class="kpi-label">Obreros por migración</span><span class="kpi-value">{{ obrerosMigracion() | number }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Días con equipos alquilados</span><span class="kpi-value">{{ diasEquipos() | number }}</span></div>
   </div>
 
   <!-- Charts -->
@@ -38,6 +39,16 @@
     @if (porRestriccion().length > 0) {
       <div class="sgc-card chart-card chart-card--wide">
         <app-bar-chart titulo="Restricciones más frecuentes" [data]="porRestriccion()" />
+      </div>
+    }
+    @if (equiposMasUsados().length > 0) {
+      <div class="sgc-card chart-card chart-card--wide">
+        <app-bar-chart titulo="Equipos alquilados más usados" [data]="equiposMasUsados()" />
+      </div>
+    }
+    @if (equiposPorObra().length > 0) {
+      <div class="sgc-card chart-card chart-card--wide">
+        <app-bar-chart titulo="Días con equipos alquilados por obra" [data]="equiposPorObra()" />
       </div>
     }
   </div>

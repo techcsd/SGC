@@ -28,6 +28,19 @@ export interface AuditoriaActor {
   nombre: string;
 }
 
+/** W6 — agregados analíticos del módulo de auditoría (RPC auditoria_resumen). */
+export interface AuditoriaResumen {
+  total: number;
+  usuarios_activos: number;
+  modulos_activos: number;
+  por_usuario: { actor_id: string | null; nombre: string; n: number }[];
+  por_modulo: { tabla: string; n: number }[];
+  por_accion: { accion: string; n: number }[];
+  por_dia: { dia: string; n: number }[];
+  por_hora: { hora: number; n: number }[];
+  acciones_comunes: { tabla: string; accion: string; n: number }[];
+}
+
 const SELECT_QUERY =
   '*, actor:usuarios!auditoria_actor_id_fkey(nombre)';
 
@@ -80,5 +93,17 @@ export class AuditoriaService {
     const { data, error } = await this.supabase.client.rpc('auditoria_actores');
     if (error) throw new Error(error.message);
     return (data ?? []) as AuditoriaActor[];
+  }
+
+  /** W6 — agregados para el dashboard analítico (una sola llamada). */
+  async resumen(filtro: Pick<AuditoriaFiltro, 'desde' | 'hasta' | 'actorId' | 'tabla'>): Promise<AuditoriaResumen> {
+    const { data, error } = await this.supabase.client.rpc('auditoria_resumen', {
+      p_desde: filtro.desde || null,
+      p_hasta: filtro.hasta || null,
+      p_actor: filtro.actorId || null,
+      p_tabla: filtro.tabla || null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? {}) as AuditoriaResumen;
   }
 }

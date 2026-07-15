@@ -4,13 +4,14 @@ import {
   BitacoraCatalogosService,
   BitacoraCatalogo,
 } from '../../../../shared/services/bitacora-catalogos.service';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 type Tipo = 'estructura' | 'actividad' | 'restriccion';
 
 /** Admin management of the bitácora catalogs (estructuras/actividades/restricciones). */
 @Component({
   selector: 'app-admin-bitacora-catalogos',
-  imports: [FormsModule],
+  imports: [FormsModule, Skeleton],
   templateUrl: './bitacora-catalogos.html',
   styleUrl: './bitacora-catalogos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

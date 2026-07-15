@@ -554,7 +554,7 @@
         </div>
 
         @if (equipoLoading()) {
-          <p class="proyectos__fases-loading">Cargando equipo…</p>
+          <app-skeleton variant="list" [rows]="4" />
         } @else {
           @if (equipo().length === 0) {
             <p class="proyectos__fases-empty">Sin miembros asignados a esta obra.</p>
@@ -581,7 +581,11 @@
                         {{ m.externo_tipo === 'topografia' ? 'Topografía subcontratada' : (m.externo_tipo === 'subcontratista' ? 'Subcontratista' : 'Entidad externa') }}
                       }
                       @if (m.desde) { · desde {{ formatFecha(m.desde) }} }
+                      @if (m.hasta) { · hasta {{ formatFecha(m.hasta) }} }
                     </p>
+                    @if (m.notas) {
+                      <p class="proyectos__fase-desc">{{ m.notas }}</p>
+                    }
                   </div>
                 </div>
                 <button
@@ -699,7 +703,7 @@
         </div>
 
         @if (detailLoading()) {
-          <p class="proyectos__fases-loading">Cargando fases...</p>
+          <app-skeleton variant="list" [rows]="4" />
         }
 
         @if (!detailLoading() && (p.fases?.length ?? 0) === 0) {

@@ -75,6 +75,9 @@
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolve(s)">Revisar</button>
                 } @else {
                   <span class="text-muted">{{ s.aprobador?.nombre ?? '—' }}</span>
+                  @if (s.comentario_aprobador) {
+                    <span class="ausencias__comentario">“{{ s.comentario_aprobador }}”</span>
+                  }
                 }
               </td>
             </tr>

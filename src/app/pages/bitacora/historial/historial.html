@@ -306,6 +306,19 @@
         </div>
       }
 
+      @if ((b.equipos ?? []).length > 0) {
+        <div class="bitacora-detail__section">
+          <h3>Equipos alquilados</h3>
+          <ul class="bitacora-detail__list">
+            @for (e of b.equipos; track e.id) {
+              <li>
+                <strong>{{ e.equipo }}</strong>@if (e.uso) { — {{ e.uso }} }@if (e.proveedor) { <span class="text-muted">· {{ e.proveedor }}</span> }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
       @if (b.comentarios) {
         <div class="bitacora-detail__section">
           <h3>Comentarios</h3>

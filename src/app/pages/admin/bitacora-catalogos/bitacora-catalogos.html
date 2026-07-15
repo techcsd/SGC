@@ -33,7 +33,7 @@
 }
 
 @if (loading()) {
-  <p class="bc-muted">Cargando…</p>
+  <app-skeleton variant="cards" [rows]="6" />
 } @else {
   <div class="bc-grid">
     @for (g of grupos; track g.tipo) {

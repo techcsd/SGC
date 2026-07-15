@@ -29,7 +29,7 @@
 </div>
 
 @if (loading()) {
-  <p class="cn-muted">Cargando…</p>
+  <app-skeleton variant="table" [rows]="8" />
 } @else if (error()) {
   <p class="cn-error">{{ error() }}</p>
 } @else {
@@ -93,7 +93,7 @@
     </div>
 
     @if (loadingStock()) {
-      <p class="cn-muted">Cargando stock…</p>
+      <app-skeleton variant="table" [rows]="6" />
     } @else if (chequeoBodegaId() && chequeoRows().length === 0) {
       <p class="cn-muted">Este almacén no tiene artículos con stock.</p>
     } @else if (chequeoRows().length > 0) {

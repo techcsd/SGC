@@ -38,6 +38,8 @@ interface Draft {
   actividades: string[];
   restricciones: string[];
   cantidades?: Record<string, number | null>;
+  descripciones?: Record<string, string>;
+  equipos?: { equipo: string; uso: string; proveedor: string }[];
 }
 
 @Component({
@@ -83,6 +85,11 @@ export class Nueva implements OnInit {
   archivos = signal<File[]>([]);
   expandedEstructura = signal<string | null>(null);
 
+  // W2 — equipos alquilados en uso (parte diario). Lista dinámica.
+  equiposAlquilados = signal<{ equipo: string; uso: string; proveedor: string }[]>([]);
+  /** Sugerencias de equipos usados antes (datalist), alimenta/lee otros_valores (U25). */
+  equiposSugeridos = signal<string[]>([]);
+
   // Daily-log controls carry required validators toggled off for visita/incidente.
   private readonly PARTE_CONTROLS = [
     'bloque_entrepiso',
@@ -111,6 +118,8 @@ export class Nueva implements OnInit {
     lluvia_detalle: new FormControl<string | null>(null, [Validators.maxLength(1000)]),
     hubo_migracion: new FormControl<boolean>(false, { nonNullable: true }),
     migracion_obreros_texto: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
+    // Equipos alquilados (W2) — parte diario. La lista va aparte (equiposAlquilados).
+    hubo_equipos: new FormControl<boolean>(false, { nonNullable: true }),
     // Visita
     visita_tipo_visitante: new FormControl<string | null>(null),
     visita_nombre: new FormControl<string | null>(null, [Validators.maxLength(150)]),
@@ -201,6 +210,13 @@ export class Nueva implements OnInit {
     } catch {
       /* keep the built-in lists */
     }
+
+    // W2 — sugerencias de equipos usados antes (datalist).
+    try {
+      this.equiposSugeridos.set(await this.bitacoraService.getEquiposSugeridos());
+    } catch {
+      /* sin sugerencias, no pasa nada */
+    }
   }
 
   // ── Draft (sessionStorage) ─────────────────────────────────
@@ -210,6 +226,8 @@ export class Nueva implements OnInit {
       actividades: [...this.actividadesSeleccionadas()],
       restricciones: [...this.restriccionesSeleccionadas()],
       cantidades: this.cantidadesActividad(),
+      descripciones: this.restriccionDescripciones(),
+      equipos: this.equiposAlquilados(),
     };
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
   }
@@ -223,6 +241,8 @@ export class Nueva implements OnInit {
         this.actividadesSeleccionadas.set(new Set(draft.actividades));
         this.restriccionesSeleccionadas.set(new Set(draft.restricciones));
         this.cantidadesActividad.set(draft.cantidades ?? {});
+        this.restriccionDescripciones.set(draft.descripciones ?? {});
+        this.equiposAlquilados.set(draft.equipos ?? []);
       } catch {
         sessionStorage.removeItem(DRAFT_KEY);
       }
@@ -325,6 +345,31 @@ export class Nueva implements OnInit {
     this.archivos.update((list) => list.filter((_, i) => i !== index));
   }
 
+  // ── Equipos alquilados (W2) ──────────────────────────────────
+  addEquipo() {
+    this.equiposAlquilados.update((list) => [...list, { equipo: '', uso: '', proveedor: '' }]);
+    this.saveDraft();
+  }
+
+  removeEquipo(index: number) {
+    this.equiposAlquilados.update((list) => list.filter((_, i) => i !== index));
+    this.saveDraft();
+  }
+
+  updateEquipo(index: number, field: 'equipo' | 'uso' | 'proveedor', value: string) {
+    this.equiposAlquilados.update((list) =>
+      list.map((e, i) => (i === index ? { ...e, [field]: value } : e)),
+    );
+    this.saveDraft();
+  }
+
+  /** Al prender "Sí", asegura al menos un renglón; al apagar, limpia la lista. */
+  onHuboEquiposChange(hay: boolean) {
+    if (hay && this.equiposAlquilados().length === 0) this.addEquipo();
+    if (!hay) this.equiposAlquilados.set([]);
+    this.saveDraft();
+  }
+
   // ── Submit ───────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
@@ -346,6 +391,15 @@ export class Nueva implements OnInit {
         this.saveError.set(
           `Describe brevemente: ${faltan.map((r) => this.restriccionLabel(r)).join(', ')}.`,
         );
+        return;
+      }
+    }
+
+    // W2 — si marcó "Sí hay equipos alquilados", exige al menos uno con nombre.
+    if (tipo === 'parte_diario' && this.form.controls.hubo_equipos.value) {
+      const conNombre = this.equiposAlquilados().filter((e) => e.equipo.trim());
+      if (conNombre.length === 0) {
+        this.saveError.set('Indica al menos un equipo alquilado (o cambia la respuesta a "No").');
         return;
       }
     }
@@ -424,6 +478,18 @@ export class Nueva implements OnInit {
                 .map((s) => s.trim())
                 .filter(Boolean)
             : null,
+        // Equipos alquilados (W2) — solo parte diario.
+        hubo_equipos: esParte ? !!v.hubo_equipos : null,
+        equipos_alquilados:
+          esParte && v.hubo_equipos
+            ? this.equiposAlquilados()
+                .filter((e) => e.equipo.trim())
+                .map((e) => ({
+                  equipo: e.equipo.trim(),
+                  uso: e.uso.trim() || null,
+                  proveedor: e.proveedor.trim() || null,
+                }))
+            : [],
       });
 
       for (const file of this.archivos()) {

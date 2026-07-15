@@ -110,6 +110,9 @@
                 @if (art.descripcion) {
                   <span class="article-desc">{{ art.descripcion }}</span>
                 }
+                @if (art.nota) {
+                  <span class="article-nota">{{ art.nota }}</span>
+                }
               </td>
               <td>{{ art.categoria?.nombre ?? getCategoryName(art.categoria_id) }}</td>
               <td>{{ art.unidad }}</td>

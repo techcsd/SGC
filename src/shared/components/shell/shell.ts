@@ -15,6 +15,7 @@ import { UserService } from '../../../app/core/services/user.service';
 import { NotificacionesService } from '../../services/notificaciones.service';
 import { RealtimeNotificacionesService } from '../../services/realtime-notificaciones.service';
 import { NotificacionesCentroService, Notif } from '../../services/notificaciones-centro.service';
+import { AppVersionesService } from '../../services/app-versiones.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 import { formatFechaRelativa } from '../../utils/fecha.util';
@@ -52,6 +53,7 @@ export class Shell implements OnInit {
   private notificaciones = inject(NotificacionesService);
   private realtimeNotificaciones = inject(RealtimeNotificacionesService);
   private centro = inject(NotificacionesCentroService);
+  private appVersiones = inject(AppVersionesService);
   private destroyRef = inject(DestroyRef);
 
   profile = this.userService.profile;
@@ -281,6 +283,11 @@ export class Shell implements OnInit {
     const userId = this.userService.profile()?.id;
     if (userId) {
       this.centro.escuchar(userId);
+      // W7 — auto-registra la versión web en el historial (idempotente, no bloquea).
+      // Solo admins: registrar_version escribe en app_versiones (tabla admin-only).
+      if (this.userService.hasRole('admin')) {
+        void this.appVersiones.autoRegistrarVersionWeb();
+      }
     }
 
     // Catches any count-affecting mutation that doesn't already call

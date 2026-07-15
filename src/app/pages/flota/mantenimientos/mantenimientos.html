@@ -138,7 +138,12 @@
                   <span class="text-muted">—</span>
                 }
               </td>
-              <td>{{ m.proveedor ?? '—' }}</td>
+              <td>
+                {{ m.proveedor ?? '—' }}
+                @if (m.notas) {
+                  <span class="mantenimientos__notas">{{ m.notas }}</span>
+                }
+              </td>
               <td>
                 <div class="row-actions">
                   @if (m.estado !== 'completado') {

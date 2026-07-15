@@ -2,6 +2,37 @@
 
 _Last updated: 2026-07-15_
 
+## Actualización 4 (W1–W7) — ✅ COMMITEADO en rama; SQL en prod
+
+Source: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-4.md` (PROMPT-9, web).
+Rama: **`feat/actualizacion4-bitacora-auditoria-versiones`**. `npm run build` OK. SQL aplicado a prod
+(3 migraciones). W3 (paridad app) = PROMPT-10, repo csd-app (no tocado aquí).
+
+### Hecho
+- **W1 fotos:** modelo ya soporta N; cap 10→40 (`parametros.bitacora_max_fotos`), galería multi + detalle muestra todas.
+- **W2 equipos alquilados:** `bitacora_equipos_alquilados` + flag `bitacoras.hubo_equipos_alquilados`;
+  RPC `crear_entrada_bitacora` extendido (params default; **overload viejo de 29 args eliminado**);
+  UI en bitácora nueva (con sugerencias), detalle, Excel y dashboard (KPI + 2 barras). Equipos → `otros_valores`.
+- **W6 auditoría:** RPC `auditoria_resumen` + panel analítico (tabs Panel/Filas, KPIs, 5 charts, drill-down).
+- **W7 versiones auto:** `package.json` 1.8.0 + `scripts/gen-version.mjs` (hook prebuild/prestart → `src/environments/version.ts`);
+  `registrar_version` idempotente; auto-registro web al arrancar (shell, **solo admins**); historial muestra versiones con solo `notas`.
+- **W4 (regla de oro):** 8 datos ocultos surfaced (comentarios de aprobador/revisor, notas mant./combustible, nota artículo, color vehículo, hasta/notas miembro). Inventario completo + 4 (B) para decisión de negocio.
+- **W5 skeletons:** +18 archivos / 20 puntos de carga.
+
+### Migraciones en prod
+`sql/2026-07-15-act4-bitacora-equipos-versiones.sql` · `-act4-auditoria-resumen.sql` · `-act4-review-fixes.sql`
+
+### Revisión de código (workflow high) — 5 defectos, todos corregidos (en `-act4-review-fixes.sql` + auditoria.ts + shell.ts)
+[1] registrar_version gated a is_admin (era SECURITY DEFINER abierto a cualquier autenticado) · [2] drill-down limpia filtros hermanos · [3] volver a Panel refresca agregados · [4] KPI módulos usa conteo real (no capado a 20) · [5] Filas carga perezosa.
+
+### Pendientes
+- **Merge a main + deploy** (según OK de Xavier).
+- **W4 (B) decisiones de negocio:** firma de checklist en web, `articulos.subgrupo` como agrupador, enlace externo de expediente, fotos de mantenimiento en web.
+- **W3 + lado móvil de W1/W2** = PROMPT-10 (csd-app).
+- La versión web 1.8.0 se auto-registra cuando un **admin** abra el deploy.
+
+---
+
 ## Actualización 3 (V1–V14) — ✅ COMMITEADO en rama, SIN merge/push/deploy
 
 Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-3.md` (+ PROMPT-7).
