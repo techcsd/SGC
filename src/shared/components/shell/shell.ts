@@ -240,6 +240,7 @@ export class Shell implements OnInit {
       { label: 'Parámetros', route: '/admin/parametros' },
       { label: 'Versiones de la app', route: '/admin/app-versiones' },
       { label: 'Historial de versiones', route: '/admin/historial-versiones' },
+      { label: 'Valores "Otro"', route: '/admin/otros-valores' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
