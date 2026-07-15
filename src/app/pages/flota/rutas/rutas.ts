@@ -12,35 +12,40 @@ import { RutasService } from '../../../../shared/services/rutas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS, destinoCoords } from '../../../../shared/models/ruta.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { LocationPicker, UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
 import { RoutingService } from '../../../../shared/context/routing.service';
 import { GeocodingService } from '../../../../shared/context/geocoding.service';
 import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
-import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../shared/utils/fecha.util';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Rutas implements OnInit {
   formatFecha = formatFechaDisplay;
+  formatDur = formatearDuracion; // U23 — duración legible ("1 h 28 min")
 
   private rutasService = inject(RutasService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
   private proyectosService = inject(ProyectosService);
+  private bodegasService = inject(BodegasService);
   private rutasClima = inject(RutasClimaService);
   private routingService = inject(RoutingService);
   private geocoding = inject(GeocodingService);
@@ -51,6 +56,8 @@ export class Rutas implements OnInit {
   vehiculos = signal<Vehiculo[]>([]);
   conductores = signal<Conductor[]>([]);
   obrasDestino = signal<ObraDestino[]>([]);
+  /** U22 — almacenes con coordenadas, usables como origen/destino. */
+  almacenes = signal<Bodega[]>([]);
   rutasClimaMap = signal<Map<string, RutaClima>>(new Map());
   loading = signal(true);
   saving = signal(false);
@@ -176,16 +183,18 @@ export class Rutas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [rutas, vehiculos, conductores, obras] = await Promise.all([
+      const [rutas, vehiculos, conductores, obras, bodegas] = await Promise.all([
         this.rutasService.getAll(),
         this.vehiculosService.getAll(),
         this.conductoresService.getAll(),
         this.proyectosService.getActivasConUbicacion(),
+        this.bodegasService.getAll(),
       ]);
       this.rutas.set(rutas);
       this.vehiculos.set(vehiculos);
       this.conductores.set(conductores);
       this.obrasDestino.set(obras as ObraDestino[]);
+      this.almacenes.set(bodegas.filter((b) => b.latitud != null && b.longitud != null && b.activo));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -369,6 +378,44 @@ export class Rutas implements OnInit {
 
   onFechaChange(fecha: string) {
     this.formFecha.set(fecha);
+  }
+
+  // ── U22 — origen/destino desde una obra o un almacén del sistema ──────────
+  private coordsDeLugar(v: string): { lat: number; lng: number; label: string } | null {
+    const [kind, id] = v.split(':');
+    if (kind === 'obra') {
+      const o = this.obrasMap().get(id);
+      if (o?.latitud != null && o?.longitud != null) return { lat: o.latitud, lng: o.longitud, label: o.nombre };
+    } else if (kind === 'alm') {
+      const b = this.almacenes().find((x) => x.id === id);
+      if (b?.latitud != null && b?.longitud != null) return { lat: b.latitud, lng: b.longitud, label: b.nombre };
+    }
+    return null;
+  }
+
+  onOrigenLugar(v: string) {
+    const c = v ? this.coordsDeLugar(v) : null;
+    if (!c) return;
+    this.form.patchValue({ origen_lat: c.lat, origen_lng: c.lng, origen: c.label });
+    this.origenLat.set(c.lat);
+    this.origenLng.set(c.lng);
+    void this.recalcularRuta();
+  }
+
+  onDestinoLugar(v: string) {
+    if (!v) return;
+    if (v.startsWith('obra:')) {
+      this.onObraChange(v.slice(5));
+      return;
+    }
+    const c = this.coordsDeLugar(v);
+    if (!c) return;
+    // Almacén = punto de destino (no hay link de proyecto).
+    this.form.patchValue({ destino_lat: c.lat, destino_lng: c.lng, destino_proyecto_id: null, destino: c.label });
+    this.destinoLat.set(c.lat);
+    this.destinoLng.set(c.lng);
+    this.destinoProyectoId.set(null);
+    void this.recalcularRuta();
   }
 
   async onSave() {

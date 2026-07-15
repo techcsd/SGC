@@ -1,0 +1,51 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Valores "Otro" frecuentes</h1>
+    <span class="page-count">
+      @if (sugerencias() > 0) { {{ sugerencias() }} sugerencia{{ sugerencias() !== 1 ? 's' : '' }} de opción oficial }
+      @else { Inteligencia de texto libre }
+    </span>
+  </div>
+</div>
+
+<p class="ov-lead">
+  Cuando los usuarios escriben en un campo "Otro", su valor se registra aquí. Si un mismo valor
+  se repite mucho, conviene crearlo como opción oficial del selector.
+</p>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="4" />
+} @else if (grupos().length === 0) {
+  <div class="table-empty sgc-card"><p>Aún no hay valores "Otro" registrados en el período.</p></div>
+} @else {
+  @for (g of grupos(); track g.contexto) {
+    <div class="sgc-card ov-grupo">
+      <h2 class="ov-grupo__title">{{ contextoLabel(g.contexto) }}</h2>
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Valores de {{ g.contexto }}">
+          <thead>
+            <tr><th>Valor escrito</th><th class="text-right">Veces</th><th>Última vez</th><th>Sugerencia</th></tr>
+          </thead>
+          <tbody>
+            @for (v of g.valores; track v.valor_normalizado) {
+              <tr [class.ov-row--alerta]="v.supera_umbral">
+                <td>{{ v.ejemplo }}</td>
+                <td class="text-right">{{ v.repeticiones | number:'1.0-0' }}</td>
+                <td class="text-muted">{{ formatFecha(v.ultima_vez) }}</td>
+                <td>
+                  @if (v.supera_umbral) {
+                    <span class="sgc-badge sgc-badge--warning">Crear opción oficial</span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+}

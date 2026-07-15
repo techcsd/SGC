@@ -7,15 +7,15 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { AdminService, UsuarioAdmin } from '../../../../shared/services/admin.service';
 import { UserService } from '../../../core/services/user.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { formatFechaMedia } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +23,8 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 export class AdminUsuarios implements OnInit {
   private adminService = inject(AdminService);
   private userService = inject(UserService);
+
+  formatFecha = formatFechaMedia; // U9
 
   // ── Data ─────────────────────────────────────────────────
   usuarios = signal<UsuarioAdmin[]>([]);

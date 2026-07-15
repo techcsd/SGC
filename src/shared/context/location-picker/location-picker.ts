@@ -5,6 +5,7 @@ import {
   input,
   output,
   signal,
+  effect,
   viewChild,
   ElementRef,
   AfterViewInit,
@@ -47,6 +48,23 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   direccion = signal('');
   buscando = signal(false);
   resultados = signal<LugarBusqueda[]>([]);
+  busquedaError = signal('');
+
+  private searchTimer: ReturnType<typeof setTimeout> | null = null;
+  private searchAbort: AbortController | null = null;
+
+  constructor() {
+    // U21 — reaccionar a cambios de los inputs lat/lng DESPUÉS de init (ubicación
+    // actual, edición, selección de obra/almacén): mover el mapa y el marcador.
+    effect(() => {
+      const lat = this.latitud();
+      const lng = this.longitud();
+      if (this.map && lat != null && lng != null) {
+        this.map.setView([lat, lng], 15);
+        void this.setMarker(lat, lng, false);
+      }
+    });
+  }
 
   ngAfterViewInit() {
     const lat = this.latitud();
@@ -67,11 +85,21 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       this.setMarker(e.latlng.lat, e.latlng.lng, true);
     });
 
-    // Leaflet sometimes needs a nudge when created inside a drawer that animates in.
-    setTimeout(() => this.map?.invalidateSize(), 200);
+    // U18 — el drawer anima ~220ms; recalcular tamaño DESPUÉS del transform (si no,
+    // los tiles salen grises/desalineados). Varios nudges cubren el timing.
+    requestAnimationFrame(() => this.map?.invalidateSize());
+    setTimeout(() => this.map?.invalidateSize(), 320);
+    setTimeout(() => this.map?.invalidateSize(), 700);
+  }
+
+  /** Fuerza recálculo del tamaño (llamar al abrir el contenedor/tab). */
+  refrescar() {
+    this.map?.invalidateSize();
   }
 
   ngOnDestroy() {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchAbort?.abort();
     this.map?.remove();
     this.map = null;
   }
@@ -100,21 +128,43 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     }
   }
 
-  async onBuscar(texto: string) {
-    if (!texto.trim()) {
+  /** U19 — debounce por tecleo (Nominatim limita ~1 req/s) + cancelar obsoletas. */
+  onBuscar(texto: string) {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.busquedaError.set('');
+    const q = texto.trim();
+    if (!q) {
       this.resultados.set([]);
+      this.buscando.set(false);
       return;
     }
     this.buscando.set(true);
+    this.searchTimer = setTimeout(() => void this.ejecutarBusqueda(q), 400);
+  }
+
+  private async ejecutarBusqueda(q: string) {
+    this.searchAbort?.abort();
+    const ac = new AbortController();
+    this.searchAbort = ac;
     try {
-      this.resultados.set(await this.geocoding.buscar(texto));
+      const res = await this.geocoding.buscar(q, ac.signal);
+      if (ac.signal.aborted) return;
+      this.resultados.set(res);
+      if (res.length === 0) {
+        this.busquedaError.set('Sin resultados. Prueba otro nombre o marca el punto en el mapa.');
+      }
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') return;
+      this.resultados.set([]);
+      this.busquedaError.set('No se pudo buscar ahora (servicio de mapas ocupado). Reintenta o marca el punto en el mapa.');
     } finally {
-      this.buscando.set(false);
+      if (!ac.signal.aborted) this.buscando.set(false);
     }
   }
 
   seleccionarResultado(r: LugarBusqueda) {
     this.resultados.set([]);
+    this.busquedaError.set('');
     this.direccion.set(r.nombre);
     this.map?.setView([r.latitud, r.longitud], 16);
     void this.setMarker(r.latitud, r.longitud, false);

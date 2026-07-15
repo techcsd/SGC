@@ -107,6 +107,18 @@ export class VehiculosService {
     return (data ?? []) as unknown as VehiculoAsignacion[];
   }
 
+  /** Asignaciones activas de un usuario dado (fuente de verdad única del vínculo, U2). */
+  async getAsignacionesActivasByUsuario(usuarioId: string): Promise<VehiculoAsignacion[]> {
+    const { data, error } = await this.supabase.client
+      .from('vehiculo_asignaciones')
+      .select(this.ASIG_SELECT)
+      .eq('usuario_id', usuarioId)
+      .eq('activa', true)
+      .order('desde', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as VehiculoAsignacion[];
+  }
+
   /** Mis vehículos asignados (asignaciones activas del usuario actual). */
   async getMisAsignaciones(): Promise<VehiculoAsignacion[]> {
     const { data: auth } = await this.supabase.client.auth.getUser();

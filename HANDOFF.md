@@ -1,6 +1,59 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-14_
+_Last updated: 2026-07-15_
+
+## Actualización 2 (QA + mejoras U1–U25) — build verde, SQL aplicado a prod, NADA pusheado
+
+Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-2.md` (+ `-1` §B).
+Branch `feat/actualizacion2`. Todo aditivo/retrocompatible. Móvil (U24 = PROMPT-6) pendiente.
+
+### Rematado en esta sesión (lo que faltaba tras los commits F0–F5)
+- **U8 reporte semanal** (causa raíz: el dashboard solo cuenta plantillas `frecuencia='semanal'`
+  y el chofer llenaba pre-uso auto-sugerido). Fix UI: botones separados **«Nuevo pre-uso»** y
+  **«Reporte semanal»** en `flota/checklists`; el `<select>` de plantilla ahora agrupa por
+  frecuencia (optgroup + badge); título del drawer según frecuencia; `flota/reporte-semanal` trae
+  CTA **«Llenar reporte semanal»** (→ `checklists?frecuencia=semanal`, preselecciona la plantilla) +
+  nota que explica la diferencia con el pre-uso. `ChecklistPlantilla.frecuencia` expuesto al front.
+- **U9 barrido de fechas**: `conductores` (ISO cruda de licencia + teléfono formateado en el
+  listado), `weather-card` (`.slice(5)` → `formatDiaCorto`), `shell.tiempoRelativo` → util,
+  admin `usuarios`/`reportes` y `soporte` (pipes con mes en inglés `MMM` → util es-DO). Nuevos
+  helpers en `fecha.util.ts`: `formatFechaMedia`, `formatDiaCorto`. (Los `| date:'dd/MM/yyyy'`
+  restantes ya son legibles; se dejaron.)
+- **U6 foto en selectores**: nuevo componente reutilizable `shared/components/vehiculo-picker`
+  (combobox con thumbnail, CVA para formularios + modo `[value]` suelto). Reemplaza los `<select>`
+  de vehículo en `checklists`, `combustible` (filtro + form) y `rutas`.
+- **U16 movimientos por almacén**: `inventario/movimientos` acepta `?bodega=`; fila de `bodegas`
+  con acción **«Ver movimientos»** filtrada. (Conduce ya se genera desde cada salida; las entradas
+  no generan conduce — decisión de diseño: el conduce es documento de despacho.)
+- **U17 foto en compras tecnológico**: `solicitud_compra_items.foto_path` (aditivo) + RPC
+  `crear_solicitud_compra_tec` extendida (lee `foto_path`, firma text/jsonb intacta) + foto por
+  renglón en el form + drawer de detalle con thumbnails (bucket `inventario`, path `compra-tec/`).
+- **U25 «Otro/s» cableado + avisos** (antes: `registrar_otro_valor` no se llamaba desde ningún
+  flujo y no había avisos): trigger `trg_otro_restriccion` en `bitacora_restricciones` (registra el
+  texto libre de restricción OTRO como `bitacora.restriccion`, cubre web+móvil); tabla dedup
+  `otros_avisos` + función idempotente `evaluar_avisos_otros()` que crea notificaciones «crear
+  opción oficial» a admin/tecnología/dirección al superar el umbral (3 en 30 días, config en
+  `flota_config`); la página `admin/otros-valores` la invoca al cargar. **Verificado en prod con
+  test rolled-back** (3 variantes → 1 grupo, umbral t, 4 notificaciones).
+
+### Migraciones aplicadas a prod (todas verificadas)
+- `sql/2026-07-15-actualizacion2-fase1.sql` (U10 PRE-USO-V3 10 tópicos, U22 geo bodegas, U5
+  normalizar_telefono, U16 v_movimientos_inventario, U25 tabla+fn+vista+config).
+- `sql/2026-07-15-actualizacion2-fase4.sql` (U11 CLIMA fuera de restricciones).
+- `sql/2026-07-15-actualizacion2-fase5.sql` (U17 tec_equipos.foto_path **+** solicitud_compra_items.foto_path + RPC compras-tec).
+- `sql/2026-07-15-actualizacion2-otros-wiring.sql` (U25 trigger + otros_avisos + evaluar_avisos_otros).
+
+### Pendientes / notas
+- **U25 «revisar opciones» (opciones predeterminadas sin uso)**: NO implementado — requiere un
+  catálogo central de opciones por contexto que hoy no existe (las opciones viven en modelos del
+  front). La parte primaria (valor repetido → aviso) sí está. Follow-up: registrar el catálogo de
+  opciones por contexto para detectar las no usadas.
+- **U10 críticos**: PRE-USO-V3 marca críticas las 5 de seguridad vial (1-5) por decisión previa;
+  confirmar con el jefe cuáles bloquean.
+- **U24 paridad móvil** (csd-app): fuera de este repo (PROMPT-6).
+- QA manual en navegador + commit/push/deploy: esperar autorización de Xavier.
+
+---
 
 ## Historial de versiones (timeline admin) — ✅ en prod
 Nueva feature transversal (web + móvil), **solo admin**. Fuente única: `sgc.app_versiones`

@@ -130,7 +130,7 @@
                 [class.sgc-badge--success]="r.estado === 'resuelto'"
                 [class.sgc-badge--danger]="r.estado === 'descartado'"
               >{{ ESTADO_LABELS[r.estado] }}</span>
-              <span class="soporte__item-date">{{ r.created_at | date:'dd MMM yyyy, h:mm a' }}</span>
+              <span class="soporte__item-date">{{ formatFechaHora(r.created_at) }}</span>
             </div>
             <p class="soporte__item-asunto">{{ r.asunto }}</p>
             <p class="soporte__item-desc">{{ r.descripcion }}</p>

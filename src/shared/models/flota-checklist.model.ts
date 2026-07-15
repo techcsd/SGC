@@ -18,6 +18,9 @@ export interface ChecklistPlantillaItem {
   orden: number;
 }
 
+/** U8/U10 — 'preuso' (inspección diaria) vs 'semanal' (reporte semanal). */
+export type ChecklistFrecuencia = 'preuso' | 'semanal';
+
 export interface ChecklistPlantilla {
   id: string;
   codigo: string;
@@ -26,7 +29,13 @@ export interface ChecklistPlantilla {
   descripcion: string | null;
   activo: boolean;
   orden: number;
+  frecuencia?: ChecklistFrecuencia | string;
   items?: ChecklistPlantillaItem[];
+}
+
+/** U8 — etiqueta legible de la frecuencia de una plantilla. */
+export function frecuenciaLabel(frecuencia: string | null | undefined): string {
+  return frecuencia === 'semanal' ? 'Reporte semanal' : 'Pre-uso';
 }
 
 export interface ChecklistRespuesta {

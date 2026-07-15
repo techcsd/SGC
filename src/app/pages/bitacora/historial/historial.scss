@@ -126,3 +126,26 @@
     color: var(--sgc-text-secondary);
   }
 }
+
+// U13/U15 — banda de encabezado del detalle + toolbar de export
+.bit-toolbar {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.bit-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-primary-light, #d6e4f0);
+  border: 1px solid var(--sgc-border);
+
+  &__main { display: flex; flex-direction: column; gap: 2px; }
+  &__obra { font-size: 16px; font-weight: 700; color: var(--sgc-text); }
+  &__fecha { font-size: 13px; color: var(--sgc-text-secondary); font-variant-numeric: tabular-nums; }
+}

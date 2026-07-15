@@ -86,7 +86,16 @@
           @for (e of filtered(); track e.id) {
             <tr>
               <td class="equipo-codigo">{{ e.codigo ?? '—' }}</td>
-              <td><span class="equipo-nombre">{{ e.nombre }}</span></td>
+              <td>
+                <div class="equipo-nombre-cell">
+                  @if (fotoDe(e); as url) {
+                    <img class="equipo-thumb" [src]="url" [alt]="e.nombre" loading="lazy" />
+                  } @else {
+                    <span class="equipo-thumb equipo-thumb--ph" aria-hidden="true">💻</span>
+                  }
+                  <span class="equipo-nombre">{{ e.nombre }}</span>
+                </div>
+              </td>
               <td class="text-muted">{{ getTipoLabel(e.tipo) }}</td>
               <td class="text-muted">
                 {{ e.marca || '—' }}@if (e.modelo) { / {{ e.modelo }} }
@@ -237,6 +246,29 @@
       <textarea id="notas" formControlName="notas" rows="2" placeholder="Observaciones (opcional)…"></textarea>
     </div>
 
+    <!-- U17 — foto del equipo -->
+    <div class="sgc-field">
+      <label>Foto del equipo</label>
+      <div class="tec-foto">
+        @if (fotoPreview(); as p) {
+          <img class="tec-foto__img" [src]="p" alt="Vista previa" />
+        } @else if (fotoActualUrl(); as u) {
+          <img class="tec-foto__img" [src]="u" alt="Foto actual" />
+        } @else {
+          <span class="tec-foto__ph" aria-hidden="true">💻</span>
+        }
+        <div class="tec-foto__actions">
+          <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
+            {{ (fotoPreview() || fotoActualUrl()) ? 'Cambiar foto' : 'Agregar foto' }}
+            <input type="file" accept="image/*" hidden (change)="onFotoPicked($event)" />
+          </label>
+          @if (fotoPreview()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFotoNueva()">Quitar</button>
+          }
+        </div>
+      </div>
+    </div>
+
     @if (saveError()) {
       <div class="save-error" role="alert">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -265,6 +297,9 @@
 <app-form-drawer title="Detalle del equipo" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailEquipo(); as eq) {
     <div class="detail">
+      @if (detalleFotoUrl(); as u) {
+        <img class="detail__foto" [src]="u" [alt]="eq.nombre" />
+      }
       <dl class="detail__grid">
         <div><dt>Código</dt><dd>{{ eq.codigo ?? '—' }}</dd></div>
         <div><dt>Nombre</dt><dd>{{ eq.nombre }}</dd></div>

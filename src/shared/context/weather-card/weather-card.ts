@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { ContextService, ContextoObra } from '../context.service';
 import { interpretarCodigoTiempo } from '../weather.model';
 import { interpretarAqi } from '../air-quality.model';
+import { formatDiaCorto } from '../../utils/fecha.util';
 
 @Component({
   selector: 'app-weather-card',
@@ -48,6 +49,9 @@ export class WeatherCard {
       this.loading.set(false);
     }
   }
+
+  // U9 — etiqueta de día legible (ej. "lun 14") en el pronóstico.
+  diaCorto = formatDiaCorto;
 
   nivelClass(nivel: string): string {
     switch (nivel) {

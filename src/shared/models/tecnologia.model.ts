@@ -47,6 +47,7 @@ export interface TecEquipo {
   asignado_en: string | null;
   ubicacion: string | null;
   notas: string | null;
+  foto_path: string | null;
   activo: boolean;
   created_at?: string;
 }
@@ -62,6 +63,7 @@ export interface TecEquipoFormData {
   asignado_en: string | null;
   ubicacion: string | null;
   notas: string | null;
+  foto_path?: string | null;
 }
 
 export interface TecEquipoHistorial {

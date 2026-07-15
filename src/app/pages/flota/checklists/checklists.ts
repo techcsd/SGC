@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ChecklistsVehiculoService } from '../../../../shared/services/checklists-vehiculo.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -32,10 +32,12 @@ import {
   ALERTA_MANT_META,
   FOTO_SLOTS,
   categoriaPorTipoVehiculo,
+  frecuenciaLabel,
 } from '../../../../shared/models/flota-checklist.model';
 import { claseVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 
 /**
@@ -45,7 +47,7 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +58,11 @@ export class Checklists implements OnInit {
   private conductoresService = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
+
+  /** U8 — frecuencia solicitada al abrir el drawer (query param ?frecuencia=). */
+  private targetFrecuencia: 'preuso' | 'semanal' = 'preuso';
+  readonly frecuenciaLabel = frecuenciaLabel;
 
   // ── Data ─────────────────────────────────────────────────
   checklists = signal<ChecklistVehiculo[]>([]);
@@ -192,7 +199,33 @@ export class Checklists implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // U8 — si se llega con ?frecuencia=semanal (CTA del dashboard de reporte
+    // semanal), abre el drawer con la plantilla semanal ya preseleccionada.
+    const frec = this.route.snapshot.queryParamMap.get('frecuencia');
+    if (frec === 'semanal') {
+      this.openCreate('semanal');
+    }
   }
+
+  /** Plantillas activas agrupadas por frecuencia, para el <select> con optgroup. */
+  plantillasSemanal = computed(() =>
+    this.plantillas().filter((p) => p.frecuencia === 'semanal'),
+  );
+  plantillasPreuso = computed(() =>
+    this.plantillas().filter((p) => p.frecuencia !== 'semanal'),
+  );
+
+  /** Frecuencia legible de la plantilla seleccionada (badge del drawer). */
+  selectedPlantillaFrecuencia = computed(() =>
+    frecuenciaLabel(this.selectedPlantilla()?.frecuencia),
+  );
+
+  /** Título del drawer según la frecuencia de la plantilla elegida. */
+  drawerTitle = computed(() =>
+    this.selectedPlantilla()?.frecuencia === 'semanal'
+      ? 'Nuevo reporte semanal'
+      : 'Nuevo checklist de pre-uso',
+  );
 
   private async loadAll() {
     this.loading.set(true);
@@ -227,7 +260,8 @@ export class Checklists implements OnInit {
   toggleCriticos() { this.soloCriticos.update((v) => !v); }
 
   // ── Create ───────────────────────────────────────────────
-  openCreate() {
+  openCreate(frecuencia: 'preuso' | 'semanal' = 'preuso') {
+    this.targetFrecuencia = frecuencia;
     this.saveError.set('');
     this.selectedPlantillaId.set('');
     this.selectedVehiculoForm.set(null);
@@ -243,14 +277,22 @@ export class Checklists implements OnInit {
       nivel_combustible: null,
       observaciones: null,
     });
+    // U8 — preselecciona la plantilla de la frecuencia solicitada.
+    const plantilla =
+      this.plantillas().find((p) =>
+        frecuencia === 'semanal' ? p.frecuencia === 'semanal' : p.frecuencia !== 'semanal',
+      );
+    if (plantilla) this.selectPlantilla(plantilla.id);
     this.drawerOpen.set(true);
   }
 
   closeDrawer() { this.drawerOpen.set(false); }
 
   /** Al elegir vehículo, sugiere la plantilla de su categoría (o 'general'). */
-  onVehiculoChange(vehiculoId: string) {
+  onVehiculoChange(vehiculoId: string | null) {
+    this.form.controls.vehiculo_id.setValue(vehiculoId);
     this.selectedVehiculoForm.set(vehiculoId);
+    if (!vehiculoId) return;
     // Autosugerir conductor asignado a ese vehículo, si aún no eligió otro.
     if (!this.form.controls.conductor_id.value) {
       const asignado = this.conductores().find((c) => c.vehiculo_id === vehiculoId);

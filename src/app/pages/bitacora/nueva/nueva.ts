@@ -127,6 +127,24 @@ export class Nueva implements OnInit {
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
   showOtroRestriccion = computed(() => this.restriccionesSeleccionadas().has('OTRO'));
 
+  // U12 — descripción breve OBLIGATORIA por cada restricción seleccionada
+  // (excepto "NINGUNA"). Mapa value→texto.
+  restriccionDescripciones = signal<Record<string, string>>({});
+  /** Restricciones seleccionadas que requieren descripción (todas menos NINGUNA). */
+  restriccionesADescribir = computed(() =>
+    [...this.restriccionesSeleccionadas()].filter((r) => r !== 'NINGUNA'),
+  );
+  restriccionLabel(value: string): string {
+    return this.restricciones().find((r) => r.value === value)?.label ?? value;
+  }
+  getRestriccionDescripcion(value: string): string {
+    return this.restriccionDescripciones()[value] ?? '';
+  }
+  setRestriccionDescripcion(value: string, texto: string) {
+    this.restriccionDescripciones.update((m) => ({ ...m, [value]: texto }));
+    this.saveDraft();
+  }
+
   /** Toggle required validators to match the selected entry type. */
   onTipoChange(tipo: BitacoraTipo) {
     this.tipoActual.set(tipo);
@@ -284,6 +302,13 @@ export class Nueva implements OnInit {
       else next.add(value);
       return next;
     });
+    // U12 — al quitar una restricción, descartar su descripción.
+    if (!this.restriccionesSeleccionadas().has(value)) {
+      this.restriccionDescripciones.update((m) => {
+        const { [value]: _omit, ...rest } = m;
+        return rest;
+      });
+    }
     this.saveDraft();
   }
 
@@ -311,6 +336,19 @@ export class Nueva implements OnInit {
       return;
     }
 
+    // U12 — cada restricción seleccionada (menos "Ninguna") exige una descripción.
+    if (tipo === 'parte_diario') {
+      const faltan = this.restriccionesADescribir().filter(
+        (r) => !this.getRestriccionDescripcion(r).trim(),
+      );
+      if (faltan.length > 0) {
+        this.saveError.set(
+          `Describe brevemente: ${faltan.map((r) => this.restriccionLabel(r)).join(', ')}.`,
+        );
+        return;
+      }
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 
@@ -325,7 +363,8 @@ export class Nueva implements OnInit {
     const restricciones = esParte
       ? [...this.restriccionesSeleccionadas()].map((r) => ({
           tipo_restriccion: r,
-          descripcion_otro: r === 'OTRO' ? (v.descripcion_otro_restriccion ?? null) : null,
+          // U12 — descripción por restricción (null para "Ninguna").
+          descripcion_otro: r === 'NINGUNA' ? null : (this.getRestriccionDescripcion(r).trim() || null),
         }))
       : [];
 

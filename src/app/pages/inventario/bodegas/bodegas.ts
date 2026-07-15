@@ -7,18 +7,20 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bodega, BodegaFormData } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
 
 @Component({
   selector: 'app-bodegas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink],
   templateUrl: './bodegas.html',
   styleUrl: './bodegas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,7 +56,17 @@ export class Bodegas implements OnInit {
     activo: new FormControl<boolean>(true),
     proyecto_id: new FormControl<string | null>(null),
     es_principal: new FormControl<boolean>(false),
+    latitud: new FormControl<number | null>(null),
+    longitud: new FormControl<number | null>(null),
   });
+
+  /** U22 — fija las coordenadas del almacén desde el mapa. */
+  onUbicacionPicked(u: { latitud: number; longitud: number; direccion: string }) {
+    this.form.patchValue({ latitud: u.latitud, longitud: u.longitud });
+    if (u.direccion && !this.form.controls.ubicacion.value?.trim()) {
+      this.form.patchValue({ ubicacion: u.direccion });
+    }
+  }
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -160,6 +172,8 @@ export class Bodegas implements OnInit {
       descripcion: null,
       proyecto_id: null,
       es_principal: false,
+      latitud: null,
+      longitud: null,
     });
     this.drawerOpen.set(true);
   }
@@ -174,6 +188,8 @@ export class Bodegas implements OnInit {
       activo: bodega.activo,
       proyecto_id: bodega.proyecto_id ?? null,
       es_principal: bodega.es_principal ?? false,
+      latitud: bodega.latitud ?? null,
+      longitud: bodega.longitud ?? null,
     });
     this.drawerOpen.set(true);
   }

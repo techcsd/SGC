@@ -89,7 +89,7 @@
                 [class.sgc-badge--danger]="r.estado === 'descartado'"
               >{{ ESTADO_LABELS[r.estado] }}</span>
             </td>
-            <td class="admin-reportes__date">{{ r.created_at | date:'dd MMM yyyy' }}</td>
+            <td class="admin-reportes__date">{{ formatFecha(r.created_at) }}</td>
             <td class="admin-reportes__actions">
               @if (r.estado === 'abierto') {
                 <button class="sgc-btn sgc-btn--ghost" type="button" (click)="tomar(r)">Tomar</button>
@@ -118,7 +118,7 @@
       <div class="admin-reportes__detail-meta">
         <span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span>
         <span>{{ r.usuario?.nombre ?? '—' }} · {{ r.usuario?.email }}</span>
-        <span>{{ r.created_at | date:'dd MMM yyyy, h:mm a' }}</span>
+        <span>{{ formatFechaHora(r.created_at) }}</span>
       </div>
       <p class="admin-reportes__detail-desc">{{ r.descripcion }}</p>
 

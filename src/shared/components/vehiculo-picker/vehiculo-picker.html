@@ -1,0 +1,64 @@
+<div class="veh-picker" [class.veh-picker--open]="open()" [class.veh-picker--disabled]="disabled()">
+  <button
+    type="button"
+    class="veh-picker__control"
+    (click)="toggle()"
+    [disabled]="disabled()"
+    aria-haspopup="listbox"
+    [attr.aria-expanded]="open()"
+  >
+    @if (selected(); as v) {
+      <span class="veh-picker__thumb">
+        @if (fotoDe(v); as url) {
+          <img [src]="url" [alt]="'Foto de ' + v.placa" />
+        } @else {
+          <span class="veh-picker__thumb-ph" aria-hidden="true">🚚</span>
+        }
+      </span>
+      <span class="veh-picker__label">{{ vehiculoLabel(v) }}</span>
+      @if (allowClear()) {
+        <span class="veh-picker__clear" (click)="clear($event)" role="button" aria-label="Quitar selección">×</span>
+      }
+    } @else {
+      <span class="veh-picker__label veh-picker__label--ph">{{ placeholder() }}</span>
+    }
+    <svg class="veh-picker__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </button>
+
+  @if (open()) {
+    <ul class="veh-picker__list" role="listbox">
+      @if (allowClear()) {
+        <li class="veh-picker__opt veh-picker__opt--clear" role="option" [attr.aria-selected]="selectedId() === null"
+            (click)="clear($event)">
+          <span class="veh-picker__label veh-picker__label--ph">{{ placeholder() }}</span>
+        </li>
+      }
+      @for (v of vehiculos(); track v.id) {
+        <li
+          class="veh-picker__opt"
+          role="option"
+          [attr.aria-selected]="v.id === selectedId()"
+          [class.veh-picker__opt--sel]="v.id === selectedId()"
+          (click)="pick(v)"
+        >
+          <span class="veh-picker__thumb">
+            @if (fotoDe(v); as url) {
+              <img [src]="url" [alt]="'Foto de ' + v.placa" loading="lazy" />
+            } @else {
+              <span class="veh-picker__thumb-ph" aria-hidden="true">🚚</span>
+            }
+          </span>
+          <span class="veh-picker__opt-body">
+            <span class="veh-picker__opt-placa">{{ v.placa }}</span>
+            <span class="veh-picker__opt-sub">{{ v.marca }} {{ v.modelo }}</span>
+          </span>
+        </li>
+      }
+      @if (vehiculos().length === 0) {
+        <li class="veh-picker__empty">No hay vehículos disponibles.</li>
+      }
+    </ul>
+  }
+</div>

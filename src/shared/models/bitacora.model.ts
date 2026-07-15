@@ -27,7 +27,7 @@ export const RESTRICCIONES: { value: string; label: string }[] = [
   { value: 'INTERFERENCIA DE OTRAS BRIGADAS', label: 'Interferencia de otras brigadas' },
   { value: 'FALTA DE LIBERACION PARA INICIO DE TRABAJOS', label: 'Falta de liberación para inicio de trabajos' },
   { value: 'FALTA DEL CLIENTE', label: 'Falta del cliente' },
-  { value: 'CLIMA', label: 'Clima' },
+  // U11 — el clima se pregunta al inicio (lluvia); ya no es una "restricción".
   { value: 'OTRO', label: 'Otro' },
 ];
 

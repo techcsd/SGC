@@ -314,6 +314,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Cada salida de inventario genera automáticamente un conduce (nota de entrega). En Inventario > Conduces ves el historial completo; abre cualquiera con "Ver conduce" y usa "Imprimir / Guardar PDF" para descargarlo. Queda siempre disponible para reimprimir.',
       },
+      {
+        pregunta: '¿Dónde veo todo lo que entra y sale de un almacén?',
+        respuesta:
+          'En Inventario > Movimientos ves el historial de entradas y salidas de todos los almacenes, con filtros por almacén, tipo y fecha; cada salida trae el enlace a su conduce. Además, en Inventario > Almacenes cada fila tiene el botón «Ver movimientos», que abre esa misma vista ya filtrada por ese almacén.',
+      },
     ],
   },
   {
@@ -455,6 +460,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Ve a Flota > Checklists > Nuevo checklist. Elige el vehículo, el nivel de combustible y responde cada punto (agrupado por secciones: LSC "Autorizado y Apto", Seguridad y —solo para equipo pesado— Herramienta Pesado) con OK / NO / N/A. El resultado es tri-estado: APROBADO (todo bien), CON HALLAZGOS (algún NO no crítico → puede salir pero se avisa a Flota para corregir) o BLOQUEADO (algún NO en un punto crítico → el vehículo NO puede salir y se notifica de inmediato). El sistema también rechaza el registro si la licencia del conductor, la matrícula o el seguro del vehículo están vencidos, y avisa cuando el mantenimiento por kilómetros está por vencer (pre-cita ≤500 km) o vencido. Desde el detalle puedes imprimir/descargar el reporte de inspección.',
       },
       {
+        pregunta: '¿Cuál es la diferencia entre el pre-uso y el reporte semanal? Llené un checklist y el reporte semanal sigue vacío.',
+        respuesta:
+          'Son dos cosas distintas. El PRE-USO es la inspección diaria antes de mover el vehículo (un punto crítico en NO lo bloquea). El REPORTE SEMANAL es un chequeo que cada chofer envía una vez por semana por su vehículo, y es el único que cuenta en el dashboard Flota > Reporte semanal. Si llenaste un checklist y el dashboard sigue vacío, probablemente registraste un pre-uso. Para el semanal usa el botón «Reporte semanal» en Flota > Checklists, o «Llenar reporte semanal» dentro del propio dashboard (te abre el formulario con la plantilla correcta ya elegida). En el selector de plantilla las opciones están agrupadas en «Pre-uso» y «Reporte semanal».',
+      },
+      {
+        pregunta: '¿Puedo elegir cualquier vehículo? ¿Por qué ahora el selector muestra fotos?',
+        respuesta:
+          'Sí: los vehículos son un pool compartido, cualquier usuario puede seleccionar cualquiera que esté disponible (no hace falta que esté "asignado a ti"). El selector de vehículo en pre-uso, combustible y rutas ahora muestra la foto del vehículo (o un ícono si no tiene) para elegir sin equivocarte.',
+      },
+      {
         pregunta: '¿Qué es el Panel del día de Flota?',
         respuesta:
           'En Flota > Panel del día ves, para hoy: cuántos choferes activos ya reportaron su pre-uso (y quiénes faltan), cuántas inspecciones salieron aprobadas / con hallazgos / bloqueadas, la tabla de inspecciones del día, las alertas activas y un gráfico de la última semana.',
@@ -478,7 +493,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Dónde se gestionan el inventario tecnológico y las compras de tecnología?',
         respuesta:
-          'Con el módulo "Tecnología": en Tecnología > Inventario tecnológico se registran laptops, cámaras, teléfonos, impresoras, etc., con su estado y a qué empleado están asignados (con historial). En Tecnología > Compras tecnológicas el encargado crea solicitudes que van a Compras/Gerencia para aprobación, igual que cualquier compra. La matriz puesto × herramienta define qué necesita cada puesto.',
+          'Con el módulo "Tecnología": en Tecnología > Inventario tecnológico se registran laptops, cámaras, teléfonos, impresoras, etc., con su estado y a qué empleado están asignados (con historial). Cada equipo y cada renglón de compra pueden llevar una foto. En Tecnología > Compras tecnológicas el encargado crea solicitudes que van a Compras/Gerencia para aprobación, igual que cualquier compra; al crear una compra puedes adjuntar una foto por artículo, y al abrir una solicitud ves sus renglones con las fotos. La matriz puesto × herramienta define qué necesita cada puesto.',
       },
     ],
   },
@@ -570,6 +585,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo creo un nuevo rol?',
         respuesta: 'Ve a Administración > Roles > Nuevo rol y selecciona los módulos que ese rol debe poder ver.',
+      },
+      {
+        pregunta: '¿Qué es la página «Valores "Otro"» y para qué sirve?',
+        respuesta:
+          'En Administración > Valores "Otro" el sistema agrupa lo que la gente escribe a mano cuando elige la opción «Otro» en los distintos formularios (por ejemplo, una restricción de bitácora). Cuando un mismo valor se repite lo suficiente (por defecto 3 veces en 30 días) aparece marcado como sugerencia de «crear opción oficial» y te llega una notificación a ti, a Tecnología y a Dirección — así conviertes ese texto libre repetido en una opción fija del formulario. El umbral se configura en la tabla de configuración.',
       },
       {
         pregunta: '¿Dónde ajusto los umbrales de las alertas de materiales?',

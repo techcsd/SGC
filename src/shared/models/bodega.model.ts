@@ -8,6 +8,9 @@ export interface Bodega {
   proyecto_id?: string | null;
   es_principal?: boolean;
   proyecto?: { nombre: string } | null;
+  // U22 — coordenadas para usar el almacén como origen/destino de rutas
+  latitud?: number | null;
+  longitud?: number | null;
 }
 
 export interface BodegaFormData {
@@ -17,4 +20,6 @@ export interface BodegaFormData {
   activo: boolean;
   proyecto_id: string | null;
   es_principal: boolean;
+  latitud: number | null;
+  longitud: number | null;
 }

@@ -43,13 +43,13 @@
       aria-label="Buscar registros de combustible" />
   </div>
   <div class="sgc-field filters-bar__select">
-    <select [value]="selectedVehiculoId()" (change)="onVehiculoChange($any($event.target).value)"
-      aria-label="Filtrar por vehículo">
-      <option value="">Todos los vehículos</option>
-      @for (v of vehiculos(); track v.id) {
-        <option [value]="v.id">{{ v.placa }} — {{ v.marca }}</option>
-      }
-    </select>
+    <app-vehiculo-picker
+      [vehiculos]="vehiculos()"
+      [value]="selectedVehiculoId()"
+      [allowClear]="true"
+      placeholder="Todos los vehículos"
+      (valueChange)="onVehiculoChange($event)"
+    />
   </div>
   <div class="sgc-field filters-bar__date">
     <input type="date" [value]="dateFrom()" (change)="onDateFromChange($any($event.target).value)"
@@ -168,12 +168,7 @@
 
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
-      <select id="vehiculo_id" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
-        <option value="">Seleccionar vehículo…</option>
-        @for (v of vehiculos(); track v.id) {
-          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
-        }
-      </select>
+      <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculos()" />
       @if (kmAnterior() !== null) {
         <span class="field-hint">Última echada: {{ kmAnterior() | number:'1.0-0' }} km</span>
       }

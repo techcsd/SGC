@@ -55,6 +55,13 @@ export class TecInventario implements OnInit {
   historial = signal<TecEquipoHistorial[]>([]);
   historialLoading = signal(false);
 
+  // ── U17 — foto del equipo ─────────────────────────────────
+  private fotoFile = signal<File | null>(null);
+  fotoPreview = signal<string | null>(null);   // preview local del archivo nuevo
+  fotoActualUrl = signal<string | null>(null);  // URL firmada de la foto ya guardada
+  listaFotos = signal<Record<string, string>>({}); // id → URL firmada (thumbnails)
+  detalleFotoUrl = signal<string | null>(null);
+
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     tipo: new FormControl<string | null>(null, [Validators.required]),
@@ -103,6 +110,7 @@ export class TecInventario implements OnInit {
       ]);
       this.equipos.set(equipos);
       this.empleados.set(empleados);
+      this.resolverFotos(equipos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el inventario.');
     } finally {
@@ -126,6 +134,44 @@ export class TecInventario implements OnInit {
   getEmpleadoNombre(e: TecEquipo): string {
     if (e.empleado) return `${e.empleado.nombre} ${e.empleado.apellido}`;
     return '—';
+  }
+
+  // ── U17 — fotos ───────────────────────────────────────────
+  private resolverFotos(equipos: TecEquipo[]) {
+    for (const e of equipos) {
+      if (!e.foto_path) continue;
+      this.tecnologia.getEquipoFotoUrl(e.foto_path).then((url) => {
+        if (url) this.listaFotos.update((m) => ({ ...m, [e.id]: url }));
+      });
+    }
+  }
+
+  fotoDe(e: TecEquipo): string | null {
+    return this.listaFotos()[e.id] ?? null;
+  }
+
+  onFotoPicked(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = Array.from(input.files ?? []).find((f) => f.type.startsWith('image/'));
+    input.value = '';
+    if (!file) return;
+    if (this.fotoPreview()) URL.revokeObjectURL(this.fotoPreview()!);
+    this.fotoFile.set(file);
+    this.fotoPreview.set(URL.createObjectURL(file));
+  }
+
+  quitarFotoNueva() {
+    if (this.fotoPreview()) URL.revokeObjectURL(this.fotoPreview()!);
+    this.fotoFile.set(null);
+    this.fotoPreview.set(null);
+  }
+
+  private resetFotoState(e: TecEquipo | null) {
+    this.quitarFotoNueva();
+    this.fotoActualUrl.set(null);
+    if (e?.foto_path) {
+      this.tecnologia.getEquipoFotoUrl(e.foto_path).then((url) => this.fotoActualUrl.set(url));
+    }
   }
 
   // ── Filters ───────────────────────────────────────────────
@@ -158,12 +204,14 @@ export class TecInventario implements OnInit {
       ubicacion: null,
       notas: null,
     });
+    this.resetFotoState(null);
     this.drawerOpen.set(true);
   }
 
   openEdit(e: TecEquipo) {
     this.editingId.set(e.id);
     this.saveError.set('');
+    this.resetFotoState(e);
     this.form.reset({
       nombre: e.nombre,
       tipo: e.tipo,
@@ -194,15 +242,28 @@ export class TecInventario implements OnInit {
 
     try {
       const id = this.editingId();
+      let equipoId: string;
       if (id) {
         await this.tecnologia.updateEquipo(id, payload);
-        await this.loadAll();
-        this.toast.success('Equipo actualizado');
+        equipoId = id;
       } else {
         const created = await this.tecnologia.createEquipo(payload);
-        this.equipos.update((list) => [created, ...list]);
-        this.toast.success('Equipo registrado');
+        equipoId = created.id;
       }
+
+      // U17 — subir la foto nueva (si hay) al equipo ya existente y guardar el path.
+      const file = this.fotoFile();
+      if (file) {
+        try {
+          const path = await this.tecnologia.uploadEquipoFoto(equipoId, file);
+          await this.tecnologia.updateEquipo(equipoId, { foto_path: path });
+        } catch {
+          this.toast.warning('Foto no subida', 'El equipo se guardó, pero la foto no.');
+        }
+      }
+
+      await this.loadAll();
+      this.toast.success(id ? 'Equipo actualizado' : 'Equipo registrado');
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
@@ -226,6 +287,10 @@ export class TecInventario implements OnInit {
   async openDetail(e: TecEquipo) {
     this.detailEquipo.set(e);
     this.detailOpen.set(true);
+    this.detalleFotoUrl.set(this.listaFotos()[e.id] ?? null);
+    if (!this.detalleFotoUrl() && e.foto_path) {
+      this.tecnologia.getEquipoFotoUrl(e.foto_path).then((url) => this.detalleFotoUrl.set(url));
+    }
     this.historial.set([]);
     this.historialLoading.set(true);
     try {

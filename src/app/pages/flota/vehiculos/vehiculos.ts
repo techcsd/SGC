@@ -52,6 +52,8 @@ export class FlotaVehiculos implements OnInit {
 
   // ── Data ─────────────────────────────────────────────────
   vehiculos = signal<Vehiculo[]>([]);
+  /** U6 — primera foto (URL firmada) por vehículo, para el thumbnail del listado. */
+  listaFotos = signal<Record<string, string>>({});
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -127,6 +129,7 @@ export class FlotaVehiculos implements OnInit {
     try {
       const vehiculos = await this.vehiculosService.getAll();
       this.vehiculos.set(vehiculos);
+      this.resolverFotosLista(vehiculos);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('permission denied')) {
@@ -137,6 +140,21 @@ export class FlotaVehiculos implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Resuelve la 1ª foto de cada vehículo a URL firmada (thumbnails del listado). */
+  private resolverFotosLista(vehiculos: Vehiculo[]) {
+    for (const v of vehiculos) {
+      const first = v.fotos?.[0];
+      if (!first) continue;
+      this.vehiculosService.getFotoUrl(first).then((url) => {
+        if (url) this.listaFotos.update((m) => ({ ...m, [v.id]: url }));
+      });
+    }
+  }
+
+  fotoDe(v: Vehiculo): string | null {
+    return this.listaFotos()[v.id] ?? null;
   }
 
   onSearch(value: string) { this.searchQuery.set(value); }

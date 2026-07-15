@@ -19,6 +19,13 @@ import {
 export class FormDrawer {
   title = input<string>('');
   open = input<boolean>(false);
+  /**
+   * U4 — evita perder datos: si el form tiene cambios sin guardar, cerrar por
+   * click-afuera o Escape pide confirmación. Se auto-detecta cualquier
+   * `<form class="ng-dirty">` proyectado (cubre todo el sistema sin tocar cada
+   * página); las páginas con estado en signals pueden además pasar [dirty].
+   */
+  dirty = input<boolean>(false);
   closed = output<void>();
 
   private panel = viewChild<ElementRef<HTMLElement>>('panel');
@@ -49,15 +56,27 @@ export class FormDrawer {
     this.closed.emit();
   }
 
+  /** Hay cambios sin guardar (input explícito o `<form>` proyectado en ng-dirty). */
+  private hayCambios(): boolean {
+    if (this.dirty()) return true;
+    return !!this.panel()?.nativeElement?.querySelector('form.ng-dirty');
+  }
+
+  /** Cierre "suave" (backdrop/Escape): confirma si hay cambios sin guardar. */
+  private intentarCerrar() {
+    if (this.hayCambios() && !confirm('Tienes cambios sin guardar. ¿Descartarlos?')) return;
+    this.close();
+  }
+
   onBackdropClick(event: MouseEvent) {
     if ((event.target as HTMLElement).classList.contains('drawer-backdrop')) {
-      this.close();
+      this.intentarCerrar();
     }
   }
 
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      this.close();
+      this.intentarCerrar();
       return;
     }
     // Focus trap: keep Tab cycling within the dialog.

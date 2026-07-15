@@ -99,7 +99,7 @@
               <td>
                 <code class="code-tag">{{ c.cedula }}</code>
               </td>
-              <td>{{ c.telefono ?? '—' }}</td>
+              <td>{{ c.telefono ? formatTelefono(c.telefono) : '—' }}</td>
               <td>
                 <span class="conductores__licencia-tipo">{{ c.licencia_tipo }}</span>
               </td>
@@ -107,7 +107,7 @@
               <td>
                 @if (c.licencia_vencimiento) {
                   <span [class]="getLicenciaClass(c.licencia_vencimiento)">
-                    {{ c.licencia_vencimiento }}
+                    {{ formatFecha(c.licencia_vencimiento) }}
                     @if (isLicenciaExpired(c.licencia_vencimiento)) {
                       <span class="sgc-badge sgc-badge--danger conductores__badge-inline">Vencida</span>
                     } @else if (isLicenciaExpiringSoon(c.licencia_vencimiento)) {
@@ -272,7 +272,7 @@
 
     <div class="sgc-field">
       <label for="telefono">Teléfono</label>
-      <input id="telefono" type="tel" formControlName="telefono" placeholder="809-000-0000" />
+      <input id="telefono" type="tel" appTelefono formControlName="telefono" placeholder="(809) 000-0000" />
     </div>
 
     <div class="form-row">
@@ -313,18 +313,9 @@
     </div>
 
     <div class="sgc-field">
-      <label for="vehiculo_id">Vehículo asignado</label>
-      <select id="vehiculo_id" formControlName="vehiculo_id">
-        <option [value]="null">Sin asignar</option>
-        @for (v of availableVehiculos(); track v.id) {
-          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
-        }
-      </select>
-    </div>
-
-    <div class="sgc-field">
       <label for="usuario_id">Usuario de la app (CSD App)</label>
-      <select id="usuario_id" formControlName="usuario_id">
+      <select id="usuario_id" formControlName="usuario_id"
+              (change)="onUsuarioChange($any($event.target).value)">
         <option [value]="null">Sin vincular</option>
         @for (u of usuarios(); track u.id) {
           <option [value]="u.id">{{ u.nombre }}</option>
@@ -332,7 +323,32 @@
       </select>
       <small class="sgc-field__hint">
         Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo.
+        Al vincular, se autocompleta lo que su perfil ya tenga.
       </small>
+    </div>
+
+    <!-- U2 — vehículos que este usuario ya usa (asignaciones activas) -->
+    @if (asignacionesUsuario().length > 0) {
+      <div class="sgc-field">
+        <label>Vehículos que ya usa</label>
+        <div class="cond-asig-chips">
+          @for (a of asignacionesUsuario(); track a.id) {
+            <span class="sgc-badge sgc-badge--info">{{ a.vehiculo?.placa }} — {{ a.vehiculo?.marca }} {{ a.vehiculo?.modelo }}</span>
+          }
+        </div>
+        <small class="sgc-field__hint">Registro de uso (los vehículos son un pool compartido; no es exclusivo).</small>
+      </div>
+    }
+
+    <div class="sgc-field">
+      <label for="vehiculo_id">Vehículo principal (opcional)</label>
+      <select id="vehiculo_id" formControlName="vehiculo_id">
+        <option [value]="null">Sin vehículo principal</option>
+        @for (v of availableVehiculos(); track v.id) {
+          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
+        }
+      </select>
+      <small class="sgc-field__hint">Los vehículos son un pool: cualquiera puede usar cualquiera disponible.</small>
     </div>
 
     <div class="form-toggle">

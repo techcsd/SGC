@@ -188,3 +188,25 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+// U17 — fotos del equipo
+.equipo-nombre-cell { display: flex; align-items: center; gap: 10px; }
+.equipo-thumb {
+  width: 34px; height: 34px; border-radius: 6px; object-fit: cover; flex-shrink: 0;
+  background: var(--sgc-surface-hover, #f8fafc);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 16px;
+  &--ph { opacity: 0.5; }
+}
+.tec-foto {
+  display: flex; align-items: center; gap: 12px;
+  &__img { width: 96px; height: 72px; object-fit: cover; border-radius: var(--sgc-radius); border: 1px solid var(--sgc-border); }
+  &__ph {
+    width: 96px; height: 72px; border-radius: var(--sgc-radius); border: 1px dashed var(--sgc-border);
+    display: flex; align-items: center; justify-content: center; font-size: 30px; opacity: 0.4;
+  }
+  &__actions { display: flex; flex-direction: column; gap: 6px; }
+}
+.detail__foto {
+  width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--sgc-radius);
+  border: 1px solid var(--sgc-border); margin-bottom: 14px;
+}

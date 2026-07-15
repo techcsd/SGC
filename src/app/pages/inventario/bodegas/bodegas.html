@@ -121,6 +121,17 @@
               <td class="text-muted">{{ bodega.created_at | date:'dd/MM/yyyy' }}</td>
               <td>
                 <div class="row-actions">
+                  <a
+                    class="action-btn"
+                    routerLink="/inventario/movimientos"
+                    [queryParams]="{ bodega: bodega.id }"
+                    [attr.aria-label]="'Ver movimientos de ' + bodega.nombre"
+                    title="Ver movimientos"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/>
+                    </svg>
+                  </a>
                   <button
                     type="button"
                     class="action-btn action-btn--edit"
@@ -266,6 +277,19 @@
         <span class="toggle-switch" aria-hidden="true"></span>
         Almacén activo
       </label>
+    </div>
+
+    <!-- U22 — coordenadas del almacén (para usarlo como origen/destino de rutas) -->
+    <div class="sgc-field">
+      <label>Ubicación en el mapa (opcional)</label>
+      <app-location-picker
+        [latitud]="f.latitud.value"
+        [longitud]="f.longitud.value"
+        (ubicacionChange)="onUbicacionPicked($event)"
+      />
+      @if (f.latitud.value != null) {
+        <small class="sgc-field__hint">Coordenadas: {{ f.latitud.value | number:'1.4-4' }}, {{ f.longitud.value | number:'1.4-4' }}</small>
+      }
     </div>
 
     @if (saveError()) {

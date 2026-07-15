@@ -1,0 +1,44 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Dashboard de bitácoras</h1>
+    <span class="page-count">{{ total() | number }} registro{{ total() !== 1 ? 's' : '' }}</span>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <app-skeleton variant="cards" [rows]="6" />
+} @else {
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--primary"><span class="kpi-label">Bitácoras</span><span class="kpi-value">{{ total() | number }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Partes diarios</span><span class="kpi-value">{{ partes() | number }}</span></div>
+    <div class="kpi-card kpi-card--info"><span class="kpi-label">Visitas</span><span class="kpi-value">{{ visitas() | number }}</span></div>
+    <div class="kpi-card" [class.kpi-card--danger]="incidentes() > 0"><span class="kpi-label">Incidentes</span><span class="kpi-value">{{ incidentes() | number }}</span></div>
+    <div class="kpi-card kpi-card--info"><span class="kpi-label">Días con lluvia</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
+    <div class="kpi-card" [class.kpi-card--warning]="obrerosMigracion() > 0"><span class="kpi-label">Obreros por migración</span><span class="kpi-value">{{ obrerosMigracion() | number }}</span></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="direccion-charts">
+    <div class="sgc-card chart-card">
+      <app-donut-chart titulo="Bitácoras por tipo" [data]="porTipo()" />
+    </div>
+    @if (porGravedad().length > 0) {
+      <div class="sgc-card chart-card">
+        <app-donut-chart titulo="Incidencias por gravedad" [data]="porGravedad()" />
+      </div>
+    }
+    @if (porObra().length > 0) {
+      <div class="sgc-card chart-card chart-card--wide">
+        <app-bar-chart titulo="Bitácoras por obra" [data]="porObra()" />
+      </div>
+    }
+    @if (porRestriccion().length > 0) {
+      <div class="sgc-card chart-card chart-card--wide">
+        <app-bar-chart titulo="Restricciones más frecuentes" [data]="porRestriccion()" />
+      </div>
+    }
+  </div>
+}

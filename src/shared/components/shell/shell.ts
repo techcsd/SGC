@@ -17,6 +17,7 @@ import { RealtimeNotificacionesService } from '../../services/realtime-notificac
 import { NotificacionesCentroService, Notif } from '../../services/notificaciones-centro.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
+import { formatFechaRelativa } from '../../utils/fecha.util';
 
 interface NavItem {
   label: string;
@@ -87,6 +88,7 @@ export class Shell implements OnInit {
         { label: 'Activos Fijos', route: '/inventario/activos' },
         { label: 'Entradas', route: '/inventario/entradas' },
         { label: 'Salidas', route: '/inventario/salidas' },
+        { label: 'Movimientos', route: '/inventario/movimientos' },
         { label: 'Conduces', route: '/inventario/conduces' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos' },
         { label: 'Reposición', route: '/inventario/reposicion' },
@@ -151,6 +153,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Nueva bitácora', route: '/bitacora/nueva' },
         { label: 'Mis bitácoras', route: '/bitacora/historial' },
+        { label: 'Dashboard', route: '/bitacora/dashboard' },
         { label: 'Mi proyecto', route: '/bitacora/mi-proyecto' },
         { label: 'Requisición', route: '/bitacora/solicitudes-material' },
         { label: 'Confirmar entregas', route: '/bitacora/entregas' },
@@ -238,6 +241,7 @@ export class Shell implements OnInit {
       { label: 'Parámetros', route: '/admin/parametros' },
       { label: 'Versiones de la app', route: '/admin/app-versiones' },
       { label: 'Historial de versiones', route: '/admin/historial-versiones' },
+      { label: 'Valores "Otro"', route: '/admin/otros-valores' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
@@ -312,19 +316,9 @@ export class Shell implements OnInit {
     this.centro.marcarTodasLeidas();
   }
 
-  /** Compact relative time in Spanish, e.g. "hace 5 min", "hace 2 h", "ayer". */
+  /** U9 — Fecha relativa en Spanish (delega en la utilidad compartida). */
   tiempoRelativo(iso: string): string {
-    const then = new Date(iso).getTime();
-    const diffMs = Date.now() - then;
-    const min = Math.floor(diffMs / 60000);
-    if (min < 1) return 'ahora';
-    if (min < 60) return `hace ${min} min`;
-    const h = Math.floor(min / 60);
-    if (h < 24) return `hace ${h} h`;
-    const d = Math.floor(h / 24);
-    if (d === 1) return 'ayer';
-    if (d < 7) return `hace ${d} d`;
-    return new Date(iso).toLocaleDateString('es-DO', { day: 'numeric', month: 'short' });
+    return formatFechaRelativa(iso);
   }
 
   toggleCollapsed() {

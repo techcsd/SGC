@@ -52,6 +52,7 @@ export interface SolicitudCompraItem {
   descripcion: string;
   cantidad: number;
   proveedor_sugerido: string | null;
+  foto_path?: string | null; // U17 — foto del renglón (bucket `inventario`)
 }
 
 export interface SolicitudCompra {

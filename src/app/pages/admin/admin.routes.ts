@@ -49,6 +49,11 @@ export const adminRoutes: Routes = [
     title: 'Historial de versiones — Administración',
   },
   {
+    path: 'otros-valores',
+    loadComponent: () => import('./otros-valores/otros-valores').then((m) => m.AdminOtrosValores),
+    title: 'Valores "Otro" — Administración',
+  },
+  {
     path: 'auditoria',
     loadComponent: () => import('./auditoria/auditoria').then((m) => m.AdminAuditoria),
     title: 'Auditoría — Administración',

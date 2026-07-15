@@ -60,7 +60,7 @@
     <div class="weather-card__forecast">
       @for (d of ctx.pronostico.porDia; track d.fecha) {
         <div class="fc-day">
-          <span class="fc-day__dow">{{ d.fecha.slice(5) }}</span>
+          <span class="fc-day__dow">{{ diaCorto(d.fecha) }}</span>
           <span class="fc-day__max">{{ d.tempMax | number:'1.0-0' }}°</span>
           <span class="fc-day__min">{{ d.tempMin | number:'1.0-0' }}°</span>
           <span class="fc-day__rain">{{ d.probPrecipitacionMax ?? 0 }}%</span>

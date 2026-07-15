@@ -124,6 +124,24 @@ export class TecnologiaService {
     if (error) throw new Error(error.message);
   }
 
+  // ── U17 — Foto del equipo (bucket privado `inventario`) ───────────────────
+  async uploadEquipoFoto(equipoId: string, file: File): Promise<string> {
+    const path = `tec-equipo/${equipoId}/${crypto.randomUUID()}.jpg`;
+    const { error } = await this.supabase.client.storage
+      .from('inventario')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  async getEquipoFotoUrl(path: string): Promise<string | null> {
+    const { data, error } = await this.supabase.client.storage
+      .from('inventario')
+      .createSignedUrl(path, 3600);
+    if (error) return null;
+    return data?.signedUrl ?? null;
+  }
+
   async getHistorial(equipoId: string): Promise<TecEquipoHistorial[]> {
     const { data, error } = await this.supabase.client
       .from('tec_equipo_historial')
@@ -163,7 +181,7 @@ export class TecnologiaService {
 
   async crearCompraTec(
     notas: string | null,
-    items: { descripcion: string; cantidad: number; proveedor_sugerido: string | null }[],
+    items: { descripcion: string; cantidad: number; proveedor_sugerido: string | null; foto_path?: string | null }[],
   ): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('crear_solicitud_compra_tec', {
       p_notas: notas,
@@ -171,5 +189,15 @@ export class TecnologiaService {
     });
     if (error) throw new Error(error.message);
     return data as string;
+  }
+
+  // ── U17 — Foto de un renglón de compra tecnológica (bucket `inventario`) ──
+  async uploadCompraTecFoto(file: File): Promise<string> {
+    const path = `compra-tec/${crypto.randomUUID()}.jpg`;
+    const { error } = await this.supabase.client.storage
+      .from('inventario')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (error) throw new Error(error.message);
+    return path;
   }
 }

@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ReporteSemanalService } from '../../../../shared/services/reporte-semanal.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { ReporteSemanalFila } from '../../../../shared/models/vehiculo-asignacion.model';
@@ -31,7 +32,7 @@ const RESULTADO_LABEL: Record<string, string> = {
 /** R3 — Dashboard de cumplimiento del reporte semanal de vehículos. */
 @Component({
   selector: 'app-reporte-semanal',
-  imports: [DatePipe, DecimalPipe, Skeleton],
+  imports: [DatePipe, DecimalPipe, Skeleton, RouterLink],
   templateUrl: './reporte-semanal.html',
   styleUrl: './reporte-semanal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

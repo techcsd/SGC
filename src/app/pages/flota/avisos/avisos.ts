@@ -12,7 +12,7 @@ import {
   AVISO_TIPOS,
 } from '../../../../shared/models/aviso-flota.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-flota-avisos',
@@ -31,7 +31,7 @@ export class Avisos implements OnInit {
 
   reactivando = signal<string | null>(null);
 
-  formatFecha = formatFechaDisplay;
+  formatFecha = formatFechaRelativa;
   tipoLabel = AVISO_TIPO_LABEL;
   sevBadge = AVISO_SEVERIDAD_BADGE;
   readonly TIPOS = AVISO_TIPOS;
