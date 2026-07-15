@@ -438,6 +438,16 @@
         }
       </div>
 
+      <!-- Firma del conductor -->
+      @if (firmaUrl()) {
+        <h4 class="cl-section-title">Firma del conductor</h4>
+        <div class="cl-firma">
+          <a [href]="firmaUrl()!" target="_blank" rel="noopener">
+            <img [src]="firmaUrl()!" alt="Firma del conductor" loading="lazy" />
+          </a>
+        </div>
+      }
+
       <div class="cl-report__actions">
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimir()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>

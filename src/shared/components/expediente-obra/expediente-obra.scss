@@ -182,4 +182,34 @@
       border-color: var(--sgc-primary-mid);
     }
   }
+
+  &__enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--sgc-primary-mid);
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  &__enlace-input {
+    margin-top: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+    color: var(--sgc-text);
+    background: var(--sgc-surface);
+    transition: var(--sgc-transition-fast);
+    outline: none;
+
+    &:focus {
+      border-color: var(--sgc-primary-mid);
+    }
+  }
 }

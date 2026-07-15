@@ -344,6 +344,11 @@ textarea {
   &__cap { font-size: 11px; color: var(--sgc-text-secondary); text-align: center; }
 }
 
+.cl-firma {
+  a { display: inline-block; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius-sm); overflow: hidden; background: #fff; }
+  img { max-width: 260px; max-height: 120px; object-fit: contain; display: block; }
+}
+
 .cl-report__actions { display: flex; justify-content: flex-end; padding-top: 8px; border-top: 1px solid var(--sgc-border); }
 
 // ── Responsive ───────────────────────────────────────────

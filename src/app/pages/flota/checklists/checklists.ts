@@ -95,6 +95,8 @@ export class Checklists implements OnInit {
   loadingDetail = signal(false);
   selected = signal<ChecklistVehiculo | null>(null);
   private fotoUrls = signal<Record<string, string>>({});
+  /** URL firmada de la firma del conductor (o null). */
+  firmaUrl = signal<string | null>(null);
   notaAtencion = signal('');
   atendiendo = signal(false);
 
@@ -410,11 +412,15 @@ export class Checklists implements OnInit {
     this.loadingDetail.set(true);
     this.selected.set(null);
     this.fotoUrls.set({});
+    this.firmaUrl.set(null);
     this.notaAtencion.set('');
     try {
       const full = await this.checklistsService.getById(row.id);
       this.selected.set(full);
       await this.resolveFotos(full);
+      if (full.firma_path) {
+        this.firmaUrl.set(await this.checklistsService.getFotoUrl(full.firma_path));
+      }
     } catch (e: unknown) {
       this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
       this.detailOpen.set(false);
