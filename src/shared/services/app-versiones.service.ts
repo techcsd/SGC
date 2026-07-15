@@ -110,7 +110,9 @@ export class AppVersionesService {
       xhr.setRequestHeader('apikey', environment.supabaseAnonKey);
       // Reemplaza si ya existe una versión con ese nombre.
       xhr.setRequestHeader('x-upsert', 'true');
-      xhr.setRequestHeader('cache-control', '3600');
+      // Cache corto: si se re-sube una build corregida de la misma versión, no
+      // queremos servir la copia vieja por mucho tiempo.
+      xhr.setRequestHeader('cache-control', '60');
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && onProgress) {
           onProgress(Math.round((e.loaded / e.total) * 100));
@@ -140,8 +142,10 @@ export class AppVersionesService {
     const { error } = await this.supabase.client.rpc('notificar_todos', {
       p_tipo: 'info',
       p_titulo: `Nueva versión ${version} disponible`,
-      p_mensaje: 'Ya puedes actualizar la app CSD. Toca para ver los detalles.',
-      p_ruta: '/historial-versiones',
+      // Sin ruta: el aviso es informativo y va a TODOS los usuarios (la página de
+      // versiones es solo-admin; enlazarla sería un callejón para el resto).
+      p_mensaje: 'Ya puedes actualizar la app CSD desde la app: Ajustes → Buscar actualización.',
+      p_ruta: null,
     });
     if (error) throw new Error(error.message);
 

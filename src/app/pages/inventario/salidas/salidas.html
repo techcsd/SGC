@@ -280,7 +280,7 @@
           @for (item of reqItems(); track $index) {
             <div class="req-map-row">
               <div class="req-map-row__desc">
-                <span class="req-map-row__text">{{ item.descripcion }}</span>
+                <span class="req-map-row__text">{{ item.descripcion }}@if (item.talla) { · Talla: {{ item.talla }} }</span>
                 @if (!item.articulo_id) {
                   <span class="req-map-row__tag">→ compra</span>
                 }

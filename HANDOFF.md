@@ -2,6 +2,48 @@
 
 _Last updated: 2026-07-15_
 
+## Actualización 3 (V1–V14) — ✅ COMMITEADO en rama, SIN merge/push/deploy
+
+Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-3.md` (+ PROMPT-7).
+Rama: **`feat/actualizacion3-versionado-catalogo`** (commit `d44ecec`). `npm run build` OK.
+**SQL YA aplicado a prod** (BD) y **edge function `notificar-version` desplegada**. Falta: merge a
+main + deploy Vercel (pendiente OK de Xavier). Móvil (V2/V3-app/V5) = PROMPT-8 en csd-app.
+
+### Hecho
+- **V1/V2 (versiones):** causa raíz — web/BD **sí** persistía y `version_publicada()` **sí**
+  reflejaba (verificado en prod: 1.4.0 publicada, 1.2.1 mínima). El síntoma "no cambia en csd app"
+  es del **consumo móvil** (comparaba versiones como string). Endurecido BD: `app_versiones.version_code`
+  + `sgc.semver_code()` + trigger; `version_publicada()` elige por **semver real** y devuelve
+  `apk_url`/`version_code`/`version_minima_code`. Web ordena por semver.
+- **V3/V4:** subida de APK (bucket `app-releases`, política escritura admin) con barra de progreso
+  (XHR); al Publicar → `notificar_todos()` in-app + edge `notificar-version` (correo BCC, no bloqueante).
+- **V14 catálogo:** 8 categorías oficiales (180 artículos), `requiere_talla`/`nota`/`subgrupo`/`orden`
+  en `articulos`. 12 matches reasignados (histórico intacto), **77 → "(Revisión)" desactivada**.
+  Talla obligatoria en salida/requisición (viaja en jsonb del detalle; RPCs sin cambiar firma).
+  08 Otros → `otros_valores`. Admin de artículos con talla/nota.
+- **V7:** `<app-skeleton>` en 44 páginas más. **V8:** conteo "todo conforme" (param opcional retrocompat).
+  **V9:** filtro por obra en `bodegas`. **V10:** ya cumplía (pool completo, sin guard, conteo por vehículo).
+  **V13:** requisición reingeniería → catálogo por categoría + resumen editable + Otros + talla.
+- FAQ de Dudas actualizado.
+
+### Migraciones aplicadas a prod (verificadas)
+`sql/2026-07-15-version-semver-code.sql` · `-app-releases-upload-notify.sql` ·
+`-catalogo-oficial-materiales.sql` · `-talla-en-movimientos.sql` · `-conteo-todo-conforme.sql`
+
+### Pendientes / notas
+- **Merge a main + deploy Vercel** — esperando OK de Xavier.
+- **77 artículos en "(Revisión)"**: varios son el MISMO artículo con nombre distinto (no se
+  fusionaron para no corromper stock) — homologar a mano. Basura/test a borrar: "TEST Artículo…",
+  "aguacate/no se". Ver Inventario > Artículos, filtro categoría "(Revisión)".
+- **Correo de versión**: depende de Resend key en Vault (ya usada por notificar-flota); si falta, skip.
+- **Aprobación de requisición (salidas)**: el mapeo `reqItems` no arrastra talla al despacho/conduce
+  (la talla sí queda en `solicitud_material_items`). Follow-up menor si se quiere en el conduce.
+- QA en navegador: publicar versión con APK (progreso + notificación), catálogo 8 cats + tallas EPP,
+  requisición con resumen, filtro almacén por obra, conteo "todo conforme".
+- Móvil (V2/V3/V5 firma/keystore/rolling update) = PROMPT-8 (csd-app).
+
+---
+
 ## Actualización 2 (QA + mejoras U1–U25) — ✅ MERGED a main + DESPLEGADO a prod
 
 Source of truth: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-2.md` (+ `-1` §B).

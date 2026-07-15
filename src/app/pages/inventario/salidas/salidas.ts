@@ -88,7 +88,7 @@ export class Salidas implements OnInit {
   // A2 — al aprobar una requisición, el aprobador MAPEA cada renglón (texto libre del
   // ingeniero) a un artículo del catálogo. Mapeado -> puede despacharse de stock; sin
   // mapear -> va 100% a la solicitud de compra automática.
-  reqItems = signal<{ descripcion: string; unidad: string | null; articulo_id: string | null; cantidad: number }[]>([]);
+  reqItems = signal<{ descripcion: string; unidad: string | null; articulo_id: string | null; cantidad: number; talla: string | null }[]>([]);
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -352,7 +352,7 @@ export class Salidas implements OnInit {
         const d = norm(i.descripcion);
         // auto-match por nombre o código exacto; si no, queda sin mapear (irá a compra).
         const match = arts.find((a) => norm(a.nombre) === d || norm(a.codigo) === d);
-        return { descripcion: i.descripcion, unidad: i.unidad, articulo_id: match?.id ?? null, cantidad: i.cantidad };
+        return { descripcion: i.descripcion, unidad: i.unidad, articulo_id: match?.id ?? null, cantidad: i.cantidad, talla: i.talla ?? null };
       }),
     );
     this.form.reset({

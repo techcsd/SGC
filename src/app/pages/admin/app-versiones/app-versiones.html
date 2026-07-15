@@ -4,9 +4,11 @@
     <span class="page-count">Publicación por etapas</span>
   </div>
   <div class="page-header__actions">
-    <a class="sgc-btn sgc-btn--secondary" [href]="ultimaApkUrl" target="_blank" rel="noopener">
-      ⬇️ Descargar última versión{{ ultima() ? ' (v' + ultima()!.version + ')' : '' }}
-    </a>
+    @if (ultima()?.apk_url; as apk) {
+      <a class="sgc-btn sgc-btn--secondary" [href]="apk" target="_blank" rel="noopener">
+        ⬇️ Descargar última versión (v{{ ultima()!.version }})
+      </a>
+    }
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">Nueva versión</button>
   </div>
 </div>

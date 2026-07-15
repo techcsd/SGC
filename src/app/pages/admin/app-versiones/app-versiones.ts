@@ -72,9 +72,6 @@ export class AdminAppVersiones implements OnInit {
 
   /** Última versión disponible (la de mayor número de versión, semver real). */
   ultima = computed(() => this.mayorSemver(() => true));
-  /** Enlace fijo al APK más reciente publicado en el bucket. */
-  readonly ultimaApkUrl =
-    'https://jeeqhgccqefbqilntcpu.supabase.co/storage/v1/object/public/app-releases/csd-app-latest.apk';
 
   form = new FormGroup({
     version: new FormControl('', { nonNullable: true, validators: [Validators.required] }),

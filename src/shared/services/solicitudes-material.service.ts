@@ -94,7 +94,7 @@ export class SolicitudesMaterialService {
       fecha: string;
       responsable: string | null;
       observaciones: string | null;
-      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number }[];
+      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number; talla?: string | null }[];
     },
   ): Promise<AprobacionRequisicionResultado> {
     const { data, error } = await this.supabase.client.rpc('aprobar_requisicion', {

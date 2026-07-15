@@ -40,10 +40,14 @@ Deno.serve(async (req: Request) => {
     const callerClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
+      { db: { schema: "sgc" }, global: { headers: { Authorization: authHeader } } },
     );
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
+
+    // Solo un admin puede disparar el correo masivo (igual que notificar_todos).
+    const { data: esAdmin } = await callerClient.rpc("is_admin");
+    if (esAdmin !== true) return json({ error: "No autorizado." }, 403);
 
     const { version, notas, apkUrl } = await req.json();
     if (!version) return json({ error: "Falta la versión." }, 400);
@@ -89,16 +93,25 @@ Deno.serve(async (req: Request) => {
          También puedes actualizar desde la app: Ajustes → Buscar actualización.
        </p>`;
 
-    // Resend no reparte destinatarios en "to" (se verían entre sí). Enviamos en
-    // lotes usando BCC para no exponer correos.
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: fromEmail, to: fromEmail, bcc: to, subject, html }),
-    });
-    if (!res.ok) return json({ error: `Resend error: ${await res.text()}` }, 502);
-
-    return json({ sent: true, count: to.length });
+    // Resend limita a 50 destinatarios por request (to+bcc). Enviamos en lotes
+    // usando BCC (para no exponer correos) y no fallamos todo si un lote falla.
+    const BATCH = 45;
+    let enviados = 0;
+    const errores: string[] = [];
+    for (let i = 0; i < to.length; i += BATCH) {
+      const lote = to.slice(i, i + BATCH);
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from: fromEmail, to: fromEmail, bcc: lote, subject, html }),
+      });
+      if (res.ok) enviados += lote.length;
+      else errores.push(await res.text());
+    }
+    if (enviados === 0 && errores.length > 0) {
+      return json({ error: `Resend error: ${errores[0]}` }, 502);
+    }
+    return json({ sent: true, count: enviados, fallidos: to.length - enviados });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
   }
