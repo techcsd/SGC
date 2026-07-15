@@ -241,6 +241,79 @@
     </section>
     }
 
+    <!-- Sección: Equipos alquilados (W2) — solo parte diario -->
+    @if (tipoActual() === 'parte_diario') {
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">Equipos alquilados</h2>
+      <p class="bitacora-section__hint">
+        Registra los equipos alquilados usados hoy para respaldar el gasto.
+      </p>
+
+      <div class="sgc-field">
+        <label class="bitacora-check-line">
+          <input
+            type="checkbox"
+            formControlName="hubo_equipos"
+            (change)="onHuboEquiposChange($any($event.target).checked)"
+          />
+          <span>¿Hay equipos alquilados en uso hoy?</span>
+        </label>
+      </div>
+
+      @if (f.hubo_equipos.value) {
+        <datalist id="equipos-sugeridos">
+          @for (s of equiposSugeridos(); track s) { <option [value]="s"></option> }
+        </datalist>
+
+        @for (eq of equiposAlquilados(); track $index; let i = $index) {
+          <div class="equipo-row">
+            <div class="sgc-field">
+              <label [for]="'equipo-' + i">Equipo <span class="required">*</span></label>
+              <input
+                [id]="'equipo-' + i"
+                type="text"
+                list="equipos-sugeridos"
+                [value]="eq.equipo"
+                (input)="updateEquipo(i, 'equipo', $any($event.target).value)"
+                placeholder="Ej: Retroexcavadora, Andamio, Compresor…"
+              />
+            </div>
+            <div class="sgc-field">
+              <label [for]="'uso-' + i">¿En qué se usó?</label>
+              <input
+                [id]="'uso-' + i"
+                type="text"
+                [value]="eq.uso"
+                (input)="updateEquipo(i, 'uso', $any($event.target).value)"
+                placeholder="Actividad / dónde"
+              />
+            </div>
+            <div class="sgc-field">
+              <label [for]="'prov-' + i">Proveedor (opcional)</label>
+              <input
+                [id]="'prov-' + i"
+                type="text"
+                [value]="eq.proveedor"
+                (input)="updateEquipo(i, 'proveedor', $any($event.target).value)"
+                placeholder="Empresa que lo alquiló"
+              />
+            </div>
+            <button
+              type="button"
+              class="equipo-row__remove sgc-btn sgc-btn--ghost"
+              (click)="removeEquipo(i)"
+              aria-label="Quitar equipo"
+            >✕</button>
+          </div>
+        }
+
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addEquipo()">
+          + Agregar equipo
+        </button>
+      }
+    </section>
+    }
+
     <!-- Sección 2: Actividades (solo parte diario) -->
     @if (tipoActual() === 'parte_diario') {
     <section class="bitacora-section sgc-card">

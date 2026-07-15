@@ -1,9 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { environment } from '../../environments/environment';
+import { APP_VERSION } from '../../environments/version';
 import { AppVersion, AppVersionFormData, VersionPublicada } from '../models/app-version.model';
 
 const APK_BUCKET = 'app-releases';
+const WEB_VER_KEY = 'sgc_web_version_registrada';
 
 /** Versionado por etapas de la app móvil (R15). Escritura sólo admin (RLS). */
 @Injectable({ providedIn: 'root' })
@@ -75,6 +77,34 @@ export class AppVersionesService {
   async remove(id: string): Promise<void> {
     const { error } = await this.supabase.client.from('app_versiones').delete().eq('id', id);
     if (error) throw new Error(error.message);
+  }
+
+  /**
+   * W7 — Auto-registro de la versión WEB en el historial. La versión sale del
+   * bundle (package.json → version.ts). Idempotente en BD (registrar_version no
+   * duplica) y con guard local para no llamar en cada carga. No bloquea la app.
+   */
+  async autoRegistrarVersionWeb(): Promise<void> {
+    try {
+      if (localStorage.getItem(WEB_VER_KEY) === APP_VERSION) return;
+    } catch {
+      /* sin localStorage: intentamos igual (la BD es idempotente) */
+    }
+    try {
+      const { error } = await this.supabase.client.rpc('registrar_version', {
+        p_plataforma: 'web',
+        p_version: APP_VERSION,
+        p_notas: `Versión web ${APP_VERSION} desplegada. Edita las notas desde Administración › Historial de versiones.`,
+      });
+      if (error) throw new Error(error.message);
+      try {
+        localStorage.setItem(WEB_VER_KEY, APP_VERSION);
+      } catch {
+        /* no-op */
+      }
+    } catch (e) {
+      console.error('autoRegistrarVersionWeb failed', e);
+    }
   }
 
   /** RPC público: versión publicada + mínima (para la app móvil / About). */

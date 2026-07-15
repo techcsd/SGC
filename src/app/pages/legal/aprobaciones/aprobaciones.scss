@@ -43,6 +43,16 @@
   color: var(--sgc-text-muted);
 }
 
+.apr-comentario {
+  display: block;
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+  font-style: italic;
+  margin-top: 3px;
+  max-width: 240px;
+  white-space: normal;
+}
+
 .table-footer {
   padding: 10px 16px;
   font-size: 12px;

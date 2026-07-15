@@ -10,10 +10,11 @@ import {
   conduceNumero,
 } from '../../../../shared/models/salida.model';
 import { formatFechaDisplay, formatTimestampDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-conduce',
-  imports: [],
+  imports: [Skeleton],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

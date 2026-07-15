@@ -60,6 +60,16 @@ export interface BitacoraArchivo {
   created_at: string;
 }
 
+/** W2 — equipo alquilado usado en la obra ese día (gasto respaldado). */
+export interface BitacoraEquipoAlquilado {
+  id: string;
+  bitacora_id: string;
+  equipo: string;
+  uso: string | null;
+  proveedor: string | null;
+  created_at: string;
+}
+
 export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente';
 
 export const BITACORA_TIPOS: { value: BitacoraTipo; label: string }[] = [
@@ -121,12 +131,15 @@ export interface Bitacora {
   lluvia_detalle: string | null;
   hubo_migracion: boolean | null;
   migracion_obreros: unknown | null;
+  // Equipos alquilados (W2)
+  hubo_equipos_alquilados: boolean | null;
   created_at: string;
   weather_snapshot_id: string | null;
   weather_snapshot?: WeatherSnapshot | null;
   actividades?: BitacoraActividad[];
   restricciones?: BitacoraRestriccion[];
   archivos?: BitacoraArchivo[];
+  equipos?: BitacoraEquipoAlquilado[];
 }
 
 export interface BitacoraFormData {
@@ -163,4 +176,7 @@ export interface BitacoraFormData {
   lluvia_detalle?: string | null;
   hubo_migracion?: boolean | null;
   migracion_obreros?: unknown | null;
+  // Equipos alquilados (W2)
+  hubo_equipos?: boolean | null;
+  equipos_alquilados?: { equipo: string; uso: string | null; proveedor: string | null }[];
 }

@@ -121,6 +121,8 @@ textarea { resize: vertical; min-height: 72px; }
   }
   &__value { font-size: 15px; font-weight: 600; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
 
+  &__notas { display: flex; flex-direction: column; gap: 2px; }
+
   &__analysis {
     background: var(--sgc-surface-hover); border: 1px solid var(--sgc-border);
     border-radius: var(--sgc-radius); padding: 12px 14px;

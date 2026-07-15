@@ -359,7 +359,12 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
     items: [
       {
         pregunta: '¿Cómo registro mi bitácora diaria?',
-        respuesta: 'Ve a Bitácora > Nueva bitácora, completa las secciones y guarda. Puedes ver tus envíos anteriores en Bitácora > Mis bitácoras.',
+        respuesta: 'Ve a Bitácora > Nueva bitácora, completa las secciones y guarda. Puedes ver tus envíos anteriores en Bitácora > Mis bitácoras. Puedes adjuntar todas las fotos que necesites (galería sin límite práctico), se ven todas en el detalle.',
+      },
+      {
+        pregunta: '¿Cómo registro los equipos alquilados usados en la obra?',
+        respuesta:
+          'En Bitácora > Nueva bitácora (parte diario), en la sección "Equipos alquilados" responde "¿Hay equipos alquilados en uso hoy?". Si marcas Sí, agrega cada equipo con su nombre, en qué se usó y (opcional) el proveedor — el campo sugiere equipos que ya usaste antes. Esto respalda el gasto: se ve en el detalle de la bitácora, en el Excel de exportación y en el Dashboard de bitácoras (KPI "días con equipos alquilados", equipos más usados y días con equipos por obra).',
       },
       {
         pregunta: '¿Cómo pido materiales para mi proyecto (requisición)?',
@@ -610,6 +615,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo publico una nueva versión de la app móvil y subo su APK?',
         respuesta:
           'En Administración > Versiones de la app crea la versión (número, notas) y sube el archivo APK con "Subir APK" (verás una barra de progreso; queda descargable desde el servidor). La versión que ven los usuarios de campo es independiente de la que desarrollas: se quedan en la que tienen hasta que pulses "Publicar". Al publicar, TODOS los usuarios reciben una notificación en la app y un correo con el enlace de descarga. Usa "Marcar mínima" solo para forzar la actualización (bug crítico): quien tenga una versión menor a la mínima queda obligado a actualizar. La comparación de versiones es por número real (1.10 es mayor que 1.9).',
+      },
+      {
+        pregunta: '¿El historial de versiones de la web se actualiza solo?',
+        respuesta:
+          'Sí. La versión de la web sale del propio despliegue (package.json): al desplegar una versión nueva, la app la registra sola en Administración > Historial de versiones la primera vez que alguien la abre — sin escribir nada a mano. Aparece con sus notas (editables por el admin). La app móvil también queda en el historial, pero su publicación a los usuarios sigue siendo aprobación manual tuya.',
+      },
+      {
+        pregunta: 'La auditoría tiene muchas filas, ¿cómo saco algo útil?',
+        respuesta:
+          'En Administración > Auditoría, la pestaña "Panel" te da la lectura analítica: usuarios con más interacción, actividad por módulo, por tipo de acción, por día y por hora, y las acciones más comunes — todo filtrable por rango de fechas, usuario y módulo. Desde cualquier métrica (ranking de usuarios, acciones comunes, módulos) pulsa "Ver →" para saltar a la pestaña "Filas" ya filtrada y ver exactamente qué se hizo (quién cambió qué y cuándo).',
       },
     ],
   },

@@ -307,7 +307,7 @@
         </div>
 
         @if (detailLoading()) {
-          <div class="detail-loading"><span class="spinner-dark"></span> Cargando…</div>
+          <app-skeleton variant="list" [rows]="4" />
         } @else if (detailNotas().length === 0) {
           <p class="detail-section__empty">Sin notas todavía.</p>
         } @else {

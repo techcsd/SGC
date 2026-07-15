@@ -66,6 +66,9 @@
                   </button>
                 } @else {
                   <span class="text-muted">{{ a.revisor?.nombre ?? '—' }}</span>
+                  @if (a.comentario_revisor) {
+                    <span class="apr-comentario">“{{ a.comentario_revisor }}”</span>
+                  }
                 }
               </td>
             </tr>

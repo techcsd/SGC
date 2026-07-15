@@ -275,6 +275,7 @@ export class Historial implements OnInit {
       Migración: b.hubo_migracion == null ? '' : b.hubo_migracion ? 'Sí' : 'No',
       'Obreros afectados': this.migracionObreros(b).length,
       Actividades: b.actividades?.length ?? 0,
+      'Equipos alquilados': b.equipos?.length ?? 0,
       Restricciones: this.restriccionesResumen(b),
       Incidente: b.tipo === 'incidente' ? `${this.incidenteTipoLabel(b.incidente_tipo)} (${this.gravedadLabel(b.incidente_gravedad)})` : '',
       Comentarios: b.comentarios ?? '',
@@ -314,6 +315,15 @@ export class Historial implements OnInit {
           b.restricciones.map((r) => ({ Restricción: r.tipo_restriccion, Descripción: r.descripcion_otro ?? '' })),
         ),
         'Restricciones',
+      );
+    }
+    if (b.equipos?.length) {
+      XLSX.utils.book_append_sheet(
+        wb,
+        XLSX.utils.json_to_sheet(
+          b.equipos.map((e) => ({ Equipo: e.equipo, Uso: e.uso ?? '', Proveedor: e.proveedor ?? '' })),
+        ),
+        'Equipos alquilados',
       );
     }
     XLSX.writeFile(wb, `bitacora-${b.fecha}.xlsx`);

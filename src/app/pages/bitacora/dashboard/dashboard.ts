@@ -37,6 +37,8 @@ export class BitacoraDashboard implements OnInit {
   obrerosMigracion = computed(() =>
     this.bitacoras().reduce((acc, b) => acc + (Array.isArray(b.migracion_obreros) ? b.migracion_obreros.length : 0), 0),
   );
+  // W2 — días (bitácoras) con equipos alquilados.
+  diasEquipos = computed(() => this.bitacoras().filter((b) => (b.equipos?.length ?? 0) > 0).length);
 
   private groupCount(values: string[]): { key: string; count: number }[] {
     const map = new Map<string, number>();
@@ -65,6 +67,23 @@ export class BitacoraDashboard implements OnInit {
     this.groupCount(
       this.bitacoras().filter((b) => b.tipo === 'incidente' && b.incidente_gravedad).map((b) => b.incidente_gravedad as string),
     ).map((g) => ({ label: GRAVEDAD_LABEL[g.key] ?? g.key, value: g.count, color: GRAVEDAD_COLOR[g.key] ?? '#64748b' })),
+  );
+
+  /** W2 — Bar: equipos alquilados más usados (por # de bitácoras). */
+  equiposMasUsados = computed<BarDatum[]>(() => {
+    const all = this.bitacoras().flatMap((b) => (b.equipos ?? []).map((e) => e.equipo));
+    return this.groupCount(all)
+      .slice(0, 8)
+      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] }));
+  });
+
+  /** W2 — Bar: días con equipos alquilados por obra (top 10). */
+  equiposPorObra = computed<BarDatum[]>(() =>
+    this.groupCount(
+      this.bitacoras().filter((b) => (b.equipos?.length ?? 0) > 0).map((b) => b.proyecto?.nombre ?? 'Sin obra'),
+    )
+      .slice(0, 10)
+      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] })),
   );
 
   /** Bar: restricciones por tipo (todas las bitácoras). */

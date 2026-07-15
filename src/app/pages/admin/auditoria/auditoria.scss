@@ -180,3 +180,62 @@
   color: var(--sgc-text-secondary);
   font-variant-numeric: tabular-nums;
 }
+
+// W6 — tabs panel/filas + listas drill-down
+.aud__tabs {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0;
+}
+.aud__tab {
+  padding: 8px 16px;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-surface);
+  border-radius: var(--sgc-radius);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--sgc-text-secondary);
+
+  &--active {
+    background: var(--sgc-primary);
+    color: #fff;
+    border-color: var(--sgc-primary);
+  }
+}
+.aud__drill {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.aud__drill-box { padding: 16px; }
+.aud__drill-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--sgc-text);
+}
+.aud__drill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  li {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--sgc-border);
+    font-size: 13px;
+  }
+}
+.aud__drill-n {
+  font-weight: 700;
+  color: var(--sgc-primary);
+  min-width: 40px;
+  text-align: right;
+}

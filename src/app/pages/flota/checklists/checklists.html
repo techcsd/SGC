@@ -326,7 +326,7 @@
 <!-- ── Detail drawer: Reporte de inspección ── -->
 <app-form-drawer [title]="'Reporte de inspección'" [open]="detailOpen()" (closed)="closeDetail()">
   @if (loadingDetail()) {
-    <p class="cl-muted">Cargando detalle…</p>
+    <app-skeleton variant="list" [rows]="6" />
   } @else if (selected(); as c) {
     <div class="cl-report" id="cl-report-print">
       <!-- Banda de resultado -->

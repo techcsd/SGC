@@ -30,7 +30,7 @@
 }
 
 @if (loading()) {
-  <p class="text-muted">Cargando…</p>
+  <app-skeleton variant="table" [rows]="8" />
 } @else if (cargado()) {
   <div class="table-wrapper sgc-card">
     @if (rows().length === 0) {

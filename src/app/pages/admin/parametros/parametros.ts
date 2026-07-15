@@ -3,11 +3,12 @@ import { FormsModule } from '@angular/forms';
 import { AlertasCuadreService } from '../../../../shared/services/alertas-cuadre.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Parametro } from '../../../../shared/models/cuadre.model';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 /** Admin — umbrales configurables que disparan las alertas antifraude del cuadre. */
 @Component({
   selector: 'app-admin-parametros',
-  imports: [FormsModule],
+  imports: [FormsModule, Skeleton],
   templateUrl: './parametros.html',
   styleUrl: './parametros.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -59,6 +59,10 @@
                 </li>
               }
             </ul>
+            <!-- W7 — versiones auto-registradas: aún sin cambios etiquetados → notas -->
+            @if (v.cambiosVisibles.length === 0 && v.notas) {
+              <p class="hv-notas">{{ v.notas }}</p>
+            }
 
             @if (v.plataforma === 'web' && v.url) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.url" target="_blank" rel="noopener">

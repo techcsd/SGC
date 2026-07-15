@@ -378,10 +378,7 @@
     <div class="detail-body">
 
       @if (detailLoading()) {
-        <div class="detail-loading">
-          <span class="spinner-dark"></span>
-          Cargando detalle…
-        </div>
+        <app-skeleton variant="list" [rows]="5" />
       }
 
       <!-- Info grid -->

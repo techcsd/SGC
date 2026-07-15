@@ -1,10 +1,17 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import {
   AuditoriaService,
   AuditoriaRow,
   AuditoriaActor,
+  AuditoriaResumen,
 } from '../../../../shared/services/auditoria.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
+import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+
+const CAT = ['#1F4E79', '#2D7D46', '#B45309', '#5B3A8E', '#0E7490', '#C0392B', '#64748b'];
 
 // Friendly Spanish labels for audited tables (module-oriented). Unknown tables
 // fall back to the raw name so nothing is ever hidden.
@@ -57,7 +64,7 @@ const ACCION_LABELS: Record<string, string> = {
  *  Reads sgc.auditoria (populated by DB triggers from BOTH web and app). */
 @Component({
   selector: 'app-admin-auditoria',
-  imports: [],
+  imports: [DecimalPipe, BarChart, DonutChart, Skeleton],
   templateUrl: './auditoria.html',
   styleUrl: './auditoria.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +73,11 @@ export class AdminAuditoria implements OnInit {
   private service = inject(AuditoriaService);
 
   formatTs = formatTimestampDisplay;
+
+  /** W6 — vista activa: panel analítico o filas crudas (drill-down). */
+  vista = signal<'panel' | 'filas'>('panel');
+  resumen = signal<AuditoriaResumen | null>(null);
+  resumenLoading = signal(false);
 
   rows = signal<AuditoriaRow[]>([]);
   total = signal(0);
@@ -94,8 +106,94 @@ export class AdminAuditoria implements OnInit {
     return `${from}–${to} de ${this.total()}`;
   });
 
+  /** La lista de filas se carga perezosamente (la vista por defecto es el panel). */
+  private filasCargadas = false;
+
   async ngOnInit() {
-    await Promise.all([this.load(), this.loadFilterOptions()]);
+    // Vista por defecto = panel. Las filas crudas se cargan al entrar a esa pestaña.
+    await Promise.all([this.loadResumen(), this.loadFilterOptions()]);
+  }
+
+  // ── W6 — Panel analítico ─────────────────────────────────────
+  cambiarVista(v: 'panel' | 'filas') {
+    this.vista.set(v);
+    // Panel: siempre refresca los agregados para que reflejen el filtro actual.
+    if (v === 'panel') void this.loadResumen();
+    // Filas: carga perezosa la primera vez.
+    if (v === 'filas' && !this.filasCargadas) void this.load();
+  }
+
+  async loadResumen() {
+    this.resumenLoading.set(true);
+    try {
+      this.resumen.set(
+        await this.service.resumen({
+          desde: this.fDesde() || undefined,
+          hasta: this.fHasta() || undefined,
+          actorId: this.fActor() || undefined,
+          tabla: this.fTabla() || undefined,
+        }),
+      );
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al cargar el panel.');
+    } finally {
+      this.resumenLoading.set(false);
+    }
+  }
+
+  // Charts derivados del resumen.
+  rankingUsuarios = computed<BarDatum[]>(() =>
+    (this.resumen()?.por_usuario ?? []).slice(0, 10).map((u, i) => ({
+      label: u.nombre, value: u.n, color: CAT[i % CAT.length],
+    })),
+  );
+  porModuloChart = computed<BarDatum[]>(() =>
+    (this.resumen()?.por_modulo ?? []).slice(0, 10).map((m, i) => ({
+      label: this.tablaLabel(m.tabla), value: m.n, color: CAT[i % CAT.length],
+    })),
+  );
+  porAccionChart = computed<DonutDatum[]>(() => {
+    const color: Record<string, string> = { INSERT: '#2D7D46', UPDATE: '#B45309', DELETE: '#C0392B' };
+    return (this.resumen()?.por_accion ?? []).map((a) => ({
+      label: this.accionLabel(a.accion), value: a.n, color: color[a.accion] ?? '#64748b',
+    }));
+  });
+  porDiaChart = computed<BarDatum[]>(() =>
+    (this.resumen()?.por_dia ?? []).map((d) => ({ label: d.dia.slice(5), value: d.n, color: '#1F4E79' })),
+  );
+  porHoraChart = computed<BarDatum[]>(() =>
+    (this.resumen()?.por_hora ?? []).map((h) => ({ label: `${h.hora}h`, value: h.n, color: '#0E7490' })),
+  );
+
+  // Drill-down: salta a las filas crudas filtradas SOLO por la métrica elegida
+  // (limpia los otros filtros; conserva el rango de fechas del período).
+  private resetFiltrosSalvoFecha() {
+    this.fActor.set('');
+    this.fTabla.set('');
+    this.fAccion.set('');
+    this.fBuscar.set('');
+  }
+  verUsuario(actorId: string | null) {
+    if (!actorId) return;
+    this.resetFiltrosSalvoFecha();
+    this.fActor.set(actorId);
+    this.irAFilas();
+  }
+  verModulo(tabla: string) {
+    this.resetFiltrosSalvoFecha();
+    this.fTabla.set(tabla);
+    this.irAFilas();
+  }
+  verAccionComun(tabla: string, accion: string) {
+    this.resetFiltrosSalvoFecha();
+    this.fTabla.set(tabla);
+    this.fAccion.set(accion);
+    this.irAFilas();
+  }
+  private irAFilas() {
+    this.vista.set('filas');
+    this.page.set(0);
+    void this.load();
   }
 
   private async loadFilterOptions() {
@@ -109,6 +207,7 @@ export class AdminAuditoria implements OnInit {
   }
 
   async load() {
+    this.filasCargadas = true;
     this.loading.set(true);
     this.error.set('');
     try {
@@ -135,6 +234,7 @@ export class AdminAuditoria implements OnInit {
   applyFilters() {
     this.page.set(0);
     void this.load();
+    void this.loadResumen();
   }
 
   clearFilters() {

@@ -24,7 +24,7 @@
           <span class="sgc-badge sgc-badge--{{ estadoBadge[v.estado] }}">{{ estadoLabel(v.estado) }}</span>
         </div>
         <p class="vd-header__sub">
-          {{ v.marca }} {{ v.modelo }} · {{ v.anio }} · {{ tipoLabel(v.tipo) }}
+          {{ v.marca }} {{ v.modelo }} · {{ v.anio }} · {{ tipoLabel(v.tipo) }}@if (v.color) { · {{ v.color }}}
         </p>
         @if (v.responsable?.nombre) {
           <p class="vd-header__resp">Responsable: {{ v.responsable!.nombre }}</p>
