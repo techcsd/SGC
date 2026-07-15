@@ -16,6 +16,102 @@
   Publica una versión cuando el equipo esté listo; marca la <strong>mínima</strong> para forzar actualización.
 </p>
 
+<!-- Guía: cómo funciona este módulo -->
+<button
+  class="av-guia-toggle"
+  type="button"
+  (click)="toggleGuia()"
+  [attr.aria-expanded]="guiaAbierta()"
+>
+  <span>📖 ¿Cómo funciona esto? — Guía</span>
+  <span class="av-guia-toggle__chev">{{ guiaAbierta() ? '▲' : '▼' }}</span>
+</button>
+
+@if (guiaAbierta()) {
+  <div class="av-guia sgc-card">
+    <p class="av-guia__intro">
+      Este módulo controla <strong>qué versión de la app móvil ven los usuarios de campo</strong>.
+      La clave: la versión que tú desarrollas <strong>no</strong> es automáticamente la que ellos
+      reciben — tú decides desde aquí cuándo mostrarles una nueva y cuándo obligarlos a actualizar.
+      Así el desarrollo puede ir adelante mientras los choferes se quedan tranquilos en su versión
+      hasta que la dominen.
+    </p>
+
+    <div class="av-guia__grid">
+      <!-- Los dos estados -->
+      <section class="av-guia__box">
+        <h3 class="av-guia__h">Los dos estados de una versión</h3>
+        <p>
+          <span class="sgc-badge sgc-badge--success">Publicada</span>
+          Los usuarios la ven como <em>“actualización disponible”</em> y la pueden descargar. La
+          <strong>más reciente</strong> marcada como Publicada es la que se les ofrece. Si una
+          versión no está publicada, para ellos <strong>no existe</strong>: siguen con la que tienen.
+        </p>
+        <p>
+          <span class="sgc-badge sgc-badge--warning">Mínima</span>
+          Es el <strong>piso obligatorio</strong>. Si el teléfono tiene una versión <em>menor</em>
+          que la mínima, la app lo <strong>obliga a actualizar</strong> y no lo deja seguir usándola.
+          Úsala solo para forzar (bug crítico, cambio de backend incompatible). Si no hay mínima,
+          nadie se ve forzado.
+        </p>
+        <p>
+          <span class="sgc-badge sgc-badge--neutral">Borrador</span>
+          Ni publicada ni mínima. Sirve para preparar/probar una versión sin que los usuarios la vean.
+        </p>
+      </section>
+
+      <!-- Las tarjetas de resumen -->
+      <section class="av-guia__box">
+        <h3 class="av-guia__h">Las tarjetas de arriba</h3>
+        <p>
+          <strong>Publicada actual:</strong> la versión que en este momento se les ofrece a los
+          usuarios de campo (la más reciente marcada Publicada).
+        </p>
+        <p>
+          <strong>Versión mínima:</strong> la más antigua permitida. Cualquiera por debajo de esta
+          queda forzado a actualizar. Un “—” significa que no hay piso y nadie está forzado.
+        </p>
+      </section>
+
+      <!-- Botones por versión -->
+      <section class="av-guia__box">
+        <h3 class="av-guia__h">Botones de cada fila</h3>
+        <ul class="av-guia__list">
+          <li><strong>Publicar / Despublicar:</strong> prende o apaga que los usuarios vean esa versión.</li>
+          <li><strong>Marcar / Quitar mínima:</strong> define o retira el piso obligatorio.</li>
+          <li><strong>Editar:</strong> cambia el número de versión, las notas, la URL del APK y las banderas.</li>
+          <li><strong>Descargar:</strong> abre el APK de esa versión (si tiene URL guardada).</li>
+          <li><strong>Eliminar:</strong> borra el registro de la lista. <em>No</em> borra el APK del servidor.</li>
+        </ul>
+      </section>
+
+      <!-- Botones de arriba -->
+      <section class="av-guia__box">
+        <h3 class="av-guia__h">Botones de arriba</h3>
+        <p><strong>Nueva versión:</strong> registra una versión a mano (número, notas, URL del APK, banderas).</p>
+        <p><strong>Descargar última versión:</strong> baja el APK más reciente que el técnico subió al servidor.</p>
+      </section>
+    </div>
+
+    <!-- Flujo típico -->
+    <section class="av-guia__box av-guia__box--flow">
+      <h3 class="av-guia__h">Flujo típico, paso a paso</h3>
+      <ol class="av-guia__steps">
+        <li>El técnico compila el APK y lo sube al servidor. Aparece (o se registra) la fila de esa versión.</li>
+        <li>Mientras se prueba internamente, se deja en <strong>Borrador</strong>: los usuarios de campo <strong>no</strong> la ven.</li>
+        <li>Cuando el equipo confirma que está estable → <strong>Publicar</strong>. Ahí los usuarios ven “actualización disponible”.</li>
+        <li>Si esa versión trae algo que <em>todos deben</em> tener sí o sí (bug crítico, cambio de backend) → <strong>Marcar mínima</strong> para forzar la actualización.</li>
+      </ol>
+    </section>
+
+    <p class="av-guia__note">
+      ⚠️ <strong>Ojo:</strong> subir el APK al servidor solo lo hace <em>descargable</em>. Lo que
+      decide qué ven los usuarios es el botón <strong>Publicar</strong> de aquí — son dos cosas
+      distintas. Puedes tener un APK subido y sin publicar: nadie se entera hasta que lo publiques.
+    </p>
+  </div>
+}
+
 <div class="av-current">
   <div class="av-current__card sgc-card">
     <span class="av-current__label">Publicada actual</span>
