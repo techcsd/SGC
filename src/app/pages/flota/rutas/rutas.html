@@ -172,12 +172,7 @@
     <div class="form-row">
       <div class="sgc-field">
         <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
-        <select id="vehiculo_id" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
-          <option [value]="null">Seleccionar vehículo…</option>
-          @for (v of activeVehiculos(); track v.id) {
-            <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option>
-          }
-        </select>
+        <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="activeVehiculos()" />
         @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
           <span class="field-error">El vehículo es obligatorio.</span>
         }

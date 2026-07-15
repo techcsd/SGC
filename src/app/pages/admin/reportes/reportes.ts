@@ -1,6 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { ReportesUsuarioService } from '../../../../shared/services/reportes-usuario.service';
 import { UserService } from '../../../core/services/user.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -12,10 +11,11 @@ import {
   REPORTE_TIPO_LABELS,
   REPORTE_ESTADO_LABELS,
 } from '../../../../shared/models/reporte-usuario.model';
+import { formatFechaMedia, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-admin-reportes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +26,9 @@ export class AdminReportes implements OnInit {
 
   readonly TIPO_LABELS = REPORTE_TIPO_LABELS;
   readonly ESTADO_LABELS = REPORTE_ESTADO_LABELS;
+
+  formatFecha = formatFechaMedia; // U9
+  formatFechaHora = formatFechaHumana; // U9
 
   reportes = signal<ReporteUsuario[]>([]);
   loading = signal(true);

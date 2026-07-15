@@ -1,2 +1,5 @@
 // Movimientos — reutiliza estilos globales de tabla/filtros; sin estilos extra.
 :host { display: block; }
+
+// U16 — nombre del almacén cuando se llega filtrado desde su fila.
+.mov-scope { color: var(--sgc-text-muted); font-weight: 500; }

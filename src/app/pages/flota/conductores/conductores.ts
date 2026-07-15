@@ -21,7 +21,8 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { VehiculoAsignacion } from '../../../../shared/models/vehiculo-asignacion.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
-import { daysUntil } from '../../../../shared/utils/fecha.util';
+import { daysUntil, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 
 @Component({
   selector: 'app-conductores',
@@ -270,6 +271,10 @@ export class Conductores implements OnInit {
   }
 
   // ── Helpers ──────────────────────────────────────────────
+  // U9 — fecha legible; U5 — teléfono formateado en el listado.
+  formatFecha = formatFechaDisplay;
+  formatTelefono = formatearTelefono;
+
   isLicenciaExpiringSoon(vencimiento: string | null): boolean {
     if (!vencimiento) return false;
     return daysUntil(vencimiento) <= this.flotaConfig.umbralLicenciaDias();

@@ -96,7 +96,7 @@
               }
             </td>
             <td class="admin-usuarios__date">
-              {{ usuario.created_at | date:'dd MMM yyyy' }}
+              {{ formatFecha(usuario.created_at) }}
             </td>
             <td class="admin-usuarios__actions">
               <button

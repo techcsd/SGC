@@ -46,6 +46,8 @@ export class AdminOtrosValores implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
+      // U25 — genera los avisos idempotentes antes de mostrar la inteligencia.
+      try { await this.service.evaluarAvisos(); } catch { /* no bloquea la carga */ }
       this.valores.set(await this.service.getFrecuentes());
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los valores.');

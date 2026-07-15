@@ -313,6 +313,14 @@
         </div>
       }
 
+      <!-- U13 — quién/cuándo: fecha de registro (distinta de la fecha operativa) -->
+      @if (b.created_at) {
+        <div class="bitacora-detail__row bitacora-detail__row--foot">
+          <span class="bitacora-detail__label">Registrada</span>
+          <span class="text-muted">{{ formatFechaHora(b.created_at) }}</span>
+        </div>
+      }
+
       @if ((b.archivos ?? []).length > 0) {
         <div class="bitacora-detail__section">
           <h3>Archivos</h3>

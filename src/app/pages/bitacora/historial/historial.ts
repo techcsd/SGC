@@ -5,7 +5,7 @@ import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_TIPOS, INCIDENTE_GRAVEDADES } from '../../../../shared/models/bitacora.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
-import { formatFechaDisplay, formatHora12 } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatHora12, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { interpretarCodigoTiempo } from '../../../../shared/context/weather.model';
@@ -22,6 +22,7 @@ export class Historial implements OnInit {
   private proyectosService = inject(ProyectosService);
 
   formatFecha = formatFechaDisplay;
+  formatFechaHora = formatFechaHumana; // U13 — "registrada el…"
   formatHora = formatHora12;
 
   bitacoras = signal<Bitacora[]>([]);

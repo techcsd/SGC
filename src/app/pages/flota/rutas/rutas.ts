@@ -20,6 +20,7 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { WeatherCard } from '../../../../shared/context/weather-card/weather-card';
 import { LocationPicker, UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
 import { RoutingService } from '../../../../shared/context/routing.service';
@@ -31,7 +32,7 @@ type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'long
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

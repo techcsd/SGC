@@ -99,7 +99,7 @@
               <td>
                 <code class="code-tag">{{ c.cedula }}</code>
               </td>
-              <td>{{ c.telefono ?? '—' }}</td>
+              <td>{{ c.telefono ? formatTelefono(c.telefono) : '—' }}</td>
               <td>
                 <span class="conductores__licencia-tipo">{{ c.licencia_tipo }}</span>
               </td>
@@ -107,7 +107,7 @@
               <td>
                 @if (c.licencia_vencimiento) {
                   <span [class]="getLicenciaClass(c.licencia_vencimiento)">
-                    {{ c.licencia_vencimiento }}
+                    {{ formatFecha(c.licencia_vencimiento) }}
                     @if (isLicenciaExpired(c.licencia_vencimiento)) {
                       <span class="sgc-badge sgc-badge--danger conductores__badge-inline">Vencida</span>
                     } @else if (isLicenciaExpiringSoon(c.licencia_vencimiento)) {

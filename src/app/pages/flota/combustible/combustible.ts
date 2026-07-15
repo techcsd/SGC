@@ -10,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -27,7 +28,7 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 
 @Component({
   selector: 'app-combustible',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker],
   templateUrl: './combustible.html',
   styleUrl: './combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -195,7 +196,7 @@ export class Combustible implements OnInit {
 
   // ── Filters ──────────────────────────────────────────────
   onSearch(v: string) { this.searchQuery.set(v); this.currentPage.set(1); }
-  onVehiculoChange(v: string) { this.selectedVehiculoId.set(v); this.currentPage.set(1); }
+  onVehiculoChange(v: string | null) { this.selectedVehiculoId.set(v ?? ''); this.currentPage.set(1); }
   onDateFromChange(v: string) { this.dateFrom.set(v); this.currentPage.set(1); }
   onDateToChange(v: string) { this.dateTo.set(v); this.currentPage.set(1); }
   clearFilters() {

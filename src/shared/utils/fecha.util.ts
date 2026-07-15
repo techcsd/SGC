@@ -80,6 +80,20 @@ export function formatAntiguedad(fecha: string | null | undefined): string {
 }
 
 const MESES_ABREV = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const DIAS_ABREV = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+/**
+ * U9 — Etiqueta corta de día para un `YYYY-MM-DD` (date-only), ej. `lun 14`.
+ * Calculada desde partes locales (nunca `new Date(dateOnly)`, que desplaza un día
+ * en UTC-4). Ideal para pronósticos/mini-calendarios.
+ */
+export function formatDiaCorto(fecha: string | null | undefined): string {
+  if (!fecha) return '—';
+  const [y, m, d] = fecha.split('-').map(Number);
+  if (!y || !m || !d) return fecha;
+  const dow = new Date(y, m - 1, d).getDay();
+  return `${DIAS_ABREV[dow]} ${d}`;
+}
 
 /**
  * U9 — Fecha+hora humana es-DO de un `timestamptz`, ej. `14 jul 2026, 3:45 p. m.`.
@@ -96,6 +110,17 @@ export function formatFechaHumana(ts: string | null | undefined): string {
   h = h % 12;
   if (h === 0) h = 12;
   return `${d.getDate()} ${MESES_ABREV[d.getMonth()]} ${d.getFullYear()}, ${h}:${min} ${period}`;
+}
+
+/**
+ * U9 — Fecha media es-DO de un `timestamptz`, sin hora, ej. `14 jul 2026`.
+ * Para listados donde la hora no aporta. El timestamp trae offset UTC (`Z`).
+ */
+export function formatFechaMedia(ts: string | null | undefined): string {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  return `${d.getDate()} ${MESES_ABREV[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 /**

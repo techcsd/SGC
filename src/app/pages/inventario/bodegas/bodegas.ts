@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -19,7 +20,7 @@ import { homologarTexto } from '../../../../shared/utils/texto.util';
 
 @Component({
   selector: 'app-bodegas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink],
   templateUrl: './bodegas.html',
   styleUrl: './bodegas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

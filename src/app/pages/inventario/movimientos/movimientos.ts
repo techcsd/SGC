@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { MovimientosService, MovimientoInventario } from '../../../../shared/services/movimientos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
@@ -17,6 +17,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 export class Movimientos implements OnInit {
   private movimientosService = inject(MovimientosService);
   private bodegasService = inject(BodegasService);
+  private route = inject(ActivatedRoute);
 
   formatFecha = formatFechaDisplay;
 
@@ -50,7 +51,15 @@ export class Movimientos implements OnInit {
   totalEntradas = computed(() => this.filtered().filter((m) => m.tipo === 'entrada').length);
   hasActiveFilters = computed(() => !!(this.selectedBodega() || this.selectedTipo() || this.dateFrom() || this.dateTo()));
 
+  /** U16 — nombre del almacén cuando se llega filtrado desde su detalle. */
+  bodegaFiltradaNombre = computed(() =>
+    this.selectedBodega() ? this.bodegaNombre(this.selectedBodega()) : '',
+  );
+
   async ngOnInit() {
+    // U16 — pre-filtrar por almacén al entrar desde "Ver movimientos".
+    const bodega = this.route.snapshot.queryParamMap.get('bodega');
+    if (bodega) this.selectedBodega.set(bodega);
     this.loading.set(true);
     this.error.set('');
     try {

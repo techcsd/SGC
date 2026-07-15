@@ -51,14 +51,17 @@
         </thead>
         <tbody>
           @for (c of compras(); track c.id) {
-            <tr>
+            <tr class="clickable-row" (click)="openDetail(c)">
               <td class="compra-fecha">{{ formatTimestamp(c.created_at) }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">
                   {{ getEstadoLabel(c.estado) }}
                 </span>
               </td>
-              <td class="text-right">{{ (c.items ?? []).length }}</td>
+              <td class="text-right">
+                {{ (c.items ?? []).length }}
+                @if (tieneFotos(c)) { <span title="Incluye fotos" aria-label="Incluye fotos">📷</span> }
+              </td>
               <td class="text-muted cell-clamp">{{ c.notas ?? '—' }}</td>
             </tr>
           }
@@ -126,6 +129,19 @@
             [disabled]="formItems().length === 1"
             aria-label="Eliminar artículo"
           >×</button>
+
+          <!-- U17 — foto opcional del renglón -->
+          <div class="item-row__foto">
+            @if (item.fotoPreview) {
+              <img class="item-foto-thumb" [src]="item.fotoPreview" alt="Vista previa" />
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearItemFoto($index)">Quitar foto</button>
+            } @else {
+              <label class="sgc-btn sgc-btn--ghost sgc-btn--sm foto-picker">
+                📷 Agregar foto
+                <input type="file" accept="image/*" hidden (change)="onItemFoto($index, $event)" />
+              </label>
+            }
+          </div>
         </div>
       }
     </div>
@@ -152,4 +168,39 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── Detail Drawer (U17 — renglones con foto) ── -->
+<app-form-drawer title="Detalle de la solicitud" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detail(); as c) {
+    <div class="compra-detail">
+      <div class="compra-detail__meta">
+        <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">{{ getEstadoLabel(c.estado) }}</span>
+        <span class="text-muted">{{ formatTimestamp(c.created_at) }}</span>
+      </div>
+      @if (c.notas) { <p class="compra-detail__notas">{{ c.notas }}</p> }
+
+      <h3 class="compra-detail__title">Artículos ({{ (c.items ?? []).length }})</h3>
+      <ul class="compra-detail__items">
+        @for (it of c.items ?? []; track it.id) {
+          <li class="compra-detail__item">
+            @if (itemFotoUrl(it.id); as url) {
+              <a class="item-foto-thumb" [href]="url" target="_blank" rel="noopener">
+                <img [src]="url" [alt]="it.descripcion" loading="lazy" />
+              </a>
+            } @else {
+              <span class="item-foto-thumb item-foto-thumb--empty" aria-hidden="true">📦</span>
+            }
+            <div class="compra-detail__item-body">
+              <span class="compra-detail__item-desc">{{ it.descripcion }}</span>
+              <span class="text-muted">
+                Cantidad: {{ it.cantidad }}
+                @if (it.proveedor_sugerido) { · {{ it.proveedor_sugerido }} }
+              </span>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+  }
 </app-form-drawer>

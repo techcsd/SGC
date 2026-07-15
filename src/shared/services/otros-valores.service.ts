@@ -23,4 +23,14 @@ export class OtrosValoresService {
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as OtroValorFrecuente[];
   }
+
+  /**
+   * U25 — genera (idempotente) los avisos "crear opción oficial" para los valores
+   * que superan el umbral. Se llama al abrir la página; no falla la carga si el
+   * RPC aún no existe en un entorno viejo.
+   */
+  async evaluarAvisos(): Promise<void> {
+    const { error } = await this.supabase.client.rpc('evaluar_avisos_otros');
+    if (error) throw new Error(error.message);
+  }
 }

@@ -1,6 +1,9 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Movimientos de inventario</h1>
+    <h1 class="page-title">
+      Movimientos de inventario
+      @if (bodegaFiltradaNombre()) { <span class="mov-scope">· {{ bodegaFiltradaNombre() }}</span> }
+    </h1>
     <span class="page-count">{{ filtered().length }} movimiento{{ filtered().length !== 1 ? 's' : '' }} · {{ totalSalidas() }} salidas · {{ totalEntradas() }} entradas</span>
   </div>
 </div>
