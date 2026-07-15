@@ -302,7 +302,7 @@ export class ProyectosService {
 
   async updateExpedienteDoc(
     id: string,
-    patch: Partial<Pick<ExpedienteDoc, 'estado' | 'responsable_id' | 'notas' | 'archivo_path'>>,
+    patch: Partial<Pick<ExpedienteDoc, 'estado' | 'responsable_id' | 'notas' | 'archivo_path' | 'enlace'>>,
     userId: string | null,
   ): Promise<void> {
     const extra: Record<string, unknown> = { ...patch, updated_at: new Date().toISOString() };

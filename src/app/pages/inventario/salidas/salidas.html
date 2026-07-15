@@ -295,7 +295,7 @@
                 @for (g of articulosAgrupados(); track g.categoria) {
                   <optgroup [label]="g.categoria">
                     @for (a of g.articulos; track a.id) {
-                      <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+                      <option [value]="a.id">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }} ({{ a.codigo }})</option>
                     }
                   </optgroup>
                 }
@@ -425,7 +425,7 @@
               @for (g of articulosAgrupados(); track g.categoria) {
                 <optgroup [label]="g.categoria">
                   @for (a of g.articulos; track a.id) {
-                    <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
+                    <option [value]="a.id">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }} ({{ a.codigo }})</option>
                   }
                 </optgroup>
               }

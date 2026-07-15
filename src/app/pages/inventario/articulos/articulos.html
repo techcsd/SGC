@@ -107,6 +107,9 @@
               </td>
               <td>
                 <span class="article-name">{{ art.nombre }}</span>
+                @if (art.subgrupo) {
+                  <span class="article-subgrupo">{{ art.subgrupo }}</span>
+                }
                 @if (art.descripcion) {
                   <span class="article-desc">{{ art.descripcion }}</span>
                 }

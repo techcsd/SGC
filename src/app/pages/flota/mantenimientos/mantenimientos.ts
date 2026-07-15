@@ -46,8 +46,24 @@ export class Mantenimientos implements OnInit {
   // ── Drawer photos ────────────────────────────────────────
   fotoPaths = signal<string[]>([]); // existing persisted photo paths
   fotoFiles = signal<PendingFoto[]>([]); // newly picked, not yet uploaded
-  fotoUrls = signal<Record<string, string>>({}); // path → signed URL for thumbnails
+  fotoUrls = signal<Record<string, string>>({}); // path → signed URL for thumbnails (drawer)
+  private rowFotoUrls = signal<Record<string, string>>({}); // path → signed URL for list rows
   private originalFotos: string[] = [];
+
+  /** Signed URL of a photo shown in a list row (or null while resolving). */
+  rowFotoUrl(path: string): string | null {
+    return this.rowFotoUrls()[path] ?? null;
+  }
+
+  /** Resolves signed URLs for every photo across the loaded maintenance rows. */
+  private resolveListaFotos(list: Mantenimiento[]) {
+    for (const path of list.flatMap((m) => m.fotos ?? [])) {
+      if (this.rowFotoUrls()[path]) continue;
+      this.mantenimientosService.getFotoUrl(path).then((url) => {
+        if (url) this.rowFotoUrls.update((m) => ({ ...m, [path]: url }));
+      });
+    }
+  }
 
   formatFecha = formatFechaDisplay;
 
@@ -172,6 +188,7 @@ export class Mantenimientos implements OnInit {
       this.mantenimientos.set(mantenimientos);
       this.vehiculos.set(vehiculos);
       this.proveedorNombres.set(proveedores.filter((p) => p.activo).map((p) => p.nombre));
+      this.resolveListaFotos(mantenimientos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -364,6 +381,7 @@ export class Mantenimientos implements OnInit {
       } else {
         this.mantenimientos.update((list) => [saved, ...list]);
       }
+      this.resolveListaFotos([saved]);
       this.revokePreviews();
       this.drawerOpen.set(false);
     } catch (e: unknown) {

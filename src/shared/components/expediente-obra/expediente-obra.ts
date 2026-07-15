@@ -126,6 +126,19 @@ export class ExpedienteObra {
     }
   }
 
+  async onEnlaceChange(doc: ExpedienteDoc, value: string) {
+    const enlace = value.trim() || null;
+    if (enlace === doc.enlace) return;
+    const previo = doc.enlace;
+    this.patchLocal(doc.id, { enlace });
+    try {
+      await this.proyectosService.updateExpedienteDoc(doc.id, { enlace }, this.userId);
+    } catch (e: unknown) {
+      this.patchLocal(doc.id, { enlace: previo });
+      this.toast.error('No se pudo guardar el enlace', e instanceof Error ? e.message : undefined);
+    }
+  }
+
   async onArchivoSelected(doc: ExpedienteDoc, event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];

@@ -143,6 +143,17 @@
                 @if (m.notas) {
                   <span class="mantenimientos__notas">{{ m.notas }}</span>
                 }
+                @if (m.fotos?.length) {
+                  <div class="mantenimientos__fotos">
+                    @for (path of m.fotos; track path) {
+                      @if (rowFotoUrl(path); as url) {
+                        <a [href]="url" target="_blank" rel="noopener" class="mantenimientos__foto-thumb" title="Ver foto">
+                          <img [src]="url" alt="Foto del mantenimiento" loading="lazy" />
+                        </a>
+                      }
+                    }
+                  </div>
+                }
               </td>
               <td>
                 <div class="row-actions">

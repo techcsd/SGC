@@ -30,6 +30,16 @@
   max-width: 280px;
 }
 
+.article-subgrupo {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-surface-hover);
+  border-radius: var(--sgc-radius-sm);
+  padding: 1px 7px;
+  margin-top: 3px;
+}
+
 .stock-value {
   font-weight: 600;
 
