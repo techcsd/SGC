@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { daysFromNowIso } from '../utils/fecha.util';
 import {
   AprobacionLegal,
   AprobacionModulo,
@@ -204,14 +205,14 @@ export class LegalService {
 
   /** Contracts expiring within `dias` days (defaults to 30) and not already closed out. */
   async countPorVencer(dias = 30): Promise<number> {
-    const limite = new Date();
-    limite.setDate(limite.getDate() + dias);
+    // Límite como string ISO local (YYYY-MM-DD) para evitar el off-by-one de toISOString() en UTC-4.
+    const limite = daysFromNowIso(dias);
     const { count, error } = await this.supabase.client
       .from('contratos')
       .select('id', { count: 'exact', head: true })
       .in('estado', ['firmado', 'en_revision'])
       .not('fecha_vencimiento', 'is', null)
-      .lte('fecha_vencimiento', limite.toISOString().slice(0, 10));
+      .lte('fecha_vencimiento', limite);
     if (error) throw new Error(error.message);
     return count ?? 0;
   }

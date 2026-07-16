@@ -296,6 +296,9 @@ export class Checklists implements OnInit {
     this.selectedVehiculoForm.set(vehiculoId);
     if (!vehiculoId) return;
     // Autosugerir conductor asignado a ese vehículo, si aún no eligió otro.
+    // QA-045 — legacy: bajo el modelo de pool (vehiculo_asignaciones) un conductor
+    // ya no tiene vehiculo_id fijo, así que esto rara vez acierta. Es inofensivo
+    // (solo prellena); la sugerencia correcta vendría de la asignación activa.
     if (!this.form.controls.conductor_id.value) {
       const asignado = this.conductores().find((c) => c.vehiculo_id === vehiculoId);
       if (asignado) this.form.controls.conductor_id.setValue(asignado.id);
@@ -348,6 +351,17 @@ export class Checklists implements OnInit {
     const plantilla = this.selectedPlantilla();
     if (!plantilla) {
       this.saveError.set('Selecciona una plantilla.');
+      return;
+    }
+
+    // QA-044 — el odómetro no retrocede: el km capturado no puede ser menor al
+    // último registrado del vehículo (guarda cliente, igual que en combustible).
+    const kmForm = this.form.controls.kilometraje.value;
+    const veh = this.selectedVehiculo();
+    if (kmForm != null && veh && kmForm < veh.kilometraje) {
+      this.saveError.set(
+        `El kilometraje (${kmForm} km) no puede ser menor al último registrado del vehículo (${veh.kilometraje} km).`,
+      );
       return;
     }
 

@@ -5,6 +5,7 @@ import { TareasService } from '../../../../shared/services/tareas.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
 import { Tarea, TareaEstado, TAREA_ESTADOS } from '../../../../shared/models/tarea.model';
+import { todayIso } from '../../../../shared/utils/fecha.util';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
@@ -125,6 +126,6 @@ export class MisTareas implements OnInit, OnDestroy {
 
   isVencida(t: Tarea): boolean {
     if (!t.fecha_limite || t.estado === 'completada' || t.estado === 'cancelada') return false;
-    return t.fecha_limite < new Date().toISOString().slice(0, 10);
+    return t.fecha_limite < todayIso();
   }
 }

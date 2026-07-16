@@ -20,6 +20,13 @@
 
 @if (loading()) {
   <app-skeleton variant="cards" />
+} @else if (!hayPlantillas()) {
+  <div class="table-empty sgc-card">
+    <p>Aún no hay plantillas disponibles.</p>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openUpload()">
+      + Subir plantilla personalizada
+    </button>
+  </div>
 } @else {
   @for (cat of CATEGORIAS; track cat) {
     @if (porCategoria(cat).length > 0) {
@@ -33,7 +40,9 @@
                 <span class="sgc-badge sgc-badge--neutral">{{ p.origen === 'sistema' ? 'Del sistema' : 'Personalizada' }}</span>
                 <span class="plantilla-card__campos">{{ p.campos.length }} campo{{ p.campos.length !== 1 ? 's' : '' }}</span>
               </div>
-              <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" aria-label="Eliminar plantilla">✕</button>
+              @if (p.origen !== 'sistema') {
+                <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" [attr.aria-label]="'Eliminar plantilla ' + p.nombre" title="Eliminar plantilla">✕</button>
+              }
             </div>
           }
         </div>

@@ -126,6 +126,19 @@ export class TareasService {
       .subscribe();
   }
 
+  /** Live comment inserts for a single task — RLS-scoped. Mirrors subscribeTareas
+   *  so the task detail thread updates without a manual reload (QA-055). */
+  subscribeComentarios(tareaId: string, onInsert: () => void): RealtimeChannel {
+    return this.supabase.client
+      .channel(`tarea-comentarios-${tareaId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'sgc', table: 'tarea_comentarios', filter: `tarea_id=eq.${tareaId}` },
+        () => onInsert(),
+      )
+      .subscribe();
+  }
+
   async unsubscribe(channel: RealtimeChannel): Promise<void> {
     await this.supabase.client.removeChannel(channel);
   }

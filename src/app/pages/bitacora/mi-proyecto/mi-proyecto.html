@@ -46,7 +46,7 @@
               <div class="mi-proyecto-fase">
                 <div class="mi-proyecto-fase__header">
                   <span>{{ fase.nombre }}</span>
-                  <span class="sgc-badge" [class]="'sgc-badge--' + faseBadge(fase.estado)">{{ fase.estado }}</span>
+                  <span class="sgc-badge" [class]="'sgc-badge--' + faseBadge(fase.estado)">{{ faseLabel(fase.estado) }}</span>
                 </div>
                 <div class="mi-proyecto-fase__bar">
                   <div class="mi-proyecto-fase__fill" [style.width.%]="fase.progreso"></div>

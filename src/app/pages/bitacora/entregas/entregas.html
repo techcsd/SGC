@@ -23,6 +23,13 @@
             <span class="entregas__card-proyecto">{{ s.proyecto?.nombre ?? '—' }}</span>
             <span class="sgc-badge sgc-badge--warning">Despachado</span>
           </div>
+          @if (s.conductor?.nombre || s.vehiculo?.placa) {
+            <p class="entregas__card-transporte">
+              🚚
+              @if (s.conductor?.nombre) { {{ s.conductor!.nombre }} }
+              @if (s.vehiculo?.placa) { · {{ s.vehiculo!.placa }} }
+            </p>
+          }
           <ul class="entregas__items-preview">
             @for (d of s.detalle_salidas ?? []; track d.id) {
               <li>{{ d.articulo?.nombre }} — {{ d.cantidad }} {{ d.articulo?.unidad }}</li>
@@ -52,6 +59,12 @@
     <div class="entregas__detail-meta">
       <span>{{ formatFecha(s.fecha) }}</span>
       <span>{{ s.proyecto?.nombre ?? '—' }}</span>
+      @if (s.conductor?.nombre || s.vehiculo?.placa) {
+        <span>🚚
+          @if (s.conductor?.nombre) { {{ s.conductor!.nombre }} }
+          @if (s.vehiculo?.placa) { · {{ s.vehiculo!.placa }} }
+        </span>
+      }
     </div>
 
     <table class="entregas__confirm-table" aria-label="Artículos a confirmar">
@@ -72,6 +85,7 @@
               <input
                 type="number"
                 min="0"
+                [max]="item.cantidad_enviada"
                 [value]="item.cantidad_recibida"
                 (input)="updateCantidadRecibida(i, $any($event.target).value)"
                 class="entregas__qty-input"

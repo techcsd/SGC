@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { Bitacora } from '../../../../shared/models/bitacora.model';
@@ -17,7 +18,7 @@ const GRAVEDAD_LABEL: Record<string, string> = {
 /** U14 — Dashboard de bitácoras: métricas agregadas de los partes/visitas/incidentes. */
 @Component({
   selector: 'app-bitacora-dashboard',
-  imports: [DecimalPipe, BarChart, DonutChart, Skeleton],
+  imports: [RouterLink, DecimalPipe, BarChart, DonutChart, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

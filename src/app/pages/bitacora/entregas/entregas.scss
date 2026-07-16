@@ -202,3 +202,10 @@
   padding-top: 16px;
   border-top: 1px solid var(--sgc-border);
 }
+
+// QA-029 — conductor / vehículo del despacho
+.entregas__card-transporte {
+  font-size: 12px;
+  color: var(--sgc-text-secondary);
+  margin: 4px 0 0;
+}

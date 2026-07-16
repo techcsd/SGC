@@ -81,6 +81,9 @@
           <th>#</th>
           <th>Artículo</th>
           <th>Código</th>
+          @if (mostrarTalla()) {
+            <th>Talla</th>
+          }
           <th class="text-right">Cant. enviada</th>
           @if (s.estado !== 'despachado') {
             <th class="text-right">Cant. recibida</th>
@@ -94,6 +97,9 @@
             <td>{{ i + 1 }}</td>
             <td>{{ item.articulo?.nombre ?? '—' }}</td>
             <td>{{ item.articulo?.codigo ?? '—' }}</td>
+            @if (mostrarTalla()) {
+              <td>{{ item.talla || '' }}</td>
+            }
             <td class="text-right">{{ item.cantidad }}</td>
             @if (s.estado !== 'despachado') {
               <td

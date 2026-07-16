@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
@@ -95,6 +95,9 @@ export class Plantillas implements OnInit {
   }
 
   async eliminar(p: PlantillaDocumento) {
+    // Las plantillas del sistema no se pueden eliminar (protección adicional al ocultar el botón).
+    if (p.origen === 'sistema') return;
+    if (!confirm(`¿Eliminar la plantilla "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
     try {
       await this.plantillasService.eliminarPlantilla(p.id);
       this.plantillas.update((list) => list.filter((x) => x.id !== p.id));
@@ -102,6 +105,8 @@ export class Plantillas implements OnInit {
       this.error.set(e instanceof Error ? e.message : 'Error al eliminar la plantilla.');
     }
   }
+
+  hayPlantillas = computed(() => this.plantillas().length > 0);
 
   get f() {
     return this.form.controls;

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { SalidasService } from '../../../../shared/services/salidas.service';
@@ -33,6 +33,9 @@ export class Conduce implements OnInit {
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
 
   salida = signal<SalidaInventario | null>(null);
+  // La columna Talla solo se muestra si algún renglón la tiene (EPP) — así el
+  // conduce de materiales normales queda limpio.
+  mostrarTalla = computed(() => (this.salida()?.detalle_salidas ?? []).some((d) => !!d.talla));
   loading = signal(true);
   error = signal('');
   // Delivery evidence (photo + receiver signature) captured by the mobile app.

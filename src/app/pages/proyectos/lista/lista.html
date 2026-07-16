@@ -25,7 +25,7 @@
       <span class="proyectos__stat-label">Completados</span>
     </div>
     <div class="proyectos__stat-card proyectos__stat-card--hub">
-      <span class="proyectos__stat-value">${{ statsPresupuesto() | number:'1.0-0' }}</span>
+      <span class="proyectos__stat-value">RD${{ statsPresupuesto() | number:'1.0-0' }}</span>
       <span class="proyectos__stat-label">Presupuesto total</span>
     </div>
   </div>
@@ -126,7 +126,7 @@
               }
 
               @if (p.presupuesto) {
-                <p class="proyectos__card-presupuesto">${{ p.presupuesto | number:'1.0-0' }}</p>
+                <p class="proyectos__card-presupuesto">RD${{ p.presupuesto | number:'1.0-0' }}</p>
               }
 
               <!-- Progress -->
@@ -385,7 +385,7 @@
         @if (p.presupuesto) {
           <div class="proyectos__detail-item">
             <span class="proyectos__detail-key">Presupuesto</span>
-            <span class="proyectos__detail-val">${{ p.presupuesto | number:'1.0-0' }}</span>
+            <span class="proyectos__detail-val">RD${{ p.presupuesto | number:'1.0-0' }}</span>
           </div>
         }
         <div class="proyectos__detail-item">
@@ -394,7 +394,7 @@
             class="proyectos__detail-val"
             [class.proyectos__detail-val--over]="p.presupuesto != null && gastoReal() > p.presupuesto"
           >
-            ${{ gastoReal() | number:'1.0-0' }}
+            RD${{ gastoReal() | number:'1.0-0' }}
             @if (p.presupuesto) {
               ({{ (gastoReal() / p.presupuesto * 100) | number:'1.0-0' }}% del presupuesto)
             }

@@ -3,6 +3,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -21,6 +22,12 @@ const ESTADO_BADGE: Record<string, string> = {
   rechazada: 'danger',
 };
 
+const ESTADO_LABEL: Record<string, string> = {
+  pendiente: 'Pendiente',
+  convertida: 'Convertida en orden',
+  rechazada: 'Rechazada',
+};
+
 @Component({
   selector: 'app-bitacora-solicitudes-compra',
   imports: [ReactiveFormsModule, FormDrawer, Skeleton],
@@ -32,10 +39,12 @@ export class SolicitudesCompra implements OnInit {
   private solicitudesService = inject(SolicitudesCompraService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
+  private supabase = inject(SupabaseService);
 
   formatFecha = formatFechaDisplay;
   formatTimestamp = formatTimestampDisplay;
   estadoBadge = (estado: string) => ESTADO_BADGE[estado] ?? 'neutral';
+  estadoLabel = (estado: string) => ESTADO_LABEL[estado] ?? estado;
 
   solicitudes = signal<SolicitudCompra[]>([]);
   proyectos = signal<Proyecto[]>([]);
@@ -46,6 +55,25 @@ export class SolicitudesCompra implements OnInit {
 
   drawerOpen = signal(false);
   formItems = signal<ItemRow[]>([{ descripcion: '', cantidad: 1, proveedor_sugerido: '' }]);
+
+  // QA-041 — fila expandible: ver renglones (proveedor, foto, notas, enlace a OC).
+  expandedId = signal<string | null>(null);
+  toggle(id: string) {
+    this.expandedId.update((cur) => (cur === id ? null : id));
+  }
+
+  /** Abre la foto adjunta del renglón (bucket privado `inventario`) con URL firmada. */
+  async verFoto(path: string) {
+    try {
+      const { data, error } = await this.supabase.client.storage
+        .from('inventario')
+        .createSignedUrl(path, 3600);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank', 'noopener');
+    } catch {
+      this.error.set('No se pudo abrir la foto.');
+    }
+  }
 
   form = new FormGroup({
     proyecto_id: new FormControl<string | null>(null, [Validators.required]),

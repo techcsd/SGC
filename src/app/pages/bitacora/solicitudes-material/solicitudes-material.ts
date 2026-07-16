@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -53,7 +54,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, QtyStepper],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

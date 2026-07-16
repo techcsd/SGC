@@ -395,6 +395,14 @@ export class Nueva implements OnInit {
       }
     }
 
+    // Un "accidente" es, por definición, con lesionados: exige al menos 1.
+    if (tipo === 'incidente' && this.form.controls.incidente_tipo.value === 'accidente') {
+      if ((this.form.controls.incidente_lesionados.value ?? 0) <= 0) {
+        this.saveError.set('Un accidente implica lesionados: indica cuántos (mínimo 1) o cambia el tipo a "Incidente".');
+        return;
+      }
+    }
+
     // W2 — si marcó "Sí hay equipos alquilados", exige al menos uno con nombre.
     if (tipo === 'parte_diario' && this.form.controls.hubo_equipos.value) {
       const conNombre = this.equiposAlquilados().filter((e) => e.equipo.trim());

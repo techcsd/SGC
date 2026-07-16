@@ -166,6 +166,18 @@
                 <div class="row-actions">
                   <button
                     type="button"
+                    class="action-btn action-btn--view"
+                    (click)="openDetail(emp)"
+                    [attr.aria-label]="'Ver ' + emp.nombre + ' ' + emp.apellido"
+                    title="Ver detalle"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
                     class="action-btn action-btn--edit"
                     (click)="openEdit(emp)"
                     [attr.aria-label]="'Editar ' + emp.nombre + ' ' + emp.apellido"
@@ -466,7 +478,7 @@
       </div>
       <div class="sgc-field">
         <label for="contacto_emergencia_telefono">Teléfono de emergencia</label>
-        <input id="contacto_emergencia_telefono" type="tel" formControlName="contacto_emergencia_telefono" placeholder="Ej: 809 000 0000" />
+        <input id="contacto_emergencia_telefono" type="tel" appTelefono formControlName="contacto_emergencia_telefono" placeholder="(809) 000-0000" />
       </div>
     </div>
 
@@ -596,4 +608,155 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── Detail Drawer (solo lectura) ── -->
+<app-form-drawer
+  [title]="detailTitle()"
+  [open]="detailOpen()"
+  (closed)="closeDetail()"
+>
+  @if (detailEmpleado(); as emp) {
+    <div class="detail-body">
+
+      <!-- Datos laborales -->
+      <div class="detail-section-title">Datos laborales</div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">Cédula</span>
+          <code class="code-tag">{{ emp.cedula }}</code>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Estado</span>
+          @if (emp.activo) {
+            <span class="sgc-badge sgc-badge--success">Activo</span>
+          } @else {
+            <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+          }
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Cargo</span>
+          <span>{{ emp.cargo }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Departamento</span>
+          <span>{{ emp.departamento ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Tipo de contrato</span>
+          <span class="sgc-badge" [class]="'sgc-badge--' + getTipoContratoBadge(emp.tipo_contrato)">
+            {{ getTipoContratoLabel(emp.tipo_contrato) }}
+          </span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Salario</span>
+          <span>RD$ {{ emp.salario | number:'1.0-0' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Fecha de ingreso</span>
+          <span>{{ formatFecha(emp.fecha_ingreso) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Antigüedad</span>
+          <span>{{ getAntiguedad(emp.fecha_ingreso) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Supervisor / Jefe</span>
+          <span>{{ jefeNombre(emp) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Días de vacaciones/año</span>
+          <span>{{ emp.dias_vacaciones_anuales }}</span>
+        </div>
+      </div>
+
+      <!-- Contacto -->
+      <div class="detail-section-title">Contacto</div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">Teléfono</span>
+          <span>{{ emp.telefono ? formatTelefono(emp.telefono) : '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Correo</span>
+          <span>{{ emp.email ?? '—' }}</span>
+        </div>
+        <div class="detail-field detail-field--full">
+          <span class="detail-field__label">Dirección</span>
+          <span>{{ emp.direccion ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Contacto de emergencia</span>
+          <span>{{ emp.contacto_emergencia_nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Tel. de emergencia</span>
+          <span>{{ emp.contacto_emergencia_telefono ? formatTelefono(emp.contacto_emergencia_telefono) : '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Datos personales -->
+      <div class="detail-section-title">Datos personales</div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">Fecha de nacimiento</span>
+          <span>{{ emp.fecha_nacimiento ? formatFecha(emp.fecha_nacimiento) : '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Género</span>
+          <span>{{ generoLabel(emp.genero) }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Estado civil</span>
+          <span>{{ estadoCivilLabel(emp.estado_civil) }}</span>
+        </div>
+      </div>
+
+      <!-- Seguridad social y nómina -->
+      <div class="detail-section-title">Seguridad social y nómina</div>
+      <div class="detail-grid">
+        <div class="detail-field">
+          <span class="detail-field__label">No. TSS</span>
+          <span>{{ emp.numero_tss ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">AFP (pensiones)</span>
+          <span>{{ emp.afp ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">ARS (salud)</span>
+          <span>{{ emp.ars ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Banco</span>
+          <span>{{ emp.banco ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">No. de cuenta</span>
+          <span>{{ emp.cuenta_banco ?? '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Salida / egreso -->
+      @if (!emp.activo && (emp.fecha_egreso || emp.motivo_egreso)) {
+        <div class="detail-section-title">Salida</div>
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-field__label">Fecha de salida</span>
+            <span>{{ emp.fecha_egreso ? formatFecha(emp.fecha_egreso) : '—' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">Motivo de salida</span>
+            <span>{{ emp.motivo_egreso ?? '—' }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDetail(); openEdit(emp)">Editar</button>
+      </div>
+
+    </div>
+  }
 </app-form-drawer>

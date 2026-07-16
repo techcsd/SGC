@@ -150,6 +150,31 @@ export class TecInventario implements OnInit {
     return this.listaFotos()[e.id] ?? null;
   }
 
+  // QA-051 — si la URL firmada falla (expirada/404), descarta la miniatura para
+  // que el @else muestre el placesholder en vez de un ícono de imagen rota.
+  onFotoError(equipoId: string) {
+    this.listaFotos.update((m) => {
+      if (!(equipoId in m)) return m;
+      const next = { ...m };
+      delete next[equipoId];
+      return next;
+    });
+  }
+
+  // QA-050 — etiqueta es-DO para el tipo de cambio del historial.
+  private readonly HIST_TIPO_LABELS: Record<string, string> = {
+    registro: 'Registro',
+    asignacion: 'Asignación',
+    estado: 'Cambio de estado',
+    edicion: 'Edición',
+    reparacion: 'Reparación',
+    baja: 'Dado de baja',
+  };
+
+  histTipoLabel(tipo: string): string {
+    return this.HIST_TIPO_LABELS[tipo] ?? tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/_/g, ' ');
+  }
+
   onFotoPicked(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = Array.from(input.files ?? []).find((f) => f.type.startsWith('image/'));

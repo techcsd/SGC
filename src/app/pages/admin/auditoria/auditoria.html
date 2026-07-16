@@ -60,7 +60,7 @@
       <div class="kpi-grid">
         <div class="kpi-card kpi-card--primary"><span class="kpi-label">Acciones</span><span class="kpi-value">{{ r.total | number }}</span></div>
         <div class="kpi-card"><span class="kpi-label">Usuarios activos</span><span class="kpi-value">{{ r.usuarios_activos | number }}</span></div>
-        <div class="kpi-card"><span class="kpi-label">Módulos con actividad</span><span class="kpi-value">{{ r.modulos_activos | number }}</span></div>
+        <div class="kpi-card"><span class="kpi-label">Áreas con actividad</span><span class="kpi-value">{{ r.modulos_activos | number }}</span></div>
         <div class="kpi-card"><span class="kpi-label">Días con actividad</span><span class="kpi-value">{{ r.por_dia.length | number }}</span></div>
       </div>
 
@@ -77,7 +77,7 @@
         }
         @if (porModuloChart().length > 0) {
           <div class="sgc-card chart-card chart-card--wide">
-            <app-bar-chart titulo="Actividad por módulo" [data]="porModuloChart()" />
+            <app-bar-chart titulo="Actividad por área" [data]="porModuloChart()" />
           </div>
         }
         @if (porDiaChart().length > 0) {
@@ -121,7 +121,7 @@
         </div>
 
         <div class="sgc-card aud__drill-box">
-          <h3 class="aud__drill-title">Actividad por módulo</h3>
+          <h3 class="aud__drill-title">Actividad por área</h3>
           <ul class="aud__drill-list">
             @for (m of r.por_modulo; track m.tabla) {
               <li>

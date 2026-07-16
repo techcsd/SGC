@@ -16,6 +16,8 @@ import {
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { todayIso } from '../../../../shared/utils/fecha.util';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -35,6 +37,7 @@ export class Expedientes implements OnInit {
   private legalService = inject(LegalService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   readonly TIPOS = EXPEDIENTE_TIPOS;
   readonly ESTADOS = EXPEDIENTE_ESTADOS;
@@ -219,11 +222,13 @@ export class Expedientes implements OnInit {
   async cambiarEstado(estado: ExpedienteEstado) {
     const exp = this.detailExpediente();
     if (!exp) return;
-    const prev = exp;
-    const updated = await this.legalService.cambiarEstadoExpediente(exp.id, estado);
-    this.detailExpediente.set(updated);
-    this.expedientes.update((list) => list.map((e) => (e.id === exp.id ? updated : e)));
-    void prev;
+    try {
+      const updated = await this.legalService.cambiarEstadoExpediente(exp.id, estado);
+      this.detailExpediente.set(updated);
+      this.expedientes.update((list) => list.map((e) => (e.id === exp.id ? updated : e)));
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cambiar el estado del expediente', e instanceof Error ? e.message : undefined);
+    }
   }
 
   nextEstados(current: ExpedienteEstado): ExpedienteEstado[] {
@@ -305,7 +310,9 @@ export class Expedientes implements OnInit {
 
   isVencido(e: ExpedienteLegal): boolean {
     if (!e.fecha_limite || e.estado === 'cerrado') return false;
-    return new Date(e.fecha_limite) < new Date(new Date().toDateString());
+    // Comparación de strings ISO (YYYY-MM-DD) para evitar el off-by-one de new Date() en UTC-4.
+    // Un expediente cuyo límite es hoy todavía NO está vencido.
+    return e.fecha_limite < todayIso();
   }
 
   get f() {

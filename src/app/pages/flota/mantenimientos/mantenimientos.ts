@@ -333,7 +333,7 @@ export class Mantenimientos implements OnInit {
     const conflict = this.findWeekConflict(payload);
     if (conflict) {
       this.saveError.set(
-        `Conflicto de calendario: el vehículo ${conflict.vehiculo?.placa ?? ''} ya tiene un mantenimiento programado la semana del ${conflict.fecha}. No se pueden programar dos vehículos en mantenimiento la misma semana.`,
+        `Conflicto de calendario: el vehículo ${conflict.vehiculo?.placa ?? ''} ya tiene un mantenimiento programado la semana del ${formatFechaDisplay(conflict.fecha)}. No se pueden programar dos vehículos en mantenimiento la misma semana.`,
       );
       return;
     }

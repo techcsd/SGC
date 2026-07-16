@@ -83,6 +83,7 @@
             <th>Teléfono</th>
             <th>Email</th>
             <th>Contacto</th>
+            <th>Dirección</th>
             <th>Estado</th>
             <th class="text-center">Acciones</th>
           </tr>
@@ -100,7 +101,7 @@
                   <span class="text-muted">—</span>
                 }
               </td>
-              <td>{{ p.telefono ?? '—' }}</td>
+              <td>{{ p.telefono ? formatTelefono(p.telefono) : '—' }}</td>
               <td>
                 @if (p.email) {
                   <a class="prov-email" [href]="'mailto:' + p.email">{{ p.email }}</a>
@@ -109,6 +110,7 @@
                 }
               </td>
               <td>{{ p.contacto ?? '—' }}</td>
+              <td class="text-muted">{{ p.direccion ?? '—' }}</td>
               <td>
                 <button
                   type="button"

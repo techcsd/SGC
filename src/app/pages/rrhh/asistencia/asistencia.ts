@@ -66,6 +66,7 @@ export class Asistencia implements OnInit {
       ausentes: list.filter((r) => r.estado === 'ausente').length,
       tardanzas: list.filter((r) => r.estado === 'tardanza').length,
       permisos: list.filter((r) => r.estado === 'permiso').length,
+      feriados: list.filter((r) => r.estado === 'feriado').length,
     };
   });
 

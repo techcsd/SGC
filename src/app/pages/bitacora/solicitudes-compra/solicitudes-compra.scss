@@ -95,3 +95,23 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+// QA-042 — nombre del atendedor debajo de la fecha
+.solicitud-atendido-por {
+  display: block;
+  font-size: 11px;
+  color: var(--sgc-text-secondary);
+}
+
+// QA-041 — fila expandible con renglones de la solicitud de compra.
+.sc-row { cursor: pointer; }
+.sc-row:hover { background: var(--sgc-surface-hover, rgba(0,0,0,0.02)); }
+.sc-chev { float: right; color: var(--sgc-text-secondary); font-size: 0.75rem; }
+.sc-detail { padding: 8px 4px 12px; }
+.sc-detail__title { margin: 0 0 8px; font-size: 0.85rem; color: var(--sgc-text); }
+.sc-detail__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sc-detail__items li { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.85rem; }
+.sc-detail__desc { font-weight: 600; color: var(--sgc-text); }
+.sc-detail__cant { color: var(--sgc-text-secondary); }
+.sc-detail__prov { color: var(--sgc-text-secondary); }
+.sc-detail__notas, .sc-detail__meta { margin: 8px 0 0; font-size: 0.82rem; color: var(--sgc-text-secondary); }

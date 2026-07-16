@@ -56,6 +56,10 @@
   &--permiso {
     border-left: 3px solid var(--sgc-info);
   }
+
+  &--feriado {
+    border-left: 3px solid var(--sgc-text-muted);
+  }
 }
 
 .asistencia__summary-count {

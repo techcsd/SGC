@@ -100,6 +100,11 @@ export class Entregas implements OnInit {
       return;
     }
 
+    if (this.recepcionItems().some((i) => i.cantidad_recibida > i.cantidad_enviada)) {
+      this.saveError.set('La cantidad recibida no puede ser mayor a la enviada.');
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 
@@ -111,7 +116,12 @@ export class Entregas implements OnInit {
       );
 
       if (incompleto) {
-        this.notificarEntregaService.notificarEntregaIncompleta(salida.id);
+        // Fire-and-forget: la notificación nunca debe bloquear ni romper la confirmación.
+        try {
+          this.notificarEntregaService.notificarEntregaIncompleta(salida.id);
+        } catch (e) {
+          console.error('No se pudo notificar la entrega incompleta:', e);
+        }
       }
 
       this.entregas.update((list) => list.filter((s) => s.id !== salida.id));

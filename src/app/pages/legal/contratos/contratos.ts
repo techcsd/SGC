@@ -10,6 +10,8 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { daysFromNowIso } from '../../../../shared/utils/fecha.util';
 
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
@@ -31,6 +33,7 @@ export class Contratos implements OnInit {
   private proyectosService = inject(ProyectosService);
   private proveedoresService = inject(ProveedoresService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   readonly TIPOS = CONTRATO_TIPOS;
   readonly ESTADOS = CONTRATO_ESTADOS;
@@ -82,13 +85,13 @@ export class Contratos implements OnInit {
   });
 
   porVencerCount = computed(() => {
-    const limite = new Date();
-    limite.setDate(limite.getDate() + 30);
+    // Comparación de strings ISO (YYYY-MM-DD) para evitar el off-by-one de new Date() en UTC-4.
+    const limite = daysFromNowIso(30);
     return this.contratos().filter(
       (c) =>
         c.fecha_vencimiento &&
         ['firmado', 'en_revision'].includes(c.estado) &&
-        new Date(c.fecha_vencimiento) <= limite,
+        c.fecha_vencimiento <= limite,
     ).length;
   });
 
@@ -205,9 +208,13 @@ export class Contratos implements OnInit {
   async cambiarEstado(estado: ContratoEstado) {
     const c = this.detailContrato();
     if (!c) return;
-    const updated = await this.legalService.cambiarEstadoContrato(c.id, estado);
-    this.detailContrato.set(updated);
-    this.contratos.update((list) => list.map((item) => (item.id === c.id ? updated : item)));
+    try {
+      const updated = await this.legalService.cambiarEstadoContrato(c.id, estado);
+      this.detailContrato.set(updated);
+      this.contratos.update((list) => list.map((item) => (item.id === c.id ? updated : item)));
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cambiar el estado del contrato', e instanceof Error ? e.message : undefined);
+    }
   }
 
   nextEstados(current: ContratoEstado): ContratoEstado[] {
@@ -235,9 +242,8 @@ export class Contratos implements OnInit {
 
   isPorVencer(c: Contrato): boolean {
     if (!c.fecha_vencimiento || !['firmado', 'en_revision'].includes(c.estado)) return false;
-    const limite = new Date();
-    limite.setDate(limite.getDate() + 30);
-    return new Date(c.fecha_vencimiento) <= limite;
+    // Comparación de strings ISO (YYYY-MM-DD) para evitar el off-by-one de new Date() en UTC-4.
+    return c.fecha_vencimiento <= daysFromNowIso(30);
   }
 
   get f() {

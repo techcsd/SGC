@@ -9,6 +9,11 @@
 
 @if (loading()) {
   <app-skeleton variant="cards" [rows]="6" />
+} @else if (total() === 0) {
+  <div class="table-empty sgc-card">
+    <p>Aún no hay bitácoras registradas.</p>
+    <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">Nueva bitácora</a>
+  </div>
 } @else {
   <!-- KPIs -->
   <div class="kpi-grid">

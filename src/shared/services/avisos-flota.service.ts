@@ -3,7 +3,7 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { AvisoFlota } from '../models/aviso-flota.model';
 import { Vehiculo } from '../models/vehiculo.model';
 import { Conductor } from '../models/conductor.model';
-import { todayIso } from '../utils/fecha.util';
+import { todayIso, formatFechaDisplay } from '../utils/fecha.util';
 
 // Orden de prioridad real (no alfabético: 'alta' < 'baja' < 'media' saldría mal).
 const SEV_RANK: Record<string, number> = { alta: 0, media: 1, baja: 2 };
@@ -86,8 +86,8 @@ export class AvisosFlotaService {
           conductor_id: c.id,
           referencia_id: null,
           mensaje: vencida
-            ? `Licencia de ${c.nombre} VENCIDA (venció ${c.licencia_vencimiento}). No puede operar.`
-            : `Licencia de ${c.nombre} por vencer en ${dias} día(s) (${c.licencia_vencimiento}).`,
+            ? `Licencia de ${c.nombre} VENCIDA (venció ${formatFechaDisplay(c.licencia_vencimiento)}). No puede operar.`
+            : `Licencia de ${c.nombre} por vencer en ${dias} día(s) (${formatFechaDisplay(c.licencia_vencimiento)}).`,
           severidad: vencida ? 'alta' : 'media',
           estado: 'pendiente',
           dedup_key: `licencia:${c.id}:${hoyIso}`,
@@ -115,8 +115,8 @@ export class AvisosFlotaService {
             conductor_id: null,
             referencia_id: null,
             mensaje: vencido
-              ? `${label} de ${v.placa} VENCIDA (venció ${fecha}).`
-              : `${label} de ${v.placa} por vencer en ${dias} día(s) (${fecha}).`,
+              ? `${label} de ${v.placa} VENCIDA (venció ${formatFechaDisplay(fecha)}).`
+              : `${label} de ${v.placa} por vencer en ${dias} día(s) (${formatFechaDisplay(fecha)}).`,
             severidad: vencido ? 'alta' : 'media',
             estado: 'pendiente',
             dedup_key: `${tipo}:${v.id}:${hoyIso}`,
