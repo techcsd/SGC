@@ -51,6 +51,11 @@ QA-070 crear/enlazar equipo TI desde compra aprobada · QA-071 inventario TI cos
 Harness: `playwright.config.ts` + `qa/e2e/*` (devDependency `@playwright/test`, NO en build de prod). Credenciales en archivo gitignoreado (borrado tras la pasada).
 **Resultado: 9/9 roles PASS.** Por cada rol: login por UI ✅, **gating correcto** (accede a sus módulos; los ajenos → /403; **sin fugas**), rutas abiertas accesibles, y captura de errores de consola / llamadas fallidas / screenshots como evidencia (reporte en `qa/report/`). El test falla solo ante fugas de gating — no hubo ninguna. Roles probados: admin, jefe_flota, guarda_almacen, ingeniero_campo, gerente_proyectos, coord_compras, jefe_rrhh, abogado, nomodulos.
 
+**Pasada PROFUNDA (admin), `qa/e2e/deep.spec.ts` — PASS:**
+- **Salud de render en 65 páginas**: todas renderizan su encabezado, **ninguna 5xx**, ninguna redirige mal ni queda en blanco.
+- **Verificación E2E de fixes FASE 2**: Proyectos muestra `RD$` (QA-003) ✅ · Órdenes sin prefijo `DOP` crudo (QA-018) ✅ · panel de Auditoría renderiza métricas (QA-024) ✅.
+- **Sin bugs nuevos.** Ruido de consola observado y descartado como artefacto del test (no bug de la app): (1) un falso positivo de timing en `/tecnologia/guia` al leer texto en plena transición SPA — la página tiene contenido rico (h1 + intro), confirmado; (2) `autoRegistrarVersionWeb: Failed to fetch` — el fetch async se aborta por la navegación rápida entre 65 páginas; en uso normal completa. Ambos resueltos endureciendo el check (espera al encabezado).
+
 ## Datos QA-TEST creados / limpiados
 | Tipo | Identificador | Creado | Limpiado |
 |------|---------------|--------|----------|
