@@ -55,3 +55,8 @@ supabase/.temp/
 # Local secrets (SMTP app password, etc.) — never commit
 .smtp.local
 *.local
+qa/qa-users.local.json
+qa/report/
+test-results/
+.qa.local
+qa/*.local.json
