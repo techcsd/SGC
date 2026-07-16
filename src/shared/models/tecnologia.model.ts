@@ -48,6 +48,12 @@ export interface TecEquipo {
   ubicacion: string | null;
   notas: string | null;
   foto_path: string | null;
+  // QA-071 — datos de compra/garantía
+  costo: number | null;
+  fecha_compra: string | null;
+  garantia_hasta: string | null;
+  // QA-070 — trazabilidad compra tecnológica → equipo
+  origen_solicitud_compra_id: string | null;
   activo: boolean;
   created_at?: string;
 }
@@ -64,6 +70,18 @@ export interface TecEquipoFormData {
   ubicacion: string | null;
   notas: string | null;
   foto_path?: string | null;
+  // QA-071
+  costo: number | null;
+  fecha_compra: string | null;
+  garantia_hasta: string | null;
+  // QA-070
+  origen_solicitud_compra_id: string | null;
+}
+
+/** QA-070 — opción ligera para el selector "Origen: compra tecnológica". */
+export interface TecCompraOpcion {
+  id: string;
+  label: string;
 }
 
 export interface TecEquipoHistorial {

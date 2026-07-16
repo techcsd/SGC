@@ -24,6 +24,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
   borrador: ['aprobada', 'cancelada'],
@@ -37,6 +38,15 @@ interface ItemRow {
   descripcion: string;
   cantidad: number;
   precio_unitario: number;
+}
+
+type ReconciliacionEstado = 'completo' | 'parcial' | 'pendiente' | 'sin_articulo';
+
+interface ReconciliacionRow {
+  descripcion: string;
+  ordenada: number;
+  recibida: number | null;
+  estado: ReconciliacionEstado;
 }
 
 @Component({
@@ -124,6 +134,52 @@ export class Ordenes implements OnInit {
   total = computed(() => this.subtotal() + this.impuesto());
 
   activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
+
+  // ── QA-076 — Reconciliación recibido vs ordenado por renglón ──────────
+  // Suma las cantidades de detalle_entradas (de todas las entradas ligadas a la
+  // OC) que coinciden por articulo_id con cada renglón de la orden. Los ítems sin
+  // articulo_id (capturados a mano) no se pueden reconciliar automáticamente.
+  reconciliacion = computed<ReconciliacionRow[]>(() => {
+    const orden = this.detailOrden();
+    if (!orden?.items?.length) return [];
+
+    const recibidoPorArticulo = new Map<string, number>();
+    for (const e of this.detailEntradas()) {
+      for (const d of e.detalle_entradas ?? []) {
+        recibidoPorArticulo.set(d.articulo_id, (recibidoPorArticulo.get(d.articulo_id) ?? 0) + d.cantidad);
+      }
+    }
+
+    return orden.items.map((item) => {
+      if (item.articulo_id == null) {
+        return { descripcion: item.descripcion, ordenada: item.cantidad, recibida: null, estado: 'sin_articulo' as const };
+      }
+      const recibida = recibidoPorArticulo.get(item.articulo_id) ?? 0;
+      let estado: ReconciliacionEstado;
+      if (recibida >= item.cantidad) estado = 'completo';
+      else if (recibida > 0) estado = 'parcial';
+      else estado = 'pendiente';
+      return { descripcion: item.descripcion, ordenada: item.cantidad, recibida, estado };
+    });
+  });
+
+  reconEstadoClass(estado: ReconciliacionEstado): string {
+    switch (estado) {
+      case 'completo': return 'sgc-badge sgc-badge--success';
+      case 'parcial': return 'sgc-badge sgc-badge--warning';
+      case 'pendiente': return 'sgc-badge sgc-badge--neutral';
+      case 'sin_articulo': return 'sgc-badge sgc-badge--neutral';
+    }
+  }
+
+  reconEstadoLabel(estado: ReconciliacionEstado): string {
+    switch (estado) {
+      case 'completo': return 'Completo';
+      case 'parcial': return 'Parcial';
+      case 'pendiente': return 'Pendiente';
+      case 'sin_articulo': return 'Sin artículo';
+    }
+  }
 
   async ngOnInit() {
     await this.loadAll();
@@ -391,6 +447,22 @@ export class Ordenes implements OnInit {
 
   itemTotal(item: ItemRow): number {
     return item.cantidad * item.precio_unitario;
+  }
+
+  // ── Exportar Excel (OCs filtradas) ───────────────────────
+  async exportarExcelOrdenes() {
+    const rows = this.filtered().map((o) => ({
+      Número: o.numero,
+      Proveedor: o.proveedor?.nombre ?? '',
+      Proyecto: o.proyecto?.nombre ?? '',
+      Estado: this.estadoLabel(o.estado),
+      Fecha: this.formatFecha(o.fecha),
+      'Entrega esperada': o.fecha_entrega_esperada ? this.formatFecha(o.fecha_entrega_esperada) : '',
+      Subtotal: o.subtotal,
+      Impuesto: o.impuesto,
+      Total: o.total,
+    }));
+    await exportarExcel('ordenes-compra', rows, 'Órdenes');
   }
 
   get f() {

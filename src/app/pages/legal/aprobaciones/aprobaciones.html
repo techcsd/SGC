@@ -43,6 +43,7 @@
             <th>Solicitado por</th>
             <th>Fecha</th>
             <th>Estado</th>
+            <th>Comentario del revisor</th>
             <th class="text-center">Acción</th>
           </tr>
         </thead>
@@ -59,16 +60,25 @@
               <td>{{ a.solicitante?.nombre ?? '—' }}</td>
               <td>{{ a.fecha_solicitud | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span [class]="estadoBadgeClass(a.estado)">{{ estadoLabel(a.estado) }}</span></td>
+              <td>
+                @if (a.estado !== 'pendiente' && a.comentario_revisor) {
+                  <span class="apr-comentario">“{{ a.comentario_revisor }}”</span>
+                  <span class="apr-revisor">— {{ a.revisor?.nombre ?? '—' }}</span>
+                } @else if (a.estado !== 'pendiente') {
+                  <span class="text-muted">Sin comentario</span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
               <td class="text-center">
                 @if (a.estado === 'pendiente') {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolver(a)">
                     Revisar
                   </button>
                 } @else {
-                  <span class="text-muted">{{ a.revisor?.nombre ?? '—' }}</span>
-                  @if (a.comentario_revisor) {
-                    <span class="apr-comentario">“{{ a.comentario_revisor }}”</span>
-                  }
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolver(a)">
+                    Ver
+                  </button>
                 }
               </td>
             </tr>
@@ -79,8 +89,8 @@
   }
 </div>
 
-<!-- ── Resolve Drawer ── -->
-<app-form-drawer title="Revisar solicitud" [open]="drawerOpen()" (closed)="closeDrawer()">
+<!-- ── Resolve / View Drawer ── -->
+<app-form-drawer [title]="drawerAprobacion()?.estado === 'pendiente' ? 'Revisar solicitud' : 'Detalle de la solicitud'" [open]="drawerOpen()" (closed)="closeDrawer()">
   @if (drawerAprobacion(); as a) {
     <div class="detail-body">
       <div class="detail-grid">
@@ -104,27 +114,54 @@
         }
       </div>
 
-      <div class="sgc-field">
-        <label for="comentario">Comentario (opcional)</label>
-        <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="Motivo de la decisión…"></textarea>
-      </div>
+      @if (a.estado === 'pendiente') {
+        <!-- Solicitud pendiente: capturar comentario y resolver -->
+        <div class="sgc-field">
+          <label for="comentario">Comentario (opcional)</label>
+          <textarea id="comentario" [formControl]="comentario" rows="3" placeholder="Motivo de la decisión…"></textarea>
+        </div>
 
-      @if (resolveError()) {
-        <div class="save-error" role="alert">{{ resolveError() }}</div>
+        @if (resolveError()) {
+          <div class="save-error" role="alert">{{ resolveError() }}</div>
+        }
+
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazado')">
+            Rechazar
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolving()" (click)="resolver('aprobado')">
+            @if (resolving()) {
+              <span class="spinner" aria-hidden="true"></span>
+            } @else {
+              Aprobar
+            }
+          </button>
+        </div>
+      } @else {
+        <!-- Solicitud ya resuelta: mostrar decisión y comentario del revisor -->
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-field__label">Estado</span>
+            <span [class]="estadoBadgeClass(a.estado)">{{ estadoLabel(a.estado) }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">Revisado por</span>
+            <span>{{ a.revisor?.nombre ?? '—' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">Fecha de resolución</span>
+            <span>{{ a.fecha_resolucion ? (a.fecha_resolucion | date:'dd/MM/yyyy HH:mm') : '—' }}</span>
+          </div>
+          <div class="detail-field detail-field--full">
+            <span class="detail-field__label">Comentario del revisor</span>
+            <span>{{ a.comentario_revisor ?? 'Sin comentario' }}</span>
+          </div>
+        </div>
+
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cerrar</button>
+        </div>
       }
-
-      <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="resolving()" (click)="resolver('rechazado')">
-          Rechazar
-        </button>
-        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="resolving()" (click)="resolver('aprobado')">
-          @if (resolving()) {
-            <span class="spinner" aria-hidden="true"></span>
-          } @else {
-            Aprobar
-          }
-        </button>
-      </div>
     </div>
   }
 </app-form-drawer>

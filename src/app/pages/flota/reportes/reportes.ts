@@ -10,6 +10,7 @@ import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
 
 interface VehiculoReport {
   id: string;
@@ -169,6 +170,42 @@ export class FlotaReportes implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /**
+   * Exporta el reporte de flota a Excel. Al ser un reporte con varias secciones,
+   * se genera un libro con una hoja por sección (flota, mantenimientos y
+   * combustible de los últimos 30 días), aplanadas a columnas legibles.
+   */
+  async exportar() {
+    const flota = this.flotaOrdenada().map((v) => ({
+      Placa: v.placa,
+      Tipo: this.getTipoLabel(v.tipo),
+      Marca: v.marca,
+      Modelo: v.modelo,
+      Estado: v.estado,
+      Km: v.kilometraje,
+      Activo: v.activo ? 'Sí' : 'No',
+    }));
+    const mantenimientos = this.mantenimientos().map((m) => ({
+      Fecha: this.formatFecha(m.fecha),
+      Vehículo: m.vehiculo?.placa ?? '',
+      Tipo: m.tipo,
+      Estado: m.estado,
+      Costo: m.costo ?? '',
+      Descripción: m.descripcion,
+    }));
+    const combustible = this.combustiblePorVehiculo().map((c) => ({
+      Placa: c.placa,
+      Marca: c.marca,
+      'Galones / litros': c.litros,
+      'Gasto (RD$)': c.gasto,
+    }));
+    await exportarExcelHojas('reporte-flota', [
+      { nombre: 'Flota', filas: flota },
+      { nombre: 'Mantenimientos', filas: mantenimientos },
+      { nombre: 'Combustible 30 días', filas: combustible },
+    ]);
   }
 
   getEstadoBadge(estado: string): string {

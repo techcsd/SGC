@@ -7,15 +7,82 @@
         @if (isVencida(t)) {
           <span class="sgc-badge sgc-badge--danger">Vencida</span>
         }
+        @if (canManage() && !editMode()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm detail-badges__edit" (click)="openEdit()">
+            Editar
+          </button>
+        }
       </div>
 
-      @if (t.descripcion) {
+      <!-- QA-073 — Edición / reasignación (gestores) -->
+      @if (editMode()) {
+        <form [formGroup]="editForm" (ngSubmit)="guardarEdicion()" novalidate class="drawer-form">
+          <div class="sgc-field">
+            <label for="edit-titulo">Título <span class="required">*</span></label>
+            <input id="edit-titulo" type="text" formControlName="titulo" [class.invalid]="ef.titulo.invalid && ef.titulo.touched" />
+            @if (ef.titulo.invalid && ef.titulo.touched) {
+              <span class="field-error">El título es obligatorio.</span>
+            }
+          </div>
+
+          <div class="sgc-field">
+            <label for="edit-descripcion">Descripción</label>
+            <textarea id="edit-descripcion" formControlName="descripcion" rows="3"></textarea>
+          </div>
+
+          <div class="sgc-field">
+            <label for="edit-asignado">Responsable <span class="required">*</span></label>
+            <select id="edit-asignado" formControlName="asignado_a" [class.invalid]="ef.asignado_a.invalid && ef.asignado_a.touched">
+              <option [value]="null">Selecciona…</option>
+              @for (u of usuarios(); track u.id) {
+                <option [value]="u.id">{{ u.nombre }}</option>
+              }
+            </select>
+            @if (ef.asignado_a.invalid && ef.asignado_a.touched) {
+              <span class="field-error">Selecciona un responsable.</span>
+            }
+          </div>
+
+          <div class="sgc-field">
+            <label for="edit-prioridad">Prioridad <span class="required">*</span></label>
+            <select id="edit-prioridad" formControlName="prioridad">
+              @for (p of PRIORIDADES; track p.value) {
+                <option [value]="p.value">{{ p.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="sgc-field">
+            <label for="edit-fecha">Fecha límite</label>
+            <input id="edit-fecha" type="date" formControlName="fecha_limite" />
+          </div>
+
+          @if (editError()) {
+            <div class="save-error" role="alert">{{ editError() }}</div>
+          }
+
+          <div class="drawer-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelEdit()">Cancelar</button>
+            <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="savingEdit()">
+              @if (savingEdit()) {
+                <span class="spinner" aria-hidden="true"></span>
+                Guardando…
+              } @else {
+                Guardar cambios
+              }
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (!editMode() && t.descripcion) {
         <div class="detail-field">
           <span class="detail-field__label">Descripción</span>
           <span class="detail-field__text">{{ t.descripcion }}</span>
         </div>
       }
 
+      @if (!editMode()) {
       <div class="detail-grid">
         <div class="detail-field">
           <span class="detail-field__label">Asignada a</span>
@@ -53,12 +120,13 @@
           </button>
         }
       </div>
+      }
 
       <!-- Comments / activity -->
       <div class="detail-section">
         <span class="detail-section__title">Comentarios</span>
         <div class="comentario-form">
-          <textarea [formControl]="nuevoComentario" rows="2" placeholder="Escribe un comentario…"></textarea>
+          <textarea [formControl]="nuevoComentario" rows="2" placeholder="Escribe un comentario…" aria-label="Escribe un comentario"></textarea>
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="savingComentario() || !nuevoComentario.value?.trim()" (click)="onAddComentario()">
             @if (savingComentario()) {
               <span class="spinner" aria-hidden="true"></span>

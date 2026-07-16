@@ -26,6 +26,7 @@ import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-combustible',
@@ -222,6 +223,20 @@ export class Combustible implements OnInit {
     const range: number[] = [];
     for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) range.push(i);
     return range;
+  }
+
+  /** Exporta los registros de combustible filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((r) => ({
+      Fecha: this.formatFecha(r.fecha),
+      Vehículo: r.vehiculo?.placa ?? '',
+      Conductor: r.conductor?.nombre ?? '',
+      Km: r.kilometraje ?? '',
+      Galones: r.galones ?? r.litros ?? '',
+      Monto: r.monto ?? r.total ?? '',
+      'Rendimiento (km/gal)': r.rendimiento_km_gal ?? '',
+    }));
+    await exportarExcel('combustible', rows);
   }
 
   // ── Create ───────────────────────────────────────────────

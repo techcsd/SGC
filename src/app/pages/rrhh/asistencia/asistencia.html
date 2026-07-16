@@ -4,12 +4,18 @@
     <h1 class="page-title">Asistencia</h1>
     <span class="page-count">{{ registros().length }} registro{{ registros().length !== 1 ? 's' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Registrar asistencia
-  </button>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="filteredRegistros().length === 0" title="Exportar los registros del período a Excel">
+      ⬇️ Excel
+    </button>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Registrar asistencia
+    </button>
+  </div>
 </div>
 
 <!-- ── Date picker ── -->

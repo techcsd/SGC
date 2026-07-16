@@ -20,12 +20,18 @@
     <h1 class="page-title">Empleados</h1>
     <span class="page-count">{{ filtered().length }} empleado{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nuevo empleado
-  </button>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="filtered().length === 0" title="Exportar los empleados filtrados a Excel">
+      ⬇️ Excel
+    </button>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo empleado
+    </button>
+  </div>
 </div>
 
 <!-- ── Filters ── -->
@@ -750,6 +756,24 @@
             <span>{{ emp.motivo_egreso ?? '—' }}</span>
           </div>
         </div>
+      }
+
+      <!-- Equipos TI asignados (solo lectura) -->
+      <div class="detail-section-title">Equipos TI asignados</div>
+      @if (equiposTILoading()) {
+        <app-skeleton variant="list" [rows]="2" />
+      } @else if (equiposTI().length === 0) {
+        <p class="doc-empty">Sin equipos TI asignados.</p>
+      } @else {
+        <ul class="equipos-ti-list">
+          @for (eq of equiposTI(); track eq.id) {
+            <li class="equipos-ti-item">
+              <code class="code-tag">{{ eq.codigo ?? '—' }}</code>
+              <span class="equipos-ti-item__nombre">{{ eq.nombre }}</span>
+              <span class="sgc-badge sgc-badge--neutral">{{ eq.tipo }}</span>
+            </li>
+          }
+        </ul>
       }
 
       <div class="drawer-actions">

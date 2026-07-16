@@ -14,6 +14,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 // RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
 const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
@@ -178,6 +179,20 @@ export class Proveedores implements OnInit {
       );
       this.toast.error('No se pudo cambiar el estado del proveedor', e instanceof Error ? e.message : undefined);
     }
+  }
+
+  // ── Exportar Excel (lista filtrada) ──────────────────────
+  async exportarExcelProveedores() {
+    const rows = this.filtered().map((p) => ({
+      Nombre: p.nombre,
+      'RNC / Cédula': p.rnc ?? '',
+      Contacto: p.contacto ?? '',
+      Teléfono: p.telefono ? this.formatTelefono(p.telefono) : '',
+      Email: p.email ?? '',
+      Dirección: p.direccion ?? '',
+      Estado: p.activo ? 'Activo' : 'Inactivo',
+    }));
+    await exportarExcel('proveedores', rows, 'Proveedores');
   }
 
   get f() {

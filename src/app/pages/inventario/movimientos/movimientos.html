@@ -6,6 +6,12 @@
     </h1>
     <span class="page-count">{{ filtered().length }} movimiento{{ filtered().length !== 1 ? 's' : '' }} · {{ totalSalidas() }} salidas · {{ totalEntradas() }} entradas</span>
   </div>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+      ⬇️ Excel
+    </button>
+  </div>
 </div>
 
 <!-- Filtros -->

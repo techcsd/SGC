@@ -48,6 +48,7 @@ import { WeatherCard } from '../../../../shared/context/weather-card/weather-car
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { UserService } from '../../../core/services/user.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 interface UsuarioSimple {
   id: string;
@@ -313,6 +314,25 @@ export class Lista implements OnInit {
     this.searchQuery.set('');
     this.filterEstado.set('');
     this.filterTipo.set('');
+  }
+
+  /**
+   * Exporta los proyectos filtrados a Excel. El gasto real y el % pagado se
+   * cargan por proyecto solo al abrir su detalle, por lo que no están
+   * disponibles a nivel de listado y no se incluyen aquí.
+   */
+  async exportar() {
+    const rows = this.filtered().map((p) => ({
+      Código: p.codigo,
+      Nombre: p.nombre,
+      Cliente: p.cliente ?? '',
+      Tipo: p.tipo ? this.getTipoLabel(p.tipo) : '',
+      Estado: this.getEstadoLabel(p.estado),
+      Presupuesto: p.presupuesto ?? '',
+      'Avance %': this.getProgresoPromedio(p),
+      Estrellas: this.estrellas(p.id),
+    }));
+    await exportarExcel('proyectos', rows);
   }
 
   // ── Create/Edit Drawer ───────────────────────────────────

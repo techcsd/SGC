@@ -4,7 +4,13 @@
     <h1 class="page-title">Conduces</h1>
     <span class="page-count">{{ filtered().length }} conduce{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
-  <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">Ir a Salidas</a>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+      ⬇️ Excel
+    </button>
+    <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">Ir a Salidas</a>
+  </div>
 </div>
 
 <p class="conduces__intro">

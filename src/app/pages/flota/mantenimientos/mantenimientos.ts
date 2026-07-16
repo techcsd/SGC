@@ -22,6 +22,7 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { ToastService } from '../../../../shared/services/toast.service';
 
 interface PendingFoto {
@@ -235,6 +236,20 @@ export class Mantenimientos implements OnInit {
       range.push(i);
     }
     return range;
+  }
+
+  /** Exporta los mantenimientos filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((m) => ({
+      Fecha: this.formatFecha(m.fecha),
+      Vehículo: m.vehiculo?.placa ?? '',
+      Tipo: this.getTipoLabel(m.tipo),
+      Estado: this.getEstadoLabel(m.estado),
+      Costo: m.costo ?? '',
+      Proveedor: m.proveedor ?? '',
+      Km: m.kilometraje_al_mantenimiento ?? '',
+    }));
+    await exportarExcel('mantenimientos', rows);
   }
 
   // ── Drawer ───────────────────────────────────────────────

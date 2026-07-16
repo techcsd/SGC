@@ -9,6 +9,7 @@ import {
 import { DecimalPipe, CurrencyPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 interface OrdenReport {
@@ -129,6 +130,39 @@ export class ComprasReportes implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // ── Exportar Excel (resumen de compras) ──────────────────
+  async exportarExcelResumen() {
+    const resumen = [
+      { Métrica: 'Total de órdenes', Valor: this.totalOrdenes() },
+      { Métrica: 'Órdenes aprobadas/recibidas', Valor: this.ordenesAprobadas() },
+      { Métrica: 'Órdenes este mes', Valor: this.ordenesMes() },
+      { Métrica: 'Gasto total (RD$)', Valor: this.totalGasto() },
+      { Métrica: 'Proveedores activos', Valor: this.proveedoresActivos() },
+    ];
+    const porEstado = this.ordenesByEstado().map((e) => ({
+      Estado: this.getEstadoLabel(e.estado),
+      Órdenes: e.count,
+    }));
+    const porProveedor = this.topProveedores().map((p) => ({
+      Proveedor: p.nombre,
+      Órdenes: p.ordenes,
+      'Total (RD$)': p.total,
+    }));
+    const recientes = this.ordenesRecientes().map((o) => ({
+      Número: o.numero,
+      Proveedor: o.proveedor?.nombre ?? '',
+      Estado: this.getEstadoLabel(o.estado),
+      Fecha: this.formatFecha(o.fecha),
+      'Total (RD$)': o.total,
+    }));
+    await exportarExcelHojas('reporte-compras', [
+      { nombre: 'Resumen', filas: resumen },
+      { nombre: 'Por estado', filas: porEstado },
+      { nombre: 'Por proveedor', filas: porProveedor },
+      { nombre: 'Órdenes recientes', filas: recientes },
+    ]);
   }
 
   getEstadoBadge(estado: string): string {

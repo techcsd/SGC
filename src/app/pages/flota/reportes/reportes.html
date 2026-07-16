@@ -1,7 +1,13 @@
 <!-- Header -->
 <div class="flota-reportes__header">
-  <h1>Reportes de Flota</h1>
-  <p>Resumen del estado de vehículos, mantenimientos y combustible</p>
+  <div class="flota-reportes__header-info">
+    <h1>Reportes de Flota</h1>
+    <p>Resumen del estado de vehículos, mantenimientos y combustible</p>
+  </div>
+  <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+          [disabled]="loading()" title="Exportar el reporte a Excel">
+    ⬇️ Excel
+  </button>
 </div>
 
 <!-- Loading -->

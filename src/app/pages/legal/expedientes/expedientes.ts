@@ -18,6 +18,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -73,6 +74,7 @@ export class Expedientes implements OnInit {
     proyecto_id: new FormControl<string | null>(null),
     contraparte: new FormControl<string | null>(null),
     fecha_limite: new FormControl<string | null>(null),
+    enlace: new FormControl<string | null>(null),
     descripcion: new FormControl<string | null>(null),
   });
 
@@ -151,6 +153,7 @@ export class Expedientes implements OnInit {
       proyecto_id: e.proyecto_id,
       contraparte: e.contraparte,
       fecha_limite: e.fecha_limite,
+      enlace: e.enlace,
       descripcion: e.descripcion,
     });
     this.drawerOpen.set(true);
@@ -175,6 +178,7 @@ export class Expedientes implements OnInit {
       proyecto_id: raw.proyecto_id || null,
       contraparte: raw.contraparte || null,
       fecha_limite: raw.fecha_limite || null,
+      enlace: raw.enlace?.trim() || null,
       descripcion: raw.descripcion || null,
     };
 
@@ -275,6 +279,26 @@ export class Expedientes implements OnInit {
   async eliminarArchivo(archivo: ExpedienteArchivo) {
     await this.legalService.eliminarArchivo(archivo.id, archivo.archivo_path);
     this.detailArchivos.update((list) => list.filter((a) => a.id !== archivo.id));
+  }
+
+  /** Exporta los expedientes filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((e) => ({
+      Código: e.codigo,
+      Título: e.titulo,
+      Tipo: this.tipoLabel(e.tipo),
+      Estado: this.estadoLabel(e.estado),
+      Prioridad: this.prioridadLabel(e.prioridad),
+      Proyecto: e.proyecto?.nombre ?? '',
+      Contraparte: e.contraparte ?? '',
+      Responsable: e.responsable?.nombre ?? '',
+      'Fecha apertura': e.fecha_apertura,
+      'Fecha límite': e.fecha_limite ?? '',
+      'Fecha cierre': e.fecha_cierre ?? '',
+      Enlace: e.enlace ?? '',
+      Descripción: e.descripcion ?? '',
+    }));
+    await exportarExcel('expedientes-legales', rows);
   }
 
   // ── Helpers ──────────────────────────────────────────────

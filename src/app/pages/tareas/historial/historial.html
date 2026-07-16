@@ -5,6 +5,12 @@
       {{ esGestor ? 'Todas las tareas del sistema' : 'Tus tareas' }} · {{ completadas() }} completada{{ completadas() !== 1 ? 's' : '' }}
     </span>
   </div>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelHistorial()"
+            [disabled]="filtered().length === 0" title="Exportar el historial filtrado a Excel">
+      ⬇️ Excel
+    </button>
+  </div>
 </div>
 
 @if (error()) {

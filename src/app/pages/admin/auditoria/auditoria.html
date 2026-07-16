@@ -40,6 +40,10 @@
     @if (hasFilters()) {
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearFilters()">Limpiar</button>
     }
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
+            [disabled]="exportando()" title="Exportar a Excel todo lo que coincide con el filtro actual">
+      @if (exportando()) { Exportando… } @else { ⬇️ Excel }
+    </button>
   </div>
 
   <!-- W6 — vistas: panel analítico (por defecto) / filas crudas (drill-down) -->

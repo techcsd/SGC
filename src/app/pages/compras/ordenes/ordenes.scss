@@ -377,3 +377,15 @@ textarea {
     }
   }
 }
+
+// Grupo de acciones del encabezado (Excel + Nueva OC)
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recon-note {
+  margin-top: 6px;
+  font-size: 12px;
+}

@@ -4,12 +4,18 @@
     <h1 class="page-title">Órdenes de Compra</h1>
     <span class="page-count">{{ filtered().length }} orden{{ filtered().length !== 1 ? 'es' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nueva OC
-  </button>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelOrdenes()"
+            [disabled]="filtered().length === 0" title="Exportar las órdenes filtradas a Excel">
+      ⬇️ Excel
+    </button>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nueva OC
+    </button>
+  </div>
 </div>
 
 <!-- ── Solicitudes de compra pendientes (from ingenieros de campo) ── -->
@@ -475,6 +481,38 @@
           <span>RD$ {{ orden.total | number:'1.2-2' }}</span>
         </div>
       </div>
+
+      <!-- QA-076 — Reconciliación recibido vs ordenado por renglón -->
+      @if (reconciliacion().length > 0) {
+        <div class="detail-items">
+          <h3 class="detail-items__title">Reconciliación de recepción</h3>
+          <div class="detail-items__scroll">
+            <table class="data-table" aria-label="Reconciliación de recepción por renglón">
+              <thead>
+                <tr>
+                  <th>Descripción</th>
+                  <th class="text-right">Ordenado</th>
+                  <th class="text-right">Recibido</th>
+                  <th class="text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of reconciliacion(); track $index) {
+                  <tr>
+                    <td>{{ r.descripcion }}</td>
+                    <td class="text-right">{{ r.ordenada | number:'1.0-2' }}</td>
+                    <td class="text-right">{{ r.recibida === null ? '—' : (r.recibida | number:'1.0-2') }}</td>
+                    <td class="text-center">
+                      <span [class]="reconEstadoClass(r.estado)">{{ reconEstadoLabel(r.estado) }}</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="text-muted recon-note">Los renglones sin artículo del catálogo no se pueden reconciliar automáticamente.</p>
+        </div>
+      }
 
       <!-- Receiving history -->
       <div class="detail-items">

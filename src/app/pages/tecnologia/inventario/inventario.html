@@ -4,12 +4,23 @@
     <h1 class="page-title">Inventario tecnológico</h1>
     <span class="page-count">{{ filtered().length }} equipo{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nuevo equipo
-  </button>
+  <div class="page-header__actions">
+    <button
+      class="sgc-btn sgc-btn--ghost"
+      type="button"
+      (click)="exportar()"
+      [disabled]="filtered().length === 0"
+      title="Exportar el listado filtrado a Excel"
+    >
+      ⬇️ Excel
+    </button>
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo equipo
+    </button>
+  </div>
 </div>
 
 <!-- ── Filters ── -->
@@ -79,6 +90,7 @@
             <th>Marca / Modelo</th>
             <th>Estado</th>
             <th>Asignado a</th>
+            <th>Costo</th>
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
@@ -106,6 +118,7 @@
                 </span>
               </td>
               <td class="text-muted">{{ getEmpleadoNombre(e) }}</td>
+              <td class="text-muted">{{ formatCosto(e.costo) }}</td>
               <td>
                 <div class="row-actions">
                   <button
@@ -241,6 +254,35 @@
       <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Ej: Oficina central, piso 2" />
     </div>
 
+    <!-- QA-071 — datos de compra / garantía -->
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="costo">Costo (RD$)</label>
+        <input id="costo" type="number" min="0" step="0.01" formControlName="costo" placeholder="Ej: 45000" />
+      </div>
+      <div class="sgc-field">
+        <label for="fecha_compra">Fecha de compra</label>
+        <input id="fecha_compra" type="date" formControlName="fecha_compra" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="garantia_hasta">Garantía hasta</label>
+        <input id="garantia_hasta" type="date" formControlName="garantia_hasta" />
+      </div>
+      <!-- QA-070 — origen: compra tecnológica -->
+      <div class="sgc-field">
+        <label for="origen_solicitud_compra_id">Origen: compra tecnológica</label>
+        <select id="origen_solicitud_compra_id" formControlName="origen_solicitud_compra_id">
+          <option [value]="null">Sin origen de compra</option>
+          @for (c of comprasOpciones(); track c.id) {
+            <option [value]="c.id">{{ c.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
     <div class="sgc-field">
       <label for="notas">Notas</label>
       <textarea id="notas" formControlName="notas" rows="2" placeholder="Observaciones (opcional)…"></textarea>
@@ -317,6 +359,21 @@
         <div><dt>Asignado a</dt><dd>{{ getEmpleadoNombre(eq) }}</dd></div>
         <div><dt>Fecha de asignación</dt><dd>{{ formatFecha(eq.asignado_en) }}</dd></div>
         <div><dt>Ubicación</dt><dd>{{ eq.ubicacion ?? '—' }}</dd></div>
+        <!-- QA-071 -->
+        <div><dt>Costo</dt><dd>{{ formatCosto(eq.costo) }}</dd></div>
+        <div><dt>Fecha de compra</dt><dd>{{ formatFecha(eq.fecha_compra) }}</dd></div>
+        <div><dt>Garantía hasta</dt><dd>{{ formatFecha(eq.garantia_hasta) }}</dd></div>
+        <!-- QA-070 — trazabilidad compra → equipo -->
+        @if (eq.origen_solicitud_compra_id) {
+          <div>
+            <dt>Origen</dt>
+            <dd>
+              <span class="sgc-badge sgc-badge--info" title="{{ compraLabel(eq.origen_solicitud_compra_id) }}">
+                Registrado desde compra
+              </span>
+            </dd>
+          </div>
+        }
       </dl>
       @if (eq.notas) {
         <p class="detail__notas">{{ eq.notas }}</p>

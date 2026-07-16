@@ -7,6 +7,7 @@ import {
   AuditoriaResumen,
 } from '../../../../shared/services/auditoria.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -263,6 +264,47 @@ export class AdminAuditoria implements OnInit {
     if (p < 0 || p >= this.totalPages()) return;
     this.page.set(p);
     void this.load();
+  }
+
+  exportando = signal(false);
+
+  /**
+   * Exporta a Excel TODAS las filas que coinciden con el filtro actual. La
+   * auditoría se pagina en el servidor (rows() es solo la página visible), así
+   * que recorremos todas las páginas del filtro — con un tope de seguridad.
+   */
+  async exportar() {
+    if (this.exportando()) return;
+    this.exportando.set(true);
+    try {
+      const filtro = {
+        tabla: this.fTabla() || undefined,
+        accion: this.fAccion() || undefined,
+        actorId: this.fActor() || undefined,
+        desde: this.fDesde() || undefined,
+        hasta: this.fHasta() || undefined,
+        buscar: this.fBuscar() || undefined,
+      };
+      const todas: AuditoriaRow[] = [];
+      const MAX_PAGINAS = 250; // ~10k filas con pageSize=40
+      for (let page = 0; page < MAX_PAGINAS; page++) {
+        const { rows, total } = await this.service.list(filtro, page);
+        todas.push(...rows);
+        if (rows.length === 0 || todas.length >= total) break;
+      }
+      const filas = todas.map((r) => ({
+        'Fecha y hora': this.formatTs(r.creado_en),
+        Usuario: r.actor?.nombre ?? 'Sistema',
+        Acción: this.accionLabel(r.accion),
+        Área: this.tablaLabel(r.tabla),
+        Registro: r.registro_id,
+      }));
+      await exportarExcel('auditoria', filas);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al exportar la auditoría.');
+    } finally {
+      this.exportando.set(false);
+    }
   }
 
   toggle(id: number) {

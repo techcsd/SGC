@@ -27,6 +27,7 @@ export class TecMatriz implements OnInit {
 
   matriz = signal<TecMatrizEntry[]>([]);
   herramientas = signal<TecHerramienta[]>([]);
+  puestosSugeridos = signal<string[]>([]); // QA-080 — datalist del campo puesto
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -60,12 +61,14 @@ export class TecMatriz implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [matriz, herramientas] = await Promise.all([
+      const [matriz, herramientas, puestos] = await Promise.all([
         this.tecnologia.getMatriz(),
         this.tecnologia.getHerramientas(true),
+        this.tecnologia.getPuestosSugeridos(), // QA-080 (best-effort)
       ]);
       this.matriz.set(matriz);
       this.herramientas.set(herramientas);
+      this.puestosSugeridos.set(puestos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar la matriz.');
     } finally {

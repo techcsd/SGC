@@ -91,4 +91,23 @@ export class Ver implements OnInit {
   imprimir() {
     window.print();
   }
+
+  /** QA-077 — Descarga el HTML renderizado como .doc abrible en Word (truco
+   *  HTML + MIME application/msword, sin dependencias nuevas). */
+  descargarWord() {
+    const doc = this.documento();
+    if (!doc) return;
+    const html =
+      `<html><head><meta charset="utf-8"></head><body>${doc.contenido_html_final}</body></html>`;
+    const blob = new Blob([html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const nombre = (doc.nombre || 'documento').replace(/[\\/:*?"<>|]+/g, '-').trim() || 'documento';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${nombre}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
 }

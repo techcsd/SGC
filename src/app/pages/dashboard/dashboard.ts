@@ -177,6 +177,7 @@ export class Dashboard implements OnInit {
   expedientesLegalesAbiertos = signal(0);
   contratosPorVencer = signal(0);
   misTareasPendientes = signal(0);
+  ausenciasPendientes = signal(0);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -440,6 +441,7 @@ export class Dashboard implements OnInit {
         expedientesLegalesRes,
         contratosPorVencerRes,
         misTareasRes,
+        ausenciasPendientesRes,
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
@@ -497,6 +499,10 @@ export class Dashboard implements OnInit {
           .select('id', { count: 'exact', head: true })
           .eq('asignado_a', this.profile()?.id ?? '00000000-0000-0000-0000-000000000000')
           .in('estado', ['pendiente', 'en_progreso']),
+        this.supabase.client
+          .from('solicitudes_ausencia')
+          .select('id', { count: 'exact', head: true })
+          .eq('estado', 'pendiente'),
       ]);
 
       this.articulos.set(
@@ -527,6 +533,7 @@ export class Dashboard implements OnInit {
       this.expedientesLegalesAbiertos.set(expedientesLegalesRes.count ?? 0);
       this.contratosPorVencer.set(contratosPorVencerRes.count ?? 0);
       this.misTareasPendientes.set(misTareasRes.count ?? 0);
+      this.ausenciasPendientes.set(ausenciasPendientesRes.count ?? 0);
 
       const materialItems = (
         (solicitudesMaterialRes.data ?? []) as unknown as {

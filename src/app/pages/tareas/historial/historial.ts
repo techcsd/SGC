@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { TareasService } from '../../../../shared/services/tareas.service';
 import { UserService } from '../../../core/services/user.service';
 import { Tarea, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../../../shared/models/tarea.model';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
@@ -126,5 +127,19 @@ export class TareasHistorial implements OnInit {
   }
   prioridadLabel(p: string): string {
     return this.PRIORIDADES.find((x) => x.value === p)?.label ?? p;
+  }
+
+  // ── Exportar Excel (historial filtrado) ──────────────────
+  async exportarExcelHistorial() {
+    const rows = this.filtered().map((t) => ({
+      Título: t.titulo,
+      Estado: this.estadoLabel(t.estado),
+      Prioridad: this.prioridadLabel(t.prioridad),
+      Responsable: t.asignado?.nombre ?? '',
+      Proyecto: t.proyecto?.nombre ?? '',
+      'Fecha límite': t.fecha_limite ?? '',
+      Creada: t.created_at?.slice(0, 10) ?? '',
+    }));
+    await exportarExcel('tareas-historial', rows, 'Historial');
   }
 }

@@ -39,6 +39,10 @@
           <span class="kpi-label">Empleados activos</span>
           <span class="kpi-value">{{ empleadosActivos() }}</span>
         </div>
+        <div class="kpi-card kpi-card--warning">
+          <span class="kpi-label">Ausencias pendientes</span>
+          <span class="kpi-value">{{ ausenciasPendientes() }}</span>
+        </div>
       }
       @if (canSee('proyectos')) {
         <div class="kpi-card kpi-card--purple">
