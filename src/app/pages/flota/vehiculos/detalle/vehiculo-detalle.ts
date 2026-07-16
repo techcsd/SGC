@@ -32,13 +32,14 @@ import { Mantenimiento, MANT_TIPOS, MANT_ESTADOS } from '../../../../../shared/m
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
 import { FormDrawer } from '../../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
+import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../../shared/utils/fecha.util';
 
 const HISTORIAL_LIMITE = 15;
 
 @Component({
   selector: 'app-vehiculo-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota],
   templateUrl: './vehiculo-detalle.html',
   styleUrl: './vehiculo-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +56,8 @@ export class VehiculoDetalle implements OnInit {
   private notificaciones = inject(NotificacionesService);
 
   readonly vehiculoId = this.route.snapshot.paramMap.get('id') ?? '';
+  // tipo de documento a auto-abrir cuando se llega desde un aviso (?doc=seguro)
+  readonly docAuto = this.route.snapshot.queryParamMap.get('doc');
 
   // ── Helpers expuestos al template ──
   estadoBadge = VEHICULO_ESTADO_BADGE;

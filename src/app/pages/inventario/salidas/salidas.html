@@ -121,6 +121,9 @@
     {{ error() }}
   </div>
 }
+@if (fotoError()) {
+  <div class="page-error" role="alert">{{ fotoError() }}</div>
+}
 
 <!-- ── Table ── -->
 <div class="table-wrapper sgc-card">
@@ -152,6 +155,7 @@
             <th>Proyecto</th>
             <th>Responsable</th>
             <th class="text-right">Artículos</th>
+            <th class="text-center">Foto</th>
             <th>Entrega</th>
             <th></th>
           </tr>
@@ -169,6 +173,14 @@
               <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ s.responsable || '—' }}</td>
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
+              <td class="text-center">
+                @if (s.foto_path) {
+                  <button type="button" class="salidas__foto-btn" (click)="verFoto(s)"
+                    title="Ver foto de la app de campo">📷</button>
+                } @else {
+                  —
+                }
+              </td>
               <td>
                 <span
                   class="sgc-badge"
@@ -184,7 +196,7 @@
             </tr>
             @if (s.estado === 'entregado_incompleto' && s.notas_recepcion) {
               <tr>
-                <td colspan="8" class="salidas__incidencia">
+                <td colspan="9" class="salidas__incidencia">
                   <strong>Incidencia:</strong> {{ s.notas_recepcion }}
                 </td>
               </tr>
@@ -408,6 +420,22 @@
         rows="2"
         placeholder="Notas adicionales (opcional)…"
       ></textarea>
+    </div>
+
+    <!-- Foto de evidencia (opcional) — paridad con la app de campo -->
+    <div class="sgc-field">
+      <label>Foto de evidencia (opcional)</label>
+      @if (fotoPreview(); as prev) {
+        <div class="salidas__foto-preview">
+          <img [src]="prev" alt="Vista previa de la foto" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFoto()">Quitar foto</button>
+        </div>
+      } @else {
+        <label class="sgc-btn sgc-btn--secondary sgc-btn--sm salidas__foto-pick">
+          📷 Adjuntar foto
+          <input type="file" accept="image/*" capture="environment" (change)="onFotoSelected($event)" hidden />
+        </label>
+      }
     </div>
 
     @if (!atendiendoRequisicion()) {

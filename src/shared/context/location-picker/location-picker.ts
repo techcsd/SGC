@@ -41,6 +41,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   private mapEl = viewChild.required<ElementRef<HTMLDivElement>>('map');
   private map: L.Map | null = null;
   private marker: L.Marker | null = null;
+  private resizeObs: ResizeObserver | null = null;
 
   // Default view: Santo Domingo, DR.
   private readonly DEFAULT: L.LatLngTuple = [18.4861, -69.9312];
@@ -86,10 +87,13 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     });
 
     // U18 — el drawer anima ~220ms; recalcular tamaño DESPUÉS del transform (si no,
-    // los tiles salen grises/desalineados). Varios nudges cubren el timing.
+    // los tiles salen grises/desalineados). Un ResizeObserver reacciona a CUALQUIER
+    // cambio de tamaño del contenedor (animación del drawer, apertura diferida,
+    // cambio de pestaña) — más fiable que los timers sueltos.
+    this.resizeObs = new ResizeObserver(() => this.map?.invalidateSize());
+    this.resizeObs.observe(this.mapEl().nativeElement);
     requestAnimationFrame(() => this.map?.invalidateSize());
     setTimeout(() => this.map?.invalidateSize(), 320);
-    setTimeout(() => this.map?.invalidateSize(), 700);
   }
 
   /** Fuerza recálculo del tamaño (llamar al abrir el contenedor/tab). */
@@ -100,6 +104,8 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   ngOnDestroy() {
     if (this.searchTimer) clearTimeout(this.searchTimer);
     this.searchAbort?.abort();
+    this.resizeObs?.disconnect();
+    this.resizeObs = null;
     this.map?.remove();
     this.map = null;
   }

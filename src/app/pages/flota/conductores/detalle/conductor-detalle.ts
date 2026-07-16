@@ -26,13 +26,14 @@ import {
 } from '../../../../../shared/models/flota-checklist.model';
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
+import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { formatFechaDisplay } from '../../../../../shared/utils/fecha.util';
 
 const MAX_HIST = 15;
 
 @Component({
   selector: 'app-conductor-detalle',
-  imports: [DecimalPipe, RouterLink, Skeleton],
+  imports: [DecimalPipe, RouterLink, Skeleton, DocumentosFlota],
   templateUrl: './conductor-detalle.html',
   styleUrl: './conductor-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +48,9 @@ export class ConductorDetalle implements OnInit {
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
   readonly estadoBadge = ESTADO_LICENCIA_BADGE;
   formatFecha = formatFechaDisplay;
+
+  // tipo de documento a auto-abrir cuando se llega desde un aviso (?doc=licencia)
+  readonly docAuto = this.route.snapshot.queryParamMap.get('doc');
 
   loading = signal(true);
   conductor = signal<Conductor | null>(null);

@@ -26,6 +26,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 @Component({
   selector: 'app-entradas',
@@ -68,6 +69,9 @@ export class Entradas implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   formItems = signal<EntradaItemFormData[]>([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
+  // Foto de evidencia opcional (paridad con la app de campo).
+  fotoFile = signal<File | null>(null);
+  fotoPreview = signal<string | null>(null);
 
   /**
    * Paso del wizard dentro del drawer (patrón "hojas" en versión web): 'form'
@@ -303,7 +307,26 @@ export class Entradas implements OnInit {
     this.step.set('form');
     this.form.reset({ fecha: this.today });
     this.formItems.set([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
+    this.quitarFoto();
     this.drawerOpen.set(true);
+  }
+
+  /** Selección de foto opcional (comprimida antes de guardar). */
+  async onFotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const comprimida = await comprimirImagen(file);
+    this.fotoFile.set(comprimida);
+    this.fotoPreview.set(URL.createObjectURL(comprimida));
+  }
+
+  quitarFoto() {
+    const prev = this.fotoPreview();
+    if (prev) URL.revokeObjectURL(prev);
+    this.fotoFile.set(null);
+    this.fotoPreview.set(null);
   }
 
   /** Desde la hoja de éxito: limpia todo y vuelve a la hoja del formulario. */
@@ -416,6 +439,16 @@ export class Entradas implements OnInit {
         },
         userId,
       );
+      // Foto de evidencia opcional: se sube tras crear la entrada (ya tenemos id).
+      const foto = this.fotoFile();
+      if (foto) {
+        try {
+          const path = await this.entradasService.subirFoto(created.id, foto);
+          created.foto_path = path;
+        } catch {
+          // La entrada ya se registró; la foto es opcional y no debe revertirla.
+        }
+      }
       this.entries.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');

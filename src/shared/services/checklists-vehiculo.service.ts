@@ -55,9 +55,35 @@ export class ChecklistsVehiculoService {
     return row;
   }
 
-  /** Registra un checklist. Idempotente por UUID de cliente. */
-  async registrar(payload: ChecklistFormData): Promise<string> {
-    const id = crypto.randomUUID();
+  /** Genera un id de checklist en cliente para poder subir fotos/firma antes del RPC. */
+  nuevoId(): string {
+    return crypto.randomUUID();
+  }
+
+  /** Sube una foto de evidencia del checklist al bucket `vehiculos` (paridad app de campo).
+   *  `slot` es un slot fijo (delantera, tablero…) o `item_N` para fotos por ítem. */
+  async uploadFoto(checklistId: string, slot: string, file: File): Promise<{ slot: string; storage_path: string }> {
+    const path = `checklist/${checklistId}/${slot}-${crypto.randomUUID()}.jpg`;
+    const { error } = await this.supabase.client.storage.from(BUCKET).upload(path, file);
+    if (error) throw new Error(error.message);
+    return { slot, storage_path: path };
+  }
+
+  /** Sube la firma del conductor (PNG) al bucket `vehiculos` y devuelve el path. */
+  async uploadFirma(checklistId: string, blob: Blob): Promise<string> {
+    const path = `checklist/${checklistId}/firma-${crypto.randomUUID()}.png`;
+    const { error } = await this.supabase.client.storage.from(BUCKET).upload(path, blob);
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** Registra un checklist. Idempotente por UUID de cliente. Acepta un id
+   *  pre-generado (para enlazar fotos/firma ya subidas) + fotos y firma. */
+  async registrar(
+    payload: ChecklistFormData,
+    opts?: { id?: string; fotos?: { slot: string; storage_path: string }[]; firmaPath?: string | null },
+  ): Promise<string> {
+    const id = opts?.id ?? crypto.randomUUID();
     const { data, error } = await this.supabase.client.rpc('registrar_checklist_vehiculo', {
       p_id: id,
       p_plantilla_id: payload.plantilla_id,
@@ -68,8 +94,8 @@ export class ChecklistsVehiculoService {
       p_datos: payload.datos,
       p_kilometraje: payload.kilometraje,
       p_respuestas: payload.respuestas,
-      p_fotos: [],
-      p_firma_path: null,
+      p_fotos: opts?.fotos ?? [],
+      p_firma_path: opts?.firmaPath ?? null,
       p_observaciones: payload.observaciones,
       p_capturado_en: null, // el servidor usa now()
       p_nivel_combustible: payload.nivel_combustible,

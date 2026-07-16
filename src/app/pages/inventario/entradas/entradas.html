@@ -300,6 +300,22 @@
       ></textarea>
     </div>
 
+    <!-- Foto de evidencia (opcional) — paridad con la app de campo -->
+    <div class="sgc-field">
+      <label>Foto de evidencia (opcional)</label>
+      @if (fotoPreview(); as prev) {
+        <div class="entradas__foto-preview">
+          <img [src]="prev" alt="Vista previa de la foto" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFoto()">Quitar foto</button>
+        </div>
+      } @else {
+        <label class="sgc-btn sgc-btn--secondary sgc-btn--sm entradas__foto-pick">
+          📷 Adjuntar foto
+          <input type="file" accept="image/*" capture="environment" (change)="onFotoSelected($event)" hidden />
+        </label>
+      }
+    </div>
+
     <!-- Items -->
     <div class="sgc-field">
       <div class="items-header">

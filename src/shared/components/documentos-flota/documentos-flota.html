@@ -1,0 +1,136 @@
+<div class="docs-flota">
+  <div class="docs-flota__header">
+    <h2 class="docs-flota__title">Documentos</h2>
+    @if (!loading() && faltantes() > 0) {
+      <span class="docs-flota__pend" role="status">⚠ {{ faltantes() }} documento(s) por subir</span>
+    }
+  </div>
+
+  @if (error()) {
+    <p class="docs-flota__error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="docs-flota__loading">Cargando documentos…</p>
+  } @else {
+    <!-- ── Slots destacados (solicitados) ── -->
+    <div class="docs-flota__slots">
+      @for (s of destacados(); track s.value) {
+        <div class="docs-flota__slot" [class.docs-flota__slot--falta]="!docDe(s.value)">
+          <div class="docs-flota__slot-head">
+            <span class="docs-flota__slot-label">{{ s.label }}</span>
+            @if (docDe(s.value)) {
+              <span class="docs-flota__slot-ok" aria-label="Documento cargado">✓</span>
+            } @else {
+              <span class="docs-flota__slot-warn">Falta documento</span>
+            }
+          </div>
+
+          @if (docDe(s.value); as doc) {
+            <div class="docs-flota__slot-doc">
+              <button type="button" class="docs-flota__item-name" (click)="abrirVisor(doc)">
+                {{ doc.nombre }}
+              </button>
+              <div class="docs-flota__slot-actions">
+                @if (canManage()) {
+                  <label class="docs-flota__replace" [class.is-busy]="uploadingTipo() === s.value">
+                    @if (uploadingTipo() === s.value) { … } @else { Reemplazar }
+                    <input type="file" (change)="onFileSelected(s.value, $event)"
+                      [disabled]="uploadingTipo() !== null"
+                      accept=".pdf,.jpg,.jpeg,.png,.webp" hidden />
+                  </label>
+                  <button type="button" class="docs-flota__item-remove" (click)="eliminar(doc)"
+                    aria-label="Eliminar documento">✕</button>
+                }
+              </div>
+            </div>
+          } @else if (canManage()) {
+            <label class="docs-flota__upload-btn" [class.is-busy]="uploadingTipo() === s.value">
+              @if (uploadingTipo() === s.value) { Subiendo… } @else { + Subir {{ s.label }} }
+              <input type="file" (change)="onFileSelected(s.value, $event)"
+                [disabled]="uploadingTipo() !== null"
+                accept=".pdf,.jpg,.jpeg,.png,.webp" hidden />
+            </label>
+          } @else {
+            <p class="docs-flota__slot-empty">Sin documento cargado.</p>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- ── Otros documentos ── -->
+    <div class="docs-flota__otros">
+      <p class="docs-flota__grupo-label">Otros documentos</p>
+      @if (otros().length === 0) {
+        <p class="docs-flota__empty">Sin documentación adicional.</p>
+      } @else {
+        @for (doc of otros(); track doc.id) {
+          <div class="docs-flota__item">
+            <button type="button" class="docs-flota__item-name" (click)="abrirVisor(doc)">
+              {{ doc.nombre }}
+            </button>
+            @if (canManage()) {
+              <button type="button" class="docs-flota__item-remove" (click)="eliminar(doc)"
+                aria-label="Eliminar documento">✕</button>
+            }
+          </div>
+        }
+      }
+
+      @if (canManage()) {
+        <div class="docs-flota__otro-upload">
+          <input type="text" class="docs-flota__otro-nombre" [value]="nombreOtro()"
+            (input)="nombreOtro.set($any($event.target).value)"
+            placeholder="Nombre del documento (opcional)" aria-label="Nombre del documento" />
+          <label class="docs-flota__upload-btn" [class.is-busy]="uploadingTipo() === 'otro'">
+            @if (uploadingTipo() === 'otro') { Subiendo… } @else { + Subir otro }
+            <input type="file" (change)="onFileSelected('otro', $event)"
+              [disabled]="uploadingTipo() !== null"
+              accept=".pdf,.jpg,.jpeg,.png,.webp" hidden />
+          </label>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Visor ── -->
+  @if (viewerDoc(); as doc) {
+    <div class="docs-flota__viewer-backdrop" (click)="cerrarVisor()">
+      <div class="docs-flota__viewer" (click)="$event.stopPropagation()">
+        <div class="docs-flota__viewer-header">
+          <span class="docs-flota__viewer-name">{{ doc.nombre }}</span>
+          <div class="docs-flota__viewer-actions">
+            @if (rawViewerUrl()) {
+              <button type="button" class="docs-flota__viewer-action" (click)="abrirEnPestana()">
+                Abrir en pestaña
+              </button>
+            }
+            <button type="button" class="docs-flota__viewer-action docs-flota__viewer-action--primary"
+              (click)="descargar(doc)" [disabled]="downloading()">
+              @if (downloading()) { Descargando… } @else { Descargar }
+            </button>
+            <button type="button" class="docs-flota__viewer-close" (click)="cerrarVisor()"
+              aria-label="Cerrar">✕</button>
+          </div>
+        </div>
+        <div class="docs-flota__viewer-body">
+          @if (viewerUrl() && esPdf(doc)) {
+            <iframe [src]="viewerUrl()" title="Vista previa del documento" class="docs-flota__frame"></iframe>
+          } @else if (viewerUrl() && esImagen(doc)) {
+            <img [src]="viewerUrl()" [alt]="doc.nombre ?? 'Documento'" class="docs-flota__image" />
+          } @else if (viewerUrl()) {
+            <div class="docs-flota__no-preview">
+              <p>Este tipo de archivo no se puede previsualizar en la página.</p>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="descargar(doc)"
+                [disabled]="downloading()">
+                @if (downloading()) { Descargando… } @else { Descargar {{ doc.nombre }} }
+              </button>
+            </div>
+          } @else {
+            <p class="docs-flota__viewer-loading">Cargando vista previa…</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,11 @@
+@if (hasCoords()) {
+  <div class="mini-mapa">
+    <div #map class="mini-mapa__canvas"></div>
+    <div class="mini-mapa__foot">
+      <span class="mini-mapa__coords">{{ lat() | number: '1.5-6' }}, {{ lng() | number: '1.5-6' }}</span>
+      <a class="mini-mapa__link" [href]="verEnMapaUrl()" target="_blank" rel="noopener">Ver en mapa ↗</a>
+    </div>
+  </div>
+} @else {
+  <p class="mini-mapa__empty">Sin ubicación registrada.</p>
+}

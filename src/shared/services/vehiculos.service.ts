@@ -15,6 +15,8 @@ export interface VehiculoEntrega {
   requiere_revision: boolean;
   observacion: string | null;
   firma_url: string | null;
+  gps_lat: number | null;
+  gps_lng: number | null;
   capturado_en: string;
   created_at: string;
   vehiculo?: { placa: string; marca: string; modelo: string } | null;
