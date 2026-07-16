@@ -7,6 +7,7 @@ import { ReporteUsuario, REPORTE_TIPO_LABELS, REPORTE_ESTADO_LABELS, ReporteTipo
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { formatFechaHumana } from '../../../shared/utils/fecha.util';
+import { comprimirImagen } from '../../../shared/utils/comprimir-imagen.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 @Component({
@@ -32,6 +33,9 @@ export class Soporte implements OnInit {
   saving = signal(false);
   saveError = signal('');
   sent = signal(false);
+
+  // Fotos adjuntas al reporte (paridad con la app de campo).
+  fotos = signal<{ file: File; preview: string }[]>([]);
 
   // ── Dashboard ────────────────────────────────────────────
   total = computed(() => this.reportes().length);
@@ -82,6 +86,22 @@ export class Soporte implements OnInit {
     }
   }
 
+  async onFotos(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    for (const file of files) {
+      const comprimida = await comprimirImagen(file);
+      this.fotos.update((list) => [...list, { file: comprimida, preview: URL.createObjectURL(comprimida) }]);
+    }
+  }
+
+  quitarFoto(i: number) {
+    const f = this.fotos()[i];
+    if (f) URL.revokeObjectURL(f.preview);
+    this.fotos.update((list) => list.filter((_, idx) => idx !== i));
+  }
+
   async onSave() {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
@@ -94,14 +114,19 @@ export class Soporte implements OnInit {
     this.sent.set(false);
 
     try {
-      const created = await this.reportesService.crear({
-        usuario_id: usuarioId,
-        tipo: this.form.value.tipo!,
-        asunto: this.form.value.asunto!.trim(),
-        descripcion: this.form.value.descripcion!.trim(),
-      });
+      const created = await this.reportesService.crear(
+        {
+          usuario_id: usuarioId,
+          tipo: this.form.value.tipo!,
+          asunto: this.form.value.asunto!.trim(),
+          descripcion: this.form.value.descripcion!.trim(),
+        },
+        this.fotos().map((f) => f.file),
+      );
       this.reportes.update((list) => [created, ...list]);
       this.form.reset({ tipo: 'comentario', asunto: '', descripcion: '' });
+      for (const f of this.fotos()) URL.revokeObjectURL(f.preview);
+      this.fotos.set([]);
       this.sent.set(true);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al enviar tu reporte.');

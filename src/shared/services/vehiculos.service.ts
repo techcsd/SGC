@@ -230,6 +230,60 @@ export class VehiculosService {
     return (data ?? []) as unknown as VehiculoEntrega[];
   }
 
+  /** Id de cliente para enlazar fotos/firma antes de crear la entrega. */
+  nuevaEntregaId(): string {
+    return crypto.randomUUID();
+  }
+
+  /** Sube una foto de la entrega (slot obligatorio o de daño) al bucket `vehiculos`. */
+  async uploadEntregaFoto(entregaId: string, slot: string, file: File): Promise<{ slot: string; path: string }> {
+    const path = `entrega/${entregaId}/${slot}-${crypto.randomUUID()}.jpg`;
+    const { error } = await this.supabase.client.storage.from('vehiculos').upload(path, file);
+    if (error) throw new Error(error.message);
+    return { slot, path };
+  }
+
+  /** Sube la firma (PNG) de la entrega al bucket `vehiculos`. */
+  async uploadEntregaFirma(entregaId: string, blob: Blob): Promise<string> {
+    const path = `entrega/${entregaId}/firma-${crypto.randomUUID()}.png`;
+    const { error } = await this.supabase.client.storage.from('vehiculos').upload(path, blob);
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** Crea una entrega/recepción de vehículo desde la web (paridad app de campo).
+   *  El RPC registra al usuario actual como conductor y exige las 6 fotos guiadas. */
+  async crearEntrega(p: {
+    id: string;
+    vehiculoId: string;
+    tipo: 'recepcion' | 'devolucion';
+    km: number;
+    combustible: string;
+    tieneDanos: boolean;
+    danos: { zona: string; descripcion: string | null; foto_path: string | null }[];
+    firmaUrl: string | null;
+    fotos: { slot: string; path: string }[];
+    gps: { lat: number; lng: number } | null;
+    observacion: string | null;
+  }): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_entrega_vehiculo', {
+      p_id: p.id,
+      p_vehiculo_id: p.vehiculoId,
+      p_tipo: p.tipo,
+      p_km: p.km,
+      p_combustible: p.combustible,
+      p_tiene_danos: p.tieneDanos,
+      p_danos: p.danos,
+      p_firma_url: p.firmaUrl,
+      p_fotos: p.fotos,
+      p_gps: p.gps ?? {},
+      p_capturado_en: null, // el servidor usa now()
+      p_observacion: p.observacion,
+    });
+    if (error) throw new Error(error.message);
+    return (data as string) ?? p.id;
+  }
+
   /** Resolves a checklist photo/signature path to a time-limited signed URL. */
   async getEntregaFotoUrl(path: string): Promise<string> {
     const { data, error } = await this.supabase.client.storage

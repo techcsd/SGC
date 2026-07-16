@@ -202,3 +202,42 @@
     }
   }
 }
+
+// ── Cierre de conduce (paridad app de campo) ──
+.conduce-cierre {
+  max-width: 640px;
+  margin: 0 auto 20px;
+  padding: 18px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-lg, 14px);
+  background: var(--sgc-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__title { margin: 0; font-size: 16px; font-weight: 700; }
+  &__lead { margin: 0; font-size: 13px; color: var(--sgc-text-muted); }
+
+  &__items { display: flex; flex-direction: column; gap: 6px; }
+  &__items-label {
+    font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--sgc-text-muted);
+  }
+  &__item {
+    display: flex; align-items: center; gap: 8px;
+
+    input {
+      width: 90px; margin-left: auto; padding: 6px 8px;
+      border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius-sm); font-size: 13px;
+    }
+  }
+  &__item-name { font-size: 13.5px; }
+  &__item-env { font-size: 12px; color: var(--sgc-text-muted); }
+
+  &__foto { display: flex; align-items: center; gap: 12px;
+    img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid var(--sgc-border); }
+  }
+  &__foto-pick { display: inline-flex; align-items: center; cursor: pointer; width: fit-content; }
+
+  &__actions { display: flex; justify-content: flex-end; gap: 10px; }
+}

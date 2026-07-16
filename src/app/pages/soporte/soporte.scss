@@ -246,3 +246,49 @@
   background: var(--sgc-primary-mid);
   color: #fff;
 }
+
+// Fotos adjuntas al reporte (paridad app de campo)
+.soporte__fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.soporte__foto {
+  position: relative;
+
+  img {
+    width: 88px;
+    height: 88px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--sgc-border);
+  }
+}
+.soporte__foto-quitar {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--sgc-danger);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+.soporte__foto-add {
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--sgc-bg);
+
+  &:hover { border-color: var(--sgc-primary); }
+}

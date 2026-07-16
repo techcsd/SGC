@@ -41,6 +41,37 @@ export class SalidasService {
     return path;
   }
 
+  /** Sube evidencia de entrega del conduce (firma/foto) al bucket `conduces`. */
+  async subirEvidenciaConduce(salidaId: string, tipo: 'firma' | 'foto', data: Blob | File, ext: string): Promise<string> {
+    const path = `salida/${salidaId}/${tipo}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await this.supabase.client.storage.from('conduces').upload(path, data);
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** Cierre de conduce por el chofer (paridad app de campo): registra receptor,
+   *  firma, foto y cantidades entregadas. Devuelve el estado resultante. */
+  async entregarConduce(
+    salidaId: string,
+    items: { detalle_id: string; cantidad_recibida: number }[],
+    receptor: string,
+    firmaPath: string | null,
+    fotoPath: string | null,
+    notas: string | null,
+  ): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('entregar_conduce', {
+      p_salida_id: salidaId,
+      p_items: items,
+      p_receptor: receptor,
+      p_firma_url: firmaPath,
+      p_foto_url: fotoPath,
+      p_notas: notas,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+    return data as string;
+  }
+
   /** Signed URL for the field-captured evidence photo (private `inventario` bucket). */
   async getFotoUrl(path: string): Promise<string> {
     const { data, error } = await this.supabase.client.storage

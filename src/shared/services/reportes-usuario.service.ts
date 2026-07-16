@@ -42,7 +42,38 @@ export class ReportesUsuarioService {
     return data.signedUrl;
   }
 
-  async crear(payload: { usuario_id: string; tipo: ReporteTipo; asunto: string; descripcion: string }): Promise<ReporteUsuario> {
+  async crear(
+    payload: { usuario_id: string; tipo: ReporteTipo; asunto: string; descripcion: string },
+    fotos: File[] = [],
+  ): Promise<ReporteUsuario> {
+    // Con fotos: mismo flujo que la app (crear_reporte_app inserta reporte + fotos
+    // vía SECURITY DEFINER). Sin fotos: insert directo (RLS permite el propio).
+    if (fotos.length > 0) {
+      const id = crypto.randomUUID();
+      const fotoPaths: { storage_path: string }[] = [];
+      for (const file of fotos) {
+        const path = `${payload.usuario_id}/${id}/${crypto.randomUUID()}.jpg`;
+        const { error: upErr } = await this.supabase.client.storage.from('reportes').upload(path, file);
+        if (upErr) throw new Error(upErr.message);
+        fotoPaths.push({ storage_path: path });
+      }
+      const { error: rpcErr } = await this.supabase.client.rpc('crear_reporte_app', {
+        p_id: id,
+        p_tipo: payload.tipo,
+        p_asunto: payload.asunto,
+        p_descripcion: payload.descripcion,
+        p_fotos: fotoPaths,
+      });
+      if (rpcErr) throw new Error(rpcErr.message);
+      const { data, error } = await this.supabase.client
+        .from('reportes_usuario')
+        .select(SELECT_QUERY)
+        .eq('id', id)
+        .single();
+      if (error) throw new Error(error.message);
+      return data as unknown as ReporteUsuario;
+    }
+
     const { data, error } = await this.supabase.client
       .from('reportes_usuario')
       .insert(payload)
