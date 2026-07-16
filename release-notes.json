@@ -1,0 +1,14 @@
+{
+  "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
+  "web": {
+    "1.9.0": {
+      "titulo": "Historial de versiones confiable + auditoría rediseñada",
+      "cambios": [
+        { "t": "nuevo", "d": "Historial de versiones con formato uniforme (chips por tipo) para web y app móvil, y registro automático en cada despliegue." },
+        { "t": "mejora", "d": "Dashboard de Auditoría rediseñado: tarjetas KPI, cada sección en su panel y gráficos consistentes con los demás dashboards." },
+        { "t": "mejora", "d": "Al enlazar un usuario en el formulario de conductor se autollena su cédula y teléfono desde la ficha de empleado (editables)." },
+        { "t": "arreglo", "d": "Las categorías destacadas ahora solo marcan categorías oficiales activas." }
+      ]
+    }
+  }
+}

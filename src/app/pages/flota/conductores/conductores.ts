@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ConductoresService } from '../../../../shared/services/conductores.service';
+import { ConductoresService, UsuarioVinculable } from '../../../../shared/services/conductores.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import {
@@ -40,7 +40,7 @@ export class Conductores implements OnInit {
   // ── Data state ──────────────────────────────────────────
   conductores = signal<Conductor[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
-  usuarios = signal<{ id: string; nombre: string }[]>([]);
+  usuarios = signal<UsuarioVinculable[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -198,17 +198,20 @@ export class Conductores implements OnInit {
   }
 
   /**
-   * U3 — al vincular un usuario existente, autollena lo que el perfil ya tiene
-   * (hoy `usuarios` solo guarda `nombre`; no cédula/teléfono). U2 — carga sus
-   * asignaciones activas para reflejarlas en el form.
+   * B4/U3 — al vincular un usuario existente, autollena lo que su ficha ya tiene
+   * (nombre, cédula, teléfono) sin pisar lo que el usuario ya escribió (editable).
+   * U2 — carga sus asignaciones activas para reflejarlas en el form.
    */
   onUsuarioChange(usuarioId: string) {
     const id = usuarioId || null;
     this.form.controls.usuario_id.setValue(id);
     if (id) {
       const u = this.usuarios().find((x) => x.id === id);
-      if (u && !this.form.controls.nombre.value?.trim()) {
-        this.form.controls.nombre.setValue(u.nombre);
+      if (u) {
+        const c = this.form.controls;
+        if (!c.nombre.value?.trim()) c.nombre.setValue(u.nombre);
+        if (u.cedula && !c.cedula.value?.trim()) c.cedula.setValue(u.cedula);
+        if (u.telefono && !c.telefono.value?.trim()) c.telefono.setValue(u.telefono);
       }
     }
     void this.cargarAsignacionesUsuario(id);

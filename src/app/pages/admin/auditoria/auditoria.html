@@ -70,7 +70,7 @@
 
       <div class="direccion-charts">
         @if (rankingUsuarios().length > 0) {
-          <div class="sgc-card chart-card chart-card--wide">
+          <div class="sgc-card chart-card">
             <app-bar-chart titulo="Usuarios con más interacción" [data]="rankingUsuarios()" />
           </div>
         }
@@ -101,7 +101,7 @@
         <div class="sgc-card aud__drill-box">
           <h3 class="aud__drill-title">Ranking de usuarios</h3>
           <ul class="aud__drill-list">
-            @for (u of r.por_usuario; track u.actor_id) {
+            @for (u of usuariosDrill(); track u.actor_id) {
               <li>
                 <span>{{ u.nombre }}</span>
                 <span class="aud__drill-n">{{ u.n | number }}</span>
@@ -109,12 +109,17 @@
               </li>
             } @empty { <li class="aud__muted">Sin datos en el período.</li> }
           </ul>
+          @if ((r.por_usuario.length ?? 0) > DRILL_TOP) {
+            <button type="button" class="aud__vermas" (click)="expandU.set(!expandU())">
+              {{ expandU() ? 'Ver menos' : 'Ver más (' + (r.por_usuario.length - DRILL_TOP) + ')' }}
+            </button>
+          }
         </div>
 
         <div class="sgc-card aud__drill-box">
           <h3 class="aud__drill-title">Acciones más comunes</h3>
           <ul class="aud__drill-list">
-            @for (a of r.acciones_comunes; track a.tabla + a.accion) {
+            @for (a of accionesDrill(); track a.tabla + a.accion) {
               <li>
                 <span>{{ accionLabel(a.accion) }} · {{ tablaLabel(a.tabla) }}</span>
                 <span class="aud__drill-n">{{ a.n | number }}</span>
@@ -122,12 +127,17 @@
               </li>
             } @empty { <li class="aud__muted">Sin datos en el período.</li> }
           </ul>
+          @if ((r.acciones_comunes.length ?? 0) > DRILL_TOP) {
+            <button type="button" class="aud__vermas" (click)="expandA.set(!expandA())">
+              {{ expandA() ? 'Ver menos' : 'Ver más (' + (r.acciones_comunes.length - DRILL_TOP) + ')' }}
+            </button>
+          }
         </div>
 
         <div class="sgc-card aud__drill-box">
           <h3 class="aud__drill-title">Actividad por área</h3>
           <ul class="aud__drill-list">
-            @for (m of r.por_modulo; track m.tabla) {
+            @for (m of modulosDrill(); track m.tabla) {
               <li>
                 <span>{{ tablaLabel(m.tabla) }}</span>
                 <span class="aud__drill-n">{{ m.n | number }}</span>
@@ -135,6 +145,11 @@
               </li>
             } @empty { <li class="aud__muted">Sin datos en el período.</li> }
           </ul>
+          @if ((r.por_modulo.length ?? 0) > DRILL_TOP) {
+            <button type="button" class="aud__vermas" (click)="expandM.set(!expandM())">
+              {{ expandM() ? 'Ver menos' : 'Ver más (' + (r.por_modulo.length - DRILL_TOP) + ')' }}
+            </button>
+          }
         </div>
       </div>
     }

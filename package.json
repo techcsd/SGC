@@ -1,6 +1,6 @@
 {
   "name": "sgc",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
@@ -8,6 +8,7 @@
     "start": "ng serve",
     "prebuild": "node scripts/gen-version.mjs",
     "build": "ng build",
+    "postbuild": "node scripts/registrar-version-web.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
