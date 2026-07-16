@@ -2,6 +2,48 @@
 
 _Last updated: 2026-07-16_
 
+## Actualización 6 (documentos + paridad web/móvil) — ✅ EN PRODUCCIÓN
+
+Source: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-6.md` (PROMPT-13, web).
+`main` @ `299694b` · dos deploys Vercel **READY** en sgcconstructorasd.com (`769d7c5` = X1–X4; `299694b` = paridad). Build OK. Migración aplicada a prod.
+
+### X1 — Documentos de conductores y vehículos
+- Migración `sql/2026-07-16-act6-documentos.sql`: tabla `sgc.documentos` (**`entidad_id uuid`**, no bigint — los ids son uuid) + índice `(entidad, entidad_id)` + RLS `flota`/`admin` + bucket privado `flota-documentos` con 3 storage policies. Todo aditivo/idempotente.
+- Componente reutilizable **`app-documentos-flota`** (`src/shared/components/documentos-flota/`): subir/ver/descargar/eliminar con signed URLs; rollback del archivo si falla el insert (sin huérfanos).
+- Perfil de conductor: slots **Cédula/Licencia** destacados con indicador "falta documento" + N otros. Perfil de vehículo: **Seguro/Matrícula** + otros.
+- "Ver documento" desde los avisos de vencimiento (licencia/seguro/matrícula) → navega al perfil con `?doc=` y auto-abre el visor.
+
+### X2 — GPS de entrega/recepción (solo display; NO necesitó migración)
+`vehiculo_entregas.gps_lat/lng` ya existían y `crear_entrega_vehiculo` ya los persistía — "el GPS nunca se perdió, solo no se mostraba". Nuevo **`app-mini-mapa`** (`src/shared/components/mini-mapa/`, Leaflet read-only) en Flota > Responsabilidad con coords + hora + "Ver en mapa"; "Sin ubicación registrada" si no hay GPS.
+
+### X3 — Fotos por ítem del checklist
+El detalle del checklist resuelve las fotos con slot `item_N` (N = orden de la respuesta) y las muestra junto a su hallazgo + en galería "Fotos por ítem".
+
+### X4 + paridad web/móvil (regla dura de Xaviel: nada creable solo desde el móvil)
+La web es el padre de la móvil. Cerrados todos los gaps "solo-móvil":
+- **Salidas/Entradas**: foto de evidencia opcional subible desde la web (comprimida, bucket `inventario`, set `foto_path` tras el RPC) + botón 📷 en la lista.
+- **Checklist**: 7 fotos fijas + foto por ítem + firma (`app-signature-pad`) capturables desde la web (`p_fotos`/`p_firma_path`).
+- **Entrega/recepción de vehículo** (nuevo `registrar-entrega` en Flota > Responsabilidad): `crear_entrega_vehiculo` — vehículo, tipo, km, combustible, **6 fotos guiadas obligatorias** (frente/atrás/lados/tablero/combustible), daños con foto, firma y **GPS del navegador**. El usuario queda como conductor.
+- **Cierre de conduce** (en la página de conduce, estado despachado): `entregar_conduce` — receptor, cantidades recibidas, foto y firma (evidencia al bucket `conduces`).
+- **Fotos en reportes de Soporte**: `crear_reporte_app` + bucket `reportes`.
+- Util nueva `src/shared/utils/comprimir-imagen.util.ts` (redimensiona 1600px/JPEG 0.8).
+
+### Arreglo de mapas
+ResizeObserver + invalidateSize en `mini-mapa` y `location-picker` → cura los tiles grises/desalineados en drawers y filas expandibles (rutas, bodegas, proyectos, responsabilidad).
+
+### Migración en prod (Act.6)
+`sql/2026-07-16-act6-documentos.sql` (X1). X2/X3/X4/paridad no requirieron BD (columnas, RPCs y buckets ya existían).
+
+### Dudas
+Nuevas FAQ: documentos de flota, GPS de entrega, fotos de checklist/entrada/salida desde web, registrar entrega de vehículo y cerrar conduce desde web.
+
+### Pendientes / notas
+- **GPS y `foto_path` sin datos aún**: las entregas y salidas actuales tienen esos campos NULL (dependían de que la móvil los mandara). La web ya los muestra/permite; se poblarán con el uso.
+- El **conductor** de una entrega registrada por web = el usuario que la crea (lo exige `crear_entrega_vehiculo`); las 6 fotos guiadas son obligatorias (validadas por el servidor).
+- **Móvil (csd-app)**: PROMPT-14 pendiente — verificar paridad inversa (que la móvil mande GPS siempre que haya permiso, foto opcional en salida) en su repo.
+
+---
+
 ## Actualización 5 (QA total) — ✅ EN PRODUCCIÓN
 
 Source: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-5.md` (PROMPT-11, web).
