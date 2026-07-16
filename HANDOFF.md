@@ -1,6 +1,36 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-15_
+_Last updated: 2026-07-16_
+
+## Actualización 5 (QA total) — ✅ EN PRODUCCIÓN
+
+Source: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-5.md` (PROMPT-11, web).
+BD = producción; todo QA con prefijo QA-TEST y limpieza. Reporte completo en **`QA-FINDINGS.md`**.
+`main` @ `9487734` · deploy Vercel **READY** en sgcconstructorasd.com. Build OK.
+
+### QA (discovery → corrección → E2E → limpieza)
+- **Discovery**: auditoría estática + BD **read-only** (5 revisores en paralelo) cruzando reglas de CONTEXTO 1–4 → 0 críticos, 9 altos, ~24 medios, ~16 bajos, ~14 propuestas.
+- **Corrección**: 9 altos + ~37 medios/bajos **resueltos** + fix de seguridad RLS `tareas: update` (WITH CHECK). Migración `sql/2026-07-16-qa5-fixes-db.sql` (QA-001 combustible estado, QA-010 recepción ≤ enviado, QA-028 talla al faltante, QA-074 RLS).
+- **E2E Playwright** (dev-dep, no en build prod; harness en `qa/e2e/`, `playwright.config.ts`): gating de 9 roles (login + sin fugas) + salud de render de 65 páginas + verificación de fixes. Todo PASS. Reejecutar: crear `qa/qa-users.local.json` → `npx playwright test`.
+- **Limpieza**: 9 usuarios QA-TEST creados para E2E y **eliminados** (0 residuos, verificado en usuarios/auth/vehículos/almacenes/artículos/proyectos).
+
+### Propuestas aprobadas — implementadas (QA-070…080 + QA-032)
+TI: costo/garantía/fecha + origen desde compra + equipos en ficha de empleado + datalist de puestos · Tareas: editar/reasignar (gestores) · RRHH: ausencia aprobada→asistencia (RPC idempotente) + KPI ausencias pendientes · Legal: enlace externo en expediente + comentario del revisor en columna propia · Compras: reconciliación recibido vs ordenado por ítem · Documentos: descargar Word (.doc) · menores WCAG/UX.
+Migración `sql/2026-07-16-qa5-propuestas.sql` (tec_equipos +4 col, expedientes_legales.enlace, RPC registrar_asistencia_por_ausencia).
+
+### Export a Excel (nuevo, transversal)
+Util compartida `src/shared/utils/exportar-excel.util.ts` (xlsx, import dinámico) + botón "⬇️ Excel" (exporta lo filtrado; multi-hoja en reportes) en ~16 vistas: inventario (movimientos/conduces/salidas/entradas/artículos), flota (reportes/combustible/mantenimientos/vehículos), proyectos, auditoría, compras (órdenes/reportes/proveedores), rrhh (empleados/asistencia/ausencias), legal (expedientes/contratos), tareas (gestión/historial), tecnología. Bitácora ya lo tenía.
+
+### Migraciones en prod (Act.5, aditivas/retrocompatibles, verificadas en vivo)
+`sql/2026-07-16-qa5-fixes-db.sql` · `sql/2026-07-16-qa5-propuestas.sql`
+
+### Pendientes / notas
+- Menor QA-057: marcar una categoría **activa** como `destacada` (es dato, no código) si se desea el orden "destacadas primero".
+- Proyectos Excel: gasto real / % pagado se cargan solo al abrir el detalle (no en el listado) → no van en el export de la lista.
+- Opcional: E2E de happy-paths con escritura QA-TEST (editar tarea, Word, reconciliación) + limpieza.
+- Móvil (csd-app) tiene una sesión paralela; nada de esta ronda aplica ahí.
+
+---
 
 ## Actualización 4 (W1–W7) — ✅ COMMITEADO en rama; SQL en prod
 
