@@ -53,7 +53,10 @@ export class ComprasReportes implements OnInit {
   totalOrdenes = computed(() => this.ordenes().length);
 
   ordenesAprobadas = computed(
-    () => this.ordenes().filter((o) => o.estado === 'aprobada' || o.estado === 'recibida').length,
+    () =>
+      this.ordenes().filter(
+        (o) => o.estado === 'aprobada' || o.estado === 'recibida' || o.estado === 'recibida_parcial',
+      ).length,
   );
 
   ordenesMes = computed(() => {
@@ -64,7 +67,9 @@ export class ComprasReportes implements OnInit {
 
   totalGasto = computed(() =>
     this.ordenes()
-      .filter((o) => o.estado === 'aprobada' || o.estado === 'recibida')
+      .filter(
+        (o) => o.estado === 'aprobada' || o.estado === 'recibida' || o.estado === 'recibida_parcial',
+      )
       .reduce((s, o) => s + (o.total ?? 0), 0),
   );
 
@@ -130,6 +135,7 @@ export class ComprasReportes implements OnInit {
     const map: Record<string, string> = {
       borrador: 'neutral',
       aprobada: 'info',
+      recibida_parcial: 'warning',
       recibida: 'success',
       cancelada: 'danger',
     };
@@ -140,6 +146,7 @@ export class ComprasReportes implements OnInit {
     const map: Record<string, string> = {
       borrador: 'Borrador',
       aprobada: 'Aprobada',
+      recibida_parcial: 'Recibida parcial',
       recibida: 'Recibida',
       cancelada: 'Cancelada',
     };

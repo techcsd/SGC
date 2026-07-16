@@ -25,6 +25,30 @@ function humanizeKey(key: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+const MESES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+];
+
+// Fecha larga es-DO desde un YYYY-MM-DD, ej. `16 de julio de 2026`. Construida
+// desde partes locales (nunca new Date(dateOnly), que desplazaría un día en UTC-4).
+function formatFechaLarga(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d || m < 1 || m > 12) return iso;
+  return `${d} de ${MESES[m - 1]} de ${y}`;
+}
+
+// Número con separador de miles, preservando decimales. Deja intacto lo que no
+// sea un número simple (ej. rangos o texto).
+function formatNumero(raw: string): string {
+  const s = raw.trim();
+  if (!/^-?\d+(\.\d+)?$/.test(s)) return raw;
+  const neg = s.startsWith('-');
+  const [intp, decp] = s.replace('-', '').split('.');
+  const grouped = intp.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `${neg ? '-' : ''}${grouped}${decp ? '.' + decp : ''}`;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PlantillasDocumentoService {
   private supabase = inject(SupabaseService);
@@ -80,9 +104,22 @@ export class PlantillasDocumentoService {
     return data as unknown as PlantillaDocumento;
   }
 
-  /** Substitutes {{token}} placeholders with (HTML-escaped) form values. */
-  renderizar(contenidoHtml: string, valores: Record<string, string>): string {
-    return contenidoHtml.replace(TOKEN_RE, (_, key) => escapeHtml(valores[key] ?? ''));
+  /**
+   * Substitutes {{token}} placeholders with (HTML-escaped) form values. When the
+   * plantilla's campos are provided, fecha values render as human es-DO dates and
+   * numero values get thousands separators instead of the raw input.
+   */
+  renderizar(contenidoHtml: string, valores: Record<string, string>, campos: CampoPlantilla[] = []): string {
+    const tipoByKey = new Map(campos.map((c) => [c.key, c.tipo]));
+    return contenidoHtml.replace(TOKEN_RE, (_, key) => {
+      const raw = valores[key] ?? '';
+      if (!raw) return '';
+      const tipo = tipoByKey.get(key);
+      let value = raw;
+      if (tipo === 'fecha') value = formatFechaLarga(raw);
+      else if (tipo === 'numero') value = formatNumero(raw);
+      return escapeHtml(value);
+    });
   }
 
   async generar(payload: {

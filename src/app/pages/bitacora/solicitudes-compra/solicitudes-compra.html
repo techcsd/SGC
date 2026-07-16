@@ -20,7 +20,7 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (solicitudes().length === 0) {
     <div class="table-empty">
-      <p>Aún no has hecho solicitudes de compra.</p>
+      <p>No hay solicitudes de compra.</p>
     </div>
   } @else {
     <div class="table-scroll">
@@ -29,6 +29,7 @@
         <tr>
           <th>Fecha</th>
           <th>Obra</th>
+          <th>Solicitante</th>
           <th>Artículos</th>
           <th>Estado</th>
           <th>Atendida</th>
@@ -36,13 +37,57 @@
       </thead>
       <tbody>
         @for (s of solicitudes(); track s.id) {
-          <tr>
+          <tr class="sc-row" (click)="toggle(s.id)">
             <td>{{ formatTimestamp(s.created_at) }}</td>
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
-            <td class="text-muted">{{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}</td>
-            <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ s.estado }}</span></td>
-            <td class="text-muted">{{ s.atendido_en ? formatTimestamp(s.atendido_en) : '—' }}</td>
+            <td>{{ s.solicitante?.nombre ?? '—' }}</td>
+            <td class="text-muted">
+              {{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}
+              <span class="sc-chev">{{ expandedId() === s.id ? '▲' : '▼' }}</span>
+            </td>
+            <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
+            <td class="text-muted">
+              @if (s.atendido_en) {
+                {{ formatTimestamp(s.atendido_en) }}
+                @if (s.atendido?.nombre) { <span class="solicitud-atendido-por">por {{ s.atendido!.nombre }}</span> }
+              } @else {
+                —
+              }
+            </td>
           </tr>
+          @if (expandedId() === s.id) {
+            <tr class="sc-detail-row">
+              <td colspan="6">
+                <div class="sc-detail">
+                  <h4 class="sc-detail__title">Artículos solicitados</h4>
+                  <ul class="sc-detail__items">
+                    @for (it of s.items ?? []; track it.id) {
+                      <li>
+                        <span class="sc-detail__desc">{{ it.descripcion }}</span>
+                        <span class="sc-detail__cant">× {{ it.cantidad }}</span>
+                        @if (it.proveedor_sugerido) {
+                          <span class="sc-detail__prov">Proveedor sugerido: {{ it.proveedor_sugerido }}</span>
+                        }
+                        @if (it.foto_path) {
+                          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verFoto(it.foto_path!); $event.stopPropagation()">📎 Ver foto</button>
+                        }
+                      </li>
+                    } @empty {
+                      <li class="text-muted">Sin renglones.</li>
+                    }
+                  </ul>
+                  @if (s.notas) { <p class="sc-detail__notas"><strong>Notas:</strong> {{ s.notas }}</p> }
+                  @if (s.categoria) { <p class="sc-detail__meta">Categoría: {{ s.categoria }}</p> }
+                  @if (s.orden_compra_id) {
+                    <p class="sc-detail__meta">✅ Convertida en orden de compra.</p>
+                  }
+                  @if (s.origen_requisicion_id) {
+                    <p class="sc-detail__meta">Originada por el faltante de una requisición.</p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
         }
       </tbody>
     </table>

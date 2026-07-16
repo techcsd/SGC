@@ -28,7 +28,8 @@ import {
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { formatAntiguedad, todayIso } from '../../../../shared/utils/fecha.util';
+import { formatAntiguedad, formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 
 @Component({
   selector: 'app-empleados',
@@ -61,6 +62,13 @@ export class Empleados implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
+
+  // ── Detail drawer (solo lectura) ─────────────────────────
+  detailOpen = signal(false);
+  detailEmpleado = signal<Empleado | null>(null);
+
+  readonly formatFecha = formatFechaDisplay;
+  readonly formatTelefono = formatearTelefono;
 
   readonly TIPOS_CONTRATO = TIPOS_CONTRATO;
   readonly DEPARTAMENTOS = DEPARTAMENTOS;
@@ -267,6 +275,38 @@ export class Empleados implements OnInit {
 
   closeDrawer() {
     this.drawerOpen.set(false);
+  }
+
+  // ── Detail drawer (solo lectura) ─────────────────────────
+  openDetail(emp: Empleado) {
+    this.detailEmpleado.set(emp);
+    this.detailOpen.set(true);
+  }
+
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
+
+  detailTitle = computed(() => {
+    const e = this.detailEmpleado();
+    return e ? `${e.nombre} ${e.apellido}` : 'Detalle del empleado';
+  });
+
+  // Supervisor resolved client-side from the loaded list (no jefe embed in the SELECT).
+  jefeNombre(emp: Empleado): string {
+    if (!emp.jefe_id) return '—';
+    const jefe = this.empleados().find((e) => e.id === emp.jefe_id);
+    return jefe ? `${jefe.nombre} ${jefe.apellido}` : '—';
+  }
+
+  generoLabel(genero: string | null): string {
+    if (!genero) return '—';
+    return GENEROS.find((g) => g.value === genero)?.label ?? genero;
+  }
+
+  estadoCivilLabel(estadoCivil: string | null): string {
+    if (!estadoCivil) return '—';
+    return ESTADOS_CIVILES.find((ec) => ec.value === estadoCivil)?.label ?? estadoCivil;
   }
 
   // ── Employee documents ───────────────────────────────────

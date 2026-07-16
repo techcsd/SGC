@@ -12,6 +12,11 @@ import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { formatearTelefono } from '../../../../shared/utils/telefono.util';
+
+// RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
+const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 
 @Component({
   selector: 'app-proveedores',
@@ -22,6 +27,9 @@ import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 })
 export class Proveedores implements OnInit {
   private proveedoresService = inject(ProveedoresService);
+  private toast = inject(ToastService);
+
+  formatTelefono = formatearTelefono;
 
   // ── Data state ──────────────────────────────────────────
   proveedores = signal<Proveedor[]>([]);
@@ -40,7 +48,7 @@ export class Proveedores implements OnInit {
 
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
-    rnc: new FormControl<string | null>(null, [Validators.pattern(/^[\d-]{9,13}$/)]),
+    rnc: new FormControl<string | null>(null, [Validators.pattern(RNC_CEDULA_PATTERN)]),
     contacto: new FormControl<string | null>(null, [Validators.maxLength(150)]),
     telefono: new FormControl<string | null>(null, [Validators.maxLength(20)]),
     email: new FormControl<string | null>(null, [Validators.email, Validators.maxLength(150)]),
@@ -164,10 +172,11 @@ export class Proveedores implements OnInit {
     );
     try {
       await this.proveedoresService.toggleActivo(p.id, next);
-    } catch {
+    } catch (e: unknown) {
       this.proveedores.update((list) =>
         list.map((item) => (item.id === p.id ? { ...item, activo: !next } : item)),
       );
+      this.toast.error('No se pudo cambiar el estado del proveedor', e instanceof Error ? e.message : undefined);
     }
   }
 

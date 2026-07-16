@@ -22,6 +22,7 @@ import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
@@ -53,6 +54,7 @@ export class Ordenes implements OnInit {
   private solicitudesCompraService = inject(SolicitudesCompraService);
   private entradasService = inject(EntradasService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
 
@@ -351,10 +353,14 @@ export class Ordenes implements OnInit {
     }
     try {
       await this.ordenesService.updateEstado(orden.id, estado);
-    } catch {
+    } catch (e: unknown) {
       this.ordenes.update((list) =>
         list.map((o) => (o.id === orden.id ? { ...o, estado: prev } : o)),
       );
+      if (this.detailOrden()?.id === orden.id) {
+        this.detailOrden.update((o) => (o ? { ...o, estado: prev } : null));
+      }
+      this.toast.error('No se pudo cambiar el estado', e instanceof Error ? e.message : undefined);
     }
   }
 

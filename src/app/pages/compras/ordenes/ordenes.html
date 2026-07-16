@@ -129,6 +129,7 @@
           <tr>
             <th>Número</th>
             <th>Proveedor</th>
+            <th>Proyecto</th>
             <th>Estado</th>
             <th>Fecha</th>
             <th>Entrega esperada</th>
@@ -143,13 +144,14 @@
                 <code class="code-tag">{{ orden.numero }}</code>
               </td>
               <td>{{ orden.proveedor?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ orden.proyecto?.nombre ?? '—' }}</td>
               <td>
                 <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
               </td>
               <td>{{ formatFecha(orden.fecha) }}</td>
               <td>{{ orden.fecha_entrega_esperada ? formatFecha(orden.fecha_entrega_esperada) : '—' }}</td>
               <td class="text-right">
-                <span class="orden-total">DOP {{ orden.total | number:'1.2-2' }}</span>
+                <span class="orden-total">RD$ {{ orden.total | number:'1.2-2' }}</span>
               </td>
               <td>
                 <div class="row-actions">
@@ -329,15 +331,15 @@
       <div class="items-totals">
         <div class="items-totals__row">
           <span>Subtotal</span>
-          <span>DOP {{ subtotal() | number:'1.2-2' }}</span>
+          <span>RD$ {{ subtotal() | number:'1.2-2' }}</span>
         </div>
         <div class="items-totals__row">
           <span>Impuesto (18%)</span>
-          <span>DOP {{ impuesto() | number:'1.2-2' }}</span>
+          <span>RD$ {{ impuesto() | number:'1.2-2' }}</span>
         </div>
         <div class="items-totals__row items-totals__row--total">
           <span>Total</span>
-          <span>DOP {{ total() | number:'1.2-2' }}</span>
+          <span>RD$ {{ total() | number:'1.2-2' }}</span>
         </div>
       </div>
     </div>
@@ -394,6 +396,10 @@
         <div class="detail-field">
           <span class="detail-field__label">Proveedor</span>
           <span>{{ orden.proveedor?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="detail-field__label">Proyecto</span>
+          <span>{{ orden.proyecto?.nombre ?? '—' }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha</span>
@@ -458,15 +464,15 @@
       <div class="items-totals items-totals--detail">
         <div class="items-totals__row">
           <span>Subtotal</span>
-          <span>DOP {{ orden.subtotal | number:'1.2-2' }}</span>
+          <span>RD$ {{ orden.subtotal | number:'1.2-2' }}</span>
         </div>
         <div class="items-totals__row">
           <span>Impuesto (18%)</span>
-          <span>DOP {{ orden.impuesto | number:'1.2-2' }}</span>
+          <span>RD$ {{ orden.impuesto | number:'1.2-2' }}</span>
         </div>
         <div class="items-totals__row items-totals__row--total">
           <span>Total</span>
-          <span>DOP {{ orden.total | number:'1.2-2' }}</span>
+          <span>RD$ {{ orden.total | number:'1.2-2' }}</span>
         </div>
       </div>
 

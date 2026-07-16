@@ -147,7 +147,12 @@ export class Rutas implements OnInit {
     });
   });
 
-  activeVehiculos = computed(() => this.vehiculos().filter((v) => v.activo));
+  // QA-001 — un vehículo dado de baja o no disponible no puede asignarse a una ruta.
+  activeVehiculos = computed(() =>
+    this.vehiculos().filter(
+      (v) => v.activo && v.estado !== 'no_disponible' && v.estado !== 'baja',
+    ),
+  );
   activeConductores = computed(() => this.conductores().filter((c) => c.activo));
 
   private obrasMap = computed(() => new Map(this.obrasDestino().map((o) => [o.id, o])));

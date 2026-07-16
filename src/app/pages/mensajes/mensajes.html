@@ -85,10 +85,13 @@
         @if (loadingThread()) {
           <app-skeleton variant="list" />
         } @else {
-          @for (m of mensajes(); track m.id) {
+          @for (m of mensajes(); track m.id; let i = $index) {
+            @if (esNuevoDia(i)) {
+              <div class="msg-daysep"><span>{{ fechaSeparador(m.created_at) }}</span></div>
+            }
             <div class="msg" [class.msg--mine]="esMio(m)">
               @if (!esMio(m) && selectedConv()!.tipo === 'grupo') {
-                <span class="msg__autor">{{ m.autor?.nombre ?? 'Usuario' }}</span>
+                <span class="msg__autor">{{ autorNombre(m) }}</span>
               }
               <div class="msg__bubble">
                 @if (m.contenido) {

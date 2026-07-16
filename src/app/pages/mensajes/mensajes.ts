@@ -16,7 +16,9 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { MensajeriaService } from '../../../shared/services/mensajeria.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
+import { ToastService } from '../../../shared/services/toast.service';
 import { Conversacion, Mensaje } from '../../../shared/models/mensaje.model';
+import { formatFechaMedia } from '../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
@@ -31,6 +33,7 @@ export class Mensajes implements OnInit, OnDestroy {
   private mensajeria = inject(MensajeriaService);
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
+  private toast = inject(ToastService);
 
   private threadEnd = viewChild<ElementRef<HTMLElement>>('threadEnd');
 
@@ -115,6 +118,10 @@ export class Mensajes implements OnInit, OnDestroy {
 
   async selectConversacion(conv: Conversacion) {
     this.selectedId.set(conv.id);
+    // QA-033 — al cambiar de conversación, limpia el borrador y el adjunto pendiente
+    // para no enviarlos por error a la conversación equivocada.
+    this.composer.reset('');
+    this.pendingFile.set(null);
     this.loadingThread.set(true);
     try {
       this.mensajes.set(await this.mensajeria.getMensajes(conv.id));
@@ -124,6 +131,9 @@ export class Mensajes implements OnInit, OnDestroy {
         list.map((c) => (c.id === conv.id ? { ...c, noLeidos: 0 } : c)),
       );
       this.notificaciones.refresh();
+    } catch (e: unknown) {
+      // QA-031 — no silenciar el fallo; avisar al usuario.
+      this.toast.error('No se pudo abrir la conversación', e instanceof Error ? e.message : undefined);
     } finally {
       this.loadingThread.set(false);
     }
@@ -136,7 +146,9 @@ export class Mensajes implements OnInit, OnDestroy {
         const autorNombre = this.nombrePorId.get(m.autor_id) ?? 'Usuario';
         this.mensajes.update((list) => [...list, { ...m, autor: { nombre: autorNombre } }]);
       }
-      if (m.autor_id !== this.miId) {
+      // QA-058 — solo marcar como leído si la pestaña está enfocada; si el usuario
+      // no está mirando, el mensaje sigue contando como no leído.
+      if (m.autor_id !== this.miId && document.visibilityState === 'visible') {
         await this.mensajeria.marcarLeido(m.conversacion_id, this.miId);
       }
     }
@@ -184,8 +196,32 @@ export class Mensajes implements OnInit, OnDestroy {
 
   async descargarArchivo(m: Mensaje) {
     if (!m.archivo_path) return;
-    const url = await this.mensajeria.getArchivoUrl(m.archivo_path);
-    window.open(url, '_blank');
+    try {
+      const url = await this.mensajeria.getArchivoUrl(m.archivo_path);
+      window.open(url, '_blank');
+    } catch (e: unknown) {
+      // QA-031 — avisar si no se pudo generar el enlace del archivo.
+      this.toast.error('No se pudo abrir el archivo', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  /** QA-007 — el nombre del autor se resuelve vía el directorio (nombrePorId), que
+   *  no depende del join RLS de `usuarios`; así el historial de grupos muestra el
+   *  nombre real y no "Usuario". Cae al join / "Usuario" solo si falta en el mapa. */
+  autorNombre(m: Mensaje): string {
+    return this.nombrePorId.get(m.autor_id) ?? m.autor?.nombre ?? 'Usuario';
+  }
+
+  /** QA-034 — true cuando el mensaje inicia un nuevo día calendario respecto al
+   *  anterior (para pintar un separador de fecha en el hilo). */
+  esNuevoDia(i: number): boolean {
+    const list = this.mensajes();
+    if (i <= 0) return true;
+    return formatFechaMedia(list[i - 1].created_at) !== formatFechaMedia(list[i].created_at);
+  }
+
+  fechaSeparador(ts: string): string {
+    return formatFechaMedia(ts);
   }
 
   // ── New conversation ─────────────────────────────────────

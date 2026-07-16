@@ -27,6 +27,8 @@ export interface SolicitudMaterial {
   /** A2: almacén desde el que se despachó la parte en stock. */
   bodega_id: string | null;
   atendido_por: string | null;
+  /** Nombre del atendedor — solo presente si el SELECT hace el join (opcional). */
+  atendido?: { nombre: string } | null;
   atendido_en: string | null;
   created_at: string;
   items?: SolicitudMaterialItem[];
@@ -77,6 +79,8 @@ export interface SolicitudCompra {
   /** A7: categoría de la compra (p.ej. 'tecnologia'). */
   categoria?: string | null;
   atendido_por: string | null;
+  /** Nombre del atendedor — solo presente si el SELECT hace el join (opcional). */
+  atendido?: { nombre: string } | null;
   atendido_en: string | null;
   created_at: string;
   items?: SolicitudCompraItem[];

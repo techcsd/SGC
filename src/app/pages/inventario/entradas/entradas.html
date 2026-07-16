@@ -132,7 +132,7 @@
               </td>
               <td class="text-right">{{ (e.detalle_entradas ?? []).length }}</td>
               <td class="text-right">
-                <span class="entradas__cantidad">{{ entryTotal(e) | number:'1.2-2' }}</span>
+                <span class="entradas__cantidad">RD$ {{ entryTotal(e) | number:'1.0-2' }}</span>
               </td>
             </tr>
           }
@@ -336,7 +336,7 @@
             [value]="item.precio_unit"
             (input)="updateItemPrecio($index, $any($event.target).value)"
           />
-          <span class="item-row__total">{{ itemTotal(item) | number:'1.2-2' }}</span>
+          <span class="item-row__total">RD$ {{ itemTotal(item) | number:'1.0-2' }}</span>
           <button
             type="button"
             class="item-row__remove"
@@ -349,7 +349,7 @@
 
       <div class="items-subtotal">
         <span>Subtotal</span>
-        <span>{{ itemsSubtotal() | number:'1.2-2' }}</span>
+        <span>RD$ {{ itemsSubtotal() | number:'1.0-2' }}</span>
       </div>
     </div>
     }
@@ -381,7 +381,7 @@
               (valueChange)="updateItemCantidad(r.index, $event)"
             />
             <span class="resumen-row__precio">
-              {{ r.precio_unit != null ? (r.cantidad * r.precio_unit | number:'1.2-2') : '—' }}
+              {{ r.precio_unit != null ? ('RD$ ' + (r.cantidad * r.precio_unit | number:'1.0-2')) : '—' }}
             </span>
             <button
               type="button"
@@ -395,7 +395,7 @@
 
       <div class="items-subtotal">
         <span>Subtotal</span>
-        <span>{{ itemsSubtotal() | number:'1.2-2' }}</span>
+        <span>RD$ {{ itemsSubtotal() | number:'1.0-2' }}</span>
       </div>
     }
 

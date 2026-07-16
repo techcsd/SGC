@@ -26,5 +26,23 @@
 } @else if (error()) {
   <p class="no-print ver-error">{{ error() }}</p>
 } @else if (documento(); as doc) {
+  <div class="ver-meta no-print">
+    <div class="ver-meta__item">
+      <span class="ver-meta__label">Documento</span>
+      <span>{{ doc.nombre }}</span>
+    </div>
+    <div class="ver-meta__item">
+      <span class="ver-meta__label">Categoría</span>
+      <span>{{ doc.plantilla ? CATEGORIA_LABELS[doc.plantilla.categoria] : '—' }}</span>
+    </div>
+    <div class="ver-meta__item">
+      <span class="ver-meta__label">Proyecto</span>
+      <span>{{ doc.proyecto?.nombre ?? '—' }}</span>
+    </div>
+    <div class="ver-meta__item">
+      <span class="ver-meta__label">Generado</span>
+      <span>{{ formatTimestamp(doc.created_at) }}</span>
+    </div>
+  </div>
   <div class="documento-final" [innerHTML]="contenidoSafe()"></div>
 }

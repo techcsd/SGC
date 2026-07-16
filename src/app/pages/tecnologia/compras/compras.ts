@@ -130,8 +130,13 @@ export class TecCompras implements OnInit {
   }
 
   updateItemCantidad(index: number, value: string) {
+    // QA-052 — vaciar el campo daba Number('') = NaN, y el renglón se descartaba
+    // en silencio al guardar. Tratamos vacío/no-numérico como 0 y conservamos la fila;
+    // onSave avisa si quedó en 0 en vez de dejarla desaparecer.
+    const parsed = value.trim() === '' ? 0 : Number(value);
+    const cantidad = Number.isNaN(parsed) ? 0 : parsed;
     this.formItems.update((items) =>
-      items.map((it, i) => (i === index ? { ...it, cantidad: Number(value) } : it)),
+      items.map((it, i) => (i === index ? { ...it, cantidad } : it)),
     );
   }
 
@@ -144,9 +149,16 @@ export class TecCompras implements OnInit {
   async onSave() {
     if (this.saving()) return;
 
-    const validRows = this.formItems().filter((i) => i.descripcion.trim() && i.cantidad > 0);
+    // QA-052 — separamos filas con descripción de filas válidas para avisar (en vez
+    // de descartar en silencio) cuando una fila con descripción quedó con cantidad 0.
+    const conDescripcion = this.formItems().filter((i) => i.descripcion.trim());
+    const validRows = conDescripcion.filter((i) => i.cantidad > 0);
     if (validRows.length === 0) {
-      this.saveError.set('Agrega al menos un artículo con descripción y cantidad válida.');
+      this.saveError.set('Agrega al menos un artículo con descripción y cantidad mayor a 0.');
+      return;
+    }
+    if (validRows.length < conDescripcion.length) {
+      this.saveError.set('Hay artículos con cantidad en 0. Corrige la cantidad o elimina esos renglones.');
       return;
     }
 

@@ -20,7 +20,7 @@
     <app-skeleton variant="table" [rows]="8" />
   } @else if (solicitudes().length === 0) {
     <div class="table-empty">
-      <p>Aún no has hecho requisiciones.</p>
+      <p>No hay requisiciones.</p>
     </div>
   } @else {
     <div class="table-scroll">
@@ -29,6 +29,7 @@
         <tr>
           <th>Fecha</th>
           <th>Obra</th>
+          <th>Solicitante</th>
           <th>Artículos</th>
           <th>Urgencia</th>
           <th>Estado</th>
@@ -40,6 +41,7 @@
           <tr>
             <td>{{ formatTimestamp(s.created_at) }}</td>
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
+            <td>{{ s.solicitante?.nombre ?? '—' }}</td>
             <td class="text-muted">{{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}</td>
             <td>
               @if (s.urgencia === 'urgente') {
@@ -48,8 +50,27 @@
                 <span class="sgc-badge sgc-badge--neutral">Normal</span>
               }
             </td>
-            <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
-            <td class="text-muted">{{ s.atendido_en ? formatTimestamp(s.atendido_en) : '—' }}</td>
+            <td>
+              <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span>
+              @if (s.salida_id || s.solicitud_compra_id) {
+                <div class="solicitud-interco">
+                  @if (s.salida_id) {
+                    <a class="solicitud-interco__link" [routerLink]="['/bitacora/entregas', s.salida_id, 'conduce']">Despachado (ver conduce)</a>
+                  }
+                  @if (s.solicitud_compra_id) {
+                    <span class="sgc-badge sgc-badge--info">Compra generada por faltante</span>
+                  }
+                </div>
+              }
+            </td>
+            <td class="text-muted">
+              @if (s.atendido_en) {
+                {{ formatTimestamp(s.atendido_en) }}
+                @if (s.atendido?.nombre) { <span class="solicitud-atendido-por">por {{ s.atendido!.nombre }}</span> }
+              } @else {
+                —
+              }
+            </td>
           </tr>
         }
       </tbody>

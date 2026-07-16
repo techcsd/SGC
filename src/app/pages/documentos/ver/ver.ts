@@ -2,10 +2,11 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
-import { DocumentoGenerado } from '../../../../shared/models/plantilla-documento.model';
+import { DocumentoGenerado, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { LegalService } from '../../../../shared/services/legal.service';
 import { UserService } from '../../../core/services/user.service';
 import { AprobacionLegal } from '../../../../shared/models/legal.model';
+import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
@@ -21,6 +22,9 @@ export class Ver implements OnInit {
   private sanitizer = inject(DomSanitizer);
   private legalService = inject(LegalService);
   private userService = inject(UserService);
+
+  readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
+  readonly formatTimestamp = formatTimestampDisplay;
 
   documento = signal<DocumentoGenerado | null>(null);
   contenidoSafe = signal<SafeHtml | null>(null);

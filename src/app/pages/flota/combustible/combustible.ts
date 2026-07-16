@@ -172,6 +172,13 @@ export class Combustible implements OnInit {
     !!(this.searchQuery() || this.selectedVehiculoId() || this.dateFrom() || this.dateTo()),
   );
 
+  // QA-001 — solo vehículos usables pueden echar combustible (no baja / no_disponible).
+  vehiculosDisponibles = computed(() =>
+    this.vehiculos().filter(
+      (v) => v.activo && v.estado !== 'no_disponible' && v.estado !== 'baja',
+    ),
+  );
+
   async ngOnInit() {
     await this.loadAll();
   }

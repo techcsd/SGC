@@ -243,6 +243,23 @@
   }
 }
 
+// QA-034 — separador de día en el hilo de mensajes.
+.msg-daysep {
+  align-self: center;
+  margin: 6px 0;
+
+  span {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sgc-text-muted);
+  }
+}
+
 .msg {
   display: flex;
   flex-direction: column;

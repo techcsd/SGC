@@ -40,4 +40,9 @@ export class MiProyecto implements OnInit {
     const map: Record<string, string> = { pendiente: 'neutral', en_progreso: 'info', completada: 'success' };
     return map[estado] ?? 'neutral';
   }
+
+  faseLabel(estado: string): string {
+    const map: Record<string, string> = { pendiente: 'Pendiente', en_progreso: 'En progreso', completada: 'Completada' };
+    return map[estado] ?? estado;
+  }
 }

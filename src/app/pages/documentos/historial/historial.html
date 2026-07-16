@@ -16,6 +16,7 @@
   } @else if (documentos().length === 0) {
     <div class="table-empty">
       <p>Aún no se ha generado ningún documento.</p>
+      <a class="sgc-btn sgc-btn--primary" routerLink="/documentos/generar">+ Generar el primero</a>
     </div>
   } @else {
     <div class="table-scroll">

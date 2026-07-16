@@ -5,6 +5,7 @@ import { AusenciasService, contarDiasLaborables } from '../../../../shared/servi
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { SolicitudAusencia, AUSENCIA_TIPOS, AUSENCIA_ESTADOS } from '../../../../shared/models/ausencia.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -22,6 +23,7 @@ export class Ausencias implements OnInit {
   private empleadosService = inject(EmpleadosService);
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
+  private toast = inject(ToastService);
 
   readonly TIPOS = AUSENCIA_TIPOS;
   readonly ESTADOS = AUSENCIA_ESTADOS;
@@ -185,6 +187,8 @@ export class Ausencias implements OnInit {
       this.solicitudes.update((list) => list.map((item) => (item.id === s.id ? updated : item)));
       this.resolveOpen.set(false);
       this.notificaciones.refresh();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo resolver la solicitud', e instanceof Error ? e.message : undefined);
     } finally {
       this.resolving.set(false);
     }

@@ -7,6 +7,7 @@ import {
   TecEquipo,
   TecEquipoFormData,
   TecEquipoHistorial,
+  TEC_EQUIPO_ESTADOS,
 } from '../models/tecnologia.model';
 import { SolicitudCompra } from '../models/solicitud.model';
 
@@ -112,11 +113,46 @@ export class TecnologiaService {
   }
 
   async updateEquipo(id: string, payload: Partial<TecEquipoFormData>): Promise<void> {
+    // QA-008 — capturamos el estado previo para registrar en el historial qué cambió
+    // (estado / asignación). Sin esto, el historial solo mostraba "Equipo registrado".
+    const { data: prevRow } = await this.supabase.client
+      .from('tec_equipos')
+      .select('estado, empleado_id')
+      .eq('id', id)
+      .single();
+
     const { error } = await this.supabase.client
       .from('tec_equipos')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id);
     if (error) throw new Error(error.message);
+
+    // Registra solo cambios relevantes; ignora actualizaciones silenciosas (ej. foto_path).
+    if (prevRow) {
+      const prev = prevRow as { estado?: string; empleado_id?: string | null };
+      const cambios: string[] = [];
+      let tipoCambio = 'edicion';
+      if (payload.estado !== undefined && payload.estado !== prev.estado) {
+        cambios.push(`Estado: ${this.estadoLabel(prev.estado)} → ${this.estadoLabel(payload.estado)}.`);
+        tipoCambio = 'estado';
+      }
+      if (payload.empleado_id !== undefined && payload.empleado_id !== prev.empleado_id) {
+        cambios.push(payload.empleado_id ? 'Reasignado a un empleado.' : 'Desasignado (sin empleado).');
+        tipoCambio = 'asignacion';
+      }
+      if (cambios.length > 0) {
+        await this.addHistorial(
+          id,
+          tipoCambio,
+          cambios.join(' '),
+          payload.empleado_id !== undefined ? payload.empleado_id : (prev.empleado_id ?? null),
+        );
+      }
+    }
+  }
+
+  private estadoLabel(value: string | null | undefined): string {
+    return TEC_EQUIPO_ESTADOS.find((e) => e.value === value)?.label ?? (value ?? '—');
   }
 
   async removeEquipo(id: string): Promise<void> {

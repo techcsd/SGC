@@ -6,7 +6,7 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { UserService } from '../../../core/services/user.service';
 import { PlantillaDocumento, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
-import { todayIso } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
@@ -87,7 +87,9 @@ export class Generar implements OnInit {
   generarVistaPrevia() {
     const plantilla = this.plantillaSeleccionada();
     if (!plantilla || !this.puedeGenerar()) return;
-    this.previewHtml.set(this.plantillasService.renderizar(plantilla.contenido_html, this.valores()));
+    this.previewHtml.set(
+      this.plantillasService.renderizar(plantilla.contenido_html, this.valores(), plantilla.campos),
+    );
   }
 
   onPreviewEdit(value: string) {
@@ -110,7 +112,7 @@ export class Generar implements OnInit {
       const generadoPor = this.userService.profile()?.id ?? null;
       const doc = await this.plantillasService.generar({
         plantillaId: plantilla.id,
-        nombre: `${plantilla.nombre} — ${todayIso()}`,
+        nombre: `${plantilla.nombre} — ${formatFechaDisplay(todayIso())}`,
         proyectoId: this.proyectoId() || null,
         valores: this.valores(),
         contenidoHtmlFinal: safeHtml,

@@ -114,7 +114,8 @@ export class Salidas implements OnInit {
    * artículos; los artículos sin categoría activa caen en un grupo final "Otros".
    */
   articulosAgrupados = computed<{ categoria: string; destacada: boolean; articulos: Articulo[] }[]>(() => {
-    const arts = this.articulos();
+    // Solo artículos activos son seleccionables (los desactivados quedan en "(Revisión)").
+    const arts = this.articulos().filter((a) => a.activo);
     const cats = this.categorias();
     const byCat = new Map<number, Articulo[]>();
     for (const a of arts) {

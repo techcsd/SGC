@@ -13,6 +13,8 @@ export interface DetalleSalida {
   articulo?: { nombre: string; codigo: string; unidad: string };
   cantidad: number;
   cantidad_recibida: number | null;
+  /** Talla indicada para artículos EPP con requiere_talla (se muestra en el conduce). */
+  talla?: string | null;
 }
 
 export interface SalidaInventario {

@@ -113,6 +113,7 @@
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
                 @if (r.vehiculo?.marca) { <span class="combustible__marca">{{ r.vehiculo!.marca }}</span> }
+                @if (r.conductor?.nombre) { <span class="combustible__marca">{{ r.conductor!.nombre }}</span> }
               </td>
               <td class="text-right text-muted">
                 @if (r.kilometraje !== null) { {{ r.kilometraje | number:'1.0-0' }} } @else { — }
@@ -168,7 +169,7 @@
 
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
-      <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculos()" />
+      <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
       @if (kmAnterior() !== null) {
         <span class="field-hint">Última echada: {{ kmAnterior() | number:'1.0-0' }} km</span>
       }
@@ -316,6 +317,7 @@
         <div class="detail__item"><span class="detail__label">Rendimiento</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Costo / km</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Conductor</span><span class="detail__value">{{ r.conductor?.nombre ?? '—' }}</span></div>
       </div>
 
       <!-- Análisis automático -->

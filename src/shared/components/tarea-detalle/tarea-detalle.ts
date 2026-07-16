@@ -1,9 +1,11 @@
 import { Component, ChangeDetectionStrategy, inject, input, output, signal, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { TareasService } from '../../services/tareas.service';
 import { UserService } from '../../../app/core/services/user.service';
 import { Tarea, TareaComentario, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../models/tarea.model';
+import { todayIso } from '../../utils/fecha.util';
 import { FormDrawer } from '../form-drawer/form-drawer';
 import { WeatherCard } from '../../context/weather-card/weather-card';
 
@@ -44,13 +46,25 @@ export class TareaDetalle {
   savingComentario = signal(false);
   working = signal(false);
 
+  private comentariosChannel: RealtimeChannel | null = null;
+
   constructor() {
-    // Load the comment thread whenever a task is opened.
-    effect(() => {
+    // Load the comment thread whenever a task is opened, and keep it live via realtime.
+    effect((onCleanup) => {
       const t = this.tarea();
       const isOpen = this.open();
       if (isOpen && t) {
         void this.loadComentarios(t.id);
+        // QA-055 — nuevos comentarios (de cualquiera) llegan sin recargar la página.
+        this.comentariosChannel = this.tareasService.subscribeComentarios(t.id, () =>
+          void this.reloadComentarios(t.id),
+        );
+        onCleanup(() => {
+          if (this.comentariosChannel) {
+            void this.tareasService.unsubscribe(this.comentariosChannel);
+            this.comentariosChannel = null;
+          }
+        });
       }
     });
   }
@@ -62,6 +76,15 @@ export class TareaDetalle {
       this.comentarios.set(await this.tareasService.getComentarios(tareaId));
     } finally {
       this.loadingComentarios.set(false);
+    }
+  }
+
+  /** Silent refresh (no spinner) triggered by realtime comment inserts. */
+  private async reloadComentarios(tareaId: string) {
+    try {
+      this.comentarios.set(await this.tareasService.getComentarios(tareaId));
+    } catch {
+      /* ignore transient realtime-triggered reload errors */
     }
   }
 
@@ -141,8 +164,8 @@ export class TareaDetalle {
 
   isVencida(t: Tarea): boolean {
     if (!t.fecha_limite || t.estado === 'completada' || t.estado === 'cancelada') return false;
-    // Both are YYYY-MM-DD; lexicographic compare is correct and avoids the
-    // new Date() date-shift trap.
-    return t.fecha_limite < new Date().toISOString().slice(0, 10);
+    // Both are YYYY-MM-DD; lexicographic compare vs the local date avoids the
+    // new Date()/UTC date-shift trap (would mark "vencida" ~4h early in RD).
+    return t.fecha_limite < todayIso();
   }
 }
