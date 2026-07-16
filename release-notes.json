@@ -30,6 +30,12 @@
         { "t": "mejora", "d": "Al enlazar un usuario en el formulario de conductor se autollena su cédula y teléfono desde la ficha de empleado (editables)." },
         { "t": "arreglo", "d": "Las categorías destacadas ahora solo marcan categorías oficiales activas." }
       ]
+    },
+    "1.12.0": {
+      "titulo": "Registro de versiones automático en el despliegue",
+      "cambios": [
+        { "t": "mejora", "d": "El historial de versiones ahora se registra solo en cada despliegue del sitio, sin depender de que alguien abra la app." }
+      ]
     }
   }
 }
