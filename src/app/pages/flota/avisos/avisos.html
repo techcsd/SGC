@@ -74,6 +74,11 @@
                       Crear cita
                     </button>
                   }
+                  @if (tieneDocumento(a)) {
+                    <button class="sgc-btn sgc-btn--secondary" type="button" (click)="verDocumento(a)">
+                      Ver documento
+                    </button>
+                  }
                   @if (a.estado === 'pendiente') {
                     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Atender</button>
                   } @else {
@@ -101,6 +106,12 @@
         <div><dt>Creado</dt><dd>{{ formatFecha(a.created_at) }}</dd></div>
         <div><dt>Estado</dt><dd>{{ a.estado }}</dd></div>
       </dl>
+
+      @if (tieneDocumento(a)) {
+        <button type="button" class="sgc-btn sgc-btn--secondary av-detail__doc" (click)="verDocumento(a)">
+          Ver documento del vencimiento
+        </button>
+      }
 
       @if (a.estado === 'pendiente') {
         <div class="sgc-field">

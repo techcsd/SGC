@@ -59,6 +59,11 @@
     </div>
   </section>
 
+  <!-- ── 2b. Documentos (X1) ── -->
+  <section class="sgc-card cd-section">
+    <app-documentos-flota entidad="conductor" [entidadId]="conductor()!.id" [autoAbrir]="docAuto" />
+  </section>
+
   <!-- ── 3. Stats ── -->
   @if (stats()) {
     <div class="stat-grid">

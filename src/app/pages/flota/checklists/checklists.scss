@@ -358,3 +358,118 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+// X3 — fotos por ítem (galería inline en hallazgos + sección dedicada)
+.cl-item-fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+
+  img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--sgc-border);
+  }
+}
+
+.cl-item-galeria {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cl-item-grupo {
+  &__label {
+    display: block;
+    font-size: 13px;
+    color: var(--sgc-text);
+    margin-bottom: 4px;
+  }
+
+  .cl-item-fotos img {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+// ── Captura de fotos/firma en el form (paridad app de campo) ──
+.cl-fotos-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+.cl-foto-slot-edit {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  img {
+    width: 88px;
+    height: 88px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--sgc-border);
+  }
+}
+.cl-foto-slot-add {
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--sgc-bg);
+
+  &:hover { border-color: var(--sgc-primary); }
+}
+.cl-foto-slot-cap {
+  font-size: 11px;
+  color: var(--sgc-text-muted);
+  text-align: center;
+}
+.cl-foto-quitar {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  background: var(--sgc-danger);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+}
+// Foto por ítem inline
+.cl-foto-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--sgc-radius-sm);
+
+  &:hover { background: var(--sgc-surface-hover); }
+}
+.cl-item-foto-edit {
+  position: relative;
+  display: inline-flex;
+
+  img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--sgc-border);
+  }
+}

@@ -1,0 +1,40 @@
+.mini-mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__canvas {
+    height: 180px;
+    width: 100%;
+    border-radius: var(--sgc-radius);
+    border: 1px solid var(--sgc-border);
+    z-index: 0;
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 12.5px;
+  }
+
+  &__coords {
+    color: var(--sgc-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__link {
+    color: var(--sgc-primary-mid);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  &__empty {
+    font-size: 13px;
+    color: var(--sgc-text-muted);
+    margin: 0;
+  }
+}

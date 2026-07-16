@@ -26,6 +26,30 @@ export class SalidasService {
     return (data ?? []) as unknown as SalidaInventario[];
   }
 
+  /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la salida.
+   *  Paridad con la app de campo: lo que la móvil captura, la web también. */
+  async subirFoto(salidaId: string, file: File): Promise<string> {
+    const safe = (file.name || 'foto').replace(/[^a-zA-Z0-9_.-]+/g, '-').slice(0, 40);
+    const path = `salida/${salidaId}/${crypto.randomUUID()}-${safe}`;
+    const { error } = await this.supabase.client.storage.from('inventario').upload(path, file);
+    if (error) throw new Error(error.message);
+    const { error: updErr } = await this.supabase.client
+      .from('salidas_inventario')
+      .update({ foto_path: path })
+      .eq('id', salidaId);
+    if (updErr) throw new Error(updErr.message);
+    return path;
+  }
+
+  /** Signed URL for the field-captured evidence photo (private `inventario` bucket). */
+  async getFotoUrl(path: string): Promise<string> {
+    const { data, error } = await this.supabase.client.storage
+      .from('inventario')
+      .createSignedUrl(path, 3600);
+    if (error) throw new Error(error.message);
+    return data.signedUrl;
+  }
+
   async getById(id: string): Promise<SalidaInventario> {
     const { data, error } = await this.supabase.client
       .from('salidas_inventario')

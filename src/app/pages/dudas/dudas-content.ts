@@ -280,6 +280,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Ve a Inventario > Salidas > Nueva salida. El sistema valida automáticamente que haya stock suficiente antes de permitir guardar.',
       },
       {
+        pregunta: '¿Puedo adjuntar una foto de evidencia a una entrada o salida desde la web?',
+        respuesta:
+          'Sí. Tanto en Nueva entrada como en Nueva salida hay un campo "Foto de evidencia (opcional)": adjunta una imagen (o toma una con la cámara) y se guarda comprimida junto al movimiento. Luego se ve con el botón 📷 en la lista de entradas/salidas y en el detalle del conduce. Todo lo que captura la app de campo también se puede hacer desde la computadora.',
+      },
+      {
         pregunta: '¿Cómo apruebo una requisición del ingeniero de obra?',
         respuesta:
           'Las requisiciones pendientes aparecen en un panel arriba de la tabla en Inventario > Salidas. Pulsa "Aprobar": elige el almacén y confirma a qué artículo del catálogo corresponde cada renglón (los que dejes sin artículo se irán a compra). Al aprobar, el sistema despacha lo que hay en stock (genera el conduce) y crea automáticamente una solicitud de compra por el faltante en el módulo Compras. Es un solo paso.',
@@ -493,6 +498,21 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Dónde gestiono los avisos de Flota (bloqueos, consumos, vencimientos)?',
         respuesta:
           'En Flota > Avisos hay una bandeja con todos los avisos operativos: bloqueos por checklist, hallazgos, pre-citas y mantenimiento vencido, consumo anormal de combustible, y vencimientos de licencia, matrícula y seguro (estos se generan solos al abrir la página). Filtra por estado/tipo/vehículo y pulsa "Atender" para dejar una nota y cerrarlos. El punto rojo del menú de Flota cuenta los avisos pendientes. Además llega un correo automático a quienes tienen el módulo Flota.',
+      },
+      {
+        pregunta: '¿Dónde subo la cédula y licencia de un conductor, o el seguro y matrícula de un vehículo?',
+        respuesta:
+          'En el perfil de cada uno. Conductores: Flota > Conductores > (abre el conductor) → sección "Documentos", con espacios destacados para Cédula y Licencia (marca "Falta documento" si aún no están) más los que quieras agregar. Vehículos: Flota > Vehículos > (abre el vehículo) → "Documentos", con Seguro y Matrícula destacados. Puedes subir imágenes o PDF, verlos, descargarlos y (admin/Flota) eliminarlos. Desde un aviso de vencimiento de licencia/seguro/matrícula, el botón "Ver documento" te lleva directo al documento.',
+      },
+      {
+        pregunta: '¿La entrega/recepción de un vehículo guarda dónde se hizo (GPS)?',
+        respuesta:
+          'Sí. En Flota > Responsabilidad, al abrir una entrega/recepción se muestra un mini-mapa con el punto y la hora en que se capturó, más un enlace "Ver en mapa". Si al capturarla no había permiso de ubicación, verás "Sin ubicación registrada".',
+      },
+      {
+        pregunta: '¿Puedo adjuntar fotos y firma a un checklist desde la computadora (no solo desde el celular)?',
+        respuesta:
+          'Sí. Todo lo que se captura en el celular también se puede hacer desde la web: en Flota > Checklists > Nuevo checklist puedes adjuntar las fotos del vehículo (delantera, tablero, etc.), una foto por cada ítem (útil para documentar un hallazgo) y la firma del conductor directamente en pantalla. En el detalle del checklist se ven todas, incluidas las fotos por ítem junto a su punto correspondiente.',
       },
     ],
   },

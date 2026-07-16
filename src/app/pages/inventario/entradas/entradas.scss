@@ -283,3 +283,24 @@ textarea {
   gap: 10px;
   align-items: center;
 }
+
+// Foto de evidencia opcional en el form (preview + botón)
+.entradas__foto-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--sgc-border);
+  }
+}
+.entradas__foto-pick {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  width: fit-content;
+}

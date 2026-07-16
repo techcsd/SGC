@@ -525,7 +525,8 @@ textarea {
 }
 
 // ── Leaflet DivIcon marker (created dynamically → must be global) ──
-.lp-marker__pin {
+.lp-marker__pin,
+.mm-marker__pin {
   width: 18px;
   height: 18px;
   border-radius: 50% 50% 50% 0;

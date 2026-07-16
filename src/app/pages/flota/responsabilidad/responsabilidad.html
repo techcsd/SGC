@@ -76,6 +76,14 @@
             @if (e.observacion) {
               <p class="resp-obs">“{{ e.observacion }}”</p>
             }
+
+            <!-- ── Ubicación (X2): prueba de dónde ocurrió la entrega/recepción ── -->
+            <h4 class="resp-detail-title">Ubicación</h4>
+            <app-mini-mapa [lat]="e.gps_lat" [lng]="e.gps_lng" />
+            @if (e.gps_lat != null) {
+              <p class="resp-muted resp-gps-fecha">Registrada el {{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
+            }
+
             @if (e.danos?.length) {
               <h4 class="resp-detail-title">Daños reportados</h4>
               <ul class="resp-danos">

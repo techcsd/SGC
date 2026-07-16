@@ -132,6 +132,22 @@ export class Avisos implements OnInit {
     }
   }
 
+  /** ¿El aviso es de vencimiento con documento asociado (X1)? */
+  tieneDocumento(a: AvisoFlota): boolean {
+    if (a.tipo === 'licencia') return !!a.conductor_id;
+    if (a.tipo === 'seguro' || a.tipo === 'matricula') return !!a.vehiculo_id;
+    return false;
+  }
+
+  /** X1: abre el perfil de la entidad con el documento del vencimiento auto-abierto. */
+  verDocumento(a: AvisoFlota) {
+    if (a.tipo === 'licencia' && a.conductor_id) {
+      this.router.navigate(['/flota/conductores', a.conductor_id], { queryParams: { doc: 'licencia' } });
+    } else if ((a.tipo === 'seguro' || a.tipo === 'matricula') && a.vehiculo_id) {
+      this.router.navigate(['/flota/vehiculos', a.vehiculo_id], { queryParams: { doc: a.tipo } });
+    }
+  }
+
   /** R9: crea una cita de mantenimiento precargando el form del vehículo. */
   crearCita(a: AvisoFlota) {
     if (!a.vehiculo_id) return;

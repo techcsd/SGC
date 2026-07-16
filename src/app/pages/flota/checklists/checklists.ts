@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   computed,
+  viewChild,
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -38,7 +39,9 @@ import { claseVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
+import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 /**
  * Checklists digitales de flota (pre-uso e inspección de seguridad). Historial +
@@ -47,7 +50,7 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,12 +92,19 @@ export class Checklists implements OnInit {
   private respuestas = signal<Record<string, ChecklistRespuestaValor>>({});
   /** item.id → comentario. */
   private comentarios = signal<Record<string, string>>({});
+  /** Fotos a subir al registrar: slot (fijo o `item_N`) → File. */
+  private slotFotos = signal<Record<string, File>>({});
+  slotPreviews = signal<Record<string, string>>({});
+  /** Pad de firma del conductor (opcional) en el drawer de creación. */
+  private firmaPad = viewChild<SignaturePad>('firmaPad');
 
   // ── Detail drawer ────────────────────────────────────────
   detailOpen = signal(false);
   loadingDetail = signal(false);
   selected = signal<ChecklistVehiculo | null>(null);
   private fotoUrls = signal<Record<string, string>>({});
+  /** X3 — fotos por ítem (slot `item_N`) resueltas y etiquetadas por su respuesta. */
+  private itemFotos = signal<{ orden: number; etiqueta: string; url: string }[]>([]);
   /** URL firmada de la firma del conductor (o null). */
   firmaUrl = signal<string | null>(null);
   notaAtencion = signal('');
@@ -269,6 +279,7 @@ export class Checklists implements OnInit {
     this.selectedVehiculoForm.set(null);
     this.respuestas.set({});
     this.comentarios.set({});
+    this.limpiarFotos();
     this.form.reset({
       vehiculo_id: null,
       conductor_id: null,
@@ -344,6 +355,47 @@ export class Checklists implements OnInit {
     this.comentarios.update((m) => ({ ...m, [itemId]: texto }));
   }
 
+  // ── Fotos del checklist (paridad con la app de campo) ────
+  /** Foto de un slot fijo (delantera, tablero…) o de un ítem (`item_<orden>`). */
+  async onSlotFoto(slot: string, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    const comprimida = await comprimirImagen(file);
+    const prevUrl = this.slotPreviews()[slot];
+    if (prevUrl) URL.revokeObjectURL(prevUrl);
+    this.slotFotos.update((m) => ({ ...m, [slot]: comprimida }));
+    this.slotPreviews.update((m) => ({ ...m, [slot]: URL.createObjectURL(comprimida) }));
+  }
+
+  quitarSlotFoto(slot: string) {
+    const prevUrl = this.slotPreviews()[slot];
+    if (prevUrl) URL.revokeObjectURL(prevUrl);
+    this.slotFotos.update((m) => {
+      const { [slot]: _omit, ...rest } = m;
+      return rest;
+    });
+    this.slotPreviews.update((m) => {
+      const { [slot]: _omit, ...rest } = m;
+      return rest;
+    });
+  }
+
+  slotPreview(slot: string): string | null {
+    return this.slotPreviews()[slot] ?? null;
+  }
+
+  itemSlot(orden: number): string {
+    return `item_${orden}`;
+  }
+
+  private limpiarFotos() {
+    for (const url of Object.values(this.slotPreviews())) URL.revokeObjectURL(url);
+    this.slotFotos.set({});
+    this.slotPreviews.set({});
+  }
+
   async onSave() {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
@@ -394,7 +446,30 @@ export class Checklists implements OnInit {
     };
 
     try {
-      const id = await this.checklistsService.registrar(payload);
+      // Paridad app de campo: subir fotos (slots fijos + por ítem) y firma ANTES
+      // del RPC, usando un id de cliente para enlazarlas.
+      const id = this.checklistsService.nuevoId();
+      const fotos: { slot: string; storage_path: string }[] = [];
+      for (const [slot, file] of Object.entries(this.slotFotos())) {
+        try {
+          fotos.push(await this.checklistsService.uploadFoto(id, slot, file));
+        } catch {
+          /* una foto que no suba no debe abortar el registro */
+        }
+      }
+      let firmaPath: string | null = null;
+      const pad = this.firmaPad();
+      if (pad && !pad.isEmpty()) {
+        const blob = await pad.toBlob();
+        if (blob) {
+          try {
+            firmaPath = await this.checklistsService.uploadFirma(id, blob);
+          } catch {
+            /* la firma es opcional */
+          }
+        }
+      }
+      await this.checklistsService.registrar(payload, { id, fotos, firmaPath });
       const created = await this.checklistsService.getById(id);
       this.checklists.update((list) => [created, ...list]);
       this.drawerOpen.set(false);
@@ -426,6 +501,7 @@ export class Checklists implements OnInit {
     this.loadingDetail.set(true);
     this.selected.set(null);
     this.fotoUrls.set({});
+    this.itemFotos.set([]);
     this.firmaUrl.set(null);
     this.notaAtencion.set('');
     try {
@@ -445,18 +521,52 @@ export class Checklists implements OnInit {
 
   private async resolveFotos(checklist: ChecklistVehiculo) {
     const map: Record<string, string> = {};
+    const items: { orden: number; etiqueta: string; url: string }[] = [];
+    // Etiqueta de cada ítem por su orden (para nombrar las fotos por-ítem).
+    const etiquetaPorOrden = new Map(
+      (checklist.respuestas ?? []).map((r) => [r.orden, r.etiqueta]),
+    );
     await Promise.all(
       (checklist.fotos ?? []).map(async (f, i) => {
         try {
           const url = await this.checklistsService.getFotoUrl(f.storage_path);
-          if (url) map[f.slot ?? `foto_${i}`] = url;
+          if (!url) return;
+          const slot = f.slot ?? `foto_${i}`;
+          // X3 — las fotos por ítem que sube la app usan slot `item_N` (N = orden).
+          const m = /^item_(\d+)$/.exec(slot);
+          if (m) {
+            const orden = Number(m[1]);
+            items.push({ orden, etiqueta: etiquetaPorOrden.get(orden) ?? `Ítem ${orden}`, url });
+          } else {
+            map[slot] = url;
+          }
         } catch {
           /* omite una foto que no se pueda firmar */
         }
       }),
     );
+    items.sort((a, b) => a.orden - b.orden);
     this.fotoUrls.set(map);
+    this.itemFotos.set(items);
   }
+
+  /** X3 — fotos por ítem del ítem con ese `orden` (para la galería inline en hallazgos). */
+  fotosDeItem(orden: number): string[] {
+    return this.itemFotos()
+      .filter((f) => f.orden === orden)
+      .map((f) => f.url);
+  }
+
+  /** X3 — fotos por ítem agrupadas por ítem, para la galería del detalle. */
+  itemFotosGrupos = computed(() => {
+    const grupos = new Map<number, { orden: number; etiqueta: string; urls: string[] }>();
+    for (const f of this.itemFotos()) {
+      const g = grupos.get(f.orden) ?? { orden: f.orden, etiqueta: f.etiqueta, urls: [] };
+      g.urls.push(f.url);
+      grupos.set(f.orden, g);
+    }
+    return [...grupos.values()].sort((a, b) => a.orden - b.orden);
+  });
 
   closeDetail() { this.detailOpen.set(false); }
 

@@ -287,11 +287,58 @@
                 [value]="getComentario(it.id)"
                 (input)="setComentario(it.id, $any($event.target).value)"
                 [attr.aria-label]="'Comentario para ' + it.etiqueta" />
+
+              <!-- Foto por ítem (opcional) — paridad app de campo -->
+              @if (slotPreview(itemSlot(it.orden)); as prev) {
+                <div class="cl-item-foto-edit">
+                  <img [src]="prev" alt="Foto del ítem" />
+                  <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(itemSlot(it.orden))"
+                    aria-label="Quitar foto del ítem">✕</button>
+                </div>
+              } @else {
+                <label class="cl-foto-add" [attr.title]="'Foto para ' + it.etiqueta">
+                  📷
+                  <input type="file" accept="image/*" capture="environment" hidden
+                    (change)="onSlotFoto(itemSlot(it.orden), $event)" />
+                </label>
+              }
             </div>
           }
         }
       </div>
     }
+
+    <!-- Fotos del vehículo (opcional) — paridad app de campo -->
+    <div class="sgc-field">
+      <label>Fotos del vehículo (opcional)</label>
+      <div class="cl-fotos-slots">
+        @for (s of FOTO_SLOTS; track s.slot) {
+          <div class="cl-foto-slot-edit">
+            @if (slotPreview(s.slot); as prev) {
+              <img [src]="prev" [alt]="s.label" />
+              <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(s.slot)"
+                [attr.aria-label]="'Quitar ' + s.label">✕</button>
+            } @else {
+              <label class="cl-foto-slot-add">
+                <span>📷</span>
+                <input type="file" accept="image/*" capture="environment" hidden
+                  (change)="onSlotFoto(s.slot, $event)" />
+              </label>
+            }
+            <span class="cl-foto-slot-cap">{{ s.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Firma del conductor (opcional) -->
+    <div class="sgc-field">
+      <label>Firma del conductor (opcional)</label>
+      <app-signature-pad #firmaPad ariaLabel="Firma del conductor" />
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaPad.clear()">
+        Limpiar firma
+      </button>
+    </div>
 
     <div class="sgc-field">
       <label for="observaciones">Observaciones</label>
@@ -401,6 +448,15 @@
                 <span>{{ r.etiqueta }}</span>
                 @if (r.es_critico) { <span class="cl-critico">● crítico</span> }
                 @if (r.comentario) { <span class="cl-coment-read">{{ r.comentario }}</span> }
+                @if (fotosDeItem(r.orden).length) {
+                  <div class="cl-item-fotos">
+                    @for (u of fotosDeItem(r.orden); track u) {
+                      <a [href]="u" target="_blank" rel="noopener">
+                        <img [src]="u" alt="Foto del hallazgo" loading="lazy" />
+                      </a>
+                    }
+                  </div>
+                }
               </div>
               <span class="sgc-badge sgc-badge--danger">NO</span>
             </div>
@@ -437,6 +493,25 @@
           </div>
         }
       </div>
+
+      <!-- Fotos por ítem (X3) — evidencia que sube la app por cada ítem -->
+      @if (itemFotosGrupos().length > 0) {
+        <h4 class="cl-section-title">Fotos por ítem</h4>
+        <div class="cl-item-galeria">
+          @for (g of itemFotosGrupos(); track g.orden) {
+            <div class="cl-item-grupo">
+              <span class="cl-item-grupo__label">{{ g.etiqueta }}</span>
+              <div class="cl-item-fotos">
+                @for (u of g.urls; track u) {
+                  <a [href]="u" target="_blank" rel="noopener">
+                    <img [src]="u" [alt]="g.etiqueta" loading="lazy" />
+                  </a>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
 
       <!-- Firma del conductor -->
       @if (firmaUrl()) {
