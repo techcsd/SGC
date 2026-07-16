@@ -2,6 +2,27 @@
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
     "1.9.0": {
+      "titulo": "QA total + propuestas + exportación a Excel",
+      "cambios": [
+        { "t": "arreglo", "d": "QA total del sistema: 9 hallazgos altos y decenas de medios/bajos corregidos (montos RD$, estados, zonas horarias, validaciones)." },
+        { "t": "nuevo", "d": "Exportación a Excel (lo filtrado) en inventario, flota, compras, RRHH, legal, tareas, tecnología, proyectos y auditoría." },
+        { "t": "nuevo", "d": "TI: costo/garantía/fecha de compra + origen desde compra; equipos asignados visibles en la ficha del empleado." },
+        { "t": "mejora", "d": "RRHH: una ausencia aprobada genera la asistencia de cada día; KPI de ausencias pendientes." },
+        { "t": "mejora", "d": "Compras: reconciliación de recibido vs ordenado por ítem; Legal: enlace externo y comentario del revisor." },
+        { "t": "seguridad", "d": "Endurecimiento de permisos (RLS) y pruebas E2E de gating por rol." }
+      ]
+    },
+    "1.10.0": {
+      "titulo": "Documentos de flota, GPS y paridad web/móvil",
+      "cambios": [
+        { "t": "nuevo", "d": "Documentos de conductores (cédula/licencia) y vehículos (seguro/matrícula): subir, ver y descargar desde el perfil; abrir desde el aviso de vencimiento." },
+        { "t": "nuevo", "d": "Registrar entrega/recepción de vehículo desde la web (fotos guiadas, daños, firma y GPS del navegador)." },
+        { "t": "nuevo", "d": "Cerrar/firmar la entrega de un conduce desde la web; foto de evidencia en salidas y entradas; fotos en reportes de Soporte." },
+        { "t": "mejora", "d": "GPS de entrega/recepción con mini-mapa; fotos por ítem del checklist visibles junto a su hallazgo." },
+        { "t": "arreglo", "d": "Los mapas ya no se ven en gris ni desalineados dentro de formularios y filas." }
+      ]
+    },
+    "1.11.0": {
       "titulo": "Historial de versiones confiable + auditoría rediseñada",
       "cambios": [
         { "t": "nuevo", "d": "Historial de versiones con formato uniforme (chips por tipo) para web y app móvil, y registro automático en cada despliegue." },

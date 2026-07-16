@@ -2,6 +2,37 @@
 
 _Last updated: 2026-07-16_
 
+## Actualización 7 (historial de versiones + auditoría + brechas web) — ✅ EN PRODUCCIÓN
+
+Source: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-7.md` + `CUMPLIMIENTO.md` (PROMPT-16, web).
+`main` @ deploy Vercel **READY** en sgcconstructorasd.com. Build OK. Cierra Y1, Y2 y las brechas web (B4/B6/B7) de la auditoría 85/90. Web bump → **1.11.0**.
+
+### Y1 — Historial de versiones confiable y uniforme (REGLA permanente)
+- **código manda**: NO se agregó `notas_estructuradas`; `app_versiones` ya tenía `titulo` + `cambios jsonb` ({t,d}) y la UI ya pinta chips para ambas plataformas + fallback a texto plano. Se reutilizan.
+- RPC `registrar_version(p_plataforma, p_version, p_notas, p_titulo, p_cambios)` — dropeada la firma de 3 args → 1 overload (retrocompat); idempotente que **solo rellena vacíos, nunca sobrescribe** notas editadas por admin.
+- Automatización: `release-notes.json` (fuente de notas) → hook `prebuild` `gen-version.mjs` (emite `APP_VERSION`+título+cambios a `version.ts`) → paso `postbuild` `registrar-version-web.mjs` (registra la versión web en el deploy vía RPC; **skip limpio si faltan envs**). `autoRegistrarVersionWeb()` (shell) es la red de seguridad, ahora con notas estructuradas.
+- **Backfill** aplicado: 4 entradas móvil en texto corrido (1.7.0/1.7.1/1.7.2/1.8.0) → estructura; 0 entradas sin formato.
+- **Renumeración web**: Act4=1.8.0, **Act5=1.9.0**, **Act6=1.10.0**, **Act7=1.11.0** — las 3 registradas en BD con notas estructuradas (aparecen en el timeline). REGLA documentada en `CLAUDE.md`.
+- **PENDIENTE (acción de Xaviel en Vercel)**: para que el registro web sea 100% en el deploy, definir en Vercel → Environment Variables: `SUPABASE_URL` = `https://jeeqhgccqefbqilntcpu.supabase.co` y `SUPABASE_SERVICE_ROLE_KEY` (build-time). No lo pude hacer yo: el MCP de Vercel no expone gestión de env vars y la CLI no está instalada. Mientras tanto, el auto-registro al arrancar lo cubre.
+
+### Y2 — Dashboard de auditoría rediseñado (solo presentación)
+- Causa raíz: `auditoria.scss` no definía `kpi-grid/kpi-card/kpi-value/direccion-charts/chart-card` (viven por-dashboard, no global) → "Acciones605" pegado y barras a ancho completo. Se añadieron esos estilos (copiados de `direccion`) + KPI cards en grid de 4, dona junto al ranking (2 col), "Ver más" en listas drill-down. Sin tocar lógica/filtros/drill-down. **Verificado con screenshot Playwright** (se ve de la misma familia que los demás dashboards).
+
+### Brechas web del CUMPLIMIENTO
+- **B4 (U3)**: RPC `usuarios_vinculables()` (SECURITY DEFINER, gated flota/rrhh/admin) trae cédula/teléfono desde `empleados` (por `usuario_id` o `email`); el form de conductor los autollena al enlazar (editables, sin pisar lo escrito).
+- **B6 (QA-057)**: `destacada=false` en categorías inactivas (Clavos/Madera/Acero); solo quedan destacadas las oficiales activas.
+- **B7**: `QA-FINDINGS.md` alineado (QA-057 resuelto).
+
+### Migraciones en prod (Act.7, aditivas)
+`sql/2026-07-16-act7-versiones-y-categorias.sql` (RPC + B6) · `-act7-usuarios-vinculables.sql` (B4) · `-act7-backfill-versiones-movil.sql` (backfill).
+
+### Pendientes / notas
+- **Vercel env vars** (arriba) — única acción manual para automatizar el registro web en el deploy.
+- Brechas **B1/B2/B3/B5** son de la app móvil (csd-app, PROMPT-17) — otro repo, no tocadas aquí.
+- Screenshot before/after: el "before" ya no era capturable (el fix estaba desplegado); se validó el "after".
+
+---
+
 ## Actualización 6 (documentos + paridad web/móvil) — ✅ EN PRODUCCIÓN
 
 Source: `C:\developer\improvements\imp 14072026\CONTEXTO-ACTUALIZACION-6.md` (PROMPT-13, web).
