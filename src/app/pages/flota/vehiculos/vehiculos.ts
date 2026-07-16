@@ -26,6 +26,7 @@ import {
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 interface PendingFoto {
   file: File;
@@ -160,6 +161,21 @@ export class FlotaVehiculos implements OnInit {
   onSearch(value: string) { this.searchQuery.set(value); }
   onTipoChange(value: string) { this.selectedTipo.set(value); }
   onEstadoChange(value: string) { this.selectedEstado.set(value); }
+
+  /** Exporta los vehículos filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((v) => ({
+      Placa: v.placa,
+      Tipo: this.getTipoLabel(v.tipo),
+      Marca: v.marca,
+      Modelo: v.modelo,
+      Año: v.anio,
+      Estado: this.ESTADOS.find((e) => e.value === v.estado)?.label ?? v.estado,
+      Km: v.kilometraje,
+      Activo: v.activo ? 'Sí' : 'No',
+    }));
+    await exportarExcel('vehiculos', rows);
+  }
 
   openCreate() {
     this.editingId.set(null);

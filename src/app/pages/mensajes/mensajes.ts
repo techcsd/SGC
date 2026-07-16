@@ -64,12 +64,21 @@ export class Mensajes implements OnInit, OnDestroy {
 
   private channel: RealtimeChannel | null = null;
 
+  // Auto-scroll: 'auto' (instantáneo) en la carga inicial de un hilo; 'smooth'
+  // solo cuando llega/enviamos un mensaje nuevo. Campo plano (no signal) para no
+  // volver reactivo el efecto de scroll.
+  private nextScrollBehavior: ScrollBehavior = 'auto';
+
   selectedConv = computed(() => this.conversaciones().find((c) => c.id === this.selectedId()) ?? null);
 
   conversacionesFiltradas = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     if (!q) return this.conversaciones();
-    return this.conversaciones().filter((c) => (c.tituloMostrado ?? '').toLowerCase().includes(q));
+    return this.conversaciones().filter(
+      (c) =>
+        (c.tituloMostrado ?? '').toLowerCase().includes(q) ||
+        (c.participantes ?? []).some((p) => p.nombre.toLowerCase().includes(q)),
+    );
   });
 
   directorioFiltrado = computed(() => {
@@ -80,10 +89,13 @@ export class Mensajes implements OnInit, OnDestroy {
   });
 
   constructor() {
-    // Auto-scroll to the newest message whenever the thread changes.
+    // Auto-scroll to the newest message whenever the thread changes. Instant on
+    // initial load; smooth only when a new message arrives/is sent.
     effect(() => {
       this.mensajes();
-      queueMicrotask(() => this.threadEnd()?.nativeElement.scrollIntoView({ behavior: 'smooth' }));
+      const behavior = this.nextScrollBehavior;
+      queueMicrotask(() => this.threadEnd()?.nativeElement.scrollIntoView({ behavior }));
+      this.nextScrollBehavior = 'auto';
     });
   }
 
@@ -144,6 +156,7 @@ export class Mensajes implements OnInit, OnDestroy {
     if (m.conversacion_id === this.selectedId()) {
       if (!this.mensajes().some((x) => x.id === m.id)) {
         const autorNombre = this.nombrePorId.get(m.autor_id) ?? 'Usuario';
+        this.nextScrollBehavior = 'smooth';
         this.mensajes.update((list) => [...list, { ...m, autor: { nombre: autorNombre } }]);
       }
       // QA-058 — solo marcar como leído si la pestaña está enfocada; si el usuario
@@ -175,6 +188,7 @@ export class Mensajes implements OnInit, OnDestroy {
     try {
       const m = await this.mensajeria.enviarMensaje(conv.id, this.miId, texto || null, file);
       if (!this.mensajes().some((x) => x.id === m.id)) {
+        this.nextScrollBehavior = 'smooth';
         this.mensajes.update((list) => [...list, m]);
       }
       this.composer.reset('');

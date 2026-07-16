@@ -7,8 +7,10 @@ import {
   TecEquipo,
   TecEquipoFormData,
   TecEquipoHistorial,
+  TecCompraOpcion,
   TEC_EQUIPO_ESTADOS,
 } from '../models/tecnologia.model';
+import { formatFechaMedia } from '../utils/fecha.util';
 import { SolicitudCompra } from '../models/solicitud.model';
 
 @Injectable({ providedIn: 'root' })
@@ -77,12 +79,48 @@ export class TecnologiaService {
     if (error) throw new Error(error.message);
   }
 
+  // QA-080 — puestos distintos (union de empleados.cargo + tec_matriz.puesto)
+  // para alimentar el <datalist> del campo puesto y así deduplicar tipeos.
+  // Best-effort: cualquier fallo devuelve [] sin romper la pantalla.
+  async getPuestosSugeridos(): Promise<string[]> {
+    try {
+      const [cargosRes, matrizRes] = await Promise.all([
+        this.supabase.client.from('empleados').select('cargo'),
+        this.supabase.client.from('tec_matriz').select('puesto'),
+      ]);
+      const set = new Set<string>();
+      for (const r of cargosRes.data ?? []) {
+        const c = (r as { cargo?: string | null }).cargo?.trim();
+        if (c) set.add(c);
+      }
+      for (const r of matrizRes.data ?? []) {
+        const p = (r as { puesto?: string | null }).puesto?.trim();
+        if (p) set.add(p);
+      }
+      return Array.from(set).sort((a, b) => a.localeCompare(b, 'es'));
+    } catch {
+      return [];
+    }
+  }
+
   // ── Inventario tecnológico ────────────────────────────────
   async getEquipos(): Promise<TecEquipo[]> {
     const { data, error } = await this.supabase.client
       .from('tec_equipos')
       .select('*, empleado:empleados(nombre, apellido, cargo)')
       .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as TecEquipo[];
+  }
+
+  /** QA-072 — Equipos TI activos asignados a un empleado (solo lectura, para RRHH). */
+  async getEquiposByEmpleado(empleadoId: string): Promise<TecEquipo[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_equipos')
+      .select('*')
+      .eq('empleado_id', empleadoId)
+      .eq('activo', true)
+      .order('codigo', { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as TecEquipo[];
   }
@@ -213,6 +251,36 @@ export class TecnologiaService {
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as SolicitudCompra[];
+  }
+
+  // QA-070 — opciones ligeras para el selector "Origen: compra tecnológica".
+  // Lista las solicitudes de compra tecnológicas más recientes con una etiqueta
+  // legible (fecha + resumen de renglones). Best-effort: [] ante cualquier error.
+  async getComprasTecOpciones(limite = 30): Promise<TecCompraOpcion[]> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('solicitudes_compra')
+        .select('id, created_at, notas, items:solicitud_compra_items(descripcion)')
+        .eq('categoria', 'tecnologia')
+        .order('created_at', { ascending: false })
+        .limit(limite);
+      if (error) return [];
+      return (data ?? []).map((row) => {
+        const r = row as {
+          id: string;
+          created_at: string;
+          notas: string | null;
+          items?: { descripcion: string }[];
+        };
+        const resumen =
+          r.items?.map((i) => i.descripcion).filter(Boolean).slice(0, 3).join(', ') ||
+          r.notas ||
+          'Compra tecnológica';
+        return { id: r.id, label: `${formatFechaMedia(r.created_at)} — ${resumen}` };
+      });
+    } catch {
+      return [];
+    }
   }
 
   async crearCompraTec(

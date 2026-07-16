@@ -277,3 +277,9 @@ textarea {
   .resumen-hoja__meta { grid-template-columns: 1fr; }
   .resumen-row { grid-template-columns: 1fr auto; row-gap: 8px; }
 }
+
+.page-header__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}

@@ -195,3 +195,9 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+.page-header__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}

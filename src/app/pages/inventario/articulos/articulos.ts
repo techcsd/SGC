@@ -18,6 +18,7 @@ import { Unidad } from '../../../../shared/models/unidad.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-articulos',
@@ -162,6 +163,19 @@ export class Articulos implements OnInit {
       range.push(i);
     }
     return range;
+  }
+
+  /** Exporta los artículos filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((a) => ({
+      Código: a.codigo,
+      Nombre: a.nombre,
+      Categoría: this.getCategoryName(a.categoria_id),
+      Unidad: a.unidad,
+      Stock: this.getStock(a.id),
+      Activo: a.activo ? 'Sí' : 'No',
+    }));
+    await exportarExcel('articulos', rows);
   }
 
   // ── Drawer ───────────────────────────────────────────────

@@ -5,9 +5,15 @@
       <h1 class="proyectos__title">Proyectos</h1>
       <p class="proyectos__subtitle">Gestión y seguimiento de proyectos de construcción</p>
     </div>
-    <button class="proyectos__btn-new" (click)="openCreate()">
-      + Nuevo proyecto
-    </button>
+    <div class="proyectos__header-actions">
+      <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+              [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+        ⬇️ Excel
+      </button>
+      <button class="proyectos__btn-new" (click)="openCreate()">
+        + Nuevo proyecto
+      </button>
+    </div>
   </div>
 
   <!-- Stats -->

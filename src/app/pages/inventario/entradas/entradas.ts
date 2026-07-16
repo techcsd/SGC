@@ -25,6 +25,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-entradas',
@@ -280,6 +281,19 @@ export class Entradas implements OnInit {
       range.push(i);
     }
     return range;
+  }
+
+  /** Exporta las entradas filtradas a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((e) => ({
+      Fecha: this.formatFecha(e.fecha),
+      Almacén: e.bodega?.nombre ?? '',
+      Proveedor: e.proveedor?.nombre ?? '',
+      Referencia: e.referencia ?? '',
+      Artículos: (e.detalle_entradas ?? []).length,
+      Total: this.entryTotal(e),
+    }));
+    await exportarExcel('entradas-inventario', rows);
   }
 
   // ── Drawer ───────────────────────────────────────────────

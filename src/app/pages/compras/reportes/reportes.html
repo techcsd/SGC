@@ -1,7 +1,13 @@
 <!-- Header -->
 <div class="compras-reportes__header">
-  <h1>Reportes de Compras</h1>
-  <p>Análisis de órdenes de compra y proveedores</p>
+  <div>
+    <h1>Reportes de Compras</h1>
+    <p>Análisis de órdenes de compra y proveedores</p>
+  </div>
+  <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelResumen()"
+          [disabled]="loading()" title="Exportar el resumen a Excel">
+    ⬇️ Excel
+  </button>
 </div>
 
 @if (loading()) {

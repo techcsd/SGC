@@ -8,6 +8,7 @@ import {
   conduceNumero,
 } from '../../../../shared/models/salida.model';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
@@ -113,5 +114,18 @@ export class Conduces implements OnInit {
 
   get pages(): number[] {
     return Array.from({ length: this.totalPages() }, (_, i) => i + 1);
+  }
+
+  /** Exporta los conduces filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((s) => ({
+      'No. Conduce': this.numero(s.id),
+      Fecha: this.formatFecha(s.fecha),
+      Almacén: s.bodega?.nombre ?? '',
+      Proyecto: s.proyecto?.nombre ?? '',
+      Estado: this.ESTADO_LABELS[s.estado],
+      Artículos: this.itemsCount(s),
+    }));
+    await exportarExcel('conduces', rows);
   }
 }

@@ -1,9 +1,10 @@
 import { Component, ChangeDetectionStrategy, inject, input, output, signal, effect } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { TareasService } from '../../services/tareas.service';
+import { TareasService, DirectorioUsuario } from '../../services/tareas.service';
 import { UserService } from '../../../app/core/services/user.service';
+import { ToastService } from '../../services/toast.service';
 import { Tarea, TareaComentario, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../models/tarea.model';
 import { todayIso } from '../../utils/fecha.util';
 import { FormDrawer } from '../form-drawer/form-drawer';
@@ -28,6 +29,7 @@ const ESTADO_TRANSICIONES: Record<TareaEstado, TareaEstado[]> = {
 export class TareaDetalle {
   private tareasService = inject(TareasService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   tarea = input<Tarea | null>(null);
   open = input<boolean>(false);
@@ -46,7 +48,21 @@ export class TareaDetalle {
   savingComentario = signal(false);
   working = signal(false);
 
+  // ── QA-073 — Edición / reasignación (solo gestores) ──────
+  usuarios = signal<DirectorioUsuario[]>([]);
+  editMode = signal(false);
+  savingEdit = signal(false);
+  editError = signal('');
+  editForm = new FormGroup({
+    titulo: new FormControl('', [Validators.required, Validators.maxLength(200)]),
+    descripcion: new FormControl<string | null>(null),
+    prioridad: new FormControl<string>('media', [Validators.required]),
+    asignado_a: new FormControl<string | null>(null, [Validators.required]),
+    fecha_limite: new FormControl<string | null>(null),
+  });
+
   private comentariosChannel: RealtimeChannel | null = null;
+  private directorioLoaded = false;
 
   constructor() {
     // Load the comment thread whenever a task is opened, and keep it live via realtime.
@@ -54,6 +70,13 @@ export class TareaDetalle {
       const t = this.tarea();
       const isOpen = this.open();
       if (isOpen && t) {
+        // QA-073 — al reabrir el detalle, cierra cualquier edición previa y, para
+        // gestores, carga el directorio de responsables una sola vez.
+        this.editMode.set(false);
+        if (this.canManage() && !this.directorioLoaded) {
+          this.directorioLoaded = true;
+          void this.loadDirectorio();
+        }
         void this.loadComentarios(t.id);
         // QA-055 — nuevos comentarios (de cualquiera) llegan sin recargar la página.
         this.comentariosChannel = this.tareasService.subscribeComentarios(t.id, () =>
@@ -88,7 +111,62 @@ export class TareaDetalle {
     }
   }
 
+  private async loadDirectorio() {
+    try {
+      this.usuarios.set(await this.tareasService.getDirectorio());
+    } catch {
+      // permite reintentar la próxima vez que se abra el detalle
+      this.directorioLoaded = false;
+    }
+  }
+
+  // ── QA-073 — Editar / reasignar tarea ────────────────────
+  openEdit() {
+    const t = this.tarea();
+    if (!t || !this.canManage()) return;
+    this.editError.set('');
+    this.editForm.reset({
+      titulo: t.titulo,
+      descripcion: t.descripcion,
+      prioridad: t.prioridad,
+      asignado_a: t.asignado_a,
+      fecha_limite: t.fecha_limite,
+    });
+    this.editMode.set(true);
+  }
+
+  cancelEdit() {
+    this.editMode.set(false);
+  }
+
+  async guardarEdicion() {
+    const t = this.tarea();
+    this.editForm.markAllAsTouched();
+    if (!t || this.editForm.invalid || this.savingEdit()) return;
+
+    this.savingEdit.set(true);
+    this.editError.set('');
+    const raw = this.editForm.value;
+    try {
+      const updated = await this.tareasService.update(t.id, {
+        titulo: raw.titulo!,
+        descripcion: raw.descripcion || null,
+        prioridad: (raw.prioridad ?? 'media') as Tarea['prioridad'],
+        asignado_a: raw.asignado_a!,
+        fecha_limite: raw.fecha_limite || null,
+      });
+      this.updated.emit(updated);
+      this.editMode.set(false);
+      this.toast.success('Tarea actualizada');
+    } catch (e: unknown) {
+      this.editError.set(e instanceof Error ? e.message : 'Error al guardar los cambios.');
+    } finally {
+      this.savingEdit.set(false);
+    }
+  }
+
   close() {
+    this.editMode.set(false);
     this.closed.emit();
   }
 
@@ -167,5 +245,9 @@ export class TareaDetalle {
     // Both are YYYY-MM-DD; lexicographic compare vs the local date avoids the
     // new Date()/UTC date-shift trap (would mark "vencida" ~4h early in RD).
     return t.fecha_limite < todayIso();
+  }
+
+  get ef() {
+    return this.editForm.controls;
   }
 }

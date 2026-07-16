@@ -5,6 +5,7 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
@@ -89,5 +90,18 @@ export class Movimientos implements OnInit {
     this.selectedTipo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
+  }
+
+  /** Exporta los movimientos filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((m) => ({
+      Fecha: this.formatFecha(m.fecha),
+      Tipo: m.tipo === 'salida' ? 'Salida' : 'Entrada',
+      Almacén: this.bodegaNombre(m.bodega_id),
+      'Concepto / referencia': m.concepto || '',
+      Artículos: m.items,
+      Responsable: m.responsable || '',
+    }));
+    await exportarExcel('movimientos-inventario', rows);
   }
 }

@@ -15,6 +15,7 @@ import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { todayIso, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-asistencia',
@@ -194,6 +195,23 @@ export class Asistencia implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** Exporta los registros de asistencia visibles del período a Excel. */
+  async exportar() {
+    const rows = this.filteredRegistros().map((r) => ({
+      Empleado: r.empleado
+        ? `${r.empleado.apellido}, ${r.empleado.nombre}`
+        : this.getEmpleadoNombre(r.empleado_id),
+      Cargo: r.empleado?.cargo ?? '',
+      Fecha: r.fecha,
+      'Hora entrada': formatHora12(r.hora_entrada),
+      'Hora salida': formatHora12(r.hora_salida),
+      'Horas trabajadas': this.getHorasTrabajadas(r.hora_entrada, r.hora_salida),
+      Estado: this.getEstadoLabel(r.estado),
+      Notas: r.notas ?? '',
+    }));
+    await exportarExcel(`asistencia-${this.selectedDate()}`, rows);
   }
 
   // ── Helpers ──────────────────────────────────────────────

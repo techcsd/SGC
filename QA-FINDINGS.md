@@ -39,8 +39,25 @@ QA-040 label estado solicitud-compra ✅ · QA-042 "atendido por" (degradado si 
 - **QA-041** solicitudes-compra: fila expandible con renglones (proveedor sugerido, ver foto, notas, categoría, enlace a OC/origen) — ✅ Resuelto.
 - **QA-057** categorías destacada solo en inactivas — **es dato, no código** (marcar una categoría activa como destacada si se desea).
 
-## MEJORA / PROPUESTA (decisión de producto — NO implementadas)
-QA-070 crear/enlazar equipo TI desde compra aprobada · QA-071 inventario TI costo/garantía/fecha compra · QA-072 asignación TI reflejada en ficha de empleado · QA-073 editar/reasignar tarea creada · QA-075 enlace externo en expediente legal · QA-076 recepción OC reconciliada por ítem con entradas · QA-077 export .docx real · QA-078 KPI ausencias pendientes en dashboard · QA-079 comentario revisor en columna propia + reabrir resueltas · QA-080 catálogo de puestos en matriz TI · + menores WCAG/UX (labels, auto-scroll, búsqueda por participante).
+## MEJORA / PROPUESTA — ✅ IMPLEMENTADAS (aprobadas por Xavier)
+- **QA-070** ✅ TI: campo "Origen: compra tecnológica" en el equipo (`origen_solicitud_compra_id`) + badge "Registrado desde compra".
+- **QA-071** ✅ TI: inventario con costo (RD$), fecha de compra y garantía hasta (form + lista + detalle).
+- **QA-072** ✅ TI↔RRHH: el detalle del empleado muestra sus equipos TI asignados.
+- **QA-073** ✅ Tareas: gestores pueden editar/reasignar (título/desc/prioridad/fecha/responsable).
+- **QA-075** ✅ Legal: enlace externo en el expediente legal (captura + link).
+- **QA-076** ✅ Compras: reconciliación recibido vs ordenado por ítem en el detalle de la OC.
+- **QA-077** ✅ Documentos: "Descargar Word (.doc)" (HTML+MIME Word, sin dependencias nuevas).
+- **QA-078** ✅ RRHH: KPI "Ausencias pendientes" en el dashboard (gated por módulo rrhh).
+- **QA-079** ✅ Legal: comentario del revisor en columna propia + visible al reabrir resueltas.
+- **QA-080** ✅ TI: matriz con datalist de puestos (empleados.cargo + puestos previos).
+- **QA-032** ✅ RRHH: ausencia aprobada → genera asistencia por cada día (RPC idempotente).
+- Menores WCAG/UX ✅: aria-label en comentario de tarea, auto-scroll del chat solo en mensaje nuevo, búsqueda de conversaciones por participante.
+
+## Export a Excel — ✅ NUEVO (transversal)
+Util compartida `src/shared/utils/exportar-excel.util.ts` (xlsx, import dinámico). Botón "⬇️ Excel" (exporta lo filtrado) agregado a: inventario (movimientos, conduces, salidas, entradas, artículos), flota (reportes multi-hoja, combustible, mantenimientos, vehículos), proyectos (lista), admin/auditoría (todas las filas filtradas), compras (órdenes, reportes multi-hoja, proveedores), rrhh (empleados, asistencia, ausencias), legal (expedientes, contratos), tareas (gestión, historial), tecnología (inventario). Bitácora ya lo tenía.
+
+## Migraciones SQL de propuestas (prod)
+- `sql/2026-07-16-qa5-propuestas.sql` — tec_equipos (costo/fecha_compra/garantia_hasta/origen_solicitud_compra_id), expedientes_legales.enlace, RPC registrar_asistencia_por_ausencia.
 
 ---
 

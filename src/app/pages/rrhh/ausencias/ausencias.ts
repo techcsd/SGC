@@ -10,6 +10,7 @@ import { SolicitudAusencia, AUSENCIA_TIPOS, AUSENCIA_ESTADOS } from '../../../..
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-ausencias',
@@ -187,11 +188,40 @@ export class Ausencias implements OnInit {
       this.solicitudes.update((list) => list.map((item) => (item.id === s.id ? updated : item)));
       this.resolveOpen.set(false);
       this.notificaciones.refresh();
+
+      // QA-032 — al aprobar, genera la asistencia por cada día de la ausencia (fire-and-forget).
+      if (estado === 'aprobada') {
+        this.ausenciasService
+          .aplicarAsistencia(s.id)
+          .then(() => this.toast.success('Asistencia actualizada'))
+          .catch((err: unknown) =>
+            this.toast.error('No se pudo actualizar la asistencia', err instanceof Error ? err.message : undefined),
+          );
+      }
     } catch (e: unknown) {
       this.toast.error('No se pudo resolver la solicitud', e instanceof Error ? e.message : undefined);
     } finally {
       this.resolving.set(false);
     }
+  }
+
+  /** Exporta las solicitudes visibles (según pestaña/filtro) a Excel. */
+  async exportar() {
+    const rows = this.visible().map((s) => ({
+      Empleado: `${s.empleado?.nombre ?? ''} ${s.empleado?.apellido ?? ''}`.trim(),
+      Tipo: this.tipoLabel(s.tipo),
+      Desde: s.fecha_inicio,
+      Hasta: s.fecha_fin,
+      Días: s.dias,
+      Estado: this.estadoLabel(s.estado),
+      Motivo: s.motivo ?? '',
+      'Solicitado por': s.solicitante?.nombre ?? '',
+      Aprobador: s.aprobador?.nombre ?? '',
+      Comentario: s.comentario_aprobador ?? '',
+      'Fecha solicitud': s.fecha_solicitud,
+      'Fecha resolución': s.fecha_resolucion ?? '',
+    }));
+    await exportarExcel('ausencias', rows);
   }
 
   tipoLabel(tipo: string): string {

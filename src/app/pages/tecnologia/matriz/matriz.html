@@ -79,9 +79,15 @@
         id="puesto"
         type="text"
         formControlName="puesto"
+        list="puestos-sugeridos"
         placeholder="Ej: Ingeniero de campo"
         [class.invalid]="f.puesto.invalid && f.puesto.touched"
       />
+      <datalist id="puestos-sugeridos">
+        @for (p of puestosSugeridos(); track p) {
+          <option [value]="p"></option>
+        }
+      </datalist>
       @if (f.puesto.invalid && f.puesto.touched) {
         <span class="field-error">El puesto es obligatorio.</span>
       }

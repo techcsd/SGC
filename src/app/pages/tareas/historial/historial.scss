@@ -36,3 +36,9 @@
   border-top: 1px solid var(--sgc-border);
   background: var(--sgc-surface-hover);
 }
+
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

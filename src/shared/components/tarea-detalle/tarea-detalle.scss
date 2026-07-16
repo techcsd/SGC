@@ -151,3 +151,32 @@
     grid-template-columns: 1fr;
   }
 }
+
+// QA-073 — formulario de edición/reasignación (gestores)
+.detail-badges__edit {
+  margin-left: auto;
+}
+
+.drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.save-error {
+  padding: 10px 12px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--sgc-border);
+  margin-top: 4px;
+}

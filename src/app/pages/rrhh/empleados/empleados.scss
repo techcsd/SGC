@@ -1,3 +1,26 @@
+.page-header__actions { display: flex; gap: 10px; align-items: center; }
+
+// QA-072 — equipos TI asignados (detalle empleado)
+.equipos-ti-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.equipos-ti-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &__nombre {
+    flex: 1;
+    color: var(--sgc-text);
+    font-size: 13px;
+  }
+}
+
 // ── Summary cards ─────────────────────────────────────────
 .empleados__summary {
   display: flex;

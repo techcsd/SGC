@@ -1,3 +1,13 @@
+.page-header__actions { display: flex; gap: 10px; align-items: center; }
+
+.detail-field__link {
+  color: var(--sgc-primary);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
+  &:hover { text-decoration: underline; }
+}
+
 .sgc-btn--sm {
   font-size: 12px;
   padding: 5px 10px;

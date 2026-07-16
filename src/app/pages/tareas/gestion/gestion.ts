@@ -9,6 +9,7 @@ import { NotificacionesService } from '../../../../shared/services/notificacione
 import { Tarea, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../../../shared/models/tarea.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -219,6 +220,19 @@ export class Gestion implements OnInit, OnDestroy {
   isVencida(t: Tarea): boolean {
     if (!t.fecha_limite || t.estado === 'completada' || t.estado === 'cancelada') return false;
     return t.fecha_limite < todayIso();
+  }
+
+  // ── Exportar Excel (tareas filtradas) ────────────────────
+  async exportarExcelTareas() {
+    const rows = this.filtered().map((t) => ({
+      Título: t.titulo,
+      Estado: this.estadoLabel(t.estado),
+      Prioridad: this.prioridadLabel(t.prioridad),
+      Responsable: t.asignado?.nombre ?? '',
+      Proyecto: t.proyecto?.nombre ?? '',
+      'Fecha límite': t.fecha_limite ?? '',
+    }));
+    await exportarExcel('tareas', rows, 'Tareas');
   }
 
   get f() {

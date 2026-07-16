@@ -88,6 +88,17 @@ export class AusenciasService {
     return (data ?? []).reduce((sum, r) => sum + Number((r as { dias: number }).dias), 0);
   }
 
+  /**
+   * QA-032 — Genera los registros de asistencia (estado 'permiso') para cada día
+   * de una ausencia aprobada. Idempotente en el lado del servidor (RPC).
+   */
+  async aplicarAsistencia(ausenciaId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('registrar_asistencia_por_ausencia', {
+      p_ausencia_id: ausenciaId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   async countPendientes(): Promise<number> {
     const { count, error } = await this.supabase.client
       .from('solicitudes_ausencia')

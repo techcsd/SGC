@@ -8,6 +8,7 @@ import {
   TecEquipoFormData,
   TecEquipoEstado,
   TecEquipoHistorial,
+  TecCompraOpcion,
   TEC_EQUIPO_TIPOS,
   TEC_EQUIPO_ESTADOS,
 } from '../../../../shared/models/tecnologia.model';
@@ -15,6 +16,7 @@ import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-tec-inventario',
@@ -36,6 +38,7 @@ export class TecInventario implements OnInit {
 
   equipos = signal<TecEquipo[]>([]);
   empleados = signal<Empleado[]>([]);
+  comprasOpciones = signal<TecCompraOpcion[]>([]); // QA-070
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -73,6 +76,12 @@ export class TecInventario implements OnInit {
     asignado_en: new FormControl<string | null>(null),
     ubicacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
+    // QA-071 — datos de compra/garantía
+    costo: new FormControl<number | null>(null),
+    fecha_compra: new FormControl<string | null>(null),
+    garantia_hasta: new FormControl<string | null>(null),
+    // QA-070 — origen: compra tecnológica
+    origen_solicitud_compra_id: new FormControl<string | null>(null),
   });
 
   drawerTitle = computed(() => (this.editingId() ? 'Editar equipo' : 'Nuevo equipo'));
@@ -104,12 +113,14 @@ export class TecInventario implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [equipos, empleados] = await Promise.all([
+      const [equipos, empleados, compras] = await Promise.all([
         this.tecnologia.getEquipos(),
         this.empleadosService.getAll(),
+        this.tecnologia.getComprasTecOpciones(), // QA-070
       ]);
       this.equipos.set(equipos);
       this.empleados.set(empleados);
+      this.comprasOpciones.set(compras);
       this.resolverFotos(equipos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el inventario.');
@@ -134,6 +145,18 @@ export class TecInventario implements OnInit {
   getEmpleadoNombre(e: TecEquipo): string {
     if (e.empleado) return `${e.empleado.nombre} ${e.empleado.apellido}`;
     return '—';
+  }
+
+  // QA-071 — costo formateado como RD$ (sin decimales).
+  formatCosto(n: number | null | undefined): string {
+    if (n == null) return '—';
+    return `RD$ ${Number(n).toLocaleString('es-DO', { maximumFractionDigits: 0 })}`;
+  }
+
+  // QA-070 — etiqueta de la compra de origen (para el detalle).
+  compraLabel(id: string | null | undefined): string {
+    if (!id) return '';
+    return this.comprasOpciones().find((c) => c.id === id)?.label ?? 'Compra tecnológica';
   }
 
   // ── U17 — fotos ───────────────────────────────────────────
@@ -228,6 +251,10 @@ export class TecInventario implements OnInit {
       asignado_en: null,
       ubicacion: null,
       notas: null,
+      costo: null,
+      fecha_compra: null,
+      garantia_hasta: null,
+      origen_solicitud_compra_id: null,
     });
     this.resetFotoState(null);
     this.drawerOpen.set(true);
@@ -248,6 +275,10 @@ export class TecInventario implements OnInit {
       asignado_en: e.asignado_en,
       ubicacion: e.ubicacion,
       notas: e.notas,
+      costo: e.costo,
+      fecha_compra: e.fecha_compra,
+      garantia_hasta: e.garantia_hasta,
+      origen_solicitud_compra_id: e.origen_solicitud_compra_id,
     });
     this.drawerOpen.set(true);
   }
@@ -330,6 +361,25 @@ export class TecInventario implements OnInit {
 
   closeDetail() {
     this.detailOpen.set(false);
+  }
+
+  // ── Exportar a Excel (listado filtrado) ───────────────────
+  async exportar() {
+    const rows = this.filtered().map((e) => ({
+      'Código': e.codigo ?? '',
+      'Nombre': e.nombre,
+      'Tipo': this.getTipoLabel(e.tipo),
+      'Marca': e.marca ?? '',
+      'Modelo': e.modelo ?? '',
+      'Serie': e.serie ?? '',
+      'Estado': this.getEstadoLabel(e.estado),
+      'Asignado a': e.empleado ? `${e.empleado.nombre} ${e.empleado.apellido}` : '',
+      'Ubicación': e.ubicacion ?? '',
+      'Costo (RD$)': e.costo ?? '',
+      'Fecha de compra': this.formatFecha(e.fecha_compra),
+      'Garantía hasta': this.formatFecha(e.garantia_hasta),
+    }));
+    await exportarExcel('inventario-tecnologia', rows);
   }
 
   get f() {

@@ -20,6 +20,7 @@ export interface ExpedienteLegal {
   proyecto?: { nombre: string } | null;
   contraparte: string | null;
   descripcion: string | null;
+  enlace: string | null;
   fecha_apertura: string;
   fecha_limite: string | null;
   fecha_cierre: string | null;

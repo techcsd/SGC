@@ -12,6 +12,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { daysFromNowIso } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
@@ -219,6 +220,25 @@ export class Contratos implements OnInit {
 
   nextEstados(current: ContratoEstado): ContratoEstado[] {
     return ESTADO_TRANSICIONES[current];
+  }
+
+  /** Exporta los contratos filtrados a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((c) => ({
+      Código: c.codigo,
+      Título: c.titulo,
+      Tipo: this.tipoLabel(c.tipo),
+      Estado: this.estadoLabel(c.estado),
+      Contraparte: c.contraparte_nombre,
+      Proveedor: c.proveedor?.nombre ?? '',
+      Proyecto: c.proyecto?.nombre ?? '',
+      Monto: c.monto ?? '',
+      'Fecha inicio': c.fecha_inicio ?? '',
+      'Fecha vencimiento': c.fecha_vencimiento ?? '',
+      'Fecha firma': c.fecha_firma ?? '',
+      Responsable: c.responsable?.nombre ?? '',
+    }));
+    await exportarExcel('contratos', rows);
   }
 
   // ── Helpers ──────────────────────────────────────────────

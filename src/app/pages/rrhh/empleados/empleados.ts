@@ -30,6 +30,9 @@ import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatAntiguedad, formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
+import { TecEquipo } from '../../../../shared/models/tecnologia.model';
 
 @Component({
   selector: 'app-empleados',
@@ -41,6 +44,7 @@ import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 export class Empleados implements OnInit {
   private empleadosService = inject(EmpleadosService);
   private userService = inject(UserService);
+  private tecnologiaService = inject(TecnologiaService);
 
   // ── Data state ──────────────────────────────────────────
   empleados = signal<Empleado[]>([]);
@@ -66,6 +70,9 @@ export class Empleados implements OnInit {
   // ── Detail drawer (solo lectura) ─────────────────────────
   detailOpen = signal(false);
   detailEmpleado = signal<Empleado | null>(null);
+  // QA-072 — equipos TI asignados al empleado (solo lectura)
+  equiposTI = signal<TecEquipo[]>([]);
+  equiposTILoading = signal(false);
 
   readonly formatFecha = formatFechaDisplay;
   readonly formatTelefono = formatearTelefono;
@@ -281,6 +288,20 @@ export class Empleados implements OnInit {
   openDetail(emp: Empleado) {
     this.detailEmpleado.set(emp);
     this.detailOpen.set(true);
+    void this.loadEquiposTI(emp.id);
+  }
+
+  // QA-072 — carga los equipos TI activos asignados al empleado.
+  private async loadEquiposTI(empleadoId: string) {
+    this.equiposTILoading.set(true);
+    this.equiposTI.set([]);
+    try {
+      this.equiposTI.set(await this.tecnologiaService.getEquiposByEmpleado(empleadoId));
+    } catch {
+      // no bloqueante: el inventario TI es información complementaria
+    } finally {
+      this.equiposTILoading.set(false);
+    }
   }
 
   closeDetail() {
@@ -421,6 +442,40 @@ export class Empleados implements OnInit {
         list.map((e) => (e.id === emp.id ? { ...e, activo: !next } : e)),
       );
     }
+  }
+
+  /** Exporta los empleados filtrados a Excel con todos los campos visibles. */
+  async exportar() {
+    const rows = this.filtered().map((e) => ({
+      Cédula: e.cedula,
+      Nombre: e.nombre,
+      Apellido: e.apellido,
+      Cargo: e.cargo,
+      Departamento: e.departamento ?? '',
+      'Tipo de contrato': this.getTipoContratoLabel(e.tipo_contrato),
+      'Fecha de ingreso': e.fecha_ingreso,
+      Antigüedad: formatAntiguedad(e.fecha_ingreso),
+      Salario: e.salario,
+      Teléfono: e.telefono ? formatearTelefono(e.telefono) : '',
+      Correo: e.email ?? '',
+      Dirección: e.direccion ?? '',
+      Supervisor: this.jefeNombre(e),
+      'Fecha nacimiento': e.fecha_nacimiento ?? '',
+      Género: this.generoLabel(e.genero),
+      'Estado civil': this.estadoCivilLabel(e.estado_civil),
+      'Contacto emergencia': e.contacto_emergencia_nombre ?? '',
+      'Tel. emergencia': e.contacto_emergencia_telefono ? formatearTelefono(e.contacto_emergencia_telefono) : '',
+      'Días vacaciones/año': e.dias_vacaciones_anuales,
+      'No. TSS': e.numero_tss ?? '',
+      AFP: e.afp ?? '',
+      ARS: e.ars ?? '',
+      Banco: e.banco ?? '',
+      'No. cuenta': e.cuenta_banco ?? '',
+      Estado: e.activo ? 'Activo' : 'Inactivo',
+      'Fecha de salida': e.fecha_egreso ?? '',
+      'Motivo de salida': e.motivo_egreso ?? '',
+    }));
+    await exportarExcel('empleados', rows);
   }
 
   // ── Helpers ──────────────────────────────────────────────

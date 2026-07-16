@@ -27,6 +27,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-salidas',
@@ -322,6 +323,20 @@ export class Salidas implements OnInit {
       range.push(i);
     }
     return range;
+  }
+
+  /** Exporta las salidas filtradas a Excel. */
+  async exportar() {
+    const rows = this.filtered().map((s) => ({
+      Fecha: this.formatFecha(s.fecha),
+      Almacén: s.bodega?.nombre ?? '',
+      Motivo: this.getMotivoLabel(s.motivo),
+      Proyecto: s.proyecto?.nombre ?? '',
+      Responsable: s.responsable ?? '',
+      Estado: this.ESTADO_LABELS[s.estado],
+      Artículos: (s.detalle_salidas ?? []).length,
+    }));
+    await exportarExcel('salidas-inventario', rows);
   }
 
   // ── Drawer ───────────────────────────────────────────────
