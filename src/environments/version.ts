@@ -1,4 +1,4 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.11.0';
-export const APP_VERSION_TITULO: string | null = "Historial de versiones confiable + auditoría rediseñada";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"Historial de versiones con formato uniforme (chips por tipo) para web y app móvil, y registro automático en cada despliegue."},{"t":"mejora","d":"Dashboard de Auditoría rediseñado: tarjetas KPI, cada sección en su panel y gráficos consistentes con los demás dashboards."},{"t":"mejora","d":"Al enlazar un usuario en el formulario de conductor se autollena su cédula y teléfono desde la ficha de empleado (editables)."},{"t":"arreglo","d":"Las categorías destacadas ahora solo marcan categorías oficiales activas."}];
+export const APP_VERSION = '1.12.0';
+export const APP_VERSION_TITULO: string | null = "Registro de versiones automático en el despliegue";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"El historial de versiones ahora se registra solo en cada despliegue del sitio, sin depender de que alguien abra la app."}];
