@@ -47,7 +47,16 @@ QA-070 crear/enlazar equipo TI desde compra aprobada · QA-071 inventario TI cos
 ## Migraciones SQL aplicadas (aditivas/retrocompatibles, prod)
 - `sql/2026-07-16-qa5-fixes-db.sql` — QA-001 (combustible estado), QA-010 (recepción ≤ enviado), QA-028 (talla al faltante), QA-074 (RLS `tareas: update` WITH CHECK).
 
+## FASE E2E — Playwright (navegador real contra prod desplegado)
+Harness: `playwright.config.ts` + `qa/e2e/*` (devDependency `@playwright/test`, NO en build de prod). Credenciales en archivo gitignoreado (borrado tras la pasada).
+**Resultado: 9/9 roles PASS.** Por cada rol: login por UI ✅, **gating correcto** (accede a sus módulos; los ajenos → /403; **sin fugas**), rutas abiertas accesibles, y captura de errores de consola / llamadas fallidas / screenshots como evidencia (reporte en `qa/report/`). El test falla solo ante fugas de gating — no hubo ninguna. Roles probados: admin, jefe_flota, guarda_almacen, ingeniero_campo, gerente_proyectos, coord_compras, jefe_rrhh, abogado, nomodulos.
+
 ## Datos QA-TEST creados / limpiados
 | Tipo | Identificador | Creado | Limpiado |
 |------|---------------|--------|----------|
-| — | (ninguno — discovery fue read-only) | — | — |
+| Usuario auth+perfil+rol | qa.test+admin@constructorasd.com | ✅ | ✅ eliminado |
+| Usuario | qa.test+jefe_flota@ · +guarda_almacen@ · +ingeniero_campo@ · +gerente_proyectos@ | ✅ | ✅ eliminados |
+| Usuario | qa.test+coord_compras@ · +jefe_rrhh@ · +abogado@ · +nomodulos@ | ✅ | ✅ eliminados |
+| **Verificación** | `select count(*) … qa.test+%` = **0** | — | ✅ sin residuos |
+
+_Discovery (FASE 1) fue read-only (0 datos). Los únicos datos QA-TEST creados fueron los 9 usuarios de la pasada E2E, todos eliminados. La pasada E2E fue solo-navegación (no creó vehículos/almacenes/bitácoras)._
