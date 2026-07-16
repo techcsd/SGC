@@ -149,6 +149,24 @@ export class AdminAuditoria implements OnInit {
     }
   }
 
+  // Y2 — listas drill-down con top-N + "Ver más" (presentación).
+  readonly DRILL_TOP = 6;
+  expandU = signal(false);
+  expandA = signal(false);
+  expandM = signal(false);
+  usuariosDrill = computed(() => {
+    const l = this.resumen()?.por_usuario ?? [];
+    return this.expandU() ? l : l.slice(0, this.DRILL_TOP);
+  });
+  accionesDrill = computed(() => {
+    const l = this.resumen()?.acciones_comunes ?? [];
+    return this.expandA() ? l : l.slice(0, this.DRILL_TOP);
+  });
+  modulosDrill = computed(() => {
+    const l = this.resumen()?.por_modulo ?? [];
+    return this.expandM() ? l : l.slice(0, this.DRILL_TOP);
+  });
+
   // Charts derivados del resumen.
   rankingUsuarios = computed<BarDatum[]>(() =>
     (this.resumen()?.por_usuario ?? []).slice(0, 10).map((u, i) => ({

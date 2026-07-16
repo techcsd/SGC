@@ -10,7 +10,7 @@ _Actualizado: 2026-07-16 · Estado: **FASE 3 completa** · `npm run build` OK (e
 | Crítico | 0 | 0 | 0 | 0 |
 | Alto | 9 | 9 | 0 | 0 |
 | Medio | ~24 | 22 | 1 (QA-032) | 0 |
-| Bajo | ~16 | 14 | 0 | 2 (QA-041, QA-057=dato) |
+| Bajo | ~16 | 15 | 0 | 0 |
 | Mejora/propuesta | ~14 | — | ~14 (QA-070…080) | — |
 
 **Núcleo verificado OK** (sin hallazgos): gating por rol, versionado semver/publicar/notificar admin-only, subida APK, auditoría drill-down, otros_valores→avisos, homologación, 8 categorías oficiales, tallas EPP, resumen salida/entrada, conteo "todo conforme", pool vehículos + reporte semanal, km coherente + fotos combustible, bloqueos pre-uso, mantenimiento por km + crear cita, rutas, W4 (comentarios aprobador/revisor visibles), interconexiones principales, sin stock negativo, sin usuarios sin rol, sin overloads RPC ambiguos.
@@ -37,7 +37,7 @@ QA-010 recepción ≤ enviado (RPC + UI) ✅ · QA-011 alerta pago>trabajado ya 
 ## BAJO — resueltos (menores pendientes anotados)
 QA-040 label estado solicitud-compra ✅ · QA-042 "atendido por" (degradado si no hay join) ✅ · QA-043 accidente exige lesionados>0 ✅ · QA-044 checklist valida km coherente ✅ · QA-045 autosugerencia conductor legacy — documentado (sin over-engineering) · QA-046 fecha humana en conflicto de mantenimiento ✅ · QA-047 teléfonos con máscara (proveedores/rrhh) ✅ · QA-048 validación RNC/cédula ✅ · QA-049 asistencia cuenta "Feriado" ✅ · QA-050 label tipo_cambio historial TI ✅ · QA-051 fallback (error) en fotos TI ✅ · QA-052 cantidad vacía en compras-TI manejada ✅ · QA-053 numeros con separador en documentos ✅ · QA-054 empty-states documentos ✅ · QA-055 comentarios de tarea en realtime ✅ · QA-056 montos RD$ en entradas ✅ · QA-058 marcar leído solo con pestaña visible ✅
 - **QA-041** solicitudes-compra: fila expandible con renglones (proveedor sugerido, ver foto, notas, categoría, enlace a OC/origen) — ✅ Resuelto.
-- **QA-057** categorías destacada solo en inactivas — **es dato, no código** (marcar una categoría activa como destacada si se desea).
+- **QA-057** categorías `destacada` quedó en inactivas (Clavos/Madera/Acero) — ✅ **Resuelto** (Act.7 B6): migración `sql/2026-07-16-act7-versiones-y-categorias.sql` limpia `destacada` de toda categoría inactiva; solo quedan destacadas las oficiales activas (Materia Prima, Consumibles, Apuntalamiento).
 
 ## MEJORA / PROPUESTA — ✅ IMPLEMENTADAS (aprobadas por Xavier)
 - **QA-070** ✅ TI: campo "Origen: compra tecnológica" en el equipo (`origen_solicitud_compra_id`) + badge "Registrado desde compra".

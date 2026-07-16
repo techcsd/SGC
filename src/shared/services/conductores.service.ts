@@ -3,6 +3,15 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Conductor, ConductorFormData } from '../models/conductor.model';
 import { ConductorStats } from '../models/vehiculo-asignacion.model';
 
+/** Usuario enlazable a un conductor + datos de su ficha para autollenar (B4/U3). */
+export interface UsuarioVinculable {
+  id: string;
+  nombre: string;
+  cedula: string | null;
+  telefono: string | null;
+  email: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConductoresService {
   private supabase = inject(SupabaseService);
@@ -81,16 +90,15 @@ export class ConductoresService {
     return data as unknown as Conductor;
   }
 
-  /** Active app users, for linking a driver to their CSD App account. */
-  async getUsuariosVinculables(): Promise<{ id: string; nombre: string }[]> {
-    const { data, error } = await this.supabase.client
-      .from('usuarios')
-      .select('id, nombre')
-      .eq('activo', true)
-      .order('nombre');
-
+  /**
+   * Active app users, for linking a driver to their CSD App account. B4/U3 — trae
+   * también cédula y teléfono (de la ficha de empleado, vía RPC SECURITY DEFINER
+   * gated a flota/rrhh/admin) para autollenar el form al enlazar.
+   */
+  async getUsuariosVinculables(): Promise<UsuarioVinculable[]> {
+    const { data, error } = await this.supabase.client.rpc('usuarios_vinculables');
     if (error) throw new Error(error.message);
-    return (data ?? []) as { id: string; nombre: string }[];
+    return (data ?? []) as UsuarioVinculable[];
   }
 
   async toggleActivo(id: string, activo: boolean): Promise<void> {

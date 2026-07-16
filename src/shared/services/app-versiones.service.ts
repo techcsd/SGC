@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { environment } from '../../environments/environment';
-import { APP_VERSION } from '../../environments/version';
+import { APP_VERSION, APP_VERSION_TITULO, APP_VERSION_CAMBIOS } from '../../environments/version';
 import { AppVersion, AppVersionFormData, VersionPublicada } from '../models/app-version.model';
 
 const APK_BUCKET = 'app-releases';
@@ -80,9 +80,12 @@ export class AppVersionesService {
   }
 
   /**
-   * W7 — Auto-registro de la versión WEB en el historial. La versión sale del
-   * bundle (package.json → version.ts). Idempotente en BD (registrar_version no
-   * duplica) y con guard local para no llamar en cada carga. No bloquea la app.
+   * W7 / Y1 — Auto-registro de la versión WEB en el historial (RED DE SEGURIDAD).
+   * El registro primario ocurre en el build/deploy (scripts/registrar-version-web.mjs);
+   * esto lo respalda si ese hook no corrió. La versión y sus notas estructuradas
+   * (título + cambios[{t,d}]) salen del bundle (package.json + release-notes.json →
+   * version.ts). Idempotente en BD (registrar_version rellena lo vacío, no duplica)
+   * y con guard local para no llamar en cada carga. No bloquea la app.
    */
   async autoRegistrarVersionWeb(): Promise<void> {
     try {
@@ -91,10 +94,16 @@ export class AppVersionesService {
       /* sin localStorage: intentamos igual (la BD es idempotente) */
     }
     try {
+      const tieneCambios = Array.isArray(APP_VERSION_CAMBIOS) && APP_VERSION_CAMBIOS.length > 0;
       const { error } = await this.supabase.client.rpc('registrar_version', {
         p_plataforma: 'web',
         p_version: APP_VERSION,
-        p_notas: `Versión web ${APP_VERSION} desplegada. Edita las notas desde Administración › Historial de versiones.`,
+        // Si hay notas estructuradas, no mandamos el texto de relleno (los chips mandan).
+        p_notas: tieneCambios
+          ? null
+          : `Versión web ${APP_VERSION} desplegada. Edita las notas desde Administración › Historial de versiones.`,
+        p_titulo: APP_VERSION_TITULO ?? null,
+        p_cambios: tieneCambios ? APP_VERSION_CAMBIOS : null,
       });
       if (error) throw new Error(error.message);
       try {
