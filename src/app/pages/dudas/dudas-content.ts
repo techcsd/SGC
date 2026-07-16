@@ -330,6 +330,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Cada salida de inventario genera automáticamente un conduce (nota de entrega). En Inventario > Conduces ves el historial completo; abre cualquiera con "Ver conduce" y usa "Imprimir / Guardar PDF" para descargarlo. Queda siempre disponible para reimprimir.',
       },
       {
+        pregunta: '¿Puedo cerrar/firmar la entrega de un conduce desde la web?',
+        respuesta:
+          'Sí. Abre el conduce (Inventario > Conduces > "Ver conduce" o desde la salida) y, si está en estado "despachado", usa "Registrar entrega (firmar)". Indicas quién recibe en obra, ajustas las cantidades realmente recibidas, adjuntas una foto opcional y capturas la firma en pantalla. El conduce pasa a "Entregado" (o "Entregado incompleto" si algo llegó corto). Solo puede hacerlo el conductor asignado, Flota o un administrador — misma capacidad que en la app de campo.',
+      },
+      {
         pregunta: '¿Dónde veo todo lo que entra y sale de un almacén?',
         respuesta:
           'En Inventario > Movimientos ves el historial de entradas y salidas de todos los almacenes, con filtros por almacén, tipo y fecha; cada salida trae el enlace a su conduce. Además, en Inventario > Almacenes cada fila tiene el botón «Ver movimientos», que abre esa misma vista ya filtrada por ese almacén.',
@@ -508,6 +513,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿La entrega/recepción de un vehículo guarda dónde se hizo (GPS)?',
         respuesta:
           'Sí. En Flota > Responsabilidad, al abrir una entrega/recepción se muestra un mini-mapa con el punto y la hora en que se capturó, más un enlace "Ver en mapa". Si al capturarla no había permiso de ubicación, verás "Sin ubicación registrada".',
+      },
+      {
+        pregunta: '¿Puedo registrar una entrega/recepción de vehículo desde la web (no solo desde el celular)?',
+        respuesta:
+          'Sí. En Flota > Responsabilidad usa "Registrar entrega/recepción". Eliges si es recepción (recibes el vehículo) o devolución (lo entregas), el vehículo, el kilometraje y el combustible, tomas o adjuntas las 6 fotos guiadas (frente, atrás, ambos lados, tablero y combustible — son obligatorias), marcas daños si los hay, y opcionalmente capturas tu ubicación (GPS del navegador) y la firma. Quedas registrado como el conductor responsable, igual que en la app de campo.',
       },
       {
         pregunta: '¿Puedo adjuntar fotos y firma a un checklist desde la computadora (no solo desde el celular)?',

@@ -6,11 +6,16 @@
       {{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}
     </span>
   </div>
+  <div class="page-header__actions">
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirRegistro()">
+      Registrar entrega/recepción
+    </button>
+  </div>
 </div>
 
 <p class="resp-lead">
-  Entregas y devoluciones capturadas desde la app de campo (CSD App). Evidencia de quién tuvo cada
-  vehículo y en qué estado.
+  Entregas y devoluciones de vehículos, registradas desde la app de campo o desde aquí con
+  «Registrar entrega/recepción». Evidencia de quién tuvo cada vehículo y en qué estado.
 </p>
 
 <!-- ── Filters ── -->
@@ -121,3 +126,10 @@
     }
   </div>
 }
+
+<!-- ── Registrar entrega/recepción (paridad web/móvil) ── -->
+<app-form-drawer title="Registrar entrega / recepción" [open]="drawerOpen()" (closed)="cerrarRegistro()">
+  @if (drawerOpen()) {
+    <app-registrar-entrega (creada)="onCreada()" (cancelar)="cerrarRegistro()" />
+  }
+</app-form-drawer>

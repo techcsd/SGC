@@ -88,6 +88,24 @@
         }
       </div>
 
+      <!-- Fotos adjuntas (opcional) — paridad con la app de campo -->
+      <div class="sgc-field">
+        <label>Fotos (opcional)</label>
+        <div class="soporte__fotos">
+          @for (foto of fotos(); track foto.preview) {
+            <div class="soporte__foto">
+              <img [src]="foto.preview" alt="Foto adjunta" />
+              <button type="button" class="soporte__foto-quitar" (click)="quitarFoto($index)"
+                aria-label="Quitar foto">✕</button>
+            </div>
+          }
+          <label class="soporte__foto-add">
+            <span>📷</span>
+            <input type="file" accept="image/*" capture="environment" multiple hidden (change)="onFotos($event)" />
+          </label>
+        </div>
+      </div>
+
       @if (saveError()) {
         <p class="soporte__save-error" role="alert">{{ saveError() }}</p>
       }

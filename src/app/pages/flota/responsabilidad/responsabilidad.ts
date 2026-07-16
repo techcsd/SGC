@@ -6,6 +6,8 @@ import {
 } from '../../../../shared/services/vehiculos.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { MiniMapa } from '../../../../shared/components/mini-mapa/mini-mapa';
+import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { RegistrarEntrega } from './registrar-entrega/registrar-entrega';
 
 /**
  * Vehicle responsibility history captured by the CSD field app. Read-only
@@ -14,7 +16,7 @@ import { MiniMapa } from '../../../../shared/components/mini-mapa/mini-mapa';
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, DatePipe, Skeleton, MiniMapa],
+  imports: [DecimalPipe, DatePipe, Skeleton, MiniMapa, FormDrawer, RegistrarEntrega],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +31,7 @@ export class Responsabilidad implements OnInit {
 
   searchQuery = signal('');
   soloRevision = signal(false);
+  drawerOpen = signal(false);
 
   expandedId = signal<string | null>(null);
   // entrega_id → (slot → signed url)
@@ -72,6 +75,17 @@ export class Responsabilidad implements OnInit {
 
   onSearch(value: string) {
     this.searchQuery.set(value);
+  }
+
+  abrirRegistro() {
+    this.drawerOpen.set(true);
+  }
+  cerrarRegistro() {
+    this.drawerOpen.set(false);
+  }
+  async onCreada() {
+    this.drawerOpen.set(false);
+    await this.load();
   }
 
   toggleRevision() {

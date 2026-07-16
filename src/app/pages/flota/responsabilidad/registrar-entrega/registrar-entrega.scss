@@ -1,0 +1,172 @@
+.re-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.re-hint {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+
+  .sgc-field { flex: 1; }
+}
+
+// Segmento tipo
+.re-seg {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.re-seg__opt {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+  color: var(--sgc-text);
+  font-size: 13px;
+  cursor: pointer;
+
+  &--active {
+    border-color: var(--sgc-primary);
+    background: color-mix(in srgb, var(--sgc-primary) 10%, var(--sgc-surface));
+    font-weight: 600;
+  }
+}
+
+// Fotos obligatorias
+.re-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+.re-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  img {
+    width: 88px;
+    height: 88px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--sgc-border);
+  }
+
+  &--falta .re-slot-add {
+    border-color: color-mix(in srgb, var(--sgc-danger) 45%, var(--sgc-border));
+  }
+}
+.re-slot-add {
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--sgc-bg);
+
+  &:hover { border-color: var(--sgc-primary); }
+}
+.re-slot-cap {
+  font-size: 11px;
+  color: var(--sgc-text-muted);
+  text-align: center;
+}
+.re-foto-quitar {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  background: var(--sgc-danger);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+// Daños
+.re-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.re-danos {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.re-dano {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  input[type='text'] {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+  }
+}
+.re-dano-foto {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--sgc-border);
+}
+.re-dano-foto-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.re-dano-remove {
+  background: none;
+  border: none;
+  color: var(--sgc-danger);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+}
+
+// GPS
+.re-gps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.re-gps-ok {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--sgc-text-muted);
+}
+.re-gps-msg {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+}

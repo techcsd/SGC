@@ -1,9 +1,74 @@
 <div class="conduce-toolbar no-print">
   <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()">← Volver</button>
+  @if (puedeCerrar() && !mostrarCierre()) {
+    <button type="button" class="sgc-btn sgc-btn--secondary" (click)="abrirCierre()">Registrar entrega (firmar)</button>
+  }
   @if (salida()) {
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
   }
 </div>
+
+<!-- ── Cierre de conduce por el chofer (paridad app de campo) ── -->
+@if (mostrarCierre() && salida(); as s) {
+  <section class="conduce-cierre no-print">
+    <h2 class="conduce-cierre__title">Registrar entrega del conduce</h2>
+    <p class="conduce-cierre__lead">Confirma lo que recibe la obra, la firma y (opcional) una foto. Queda como evidencia de entrega.</p>
+
+    <div class="sgc-field">
+      <label for="cc-receptor">Recibido por <span class="required">*</span></label>
+      <input id="cc-receptor" type="text" [value]="receptor()" (input)="receptor.set($any($event.target).value)"
+        placeholder="Nombre de quien recibe en obra" />
+    </div>
+
+    <div class="conduce-cierre__items">
+      <span class="conduce-cierre__items-label">Cantidades recibidas</span>
+      @for (it of itemsCierre(); track it.detalle_id; let i = $index) {
+        <div class="conduce-cierre__item">
+          <span class="conduce-cierre__item-name">{{ it.nombre }}</span>
+          <span class="conduce-cierre__item-env">de {{ it.cantidad }}</span>
+          <input type="number" min="0" [max]="it.cantidad" [value]="it.cantidad_recibida"
+            (input)="updateRecibida(i, $any($event.target).value)" aria-label="Cantidad recibida" />
+        </div>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label>Foto de entrega (opcional)</label>
+      @if (fotoCierrePreview(); as prev) {
+        <div class="conduce-cierre__foto">
+          <img [src]="prev" alt="Foto de entrega" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFotoCierre()">Quitar</button>
+        </div>
+      } @else {
+        <label class="sgc-btn sgc-btn--secondary sgc-btn--sm conduce-cierre__foto-pick">
+          📷 Adjuntar foto
+          <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoCierre($event)" />
+        </label>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <label>Firma de quien recibe (opcional)</label>
+      <app-signature-pad #firmaPad ariaLabel="Firma de quien recibe" />
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaPad.clear()">Limpiar firma</button>
+    </div>
+
+    <div class="sgc-field">
+      <label for="cc-notas">Notas (opcional)</label>
+      <textarea id="cc-notas" rows="2" [value]="notasCierre()" (input)="notasCierre.set($any($event.target).value)"
+        placeholder="Incidencias o detalles de la entrega…"></textarea>
+    </div>
+
+    @if (cierreError()) { <div class="save-error" role="alert">{{ cierreError() }}</div> }
+
+    <div class="conduce-cierre__actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarCierre()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardandoCierre()" (click)="confirmarCierre()">
+        @if (guardandoCierre()) { Guardando… } @else { Registrar entrega }
+      </button>
+    </div>
+  </section>
+}
 
 @if (loading()) {
   <app-skeleton variant="table" [rows]="8" />
