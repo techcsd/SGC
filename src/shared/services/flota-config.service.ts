@@ -14,7 +14,7 @@ export class FlotaConfigService {
   // Defaults seguros (== a los literales que reemplazan).
   umbralConsumoPct = signal(20); // % bajo el promedio que dispara alerta de consumo
   umbralPrecitaKm = signal(500); // km restantes para sugerir pre-cita de mantenimiento
-  umbralLicenciaDias = signal(30); // días antes del vencimiento de licencia
+  umbralLicenciaDias = signal(90); // C6 — 3 meses antes del vencimiento de licencia (configurable en flota_config.umbral_licencia_dias)
 
   private loaded = false;
 

@@ -121,6 +121,9 @@
             <p class="flota-vehiculos__placa">{{ v.placa }}</p>
             <p class="flota-vehiculos__name">{{ v.marca }} {{ v.modelo }}</p>
             <p class="flota-vehiculos__anio">Año {{ v.anio }}</p>
+            @if (v.vin) {
+              <p class="flota-vehiculos__vin" [title]="'VIN: ' + v.vin">VIN: {{ v.vin }}</p>
+            }
             @if (v.fotos && v.fotos.length > 0) {
               <span class="flota-vehiculos__fotos-count">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -235,6 +238,18 @@
       </div>
     </div>
 
+    <!-- V1 — VIN (chasis) -->
+    <div class="sgc-field">
+      <label for="vin">VIN (número de chasis)</label>
+      <input id="vin" type="text" formControlName="vin" maxlength="17"
+        placeholder="Ej: 1HGCM82633A004352" style="text-transform:uppercase"
+        [class.invalid]="f.vin.invalid && f.vin.touched" />
+      <small class="sgc-field__hint">Identificador único del vehículo (hasta 17 caracteres). Útil para diferenciar vehículos casi idénticos.</small>
+      @if (f.vin.invalid && f.vin.touched) {
+        <span class="field-error" role="alert">El VIN no debe exceder 17 caracteres.</span>
+      }
+    </div>
+
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
         <label for="marca">Marca <span class="required" aria-hidden="true">*</span></label>
@@ -301,6 +316,24 @@
           }
         </select>
       </div>
+    </div>
+
+    <!-- V2 — Matrícula y seguro (números). La foto se sube en el perfil vía Documentos. -->
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="numero_matricula">Nº de matrícula</label>
+        <input id="numero_matricula" type="text" formControlName="numero_matricula" placeholder="Número de matrícula" />
+      </div>
+      <div class="sgc-field">
+        <label for="numero_seguro">Nº de seguro (póliza)</label>
+        <input id="numero_seguro" type="text" formControlName="numero_seguro" placeholder="Número de póliza" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label for="aseguradora">Compañía aseguradora</label>
+      <input id="aseguradora" type="text" formControlName="aseguradora" placeholder="Ej: Seguros Universal" />
+      <small class="sgc-field__hint">La foto de la matrícula y del seguro se sube desde el perfil del vehículo (Documentos).</small>
     </div>
 
     <!-- Vencimientos + mantenimiento (Flota v2) -->

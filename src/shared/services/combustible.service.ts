@@ -5,6 +5,7 @@ import {
   RegistroCombustibleFormData,
   CombustibleDerivados,
 } from '../models/combustible.model';
+import { cleanUuid } from '../utils/uuid.util';
 
 const BUCKET = 'vehiculos';
 
@@ -44,8 +45,8 @@ export class CombustibleService {
     // 2) RPC: calcula precio/galón, km recorridos, rendimiento, costo/km y alerta.
     const { data, error } = await this.supabase.client.rpc('registrar_combustible_app', {
       p_client_uuid: clientUuid,
-      p_vehiculo_id: payload.vehiculo_id,
-      p_conductor_id: payload.conductor_id,
+      p_vehiculo_id: cleanUuid(payload.vehiculo_id),
+      p_conductor_id: cleanUuid(payload.conductor_id), // C2 — "null" de <select> → null
       p_fecha: payload.fecha,
       p_kilometraje: payload.kilometraje,
       p_galones: payload.galones,

@@ -1,6 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Ruta, RutaFormData, RutaEstado } from '../models/ruta.model';
+import { sanitizeUuidFields } from '../utils/uuid.util';
+
+/** C2 — uuid opcionales de una ruta a sanear ("null" de <select> → null). */
+const RUTA_UUID_FIELDS = ['conductor_id', 'vehiculo_id', 'destino_proyecto_id'] as const;
 
 const SELECT_QUERY =
   '*, vehiculo:vehiculos(placa, marca, modelo), conductor:conductores(nombre), destino_proyecto:proyectos!destino_proyecto_id(nombre, latitud, longitud)';
@@ -22,7 +26,7 @@ export class RutasService {
   async create(payload: RutaFormData, userId: string | null): Promise<Ruta> {
     const { data, error } = await this.supabase.client
       .from('rutas')
-      .insert({ ...payload, creado_por: userId })
+      .insert({ ...sanitizeUuidFields(payload, RUTA_UUID_FIELDS), creado_por: userId })
       .select(SELECT_QUERY)
       .single();
 
@@ -33,7 +37,7 @@ export class RutasService {
   async update(id: string, payload: Partial<RutaFormData>): Promise<Ruta> {
     const { data, error } = await this.supabase.client
       .from('rutas')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update({ ...sanitizeUuidFields(payload, RUTA_UUID_FIELDS), updated_at: new Date().toISOString() })
       .eq('id', id)
       .select(SELECT_QUERY)
       .single();

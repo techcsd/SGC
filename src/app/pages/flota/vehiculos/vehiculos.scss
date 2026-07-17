@@ -186,6 +186,15 @@
     color: var(--sgc-text-muted);
   }
 
+  &__vin {
+    font-size: 11.5px;
+    color: var(--sgc-text-muted);
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   &__fotos-count {
     display: inline-flex;
     align-items: center;

@@ -76,6 +76,41 @@
   color: var(--sgc-text-muted);
 }
 
+// ── C3 — tags + nota en el perfil ────────────────────────
+.cd-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.cd-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--sgc-primary-light);
+  color: var(--sgc-primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.cd-nota {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+}
+
+// ── C6 — aviso ámbar (licencia por vencer) ───────────────
+.cd-warn {
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  border-radius: var(--sgc-radius);
+  background: color-mix(in srgb, var(--sgc-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sgc-warning) 40%, transparent);
+  color: var(--sgc-warning);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
 // ── Aviso rojo (licencia vencida) ────────────────────────
 .page-error { margin-bottom: 18px; }
 

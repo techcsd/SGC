@@ -76,6 +76,7 @@ export class FlotaVehiculos implements OnInit {
 
   form = new FormGroup({
     placa: new FormControl('', [Validators.required, Validators.maxLength(20)]),
+    vin: new FormControl<string | null>(null, [Validators.maxLength(17)]),
     marca: new FormControl('', [Validators.required, Validators.maxLength(80)]),
     modelo: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     anio: new FormControl<number>(new Date().getFullYear(), [
@@ -90,6 +91,9 @@ export class FlotaVehiculos implements OnInit {
     capacidad_valor: new FormControl<number | null>(null, [Validators.min(0)]),
     capacidad_unidad: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
+    numero_matricula: new FormControl<string | null>(null, [Validators.maxLength(50)]),
+    numero_seguro: new FormControl<string | null>(null, [Validators.maxLength(50)]),
+    aseguradora: new FormControl<string | null>(null, [Validators.maxLength(80)]),
     vencimiento_matricula: new FormControl<string | null>(null),
     vencimiento_seguro: new FormControl<string | null>(null),
     km_ultimo_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
@@ -166,12 +170,16 @@ export class FlotaVehiculos implements OnInit {
   async exportar() {
     const rows = this.filtered().map((v) => ({
       Placa: v.placa,
+      VIN: v.vin ?? '',
       Tipo: this.getTipoLabel(v.tipo),
       Marca: v.marca,
       Modelo: v.modelo,
       Año: v.anio,
       Estado: this.ESTADOS.find((e) => e.value === v.estado)?.label ?? v.estado,
       Km: v.kilometraje,
+      'Nº matrícula': v.numero_matricula ?? '',
+      'Nº seguro': v.numero_seguro ?? '',
+      Aseguradora: v.aseguradora ?? '',
       Activo: v.activo ? 'Sí' : 'No',
     }));
     await exportarExcel('vehiculos', rows);
@@ -191,6 +199,7 @@ export class FlotaVehiculos implements OnInit {
     this.resetFotos(vehiculo.fotos ?? []);
     this.form.reset({
       placa: vehiculo.placa,
+      vin: vehiculo.vin,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
       anio: vehiculo.anio,
@@ -201,6 +210,9 @@ export class FlotaVehiculos implements OnInit {
       capacidad_valor: vehiculo.capacidad_valor,
       capacidad_unidad: vehiculo.capacidad_unidad,
       notas: vehiculo.notas,
+      numero_matricula: vehiculo.numero_matricula,
+      numero_seguro: vehiculo.numero_seguro,
+      aseguradora: vehiculo.aseguradora,
       vencimiento_matricula: vehiculo.vencimiento_matricula,
       vencimiento_seguro: vehiculo.vencimiento_seguro,
       km_ultimo_mantenimiento: vehiculo.km_ultimo_mantenimiento,
@@ -261,10 +273,13 @@ export class FlotaVehiculos implements OnInit {
 
     const raw = this.form.value;
     // Normalize plate (uppercase, trimmed, single spaces) so "a123bc" and
-    // "A123 BC" don't become two different vehicles.
+    // "A123 BC" don't become two different vehicles. V1 — VIN igual (mayúsculas,
+    // sin espacios) para que el índice único case-insensitive sea consistente.
+    const vin = (raw.vin ?? '').trim().toUpperCase().replace(/\s+/g, '');
     const payload = {
       ...raw,
       placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' '),
+      vin: vin || null,
     } as VehiculoFormData;
 
     try {

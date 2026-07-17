@@ -40,6 +40,9 @@ export class DocumentosFlota implements OnInit {
   uploadingTipo = signal<string | null>(null);
   nombreOtro = signal('');
 
+  // C5 — thumbnails (signed URL) por documento imagen, para el preview en la ficha.
+  thumbs = signal<Record<string, string>>({});
+
   viewerDoc = signal<DocumentoFlota | null>(null);
   viewerUrl = signal<SafeResourceUrl | null>(null);
   rawViewerUrl = signal<string | null>(null);
@@ -53,9 +56,9 @@ export class DocumentosFlota implements OnInit {
     () => this.userService.hasRole('admin') || this.userService.hasModulo('flota'),
   );
 
-  /** Documento de un slot destacado (el más reciente si hubiera varios). */
-  docDe(tipo: string): DocumentoFlota | null {
-    return this.documentos().find((d) => d.tipo === tipo) ?? null;
+  /** C5 — TODOS los documentos de un slot destacado (p. ej. licencia frente y dorso). */
+  docsDe(tipo: string): DocumentoFlota[] {
+    return this.documentos().filter((d) => d.tipo === tipo);
   }
 
   /** "Otros": todo lo que no cae en un slot destacado. */
@@ -63,14 +66,14 @@ export class DocumentosFlota implements OnInit {
     this.documentos().filter((d) => !this.destacadoTipos().has(d.tipo)),
   );
 
-  /** Cuántos documentos solicitados faltan (para el indicador del encabezado). */
-  faltantes = computed(() => this.destacados().filter((s) => !this.docDe(s.value)).length);
+  /** Cuántos slots solicitados están vacíos (para el indicador del encabezado). */
+  faltantes = computed(() => this.destacados().filter((s) => this.docsDe(s.value).length === 0).length);
 
   async ngOnInit() {
     await this.load();
     const t = this.autoAbrir();
     if (t) {
-      const doc = this.docDe(t);
+      const doc = this.docsDe(t)[0];
       if (doc) await this.abrirVisor(doc);
     }
   }
@@ -82,11 +85,29 @@ export class DocumentosFlota implements OnInit {
       this.documentos.set(
         await this.documentosService.getByEntidad(this.entidad(), this.entidadId()),
       );
+      this.resolverThumbs();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los documentos.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** C5 — resuelve la URL firmada de cada documento imagen para el thumbnail. */
+  private resolverThumbs() {
+    for (const d of this.documentos()) {
+      if (!this.esImagen(d) || this.thumbs()[d.id]) continue;
+      this.documentosService
+        .getSignedUrl(d.path)
+        .then((url) => this.thumbs.update((m) => ({ ...m, [d.id]: url })))
+        .catch(() => {
+          /* sin thumbnail: el nombre del archivo sigue visible */
+        });
+    }
+  }
+
+  thumbUrl(doc: DocumentoFlota): string | null {
+    return this.thumbs()[doc.id] ?? null;
   }
 
   async onFileSelected(tipo: string, event: Event) {
@@ -109,6 +130,7 @@ export class DocumentosFlota implements OnInit {
         usuarioId,
       );
       this.documentos.update((list) => [created, ...list]);
+      this.resolverThumbs();
       if (tipo === 'otro') this.nombreOtro.set('');
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al subir el documento.');

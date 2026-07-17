@@ -36,7 +36,20 @@
     </select>
   </div>
 
-  @if (searchQuery() || selectedActivo() !== 'all') {
+  <!-- C7 — filtro documentos incompletos -->
+  <button
+    type="button"
+    class="sgc-btn"
+    [class.sgc-btn--primary]="soloIncompletos()"
+    [class.sgc-btn--ghost]="!soloIncompletos()"
+    (click)="toggleIncompletos()"
+    [attr.aria-pressed]="soloIncompletos()"
+    title="Mostrar solo conductores con cédula o licencia sin subir"
+  >
+    ⚠ Documentos incompletos
+  </button>
+
+  @if (searchQuery() || selectedActivo() !== 'all' || soloIncompletos()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros
     </button>
@@ -92,13 +105,27 @@
             <tr [class.row--inactive]="!c.activo">
               <td>
                 <span class="conductores__nombre">{{ c.nombre }}</span>
+                @if (c.tags && c.tags.length > 0) {
+                  <div class="conductores__tags">
+                    @for (t of c.tags; track t) {
+                      <span class="conductores__tag">{{ t }}</span>
+                    }
+                  </div>
+                }
+                @if (c.nota) {
+                  <span class="conductores__nota" [title]="c.nota">📝 {{ c.nota }}</span>
+                }
+                @if (docsIncompletos(c.id)) {
+                  <span class="sgc-badge sgc-badge--warning conductores__badge-docs"
+                    title="Falta cédula o licencia por subir">⚠ Documentos incompletos</span>
+                }
               </td>
               <td>
                 <code class="code-tag">{{ c.cedula }}</code>
               </td>
               <td>{{ c.telefono ? formatTelefono(c.telefono) : '—' }}</td>
               <td>
-                <span class="conductores__licencia-tipo">{{ c.licencia_tipo }}</span>
+                <span class="conductores__licencia-tipo" [title]="categoriaLabel(c.licencia_tipo)">Cat. {{ c.licencia_tipo }}</span>
               </td>
               <td>{{ c.licencia_numero ?? '—' }}</td>
               <td>
@@ -276,8 +303,8 @@
       <div class="sgc-field">
         <label for="licencia_tipo">Tipo de licencia <span class="required">*</span></label>
         <select id="licencia_tipo" formControlName="licencia_tipo">
-          @for (tipo of LICENCIA_TIPOS; track tipo) {
-            <option [value]="tipo">Categoría {{ tipo }}</option>
+          @for (cat of categorias(); track cat.codigo) {
+            <option [value]="cat.codigo">Categoría {{ cat.codigo }} — {{ cat.nombre }}</option>
           }
         </select>
       </div>
@@ -346,6 +373,71 @@
         }
       </select>
       <small class="sgc-field__hint">Los vehículos son un pool: cualquiera puede usar cualquiera disponible.</small>
+    </div>
+
+    <!-- C3 — Nota / comentario -->
+    <div class="sgc-field">
+      <label for="nota">Nota / comentario</label>
+      <textarea id="nota" formControlName="nota" rows="2"
+        placeholder="Comentario sobre el conductor (ej. disponibilidad, observaciones)…"></textarea>
+    </div>
+
+    <!-- C3 — Tags / rol descriptivo -->
+    <div class="sgc-field">
+      <label for="tags">Tags / rol</label>
+      @if (tags().length > 0) {
+        <div class="cond-tags">
+          @for (t of tags(); track t) {
+            <span class="cond-tag-chip">
+              {{ t }}
+              <button type="button" (click)="removeTag(t)" [attr.aria-label]="'Quitar ' + t">✕</button>
+            </span>
+          }
+        </div>
+      }
+      <input id="tags" type="text" [value]="tagInput()"
+        (input)="tagInput.set($any($event.target).value)"
+        (keydown)="onTagKeydown($event)"
+        placeholder="Escribe y presiona Enter (ej. Chofer)" list="cond-tags-sugeridos" />
+      <datalist id="cond-tags-sugeridos">
+        @for (s of TAGS_SUGERIDOS; track s) { <option [value]="s"></option> }
+      </datalist>
+      <small class="sgc-field__hint">Ej. Chofer, Encargado de Logística, Chofer Telehandler.</small>
+    </div>
+
+    <!-- C4 — Documentos opcionales (cédula / licencia) -->
+    <div class="sgc-field">
+      <label>Documentos (opcional)</label>
+      <div class="cond-docs-alta">
+        <div class="cond-doc-slot">
+          <span class="cond-doc-slot__label">Cédula</span>
+          @if (docsAlta().cedula; as f) {
+            <span class="cond-doc-file">
+              {{ f.name }}
+              <button type="button" (click)="removeDocAlta('cedula')" aria-label="Quitar cédula">✕</button>
+            </span>
+          } @else {
+            <label class="cond-doc-add">
+              + Adjuntar
+              <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onDocPick('cedula', $event)" />
+            </label>
+          }
+        </div>
+        <div class="cond-doc-slot">
+          <span class="cond-doc-slot__label">Licencia (frente y dorso)</span>
+          @for (f of docsAlta().licencia; track f.name; let i = $index) {
+            <span class="cond-doc-file">
+              {{ f.name }}
+              <button type="button" (click)="removeDocAlta('licencia', i)" [attr.aria-label]="'Quitar ' + f.name">✕</button>
+            </span>
+          }
+          <label class="cond-doc-add">
+            + Adjuntar
+            <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onDocPick('licencia', $event)" />
+          </label>
+        </div>
+      </div>
+      <small class="sgc-field__hint">Se suben al guardar. No es obligatorio; también puedes agregarlos luego desde el perfil.</small>
     </div>
 
     <div class="form-toggle">

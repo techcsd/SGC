@@ -1,6 +1,19 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.13.0": {
+      "titulo": "Conductores y vehículos: categorías RD, tags, documentos y VIN",
+      "cambios": [
+        { "t": "arreglo", "d": "Corregido el error al desvincular un conductor de su usuario (\"invalid input syntax for type uuid\"); también en rutas, combustible y checklists." },
+        { "t": "nuevo", "d": "Categorías de licencia en formato dominicano (01, 02, 03…) desde un catálogo; los valores viejos (A/B/C) se migraron automáticamente." },
+        { "t": "nuevo", "d": "Nota y tags del conductor (Chofer, Encargado de Logística, Chofer Telehandler…), visibles en el listado y el perfil." },
+        { "t": "nuevo", "d": "Subir cédula y licencia (opcional) durante el alta del conductor, sin bloquear el guardado." },
+        { "t": "mejora", "d": "Documentos con vista previa (miniatura) y varias fotos por documento destacado (licencia frente y dorso)." },
+        { "t": "mejora", "d": "Aviso de licencia próxima a vencer (3 meses) también en el perfil del conductor." },
+        { "t": "nuevo", "d": "Badge y filtro de \"documentos incompletos\" en el listado de conductores." },
+        { "t": "nuevo", "d": "VIN (chasis) del vehículo como identificador único, más número de matrícula, número de seguro y compañía aseguradora." }
+      ]
+    },
     "1.9.0": {
       "titulo": "QA total + propuestas + exportación a Excel",
       "cambios": [

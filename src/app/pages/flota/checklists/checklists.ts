@@ -41,6 +41,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 /**
@@ -428,7 +429,7 @@ export class Checklists implements OnInit {
     const payload: ChecklistFormData = {
       plantilla_id: plantilla.id,
       vehiculo_id: raw.vehiculo_id!,
-      conductor_id: raw.conductor_id || null,
+      conductor_id: cleanUuid(raw.conductor_id), // C2 — "null" de <select> → null
       tipo: raw.tipo ?? 'pre_uso',
       fecha: raw.fecha ?? todayIso(),
       datos: {},

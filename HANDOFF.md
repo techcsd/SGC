@@ -1,6 +1,40 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-16_
+_Last updated: 2026-07-17_
+
+## Ronda 17/07/2026 — Conductores & Vehículos (web) — ✅ CÓDIGO LISTO, migraciones aplicadas, build OK, SIN commit/push todavía
+
+Source: `C:\developer\improvements\imp 17072026\CONTEXTO.md` (C1–C7, V1–V2) + `apuntes de reunion.md`. Web bump → **1.13.0** (`package.json` + `release-notes.json` web[1.13.0] + `version.ts` regenerado). **No se hizo commit/push ni deploy** (esperando a Xaviel). M1 (crash cámara Android) es de la app móvil (csd-app) — NO se tocó aquí.
+
+### Qué se hizo (por requerimiento)
+- **C2 (bug en vivo)**: desvincular conductor rompía con `invalid input syntax for type uuid: "null"`. Un `<option [value]="null">` en select con `formControlName` guarda el **string** `"null"`. Fix: util nuevo `src/shared/utils/uuid.util.ts` (`cleanUuid`, `sanitizeUuidFields`) aplicado en `conductores.ts`/`conductores.service.ts` (usuario_id + vehiculo_id) **y** — mismo patrón latente — en `rutas.service.ts` (conductor_id, vehiculo_id, destino_proyecto_id), `combustible.service.ts` (conductor_id, vehiculo_id) y `checklists.ts` (conductor_id). Verificado a nivel DB (update usuario_id=null OK).
+- **C1 (categorías RD)**: catálogo en BD `sgc.licencia_categorias` (01–06, seed idempotente). `conductores.licencia_tipo` migrado **A→01 B→02 C→03 D→04 E→05 F→06** (prod tenía B(4)→02, C(5)→03). Front consume el catálogo (`getCategoriasLicencia()` con fallback local `LICENCIA_CATEGORIAS_FALLBACK`). Default del alta = `'02'`. `LicenciaTipo` pasó de union A-F a `string`.
+- **C3 (nota/tags)**: columnas aditivas `conductores.nota text`, `tags text[]` (nullable) + índice GIN. Form con nota + tags (chips, sugerencias, homologación 1ª mayúscula). Chips en listado y perfil.
+- **C4 (docs en el alta)**: el drawer de crear/editar conductor adjunta cédula y **licencia (varias)** opcionales; se suben tras crear con `DocumentosFlotaService.upload` (Promise.allSettled, no bloquea, avisa fallos por toast).
+- **C5 (preview + varias fotos)**: `documentos-flota` ahora resuelve **thumbnails** (signed URL) y lista **TODOS** los docs por slot destacado (licencia frente/dorso), con "+ Agregar otra", ver y eliminar cada uno. También thumbnail en "otros". El perfil (conductor y vehículo) ya embebe el componente → se ven ahí.
+- **C6 (licencia por vencer)**: badge "Por vencer"/"Vencida" + banner ámbar en el **perfil** del conductor. Umbral subido a **90 días** (`FlotaConfigService.umbralLicenciaDias` default 30→90; configurable en `flota_config.umbral_licencia_dias`).
+- **C7 (docs faltantes)**: vista `sgc.v_conductor_documentos` (security_invoker) devuelve por conductor `tiene_cedula/tiene_licencia/total`. Listado muestra badge "⚠ Documentos incompletos" + filtro toggle. Si la vista no responde, no marca nada (sin falsos avisos).
+- **V1 (VIN)**: `vehiculos.vin text` + índice único parcial case-insensitive (`uq_vehiculos_vin`, permite múltiples NULL). En form (mayúsculas, ≤17), listado (card), perfil y Excel.
+- **V2 (matrícula/seguro)**: `vehiculos.numero_matricula`, `numero_seguro`, `aseguradora` (aditivas). En form, perfil y Excel. Fotos siguen por `documentos` (slots matricula/seguro); fechas de vencimiento ya existían.
+
+### Migraciones aplicadas a prod (Management API, verificadas) — todas aditivas/idempotentes
+`sql/2026-07-17-licencia-categorias.sql` · `-conductores-nota-tags.sql` · `-conductor-documentos-resumen.sql` · `-vehiculos-vin-matricula-seguro.sql`. QA-TEST end-to-end ejecutado y limpiado (0 filas QA-TEST restantes).
+
+### Para PROMPT-2 (csd-app / móvil) — lo que debe consumir
+- **Catálogo licencia**: tabla `sgc.licencia_categorias` (codigo, nombre, clase, orden, activo). La app debe cambiar su input de licencia de A-F a este catálogo (select 01–06). `conductores.licencia_tipo` ahora es el `codigo` (ej. `'02'`).
+- **Conductor**: nuevos campos `nota text`, `tags text[]` — mostrar/editar (chips) en el perfil/alta móvil.
+- **Docs**: reutilizar `sgc.documentos` + bucket `flota-documentos`. Móvil debe permitir **varias fotos** por slot destacado (licencia frente/dorso) y preview, igual que web; y ofrecer subir cédula/licencia en el alta.
+- **Licencia por vencer**: umbral 90 días (leer `flota_config.umbral_licencia_dias`); badge en listado/perfil móvil.
+- **Docs incompletos**: vista `sgc.v_conductor_documentos` para el badge en el listado móvil (o consultar `documentos` por conductor).
+- **Vehículo**: nuevos campos `vin`, `numero_matricula`, `numero_seguro`, `aseguradora` — pedir en alta y mostrar en perfil móvil. VIN único case-insensitive.
+- **C2**: la app también debe normalizar `"null"` de sus selects/pickers a null real antes de escribir uuid opcionales.
+- **M1 (crash Android cámara pre-uso)**: sigue pendiente en csd-app (ver CONTEXTO §C M1).
+
+### Pendiente de Xaviel
+- Revisar y hacer **commit/push** (no lo hice). Al mergear a `main`, el deploy registra la versión 1.13.0 (Y1) — requiere las env vars de Vercel ya documentadas abajo.
+- §E del CONTEXTO ya resuelto en lo que bloqueaba: mapeo C1 **confirmado** (A→01…F→06); V2 = número de matrícula + número de póliza + compañía. Quedan como decisiones futuras no bloqueantes: tags cerrados vs libres (hoy libres+sugerencias), alerta de vencimiento para cédula/otros.
+
+---
 
 ## Actualización 7 (historial de versiones + auditoría + brechas web) — ✅ EN PRODUCCIÓN
 

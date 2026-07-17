@@ -162,6 +162,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Son dos permisos distintos a propósito. Con el módulo "Documentos" generas documentos a partir de plantillas existentes. Crear o editar plantillas requiere el módulo "Plantillas", reservado a roles de confianza (admin, legal), para mantener el catálogo de plantillas ordenado y consistente.',
       },
+      {
+        pregunta: '¿Dónde veo qué hace cada rol y cuándo asignarlo? (administradores)',
+        respuesta:
+          'En Administración > Roles cada rol muestra una descripción de qué hace, para quién es y cuándo asignarlo, además de los módulos a los que da acceso (pasa el cursor sobre cada módulo de la tarjeta para ver qué incluye). Al crear o editar un rol puedes escribir o ajustar esa descripción, y cada módulo trae una explicación de qué desbloquea al marcarlo; los de acceso amplio (Administración, Dirección) están señalados como tales para que los asignes con cuidado. Recuerda que un usuario puede tener varios roles y verá la suma de sus accesos.',
+      },
     ],
   },
   {
@@ -507,7 +512,32 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Dónde subo la cédula y licencia de un conductor, o el seguro y matrícula de un vehículo?',
         respuesta:
-          'En el perfil de cada uno. Conductores: Flota > Conductores > (abre el conductor) → sección "Documentos", con espacios destacados para Cédula y Licencia (marca "Falta documento" si aún no están) más los que quieras agregar. Vehículos: Flota > Vehículos > (abre el vehículo) → "Documentos", con Seguro y Matrícula destacados. Puedes subir imágenes o PDF, verlos, descargarlos y (admin/Flota) eliminarlos. Desde un aviso de vencimiento de licencia/seguro/matrícula, el botón "Ver documento" te lleva directo al documento.',
+          'En dos lugares. (1) Al CREAR/editar el conductor, el formulario ahora deja adjuntar la cédula y la licencia de forma opcional (se suben al guardar; no bloquean si faltan). (2) En el perfil: Conductores > (abre el conductor) → sección "Documentos", con espacios destacados para Cédula y Licencia (marca "Falta documento" si aún no están). Vehículos: Flota > Vehículos > (abre el vehículo) → "Documentos", con Seguro y Matrícula destacados. Al subir ves una miniatura (vista previa) del documento y puedes subir varias fotos por documento — por ejemplo la licencia por su frente y su dorso. Puedes verlos, descargarlos y (admin/Flota) eliminar cada uno.',
+      },
+      {
+        pregunta: '¿Por qué las categorías de licencia ahora son 01, 02, 03… en vez de A, B, C?',
+        respuesta:
+          'Se actualizaron al formato dominicano (RD): 01 Motocicletas, 02 Vehículos livianos (auto/jeepeta), 03 Carga liviana/taxi, 04 Autobuses/pasajeros, 05 Carga pesada (camiones), 06 Vehículos especiales/maquinaria. Las licencias que estaban como A/B/C se convirtieron automáticamente a su equivalente numérico. Se eligen desde el formulario del conductor y el catálogo se administra en base de datos.',
+      },
+      {
+        pregunta: '¿Puedo ponerle una nota o un tag a un conductor (Chofer, Encargado de Logística…)?',
+        respuesta:
+          'Sí. Al crear o editar un conductor puedes escribir una nota libre y agregar tags (escribe y presiona Enter; hay sugerencias como Chofer, Encargado de Logística, Chofer Telehandler). Los tags y la nota se ven como etiquetas en el listado y en el perfil del conductor.',
+      },
+      {
+        pregunta: '¿Cómo sé qué conductores tienen documentos incompletos sin abrir cada perfil?',
+        respuesta:
+          'En Flota > Conductores, a quien le falte la cédula o la licencia se le muestra un badge "⚠ Documentos incompletos" en el listado. Además hay un botón/filtro "⚠ Documentos incompletos" para ver solo esos conductores.',
+      },
+      {
+        pregunta: '¿Cuándo me avisa el sistema que una licencia está por vencer?',
+        respuesta:
+          'Cuando falten 3 meses (≈90 días) o menos para el vencimiento, la licencia se marca "Por vencer" (y "Vencida" si ya pasó) tanto en el listado como en el perfil del conductor. El umbral es configurable en la base de datos (flota_config.umbral_licencia_dias).',
+      },
+      {
+        pregunta: '¿Puedo registrar el VIN, el número de matrícula y el número de seguro de un vehículo?',
+        respuesta:
+          'Sí. Al crear o editar un vehículo puedes registrar el VIN (número de chasis, hasta 17 caracteres, único — útil para diferenciar vehículos casi idénticos), el número de matrícula, el número de póliza del seguro y la compañía aseguradora. El VIN se ve en el listado y todo aparece en el perfil del vehículo. Las fotos de matrícula y seguro se siguen subiendo desde "Documentos" del vehículo.',
       },
       {
         pregunta: '¿La entrega/recepción de un vehículo guarda dónde se hizo (GPS)?',

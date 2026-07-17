@@ -15,6 +15,9 @@ export type VehiculoEstado = 'activo' | 'mantenimiento' | 'no_disponible' | 'baj
 export interface Vehiculo {
   id: string;
   placa: string;
+  // V1 — número VIN (chasis): identificador único para diferenciar vehículos casi
+  // idénticos (mismo modelo/año, placas parecidas).
+  vin: string | null;
   marca: string;
   modelo: string;
   anio: number;
@@ -22,6 +25,11 @@ export interface Vehiculo {
   estado: VehiculoEstado;
   color: string | null;
   kilometraje: number;
+  // V2 — números de matrícula y seguro (la foto va por documentos; las fechas de
+  // vencimiento ya existen abajo).
+  numero_matricula: string | null;
+  numero_seguro: string | null;
+  aseguradora: string | null;
   capacidad_carga: string | null;
   capacidad_valor: number | null;
   capacidad_unidad: string | null;
@@ -41,6 +49,7 @@ export interface Vehiculo {
 
 export interface VehiculoFormData {
   placa: string;
+  vin: string | null;
   marca: string;
   modelo: string;
   anio: number;
@@ -51,6 +60,9 @@ export interface VehiculoFormData {
   capacidad_valor: number | null;
   capacidad_unidad: string | null;
   notas: string | null;
+  numero_matricula: string | null;
+  numero_seguro: string | null;
+  aseguradora: string | null;
   vencimiento_matricula: string | null;
   vencimiento_seguro: string | null;
   km_ultimo_mantenimiento: number | null;

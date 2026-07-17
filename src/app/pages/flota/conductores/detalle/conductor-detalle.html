@@ -22,6 +22,15 @@
           <span class="cd-chip cd-chip--veh">{{ conductor()!.vehiculo!.placa }} · {{ conductor()!.vehiculo!.marca }} {{ conductor()!.vehiculo!.modelo }}</span>
         }
       </div>
+      <!-- C3 — tags + nota -->
+      @if (conductor()!.tags && conductor()!.tags!.length > 0) {
+        <div class="cd-tags">
+          @for (t of conductor()!.tags!; track t) { <span class="cd-tag">{{ t }}</span> }
+        </div>
+      }
+      @if (conductor()!.nota) {
+        <p class="cd-nota">📝 {{ conductor()!.nota }}</p>
+      }
     </div>
 
     @if (stats()) {
@@ -36,8 +45,12 @@
     }
   </section>
 
-  @if (licenciaVencida()) {
+  @if (licenciaExpirada()) {
     <div class="page-error" role="alert">Licencia vencida — contacta a RRHH.</div>
+  } @else if (licenciaPorVencer()) {
+    <div class="cd-warn" role="status">
+      ⚠ La licencia vence en {{ diasParaVencer() }} día(s) — gestiona la renovación.
+    </div>
   }
 
   <!-- ── 2. Licencia ── -->
@@ -45,8 +58,8 @@
     <h2 class="cd-section__title">Licencia</h2>
     <div class="cd-dl">
       <div class="cd-dl__item">
-        <span class="cd-dl__label">Tipo</span>
-        <span class="cd-dl__value">{{ conductor()!.licencia_tipo }}</span>
+        <span class="cd-dl__label">Categoría</span>
+        <span class="cd-dl__value">{{ categoriaLabel() }}</span>
       </div>
       <div class="cd-dl__item">
         <span class="cd-dl__label">Número</span>
@@ -54,7 +67,14 @@
       </div>
       <div class="cd-dl__item">
         <span class="cd-dl__label">Vencimiento</span>
-        <span class="cd-dl__value">{{ formatFecha(conductor()!.licencia_vencimiento) }}</span>
+        <span class="cd-dl__value">
+          {{ formatFecha(conductor()!.licencia_vencimiento) }}
+          @if (licenciaExpirada()) {
+            <span class="sgc-badge sgc-badge--danger">Vencida</span>
+          } @else if (licenciaPorVencer()) {
+            <span class="sgc-badge sgc-badge--warning">Por vencer</span>
+          }
+        </span>
       </div>
     </div>
   </section>

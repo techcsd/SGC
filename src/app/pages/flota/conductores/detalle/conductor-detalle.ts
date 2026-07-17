@@ -13,7 +13,8 @@ import { ConductoresService } from '../../../../../shared/services/conductores.s
 import { ChecklistsVehiculoService } from '../../../../../shared/services/checklists-vehiculo.service';
 import { CombustibleService } from '../../../../../shared/services/combustible.service';
 import { ToastService } from '../../../../../shared/services/toast.service';
-import { Conductor } from '../../../../../shared/models/conductor.model';
+import { FlotaConfigService } from '../../../../../shared/services/flota-config.service';
+import { Conductor, LicenciaCategoria } from '../../../../../shared/models/conductor.model';
 import {
   ConductorStats,
   ESTADO_LICENCIA_LABEL,
@@ -27,7 +28,7 @@ import {
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
-import { formatFechaDisplay } from '../../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, daysUntil } from '../../../../../shared/utils/fecha.util';
 
 const MAX_HIST = 15;
 
@@ -44,6 +45,7 @@ export class ConductorDetalle implements OnInit {
   private checklistsService = inject(ChecklistsVehiculoService);
   private combustibleService = inject(CombustibleService);
   private toast = inject(ToastService);
+  private flotaConfig = inject(FlotaConfigService);
 
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
   readonly estadoBadge = ESTADO_LICENCIA_BADGE;
@@ -66,6 +68,29 @@ export class ConductorDetalle implements OnInit {
 
   licenciaVencida = computed(() => this.stats()?.estado_licencia === 'vencida');
 
+  // C6 — vencimiento de licencia derivado de la fecha del conductor + umbral (~90d).
+  licenciaExpirada = computed(() => {
+    const v = this.conductor()?.licencia_vencimiento;
+    return v ? daysUntil(v) < 0 : false;
+  });
+  licenciaPorVencer = computed(() => {
+    const v = this.conductor()?.licencia_vencimiento;
+    return v ? daysUntil(v) >= 0 && daysUntil(v) <= this.flotaConfig.umbralLicenciaDias() : false;
+  });
+  diasParaVencer = computed(() => {
+    const v = this.conductor()?.licencia_vencimiento;
+    return v ? daysUntil(v) : null;
+  });
+
+  // C1 — etiqueta de la categoría de licencia (cargada del catálogo).
+  categoriaLabel = computed(() => {
+    const codigo = this.conductor()?.licencia_tipo;
+    if (!codigo) return '—';
+    const cat = this.categorias().find((c) => c.codigo === codigo);
+    return cat ? `${cat.codigo} — ${cat.nombre}` : codigo;
+  });
+  categorias = signal<LicenciaCategoria[]>([]);
+
   private resultadoDe(c: ChecklistVehiculo): ChecklistResultado {
     return c.resultado ?? (c.tiene_criticos ? 'bloqueado' : 'aprobado');
   }
@@ -82,14 +107,16 @@ export class ConductorDetalle implements OnInit {
 
     this.loading.set(true);
     try {
-      const [conductor, stats, checklists, combustible] = await Promise.all([
+      const [conductor, stats, checklists, combustible, categorias] = await Promise.all([
         this.conductoresService.getById(id),
         this.conductoresService.getStats(id),
         this.checklistsService.getChecklists(),
         this.combustibleService.getAll(),
+        this.conductoresService.getCategoriasLicencia(),
       ]);
       this.conductor.set(conductor);
       this.stats.set(stats);
+      this.categorias.set(categorias);
       this.checklists.set(checklists.filter((c) => c.conductor_id === id));
       this.combustible.set(combustible.filter((r) => r.conductor_id === id));
     } catch (e: unknown) {

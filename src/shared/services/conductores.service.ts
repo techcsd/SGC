@@ -1,7 +1,24 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { Conductor, ConductorFormData } from '../models/conductor.model';
+import {
+  Conductor,
+  ConductorFormData,
+  LicenciaCategoria,
+  LICENCIA_CATEGORIAS_FALLBACK,
+} from '../models/conductor.model';
 import { ConductorStats } from '../models/vehiculo-asignacion.model';
+import { sanitizeUuidFields } from '../utils/uuid.util';
+
+/** C2 — uuid opcionales de un payload de conductor a sanear antes de escribir. */
+const CONDUCTOR_UUID_FIELDS = ['usuario_id', 'vehiculo_id'] as const;
+
+/** C7 — resumen de documentos destacados por conductor (vista v_conductor_documentos). */
+export interface ConductorDocumentosResumen {
+  conductor_id: string;
+  tiene_cedula: boolean;
+  tiene_licencia: boolean;
+  total_documentos: number;
+}
 
 /** Usuario enlazable a un conductor + datos de su ficha para autollenar (B4/U3). */
 export interface UsuarioVinculable {
@@ -16,6 +33,20 @@ export interface UsuarioVinculable {
 export class ConductoresService {
   private supabase = inject(SupabaseService);
 
+  /**
+   * C1 — catálogo de categorías de licencia RD (`sgc.licencia_categorias`).
+   * Cae al fallback local si la tabla no responde, para no dejar el select vacío.
+   */
+  async getCategoriasLicencia(): Promise<LicenciaCategoria[]> {
+    const { data, error } = await this.supabase.client
+      .from('licencia_categorias')
+      .select('codigo, nombre, clase, orden, activo')
+      .eq('activo', true)
+      .order('orden');
+    if (error || !data || data.length === 0) return LICENCIA_CATEGORIAS_FALLBACK;
+    return data as unknown as LicenciaCategoria[];
+  }
+
   async getAll(): Promise<Conductor[]> {
     const { data, error } = await this.supabase.client
       .from('conductores')
@@ -24,6 +55,19 @@ export class ConductoresService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Conductor[];
+  }
+
+  /**
+   * C7 — resumen de documentos destacados por conductor, para el badge de
+   * "documentos incompletos" en el listado sin cargar todos los docs por fila.
+   * Devuelve [] si la vista aún no existe (no rompe el listado).
+   */
+  async getDocumentosResumen(): Promise<ConductorDocumentosResumen[]> {
+    const { data, error } = await this.supabase.client
+      .from('v_conductor_documentos')
+      .select('conductor_id, tiene_cedula, tiene_licencia, total_documentos');
+    if (error) return [];
+    return (data ?? []) as unknown as ConductorDocumentosResumen[];
   }
 
   /** Un conductor con sus joins (perfil, R5). */
@@ -70,7 +114,7 @@ export class ConductoresService {
   async create(payload: ConductorFormData): Promise<Conductor> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .insert(payload)
+      .insert(sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS))
       .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre)')
       .single();
 
@@ -81,7 +125,7 @@ export class ConductoresService {
   async update(id: string, payload: Partial<ConductorFormData>): Promise<Conductor> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update({ ...sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS), updated_at: new Date().toISOString() })
       .eq('id', id)
       .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre)')
       .single();

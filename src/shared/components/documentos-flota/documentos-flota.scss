@@ -99,6 +99,90 @@
     color: var(--sgc-text-muted);
   }
 
+  // ── C5 — thumbnails (preview) de documentos ──
+  &__thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  &__thumb {
+    position: relative;
+    width: 92px;
+  }
+
+  &__thumb-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 92px;
+    height: 72px;
+    padding: 0;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-bg);
+    cursor: pointer;
+    overflow: hidden;
+
+    &:hover { border-color: var(--sgc-primary-mid); }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__thumb-ph {
+    font-size: 26px;
+  }
+
+  &__thumb-name {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--sgc-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__thumb-remove {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: var(--sgc-danger);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--sgc-shadow-sm);
+  }
+
+  &__item-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    margin-right: 8px;
+    padding: 0;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-bg);
+    cursor: pointer;
+    overflow: hidden;
+    font-size: 18px;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
   &__replace {
     font-size: 12px;
     color: var(--sgc-primary-mid);
@@ -131,6 +215,8 @@
   }
 
   &__item-name {
+    flex: 1;
+    min-width: 0;
     background: none;
     border: none;
     padding: 0;
@@ -140,6 +226,7 @@
     cursor: pointer;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 
     &:hover { text-decoration: underline; }
   }

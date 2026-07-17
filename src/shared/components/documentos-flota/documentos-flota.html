@@ -13,45 +13,51 @@
   @if (loading()) {
     <p class="docs-flota__loading">Cargando documentos…</p>
   } @else {
-    <!-- ── Slots destacados (solicitados) ── -->
+    <!-- ── Slots destacados (solicitados) — C5: preview + varias fotos ── -->
     <div class="docs-flota__slots">
       @for (s of destacados(); track s.value) {
-        <div class="docs-flota__slot" [class.docs-flota__slot--falta]="!docDe(s.value)">
+        <div class="docs-flota__slot" [class.docs-flota__slot--falta]="docsDe(s.value).length === 0">
           <div class="docs-flota__slot-head">
             <span class="docs-flota__slot-label">{{ s.label }}</span>
-            @if (docDe(s.value)) {
-              <span class="docs-flota__slot-ok" aria-label="Documento cargado">✓</span>
+            @if (docsDe(s.value).length > 0) {
+              <span class="docs-flota__slot-ok" aria-label="Documentos cargados">✓ {{ docsDe(s.value).length }}</span>
             } @else {
               <span class="docs-flota__slot-warn">Falta documento</span>
             }
           </div>
 
-          @if (docDe(s.value); as doc) {
-            <div class="docs-flota__slot-doc">
-              <button type="button" class="docs-flota__item-name" (click)="abrirVisor(doc)">
-                {{ doc.nombre }}
-              </button>
-              <div class="docs-flota__slot-actions">
-                @if (canManage()) {
-                  <label class="docs-flota__replace" [class.is-busy]="uploadingTipo() === s.value">
-                    @if (uploadingTipo() === s.value) { … } @else { Reemplazar }
-                    <input type="file" (change)="onFileSelected(s.value, $event)"
-                      [disabled]="uploadingTipo() !== null"
-                      accept=".pdf,.jpg,.jpeg,.png,.webp" hidden />
-                  </label>
-                  <button type="button" class="docs-flota__item-remove" (click)="eliminar(doc)"
-                    aria-label="Eliminar documento">✕</button>
-                }
-              </div>
+          @if (docsDe(s.value).length > 0) {
+            <div class="docs-flota__thumbs">
+              @for (doc of docsDe(s.value); track doc.id) {
+                <div class="docs-flota__thumb">
+                  <button type="button" class="docs-flota__thumb-btn" (click)="abrirVisor(doc)"
+                    [attr.aria-label]="'Ver ' + doc.nombre">
+                    @if (thumbUrl(doc); as url) {
+                      <img [src]="url" [alt]="doc.nombre ?? 'Documento'" loading="lazy" />
+                    } @else {
+                      <span class="docs-flota__thumb-ph" aria-hidden="true">{{ esImagen(doc) ? '🖼️' : '📄' }}</span>
+                    }
+                  </button>
+                  <span class="docs-flota__thumb-name" [title]="doc.nombre">{{ doc.nombre }}</span>
+                  @if (canManage()) {
+                    <button type="button" class="docs-flota__thumb-remove" (click)="eliminar(doc)"
+                      aria-label="Eliminar documento">✕</button>
+                  }
+                </div>
+              }
             </div>
-          } @else if (canManage()) {
-            <label class="docs-flota__upload-btn" [class.is-busy]="uploadingTipo() === s.value">
-              @if (uploadingTipo() === s.value) { Subiendo… } @else { + Subir {{ s.label }} }
+          }
+
+          @if (canManage()) {
+            <label class="docs-flota__upload-btn docs-flota__upload-btn--sm" [class.is-busy]="uploadingTipo() === s.value">
+              @if (uploadingTipo() === s.value) { Subiendo… }
+              @else if (docsDe(s.value).length > 0) { + Agregar otra }
+              @else { + Subir {{ s.label }} }
               <input type="file" (change)="onFileSelected(s.value, $event)"
                 [disabled]="uploadingTipo() !== null"
                 accept=".pdf,.jpg,.jpeg,.png,.webp" hidden />
             </label>
-          } @else {
+          } @else if (docsDe(s.value).length === 0) {
             <p class="docs-flota__slot-empty">Sin documento cargado.</p>
           }
         </div>
@@ -66,6 +72,14 @@
       } @else {
         @for (doc of otros(); track doc.id) {
           <div class="docs-flota__item">
+            <button type="button" class="docs-flota__item-thumb" (click)="abrirVisor(doc)"
+              [attr.aria-label]="'Ver ' + doc.nombre">
+              @if (thumbUrl(doc); as url) {
+                <img [src]="url" [alt]="doc.nombre ?? 'Documento'" loading="lazy" />
+              } @else {
+                <span aria-hidden="true">{{ esImagen(doc) ? '🖼️' : '📄' }}</span>
+              }
+            </button>
             <button type="button" class="docs-flota__item-name" (click)="abrirVisor(doc)">
               {{ doc.nombre }}
             </button>

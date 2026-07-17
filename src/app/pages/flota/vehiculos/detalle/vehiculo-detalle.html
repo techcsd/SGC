@@ -26,6 +26,9 @@
         <p class="vd-header__sub">
           {{ v.marca }} {{ v.modelo }} · {{ v.anio }} · {{ tipoLabel(v.tipo) }}@if (v.color) { · {{ v.color }}}
         </p>
+        @if (v.vin) {
+          <p class="vd-header__vin">VIN: {{ v.vin }}</p>
+        }
         @if (v.responsable?.nombre) {
           <p class="vd-header__resp">Responsable: {{ v.responsable!.nombre }}</p>
         }
@@ -97,30 +100,33 @@
       </div>
     </div>
 
-    <!-- ── 3. Vencimientos ── -->
+    <!-- ── 3. Matrícula y seguro (V2) ── -->
     <div class="sgc-card vd-card">
-      <h2 class="vd-section-title">Vencimientos</h2>
+      <h2 class="vd-section-title">Matrícula y seguro</h2>
       <dl class="vd-venc">
         <div>
           <dt>Matrícula</dt>
           <dd>
+            <span>Nº {{ v.numero_matricula ?? '—' }}</span>
             @if (v.vencimiento_matricula) {
-              <span>{{ fecha(v.vencimiento_matricula) }}</span>
+              <span class="vd-muted">· vence {{ fecha(v.vencimiento_matricula) }}</span>
               @if (estadoVenc(v.vencimiento_matricula); as ev) {
                 <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] }}</span>
               }
-            } @else { — }
+            }
           </dd>
         </div>
         <div>
           <dt>Seguro</dt>
           <dd>
+            <span>Nº {{ v.numero_seguro ?? '—' }}</span>
+            @if (v.aseguradora) { <span class="vd-muted">· {{ v.aseguradora }}</span> }
             @if (v.vencimiento_seguro) {
-              <span>{{ fecha(v.vencimiento_seguro) }}</span>
+              <span class="vd-muted">· vence {{ fecha(v.vencimiento_seguro) }}</span>
               @if (estadoVenc(v.vencimiento_seguro); as ev) {
                 <span class="sgc-badge sgc-badge--{{ vencBadge[ev] }}">{{ vencLabel[ev] }}</span>
               }
-            } @else { — }
+            }
           </dd>
         </div>
       </dl>

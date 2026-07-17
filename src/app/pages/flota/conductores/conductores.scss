@@ -18,13 +18,48 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+    padding: 2px 8px;
+    border-radius: 999px;
     background: var(--sgc-primary-light);
     color: var(--sgc-primary);
     font-weight: 700;
     font-size: 12px;
+    white-space: nowrap;
+  }
+
+  // C3 — tags + nota en el listado
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  &__tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--sgc-primary-light);
+    color: var(--sgc-primary);
+  }
+
+  &__nota {
+    display: block;
+    max-width: 220px;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--sgc-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__badge-docs {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 10.5px;
+    padding: 1px 7px;
   }
 
   &__licencia-date {
@@ -196,6 +231,98 @@
   padding-top: 8px;
   border-top: 1px solid var(--sgc-border);
   margin-top: 4px;
+}
+
+// ── C3 — tags (chips) en el drawer ───────────────────────
+.cond-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.cond-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 10px;
+  border-radius: 999px;
+  background: var(--sgc-primary-light);
+  color: var(--sgc-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+
+  button {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    padding: 0 2px;
+    opacity: 0.75;
+
+    &:hover { opacity: 1; }
+  }
+}
+
+// ── C4 — documentos opcionales en el alta ─────────────────
+.cond-docs-alta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cond-doc-slot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sgc-text);
+    min-width: 150px;
+  }
+}
+
+.cond-doc-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 6px 3px 10px;
+  border-radius: var(--sgc-radius-sm);
+  background: var(--sgc-bg);
+  border: 1px solid var(--sgc-border);
+  font-size: 12.5px;
+  color: var(--sgc-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  button {
+    background: none;
+    border: none;
+    color: var(--sgc-danger);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 0 2px;
+  }
+}
+
+.cond-doc-add {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--sgc-radius-sm);
+  border: 1px dashed var(--sgc-border);
+  color: var(--sgc-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--sgc-primary-light); }
 }
 
 // ── Responsive ───────────────────────────────────────────
