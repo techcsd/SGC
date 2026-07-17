@@ -37,6 +37,7 @@ export class AdminRoles implements OnInit {
 
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    descripcion: new FormControl('', [Validators.maxLength(500)]),
   });
 
   // ── Create drawer ────────────────────────────────────────
@@ -47,6 +48,7 @@ export class AdminRoles implements OnInit {
 
   createForm = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    descripcion: new FormControl('', [Validators.maxLength(500)]),
   });
 
   deletingId = signal<number | null>(null);
@@ -78,7 +80,7 @@ export class AdminRoles implements OnInit {
   openEdit(rol: Rol) {
     this.editingRol.set(rol);
     this.saveError.set('');
-    this.form.reset({ nombre: rol.nombre });
+    this.form.reset({ nombre: rol.nombre, descripcion: rol.descripcion ?? '' });
     this.selectedModulos.set([...(rol.modulos ?? [])]);
     this.drawerOpen.set(true);
   }
@@ -99,7 +101,7 @@ export class AdminRoles implements OnInit {
 
   openCreate() {
     this.createError.set('');
-    this.createForm.reset({ nombre: '' });
+    this.createForm.reset({ nombre: '', descripcion: '' });
     this.createSelectedModulos.set([]);
     this.createDrawerOpen.set(true);
   }
@@ -134,6 +136,7 @@ export class AdminRoles implements OnInit {
       await this.rolesService.create({
         nombre: this.createForm.value.nombre!,
         modulos: this.createSelectedModulos(),
+        descripcion: this.createForm.value.descripcion ?? '',
       });
       const updated = await this.rolesService.getAll();
       this.roles.set(updated);
@@ -168,6 +171,10 @@ export class AdminRoles implements OnInit {
     return this.modulos.find((m) => m.key === key)?.label ?? key;
   }
 
+  getModuloDesc(key: string): string {
+    return this.modulos.find((m) => m.key === key)?.desc ?? '';
+  }
+
   async onSave() {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
@@ -187,6 +194,7 @@ export class AdminRoles implements OnInit {
       await this.rolesService.update(rol.id, {
         nombre: this.form.value.nombre!,
         modulos: this.selectedModulos(),
+        descripcion: this.form.value.descripcion ?? '',
       });
 
       const updated = await this.rolesService.getAll();

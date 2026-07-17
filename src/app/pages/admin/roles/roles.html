@@ -14,6 +14,21 @@
     </button>
   </div>
 
+  <!-- Cómo funcionan los roles -->
+  <aside class="admin-roles__note" role="note">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+    <div class="admin-roles__note-text">
+      <strong>¿Cómo funcionan los roles?</strong>
+      Un rol es un conjunto de <em>módulos</em> (áreas del sistema). Un usuario puede tener varios roles y verá
+      la <em>suma</em> de sus accesos. Asigna solo los módulos que la persona necesita para su trabajo.
+      Los módulos marcados como <span class="admin-roles__sensible-tag">acceso amplio</span>
+      (Administración, Dirección) dan mucho control — dálos con cuidado.
+    </div>
+  </aside>
+
   @if (deleteError()) {
     <div class="admin-roles__error" role="alert">{{ deleteError() }}</div>
   }
@@ -48,7 +63,10 @@
           <div class="admin-roles__card-modulos">
             @if (rol.modulos && rol.modulos.length > 0) {
               @for (mod of rol.modulos; track mod) {
-                <span class="admin-roles__modulo-badge">{{ getModuloLabel(mod) }}</span>
+                <span
+                  class="admin-roles__modulo-badge"
+                  [title]="getModuloDesc(mod)"
+                >{{ getModuloLabel(mod) }}</span>
               }
             } @else {
               <span class="admin-roles__no-modulos">Sin módulos asignados</span>
@@ -115,12 +133,34 @@
       }
     </div>
 
+    <!-- Descripción -->
+    <div class="roles-form__field">
+      <label class="roles-form__label" for="rol-descripcion">Descripción del rol</label>
+      <p class="roles-form__hint">Explica qué hace este rol, para quién es y cuándo asignarlo. Se muestra en la tarjeta del rol.</p>
+      <textarea
+        id="rol-descripcion"
+        class="roles-form__input roles-form__textarea"
+        formControlName="descripcion"
+        rows="3"
+        maxlength="500"
+        placeholder="Ej.: Flota completa (vehículos, pre-uso, combustible, rutas). Para el responsable del parque vehicular."
+      ></textarea>
+      @if (f['descripcion'].invalid && f['descripcion'].touched) {
+        <span class="roles-form__error" role="alert">Máximo 500 caracteres.</span>
+      }
+    </div>
+
     <!-- Módulos -->
     <fieldset class="roles-form__fieldset">
       <legend class="roles-form__legend">Módulos accesibles</legend>
+      <p class="roles-form__hint">Marca lo que este rol podrá ver y usar. Cada módulo indica a qué da acceso.</p>
       <div class="roles-form__modulos">
         @for (mod of modulos; track mod.key) {
-          <label class="roles-form__checkbox-label" [for]="'mod-' + mod.key">
+          <label
+            class="roles-form__checkbox-label"
+            [class.roles-form__checkbox-label--sensible]="mod.sensible"
+            [for]="'mod-' + mod.key"
+          >
             <input
               [id]="'mod-' + mod.key"
               class="roles-form__checkbox"
@@ -128,7 +168,13 @@
               [checked]="isModuloSelected(mod.key)"
               (change)="toggleModulo(mod.key)"
             />
-            <span class="roles-form__checkbox-text">{{ mod.label }}</span>
+            <span class="roles-form__checkbox-body">
+              <span class="roles-form__checkbox-text">
+                {{ mod.label }}
+                @if (mod.sensible) { <span class="roles-form__sensible-tag">acceso amplio</span> }
+              </span>
+              <span class="roles-form__checkbox-desc">{{ mod.desc }}</span>
+            </span>
           </label>
         }
       </div>
@@ -188,11 +234,33 @@
       }
     </div>
 
+    <!-- Descripción -->
+    <div class="roles-form__field">
+      <label class="roles-form__label" for="create-rol-descripcion">Descripción del rol</label>
+      <p class="roles-form__hint">Explica qué hace este rol, para quién es y cuándo asignarlo. Se muestra en la tarjeta del rol.</p>
+      <textarea
+        id="create-rol-descripcion"
+        class="roles-form__input roles-form__textarea"
+        formControlName="descripcion"
+        rows="3"
+        maxlength="500"
+        placeholder="Ej.: Inventario de un almacén: recibe/entrega materiales, conduces y conteos. Para el guarda-almacén."
+      ></textarea>
+      @if (cf['descripcion'].invalid && cf['descripcion'].touched) {
+        <span class="roles-form__error" role="alert">Máximo 500 caracteres.</span>
+      }
+    </div>
+
     <fieldset class="roles-form__fieldset">
       <legend class="roles-form__legend">Módulos accesibles</legend>
+      <p class="roles-form__hint">Marca lo que este rol podrá ver y usar. Cada módulo indica a qué da acceso.</p>
       <div class="roles-form__modulos">
         @for (mod of modulos; track mod.key) {
-          <label class="roles-form__checkbox-label" [for]="'create-mod-' + mod.key">
+          <label
+            class="roles-form__checkbox-label"
+            [class.roles-form__checkbox-label--sensible]="mod.sensible"
+            [for]="'create-mod-' + mod.key"
+          >
             <input
               [id]="'create-mod-' + mod.key"
               class="roles-form__checkbox"
@@ -200,7 +268,13 @@
               [checked]="isCreateModuloSelected(mod.key)"
               (change)="toggleCreateModulo(mod.key)"
             />
-            <span class="roles-form__checkbox-text">{{ mod.label }}</span>
+            <span class="roles-form__checkbox-body">
+              <span class="roles-form__checkbox-text">
+                {{ mod.label }}
+                @if (mod.sensible) { <span class="roles-form__sensible-tag">acceso amplio</span> }
+              </span>
+              <span class="roles-form__checkbox-desc">{{ mod.desc }}</span>
+            </span>
           </label>
         }
       </div>
