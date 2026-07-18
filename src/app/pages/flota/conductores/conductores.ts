@@ -97,6 +97,17 @@ export class Conductores implements OnInit {
   accesoError = signal('');
   accesoOk = signal('');
 
+  /**
+   * P5 — ¿este conductor usa acceso por cédula+PIN? Sí si no tiene usuario, o si
+   * su usuario es una cuenta sintética de conductor. Los vinculados a un correo
+   * real (p. ej. el jefe de flota) inician sesión con su correo → sin PIN.
+   */
+  usaAccesoPin(c: Conductor): boolean {
+    if (!c.usuario_id) return true;
+    const email = c.usuario?.email ?? '';
+    return email.endsWith('@conductores.constructorasd.local');
+  }
+
   openAcceso(c: Conductor) {
     this.accesoConductor.set(c);
     this.accesoPin.set('');

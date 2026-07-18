@@ -1,6 +1,14 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.14.1": {
+      "titulo": "Ajustes: fecha de versiones, fotos de vehículos y acceso de conductores",
+      "cambios": [
+        { "t": "arreglo", "d": "La fecha en \"Versiones de la app\" ahora se muestra legible (ej. \"18 jul 2026, 3:27 p. m.\") en vez de un texto confuso." },
+        { "t": "mejora", "d": "Las fotos de los vehículos ahora se ven a todo lo ancho de la tarjeta, sin franjas grises a los lados." },
+        { "t": "arreglo", "d": "El acceso por cédula + PIN es solo para conductores sin correo: a quienes ya inician con su correo de trabajo (p. ej. el jefe de flota) no se les ofrece PIN ni se les cambia la contraseña." }
+      ]
+    },
     "1.14.0": {
       "titulo": "Acceso de conductores, flota y mejoras visuales",
       "cambios": [

@@ -28,7 +28,7 @@ export interface Conductor {
   // Links this driver to their CSD App user, so their conduces/rutas show up
   // in the mobile app (mis_conduces_hoy / mis_rutas_hoy).
   usuario_id: string | null;
-  usuario?: { nombre: string };
+  usuario?: { nombre: string; email: string | null };
   // C3 — nota libre + tags descriptivos (Chofer, Encargado de Logística…).
   nota: string | null;
   tags: string[] | null;

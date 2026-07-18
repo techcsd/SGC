@@ -1,5 +1,9 @@
 :host {
   display: block;
+  // Llena el ancho de su contenedor (incluso dentro de un flex centrado), para
+  // que la imagen ocupe todo el espacio en vez de encogerse a una franja. El
+  // alto lo define [height]/[ratio] (boxStyle sobre .app-img).
+  width: 100%;
 }
 
 .app-img {

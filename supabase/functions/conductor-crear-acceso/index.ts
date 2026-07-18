@@ -73,9 +73,27 @@ Deno.serve(async (req: Request) => {
     if (condError || !conductor) return json({ error: "Conductor no encontrado." }, 404);
 
     const email = syntheticEmail(conductor.cedula);
+    const SYNTH_DOMAIN = "@conductores.constructorasd.local";
 
-    // Caso 1: ya tiene acceso → rotar PIN.
+    // Caso 1: ya tiene acceso → rotar PIN. PERO si está vinculado a una cuenta con
+    // correo REAL (p. ej. el jefe de flota Misael, que entra con su correo de
+    // trabajo), NO se le toca la contraseña — eso rompería su login normal.
     if (conductor.usuario_id) {
+      const { data: linked } = await admin
+        .from("usuarios")
+        .select("email")
+        .eq("id", conductor.usuario_id)
+        .maybeSingle();
+      const linkedEmail = (linked?.email ?? "") as string;
+      if (linkedEmail && !linkedEmail.endsWith(SYNTH_DOMAIN)) {
+        return json(
+          {
+            error:
+              "Este conductor ya inicia sesión con su correo de trabajo. El acceso por cédula + PIN es solo para conductores sin correo.",
+          },
+          409,
+        );
+      }
       const { error: updErr } = await admin.auth.admin.updateUserById(conductor.usuario_id, {
         password: pin,
       });

@@ -5,7 +5,7 @@ import { AppVersionesService } from '../../../../shared/services/app-versiones.s
 import { AppVersion, semverCode } from '../../../../shared/models/app-version.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
@@ -19,7 +19,8 @@ export class AdminAppVersiones implements OnInit {
   private service = inject(AppVersionesService);
   private toast = inject(ToastService);
 
-  formatFecha = formatFechaDisplay;
+  // created_at es un timestamp: formatFechaHumana lo muestra legible ("18 jul 2026, 3:27 p. m.").
+  formatFecha = formatFechaHumana;
 
   versiones = signal<AppVersion[]>([]);
   loading = signal(true);
