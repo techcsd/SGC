@@ -16,10 +16,11 @@ import {
   DocSlot,
   DOC_SLOTS,
 } from '../../models/documento-flota.model';
+import { Img } from '../img/img';
 
 @Component({
   selector: 'app-documentos-flota',
-  imports: [],
+  imports: [Img],
   templateUrl: './documentos-flota.html',
   styleUrl: './documentos-flota.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

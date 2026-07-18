@@ -1,6 +1,9 @@
 export type VehiculoTipo =
-  | 'camion'
+  | 'motocicleta'
+  | 'automovil'
+  | 'suv'
   | 'pickup'
+  | 'camion'
   | 'excavadora'
   | 'retroexcavadora'
   | 'bulldozer'
@@ -110,9 +113,14 @@ export function kmFaltanMantenimiento(v: Vehiculo): number | null {
   return prox - (v.kilometraje ?? 0);
 }
 
+/** Tipos de vehículo considerados "livianos" (afecta el filtrado de ítems del
+ *  checklist). P4: moto/auto/suv/pickup son livianos; camiones/maquinaria pesados.
+ *  `otro` se mantiene liviano (comportamiento previo). Fácil de extender. */
+const TIPOS_LIVIANOS = new Set<string>(['motocicleta', 'automovil', 'suv', 'pickup', 'otro']);
+
 /** Clase Liviano/Pesado según el tipo (para filtrar ítems de checklist). */
 export function claseVehiculo(tipo?: VehiculoTipo | string | null): 'Liviano' | 'Pesado' {
-  return tipo === 'pickup' || tipo === 'otro' ? 'Liviano' : 'Pesado';
+  return TIPOS_LIVIANOS.has(tipo ?? '') ? 'Liviano' : 'Pesado';
 }
 
 export const CAPACIDAD_UNIDADES: { value: string; label: string }[] = [
@@ -122,8 +130,11 @@ export const CAPACIDAD_UNIDADES: { value: string; label: string }[] = [
 ];
 
 export const VEHICULO_TIPOS: { value: VehiculoTipo; label: string }[] = [
-  { value: 'camion', label: 'Camión' },
+  { value: 'motocicleta', label: 'Motocicleta' },
+  { value: 'automovil', label: 'Automóvil / Sedán' },
+  { value: 'suv', label: 'SUV / Jeepeta' },
   { value: 'pickup', label: 'Pickup' },
+  { value: 'camion', label: 'Camión' },
   { value: 'excavadora', label: 'Excavadora' },
   { value: 'retroexcavadora', label: 'Retroexcavadora' },
   { value: 'bulldozer', label: 'Bulldozer' },

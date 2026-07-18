@@ -28,7 +28,8 @@ export class MiProyecto implements OnInit {
     try {
       const usuarioId = this.userService.profile()?.id;
       if (!usuarioId) throw new Error('Sesión inválida.');
-      this.proyectos.set(await this.proyectosService.getAsignadosA(usuarioId));
+      // P2 — responsable O equipo (RPC), no solo proyecto_empleados.
+      this.proyectos.set(await this.proyectosService.misProyectos(usuarioId));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar tus proyectos.');
     } finally {

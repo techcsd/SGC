@@ -1,8 +1,37 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-17_
+_Last updated: 2026-07-18_
 
-## Ronda 17/07/2026 — Conductores & Vehículos (web) — ✅ CÓDIGO LISTO, migraciones aplicadas, build OK, SIN commit/push todavía
+## Actualización 1 (18/07/2026) — UI, Mi proyecto, imágenes, tipos vehículo, login conductores, flota estado/permisos — ✅ CÓDIGO LISTO + migraciones/edge en prod, build OK, SIN commit/push
+
+Source: `C:\developer\improvements\imp 17072026\CONTEXTO-ACTUALIZACION-1.md` (P1–P6). Todo aditivo. Build verde. **No se hizo commit/push del frontend.** Migraciones y edge functions **sí** aplicadas/desplegadas a prod (permitido por el acuerdo). Web bump propuesto → **1.14.0** (pendiente de tu OK para commitear).
+
+### Por punto
+- **P2 (bug en vivo)**: "Mi proyecto" ignoraba al responsable y a usuarios sin ficha. RPC `sgc.mis_proyectos(p_usuario)` (SECURITY DEFINER, jsonb con fases embebidas) = responsable_id OR miembro de equipo; `mi-proyecto.ts` la consume (`ProyectosService.misProyectos`). Además se **amplió la RLS `proyectos: select`** para incluir `responsable_id = auth.uid()` (el responsable ya puede abrir el detalle). Verificado: responsable (PROY-0001) y miembro de equipo (QA-TEST) ✓.
+- **P6 (flota estado/activo/permisos)**: helper `sgc.es_flota_elevado()` (admin, direccion, gerencia, jefe_flota — **confirmado por Xaviel**). RLS `vehiculos`: SELECT `activo OR es_flota_elevado()` (inactivos ocultos a normales); INSERT/UPDATE solo elevados; DELETE admin-only. Front: badge **"Desactivado"** (reconcilia activo vs estado) en `flota/reportes` y listado; inactivos al final; botones crear/editar/toggle gated a `UserService.esFlotaElevado`. KPIs intactos. Verificado por RLS con JWT simulado (normal no ve/edita inactivos; admin sí) ✓.
+- **P4 (tipos de vehículo)**: `VEHICULO_TIPOS` + `motocicleta, automovil, suv` (labels RD); `claseVehiculo()` → esos + pickup + otro = Liviano. Reclasificación **confirmada y aplicada** en prod: Malibu/Lexus→automovil, Suburban/Jimmy→suv, Svartpilen→motocicleta (Hyundai "Cantus" queda otro). ⚠ Hasta desplegar el frontend, esos 5 vehículos muestran el tipo en minúscula cruda en la web viva (cosmético).
+- **P5 (login conductor cédula+PIN)**: edge `conductor-crear-acceso` (service role, gated admin/flota): crea/rota acceso con email sintético `c-{cedula}@conductores.constructorasd.local`, rol `chofer_transportista`, enlaza `conductores.usuario_id`. Edge `conductor-login` (**pública, verify_jwt=false** en config.toml) mapea cédula→email→signInWithPassword con **bloqueo temporal** (5 intentos → 15 min, tabla `sgc.conductor_login_intentos`, solo service_role). Front: modo "Soy conductor" en `auth` (cédula+PIN, 6 dígitos), y botón "Generar acceso/Restablecer PIN" en el listado de conductores (gated admin/flota, modal). Verificado en prod: gate ✓, login público ✓, bloqueo ✓, happy-path (login correcto→sesión, PIN malo→401) ✓.
+- **P1 (UI)**: tabla de Usuarios responsiva — acciones en menú **"⋯"** (popover fixed, no se recorta), chips de rol con límite 2 + "+N" (tooltip). Tablas con **thead sticky + zebra**; flota/reportes km alineado a la derecha. Login validado con screenshot + a11y básica (labels/tabs/validación).
+- **P3 (imágenes)**: componente `app-img` (`shared/components/img`) — reserva espacio (ratio/height), shimmer placeholder, **fade-in**, `loading=lazy` + `decoding=async`, fallback. Aplicado a foto de card de vehículos y thumbnails de documentos. **Disponible para adoptar** en el resto (checklists, responsabilidad, historial, viewer).
+
+### Migraciones en prod (aplicadas y verificadas) + edge deploys
+`sql/2026-07-17-act1-mis-proyectos.sql` · `-act1-flota-visibilidad-permisos.sql` · `-act1-reclasificar-vehiculos-otro.sql` · `-act1-conductor-acceso.sql`. Edge desplegadas: `conductor-crear-acceso`, `conductor-login` (+ `supabase/config.toml` con verify_jwt=false para login).
+
+### Para PROMPT-4 (csd-app / móvil) — lo que debe consumir
+- **Mi proyecto**: usar RPC `sgc.mis_proyectos(null)` (usa auth.uid()) en vez de solo proyecto_empleados.
+- **Login conductor**: llamar a la edge `conductor-login` con `{cedula, pin}`; en éxito hace `setSession(access_token, refresh_token)`. Manejar 401 (incorrecto) y 429 (`retryInSeconds`). El acceso lo genera la web (admin/flota).
+- **Tipos de vehículo**: añadir `motocicleta/automovil/suv` al selector y a la lógica clase Liviano/Pesado (afecta checklist).
+- **Flota visibilidad**: los vehículos `activo=false` no deben mostrarse a usuarios normales (RLS ya lo aplica); badge "Desactivado" para elevados.
+- **app-img**: replicar el patrón placeholder+fade-in en la app.
+
+### Pendiente de Xaviel / notas
+- Revisar y **commit/push** del frontend (no lo hice). Deploy pone al día los labels de tipos (ver ⚠ P4) y activa el login de conductor + botones.
+- **Smoke test manual** recomendado (no automatizable headless sin sesión admin): en la web, generar acceso a un conductor real → cerrar sesión → entrar como conductor con cédula+PIN → restablecer PIN. Los caminos server (edge/lockout/RLS) ya están verificados; falta solo el clic-a-clic UI con admin logueado.
+- §Pendientes del CONTEXTO ya resueltos: P6 roles elevados (admin+dirección+gerencia+jefe_flota), P5 PIN 6 dígitos + bloqueo, P1 menú "⋯", P4 reclasificación. Lista final de tipos: quedó fácil de extender en `VEHICULO_TIPOS`.
+
+---
+
+## Ronda 17/07/2026 — Conductores & Vehículos (web) — ✅ EN PRODUCCIÓN (1.13.0)
 
 Source: `C:\developer\improvements\imp 17072026\CONTEXTO.md` (C1–C7, V1–V2) + `apuntes de reunion.md`. Web bump → **1.13.0** (`package.json` + `release-notes.json` web[1.13.0] + `version.ts` regenerado). **No se hizo commit/push ni deploy** (esperando a Xaviel). M1 (crash cámara Android) es de la app móvil (csd-app) — NO se tocó aquí.
 

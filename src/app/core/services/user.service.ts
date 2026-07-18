@@ -25,6 +25,15 @@ export class UserService {
     return this.roles().includes(codigo);
   }
 
+  /**
+   * P6 — roles "elevados" de flota: pueden ver vehículos desactivados y
+   * activarlos/desactivarlos (además de gestionar la flota). Debe coincidir con
+   * la función SQL `sgc.es_flota_elevado()` (fuente de verdad en RLS).
+   */
+  esFlotaElevado = computed(() =>
+    ['admin', 'direccion', 'gerencia', 'jefe_flota'].some((r) => this.roles().includes(r)),
+  );
+
   hasModulo(modulo: string): boolean {
     return this.modulos().includes(modulo);
   }

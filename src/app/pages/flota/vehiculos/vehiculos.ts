@@ -25,7 +25,9 @@ import {
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Img } from '../../../../shared/components/img/img';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 interface PendingFoto {
@@ -35,7 +37,7 @@ interface PendingFoto {
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +46,10 @@ export class FlotaVehiculos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private flotaConfig = inject(FlotaConfigService);
   private toast = inject(ToastService);
+  private userService = inject(UserService);
+
+  // P6 — solo roles elevados crean/editan/activan/desactivan (espejo de RLS).
+  puedeGestionar = this.userService.esFlotaElevado;
 
   // ── Drawer photos ────────────────────────────────────────
   fotoPaths = signal<string[]>([]); // existing persisted photo paths
@@ -354,6 +360,21 @@ export class FlotaVehiculos implements OnInit {
     if (estado === 'mantenimiento') return 'warning';
     if (estado === 'no_disponible') return 'danger';
     return 'neutral';
+  }
+
+  /** P6 — badge reconciliado: si está desactivado, manda "Desactivado". */
+  vehiculoBadge(v: Vehiculo): string {
+    return v.activo ? this.getEstadoBadge(v.estado) : 'neutral';
+  }
+  vehiculoEstadoLabel(v: Vehiculo): string {
+    if (!v.activo) return 'Desactivado';
+    return v.estado === 'activo'
+      ? 'Activo'
+      : v.estado === 'mantenimiento'
+        ? 'Mantenimiento'
+        : v.estado === 'no_disponible'
+          ? 'No disponible'
+          : 'Baja';
   }
 
   // ── Vencimientos / mantenimiento (badges derivados) ──────

@@ -1,0 +1,5 @@
+project_id = "jeeqhgccqefbqilntcpu"
+
+# P5 — login público de conductores (cédula + PIN): pre-auth, sin JWT.
+[functions.conductor-login]
+verify_jwt = false

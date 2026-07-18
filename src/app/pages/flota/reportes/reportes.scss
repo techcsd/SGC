@@ -126,6 +126,11 @@
       color: var(--sgc-text-secondary);
       border-bottom: 1px solid var(--sgc-border);
       white-space: nowrap;
+      // P1 — encabezado sticky al hacer scroll vertical dentro del wrap.
+      position: sticky;
+      top: 0;
+      background: var(--sgc-surface);
+      z-index: 1;
     }
 
     td {
@@ -136,8 +141,21 @@
 
     tbody tr {
       &:last-child td { border-bottom: none; }
+      // P1 — zebra para lectura de filas.
+      &:nth-child(even) { background: color-mix(in srgb, var(--sgc-surface-hover) 45%, transparent); }
       &:hover { background: var(--sgc-surface-hover); }
     }
+  }
+
+  // P6 — vehículo desactivado: atenuado (va al final por orden).
+  &__row--inactive td { opacity: 0.6; }
+
+  // P1 — kilometraje alineado a la derecha, tabular (th y td).
+  &__table th#{&}__km,
+  &__km {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   &__total-row {

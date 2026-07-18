@@ -113,6 +113,14 @@
     color: var(--sgc-primary);
   }
 
+  // P5 — el conductor ya tiene acceso generado (resalta el botón "llave").
+  &--access {
+    border-color: var(--sgc-success);
+    color: var(--sgc-success);
+  }
+  &--access:hover,
+  &:hover { background: var(--sgc-primary-light); }
+
   &--deactivate:hover {
     background: var(--sgc-danger-light);
     border-color: rgba(192, 57, 43, 0.3);
@@ -323,6 +331,61 @@
   cursor: pointer;
 
   &:hover { background: var(--sgc-primary-light); }
+}
+
+// ── P5 — Modal de acceso (cédula + PIN) ──────────────────
+.acceso-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+}
+
+.acceso-modal {
+  width: min(440px, 100%);
+  background: var(--sgc-surface);
+  border-radius: var(--sgc-radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--sgc-shadow-lg, 0 12px 40px rgba(0, 0, 0, 0.25));
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h2 { font-size: 16px; font-weight: 700; margin: 0; color: var(--sgc-text); }
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--sgc-text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  &__intro {
+    font-size: 13px;
+    color: var(--sgc-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+}
+
+.acceso-ok {
+  padding: 10px 12px;
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-success-light);
+  color: var(--sgc-success);
+  font-size: 13px;
 }
 
 // ── Responsive ───────────────────────────────────────────

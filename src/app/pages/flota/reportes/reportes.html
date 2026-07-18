@@ -55,21 +55,21 @@
               <th scope="col">Marca / Modelo</th>
               <th scope="col">Tipo</th>
               <th scope="col">Estado</th>
-              <th scope="col">Kilometraje</th>
+              <th scope="col" class="flota-reportes__km">Kilometraje</th>
             </tr>
           </thead>
           <tbody>
             @for (v of flotaOrdenada(); track v.id) {
-              <tr>
+              <tr [class.flota-reportes__row--inactive]="!v.activo">
                 <td class="flota-reportes__placa">{{ v.placa }}</td>
                 <td>{{ v.marca }} {{ v.modelo }}</td>
                 <td>{{ getTipoLabel(v.tipo) }}</td>
                 <td>
-                  <span [class]="'sgc-badge sgc-badge--' + getEstadoBadge(v.estado)">
-                    {{ v.estado === 'activo' ? 'Activo' : v.estado === 'mantenimiento' ? 'Mantenimiento' : 'Baja' }}
+                  <span [class]="'sgc-badge sgc-badge--' + vehiculoBadge(v)">
+                    {{ vehiculoEstadoLabel(v) }}
                   </span>
                 </td>
-                <td>{{ v.kilometraje | number }} km</td>
+                <td class="flota-reportes__km">{{ v.kilometraje | number }} km</td>
               </tr>
             }
           </tbody>

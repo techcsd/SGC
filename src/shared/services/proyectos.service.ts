@@ -238,7 +238,24 @@ export class ProyectosService {
     });
   }
 
-  /** Proyectos the given usuario is assigned to as team member (via empleados -> proyecto_empleados). */
+  /**
+   * P2 — Proyectos del usuario: donde es responsable_id O miembro del equipo
+   * (con o sin ficha de empleado). RPC SECURITY DEFINER que une ambas
+   * condiciones y trae las fases embebidas. Reemplaza a getAsignadosA para "Mi
+   * proyecto". Sin p_usuario, el RPC usa el usuario autenticado.
+   */
+  async misProyectos(usuarioId?: string): Promise<Proyecto[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_proyectos', {
+      p_usuario: usuarioId ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as Proyecto[];
+  }
+
+  /**
+   * @deprecated Usa misProyectos (P2). Solo miraba proyecto_empleados vía
+   * empleados.usuario_id; ignoraba responsable_id y usuarios sin ficha.
+   */
   async getAsignadosA(usuarioId: string): Promise<Proyecto[]> {
     const { data: empleado, error: empError } = await this.supabase.client
       .schema('sgc')

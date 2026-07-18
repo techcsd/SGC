@@ -92,8 +92,10 @@ export class FlotaReportes implements OnInit {
   });
 
   // ── Section data computed ─────────────────────────────────
+  // P6 — inactivos (activo=false) al final; entre activos, por estado.
   flotaOrdenada = computed(() =>
     [...this.vehiculos()].sort((a, b) => {
+      if (a.activo !== b.activo) return a.activo ? -1 : 1;
       const order: Record<string, number> = { activo: 0, mantenimiento: 1, baja: 2 };
       return (order[a.estado] ?? 3) - (order[b.estado] ?? 3);
     }),
@@ -217,8 +219,23 @@ export class FlotaReportes implements OnInit {
     return 'neutral';
   }
 
+  /**
+   * P6 — el badge de un vehículo reconcilia `activo` y `estado`: si está
+   * desactivado (`activo=false`) manda "Desactivado"; si no, se usa `estado`.
+   */
+  vehiculoBadge(v: VehiculoReport): string {
+    return v.activo ? this.getEstadoBadge(v.estado) : 'neutral';
+  }
+  vehiculoEstadoLabel(v: VehiculoReport): string {
+    if (!v.activo) return 'Desactivado';
+    if (v.estado === 'activo') return 'Activo';
+    if (v.estado === 'mantenimiento') return 'Mantenimiento';
+    return 'Baja';
+  }
+
   getTipoLabel(tipo: string): string {
     const map: Record<string, string> = {
+      motocicleta: 'Motocicleta', automovil: 'Automóvil / Sedán', suv: 'SUV / Jeepeta',
       camion: 'Camión', pickup: 'Pickup', excavadora: 'Excavadora',
       retroexcavadora: 'Retroexcavadora', bulldozer: 'Bulldozer',
       grua: 'Grúa', mixer: 'Mixer', compactadora: 'Compactadora',

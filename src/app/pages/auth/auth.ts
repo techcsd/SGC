@@ -20,6 +20,10 @@ export class Auth {
   loading = signal(false);
   errorMessage = signal('');
   showPassword = signal(false);
+  showPin = signal(false);
+
+  // P5 — 'empleado' (correo + contraseña) o 'conductor' (cédula + PIN).
+  mode = signal<'empleado' | 'conductor'>('empleado');
 
   forgotMode = signal(false);
   forgotSent = signal(false);
@@ -30,6 +34,12 @@ export class Auth {
     password: new FormControl('', [Validators.required]),
   });
 
+  // P5 — login de conductor: cédula + PIN de 6 dígitos.
+  conductorForm = new FormGroup({
+    cedula: new FormControl('', [Validators.required]),
+    pin: new FormControl('', [Validators.required, Validators.pattern(/^\d{6}$/)]),
+  });
+
   get email() {
     return this.form.controls.email;
   }
@@ -38,8 +48,25 @@ export class Auth {
     return this.form.controls.password;
   }
 
+  get cedula() {
+    return this.conductorForm.controls.cedula;
+  }
+
+  get pin() {
+    return this.conductorForm.controls.pin;
+  }
+
+  setMode(m: 'empleado' | 'conductor') {
+    this.mode.set(m);
+    this.errorMessage.set('');
+  }
+
   togglePassword() {
     this.showPassword.update((v) => !v);
+  }
+
+  togglePin() {
+    this.showPin.update((v) => !v);
   }
 
   async onSubmit() {
@@ -68,8 +95,37 @@ export class Auth {
       return;
     }
 
-    await this.userService.loadProfile(user.id);
+    await this.afterAuthenticated(user.id);
+  }
 
+  /** P5 — login de conductor por cédula + PIN. */
+  async onConductorSubmit() {
+    this.conductorForm.markAllAsTouched();
+    if (this.conductorForm.invalid || this.loading()) return;
+
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    const { cedula, pin } = this.conductorForm.value as { cedula: string; pin: string };
+    const res = await this.authService.conductorLogin(cedula, pin);
+
+    if (res.error || !res.user) {
+      this.loading.set(false);
+      if (res.retryInSeconds && res.retryInSeconds > 0) {
+        const min = Math.max(1, Math.ceil(res.retryInSeconds / 60));
+        this.errorMessage.set(`Demasiados intentos. Intenta de nuevo en ~${min} min.`);
+      } else {
+        this.errorMessage.set(res.error ?? 'No se pudo iniciar sesión.');
+      }
+      return;
+    }
+
+    await this.afterAuthenticated(res.user.id);
+  }
+
+  /** Carga el perfil, valida que exista y esté activo, y navega al dashboard. */
+  private async afterAuthenticated(userId: string) {
+    await this.userService.loadProfile(userId);
     const profile = this.userService.profile();
 
     if (!profile) {

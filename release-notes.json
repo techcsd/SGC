@@ -1,6 +1,17 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.14.0": {
+      "titulo": "Acceso de conductores, flota y mejoras visuales",
+      "cambios": [
+        { "t": "arreglo", "d": "\"Mi proyecto\" ahora muestra las obras donde eres responsable o parte del equipo (antes ignoraba al responsable y a quien no tenía ficha de empleado)." },
+        { "t": "nuevo", "d": "Acceso de conductores por cédula + PIN de 6 dígitos (sin correo): el admin/Flota genera o restablece el PIN desde el perfil del conductor; nuevo modo \"Soy conductor\" en el inicio de sesión, con bloqueo tras varios intentos." },
+        { "t": "nuevo", "d": "Nuevos tipos de vehículo: Motocicleta, Automóvil/Sedán y SUV/Jeepeta (ajustan la clase Liviano/Pesado del checklist)." },
+        { "t": "mejora", "d": "Flota: un vehículo desactivado se muestra como \"Desactivado\", va al final y solo lo ven/gestionan admin, Dirección, Gerencia y Jefe de Flota." },
+        { "t": "mejora", "d": "Gestión de Usuarios: acciones en un menú \"⋯\" y tabla responsiva; encabezados fijos y filas alternas en las tablas." },
+        { "t": "mejora", "d": "Las imágenes cargan con un placeholder y aparecen con un suave fundido (menos \"saltos\" al abrir la página)." }
+      ]
+    },
     "1.13.0": {
       "titulo": "Conductores y vehículos: categorías RD, tags, documentos y VIN",
       "cambios": [

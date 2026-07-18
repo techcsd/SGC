@@ -67,6 +67,38 @@ export class AdminUsuarios implements OnInit {
   // ── Delete ───────────────────────────────────────────────
   deletingId = signal<string | null>(null);
 
+  // ── P1 — menú de acciones "⋯" por fila (responsive) ──────
+  // El menú es un popover position:fixed anclado a la posición del botón para no
+  // recortarse dentro del contenedor con overflow del table-wrap.
+  openMenuId = signal<string | null>(null);
+  menuUser = signal<UsuarioAdmin | null>(null);
+  menuPos = signal<{ top: number; right: number } | null>(null);
+
+  openMenu(usuario: UsuarioAdmin, ev: MouseEvent) {
+    if (this.openMenuId() === usuario.id) {
+      this.closeMenu();
+      return;
+    }
+    const rect = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+    this.menuPos.set({ top: rect.bottom + 4, right: Math.max(8, window.innerWidth - rect.right) });
+    this.menuUser.set(usuario);
+    this.openMenuId.set(usuario.id);
+  }
+
+  closeMenu() {
+    this.openMenuId.set(null);
+    this.menuUser.set(null);
+    this.menuPos.set(null);
+  }
+
+  /** P1 — tooltip con los roles no mostrados (a partir del 3.º) en el chip "+N". */
+  rolesRestantesTitle(usuario: UsuarioAdmin): string {
+    return usuario.roles
+      .slice(2)
+      .map((ur) => ur.rol.nombre)
+      .join(', ');
+  }
+
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();

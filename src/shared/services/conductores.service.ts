@@ -8,6 +8,7 @@ import {
 } from '../models/conductor.model';
 import { ConductorStats } from '../models/vehiculo-asignacion.model';
 import { sanitizeUuidFields } from '../utils/uuid.util';
+import { edgeErrorMessage } from '../utils/edge.util';
 
 /** C2 — uuid opcionales de un payload de conductor a sanear antes de escribir. */
 const CONDUCTOR_UUID_FIELDS = ['usuario_id', 'vehiculo_id'] as const;
@@ -143,6 +144,23 @@ export class ConductoresService {
     const { data, error } = await this.supabase.client.rpc('usuarios_vinculables');
     if (error) throw new Error(error.message);
     return (data ?? []) as UsuarioVinculable[];
+  }
+
+  /**
+   * P5 — Genera o rota (reset) el acceso cédula+PIN de un conductor vía edge
+   * function service-role. Idempotente: si ya tiene acceso, solo cambia el PIN.
+   * Gated en el servidor a admin/flota.
+   */
+  async generarAccesoConductor(
+    conductorId: string,
+    pin: string,
+  ): Promise<{ email: string; usuarioId: string; created?: boolean; rotated?: boolean }> {
+    const { data, error } = await this.supabase.client.functions.invoke('conductor-crear-acceso', {
+      body: { conductorId, pin },
+    });
+    if (error) throw new Error(await edgeErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { email: string; usuarioId: string; created?: boolean; rotated?: boolean };
   }
 
   async toggleActivo(id: string, activo: boolean): Promise<void> {

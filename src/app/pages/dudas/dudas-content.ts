@@ -540,6 +540,26 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Sí. Al crear o editar un vehículo puedes registrar el VIN (número de chasis, hasta 17 caracteres, único — útil para diferenciar vehículos casi idénticos), el número de matrícula, el número de póliza del seguro y la compañía aseguradora. El VIN se ve en el listado y todo aparece en el perfil del vehículo. Las fotos de matrícula y seguro se siguen subiendo desde "Documentos" del vehículo.',
       },
       {
+        pregunta: '¿Cómo le doy acceso a un conductor que no tiene correo?',
+        respuesta:
+          'Los conductores entran con su cédula + un PIN de 6 dígitos (no necesitan correo). En Flota > Conductores, pulsa el botón de la llave junto al conductor (solo admin/Flota) → "Generar acceso" y define un PIN de 6 dígitos. El conductor entra en la pantalla de acceso eligiendo "Soy conductor" y escribiendo su cédula y PIN. Si olvida el PIN, usa el mismo botón (dice "Restablecer PIN") para ponerle uno nuevo. El PIN nunca se envía por correo: comunícaselo directamente. Tras 5 intentos fallidos el acceso se bloquea unos minutos.',
+      },
+      {
+        pregunta: '¿Por qué un vehículo aparece como "Desactivado" y quién puede desactivarlos?',
+        respuesta:
+          '"Desactivado" (activo=false) es distinto del estado operativo (Activo/Mantenimiento/Baja). Un vehículo desactivado sale del uso diario: no lo ven los usuarios normales y aparece al final del listado marcado "Desactivado". Solo los roles elevados (admin, Dirección, Gerencia y Jefe de Flota) pueden ver los desactivados y activar/desactivar o editar vehículos.',
+      },
+      {
+        pregunta: '¿Qué tipos de vehículo puedo elegir ahora?',
+        respuesta:
+          'Se agregaron Motocicleta, Automóvil/Sedán y SUV/Jeepeta, además de los de obra (camión, pickup, excavadora, etc.). El tipo define si el vehículo es Liviano o Pesado, lo que ajusta los ítems del checklist de pre-uso.',
+      },
+      {
+        pregunta: '"Mi proyecto" dice que no tengo obra asignada aunque soy el responsable, ¿por qué?',
+        respuesta:
+          'Ya está corregido: "Mi proyecto" ahora muestra las obras donde eres el responsable del proyecto O donde estás en el equipo (tengas o no ficha de empleado). Si aún no ves una obra, pide a tu supervisor que te ponga como responsable o te agregue al equipo del proyecto.',
+      },
+      {
         pregunta: '¿La entrega/recepción de un vehículo guarda dónde se hizo (GPS)?',
         respuesta:
           'Sí. En Flota > Responsabilidad, al abrir una entrega/recepción se muestra un mini-mapa con el punto y la hora en que se capturó, más un enlace "Ver en mapa". Si al capturarla no había permiso de ubicación, verás "Sin ubicación registrada".',

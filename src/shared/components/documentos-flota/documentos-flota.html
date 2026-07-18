@@ -32,11 +32,8 @@
                 <div class="docs-flota__thumb">
                   <button type="button" class="docs-flota__thumb-btn" (click)="abrirVisor(doc)"
                     [attr.aria-label]="'Ver ' + doc.nombre">
-                    @if (thumbUrl(doc); as url) {
-                      <img [src]="url" [alt]="doc.nombre ?? 'Documento'" loading="lazy" />
-                    } @else {
-                      <span class="docs-flota__thumb-ph" aria-hidden="true">{{ esImagen(doc) ? '🖼️' : '📄' }}</span>
-                    }
+                    <app-img [src]="thumbUrl(doc)" [alt]="doc.nombre ?? 'Documento'"
+                      [height]="72" [rounded]="false" [fallback]="esImagen(doc) ? '🖼️' : '📄'" />
                   </button>
                   <span class="docs-flota__thumb-name" [title]="doc.nombre">{{ doc.nombre }}</span>
                   @if (canManage()) {
@@ -74,11 +71,8 @@
           <div class="docs-flota__item">
             <button type="button" class="docs-flota__item-thumb" (click)="abrirVisor(doc)"
               [attr.aria-label]="'Ver ' + doc.nombre">
-              @if (thumbUrl(doc); as url) {
-                <img [src]="url" [alt]="doc.nombre ?? 'Documento'" loading="lazy" />
-              } @else {
-                <span aria-hidden="true">{{ esImagen(doc) ? '🖼️' : '📄' }}</span>
-              }
+              <app-img [src]="thumbUrl(doc)" [alt]="doc.nombre ?? 'Documento'"
+                [height]="40" [rounded]="false" [fallback]="esImagen(doc) ? '🖼️' : '📄'" />
             </button>
             <button type="button" class="docs-flota__item-name" (click)="abrirVisor(doc)">
               {{ doc.nombre }}

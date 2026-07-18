@@ -87,6 +87,60 @@ export class Conductores implements OnInit {
   // C4 — documentos opcionales elegidos en el alta (se suben tras crear).
   docsAlta = signal<{ cedula: File | null; licencia: File[] }>({ cedula: null, licencia: [] });
 
+  // P5 — acceso del conductor (cédula + PIN). Gated a admin o módulo flota.
+  puedeGestionarAcceso = computed(
+    () => this.userService.hasRole('admin') || this.userService.hasModulo('flota'),
+  );
+  accesoConductor = signal<Conductor | null>(null);
+  accesoPin = signal('');
+  accesoSaving = signal(false);
+  accesoError = signal('');
+  accesoOk = signal('');
+
+  openAcceso(c: Conductor) {
+    this.accesoConductor.set(c);
+    this.accesoPin.set('');
+    this.accesoError.set('');
+    this.accesoOk.set('');
+  }
+
+  closeAcceso() {
+    this.accesoConductor.set(null);
+  }
+
+  async guardarAcceso() {
+    const c = this.accesoConductor();
+    if (!c || this.accesoSaving()) return;
+    const pin = this.accesoPin().trim();
+    if (!/^\d{6}$/.test(pin)) {
+      this.accesoError.set('El PIN debe tener exactamente 6 dígitos.');
+      return;
+    }
+    this.accesoSaving.set(true);
+    this.accesoError.set('');
+    this.accesoOk.set('');
+    try {
+      const res = await this.conductoresService.generarAccesoConductor(c.id, pin);
+      // Reflejar el enlace usuario_id en la lista sin recargar todo.
+      if (res.usuarioId) {
+        this.conductores.update((list) =>
+          list.map((x) => (x.id === c.id ? { ...x, usuario_id: res.usuarioId } : x)),
+        );
+        this.accesoConductor.update((x) => (x ? { ...x, usuario_id: res.usuarioId } : x));
+      }
+      this.accesoOk.set(
+        res.rotated
+          ? `PIN restablecido. El conductor entra con su cédula (${c.cedula}) y el nuevo PIN.`
+          : `Acceso generado. El conductor entra con su cédula (${c.cedula}) y el PIN.`,
+      );
+      this.accesoPin.set('');
+    } catch (e: unknown) {
+      this.accesoError.set(e instanceof Error ? e.message : 'No se pudo generar el acceso.');
+    } finally {
+      this.accesoSaving.set(false);
+    }
+  }
+
   // C1 — mapa codigo->label para el listado (Cat. 02 — Vehículos livianos).
   categoriaLabel(codigo: string | null | undefined): string {
     if (!codigo) return '—';
