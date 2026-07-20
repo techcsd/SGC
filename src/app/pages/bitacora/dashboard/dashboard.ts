@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { Bitacora } from '../../../../shared/models/bitacora.model';
@@ -25,21 +25,57 @@ const GRAVEDAD_LABEL: Record<string, string> = {
 })
 export class BitacoraDashboard implements OnInit {
   private bitacoraService = inject(BitacoraService);
+  private router = inject(Router);
 
   private bitacoras = signal<Bitacora[]>([]);
   loading = signal(true);
   error = signal('');
 
-  total = computed(() => this.bitacoras().length);
-  partes = computed(() => this.bitacoras().filter((b) => b.tipo === 'parte_diario').length);
-  visitas = computed(() => this.bitacoras().filter((b) => b.tipo === 'visita').length);
-  incidentes = computed(() => this.bitacoras().filter((b) => b.tipo === 'incidente').length);
-  diasLluvia = computed(() => this.bitacoras().filter((b) => b.llovio === true).length);
+  // Q9 — filtro por obra: recalcula TODAS las métricas para la obra elegida.
+  // Se mantiene la agregación en cliente (menor riesgo; getAll ya trae el embed
+  // de proyecto). Elección documentada: NO se creó RPC de resumen.
+  selectedProyecto = signal<string>('');
+
+  /** Obras presentes en las bitácoras, para el selector (id + nombre). */
+  obras = computed(() => {
+    const map = new Map<string, string>();
+    for (const b of this.bitacoras()) {
+      if (b.proyecto_id) map.set(b.proyecto_id, b.proyecto?.nombre ?? 'Sin nombre');
+    }
+    return [...map.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  });
+
+  /** Bitácoras tras aplicar el filtro por obra (fuente de todas las métricas). */
+  private filtradas = computed(() => {
+    const proy = this.selectedProyecto();
+    return proy ? this.bitacoras().filter((b) => b.proyecto_id === proy) : this.bitacoras();
+  });
+
+  onProyectoChange(v: string) { this.selectedProyecto.set(v); }
+
+  total = computed(() => this.filtradas().length);
+  partes = computed(() => this.filtradas().filter((b) => b.tipo === 'parte_diario').length);
+  visitas = computed(() => this.filtradas().filter((b) => b.tipo === 'visita').length);
+  incidentes = computed(() => this.filtradas().filter((b) => b.tipo === 'incidente').length);
+  diasLluvia = computed(() => this.filtradas().filter((b) => b.llovio === true).length);
   obrerosMigracion = computed(() =>
-    this.bitacoras().reduce((acc, b) => acc + (Array.isArray(b.migracion_obreros) ? b.migracion_obreros.length : 0), 0),
+    this.filtradas().reduce((acc, b) => acc + (Array.isArray(b.migracion_obreros) ? b.migracion_obreros.length : 0), 0),
   );
   // W2 — días (bitácoras) con equipos alquilados.
-  diasEquipos = computed(() => this.bitacoras().filter((b) => (b.equipos?.length ?? 0) > 0).length);
+  diasEquipos = computed(() => this.filtradas().filter((b) => (b.equipos?.length ?? 0) > 0).length);
+
+  // ── Q9 — drill-down: navegar al historial filtrado ────────
+  /** Navega al historial filtrando por la obra seleccionada (si hay) + extra. */
+  private irAlHistorial(extra: Record<string, string> = {}) {
+    const qp: Record<string, string> = { ...extra };
+    if (this.selectedProyecto()) qp['proyecto'] = this.selectedProyecto();
+    this.router.navigate(['/bitacora/historial'], { queryParams: qp });
+  }
+  irAObra(proyectoId: string) {
+    this.router.navigate(['/bitacora/historial'], { queryParams: { proyecto: proyectoId } });
+  }
+  irATipo(tipo: string) { this.irAlHistorial({ tipo }); }
+  irAGravedad(_g: string) { this.irAlHistorial({ tipo: 'incidente' }); }
 
   private groupCount(values: string[]): { key: string; count: number }[] {
     const map = new Map<string, number>();
@@ -49,47 +85,53 @@ export class BitacoraDashboard implements OnInit {
 
   /** Donut: bitácoras por tipo. */
   porTipo = computed<DonutDatum[]>(() => {
-    const label: Record<string, string> = { parte_diario: 'Parte diario', visita: 'Visita', incidente: 'Incidente' };
+    const label: Record<string, string> = { parte_diario: 'Bitácora del día', visita: 'Visita', incidente: 'Incidente' };
     const color: Record<string, string> = { parte_diario: '#1F4E79', visita: '#0E7490', incidente: '#C0392B' };
-    return this.groupCount(this.bitacoras().map((b) => b.tipo)).map((g) => ({
-      label: label[g.key] ?? g.key, value: g.count, color: color[g.key] ?? '#64748b',
+    return this.groupCount(this.filtradas().map((b) => b.tipo)).map((g) => ({
+      label: label[g.key] ?? g.key, value: g.count, color: color[g.key] ?? '#64748b', key: g.key,
     }));
   });
 
-  /** Bar: bitácoras por obra (top 10). */
-  porObra = computed<BarDatum[]>(() =>
-    this.groupCount(this.bitacoras().map((b) => b.proyecto?.nombre ?? 'Sin obra'))
+  /** Bar: bitácoras por obra (top 10). key = proyecto_id para el drill-down. */
+  porObra = computed<BarDatum[]>(() => {
+    const nombre = new Map<string, string>();
+    for (const b of this.filtradas()) if (b.proyecto_id) nombre.set(b.proyecto_id, b.proyecto?.nombre ?? 'Sin obra');
+    return this.groupCount(this.filtradas().map((b) => b.proyecto_id ?? ''))
+      .filter((g) => g.key)
       .slice(0, 10)
-      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] })),
-  );
+      .map((g, i) => ({ label: nombre.get(g.key) ?? 'Sin obra', value: g.count, color: CAT[i % CAT.length], key: g.key }));
+  });
 
   /** Donut: incidencias por gravedad. */
   porGravedad = computed<DonutDatum[]>(() =>
     this.groupCount(
-      this.bitacoras().filter((b) => b.tipo === 'incidente' && b.incidente_gravedad).map((b) => b.incidente_gravedad as string),
-    ).map((g) => ({ label: GRAVEDAD_LABEL[g.key] ?? g.key, value: g.count, color: GRAVEDAD_COLOR[g.key] ?? '#64748b' })),
+      this.filtradas().filter((b) => b.tipo === 'incidente' && b.incidente_gravedad).map((b) => b.incidente_gravedad as string),
+    ).map((g) => ({ label: GRAVEDAD_LABEL[g.key] ?? g.key, value: g.count, color: GRAVEDAD_COLOR[g.key] ?? '#64748b', key: g.key })),
   );
 
   /** W2 — Bar: equipos alquilados más usados (por # de bitácoras). */
   equiposMasUsados = computed<BarDatum[]>(() => {
-    const all = this.bitacoras().flatMap((b) => (b.equipos ?? []).map((e) => e.equipo));
+    const all = this.filtradas().flatMap((b) => (b.equipos ?? []).map((e) => e.equipo));
     return this.groupCount(all)
       .slice(0, 8)
       .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] }));
   });
 
   /** W2 — Bar: días con equipos alquilados por obra (top 10). */
-  equiposPorObra = computed<BarDatum[]>(() =>
-    this.groupCount(
-      this.bitacoras().filter((b) => (b.equipos?.length ?? 0) > 0).map((b) => b.proyecto?.nombre ?? 'Sin obra'),
+  equiposPorObra = computed<BarDatum[]>(() => {
+    const nombre = new Map<string, string>();
+    for (const b of this.filtradas()) if (b.proyecto_id) nombre.set(b.proyecto_id, b.proyecto?.nombre ?? 'Sin obra');
+    return this.groupCount(
+      this.filtradas().filter((b) => (b.equipos?.length ?? 0) > 0).map((b) => b.proyecto_id ?? ''),
     )
+      .filter((g) => g.key)
       .slice(0, 10)
-      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] })),
-  );
+      .map((g, i) => ({ label: nombre.get(g.key) ?? 'Sin obra', value: g.count, color: CAT[i % CAT.length], key: g.key }));
+  });
 
   /** Bar: restricciones por tipo (todas las bitácoras). */
   porRestriccion = computed<BarDatum[]>(() => {
-    const all = this.bitacoras().flatMap((b) => (b.restricciones ?? []).map((r) => r.tipo_restriccion));
+    const all = this.filtradas().flatMap((b) => (b.restricciones ?? []).map((r) => r.tipo_restriccion));
     return this.groupCount(all)
       .filter((g) => g.key !== 'NINGUNA')
       .slice(0, 8)

@@ -27,12 +27,14 @@ interface DonutSlice {
   label: string;
   value: number;
   color: string;
+  key?: string; // Q3 — clave de estado para drill-down filtrado
 }
 
 interface BarItem {
   label: string;
   value: number;
   color: string;
+  key?: string; // Q3 — clave de estado para drill-down filtrado
 }
 
 @Component({
@@ -314,7 +316,7 @@ export class Dashboard implements OnInit {
     }
     return [...map.entries()]
       .filter(([, v]) => v > 0)
-      .map(([estado, value]) => ({ label: labels[estado] ?? estado, value, color: colors[estado] ?? '#94a3b8' }));
+      .map(([estado, value]) => ({ label: labels[estado] ?? estado, value, color: colors[estado] ?? '#94a3b8', key: estado }));
   });
 
   proyectosPorEstadoMax = computed(() => Math.max(1, ...this.proyectosPorEstado().map((p) => p.value)));
@@ -341,7 +343,7 @@ export class Dashboard implements OnInit {
     }
     return [...map.entries()]
       .filter(([, v]) => v > 0)
-      .map(([estado, value]) => ({ label: labels[estado] ?? estado, value, color: colors[estado] ?? '#94a3b8' }));
+      .map(([estado, value]) => ({ label: labels[estado] ?? estado, value, color: colors[estado] ?? '#94a3b8', key: estado }));
   });
 
   mantenimientosPendientes = computed(

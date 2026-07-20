@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_TIPOS, INCIDENTE_GRAVEDADES } from '../../../../shared/models/bitacora.model';
@@ -33,8 +33,10 @@ export class Historial implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedProyecto = signal('');
+  selectedTipo = signal(''); // Q9/Q3 — drill-down por tipo (parte_diario|visita|incidente)
   dateFrom = signal('');
   dateTo = signal('');
+  private route = inject(ActivatedRoute);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -51,10 +53,12 @@ export class Historial implements OnInit {
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const proyectoId = this.selectedProyecto();
+    const tipo = this.selectedTipo();
     const from = this.dateFrom();
     const to = this.dateTo();
 
     return this.bitacoras().filter((b) => {
+      if (tipo && b.tipo !== tipo) return false;
       if (
         q &&
         !(b.bloque_entrepiso ?? '').toLowerCase().includes(q) &&
@@ -79,7 +83,7 @@ export class Historial implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   hasActiveFilters = computed(
-    () => !!(this.searchQuery() || this.selectedProyecto() || this.dateFrom() || this.dateTo()),
+    () => !!(this.searchQuery() || this.selectedProyecto() || this.selectedTipo() || this.dateFrom() || this.dateTo()),
   );
 
   drawerTitle = computed(() => {
@@ -88,6 +92,12 @@ export class Historial implements OnInit {
   });
 
   async ngOnInit() {
+    // Q9/Q3 — drill-down: preaplica filtros desde la ruta (?proyecto=&tipo=).
+    const qp = this.route.snapshot.queryParamMap;
+    const proyecto = qp.get('proyecto');
+    const tipo = qp.get('tipo');
+    if (proyecto) this.selectedProyecto.set(proyecto);
+    if (tipo) this.selectedTipo.set(tipo);
     await this.loadAll();
   }
 
@@ -132,6 +142,7 @@ export class Historial implements OnInit {
   clearFilters() {
     this.searchQuery.set('');
     this.selectedProyecto.set('');
+    this.selectedTipo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
     this.currentPage.set(1);

@@ -13,6 +13,10 @@ export interface MovimientoInventario {
   proyecto_id: string | null;
   items: number;
   creado_por: string | null;
+  // P12 — origen de la entrada; salida_id enlaza la salida del traspaso de devolución.
+  origen_tipo: string | null;
+  origen_proyecto_id: string | null;
+  salida_id: string | null;
 }
 
 /** U16 — Historial/actividad de movimientos de inventario (global y por almacén). */

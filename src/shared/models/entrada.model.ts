@@ -7,6 +7,9 @@ export interface DetalleEntrada {
   precio_unit: number | null;
 }
 
+/** De dónde viene el material en una entrada de inventario. */
+export type OrigenEntrada = 'compra' | 'devolucion_obra' | 'sobrante' | 'otro';
+
 export interface EntradaInventario {
   id: string;
   fecha: string;
@@ -22,6 +25,11 @@ export interface EntradaInventario {
   created_at: string;
   // Evidence photo captured by the mobile CSD app when the entrada was created.
   foto_path: string | null;
+  // P12 — origen del material (devolución de obra enlaza la obra + la salida del traspaso).
+  origen_tipo: OrigenEntrada | null;
+  origen_proyecto_id: string | null;
+  origen_proyecto?: { nombre: string } | null;
+  salida_id: string | null;
   detalle_entradas?: DetalleEntrada[];
 }
 
@@ -39,4 +47,8 @@ export interface EntradaFormData {
   referencia: string | null;
   observaciones: string | null;
   items: EntradaItemFormData[];
+  // P12 — origen del material. `descontar_origen` solo aplica a devolución de obra.
+  origen_tipo?: OrigenEntrada | null;
+  origen_proyecto_id?: string | null;
+  descontar_origen?: boolean;
 }

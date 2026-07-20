@@ -6,10 +6,11 @@ import { UserService } from '../../../core/services/user.service';
 import { AprobacionLegal, APROBACION_MODULOS } from '../../../../shared/models/legal.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 
 @Component({
   selector: 'app-aprobaciones',
-  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton],
+  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective],
   templateUrl: './aprobaciones.html',
   styleUrl: './aprobaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

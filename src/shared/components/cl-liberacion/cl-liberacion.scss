@@ -190,6 +190,44 @@
     }
   }
 
+  // Q5 — toggle método de firma (dibujar / foto)
+  &__metodo-toggle {
+    display: inline-flex;
+    gap: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  &__metodo-opt {
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    border: none;
+    background: #fff;
+    color: var(--main-ultra-light, #929090);
+    cursor: pointer;
+
+    & + & { border-left: 1px solid #e0e0e0; }
+    &--active { background: var(--Hub, #ffb300); color: var(--main, #121212); font-weight: 600; }
+  }
+
+  // Q5 — etiqueta "foto" en la firma
+  &__firma-metodo {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 0.68rem;
+    color: var(--main-ultra-light, #929090);
+  }
+
+  // Q5 — panel de solicitar firma
+  &__solicitar {
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px dashed #d8d8d8;
+    border-radius: 10px;
+    background: #fafafa;
+  }
+
   // ── Detalle expandido ────────────────────────────────────
   &__detail {
     padding: 4px 16px 18px;

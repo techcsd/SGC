@@ -28,6 +28,14 @@
     grid-template-columns: 120px 1fr auto;
     align-items: center;
     gap: 10px;
+
+    // Q9 — barra clicable (drill-down al historial filtrado).
+    &--clickable {
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+      &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04)); }
+    }
   }
 
   &__label {

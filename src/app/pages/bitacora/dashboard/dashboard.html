@@ -3,6 +3,16 @@
     <h1 class="page-title">Dashboard de bitácoras</h1>
     <span class="page-count">{{ total() | number }} registro{{ total() !== 1 ? 's' : '' }}</span>
   </div>
+  <!-- Q9 — filtro por obra: recalcula todas las métricas -->
+  <div class="page-header__actions">
+    <select class="sgc-select" [value]="selectedProyecto()" (change)="onProyectoChange($any($event.target).value)"
+            aria-label="Filtrar métricas por obra">
+      <option value="">Todas las obras</option>
+      @for (o of obras(); track o.id) {
+        <option [value]="o.id">{{ o.nombre }}</option>
+      }
+    </select>
+  </div>
 </div>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
@@ -18,7 +28,7 @@
   <!-- KPIs -->
   <div class="kpi-grid">
     <div class="kpi-card kpi-card--primary"><span class="kpi-label">Bitácoras</span><span class="kpi-value">{{ total() | number }}</span></div>
-    <div class="kpi-card"><span class="kpi-label">Partes diarios</span><span class="kpi-value">{{ partes() | number }}</span></div>
+    <div class="kpi-card"><span class="kpi-label">Bitácoras del día</span><span class="kpi-value">{{ partes() | number }}</span></div>
     <div class="kpi-card kpi-card--info"><span class="kpi-label">Visitas</span><span class="kpi-value">{{ visitas() | number }}</span></div>
     <div class="kpi-card" [class.kpi-card--danger]="incidentes() > 0"><span class="kpi-label">Incidentes</span><span class="kpi-value">{{ incidentes() | number }}</span></div>
     <div class="kpi-card kpi-card--info"><span class="kpi-label">Días con lluvia</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
@@ -26,19 +36,19 @@
     <div class="kpi-card"><span class="kpi-label">Días con equipos alquilados</span><span class="kpi-value">{{ diasEquipos() | number }}</span></div>
   </div>
 
-  <!-- Charts -->
+  <!-- Charts — Q9: click en un segmento abre el historial filtrado -->
   <div class="direccion-charts">
     <div class="sgc-card chart-card">
-      <app-donut-chart titulo="Bitácoras por tipo" [data]="porTipo()" />
+      <app-donut-chart titulo="Bitácoras por tipo" [data]="porTipo()" [selectable]="true" (select)="irATipo($event)" />
     </div>
     @if (porGravedad().length > 0) {
       <div class="sgc-card chart-card">
-        <app-donut-chart titulo="Incidencias por gravedad" [data]="porGravedad()" />
+        <app-donut-chart titulo="Incidencias por gravedad" [data]="porGravedad()" [selectable]="true" (select)="irAGravedad($event)" />
       </div>
     }
     @if (porObra().length > 0) {
       <div class="sgc-card chart-card chart-card--wide">
-        <app-bar-chart titulo="Bitácoras por obra" [data]="porObra()" />
+        <app-bar-chart titulo="Bitácoras por obra" [data]="porObra()" [selectable]="true" (select)="irAObra($event)" />
       </div>
     }
     @if (porRestriccion().length > 0) {

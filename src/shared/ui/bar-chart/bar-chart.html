@@ -7,7 +7,10 @@
   } @else {
     <div class="barc__rows">
       @for (b of bars(); track b.label) {
-        <div class="barc__row">
+        <div class="barc__row" [class.barc__row--clickable]="selectable()"
+          [attr.role]="selectable() ? 'button' : null"
+          [attr.tabindex]="selectable() ? 0 : null"
+          (click)="onSelect(b)" (keydown.enter)="onSelect(b)">
           <span class="barc__label">{{ b.label }}</span>
           <div class="barc__track">
             <div class="barc__fill" [style.width.%]="b.pct" [style.background]="b.color"></div>

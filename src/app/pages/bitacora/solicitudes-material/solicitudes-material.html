@@ -38,7 +38,7 @@
       </thead>
       <tbody>
         @for (s of solicitudes(); track s.id) {
-          <tr>
+          <tr [appHighlightItem]="s.id">
             <td>{{ formatTimestamp(s.created_at) }}</td>
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
             <td>{{ s.solicitante?.nombre ?? '—' }}</td>

@@ -13,6 +13,8 @@ import { Router } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { BitacoraCatalogosService } from '../../../../shared/services/bitacora-catalogos.service';
+import { UnidadesService } from '../../../../shared/services/unidades.service';
+import { Unidad } from '../../../../shared/models/unidad.model';
 import { UserService } from '../../../core/services/user.service';
 import { ContextService } from '../../../../shared/context/context.service';
 import { WeatherService } from '../../../../shared/context/weather.service';
@@ -38,6 +40,7 @@ interface Draft {
   actividades: string[];
   restricciones: string[];
   cantidades?: Record<string, number | null>;
+  unidades?: Record<string, string | null>;
   descripciones?: Record<string, string>;
   equipos?: { equipo: string; uso: string; proveedor: string }[];
 }
@@ -58,10 +61,13 @@ export class Nueva implements OnInit {
   private contextService = inject(ContextService);
   private weatherService = inject(WeatherService);
   private catalogosService = inject(BitacoraCatalogosService);
+  private unidadesService = inject(UnidadesService);
 
   // Default to the built-in lists, then override with the admin-managed catalog.
   estructuras = signal<readonly string[]>(ESTRUCTURAS);
   actividades = signal<readonly string[]>(ACTIVIDADES);
+  // Q6 — catálogo de unidades de medida (activas) para el trabajo realizado.
+  unidades = signal<Unidad[]>([]);
   restricciones = signal<{ value: string; label: string }[]>(RESTRICCIONES);
   readonly TIPOS = BITACORA_TIPOS;
   readonly VISITANTE_TIPOS = VISITANTE_TIPOS;
@@ -81,6 +87,8 @@ export class Nueva implements OnInit {
   actividadesSeleccionadas = signal<Set<string>>(new Set());
   // R24 — cuántas se hicieron por actividad, misma llave `estructura|actividad`.
   cantidadesActividad = signal<Record<string, number | null>>({});
+  // Q6 — unidad de medida por actividad, misma llave `estructura|actividad`.
+  unidadesActividad = signal<Record<string, string | null>>({});
   restriccionesSeleccionadas = signal<Set<string>>(new Set());
   archivos = signal<File[]>([]);
   expandedEstructura = signal<string | null>(null);
@@ -211,6 +219,13 @@ export class Nueva implements OnInit {
       /* keep the built-in lists */
     }
 
+    // Q6 — catálogo de unidades de medida para el trabajo realizado (best-effort).
+    try {
+      this.unidades.set(await this.unidadesService.getActivas());
+    } catch {
+      /* sin unidades: el selector queda vacío, la cantidad sigue funcionando */
+    }
+
     // W2 — sugerencias de equipos usados antes (datalist).
     try {
       this.equiposSugeridos.set(await this.bitacoraService.getEquiposSugeridos());
@@ -226,6 +241,7 @@ export class Nueva implements OnInit {
       actividades: [...this.actividadesSeleccionadas()],
       restricciones: [...this.restriccionesSeleccionadas()],
       cantidades: this.cantidadesActividad(),
+      unidades: this.unidadesActividad(),
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
     };
@@ -241,6 +257,7 @@ export class Nueva implements OnInit {
         this.actividadesSeleccionadas.set(new Set(draft.actividades));
         this.restriccionesSeleccionadas.set(new Set(draft.restricciones));
         this.cantidadesActividad.set(draft.cantidades ?? {});
+        this.unidadesActividad.set(draft.unidades ?? {});
         this.restriccionDescripciones.set(draft.descripciones ?? {});
         this.equiposAlquilados.set(draft.equipos ?? []);
       } catch {
@@ -272,9 +289,14 @@ export class Nueva implements OnInit {
       else next.add(k);
       return next;
     });
-    // Al desmarcar la actividad, olvida su cantidad.
+    // Al desmarcar la actividad, olvida su cantidad y unidad.
     if (!this.actividadesSeleccionadas().has(k)) {
       this.cantidadesActividad.update((m) => {
+        const next = { ...m };
+        delete next[k];
+        return next;
+      });
+      this.unidadesActividad.update((m) => {
         const next = { ...m };
         delete next[k];
         return next;
@@ -292,6 +314,17 @@ export class Nueva implements OnInit {
 
   getCantidad(estructura: string, actividad: string): number | null {
     return this.cantidadesActividad()[this.key(estructura, actividad)] ?? null;
+  }
+
+  // Q6 — unidad de medida por actividad.
+  setUnidad(estructura: string, actividad: string, codigo: string) {
+    const k = this.key(estructura, actividad);
+    this.unidadesActividad.update((m) => ({ ...m, [k]: codigo || null }));
+    this.saveDraft();
+  }
+
+  getUnidad(estructura: string, actividad: string): string {
+    return this.unidadesActividad()[this.key(estructura, actividad)] ?? '';
   }
 
   toggleEstructura(estructura: string) {
@@ -420,7 +453,12 @@ export class Nueva implements OnInit {
     const actividades = esParte
       ? [...this.actividadesSeleccionadas()].map((k) => {
           const [estructura, actividad] = k.split('|') as [string, string];
-          return { estructura, actividad, cantidad: this.cantidadesActividad()[k] ?? null };
+          return {
+            estructura,
+            actividad,
+            cantidad: this.cantidadesActividad()[k] ?? null,
+            unidad: this.unidadesActividad()[k] ?? null,
+          };
         })
       : [];
     const restricciones = esParte

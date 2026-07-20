@@ -256,27 +256,64 @@
       </div>
     </div>
 
-    <!-- Proveedor -->
+    <!-- P12 — Origen del material -->
     <div class="sgc-field">
-      <label for="proveedor_id">Proveedor</label>
-      <select id="proveedor_id" formControlName="proveedor_id">
-        <option [value]="null">Sin proveedor</option>
-        @for (p of activeProveedores(); track p.id) {
-          <option [value]="p.id">{{ p.nombre }}</option>
+      <label for="origen_tipo">¿De dónde viene el material? <span class="required">*</span></label>
+      <select id="origen_tipo" formControlName="origen_tipo"
+              (change)="onOrigenChange($any($event.target).value)">
+        @for (o of ORIGENES; track o.value) {
+          <option [value]="o.value">{{ o.label }}</option>
         }
       </select>
     </div>
 
-    <!-- Orden de compra -->
-    <div class="sgc-field">
-      <label for="orden_compra_id">Orden de compra (opcional)</label>
-      <select id="orden_compra_id" formControlName="orden_compra_id">
-        <option [value]="null">Sin orden asociada</option>
-        @for (o of ordenesRecibibles(); track o.id) {
-          <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
-        }
-      </select>
-    </div>
+    <!-- P12 — Devolución de obra: obra de origen + descontar de su almacén -->
+    @if (esDevolucionObra()) {
+      <div class="sgc-field">
+        <label for="origen_proyecto_id">Obra de origen <span class="required">*</span></label>
+        <select id="origen_proyecto_id" formControlName="origen_proyecto_id"
+                (change)="onOrigenProyectoChange($any($event.target).value)">
+          <option [value]="null">Seleccionar obra…</option>
+          @for (p of obrasActivas(); track p.id) {
+            <option [value]="p.id">{{ p.codigo ? p.codigo + ' — ' : '' }}{{ p.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      @if (obraOrigenTieneBodega()) {
+        <label class="entrada-check-line">
+          <input type="checkbox" formControlName="descontar_origen" />
+          <span>Descontar del almacén de la obra (registra la salida de ese almacén)</span>
+        </label>
+      } @else if (f.origen_proyecto_id.value) {
+        <p class="entrada-origen-hint">Esta obra no tiene almacén propio; se registrará como entrada simple con la obra como referencia.</p>
+      }
+    }
+
+    <!-- Proveedor / OC: solo aplican a compras (no a devolución de obra) -->
+    @if (!esDevolucionObra()) {
+      <!-- Proveedor -->
+      <div class="sgc-field">
+        <label for="proveedor_id">Proveedor</label>
+        <select id="proveedor_id" formControlName="proveedor_id">
+          <option [value]="null">Sin proveedor</option>
+          @for (p of activeProveedores(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Orden de compra -->
+      <div class="sgc-field">
+        <label for="orden_compra_id">Orden de compra (opcional)</label>
+        <select id="orden_compra_id" formControlName="orden_compra_id">
+          <option [value]="null">Sin orden asociada</option>
+          @for (o of ordenesRecibibles(); track o.id) {
+            <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
+          }
+        </select>
+      </div>
+    }
 
     <!-- Referencia -->
     <div class="sgc-field">
@@ -382,7 +419,13 @@
 
       <dl class="resumen-hoja__meta">
         <div><dt>Almacén</dt><dd>{{ bodegaNombre() }}</dd></div>
-        <div><dt>Proveedor</dt><dd>{{ proveedorNombre() }}</dd></div>
+        <div><dt>Origen</dt><dd>{{ origenLabel() }}</dd></div>
+        @if (esDevolucionObra()) {
+          <div><dt>Obra de origen</dt><dd>{{ obraOrigenNombre() }}</dd></div>
+          <div><dt>Almacén de la obra</dt><dd>{{ f.descontar_origen.value ? 'Se descuenta (salida registrada)' : 'No se descuenta' }}</dd></div>
+        } @else {
+          <div><dt>Proveedor</dt><dd>{{ proveedorNombre() }}</dd></div>
+        }
         <div><dt>Fecha</dt><dd>{{ formatFecha(f.fecha.value) }}</dd></div>
         @if (f.referencia.value) { <div><dt>Referencia</dt><dd>{{ f.referencia.value }}</dd></div> }
       </dl>

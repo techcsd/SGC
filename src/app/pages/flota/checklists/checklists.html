@@ -283,10 +283,19 @@
                 }
               </div>
 
-              <input class="cl-coment" type="text" placeholder="Comentario (opcional)"
-                [value]="getComentario(it.id)"
-                (input)="setComentario(it.id, $any($event.target).value)"
-                [attr.aria-label]="'Comentario para ' + it.etiqueta" />
+              <div class="cl-coment-wrap">
+                <input class="cl-coment" type="text"
+                  [class.cl-coment--req]="comentarioRequerido(it.id)"
+                  [placeholder]="(it.es_critico && getRespuesta(it.id) === 'no') ? 'Comentario (obligatorio): ¿qué pasó con el vehículo?' : 'Comentario (opcional)'"
+                  [value]="getComentario(it.id)"
+                  (input)="setComentario(it.id, $any($event.target).value)"
+                  [attr.aria-required]="it.es_critico && getRespuesta(it.id) === 'no'"
+                  [attr.aria-invalid]="comentarioRequerido(it.id)"
+                  [attr.aria-label]="'Comentario para ' + it.etiqueta" />
+                @if (comentarioRequerido(it.id)) {
+                  <span class="cl-coment-hint">Explica qué pasó con este vehículo (obligatorio en hallazgos críticos).</span>
+                }
+              </div>
 
               <!-- Foto por ítem (opcional) — paridad app de campo -->
               @if (slotPreview(itemSlot(it.orden)); as prev) {
@@ -447,7 +456,13 @@
               <div class="item-row__label">
                 <span>{{ r.etiqueta }}</span>
                 @if (r.es_critico) { <span class="cl-critico">● crítico</span> }
-                @if (r.comentario) { <span class="cl-coment-read">{{ r.comentario }}</span> }
+                @if (r.es_critico) {
+                  <span class="cl-coment-critico">
+                    <b>Qué pasó:</b> {{ r.comentario || 'Sin explicación registrada.' }}
+                  </span>
+                } @else if (r.comentario) {
+                  <span class="cl-coment-read">{{ r.comentario }}</span>
+                }
                 @if (fotosDeItem(r.orden).length) {
                   <div class="cl-item-fotos">
                     @for (u of fotosDeItem(r.orden); track u) {

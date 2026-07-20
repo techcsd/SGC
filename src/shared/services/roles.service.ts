@@ -39,7 +39,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'rrhh', label: 'RRHH', desc: 'Empleados, asistencia, ausencias/vacaciones y documentos de personal.' },
   { key: 'proyectos', label: 'Proyectos', desc: 'Obras y proyectos, partidas planeadas, avance, pagado vs trabajado y ranking de encargados.' },
   { key: 'flota', label: 'Flota', desc: 'Vehículos, conductores, pre-uso, reporte semanal, combustible, mantenimientos, rutas y avisos de flota.' },
-  { key: 'bitacora', label: 'Bitácora', desc: 'Parte diario de obra, visitas e incidentes: crear y consultar bitácoras.' },
+  { key: 'bitacora', label: 'Bitácora', desc: 'Bitácora del día de obra, visitas e incidentes: crear y consultar bitácoras.' },
   { key: 'documentos', label: 'Documentos', desc: 'Rellenar y descargar documentos a partir de plantillas.' },
   { key: 'plantillas', label: 'Plantillas (crear/editar)', desc: 'Crear y editar las plantillas de documentos, no solo usarlas.' },
   { key: 'legal', label: 'Legal', desc: 'Expedientes legales, contratos y aprobaciones (rol jurídico).' },

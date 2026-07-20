@@ -72,6 +72,40 @@
   &--warning { border-left-color: var(--sgc-warning); }
   &--danger  { border-left-color: var(--sgc-danger); }
   &--purple  { border-left-color: #5B3A8E; }
+
+  // Q3 — KPI clicable: abre su listado filtrado.
+  &--link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sgc-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
+    }
+  }
+}
+
+// Q3 — segmentos de gráfica clicables (drill-down).
+.hbar-chart__row--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+
+  &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04)); }
+}
+.chart-legend__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
 }
 
 .kpi-label {

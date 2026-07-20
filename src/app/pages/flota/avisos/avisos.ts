@@ -13,11 +13,12 @@ import {
 } from '../../../../shared/models/aviso-flota.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-flota-avisos',
-  imports: [FormDrawer, Skeleton],
+  imports: [FormDrawer, Skeleton, HighlightItemDirective],
   templateUrl: './avisos.html',
   styleUrl: './avisos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

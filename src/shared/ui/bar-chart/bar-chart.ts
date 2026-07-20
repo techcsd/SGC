@@ -1,9 +1,11 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 
 export interface BarDatum {
   label: string;
   value: number;
   color?: string;
+  /** Q9 — clave opcional para drill-down (si no se da, se emite el label). */
+  key?: string;
 }
 
 /** Lightweight dependency-free horizontal bar chart. */
@@ -19,6 +21,10 @@ export class BarChart {
   titulo = input<string>('');
   /** Optional suffix shown after each value (e.g. "%"). */
   sufijo = input<string>('');
+  /** Q9 — habilita clic por barra (drill-down). */
+  selectable = input<boolean>(false);
+  /** Q9 — emite la clave (o el label) de la barra clicada. */
+  select = output<string>();
 
   private max = computed(() => Math.max(1, ...this.data().map((d) => d.value)));
 
@@ -29,4 +35,8 @@ export class BarChart {
       color: d.color ?? 'var(--sgc-primary)',
     })),
   );
+
+  onSelect(b: BarDatum) {
+    if (this.selectable()) this.select.emit(b.key ?? b.label);
+  }
 }

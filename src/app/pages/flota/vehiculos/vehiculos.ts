@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import {
@@ -47,6 +47,7 @@ export class FlotaVehiculos implements OnInit {
   private flotaConfig = inject(FlotaConfigService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
+  private route = inject(ActivatedRoute);
 
   // P6 — solo roles elevados crean/editan/activan/desactivan (espejo de RLS).
   puedeGestionar = this.userService.esFlotaElevado;
@@ -130,6 +131,9 @@ export class FlotaVehiculos implements OnInit {
   drawerTitle = computed(() => (this.editingId() ? 'Editar vehículo' : 'Nuevo vehículo'));
 
   async ngOnInit() {
+    // Q3 — drill-down desde el dashboard: filtrar por estado (?estado=activo).
+    const estado = this.route.snapshot.queryParamMap.get('estado');
+    if (estado) this.selectedEstado.set(estado);
     await this.loadAll();
   }
 

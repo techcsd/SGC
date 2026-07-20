@@ -48,7 +48,7 @@
         <thead><tr><th>Fecha</th><th>Tipo</th><th>Sev.</th><th>Vehículo / Conductor</th><th>Mensaje</th><th>Estado</th><th></th></tr></thead>
         <tbody>
           @for (a of filtered(); track a.id) {
-            <tr>
+            <tr [appHighlightItem]="a.id">
               <td class="av-fecha">{{ formatFecha(a.created_at) }}</td>
               <td><span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span></td>
               <td class="av-sev av-sev--{{ a.severidad }}">{{ a.severidad }}</td>

@@ -16,6 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import {
   FaseProyecto,
@@ -108,6 +109,8 @@ export class Lista implements OnInit {
 
   // ── Sistema de estrellas: readiness por proyecto ─────────
   readiness = signal<Record<string, ProyectoReadiness>>({});
+  /** Q1 — si el readiness se cargó bien; si no, no asumir 0 estrellas al validar. */
+  private readinessLoaded = signal(false);
   readonly READINESS_ESTRELLAS = READINESS_ESTRELLAS;
 
   // ── Detail: real spend + team ─────────────────────────────
@@ -129,9 +132,16 @@ export class Lista implements OnInit {
   filterEstado = signal('');
   filterTipo = signal('');
 
+  private route = inject(ActivatedRoute);
+  /** Q5/Q2 — CL a enfocar en el detalle (deep-link ?proyecto=&cl= de una notificación). */
+  clFocusId = signal<string | null>(null);
+
   // ── Drawer: create/edit ──────────────────────────────────
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
+  /** Q1 — estado del proyecto al abrir el drawer; el gate de estrellas solo
+   *  aplica en la TRANSICIÓN hacia 'en_progreso', no al editar uno ya iniciado. */
+  private editingEstadoOriginal = signal<string | null>(null);
 
   // ── Drawer: detail/fases ─────────────────────────────────
   detailDrawerOpen = signal(false);
@@ -228,6 +238,21 @@ export class Lista implements OnInit {
       this.loadEmpleados(),
       this.loadReadiness(),
     ]);
+    // Q3 — drill-down desde el dashboard: filtrar por estado (?estado=en_progreso).
+    const qp = this.route.snapshot.queryParamMap;
+    const estado = qp.get('estado');
+    if (estado) this.filterEstado.set(estado);
+    // Q5/Q2 — deep-link desde una notificación: abrir el detalle del proyecto y
+    // enfocar el CL señalado (?proyecto={id}&cl={registroId}).
+    const proyectoId = qp.get('proyecto');
+    const clId = qp.get('cl');
+    if (proyectoId) {
+      const p = this.proyectos().find((x) => x.id === proyectoId);
+      if (p) {
+        this.clFocusId.set(clId);
+        this.openDetail(p);
+      }
+    }
   }
 
   /** Carga el readiness (estrellas) de cada proyecto — best-effort, no bloquea. */
@@ -237,8 +262,10 @@ export class Lista implements OnInit {
       const map: Record<string, ProyectoReadiness> = {};
       for (const r of rows) map[r.proyecto_id] = r;
       this.readiness.set(map);
+      this.readinessLoaded.set(true);
     } catch {
       // non-blocking: sin readiness las tarjetas muestran 0 estrellas
+      this.readinessLoaded.set(false);
     }
   }
 
@@ -338,6 +365,7 @@ export class Lista implements OnInit {
   // ── Create/Edit Drawer ───────────────────────────────────
   openCreate() {
     this.editingId.set(null);
+    this.editingEstadoOriginal.set(null);
     this.saveError.set('');
     this.form.reset({ estado: 'planificacion' });
     this.formLat.set(null);
@@ -355,6 +383,7 @@ export class Lista implements OnInit {
   openEdit(p: Proyecto, event: Event) {
     event.stopPropagation();
     this.editingId.set(p.id);
+    this.editingEstadoOriginal.set(p.estado);
     this.saveError.set('');
     this.form.reset({
       codigo: p.codigo,
@@ -388,19 +417,28 @@ export class Lista implements OnInit {
       return;
     }
 
-    // Gate del sistema de estrellas: no se puede iniciar una obra existente
-    // hasta cumplir los 4 parámetros de preparación. (Un proyecto nuevo aún no
-    // tiene readiness y arranca en 'planificacion', así que no aplica.)
+    // Q1 — Gate del sistema de estrellas: SOLO en la transición hacia
+    // 'en_progreso'. Editar datos de un proyecto ya iniciado (o sin cambiar de
+    // estado) siempre guarda. Un proyecto nuevo arranca en 'planificacion'.
     const editId = this.editingId();
-    if (
-      editId &&
-      this.form.get('estado')?.value === 'en_progreso' &&
-      !this.listoParaIniciar(editId)
-    ) {
-      this.saveError.set(
-        'No se puede iniciar la obra: faltan estrellas (equipo, cuadre, expediente y almacén de obra).',
-      );
-      return;
+    const nuevoEstado = this.form.get('estado')?.value;
+    const iniciandoObra =
+      nuevoEstado === 'en_progreso' && this.editingEstadoOriginal() !== 'en_progreso';
+    if (editId && iniciandoObra) {
+      // Si el readiness no se pudo verificar, no asumir 0 estrellas: avisar en
+      // vez de bloquear a ciegas.
+      if (!this.readinessLoaded()) {
+        this.saveError.set(
+          'No se pudo verificar el estado de preparación (estrellas) del proyecto. Intenta recargar antes de iniciar la obra.',
+        );
+        return;
+      }
+      if (!this.listoParaIniciar(editId)) {
+        this.saveError.set(
+          'No se puede iniciar la obra: faltan estrellas (equipo, cuadre, expediente y almacén de obra).',
+        );
+        return;
+      }
     }
 
     this.saving.set(true);

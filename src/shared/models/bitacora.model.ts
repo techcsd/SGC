@@ -41,6 +41,7 @@ export interface BitacoraActividad {
   estructura: string;
   actividad: string;
   cantidad: number | null; // R24 — cuántas se hicieron
+  unidad: string | null; // Q6 — unidad de medida del trabajo (código de sgc.unidades)
 }
 
 export interface BitacoraRestriccion {
@@ -73,7 +74,7 @@ export interface BitacoraEquipoAlquilado {
 export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente';
 
 export const BITACORA_TIPOS: { value: BitacoraTipo; label: string }[] = [
-  { value: 'parte_diario', label: 'Parte diario de obra' },
+  { value: 'parte_diario', label: 'Bitácora del día' },
   { value: 'visita', label: 'Visita a obra' },
   { value: 'incidente', label: 'Incidente / accidente' },
 ];
@@ -156,7 +157,7 @@ export interface BitacoraFormData {
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
-  actividades: { estructura: string; actividad: string; cantidad?: number | null }[];
+  actividades: { estructura: string; actividad: string; cantidad?: number | null; unidad?: string | null }[];
   restricciones: { tipo_restriccion: string; descripcion_otro: string | null }[];
   // Visita
   visita_tipo_visitante: string | null;

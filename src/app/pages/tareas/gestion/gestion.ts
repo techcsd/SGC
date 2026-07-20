@@ -13,10 +13,11 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe, Skeleton, HighlightItemDirective],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

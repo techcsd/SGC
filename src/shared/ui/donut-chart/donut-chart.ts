@@ -1,10 +1,12 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 
 export interface DonutDatum {
   label: string;
   value: number;
   color: string;
+  /** Q9 — clave opcional para drill-down (si no se da, se emite el label). */
+  key?: string;
 }
 
 interface Arc {
@@ -14,6 +16,7 @@ interface Arc {
   dasharray: string;
   dashoffset: number;
   pct: number;
+  key?: string;
 }
 
 /** Lightweight dependency-free donut/pie chart (SVG stroke-dasharray arcs). */
@@ -27,6 +30,10 @@ interface Arc {
 export class DonutChart {
   data = input<DonutDatum[]>([]);
   titulo = input<string>('');
+  /** Q9 — habilita clic por segmento (drill-down desde la leyenda). */
+  selectable = input<boolean>(false);
+  /** Q9 — emite la clave (o el label) del segmento clicado. */
+  select = output<string>();
 
   readonly radius = 60;
   readonly circumference = 2 * Math.PI * 60;
@@ -49,9 +56,14 @@ export class DonutChart {
           dasharray: `${len} ${this.circumference - len}`,
           dashoffset: -offset,
           pct: pct * 100,
+          key: d.key,
         };
         offset += len;
         return arc;
       });
   });
+
+  onSelect(a: Arc) {
+    if (this.selectable()) this.select.emit(a.key ?? a.label);
+  }
 }

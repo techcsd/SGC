@@ -2,7 +2,9 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { MovimientosService, MovimientoInventario } from '../../../../shared/services/movimientos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -18,12 +20,14 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 export class Movimientos implements OnInit {
   private movimientosService = inject(MovimientosService);
   private bodegasService = inject(BodegasService);
+  private proyectosService = inject(ProyectosService);
   private route = inject(ActivatedRoute);
 
   formatFecha = formatFechaDisplay;
 
   private movimientos = signal<MovimientoInventario[]>([]);
   bodegas = signal<Bodega[]>([]);
+  proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   error = signal('');
 
@@ -33,6 +37,7 @@ export class Movimientos implements OnInit {
   dateTo = signal('');
 
   private bodegaNombreMap = computed(() => new Map(this.bodegas().map((b) => [b.id, b.nombre])));
+  private obraNombreMap = computed(() => new Map(this.proyectos().map((p) => [p.id, p.nombre])));
 
   filtered = computed(() => {
     const bod = this.selectedBodega();
@@ -64,12 +69,14 @@ export class Movimientos implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [movs, bodegas] = await Promise.all([
+      const [movs, bodegas, proyectos] = await Promise.all([
         this.movimientosService.getMovimientos(),
         this.bodegasService.getAll(),
+        this.proyectosService.getAll(),
       ]);
       this.movimientos.set(movs);
       this.bodegas.set(bodegas);
+      this.proyectos.set(proyectos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los movimientos.');
     } finally {
@@ -79,6 +86,11 @@ export class Movimientos implements OnInit {
 
   bodegaNombre(id: string): string {
     return this.bodegaNombreMap().get(id) ?? '—';
+  }
+
+  /** P12 — nombre de la obra de origen de una devolución (o '' si no aplica). */
+  obraNombre(id: string | null): string {
+    return id ? (this.obraNombreMap().get(id) ?? '') : '';
   }
 
   onBodega(v: string) { this.selectedBodega.set(v); }
@@ -99,6 +111,9 @@ export class Movimientos implements OnInit {
       Tipo: m.tipo === 'salida' ? 'Salida' : 'Entrada',
       Almacén: this.bodegaNombre(m.bodega_id),
       'Concepto / referencia': m.concepto || '',
+      Origen: m.origen_tipo === 'devolucion_obra'
+        ? `Devolución de obra${this.obraNombre(m.origen_proyecto_id) ? ': ' + this.obraNombre(m.origen_proyecto_id) : ''}`
+        : '',
       Artículos: m.items,
       Responsable: m.responsable || '',
     }));

@@ -25,6 +25,19 @@
   &--warning { border-left-color: var(--sgc-warning); }
   &--danger  { border-left-color: var(--sgc-danger); }
   &--purple  { border-left-color: #5B3A8E; }
+
+  // Q3 — métrica clicable hacia su listado.
+  &--link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sgc-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
+    }
+  }
 }
 
 .kpi-label {

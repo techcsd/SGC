@@ -49,7 +49,7 @@
         </thead>
         <tbody>
           @for (a of visible(); track a.id) {
-            <tr>
+            <tr [appHighlightItem]="a.id">
               <td>{{ moduloLabel(a.modulo_origen) }}</td>
               <td>
                 <span class="apr-title">{{ a.titulo }}</span>

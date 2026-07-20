@@ -43,6 +43,8 @@ interface ItemForm extends ClRegistroItem {
 })
 export class ClLiberacion {
   proyectoId = input.required<string>();
+  /** Q5/Q2 — CL a enfocar/expandir al abrir (deep-link desde una notificación). */
+  focusRegistroId = input<string | null>(null);
 
   private service = inject(ClLiberacionService);
   private obra = inject(ObraEjecucionService);
@@ -102,6 +104,15 @@ export class ClLiberacion {
   fotoDescripcion = signal('');
   fotoSaving = signal(false);
 
+  // Q5 — método de firma (pad | foto) y solicitud de firma
+  firmaMetodo = signal<'pad' | 'foto'>('pad');
+  firmaFotoFile = signal<File | null>(null);
+  directorio = signal<{ id: string; nombre: string }[]>([]);
+  solicitarAbierto = signal<string | null>(null); // registroId con el panel abierto
+  solicitarUsuarioId = signal<string>('');
+  solicitarRol = signal<string>('');
+  solicitando = signal(false);
+
   constructor() {
     effect(() => {
       const id = this.proyectoId();
@@ -113,17 +124,24 @@ export class ClLiberacion {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [plantillas, elementos, vaciados, registros] = await Promise.all([
+      const [plantillas, elementos, vaciados, registros, directorio] = await Promise.all([
         this.service.getPlantillas(),
         this.obra.getElementos(id),
         this.obra.getVaciados(id),
         this.service.getRegistros(id),
+        this.service.getDirectorio().catch(() => []),
       ]);
       this.plantillas.set(plantillas);
       this.elementos.set(elementos);
       this.vaciados.set(vaciados);
       this.registros.set(registros);
+      this.directorio.set(directorio);
       this.resolveMedia(registros);
+      // Q5/Q2 — deep-link: expandir el CL señalado por la notificación.
+      const focus = this.focusRegistroId();
+      if (focus && registros.some((r) => r.id === focus)) {
+        this.expandedId.set(focus);
+      }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los checklists.');
     } finally {
@@ -181,14 +199,22 @@ export class ClLiberacion {
     return `Vaciado #${v.numero ?? '?'}`;
   }
 
-  /** Roles obligatorios que ya firmaron / faltan, para la barra de progreso. */
-  firmasObligatorias(r: ClRegistro): { rol: string; label: string; firmado: boolean }[] {
+  /** Q5 — checklist visual de TODOS los roles: verde si firmó, gris si falta.
+   *  Marca los obligatorios (residente/responsable) para el indicador. */
+  firmasEstado(r: ClRegistro): { rol: string; label: string; firmado: boolean; obligatoria: boolean }[] {
     const firmados = new Set((r.firmas ?? []).map((f) => f.rol));
-    return CL_FIRMA_ROLES.filter((x) => x.obligatoria).map((x) => ({
+    return CL_FIRMA_ROLES.map((x) => ({
       rol: x.value,
       label: x.label,
       firmado: firmados.has(x.value),
+      obligatoria: x.obligatoria,
     }));
+  }
+
+  /** Roles obligatorios que aún faltan por firmar (para el aviso de faltantes). */
+  faltanObligatorias(r: ClRegistro): boolean {
+    const firmados = new Set((r.firmas ?? []).map((f) => f.rol));
+    return CL_FIRMA_ROLES.some((x) => x.obligatoria && !firmados.has(x.value));
   }
 
   itemsOk(r: ClRegistro): number {
@@ -301,7 +327,29 @@ export class ClLiberacion {
     this.firmaRol.set(null);
     this.firmaNombre.set('');
     this.firmaError.set('');
+    this.firmaMetodo.set('pad');
+    this.firmaFotoFile.set(null);
     this.pad()?.clear();
+  }
+
+  /** Q5 — al elegir el rol, si no admite foto, forzar método 'pad'. */
+  onFirmaRolChange(rol: string | null) {
+    this.firmaRol.set(rol);
+    if (!this.rolAdmiteFoto(rol)) this.firmaMetodo.set('pad');
+  }
+
+  rolAdmiteFoto(rol: string | null | undefined): boolean {
+    return !!CL_FIRMA_ROLES.find((x) => x.value === rol)?.foto;
+  }
+
+  setFirmaMetodo(m: 'pad' | 'foto') {
+    this.firmaMetodo.set(m);
+    this.firmaError.set('');
+  }
+
+  onFirmaFotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.firmaFotoFile.set(input.files?.[0] ?? null);
   }
 
   async guardarFirma(r: ClRegistro) {
@@ -311,18 +359,34 @@ export class ClLiberacion {
       this.firmaError.set('Selecciona el rol que firma.');
       return;
     }
-    const pad = this.pad();
-    const blob = pad ? await pad.toBlob() : null;
-    if (!blob) {
-      this.firmaError.set('Captura la firma antes de guardar.');
-      return;
+
+    // Q5 — firma por foto (cliente/MIVHED) o firma dibujada en el pad.
+    const metodo = this.firmaMetodo();
+    let blob: Blob | null = null;
+    let ext = 'png';
+    if (metodo === 'foto') {
+      const file = this.firmaFotoFile();
+      if (!file) {
+        this.firmaError.set('Selecciona la foto de la firma antes de guardar.');
+        return;
+      }
+      blob = file;
+      ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    } else {
+      const pad = this.pad();
+      blob = pad ? await pad.toBlob() : null;
+      if (!blob) {
+        this.firmaError.set('Captura la firma antes de guardar.');
+        return;
+      }
     }
+
     this.firmaSaving.set(true);
     this.firmaError.set('');
     try {
-      const firmaPath = await this.service.upload(r.id, 'firma', blob, 'png');
+      const firmaPath = await this.service.upload(r.id, 'firma', blob, ext);
       const orden = CL_FIRMA_ROLES.findIndex((x) => x.value === rol);
-      await this.service.addFirma(r.id, rol, this.firmaNombre().trim() || null, firmaPath, orden);
+      await this.service.addFirma(r.id, rol, this.firmaNombre().trim() || null, firmaPath, orden, metodo);
       // Recargar el registro (el trigger pudo pasarlo a 'firmado').
       const fresh = await this.service.getRegistro(r.id);
       this.registros.update((list) => list.map((x) => (x.id === r.id ? fresh : x)));
@@ -337,6 +401,40 @@ export class ClLiberacion {
       this.firmaError.set(e instanceof Error ? e.message : 'Error al guardar la firma.');
     } finally {
       this.firmaSaving.set(false);
+    }
+  }
+
+  // ── Q5 — Solicitar firma dentro de la plataforma ───────────
+  toggleSolicitar(registroId: string) {
+    this.solicitarAbierto.update((cur) => (cur === registroId ? null : registroId));
+    this.solicitarUsuarioId.set('');
+    this.solicitarRol.set('');
+  }
+
+  async solicitarFirma(r: ClRegistro) {
+    if (this.solicitando()) return;
+    const usuarioId = this.solicitarUsuarioId();
+    const rol = this.solicitarRol();
+    if (!usuarioId || !rol) {
+      this.toast.error('Faltan datos', 'Elige el usuario y el rol de la firma solicitada.');
+      return;
+    }
+    this.solicitando.set(true);
+    try {
+      await this.service.solicitarFirma(
+        usuarioId,
+        this.proyectoId(),
+        r.id,
+        r.plantilla?.codigo ?? 'CL',
+        r.plantilla?.nombre ?? 'checklist de liberación',
+        this.rolLabel(rol),
+      );
+      this.solicitarAbierto.set(null);
+      this.toast.success('Firma solicitada', 'Le llegará una notificación para revisar y firmar.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo solicitar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.solicitando.set(false);
     }
   }
 

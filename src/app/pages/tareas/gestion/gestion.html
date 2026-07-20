@@ -84,7 +84,7 @@
         </thead>
         <tbody>
           @for (t of filtered(); track t.id) {
-            <tr>
+            <tr [appHighlightItem]="t.id">
               <td><span class="tarea-title">{{ t.titulo }}</span></td>
               <td>{{ t.asignado?.nombre ?? '—' }}</td>
               <td><span [class]="prioridadBadgeClass(t.prioridad)">{{ prioridadLabel(t.prioridad) }}</span></td>

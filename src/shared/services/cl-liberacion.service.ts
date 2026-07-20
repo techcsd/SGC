@@ -118,13 +118,15 @@ export class ClLiberacionService {
   }
 
   // ── Firmas (ciclo del procedimiento) ───────────────────────
-  /** Añade una firma; el trigger recalcula el estado del registro. */
+  /** Añade una firma; el trigger recalcula el estado del registro.
+   *  Q5 — `metodo` distingue firma dibujada ('pad') de foto de la firma ('foto'). */
   async addFirma(
     registroId: string,
     rol: string,
     nombre: string | null,
     firmaPath: string | null,
     orden: number,
+    metodo: 'pad' | 'foto' = 'pad',
   ): Promise<ClRegistroFirma> {
     const usuarioId = (await this.supabase.client.auth.getUser()).data.user?.id ?? null;
     const { data, error } = await this.supabase.client
@@ -135,12 +137,44 @@ export class ClLiberacionService {
         usuario_id: usuarioId,
         nombre,
         firma_path: firmaPath,
+        metodo,
         orden,
       })
       .select('*')
       .single();
     if (error) throw new Error(error.message);
     return data as unknown as ClRegistroFirma;
+  }
+
+  // ── Q5 — Solicitar firma dentro de la plataforma ───────────
+  /** Lista de usuarios activos para elegir a quién solicitar la firma. */
+  async getDirectorio(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string }[];
+  }
+
+  /**
+   * Q5 — Solicita a un usuario que firme un CL: crea una notificación (RPC
+   * `notificar`, SECURITY DEFINER) con ruta directa al CL dentro del proyecto.
+   */
+  async solicitarFirma(
+    usuarioId: string,
+    proyectoId: string,
+    registroId: string,
+    clCodigo: string,
+    obraNombre: string,
+    rolLabel: string,
+  ): Promise<void> {
+    const ruta = `/proyectos?proyecto=${proyectoId}&cl=${registroId}`;
+    const { error } = await this.supabase.client.rpc('notificar', {
+      p_usuario: usuarioId,
+      p_tipo: 'info',
+      p_titulo: `Firma pendiente: ${clCodigo} · ${obraNombre}`,
+      p_mensaje: `Se solicita tu firma como ${rolLabel} en el checklist de liberación ${clCodigo}.`,
+      p_ruta: ruta,
+    });
+    if (error) throw new Error(error.message);
   }
 
   // ── Fotos ──────────────────────────────────────────────────

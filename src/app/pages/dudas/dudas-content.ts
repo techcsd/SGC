@@ -135,7 +135,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: parte diario de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -379,7 +379,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo registro los equipos alquilados usados en la obra?',
         respuesta:
-          'En Bitácora > Nueva bitácora (parte diario), en la sección "Equipos alquilados" responde "¿Hay equipos alquilados en uso hoy?". Si marcas Sí, agrega cada equipo con su nombre, en qué se usó y (opcional) el proveedor — el campo sugiere equipos que ya usaste antes. Esto respalda el gasto: se ve en el detalle de la bitácora, en el Excel de exportación y en el Dashboard de bitácoras (KPI "días con equipos alquilados", equipos más usados y días con equipos por obra).',
+          'En Bitácora > Nueva bitácora (bitácora del día), en la sección "Equipos alquilados" responde "¿Hay equipos alquilados en uso hoy?". Si marcas Sí, agrega cada equipo con su nombre, en qué se usó y (opcional) el proveedor — el campo sugiere equipos que ya usaste antes. Esto respalda el gasto: se ve en el detalle de la bitácora, en el Excel de exportación y en el Dashboard de bitácoras (KPI "días con equipos alquilados", equipos más usados y días con equipos por obra).',
       },
       {
         pregunta: '¿Cómo pido materiales para mi proyecto (requisición)?',

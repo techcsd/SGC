@@ -1,6 +1,28 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.16.0": {
+      "titulo": "Editar obras iniciadas, firmas de liberación flexibles, unidades en bitácora y dashboards clicables",
+      "cambios": [
+        { "t": "arreglo", "d": "Ya puedes editar los datos de un proyecto que está \"en progreso\" sin que te bloquee por estrellas; la validación de estrellas solo aplica al momento de iniciar la obra." },
+        { "t": "mejora", "d": "Checklist de liberación: solo el Ing. Residente y el Ing. Responsable firman obligatoriamente; Cliente y MIVHED son opcionales. Cada firma se marca en verde al completarse." },
+        { "t": "nuevo", "d": "Liberación: puedes \"Solicitar firma\" a otro usuario (le llega una notificación que abre el CL en el rol que le toca) y la firma del Cliente/MIVHED puede subirse como foto de la firma en papel." },
+        { "t": "nuevo", "d": "Bitácora: ahora se registra la unidad de medida del trabajo realizado en cada actividad, visible en el historial." },
+        { "t": "mejora", "d": "Las notificaciones ahora resaltan el registro concreto al abrir el módulo (solicitudes, avisos de flota, aprobaciones legales, tareas y liberación)." },
+        { "t": "mejora", "d": "Dashboards clicables: las tarjetas y gráficas del inicio, Dirección y bitácora abren su listado ya filtrado (drill-down)." },
+        { "t": "mejora", "d": "Dashboard de bitácora: filtro por obra que recalcula todas las métricas y permite ver de qué obra vienen; clic en una barra/segmento abre el historial filtrado." },
+        { "t": "mejora", "d": "Se unificó el nombre visible \"parte diario\" a \"Bitácora del día\"." }
+      ]
+    },
+    "1.15.0": {
+      "titulo": "Kilometraje real, devolución de obra y comentarios obligatorios",
+      "cambios": [
+        { "t": "mejora", "d": "El kilometraje que se registra en pre-uso, recepción/devolución de vehículos y mantenimientos ahora actualiza el kilometraje real del vehículo (nunca lo hace retroceder), igual que ya hacía combustible." },
+        { "t": "nuevo", "d": "Entradas de inventario: nuevo origen \"Devolución de obra\" — eliges la obra de origen y, si esa obra tiene almacén, puedes descontar el material de ese almacén registrando el traspaso (salida + entrada enlazadas y visibles en Movimientos)." },
+        { "t": "mejora", "d": "Checklists de flota: si un ítem crítico se marca en NO, el comentario que explica qué pasó con el vehículo pasa a ser obligatorio; el detalle muestra esa explicación de forma destacada." },
+        { "t": "mejora", "d": "Bitácora: ahora puedes adjuntar notas de voz y archivos de audio desde la web, y se reproducen en el historial." }
+      ]
+    },
     "1.14.1": {
       "titulo": "Ajustes: fecha de versiones, fotos de vehículos y acceso de conductores",
       "cambios": [

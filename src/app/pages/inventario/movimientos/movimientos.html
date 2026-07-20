@@ -63,7 +63,12 @@
                 </span>
               </td>
               <td>{{ bodegaNombre(m.bodega_id) }}</td>
-              <td class="text-muted">{{ m.concepto || '—' }}</td>
+              <td class="text-muted">
+                {{ m.concepto || '—' }}
+                @if (m.origen_tipo === 'devolucion_obra') {
+                  <span class="mov-origen">↩ Devolución de obra{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { · traspaso enlazado }</span>
+                }
+              </td>
               <td class="text-right">{{ m.items }}</td>
               <td class="text-muted">{{ m.responsable || '—' }}</td>
               <td>

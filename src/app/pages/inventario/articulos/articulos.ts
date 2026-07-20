@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { maxGteMin } from '../../../../shared/utils/form-validators.util';
 import { DecimalPipe } from '@angular/common';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
@@ -46,6 +47,9 @@ export class Articulos implements OnInit {
   searchQuery = signal('');
   selectedCategory = signal<number | null>(null);
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
+  // Q3 — drill-down desde el dashboard (?stock=critico): solo stock bajo/agotado.
+  selectedStock = signal<'all' | 'critico'>('all');
+  private route = inject(ActivatedRoute);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -76,6 +80,7 @@ export class Articulos implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const catId = this.selectedCategory();
     const status = this.selectedStatus();
+    const stock = this.selectedStock();
 
     return this.articles().filter((a) => {
       if (q && !a.nombre.toLowerCase().includes(q) && !a.codigo.toLowerCase().includes(q)) {
@@ -84,6 +89,11 @@ export class Articulos implements OnInit {
       if (catId && a.categoria_id !== catId) return false;
       if (status === 'active' && !a.activo) return false;
       if (status === 'inactive' && a.activo) return false;
+      // Q3 — crítico = stock bajo o agotado (mismo criterio que getStockStatus).
+      if (stock === 'critico') {
+        const st = this.getStockStatus(a);
+        if (st !== 'low' && st !== 'none') return false;
+      }
       return true;
     });
   });
@@ -100,6 +110,10 @@ export class Articulos implements OnInit {
   );
 
   async ngOnInit() {
+    // Q3 — drill-down desde el KPI "Artículos en stock crítico".
+    if (this.route.snapshot.queryParamMap.get('stock') === 'critico') {
+      this.selectedStock.set('critico');
+    }
     await this.loadAll();
   }
 

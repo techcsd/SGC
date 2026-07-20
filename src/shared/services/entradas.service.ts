@@ -3,7 +3,7 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { EntradaInventario, EntradaFormData } from '../models/entrada.model';
 
 const SELECT_QUERY =
-  '*, bodega:bodegas(nombre), proveedor:proveedores(nombre), orden_compra:ordenes_compra(numero), detalle_entradas(*, articulo:articulos(nombre, codigo, unidad))';
+  '*, bodega:bodegas(nombre), proveedor:proveedores(nombre), orden_compra:ordenes_compra(numero), origen_proyecto:proyectos!entradas_inventario_origen_proyecto_id_fkey(nombre), detalle_entradas(*, articulo:articulos(nombre, codigo, unidad))';
 
 @Injectable({ providedIn: 'root' })
 export class EntradasService {
@@ -56,19 +56,38 @@ export class EntradasService {
 
   async create(payload: EntradaFormData, userId: string | null): Promise<EntradaInventario> {
     const { items, ...header } = payload;
+    let entradaId: unknown;
 
-    const { data: entradaId, error } = await this.supabase.client.rpc('registrar_entrada_inventario', {
-      p_fecha: header.fecha,
-      p_bodega_id: header.bodega_id,
-      p_proveedor_id: header.proveedor_id,
-      p_orden_compra_id: header.orden_compra_id,
-      p_referencia: header.referencia,
-      p_observaciones: header.observaciones,
-      p_creado_por: userId,
-      p_items: items,
-    });
-
-    if (error) throw new Error(error.message);
+    if (header.origen_tipo === 'devolucion_obra') {
+      // P12 — traspaso atómico desde el almacén de la obra de origen (RPC nuevo).
+      const { data, error } = await this.supabase.client.rpc('registrar_devolucion_obra', {
+        p_fecha: header.fecha,
+        p_bodega_destino_id: header.bodega_id,
+        p_origen_proyecto_id: header.origen_proyecto_id ?? null,
+        p_descontar: header.descontar_origen ?? false,
+        p_referencia: header.referencia,
+        p_observaciones: header.observaciones,
+        p_creado_por: userId,
+        p_items: items,
+      });
+      if (error) throw new Error(error.message);
+      entradaId = data;
+    } else {
+      const { data, error } = await this.supabase.client.rpc('registrar_entrada_inventario', {
+        p_fecha: header.fecha,
+        p_bodega_id: header.bodega_id,
+        p_proveedor_id: header.proveedor_id,
+        p_orden_compra_id: header.orden_compra_id,
+        p_referencia: header.referencia,
+        p_observaciones: header.observaciones,
+        p_creado_por: userId,
+        p_items: items,
+        p_origen_tipo: header.origen_tipo ?? null,
+        p_origen_proyecto_id: header.origen_proyecto_id ?? null,
+      });
+      if (error) throw new Error(error.message);
+      entradaId = data;
+    }
 
     const { data, error: fetchError } = await this.supabase.client
       .from('entradas_inventario')

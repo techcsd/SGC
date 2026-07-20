@@ -289,7 +289,7 @@
           <h3>Actividades</h3>
           <ul class="bitacora-detail__list">
             @for (a of b.actividades; track a.id) {
-              <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× {{ a.cantidad }} }</li>
+              <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× {{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} } }</li>
             }
           </ul>
         </div>

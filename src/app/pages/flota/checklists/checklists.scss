@@ -99,7 +99,7 @@
 
   .item-row__label { grid-area: label; }
   .cl-seg { grid-area: seg; }
-  .cl-coment { grid-area: coment; }
+  .cl-coment-wrap { grid-area: coment; }
 }
 
 .cl-critico {
@@ -145,6 +145,35 @@
 
 .cl-coment {
   width: 100%;
+
+  // P6 — comentario obligatorio en un hallazgo crítico pendiente de explicar.
+  &--req {
+    border-color: var(--sgc-danger);
+    background: color-mix(in srgb, var(--sgc-danger) 6%, transparent);
+  }
+}
+
+// P6 — contenedor del comentario + aviso (ocupa la fila 'coment').
+.cl-coment-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+// P6 — aviso inline bajo el comentario obligatorio.
+.cl-coment-hint {
+  font-size: 11px;
+  color: var(--sgc-danger);
+}
+
+// P6 — explicación prominente del hallazgo crítico en el detalle.
+.cl-coment-critico {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--sgc-danger);
+
+  b { font-weight: 700; }
 }
 
 // ── Drawer form (shared list-page primitives, kept local per convention) ──

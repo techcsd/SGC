@@ -1,3 +1,26 @@
+// ── P12 — origen de la entrada (devolución de obra) ───────
+.entrada-check-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 12px;
+  cursor: pointer;
+  font-size: 14px;
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+}
+
+.entrada-origen-hint {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: var(--main-ultra-light);
+}
+
 // ── Entradas-specific cells ───────────────────────────────
 .entradas {
   &__fecha {

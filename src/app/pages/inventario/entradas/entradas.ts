@@ -14,8 +14,10 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import { OrdenesCompraService } from '../../../../shared/services/ordenes-compra.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
-import { EntradaInventario, EntradaItemFormData } from '../../../../shared/models/entrada.model';
+import { EntradaInventario, EntradaItemFormData, OrigenEntrada } from '../../../../shared/models/entrada.model';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
@@ -42,6 +44,7 @@ export class Entradas implements OnInit {
   private categoriasService = inject(CategoriasService);
   private proveedoresService = inject(ProveedoresService);
   private ordenesCompraService = inject(OrdenesCompraService);
+  private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
 
   // ── Data state ──────────────────────────────────────────
@@ -51,6 +54,7 @@ export class Entradas implements OnInit {
   bodegas = signal<Bodega[]>([]);
   proveedores = signal<Proveedor[]>([]);
   ordenesCompra = signal<OrdenCompra[]>([]);
+  proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -97,14 +101,65 @@ export class Entradas implements OnInit {
     }
   }
 
+  /** P12 — opciones de origen del material (homologadas, primera mayúscula). */
+  readonly ORIGENES: { value: OrigenEntrada; label: string }[] = [
+    { value: 'compra', label: 'Compra' },
+    { value: 'devolucion_obra', label: 'Devolución de obra' },
+    { value: 'sobrante', label: 'Sobrante' },
+    { value: 'otro', label: 'Otro' },
+  ];
+
   form = new FormGroup({
     bodega_id: new FormControl<string | null>(null, [Validators.required]),
+    origen_tipo: new FormControl<OrigenEntrada>('compra', [Validators.required]),
+    origen_proyecto_id: new FormControl<string | null>(null),
+    descontar_origen: new FormControl<boolean>(false),
     proveedor_id: new FormControl<string | null>(null),
     orden_compra_id: new FormControl<string | null>(null),
     fecha: new FormControl(this.today, [Validators.required]),
     referencia: new FormControl<string | null>(null),
     observaciones: new FormControl<string | null>(null),
   });
+
+  /** Reactivo al origen elegido para mostrar/ocultar campos en la plantilla. */
+  private origenTipo = signal<OrigenEntrada>('compra');
+  esDevolucionObra = computed(() => this.origenTipo() === 'devolucion_obra');
+
+  /** IDs de obra que tienen al menos un almacén activo (para ofrecer descontar). */
+  private proyectosConBodega = computed(
+    () => new Set(this.bodegas().filter((b) => b.proyecto_id && b.activo).map((b) => b.proyecto_id!)),
+  );
+
+  /** La obra de origen elegida tiene almacén propio → se puede descontar de él. */
+  obraOrigenTieneBodega = computed(() => {
+    const id = this.origenProyectoId();
+    return !!id && this.proyectosConBodega().has(id);
+  });
+  private origenProyectoId = signal<string | null>(null);
+
+  /** Obras activas para el selector de origen. */
+  obrasActivas = computed(() => this.proyectos().filter((p) => p.activo !== false));
+
+  onOrigenChange(value: string) {
+    const tipo = (value || 'compra') as OrigenEntrada;
+    this.form.controls.origen_tipo.setValue(tipo);
+    this.origenTipo.set(tipo);
+    if (tipo !== 'devolucion_obra') {
+      this.form.controls.origen_proyecto_id.setValue(null);
+      this.form.controls.descontar_origen.setValue(false);
+      this.origenProyectoId.set(null);
+    }
+  }
+
+  onOrigenProyectoChange(value: string) {
+    const id = value || null;
+    this.form.controls.origen_proyecto_id.setValue(id);
+    this.origenProyectoId.set(id);
+    // Si la nueva obra no tiene almacén, no puede descontarse.
+    if (!id || !this.proyectosConBodega().has(id)) {
+      this.form.controls.descontar_origen.setValue(false);
+    }
+  }
 
   // ── Computed ─────────────────────────────────────────────
   activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
@@ -219,13 +274,14 @@ export class Entradas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [entries, arts, cats, bods, provs, ordenes] = await Promise.all([
+      const [entries, arts, cats, bods, provs, ordenes, proys] = await Promise.all([
         this.entradasService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),
         this.bodegasService.getAll(),
         this.proveedoresService.getAll(),
         this.ordenesCompraService.getAll(),
+        this.proyectosService.getAll(),
       ]);
       this.entries.set(entries);
       this.articulos.set(arts);
@@ -233,6 +289,7 @@ export class Entradas implements OnInit {
       this.bodegas.set(bods);
       this.proveedores.set(provs);
       this.ordenesCompra.set(ordenes);
+      this.proyectos.set(proys);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -305,7 +362,9 @@ export class Entradas implements OnInit {
     this.saveError.set('');
     this.creado.set(null);
     this.step.set('form');
-    this.form.reset({ fecha: this.today });
+    this.form.reset({ fecha: this.today, origen_tipo: 'compra', descontar_origen: false });
+    this.origenTipo.set('compra');
+    this.origenProyectoId.set(null);
     this.formItems.set([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
     this.quitarFoto();
     this.drawerOpen.set(true);
@@ -392,6 +451,12 @@ export class Entradas implements OnInit {
       return;
     }
 
+    // P12 — devolución de obra requiere elegir la obra de origen.
+    if (this.form.controls.origen_tipo.value === 'devolucion_obra' && !this.form.controls.origen_proyecto_id.value) {
+      this.saveError.set('Selecciona la obra de origen de la devolución.');
+      return;
+    }
+
     const articuloIds = items.map((i) => i.articulo_id);
     if (new Set(articuloIds).size !== articuloIds.length) {
       this.saveError.set('No puedes agregar el mismo artículo más de una vez. Combina las cantidades en una sola línea.');
@@ -427,15 +492,20 @@ export class Entradas implements OnInit {
     try {
       const userId = this.userService.profile()?.id ?? null;
       const v = this.form.value;
+      const esDevolucion = v.origen_tipo === 'devolucion_obra';
       const created = await this.entradasService.create(
         {
           bodega_id: v.bodega_id!,
-          proveedor_id: v.proveedor_id ?? null,
-          orden_compra_id: v.orden_compra_id ?? null,
+          // En devolución de obra no aplican proveedor/OC.
+          proveedor_id: esDevolucion ? null : (v.proveedor_id ?? null),
+          orden_compra_id: esDevolucion ? null : (v.orden_compra_id ?? null),
           fecha: v.fecha!,
           referencia: v.referencia ?? null,
           observaciones: v.observaciones ?? null,
           items,
+          origen_tipo: v.origen_tipo ?? 'compra',
+          origen_proyecto_id: esDevolucion ? (v.origen_proyecto_id ?? null) : null,
+          descontar_origen: esDevolucion ? (v.descontar_origen ?? false) : false,
         },
         userId,
       );
@@ -470,6 +540,18 @@ export class Entradas implements OnInit {
   proveedorNombre(): string {
     const id = this.form.controls.proveedor_id.value;
     return this.proveedores().find((p) => p.id === id)?.nombre ?? '—';
+  }
+
+  /** Etiqueta legible del origen elegido (para la hoja de resumen). */
+  origenLabel(): string {
+    const v = this.form.controls.origen_tipo.value;
+    return this.ORIGENES.find((o) => o.value === v)?.label ?? 'Compra';
+  }
+
+  /** Nombre de la obra de origen elegida (para la hoja de resumen). */
+  obraOrigenNombre(): string {
+    const id = this.form.controls.origen_proyecto_id.value;
+    return this.proyectos().find((p) => p.id === id)?.nombre ?? '—';
   }
 
   entryTotal(entry: EntradaInventario): number {

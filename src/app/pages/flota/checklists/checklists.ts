@@ -184,6 +184,21 @@ export class Checklists implements OnInit {
     return this.visibleItems().filter((it) => it.es_critico && (resp[it.id] ?? 'na') === 'no');
   });
 
+  /** P6 — hallazgos críticos (crítico en NO) que aún no tienen comentario.
+   *  El comentario es OBLIGATORIO en estos: bloquea el guardado. */
+  private criticosSinComentario = computed(() => {
+    const coment = this.comentarios();
+    return this.criticosEnNo().filter((it) => !(coment[it.id] ?? '').trim());
+  });
+
+  /** P6 — true si un ítem crítico marcado en NO aún no tiene comentario (para la UI). */
+  comentarioRequerido(itemId: string): boolean {
+    const it = this.visibleItems().find((x) => x.id === itemId);
+    if (!it?.es_critico) return false;
+    if (this.getRespuesta(itemId) !== 'no') return false;
+    return !this.getComentario(itemId).trim();
+  }
+
   /** Progreso: ítems respondidos (OK/NO) sobre el total visible. */
   progreso = computed(() => {
     const items = this.visibleItems();
@@ -404,6 +419,17 @@ export class Checklists implements OnInit {
     const plantilla = this.selectedPlantilla();
     if (!plantilla) {
       this.saveError.set('Selecciona una plantilla.');
+      return;
+    }
+
+    // P6 — comentario obligatorio en hallazgos críticos (crítico marcado en NO).
+    // No se puede guardar sin explicar qué pasó con el vehículo.
+    const sinComentario = this.criticosSinComentario();
+    if (sinComentario.length > 0) {
+      const etiquetas = sinComentario.map((it) => `“${it.etiqueta}”`).join(', ');
+      this.saveError.set(
+        `Explica qué pasó en el/los hallazgo(s) crítico(s): ${etiquetas}. El comentario es obligatorio cuando un ítem crítico se marca en NO.`,
+      );
       return;
     }
 

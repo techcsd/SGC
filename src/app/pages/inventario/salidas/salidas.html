@@ -25,7 +25,7 @@
       Requisiciones pendientes ({{ solicitudesPendientes().length }})
     </h2>
     @for (s of solicitudesPendientes(); track s.id) {
-      <div class="solicitudes-panel__item">
+      <div class="solicitudes-panel__item" [appHighlightItem]="s.id">
         <div class="solicitudes-panel__info">
           <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? '—' }}</span>
           @if (s.urgencia === 'urgente') {

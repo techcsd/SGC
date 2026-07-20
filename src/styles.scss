@@ -524,6 +524,18 @@ textarea {
   to { transform: rotate(360deg); }
 }
 
+// ── Q2 — Resaltado temporal del ítem señalado por una notificación (?item=) ──
+.item-highlight {
+  animation: item-highlight-pulse 3s ease-out;
+  // Ancla del scroll: deja aire arriba al hacer scrollIntoView.
+  scroll-margin-top: 90px;
+}
+@keyframes item-highlight-pulse {
+  0%   { background-color: var(--Hub-translucid, rgba(255, 179, 0, 0.45)); box-shadow: inset 0 0 0 2px var(--Hub, #ffb300); }
+  70%  { background-color: var(--Hub-translucid, rgba(255, 179, 0, 0.25)); box-shadow: inset 0 0 0 2px var(--Hub, #ffb300); }
+  100% { background-color: transparent; box-shadow: inset 0 0 0 0 transparent; }
+}
+
 // ── Leaflet DivIcon marker (created dynamically → must be global) ──
 .lp-marker__pin,
 .mm-marker__pin {

@@ -362,6 +362,19 @@
                           [ariaLabel]="'Cantidad de ' + actividad"
                           (valueChange)="setCantidad(estructura, actividad, $event)"
                         />
+                        <!-- Q6 — unidad de medida del trabajo realizado -->
+                        <span class="bitacora-matriz__qty-label">Unidad</span>
+                        <select
+                          class="bitacora-matriz__unidad"
+                          [value]="getUnidad(estructura, actividad)"
+                          (change)="setUnidad(estructura, actividad, $any($event.target).value)"
+                          [attr.aria-label]="'Unidad de ' + actividad"
+                        >
+                          <option value="">—</option>
+                          @for (u of unidades(); track u.id) {
+                            <option [value]="u.codigo">{{ u.nombre }}</option>
+                          }
+                        </select>
                       </div>
                     }
                   </div>
@@ -458,7 +471,7 @@
           id="archivos"
           type="file"
           multiple
-          accept="image/*,.pdf,.mp4,.docx,.xlsx"
+          accept="image/*,audio/*,.pdf,.mp4,.docx,.xlsx,.webm,.m4a,.mp3,.ogg,.wav"
           (change)="onFilesSelected($event)"
           [disabled]="archivos().length >= maxArchivos"
         />

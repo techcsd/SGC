@@ -16,82 +16,82 @@
     <app-skeleton variant="cards" />
   } @else {
 
-    <!-- KPI cards -->
+    <!-- KPI cards — Q3: cada número abre su listado (drill-down filtrado) -->
     <div class="kpi-grid">
       @if (canSee('inventario')) {
-        <div class="kpi-card kpi-card--primary">
+        <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/inventario/articulos">
           <span class="kpi-label">Valor de inventario</span>
           <span class="kpi-value">RD$ {{ valorInventario() | number:'1.0-0' }}</span>
-        </div>
-        <div class="kpi-card kpi-card--warning">
+        </a>
+        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/inventario/articulos" [queryParams]="{ stock: 'critico' }">
           <span class="kpi-label">Artículos en stock crítico</span>
           <span class="kpi-value">{{ stockCritico() }}</span>
-        </div>
+        </a>
       }
       @if (canSee('compras')) {
-        <div class="kpi-card kpi-card--info">
+        <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/compras/ordenes">
           <span class="kpi-label">Compras este mes</span>
           <span class="kpi-value">RD$ {{ gastoComprasDelMes() | number:'1.0-0' }}</span>
-        </div>
+        </a>
       }
       @if (canSee('rrhh')) {
-        <div class="kpi-card kpi-card--success">
+        <a class="kpi-card kpi-card--success kpi-card--link" routerLink="/rrhh/empleados">
           <span class="kpi-label">Empleados activos</span>
           <span class="kpi-value">{{ empleadosActivos() }}</span>
-        </div>
-        <div class="kpi-card kpi-card--warning">
+        </a>
+        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/rrhh/ausencias">
           <span class="kpi-label">Ausencias pendientes</span>
           <span class="kpi-value">{{ ausenciasPendientes() }}</span>
-        </div>
+        </a>
       }
       @if (canSee('proyectos')) {
-        <div class="kpi-card kpi-card--purple">
+        <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/proyectos" [queryParams]="{ estado: 'en_progreso' }">
           <span class="kpi-label">Proyectos en progreso</span>
           <span class="kpi-value">{{ proyectosActivos() }}</span>
-        </div>
+        </a>
       }
       @if (canSee('flota')) {
-        <div class="kpi-card kpi-card--danger">
+        <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/vehiculos">
           <span class="kpi-label">Vehículos activos</span>
           <span class="kpi-value">{{ vehiculosActivos() }}</span>
-        </div>
+        </a>
       }
       @if (canSeeSolicitudes()) {
-        <div class="kpi-card kpi-card--warning">
+        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/inventario/salidas">
           <span class="kpi-label">Solicitudes pendientes</span>
           <span class="kpi-value">{{ solicitudesPendientesTotal() }}</span>
-        </div>
+        </a>
       }
       @if (canSeeBitacora()) {
-        <div class="kpi-card kpi-card--info">
+        <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/bitacora/historial">
           <span class="kpi-label">Bitácoras esta semana</span>
           <span class="kpi-value">{{ bitacorasSemana() }}</span>
-        </div>
+        </a>
       }
       @if (canSeeEntregas()) {
-        <div class="kpi-card kpi-card--warning">
+        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/bitacora/entregas">
           <span class="kpi-label">Entregas por confirmar</span>
           <span class="kpi-value">{{ entregasPendientesCount() }}</span>
-        </div>
-        <div class="kpi-card kpi-card--danger">
+        </a>
+        <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/bitacora/entregas">
           <span class="kpi-label">Entregas incompletas (30 días)</span>
           <span class="kpi-value">{{ entregasIncompletasCount() }}</span>
-        </div>
+        </a>
       }
       @if (canAccess('legal') || isAdmin()) {
-        <div class="kpi-card kpi-card--info">
+        <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/legal/expedientes">
           <span class="kpi-label">Expedientes legales abiertos</span>
           <span class="kpi-value">{{ expedientesLegalesAbiertos() }}</span>
-        </div>
-        <div class="kpi-card kpi-card--warning">
+        </a>
+        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/legal/contratos">
           <span class="kpi-label">Contratos por vencer (30 días)</span>
           <span class="kpi-value">{{ contratosPorVencer() }}</span>
-        </div>
+        </a>
       }
-      <div class="kpi-card kpi-card--purple">
+      <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
         <span class="kpi-label">Mis tareas pendientes</span>
         <span class="kpi-value">{{ misTareasPendientes() }}</span>
-      </div>
+      </a>
     </div>
 
     <!-- Clima en obras (Sistema de Contexto Inteligente) -->
@@ -215,13 +215,13 @@
         } @else {
           <div class="hbar-chart">
             @for (p of proyectosPorEstado(); track p.label) {
-              <div class="hbar-chart__row">
+              <a class="hbar-chart__row hbar-chart__row--link" routerLink="/proyectos" [queryParams]="{ estado: p.key }">
                 <span class="hbar-chart__label">{{ p.label }}</span>
                 <div class="hbar-chart__track">
                   <div class="hbar-chart__fill" [style.width.%]="(p.value / proyectosPorEstadoMax()) * 100" [style.background]="p.color"></div>
                 </div>
                 <span class="hbar-chart__value">{{ p.value }}</span>
-              </div>
+              </a>
             }
           </div>
           @if (canVerMontos()) {
@@ -248,9 +248,11 @@
             <ul class="chart-legend chart-legend--vertical">
               @for (s of vehiculosPorEstado(); track s.label) {
                 <li class="chart-legend__item">
-                  <i class="chart-legend__dot" [style.background]="s.color"></i>
-                  {{ s.label }}
-                  <span class="chart-legend__value">{{ s.value }}</span>
+                  <a class="chart-legend__link" routerLink="/flota/vehiculos" [queryParams]="{ estado: s.key }">
+                    <i class="chart-legend__dot" [style.background]="s.color"></i>
+                    {{ s.label }}
+                    <span class="chart-legend__value">{{ s.value }}</span>
+                  </a>
                 </li>
               }
             </ul>
