@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { environment } from '../../environments/environment';
-import { APP_VERSION, APP_VERSION_TITULO, APP_VERSION_CAMBIOS } from '../../environments/version';
+import { APP_VERSION, APP_VERSION_TITULO, APP_VERSION_CAMBIOS, APP_VERSION_URL } from '../../environments/version';
 import { AppVersion, AppVersionFormData, VersionPublicada } from '../models/app-version.model';
 
 const APK_BUCKET = 'app-releases';
@@ -104,6 +104,7 @@ export class AppVersionesService {
           : `Versión web ${APP_VERSION} desplegada. Edita las notas desde Administración › Historial de versiones.`,
         p_titulo: APP_VERSION_TITULO ?? null,
         p_cambios: tieneCambios ? APP_VERSION_CAMBIOS : null,
+        p_url: APP_VERSION_URL ?? null,
       });
       if (error) throw new Error(error.message);
       try {

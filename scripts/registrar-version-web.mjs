@@ -12,10 +12,23 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const version = pkg.version;
+
+// Link a ESA versión (commit de GitHub). En Vercel viene por env; en local, git.
+function commitUrl() {
+  const owner = process.env.VERCEL_GIT_REPO_OWNER || 'techcsd';
+  const repo = process.env.VERCEL_GIT_REPO_SLUG || 'SGC';
+  let sha = process.env.VERCEL_GIT_COMMIT_SHA || '';
+  if (!sha) {
+    try { sha = execSync('git rev-parse HEAD', { cwd: root }).toString().trim(); } catch { /* sin git */ }
+  }
+  return sha ? `https://github.com/${owner}/${repo}/commit/${sha.slice(0, 7)}` : null;
+}
+const versionUrl = commitUrl();
 
 const url = process.env.SUPABASE_URL || process.env.SGC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SGC_SUPABASE_SERVICE_ROLE_KEY;
@@ -56,6 +69,7 @@ try {
       p_notas: null,
       p_titulo: titulo,
       p_cambios: cambios,
+      p_url: versionUrl,
     }),
   });
   if (!res.ok) {
