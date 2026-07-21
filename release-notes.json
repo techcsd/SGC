@@ -1,6 +1,20 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.18.0": {
+      "titulo": "Bitácora e incidentes más inteligentes y revisión de liberación antes de firmar",
+      "cambios": [
+        { "t": "mejora", "d": "\"¿Qué se hizo hoy?\": las estructuras y actividades salen en el orden real de ejecución del proceso, y al elegir la obra se muestran primero las 3 más usadas en esa obra." },
+        { "t": "nuevo", "d": "Administración › Catálogos de bitácora: ahora puedes reordenar estructuras, actividades y restricciones con flechas (arriba/abajo)." },
+        { "t": "nuevo", "d": "Bitácora: cada actividad puede registrarse por bloque/piso/edificio; el detalle agrupa las actividades por bloque." },
+        { "t": "mejora", "d": "El parte diario ahora exige al menos 2 fotos del trabajo realizado (y el incidente al menos 1) antes de enviarse." },
+        { "t": "nuevo", "d": "Equipos alquilados: marca un equipo \"Para retirar\" (avisa automáticamente al transportista) o \"Dañado\" (con detalle); el historial los muestra con etiquetas." },
+        { "t": "nuevo", "d": "Incidentes: nuevo tipo \"Incidente de equipo\" y las preguntas cambian según el tipo (accidente, incidente o equipo)." },
+        { "t": "nuevo", "d": "\"¿Qué pasó?\" con opciones probables por tipo (ej. caída de altura, falla mecánica…) más la opción \"Otro\" con descripción libre." },
+        { "t": "mejora", "d": "Liberación (CL): estandarizamos los nombres a lenguaje de bitácora — Armado/Encofrado de muros y columnas, Encofrado/Armado de vigas y losas." },
+        { "t": "mejora", "d": "Liberación: al abrir un CL para firmar se ve primero la revisión completa (ítems, fotos, contexto y firmas) y solo al final el botón \"Firmar como {rol}\"; nunca se abre el pad de firma directo." }
+      ]
+    },
     "1.17.0": {
       "titulo": "Permisos por rol en Flota, detalles al click, filtros de fecha y arreglos varios",
       "cambios": [

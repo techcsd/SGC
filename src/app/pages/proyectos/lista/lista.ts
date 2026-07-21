@@ -135,6 +135,7 @@ export class Lista implements OnInit {
   private route = inject(ActivatedRoute);
   /** Q5/Q2 — CL a enfocar en el detalle (deep-link ?proyecto=&cl= de una notificación). */
   clFocusId = signal<string | null>(null);
+  clFocusRol = signal<string | null>(null);
 
   // ── Drawer: create/edit ──────────────────────────────────
   drawerOpen = signal(false);
@@ -250,6 +251,8 @@ export class Lista implements OnInit {
       const p = this.proyectos().find((x) => x.id === proyectoId);
       if (p) {
         this.clFocusId.set(clId);
+        // S14 — la solicitud de firma trae el rol pedido para pre-seleccionarlo.
+        this.clFocusRol.set(qp.get('firmaRol'));
         this.openDetail(p);
       }
     }

@@ -55,6 +55,17 @@
 .bc-item--off {
   opacity: 0.55;
 }
+.bc-item__val {
+  flex: 1;
+}
+.bc-item__ord {
+  display: inline-flex;
+  gap: 4px;
+}
+.bc-item__ord .sgc-btn {
+  padding: 4px 8px;
+  line-height: 1;
+}
 .sgc-btn--sm {
   padding: 5px 12px;
   font-size: 13px;

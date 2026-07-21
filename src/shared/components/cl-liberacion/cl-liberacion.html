@@ -274,105 +274,132 @@
                   }
 
                   @if (r.estado !== 'firmado') {
-                    <!-- Q5 — agregar una firma (una a una; el CL queda en borrador
-                         hasta completar residente + responsable) -->
                     <div class="cl__firma-add">
-                      <div class="cl__form-grid">
-                        <label class="sgc-field">
-                          <span class="cl__label">Rol que firma</span>
-                          <select [value]="firmaRol()" (change)="onFirmaRolChange($any($event.target).value || null)">
-                            <option [value]="null">Selecciona…</option>
-                            @for (rol of CL_FIRMA_ROLES; track rol.value) {
-                              <option [value]="rol.value" [disabled]="rolYaFirmado(r, rol.value)">
-                                {{ rol.label }}{{ rolYaFirmado(r, rol.value) ? ' (firmado)' : '' }}
-                              </option>
-                            }
-                          </select>
-                        </label>
-                        <label class="sgc-field">
-                          <span class="cl__label">Nombre de quien firma</span>
-                          <input
-                            type="text"
-                            [ngModel]="firmaNombre()"
-                            (ngModelChange)="firmaNombre.set($event)"
-                            placeholder="Nombre y apellido"
-                          />
-                        </label>
-                      </div>
-
-                      <!-- Q5 — método de firma: dibujar o foto (cliente/MIVHED) -->
-                      @if (rolAdmiteFoto(firmaRol())) {
-                        <div class="cl__metodo-toggle" role="group" aria-label="Método de firma">
-                          <button type="button" class="cl__metodo-opt"
-                            [class.cl__metodo-opt--active]="firmaMetodo() === 'pad'"
-                            (click)="setFirmaMetodo('pad')">✍️ Dibujar</button>
-                          <button type="button" class="cl__metodo-opt"
-                            [class.cl__metodo-opt--active]="firmaMetodo() === 'foto'"
-                            (click)="setFirmaMetodo('foto')">📷 Foto de la firma</button>
+                      @if (!mostrarFirma()) {
+                        <!-- S14 — revisión read-only primero; la firma es el paso final -->
+                        @if (firmaRol()) {
+                          <p class="cl__firma-hint">
+                            Se te solicitó firmar como <strong>{{ rolLabel(firmaRol()!) }}</strong>.
+                            Revisa el checklist completo arriba y firma al final.
+                          </p>
+                        }
+                        <div class="cl__form-actions">
+                          <button
+                            type="button"
+                            class="sgc-btn sgc-btn--primary"
+                            (click)="iniciarFirma()"
+                          >
+                            @if (firmaRol()) { Firmar como {{ rolLabel(firmaRol()!) }} }
+                            @else { Firmar este checklist }
+                          </button>
+                          <button
+                            type="button"
+                            class="sgc-btn sgc-btn--ghost"
+                            (click)="toggleSolicitar(r.id)"
+                          >
+                            Solicitar firma
+                          </button>
                         </div>
-                      }
 
-                      @if (firmaMetodo() === 'foto') {
-                        <label class="sgc-field">
-                          <span class="cl__label">Foto de la firma en papel</span>
-                          <input type="file" accept="image/*" (change)="onFirmaFotoSelected($event)" />
-                        </label>
+                        <!-- Q5 — solicitar firma a otro usuario (notificación) -->
+                        @if (solicitarAbierto() === r.id) {
+                          <div class="cl__solicitar">
+                            <div class="cl__form-grid">
+                              <label class="sgc-field">
+                                <span class="cl__label">¿A quién?</span>
+                                <select [value]="solicitarUsuarioId()" (change)="solicitarUsuarioId.set($any($event.target).value)">
+                                  <option value="">Selecciona un usuario…</option>
+                                  @for (u of directorio(); track u.id) {
+                                    <option [value]="u.id">{{ u.nombre }}</option>
+                                  }
+                                </select>
+                              </label>
+                              <label class="sgc-field">
+                                <span class="cl__label">Rol de la firma</span>
+                                <select [value]="solicitarRol()" (change)="solicitarRol.set($any($event.target).value)">
+                                  <option value="">Selecciona el rol…</option>
+                                  @for (rol of CL_FIRMA_ROLES; track rol.value) {
+                                    <option [value]="rol.value" [disabled]="rolYaFirmado(r, rol.value)">
+                                      {{ rol.label }}{{ rolYaFirmado(r, rol.value) ? ' (firmado)' : '' }}
+                                    </option>
+                                  }
+                                </select>
+                              </label>
+                            </div>
+                            <div class="cl__form-actions">
+                              <button type="button" class="sgc-btn sgc-btn--secondary"
+                                (click)="solicitarFirma(r)" [disabled]="solicitando()">
+                                @if (solicitando()) { Enviando… } @else { Enviar solicitud }
+                              </button>
+                            </div>
+                          </div>
+                        }
                       } @else {
-                        <app-signature-pad ariaLabel="Firma del checklist de liberación" />
-                      }
+                        <!-- Formulario de firma (una a una; el CL queda en borrador
+                             hasta completar residente + responsable) -->
+                        <div class="cl__form-grid">
+                          <label class="sgc-field">
+                            <span class="cl__label">Rol que firma</span>
+                            <select [value]="firmaRol()" (change)="onFirmaRolChange($any($event.target).value || null)">
+                              <option [value]="null">Selecciona…</option>
+                              @for (rol of CL_FIRMA_ROLES; track rol.value) {
+                                <option [value]="rol.value" [disabled]="rolYaFirmado(r, rol.value)">
+                                  {{ rol.label }}{{ rolYaFirmado(r, rol.value) ? ' (firmado)' : '' }}
+                                </option>
+                              }
+                            </select>
+                          </label>
+                          <label class="sgc-field">
+                            <span class="cl__label">Nombre de quien firma</span>
+                            <input
+                              type="text"
+                              [ngModel]="firmaNombre()"
+                              (ngModelChange)="firmaNombre.set($event)"
+                              placeholder="Nombre y apellido"
+                            />
+                          </label>
+                        </div>
 
-                      @if (firmaError()) {
-                        <p class="field-error">{{ firmaError() }}</p>
-                      }
-                      <div class="cl__form-actions">
-                        <button
-                          type="button"
-                          class="sgc-btn sgc-btn--primary"
-                          (click)="guardarFirma(r)"
-                          [disabled]="firmaSaving()"
-                        >
-                          @if (firmaSaving()) { Guardando… } @else { Guardar firma }
-                        </button>
-                        <button
-                          type="button"
-                          class="sgc-btn sgc-btn--ghost"
-                          (click)="toggleSolicitar(r.id)"
-                        >
-                          Solicitar firma
-                        </button>
-                      </div>
+                        <!-- Q5 — método de firma: dibujar o foto (cliente/MIVHED) -->
+                        @if (rolAdmiteFoto(firmaRol())) {
+                          <div class="cl__metodo-toggle" role="group" aria-label="Método de firma">
+                            <button type="button" class="cl__metodo-opt"
+                              [class.cl__metodo-opt--active]="firmaMetodo() === 'pad'"
+                              (click)="setFirmaMetodo('pad')">✍️ Dibujar</button>
+                            <button type="button" class="cl__metodo-opt"
+                              [class.cl__metodo-opt--active]="firmaMetodo() === 'foto'"
+                              (click)="setFirmaMetodo('foto')">📷 Foto de la firma</button>
+                          </div>
+                        }
 
-                      <!-- Q5 — solicitar firma a otro usuario (notificación) -->
-                      @if (solicitarAbierto() === r.id) {
-                        <div class="cl__solicitar">
-                          <div class="cl__form-grid">
-                            <label class="sgc-field">
-                              <span class="cl__label">¿A quién?</span>
-                              <select [value]="solicitarUsuarioId()" (change)="solicitarUsuarioId.set($any($event.target).value)">
-                                <option value="">Selecciona un usuario…</option>
-                                @for (u of directorio(); track u.id) {
-                                  <option [value]="u.id">{{ u.nombre }}</option>
-                                }
-                              </select>
-                            </label>
-                            <label class="sgc-field">
-                              <span class="cl__label">Rol de la firma</span>
-                              <select [value]="solicitarRol()" (change)="solicitarRol.set($any($event.target).value)">
-                                <option value="">Selecciona el rol…</option>
-                                @for (rol of CL_FIRMA_ROLES; track rol.value) {
-                                  <option [value]="rol.value" [disabled]="rolYaFirmado(r, rol.value)">
-                                    {{ rol.label }}{{ rolYaFirmado(r, rol.value) ? ' (firmado)' : '' }}
-                                  </option>
-                                }
-                              </select>
-                            </label>
-                          </div>
-                          <div class="cl__form-actions">
-                            <button type="button" class="sgc-btn sgc-btn--secondary"
-                              (click)="solicitarFirma(r)" [disabled]="solicitando()">
-                              @if (solicitando()) { Enviando… } @else { Enviar solicitud }
-                            </button>
-                          </div>
+                        @if (firmaMetodo() === 'foto') {
+                          <label class="sgc-field">
+                            <span class="cl__label">Foto de la firma en papel</span>
+                            <input type="file" accept="image/*" (change)="onFirmaFotoSelected($event)" />
+                          </label>
+                        } @else {
+                          <app-signature-pad ariaLabel="Firma del checklist de liberación" />
+                        }
+
+                        @if (firmaError()) {
+                          <p class="field-error">{{ firmaError() }}</p>
+                        }
+                        <div class="cl__form-actions">
+                          <button
+                            type="button"
+                            class="sgc-btn sgc-btn--primary"
+                            (click)="guardarFirma(r)"
+                            [disabled]="firmaSaving()"
+                          >
+                            @if (firmaSaving()) { Guardando… } @else { Guardar firma }
+                          </button>
+                          <button
+                            type="button"
+                            class="sgc-btn sgc-btn--ghost"
+                            (click)="cancelarFirma()"
+                          >
+                            Cancelar
+                          </button>
                         </div>
                       }
                     </div>

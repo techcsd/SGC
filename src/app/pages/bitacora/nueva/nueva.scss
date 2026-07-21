@@ -280,20 +280,38 @@
   .bitacora-restriccion-desc__tag { min-width: 0; }
 }
 
-// W2 — equipos alquilados: fila con equipo/uso/proveedor + quitar.
+// W2/S7 — equipos alquilados: inputs en una sub-fila + flags/daño debajo.
 .equipo-row {
-  display: grid;
-  grid-template-columns: 1.2fr 1.2fr 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: end;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--sgc-border);
 
+  &__main {
+    display: grid;
+    grid-template-columns: 1.2fr 1.2fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
   &__remove {
     color: var(--sgc-danger);
     padding: 8px 10px;
     align-self: center;
   }
+  &__flags {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+}
+// Radios en línea (propio/alquilado, operativo sí/no)
+.bitacora-radio-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
 }
 @media (max-width: 768px) {
-  .equipo-row { grid-template-columns: 1fr; }
+  .equipo-row__main { grid-template-columns: 1fr; }
 }

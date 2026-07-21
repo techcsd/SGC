@@ -100,6 +100,13 @@ export class Historial implements OnInit {
     if (proyecto) this.selectedProyecto.set(proyecto);
     if (tipo) this.selectedTipo.set(tipo);
     await this.loadAll();
+
+    // S7 — deep-link desde notificaciones (?item=): abre el detalle de esa bitácora.
+    const item = qp.get('item');
+    if (item) {
+      const found = this.bitacoras().find((b) => b.id === item);
+      if (found) await this.openDetail(found);
+    }
   }
 
   private async loadAll() {
@@ -259,6 +266,27 @@ export class Historial implements OnInit {
 
   gravedadLabel(v: string | null): string {
     return INCIDENTE_GRAVEDADES.find((x) => x.value === v)?.label ?? (v ?? '—');
+  }
+
+  /** S13 — suceso (catálogo en MAYÚS) legible. */
+  sucesoLabel(v: string | null): string {
+    if (!v) return '—';
+    return v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+  }
+
+  /** S4 — actividades del parte agrupadas por bloque (para el detalle). */
+  actividadesAgrupadas(b: Bitacora): { bloque: string | null; items: NonNullable<Bitacora['actividades']> }[] {
+    const acts = b.actividades ?? [];
+    if (acts.length === 0) return [];
+    const map = new Map<string, NonNullable<Bitacora['actividades']>>();
+    for (const a of acts) {
+      const key = a.bloque?.trim() || '';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(a);
+    }
+    // Un solo grupo sin bloque → no agrupar (bloque null).
+    if (map.size === 1 && map.has('')) return [{ bloque: null, items: acts }];
+    return [...map.entries()].map(([bloque, items]) => ({ bloque: bloque || null, items }));
   }
 
   /** Short subject line for a row/title, adapting to entry type. */

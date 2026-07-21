@@ -1,6 +1,37 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-18_
+_Last updated: 2026-07-21_
+
+## Actualización 3 · PROMPT-7 (21/07/2026) — Bitácora/incidentes/liberación (SGC web + BD) — ✅ CÓDIGO LISTO, migraciones en prod, build OK, SIN commit/push
+
+Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-3.md` (S2, S4, S6, S7, S10, S12, S13, S14-web). Todo aditivo/retrocompatible. Build verde. **Migraciones aplicadas a prod (Management API) — 5 archivos, idempotentes y re-aplicadas sin error.** Frontend **sin commit/push** (esperando tu OK). Decisiones validadas contigo: CL rename **sin sufijo** (Simmons/Golliat fuera); mín. fotos **activado ya** (parte≥2, incidente≥1).
+
+### Migraciones en prod (`sql/2026-07-21-act3-*.sql`)
+- `-s2-catalogos-orden-ranking.sql`: `bitacora_catalogos.orden` + seeds (estructuras/actividades en orden real); tabla `bitacora_catalogo_usos` (contador por obra); RPC `catalogo_ordenado(p_proyecto_id)` (top-3 usadas primero + resto por proceso, flag `destacado`).
+- `-s4s7-bitacora-cols.sql`: `bitacora_actividades.bloque`; `bitacora_equipos_alquilados.{para_retirar,danado,dano_detalle}`; helpers `notificar_rol(rol,…)` y `notificar_flota_elevado(…)` (SECURITY DEFINER, espejo de notificar_modulo).
+- `-s12s13-incidentes.sql`: CHECK `incidente_tipo` ampliado a `incidente|accidente|incidente_equipo`; cols `incidente_equipo_{nombre,alquilado,operativo}` + `incidente_suceso`; catálogo de sucesos (tipos `suceso_incidente|suceso_accidente|suceso_equipo`, CHECK de `bitacora_catalogos.tipo` ampliado + seeds).
+- `-rpc-bitacora.sql`: re-crea `crear_bitacora_app` (app) y `crear_entrada_bitacora` (web) — **DROP firma exacta + CREATE** para no dejar overloads. Añade: bloque por actividad, mín. fotos (solo app: parte≥2/incidente≥1, constantes `c_min_fotos_*`), flags de equipo + notificación dirigida, incidente de equipo + suceso, upsert de ranking de usos (agregado por valor para no chocar ON CONFLICT). 4 params nuevos al final, todos DEFAULT → llamadas actuales por nombre siguen resolviendo (verificado: 1 overload cada uno, 36/35 args).
+- `-s10-cl-nombres.sql`: renombra `cl_plantillas.nombre` CL-04..07 → "Armado de muros y columnas / Encofrado de muros y columnas / Encofrado de vigas y losas / Armado de vigas y losas". `codigo` intacto; ítems no usaban "elementos verticales/horizontales".
+
+### Frontend web (sin commit)
+- **Catálogos** (`bitacora-catalogos.service.ts`, admin): ordena por `orden`; `getCatalogosOrdenados(proyecto)` (RPC), `getSucesos()`, `updateOrden`; admin con flechas ↑/↓ (normaliza orden 1..n).
+- **Bitácora nueva** (`nueva.*` + `bitacora.model.ts` + `bitacora.service.ts`): ranking por obra al elegir proyecto; incidente condicional por subtipo (accidente/equipo/incidente) + selector de suceso del catálogo + "Otro"; equipos con checkboxes Para retirar/Dañado (+detalle); mín. 2 fotos en parte (constantes `MIN_FOTOS_*`); bloque por actividad = bloque de cabecera.
+- **Historial** (`historial.*`): detalle agrupa actividades por bloque; badges "Para retirar"/"Dañado" en equipos; muestra suceso + campos de incidente de equipo; deep-link `?item=` abre el detalle.
+- **Liberación S14** (`cl-liberacion.*` + service + `proyectos/lista`): revisión read-only primero; el pad/form de firma solo aparece tras pulsar **"Firmar como {rol}"** (señal `mostrarFirma`); `solicitarFirma` manda el rol en el deep-link (`&firmaRol=`) y al abrir se pre-selecciona + banner.
+
+### Para PROMPT-8 (csd-app / móvil) — contratos nuevos
+- **`sgc.catalogo_ordenado(p_proyecto_id uuid)`** → filas `{tipo, valor, activo, orden, usos, ultimo_uso, destacado}`; usar para pintar "más usadas" (destacado=true) primero. `p_proyecto_id` null = solo orden de proceso.
+- **`crear_bitacora_app`** params nuevos (todos opcionales): en `p_actividades[]` añade `bloque`; en `p_equipos_alquilados[]` añade `para_retirar`, `danado`, `dano_detalle`; nuevos escalares `p_incidente_equipo_nombre`, `p_incidente_equipo_alquilado` (bool), `p_incidente_equipo_operativo` (bool), `p_incidente_suceso`. **Ojo mín. fotos ACTIVO**: parte_diario rechaza <2 fotos, incidente <1 (mensaje P0001 legible) — la app móvil DEBE exigir 2 fotos en el parte antes de enviar.
+- **`incidente_tipo`** ahora acepta `'incidente_equipo'`. Sucesos: `bitacora_catalogos` tipos `suceso_incidente|suceso_accidente|suceso_equipo`. "Otro" = texto libre en `incidente_suceso` (el RPC lo registra en otros_valores si no está en el catálogo).
+- **Notificación de retiro**: al enviar un equipo `para_retirar=true`, el RPC notifica al rol `chofer_transportista` + flota elevados con ruta `/bitacora/historial?item={id}` (la app puede mapear su propia vista de avisos).
+
+### Pendiente de Xaviel / notas
+- **Commit/push + deploy** del frontend (no lo hice). Bump de versión sugerido cuando decidas.
+- **Retrocompat / cambio de comportamiento**: la app móvil ACTUAL (sin PROMPT-8) que suba un parte con <2 fotos ahora recibirá "Agrega al menos 2 fotos del trabajo realizado" (lo aprobaste). Constantes fáciles de bajar a 0 en `-rpc-bitacora.sql` si necesitas una ventana de transición.
+- **QA manual** sugerido: (1) admin catálogos reordenar ↑/↓; (2) parte con actividades en 1 bloque → detalle agrupado; rechazo con <2 fotos; (3) equipo "para retirar" → campana del transportista con deep-link; (4) incidente de equipo con suceso del catálogo y "Otro"; (5) solicitar firma de un CL → abrir desde la notificación → ver revisión y "Firmar como {rol}" al final; (6) nombres CL nuevos en el selector.
+- Test funcional en transacción (rollback) verificó: bloque×actividad, flags de equipo, ranking usos, y 11 notificaciones con deep-link. `catalogo_ordenado` y el path incidente_equipo probados en vivo.
+
+---
 
 ## Actualización 1 (18/07/2026) — UI, Mi proyecto, imágenes, tipos vehículo, login conductores, flota estado/permisos — ✅ CÓDIGO LISTO + migraciones/edge en prod, build OK, SIN commit/push
 

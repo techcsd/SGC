@@ -165,8 +165,11 @@ export class ClLiberacionService {
     clCodigo: string,
     obraNombre: string,
     rolLabel: string,
+    rolValue: string,
   ): Promise<void> {
-    const ruta = `/proyectos?proyecto=${proyectoId}&cl=${registroId}`;
+    // S14 — el deep-link lleva el rol pedido (firmaRol) para pre-seleccionarlo
+    // en la revisión read-only al abrir el CL desde la notificación.
+    const ruta = `/proyectos?proyecto=${proyectoId}&cl=${registroId}&firmaRol=${encodeURIComponent(rolValue)}`;
     const { error } = await this.supabase.client.rpc('notificar', {
       p_usuario: usuarioId,
       p_tipo: 'info',

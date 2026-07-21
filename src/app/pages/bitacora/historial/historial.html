@@ -232,18 +232,43 @@
       @if (b.tipo === 'incidente') {
         <div class="bitacora-detail__row">
           <span class="bitacora-detail__label">Clasificación</span>
-          <span>{{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }}</span>
+          <span>
+            {{ incidenteTipoLabel(b.incidente_tipo) }}@if (b.incidente_tipo === 'accidente') { · {{ gravedadLabel(b.incidente_gravedad) }} }
+          </span>
         </div>
+        @if (b.incidente_suceso) {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">¿Qué pasó?</span>
+            <span>{{ sucesoLabel(b.incidente_suceso) }}</span>
+          </div>
+        }
+        @if (b.incidente_tipo === 'incidente_equipo') {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Equipo</span>
+            <span>
+              {{ b.incidente_equipo_nombre ?? '—' }}
+              @if (b.incidente_equipo_alquilado != null) { <span class="text-muted">· {{ b.incidente_equipo_alquilado ? 'Alquilado' : 'Propio' }}</span> }
+            </span>
+          </div>
+          @if (b.incidente_equipo_operativo != null) {
+            <div class="bitacora-detail__row">
+              <span class="bitacora-detail__label">¿Queda operativo?</span>
+              <span>{{ b.incidente_equipo_operativo ? 'Sí' : 'No' }}</span>
+            </div>
+          }
+        }
         @if (b.incidente_subcontratista) {
           <div class="bitacora-detail__row">
             <span class="bitacora-detail__label">Subcontratista</span>
             <span>{{ b.incidente_subcontratista }}</span>
           </div>
         }
-        <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Lesionados</span>
-          <span>{{ b.incidente_lesionados ?? 0 }}</span>
-        </div>
+        @if (b.incidente_tipo === 'accidente') {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Lesionados</span>
+            <span>{{ b.incidente_lesionados ?? 0 }}</span>
+          </div>
+        }
         @if (b.incidente_descripcion) {
           <div class="bitacora-detail__section">
             <h3>Descripción</h3>
@@ -282,11 +307,16 @@
       @if ((b.actividades ?? []).length > 0) {
         <div class="bitacora-detail__section">
           <h3>Actividades</h3>
-          <ul class="bitacora-detail__list">
-            @for (a of b.actividades; track a.id) {
-              <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× {{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} } }</li>
+          @for (grupo of actividadesAgrupadas(b); track grupo.bloque) {
+            @if (grupo.bloque) {
+              <h4 class="bitacora-detail__subtitle">{{ grupo.bloque }}</h4>
             }
-          </ul>
+            <ul class="bitacora-detail__list">
+              @for (a of grupo.items; track a.id) {
+                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× {{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} } }</li>
+              }
+            </ul>
+          }
         </div>
       }
 
@@ -308,6 +338,8 @@
             @for (e of b.equipos; track e.id) {
               <li>
                 <strong>{{ e.equipo }}</strong>@if (e.uso) { — {{ e.uso }} }@if (e.proveedor) { <span class="text-muted">· {{ e.proveedor }}</span> }
+                @if (e.para_retirar) { <span class="sgc-badge sgc-badge--warning">Para retirar</span> }
+                @if (e.danado) { <span class="sgc-badge sgc-badge--danger">Dañado</span>@if (e.dano_detalle) { <span class="text-muted">: {{ e.dano_detalle }}</span> } }
               </li>
             }
           </ul>

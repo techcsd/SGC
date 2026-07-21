@@ -39,9 +39,25 @@
     @for (g of grupos; track g.tipo) {
       <section class="bc-col">
         <h2 class="bc-col__title">{{ g.label }}</h2>
-        @for (c of porTipo()[g.tipo]; track c.id) {
+        @for (c of porTipo()[g.tipo]; track c.id; let i = $index; let count = $count) {
           <div class="bc-item" [class.bc-item--off]="!c.activo">
-            <span>{{ c.valor }}</span>
+            <span class="bc-item__ord">
+              <button
+                class="sgc-btn sgc-btn--sm sgc-btn--ghost"
+                type="button"
+                title="Subir"
+                [disabled]="i === 0 || saving()"
+                (click)="mover(c, -1)"
+              >↑</button>
+              <button
+                class="sgc-btn sgc-btn--sm sgc-btn--ghost"
+                type="button"
+                title="Bajar"
+                [disabled]="i === count - 1 || saving()"
+                (click)="mover(c, 1)"
+              >↓</button>
+            </span>
+            <span class="bc-item__val">{{ c.valor }}</span>
             <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(c)">
               {{ c.activo ? 'Desactivar' : 'Activar' }}
             </button>

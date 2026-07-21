@@ -62,6 +62,11 @@ export class BitacoraService {
       p_incidente_lesionados: payload.incidente_lesionados,
       p_incidente_descripcion: payload.incidente_descripcion,
       p_incidente_acciones: payload.incidente_acciones,
+      // Nuevos (Act.3 S12/S13): incidente de equipo + suceso. Retrocompatible.
+      p_incidente_equipo_nombre: payload.incidente_equipo_nombre ?? null,
+      p_incidente_equipo_alquilado: payload.incidente_equipo_alquilado ?? null,
+      p_incidente_equipo_operativo: payload.incidente_equipo_operativo ?? null,
+      p_incidente_suceso: payload.incidente_suceso ?? null,
       p_weather_snapshot_id: payload.weather_snapshot_id ?? null,
       // Nuevos (14/07): clima + migración (R21/R22). Retrocompatible (default null).
       p_llovio: payload.llovio ?? null,

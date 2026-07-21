@@ -45,6 +45,8 @@ export class ClLiberacion {
   proyectoId = input.required<string>();
   /** Q5/Q2 — CL a enfocar/expandir al abrir (deep-link desde una notificación). */
   focusRegistroId = input<string | null>(null);
+  /** S14 — rol pedido en la solicitud de firma (se pre-selecciona al abrir). */
+  focusFirmaRol = input<string | null>(null);
 
   private service = inject(ClLiberacionService);
   private obra = inject(ObraEjecucionService);
@@ -97,6 +99,8 @@ export class ClLiberacion {
   firmaNombre = signal('');
   firmaSaving = signal(false);
   firmaError = signal('');
+  // S14 — el pad/formulario de firma solo aparece tras revisar y pulsar "Firmar".
+  mostrarFirma = signal(false);
   private pad = viewChild(SignaturePad);
 
   // Foto panel
@@ -141,6 +145,10 @@ export class ClLiberacion {
       const focus = this.focusRegistroId();
       if (focus && registros.some((r) => r.id === focus)) {
         this.expandedId.set(focus);
+        // S14 — pre-selecciona el rol pedido, pero NO abre el pad: primero se
+        // ve la revisión read-only y al final se pulsa "Firmar como {rol}".
+        this.mostrarFirma.set(false);
+        this.firmaRol.set(this.focusFirmaRol());
       }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los checklists.');
@@ -329,6 +337,18 @@ export class ClLiberacion {
     this.firmaError.set('');
     this.firmaMetodo.set('pad');
     this.firmaFotoFile.set(null);
+    this.mostrarFirma.set(false);
+    this.pad()?.clear();
+  }
+
+  /** S14 — revela el formulario/pad de firma tras la revisión read-only. */
+  iniciarFirma() {
+    this.mostrarFirma.set(true);
+  }
+  /** S14 — vuelve a la revisión sin firmar. */
+  cancelarFirma() {
+    this.mostrarFirma.set(false);
+    this.firmaError.set('');
     this.pad()?.clear();
   }
 
@@ -428,6 +448,7 @@ export class ClLiberacion {
         r.plantilla?.codigo ?? 'CL',
         r.plantilla?.nombre ?? 'checklist de liberación',
         this.rolLabel(rol),
+        rol,
       );
       this.solicitarAbierto.set(null);
       this.toast.success('Firma solicitada', 'Le llegará una notificación para revisar y firmar.');

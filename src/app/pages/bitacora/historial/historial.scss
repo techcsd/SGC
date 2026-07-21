@@ -149,3 +149,13 @@
   &__obra { font-size: 16px; font-weight: 700; color: var(--sgc-text); }
   &__fecha { font-size: 13px; color: var(--sgc-text-secondary); font-variant-numeric: tabular-nums; }
 }
+
+// S4 — subtítulo de bloque dentro de la lista de actividades del detalle.
+.bitacora-detail__subtitle {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-secondary);
+  margin: 10px 0 4px;
+}

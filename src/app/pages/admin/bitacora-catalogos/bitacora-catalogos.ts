@@ -35,6 +35,9 @@ export class AdminBitacoraCatalogos implements OnInit {
   porTipo = computed(() => {
     const map: Record<Tipo, BitacoraCatalogo[]> = { estructura: [], actividad: [], restriccion: [] };
     for (const c of this.catalogos()) map[c.tipo].push(c);
+    for (const t of Object.keys(map) as Tipo[]) {
+      map[t].sort((a, b) => a.orden - b.orden || a.valor.localeCompare(b.valor));
+    }
     return map;
   });
 
@@ -77,6 +80,39 @@ export class AdminBitacoraCatalogos implements OnInit {
       await this.service.toggleActivo(c.id, next);
     } catch {
       this.catalogos.update((l) => l.map((x) => (x.id === c.id ? { ...x, activo: !next } : x)));
+    }
+  }
+
+  /**
+   * S2 — reorder a value up/down within its tipo. Normalizes the whole group's
+   * orden to 1..n (robust against legacy zeros) and persists the changes.
+   */
+  async mover(c: BitacoraCatalogo, dir: -1 | 1) {
+    if (this.saving()) return;
+    const grupo = [...this.porTipo()[c.tipo]];
+    const idx = grupo.findIndex((x) => x.id === c.id);
+    const swap = idx + dir;
+    if (idx < 0 || swap < 0 || swap >= grupo.length) return;
+    [grupo[idx], grupo[swap]] = [grupo[swap], grupo[idx]];
+
+    // Reassign sequential orden and collect the ones that changed.
+    const cambios = grupo
+      .map((x, i) => ({ id: x.id, orden: i + 1, prev: x.orden }))
+      .filter((x) => x.orden !== x.prev);
+    if (!cambios.length) return;
+
+    const byId = new Map(cambios.map((x) => [x.id, x.orden]));
+    this.catalogos.update((l) =>
+      l.map((x) => (byId.has(x.id) ? { ...x, orden: byId.get(x.id)! } : x)),
+    );
+    this.saving.set(true);
+    try {
+      await Promise.all(cambios.map((x) => this.service.updateOrden(x.id, x.orden)));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo reordenar.');
+      await this.load();
+    } finally {
+      this.saving.set(false);
     }
   }
 }

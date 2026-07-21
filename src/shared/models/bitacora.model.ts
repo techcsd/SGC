@@ -42,6 +42,7 @@ export interface BitacoraActividad {
   actividad: string;
   cantidad: number | null; // R24 — cuántas se hicieron
   unidad: string | null; // Q6 — unidad de medida del trabajo (código de sgc.unidades)
+  bloque: string | null; // S4 — bloque/piso/edificio de esta actividad (multi-bloque)
 }
 
 export interface BitacoraRestriccion {
@@ -68,6 +69,10 @@ export interface BitacoraEquipoAlquilado {
   equipo: string;
   uso: string | null;
   proveedor: string | null;
+  // S7 — retiro / daño del equipo.
+  para_retirar: boolean;
+  danado: boolean;
+  dano_detalle: string | null;
   created_at: string;
 }
 
@@ -91,7 +96,16 @@ export const VISITANTE_TIPOS: { value: string; label: string }[] = [
 export const INCIDENTE_TIPOS: { value: string; label: string }[] = [
   { value: 'incidente', label: 'Incidente (sin lesionados)' },
   { value: 'accidente', label: 'Accidente (con lesionados)' },
+  // S12 — incidente que involucra un equipo (propio o alquilado).
+  { value: 'incidente_equipo', label: 'Incidente de equipo' },
 ];
+
+/** S13 — tipo del catálogo de sucesos (sgc.bitacora_catalogos) por subtipo. */
+export const SUCESO_CATALOGO_TIPO: Record<string, 'suceso_incidente' | 'suceso_accidente' | 'suceso_equipo'> = {
+  incidente: 'suceso_incidente',
+  accidente: 'suceso_accidente',
+  incidente_equipo: 'suceso_equipo',
+};
 
 export const INCIDENTE_GRAVEDADES: { value: string; label: string }[] = [
   { value: 'leve', label: 'Leve' },
@@ -127,6 +141,11 @@ export interface Bitacora {
   incidente_lesionados: number | null;
   incidente_descripcion: string | null;
   incidente_acciones: string | null;
+  // S12/S13 — incidente de equipo + suceso probable
+  incidente_equipo_nombre: string | null;
+  incidente_equipo_alquilado: boolean | null;
+  incidente_equipo_operativo: boolean | null;
+  incidente_suceso: string | null;
   // Clima + migración (R21/R22) — el clima NO es incidente
   llovio: boolean | null;
   lluvia_detalle: string | null;
@@ -157,7 +176,7 @@ export interface BitacoraFormData {
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
-  actividades: { estructura: string; actividad: string; cantidad?: number | null; unidad?: string | null }[];
+  actividades: { estructura: string; actividad: string; cantidad?: number | null; unidad?: string | null; bloque?: string | null }[];
   restricciones: { tipo_restriccion: string; descripcion_otro: string | null }[];
   // Visita
   visita_tipo_visitante: string | null;
@@ -171,13 +190,25 @@ export interface BitacoraFormData {
   incidente_lesionados: number | null;
   incidente_descripcion: string | null;
   incidente_acciones: string | null;
+  // S12/S13 — incidente de equipo + suceso
+  incidente_equipo_nombre?: string | null;
+  incidente_equipo_alquilado?: boolean | null;
+  incidente_equipo_operativo?: boolean | null;
+  incidente_suceso?: string | null;
   weather_snapshot_id?: string | null;
   // Clima + migración (R21/R22)
   llovio?: boolean | null;
   lluvia_detalle?: string | null;
   hubo_migracion?: boolean | null;
   migracion_obreros?: unknown | null;
-  // Equipos alquilados (W2)
+  // Equipos alquilados (W2) + S7 flags de retiro/daño
   hubo_equipos?: boolean | null;
-  equipos_alquilados?: { equipo: string; uso: string | null; proveedor: string | null }[];
+  equipos_alquilados?: {
+    equipo: string;
+    uso: string | null;
+    proveedor: string | null;
+    para_retirar?: boolean;
+    danado?: boolean;
+    dano_detalle?: string | null;
+  }[];
 }

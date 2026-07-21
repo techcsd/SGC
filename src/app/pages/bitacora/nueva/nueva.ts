@@ -28,6 +28,7 @@ import {
   VISITANTE_TIPOS,
   INCIDENTE_TIPOS,
   INCIDENTE_GRAVEDADES,
+  SUCESO_CATALOGO_TIPO,
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
@@ -36,6 +37,22 @@ import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
+// S6 — mínimos de fotos (espejo del RPC; fáciles de ajustar).
+const MIN_FOTOS_PARTE = 2;
+const MIN_FOTOS_INCIDENTE = 1;
+// Sentinela para "Otro" en el selector de suceso (S13).
+const SUCESO_OTRO = '__OTRO__';
+
+/** S7 — equipo alquilado con flags de retiro/daño. */
+interface EquipoRow {
+  equipo: string;
+  uso: string;
+  proveedor: string;
+  para_retirar: boolean;
+  danado: boolean;
+  dano_detalle: string;
+}
+
 interface Draft {
   form: Record<string, unknown>;
   actividades: string[];
@@ -43,7 +60,7 @@ interface Draft {
   cantidades?: Record<string, number | null>;
   unidades?: Record<string, string | null>;
   descripciones?: Record<string, string>;
-  equipos?: { equipo: string; uso: string; proveedor: string }[];
+  equipos?: EquipoRow[];
 }
 
 @Component({
@@ -74,8 +91,27 @@ export class Nueva implements OnInit {
   readonly VISITANTE_TIPOS = VISITANTE_TIPOS;
   readonly INCIDENTE_TIPOS = INCIDENTE_TIPOS;
   readonly INCIDENTE_GRAVEDADES = INCIDENTE_GRAVEDADES;
+  readonly SUCESO_OTRO = SUCESO_OTRO;
+  readonly minFotosParte = MIN_FOTOS_PARTE;
   readonly today = todayIso();
   readonly maxArchivos = this.bitacoraService.maxArchivos;
+
+  // S13 — sucesos probables por subtipo (del catálogo).
+  private sucesos = signal<{ incidente: string[]; accidente: string[]; equipo: string[] }>({
+    incidente: [],
+    accidente: [],
+    equipo: [],
+  });
+  // Bridge reactivo para incidente_tipo (los FormControl.value no son reactivos con OnPush).
+  incidenteSubtipo = signal<string | null>(null);
+  sucesosActuales = computed<string[]>(() => {
+    const sub = this.incidenteSubtipo();
+    const key = sub ? SUCESO_CATALOGO_TIPO[sub] : null;
+    if (key === 'suceso_accidente') return this.sucesos().accidente;
+    if (key === 'suceso_equipo') return this.sucesos().equipo;
+    if (key === 'suceso_incidente') return this.sucesos().incidente;
+    return [];
+  });
 
   proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
@@ -95,7 +131,7 @@ export class Nueva implements OnInit {
   expandedEstructura = signal<string | null>(null);
 
   // W2 — equipos alquilados en uso (parte diario). Lista dinámica.
-  equiposAlquilados = signal<{ equipo: string; uso: string; proveedor: string }[]>([]);
+  equiposAlquilados = signal<EquipoRow[]>([]);
   /** Sugerencias de equipos usados antes (datalist), alimenta/lee otros_valores (U25). */
   equiposSugeridos = signal<string[]>([]);
 
@@ -141,6 +177,13 @@ export class Nueva implements OnInit {
     incidente_lesionados: new FormControl<number | null>(0, [Validators.min(0)]),
     incidente_descripcion: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
     incidente_acciones: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
+    // S12 — incidente de equipo
+    incidente_equipo_nombre: new FormControl<string | null>(null, [Validators.maxLength(150)]),
+    incidente_equipo_alquilado: new FormControl<string | null>(null), // 'propio' | 'alquilado'
+    incidente_equipo_operativo: new FormControl<string | null>(null), // 'si' | 'no'
+    // S13 — suceso probable (valor del catálogo o SUCESO_OTRO) + texto libre
+    incidente_suceso: new FormControl<string | null>(null),
+    incidente_suceso_otro: new FormControl<string | null>(null, [Validators.maxLength(200)]),
   });
 
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
@@ -155,6 +198,11 @@ export class Nueva implements OnInit {
   );
   restriccionLabel(value: string): string {
     return this.restricciones().find((r) => r.value === value)?.label ?? value;
+  }
+  /** S13 — muestra el suceso (catálogo en MAYÚS) de forma legible. */
+  sucesoLabel(value: string): string {
+    if (!value) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
   }
   getRestriccionDescripcion(value: string): string {
     return this.restriccionDescripciones()[value] ?? '';
@@ -188,8 +236,32 @@ export class Nueva implements OnInit {
     setReq('visita_tipo_visitante', tipo === 'visita');
     setReq('visita_nombre', tipo === 'visita', [Validators.maxLength(150)]);
     setReq('incidente_tipo', tipo === 'incidente');
-    setReq('incidente_gravedad', tipo === 'incidente');
-    setReq('incidente_descripcion', tipo === 'incidente', [Validators.maxLength(2000)]);
+    // Los validadores de los sub-campos del incidente dependen del subtipo (S12/S13).
+    if (tipo === 'incidente') {
+      this.onIncidenteTipoChange(this.form.controls.incidente_tipo.value);
+    } else {
+      this.onIncidenteTipoChange(null);
+    }
+  }
+
+  /** S12/S13 — las preguntas del incidente cambian según el subtipo. */
+  onIncidenteTipoChange(subtipo: string | null) {
+    this.incidenteSubtipo.set(subtipo);
+
+    const setReq = (name: string, required: boolean, extra: ValidatorFn[] = []) => {
+      const ctrl = this.form.get(name)!;
+      ctrl.setValidators(required ? [Validators.required, ...extra] : extra);
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    };
+
+    const esIncidente = subtipo != null; // hay un subtipo elegido
+    // accidente → gravedad; equipo → nombre/propiedad/operativo; suceso siempre.
+    setReq('incidente_gravedad', subtipo === 'accidente');
+    setReq('incidente_descripcion', subtipo === 'accidente' || subtipo === 'incidente', [Validators.maxLength(2000)]);
+    setReq('incidente_equipo_nombre', subtipo === 'incidente_equipo', [Validators.maxLength(150)]);
+    setReq('incidente_equipo_alquilado', subtipo === 'incidente_equipo');
+    setReq('incidente_equipo_operativo', subtipo === 'incidente_equipo');
+    setReq('incidente_suceso', esIncidente);
   }
 
   async ngOnInit() {
@@ -199,6 +271,20 @@ export class Nueva implements OnInit {
     this.form.controls.tipo.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((t) => this.onTipoChange((t ?? 'parte_diario') as BitacoraTipo));
+
+    // S12/S13 — al cambiar el subtipo de incidente, ajusta preguntas + limpia suceso.
+    this.form.controls.incidente_tipo.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((v) => {
+        this.onIncidenteTipoChange(v ?? null);
+        this.form.controls.incidente_suceso.setValue(null, { emitEvent: false });
+        this.form.controls.incidente_suceso_otro.setValue(null, { emitEvent: false });
+      });
+
+    // S2 — al elegir la obra, reordena estructuras/actividades por uso de esa obra.
+    this.form.controls.proyecto_id.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((id) => this.aplicarRanking(id ?? null));
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saveDraft());
 
@@ -232,6 +318,25 @@ export class Nueva implements OnInit {
       this.equiposSugeridos.set(await this.bitacoraService.getEquiposSugeridos());
     } catch {
       /* sin sugerencias, no pasa nada */
+    }
+
+    // S13 — sucesos probables por subtipo (best-effort).
+    try {
+      this.sucesos.set(await this.catalogosService.getSucesos());
+    } catch {
+      /* sin catálogo de sucesos: el selector queda vacío, "Otro" sigue disponible */
+    }
+  }
+
+  /** S2 — trae el catálogo con ranking de uso de la obra elegida (best-effort). */
+  private async aplicarRanking(proyectoId: string | null) {
+    if (!proyectoId) return;
+    try {
+      const cat = await this.catalogosService.getCatalogosOrdenados(proyectoId);
+      if (cat.estructuras.length) this.estructuras.set(cat.estructuras);
+      if (cat.actividades.length) this.actividades.set(cat.actividades);
+    } catch {
+      /* mantiene el orden actual */
     }
   }
 
@@ -377,9 +482,12 @@ export class Nueva implements OnInit {
     this.archivos.update((list) => list.filter((_, i) => i !== index));
   }
 
-  // ── Equipos alquilados (W2) ──────────────────────────────────
+  // ── Equipos alquilados (W2 + S7) ─────────────────────────────
   addEquipo() {
-    this.equiposAlquilados.update((list) => [...list, { equipo: '', uso: '', proveedor: '' }]);
+    this.equiposAlquilados.update((list) => [
+      ...list,
+      { equipo: '', uso: '', proveedor: '', para_retirar: false, danado: false, dano_detalle: '' },
+    ]);
     this.saveDraft();
   }
 
@@ -388,7 +496,15 @@ export class Nueva implements OnInit {
     this.saveDraft();
   }
 
-  updateEquipo(index: number, field: 'equipo' | 'uso' | 'proveedor', value: string) {
+  updateEquipo(index: number, field: 'equipo' | 'uso' | 'proveedor' | 'dano_detalle', value: string) {
+    this.equiposAlquilados.update((list) =>
+      list.map((e, i) => (i === index ? { ...e, [field]: value } : e)),
+    );
+    this.saveDraft();
+  }
+
+  /** S7 — flags de retiro/daño por equipo. */
+  setEquipoFlag(index: number, field: 'para_retirar' | 'danado', value: boolean) {
     this.equiposAlquilados.update((list) =>
       list.map((e, i) => (i === index ? { ...e, [field]: value } : e)),
     );
@@ -442,6 +558,33 @@ export class Nueva implements OnInit {
         this.saveError.set('Indica al menos un equipo alquilado (o cambia la respuesta a "No").');
         return;
       }
+      // S7 — si un equipo está dañado, exige el detalle del daño.
+      const danadoSinDetalle = this.equiposAlquilados().find(
+        (e) => e.equipo.trim() && e.danado && !e.dano_detalle.trim(),
+      );
+      if (danadoSinDetalle) {
+        this.saveError.set(`Describe el daño de "${danadoSinDetalle.equipo.trim()}".`);
+        return;
+      }
+    }
+
+    // S13 — si el suceso es "Otro", exige el texto libre.
+    if (tipo === 'incidente' && this.form.controls.incidente_suceso.value === SUCESO_OTRO) {
+      if (!this.form.controls.incidente_suceso_otro.value?.trim()) {
+        this.saveError.set('Describe el suceso ("Otro").');
+        return;
+      }
+    }
+
+    // S6 — mínimo de fotos (parte diario ≥2, incidente ≥1).
+    const nfotos = this.archivos().length;
+    if (tipo === 'parte_diario' && nfotos < MIN_FOTOS_PARTE) {
+      this.saveError.set(`Agrega al menos ${MIN_FOTOS_PARTE} fotos del trabajo realizado.`);
+      return;
+    }
+    if (tipo === 'incidente' && nfotos < MIN_FOTOS_INCIDENTE) {
+      this.saveError.set(`Agrega al menos ${MIN_FOTOS_INCIDENTE} foto del incidente.`);
+      return;
     }
 
     this.saving.set(true);
@@ -449,6 +592,9 @@ export class Nueva implements OnInit {
 
     const v = this.form.getRawValue();
     const esParte = tipo === 'parte_diario';
+    // S4 — la web tiene un solo bloque de cabecera; se aplica a cada actividad
+    // para que el detalle agrupe por bloque (la app móvil hace multi-bloque real).
+    const bloqueParte = esParte ? (v.bloque_entrepiso?.trim() || null) : null;
     const actividades = esParte
       ? [...this.actividadesSeleccionadas()].map((k) => {
           const [estructura, actividad] = k.split('|') as [string, string];
@@ -457,6 +603,7 @@ export class Nueva implements OnInit {
             actividad,
             cantidad: this.cantidadesActividad()[k] ?? null,
             unidad: this.unidadesActividad()[k] ?? null,
+            bloque: bloqueParte,
           };
         })
       : [];
@@ -511,6 +658,23 @@ export class Nueva implements OnInit {
         incidente_lesionados: tipo === 'incidente' ? (v.incidente_lesionados ?? 0) : 0,
         incidente_descripcion: tipo === 'incidente' ? (v.incidente_descripcion ?? null) : null,
         incidente_acciones: tipo === 'incidente' ? (v.incidente_acciones ?? null) : null,
+        // S12/S13 — incidente de equipo + suceso probable.
+        incidente_equipo_nombre:
+          v.incidente_tipo === 'incidente_equipo' ? (v.incidente_equipo_nombre?.trim() || null) : null,
+        incidente_equipo_alquilado:
+          v.incidente_tipo === 'incidente_equipo' && v.incidente_equipo_alquilado
+            ? v.incidente_equipo_alquilado === 'alquilado'
+            : null,
+        incidente_equipo_operativo:
+          v.incidente_tipo === 'incidente_equipo' && v.incidente_equipo_operativo
+            ? v.incidente_equipo_operativo === 'si'
+            : null,
+        incidente_suceso:
+          tipo === 'incidente'
+            ? v.incidente_suceso === SUCESO_OTRO
+              ? (v.incidente_suceso_otro?.trim() || null)
+              : (v.incidente_suceso || null)
+            : null,
         weather_snapshot_id: weatherSnapshotId,
         // Clima + migración (R21/R22) — solo aplican al parte diario.
         llovio: esParte ? !!v.llovio : null,
@@ -533,6 +697,9 @@ export class Nueva implements OnInit {
                   equipo: e.equipo.trim(),
                   uso: e.uso.trim() || null,
                   proveedor: e.proveedor.trim() || null,
+                  para_retirar: e.para_retirar,
+                  danado: e.danado,
+                  dano_detalle: e.danado ? (e.dano_detalle.trim() || null) : null,
                 }))
             : [],
       });

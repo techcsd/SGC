@@ -141,48 +141,114 @@
       </section>
     }
 
-    <!-- Sección: Incidente / accidente -->
+    <!-- Sección: Incidente / accidente / incidente de equipo -->
     @if (tipoActual() === 'incidente') {
       <section class="bitacora-section sgc-card">
-        <h2 class="bitacora-section__title">Detalle del incidente / accidente</h2>
-        <div class="bitacora-form-row">
-          <div class="sgc-field">
-            <label for="incidente_tipo">Tipo <span class="required">*</span></label>
-            <select id="incidente_tipo" formControlName="incidente_tipo" [class.invalid]="f.incidente_tipo.invalid && f.incidente_tipo.touched">
-              <option [value]="null">Seleccionar…</option>
-              @for (it of INCIDENTE_TIPOS; track it.value) {
-                <option [value]="it.value">{{ it.label }}</option>
-              }
-            </select>
-            @if (f.incidente_tipo.invalid && f.incidente_tipo.touched) {
-              <span class="field-error">Requerido.</span>
+        <h2 class="bitacora-section__title">Detalle del incidente</h2>
+
+        <div class="sgc-field">
+          <label for="incidente_tipo">Tipo <span class="required">*</span></label>
+          <select id="incidente_tipo" formControlName="incidente_tipo" [class.invalid]="f.incidente_tipo.invalid && f.incidente_tipo.touched">
+            <option [value]="null">Seleccionar…</option>
+            @for (it of INCIDENTE_TIPOS; track it.value) {
+              <option [value]="it.value">{{ it.label }}</option>
             }
-          </div>
-          <div class="sgc-field">
-            <label for="incidente_gravedad">Gravedad <span class="required">*</span></label>
-            <select id="incidente_gravedad" formControlName="incidente_gravedad" [class.invalid]="f.incidente_gravedad.invalid && f.incidente_gravedad.touched">
-              <option [value]="null">Seleccionar…</option>
-              @for (g of INCIDENTE_GRAVEDADES; track g.value) {
-                <option [value]="g.value">{{ g.label }}</option>
-              }
-            </select>
-            @if (f.incidente_gravedad.invalid && f.incidente_gravedad.touched) {
-              <span class="field-error">Requerido.</span>
-            }
-          </div>
+          </select>
+          @if (f.incidente_tipo.invalid && f.incidente_tipo.touched) {
+            <span class="field-error">Requerido.</span>
+          }
         </div>
-        <div class="bitacora-form-row">
+
+        <!-- Accidente → gravedad + subcontratista + lesionados -->
+        @if (incidenteSubtipo() === 'accidente') {
+          <div class="bitacora-form-row">
+            <div class="sgc-field">
+              <label for="incidente_gravedad">Gravedad <span class="required">*</span></label>
+              <select id="incidente_gravedad" formControlName="incidente_gravedad" [class.invalid]="f.incidente_gravedad.invalid && f.incidente_gravedad.touched">
+                <option [value]="null">Seleccionar…</option>
+                @for (g of INCIDENTE_GRAVEDADES; track g.value) {
+                  <option [value]="g.value">{{ g.label }}</option>
+                }
+              </select>
+              @if (f.incidente_gravedad.invalid && f.incidente_gravedad.touched) {
+                <span class="field-error">Requerido.</span>
+              }
+            </div>
+            <div class="sgc-field">
+              <label for="incidente_lesionados">Número de lesionados</label>
+              <input id="incidente_lesionados" type="number" min="0" formControlName="incidente_lesionados" />
+            </div>
+          </div>
           <div class="sgc-field">
             <label for="incidente_subcontratista">Subcontratista involucrado</label>
             <input id="incidente_subcontratista" type="text" formControlName="incidente_subcontratista" placeholder="Empresa/persona subcontratada" />
           </div>
+        }
+
+        <!-- Incidente de equipo → equipo + propiedad + operativo -->
+        @if (incidenteSubtipo() === 'incidente_equipo') {
           <div class="sgc-field">
-            <label for="incidente_lesionados">Número de lesionados</label>
-            <input id="incidente_lesionados" type="number" min="0" formControlName="incidente_lesionados" />
+            <label for="incidente_equipo_nombre">Equipo afectado <span class="required">*</span></label>
+            <input id="incidente_equipo_nombre" type="text" formControlName="incidente_equipo_nombre"
+              placeholder="Ej: Retroexcavadora, Andamio…"
+              [class.invalid]="f.incidente_equipo_nombre.invalid && f.incidente_equipo_nombre.touched" />
+            @if (f.incidente_equipo_nombre.invalid && f.incidente_equipo_nombre.touched) {
+              <span class="field-error">Requerido.</span>
+            }
           </div>
-        </div>
+          <div class="bitacora-form-row">
+            <div class="sgc-field">
+              <label>¿Propio o alquilado? <span class="required">*</span></label>
+              <div class="bitacora-radio-row">
+                <label class="bitacora-check-line"><input type="radio" formControlName="incidente_equipo_alquilado" value="propio" /><span>Propio</span></label>
+                <label class="bitacora-check-line"><input type="radio" formControlName="incidente_equipo_alquilado" value="alquilado" /><span>Alquilado</span></label>
+              </div>
+              @if (f.incidente_equipo_alquilado.invalid && f.incidente_equipo_alquilado.touched) {
+                <span class="field-error">Requerido.</span>
+              }
+            </div>
+            <div class="sgc-field">
+              <label>¿Queda operativo? <span class="required">*</span></label>
+              <div class="bitacora-radio-row">
+                <label class="bitacora-check-line"><input type="radio" formControlName="incidente_equipo_operativo" value="si" /><span>Sí</span></label>
+                <label class="bitacora-check-line"><input type="radio" formControlName="incidente_equipo_operativo" value="no" /><span>No</span></label>
+              </div>
+              @if (f.incidente_equipo_operativo.invalid && f.incidente_equipo_operativo.touched) {
+                <span class="field-error">Requerido.</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Suceso probable (S13) — para los tres subtipos -->
+        @if (incidenteSubtipo()) {
+          <div class="sgc-field">
+            <label for="incidente_suceso">¿Qué pasó? <span class="required">*</span></label>
+            <select id="incidente_suceso" formControlName="incidente_suceso" [class.invalid]="f.incidente_suceso.invalid && f.incidente_suceso.touched">
+              <option [value]="null">Seleccionar…</option>
+              @for (s of sucesosActuales(); track s) {
+                <option [value]="s">{{ sucesoLabel(s) }}</option>
+              }
+              <option [value]="SUCESO_OTRO">Otro…</option>
+            </select>
+            @if (f.incidente_suceso.invalid && f.incidente_suceso.touched) {
+              <span class="field-error">Requerido.</span>
+            }
+          </div>
+          @if (f.incidente_suceso.value === SUCESO_OTRO) {
+            <div class="sgc-field">
+              <label for="incidente_suceso_otro">Describe el suceso <span class="required">*</span></label>
+              <input id="incidente_suceso_otro" type="text" maxlength="200" formControlName="incidente_suceso_otro"
+                placeholder="¿Qué ocurrió?" />
+            </div>
+          }
+        }
+
         <div class="sgc-field">
-          <label for="incidente_descripcion">Descripción de lo ocurrido <span class="required">*</span></label>
+          <label for="incidente_descripcion">
+            Descripción de lo ocurrido
+            @if (incidenteSubtipo() === 'accidente' || incidenteSubtipo() === 'incidente') { <span class="required">*</span> }
+          </label>
           <textarea id="incidente_descripcion" rows="3" maxlength="2000" formControlName="incidente_descripcion" placeholder="¿Qué pasó, dónde y cómo?" [class.invalid]="f.incidente_descripcion.invalid && f.incidente_descripcion.touched"></textarea>
           @if (f.incidente_descripcion.invalid && f.incidente_descripcion.touched) {
             <span class="field-error">Requerido.</span>
@@ -267,43 +333,70 @@
 
         @for (eq of equiposAlquilados(); track $index; let i = $index) {
           <div class="equipo-row">
-            <div class="sgc-field">
-              <label [for]="'equipo-' + i">Equipo <span class="required">*</span></label>
-              <input
-                [id]="'equipo-' + i"
-                type="text"
-                list="equipos-sugeridos"
-                [value]="eq.equipo"
-                (input)="updateEquipo(i, 'equipo', $any($event.target).value)"
-                placeholder="Ej: Retroexcavadora, Andamio, Compresor…"
-              />
+            <div class="equipo-row__main">
+              <div class="sgc-field">
+                <label [for]="'equipo-' + i">Equipo <span class="required">*</span></label>
+                <input
+                  [id]="'equipo-' + i"
+                  type="text"
+                  list="equipos-sugeridos"
+                  [value]="eq.equipo"
+                  (input)="updateEquipo(i, 'equipo', $any($event.target).value)"
+                  placeholder="Ej: Retroexcavadora, Andamio, Compresor…"
+                />
+              </div>
+              <div class="sgc-field">
+                <label [for]="'uso-' + i">¿En qué se usó?</label>
+                <input
+                  [id]="'uso-' + i"
+                  type="text"
+                  [value]="eq.uso"
+                  (input)="updateEquipo(i, 'uso', $any($event.target).value)"
+                  placeholder="Actividad / dónde"
+                />
+              </div>
+              <div class="sgc-field">
+                <label [for]="'prov-' + i">Proveedor (opcional)</label>
+                <input
+                  [id]="'prov-' + i"
+                  type="text"
+                  [value]="eq.proveedor"
+                  (input)="updateEquipo(i, 'proveedor', $any($event.target).value)"
+                  placeholder="Empresa que lo alquiló"
+                />
+              </div>
+              <button
+                type="button"
+                class="equipo-row__remove sgc-btn sgc-btn--ghost"
+                (click)="removeEquipo(i)"
+                aria-label="Quitar equipo"
+              >✕</button>
             </div>
-            <div class="sgc-field">
-              <label [for]="'uso-' + i">¿En qué se usó?</label>
-              <input
-                [id]="'uso-' + i"
-                type="text"
-                [value]="eq.uso"
-                (input)="updateEquipo(i, 'uso', $any($event.target).value)"
-                placeholder="Actividad / dónde"
-              />
+            <!-- S7 — retiro / daño del equipo -->
+            <div class="equipo-row__flags">
+              <label class="bitacora-check-line">
+                <input type="checkbox" [checked]="eq.para_retirar"
+                  (change)="setEquipoFlag(i, 'para_retirar', $any($event.target).checked)" />
+                <span>Para retirar (avisar al transportista)</span>
+              </label>
+              <label class="bitacora-check-line">
+                <input type="checkbox" [checked]="eq.danado"
+                  (change)="setEquipoFlag(i, 'danado', $any($event.target).checked)" />
+                <span>Dañado</span>
+              </label>
             </div>
-            <div class="sgc-field">
-              <label [for]="'prov-' + i">Proveedor (opcional)</label>
-              <input
-                [id]="'prov-' + i"
-                type="text"
-                [value]="eq.proveedor"
-                (input)="updateEquipo(i, 'proveedor', $any($event.target).value)"
-                placeholder="Empresa que lo alquiló"
-              />
-            </div>
-            <button
-              type="button"
-              class="equipo-row__remove sgc-btn sgc-btn--ghost"
-              (click)="removeEquipo(i)"
-              aria-label="Quitar equipo"
-            >✕</button>
+            @if (eq.danado) {
+              <div class="sgc-field">
+                <label [for]="'dano-' + i">Detalle del daño <span class="required">*</span></label>
+                <input
+                  [id]="'dano-' + i"
+                  type="text"
+                  [value]="eq.dano_detalle"
+                  (input)="updateEquipo(i, 'dano_detalle', $any($event.target).value)"
+                  placeholder="¿Qué le pasó al equipo?"
+                />
+              </div>
+            }
           </div>
         }
 
@@ -466,7 +559,13 @@
       </div>
 
       <div class="sgc-field">
-        <label>Imágenes y archivos</label>
+        <label>
+          Imágenes y archivos
+          @if (tipoActual() === 'parte_diario') { <span class="required">*</span> }
+        </label>
+        @if (tipoActual() === 'parte_diario') {
+          <p class="bitacora-section__hint">Agrega al menos {{ minFotosParte }} fotos del trabajo realizado.</p>
+        }
         <app-file-upload
           [files]="archivos()"
           [max]="maxArchivos"
