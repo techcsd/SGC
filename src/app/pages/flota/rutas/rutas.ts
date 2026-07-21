@@ -8,6 +8,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { RutasService } from '../../../../shared/services/rutas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -42,6 +43,7 @@ export class Rutas implements OnInit {
   formatFecha = formatFechaDisplay;
   formatDur = formatearDuracion; // U23 — duración legible ("1 h 28 min")
 
+  private route = inject(ActivatedRoute);
   private rutasService = inject(RutasService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
@@ -200,6 +202,12 @@ export class Rutas implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // S16 — deep-link desde la notificación de ruta asignada (?item=): abre el detalle.
+    const item = this.route.snapshot.queryParamMap.get('item');
+    if (item) {
+      const r = this.rutas().find((x) => x.id === item);
+      if (r) this.openDetail(r);
+    }
   }
 
   private async loadAll() {

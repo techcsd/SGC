@@ -109,19 +109,45 @@
     </div>
   }
 
-  <!-- ── 4. Historial de checklists ── -->
+  <!-- ── 4a. Pre-usos ── -->
   <section class="sgc-card cd-section">
-    <h2 class="cd-section__title">Historial de checklists</h2>
-    @if (histChecklists().length === 0) {
-      <p class="cd-muted">Sin checklists registrados.</p>
+    <h2 class="cd-section__title">Pre-usos</h2>
+    @if (histPreuso().length === 0) {
+      <p class="cd-muted">Sin pre-usos registrados.</p>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Historial de checklists">
+        <table class="data-table" aria-label="Pre-usos del conductor">
           <thead>
             <tr><th>Fecha</th><th>Vehículo</th><th>Resultado</th><th class="text-right">Km</th></tr>
           </thead>
           <tbody>
-            @for (c of histChecklists(); track c.id) {
+            @for (c of histPreuso(); track c.id) {
+              <tr>
+                <td>{{ formatFecha(c.fecha) }}</td>
+                <td><span class="cd-placa">{{ c.vehiculo?.placa ?? '—' }}</span></td>
+                <td><span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span></td>
+                <td class="text-right">{{ c.kilometraje != null ? (c.kilometraje | number: '1.0-0') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- ── 4b. Reportes semanales ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Reportes semanales</h2>
+    @if (histSemanal().length === 0) {
+      <p class="cd-muted">Sin reportes semanales registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Reportes semanales del conductor">
+          <thead>
+            <tr><th>Fecha</th><th>Vehículo</th><th>Resultado</th><th class="text-right">Km</th></tr>
+          </thead>
+          <tbody>
+            @for (c of histSemanal(); track c.id) {
               <tr>
                 <td>{{ formatFecha(c.fecha) }}</td>
                 <td><span class="cd-placa">{{ c.vehiculo?.placa ?? '—' }}</span></td>
@@ -165,4 +191,167 @@
       </div>
     }
   </section>
+
+  <!-- ── 6. Rutas asignadas ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Rutas asignadas</h2>
+    @if (histRutas().length === 0) {
+      <p class="cd-muted">Sin rutas asignadas.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Rutas del conductor">
+          <thead><tr><th>Fecha</th><th>Trayecto</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            @for (r of histRutas(); track r.id) {
+              <tr>
+                <td>{{ formatFecha(r.fecha) }}</td>
+                <td>{{ r.origen }} → {{ r.destino }}</td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ r.estado }}</span></td>
+                <td><a class="cd-link" [routerLink]="['/flota/rutas']" [queryParams]="{ item: r.id }">Ver</a></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- ── 7. Conduces ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Conduces</h2>
+    @if (histConduces().length === 0) {
+      <p class="cd-muted">Sin conduces registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Conduces del conductor">
+          <thead><tr><th>Conduce</th><th>Fecha</th><th>Estado</th></tr></thead>
+          <tbody>
+            @for (s of histConduces(); track s.id) {
+              <tr>
+                <td><span class="cd-placa">{{ conduceNumero(s.id) }}</span></td>
+                <td>{{ formatFecha(s.fecha) }}</td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ s.estado }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- ── 8. Entregas / recepciones ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Entregas / recepciones</h2>
+    @if (histEntregas().length === 0) {
+      <p class="cd-muted">Sin entregas ni recepciones.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Entregas del conductor">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Vehículo</th><th class="text-right">Km</th><th>Estado</th></tr></thead>
+          <tbody>
+            @for (e of histEntregas(); track e.id) {
+              <tr>
+                <td>{{ formatFecha(e.capturado_en) }}</td>
+                <td>{{ entregaTipoLabel(e.tipo) }}</td>
+                <td><span class="cd-placa">{{ e.vehiculo?.placa ?? '—' }}</span></td>
+                <td class="text-right">{{ e.km | number: '1.0-0' }}</td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ e.estado }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- ── 9. Accidentes ── -->
+  <section class="sgc-card cd-section">
+    <h2 class="cd-section__title">Accidentes</h2>
+    @if (accidentes().length === 0) {
+      <p class="cd-muted">Sin accidentes registrados.</p>
+    } @else {
+      <ul class="cd-list">
+        @for (a of accidentes(); track a.id) {
+          <li>
+            <strong>{{ formatFecha(a.fecha) }}</strong> · {{ a.vehiculo?.placa ?? '—' }}
+            @if (a.lesionados > 0) { <span class="sgc-badge sgc-badge--danger">{{ a.lesionados }} lesionado(s)</span> }
+            @if (a.descripcion) { <span class="cd-muted">— {{ a.descripcion }}</span> }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <!-- ── 10. Multas ── -->
+  <section class="sgc-card cd-section">
+    <div class="cd-section__head">
+      <h2 class="cd-section__title">Multas</h2>
+      @if (esElevado()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="openMulta()">Registrar multa</button>
+      }
+    </div>
+    @if (multas().length === 0) {
+      <p class="cd-muted">Sin multas registradas.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Multas del conductor">
+          <thead><tr><th>Fecha</th><th>Motivo</th><th class="text-right">Monto</th><th>Estado</th><th></th></tr></thead>
+          <tbody>
+            @for (m of multas(); track m.id) {
+              <tr>
+                <td>{{ formatFecha(m.fecha) }}</td>
+                <td>{{ m.motivo ?? '—' }}</td>
+                <td class="text-right">{{ m.monto != null ? ('RD$ ' + (m.monto | number: '1.0-2')) : '—' }}</td>
+                <td><span class="sgc-badge sgc-badge--{{ multaBadge(m.estado) }}">{{ multaEstadoLabel(m.estado) }}</span></td>
+                <td>
+                  @if (multaDocUrl(m.documento_path); as url) {
+                    <a class="cd-link" [href]="url" target="_blank" rel="noopener">Doc</a>
+                  }
+                  @if (esElevado()) {
+                    <button type="button" class="cd-link cd-link--btn" (click)="togglePagada(m)">
+                      {{ m.estado === 'pagada' ? 'Marcar pendiente' : 'Marcar pagada' }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
 }
+
+<!-- ── Drawer: Registrar multa ── -->
+<app-form-drawer title="Registrar multa" [open]="multaDrawer()" (closed)="multaDrawer.set(false)">
+  <form class="cd-form" [formGroup]="multaForm" (ngSubmit)="guardarMulta()">
+    <div class="sgc-field">
+      <label for="multa_fecha">Fecha</label>
+      <input id="multa_fecha" type="date" formControlName="fecha" />
+    </div>
+    <div class="sgc-field">
+      <label for="multa_motivo">Motivo</label>
+      <input id="multa_motivo" type="text" formControlName="motivo" placeholder="Ej: exceso de velocidad" />
+    </div>
+    <div class="sgc-field">
+      <label for="multa_monto">Monto (RD$)</label>
+      <input id="multa_monto" type="number" min="0" step="0.01" formControlName="monto" />
+    </div>
+    <div class="sgc-field">
+      <label for="multa_estado">Estado</label>
+      <select id="multa_estado" formControlName="estado">
+        @for (e of MULTA_ESTADOS; track e.value) { <option [value]="e.value">{{ e.label }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="multa_doc">Documento (opcional)</label>
+      <input id="multa_doc" type="file" accept="image/*,.pdf" (change)="onMultaFile($event)" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="multaDrawer.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="multaGuardando()">
+        @if (multaGuardando()) { Guardando… } @else { Registrar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

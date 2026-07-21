@@ -1,0 +1,11 @@
+.stat-card--ok .stat-card__value { color: var(--sgc-success); }
+.stat-card--warn .stat-card__value { color: var(--sgc-warning); }
+.stat-card--danger .stat-card__value { color: var(--sgc-danger); }
+
+.ce-row {
+  cursor: pointer;
+  transition: background var(--sgc-transition-fast);
+}
+.ce-row:hover {
+  background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.03));
+}

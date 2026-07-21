@@ -41,6 +41,14 @@
       </div>
     </div>
 
+    <!-- ── S21 · Motivo No disponible por documento vencido ── -->
+    @if (motivoNoDisponible(); as motivo) {
+      <div class="page-error vd-nodisp" role="alert">
+        Vehículo <strong>No disponible</strong> — {{ motivo }} vencido(a). No puede recibirse para una salida
+        nueva hasta actualizar la vigencia (edita el vehículo y actualiza la fecha; volverá a Activo automáticamente).
+      </div>
+    }
+
     <!-- ── 2. Stats ── -->
     <div class="stat-grid">
       <div class="stat-card">
@@ -55,13 +63,19 @@
           RD$ {{ (stats()?.combustible_monto ?? 0) | number:'1.0-0' }}
         </span>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" [class.stat-card--warn]="rendimientoBajo()">
         <span class="stat-card__label">Rendimiento prom.</span>
         <span class="stat-card__value">
-          @if (stats()?.rendimiento_promedio != null) { {{ stats()!.rendimiento_promedio | number:'1.0-1' }} }
+          @if (rendimientoReal() != null) { {{ rendimientoReal() | number:'1.0-1' }} }
           @else { — }
         </span>
-        <span class="stat-card__hint">km/gal</span>
+        <span class="stat-card__hint">
+          km/gal
+          @if (rendimientoEsperado() != null) {
+            · esperado {{ rendimientoEsperado() | number:'1.0-1' }}
+            @if (rendimientoBajo()) { <span class="vd-danger">⚠ por debajo</span> }
+          }
+        </span>
       </div>
       <div class="stat-card">
         <span class="stat-card__label">Costo / km</span>
@@ -262,6 +276,63 @@
         </div>
       }
     </div>
+
+    <!-- ── S22 · Accidentes (solo reportes con acta AMET) ── -->
+    <div class="sgc-card vd-card">
+      <div class="vd-section-head">
+        <h2 class="vd-section-title">Accidentes (acta AMET)</h2>
+        @if (esElevado()) {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="openAccidente()">Reportar accidente</button>
+        }
+      </div>
+      @if (accidentesConActa().length === 0) {
+        <p class="vd-muted">Sin reportes de accidente con acta AMET.</p>
+      } @else {
+        <ul class="vd-asig-list">
+          @for (a of accidentesConActa(); track a.id) {
+            <li class="vd-asig">
+              <div class="vd-asig__info">
+                <span class="vd-asig__nombre">{{ fecha(a.fecha) }} · {{ faseLabel(a.fase) }}</span>
+                @if (a.lesionados > 0) { <span class="sgc-badge sgc-badge--danger">{{ a.lesionados }} lesionado(s)</span> }
+                @if (a.descripcion) { <span class="vd-asig__notas">“{{ a.descripcion }}”</span> }
+              </div>
+              @if (incUrl(a.reporte_amet_path); as url) {
+                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver acta</a>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- ── S22 · Daños ── -->
+    <div class="sgc-card vd-card">
+      <div class="vd-section-head">
+        <h2 class="vd-section-title">Daños</h2>
+        @if (esElevado()) {
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="openDano()">Reportar daño</button>
+        }
+      </div>
+      @if (danos().length === 0) {
+        <p class="vd-muted">Sin daños registrados.</p>
+      } @else {
+        <ul class="vd-asig-list">
+          @for (d of danos(); track d.id) {
+            <li class="vd-asig">
+              <div class="vd-asig__info">
+                <span class="vd-asig__nombre">{{ d.zona ?? 'Zona no indicada' }}</span>
+                <span class="sgc-badge sgc-badge--neutral">{{ origenLabel(d.origen) }}</span>
+                <span class="vd-muted">{{ fecha(d.created_at) }}</span>
+                @if (d.descripcion) { <span class="vd-asig__notas">“{{ d.descripcion }}”</span> }
+              </div>
+              @if (incUrl(d.foto_path); as url) {
+                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver foto</a>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
   }
 }
 
@@ -283,6 +354,74 @@
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
         @if (guardando()) { Guardando… } @else { Asignar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Drawer: Reportar accidente (con acta AMET) ── -->
+<app-form-drawer title="Reportar accidente" [open]="accDrawer()" (closed)="accDrawer.set(false)">
+  <form class="vd-form" [formGroup]="accForm" (ngSubmit)="guardarAccidente()">
+    <div class="sgc-field">
+      <label for="acc_fecha">Fecha</label>
+      <input id="acc_fecha" type="date" formControlName="fecha" />
+    </div>
+    <div class="sgc-field">
+      <label for="acc_fase">Momento</label>
+      <select id="acc_fase" formControlName="fase">
+        @for (f of ACCIDENTE_FASES; track f.value) { <option [value]="f.value">{{ f.label }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="acc_desc">Descripción</label>
+      <textarea id="acc_desc" rows="3" formControlName="descripcion" placeholder="¿Qué pasó?"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label for="acc_les">Lesionados</label>
+      <input id="acc_les" type="number" min="0" formControlName="lesionados" />
+    </div>
+    <div class="sgc-field">
+      <label for="acc_terc">Tercero involucrado</label>
+      <input id="acc_terc" type="text" formControlName="tercero_involucrado" placeholder="Otro vehículo / persona" />
+    </div>
+    <div class="sgc-field">
+      <label for="acc_amet">Acta AMET (documento)</label>
+      <input id="acc_amet" type="file" accept="image/*,.pdf" (change)="onAccFile($event)" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="accDrawer.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="incGuardando()">
+        @if (incGuardando()) { Guardando… } @else { Registrar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Drawer: Reportar daño ── -->
+<app-form-drawer title="Reportar daño" [open]="danoDrawer()" (closed)="danoDrawer.set(false)">
+  <form class="vd-form" [formGroup]="danoForm" (ngSubmit)="guardarDano()">
+    <div class="sgc-field">
+      <label for="dano_zona">Zona</label>
+      <input id="dano_zona" type="text" formControlName="zona" placeholder="Ej: parachoques delantero" />
+    </div>
+    <div class="sgc-field">
+      <label for="dano_origen">Origen</label>
+      <select id="dano_origen" formControlName="origen">
+        @for (o of DANO_ORIGENES; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="dano_desc">Descripción</label>
+      <textarea id="dano_desc" rows="3" formControlName="descripcion" placeholder="Detalle del daño"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label for="dano_foto">Foto</label>
+      <input id="dano_foto" type="file" accept="image/*" (change)="onDanoFile($event)" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="danoDrawer.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="incGuardando()">
+        @if (incGuardando()) { Guardando… } @else { Registrar }
       </button>
     </div>
   </form>

@@ -55,6 +55,11 @@ export class CombustibleDashboard implements OnInit {
   meses = signal(6);
   selectedVehiculoId = signal('');
 
+  // S20 — rendimiento esperado del vehículo seleccionado (para comparar vs real).
+  vehiculoEsperado = computed<number | null>(
+    () => this.vehiculos().find((v) => v.id === this.selectedVehiculoId())?.rendimiento_esperado_km_gal ?? null,
+  );
+
   /** Registros v2 (con galones) dentro del rango de meses seleccionado. */
   private enRango = computed(() => {
     const desde = this.desdeIso();

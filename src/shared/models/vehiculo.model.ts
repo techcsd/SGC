@@ -45,6 +45,8 @@ export interface Vehiculo {
   vencimiento_seguro: string | null;
   km_ultimo_mantenimiento: number | null;
   intervalo_mantenimiento_km: number;
+  // S20 — rendimiento de referencia (km/gal) para comparar contra el promedio real.
+  rendimiento_esperado_km_gal: number | null;
   activo: boolean;
   created_at: string;
   updated_at: string;
@@ -70,6 +72,7 @@ export interface VehiculoFormData {
   vencimiento_seguro: string | null;
   km_ultimo_mantenimiento: number | null;
   intervalo_mantenimiento_km: number;
+  rendimiento_esperado_km_gal: number | null;
 }
 
 export type EstadoVencimiento = 'vigente' | 'por_vencer' | 'vencido';

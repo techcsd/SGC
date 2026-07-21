@@ -105,6 +105,8 @@ export class FlotaVehiculos implements OnInit {
     vencimiento_seguro: new FormControl<string | null>(null),
     km_ultimo_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
     intervalo_mantenimiento_km: new FormControl<number>(5000, [Validators.min(1)]),
+    // S20 — rendimiento esperado (km/gal) de referencia manual.
+    rendimiento_esperado_km_gal: new FormControl<number | null>(null, [Validators.min(0)]),
   });
 
   // ── Computed ─────────────────────────────────────────────
@@ -227,6 +229,7 @@ export class FlotaVehiculos implements OnInit {
       vencimiento_seguro: vehiculo.vencimiento_seguro,
       km_ultimo_mantenimiento: vehiculo.km_ultimo_mantenimiento,
       intervalo_mantenimiento_km: vehiculo.intervalo_mantenimiento_km ?? 5000,
+      rendimiento_esperado_km_gal: vehiculo.rendimiento_esperado_km_gal,
     });
     this.drawerOpen.set(true);
   }

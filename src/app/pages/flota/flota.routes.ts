@@ -36,11 +36,24 @@ export const flotaRoutes: Routes = [
     title: 'Conductores — Flota',
   },
   {
+    path: 'conductores-estado',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./conductores-estado/conductores-estado').then((m) => m.ConductoresEstado),
+    title: 'Estado de conductores — Flota',
+  },
+  {
     path: 'conductores/:id',
     canActivate: [flotaElevadoGuard],
     loadComponent: () =>
       import('./conductores/detalle/conductor-detalle').then((m) => m.ConductorDetalle),
     title: 'Perfil de conductor — Flota',
+  },
+  {
+    path: 'accidentes',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () => import('./accidentes/accidentes').then((m) => m.Accidentes),
+    title: 'Accidentes — Flota',
   },
   {
     path: 'combustible',

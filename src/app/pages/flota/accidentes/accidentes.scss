@@ -1,0 +1,34 @@
+.ac-row {
+  cursor: pointer;
+}
+.ac-row:hover {
+  background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.03));
+}
+.ac-placa {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ac-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.ac-detail div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ac-detail dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sgc-text-secondary);
+}
+.ac-detail dd {
+  margin: 0;
+  color: var(--sgc-text);
+}
+.ac-muted {
+  color: var(--sgc-text-secondary);
+}

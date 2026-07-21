@@ -54,6 +54,15 @@
       <div class="stat-card"><span class="stat-card__label">Km recorridos</span><span class="stat-card__value">{{ vehiculoStats().km | number:'1.0-0' }}</span></div>
       <div class="stat-card"><span class="stat-card__label">Costo / km</span><span class="stat-card__value">{{ vehiculoStats().costoKm !== null ? ('RD$ ' + (vehiculoStats().costoKm | number:'1.2-2')) : '—' }}</span></div>
       <div class="stat-card"><span class="stat-card__label">Rendimiento prom.</span><span class="stat-card__value">{{ vehiculoStats().rendimiento !== null ? ((vehiculoStats().rendimiento | number:'1.1-2') + ' km/gal') : '—' }}</span></div>
+      @if (vehiculoEsperado() !== null) {
+        <div class="stat-card" [class.stat-card--alerta]="vehiculoStats().rendimiento !== null && vehiculoStats().rendimiento! < vehiculoEsperado()!">
+          <span class="stat-card__label">Esperado (manual)</span>
+          <span class="stat-card__value">{{ vehiculoEsperado() | number:'1.1-2' }} km/gal</span>
+          @if (vehiculoStats().rendimiento !== null && vehiculoStats().rendimiento! < vehiculoEsperado()!) {
+            <span class="stat-card__hint">⚠ real por debajo del esperado</span>
+          }
+        </div>
+      }
     </div>
 
     <div class="dash-charts">
@@ -108,7 +117,7 @@
   <div class="table-wrapper sgc-card">
     <div class="table-scroll">
       <table class="data-table" aria-label="Resumen por vehículo">
-        <thead><tr><th>Vehículo</th><th class="text-right">Echadas</th><th class="text-right">Galones</th><th class="text-right">Gastado</th><th class="text-right">Km</th><th class="text-right">km/gal</th><th class="text-right">RD$/km</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Vehículo</th><th class="text-right">Echadas</th><th class="text-right">Galones</th><th class="text-right">Gastado</th><th class="text-right">Km</th><th class="text-right">km/gal</th><th class="text-right">Esperado</th><th class="text-right">RD$/km</th><th>Estado</th></tr></thead>
         <tbody>
           @for (r of resumenPorVehiculo(); track r.vehiculo.id) {
             <tr>
@@ -117,13 +126,17 @@
               <td class="text-right">{{ r.galones | number:'1.1-1' }}</td>
               <td class="text-right">{{ r.gastado | number:'1.0-0' }}</td>
               <td class="text-right">{{ r.km | number:'1.0-0' }}</td>
-              <td class="text-right">{{ r.rendimiento !== null ? (r.rendimiento | number:'1.1-2') : '—' }}</td>
+              <td class="text-right"
+                [class.dash-row--alerta]="r.vehiculo.rendimiento_esperado_km_gal !== null && r.rendimiento !== null && r.rendimiento < r.vehiculo.rendimiento_esperado_km_gal!">
+                {{ r.rendimiento !== null ? (r.rendimiento | number:'1.1-2') : '—' }}
+              </td>
+              <td class="text-right text-muted">{{ r.vehiculo.rendimiento_esperado_km_gal !== null ? (r.vehiculo.rendimiento_esperado_km_gal | number:'1.1-2') : '—' }}</td>
               <td class="text-right">{{ r.costoKm !== null ? (r.costoKm | number:'1.2-2') : '—' }}</td>
               <td><span class="sgc-badge sgc-badge--{{ estadoBadge(r.estado) }}">{{ r.estado }}</span></td>
             </tr>
           }
           @if (resumenPorVehiculo().length === 0) {
-            <tr><td colspan="8" class="text-muted" style="text-align:center;padding:24px">Sin echadas v2 en el período.</td></tr>
+            <tr><td colspan="9" class="text-muted" style="text-align:center;padding:24px">Sin echadas v2 en el período.</td></tr>
           }
         </tbody>
       </table>

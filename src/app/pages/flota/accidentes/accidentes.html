@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Accidentes</h1>
+    <span class="page-count">{{ accidentes().length }} reportes</span>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="8" />
+} @else {
+  <div class="table-wrapper sgc-card">
+    @if (accidentes().length === 0) {
+      <div class="table-empty"><p>No hay accidentes registrados.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Accidentes">
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Vehículo</th><th>Conductor</th><th>Momento</th>
+              <th class="text-right">Lesionados</th><th>Acta AMET</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of accidentes(); track a.id) {
+              <tr class="ac-row" (click)="openDetail(a)" role="button" tabindex="0"
+                (keyup.enter)="openDetail(a)">
+                <td>{{ formatFecha(a.fecha) }}</td>
+                <td><span class="ac-placa">{{ a.vehiculo?.placa ?? '—' }}</span></td>
+                <td>{{ a.conductor?.nombre ?? '—' }}</td>
+                <td>{{ faseLabel(a.fase) }}</td>
+                <td class="text-right">
+                  @if (a.lesionados > 0) { <span class="sgc-badge sgc-badge--danger">{{ a.lesionados }}</span> }
+                  @else { 0 }
+                </td>
+                <td>@if (a.reporte_amet_path) { <span class="sgc-badge sgc-badge--info">Sí</span> } @else { — }</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}
+
+<!-- Detalle del accidente -->
+<app-form-drawer title="Detalle del accidente" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detail(); as a) {
+    <dl class="ac-detail">
+      <div><dt>Fecha</dt><dd>{{ formatFecha(a.fecha) }}</dd></div>
+      <div><dt>Momento</dt><dd>{{ faseLabel(a.fase) }}</dd></div>
+      <div><dt>Vehículo</dt><dd>{{ a.vehiculo?.placa ?? '—' }} · {{ a.vehiculo?.marca }} {{ a.vehiculo?.modelo }}</dd></div>
+      <div><dt>Conductor</dt><dd>{{ a.conductor?.nombre ?? '—' }}</dd></div>
+      <div><dt>Lesionados</dt><dd>{{ a.lesionados }}</dd></div>
+      @if (a.tercero_involucrado) { <div><dt>Tercero</dt><dd>{{ a.tercero_involucrado }}</dd></div> }
+      @if (a.descripcion) { <div><dt>Descripción</dt><dd>{{ a.descripcion }}</dd></div> }
+    </dl>
+    @if (ametUrl(); as url) {
+      <a class="sgc-btn sgc-btn--primary" [href]="url" target="_blank" rel="noopener">Ver acta AMET</a>
+    } @else if (a.reporte_amet_path) {
+      <p class="ac-muted">Cargando documento…</p>
+    } @else {
+      <p class="ac-muted">Sin acta AMET adjunta.</p>
+    }
+  }
+</app-form-drawer>

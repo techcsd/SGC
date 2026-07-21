@@ -82,6 +82,16 @@ export class ConductoresService {
     return (data as unknown as Conductor) ?? null;
   }
 
+  /** S25 — estado de TODOS los conductores (dashboard), ordenados por vencimiento. */
+  async getEstadoConductores(): Promise<ConductorStats[]> {
+    const { data, error } = await this.supabase.client
+      .from('v_conductor_stats')
+      .select('*')
+      .order('licencia_vencimiento', { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ConductorStats[];
+  }
+
   /** Stats agregados del conductor (vista sgc.v_conductor_stats, R5). */
   async getStats(conductorId: string): Promise<ConductorStats | null> {
     const { data, error } = await this.supabase.client

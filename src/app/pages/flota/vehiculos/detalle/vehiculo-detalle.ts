@@ -10,6 +10,16 @@ import { MantenimientosService } from '../../../../../shared/services/mantenimie
 import { CombustibleService } from '../../../../../shared/services/combustible.service';
 import { ToastService } from '../../../../../shared/services/toast.service';
 import { NotificacionesService } from '../../../../../shared/services/notificaciones.service';
+import { UserService } from '../../../../core/services/user.service';
+import { FlotaIncidenciasService } from '../../../../../shared/services/flota-incidencias.service';
+import {
+  VehiculoAccidente,
+  VehiculoDano,
+  ACCIDENTE_FASES,
+  DANO_ORIGENES,
+  AccidenteFase,
+  DanoOrigen,
+} from '../../../../../shared/models/flota-incidencias.model';
 import {
   Vehiculo,
   VEHICULO_ESTADO_BADGE,
@@ -54,6 +64,12 @@ export class VehiculoDetalle implements OnInit {
   private combustibleService = inject(CombustibleService);
   private toast = inject(ToastService);
   private notificaciones = inject(NotificacionesService);
+  private userService = inject(UserService);
+  private incidencias = inject(FlotaIncidenciasService);
+
+  readonly esElevado = this.userService.esFlotaElevado;
+  readonly ACCIDENTE_FASES = ACCIDENTE_FASES;
+  readonly DANO_ORIGENES = DANO_ORIGENES;
 
   readonly vehiculoId = this.route.snapshot.paramMap.get('id') ?? '';
   // tipo de documento a auto-abrir cuando se llega desde un aviso (?doc=seguro)
@@ -103,6 +119,47 @@ export class VehiculoDetalle implements OnInit {
   mantenimientosRecientes = computed(() => this.mantenimientos().slice(0, HISTORIAL_LIMITE));
   combustiblesRecientes = computed(() => this.combustibles().slice(0, HISTORIAL_LIMITE));
 
+  // ── S20 — rendimiento esperado vs real ──
+  rendimientoReal = computed<number | null>(() => this.stats()?.rendimiento_promedio ?? null);
+  rendimientoEsperado = computed<number | null>(() => this.vehiculo()?.rendimiento_esperado_km_gal ?? null);
+  rendimientoBajo = computed<boolean>(() => {
+    const esp = this.rendimientoEsperado();
+    const real = this.rendimientoReal();
+    return esp != null && real != null && real < esp;
+  });
+
+  // ── S21 — motivo de "No disponible" por documento vencido ──
+  motivoNoDisponible = computed<string | null>(() => {
+    const v = this.vehiculo();
+    if (!v || v.estado !== 'no_disponible') return null;
+    const motivos: string[] = [];
+    if (this.estadoVenc(v.vencimiento_matricula) === 'vencido') motivos.push('matrícula');
+    if (this.estadoVenc(v.vencimiento_seguro) === 'vencido') motivos.push('seguro');
+    return motivos.length ? motivos.join(' y ') : null;
+  });
+
+  // ── FASE 4 — accidentes / daños ──
+  accidentes = signal<VehiculoAccidente[]>([]);
+  danos = signal<VehiculoDano[]>([]);
+  incMediaUrls = signal<Record<string, string>>({});
+  accDrawer = signal(false);
+  danoDrawer = signal(false);
+  incGuardando = signal(false);
+  private accFile: File | null = null;
+  private danoFile: File | null = null;
+  accForm = this.fb.group({
+    fecha: [new Date().toISOString().slice(0, 10), Validators.required],
+    fase: ['en_el_momento' as AccidenteFase, Validators.required],
+    descripcion: [''],
+    lesionados: [0, [Validators.min(0)]],
+    tercero_involucrado: [''],
+  });
+  danoForm = this.fb.group({
+    zona: [''],
+    descripcion: [''],
+    origen: ['desconocido' as DanoOrigen, Validators.required],
+  });
+
   async ngOnInit() {
     if (!this.vehiculoId) {
       this.loading.set(false);
@@ -127,6 +184,9 @@ export class VehiculoDetalle implements OnInit {
       this.checklists.set(checklists.filter((c) => c.vehiculo_id === this.vehiculoId));
       this.mantenimientos.set(mantenimientos.filter((m) => m.vehiculo_id === this.vehiculoId));
       this.combustibles.set(combustibles.filter((r) => r.vehiculo_id === this.vehiculoId));
+
+      // FASE 4 — accidentes/daños (best-effort, no bloquea el perfil).
+      this.cargarIncidencias();
 
       const primeraFoto = vehiculo?.fotos?.[0];
       if (primeraFoto) {
@@ -243,5 +303,118 @@ export class VehiculoDetalle implements OnInit {
 
   toggleHistorialAsig() {
     this.mostrarHistorialAsig.update((v) => !v);
+  }
+
+  // ── FASE 4 — accidentes / daños ──────────────────────────────
+  private async cargarIncidencias() {
+    try {
+      const [acc, dan] = await Promise.all([
+        this.incidencias.accidentesPorVehiculo(this.vehiculoId),
+        this.incidencias.danosPorVehiculo(this.vehiculoId),
+      ]);
+      this.accidentes.set(acc);
+      this.danos.set(dan);
+      // Resuelve URLs firmadas de actas AMET + fotos de daño.
+      const paths = [
+        ...acc.map((a) => a.reporte_amet_path).filter(Boolean),
+        ...dan.map((d) => d.foto_path).filter(Boolean),
+      ] as string[];
+      const entries = await Promise.all(
+        paths.map(async (p) => [p, await this.incidencias.signedUrl(p)] as const),
+      );
+      const map: Record<string, string> = {};
+      for (const [p, url] of entries) if (url) map[p] = url;
+      this.incMediaUrls.set(map);
+    } catch {
+      /* sin incidencias, no bloquea */
+    }
+  }
+
+  incUrl(path: string | null | undefined): string | null {
+    return path ? (this.incMediaUrls()[path] ?? null) : null;
+  }
+  faseLabel(f: string): string {
+    return ACCIDENTE_FASES.find((x) => x.value === f)?.label ?? f;
+  }
+  origenLabel(o: string): string {
+    return DANO_ORIGENES.find((x) => x.value === o)?.label ?? o;
+  }
+  /** Accidentes con acta AMET (los que se muestran en el perfil del vehículo). */
+  accidentesConActa = computed(() => this.accidentes().filter((a) => a.reporte_amet_path));
+
+  openAccidente() {
+    this.accForm.reset({ fecha: new Date().toISOString().slice(0, 10), fase: 'en_el_momento', descripcion: '', lesionados: 0, tercero_involucrado: '' });
+    this.accFile = null;
+    this.accDrawer.set(true);
+  }
+  onAccFile(e: Event) {
+    this.accFile = (e.target as HTMLInputElement).files?.[0] ?? null;
+  }
+  async guardarAccidente() {
+    if (this.incGuardando()) return;
+    if (this.accForm.invalid) { this.accForm.markAllAsTouched(); return; }
+    const uid = this.userService.profile()?.id;
+    if (!uid) return;
+    this.incGuardando.set(true);
+    const v = this.accForm.getRawValue();
+    try {
+      await this.incidencias.crearAccidente(
+        {
+          vehiculo_id: this.vehiculoId,
+          conductor_id: null,
+          fecha: v.fecha!,
+          fase: v.fase as AccidenteFase,
+          descripcion: v.descripcion?.trim() || null,
+          lesionados: v.lesionados ?? 0,
+          tercero_involucrado: v.tercero_involucrado?.trim() || null,
+        },
+        uid,
+        this.accFile,
+      );
+      this.accDrawer.set(false);
+      await this.cargarIncidencias();
+      this.toast.success('Accidente registrado');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar el accidente.');
+    } finally {
+      this.incGuardando.set(false);
+    }
+  }
+
+  openDano() {
+    this.danoForm.reset({ zona: '', descripcion: '', origen: 'desconocido' });
+    this.danoFile = null;
+    this.danoDrawer.set(true);
+  }
+  onDanoFile(e: Event) {
+    this.danoFile = (e.target as HTMLInputElement).files?.[0] ?? null;
+  }
+  async guardarDano() {
+    if (this.incGuardando()) return;
+    if (this.danoForm.invalid) { this.danoForm.markAllAsTouched(); return; }
+    const uid = this.userService.profile()?.id;
+    if (!uid) return;
+    this.incGuardando.set(true);
+    const v = this.danoForm.getRawValue();
+    try {
+      await this.incidencias.crearDano(
+        {
+          vehiculo_id: this.vehiculoId,
+          zona: v.zona?.trim() || null,
+          descripcion: v.descripcion?.trim() || null,
+          origen: v.origen as DanoOrigen,
+          accidente_id: null,
+        },
+        uid,
+        this.danoFile,
+      );
+      this.danoDrawer.set(false);
+      await this.cargarIncidencias();
+      this.toast.success('Daño registrado');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar el daño.');
+    } finally {
+      this.incGuardando.set(false);
+    }
   }
 }

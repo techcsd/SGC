@@ -1,0 +1,63 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Estado de conductores</h1>
+    <span class="page-count">{{ conductores().length }} conductores</span>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="8" />
+} @else {
+  <!-- KPIs por estado de licencia -->
+  <div class="stat-grid">
+    <div class="stat-card stat-card--ok">
+      <span class="stat-card__label">Licencias vigentes</span>
+      <span class="stat-card__value">{{ vigentes() }}</span>
+    </div>
+    <div class="stat-card stat-card--warn">
+      <span class="stat-card__label">Por vencer</span>
+      <span class="stat-card__value">{{ porVencer() }}</span>
+    </div>
+    <div class="stat-card stat-card--danger">
+      <span class="stat-card__label">Vencidas</span>
+      <span class="stat-card__value">{{ vencidas() }}</span>
+    </div>
+  </div>
+
+  <div class="table-wrapper sgc-card">
+    @if (conductores().length === 0) {
+      <div class="table-empty"><p>No hay conductores registrados.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Estado de conductores">
+          <thead>
+            <tr>
+              <th>Conductor</th>
+              <th>Vencimiento licencia</th>
+              <th>Estado</th>
+              <th class="text-right">Checklists</th>
+              <th>Última actividad</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of conductores(); track c.conductor_id) {
+              <tr class="ce-row" [routerLink]="['/flota/conductores', c.conductor_id]" role="button">
+                <td>{{ c.nombre }}</td>
+                <td>{{ c.licencia_vencimiento ? formatFecha(c.licencia_vencimiento) : '—' }}</td>
+                <td>
+                  <span class="sgc-badge sgc-badge--{{ estadoBadge[c.estado_licencia] }}">
+                    {{ estadoLabel[c.estado_licencia] }}
+                  </span>
+                </td>
+                <td class="text-right">{{ c.checklists_total }}</td>
+                <td>{{ c.ultima_actividad ? formatFecha(c.ultima_actividad) : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

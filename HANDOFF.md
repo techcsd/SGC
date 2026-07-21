@@ -2,6 +2,40 @@
 
 _Last updated: 2026-07-21_
 
+## Actualización 3 · PROMPT-9 (21/07/2026) — Flota (SGC web + BD): rutas, reporte semanal, vencimientos, accidentes/daños/multas, perfil vehículo/conductor, dashboard conductores — ✅ CÓDIGO LISTO, migraciones en prod, build OK, SIN commit/push
+
+Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-3.md` (S16-S18, S20-S25, S32). Aditivo/retrocompatible. Build verde. **4 migraciones aplicadas a prod (Management API), idempotentes.** Frontend **sin commit/push**. R14/P7 intactos.
+
+### Migraciones en prod (`sql/2026-07-21-act3-p9-*.sql`)
+- `-s16-rutas.sql`: versiona `mis_rutas_hoy()` (filtra por conductor vinculado a auth.uid); trigger `trg_ruta_notificar_conductor` (notifica al chofer al asignar/cambiar conductor, deep-link `/flota/rutas?item=`). RLS de rutas ya era R14-coherente (no se tocó).
+- `-s17s18-reporte-semanal.sql`: abrevia las 9 etiquetas de REPORTE-SEMANAL-V2 (in-place) + ítem 1 ampliado con "copias físicas dentro del vehículo".
+- `-s20s21-vehiculos.sql`: `vehiculos.rendimiento_esperado_km_gal` (S20); `reevaluar_vencimiento_vehiculo(id)` + trigger `trg_reevaluar_vencimiento` (al instante) + `aplicar_vencimientos_vehiculos()` (barrido) + **pg_cron diario 06:00** (`sgc-aplicar-vencimientos`); documento vencido → `estado='no_disponible'` + aviso `docvenc:mat|seg:{id}` (dedup), y de vuelta a `activo` al renovar; **`crear_entrega_vehiculo`** ahora permite DEVOLUCIÓN pero bloquea RECEPCIÓN de vehículo no disponible. Barrido inicial dejó 1 vehículo (L542136, seguro vencido) no disponible.
+- `-s22s24-accidentes-multas.sql`: tablas `vehiculo_accidentes` (acta AMET), `vehiculo_danos`, `conductor_multas` + RLS R14 + RPCs `registrar_accidente_app`/`registrar_dano_app`/`registrar_multa_app` (idempotentes por id, para PROMPT-10). Docs al bucket `flota-documentos`.
+
+### Frontend web (sin commit)
+- **S20**: campo rendimiento esperado en el form de vehículo; perfil + dashboard de combustible muestran esperado vs real (badge ⚠ si real < esperado).
+- **S21**: banner "No disponible · documento vencido" en el perfil (el badge no_disponible ya existía).
+- **FASE 4**: perfil de vehículo con secciones **Accidentes (acta AMET)** y **Daños** + drawers de registro (elevados); submódulo nuevo **`/flota/accidentes`** (lista → detalle con acta); perfil de conductor con **Multas** (registrar + marcar pagada) y **Accidentes**.
+- **S25**: nueva pantalla **`/flota/conductores-estado`** (dashboard licencias: KPIs vigentes/por vencer/vencidas + tabla por vencimiento + click al perfil).
+- **S32**: `conductor-detalle` completado — pre-usos vs reportes semanales (split por plantilla), rutas, conduces, entregas/recepciones, accidentes, multas, con drill-down.
+- **S16**: rutas web abre el detalle con `?item=`. Nav (shell) con "Estado de conductores" y "Accidentes" (gated flotaElevado). `flota.routes.ts` con las 2 rutas nuevas.
+- Servicio nuevo `flota-incidencias.service.ts` + modelo `flota-incidencias.model.ts`.
+
+### Para PROMPT-10 (csd-app / móvil) — contratos nuevos
+- **`mis_rutas_hoy()`** (sin args, usa auth.uid): rutas de HOY del chofer. Al asignarle una, le llega notificación (tabla `notificaciones`, ruta `/flota/rutas?item=`).
+- **RPCs offline** (idempotentes por `p_id` cliente): `registrar_accidente_app(p_id,p_vehiculo_id,p_fecha,p_fase,p_descripcion,p_lesionados,p_tercero,p_conductor_id,p_gps,p_reporte_amet_path,p_capturado_en)`; `registrar_dano_app(p_id,p_vehiculo_id,p_zona,p_descripcion,p_foto_path,p_origen,p_accidente_id,p_capturado_en)`; `registrar_multa_app(p_id,p_conductor_id,p_fecha,p_motivo,p_monto,p_vehiculo_id,p_accidente_id,p_documento_path,p_estado,p_capturado_en)`. Docs/fotos al bucket `flota-documentos`.
+- **Reporte semanal**: plantilla `REPORTE-SEMANAL-V2` con etiquetas cortas (lee de BD).
+- **crear_entrega_vehiculo**: la app puede DEVOLVER un vehículo no disponible; la RECEPCIÓN nueva de uno `no_disponible`/inactivo se rechaza ("Vehículo no disponible…").
+- **rendimiento_esperado_km_gal** en vehículos (mostrar comparación en la app si aplica).
+- Estado de conductores: vista `v_conductor_stats` (nombre, licencia_vencimiento, estado_licencia, …).
+
+### Pendiente de Xaviel / QA manual
+- **Commit/push + deploy** (no lo hice). Bump de versión cuando decidas.
+- **QA manual** sugerido (los RPCs `_app` y crear_entrega usan auth.uid → no verificables headless): registrar accidente con acta AMET / daño / multa desde la web; intentar recibir un vehículo no disponible (debe rechazar) y devolverlo (debe permitir); dashboard de conductores; deep-link de ruta asignada.
+- Verificado en vivo (transacción/rollback): trigger de notificación de ruta (1 notif con deep-link), ciclo vencimiento no_disponible↔activo + avisos, barrido inicial. Idempotencia y cron (1 job) confirmados.
+
+---
+
 ## Actualización 3 · PROMPT-7 (21/07/2026) — Bitácora/incidentes/liberación (SGC web + BD) — ✅ CÓDIGO LISTO, migraciones en prod, build OK, SIN commit/push
 
 Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-3.md` (S2, S4, S6, S7, S10, S12, S13, S14-web). Todo aditivo/retrocompatible. Build verde. **Migraciones aplicadas a prod (Management API) — 5 archivos, idempotentes y re-aplicadas sin error.** Frontend **sin commit/push** (esperando tu OK). Decisiones validadas contigo: CL rename **sin sufijo** (Simmons/Golliat fuera); mín. fotos **activado ya** (parte≥2, incidente≥1).
