@@ -12,6 +12,13 @@
   </button>
 </div>
 
+<!-- R8 — propósito del módulo -->
+<p class="page-lead">
+  Registro de los <strong>activos de la empresa</strong> —mobiliario, equipos y herramientas mayores— con su
+  valor, depreciación y ubicación. Es distinto del <strong>stock de materiales</strong> (que se consume en obra):
+  aquí van los bienes duraderos. Toca un activo para ver su ficha completa.
+</p>
+
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">
@@ -103,7 +110,9 @@
         </thead>
         <tbody>
           @for (activo of paginated(); track activo.id) {
-            <tr [class.row--inactive]="!activo.activo">
+            <tr class="row--link" [class.row--inactive]="!activo.activo"
+                (click)="openDetail(activo)" role="button" tabindex="0" (keydown.enter)="openDetail(activo)"
+                [attr.aria-label]="'Ver ficha de ' + activo.nombre">
               <td>
                 <code class="code-tag">{{ activo.codigo }}</code>
               </td>
@@ -140,7 +149,7 @@
               </td>
               <td class="text-muted">{{ activo.ubicacion ?? '—' }}</td>
               <td>
-                <div class="row-actions">
+                <div class="row-actions" (click)="$event.stopPropagation()">
                   <button
                     type="button"
                     class="action-btn action-btn--edit"
@@ -397,4 +406,36 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── R8 — Ficha read-only del activo ── -->
+<app-form-drawer title="Ficha del activo" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detailActivo(); as a) {
+    <div class="activo-detalle">
+      <div class="activo-detalle__head">
+        <code class="code-tag">{{ a.codigo }}</code>
+        <span class="sgc-badge sgc-badge--{{ a.estado === 'activo' ? 'success' : a.estado === 'mantenimiento' ? 'warning' : 'neutral' }}">{{ estadoLabel(a.estado) }}</span>
+      </div>
+      <h3 class="activo-detalle__nombre">{{ a.nombre }}</h3>
+      @if (a.descripcion) { <p class="activo-detalle__desc">{{ a.descripcion }}</p> }
+
+      <dl class="activo-detalle__meta">
+        <div><dt>Categoría</dt><dd>{{ a.categoria?.nombre ?? getCategoryName(a.categoria_id) }}</dd></div>
+        <div><dt>Ubicación</dt><dd>{{ a.ubicacion ?? '—' }}</dd></div>
+        <div><dt>Responsable</dt><dd>{{ a.responsable?.nombre ?? '—' }}</dd></div>
+        <div><dt>Fecha de adquisición</dt><dd>{{ formatFecha(a.fecha_adquisicion) }}</dd></div>
+        <div><dt>Valor de adquisición</dt><dd>RD$ {{ a.valor_adquisicion | number:'1.2-2' }}</dd></div>
+        <div><dt>Vida útil</dt><dd>{{ a.vida_util_anios ? a.vida_util_anios + ' años' : '—' }}</dd></div>
+        <div><dt>Depreciación acumulada</dt><dd>{{ a.vida_util_anios ? ('RD$ ' + (depreciacionAcumulada(a) | number:'1.2-2')) : '— (sin vida útil)' }}</dd></div>
+        <div><dt>Valor actual estimado</dt><dd><strong>RD$ {{ valorActual(a) | number:'1.2-2' }}</strong></dd></div>
+      </dl>
+
+      @if (a.notas) {
+        <h4 class="activo-detalle__title">Notas</h4>
+        <p class="activo-detalle__notas">{{ a.notas }}</p>
+      }
+
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(a)">Editar activo</button>
+    </div>
+  }
 </app-form-drawer>

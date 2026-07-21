@@ -83,6 +83,7 @@ export class Mantenimientos implements OnInit {
   searchQuery = signal('');
   selectedTipo = signal('');
   selectedEstado = signal('');
+  selectedVehiculo = signal(''); // R4b — drill-down desde Reportes (?vehiculo=)
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -124,6 +125,7 @@ export class Mantenimientos implements OnInit {
       }
       if (tipo && m.tipo !== tipo) return false;
       if (estado && m.estado !== estado) return false;
+      if (this.selectedVehiculo() && m.vehiculo_id !== this.selectedVehiculo()) return false;
       return true;
     });
   });
@@ -158,6 +160,9 @@ export class Mantenimientos implements OnInit {
     const qp = this.route.snapshot.queryParamMap;
     if (qp.get('nuevo')) {
       this.openCreateDesdeAviso(qp.get('vehiculo'), qp.get('tipo') ?? 'preventivo');
+    } else if (qp.get('vehiculo')) {
+      // R4b — llegada desde Reportes: filtra la lista por ese vehículo.
+      this.selectedVehiculo.set(qp.get('vehiculo')!);
     }
   }
 

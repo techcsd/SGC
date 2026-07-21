@@ -43,25 +43,7 @@
     </select>
   </div>
 
-  <div class="sgc-field filters-bar__date">
-    <input
-      type="date"
-      [value]="dateFrom()"
-      (change)="onDateFromChange($any($event.target).value)"
-      aria-label="Fecha desde"
-      title="Fecha desde"
-    />
-  </div>
-
-  <div class="sgc-field filters-bar__date">
-    <input
-      type="date"
-      [value]="dateTo()"
-      (change)="onDateToChange($any($event.target).value)"
-      aria-label="Fecha hasta"
-      title="Fecha hasta"
-    />
-  </div>
+  <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
@@ -116,7 +98,8 @@
         </thead>
         <tbody>
           @for (e of paginated(); track e.id) {
-            <tr>
+            <tr class="row--link" [appHighlightItem]="e.id" (click)="openDetail(e)" role="button" tabindex="0"
+                (keydown.enter)="openDetail(e)" aria-label="Ver detalle de la entrada">
               <td class="entradas__fecha">{{ formatFecha(e.fecha) }}</td>
               <td>{{ e.bodega?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ e.proveedor?.nombre ?? '—' }}</td>
@@ -130,7 +113,7 @@
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
               <td class="text-center">
                 @if (e.foto_path) {
-                  <button type="button" class="entradas__foto-btn" (click)="verFoto(e)"
+                  <button type="button" class="entradas__foto-btn" (click)="$event.stopPropagation(); verFoto(e)"
                     title="Ver foto de la app de campo">📷</button>
                 } @else {
                   —
@@ -502,5 +485,40 @@
     </div>
 
   </form>
+  }
+</app-form-drawer>
+
+<!-- ── R8 — Detalle read-only de la entrada ── -->
+<app-form-drawer title="Detalle de la entrada" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detailEntrada(); as e) {
+    <div class="entrada-detalle">
+      <dl class="entrada-detalle__meta">
+        <div><dt>Fecha</dt><dd>{{ formatFecha(e.fecha) }}</dd></div>
+        <div><dt>Almacén</dt><dd>{{ e.bodega?.nombre ?? '—' }}</dd></div>
+        <div><dt>Origen</dt><dd>{{ e.origen_tipo === 'devolucion_obra' ? ('Devolución de obra' + (e.origen_proyecto?.nombre ? ': ' + e.origen_proyecto?.nombre : '')) : (e.proveedor?.nombre ?? 'Compra') }}</dd></div>
+        @if (e.orden_compra?.numero) { <div><dt>Orden de compra</dt><dd>{{ e.orden_compra?.numero }}</dd></div> }
+        @if (e.referencia) { <div><dt>Referencia</dt><dd>{{ e.referencia }}</dd></div> }
+      </dl>
+
+      @if (e.foto_path) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verFoto(e)">📷 Ver foto de evidencia</button>
+      }
+
+      <h4 class="entrada-detalle__title">Artículos ({{ (e.detalle_entradas ?? []).length }})</h4>
+      <table class="data-table">
+        <thead><tr><th>Artículo</th><th class="text-right">Cantidad</th><th class="text-right">Precio unit.</th><th class="text-right">Subtotal</th></tr></thead>
+        <tbody>
+          @for (d of e.detalle_entradas ?? []; track d.id) {
+            <tr>
+              <td>{{ d.articulo?.nombre ?? '—' }} <span class="text-muted">{{ d.articulo?.codigo }}</span></td>
+              <td class="text-right">{{ d.cantidad | number }} {{ d.articulo?.unidad }}</td>
+              <td class="text-right">{{ d.precio_unit != null ? ('RD$ ' + (d.precio_unit | number:'1.0-2')) : '—' }}</td>
+              <td class="text-right">{{ d.precio_unit != null ? ('RD$ ' + (d.cantidad * d.precio_unit | number:'1.0-2')) : '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <p class="entrada-detalle__total">Total: <strong>RD$ {{ entryTotal(e) | number:'1.0-2' }}</strong></p>
+    </div>
   }
 </app-form-drawer>

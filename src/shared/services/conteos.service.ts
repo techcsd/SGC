@@ -13,6 +13,7 @@ export interface Conteo {
   tipo?: string;
   observaciones?: string | null;
   created_at: string;
+  bodega_id?: string | null;
   bodega?: { nombre: string } | null;
   creado?: { nombre: string } | null;
   items?: ConteoItem[];
@@ -33,7 +34,7 @@ export class ConteosService {
     const { data, error } = await this.supabase.client
       .from('conteos_inventario')
       .select(
-        'id, motivo, tipo, observaciones, created_at, bodega:bodegas(nombre), creado:usuarios(nombre), items:conteo_items(cantidad_antes, cantidad_contada, articulo:articulos(nombre, codigo))',
+        'id, motivo, tipo, observaciones, created_at, bodega_id, bodega:bodegas(nombre), creado:usuarios(nombre), items:conteo_items(cantidad_antes, cantidad_contada, articulo:articulos(nombre, codigo))',
       )
       .order('created_at', { ascending: false })
       .limit(200);

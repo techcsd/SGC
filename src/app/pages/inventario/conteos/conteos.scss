@@ -79,3 +79,35 @@
   color: var(--sgc-danger);
   font-weight: 700;
 }
+
+// R9 — desglose enriquecido de conteos.
+.cn-motivo {
+  margin: 10px 0 6px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+}
+.cn-totales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 10px;
+
+  &__item {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--sgc-surface-2, #f2f2f2);
+    color: var(--sgc-text-secondary);
+  }
+}
+.cn-row--ajuste {
+  background: color-mix(in srgb, var(--sgc-warning, #b45309) 7%, transparent);
+}
+.cn-leyenda {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  span { font-weight: 600; }
+}

@@ -466,25 +466,15 @@
       </div>
 
       <div class="sgc-field">
-        <label for="archivos">Imágenes y archivos ({{ archivos().length }}/{{ maxArchivos }})</label>
-        <input
-          id="archivos"
-          type="file"
-          multiple
+        <label>Imágenes y archivos</label>
+        <app-file-upload
+          [files]="archivos()"
+          [max]="maxArchivos"
           accept="image/*,audio/*,.pdf,.mp4,.docx,.xlsx,.webm,.m4a,.mp3,.ogg,.wav"
-          (change)="onFilesSelected($event)"
-          [disabled]="archivos().length >= maxArchivos"
+          hint="Imágenes, PDF, notas de voz y documentos."
+          (add)="onFilesAdded($event)"
+          (removeAt)="removeArchivo($event)"
         />
-        @if (archivos().length > 0) {
-          <ul class="bitacora-archivos-list">
-            @for (file of archivos(); track file.name; let i = $index) {
-              <li>
-                <span>{{ file.name }}</span>
-                <button type="button" class="sgc-btn sgc-btn--ghost" (click)="removeArchivo(i)" aria-label="Quitar archivo">✕</button>
-              </li>
-            }
-          </ul>
-        }
       </div>
     </section>
 

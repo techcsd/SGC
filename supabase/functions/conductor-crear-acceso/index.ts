@@ -136,15 +136,23 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Asignar rol chofer_transportista (si no lo tiene ya).
-    const { data: rol } = await admin.from("roles").select("id").eq("codigo", "chofer_transportista").maybeSingle();
-    if (rol?.id != null) {
-      await admin
-        .from("usuarios_roles")
-        .upsert({ usuario_id: userId, rol_id: rol.id, asignado_por: callerData.user.id }, {
-          onConflict: "usuario_id,rol_id",
-          ignoreDuplicates: true,
-        });
+    // Asignar rol chofer_transportista. R13 — el conductor DEBE quedar 100%
+    // provisionado (usuario + rol con módulo flota); si algo falla aquí, el login
+    // lo rebotaría con "sin módulos". Por eso se falla ruidosamente en vez de
+    // dejarlo a medias.
+    const { data: rol, error: rolLookupErr } = await admin
+      .from("roles").select("id").eq("codigo", "chofer_transportista").maybeSingle();
+    if (rolLookupErr || rol?.id == null) {
+      return json({ error: "No existe el rol 'chofer_transportista'. Configúralo en Administración › Roles antes de dar acceso." }, 400);
+    }
+    const { error: rolAssignErr } = await admin
+      .from("usuarios_roles")
+      .upsert({ usuario_id: userId, rol_id: rol.id, asignado_por: callerData.user.id }, {
+        onConflict: "usuario_id,rol_id",
+        ignoreDuplicates: true,
+      });
+    if (rolAssignErr) {
+      return json({ error: `No se pudo asignar el rol de conductor: ${rolAssignErr.message}` }, 400);
     }
 
     // Enlazar el conductor con su usuario.

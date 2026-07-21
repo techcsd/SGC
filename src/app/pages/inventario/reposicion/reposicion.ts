@@ -20,12 +20,16 @@ export class Reposicion implements OnInit {
   private bodegasService = inject(BodegasService);
 
   bodegas = signal<Bodega[]>([]);
+  // R10 — '' = sin elegir · 'ALL' = todas las bodegas (global) · <uuid> = una bodega.
   selectedBodega = signal<string>('');
   rows = signal<ReposicionRow[]>([]);
   loading = signal(false);
   error = signal('');
+  /** Se hizo una consulta (para distinguir "elige un almacén" de "sin resultados"). */
+  consultado = signal(false);
 
   cargado = computed(() => !!this.selectedBodega());
+  esGlobal = computed(() => this.selectedBodega() === 'ALL');
 
   async ngOnInit() {
     try {
@@ -38,11 +42,14 @@ export class Reposicion implements OnInit {
   async onBodegaChange(bodegaId: string) {
     this.selectedBodega.set(bodegaId);
     this.rows.set([]);
+    this.consultado.set(false);
     if (!bodegaId) return;
     this.loading.set(true);
     this.error.set('');
     try {
-      this.rows.set(await this.stockService.getReposicion(bodegaId));
+      // 'ALL' → null (vista global = misma fórmula que Reportes › stock crítico).
+      this.rows.set(await this.stockService.getReposicion(bodegaId === 'ALL' ? null : bodegaId));
+      this.consultado.set(true);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar la reposición.');
     } finally {

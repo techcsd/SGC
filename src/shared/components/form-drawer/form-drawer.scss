@@ -63,7 +63,19 @@
 .drawer-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; // R1 — nunca desplazar horizontal (recortaba labels)
   padding: 24px;
+
+  // R1 — fix defensivo del recorte: los controles nunca deben exceder el panel.
+  // El contenido se proyecta (ng-content), así que hay que perforar la
+  // encapsulación con ::ng-deep. Los <select> con opciones largas no se encogen
+  // por el min-width:auto de grid/flex → forzaban ancho mayor al panel.
+  ::ng-deep :where(.form-row, .sgc-field, .drawer-form, form, label) { min-width: 0; }
+  ::ng-deep :where(select, textarea, input:not([type='checkbox']):not([type='radio'])) {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 @keyframes fadeIn {

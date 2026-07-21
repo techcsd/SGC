@@ -205,6 +205,11 @@ textarea {
     }
   }
 
+  &--sm {
+    padding: 5px 10px;
+    font-size: 12.5px;
+  }
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -254,6 +259,34 @@ textarea {
     font-size: 12px;
     color: var(--sgc-danger);
   }
+}
+
+// R6b — Select estilizado del design system (flecha custom, sin el look nativo).
+// Aplica a los <select> de filtros de TODO el sistema y a la clase `.sgc-select`
+// (p. ej. el dropdown de obras del dashboard de bitácora).
+.sgc-field select,
+.filters-bar select,
+select.sgc-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23929090' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+// `.sgc-select` fuera de `.sgc-field` necesita también el borde/padding base.
+select.sgc-select {
+  padding: 9px 34px 9px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  font-size: 14px;
+  color: var(--sgc-text);
+  background-color: var(--sgc-surface);
+  outline: none;
+  transition: border-color 0.15s ease;
+  &:focus { border-color: var(--sgc-primary-mid); box-shadow: 0 0 0 3px rgb(46 117 182 / 0.15); }
 }
 
 // ── Print ─────────────────────────────────────────────────
@@ -355,6 +388,22 @@ textarea {
     &__select,
     &__date { min-width: unset; }
   }
+}
+
+// Fila de tabla clicable que abre su detalle/origen (regla del jefe, reutilizable).
+tr.row--link {
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04)); }
+}
+
+// Lead/descripción de propósito bajo el título de una página (R8, reutilizable).
+.page-lead {
+  margin: -6px 0 16px;
+  max-width: 90ch;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--sgc-text-secondary);
 }
 
 .page-error {

@@ -1,0 +1,96 @@
+.drf {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    background: var(--sgc-surface);
+    color: var(--sgc-text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+    &:hover { border-color: var(--sgc-primary-mid); }
+    &--ghost { border-style: dashed; color: var(--sgc-text-secondary); }
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 8px 7px 12px;
+    border-radius: 999px;
+    background: rgb(46 117 182 / 0.1);
+    color: var(--sgc-primary-mid);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  &__chip-x {
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 50%;
+    &:hover { background: rgb(46 117 182 / 0.2); }
+  }
+
+  &__pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 40;
+    width: 280px;
+    padding: 12px;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    box-shadow: var(--sgc-shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__presets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  &__preset {
+    padding: 7px 6px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    background: var(--sgc-surface);
+    font-size: 12.5px;
+    cursor: pointer;
+    &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04)); border-color: var(--sgc-primary-mid); }
+  }
+
+  &__custom { display: flex; gap: 8px; }
+  &__field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12px;
+    color: var(--sgc-text-secondary);
+    input {
+      padding: 7px 8px;
+      border: 1px solid var(--sgc-border);
+      border-radius: var(--sgc-radius);
+      font-size: 13px;
+      color: var(--sgc-text);
+      background: var(--sgc-surface);
+    }
+  }
+
+  &__actions { display: flex; justify-content: flex-end; gap: 8px; }
+}

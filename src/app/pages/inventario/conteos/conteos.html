@@ -26,6 +26,16 @@
       aria-label="Buscar conteos"
     />
   </div>
+  <div class="sgc-field filters-bar__select">
+    <select [value]="filtroBodega()" (change)="filtroBodega.set($any($event.target).value)" aria-label="Filtrar por almacén">
+      <option value="">Todos los almacenes</option>
+      @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
+    </select>
+  </div>
+  <app-date-range-filter [desde]="desde()" [hasta]="hasta()" (rangeChange)="onRango($event)" />
+  @if (hayFiltros()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="limpiarFiltros()">Limpiar filtros</button>
+  }
 </div>
 
 @if (loading()) {
@@ -50,23 +60,40 @@
           <span class="cn-card__count">{{ c.items?.length ?? 0 }} ítems ▾</span>
         </button>
         @if (expandedId() === c.id) {
+          @if (c.motivo) { <p class="cn-motivo"><strong>Motivo:</strong> {{ c.motivo }}</p> }
+          <!-- R9 — totales del conteo -->
+          <div class="cn-totales">
+            <span class="cn-totales__item">{{ totales(c).ajustados }} ítem(s) ajustado(s)</span>
+            <span class="cn-totales__item" [class.cn-up]="totales(c).neto > 0" [class.cn-down]="totales(c).neto < 0">
+              Ajuste neto: {{ totales(c).neto > 0 ? '+' : '' }}{{ totales(c).neto }}
+            </span>
+          </div>
           <table class="cn-table">
             <thead>
-              <tr><th>Material</th><th>Antes</th><th>Contado</th><th>Δ</th></tr>
+              <tr><th>Material</th><th class="text-right">Antes</th><th class="text-right">Contado</th><th class="text-right">Δ</th><th class="text-right">% desv.</th></tr>
             </thead>
             <tbody>
               @for (it of c.items ?? []; track $index) {
-                <tr>
+                <tr [class.cn-row--ajuste]="it.cantidad_contada !== it.cantidad_antes">
                   <td>{{ it.articulo?.nombre ?? '—' }}</td>
-                  <td>{{ it.cantidad_antes }}</td>
-                  <td>{{ it.cantidad_contada }}</td>
-                  <td [class.cn-up]="it.cantidad_contada > it.cantidad_antes" [class.cn-down]="it.cantidad_contada < it.cantidad_antes">
+                  <td class="text-right">{{ it.cantidad_antes }}</td>
+                  <td class="text-right">{{ it.cantidad_contada }}</td>
+                  <td class="text-right" [class.cn-up]="it.cantidad_contada > it.cantidad_antes" [class.cn-down]="it.cantidad_contada < it.cantidad_antes">
+                    @if (it.cantidad_contada > it.cantidad_antes) { ↑ }
+                    @else if (it.cantidad_contada < it.cantidad_antes) { ↓ }
                     {{ diff(it.cantidad_antes, it.cantidad_contada) }}
+                  </td>
+                  <td class="text-right" [class.cn-up]="it.cantidad_contada > it.cantidad_antes" [class.cn-down]="it.cantidad_contada < it.cantidad_antes">
+                    {{ pctDesvio(it.cantidad_antes, it.cantidad_contada) }}
                   </td>
                 </tr>
               }
             </tbody>
           </table>
+          <div class="cn-leyenda">
+            <span class="cn-up">↑ Sobrante (contado &gt; sistema)</span>
+            <span class="cn-down">↓ Faltante (contado &lt; sistema)</span>
+          </div>
         }
       </div>
     } @empty {

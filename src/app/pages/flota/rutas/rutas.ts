@@ -89,6 +89,23 @@ export class Rutas implements OnInit {
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
+  // ── R3 — Detalle de ruta (read-only) ─────────────────────
+  detailOpen = signal(false);
+  detailRuta = signal<Ruta | null>(null);
+  /** Coordenadas del destino de la ruta en detalle (para mini-mapa + clima). */
+  detailDestino = computed(() => {
+    const r = this.detailRuta();
+    return r ? destinoCoords(r) : null;
+  });
+
+  openDetail(r: Ruta) {
+    this.detailRuta.set(r);
+    this.detailOpen.set(true);
+  }
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
+
   form = new FormGroup({
     vehiculo_id: new FormControl('', [Validators.required]),
     conductor_id: new FormControl<string | null>(null),

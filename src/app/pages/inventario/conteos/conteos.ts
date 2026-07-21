@@ -7,6 +7,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
@@ -15,7 +16,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [DatePipe, FormsModule, FormDrawer, Skeleton],
+  imports: [DatePipe, FormsModule, FormDrawer, Skeleton, DateRangeFilter],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,7 +31,15 @@ export class Conteos implements OnInit {
   loading = signal(true);
   error = signal('');
   search = signal('');
+  // R9 — filtros por almacén y rango de fecha.
+  filtroBodega = signal('');
+  desde = signal('');
+  hasta = signal('');
   expandedId = signal<string | null>(null);
+
+  onRango(r: RangoFecha) { this.desde.set(r.desde ?? ''); this.hasta.set(r.hasta ?? ''); }
+  hayFiltros = computed(() => !!(this.search() || this.filtroBodega() || this.desde() || this.hasta()));
+  limpiarFiltros() { this.search.set(''); this.filtroBodega.set(''); this.desde.set(''); this.hasta.set(''); }
 
   // ── Chequeo semanal (create) ──
   drawerOpen = signal(false);
@@ -43,12 +52,18 @@ export class Conteos implements OnInit {
 
   filtered = computed(() => {
     const q = this.search().toLowerCase().trim();
-    if (!q) return this.conteos();
-    return this.conteos().filter(
-      (c) =>
-        (c.bodega?.nombre ?? '').toLowerCase().includes(q) ||
-        (c.creado?.nombre ?? '').toLowerCase().includes(q),
-    );
+    const bod = this.filtroBodega();
+    const desde = this.desde();
+    const hasta = this.hasta();
+    return this.conteos().filter((c) => {
+      if (q && !(c.bodega?.nombre ?? '').toLowerCase().includes(q) && !(c.creado?.nombre ?? '').toLowerCase().includes(q)) return false;
+      if (bod && c.bodega_id !== bod) return false;
+      // c.created_at es timestamp ISO; comparamos solo la parte de fecha.
+      const fecha = (c.created_at ?? '').slice(0, 10);
+      if (desde && fecha < desde) return false;
+      if (hasta && fecha > hasta) return false;
+      return true;
+    });
   });
 
   async ngOnInit() {
@@ -71,6 +86,27 @@ export class Conteos implements OnInit {
   diff(antes: number, contada: number): string {
     const d = contada - antes;
     return d > 0 ? `+${d}` : `${d}`;
+  }
+
+  // R9 — % de desviación del conteo (contada vs antes).
+  pctDesvio(antes: number, contada: number): string {
+    if (!antes) return contada ? '—' : '0%';
+    const pct = ((contada - antes) / antes) * 100;
+    const r = Math.round(pct);
+    return `${r > 0 ? '+' : ''}${r}%`;
+  }
+
+  // R9 — totales del conteo: ítems ajustados (Δ≠0) y ajuste neto (±).
+  totales(c: Conteo): { ajustados: number; neto: number } {
+    const items = c.items ?? [];
+    let ajustados = 0;
+    let neto = 0;
+    for (const it of items) {
+      const d = it.cantidad_contada - it.cantidad_antes;
+      if (d !== 0) ajustados++;
+      neto += d;
+    }
+    return { ajustados, neto };
   }
 
   esChequeo(c: Conteo): boolean {

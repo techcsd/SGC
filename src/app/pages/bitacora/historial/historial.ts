@@ -9,10 +9,11 @@ import { formatFechaDisplay, formatHora12, formatFechaHumana } from '../../../..
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { interpretarCodigoTiempo } from '../../../../shared/context/weather.model';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -126,6 +127,13 @@ export class Historial implements OnInit {
 
   onProyectoChange(value: string) {
     this.selectedProyecto.set(value);
+    this.currentPage.set(1);
+  }
+
+  /** R12 — filtro de fechas unificado (presets + rango). */
+  onRango(r: RangoFecha) {
+    this.dateFrom.set(r.desde ?? '');
+    this.dateTo.set(r.hasta ?? '');
     this.currentPage.set(1);
   }
 

@@ -37,9 +37,21 @@ export class AuthService {
    * bloqueado, los segundos restantes.
    */
   async conductorLogin(cedula: string, pin: string): Promise<ConductorLoginResult> {
-    const { data, error } = await this.supabase.client.functions.invoke('conductor-login', {
+    // R13 — timeout defensivo: si la edge se cuelga (cold start / red a medias),
+    // el spinner quedaba infinito. Cortamos a 12s con mensaje claro y reintento.
+    const TIMEOUT_MS = 12000;
+    const timeout = Symbol('timeout');
+    const invocation = this.supabase.client.functions.invoke('conductor-login', {
       body: { cedula, pin },
     });
+    const raced = await Promise.race([
+      invocation,
+      new Promise<typeof timeout>((resolve) => setTimeout(() => resolve(timeout), TIMEOUT_MS)),
+    ]);
+    if (raced === timeout) {
+      return { user: null, error: 'El servidor no respondió. Revisa tu conexión e intenta de nuevo.' };
+    }
+    const { data, error } = raced;
 
     if (error) {
       const detail = await edgeErrorDetail(error);

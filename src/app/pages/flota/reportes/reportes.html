@@ -60,7 +60,9 @@
           </thead>
           <tbody>
             @for (v of flotaOrdenada(); track v.id) {
-              <tr [class.flota-reportes__row--inactive]="!v.activo">
+              <tr class="flota-reportes__row--link" [class.flota-reportes__row--inactive]="!v.activo"
+                  (click)="irAVehiculo(v.id)" role="button" tabindex="0" (keydown.enter)="irAVehiculo(v.id)"
+                  [attr.aria-label]="'Ver perfil de ' + v.placa">
                 <td class="flota-reportes__placa">{{ v.placa }}</td>
                 <td>{{ v.marca }} {{ v.modelo }}</td>
                 <td>{{ getTipoLabel(v.tipo) }}</td>
@@ -98,11 +100,13 @@
           </thead>
           <tbody>
             @for (m of mantenimientosRecientes(); track m.id) {
-              <tr>
+              <tr class="flota-reportes__row--link" (click)="irAMantenimientosDe(m.vehiculo_id)"
+                  role="button" tabindex="0" (keydown.enter)="irAMantenimientosDe(m.vehiculo_id)"
+                  aria-label="Ver mantenimientos de este vehículo">
                 <td>{{ formatFecha(m.fecha) }}</td>
                 <td class="flota-reportes__placa">
-                  {{ m.vehiculo?.placa ?? '—' }}
-                  <span class="flota-reportes__sub">{{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }}</span>
+                  {{ resolverPlaca(m.vehiculo_id, m.vehiculo?.placa) }}
+                  <span class="flota-reportes__sub">{{ resolverMarca(m.vehiculo_id, m.vehiculo?.marca) }} {{ m.vehiculo?.modelo }}</span>
                 </td>
                 <td>
                   <span [class]="'sgc-badge sgc-badge--' + (m.tipo === 'emergencia' ? 'danger' : m.tipo === 'correctivo' ? 'warning' : 'info')">
@@ -140,8 +144,10 @@
             </tr>
           </thead>
           <tbody>
-            @for (r of combustiblePorVehiculo(); track r.placa) {
-              <tr>
+            @for (r of combustiblePorVehiculo(); track r.vehiculo_id) {
+              <tr class="flota-reportes__row--link" (click)="irAVehiculo(r.vehiculo_id)"
+                  role="button" tabindex="0" (keydown.enter)="irAVehiculo(r.vehiculo_id)"
+                  [attr.aria-label]="'Ver perfil de ' + r.placa">
                 <td class="flota-reportes__placa">{{ r.placa }} <span class="flota-reportes__sub">{{ r.marca }}</span></td>
                 <td>{{ r.litros | number:'1.1-1' }} L</td>
                 <td>RD$ {{ r.gasto | number:'1.0-0' }}</td>
@@ -178,8 +184,10 @@
           </thead>
           <tbody>
             @for (m of mantenimientosPendientes(); track m.id) {
-              <tr>
-                <td class="flota-reportes__placa">{{ m.vehiculo?.placa ?? '—' }}</td>
+              <tr class="flota-reportes__row--link" (click)="irAMantenimientosDe(m.vehiculo_id)"
+                  role="button" tabindex="0" (keydown.enter)="irAMantenimientosDe(m.vehiculo_id)"
+                  aria-label="Ver mantenimientos de este vehículo">
+                <td class="flota-reportes__placa">{{ resolverPlaca(m.vehiculo_id, m.vehiculo?.placa) }}</td>
                 <td>{{ m.tipo | titlecase }}</td>
                 <td>{{ m.descripcion }}</td>
                 <td>{{ formatFecha(m.fecha) }}</td>

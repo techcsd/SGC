@@ -29,12 +29,7 @@
       <option value="entrada">Entradas</option>
     </select>
   </div>
-  <div class="sgc-field filters-bar__date">
-    <input type="date" [value]="dateFrom()" (change)="onFrom($any($event.target).value)" aria-label="Desde" title="Desde" />
-  </div>
-  <div class="sgc-field filters-bar__date">
-    <input type="date" [value]="dateTo()" (change)="onTo($any($event.target).value)" aria-label="Hasta" title="Hasta" />
-  </div>
+  <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="clearFilters()">Limpiar filtros</button>
   }
@@ -55,7 +50,8 @@
         </thead>
         <tbody>
           @for (m of filtered(); track m.tipo + m.referencia_id) {
-            <tr>
+            <tr class="row--link" (click)="abrir(m)" role="button" tabindex="0" (keydown.enter)="abrir(m)"
+                aria-label="Ver detalle del movimiento">
               <td>{{ formatFecha(m.fecha) }}</td>
               <td>
                 <span class="sgc-badge" [class.sgc-badge--warning]="m.tipo === 'salida'" [class.sgc-badge--success]="m.tipo === 'entrada'">
@@ -71,7 +67,7 @@
               </td>
               <td class="text-right">{{ m.items }}</td>
               <td class="text-muted">{{ m.responsable || '—' }}</td>
-              <td>
+              <td (click)="$event.stopPropagation()">
                 @if (m.tipo === 'salida') {
                   <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', m.referencia_id, 'conduce']">Conduce</a>
                 }

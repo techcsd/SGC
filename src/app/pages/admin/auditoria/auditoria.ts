@@ -9,6 +9,7 @@ import {
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
@@ -72,7 +73,7 @@ const ACCION_LABELS: Record<string, string> = {
  *  Reads sgc.auditoria (populated by DB triggers from BOTH web and app). */
 @Component({
   selector: 'app-admin-auditoria',
-  imports: [DecimalPipe, BarChart, DonutChart, Skeleton],
+  imports: [DecimalPipe, BarChart, DonutChart, Skeleton, DateRangeFilter],
   templateUrl: './auditoria.html',
   styleUrl: './auditoria.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -261,6 +262,13 @@ export class AdminAuditoria implements OnInit {
     this.page.set(0);
     void this.load();
     void this.loadResumen();
+  }
+
+  /** R12 — filtro de fechas unificado (aplica de inmediato). */
+  onRango(r: RangoFecha) {
+    this.fDesde.set(r.desde ?? '');
+    this.fHasta.set(r.hasta ?? '');
+    this.applyFilters();
   }
 
   clearFilters() {

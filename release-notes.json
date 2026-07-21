@@ -1,6 +1,22 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.17.0": {
+      "titulo": "Permisos por rol en Flota, detalles al click, filtros de fecha y arreglos varios",
+      "cambios": [
+        { "t": "seguridad", "d": "Flota: cada chofer ahora ve SOLO sus datos (sus rutas, combustible, checklists, entregas y avisos). Reportes, Panel del día, Responsabilidad de otros y la lista de Conductores quedan solo para admin/Dirección/Gerencia/Jefe de Flota." },
+        { "t": "arreglo", "d": "Se corrigió el drawer de \"Editar conductor\" que recortaba los textos, y el botón \"Restablecer PIN\" ahora aparece de inmediato tras generar el acceso." },
+        { "t": "arreglo", "d": "Login de conductor: ya no se queda cargando indefinidamente (timeout con mensaje claro) y el acceso queda 100% configurado." },
+        { "t": "arreglo", "d": "Reportes de flota: los vehículos ya no muestran códigos raros (UUID); se ve la placa aunque el vehículo esté desactivado." },
+        { "t": "arreglo", "d": "Reposición de almacén: nueva opción \"Todas las bodegas\" con el mismo criterio que Reportes, y explica por qué no hay resultados." },
+        { "t": "nuevo", "d": "Al hacer click en una ruta, un vehículo, un activo, una entrada o una fila de reportes se abre su detalle u origen." },
+        { "t": "nuevo", "d": "Filtro de fechas unificado con presets (Hoy, 7, 15 días, 1, 3, 6, 12 meses) en movimientos, entradas, salidas, órdenes de compra, combustible, auditoría, historial de bitácora y conteos." },
+        { "t": "mejora", "d": "Las notificaciones de Flota ahora muestran en qué submódulo están (Avisos, Mantenimientos, Checklists, Combustible)." },
+        { "t": "mejora", "d": "Reportes de inventario: KPIs y filas clicables + paginación en stock crítico. Conteos con iconos, % de desviación, totales y leyenda. Activos Fijos con descripción de propósito y ficha completa." },
+        { "t": "mejora", "d": "Sección de subir archivos rediseñada (arrastrar/soltar, miniaturas) y filtros desplegables estilizados." },
+        { "t": "mejora", "d": "El clima siempre se etiqueta como \"Pronóstico\"; la lluvia se registra solo manualmente en la bitácora." }
+      ]
+    },
     "1.16.1": {
       "titulo": "Historial de versiones con enlace a cada versión",
       "cambios": [

@@ -132,12 +132,23 @@ export class Conductores implements OnInit {
     this.accesoOk.set('');
     try {
       const res = await this.conductoresService.generarAccesoConductor(c.id, pin);
-      // Reflejar el enlace usuario_id en la lista sin recargar todo.
+      // R2 — Reflejar el enlace sin recargar. Además del usuario_id hay que poblar
+      // `usuario.email` sintético para que usaAccesoPin() siga devolviendo true y el
+      // botón pase de "Generar acceso" a "Restablecer PIN" al instante (antes el
+      // email quedaba '' y el botón desaparecía hasta recargar).
       if (res.usuarioId) {
+        const usuarioSintetico = {
+          nombre: c.nombre,
+          email: `c-${c.cedula}@conductores.constructorasd.local`,
+        };
         this.conductores.update((list) =>
-          list.map((x) => (x.id === c.id ? { ...x, usuario_id: res.usuarioId } : x)),
+          list.map((x) =>
+            x.id === c.id ? { ...x, usuario_id: res.usuarioId, usuario: usuarioSintetico } : x,
+          ),
         );
-        this.accesoConductor.update((x) => (x ? { ...x, usuario_id: res.usuarioId } : x));
+        this.accesoConductor.update((x) =>
+          x ? { ...x, usuario_id: res.usuarioId, usuario: usuarioSintetico } : x,
+        );
       }
       this.accesoOk.set(
         res.rotated

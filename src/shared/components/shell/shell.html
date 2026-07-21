@@ -100,7 +100,10 @@
                       [routerLink]="child.route"
                       routerLinkActive="active"
                     >
-                      {{ child.label }}
+                      <span class="nav-child__label">{{ child.label }}</span>
+                      @if (childBadge(child) > 0) {
+                        <span class="nav-badge nav-badge--child" [attr.aria-label]="childBadge(child) + ' pendientes'">{{ childBadge(child) }}</span>
+                      }
                     </a>
                   }
                 }

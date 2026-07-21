@@ -32,6 +32,7 @@ import {
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -47,7 +48,7 @@ interface Draft {
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, QtyStepper, Skeleton],
+  imports: [ReactiveFormsModule, QtyStepper, Skeleton, FileUpload],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -367,11 +368,9 @@ export class Nueva implements OnInit {
   }
 
   // ── Archivos ─────────────────────────────────────────────────
-  onFilesSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const selected = Array.from(input.files ?? []);
-    this.archivos.update((list) => [...list, ...selected].slice(0, this.maxArchivos));
-    input.value = '';
+  /** R6 — archivos añadidos desde el componente app-file-upload. */
+  onFilesAdded(files: File[]) {
+    this.archivos.update((list) => [...list, ...files].slice(0, this.maxArchivos));
   }
 
   removeArchivo(index: number) {

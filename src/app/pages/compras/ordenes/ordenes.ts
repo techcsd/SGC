@@ -21,6 +21,7 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
@@ -51,7 +52,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -223,6 +224,12 @@ export class Ordenes implements OnInit {
 
   onFechaHasta(value: string) {
     this.fechaHasta.set(value);
+  }
+
+  /** R12 — filtro de fechas unificado (presets + rango). */
+  onRango(r: RangoFecha) {
+    this.fechaDesde.set(r.desde ?? '');
+    this.fechaHasta.set(r.hasta ?? '');
   }
 
   clearFilters() {

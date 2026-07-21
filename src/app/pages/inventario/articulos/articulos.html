@@ -107,7 +107,7 @@
         </thead>
         <tbody>
           @for (art of paginated(); track art.id) {
-            <tr [class.row--inactive]="!art.activo">
+            <tr [class.row--inactive]="!art.activo" [appHighlightItem]="art.id">
               <td>
                 <code class="code-tag">{{ art.codigo }}</code>
               </td>

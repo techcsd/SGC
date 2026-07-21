@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { flotaElevadoGuard } from '../../core/guards/flota-elevado.guard';
 
 export const flotaRoutes: Routes = [
   {
@@ -30,11 +31,13 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'conductores',
+    canActivate: [flotaElevadoGuard],
     loadComponent: () => import('./conductores/conductores').then((m) => m.Conductores),
     title: 'Conductores — Flota',
   },
   {
     path: 'conductores/:id',
+    canActivate: [flotaElevadoGuard],
     loadComponent: () =>
       import('./conductores/detalle/conductor-detalle').then((m) => m.ConductorDetalle),
     title: 'Perfil de conductor — Flota',
@@ -62,6 +65,7 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'panel-dia',
+    canActivate: [flotaElevadoGuard],
     loadComponent: () => import('./panel-dia/panel-dia').then((m) => m.PanelDia),
     title: 'Panel del día — Flota',
   },
@@ -72,12 +76,14 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'responsabilidad',
+    canActivate: [flotaElevadoGuard],
     loadComponent: () =>
       import('./responsabilidad/responsabilidad').then((m) => m.Responsabilidad),
     title: 'Responsabilidad — Flota',
   },
   {
     path: 'reportes',
+    canActivate: [flotaElevadoGuard],
     loadComponent: () => import('./reportes/reportes').then((m) => m.FlotaReportes),
     title: 'Reportes — Flota',
   },

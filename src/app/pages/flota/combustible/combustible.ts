@@ -25,12 +25,13 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-combustible',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton, DateRangeFilter],
   templateUrl: './combustible.html',
   styleUrl: './combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -208,6 +209,8 @@ export class Combustible implements OnInit {
   onVehiculoChange(v: string | null) { this.selectedVehiculoId.set(v ?? ''); this.currentPage.set(1); }
   onDateFromChange(v: string) { this.dateFrom.set(v); this.currentPage.set(1); }
   onDateToChange(v: string) { this.dateTo.set(v); this.currentPage.set(1); }
+  /** R12 — filtro de fechas unificado. */
+  onRango(r: RangoFecha) { this.dateFrom.set(r.desde ?? ''); this.dateTo.set(r.hasta ?? ''); this.currentPage.set(1); }
   clearFilters() {
     this.searchQuery.set(''); this.selectedVehiculoId.set('');
     this.dateFrom.set(''); this.dateTo.set(''); this.currentPage.set(1);

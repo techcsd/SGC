@@ -177,3 +177,47 @@ textarea {
   &--peligro { border-left-color: var(--sgc-danger); }
   &--ok { border-left-color: var(--sgc-success); }
 }
+
+// R3 — fila de ruta clicable (abre el detalle read-only).
+.rutas__row--link {
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04)); }
+}
+
+// R3 — detalle de ruta (read-only, en el drawer compartido).
+.ruta-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border-left: 4px solid var(--sgc-border);
+    background: var(--sgc-surface-2, #f6f6f6);
+    &--success { border-left-color: var(--sgc-success); }
+    &--info { border-left-color: var(--sgc-info); }
+    &--danger { border-left-color: var(--sgc-danger); }
+    &--neutral { border-left-color: var(--sgc-border); }
+  }
+  &__estado { font-weight: 700; }
+  &__fecha { color: var(--sgc-text-secondary); font-size: 13px; }
+
+  &__title { font-size: 13px; font-weight: 700; margin: 4px 0 0; color: var(--sgc-text); }
+  &__trip { font-size: 15px; margin: 0; }
+  &__sub { font-size: 13px; color: var(--sgc-text-secondary); margin: 0; }
+  &__notas { font-size: 14px; white-space: pre-wrap; }
+
+  &__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin: 0;
+    dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sgc-text-muted); }
+    dd { margin: 2px 0 0; font-size: 14px; color: var(--sgc-text); }
+  }
+}

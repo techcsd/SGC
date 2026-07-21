@@ -7,6 +7,7 @@ import {
   computed,
 } from '@angular/core';
 import { DecimalPipe, DatePipe, CurrencyPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { StockService } from '../../../../shared/services/stock.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -47,12 +48,14 @@ interface SalidaHeaderRow {
 }
 
 interface CategoriaStat {
+  catId: number;
   nombre: string;
   articulosCount: number;
   stockTotal: number;
 }
 
 interface ArticuloCritico {
+  id: string;
   codigo: string;
   nombre: string;
   stockMinimo: number;
@@ -129,7 +132,7 @@ export class Reportes implements OnInit {
 
     const stats = new Map<number, CategoriaStat>();
     for (const cat of cats) {
-      stats.set(cat.id, { nombre: cat.nombre, articulosCount: 0, stockTotal: 0 });
+      stats.set(cat.id, { catId: cat.id, nombre: cat.nombre, articulosCount: 0, stockTotal: 0 });
     }
 
     for (const art of arts) {
@@ -153,6 +156,7 @@ export class Reportes implements OnInit {
         return a.activo && stock <= a.stock_minimo;
       })
       .map((a) => ({
+        id: a.id,
         codigo: a.codigo,
         nombre: a.nombre,
         stockMinimo: a.stock_minimo,
@@ -161,6 +165,36 @@ export class Reportes implements OnInit {
       }))
       .sort((a, b) => a.diferencia - b.diferencia);
   });
+
+  // ── R11 — paginación de "Stock crítico" (crecía sin límite) ──────────────
+  private router = inject(Router);
+  readonly PAGE_SIZE = 15;
+  criticoPage = signal(1);
+  criticosTotalPages = computed(() => Math.max(1, Math.ceil(this.articulosCriticos().length / this.PAGE_SIZE)));
+  criticosPaged = computed(() => {
+    const start = (this.criticoPage() - 1) * this.PAGE_SIZE;
+    return this.articulosCriticos().slice(start, start + this.PAGE_SIZE);
+  });
+  criticoGoTo(p: number) {
+    if (p >= 1 && p <= this.criticosTotalPages()) this.criticoPage.set(p);
+  }
+
+  // ── R11 — navegación (todo abre su origen: la ficha de Artículos filtrada) ──
+  irAArticulo(id: string) {
+    this.router.navigate(['/inventario/articulos'], { queryParams: { item: id } });
+  }
+  irAStockBajo() {
+    this.router.navigate(['/inventario/articulos'], { queryParams: { stock: 'critico' } });
+  }
+  irASinStock() {
+    this.router.navigate(['/inventario/articulos'], { queryParams: { stock: 'sin' } });
+  }
+  irACategoria(catId: number) {
+    this.router.navigate(['/inventario/articulos'], { queryParams: { categoria: catId } });
+  }
+  irAArticulos() {
+    this.router.navigate(['/inventario/articulos']);
+  }
 
   // ── Section 4: Top 10 más movidos ────────────────────────
   topArticulos = computed((): TopArticulo[] => {

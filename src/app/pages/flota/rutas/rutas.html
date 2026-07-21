@@ -88,7 +88,8 @@
         </thead>
         <tbody>
           @for (r of filtered(); track r.id) {
-            <tr>
+            <tr class="rutas__row--link" (click)="openDetail(r)" role="button" tabindex="0"
+                (keydown.enter)="openDetail(r)" [attr.aria-label]="'Ver detalle de la ruta ' + r.origen + ' a ' + r.destino">
               <td class="rutas__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>{{ r.vehiculo?.placa ?? '—' }}</td>
               <td>{{ r.conductor?.nombre ?? '—' }}</td>
@@ -122,7 +123,7 @@
                 </span>
               </td>
               <td>
-                <div class="row-actions">
+                <div class="row-actions" (click)="$event.stopPropagation()">
                   @if (r.estado === 'planificada' || r.estado === 'en_curso') {
                     <button
                       type="button"
@@ -402,4 +403,56 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── R3 — Detalle de ruta (read-only) ── -->
+<app-form-drawer title="Detalle de la ruta" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (detailRuta(); as r) {
+    <div class="ruta-detalle">
+      <!-- Estado + fecha -->
+      <div class="ruta-detalle__band ruta-detalle__band--{{ getEstadoInfo(r.estado)?.badge }}">
+        <span class="ruta-detalle__estado">{{ getEstadoInfo(r.estado)?.label }}</span>
+        <span class="ruta-detalle__fecha">{{ formatFecha(r.fecha) }}</span>
+      </div>
+
+      <!-- Trayecto -->
+      <h4 class="ruta-detalle__title">Trayecto</h4>
+      <p class="ruta-detalle__trip">
+        <strong>{{ r.origen }}</strong> <span class="rutas__arrow">→</span> <strong>{{ r.destino }}</strong>
+      </p>
+      @if (r.destino_proyecto?.nombre) {
+        <p class="ruta-detalle__sub">Obra de destino: {{ r.destino_proyecto?.nombre }}</p>
+      }
+
+      <!-- Mini-mapa del destino -->
+      @if (detailDestino(); as d) {
+        <app-location-picker [latitud]="d.latitud" [longitud]="d.longitud" />
+        <app-weather-card [latitud]="d.latitud" [longitud]="d.longitud" titulo="Pronóstico en el destino" />
+      } @else {
+        <p class="ruta-detalle__sub text-muted">Sin ubicación exacta del destino — no hay pronóstico.</p>
+      }
+
+      <!-- Datos -->
+      <h4 class="ruta-detalle__title">Datos</h4>
+      <dl class="ruta-detalle__meta">
+        <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }} <span class="text-muted">{{ r.vehiculo?.marca }} {{ r.vehiculo?.modelo }}</span></dd></div>
+        <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
+        <div><dt>Km estimado</dt><dd>{{ r.km_estimado ?? '—' }}</dd></div>
+        <div><dt>Km real</dt><dd>{{ r.km_real ?? '—' }}@if (kmDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="kmDesvio(r)! > 0">({{ kmDesvio(r)! > 0 ? '+' : '' }}{{ kmDesvio(r) }})</span> }</dd></div>
+        <div><dt>Tiempo estimado</dt><dd>{{ r.tiempo_estimado_min != null ? formatDur(r.tiempo_estimado_min) : '—' }}</dd></div>
+        <div><dt>Tiempo real</dt><dd>{{ r.tiempo_real_min != null ? formatDur(r.tiempo_real_min) : '—' }}@if (tiempoDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="tiempoDesvio(r)! > 0">({{ tiempoDesvio(r)! > 0 ? '+' : '' }}{{ tiempoDesvio(r) }})</span> }</dd></div>
+      </dl>
+
+      @if (r.notas) {
+        <h4 class="ruta-detalle__title">Notas</h4>
+        <p class="ruta-detalle__notas">{{ r.notas }}</p>
+      }
+
+      @if (r.estado === 'planificada' || r.estado === 'en_curso') {
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(r)">
+          Editar ruta
+        </button>
+      }
+    </div>
+  }
 </app-form-drawer>

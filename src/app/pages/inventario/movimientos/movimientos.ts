@@ -1,18 +1,19 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { MovimientosService, MovimientoInventario } from '../../../../shared/services/movimientos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
   selector: 'app-inventario-movimientos',
-  imports: [Skeleton, RouterLink],
+  imports: [Skeleton, RouterLink, DateRangeFilter],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +23,7 @@ export class Movimientos implements OnInit {
   private bodegasService = inject(BodegasService);
   private proyectosService = inject(ProyectosService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   formatFecha = formatFechaDisplay;
 
@@ -93,10 +95,21 @@ export class Movimientos implements OnInit {
     return id ? (this.obraNombreMap().get(id) ?? '') : '';
   }
 
+  /** R8 — todo abre su origen: entrada → Entradas (resaltada); salida → su conduce. */
+  abrir(m: MovimientoInventario) {
+    if (m.tipo === 'salida') {
+      this.router.navigate(['/inventario/salidas', m.referencia_id, 'conduce']);
+    } else {
+      this.router.navigate(['/inventario/entradas'], { queryParams: { item: m.referencia_id } });
+    }
+  }
+
   onBodega(v: string) { this.selectedBodega.set(v); }
   onTipo(v: string) { this.selectedTipo.set(v); }
   onFrom(v: string) { this.dateFrom.set(v); }
   onTo(v: string) { this.dateTo.set(v); }
+  /** R12 — filtro de fechas unificado (presets + rango). */
+  onRango(r: RangoFecha) { this.dateFrom.set(r.desde ?? ''); this.dateTo.set(r.hasta ?? ''); }
   clearFilters() {
     this.selectedBodega.set('');
     this.selectedTipo.set('');

@@ -40,7 +40,8 @@ export class StockService {
    * por debajo del mínimo (`articulos.stock_minimo`). Señal operativa para el
    * Guarda-Almacén — cantidades solamente, sin cuadre ni montos.
    */
-  async getReposicion(bodegaId: string): Promise<ReposicionRow[]> {
+  /** R10 — `bodegaId=null` → vista global (todas las bodegas, misma fórmula que Reportes). */
+  async getReposicion(bodegaId: string | null): Promise<ReposicionRow[]> {
     // RPC security-definer: superpone el mínimo del kit del cuadre sobre el
     // stock_minimo del artículo, sin exponer cuadre ni montos (apta para obra).
     const { data, error } = await this.supabase.client.rpc('reposicion_almacen', { p_bodega_id: bodegaId });

@@ -74,25 +74,7 @@
     </select>
   </div>
 
-  <div class="sgc-field filters-bar__date">
-    <input
-      type="date"
-      [value]="fechaDesde()"
-      (change)="onFechaDesde($any($event.target).value)"
-      aria-label="Fecha desde"
-      title="Fecha desde"
-    />
-  </div>
-
-  <div class="sgc-field filters-bar__date">
-    <input
-      type="date"
-      [value]="fechaHasta()"
-      (change)="onFechaHasta($any($event.target).value)"
-      aria-label="Fecha hasta"
-      title="Fecha hasta"
-    />
-  </div>
+  <app-date-range-filter [desde]="fechaDesde()" [hasta]="fechaHasta()" (rangeChange)="onRango($event)" />
 
   @if (searchProveedor() || selectedEstado() || fechaDesde() || fechaHasta()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">

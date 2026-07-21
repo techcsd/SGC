@@ -22,6 +22,24 @@
     color: var(--sgc-text-muted);
   }
 
+  // R7 — deja claro que el clima es predicción, no un dato registrado.
+  &__titlewrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  &__pronostico-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-info, #0e7490);
+    background: rgb(14 116 144 / 0.12);
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+
   &__sinubi,
   &__error {
     font-size: 13px;

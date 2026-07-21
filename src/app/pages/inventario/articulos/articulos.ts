@@ -9,6 +9,7 @@ import {
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { maxGteMin } from '../../../../shared/utils/form-validators.util';
+import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { DecimalPipe } from '@angular/common';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -23,7 +24,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-articulos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,8 +48,8 @@ export class Articulos implements OnInit {
   searchQuery = signal('');
   selectedCategory = signal<number | null>(null);
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
-  // Q3 — drill-down desde el dashboard (?stock=critico): solo stock bajo/agotado.
-  selectedStock = signal<'all' | 'critico'>('all');
+  // Q3/R11 — drill-down desde dashboards/reportes: ?stock=critico | sin.
+  selectedStock = signal<'all' | 'critico' | 'sin'>('all');
   private route = inject(ActivatedRoute);
 
   // ── Pagination ───────────────────────────────────────────
@@ -89,11 +90,12 @@ export class Articulos implements OnInit {
       if (catId && a.categoria_id !== catId) return false;
       if (status === 'active' && !a.activo) return false;
       if (status === 'inactive' && a.activo) return false;
-      // Q3 — crítico = stock bajo o agotado (mismo criterio que getStockStatus).
+      // Q3/R11 — filtros de stock desde reportes/dashboard.
       if (stock === 'critico') {
         const st = this.getStockStatus(a);
         if (st !== 'low' && st !== 'none') return false;
       }
+      if (stock === 'sin' && this.getStockStatus(a) !== 'none') return false;
       return true;
     });
   });
@@ -110,10 +112,12 @@ export class Articulos implements OnInit {
   );
 
   async ngOnInit() {
-    // Q3 — drill-down desde el KPI "Artículos en stock crítico".
-    if (this.route.snapshot.queryParamMap.get('stock') === 'critico') {
-      this.selectedStock.set('critico');
-    }
+    // Q3/R11 — drill-down desde dashboards/reportes: preaplica filtros de la ruta.
+    const qp = this.route.snapshot.queryParamMap;
+    const stock = qp.get('stock');
+    if (stock === 'critico' || stock === 'sin') this.selectedStock.set(stock);
+    const cat = qp.get('categoria');
+    if (cat) this.selectedCategory.set(Number(cat));
     await this.loadAll();
   }
 

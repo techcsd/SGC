@@ -1,0 +1,39 @@
+<div class="file-upload">
+  <label
+    class="file-upload__zone"
+    [class.file-upload__zone--drag]="dragging()"
+    [class.file-upload__zone--disabled]="lleno()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)"
+  >
+    <svg class="file-upload__icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+    <span class="file-upload__text">{{ label() }}</span>
+    <span class="file-upload__count">{{ files().length }}/{{ max() }}</span>
+    <input type="file" multiple [accept]="accept()" [disabled]="lleno()" (change)="onSelected($event)" hidden />
+  </label>
+
+  @if (hint()) {
+    <p class="file-upload__hint">{{ hint() }}</p>
+  }
+
+  @if (files().length > 0) {
+    <ul class="file-upload__list">
+      @for (f of files(); track f.name + f.size; let i = $index) {
+        <li class="file-upload__item">
+          @if (previewUrl(f); as url) {
+            <img class="file-upload__thumb" [src]="url" [alt]="f.name" />
+          } @else {
+            <span class="file-upload__thumb file-upload__thumb--file" aria-hidden="true">📄</span>
+          }
+          <span class="file-upload__name">{{ f.name }}</span>
+          <button type="button" class="file-upload__remove" (click)="quitar(i)" [attr.aria-label]="'Quitar ' + f.name">✕</button>
+        </li>
+      }
+    </ul>
+  }
+</div>

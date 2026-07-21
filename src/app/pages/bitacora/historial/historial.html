@@ -38,12 +38,7 @@
     </select>
   </div>
 
-  <div class="sgc-field">
-    <input type="date" [value]="dateFrom()" (change)="onDateFromChange($any($event.target).value)" aria-label="Desde" />
-  </div>
-  <div class="sgc-field">
-    <input type="date" [value]="dateTo()" (change)="onDateToChange($any($event.target).value)" aria-label="Hasta" />
-  </div>
+  <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
 
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">

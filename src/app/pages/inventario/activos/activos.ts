@@ -50,6 +50,37 @@ export class Activos implements OnInit {
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
+  // ── R8 — Detalle read-only del activo (con depreciación calculada) ───────
+  detailOpen = signal(false);
+  detailActivo = signal<ActivoFijo | null>(null);
+  openDetail(a: ActivoFijo) {
+    this.detailActivo.set(a);
+    this.detailOpen.set(true);
+  }
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
+
+  /** Años transcurridos desde la adquisición (aprox., para la depreciación). */
+  antiguedadAnios(a: ActivoFijo): number {
+    const adq = new Date(a.fecha_adquisicion).getTime();
+    if (isNaN(adq)) return 0;
+    return Math.max(0, (Date.now() - adq) / (365.25 * 24 * 3600 * 1000));
+  }
+  /** Depreciación lineal acumulada; sin vida útil → sin depreciación. */
+  depreciacionAcumulada(a: ActivoFijo): number {
+    if (!a.vida_util_anios || a.vida_util_anios <= 0) return 0;
+    const frac = Math.min(1, this.antiguedadAnios(a) / a.vida_util_anios);
+    return a.valor_adquisicion * frac;
+  }
+  /** Valor actual = adquisición − depreciación acumulada. */
+  valorActual(a: ActivoFijo): number {
+    return Math.max(0, a.valor_adquisicion - this.depreciacionAcumulada(a));
+  }
+  estadoLabel(e: string): string {
+    return ACTIVO_ESTADOS.find((x) => x.value === e)?.label ?? e;
+  }
+
   readonly ACTIVO_ESTADOS = ACTIVO_ESTADOS;
   readonly today = todayIso();
 

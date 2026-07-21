@@ -176,3 +176,25 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+// R8 — ficha read-only del activo.
+.activo-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__head { display: flex; align-items: center; gap: 10px; }
+  &__nombre { margin: 0; font-size: 18px; font-weight: 700; color: var(--sgc-text); }
+  &__desc { margin: 0; font-size: 14px; color: var(--sgc-text-secondary); }
+  &__title { font-size: 13px; font-weight: 700; margin: 4px 0 0; }
+  &__notas { font-size: 14px; white-space: pre-wrap; margin: 0; }
+
+  &__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin: 0;
+    dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sgc-text-muted); }
+    dd { margin: 2px 0 0; font-size: 14px; color: var(--sgc-text); }
+  }
+}

@@ -37,6 +37,10 @@ interface NavSubItem {
   route: string;
   /** When set, this child only renders if the user has the given module. */
   modulo?: string;
+  /** R5 — clave del conteo desglosado por submódulo (pendingBySubmodulo). */
+  badgeKey?: string;
+  /** R14 — solo visible para roles de flota elevados (no el chofer). */
+  flotaElevado?: boolean;
 }
 
 @Component({
@@ -89,7 +93,7 @@ export class Shell implements OnInit {
         { label: 'Categorías', route: '/inventario/categorias' },
         { label: 'Activos Fijos', route: '/inventario/activos' },
         { label: 'Entradas', route: '/inventario/entradas' },
-        { label: 'Salidas', route: '/inventario/salidas' },
+        { label: 'Salidas', route: '/inventario/salidas', badgeKey: 'inventario.salidas' },
         { label: 'Movimientos', route: '/inventario/movimientos' },
         { label: 'Conduces', route: '/inventario/conduces' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos' },
@@ -136,16 +140,16 @@ export class Shell implements OnInit {
       modulo: 'flota',
       children: [
         { label: 'Vehículos', route: '/flota/vehiculos' },
-        { label: 'Mantenimientos', route: '/flota/mantenimientos' },
-        { label: 'Conductores', route: '/flota/conductores' },
-        { label: 'Combustible', route: '/flota/combustible' },
+        { label: 'Mantenimientos', route: '/flota/mantenimientos', badgeKey: 'flota.mantenimientos' },
+        { label: 'Conductores', route: '/flota/conductores', flotaElevado: true },
+        { label: 'Combustible', route: '/flota/combustible', badgeKey: 'flota.combustible' },
         { label: 'Rutas', route: '/flota/rutas' },
-        { label: 'Checklists', route: '/flota/checklists' },
+        { label: 'Checklists', route: '/flota/checklists', badgeKey: 'flota.checklists' },
         { label: 'Reporte semanal', route: '/flota/reporte-semanal' },
-        { label: 'Panel del día', route: '/flota/panel-dia' },
-        { label: 'Avisos', route: '/flota/avisos' },
-        { label: 'Responsabilidad', route: '/flota/responsabilidad' },
-        { label: 'Reportes', route: '/flota/reportes' },
+        { label: 'Panel del día', route: '/flota/panel-dia', flotaElevado: true },
+        { label: 'Avisos', route: '/flota/avisos', badgeKey: 'flota.avisos' },
+        { label: 'Responsabilidad', route: '/flota/responsabilidad', flotaElevado: true },
+        { label: 'Reportes', route: '/flota/reportes', flotaElevado: true },
       ],
     },
     {
@@ -259,8 +263,16 @@ export class Shell implements OnInit {
   }
 
   canAccessChild(child: NavSubItem): boolean {
+    // R14 — submódulos de flota solo para roles elevados (oculto al chofer).
+    if (child.flotaElevado && !this.userService.esFlotaElevado()) return false;
     if (!child.modulo) return true;
     return this.userService.hasModulo(child.modulo);
+  }
+
+  /** R5 — badge de un submódulo (nav-child) desde el conteo desglosado. */
+  childBadge(child: NavSubItem): number {
+    if (!child.badgeKey) return 0;
+    return this.notificaciones.pendingBySubmodulo()[child.badgeKey] ?? 0;
   }
 
   /** Stable anchor id for the first-run guided tour to spotlight this item. */

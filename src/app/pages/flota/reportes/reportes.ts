@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
@@ -48,10 +49,20 @@ interface CombustibleReport {
 }
 
 interface CombustiblePorVehiculo {
+  vehiculo_id: string;
   placa: string;
   marca: string;
   litros: number;
   gasto: number;
+}
+
+/** R4a — placa denormalizada (incluye inactivos) resuelta vía RPC flota_placas. */
+interface PlacaInfo {
+  id: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  activo: boolean;
 }
 
 @Component({
@@ -63,14 +74,38 @@ interface CombustiblePorVehiculo {
 })
 export class FlotaReportes implements OnInit {
   private supabase = inject(SupabaseService);
+  private router = inject(Router);
 
   formatFecha = formatFechaDisplay;
+
+  // R4b — filas clicables: todo abre su origen (regla del jefe).
+  irAVehiculo(vehiculoId: string | null | undefined) {
+    if (vehiculoId && this.placaMap().get(vehiculoId)) {
+      this.router.navigate(['/flota/vehiculos', vehiculoId]);
+    }
+  }
+  irAMantenimientosDe(vehiculoId: string | null | undefined) {
+    if (vehiculoId) this.router.navigate(['/flota/mantenimientos'], { queryParams: { vehiculo: vehiculoId } });
+  }
 
   vehiculos = signal<VehiculoReport[]>([]);
   mantenimientos = signal<MantenimientoReport[]>([]);
   combustible = signal<CombustibleReport[]>([]);
+  // R4a — mapa id→placa de TODOS los vehículos (incl. inactivos) vía RPC.
+  private placaMap = signal<Map<string, PlacaInfo>>(new Map());
   loading = signal(true);
   error = signal('');
+
+  /** R4a — placa legible desde un vehiculo_id (nunca el UUID). */
+  resolverPlaca(vehiculoId: string | null | undefined, embedded?: string | null): string {
+    if (embedded) return embedded;
+    if (!vehiculoId) return '—';
+    return this.placaMap().get(vehiculoId)?.placa ?? 'Vehículo desactivado';
+  }
+  resolverMarca(vehiculoId: string | null | undefined, embedded?: string | null): string {
+    if (embedded) return embedded;
+    return (vehiculoId && this.placaMap().get(vehiculoId)?.marca) || '';
+  }
 
   // ── Summary computed ──────────────────────────────────────
   totalActivos = computed(() => this.vehiculos().filter((v) => v.activo && v.estado === 'activo').length);
@@ -115,14 +150,20 @@ export class FlotaReportes implements OnInit {
     const hace30Str = daysAgoIso(30);
     const recientes = this.combustible().filter((r) => r.fecha >= hace30Str);
 
+    // R4a — agrupa por vehiculo_id (estable) y resuelve la placa legible (nunca UUID).
     const map = new Map<string, CombustiblePorVehiculo>();
     for (const r of recientes) {
-      const placa = r.vehiculo?.placa ?? r.vehiculo_id;
-      const marca = r.vehiculo?.marca ?? '';
-      if (!map.has(placa)) {
-        map.set(placa, { placa, marca, litros: 0, gasto: 0 });
+      const key = r.vehiculo_id;
+      if (!map.has(key)) {
+        map.set(key, {
+          vehiculo_id: key,
+          placa: this.resolverPlaca(r.vehiculo_id, r.vehiculo?.placa),
+          marca: this.resolverMarca(r.vehiculo_id, r.vehiculo?.marca),
+          litros: 0,
+          gasto: 0,
+        });
       }
-      const entry = map.get(placa)!;
+      const entry = map.get(key)!;
       // v2 usa galones/monto; legacy usaba litros/total. Prioriza v2.
       entry.litros += r.galones ?? r.litros ?? 0;
       entry.gasto += r.monto ?? r.total ?? 0;
@@ -145,7 +186,7 @@ export class FlotaReportes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [vRes, mRes, cRes] = await Promise.all([
+      const [vRes, mRes, cRes, pRes] = await Promise.all([
         this.supabase.client.from('vehiculos').select('*').order('placa'),
         this.supabase.client
           .from('mantenimientos')
@@ -155,12 +196,17 @@ export class FlotaReportes implements OnInit {
           .from('registros_combustible')
           .select('*, vehiculo:vehiculos(placa,marca)')
           .order('fecha', { ascending: false }),
+        // R4a — placas denormalizadas (incluye vehículos inactivos) para no pintar UUID.
+        this.supabase.client.rpc('flota_placas'),
       ]);
 
       if (vRes.error) throw new Error(vRes.error.message);
       if (mRes.error) throw new Error(mRes.error.message);
       if (cRes.error) throw new Error(cRes.error.message);
 
+      if (!pRes.error && Array.isArray(pRes.data)) {
+        this.placaMap.set(new Map((pRes.data as PlacaInfo[]).map((p) => [p.id, p])));
+      }
       this.vehiculos.set((vRes.data ?? []) as unknown as VehiculoReport[]);
       this.mantenimientos.set((mRes.data ?? []) as unknown as MantenimientoReport[]);
       this.combustible.set((cRes.data ?? []) as unknown as CombustibleReport[]);

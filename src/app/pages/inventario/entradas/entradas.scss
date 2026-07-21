@@ -327,3 +327,21 @@ textarea {
   cursor: pointer;
   width: fit-content;
 }
+
+// R8 — detalle read-only de la entrada.
+.entrada-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+    margin: 0;
+    dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sgc-text-muted); }
+    dd { margin: 2px 0 0; font-size: 14px; color: var(--sgc-text); }
+  }
+  &__title { font-size: 13px; font-weight: 700; margin: 4px 0 0; }
+  &__total { text-align: right; font-size: 15px; margin: 0; }
+}

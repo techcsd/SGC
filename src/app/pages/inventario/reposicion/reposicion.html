@@ -18,6 +18,7 @@
       aria-label="Seleccionar almacén"
     >
       <option value="">Seleccionar almacén…</option>
+      <option value="ALL">Todas las bodegas (global)</option>
       @for (b of bodegas(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
@@ -35,7 +36,17 @@
   <div class="table-wrapper sgc-card">
     @if (rows().length === 0) {
       <div class="table-empty">
-        <p>Todo el stock de este almacén está por encima del mínimo. 👍</p>
+        @if (esGlobal()) {
+          <p>No hay artículos en o por debajo de su stock mínimo (global). 👍</p>
+          <p class="text-muted">Si esperabas ver artículos aquí, revisa que tengan un <strong>stock mínimo</strong> configurado en Artículos.</p>
+        } @else {
+          <p>Ningún artículo está bajo el mínimo en este almacén.</p>
+          <p class="text-muted">
+            Puede que este almacén no tenga <strong>mínimos configurados</strong>. Configura el stock mínimo
+            de los artículos en <strong>Inventario › Artículos</strong>, o usa <strong>“Todas las bodegas”</strong>
+            para ver el stock crítico global (mismo criterio que Reportes).
+          </p>
+        }
       </div>
     } @else {
       <div class="table-scroll">

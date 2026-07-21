@@ -14,6 +14,11 @@ export class NotificacionesService {
   private _pendingByModulo = signal<Record<string, number>>({});
   pendingByModulo = this._pendingByModulo.asReadonly();
 
+  // R5 — conteos desglosados por submódulo (badge en cada nav-child).
+  // Claves tipo 'flota.checklists', 'inventario.salidas', etc.
+  private _pendingBySubmodulo = signal<Record<string, number>>({});
+  pendingBySubmodulo = this._pendingBySubmodulo.asReadonly();
+
   async refresh(): Promise<void> {
     const isAdmin = this.userService.hasRole('admin');
     const checks: Promise<void>[] = [];
@@ -66,6 +71,10 @@ export class NotificacionesService {
       .select('id', { count: 'exact', head: true })
       .eq('estado', estado);
     this._pendingByModulo.update((m) => ({ ...m, [modulo]: count ?? 0 }));
+    // R5 — las requisiciones de material pendientes se atienden en Salidas.
+    if (table === 'solicitudes_material') {
+      this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.salidas': count ?? 0 }));
+    }
   }
 
   private async loadTareasPendientes(usuarioId: string): Promise<void> {
@@ -78,11 +87,36 @@ export class NotificacionesService {
   }
 
   private async loadAvisosFlota(): Promise<void> {
-    const { count } = await this.supabase.client
+    // R5 — desglosa los avisos pendientes por tipo hacia cada submódulo, para que
+    // el badge de Flota (padre) coincida con la suma de sus hijos.
+    const { data } = await this.supabase.client
       .from('avisos_flota')
-      .select('id', { count: 'exact', head: true })
+      .select('tipo')
       .eq('estado', 'pendiente');
-    this._pendingByModulo.update((m) => ({ ...m, flota: count ?? 0 }));
+    const filas = (data ?? []) as { tipo: string }[];
+    // tipo → submódulo donde se atiende ese aviso.
+    const mapa: Record<string, string> = {
+      bloqueo_critico: 'flota.checklists',
+      hallazgos: 'flota.checklists',
+      mantenimiento_vencido: 'flota.mantenimientos',
+      pre_cita: 'flota.mantenimientos',
+      consumo_anormal: 'flota.combustible',
+      licencia: 'flota.avisos',
+      matricula: 'flota.avisos',
+      seguro: 'flota.avisos',
+    };
+    const sub: Record<string, number> = {
+      'flota.checklists': 0,
+      'flota.mantenimientos': 0,
+      'flota.combustible': 0,
+      'flota.avisos': 0,
+    };
+    for (const f of filas) {
+      const key = mapa[f.tipo] ?? 'flota.avisos';
+      sub[key] = (sub[key] ?? 0) + 1;
+    }
+    this._pendingByModulo.update((m) => ({ ...m, flota: filas.length }));
+    this._pendingBySubmodulo.update((m) => ({ ...m, ...sub }));
   }
 
   private async loadAlertasCuadre(): Promise<void> {
@@ -108,5 +142,6 @@ export class NotificacionesService {
 
   clear(): void {
     this._pendingByModulo.set({});
+    this._pendingBySubmodulo.set({});
   }
 }

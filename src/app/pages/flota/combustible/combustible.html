@@ -55,14 +55,7 @@
       (valueChange)="onVehiculoChange($event)"
     />
   </div>
-  <div class="sgc-field filters-bar__date">
-    <input type="date" [value]="dateFrom()" (change)="onDateFromChange($any($event.target).value)"
-      aria-label="Fecha desde" title="Fecha desde" />
-  </div>
-  <div class="sgc-field filters-bar__date">
-    <input type="date" [value]="dateTo()" (change)="onDateToChange($any($event.target).value)"
-      aria-label="Fecha hasta" title="Fecha hasta" />
-  </div>
+  <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
   @if (hasFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros

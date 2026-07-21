@@ -23,8 +23,9 @@
 
 @if (!loading() && !error()) {
   <!-- Summary cards -->
+  <!-- R11 — KPIs clicables: cada número abre su lista filtrada -->
   <div class="inv-reportes__cards" role="region" aria-label="Resumen del inventario">
-    <article class="inv-reportes__card">
+    <article class="inv-reportes__card inv-reportes__card--link" (click)="irAArticulos()" role="button" tabindex="0" (keydown.enter)="irAArticulos()">
       <div class="inv-reportes__card-icon inv-reportes__card-icon--primary" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
@@ -36,7 +37,7 @@
       </div>
     </article>
 
-    <article class="inv-reportes__card">
+    <article class="inv-reportes__card inv-reportes__card--link" (click)="irAStockBajo()" role="button" tabindex="0" (keydown.enter)="irAStockBajo()">
       <div class="inv-reportes__card-icon inv-reportes__card-icon--warning" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -49,7 +50,7 @@
       </div>
     </article>
 
-    <article class="inv-reportes__card">
+    <article class="inv-reportes__card inv-reportes__card--link" (click)="irASinStock()" role="button" tabindex="0" (keydown.enter)="irASinStock()">
       <div class="inv-reportes__card-icon inv-reportes__card-icon--danger" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
@@ -62,7 +63,7 @@
       </div>
     </article>
 
-    <article class="inv-reportes__card">
+    <article class="inv-reportes__card inv-reportes__card--link" (click)="irAArticulos()" role="button" tabindex="0" (keydown.enter)="irAArticulos()">
       <div class="inv-reportes__card-icon inv-reportes__card-icon--success" aria-hidden="true">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -92,7 +93,7 @@
           </thead>
           <tbody>
             @for (cat of categoriaStats(); track cat.nombre) {
-              <tr>
+              <tr class="inv-reportes__row--link" (click)="irACategoria(cat.catId)" role="button" tabindex="0" (keydown.enter)="irACategoria(cat.catId)" [attr.aria-label]="'Ver artículos de ' + cat.nombre">
                 <td>{{ cat.nombre }}</td>
                 <td class="inv-reportes__table-num">{{ cat.articulosCount | number }}</td>
                 <td class="inv-reportes__table-num">{{ cat.stockTotal | number }}</td>
@@ -123,8 +124,8 @@
               </tr>
             </thead>
             <tbody>
-              @for (art of articulosCriticos(); track art.codigo) {
-                <tr>
+              @for (art of criticosPaged(); track art.id) {
+                <tr class="inv-reportes__row--link" (click)="irAArticulo(art.id)" role="button" tabindex="0" (keydown.enter)="irAArticulo(art.id)" [attr.aria-label]="'Ver ' + art.nombre">
                   <td><span class="inv-reportes__code">{{ art.codigo }}</span></td>
                   <td>{{ art.nombre }}</td>
                   <td class="inv-reportes__table-num">{{ art.stockMinimo | number }}</td>
@@ -135,6 +136,13 @@
             </tbody>
           </table>
         </div>
+        @if (criticosTotalPages() > 1) {
+          <div class="inv-reportes__pager">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === 1" (click)="criticoGoTo(criticoPage() - 1)">← Anterior</button>
+            <span class="inv-reportes__pager-info">Página {{ criticoPage() }} de {{ criticosTotalPages() }} · {{ articulosCriticos().length }} artículos</span>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="criticoPage() === criticosTotalPages()" (click)="criticoGoTo(criticoPage() + 1)">Siguiente →</button>
+          </div>
+        }
       }
     </div>
   </section>

@@ -150,6 +150,13 @@
   // P6 — vehículo desactivado: atenuado (va al final por orden).
   &__row--inactive td { opacity: 0.6; }
 
+  // R4b — fila clicable que abre su origen (perfil del vehículo / mantenimientos).
+  &__row--link {
+    cursor: pointer;
+    transition: background 0.15s ease;
+    &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04)); }
+  }
+
   // P1 — kilometraje alineado a la derecha, tabular (th y td).
   &__table th#{&}__km,
   &__km {

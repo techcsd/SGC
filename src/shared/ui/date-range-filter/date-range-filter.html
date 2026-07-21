@@ -1,0 +1,47 @@
+<div class="drf">
+  @if (activo()) {
+    <!-- Chip removible con el rango activo -->
+    <span class="drf__chip">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      {{ chipLabel() }}
+      <button type="button" class="drf__chip-x" (click)="limpiar()" aria-label="Quitar filtro de fecha">✕</button>
+    </span>
+  } @else {
+    <button type="button" class="drf__btn" (click)="toggle()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      Filtrar por fecha
+    </button>
+  }
+
+  @if (activo()) {
+    <button type="button" class="drf__btn drf__btn--ghost" (click)="toggle()" aria-label="Cambiar rango de fecha">Cambiar</button>
+  }
+
+  @if (open()) {
+    <div class="drf__pop" role="dialog" aria-label="Elegir rango de fechas">
+      <div class="drf__presets">
+        @for (p of PRESETS; track p.label) {
+          <button type="button" class="drf__preset" (click)="aplicarPreset(p)">{{ p.label }}</button>
+        }
+      </div>
+      <div class="drf__custom">
+        <label class="drf__field">
+          <span>Desde</span>
+          <input type="date" [max]="today" [value]="draftDesde()" (change)="draftDesde.set($any($event.target).value || null)" />
+        </label>
+        <label class="drf__field">
+          <span>Hasta</span>
+          <input type="date" [max]="today" [value]="draftHasta()" (change)="draftHasta.set($any($event.target).value || null)" />
+        </label>
+      </div>
+      <div class="drf__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiar()">Limpiar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="aplicarCustom()">Aplicar</button>
+      </div>
+    </div>
+  }
+</div>

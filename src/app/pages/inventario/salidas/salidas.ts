@@ -27,13 +27,14 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 @Component({
   selector: 'app-salidas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, DateRangeFilter],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -301,6 +302,13 @@ export class Salidas implements OnInit {
 
   onDateToChange(value: string) {
     this.dateTo.set(value);
+    this.currentPage.set(1);
+  }
+
+  /** R12 — filtro de fechas unificado. */
+  onRango(r: RangoFecha) {
+    this.dateFrom.set(r.desde ?? '');
+    this.dateTo.set(r.hasta ?? '');
     this.currentPage.set(1);
   }
 

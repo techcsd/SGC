@@ -1,7 +1,7 @@
 @if (latitud() == null || longitud() == null) {
   <div class="weather-card weather-card--empty">
     <span class="weather-card__title">{{ titulo() }}</span>
-    <p class="weather-card__sinubi">Sin ubicación registrada. Asigna la ubicación del proyecto para ver el clima.</p>
+    <p class="weather-card__sinubi">Sin ubicación exacta configurada. Asigna la ubicación del proyecto (mapa) para ver el pronóstico de ese punto — no se usa la ciudad ni el país.</p>
   </div>
 } @else if (loading()) {
   <div class="weather-card weather-card--empty">
@@ -22,7 +22,11 @@
           <span class="weather-card__cond">{{ tiempo().label }}</span>
         </div>
       </div>
-      <span class="weather-card__title">{{ titulo() }}</span>
+      <div class="weather-card__titlewrap">
+        <span class="weather-card__title">{{ titulo() }}</span>
+        <!-- R7 — deja claro que es predicción, no un dato registrado. -->
+        <span class="weather-card__pronostico-tag" title="Información de predicción, no un dato registrado">Pronóstico</span>
+      </div>
     </div>
 
     <div class="weather-card__stats">

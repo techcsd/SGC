@@ -26,13 +26,15 @@ import { OrdenCompra } from '../../../../shared/models/orden-compra.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,6 +71,17 @@ export class Entradas implements OnInit {
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
   readonly PAGE_SIZE = 20;
+
+  // ── R8 — Detalle read-only de una entrada ────────────────
+  detailOpen = signal(false);
+  detailEntrada = signal<EntradaInventario | null>(null);
+  openDetail(e: EntradaInventario) {
+    this.detailEntrada.set(e);
+    this.detailOpen.set(true);
+  }
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
@@ -315,6 +328,13 @@ export class Entradas implements OnInit {
 
   onDateToChange(value: string) {
     this.dateTo.set(value);
+    this.currentPage.set(1);
+  }
+
+  /** R12 — filtro de fechas unificado. */
+  onRango(r: RangoFecha) {
+    this.dateFrom.set(r.desde ?? '');
+    this.dateTo.set(r.hasta ?? '');
     this.currentPage.set(1);
   }
 

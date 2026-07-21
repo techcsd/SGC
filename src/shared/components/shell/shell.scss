@@ -249,6 +249,7 @@
 .nav-child {
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 7px 14px 7px 48px;
   margin: 0 6px;
   border-radius: var(--sgc-radius);
@@ -258,6 +259,9 @@
   text-decoration: none;
   transition: background 0.15s ease, color 0.15s ease;
   white-space: nowrap;
+
+  // R5 — el label ocupa el espacio y el badge queda a la derecha.
+  &__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
   &:hover {
     background: rgba(255, 255, 255, 0.06);

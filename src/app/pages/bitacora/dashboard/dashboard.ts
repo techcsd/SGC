@@ -57,7 +57,11 @@ export class BitacoraDashboard implements OnInit {
   partes = computed(() => this.filtradas().filter((b) => b.tipo === 'parte_diario').length);
   visitas = computed(() => this.filtradas().filter((b) => b.tipo === 'visita').length);
   incidentes = computed(() => this.filtradas().filter((b) => b.tipo === 'incidente').length);
-  diasLluvia = computed(() => this.filtradas().filter((b) => b.llovio === true).length);
+  // R7 — días ÚNICOS con lluvia (no # de bitácoras). La lluvia es 100% MANUAL
+  // (campo `llovio` del parte); el pronóstico del weather NUNCA la registra.
+  diasLluvia = computed(
+    () => new Set(this.filtradas().filter((b) => b.llovio === true).map((b) => b.fecha)).size,
+  );
   obrerosMigracion = computed(() =>
     this.filtradas().reduce((acc, b) => acc + (Array.isArray(b.migracion_obreros) ? b.migracion_obreros.length : 0), 0),
   );

@@ -34,8 +34,7 @@
       <option value="UPDATE">Modificó</option>
       <option value="DELETE">Eliminó</option>
     </select>
-    <input class="aud__input" type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" />
-    <input class="aud__input" type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" />
+    <app-date-range-filter [desde]="fDesde()" [hasta]="fHasta()" (rangeChange)="onRango($event)" />
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="applyFilters()">Filtrar</button>
     @if (hasFilters()) {
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearFilters()">Limpiar</button>
