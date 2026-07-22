@@ -412,7 +412,7 @@
             <span class="sgc-badge sgc-badge--{{ alertaMantMeta(c.alerta_mantenimiento).badge }}">{{ alertaMantMeta(c.alerta_mantenimiento).label }}</span>
           </span>
           @if (c.km_faltan_mantenimiento != null) {
-            <span class="cl-card__hint">{{ c.km_faltan_mantenimiento > 0 ? (c.km_faltan_mantenimiento | number:'1.0-0') + ' km restantes' : 'vencido por ' + (-c.km_faltan_mantenimiento | number:'1.0-0') + ' km' }}</span>
+            <span class="cl-card__hint">{{ c.km_faltan_mantenimiento > 0 ? (c.km_faltan_mantenimiento | number:'1.0-0') + ' km restantes' : 'pasado con ' + (-c.km_faltan_mantenimiento | number:'1.0-0') + ' km' }}</span>
           }
         </div>
         <div class="cl-card">

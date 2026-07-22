@@ -24,6 +24,8 @@ export interface RegistroCombustible {
   foto_recibo_path: string | null;
   foto_tablero_path: string | null;
   alerta_consumo: boolean;
+  // U10 — motivo legible del disparo de la alerta (esperado / propio / piso absoluto).
+  motivo_alerta: string | null;
   client_uuid: string | null;
 
   // ── Legacy (litros) ──
@@ -62,7 +64,10 @@ export interface CombustibleDerivados {
   /** T5 — referencias de la evaluación en cascada. */
   rendimiento_esperado?: number | null;
   promedio_flota?: number | null;
-  referencia_alerta?: 'esperado' | 'propio' | null;
+  /** U10 — 'piso' se agrega como tercer nivel (piso absoluto de coherencia). */
+  referencia_alerta?: 'esperado' | 'propio' | 'piso' | null;
+  /** U10 — motivo legible del disparo (mostrado en el análisis). */
+  motivo_alerta?: string | null;
 }
 
 /** Un registro es v2 si tiene galones (aunque falten los derivados). */

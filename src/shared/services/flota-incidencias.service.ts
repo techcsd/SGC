@@ -112,6 +112,17 @@ export class FlotaIncidenciasService {
     return (data ?? []) as unknown as ConductorMulta[];
   }
 
+  // U11-web — multas relacionadas al vehículo (perfil del vehículo). RLS scopea.
+  async multasPorVehiculo(vehiculoId: string): Promise<ConductorMulta[]> {
+    const { data, error } = await this.supabase.client
+      .from('conductor_multas')
+      .select(MULTA_SELECT)
+      .eq('vehiculo_id', vehiculoId)
+      .order('fecha', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ConductorMulta[];
+  }
+
   async crearMulta(payload: MultaFormData, userId: string, docFile?: File | null): Promise<ConductorMulta> {
     let docPath: string | null = null;
     if (docFile) docPath = await this.upload('multas', docFile);

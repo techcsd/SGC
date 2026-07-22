@@ -194,20 +194,26 @@ export class Combustible implements OnInit {
     const costoKm = kmRec != null && kmRec > 0 ? monto / kmRec : null;
     const prom = this.promedioRendimientoVeh();
     const esperado = this.esperadoVeh();
+    const piso = this.flotaConfig.rendimientoMinimoKmGal();
     const factor = 1 - this.flotaConfig.umbralConsumoPct() / 100;
-    // T5 — cascada: esperado primero (aunque no haya historial), luego promedio propio.
+    // T5 + U10 — cascada: esperado → promedio propio → piso absoluto (respaldo final).
     let alerta = false;
-    let refTipo: 'esperado' | 'propio' | null = null;
-    if (rend != null) {
-      if (esperado != null && esperado > 0) {
+    let refTipo: 'esperado' | 'propio' | 'piso' | null = null;
+    if (rend != null && kmRec != null && kmRec > 0) {
+      if (esperado != null && esperado > 0 && rend < esperado * factor) {
+        alerta = true;
         refTipo = 'esperado';
-        alerta = rend < esperado * factor;
-      } else if (prom != null) {
+      } else if (prom != null && rend < prom * factor) {
+        alerta = true;
         refTipo = 'propio';
-        alerta = rend < prom * factor;
+      }
+      // Piso absoluto: rendimiento imposiblemente bajo alerta SIEMPRE.
+      if (rend < piso) {
+        alerta = true;
+        if (refTipo == null) refTipo = 'piso';
       }
     }
-    return { precio, kmRec, rend, costoKm, prom, esperado, alerta, refTipo };
+    return { precio, kmRec, rend, costoKm, prom, esperado, piso, alerta, refTipo };
   });
 
   hasFilters = computed(() =>
@@ -361,7 +367,7 @@ export class Combustible implements OnInit {
         this.combustibleService.notificarConsumoAnormal(registro); // email no bloqueante
         this.toast.warning(
           'Consumo anormal detectado',
-          `${derivados.rendimiento_km_gal} km/gal, bajo el promedio del vehículo (${derivados.promedio_rendimiento} km/gal). Se notificó a Flota.`,
+          `${derivados.motivo_alerta ?? `${derivados.rendimiento_km_gal} km/gal, por debajo de lo normal.`} Se notificó a Flota.`,
         );
       } else {
         const rendTxt = derivados.rendimiento_km_gal != null

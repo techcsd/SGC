@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.22.0": {
+      "titulo": "Consumo imposiblemente bajo siempre alerta, textos de checklist más simples y perfil del vehículo con mantenimiento, nivel y multas",
+      "cambios": [
+        { "t": "mejora", "d": "Alertas de consumo con piso absoluto: si un vehículo rinde por debajo del mínimo razonable (10 km/gal configurable), se marca como consumo anormal SIEMPRE, aunque no tenga historial ni rendimiento esperado; el detalle de la echada ahora explica el motivo (esperado, promedio del vehículo o piso absoluto)." },
+        { "t": "mejora", "d": "Los textos del pre-uso y del reporte semanal se acortaron y se pasaron a español llano (sin tecnicismos): etiquetas rápidas de leer y el detalle largo queda como ayuda secundaria." },
+        { "t": "nuevo", "d": "Perfil del vehículo: alerta visible de mantenimiento atrasado (o próximo), último nivel de combustible registrado y sección de Multas del vehículo." },
+        { "t": "mejora", "d": "Se homologó el texto de mantenimiento vencido a \"pasado con X km\" en avisos y pantallas de flota." }
+      ]
+    },
     "1.21.0": {
       "titulo": "Paridad app: incidente de equipo con comentario de operatividad y selector de equipos de la obra",
       "cambios": [

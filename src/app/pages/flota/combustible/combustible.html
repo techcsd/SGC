@@ -246,7 +246,11 @@
           <div class="calc-card__banda calc-card__banda--info">Primera echada del vehículo: aún sin rendimiento.</div>
         } @else if (calc().alerta) {
           <div class="calc-card__banda calc-card__banda--alerta">
-            ⚠ Consumo por debajo del promedio ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota.
+            @switch (calc().refTipo) {
+              @case ('esperado') { ⚠ Rinde por debajo del esperado ({{ calc().esperado | number:'1.1-2' }} km/gal). Se notificará a Flota. }
+              @case ('propio') { ⚠ Consumo por debajo del promedio del vehículo ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota. }
+              @default { ⚠ Rendimiento imposiblemente bajo ({{ calc().rend | number:'1.1-2' }} km/gal, mínimo {{ calc().piso | number:'1.0-0' }} km/gal). Se notificará a Flota. }
+            }
           </div>
         } @else {
           <div class="calc-card__banda calc-card__banda--ok">✓ Consumo dentro de lo normal.</div>
@@ -342,7 +346,10 @@
         @if (r.rendimiento_km_gal === null) {
           <p class="detail__analysis-line">Primera echada registrada del vehículo — sin rendimiento comparable todavía.</p>
         } @else if (r.alerta_consumo) {
-          <p class="detail__analysis-line detail__analysis-line--alerta">⚠ Consumo anormal: rinde por debajo del promedio del vehículo. Posible fuga, problema mecánico o combustible desviado.</p>
+          <p class="detail__analysis-line detail__analysis-line--alerta">
+            ⚠ Consumo anormal: {{ r.motivo_alerta ?? 'rinde por debajo de lo normal para este vehículo.' }}
+            Posible fuga, problema mecánico o combustible desviado.
+          </p>
         } @else {
           <p class="detail__analysis-line detail__analysis-line--ok">✓ Consumo dentro de lo normal para este vehículo.</p>
         }

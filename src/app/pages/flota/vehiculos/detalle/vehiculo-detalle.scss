@@ -16,6 +16,17 @@
 .vd-danger { color: var(--sgc-danger); font-weight: 600; }
 .vd-fecha-val { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
+// ── U11-web · Banner de mantenimiento ──
+.vd-mant {
+  margin-bottom: 18px; padding: 12px 16px; border-radius: var(--sgc-radius);
+  font-size: 14px; line-height: 1.4;
+  &--pre {
+    background: var(--sgc-warning-light);
+    border: 1px solid color-mix(in srgb, var(--sgc-warning) 40%, transparent);
+    color: var(--sgc-warning);
+  }
+}
+
 // ── Header ──
 .vd-header { display: flex; gap: 18px; align-items: flex-start; }
 .vd-header__foto {

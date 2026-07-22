@@ -29,7 +29,7 @@
         <li class="mant-banner__item">
           <span class="mant-banner__veh">{{ x.v.placa }} · {{ x.v.marca }} {{ x.v.modelo }}</span>
           @if (x.faltan !== null && x.faltan <= 0) {
-            <span class="sgc-badge sgc-badge--danger">Vencido ({{ -x.faltan! | number:'1.0-0' }} km)</span>
+            <span class="sgc-badge sgc-badge--danger">Vencido · pasado con {{ -x.faltan! | number:'1.0-0' }} km</span>
           } @else {
             <span class="sgc-badge sgc-badge--warning">Faltan {{ x.faltan | number:'1.0-0' }} km</span>
           }

@@ -49,6 +49,20 @@
       </div>
     }
 
+    <!-- ── U11-web · Alerta de mantenimiento (visible en el perfil) ── -->
+    @if (alertaMant(); as am) {
+      @if (am.estado === 'vencido') {
+        <div class="page-error vd-mant--vencido" role="alert">
+          🔴 <strong>Mantenimiento atrasado</strong> — pasado con {{ am.km | number:'1.0-0' }} km.
+          Agenda el mantenimiento de este vehículo cuanto antes.
+        </div>
+      } @else {
+        <div class="vd-mant vd-mant--pre" role="status">
+          🟠 <strong>Mantenimiento próximo</strong> — faltan {{ am.km | number:'1.0-0' }} km para el próximo.
+        </div>
+      }
+    }
+
     <!-- ── 2. Stats ── -->
     <div class="stat-grid">
       <div class="stat-card">
@@ -62,6 +76,12 @@
           {{ (stats()?.combustible_galones ?? 0) | number:'1.0-0' }} gal ·
           RD$ {{ (stats()?.combustible_monto ?? 0) | number:'1.0-0' }}
         </span>
+      </div>
+      <!-- U11-web — último nivel de tanque registrado (checklist más reciente) -->
+      <div class="stat-card">
+        <span class="stat-card__label">Último nivel</span>
+        <span class="stat-card__value">{{ ultimoNivelCombustible() ?? '—' }}</span>
+        <span class="stat-card__hint">del checklist más reciente</span>
       </div>
       <div class="stat-card" [class.stat-card--warn]="rendimientoBajo()">
         <span class="stat-card__label">Rendimiento prom.</span>
@@ -104,7 +124,7 @@
         </span>
         <span class="stat-card__hint">
           @if (kmFaltanMant() == null) { sin dato }
-          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">VENCIDO ({{ -kmFaltanMant()! | number:'1.0-0' }} km)</span> }
+          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">pasado con {{ -kmFaltanMant()! | number:'1.0-0' }} km</span> }
           @else { faltan {{ kmFaltanMant()! | number:'1.0-0' }} km }
         </span>
       </div>
@@ -327,6 +347,30 @@
               </div>
               @if (incUrl(d.foto_path); as url) {
                 <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver foto</a>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- ── U11-web · Multas del vehículo ── -->
+    <div class="sgc-card vd-card">
+      <h2 class="vd-section-title">Multas del vehículo</h2>
+      @if (multas().length === 0) {
+        <p class="vd-muted">Sin multas relacionadas a este vehículo.</p>
+      } @else {
+        <ul class="vd-asig-list">
+          @for (m of multas(); track m.id) {
+            <li class="vd-asig">
+              <div class="vd-asig__info">
+                <span class="vd-asig__nombre">{{ fecha(m.fecha) }} · {{ m.motivo ?? 'Sin motivo' }}</span>
+                @if (m.monto != null) { <span class="vd-muted">RD$ {{ m.monto | number:'1.0-2' }}</span> }
+                @if (m.conductor?.nombre) { <span class="vd-muted">· {{ m.conductor!.nombre }}</span> }
+                <span class="sgc-badge sgc-badge--{{ multaEstadoMeta(m.estado).badge }}">{{ multaEstadoMeta(m.estado).label }}</span>
+              </div>
+              @if (incUrl(m.documento_path); as url) {
+                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver doc</a>
               }
             </li>
           }

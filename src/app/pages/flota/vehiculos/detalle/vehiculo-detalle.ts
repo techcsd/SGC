@@ -15,11 +15,14 @@ import { FlotaIncidenciasService } from '../../../../../shared/services/flota-in
 import {
   VehiculoAccidente,
   VehiculoDano,
+  ConductorMulta,
+  MULTA_ESTADOS,
   ACCIDENTE_FASES,
   DANO_ORIGENES,
   AccidenteFase,
   DanoOrigen,
 } from '../../../../../shared/models/flota-incidencias.model';
+import { FlotaConfigService } from '../../../../../shared/services/flota-config.service';
 import {
   Vehiculo,
   VEHICULO_ESTADO_BADGE,
@@ -66,10 +69,12 @@ export class VehiculoDetalle implements OnInit {
   private notificaciones = inject(NotificacionesService);
   private userService = inject(UserService);
   private incidencias = inject(FlotaIncidenciasService);
+  private flotaConfig = inject(FlotaConfigService);
 
   readonly esElevado = this.userService.esFlotaElevado;
   readonly ACCIDENTE_FASES = ACCIDENTE_FASES;
   readonly DANO_ORIGENES = DANO_ORIGENES;
+  readonly MULTA_ESTADOS = MULTA_ESTADOS;
 
   readonly vehiculoId = this.route.snapshot.paramMap.get('id') ?? '';
   // tipo de documento a auto-abrir cuando se llega desde un aviso (?doc=seguro)
@@ -115,6 +120,26 @@ export class VehiculoDetalle implements OnInit {
     return v ? kmFaltanMantenimiento(v) : null;
   });
 
+  // ── U11-web — alerta de mantenimiento visible en el perfil ──
+  // 'vencido' si km_actual ≥ próximo (kmFaltan ≤ 0); 'pre_cita' si está cerca
+  // (dentro del umbral de pre-cita configurable). Reusa la regla del server.
+  alertaMant = computed<{ estado: 'vencido' | 'pre_cita'; km: number } | null>(() => {
+    const faltan = this.kmFaltanMant();
+    if (faltan == null) return null;
+    if (faltan <= 0) return { estado: 'vencido', km: -faltan };
+    if (faltan <= this.flotaConfig.umbralPrecitaKm()) return { estado: 'pre_cita', km: faltan };
+    return null;
+  });
+
+  // ── U11-web — último nivel de combustible registrado (cabecera más reciente) ──
+  ultimoNivelCombustible = computed<string | null>(() => {
+    // Los checklists llegan ordenados por fecha desc; toma el primero con nivel.
+    for (const c of this.checklists()) {
+      if (c.nivel_combustible) return c.nivel_combustible;
+    }
+    return null;
+  });
+
   checklistsRecientes = computed(() => this.checklists().slice(0, HISTORIAL_LIMITE));
   mantenimientosRecientes = computed(() => this.mantenimientos().slice(0, HISTORIAL_LIMITE));
   combustiblesRecientes = computed(() => this.combustibles().slice(0, HISTORIAL_LIMITE));
@@ -141,6 +166,7 @@ export class VehiculoDetalle implements OnInit {
   // ── FASE 4 — accidentes / daños ──
   accidentes = signal<VehiculoAccidente[]>([]);
   danos = signal<VehiculoDano[]>([]);
+  multas = signal<ConductorMulta[]>([]); // U11-web — multas del vehículo
   incMediaUrls = signal<Record<string, string>>({});
   accDrawer = signal(false);
   danoDrawer = signal(false);
@@ -308,16 +334,19 @@ export class VehiculoDetalle implements OnInit {
   // ── FASE 4 — accidentes / daños ──────────────────────────────
   private async cargarIncidencias() {
     try {
-      const [acc, dan] = await Promise.all([
+      const [acc, dan, mul] = await Promise.all([
         this.incidencias.accidentesPorVehiculo(this.vehiculoId),
         this.incidencias.danosPorVehiculo(this.vehiculoId),
+        this.incidencias.multasPorVehiculo(this.vehiculoId),
       ]);
       this.accidentes.set(acc);
       this.danos.set(dan);
-      // Resuelve URLs firmadas de actas AMET + fotos de daño.
+      this.multas.set(mul);
+      // Resuelve URLs firmadas de actas AMET + fotos de daño + documentos de multa.
       const paths = [
         ...acc.map((a) => a.reporte_amet_path).filter(Boolean),
         ...dan.map((d) => d.foto_path).filter(Boolean),
+        ...mul.map((m) => m.documento_path).filter(Boolean),
       ] as string[];
       const entries = await Promise.all(
         paths.map(async (p) => [p, await this.incidencias.signedUrl(p)] as const),
@@ -338,6 +367,9 @@ export class VehiculoDetalle implements OnInit {
   }
   origenLabel(o: string): string {
     return DANO_ORIGENES.find((x) => x.value === o)?.label ?? o;
+  }
+  multaEstadoMeta(estado: string) {
+    return MULTA_ESTADOS.find((x) => x.value === estado) ?? { label: estado, badge: 'neutral' };
   }
   /** Accidentes con acta AMET (los que se muestran en el perfil del vehículo). */
   accidentesConActa = computed(() => this.accidentes().filter((a) => a.reporte_amet_path));
