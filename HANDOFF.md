@@ -8,7 +8,13 @@ Follow-up de paridad web del T19 que ya salió en la app móvil (csd-app v1.23.0
 - **Selector de equipos de la obra**: el nombre del equipo (incidente de equipo + equipos alquilados del parte, `<datalist>`) se autocompleta con `equipos_de_obra(proyecto_id)` (RPC security-definer), cargado al elegir obra; fallback al listado global `getEquiposSugeridos`. Evita nombres inconsistentes.
 - **Detalle** (`bitacora/historial` drawer): muestra el comentario de operatividad (el `SELECT_QUERY` usa `*`, no requirió cambio).
 - Modelo `Bitacora`/`BitacoraFormData` + `BitacoraService.getEquiposDeObra` añadidos.
-- **PENDIENTE (menor):** QA manual en web del form de incidente de equipo (comentario obligatorio + autocompletado de equipos por obra) — no verificable headless (RLS/JWT). Con esto la paridad app↔web de T19 queda cerrada.
+- **PENDIENTE — QA manual (web, no headless por RLS/JWT) — CHECKLIST:**
+  - [ ] `bitacora/nueva` → tipo **Incidente** → subtipo **Incidente de equipo**: aparece el campo comentario de operatividad.
+  - [ ] "¿Queda operativo? = No" → el comentario es **obligatorio** (el submit se bloquea y marca el error "Requerido: el equipo quedó fuera de servicio"); "= Sí" → opcional.
+  - [ ] **Autocompletado de equipos por obra**: al elegir la obra, el input "Equipo afectado" sugiere (datalist) los equipos ya vistos en esa obra; también el input de equipos alquilados del parte diario.
+  - [ ] **Detalle** (`bitacora/historial` → abrir un incidente de equipo con comentario): se muestra "Comentario de operatividad".
+  - [ ] **Interconexión app↔web**: un incidente de equipo enviado desde la app (v1.23.0) con comentario aparece en el detalle web con equipo + comentario.
+  - Con esto la paridad app↔web de T19 queda cerrada.
 
 ## Actualización 4 · PROMPT-11 (T1–T18) (22/07/2026) — ✅ EN PRODUCCIÓN (web 1.20.0), commit+push+deploy, versión publicada
 
