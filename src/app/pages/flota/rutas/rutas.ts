@@ -16,6 +16,8 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS, destinoCoords } from '../../../../shared/models/ruta.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
@@ -53,6 +55,12 @@ export class Rutas implements OnInit {
   private routingService = inject(RoutingService);
   private geocoding = inject(GeocodingService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = signal(false);
 
   // ── Data state ──────────────────────────────────────────
   rutas = signal<Ruta[]>([]);
@@ -108,6 +116,34 @@ export class Rutas implements OnInit {
     this.detailOpen.set(false);
   }
 
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca o desmarca una ruta como dato de prueba. */
+  async marcarPrueba(r: Ruta, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('rutas', r.id, valor);
+      this.rutas.update((list) => list.map((x) => (x.id === r.id ? { ...x, es_prueba: valor } : x)));
+      this.detailRuta.update((d) => (d && d.id === r.id ? { ...d, es_prueba: valor } : d));
+      this.toast.success(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente una ruta de prueba (solo admin). */
+  async eliminarPrueba(r: Ruta) {
+    if (!this.esAdmin() || !r.es_prueba) return;
+    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    try {
+      await this.datosPrueba.eliminar('rutas', r.id);
+      this.rutas.update((list) => list.filter((x) => x.id !== r.id));
+      this.detailOpen.set(false);
+      this.toast.success('Dato de prueba eliminado');
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
   form = new FormGroup({
     vehiculo_id: new FormControl('', [Validators.required]),
     conductor_id: new FormControl<string | null>(null),
@@ -151,8 +187,11 @@ export class Rutas implements OnInit {
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const estado = this.selectedEstado();
+    // T2 — admin: oculta datos de prueba salvo que active el toggle (no-admin nunca los recibe).
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.rutas().filter((r) => {
+      if (r.es_prueba && !verPrueba) return false;
       if (
         q &&
         !r.origen.toLowerCase().includes(q) &&

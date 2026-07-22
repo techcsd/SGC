@@ -94,6 +94,20 @@
   gap: 6px;
 }
 
+// T2 — toggle "mostrar datos de prueba" (solo admin)
+.conductores__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
 .action-btn {
   width: 32px;
   height: 32px;

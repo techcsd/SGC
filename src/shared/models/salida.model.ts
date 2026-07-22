@@ -47,6 +47,8 @@ export interface SalidaInventario {
   entrega_receptor: string | null;
   entrega_firma_path: string | null;
   entrega_foto_path: string | null;
+  // T2 — dato de prueba (oculto a no-admin por RLS; admin lo marca/elimina).
+  es_prueba?: boolean;
   detalle_salidas?: DetalleSalida[];
 }
 

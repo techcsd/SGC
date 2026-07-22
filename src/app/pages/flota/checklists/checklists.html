@@ -80,6 +80,14 @@
     >
       ⚠ Solo críticos sin atender ({{ criticosPendientes() }})
     </button>
+
+    @if (esAdmin()) {
+      <label class="cl-prueba-toggle">
+        <input type="checkbox" [checked]="mostrarPrueba()"
+          (change)="mostrarPrueba.set($any($event.target).checked)" />
+        Mostrar datos de prueba
+      </label>
+    }
   </div>
 }
 
@@ -140,6 +148,7 @@
                 <td><span class="sgc-badge sgc-badge--neutral">{{ getTipoLabel(c.tipo) }}</span></td>
                 <td class="text-muted">{{ c.plantilla?.nombre ?? '—' }}</td>
                 <td>
+                  @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral cl-badge-gap">PRUEBA</span> }
                   <span class="sgc-badge sgc-badge--{{ resultadoMeta(c).badge }}">{{ resultadoMeta(c).label }}</span>
                   @if (c.tiene_criticos && !c.atendido) {
                     <span class="sgc-badge sgc-badge--warning cl-badge-gap">Requiere atención</span>
@@ -570,6 +579,21 @@
         <div class="cl-atendido">
           <span class="sgc-badge sgc-badge--success">Atendido</span>
           @if (c.nota_atencion) { <p class="cl-obs">“{{ c.nota_atencion }}”</p> }
+        </div>
+      }
+
+      <!-- T2 — datos de prueba (solo admin) -->
+      @if (esAdmin()) {
+        <div class="cl-prueba">
+          @if (c.es_prueba) {
+            <span class="sgc-badge sgc-badge--neutral">Dato de prueba</span>
+            <div class="cl-prueba__actions">
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(c, false)">Quitar prueba</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost cl-prueba__del" (click)="eliminarPrueba(c)">Eliminar</button>
+            </div>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(c, true)">Marcar como dato de prueba</button>
+          }
         </div>
       }
     </div>

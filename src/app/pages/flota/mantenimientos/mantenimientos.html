@@ -18,6 +18,31 @@
   </div>
 </div>
 
+<!-- ── T16 — Vehículos cerca/vencidos de mantenimiento (por km) ── -->
+@if (vehiculosMantenimiento().length > 0) {
+  <div class="mant-banner sgc-card" role="status">
+    <div class="mant-banner__title">
+      🔧 {{ vehiculosMantenimiento().length }} vehículo{{ vehiculosMantenimiento().length !== 1 ? 's' : '' }} necesita{{ vehiculosMantenimiento().length === 1 ? '' : 'n' }} atención de mantenimiento
+    </div>
+    <ul class="mant-banner__list">
+      @for (x of vehiculosMantenimiento(); track x.v.id) {
+        <li class="mant-banner__item">
+          <span class="mant-banner__veh">{{ x.v.placa }} · {{ x.v.marca }} {{ x.v.modelo }}</span>
+          @if (x.faltan !== null && x.faltan <= 0) {
+            <span class="sgc-badge sgc-badge--danger">Vencido ({{ -x.faltan! | number:'1.0-0' }} km)</span>
+          } @else {
+            <span class="sgc-badge sgc-badge--warning">Faltan {{ x.faltan | number:'1.0-0' }} km</span>
+          }
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                  (click)="crearDesdeBanner(x.v.id, (x.faltan ?? 0) <= 0)">
+            Crear mantenimiento
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+}
+
 <!-- ── Alerta: mantenimientos próximos ── -->
 @if (proximosMantenimientos().length > 0) {
   <div class="alert-banner" role="status">
@@ -79,6 +104,18 @@
       Limpiar filtros
     </button>
   }
+
+  <!-- T2 — mostrar datos de prueba (solo admin) -->
+  @if (esAdmin()) {
+    <label class="mantenimientos__prueba-toggle">
+      <input
+        type="checkbox"
+        [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)"
+      />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 <!-- ── Error ── -->
@@ -129,6 +166,9 @@
               <td class="mantenimientos__fecha">{{ formatFecha(m.fecha) }}</td>
               <td>
                 <span class="mantenimientos__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
+                @if (m.es_prueba) {
+                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                }
                 @if (m.vehiculo) {
                   <span class="mantenimientos__vehiculo-sub">{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}</span>
                 }
@@ -189,6 +229,38 @@
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
                   </button>
+                  <!-- T2 — datos de prueba (solo admin) -->
+                  @if (esAdmin()) {
+                    @if (!m.es_prueba) {
+                      <button
+                        type="button"
+                        class="action-btn"
+                        (click)="marcarPrueba(m, true)"
+                        aria-label="Marcar como dato de prueba"
+                        title="Marcar como dato de prueba"
+                      >🧪</button>
+                    } @else {
+                      <button
+                        type="button"
+                        class="action-btn"
+                        (click)="marcarPrueba(m, false)"
+                        aria-label="Quitar de datos de prueba"
+                        title="Quitar de datos de prueba"
+                      >↩️</button>
+                      <button
+                        type="button"
+                        class="action-btn action-btn--danger"
+                        (click)="eliminarPrueba(m)"
+                        aria-label="Eliminar dato de prueba"
+                        title="Eliminar dato de prueba"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    }
+                  }
                 </div>
               </td>
             </tr>

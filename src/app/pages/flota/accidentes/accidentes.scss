@@ -32,3 +32,35 @@
 .ac-muted {
   color: var(--sgc-text-secondary);
 }
+
+// T12 — form de registrar accidente
+.ac-form { display: flex; flex-direction: column; gap: 14px; }
+.ac-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ac-form__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+@media (max-width: 480px) { .ac-form__row { grid-template-columns: 1fr; } }
+
+// T2 — datos de prueba (solo admin)
+.ac-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.ac-toolbar__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+.ac-detail__prueba {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sgc-border);
+}

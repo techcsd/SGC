@@ -1,10 +1,13 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
+import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -14,6 +17,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
 /**
@@ -22,6 +26,8 @@ import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/u
  */
 interface ItemRow {
   articulo_id: string;
+  /** T14 — renglón en modo "Otro (texto libre)". Distinto del placeholder (nada elegido). */
+  esOtro: boolean;
   descripcion: string;
   cantidad: number;
   unidad: string;
@@ -47,6 +53,7 @@ const ESTADO_LABEL: Record<string, string> = {
 
 const NUEVO_ITEM: () => ItemRow = () => ({
   articulo_id: '',
+  esOtro: false,
   descripcion: '',
   cantidad: 1,
   unidad: '',
@@ -55,7 +62,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,6 +72,7 @@ export class SolicitudesMaterial implements OnInit {
   private proyectosService = inject(ProyectosService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
+  private bodegasService = inject(BodegasService);
   private userService = inject(UserService);
 
   formatFecha = formatFechaDisplay;
@@ -76,6 +84,7 @@ export class SolicitudesMaterial implements OnInit {
   proyectos = signal<Proyecto[]>([]);
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
+  bodegas = signal<Bodega[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -93,6 +102,19 @@ export class SolicitudesMaterial implements OnInit {
   });
 
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+
+  // FormControl.value no es señal — se puentea valueChanges para que el aviso
+  // de "obra sin almacén" reaccione al elegir la obra.
+  private proyectoIdSig = toSignal(this.form.controls.proyecto_id.valueChanges, {
+    initialValue: this.form.controls.proyecto_id.value,
+  });
+
+  /** T15 — la obra elegida no tiene almacén propio: lo recibido no entrará a su inventario. */
+  obraSinAlmacen = computed(() => {
+    const pid = this.proyectoIdSig();
+    if (!pid) return false;
+    return !this.bodegas().some((b) => b.proyecto_id === pid);
+  });
 
   /** Artículos agrupados por categoría (orden oficial), para el <select> (V13/V14). */
   articulosAgrupados = computed<{ categoria: string; articulos: Articulo[] }[]>(() => {
@@ -129,7 +151,7 @@ export class SolicitudesMaterial implements OnInit {
     const catName = new Map(this.categorias().map((c) => [c.id, c.nombre] as const));
     return this.formItems()
       .map((it, index) => ({ it, index }))
-      .filter(({ it }) => (it.articulo_id || it.descripcion.trim()) && it.cantidad > 0)
+      .filter(({ it }) => (it.articulo_id || (it.esOtro && it.descripcion.trim())) && it.cantidad > 0)
       .map(({ it, index }) => {
         const a = it.articulo_id ? arts.find((x) => x.id === it.articulo_id) : undefined;
         return {
@@ -140,7 +162,7 @@ export class SolicitudesMaterial implements OnInit {
           cantidad: it.cantidad,
           unidad: a?.unidad ?? it.unidad,
           talla: it.talla,
-          esOtro: !it.articulo_id,
+          esOtro: it.esOtro,
         };
       });
   });
@@ -155,16 +177,18 @@ export class SolicitudesMaterial implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [solicitudes, proyectos, articulos, categorias] = await Promise.all([
+      const [solicitudes, proyectos, articulos, categorias, bodegas] = await Promise.all([
         this.solicitudesService.getAll(),
         this.proyectosService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),
+        this.bodegasService.getAll(),
       ]);
       this.solicitudes.set(solicitudes);
       this.proyectos.set(proyectos);
       this.articulos.set(articulos.filter((a) => a.activo));
       this.categorias.set(categorias);
+      this.bodegas.set(bodegas);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las requisiciones.');
     } finally {
@@ -203,19 +227,20 @@ export class SolicitudesMaterial implements OnInit {
     this.formItems.update((items) => items.filter((_, i) => i !== index));
   }
 
-  /** Cambia el artículo del renglón; al elegir "Otro" (id vacío) se limpia talla. */
-  updateItemArticulo(index: number, value: string) {
+  /** T13b/T14 — selección desde el picker compartido (artículo | Otro | limpiar). */
+  onArticuloSelect(index: number, sel: ArticuloPickerSelection) {
     this.formItems.update((items) =>
       items.map((item, i) => {
         if (i !== index) return item;
-        const a = value ? this.articuloById(value) : undefined;
+        const a = sel.articuloId ? this.articuloById(sel.articuloId) : undefined;
         return {
           ...item,
-          articulo_id: value,
-          unidad: a?.unidad ?? item.unidad,
+          articulo_id: sel.articuloId ?? '',
+          esOtro: sel.esOtro,
+          unidad: a?.unidad ?? (sel.esOtro ? item.unidad : ''),
           talla: null,
           // Si vuelve a catálogo, la descripción libre deja de aplicar.
-          descripcion: value ? '' : item.descripcion,
+          descripcion: sel.esOtro ? item.descripcion : '',
         };
       }),
     );
@@ -270,7 +295,9 @@ export class SolicitudesMaterial implements OnInit {
   }
 
   private validItems(): ItemRow[] {
-    return this.formItems().filter((i) => (i.articulo_id || i.descripcion.trim()) && i.cantidad > 0);
+    return this.formItems().filter(
+      (i) => (i.articulo_id || (i.esOtro && i.descripcion.trim())) && i.cantidad > 0,
+    );
   }
 
   private async confirmar() {
@@ -304,7 +331,7 @@ export class SolicitudesMaterial implements OnInit {
 
       // U25 — registrar los "Otros" (texto libre) para la inteligencia de otros_valores.
       for (const i of items) {
-        if (!i.articulo_id && i.descripcion.trim()) {
+        if (i.esOtro && i.descripcion.trim()) {
           this.solicitudesService.registrarOtro(i.descripcion, created.id);
         }
       }

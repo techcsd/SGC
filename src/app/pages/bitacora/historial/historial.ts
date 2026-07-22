@@ -3,6 +3,9 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_TIPOS, INCIDENTE_GRAVEDADES } from '../../../../shared/models/bitacora.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, formatHora12, formatFechaHumana } from '../../../../shared/utils/fecha.util';
@@ -21,6 +24,14 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 export class Historial implements OnInit {
   private bitacoraService = inject(BitacoraService);
   private proyectosService = inject(ProyectosService);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  // T2 — solo admin ve/gestiona datos de prueba (enforcement server-side vía RLS).
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
+  mostrarPrueba = signal(false);
 
   formatFecha = formatFechaDisplay;
   formatFechaHora = formatFechaHumana; // U13 — "registrada el…"
@@ -57,8 +68,11 @@ export class Historial implements OnInit {
     const tipo = this.selectedTipo();
     const from = this.dateFrom();
     const to = this.dateTo();
+    // T2 — no-admin nunca ve datos de prueba (RLS); admin los oculta salvo toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.bitacoras().filter((b) => {
+      if (b.es_prueba && !verPrueba) return false;
       if (tipo && b.tipo !== tipo) return false;
       if (
         q &&
@@ -198,6 +212,37 @@ export class Historial implements OnInit {
   closeDetail() {
     this.detailOpen.set(false);
     this.detail.set(null);
+  }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca/desmarca la bitácora como dato de prueba. */
+  async marcarPrueba(b: Bitacora, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('bitacoras', b.id, valor);
+      this.bitacoras.update((list) =>
+        list.map((x) => (x.id === b.id ? { ...x, es_prueba: valor } : x)),
+      );
+      this.toast.success(
+        valor ? 'Marcada como prueba' : 'Quitada de prueba',
+        valor ? 'La bitácora ahora es un dato de prueba.' : 'La bitácora ya no es un dato de prueba.',
+      );
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente una bitácora de prueba (solo admin). */
+  async eliminarPrueba(b: Bitacora) {
+    if (!this.esAdmin() || !b.es_prueba) return;
+    if (!confirm('¿Eliminar esta bitácora de prueba? Esta acción no se puede deshacer.')) return;
+    try {
+      await this.datosPrueba.eliminar('bitacoras', b.id);
+      this.bitacoras.update((list) => list.filter((x) => x.id !== b.id));
+      this.toast.success('Dato de prueba eliminado', 'Se eliminó la bitácora de prueba.');
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
   }
 
   private async resolveArchivoUrls(archivos: BitacoraArchivo[]) {

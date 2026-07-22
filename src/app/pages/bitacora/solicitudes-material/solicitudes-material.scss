@@ -171,3 +171,15 @@ textarea {
   font-size: 11px;
   color: var(--sgc-text-secondary);
 }
+
+// T15 — aviso "obra sin almacén" (no bloqueante)
+.sm-warn {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-warning, #b26a00);
+  background: rgb(178 106 0 / 0.08);
+  border-radius: var(--sgc-radius);
+  font-size: 13px;
+  color: var(--sgc-text);
+  a { color: var(--sgc-primary-mid); font-weight: 600; }
+}

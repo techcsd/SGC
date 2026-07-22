@@ -70,6 +70,24 @@ export class PanelDia implements OnInit {
 
   alertasActivas = computed(() => this.avisos().filter((a) => a.estado === 'pendiente'));
 
+  // T11 — paginación incremental de los listados del panel (nunca todo de una vez).
+  readonly PAGE_SIZE = 10;
+  private inspLimit = signal(this.PAGE_SIZE);
+  private choferesLimit = signal(this.PAGE_SIZE);
+  private alertasLimit = signal(this.PAGE_SIZE);
+
+  inspeccionesVisibles = computed(() => this.inspeccionesHoy().slice(0, this.inspLimit()));
+  choferesVisibles = computed(() => this.choferesSinReportar().slice(0, this.choferesLimit()));
+  alertasVisibles = computed(() => this.alertasActivas().slice(0, this.alertasLimit()));
+
+  restantesInsp = computed(() => Math.max(0, this.inspeccionesHoy().length - this.inspLimit()));
+  restantesChoferes = computed(() => Math.max(0, this.choferesSinReportar().length - this.choferesLimit()));
+  restantesAlertas = computed(() => Math.max(0, this.alertasActivas().length - this.alertasLimit()));
+
+  verMasInsp() { this.inspLimit.update((n) => n + this.PAGE_SIZE); }
+  verMasChoferes() { this.choferesLimit.update((n) => n + this.PAGE_SIZE); }
+  verMasAlertas() { this.alertasLimit.update((n) => n + this.PAGE_SIZE); }
+
   /** Inspecciones por día (últimos 7 días). */
   semanaChart = computed<BarDatum[]>(() => {
     const dias: BarDatum[] = [];

@@ -1,9 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
+export type BitacoraCatalogoTipo =
+  | 'estructura'
+  | 'actividad'
+  | 'restriccion'
+  | 'suceso_incidente'
+  | 'suceso_accidente'
+  | 'suceso_equipo';
+
 export interface BitacoraCatalogo {
   id: number;
-  tipo: 'estructura' | 'actividad' | 'restriccion';
+  tipo: BitacoraCatalogoTipo;
   valor: string;
   activo: boolean;
   orden: number;

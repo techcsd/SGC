@@ -1,4 +1,13 @@
-import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  ElementRef,
+  inject,
+  input,
+  output,
+  signal,
+  computed,
+} from '@angular/core';
 import { todayIso, daysAgoIso, formatFechaDisplay } from '../../utils/fecha.util';
 
 export interface RangoFecha {
@@ -43,7 +52,13 @@ export class DateRangeFilter {
     { label: '12 meses', dias: 364 },
   ];
 
+  private host = inject(ElementRef<HTMLElement>);
+
   open = signal(false);
+  // T10 — cuando el botón está pegado al borde derecho (ej. Combustible) el
+  // popover anclado a la izquierda se sale de la pantalla; en ese caso lo
+  // anclamos a la derecha. Se recalcula al abrir.
+  alignRight = signal(false);
   // Borrador del rango custom mientras el popover está abierto.
   draftDesde = signal<string | null>(null);
   draftHasta = signal<string | null>(null);
@@ -62,7 +77,15 @@ export class DateRangeFilter {
   toggle() {
     this.draftDesde.set(this.desde());
     this.draftHasta.set(this.hasta());
-    this.open.update((v) => !v);
+    const willOpen = !this.open();
+    if (willOpen) {
+      const POP_WIDTH = 280;
+      const rect = (this.host.nativeElement as HTMLElement).getBoundingClientRect();
+      // Si el popover anclado a la izquierda se saldría por la derecha, lo
+      // anclamos a la derecha del contenedor.
+      this.alignRight.set(rect.left + POP_WIDTH > window.innerWidth - 8);
+    }
+    this.open.set(willOpen);
   }
 
   aplicarPreset(p: Preset) {

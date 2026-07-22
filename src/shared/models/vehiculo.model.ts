@@ -48,6 +48,8 @@ export interface Vehiculo {
   // S20 — rendimiento de referencia (km/gal) para comparar contra el promedio real.
   rendimiento_esperado_km_gal: number | null;
   activo: boolean;
+  // T2 — fila de datos de prueba (solo visible/eliminable por admin).
+  es_prueba: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -73,6 +75,8 @@ export interface VehiculoFormData {
   km_ultimo_mantenimiento: number | null;
   intervalo_mantenimiento_km: number;
   rendimiento_esperado_km_gal: number | null;
+  // T2 — marca de dato de prueba (opcional; solo lo escribe un admin).
+  es_prueba?: boolean;
 }
 
 export type EstadoVencimiento = 'vigente' | 'por_vencer' | 'vencido';

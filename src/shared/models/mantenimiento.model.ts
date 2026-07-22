@@ -14,6 +14,7 @@ export interface Mantenimiento {
   estado: MantenimientoEstado;
   notas: string | null;
   fotos?: string[];
+  es_prueba?: boolean;
   created_at: string;
 }
 

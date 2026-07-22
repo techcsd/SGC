@@ -49,6 +49,7 @@
     left: 0;
     z-index: 40;
     width: 280px;
+    max-width: calc(100vw - 16px);
     padding: 12px;
     background: var(--sgc-surface);
     border: 1px solid var(--sgc-border);
@@ -57,6 +58,12 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+
+    // T10 — flip a la derecha cuando anclado a la izquierda se saldría de pantalla.
+    &--right {
+      left: auto;
+      right: 0;
+    }
   }
 
   &__presets {

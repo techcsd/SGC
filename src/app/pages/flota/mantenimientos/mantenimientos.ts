@@ -18,12 +18,14 @@ import {
   MANT_TIPOS,
   MANT_ESTADOS,
 } from '../../../../shared/models/mantenimiento.model';
-import { Vehiculo } from '../../../../shared/models/vehiculo.model';
+import { Vehiculo, kmFaltanMantenimiento } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 
 interface PendingFoto {
   file: File;
@@ -43,6 +45,12 @@ export class Mantenimientos implements OnInit {
   private proveedoresService = inject(ProveedoresService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  private userService = inject(UserService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = signal(false);
 
   // ── Drawer photos ────────────────────────────────────────
   fotoPaths = signal<string[]>([]); // existing persisted photo paths
@@ -113,8 +121,11 @@ export class Mantenimientos implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const tipo = this.selectedTipo();
     const estado = this.selectedEstado();
+    // T2 — no-admin nunca ve datos de prueba (RLS server-side); admin los oculta salvo toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.mantenimientos().filter((m) => {
+      if (m.es_prueba && !verPrueba) return false;
       if (
         q &&
         !m.vehiculo?.placa.toLowerCase().includes(q) &&
@@ -140,6 +151,29 @@ export class Mantenimientos implements OnInit {
   drawerTitle = computed(() =>
     this.editingId() ? 'Editar mantenimiento' : 'Nuevo mantenimiento',
   );
+
+  // ── T16 — Vehículos cerca o vencidos de mantenimiento (por km) ──────────────
+  // Umbral "cerca": faltan <=500 km; "vencido": km faltantes <= 0.
+  readonly UMBRAL_CERCA_KM = 500;
+  vehiculosMantenimiento = computed(() => {
+    const conMant = new Set(
+      this.mantenimientos()
+        .filter((m) => m.estado !== 'completado')
+        .map((m) => m.vehiculo_id),
+    );
+    return this.vehiculos()
+      .filter((v) => v.activo && v.estado !== 'baja')
+      .map((v) => ({ v, faltan: kmFaltanMantenimiento(v) }))
+      .filter((x) => x.faltan != null && x.faltan <= this.UMBRAL_CERCA_KM)
+      // No repetir los que ya tienen un mantenimiento abierto/programado.
+      .filter((x) => !conMant.has(x.v.id))
+      .sort((a, b) => (a.faltan ?? 0) - (b.faltan ?? 0));
+  });
+
+  /** Abre el drawer prellenado para un vehículo del banner de mantenimiento. */
+  crearDesdeBanner(vehiculoId: string, vencido: boolean) {
+    this.openCreateDesdeAviso(vehiculoId, vencido ? 'correctivo' : 'preventivo');
+  }
 
   // ── Upcoming maintenance alert (next 7 days) ──────────────
   proximosMantenimientos = computed(() => {
@@ -280,6 +314,37 @@ export class Mantenimientos implements OnInit {
       this.toast.error('No se pudo completar', e instanceof Error ? e.message : undefined);
     } finally {
       this.completandoId.set(null);
+    }
+  }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca o desmarca un mantenimiento como dato de prueba. */
+  async marcarPrueba(m: Mantenimiento, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('mantenimientos', m.id, valor);
+      this.mantenimientos.update((list) =>
+        list.map((x) => (x.id === m.id ? { ...x, es_prueba: valor } : x)),
+      );
+      this.toast.success(
+        valor ? 'Marcado como prueba' : 'Quitado de prueba',
+        valor ? 'El mantenimiento se ocultará del listado.' : 'El mantenimiento vuelve al listado.',
+      );
+    } catch (e: unknown) {
+      this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  /** Elimina definitivamente un mantenimiento marcado como prueba. */
+  async eliminarPrueba(m: Mantenimiento) {
+    if (!this.esAdmin() || !m.es_prueba) return;
+    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    try {
+      await this.datosPrueba.eliminar('mantenimientos', m.id);
+      this.mantenimientos.update((list) => list.filter((x) => x.id !== m.id));
+      this.toast.success('Dato de prueba eliminado', 'El mantenimiento se eliminó definitivamente.');
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

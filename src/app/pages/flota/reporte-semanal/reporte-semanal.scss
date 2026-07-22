@@ -62,3 +62,13 @@
 .rs-acc-chevron { color: var(--sgc-text-muted); font-size: 12px; }
 
 .rs-acc-body { border-top: 1px solid var(--sgc-border); }
+
+// T7 — vista del chofer (solo sus vehículos)
+.rs-mine { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.rs-mine__item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+  &--ok { border-color: var(--sgc-success, #2e7d32); }
+}
+.rs-mine__veh { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

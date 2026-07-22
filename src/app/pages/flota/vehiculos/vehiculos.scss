@@ -72,6 +72,20 @@
     &:focus { border-color: var(--sgc-primary-mid); }
   }
 
+  // T2 — toggle "Mostrar datos de prueba" (solo admin)
+  &__prueba-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--sgc-text-secondary);
+    cursor: pointer;
+    user-select: none;
+
+    input { cursor: pointer; }
+  }
+
   &__loading {
     display: flex;
     align-items: center;
@@ -148,6 +162,32 @@
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  // T2 — badges apilados a la derecha del header (PRUEBA + estado)
+  &__card-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  // T2 — botón eliminar dato de prueba
+  &__delete-prueba {
+    color: var(--sgc-danger, #d32f2f);
+  }
+
+  // T2 — checkbox "Dato de prueba" en el drawer
+  &__prueba-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--sgc-text);
+    cursor: pointer;
+
+    input { cursor: pointer; }
   }
 
   &__tipo-icon {

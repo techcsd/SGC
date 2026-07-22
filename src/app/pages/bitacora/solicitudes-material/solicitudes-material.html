@@ -92,6 +92,12 @@
             <option [value]="p.id">{{ p.nombre }}</option>
           }
         </select>
+        @if (obraSinAlmacen()) {
+          <div class="sm-warn" role="note">
+            ⚠️ Esta obra no tiene almacén propio; lo que se reciba no se registrará en su inventario.
+            <a routerLink="/inventario/bodegas">Crear el almacén de la obra</a> (requiere permiso de Inventario).
+          </div>
+        }
         @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
           <span class="field-error">La obra es obligatoria.</span>
         }
@@ -112,21 +118,14 @@
 
       @for (item of formItems(); track $index; let i = $index) {
         <div class="item-row">
-          <select
+          <app-articulo-picker
             class="item-row__articulo"
-            [value]="item.articulo_id"
-            (change)="updateItemArticulo(i, $any($event.target).value)"
-            aria-label="Artículo"
-          >
-            <option value="">✏️ Otro (escribir)…</option>
-            @for (g of articulosAgrupados(); track g.categoria) {
-              <optgroup [label]="g.categoria">
-                @for (a of g.articulos; track a.id) {
-                  <option [value]="a.id">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }} ({{ a.codigo }})</option>
-                }
-              </optgroup>
-            }
-          </select>
+            [articulos]="articulos()"
+            [categorias]="categorias()"
+            [value]="item.articulo_id || null"
+            [esOtro]="item.esOtro"
+            (selectionChange)="onArticuloSelect(i, $event)"
+          />
           <app-qty-stepper
             class="item-row__cantidad"
             [value]="item.cantidad"
@@ -145,7 +144,7 @@
         </div>
 
         <!-- "Otro" (texto libre) → descripción + unidad; alimenta otros_valores -->
-        @if (!item.articulo_id) {
+        @if (item.esOtro) {
           <div class="item-row__otro">
             <input
               type="text"

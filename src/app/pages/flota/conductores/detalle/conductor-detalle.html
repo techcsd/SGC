@@ -331,7 +331,15 @@
     </div>
     <div class="sgc-field">
       <label for="multa_motivo">Motivo</label>
-      <input id="multa_motivo" type="text" formControlName="motivo" placeholder="Ej: exceso de velocidad" />
+      <select id="multa_motivo" formControlName="motivo">
+        <option [value]="''" disabled>Selecciona un motivo…</option>
+        @for (mo of motivosMulta(); track mo.id) {
+          <option [value]="mo.nombre">{{ mo.nombre }}</option>
+        }
+      </select>
+      @if (multaMotivoEsOtro()) {
+        <input class="multa-motivo-otro" type="text" formControlName="motivoOtro" placeholder="Especifica el motivo" />
+      }
     </div>
     <div class="sgc-field">
       <label for="multa_monto">Monto (RD$)</label>

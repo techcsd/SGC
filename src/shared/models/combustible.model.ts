@@ -31,6 +31,9 @@ export interface RegistroCombustible {
   costo_por_litro: number | null;
   total: number | null;
 
+  // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
+  es_prueba?: boolean;
+
   created_at: string;
 }
 
@@ -56,6 +59,10 @@ export interface CombustibleDerivados {
   costo_por_km: number | null;
   alerta_consumo: boolean;
   promedio_rendimiento: number | null;
+  /** T5 — referencias de la evaluación en cascada. */
+  rendimiento_esperado?: number | null;
+  promedio_flota?: number | null;
+  referencia_alerta?: 'esperado' | 'propio' | null;
 }
 
 /** Un registro es v2 si tiene galones (aunque falten los derivados). */

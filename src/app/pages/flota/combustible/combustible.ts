@@ -15,7 +15,10 @@ import { CombustibleService } from '../../../../shared/services/combustible.serv
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
+import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import {
   RegistroCombustible,
   RegistroCombustibleFormData,
@@ -41,15 +44,23 @@ export class Combustible implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
   private flotaConfig = inject(FlotaConfigService);
+  private estacionesService = inject(EstacionesCombustibleService);
   private toast = inject(ToastService);
+  private userService = inject(UserService);
+  private datosPrueba = inject(DatosPruebaService);
 
   formatFecha = formatFechaDisplay;
   esV2 = esRegistroV2;
+
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = signal(false);
 
   // ── Data state ──────────────────────────────────────────
   registros = signal<RegistroCombustible[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
   conductores = signal<Conductor[]>([]);
+  estaciones = signal<EstacionCombustible[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -88,9 +99,16 @@ export class Combustible implements OnInit {
     kilometraje: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
     galones: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
     monto: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
+    // T4 — estación desde el catálogo (Total Energies default); 'Otro' habilita texto libre.
+    estacionSel: new FormControl<string>('Total Energies'),
     estacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
   });
+
+  private estacionSelVal = toSignal(this.form.controls.estacionSel.valueChanges, {
+    initialValue: this.form.controls.estacionSel.value,
+  });
+  estacionEsOtro = computed(() => this.estacionSelVal() === 'Otro');
 
   // ── Filtering ────────────────────────────────────────────
   filtered = computed(() => {
@@ -98,8 +116,11 @@ export class Combustible implements OnInit {
     const vId = this.selectedVehiculoId();
     const from = this.dateFrom();
     const to = this.dateTo();
+    // T2 — admin: oculta datos de prueba salvo que active el toggle (no-admin nunca los recibe).
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.registros().filter((r) => {
+      if (r.es_prueba && !verPrueba) return false;
       if (q && !r.vehiculo?.placa.toLowerCase().includes(q) && !r.estacion?.toLowerCase().includes(q)) {
         return false;
       }
@@ -155,6 +176,13 @@ export class Combustible implements OnInit {
     return rends.length >= 3 ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
   });
 
+  /** Rendimiento esperado del vehículo seleccionado (S20), para el preview de la alerta. */
+  private esperadoVeh = computed<number | null>(() => {
+    const vId = this.vehiculoVal();
+    if (!vId) return null;
+    return this.vehiculos().find((v) => v.id === vId)?.rendimiento_esperado_km_gal ?? null;
+  });
+
   calc = computed(() => {
     const gal = this.galonesVal() ?? 0;
     const monto = this.montoVal() ?? 0;
@@ -165,9 +193,21 @@ export class Combustible implements OnInit {
     const rend = kmRec != null && gal > 0 ? kmRec / gal : null;
     const costoKm = kmRec != null && kmRec > 0 ? monto / kmRec : null;
     const prom = this.promedioRendimientoVeh();
-    const alerta =
-      rend != null && prom != null && rend < prom * (1 - this.flotaConfig.umbralConsumoPct() / 100);
-    return { precio, kmRec, rend, costoKm, prom, alerta };
+    const esperado = this.esperadoVeh();
+    const factor = 1 - this.flotaConfig.umbralConsumoPct() / 100;
+    // T5 — cascada: esperado primero (aunque no haya historial), luego promedio propio.
+    let alerta = false;
+    let refTipo: 'esperado' | 'propio' | null = null;
+    if (rend != null) {
+      if (esperado != null && esperado > 0) {
+        refTipo = 'esperado';
+        alerta = rend < esperado * factor;
+      } else if (prom != null) {
+        refTipo = 'propio';
+        alerta = rend < prom * factor;
+      }
+    }
+    return { precio, kmRec, rend, costoKm, prom, esperado, alerta, refTipo };
   });
 
   hasFilters = computed(() =>
@@ -189,14 +229,16 @@ export class Combustible implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [registros, vehiculos, conductores] = await Promise.all([
+      const [registros, vehiculos, conductores, estaciones] = await Promise.all([
         this.combustibleService.getAll(),
         this.vehiculosService.getAll(),
         this.conductoresService.getAll(),
+        this.estacionesService.getActivas(),
       ]);
       this.registros.set(registros);
       this.vehiculos.set(vehiculos);
       this.conductores.set(conductores);
+      this.estaciones.set(estaciones);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -247,7 +289,8 @@ export class Combustible implements OnInit {
     this.saveError.set('');
     this.clearFiles();
     this.form.reset({ fecha: this.today, vehiculo_id: '', conductor_id: null,
-      kilometraje: null, galones: null, monto: null, estacion: null, notas: null });
+      kilometraje: null, galones: null, monto: null,
+      estacionSel: 'Total Energies', estacion: null, notas: null });
     this.drawerOpen.set(true);
   }
 
@@ -303,7 +346,8 @@ export class Combustible implements OnInit {
       kilometraje: raw.kilometraje!,
       galones: raw.galones!,
       monto: raw.monto!,
-      estacion: raw.estacion?.trim() || null,
+      estacion:
+        raw.estacionSel === 'Otro' ? raw.estacion?.trim() || 'Otro' : raw.estacionSel || null,
       notas: raw.notas?.trim() || null,
     };
 
@@ -350,6 +394,51 @@ export class Combustible implements OnInit {
     }
   }
   closeDetail() { this.detailOpen.set(false); }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca o desmarca un registro como dato de prueba. */
+  async marcarPrueba(r: RegistroCombustible, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('registros_combustible', r.id, valor);
+      this.registros.update((list) => list.map((x) => (x.id === r.id ? { ...x, es_prueba: valor } : x)));
+      this.selected.update((s) => (s && s.id === r.id ? { ...s, es_prueba: valor } : s));
+      this.toast.success(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente un registro de prueba (solo admin). */
+  async eliminarPrueba(r: RegistroCombustible) {
+    if (!this.esAdmin() || !r.es_prueba) return;
+    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    try {
+      await this.datosPrueba.eliminar('registros_combustible', r.id);
+      this.registros.update((list) => list.filter((x) => x.id !== r.id));
+      this.detailOpen.set(false);
+      this.toast.success('Dato de prueba eliminado');
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** T5 — referencias para el "Análisis automático" del detalle. */
+  esperadoDeVehiculo(vehiculoId: string): number | null {
+    return this.vehiculos().find((v) => v.id === vehiculoId)?.rendimiento_esperado_km_gal ?? null;
+  }
+  promedioVehiculo(vehiculoId: string): number | null {
+    const rends = this.registros()
+      .filter((r) => r.vehiculo_id === vehiculoId && r.rendimiento_km_gal != null)
+      .map((r) => r.rendimiento_km_gal as number);
+    return rends.length ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
+  }
+  promedioFlota(): number | null {
+    const rends = this.registros()
+      .filter((r) => r.rendimiento_km_gal != null)
+      .map((r) => r.rendimiento_km_gal as number);
+    return rends.length ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
+  }
 
   /** Precio/galón promedio de la flota en el mes del registro (análisis). */
   precioPromedioFlotaMes(row: RegistroCombustible): number | null {

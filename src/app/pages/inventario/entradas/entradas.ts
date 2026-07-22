@@ -16,6 +16,8 @@ import { ProveedoresService } from '../../../../shared/services/proveedores.serv
 import { OrdenesCompraService } from '../../../../shared/services/ordenes-compra.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaService, TablaPrueba } from '../../../../shared/services/datos-prueba.service';
 import { EntradaInventario, EntradaItemFormData, OrigenEntrada } from '../../../../shared/models/entrada.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
@@ -48,6 +50,12 @@ export class Entradas implements OnInit {
   private ordenesCompraService = inject(OrdenesCompraService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  readonly TABLA_PRUEBA: TablaPrueba = 'entradas_inventario';
 
   // ── Data state ──────────────────────────────────────────
   entries = signal<EntradaInventario[]>([]);
@@ -67,6 +75,8 @@ export class Entradas implements OnInit {
   selectedBodega = signal('');
   dateFrom = signal('');
   dateTo = signal('');
+  // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
+  mostrarPrueba = signal(false);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -81,6 +91,37 @@ export class Entradas implements OnInit {
   }
   closeDetail() {
     this.detailOpen.set(false);
+  }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca o desmarca la entrada como dato de prueba. */
+  async marcarPrueba(e: EntradaInventario, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar(this.TABLA_PRUEBA, e.id, valor);
+      this.entries.update((list) => list.map((x) => (x.id === e.id ? { ...x, es_prueba: valor } : x)));
+      this.detailEntrada.update((d) => (d && d.id === e.id ? { ...d, es_prueba: valor } : d));
+      this.toast.success(
+        valor ? 'Marcada como prueba' : 'Prueba quitada',
+        valor ? 'La entrada se ocultará del listado.' : 'La entrada vuelve al listado normal.',
+      );
+    } catch (err: unknown) {
+      this.toast.error('Error', err instanceof Error ? err.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente una entrada marcada como prueba. */
+  async eliminarPrueba(e: EntradaInventario) {
+    if (!this.esAdmin() || !e.es_prueba) return;
+    if (!confirm(`¿Eliminar definitivamente la entrada de prueba del ${this.formatFecha(e.fecha)}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar(this.TABLA_PRUEBA, e.id);
+      this.entries.update((list) => list.filter((x) => x.id !== e.id));
+      this.closeDetail();
+      this.toast.success('Dato de prueba eliminado', 'Se eliminó la entrada.');
+    } catch (err: unknown) {
+      this.toast.error('Error al eliminar', err instanceof Error ? err.message : 'Intenta de nuevo.');
+    }
   }
 
   // ── Drawer ───────────────────────────────────────────────
@@ -219,8 +260,11 @@ export class Entradas implements OnInit {
     const bodegaId = this.selectedBodega();
     const from = this.dateFrom();
     const to = this.dateTo();
+    // T2 — no-admin nunca ve datos de prueba (RLS ya los oculta); admin los oculta salvo toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.entries().filter((e) => {
+      if (e.es_prueba && !verPrueba) return false;
       if (q && !(e.referencia ?? '').toLowerCase().includes(q) && !(e.proveedor?.nombre ?? '').toLowerCase().includes(q)) {
         return false;
       }

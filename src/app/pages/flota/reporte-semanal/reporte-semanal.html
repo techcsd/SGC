@@ -33,7 +33,7 @@
   <app-skeleton variant="table" [rows]="6" />
 } @else if (!semanaActual()) {
   <div class="table-empty sgc-card"><p>No hay datos de cumplimiento disponibles.</p></div>
-} @else {
+} @else if (esElevado()) {
   <!-- ── Resumen de la semana actual ── -->
   <div class="stat-grid">
     <div class="stat-card">
@@ -156,4 +156,37 @@
       </div>
     </div>
   }
+} @else {
+  <!-- ── T7 — Vista del chofer: solo SUS vehículos + CTA a llenar ── -->
+  <div class="sgc-card rs-block">
+    <div class="rs-card-title">Mi reporte de esta semana</div>
+    @if (semanaActual()!.filas.length === 0) {
+      <p class="rs-muted">No tienes vehículos asignados esta semana.</p>
+    } @else {
+      <ul class="rs-mine">
+        @for (f of semanaActual()!.filas; track f.vehiculo_id) {
+          <li class="rs-mine__item" [class.rs-mine__item--ok]="f.tiene_reporte">
+            <div class="rs-mine__veh">
+              <span class="rs-placa">{{ f.placa }}</span>
+              @if (f.tiene_reporte) {
+                <span class="sgc-badge sgc-badge--success">Reportado ✓</span>
+                @if (f.resultado) {
+                  <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
+                }
+              } @else {
+                <span class="sgc-badge sgc-badge--warning">Pendiente</span>
+              }
+            </div>
+            @if (!f.tiene_reporte) {
+              <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">
+                Llenar reporte
+              </a>
+            } @else {
+              <span class="rs-muted">{{ f.reporte_fecha ? (toDate(f.reporte_fecha) | date:'dd/MM/yyyy') : '' }}</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
 }

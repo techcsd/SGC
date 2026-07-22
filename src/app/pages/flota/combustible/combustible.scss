@@ -145,6 +145,31 @@ textarea { resize: vertical; min-height: 72px; }
   }
 }
 
+// ── T2 — datos de prueba (solo admin) ────────────────────
+.combustible__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
+.detail__prueba {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sgc-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.detail__prueba-actions { display: flex; gap: 8px; }
+.detail__prueba-del { color: var(--sgc-danger, #d32f2f); }
+
 // ── Responsive ───────────────────────────────────────────
 @media (max-width: 768px) {
   .combustible__totals-bar { flex-wrap: wrap; gap: 16px; }

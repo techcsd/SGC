@@ -67,6 +67,13 @@ export const flotaRoutes: Routes = [
     title: 'Dashboards de combustible — Flota',
   },
   {
+    path: 'conciliacion-combustible',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./conciliacion-combustible/conciliacion-combustible').then((m) => m.ConciliacionCombustible),
+    title: 'Conciliación de combustible — Flota',
+  },
+  {
     path: 'rutas',
     loadComponent: () => import('./rutas/rutas').then((m) => m.Rutas),
     title: 'Rutas — Flota',

@@ -45,6 +45,18 @@
       Limpiar filtros
     </button>
   }
+
+  <!-- T2 — mostrar datos de prueba (solo admin) -->
+  @if (esAdmin()) {
+    <label class="historial__prueba-toggle">
+      <input
+        type="checkbox"
+        [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)"
+      />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 @if (error()) {
@@ -75,13 +87,21 @@
           <th>Detalle</th>
           <th>Responsable / visitante</th>
           <th>Resumen</th>
+          @if (esAdmin()) {
+            <th class="text-center">Acciones</th>
+          }
         </tr>
       </thead>
       <tbody>
         @for (b of paginated(); track b.id) {
           <tr class="clickable-row" (click)="openDetail(b)">
             <td>{{ formatFecha(b.fecha) }}</td>
-            <td><span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span></td>
+            <td>
+              <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+              @if (b.es_prueba) {
+                <span class="sgc-badge sgc-badge--neutral historial__badge-inline">PRUEBA</span>
+              }
+            </td>
             <td>{{ b.proyecto?.nombre ?? '—' }}</td>
             <td>{{ resumenEntrada(b) }}</td>
             <td>
@@ -98,6 +118,38 @@
                 @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }} }
               }
             </td>
+            <!-- T2 — acciones de datos de prueba (solo admin). stopPropagation para no abrir el detalle. -->
+            @if (esAdmin()) {
+              <td class="text-center" (click)="$event.stopPropagation()">
+                <div class="historial__row-actions">
+                  <button
+                    type="button"
+                    class="action-btn"
+                    (click)="marcarPrueba(b, !b.es_prueba)"
+                    [attr.aria-label]="b.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                    [title]="b.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6L12 2z"/>
+                    </svg>
+                  </button>
+                  @if (b.es_prueba) {
+                    <button
+                      type="button"
+                      class="action-btn action-btn--danger"
+                      (click)="eliminarPrueba(b)"
+                      aria-label="Eliminar dato de prueba"
+                      title="Eliminar (dato de prueba)"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              </td>
+            }
           </tr>
         }
       </tbody>

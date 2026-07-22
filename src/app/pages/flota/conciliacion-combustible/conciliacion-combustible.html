@@ -1,0 +1,143 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Conciliación de combustible</h1>
+    <span class="page-count">Compara el informe de la estación vs lo registrado</span>
+  </div>
+</div>
+
+<!-- ── Importar informe ── -->
+<div class="sgc-card cc-import">
+  <div class="cc-import__row">
+    <div class="sgc-field">
+      <label for="estacion">Estación del informe</label>
+      <select id="estacion" [value]="estacionSel()" (change)="onEstacion($any($event.target).value)">
+        @for (e of estaciones(); track e.id) {
+          <option [value]="e.nombre">{{ e.nombre }}</option>
+        }
+      </select>
+    </div>
+    <label class="sgc-btn sgc-btn--primary cc-file">
+      📥 Importar informe (Excel/CSV)
+      <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" hidden />
+    </label>
+  </div>
+  @if (nombreArchivo()) { <p class="cc-file-name">Archivo: {{ nombreArchivo() }}</p> }
+  @if (parsing()) { <p class="cc-muted">Procesando…</p> }
+  @if (parseError()) { <p class="cc-error" role="alert">{{ parseError() }}</p> }
+  <p class="cc-hint">
+    El importador detecta automáticamente las columnas de <strong>fecha</strong>, <strong>placa/tarjeta</strong>,
+    <strong>galones</strong> y <strong>monto</strong> por el nombre del encabezado.
+  </p>
+</div>
+
+<!-- ── Resultado del cruce ── -->
+@if (meta(); as m) {
+  <div class="stat-grid">
+    <div class="stat-card stat-card--ok">
+      <span class="stat-card__label">Coinciden</span>
+      <span class="stat-card__value">{{ m.total_matches }}</span>
+    </div>
+    <div class="stat-card stat-card--warn">
+      <span class="stat-card__label">Diferencias</span>
+      <span class="stat-card__value">{{ m.total_diferencias }}</span>
+    </div>
+    <div class="stat-card stat-card--danger">
+      <span class="stat-card__label">Solo informe</span>
+      <span class="stat-card__value">{{ m.total_solo_informe }}</span>
+    </div>
+    <div class="stat-card stat-card--danger">
+      <span class="stat-card__label">Solo plataforma</span>
+      <span class="stat-card__value">{{ m.total_solo_plataforma }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Monto informe / plataforma</span>
+      <span class="stat-card__value">{{ m.monto_informe | number:'1.0-0' }} / {{ m.monto_plataforma | number:'1.0-0' }}</span>
+    </div>
+  </div>
+
+  <div class="cc-actions">
+    <div class="cc-tabs">
+      <button type="button" [class.cc-tab--active]="tab() === 'diferencia'" (click)="tab.set('diferencia')">Diferencias ({{ m.total_diferencias }})</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'solo_informe'" (click)="tab.set('solo_informe')">Solo informe ({{ m.total_solo_informe }})</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'solo_plataforma'" (click)="tab.set('solo_plataforma')">Solo plataforma ({{ m.total_solo_plataforma }})</button>
+      <button type="button" [class.cc-tab--active]="tab() === 'match'" (click)="tab.set('match')">Coinciden ({{ m.total_matches }})</button>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
+      {{ saving() ? 'Guardando…' : 'Guardar conciliación' }}
+    </button>
+  </div>
+
+  <div class="table-wrapper sgc-card">
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Detalle de conciliación">
+        <thead>
+          <tr>
+            <th>Placa / tarjeta</th><th>Fecha</th>
+            <th class="text-right">Gal. informe</th><th class="text-right">Gal. plataforma</th>
+            <th class="text-right">Monto informe</th><th class="text-right">Monto plataforma</th>
+            <th class="text-right">Δ galones</th><th class="text-right">Δ monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of detallesPorTab(); track $index) {
+            <tr>
+              <td>{{ d.identificador ?? '—' }}</td>
+              <td>{{ d.fecha ? formatFecha(d.fecha) : '—' }}</td>
+              <td class="text-right">{{ d.galones_informe === null ? '—' : (d.galones_informe | number:'1.0-2') }}</td>
+              <td class="text-right">{{ d.galones_plataforma === null ? '—' : (d.galones_plataforma | number:'1.0-2') }}</td>
+              <td class="text-right">{{ d.monto_informe === null ? '—' : (d.monto_informe | number:'1.0-0') }}</td>
+              <td class="text-right">{{ d.monto_plataforma === null ? '—' : (d.monto_plataforma | number:'1.0-0') }}</td>
+              <td class="text-right" [class.cc-neg]="(d.diferencia_galones ?? 0) < 0">{{ d.diferencia_galones === null ? '—' : (d.diferencia_galones | number:'1.0-2') }}</td>
+              <td class="text-right" [class.cc-neg]="(d.diferencia_monto ?? 0) < 0">{{ d.diferencia_monto === null ? '—' : (d.diferencia_monto | number:'1.0-0') }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8" class="cc-muted">Sin filas en esta categoría.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+<!-- ── Dashboard / historial ── -->
+<h2 class="cc-section">Dashboard de conciliaciones</h2>
+@if (loadingHist()) {
+  <app-skeleton variant="cards" [rows]="3" />
+} @else if (historial().length === 0) {
+  <div class="table-empty sgc-card"><p>Aún no hay conciliaciones guardadas.</p></div>
+} @else {
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-card__label">Conciliaciones</span>
+      <span class="stat-card__value">{{ historial().length }}</span>
+    </div>
+    <div class="stat-card" [class.stat-card--ok]="pctMatchHist() !== null && pctMatchHist()! >= 90">
+      <span class="stat-card__label">% match acumulado</span>
+      <span class="stat-card__value">{{ pctMatchHist() === null ? '—' : pctMatchHist() + '%' }}</span>
+    </div>
+    <div class="stat-card" [class.stat-card--danger]="totalDiscrepanciasHist() > 0">
+      <span class="stat-card__label">Discrepancias acumuladas</span>
+      <span class="stat-card__value">{{ totalDiscrepanciasHist() }}</span>
+    </div>
+  </div>
+
+  <div class="table-wrapper sgc-card">
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Totales por mes">
+        <thead>
+          <tr><th>Mes</th><th class="text-right">Monto plataforma</th><th class="text-right">Monto informe</th><th class="text-right">Discrepancias</th></tr>
+        </thead>
+        <tbody>
+          @for (mes of dashboardMeses(); track mes.mes) {
+            <tr>
+              <td>{{ mes.mes }}</td>
+              <td class="text-right">{{ mes.plataforma | number:'1.0-0' }}</td>
+              <td class="text-right">{{ mes.informe | number:'1.0-0' }}</td>
+              <td class="text-right" [class.cc-neg]="mes.discrepancias > 0">{{ mes.discrepancias }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

@@ -419,3 +419,24 @@ textarea {
   cursor: pointer;
   width: fit-content;
 }
+
+// ── T2 — datos de prueba (solo admin) ──
+.filters-bar__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
+.salidas__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}

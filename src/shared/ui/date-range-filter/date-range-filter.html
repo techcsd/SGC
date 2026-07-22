@@ -22,7 +22,7 @@
   }
 
   @if (open()) {
-    <div class="drf__pop" role="dialog" aria-label="Elegir rango de fechas">
+    <div class="drf__pop" [class.drf__pop--right]="alignRight()" role="dialog" aria-label="Elegir rango de fechas">
       <div class="drf__presets">
         @for (p of PRESETS; track p.label) {
           <button type="button" class="drf__preset" (click)="aplicarPreset(p)">{{ p.label }}</button>

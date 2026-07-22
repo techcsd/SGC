@@ -88,6 +88,8 @@ export interface ChecklistVehiculo {
   creado_por: string | null;
   capturado_en: string | null;
   created_at: string;
+  // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
+  es_prueba?: boolean;
   respuestas?: ChecklistRespuesta[];
   fotos?: ChecklistFoto[];
 }

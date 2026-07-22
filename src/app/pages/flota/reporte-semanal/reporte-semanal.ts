@@ -3,6 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReporteSemanalService } from '../../../../shared/services/reporte-semanal.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 import { ReporteSemanalFila } from '../../../../shared/models/vehiculo-asignacion.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
@@ -40,6 +41,14 @@ const RESULTADO_LABEL: Record<string, string> = {
 export class ReporteSemanal implements OnInit {
   private reporteService = inject(ReporteSemanalService);
   private toast = inject(ToastService);
+  private userService = inject(UserService);
+
+  /**
+   * T7 — vista dual: los roles elevados ven el dashboard global de cumplimiento;
+   * el chofer solo ve SUS vehículos (la vista ya viene scopeada server-side) con
+   * un CTA para llenar el suyo, sin KPIs de flota ni listado global de faltantes.
+   */
+  esElevado = this.userService.esFlotaElevado;
 
   filas = signal<ReporteSemanalFila[]>([]);
   loading = signal(true);
@@ -118,9 +127,10 @@ export class ReporteSemanal implements OnInit {
     await this.generarAvisos();
   }
 
-  /** Genera (idempotente) avisos para los faltantes de la semana actual — una sola vez. */
+  /** Genera (idempotente) avisos para los faltantes de la semana actual — una sola vez.
+   *  T7 — solo los roles elevados generan avisos de flota (el chofer no). */
   private async generarAvisos() {
-    if (this.avisosGenerados) return;
+    if (this.avisosGenerados || !this.esElevado()) return;
     this.avisosGenerados = true;
     const faltantes = this.faltantes();
     if (faltantes.length === 0) return;

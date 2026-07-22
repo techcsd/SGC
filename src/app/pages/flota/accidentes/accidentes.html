@@ -1,9 +1,28 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">Accidentes</h1>
-    <span class="page-count">{{ accidentes().length }} reportes</span>
+    <span class="page-count">{{ visibles().length }} reportes</span>
+  </div>
+  <div class="page-header__actions">
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="openCreate()">
+      + Registrar accidente
+    </button>
   </div>
 </div>
+
+<!-- T2 — mostrar datos de prueba (solo admin) -->
+@if (esAdmin()) {
+  <div class="ac-toolbar">
+    <label class="ac-toolbar__prueba-toggle">
+      <input
+        type="checkbox"
+        [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)"
+      />
+      Mostrar datos de prueba
+    </label>
+  </div>
+}
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
 
@@ -11,7 +30,7 @@
   <app-skeleton variant="table" [rows]="8" />
 } @else {
   <div class="table-wrapper sgc-card">
-    @if (accidentes().length === 0) {
+    @if (visibles().length === 0) {
       <div class="table-empty"><p>No hay accidentes registrados.</p></div>
     } @else {
       <div class="table-scroll">
@@ -23,11 +42,16 @@
             </tr>
           </thead>
           <tbody>
-            @for (a of accidentes(); track a.id) {
+            @for (a of visibles(); track a.id) {
               <tr class="ac-row" (click)="openDetail(a)" role="button" tabindex="0"
                 (keyup.enter)="openDetail(a)">
                 <td>{{ formatFecha(a.fecha) }}</td>
-                <td><span class="ac-placa">{{ a.vehiculo?.placa ?? '—' }}</span></td>
+                <td>
+                  <span class="ac-placa">{{ a.vehiculo?.placa ?? '—' }}</span>
+                  @if (a.es_prueba) {
+                    <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                  }
+                </td>
                 <td>{{ a.conductor?.nombre ?? '—' }}</td>
                 <td>{{ faseLabel(a.fase) }}</td>
                 <td class="text-right">
@@ -43,6 +67,70 @@
     }
   </div>
 }
+
+<!-- T12 — Registrar accidente -->
+<app-form-drawer title="Registrar accidente" [open]="createOpen()" (closed)="closeCreate()">
+  <form [formGroup]="form" (ngSubmit)="guardarAccidente()" class="ac-form">
+    <div class="sgc-field">
+      <label for="ac-veh">Vehículo <span class="required">*</span></label>
+      <select id="ac-veh" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
+        <option [value]="''">Seleccionar vehículo…</option>
+        @for (v of vehiculos(); track v.id) {
+          <option [value]="v.id">{{ v.placa }} · {{ v.marca }} {{ v.modelo }}</option>
+        }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="ac-cond">Conductor</label>
+      <select id="ac-cond" formControlName="conductor_id">
+        <option [value]="null">— Sin conductor —</option>
+        @for (c of conductores(); track c.id) {
+          <option [value]="c.id">{{ c.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="ac-form__row">
+      <div class="sgc-field">
+        <label for="ac-fecha">Fecha <span class="required">*</span></label>
+        <input id="ac-fecha" type="date" formControlName="fecha" [max]="today" />
+      </div>
+      <div class="sgc-field">
+        <label for="ac-fase">Momento</label>
+        <select id="ac-fase" formControlName="fase">
+          @for (fase of FASES; track fase.value) {
+            <option [value]="fase.value">{{ fase.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    <div class="ac-form__row">
+      <div class="sgc-field">
+        <label for="ac-les">Lesionados</label>
+        <input id="ac-les" type="number" min="0" formControlName="lesionados" />
+      </div>
+      <div class="sgc-field">
+        <label for="ac-terc">Tercero involucrado</label>
+        <input id="ac-terc" type="text" formControlName="tercero_involucrado" placeholder="Nombre / vehículo del tercero" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="ac-desc">¿Qué pasó?</label>
+      <textarea id="ac-desc" rows="3" formControlName="descripcion" placeholder="Describe el accidente"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label>Acta AMET (opcional)</label>
+      <input type="file" accept="image/*,application/pdf" (change)="onAmetSelected($event)" />
+      @if (ametFile()) { <span class="ac-muted">{{ ametFile()!.name }}</span> }
+    </div>
+    @if (saveError()) { <div class="save-error" role="alert">{{ saveError() }}</div> }
+    <div class="ac-form__actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreate()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Registrar' }}
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
 
 <!-- Detalle del accidente -->
 <app-form-drawer title="Detalle del accidente" [open]="detailOpen()" (closed)="closeDetail()">
@@ -62,6 +150,24 @@
       <p class="ac-muted">Cargando documento…</p>
     } @else {
       <p class="ac-muted">Sin acta AMET adjunta.</p>
+    }
+
+    <!-- T2 — datos de prueba (solo admin) -->
+    @if (esAdmin()) {
+      <div class="ac-detail__prueba">
+        @if (!a.es_prueba) {
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(a, true)">
+            🧪 Marcar como dato de prueba
+          </button>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(a, false)">
+            ↩️ Quitar de datos de prueba
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--danger" (click)="eliminarPrueba(a)">
+            🗑️ Eliminar dato de prueba
+          </button>
+        }
+      </div>
     }
   }
 </app-form-drawer>

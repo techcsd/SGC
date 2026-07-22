@@ -1,7 +1,9 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">Estado de conductores</h1>
-    <span class="page-count">{{ conductores().length }} conductores</span>
+    <span class="page-count">
+      {{ filtered().length }} de {{ conductores().length }} conductor{{ conductores().length !== 1 ? 'es' : '' }}
+    </span>
   </div>
 </div>
 
@@ -10,25 +12,81 @@
 @if (loading()) {
   <app-skeleton variant="table" [rows]="8" />
 } @else {
-  <!-- KPIs por estado de licencia -->
-  <div class="stat-grid">
-    <div class="stat-card stat-card--ok">
+  <!-- KPIs por estado de licencia — clicables para filtrar la tabla -->
+  <div class="stat-grid ce-kpis">
+    <button
+      type="button"
+      class="stat-card stat-card--ok ce-kpi"
+      [class.ce-kpi--active]="filtroEstado() === 'vigente'"
+      [attr.aria-pressed]="filtroEstado() === 'vigente'"
+      (click)="toggleFiltro('vigente')"
+    >
       <span class="stat-card__label">Licencias vigentes</span>
       <span class="stat-card__value">{{ vigentes() }}</span>
-    </div>
-    <div class="stat-card stat-card--warn">
+    </button>
+    <button
+      type="button"
+      class="stat-card stat-card--warn ce-kpi"
+      [class.ce-kpi--active]="filtroEstado() === 'por_vencer'"
+      [attr.aria-pressed]="filtroEstado() === 'por_vencer'"
+      (click)="toggleFiltro('por_vencer')"
+    >
       <span class="stat-card__label">Por vencer</span>
       <span class="stat-card__value">{{ porVencer() }}</span>
-    </div>
-    <div class="stat-card stat-card--danger">
+    </button>
+    <button
+      type="button"
+      class="stat-card stat-card--danger ce-kpi"
+      [class.ce-kpi--active]="filtroEstado() === 'vencida'"
+      [attr.aria-pressed]="filtroEstado() === 'vencida'"
+      (click)="toggleFiltro('vencida')"
+    >
       <span class="stat-card__label">Vencidas</span>
       <span class="stat-card__value">{{ vencidas() }}</span>
+    </button>
+    @if (sinDato() > 0) {
+      <button
+        type="button"
+        class="stat-card ce-kpi"
+        [class.ce-kpi--active]="filtroEstado() === 'sin_dato'"
+        [attr.aria-pressed]="filtroEstado() === 'sin_dato'"
+        (click)="toggleFiltro('sin_dato')"
+      >
+        <span class="stat-card__label">Sin dato de licencia</span>
+        <span class="stat-card__value">{{ sinDato() }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Búsqueda por nombre -->
+  <div class="filters-bar">
+    <div class="sgc-field filters-bar__search">
+      <input
+        type="search"
+        placeholder="Buscar conductor por nombre…"
+        [value]="search()"
+        (input)="onSearch($any($event.target).value)"
+        aria-label="Buscar conductor por nombre"
+      />
     </div>
+    @if (filtroEstado() || search()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost filters-bar__clear" (click)="limpiarFiltros()">
+        Limpiar filtros
+      </button>
+    }
   </div>
 
   <div class="table-wrapper sgc-card">
-    @if (conductores().length === 0) {
-      <div class="table-empty"><p>No hay conductores registrados.</p></div>
+    @if (filtered().length === 0) {
+      <div class="table-empty">
+        <p>
+          @if (filtroEstado() || search()) {
+            No hay conductores que coincidan con los filtros.
+          } @else {
+            No hay conductores registrados.
+          }
+        </p>
+      </div>
     } @else {
       <div class="table-scroll">
         <table class="data-table" aria-label="Estado de conductores">
@@ -42,9 +100,26 @@
             </tr>
           </thead>
           <tbody>
-            @for (c of conductores(); track c.conductor_id) {
-              <tr class="ce-row" [routerLink]="['/flota/conductores', c.conductor_id]" role="button">
-                <td>{{ c.nombre }}</td>
+            @for (c of filtered(); track c.conductor_id) {
+              <tr
+                class="ce-row"
+                role="button"
+                tabindex="0"
+                (click)="abrirConductor(c.conductor_id)"
+                (keyup.enter)="abrirConductor(c.conductor_id)"
+                [attr.aria-label]="'Ver perfil de ' + c.nombre"
+              >
+                <td>
+                  <div class="ce-conductor">
+                    <span class="ce-avatar" aria-hidden="true">{{ inicial(c.nombre) }}</span>
+                    <div class="ce-conductor__text">
+                      <span class="ce-conductor__name">{{ c.nombre }}</span>
+                      @if (c.vehiculos_usados > 0) {
+                        <span class="ce-conductor__sub">{{ c.vehiculos_usados }} vehículo{{ c.vehiculos_usados !== 1 ? 's' : '' }} usado{{ c.vehiculos_usados !== 1 ? 's' : '' }}</span>
+                      }
+                    </div>
+                  </div>
+                </td>
                 <td>{{ c.licencia_vencimiento ? formatFecha(c.licencia_vencimiento) : '—' }}</td>
                 <td>
                   <span class="sgc-badge sgc-badge--{{ estadoBadge[c.estado_licencia] }}">

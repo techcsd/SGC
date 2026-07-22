@@ -200,6 +200,17 @@ export class VehiculosService {
     return data as unknown as Vehiculo;
   }
 
+  /** T2 — elimina una fila de datos de prueba (RPC SECURITY DEFINER, solo admin;
+   *  solo borra si `es_prueba = true`). Lanza en error. */
+  async eliminarDatoPrueba(id: string): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('eliminar_dato_prueba', {
+      p_tabla: 'vehiculos',
+      p_id: id,
+    });
+    if (error) throw new Error(error.message);
+    return data === true;
+  }
+
   async toggleActivo(id: string, activo: boolean): Promise<void> {
     const { error } = await this.supabase.client
       .from('vehiculos')

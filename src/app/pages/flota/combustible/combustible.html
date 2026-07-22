@@ -61,6 +61,13 @@
       Limpiar filtros
     </button>
   }
+  @if (esAdmin()) {
+    <label class="combustible__prueba-toggle">
+      <input type="checkbox" [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)" />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 <!-- ── Error ── -->
@@ -100,7 +107,7 @@
             <th class="text-right">RD$/gal</th>
             <th class="text-right">km/gal</th>
             <th class="text-right">RD$/km</th>
-            <th></th>
+            <th class="text-center">Consumo</th>
           </tr>
         </thead>
         <tbody>
@@ -109,6 +116,7 @@
               <td class="combustible__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
+                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
                 @if (r.vehiculo?.marca) { <span class="combustible__marca">{{ r.vehiculo!.marca }}</span> }
                 @if (r.conductor?.nombre) { <span class="combustible__marca">{{ r.conductor!.nombre }}</span> }
               </td>
@@ -127,9 +135,13 @@
                 } @else { <span class="text-muted">—</span> }
               </td>
               <td class="text-right text-muted">{{ r.costo_por_km ? (r.costo_por_km | number:'1.2-2') : '—' }}</td>
-              <td class="text-right">
-                @if (r.alerta_consumo) {
-                  <span class="sgc-badge sgc-badge--danger" title="Consumo anormal">⚠ Alerta</span>
+              <td class="text-center">
+                @if (r.rendimiento_km_gal === null) {
+                  <span class="text-muted" title="Sin rendimiento comparable">—</span>
+                } @else if (r.alerta_consumo) {
+                  <span class="sgc-badge sgc-badge--danger" title="Consumo anormal">⚠ Anormal</span>
+                } @else {
+                  <span class="sgc-badge sgc-badge--success" title="Consumo normal">✓ Normal</span>
                 }
               </td>
             </tr>
@@ -264,8 +276,15 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="estacion">Estación (opcional)</label>
-        <input id="estacion" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
+        <label for="estacionSel">Estación</label>
+        <select id="estacionSel" formControlName="estacionSel">
+          @for (e of estaciones(); track e.id) {
+            <option [value]="e.nombre">{{ e.nombre }}</option>
+          }
+        </select>
+        @if (estacionEsOtro()) {
+          <input class="estacion-otro" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
+        }
       </div>
       <div class="sgc-field">
         <label for="notas">Notas (opcional)</label>
@@ -327,6 +346,14 @@
         } @else {
           <p class="detail__analysis-line detail__analysis-line--ok">✓ Consumo dentro de lo normal para este vehículo.</p>
         }
+        @if (r.rendimiento_km_gal !== null) {
+          <p class="detail__analysis-line detail__analysis-refs">
+            Rendimiento: <strong>{{ r.rendimiento_km_gal | number:'1.1-2' }} km/gal</strong> ·
+            esperado: {{ esperadoDeVehiculo(r.vehiculo_id) !== null ? (esperadoDeVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '— (sin definir)' }} ·
+            promedio del vehículo: {{ promedioVehiculo(r.vehiculo_id) !== null ? (promedioVehiculo(r.vehiculo_id) | number:'1.1-2') + ' km/gal' : '—' }} ·
+            promedio de la flota: {{ promedioFlota() !== null ? (promedioFlota() | number:'1.1-2') + ' km/gal' : '—' }}
+          </p>
+        }
         @if (precioPromedioFlotaMes(r); as prom) {
           <p class="detail__analysis-line">
             Precio pagado: RD$ {{ r.precio_por_galon | number:'1.2-2' }}/gal ·
@@ -360,6 +387,21 @@
             @if (detailTableroUrl()) { <a [href]="detailTableroUrl()" target="_blank" rel="noopener"><img [src]="detailTableroUrl()" alt="Tablero" /></a> }
             @else { <div class="detail__photo-empty">Sin foto</div> }
           </div>
+        </div>
+      }
+
+      <!-- T2 — datos de prueba (solo admin) -->
+      @if (esAdmin()) {
+        <div class="detail__prueba">
+          @if (r.es_prueba) {
+            <span class="sgc-badge sgc-badge--neutral">Dato de prueba</span>
+            <div class="detail__prueba-actions">
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, false)">Quitar prueba</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost detail__prueba-del" (click)="eliminarPrueba(r)">Eliminar</button>
+            </div>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, true)">Marcar como dato de prueba</button>
+          }
         </div>
       }
     </div>

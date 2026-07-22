@@ -221,3 +221,28 @@ textarea {
     dd { margin: 2px 0 0; font-size: 14px; color: var(--sgc-text); }
   }
 }
+
+// ── T2 — datos de prueba (solo admin) ────────────────────
+.rutas__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
+.rutas__prueba {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sgc-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.rutas__prueba-actions { display: flex; gap: 8px; }
+.rutas__prueba-del { color: var(--sgc-danger, #d32f2f); }

@@ -18,6 +18,7 @@ import { FlotaConfigService } from '../../../../shared/services/flota-config.ser
 import { DocumentosFlotaService } from '../../../../shared/services/documentos-flota.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import {
   Conductor,
   ConductorFormData,
@@ -48,6 +49,12 @@ export class Conductores implements OnInit {
   private documentosService = inject(DocumentosFlotaService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  // T2 — solo admin ve/gestiona datos de prueba (enforcement server-side vía RLS).
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
+  mostrarPrueba = signal(false);
 
   // ── Data state ──────────────────────────────────────────
   conductores = signal<Conductor[]>([]);
@@ -189,8 +196,11 @@ export class Conductores implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const activo = this.selectedActivo();
     const soloIncompletos = this.soloIncompletos();
+    // T2 — no-admin nunca ve datos de prueba (RLS); admin los oculta salvo toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.conductores().filter((c) => {
+      if (c.es_prueba && !verPrueba) return false;
       if (q && !c.nombre.toLowerCase().includes(q) && !c.cedula.toLowerCase().includes(q)) {
         return false;
       }
@@ -495,6 +505,37 @@ export class Conductores implements OnInit {
       this.conductores.update((list) =>
         list.map((item) => (item.id === c.id ? { ...item, activo: !next } : item)),
       );
+    }
+  }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca/desmarca el conductor como dato de prueba. */
+  async marcarPrueba(c: Conductor, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('conductores', c.id, valor);
+      this.conductores.update((list) =>
+        list.map((x) => (x.id === c.id ? { ...x, es_prueba: valor } : x)),
+      );
+      this.toast.success(
+        valor ? 'Marcado como prueba' : 'Quitado de prueba',
+        `"${c.nombre}" ${valor ? 'ahora es un dato de prueba' : 'ya no es un dato de prueba'}.`,
+      );
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente un conductor de prueba (solo admin). */
+  async eliminarPrueba(c: Conductor) {
+    if (!this.esAdmin() || !c.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${c.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('conductores', c.id);
+      this.conductores.update((list) => list.filter((x) => x.id !== c.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${c.nombre}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

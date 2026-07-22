@@ -15,6 +15,7 @@ import { VehiculosService } from '../../../../shared/services/vehiculos.service'
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import {
@@ -62,7 +63,12 @@ export class Checklists implements OnInit {
   private conductoresService = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private datosPrueba = inject(DatosPruebaService);
   private route = inject(ActivatedRoute);
+
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = signal(false);
 
   /** U8 — frecuencia solicitada al abrir el drawer (query param ?frecuencia=). */
   private targetFrecuencia: 'preuso' | 'semanal' = 'preuso';
@@ -132,8 +138,11 @@ export class Checklists implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const tipo = this.selectedTipo();
     const soloCrit = this.soloCriticos();
+    // T2 — admin: oculta datos de prueba salvo que active el toggle (no-admin nunca los recibe).
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.checklists().filter((c) => {
+      if (c.es_prueba && !verPrueba) return false;
       if (soloCrit && !(c.tiene_criticos && !c.atendido)) return false;
       if (tipo && c.tipo !== tipo) return false;
       if (q) {
@@ -596,6 +605,34 @@ export class Checklists implements OnInit {
   });
 
   closeDetail() { this.detailOpen.set(false); }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca o desmarca un checklist como dato de prueba. */
+  async marcarPrueba(c: ChecklistVehiculo, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('checklists_vehiculo', c.id, valor);
+      this.checklists.update((list) => list.map((x) => (x.id === c.id ? { ...x, es_prueba: valor } : x)));
+      this.selected.update((s) => (s && s.id === c.id ? { ...s, es_prueba: valor } : s));
+      this.toast.success(valor ? 'Marcado como dato de prueba' : 'Ya no es dato de prueba');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente un checklist de prueba (solo admin). */
+  async eliminarPrueba(c: ChecklistVehiculo) {
+    if (!this.esAdmin() || !c.es_prueba) return;
+    if (!confirm('¿Eliminar este dato de prueba? Esta acción no se puede deshacer.')) return;
+    try {
+      await this.datosPrueba.eliminar('checklists_vehiculo', c.id);
+      this.checklists.update((list) => list.filter((x) => x.id !== c.id));
+      this.detailOpen.set(false);
+      this.toast.success('Dato de prueba eliminado');
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
 
   onNotaInput(value: string) { this.notaAtencion.set(value); }
 

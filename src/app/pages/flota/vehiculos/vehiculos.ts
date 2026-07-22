@@ -51,6 +51,8 @@ export class FlotaVehiculos implements OnInit {
 
   // P6 — solo roles elevados crean/editan/activan/desactivan (espejo de RLS).
   puedeGestionar = this.userService.esFlotaElevado;
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
 
   // ── Drawer photos ────────────────────────────────────────
   fotoPaths = signal<string[]>([]); // existing persisted photo paths
@@ -72,6 +74,8 @@ export class FlotaVehiculos implements OnInit {
   searchQuery = signal('');
   selectedTipo = signal('');
   selectedEstado = signal('');
+  // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
+  mostrarPrueba = signal(false);
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
@@ -107,6 +111,8 @@ export class FlotaVehiculos implements OnInit {
     intervalo_mantenimiento_km: new FormControl<number>(5000, [Validators.min(1)]),
     // S20 — rendimiento esperado (km/gal) de referencia manual.
     rendimiento_esperado_km_gal: new FormControl<number | null>(null, [Validators.min(0)]),
+    // T2 — dato de prueba (solo admin lo edita).
+    es_prueba: new FormControl<boolean>(false),
   });
 
   // ── Computed ─────────────────────────────────────────────
@@ -114,8 +120,11 @@ export class FlotaVehiculos implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const tipo = this.selectedTipo();
     const estado = this.selectedEstado();
+    // T2 — no-admin: nunca ve datos de prueba. Admin: los oculta salvo que active el toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.vehiculos().filter((v) => {
+      if (v.es_prueba && !verPrueba) return false;
       if (
         q &&
         !v.placa.toLowerCase().includes(q) &&
@@ -201,7 +210,7 @@ export class FlotaVehiculos implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.resetFotos([]);
-    this.form.reset({ tipo: 'camion', estado: 'activo', kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000 });
+    this.form.reset({ tipo: 'camion', estado: 'activo', kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -230,6 +239,7 @@ export class FlotaVehiculos implements OnInit {
       km_ultimo_mantenimiento: vehiculo.km_ultimo_mantenimiento,
       intervalo_mantenimiento_km: vehiculo.intervalo_mantenimiento_km ?? 5000,
       rendimiento_esperado_km_gal: vehiculo.rendimiento_esperado_km_gal,
+      es_prueba: vehiculo.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
   }
@@ -355,6 +365,23 @@ export class FlotaVehiculos implements OnInit {
       this.vehiculos.update((list) =>
         list.map((v) => (v.id === vehiculo.id ? { ...v, activo: !next } : v)),
       );
+    }
+  }
+
+  /** T2 — elimina definitivamente una fila de datos de prueba (solo admin). */
+  async eliminarPrueba(v: Vehiculo) {
+    if (!this.esAdmin() || !v.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${v.placa}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      const ok = await this.vehiculosService.eliminarDatoPrueba(v.id);
+      if (!ok) {
+        this.toast.warning('No eliminado', 'La fila no es un dato de prueba.');
+        return;
+      }
+      this.vehiculos.update((list) => list.filter((x) => x.id !== v.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${v.placa}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

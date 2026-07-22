@@ -1,0 +1,79 @@
+<div class="apk">
+  <button
+    type="button"
+    class="apk__trigger"
+    [class.apk__trigger--placeholder]="!seleccionado()"
+    [disabled]="disabled()"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="listbox"
+  >
+    <span class="apk__trigger-text">{{ etiqueta() }}</span>
+    <svg class="apk__caret" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  </button>
+
+  @if (open()) {
+    <!-- Backdrop para cerrar al hacer click fuera -->
+    <div class="apk__backdrop" (click)="cerrar()"></div>
+
+    <div class="apk__panel" role="listbox" aria-label="Seleccionar artículo">
+      <div class="apk__search">
+        <input
+          #search
+          type="text"
+          [value]="query()"
+          (input)="onQuery($any($event.target).value)"
+          (keydown)="onKeydown($event)"
+          placeholder="Buscar por nombre o código…"
+          aria-label="Buscar artículo"
+        />
+      </div>
+
+      <div class="apk__list">
+        @for (g of gruposFiltrados(); track g.categoria) {
+          <div class="apk__group-label" [class.apk__group-label--star]="g.destacada">
+            {{ g.destacada ? '★ ' : '' }}{{ g.categoria }}
+          </div>
+          @for (a of g.articulos; track a.id) {
+            <button
+              type="button"
+              class="apk__opt"
+              role="option"
+              [class.apk__opt--active]="value() === a.id"
+              [class.apk__opt--hl]="highlighted() === indexDe(a)"
+              [attr.aria-selected]="value() === a.id"
+              (click)="elegir(a)"
+            >
+              <span class="apk__opt-main">
+                <span class="apk__opt-name">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}</span>
+                <span class="apk__opt-code">{{ a.codigo }}</span>
+              </span>
+              @if (stockDe(a.id) !== null) {
+                <span class="apk__opt-stock" [class.apk__opt-stock--zero]="stockDe(a.id) === 0">
+                  {{ stockDe(a.id) }} {{ a.unidad }}
+                </span>
+              }
+            </button>
+          }
+        } @empty {
+          <p class="apk__empty">Sin resultados para «{{ query() }}».</p>
+        }
+
+        @if (allowOtro()) {
+          <button
+            type="button"
+            class="apk__opt apk__opt--otro"
+            role="option"
+            [class.apk__opt--active]="esOtro()"
+            [class.apk__opt--hl]="highlighted() === otroIndex"
+            (click)="elegirOtro()"
+          >
+            ✏️ Otro (escribir)…
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

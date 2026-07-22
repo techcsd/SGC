@@ -5,9 +5,10 @@ import {
   signal,
   computed,
   OnInit,
+  DestroyRef,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
@@ -16,6 +17,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaService, TablaPrueba } from '../../../../shared/services/datos-prueba.service';
 import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
@@ -27,6 +29,8 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { StockService } from '../../../../shared/services/stock.service';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -34,7 +38,7 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
 
 @Component({
   selector: 'app-salidas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, DateRangeFilter],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,8 +50,15 @@ export class Salidas implements OnInit {
   private categoriasService = inject(CategoriasService);
   private proyectosService = inject(ProyectosService);
   private solicitudesMaterialService = inject(SolicitudesMaterialService);
+  private stockService = inject(StockService);
   private toast = inject(ToastService);
+  private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
+  private destroyRef = inject(DestroyRef);
+
+  // T2 — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  readonly TABLA_PRUEBA: TablaPrueba = 'salidas_inventario';
 
   // ── Data state ──────────────────────────────────────────
   salidas = signal<SalidaInventario[]>([]);
@@ -71,6 +82,8 @@ export class Salidas implements OnInit {
   selectedMotivo = signal<string>('');
   dateFrom = signal<string>('');
   dateTo = signal<string>('');
+  // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
+  mostrarPrueba = signal(false);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -79,6 +92,8 @@ export class Salidas implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   formItems = signal<SalidaItemFormData[]>([{ articulo_id: '', cantidad: 1 }]);
+  /** T13b — stock disponible por artículo en la bodega elegida (para el picker). */
+  stockMap = signal<Record<string, number>>({});
   // Foto de evidencia opcional (paridad con la app de campo).
   fotoFile = signal<File | null>(null);
   fotoPreview = signal<string | null>(null);
@@ -210,8 +225,11 @@ export class Salidas implements OnInit {
     const motivo = this.selectedMotivo();
     const from = this.dateFrom();
     const to = this.dateTo();
+    // T2 — no-admin nunca ve datos de prueba (RLS ya los oculta); admin los oculta salvo toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.salidas().filter((s) => {
+      if (s.es_prueba && !verPrueba) return false;
       if (
         q &&
         !(s.responsable ?? '').toLowerCase().includes(q) &&
@@ -252,6 +270,23 @@ export class Salidas implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // T13b — refresca el stock del picker al cambiar de almacén.
+    this.form.controls.bodega_id.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((id) => this.loadStockForBodega(id));
+  }
+
+  /** Carga el mapa de stock por artículo de la bodega seleccionada (para el picker). */
+  private async loadStockForBodega(bodegaId: string | null) {
+    if (!bodegaId) {
+      this.stockMap.set({});
+      return;
+    }
+    try {
+      this.stockMap.set(await this.stockService.getMapByBodega(bodegaId));
+    } catch {
+      this.stockMap.set({});
+    }
   }
 
   private async loadAll() {
@@ -452,6 +487,11 @@ export class Salidas implements OnInit {
       // Al cambiar de artículo, se limpia la talla previa (no aplica al nuevo).
       items.map((item, i) => (i === index ? { ...item, articulo_id: value, talla: null } : item)),
     );
+  }
+
+  /** T13b — selección desde el picker compartido (salidas: sin "Otro"). */
+  onArticuloSelect(index: number, sel: ArticuloPickerSelection) {
+    this.updateItemArticulo(index, sel.articuloId ?? '');
   }
 
   updateItemCantidad(index: number, value: number | string) {
@@ -667,6 +707,35 @@ export class Salidas implements OnInit {
       window.open(url, '_blank', 'noopener');
     } catch {
       this.fotoError.set('No se pudo abrir la foto.');
+    }
+  }
+
+  // ── T2 — datos de prueba (solo admin) ────────────────────
+  /** Marca o desmarca la salida como dato de prueba. */
+  async marcarPrueba(s: SalidaInventario, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar(this.TABLA_PRUEBA, s.id, valor);
+      this.salidas.update((list) => list.map((x) => (x.id === s.id ? { ...x, es_prueba: valor } : x)));
+      this.toast.success(
+        valor ? 'Marcada como prueba' : 'Prueba quitada',
+        valor ? 'La salida se ocultará del listado.' : 'La salida vuelve al listado normal.',
+      );
+    } catch (err: unknown) {
+      this.toast.error('Error', err instanceof Error ? err.message : 'Intenta de nuevo.');
+    }
+  }
+
+  /** Elimina definitivamente una salida marcada como prueba. */
+  async eliminarPrueba(s: SalidaInventario) {
+    if (!this.esAdmin() || !s.es_prueba) return;
+    if (!confirm(`¿Eliminar definitivamente la salida de prueba del ${this.formatFecha(s.fecha)}? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar(this.TABLA_PRUEBA, s.id);
+      this.salidas.update((list) => list.filter((x) => x.id !== s.id));
+      this.toast.success('Dato de prueba eliminado', 'Se eliminó la salida.');
+    } catch (err: unknown) {
+      this.toast.error('Error al eliminar', err instanceof Error ? err.message : 'Intenta de nuevo.');
     }
   }
 

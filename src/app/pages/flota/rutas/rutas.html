@@ -42,6 +42,14 @@
       Limpiar filtros
     </button>
   }
+
+  @if (esAdmin()) {
+    <label class="rutas__prueba-toggle">
+      <input type="checkbox" [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)" />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 <!-- ── Error ── -->
@@ -95,6 +103,7 @@
               <td>{{ r.conductor?.nombre ?? '—' }}</td>
               <td>
                 <span class="rutas__trip">{{ r.origen }} <span class="rutas__arrow">→</span> {{ r.destino }}</span>
+                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
                 @if (climaRuta(r); as rec) {
                   <span class="clima-chip" [class]="nivelClima(rec.nivel)" [title]="rec.detalle">
                     {{ rec.nivel === 'peligro' ? '⛈️' : '🌦️' }} {{ rec.titulo }}
@@ -452,6 +461,21 @@
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(r)">
           Editar ruta
         </button>
+      }
+
+      <!-- T2 — datos de prueba (solo admin) -->
+      @if (esAdmin()) {
+        <div class="rutas__prueba">
+          @if (r.es_prueba) {
+            <span class="sgc-badge sgc-badge--neutral">Dato de prueba</span>
+            <div class="rutas__prueba-actions">
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, false)">Quitar prueba</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost rutas__prueba-del" (click)="eliminarPrueba(r)">Eliminar</button>
+            </div>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(r, true)">Marcar como dato de prueba</button>
+          }
+        </div>
       }
     </div>
   }

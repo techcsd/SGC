@@ -54,6 +54,20 @@ export class StockService {
     }));
   }
 
+  /** T13b — stock disponible por artículo en una bodega (para el picker de salidas). */
+  async getMapByBodega(bodegaId: string): Promise<Record<string, number>> {
+    const { data, error } = await this.supabase.client
+      .from('stock_por_bodega')
+      .select('articulo_id, cantidad')
+      .eq('bodega_id', bodegaId);
+    if (error) throw new Error(error.message);
+    const map: Record<string, number> = {};
+    for (const r of (data ?? []) as { articulo_id: string; cantidad: number }[]) {
+      map[r.articulo_id] = Number(r.cantidad);
+    }
+    return map;
+  }
+
   /** Returns a map of articulo_id → total quantity across all bodegas */
   buildTotalMap(stock: StockPorBodega[]): Map<string, number> {
     const map = new Map<string, number>();

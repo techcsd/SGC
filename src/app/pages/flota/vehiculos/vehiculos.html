@@ -66,6 +66,16 @@
         <option [value]="e.value">{{ e.label }}</option>
       }
     </select>
+    @if (esAdmin()) {
+      <label class="flota-vehiculos__prueba-toggle">
+        <input
+          type="checkbox"
+          [checked]="mostrarPrueba()"
+          (change)="mostrarPrueba.set($any($event.target).checked)"
+        />
+        Mostrar datos de prueba
+      </label>
+    }
   </div>
 }
 
@@ -116,9 +126,14 @@
               <span class="flota-vehiculos__tipo-icon" aria-hidden="true">🚛</span>
               <span class="flota-vehiculos__tipo-label">{{ getTipoLabel(v.tipo) }}</span>
             </div>
-            <span [class]="'sgc-badge sgc-badge--' + vehiculoBadge(v)">
-              {{ vehiculoEstadoLabel(v) }}
-            </span>
+            <div class="flota-vehiculos__card-badges">
+              @if (v.es_prueba) {
+                <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+              }
+              <span [class]="'sgc-badge sgc-badge--' + vehiculoBadge(v)">
+                {{ vehiculoEstadoLabel(v) }}
+              </span>
+            </div>
           </div>
 
           <div class="flota-vehiculos__card-body">
@@ -202,6 +217,20 @@
                 [attr.aria-pressed]="v.activo"
               >
                 <span class="flota-vehiculos__toggle-knob"></span>
+              </button>
+            }
+            @if (esAdmin() && v.es_prueba) {
+              <button
+                class="sgc-btn sgc-btn--ghost flota-vehiculos__delete-prueba"
+                type="button"
+                (click)="eliminarPrueba(v)"
+                [attr.aria-label]="'Eliminar dato de prueba ' + v.placa"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Eliminar (dato de prueba)
               </button>
             }
           </div>
@@ -378,6 +407,17 @@
       <textarea id="notas" formControlName="notas" rows="3"
         placeholder="Observaciones sobre el vehículo..."></textarea>
     </div>
+
+    <!-- T2 — dato de prueba (solo admin) -->
+    @if (esAdmin()) {
+      <div class="sgc-field flota-vehiculos__prueba-field">
+        <label class="flota-vehiculos__prueba-check">
+          <input type="checkbox" formControlName="es_prueba" />
+          Dato de prueba
+        </label>
+        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+      </div>
+    }
 
     <!-- Fotos -->
     <div class="sgc-field">

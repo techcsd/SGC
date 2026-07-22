@@ -262,15 +262,25 @@
         @for (item of formItems(); track $index) {
           <div class="item-row">
             <div class="item-row__desc sgc-field">
-              <label [for]="'desc-' + $index" class="sr-only">Descripción</label>
-              <input
-                [id]="'desc-' + $index"
-                type="text"
-                list="articulos-catalogo"
-                [value]="item.descripcion"
-                (input)="updateItem($index, 'descripcion', $any($event.target).value)"
-                placeholder="Descripción del ítem (elige del catálogo si aplica)"
+              <label [for]="'desc-' + $index" class="sr-only">Artículo</label>
+              <app-articulo-picker
+                [articulos]="articulos()"
+                [categorias]="categorias()"
+                [value]="item.articulo_id"
+                [esOtro]="item.esOtro"
+                (selectionChange)="onArticuloSelect($index, $event)"
               />
+              @if (item.esOtro) {
+                <input
+                  class="item-row__desc-otro"
+                  [id]="'desc-' + $index"
+                  type="text"
+                  list="articulos-catalogo"
+                  [value]="item.descripcion"
+                  (input)="updateItem($index, 'descripcion', $any($event.target).value)"
+                  placeholder="Describe el ítem (Otro)…"
+                />
+              }
             </div>
             <div class="item-row__qty sgc-field">
               <label [for]="'qty-' + $index" class="sr-only">Cantidad</label>

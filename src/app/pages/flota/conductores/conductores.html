@@ -54,6 +54,18 @@
       Limpiar filtros
     </button>
   }
+
+  <!-- T2 — mostrar datos de prueba (solo admin) -->
+  @if (esAdmin()) {
+    <label class="conductores__prueba-toggle">
+      <input
+        type="checkbox"
+        [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)"
+      />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 <!-- ── Error ── -->
@@ -105,6 +117,9 @@
             <tr [class.row--inactive]="!c.activo">
               <td>
                 <span class="conductores__nombre">{{ c.nombre }}</span>
+                @if (c.es_prueba) {
+                  <span class="sgc-badge sgc-badge--neutral conductores__badge-inline">PRUEBA</span>
+                }
                 @if (c.tags && c.tags.length > 0) {
                   <div class="conductores__tags">
                     @for (t of c.tags; track t) {
@@ -213,6 +228,35 @@
                       </svg>
                     }
                   </button>
+
+                  <!-- T2 — marcar/quitar dato de prueba (solo admin) -->
+                  @if (esAdmin()) {
+                    <button
+                      type="button"
+                      class="action-btn"
+                      (click)="marcarPrueba(c, !c.es_prueba)"
+                      [attr.aria-label]="(c.es_prueba ? 'Quitar de prueba ' : 'Marcar como prueba ') + c.nombre"
+                      [title]="c.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4L12 17l-6.3 4.4L8 14 2 9.4h7.6L12 2z"/>
+                      </svg>
+                    </button>
+                    @if (c.es_prueba) {
+                      <button
+                        type="button"
+                        class="action-btn action-btn--deactivate"
+                        (click)="eliminarPrueba(c)"
+                        [attr.aria-label]="'Eliminar dato de prueba ' + c.nombre"
+                        title="Eliminar (dato de prueba)"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    }
+                  }
                 </div>
               </td>
             </tr>

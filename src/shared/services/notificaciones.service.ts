@@ -101,6 +101,9 @@ export class NotificacionesService {
       mantenimiento_vencido: 'flota.mantenimientos',
       pre_cita: 'flota.mantenimientos',
       consumo_anormal: 'flota.combustible',
+      // T1 — cada tipo de aviso a su submódulo real (antes caían al default flota.avisos).
+      reporte_semanal: 'flota.reporte-semanal',
+      conciliacion: 'flota.conciliacion',
       licencia: 'flota.avisos',
       matricula: 'flota.avisos',
       seguro: 'flota.avisos',
@@ -109,6 +112,8 @@ export class NotificacionesService {
       'flota.checklists': 0,
       'flota.mantenimientos': 0,
       'flota.combustible': 0,
+      'flota.reporte-semanal': 0,
+      'flota.conciliacion': 0,
       'flota.avisos': 0,
     };
     for (const f of filas) {

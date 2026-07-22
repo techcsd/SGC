@@ -6,7 +6,13 @@ import {
 } from '../../../../shared/services/bitacora-catalogos.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
-type Tipo = 'estructura' | 'actividad' | 'restriccion';
+type Tipo =
+  | 'estructura'
+  | 'actividad'
+  | 'restriccion'
+  | 'suceso_incidente'
+  | 'suceso_accidente'
+  | 'suceso_equipo';
 
 /** Admin management of the bitácora catalogs (estructuras/actividades/restricciones). */
 @Component({
@@ -23,6 +29,9 @@ export class AdminBitacoraCatalogos implements OnInit {
     { tipo: 'estructura', label: 'Estructuras' },
     { tipo: 'actividad', label: 'Actividades' },
     { tipo: 'restriccion', label: 'Restricciones' },
+    { tipo: 'suceso_incidente', label: 'Sucesos de incidente' },
+    { tipo: 'suceso_accidente', label: 'Sucesos de accidente' },
+    { tipo: 'suceso_equipo', label: 'Sucesos de equipo' },
   ];
 
   catalogos = signal<BitacoraCatalogo[]>([]);
@@ -33,12 +42,17 @@ export class AdminBitacoraCatalogos implements OnInit {
   saving = signal(false);
 
   porTipo = computed(() => {
-    const map: Record<Tipo, BitacoraCatalogo[]> = { estructura: [], actividad: [], restriccion: [] };
-    for (const c of this.catalogos()) map[c.tipo].push(c);
-    for (const t of Object.keys(map) as Tipo[]) {
+    // Tolerant bucketing: initialize a bucket for every known grupo and lazily
+    // create one for any unknown tipo the DB might return (S13 sembró tipos
+    // suceso_*; sin esto map[c.tipo].push() reventaba con TypeError y la grilla
+    // quedaba vacía).
+    const map: Record<string, BitacoraCatalogo[]> = {};
+    for (const g of this.grupos) map[g.tipo] = [];
+    for (const c of this.catalogos()) (map[c.tipo] ??= []).push(c);
+    for (const t of Object.keys(map)) {
       map[t].sort((a, b) => a.orden - b.orden || a.valor.localeCompare(b.valor));
     }
-    return map;
+    return map as Record<Tipo, BitacoraCatalogo[]>;
   });
 
   async ngOnInit() {

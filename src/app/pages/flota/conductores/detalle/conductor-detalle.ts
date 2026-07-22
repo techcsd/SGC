@@ -10,6 +10,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ConductoresService } from '../../../../../shared/services/conductores.service';
 import { ChecklistsVehiculoService } from '../../../../../shared/services/checklists-vehiculo.service';
 import { CombustibleService } from '../../../../../shared/services/combustible.service';
@@ -19,6 +20,7 @@ import { RutasService } from '../../../../../shared/services/rutas.service';
 import { SalidasService } from '../../../../../shared/services/salidas.service';
 import { VehiculosService } from '../../../../../shared/services/vehiculos.service';
 import { FlotaIncidenciasService } from '../../../../../shared/services/flota-incidencias.service';
+import { MotivosMultaService, MotivoMulta } from '../../../../../shared/services/motivos-multa.service';
 import { UserService } from '../../../../core/services/user.service';
 import { Conductor, LicenciaCategoria } from '../../../../../shared/models/conductor.model';
 import { Ruta } from '../../../../../shared/models/ruta.model';
@@ -66,6 +68,7 @@ export class ConductorDetalle implements OnInit {
   private salidasService = inject(SalidasService);
   private vehiculosService = inject(VehiculosService);
   private incidencias = inject(FlotaIncidenciasService);
+  private motivosMultaService = inject(MotivosMultaService);
   private userService = inject(UserService);
 
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
@@ -111,12 +114,19 @@ export class ConductorDetalle implements OnInit {
   multaDrawer = signal(false);
   multaGuardando = signal(false);
   private multaFile: File | null = null;
+  // T9 — catálogo de motivos + "Otro".
+  motivosMulta = signal<MotivoMulta[]>([]);
   multaForm = this.fb.group({
     fecha: [new Date().toISOString().slice(0, 10), Validators.required],
     motivo: ['', Validators.required],
+    motivoOtro: [''],
     monto: [null as number | null, [Validators.min(0)]],
     estado: ['pendiente' as MultaEstado, Validators.required],
   });
+  private motivoSel = toSignal(this.multaForm.controls.motivo.valueChanges, {
+    initialValue: this.multaForm.controls.motivo.value,
+  });
+  multaMotivoEsOtro = computed(() => this.motivoSel() === 'Otro');
 
   licenciaVencida = computed(() => this.stats()?.estado_licencia === 'vencida');
 
@@ -229,9 +239,16 @@ export class ConductorDetalle implements OnInit {
   }
 
   // ── FASE 4 — registrar multa (elevados) ──────────────────────
-  openMulta() {
-    this.multaForm.reset({ fecha: new Date().toISOString().slice(0, 10), motivo: '', monto: null, estado: 'pendiente' });
+  async openMulta() {
+    this.multaForm.reset({ fecha: new Date().toISOString().slice(0, 10), motivo: '', motivoOtro: '', monto: null, estado: 'pendiente' });
     this.multaFile = null;
+    if (this.motivosMulta().length === 0) {
+      try {
+        this.motivosMulta.set(await this.motivosMultaService.getActivos());
+      } catch {
+        /* catálogo opcional */
+      }
+    }
     this.multaDrawer.set(true);
   }
   onMultaFile(e: Event) {
@@ -249,7 +266,7 @@ export class ConductorDetalle implements OnInit {
         {
           conductor_id: this.conductorId,
           fecha: v.fecha!,
-          motivo: v.motivo?.trim() || null,
+          motivo: (v.motivo === 'Otro' ? v.motivoOtro?.trim() : v.motivo?.trim()) || null,
           monto: v.monto ?? null,
           vehiculo_id: null,
           accidente_id: null,

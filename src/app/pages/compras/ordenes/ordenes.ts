@@ -10,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DecimalPipe } from '@angular/common';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
@@ -19,9 +20,12 @@ import { EntradaInventario } from '../../../../shared/models/entrada.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
+import { Articulo } from '../../../../shared/models/articulo.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
@@ -36,10 +40,22 @@ const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
 };
 
 interface ItemRow {
+  /** T8 — artículo del catálogo (habilita la reconciliación recibido-vs-ordenado). */
+  articulo_id: string | null;
+  /** Renglón en modo "Otro (texto libre)". */
+  esOtro: boolean;
   descripcion: string;
   cantidad: number;
   precio_unitario: number;
 }
+
+const NUEVO_OC_ITEM: () => ItemRow = () => ({
+  articulo_id: null,
+  esOtro: false,
+  descripcion: '',
+  cantidad: 1,
+  precio_unitario: 0,
+});
 
 type ReconciliacionEstado = 'completo' | 'parcial' | 'pendiente' | 'sin_articulo';
 
@@ -52,7 +68,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,6 +76,7 @@ interface ReconciliacionRow {
 export class Ordenes implements OnInit {
   private ordenesService = inject(OrdenesCompraService);
   private articulosService = inject(ArticulosService);
+  private categoriasService = inject(CategoriasService);
   private proveedoresService = inject(ProveedoresService);
   private proyectosService = inject(ProyectosService);
   private solicitudesCompraService = inject(SolicitudesCompraService);
@@ -73,6 +90,8 @@ export class Ordenes implements OnInit {
   ordenes = signal<OrdenCompra[]>([]);
   proveedores = signal<Proveedor[]>([]);
   articuloNombres = signal<string[]>([]);
+  articulos = signal<Articulo[]>([]);
+  categorias = signal<Categoria[]>([]);
   proyectos = signal<Proyecto[]>([]);
   solicitudesPendientes = signal<SolicitudCompra[]>([]);
   loading = signal(true);
@@ -91,7 +110,7 @@ export class Ordenes implements OnInit {
 
   // ── Create drawer ────────────────────────────────────────
   createDrawerOpen = signal(false);
-  formItems = signal<ItemRow[]>([{ descripcion: '', cantidad: 1, precio_unitario: 0 }]);
+  formItems = signal<ItemRow[]>([NUEVO_OC_ITEM()]);
 
   // ── Detail drawer ────────────────────────────────────────
   detailDrawerOpen = signal(false);
@@ -190,18 +209,22 @@ export class Ordenes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [ordenes, proveedores, proyectos, solicitudes, articulos] = await Promise.all([
+      const [ordenes, proveedores, proyectos, solicitudes, articulos, categorias] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
         this.proyectosService.getAll(),
         this.solicitudesCompraService.getAll(),
         this.articulosService.getAll(),
+        this.categoriasService.getAll(),
       ]);
       this.ordenes.set(ordenes);
       this.proveedores.set(proveedores);
       this.proyectos.set(proyectos);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
-      this.articuloNombres.set(articulos.filter((a) => a.activo).map((a) => a.nombre));
+      const activos = articulos.filter((a) => a.activo);
+      this.articulos.set(activos);
+      this.categorias.set(categorias);
+      this.articuloNombres.set(activos.map((a) => a.nombre));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -244,7 +267,7 @@ export class Ordenes implements OnInit {
     this.saveError.set('');
     this.solicitudEnAtencion.set(null);
     this.form.reset();
-    this.formItems.set([{ descripcion: '', cantidad: 1, precio_unitario: 0 }]);
+    this.formItems.set([NUEVO_OC_ITEM()]);
     this.createDrawerOpen.set(true);
   }
 
@@ -256,12 +279,14 @@ export class Ordenes implements OnInit {
       proyecto_id: s.proyecto_id,
       notas: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}${s.notas ? ' — ' + s.notas : ''}`,
     });
-    const items = (s.items ?? []).map((i) => ({
+    const items: ItemRow[] = (s.items ?? []).map((i) => ({
+      articulo_id: null,
+      esOtro: true,
       descripcion: i.proveedor_sugerido ? `${i.descripcion} (sugerido: ${i.proveedor_sugerido})` : i.descripcion,
       cantidad: i.cantidad,
       precio_unitario: 0,
     }));
-    this.formItems.set(items.length > 0 ? items : [{ descripcion: '', cantidad: 1, precio_unitario: 0 }]);
+    this.formItems.set(items.length > 0 ? items : [NUEVO_OC_ITEM()]);
     this.createDrawerOpen.set(true);
   }
 
@@ -279,7 +304,24 @@ export class Ordenes implements OnInit {
   }
 
   addItem() {
-    this.formItems.update((items) => [...items, { descripcion: '', cantidad: 1, precio_unitario: 0 }]);
+    this.formItems.update((items) => [...items, NUEVO_OC_ITEM()]);
+  }
+
+  /** T8 — selección desde el picker: setea artículo + descripción automática (o modo Otro). */
+  onArticuloSelect(index: number, sel: ArticuloPickerSelection) {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        const a = sel.articuloId ? this.articulos().find((x) => x.id === sel.articuloId) : undefined;
+        return {
+          ...item,
+          articulo_id: sel.articuloId,
+          esOtro: sel.esOtro,
+          // Artículo del catálogo → descripción automática; Otro → conserva lo escrito.
+          descripcion: a ? a.nombre : sel.esOtro ? item.descripcion : '',
+        };
+      }),
+    );
   }
 
   removeItem(index: number) {
@@ -323,7 +365,7 @@ export class Ordenes implements OnInit {
     const fv = this.form.value;
 
     const itemPayloads: Omit<OrdenCompraItem, 'id' | 'orden_id'>[] = validItems.map((item) => ({
-      articulo_id: null,
+      articulo_id: item.articulo_id,
       descripcion: item.descripcion,
       cantidad: item.cantidad,
       precio_unitario: item.precio_unitario,

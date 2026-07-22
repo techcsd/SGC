@@ -103,6 +103,26 @@
     border-color: var(--sgc-primary-mid);
     color: var(--sgc-primary);
   }
+
+  &--danger:hover {
+    background: var(--sgc-danger-light);
+    border-color: rgba(192, 57, 43, 0.3);
+    color: var(--sgc-danger);
+  }
+}
+
+// ── T2 — datos de prueba ─────────────────────────────────
+.mantenimientos__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
 }
 
 // ── Drawer form ──────────────────────────────────────────
@@ -233,4 +253,14 @@ textarea {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+// T16 — banner de vehículos cerca/vencidos de mantenimiento
+.mant-banner {
+  padding: 14px 16px; margin-bottom: 16px;
+  border-left: 4px solid var(--sgc-warning, #b26a00);
+  &__title { font-weight: 600; margin-bottom: 10px; }
+  &__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  &__item { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  &__veh { font-weight: 500; }
 }

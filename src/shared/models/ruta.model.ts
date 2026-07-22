@@ -25,6 +25,8 @@ export interface Ruta {
   estado: RutaEstado;
   notas: string | null;
   creado_por: string | null;
+  // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
+  es_prueba?: boolean;
   created_at: string;
   updated_at: string;
 }

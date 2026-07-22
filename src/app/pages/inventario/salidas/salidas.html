@@ -87,6 +87,17 @@
 
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
 
+  @if (esAdmin()) {
+    <label class="filters-bar__prueba-toggle">
+      <input
+        type="checkbox"
+        [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)"
+      />
+      Mostrar datos de prueba
+    </label>
+  }
+
   @if (hasActiveFilters()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros
@@ -145,7 +156,12 @@
         <tbody>
           @for (s of paginated(); track s.id) {
             <tr>
-              <td class="salidas__date">{{ formatFecha(s.fecha) }}</td>
+              <td class="salidas__date">
+                {{ formatFecha(s.fecha) }}
+                @if (s.es_prueba) {
+                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                }
+              </td>
               <td>{{ s.bodega?.nombre ?? '—' }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + getMotivoModifier(s.motivo)">
@@ -172,8 +188,16 @@
                   [attr.title]="s.recibido?.nombre ? ('Confirmado por ' + s.recibido?.nombre) : null"
                 >{{ ESTADO_LABELS[s.estado] }}</span>
               </td>
-              <td>
+              <td class="salidas__actions">
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/salidas', s.id, 'conduce']">Conduce</a>
+                @if (esAdmin()) {
+                  @if (s.es_prueba) {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(s, false)">Quitar prueba</button>
+                    <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="eliminarPrueba(s)">Eliminar</button>
+                  } @else {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(s, true)">Marcar prueba</button>
+                  }
+                }
               </td>
             </tr>
             @if (s.estado === 'entregado_incompleto' && s.notas_recepcion) {
@@ -432,20 +456,15 @@
 
         @for (item of formItems(); track $index) {
           <div class="item-row">
-            <select
+            <app-articulo-picker
               class="item-row__articulo"
-              [value]="item.articulo_id"
-              (change)="updateItemArticulo($index, $any($event.target).value)"
-            >
-              <option value="">Seleccionar artículo…</option>
-              @for (g of articulosAgrupados(); track g.categoria) {
-                <optgroup [label]="g.categoria">
-                  @for (a of g.articulos; track a.id) {
-                    <option [value]="a.id">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }} ({{ a.codigo }})</option>
-                  }
-                </optgroup>
-              }
-            </select>
+              [articulos]="articulos()"
+              [categorias]="categorias()"
+              [value]="item.articulo_id || null"
+              [allowOtro]="false"
+              [stock]="stockMap()"
+              (selectionChange)="onArticuloSelect($index, $event)"
+            />
             <app-qty-stepper
               class="item-row__cantidad"
               [value]="item.cantidad"

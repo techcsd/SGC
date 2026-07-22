@@ -30,6 +30,8 @@ export interface EntradaInventario {
   origen_proyecto_id: string | null;
   origen_proyecto?: { nombre: string } | null;
   salida_id: string | null;
+  // T2 — dato de prueba (oculto a no-admin por RLS; admin lo marca/elimina).
+  es_prueba?: boolean;
   detalle_entradas?: DetalleEntrada[];
 }
 

@@ -159,3 +159,58 @@
   color: var(--sgc-text-secondary);
   margin: 10px 0 4px;
 }
+
+// ── T2 — datos de prueba (solo admin) ──────────────────────
+.historial__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
+.historial__badge-inline {
+  margin-left: 6px;
+  font-size: 10px;
+  padding: 1px 6px;
+  vertical-align: middle;
+}
+
+.historial__row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+// Botón de acción de fila (marcar/eliminar prueba). Local a esta lista.
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sgc-radius-sm);
+  background: none;
+  border: 1px solid var(--sgc-border);
+  color: var(--sgc-text-muted);
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+
+  &:hover {
+    background: var(--sgc-primary-light);
+    border-color: var(--sgc-primary-mid);
+    color: var(--sgc-primary);
+  }
+
+  &--danger:hover {
+    background: var(--sgc-danger-light);
+    border-color: rgba(192, 57, 43, 0.3);
+    color: var(--sgc-danger);
+  }
+}

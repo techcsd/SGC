@@ -47,7 +47,7 @@
           <table class="data-table" aria-label="Inspecciones de hoy">
             <thead><tr><th>Hora</th><th>Chofer</th><th>Vehículo</th><th class="text-right">Km</th><th>Comb.</th><th class="text-right">Faltan mant.</th><th>Resultado</th></tr></thead>
             <tbody>
-              @for (c of inspeccionesHoy(); track c.id) {
+              @for (c of inspeccionesVisibles(); track c.id) {
                 <tr>
                   <td>{{ hora(c.capturado_en) }}</td>
                   <td>{{ c.conductor?.nombre ?? '—' }}</td>
@@ -61,6 +61,11 @@
             </tbody>
           </table>
         </div>
+        @if (restantesInsp() > 0) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm pd-vermas" (click)="verMasInsp()">
+            Ver más ({{ restantesInsp() }} restantes)
+          </button>
+        }
       }
     </div>
 
@@ -71,10 +76,15 @@
         <p class="pd-muted">Todos los choferes activos reportaron. ✓</p>
       } @else {
         <ul class="pd-list">
-          @for (c of choferesSinReportar(); track c.id) {
+          @for (c of choferesVisibles(); track c.id) {
             <li>{{ c.nombre }} @if (c.vehiculo) { <span class="pd-muted">· {{ c.vehiculo.placa }}</span> }</li>
           }
         </ul>
+        @if (restantesChoferes() > 0) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm pd-vermas" (click)="verMasChoferes()">
+            Ver más ({{ restantesChoferes() }} restantes)
+          </button>
+        }
       }
     </div>
   </div>
@@ -89,11 +99,16 @@
       @if (alertasActivas().length === 0) {
         <p class="pd-muted">Sin alertas activas. ✓</p>
       } @else {
-        @for (a of alertasActivas(); track a.id) {
+        @for (a of alertasVisibles(); track a.id) {
           <div class="pd-alert">
             <span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span>
             <span class="pd-alert__msg">{{ a.mensaje }}</span>
           </div>
+        }
+        @if (restantesAlertas() > 0) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm pd-vermas" (click)="verMasAlertas()">
+            Ver más ({{ restantesAlertas() }} restantes)
+          </button>
         }
       }
     </div>

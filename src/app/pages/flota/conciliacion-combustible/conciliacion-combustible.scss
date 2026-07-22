@@ -1,0 +1,26 @@
+.cc-import {
+  padding: 16px;
+  margin-bottom: 16px;
+  &__row { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+}
+.cc-file { cursor: pointer; }
+.cc-file-name { margin: 8px 0 0; font-size: 13px; color: var(--sgc-text-secondary); }
+.cc-hint { margin: 8px 0 0; font-size: 12.5px; color: var(--sgc-text-muted); }
+.cc-muted { color: var(--sgc-text-muted); }
+.cc-error { color: var(--sgc-danger, #c62828); font-size: 13px; margin: 8px 0 0; }
+
+.cc-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin: 16px 0 12px; flex-wrap: wrap;
+}
+.cc-tabs {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  button {
+    padding: 7px 12px; border: 1px solid var(--sgc-border); border-radius: 999px;
+    background: var(--sgc-surface); font-size: 13px; cursor: pointer; color: var(--sgc-text-secondary);
+    &.cc-tab--active { background: rgb(46 117 182 / 0.12); color: var(--sgc-primary-mid); border-color: var(--sgc-primary-mid); font-weight: 600; }
+  }
+}
+.cc-neg { color: var(--sgc-danger, #c62828); font-weight: 600; }
+.cc-section { margin: 28px 0 12px; font-size: 18px; }
+.estacion-otro { margin-top: 6px; }

@@ -34,6 +34,8 @@ export interface Conductor {
   tags: string[] | null;
   activo: boolean;
   created_at: string;
+  // T2 — dato de prueba (oculto a no-admin vía RLS; solo admin lo marca/elimina).
+  es_prueba?: boolean;
 }
 
 export interface ConductorFormData {
