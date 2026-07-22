@@ -2,6 +2,14 @@
 
 _Last updated: 2026-07-22_
 
+## Paridad app T19 (22/07/2026) — ✅ web 1.21.0, commit+push+deploy, versión registrada
+Follow-up de paridad web del T19 que ya salió en la app móvil (csd-app v1.23.0). Commit **`63e18bf`** en `main` (push → deploy Vercel). `npm run build` verde. Versión **1.21.0** registrada en `sgc.app_versiones` (2 cambios + link al commit). Migración compartida `2026-07-22-t19-equipos-obra-operatividad.sql` ya estaba aplicada en prod (RPC `equipos_de_obra`, columna `incidente_equipo_operativo_comentario`, param en `crear_entrada_bitacora`/`crear_bitacora_app`) — se aplicó desde csd-app y quedó espejada aquí (commit `e1b1da0`).
+- **Form de incidente de equipo** (`bitacora/nueva`): nuevo campo **comentario de operatividad** — opcional si "Sí", **obligatorio** si quedó fuera de servicio (validador condicional en `incidente_equipo_operativo.valueChanges`); se manda a `crear_entrada_bitacora` (`p_incidente_equipo_operativo_comentario`).
+- **Selector de equipos de la obra**: el nombre del equipo (incidente de equipo + equipos alquilados del parte, `<datalist>`) se autocompleta con `equipos_de_obra(proyecto_id)` (RPC security-definer), cargado al elegir obra; fallback al listado global `getEquiposSugeridos`. Evita nombres inconsistentes.
+- **Detalle** (`bitacora/historial` drawer): muestra el comentario de operatividad (el `SELECT_QUERY` usa `*`, no requirió cambio).
+- Modelo `Bitacora`/`BitacoraFormData` + `BitacoraService.getEquiposDeObra` añadidos.
+- **PENDIENTE (menor):** QA manual en web del form de incidente de equipo (comentario obligatorio + autocompletado de equipos por obra) — no verificable headless (RLS/JWT). Con esto la paridad app↔web de T19 queda cerrada.
+
 ## Actualización 4 · PROMPT-11 (T1–T18) (22/07/2026) — ✅ EN PRODUCCIÓN (web 1.20.0), commit+push+deploy, versión publicada
 
 Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-4.md` (T1–T19) + `apuntes de reunion.md` (ronda 5). Todo aditivo/retrocompatible, build verde por fase. **8 migraciones aplicadas a prod (Management API), idempotentes.** Commit **`202e150`** en `main`, pusheado → deploy Vercel. Versión **1.20.0** registrada en `sgc.app_versiones` (título + 13 cambios + link al commit).
