@@ -2,6 +2,45 @@
 
 _Last updated: 2026-07-22_
 
+## Actualización 5 · PROMPT-13-SGC (U2/U7/U10/U11-web/U14) (22/07/2026) — ✅ EN PRODUCCIÓN (web 1.22.0), commit+push+deploy, versión publicada
+
+Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-5.md` (ronda 6, QA app v1.23.1). Aditivo/retrocompatible, build verde. **3 migraciones aplicadas a prod (Management API), idempotentes.** Commit **`adced89`** en `main`, push → **deploy Vercel READY (production)**. Versión **1.22.0** registrada en `sgc.app_versiones` (título + 4 cambios + link al commit).
+
+### Done — por fase
+- **FASE 1 · U2/U7** (seeds de textos cortos y llanos): columna aditiva **`checklist_plantilla_items.ayuda`** (detalle largo; la etiqueta queda corta). **PRE-USO-V4** (5 de seguridad críticas) y **REPORTE-SEMANAL-V3** (ninguna crítica) activas; V3/V2 anteriores desactivadas (históricos intactos, respuestas guardan snapshot de `etiqueta`). Etiquetas aprobadas por Xaviel (ej. "Matrícula y seguro al día · copias dentro del carro", "Frenos: que respondan bien", "Gomas en buen estado · repuesto listo"). Web/app las consumen sin cambios de código (`getPlantillas` filtra `activo=true`, trae `ayuda` vía `*`). **1 sola plantilla activa por frecuencia** verificado.
+- **FASE 2 · U10** (piso absoluto de consumo): `registrar_combustible_app` evalúa en cascada **esperado → promedio propio → piso absoluto** (`flota_config.rendimiento_minimo_km_gal`, default **10**). Si `km_recorridos>0` y `rendimiento < piso` → **alerta SIEMPRE**, aun sin historial ni esperado. Persiste **`registros_combustible.motivo_alerta`**; el detalle web ("Análisis automático"), el banner de preview en vivo (`calc()`) y el toast muestran el motivo. **Caso real probado**: 100 km / 11.59 gal = 8.63 km/gal < 10 → **ANORMAL** (antes "normal"); documentado en la migración.
+- **FASE 3 · U14** (texto): aviso de mantenimiento vencido homologado a **"pasado con X km"** — server (`registrar_checklist_vehiculo`, única función que genera el aviso `mantenimiento_vencido`) + web (`vehiculo-detalle` banner y stat-card, `checklists.html`, `mantenimientos.html`).
+- **FASE 3 · U11-web** (perfil del vehículo): **banner de mantenimiento** 🔴 atrasado ("pasado con X km") / 🟠 próximo (umbral pre-cita); **último nivel de combustible** (stat-card, del checklist más reciente vía `ultimoNivelCombustible()`); sección **Multas del vehículo** (nuevo `FlotaIncidenciasService.multasPorVehiculo`, filtra por `vehiculo_id`; RLS respetada).
+
+### Migraciones en prod (`sql/2026-07-22-*.sql`, aplicadas + verificadas)
+`u2u7-seeds-v4-v3-textos-cortos` · `u10-piso-consumo` · `u14-texto-mantenimiento`.
+
+### Pending — PROMPT-14-CSD-APP (app móvil, repo `C:\Users\xavie\Desktop\X Dev\dev2\csd-app`)
+Es el grueso de la ronda 6. Contratos ya listos desde este lado:
+- **Plantillas**: la app lee la plantilla activa por frecuencia → ya recibe PRE-USO-V4 / REPORTE-SEMANAL-V3 (etiquetas cortas) sin cambios; la columna `ayuda` está disponible si quieren mostrar el detalle largo.
+- **Combustible**: el RPC devuelve `referencia_alerta ∈ {esperado, propio, piso}` + `motivo_alerta` (texto listo para pintar); piso gobernado por `flota_config.rendimiento_minimo_km_gal`.
+- **U14 en app**: homologar "pasado con X km" en `checklist.html:173`, `preuso.html:180`, PDF `preuso-report.service.ts:311`.
+- **Perfil vehículo (app)**: espejar alerta de mantenimiento + último nivel + multas del vehículo.
+- Resto de la ronda 6 (app): U1/U8 reconciliación optimista con outbox (capa compartida), U2-app (sub-paginar pre-uso), U3 scroll por paso, U4 vista de resultado, U5 addrow rota, U6 combustible más pasos + KmInput, U9 autosave/preview/vehículo en multa, U12 asignarme (marcar ya asignados), U13 ubicación legible, U15 mantenimiento KmInput+fotos, U16 wizards "sin deslizar".
+
+### Pending — Xavier only (QA manual, no headless por RLS/JWT)
+- Pre-uso y reporte semanal muestran las **etiquetas cortas** nuevas (web y app).
+- Registrar una echada tipo el caso real (100 km / ~11.6 gal) → **badge Anormal** con motivo "piso absoluto".
+- Perfil de un vehículo con `kilometraje ≥ próximo mantenimiento` → banner rojo "pasado con X km" + último nivel + multas.
+
+### Gotcha nuevo
+- **`ayuda` en items del checklist**: `getPlantillas` usa `select('*, items:checklist_plantilla_items(*))` → el nuevo campo llega solo; el modelo TS lo ignora por el cast `as unknown as`. Mostrarlo es opcional (no hubo cambio de código en web).
+
+### Verify on resume
+```
+git -C "C:/Users/xavie/Desktop/X Dev/dev/SGC" log --oneline -1   # adced89 Actualización 5 (v1.22.0)
+node scratchpad/apply-sql.mjs --query "select version,url from sgc.app_versiones where plataforma='web' and version='1.22.0';"
+node scratchpad/apply-sql.mjs --query "select frecuencia, count(*) filter (where activo) from sgc.checklist_plantillas where frecuencia in ('preuso','semanal') group by 1;"  -- 1 c/u (V4/V3)
+node scratchpad/apply-sql.mjs --query "select valor from sgc.flota_config where clave='rendimiento_minimo_km_gal';"  -- 10
+```
+
+---
+
 ## Paridad app T19 (22/07/2026) — ✅ web 1.21.0, commit+push+deploy, versión registrada
 Follow-up de paridad web del T19 que ya salió en la app móvil (csd-app v1.23.0). Commit **`63e18bf`** en `main` (push → deploy Vercel). `npm run build` verde. Versión **1.21.0** registrada en `sgc.app_versiones` (2 cambios + link al commit). Migración compartida `2026-07-22-t19-equipos-obra-operatividad.sql` ya estaba aplicada en prod (RPC `equipos_de_obra`, columna `incidente_equipo_operativo_comentario`, param en `crear_entrada_bitacora`/`crear_bitacora_app`) — se aplicó desde csd-app y quedó espejada aquí (commit `e1b1da0`).
 - **Form de incidente de equipo** (`bitacora/nueva`): nuevo campo **comentario de operatividad** — opcional si "Sí", **obligatorio** si quedó fuera de servicio (validador condicional en `incidente_equipo_operativo.valueChanges`); se manda a `crear_entrada_bitacora` (`p_incidente_equipo_operativo_comentario`).
