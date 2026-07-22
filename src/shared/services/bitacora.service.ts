@@ -66,6 +66,8 @@ export class BitacoraService {
       p_incidente_equipo_nombre: payload.incidente_equipo_nombre ?? null,
       p_incidente_equipo_alquilado: payload.incidente_equipo_alquilado ?? null,
       p_incidente_equipo_operativo: payload.incidente_equipo_operativo ?? null,
+      // Nuevo (Act.4 T19): comentario de operatividad. Retrocompatible (default null).
+      p_incidente_equipo_operativo_comentario: payload.incidente_equipo_operativo_comentario ?? null,
       p_incidente_suceso: payload.incidente_suceso ?? null,
       p_weather_snapshot_id: payload.weather_snapshot_id ?? null,
       // Nuevos (14/07): clima + migración (R21/R22). Retrocompatible (default null).
@@ -143,5 +145,23 @@ export class BitacoraService {
       if (e) vistos.add(e);
     }
     return [...vistos].slice(0, 50);
+  }
+
+  /**
+   * T19 — equipos ya vistos en ESTA obra (equipos alquilados + incidentes de
+   * equipo + valores "Otro"), vía RPC security-definer `equipos_de_obra`. Ordena
+   * por frecuencia. Best-effort: devuelve [] si falla. Alimenta el selector del
+   * incidente de equipo y el datalist de equipos alquilados, evitando nombres
+   * inconsistentes (camión/patana/guagua…).
+   */
+  async getEquiposDeObra(proyectoId: string): Promise<string[]> {
+    if (!proyectoId) return [];
+    const { data, error } = await this.supabase.client.rpc('equipos_de_obra', {
+      p_proyecto_id: proyectoId,
+    });
+    if (error) return [];
+    return ((data ?? []) as { nombre: string }[])
+      .map((r) => (r.nombre ?? '').trim())
+      .filter(Boolean);
   }
 }

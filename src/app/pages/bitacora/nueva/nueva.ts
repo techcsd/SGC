@@ -181,6 +181,8 @@ export class Nueva implements OnInit {
     incidente_equipo_nombre: new FormControl<string | null>(null, [Validators.maxLength(150)]),
     incidente_equipo_alquilado: new FormControl<string | null>(null), // 'propio' | 'alquilado'
     incidente_equipo_operativo: new FormControl<string | null>(null), // 'si' | 'no'
+    // T19 — comentario de operatividad (obligatorio si quedó fuera de servicio).
+    incidente_equipo_operativo_comentario: new FormControl<string | null>(null, [Validators.maxLength(1000)]),
     // S13 — suceso probable (valor del catálogo o SUCESO_OTRO) + texto libre
     incidente_suceso: new FormControl<string | null>(null),
     incidente_suceso_otro: new FormControl<string | null>(null, [Validators.maxLength(200)]),
@@ -261,7 +263,33 @@ export class Nueva implements OnInit {
     setReq('incidente_equipo_nombre', subtipo === 'incidente_equipo', [Validators.maxLength(150)]);
     setReq('incidente_equipo_alquilado', subtipo === 'incidente_equipo');
     setReq('incidente_equipo_operativo', subtipo === 'incidente_equipo');
+    // T19 — comentario obligatorio solo si el equipo quedó fuera de servicio.
+    this.actualizarReqComentarioOperatividad();
     setReq('incidente_suceso', esIncidente);
+  }
+
+  /** T19 — el comentario de operatividad es obligatorio si el equipo quedó fuera
+   *  de servicio (subtipo incidente_equipo + operativo = 'no'). */
+  private actualizarReqComentarioOperatividad() {
+    const req =
+      this.incidenteSubtipo() === 'incidente_equipo' &&
+      this.form.controls.incidente_equipo_operativo.value === 'no';
+    const ctrl = this.form.controls.incidente_equipo_operativo_comentario;
+    ctrl.setValidators(req ? [Validators.required, Validators.maxLength(1000)] : [Validators.maxLength(1000)]);
+    ctrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /** T19 — sugerencias de equipos de ESTA obra (incidente de equipo + equipos
+   *  alquilados). Si la obra tiene equipos, reemplaza el listado global; si no,
+   *  conserva las sugerencias globales ya cargadas. */
+  private async loadEquiposDeObra(proyectoId: string | null) {
+    if (!proyectoId) return;
+    try {
+      const deObra = await this.bitacoraService.getEquiposDeObra(proyectoId);
+      if (deObra.length) this.equiposSugeridos.set(deObra);
+    } catch {
+      /* conserva las sugerencias globales */
+    }
   }
 
   async ngOnInit() {
@@ -281,10 +309,19 @@ export class Nueva implements OnInit {
         this.form.controls.incidente_suceso_otro.setValue(null, { emitEvent: false });
       });
 
+    // T19 — al cambiar "¿queda operativo?", ajusta si el comentario es obligatorio.
+    this.form.controls.incidente_equipo_operativo.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.actualizarReqComentarioOperatividad());
+
     // S2 — al elegir la obra, reordena estructuras/actividades por uso de esa obra.
+    // T19 — y carga los equipos ya vistos en esa obra (selector/datalist).
     this.form.controls.proyecto_id.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((id) => this.aplicarRanking(id ?? null));
+      .subscribe((id) => {
+        this.aplicarRanking(id ?? null);
+        void this.loadEquiposDeObra(id ?? null);
+      });
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saveDraft());
 
@@ -319,6 +356,8 @@ export class Nueva implements OnInit {
     } catch {
       /* sin sugerencias, no pasa nada */
     }
+    // T19 — si ya hay obra elegida, prioriza los equipos de esa obra.
+    void this.loadEquiposDeObra(this.form.controls.proyecto_id.value ?? null);
 
     // S13 — sucesos probables por subtipo (best-effort).
     try {
@@ -668,6 +707,11 @@ export class Nueva implements OnInit {
         incidente_equipo_operativo:
           v.incidente_tipo === 'incidente_equipo' && v.incidente_equipo_operativo
             ? v.incidente_equipo_operativo === 'si'
+            : null,
+        // T19 — comentario de operatividad (se guarda solo para incidente de equipo).
+        incidente_equipo_operativo_comentario:
+          v.incidente_tipo === 'incidente_equipo'
+            ? (v.incidente_equipo_operativo_comentario?.trim() || null)
             : null,
         incidente_suceso:
           tipo === 'incidente'

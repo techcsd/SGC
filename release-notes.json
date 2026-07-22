@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.21.0": {
+      "titulo": "Paridad app: incidente de equipo con comentario de operatividad y selector de equipos de la obra",
+      "cambios": [
+        { "t": "nuevo", "d": "En el registro de un incidente de equipo ahora puedes dejar un comentario de operatividad; es obligatorio explicar qué pasó si el equipo quedó fuera de servicio, y se muestra en el detalle de la bitácora." },
+        { "t": "mejora", "d": "El nombre del equipo (en incidente de equipo y en equipos alquilados del parte) se autocompleta con los equipos ya vistos en esa obra, para evitar nombres distintos para lo mismo (camión/patana, planta/planta eléctrica…)." }
+      ]
+    },
     "1.20.0": {
       "titulo": "Selector de artículos, conciliación de combustible, entrada automática en obra y mejoras de flota",
       "cambios": [

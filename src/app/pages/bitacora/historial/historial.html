@@ -305,7 +305,13 @@
           @if (b.incidente_equipo_operativo != null) {
             <div class="bitacora-detail__row">
               <span class="bitacora-detail__label">¿Queda operativo?</span>
-              <span>{{ b.incidente_equipo_operativo ? 'Sí' : 'No' }}</span>
+              <span>{{ b.incidente_equipo_operativo ? 'Sí' : 'No, fuera de servicio' }}</span>
+            </div>
+          }
+          @if (b.incidente_equipo_operativo_comentario) {
+            <div class="bitacora-detail__row">
+              <span class="bitacora-detail__label">Comentario de operatividad</span>
+              <span>{{ b.incidente_equipo_operativo_comentario }}</span>
             </div>
           }
         }

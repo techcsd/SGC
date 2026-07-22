@@ -187,9 +187,14 @@
 
         <!-- Incidente de equipo → equipo + propiedad + operativo -->
         @if (incidenteSubtipo() === 'incidente_equipo') {
+          <!-- T19 — equipos ya vistos en la obra (elige de la lista o escribe uno nuevo). -->
+          <datalist id="equipos-obra-sugeridos">
+            @for (s of equiposSugeridos(); track s) { <option [value]="s"></option> }
+          </datalist>
           <div class="sgc-field">
             <label for="incidente_equipo_nombre">Equipo afectado <span class="required">*</span></label>
             <input id="incidente_equipo_nombre" type="text" formControlName="incidente_equipo_nombre"
+              list="equipos-obra-sugeridos"
               placeholder="Ej: Retroexcavadora, Andamio…"
               [class.invalid]="f.incidente_equipo_nombre.invalid && f.incidente_equipo_nombre.touched" />
             @if (f.incidente_equipo_nombre.invalid && f.incidente_equipo_nombre.touched) {
@@ -217,6 +222,21 @@
                 <span class="field-error">Requerido.</span>
               }
             </div>
+          </div>
+          <!-- T19 — comentario de operatividad: opcional si "Sí", obligatorio si quedó fuera de servicio. -->
+          <div class="sgc-field">
+            <label for="incidente_equipo_operativo_comentario">
+              {{ f.incidente_equipo_operativo.value === 'no' ? 'Explica qué pasó' : 'Comentario' }}
+              @if (f.incidente_equipo_operativo.value === 'no') { <span class="required">*</span> }
+              @else { <span class="text-muted">(opcional)</span> }
+            </label>
+            <textarea id="incidente_equipo_operativo_comentario" rows="2" maxlength="1000"
+              formControlName="incidente_equipo_operativo_comentario"
+              [placeholder]="f.incidente_equipo_operativo.value === 'no' ? 'Ej: se fundió el motor, no arranca…' : 'Detalle opcional del estado del equipo'"
+              [class.invalid]="f.incidente_equipo_operativo_comentario.invalid && f.incidente_equipo_operativo_comentario.touched"></textarea>
+            @if (f.incidente_equipo_operativo_comentario.invalid && f.incidente_equipo_operativo_comentario.touched) {
+              <span class="field-error">Requerido: el equipo quedó fuera de servicio.</span>
+            }
           </div>
         }
 

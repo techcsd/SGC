@@ -145,6 +145,7 @@ export interface Bitacora {
   incidente_equipo_nombre: string | null;
   incidente_equipo_alquilado: boolean | null;
   incidente_equipo_operativo: boolean | null;
+  incidente_equipo_operativo_comentario: string | null;
   incidente_suceso: string | null;
   // Clima + migración (R21/R22) — el clima NO es incidente
   llovio: boolean | null;
@@ -196,6 +197,7 @@ export interface BitacoraFormData {
   incidente_equipo_nombre?: string | null;
   incidente_equipo_alquilado?: boolean | null;
   incidente_equipo_operativo?: boolean | null;
+  incidente_equipo_operativo_comentario?: string | null;
   incidente_suceso?: string | null;
   weather_snapshot_id?: string | null;
   // Clima + migración (R21/R22)
