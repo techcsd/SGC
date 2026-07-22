@@ -1,6 +1,54 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-21_
+_Last updated: 2026-07-22_
+
+## Actualización 4 · PROMPT-11 (T1–T18) (22/07/2026) — ✅ EN PRODUCCIÓN (web 1.20.0), commit+push+deploy, versión publicada
+
+Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-4.md` (T1–T19) + `apuntes de reunion.md` (ronda 5). Todo aditivo/retrocompatible, build verde por fase. **8 migraciones aplicadas a prod (Management API), idempotentes.** Commit **`202e150`** en `main`, pusheado → deploy Vercel. Versión **1.20.0** registrada en `sgc.app_versiones` (título + 13 cambios + link al commit).
+
+### TL;DR
+T1–T18 (web/BD) completos y desplegados. T2 "datos de prueba" con enforcement RLS + UI admin en 10 entidades. Falta solo PROMPT-12 (app móvil, otro repo) y un fleco menor de UI en sub-tablas de detalle.
+
+### Done — por requerimiento
+- **T6** catálogos bitácora tolerantes + secciones de sucesos (incidente/accidente/equipo) administrables.
+- **T7** reporte semanal: vista dual (chofer solo lo suyo) + scoping server-side en `v_reporte_semanal_cumplimiento` (WHERE `es_flota_elevado() OR chofer=auth.uid()`); `generarAvisos()` solo elevados.
+- **T10** popover del filtro de fechas con flip a la derecha + `max-width`.
+- **T13a** `registrar_salida_inventario`(+app): nombre desde `articulos` (LEFT JOIN stock), mensaje friendly y **lista completa** de faltantes.
+- **T13b/T14/T8** componente compartido **`app-articulo-picker`** (`src/shared/ui/articulo-picker/`) en Salidas, Requisición y OC; en OC setea `articulo_id` → reconciliación funciona.
+- **T15** `confirmar_recepcion_salida`: entrada automática en el almacén de la obra (origen `recepcion_obra`); aviso "obra sin almacén" al requisar.
+- **T4** catálogo `estaciones_combustible` (Total Energies default) + selector; pantalla **`/flota/conciliacion-combustible`** (import Excel/CSV, matching por placa+fecha±2d, guardado `conciliaciones_combustible`+detalle, notificación aviso `conciliacion`, dashboard). RPC `guardar_conciliacion_combustible`.
+- **T5** alerta de consumo en cascada (esperado→propio→flota) en `registrar_combustible_app`; umbral `flota_config.umbral_consumo_pct`; **T18** badge Normal/Anormal por fila.
+- **T12** registrar accidente desde web (Flota › Accidentes, reusa `crearAccidente`). **T9** catálogo `motivos_multa` + desplegable en el drawer de multa.
+- **T16** banner de vehículos cerca/vencidos de mantenimiento (por km) + crear prellenado. **T17** estado de conductores rediseñado. **T11** panel-día paginado. **T1** mapeo de avisos a submódulo completo (`reporte_semanal`, `conciliacion`) + badgeKeys.
+- **T2 datos de prueba**: `es_prueba` en 13 tablas + **política RLS restrictiva de SELECT** (`es_prueba: oculta a no-admin`, oculta a no-admin en TODO el sistema) + RPCs `marcar_dato_prueba`/`eliminar_dato_prueba` (admin) + `DatosPruebaService`. UI admin (toggle + badge PRUEBA + marcar/eliminar) en Vehículos, Combustible, Checklists, Rutas, Mantenimientos, Accidentes, Entradas, Salidas, Conductores, historial de Bitácora.
+
+### Migraciones en prod (`sql/2026-07-22-*.sql`, todas aplicadas + verificadas)
+`t13a-salida-faltantes` · `t7-reporte-semanal-scoping` · `t15-recepcion-entrada-obra` · `t4-estaciones-conciliacion` · `t5-alerta-consumo-cascada` · `t2-datos-prueba` · `t2b-enforcement-rls` · `t9-motivos-multa`.
+
+### Pending — Claude puede hacer
+1. **PROMPT-12 (app móvil, repo `C:\Users\xavie\Desktop\X Dev\dev2\csd-app`)**: T19 (selector de equipos-de-obra en incidente de equipo — exponer/consumir `equipos_de_obra(p_proyecto_id)`; comentario al responder operatividad, obligatorio si queda fuera de servicio; arreglar resumen del paso 7 con labels pegados en TODOS los wizards nuevos) + estación de combustible con Total Energies default + verificación de paridad inversa.
+2. **Fleco T2**: botón marcar/eliminar (admin) en las sub-tablas de `vehiculo_entregas` / `conductor_multas` / `vehiculo_danos` dentro de las vistas de detalle (conductor-detalle, vehiculo-detalle, responsabilidad). Ya ocultas a no-admin por RLS; solo falta el botón. Usar `DatosPruebaService` (tablas `vehiculo_entregas`/`conductor_multas`/`vehiculo_danos`).
+
+### Pending — Xavier only
+- **QA manual** en prod (los RPCs `_app` y RLS usan auth.uid/JWT → no verificables headless): picker de artículos en Salidas/Requisición/OC; conciliación con un informe real de Total Energies; alerta de consumo con un vehículo con `rendimiento_esperado_km_gal` (caso 8.63 km/gal dispara); chofer no ve el dashboard global del reporte semanal; datos de prueba (marcar → desaparece para no-admin → eliminar).
+- **Formato del informe de Total Energies**: el importador es tolerante a columnas (detecta fecha/placa-tarjeta/galones/monto por encabezado); si el real trae encabezados raros, pásame un ejemplo para afinar.
+
+### Gotchas descubiertos
+- **`registrar_version` no es llamable desde la Management API** (corre como `postgres`, `auth.uid()` null → "No autorizado"). Se publica desde el deploy (postbuild con `service_role`) o al abrir la app como admin. Para publicar a mano por API: en el mismo query hacer `select set_config('request.jwt.claims','{"role":"service_role"}',false);` antes del `select sgc.registrar_version(...)` (la RPC acepta `auth.role()='service_role'`). Ver `scratchpad/registrar-version.mjs`.
+- **`registrar_version` on-conflict NO sobrescribe `url`** (`coalesce(existing, excluded)`): si la fila ya existía con un link viejo, corrige con UPDATE directo (Management API bypassa RLS como postgres).
+- **`version.ts` se autogenera en cada build desde `git HEAD`**: si editas `release-notes.json` DESPUÉS del build local, `version.ts` queda con el commit/nota anterior. No importa: Vercel lo regenera en el deploy. No editar `version.ts` a mano.
+- **Aplicar SQL a prod**: `node scratchpad/apply-sql.mjs <archivo.sql>` o `--query "..."` (usa `SUPABASE_ACCESS_TOKEN` + Management API del proyecto `jeeqhgccqefbqilntcpu`). El endpoint devuelve solo el resultado del ÚLTIMO statement cuando mandas varios.
+- **T7**: la vista `v_reporte_semanal_cumplimiento` es `security_invoker` pero la RLS de `vehiculos` NO scopea al chofer → había que filtrar en la propia vista (no basta la RLS de la tabla).
+- **Enforcement de es_prueba**: política **`as restrictive for select`** (se AND-ea con las permisivas existentes sin reescribirlas) es la forma segura y transversal de ocultar a no-admin. Los RPCs `security definer` la omiten (caso borde documentado).
+
+### Verify on resume
+```
+git -C "C:/Users/xavie/Desktop/X Dev/dev/SGC" log --oneline -1   # 202e150 Actualización 4
+node scratchpad/apply-sql.mjs --query "select version,url from sgc.app_versiones where plataforma='web' and version='1.20.0';"
+node scratchpad/apply-sql.mjs --query "select count(*) from pg_policies where schemaname='sgc' and policyname='es_prueba: oculta a no-admin';"  -- =13
+```
+
+---
 
 ## Actualización 3 · PROMPT-9 (21/07/2026) — Flota (SGC web + BD): rutas, reporte semanal, vencimientos, accidentes/daños/multas, perfil vehículo/conductor, dashboard conductores — ✅ CÓDIGO LISTO, migraciones en prod, build OK, SIN commit/push
 
