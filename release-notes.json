@@ -1,6 +1,17 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.23.0": {
+      "titulo": "Paginación en todos los listados, dashboards clicables, bloque por actividad en bitácora y datos de prueba fuera de los promedios de consumo",
+      "cambios": [
+        { "t": "mejora", "d": "Todos los listados largos ahora se paginan con un control de páginas uniforme (Administración, Flota, Inventario, Legal, Tareas, RRHH y Mensajes): ya no se carga todo el contenido de una vez." },
+        { "t": "mejora", "d": "\"Todo número abre su detalle\": las tarjetas KPI y las gráficas de los dashboards (Ranking de Encargados, Reportes de Flota, Combustible y Bitácora) ahora navegan al detalle filtrado." },
+        { "t": "mejora", "d": "Bitácora web: cada actividad puede registrar su propio bloque/piso/edificio (paridad con la app); el encabezado queda como valor por defecto." },
+        { "t": "arreglo", "d": "Registrar accidente desde la web ahora usa el mismo flujo del servidor (RPC registrar_accidente_app) que la app, para consistencia y auditoría." },
+        { "t": "seguridad", "d": "Los datos marcados como prueba ya no afectan los promedios de consumo del vehículo ni de la flota: las alertas de consumo anormal se calculan solo con datos reales." },
+        { "t": "nuevo", "d": "QA por rol: usuarios de prueba por rol y checklist de alcance de datos para verificar que cada rol solo ve lo que le corresponde (herramienta interna)." }
+      ]
+    },
     "1.22.0": {
       "titulo": "Consumo imposiblemente bajo siempre alerta, textos de checklist más simples y perfil del vehículo con mantenimiento, nivel y multas",
       "cambios": [

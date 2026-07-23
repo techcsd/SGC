@@ -21,21 +21,23 @@
 } @else {
   <div class="kpi-charts">
     <div class="sgc-card kpi-chart-card">
-      <app-bar-chart titulo="Puntaje por proyecto" [data]="scoreBars()" />
+      <app-bar-chart titulo="Puntaje por proyecto" [data]="scoreBars()" [selectable]="true" (select)="irAProyecto($event)" />
     </div>
     <div class="sgc-card kpi-chart-card">
       <app-donut-chart titulo="Distribución de desempeño" [data]="desempenoDonut()" />
     </div>
     @if (incidentesBars().length > 0) {
       <div class="sgc-card kpi-chart-card">
-        <app-bar-chart titulo="Incidentes (90 días)" [data]="incidentesBars()" />
+        <app-bar-chart titulo="Incidentes (90 días)" [data]="incidentesBars()" [selectable]="true" (select)="irAProyecto($event)" />
       </div>
     }
   </div>
 
   <div class="ranking">
-    @for (k of ranking(); track k.proyecto_id) {
-      <div class="ranking-card sgc-card" [class.ranking-card--podium]="k.posicion <= 3">
+    @for (k of rankingPaginado(); track k.proyecto_id) {
+      <a class="ranking-card sgc-card ranking-card--link" [class.ranking-card--podium]="k.posicion <= 3"
+         [routerLink]="['/proyectos']" [queryParams]="{ proyecto: k.proyecto_id }"
+         [attr.aria-label]="'Ver detalle de ' + k.nombre">
         <div class="ranking-card__pos">{{ medalla(k.posicion) }}</div>
         <div class="ranking-card__main">
           <div class="ranking-card__head">
@@ -72,7 +74,24 @@
             </div>
           </div>
         </div>
-      </div>
+      </a>
     }
   </div>
+
+  <!-- Paginación del ranking (patrón global .pagination) -->
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <span class="pagination__info">Página {{ currentPage() }} de {{ totalPages() }} · {{ ranking().length }} proyectos</span>
+      <div class="pagination__controls">
+        <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)"
+                [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+        @for (p of pages; track p) {
+          <button class="page-btn" type="button" (click)="goToPage(p)"
+                  [class.page-btn--active]="p === currentPage()">{{ p }}</button>
+        }
+        <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)"
+                [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+      </div>
+    </div>
+  }
 }

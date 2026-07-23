@@ -19,6 +19,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -29,7 +30,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -98,6 +99,13 @@ export class Expedientes implements OnInit {
     });
   });
 
+  page = signal(1);
+  readonly PAGE_SIZE = 15;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
+
   drawerTitle = computed(() => (this.editingId() ? 'Editar expediente' : 'Nuevo expediente'));
 
   async ngOnInit() {
@@ -123,17 +131,21 @@ export class Expedientes implements OnInit {
 
   onSearch(value: string) {
     this.searchQuery.set(value);
+    this.page.set(1);
   }
   onEstadoChange(value: string) {
     this.selectedEstado.set(value);
+    this.page.set(1);
   }
   onTipoChange(value: string) {
     this.selectedTipo.set(value);
+    this.page.set(1);
   }
   clearFilters() {
     this.searchQuery.set('');
     this.selectedEstado.set('all');
     this.selectedTipo.set('all');
+    this.page.set(1);
   }
 
   openCreate() {

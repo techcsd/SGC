@@ -70,6 +70,16 @@
     &--warning { border-left-color: var(--sgc-warning); }
     &--info    { border-left-color: var(--sgc-info); }
     &--primary { border-left-color: var(--sgc-primary-mid); }
+
+    // Regla del jefe: la tarjeta de resumen abre su listado.
+    &--link {
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--sgc-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
+      }
+    }
   }
 
   &__card-value {

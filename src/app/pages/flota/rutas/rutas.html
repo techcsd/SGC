@@ -46,7 +46,7 @@
   @if (esAdmin()) {
     <label class="rutas__prueba-toggle">
       <input type="checkbox" [checked]="mostrarPrueba()"
-        (change)="mostrarPrueba.set($any($event.target).checked)" />
+        (change)="mostrarPrueba.set($any($event.target).checked); page.set(1)" />
       Mostrar datos de prueba
     </label>
   }
@@ -95,7 +95,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (r of filtered(); track r.id) {
+          @for (r of paginated(); track r.id) {
             <tr class="rutas__row--link" (click)="openDetail(r)" role="button" tabindex="0"
                 (keydown.enter)="openDetail(r)" [attr.aria-label]="'Ver detalle de la ruta ' + r.origen + ' a ' + r.destino">
               <td class="rutas__fecha">{{ formatFecha(r.fecha) }}</td>
@@ -165,6 +165,7 @@
         </tbody>
       </table>
     </div>
+    <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
   }
 </div>
 

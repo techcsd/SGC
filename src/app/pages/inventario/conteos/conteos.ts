@@ -8,6 +8,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
@@ -16,7 +17,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [DatePipe, FormsModule, FormDrawer, Skeleton, DateRangeFilter],
+  imports: [DatePipe, FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,9 +38,15 @@ export class Conteos implements OnInit {
   hasta = signal('');
   expandedId = signal<string | null>(null);
 
-  onRango(r: RangoFecha) { this.desde.set(r.desde ?? ''); this.hasta.set(r.hasta ?? ''); }
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+
+  // Filtros con reset de paginación.
+  onSearch(v: string) { this.search.set(v); this.page.set(1); }
+  onFiltroBodega(v: string) { this.filtroBodega.set(v); this.page.set(1); }
+  onRango(r: RangoFecha) { this.desde.set(r.desde ?? ''); this.hasta.set(r.hasta ?? ''); this.page.set(1); }
   hayFiltros = computed(() => !!(this.search() || this.filtroBodega() || this.desde() || this.hasta()));
-  limpiarFiltros() { this.search.set(''); this.filtroBodega.set(''); this.desde.set(''); this.hasta.set(''); }
+  limpiarFiltros() { this.search.set(''); this.filtroBodega.set(''); this.desde.set(''); this.hasta.set(''); this.page.set(1); }
 
   // ── Chequeo semanal (create) ──
   drawerOpen = signal(false);
@@ -64,6 +71,11 @@ export class Conteos implements OnInit {
       if (hasta && fecha > hasta) return false;
       return true;
     });
+  });
+
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
   });
 
   async ngOnInit() {

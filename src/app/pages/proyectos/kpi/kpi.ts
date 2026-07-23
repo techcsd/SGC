@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink, Router } from '@angular/router';
 import { ProyectosService, KpiProyectoRaw } from '../../../../shared/services/proyectos.service';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
@@ -27,17 +28,28 @@ interface KpiProyecto extends KpiProyectoRaw {
 
 @Component({
   selector: 'app-proyectos-kpi',
-  imports: [DecimalPipe, BarChart, DonutChart, Skeleton],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton],
   templateUrl: './kpi.html',
   styleUrl: './kpi.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Kpi implements OnInit {
   private proyectosService = inject(ProyectosService);
+  private router = inject(Router);
 
   loading = signal(true);
   error = signal('');
   private raw = signal<KpiProyectoRaw[]>([]);
+
+  // ── Paginación local del ranking (mismo patrón que flota/mantenimientos) ──
+  currentPage = signal(1);
+  readonly PAGE_SIZE = 10;
+
+  // Regla del jefe: toda tarjeta/barra abre su detalle. El ranking es por
+  // proyecto → se abre el detalle del proyecto (?proyecto={id} en la lista).
+  irAProyecto(proyectoId: string) {
+    if (proyectoId) this.router.navigate(['/proyectos'], { queryParams: { proyecto: proyectoId } });
+  }
 
   ranking = computed<KpiProyecto[]>(() => {
     const scored = this.raw().map((r) => {
@@ -57,11 +69,30 @@ export class Kpi implements OnInit {
     return scored;
   });
 
-  // Bar chart: total score per project.
+  // ── Paginación del listado de ranking ────────────────────
+  rankingPaginado = computed<KpiProyecto[]>(() => {
+    const start = (this.currentPage() - 1) * this.PAGE_SIZE;
+    return this.ranking().slice(start, start + this.PAGE_SIZE);
+  });
+  totalPages = computed(() => Math.ceil(this.ranking().length / this.PAGE_SIZE));
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) this.currentPage.set(page);
+  }
+  get pages(): number[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    const delta = 2;
+    const range: number[] = [];
+    for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) range.push(i);
+    return range;
+  }
+
+  // Bar chart: total score per project. key = proyecto_id para el drill-down.
   scoreBars = computed<BarDatum[]>(() =>
     this.ranking().map((k) => ({
       label: k.nombre,
       value: k.scoreTotal,
+      key: k.proyecto_id,
       color:
         k.scoreTotal >= 80 ? 'var(--sgc-success)' : k.scoreTotal >= 50 ? 'var(--sgc-warning)' : 'var(--sgc-danger)',
     })),
@@ -80,7 +111,7 @@ export class Kpi implements OnInit {
   incidentesBars = computed<BarDatum[]>(() =>
     this.ranking()
       .filter((k) => k.incidentes_90d > 0)
-      .map((k) => ({ label: k.nombre, value: k.incidentes_90d, color: 'var(--sgc-danger)' })),
+      .map((k) => ({ label: k.nombre, value: k.incidentes_90d, key: k.proyecto_id, color: 'var(--sgc-danger)' })),
   );
 
   private presupuestoScore(r: KpiProyectoRaw): number {

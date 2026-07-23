@@ -31,12 +31,13 @@ import { RoutingService } from '../../../../shared/context/routing.service';
 import { GeocodingService } from '../../../../shared/context/geocoding.service';
 import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
 import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../shared/utils/fecha.util';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -205,6 +206,13 @@ export class Rutas implements OnInit {
     });
   });
 
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
+
   // QA-001 — un vehículo dado de baja o no disponible no puede asignarse a una ruta.
   activeVehiculos = computed(() =>
     this.vehiculos().filter(
@@ -297,15 +305,18 @@ export class Rutas implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   onSearch(value: string) {
     this.searchQuery.set(value);
+    this.page.set(1);
   }
 
   onEstadoChange(value: string) {
     this.selectedEstado.set(value);
+    this.page.set(1);
   }
 
   clearFilters() {
     this.searchQuery.set('');
     this.selectedEstado.set('');
+    this.page.set(1);
   }
 
   // ── Create/edit drawer ────────────────────────────────────

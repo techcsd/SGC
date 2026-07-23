@@ -62,20 +62,34 @@ export class FlotaIncidenciasService {
     return data as unknown as VehiculoAccidente;
   }
 
+  /**
+   * T12 — usa la MISMA vía de escritura que la app móvil: el RPC
+   * `registrar_accidente_app` (idempotente, SECURITY DEFINER, valida módulo Flota
+   * y fija creado_por = auth.uid()). Subimos el acta AMET al bucket y pasamos su
+   * path al RPC. Devolvemos la fila completa releyéndola por id.
+   */
   async crearAccidente(
     payload: AccidenteFormData,
-    userId: string,
+    _userId: string,
     ametFile?: File | null,
   ): Promise<VehiculoAccidente> {
     let ametPath: string | null = null;
     if (ametFile) ametPath = await this.upload('accidentes', ametFile);
-    const { data, error } = await this.supabase.client
-      .from('vehiculo_accidentes')
-      .insert({ ...payload, reporte_amet_path: ametPath, creado_por: userId })
-      .select(ACC_SELECT)
-      .single();
+    const id = crypto.randomUUID();
+    const { error } = await this.supabase.client.rpc('registrar_accidente_app', {
+      p_id: id,
+      p_vehiculo_id: payload.vehiculo_id,
+      p_fecha: payload.fecha,
+      p_fase: payload.fase,
+      p_descripcion: payload.descripcion,
+      p_lesionados: payload.lesionados,
+      p_tercero: payload.tercero_involucrado,
+      p_conductor_id: payload.conductor_id,
+      p_gps: null,
+      p_reporte_amet_path: ametPath,
+    });
     if (error) throw new Error(error.message);
-    return data as unknown as VehiculoAccidente;
+    return this.accidenteById(id);
   }
 
   // ── Daños ──────────────────────────────────────────────────

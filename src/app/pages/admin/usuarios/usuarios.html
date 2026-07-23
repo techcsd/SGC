@@ -64,7 +64,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (usuario of filtered(); track usuario.id) {
+        @for (usuario of paginated(); track usuario.id) {
           <tr [class.inactive]="!usuario.activo">
             <td class="admin-usuarios__name-cell">
               <div class="admin-usuarios__avatar" aria-hidden="true">
@@ -129,6 +129,8 @@
       </tbody>
     </table>
   </div>
+
+  <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 
   <p class="admin-usuarios__count">
     {{ filtered().length }} usuario{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}

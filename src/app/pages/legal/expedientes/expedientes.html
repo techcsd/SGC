@@ -94,7 +94,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (e of filtered(); track e.id) {
+          @for (e of paginated(); track e.id) {
             <tr>
               <td><code class="code-tag">{{ e.codigo }}</code></td>
               <td>
@@ -134,6 +134,7 @@
         </tbody>
       </table>
     </div>
+    <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
     <div class="table-footer">
       {{ filtered().length }} expediente{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}
     </div>

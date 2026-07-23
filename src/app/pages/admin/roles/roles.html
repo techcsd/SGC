@@ -48,7 +48,7 @@
   <!-- Roles grid -->
   @if (!loading() && !error()) {
     <div class="admin-roles__grid" role="list">
-      @for (rol of roles(); track rol.id) {
+      @for (rol of paginated(); track rol.id) {
         <article class="admin-roles__card" role="listitem">
           <div class="admin-roles__card-top">
             <div class="admin-roles__card-name-row">
@@ -102,6 +102,8 @@
         </article>
       }
     </div>
+
+    <app-paginator [total]="roles().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
   }
 
 </section>

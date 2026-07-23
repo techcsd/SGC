@@ -21,10 +21,11 @@ import { Conversacion, Mensaje } from '../../../shared/models/mensaje.model';
 import { formatFechaMedia } from '../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { Paginator } from '../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,6 +88,33 @@ export class Mensajes implements OnInit, OnDestroy {
       .filter((u) => u.id !== this.miId)
       .filter((u) => !q || u.nombre.toLowerCase().includes(q));
   });
+
+  // ── Paginación de listas largas (card lists) ──────────────
+  readonly PAGE_SIZE = 15;
+  pageConv = signal(1);
+  pageDir = signal(1);
+
+  conversacionesPaginadas = computed(() => {
+    const start = (this.pageConv() - 1) * this.PAGE_SIZE;
+    return this.conversacionesFiltradas().slice(start, start + this.PAGE_SIZE);
+  });
+
+  directorioPaginado = computed(() => {
+    const start = (this.pageDir() - 1) * this.PAGE_SIZE;
+    return this.directorioFiltrado().slice(start, start + this.PAGE_SIZE);
+  });
+
+  /** Actualiza el filtro de conversaciones y vuelve a la primera página. */
+  onBuscarConv(value: string) {
+    this.searchQuery.set(value);
+    this.pageConv.set(1);
+  }
+
+  /** Actualiza el filtro del directorio y vuelve a la primera página. */
+  onBuscarDir(value: string) {
+    this.nuevoBuscar.set(value);
+    this.pageDir.set(1);
+  }
 
   constructor() {
     // Auto-scroll to the newest message whenever the thread changes. Instant on
@@ -244,6 +272,7 @@ export class Mensajes implements OnInit, OnDestroy {
     this.grupoNombre.reset('');
     this.seleccionados.set(new Set());
     this.nuevoBuscar.set('');
+    this.pageDir.set(1);
     this.nuevoOpen.set(true);
   }
 

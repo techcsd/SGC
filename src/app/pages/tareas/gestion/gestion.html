@@ -83,7 +83,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (t of filtered(); track t.id) {
+          @for (t of paginated(); track t.id) {
             <tr [appHighlightItem]="t.id">
               <td><span class="tarea-title">{{ t.titulo }}</span></td>
               <td>{{ t.asignado?.nombre ?? '—' }}</td>
@@ -111,6 +111,7 @@
         </tbody>
       </table>
     </div>
+    <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
     <div class="table-footer">
       {{ filtered().length }} tarea{{ filtered().length !== 1 ? 's' : '' }}
     </div>

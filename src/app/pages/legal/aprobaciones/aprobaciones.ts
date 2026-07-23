@@ -7,10 +7,11 @@ import { AprobacionLegal, APROBACION_MODULOS } from '../../../../shared/models/l
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-aprobaciones',
-  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective],
+  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator],
   templateUrl: './aprobaciones.html',
   styleUrl: './aprobaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +37,13 @@ export class Aprobaciones implements OnInit {
 
   visible = computed(() => (this.tab() === 'pendientes' ? this.pendientes() : this.aprobaciones()));
 
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.visible().slice(start, start + this.PAGE_SIZE);
+  });
+
   async ngOnInit() {
     await this.loadAll();
   }
@@ -55,6 +63,7 @@ export class Aprobaciones implements OnInit {
 
   setTab(tab: 'pendientes' | 'todas') {
     this.tab.set(tab);
+    this.page.set(1);
   }
 
   openResolver(a: AprobacionLegal) {

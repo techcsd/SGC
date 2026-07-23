@@ -15,10 +15,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-flota-avisos',
-  imports: [FormDrawer, Skeleton, HighlightItemDirective],
+  imports: [FormDrawer, Skeleton, HighlightItemDirective, Paginator],
   templateUrl: './avisos.html',
   styleUrl: './avisos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +65,13 @@ export class Avisos implements OnInit {
     });
   });
 
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
+
   pendientes = computed(() => this.avisos().filter((a) => a.estado === 'pendiente').length);
 
   vehiculosConAviso = computed(() => {
@@ -105,9 +113,9 @@ export class Avisos implements OnInit {
     }
   }
 
-  onTipo(v: string) { this.filtroTipo.set(v); }
-  onEstado(v: string) { this.filtroEstado.set(v as 'pendiente' | 'atendido' | ''); }
-  onVehiculo(v: string) { this.filtroVehiculo.set(v); }
+  onTipo(v: string) { this.filtroTipo.set(v); this.page.set(1); }
+  onEstado(v: string) { this.filtroEstado.set(v as 'pendiente' | 'atendido' | ''); this.page.set(1); }
+  onVehiculo(v: string) { this.filtroVehiculo.set(v); this.page.set(1); }
 
   openAtender(a: AvisoFlota) {
     this.selected.set(a);

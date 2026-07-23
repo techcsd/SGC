@@ -12,6 +12,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 /**
  * S22 — Submódulo "Accidentes": los formularios de choque completos (no solo el
@@ -20,7 +21,7 @@ import { DatosPruebaService } from '../../../../shared/services/datos-prueba.ser
  */
 @Component({
   selector: 'app-flota-accidentes',
-  imports: [FormDrawer, Skeleton, ReactiveFormsModule],
+  imports: [FormDrawer, Skeleton, ReactiveFormsModule, Paginator],
   templateUrl: './accidentes.html',
   styleUrl: './accidentes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +50,13 @@ export class Accidentes implements OnInit {
   visibles = computed(() => {
     const verPrueba = this.esAdmin() && this.mostrarPrueba();
     return this.accidentes().filter((a) => verPrueba || !a.es_prueba);
+  });
+
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.visibles().slice(start, start + this.PAGE_SIZE);
   });
 
   detailOpen = signal(false);

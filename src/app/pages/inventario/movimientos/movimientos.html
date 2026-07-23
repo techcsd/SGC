@@ -49,7 +49,7 @@
           <tr><th>Fecha</th><th>Tipo</th><th>Almacén</th><th>Concepto / referencia</th><th class="text-right">Artículos</th><th>Responsable</th><th></th></tr>
         </thead>
         <tbody>
-          @for (m of filtered(); track m.tipo + m.referencia_id) {
+          @for (m of paginated(); track m.tipo + m.referencia_id) {
             <tr class="row--link" (click)="abrir(m)" role="button" tabindex="0" (keydown.enter)="abrir(m)"
                 aria-label="Ver detalle del movimiento">
               <td>{{ formatFecha(m.fecha) }}</td>
@@ -79,3 +79,4 @@
     </div>
   }
 </div>
+<app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />

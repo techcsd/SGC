@@ -59,6 +59,7 @@ interface Draft {
   restricciones: string[];
   cantidades?: Record<string, number | null>;
   unidades?: Record<string, string | null>;
+  bloques?: Record<string, string | null>;
   descripciones?: Record<string, string>;
   equipos?: EquipoRow[];
 }
@@ -126,6 +127,9 @@ export class Nueva implements OnInit {
   cantidadesActividad = signal<Record<string, number | null>>({});
   // Q6 — unidad de medida por actividad, misma llave `estructura|actividad`.
   unidadesActividad = signal<Record<string, string | null>>({});
+  // T3 — bloque/entrepiso POR actividad (paridad con la app: multi-bloque real).
+  // Misma llave `estructura|actividad`. Vacío ⇒ hereda el bloque de cabecera.
+  bloquesActividad = signal<Record<string, string | null>>({});
   restriccionesSeleccionadas = signal<Set<string>>(new Set());
   archivos = signal<File[]>([]);
   expandedEstructura = signal<string | null>(null);
@@ -387,6 +391,7 @@ export class Nueva implements OnInit {
       restricciones: [...this.restriccionesSeleccionadas()],
       cantidades: this.cantidadesActividad(),
       unidades: this.unidadesActividad(),
+      bloques: this.bloquesActividad(),
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
     };
@@ -403,6 +408,7 @@ export class Nueva implements OnInit {
         this.restriccionesSeleccionadas.set(new Set(draft.restricciones));
         this.cantidadesActividad.set(draft.cantidades ?? {});
         this.unidadesActividad.set(draft.unidades ?? {});
+        this.bloquesActividad.set(draft.bloques ?? {});
         this.restriccionDescripciones.set(draft.descripciones ?? {});
         this.equiposAlquilados.set(draft.equipos ?? []);
       } catch {
@@ -446,6 +452,11 @@ export class Nueva implements OnInit {
         delete next[k];
         return next;
       });
+      this.bloquesActividad.update((m) => {
+        const next = { ...m };
+        delete next[k];
+        return next;
+      });
     }
     this.saveDraft();
   }
@@ -470,6 +481,17 @@ export class Nueva implements OnInit {
 
   getUnidad(estructura: string, actividad: string): string {
     return this.unidadesActividad()[this.key(estructura, actividad)] ?? '';
+  }
+
+  // T3 — bloque/entrepiso por actividad (paridad con la app: multi-bloque real).
+  setBloque(estructura: string, actividad: string, bloque: string) {
+    const k = this.key(estructura, actividad);
+    this.bloquesActividad.update((m) => ({ ...m, [k]: bloque.trim() || null }));
+    this.saveDraft();
+  }
+
+  getBloque(estructura: string, actividad: string): string {
+    return this.bloquesActividad()[this.key(estructura, actividad)] ?? '';
   }
 
   toggleEstructura(estructura: string) {
@@ -631,8 +653,9 @@ export class Nueva implements OnInit {
 
     const v = this.form.getRawValue();
     const esParte = tipo === 'parte_diario';
-    // S4 — la web tiene un solo bloque de cabecera; se aplica a cada actividad
-    // para que el detalle agrupe por bloque (la app móvil hace multi-bloque real).
+    // T3 — paridad con la app: multi-bloque REAL. Cada actividad lleva su propio
+    // bloque; si el usuario no lo especifica, hereda el bloque de cabecera
+    // (que actúa como valor por defecto). El RPC ya lee `bloque` por actividad.
     const bloqueParte = esParte ? (v.bloque_entrepiso?.trim() || null) : null;
     const actividades = esParte
       ? [...this.actividadesSeleccionadas()].map((k) => {
@@ -642,7 +665,7 @@ export class Nueva implements OnInit {
             actividad,
             cantidad: this.cantidadesActividad()[k] ?? null,
             unidad: this.unidadesActividad()[k] ?? null,
-            bloque: bloqueParte,
+            bloque: this.bloquesActividad()[k]?.trim() || bloqueParte,
           };
         })
       : [];

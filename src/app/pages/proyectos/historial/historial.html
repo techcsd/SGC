@@ -54,7 +54,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (p of visibles(); track p.id) {
+            @for (p of paginated(); track p.id) {
               <tr>
                 <td><code class="code-tag">{{ p.codigo }}</code></td>
                 <td>{{ p.nombre }}</td>
@@ -71,4 +71,5 @@
       </div>
     }
   </div>
+  <app-paginator [total]="visibles().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 }

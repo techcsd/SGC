@@ -22,12 +22,12 @@
       type="search"
       placeholder="Buscar por almacén o quien contó…"
       [value]="search()"
-      (input)="search.set($any($event.target).value)"
+      (input)="onSearch($any($event.target).value)"
       aria-label="Buscar conteos"
     />
   </div>
   <div class="sgc-field filters-bar__select">
-    <select [value]="filtroBodega()" (change)="filtroBodega.set($any($event.target).value)" aria-label="Filtrar por almacén">
+    <select [value]="filtroBodega()" (change)="onFiltroBodega($any($event.target).value)" aria-label="Filtrar por almacén">
       <option value="">Todos los almacenes</option>
       @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
     </select>
@@ -44,7 +44,7 @@
   <p class="cn-error">{{ error() }}</p>
 } @else {
   <div class="cn-list">
-    @for (c of filtered(); track c.id) {
+    @for (c of paginated(); track c.id) {
       <div class="cn-card">
         <button type="button" class="cn-card__row" (click)="toggle(c.id)">
           <div class="cn-card__info">
@@ -100,6 +100,7 @@
       <p class="cn-muted">No hay conteos registrados.</p>
     }
   </div>
+  <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 }
 
 <!-- ── Nuevo chequeo semanal ── -->

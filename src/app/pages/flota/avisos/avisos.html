@@ -47,7 +47,7 @@
       <table class="data-table" aria-label="Avisos de flota">
         <thead><tr><th>Fecha</th><th>Tipo</th><th>Sev.</th><th>Vehículo / Conductor</th><th>Mensaje</th><th>Estado</th><th></th></tr></thead>
         <tbody>
-          @for (a of filtered(); track a.id) {
+          @for (a of paginated(); track a.id) {
             <tr [appHighlightItem]="a.id">
               <td class="av-fecha">{{ formatFecha(a.created_at) }}</td>
               <td><span class="sgc-badge sgc-badge--{{ sevBadge[a.severidad] }}">{{ tipoLabel[a.tipo] }}</span></td>
@@ -91,6 +91,7 @@
         </tbody>
       </table>
     </div>
+    <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
   }
 </div>
 

@@ -68,7 +68,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (s of visible(); track s.id) {
+          @for (s of paginated(); track s.id) {
             <tr>
               <td>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</td>
               <td>{{ tipoLabel(s.tipo) }}</td>
@@ -93,6 +93,7 @@
     </div>
   }
 </div>
+<app-paginator [total]="visible().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 
 <!-- ── Create Drawer ── -->
 <app-form-drawer title="Nueva solicitud de ausencia" [open]="drawerOpen()" (closed)="closeDrawer()">

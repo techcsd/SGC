@@ -72,7 +72,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (r of filtered(); track r.id) {
+        @for (r of paginated(); track r.id) {
           <tr>
             <td><span class="sgc-badge sgc-badge--info">{{ TIPO_LABELS[r.tipo] }}</span></td>
             <td class="admin-reportes__asunto">{{ r.asunto }}</td>
@@ -102,6 +102,8 @@
       </tbody>
     </table>
   </div>
+
+  <app-paginator [total]="filtered().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
 
   <p class="admin-reportes__count">
     {{ filtered().length }} reporte{{ filtered().length !== 1 ? 's' : '' }} encontrado{{ filtered().length !== 1 ? 's' : '' }}

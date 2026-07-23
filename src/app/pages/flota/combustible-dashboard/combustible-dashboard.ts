@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { AvisosFlotaService } from '../../../../shared/services/avisos-flota.service';
@@ -40,6 +40,14 @@ export class CombustibleDashboard implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private avisosService = inject(AvisosFlotaService);
   private flotaConfig = inject(FlotaConfigService);
+  private router = inject(Router);
+
+  // Regla del jefe: toda tarjeta/fila abre su origen.
+  irAVehiculo(vehiculoId: string | null | undefined) {
+    if (vehiculoId) this.router.navigate(['/flota/vehiculos', vehiculoId]);
+  }
+  irACombustible() { this.router.navigate(['/flota/combustible']); }
+  irAAvisos() { this.router.navigate(['/flota/avisos']); }
 
   formatFecha = formatFechaDisplay;
   tipoLabel = AVISO_TIPO_LABEL;

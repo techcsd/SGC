@@ -80,6 +80,8 @@ export class BitacoraDashboard implements OnInit {
   }
   irATipo(tipo: string) { this.irAlHistorial({ tipo }); }
   irAGravedad(_g: string) { this.irAlHistorial({ tipo: 'incidente' }); }
+  /** KPI "Bitácoras" (total): abre el historial (respeta la obra filtrada). */
+  verHistorial() { this.irAlHistorial({}); }
 
   private groupCount(values: string[]): { key: string; count: number }[] {
     const map = new Map<string, number>();

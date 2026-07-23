@@ -7,13 +7,14 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
   selector: 'app-inventario-movimientos',
-  imports: [Skeleton, RouterLink, DateRangeFilter],
+  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +54,13 @@ export class Movimientos implements OnInit {
       if (to && m.fecha > to) return false;
       return true;
     });
+  });
+
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
   });
 
   totalSalidas = computed(() => this.filtered().filter((m) => m.tipo === 'salida').length);
@@ -104,17 +112,18 @@ export class Movimientos implements OnInit {
     }
   }
 
-  onBodega(v: string) { this.selectedBodega.set(v); }
-  onTipo(v: string) { this.selectedTipo.set(v); }
-  onFrom(v: string) { this.dateFrom.set(v); }
-  onTo(v: string) { this.dateTo.set(v); }
+  onBodega(v: string) { this.selectedBodega.set(v); this.page.set(1); }
+  onTipo(v: string) { this.selectedTipo.set(v); this.page.set(1); }
+  onFrom(v: string) { this.dateFrom.set(v); this.page.set(1); }
+  onTo(v: string) { this.dateTo.set(v); this.page.set(1); }
   /** R12 — filtro de fechas unificado (presets + rango). */
-  onRango(r: RangoFecha) { this.dateFrom.set(r.desde ?? ''); this.dateTo.set(r.hasta ?? ''); }
+  onRango(r: RangoFecha) { this.dateFrom.set(r.desde ?? ''); this.dateTo.set(r.hasta ?? ''); this.page.set(1); }
   clearFilters() {
     this.selectedBodega.set('');
     this.selectedTipo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
+    this.page.set(1);
   }
 
   /** Exporta los movimientos filtrados a Excel. */

@@ -26,6 +26,15 @@
   border-radius: var(--sgc-radius); padding: 14px 16px;
   display: flex; flex-direction: column; gap: 4px;
   &--alerta { border-color: var(--sgc-danger); }
+  // Regla del jefe: la tarjeta abre su listado/origen.
+  &--link {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sgc-shadow, 0 4px 12px rgba(0, 0, 0, 0.08));
+    }
+  }
   &__label {
     font-size: 11px; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.05em; color: var(--sgc-text-muted);

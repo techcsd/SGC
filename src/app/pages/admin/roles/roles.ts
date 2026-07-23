@@ -10,10 +10,11 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RolesService, Rol, MODULOS_DISPONIBLES } from '../../../../shared/services/roles.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-admin-roles',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
   templateUrl: './roles.html',
   styleUrl: './roles.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +54,15 @@ export class AdminRoles implements OnInit {
 
   deletingId = signal<number | null>(null);
   deleteError = signal('');
+
+  // ── Pagination ───────────────────────────────────────────
+  page = signal(1);
+  readonly PAGE_SIZE = 15;
+
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.roles().slice(start, start + this.PAGE_SIZE);
+  });
 
   // ── Computed ─────────────────────────────────────────────
   drawerTitle = computed(() => {

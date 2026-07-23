@@ -14,10 +14,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe, Skeleton, HighlightItemDirective],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe, Skeleton, HighlightItemDirective, Paginator],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,6 +77,13 @@ export class Gestion implements OnInit, OnDestroy {
     });
   });
 
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
+
   async ngOnInit() {
     await this.loadAll();
     this.channel = this.tareasService.subscribeTareas(() => void this.reloadTareas());
@@ -114,17 +122,21 @@ export class Gestion implements OnInit, OnDestroy {
 
   onSearch(value: string) {
     this.searchQuery.set(value);
+    this.page.set(1);
   }
   onEstadoChange(value: string) {
     this.selectedEstado.set(value);
+    this.page.set(1);
   }
   onAsignadoChange(value: string) {
     this.selectedAsignado.set(value);
+    this.page.set(1);
   }
   clearFilters() {
     this.searchQuery.set('');
     this.selectedEstado.set('activas');
     this.selectedAsignado.set('all');
+    this.page.set(1);
   }
 
   openCreate() {

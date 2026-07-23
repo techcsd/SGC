@@ -88,6 +88,11 @@ export class FlotaReportes implements OnInit {
     if (vehiculoId) this.router.navigate(['/flota/mantenimientos'], { queryParams: { vehiculo: vehiculoId } });
   }
 
+  // Regla del jefe: las 4 tarjetas de resumen abren su listado de origen.
+  irAVehiculos() { this.router.navigate(['/flota/vehiculos']); }
+  irAMantenimientos() { this.router.navigate(['/flota/mantenimientos']); }
+  irACombustible() { this.router.navigate(['/flota/combustible']); }
+
   vehiculos = signal<VehiculoReport[]>([]);
   mantenimientos = signal<MantenimientoReport[]>([]);
   combustible = signal<CombustibleReport[]>([]);

@@ -13,10 +13,11 @@ import {
 } from '../../../../shared/models/reporte-usuario.model';
 import { formatFechaMedia, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-admin-reportes',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +42,10 @@ export class AdminReportes implements OnInit {
   filterEstado = signal<'all' | ReporteEstado>('all');
   filterTipo = signal<'all' | ReporteTipo>('all');
   searchQuery = signal('');
+
+  // ── Pagination ───────────────────────────────────────────
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
@@ -74,6 +79,11 @@ export class AdminReportes implements OnInit {
     });
   });
 
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
+
   drawerTitle = computed(() => {
     const r = this.selected();
     return r ? r.asunto : 'Reporte';
@@ -97,14 +107,17 @@ export class AdminReportes implements OnInit {
 
   onSearch(value: string) {
     this.searchQuery.set(value);
+    this.page.set(1);
   }
 
   onFilterEstado(value: string) {
     this.filterEstado.set(value as 'all' | ReporteEstado);
+    this.page.set(1);
   }
 
   onFilterTipo(value: string) {
     this.filterTipo.set(value as 'all' | ReporteTipo);
+    this.page.set(1);
   }
 
   async tomar(r: ReporteUsuario) {

@@ -71,6 +71,7 @@
               placeholder="Ej: Bloque A - Entrepiso 3"
               [class.invalid]="f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched"
             />
+            <span class="bitacora-section__hint">Bloque por defecto. Puedes indicar uno distinto por actividad más abajo.</span>
             @if (f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched) {
               <span class="field-error">Este campo es obligatorio.</span>
             }
@@ -488,6 +489,16 @@
                             <option [value]="u.codigo">{{ u.nombre }}</option>
                           }
                         </select>
+                        <!-- T3 — bloque/entrepiso por actividad (multi-bloque, paridad con la app) -->
+                        <span class="bitacora-matriz__qty-label">Bloque</span>
+                        <input
+                          type="text"
+                          class="bitacora-matriz__bloque"
+                          [value]="getBloque(estructura, actividad)"
+                          (input)="setBloque(estructura, actividad, $any($event.target).value)"
+                          [placeholder]="f.bloque_entrepiso.value || 'Bloque / Entrepiso'"
+                          [attr.aria-label]="'Bloque de ' + actividad"
+                        />
                       </div>
                     }
                   </div>

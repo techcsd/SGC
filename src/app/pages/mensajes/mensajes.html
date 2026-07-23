@@ -19,7 +19,7 @@
     </div>
 
     <div class="sgc-field conv-list__search">
-      <input type="search" placeholder="Buscar conversación…" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" aria-label="Buscar conversación" />
+      <input type="search" placeholder="Buscar conversación…" [value]="searchQuery()" (input)="onBuscarConv($any($event.target).value)" aria-label="Buscar conversación" />
     </div>
 
     @if (loading()) {
@@ -28,7 +28,7 @@
       <p class="conv-list__empty">No tienes conversaciones. Inicia una con los botones de arriba.</p>
     } @else {
       <ul class="conv-items">
-        @for (c of conversacionesFiltradas(); track c.id) {
+        @for (c of conversacionesPaginadas(); track c.id) {
           <li>
             <button type="button" class="conv-item" [class.conv-item--active]="c.id === selectedId()" (click)="selectConversacion(c)">
               <span class="conv-item__avatar" [class.conv-item__avatar--group]="c.tipo === 'grupo'">
@@ -56,6 +56,7 @@
           </li>
         }
       </ul>
+      <app-paginator [total]="conversacionesFiltradas().length" [pageSize]="PAGE_SIZE" [(page)]="pageConv" />
     }
   </aside>
 
@@ -163,11 +164,11 @@
 
     <div class="sgc-field">
       <label for="buscar_usuario">{{ nuevoModo() === 'directa' ? 'Elige a quién escribir' : 'Agregar participantes' }}</label>
-      <input id="buscar_usuario" type="search" placeholder="Buscar persona…" [value]="nuevoBuscar()" (input)="nuevoBuscar.set($any($event.target).value)" />
+      <input id="buscar_usuario" type="search" placeholder="Buscar persona…" [value]="nuevoBuscar()" (input)="onBuscarDir($any($event.target).value)" />
     </div>
 
     <ul class="usuario-list">
-      @for (u of directorioFiltrado(); track u.id) {
+      @for (u of directorioPaginado(); track u.id) {
         @if (nuevoModo() === 'directa') {
           <li>
             <button type="button" class="usuario-item" [disabled]="creating()" (click)="iniciarDirecta(u.id)">
@@ -188,6 +189,7 @@
         }
       }
     </ul>
+    <app-paginator [total]="directorioFiltrado().length" [pageSize]="PAGE_SIZE" [(page)]="pageDir" />
 
     @if (nuevoModo() === 'grupo') {
       <div class="drawer-actions">

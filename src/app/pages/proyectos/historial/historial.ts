@@ -5,10 +5,11 @@ import { Proyecto, PROYECTO_ESTADOS, PROYECTO_TIPOS } from '../../../../shared/m
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-proyectos-historial',
-  imports: [DatePipe, DecimalPipe, DonutChart, BarChart, Skeleton],
+  imports: [DatePipe, DecimalPipe, DonutChart, BarChart, Skeleton, Paginator],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +27,13 @@ export class ProyectosHistorial implements OnInit {
   visibles = computed(() => {
     const base = this.tab() === 'finalizados' ? this.finalizados() : this.proyectos();
     return [...base].sort((a, b) => (b.fecha_fin_real ?? b.created_at).localeCompare(a.fecha_fin_real ?? a.created_at));
+  });
+
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.visibles().slice(start, start + this.PAGE_SIZE);
   });
 
   totalCompletados = computed(() => this.proyectos().filter((p) => p.estado === 'completado').length);
@@ -64,6 +72,7 @@ export class ProyectosHistorial implements OnInit {
 
   setTab(t: 'finalizados' | 'todos') {
     this.tab.set(t);
+    this.page.set(1);
   }
 
   estadoLabel(v: string): string {

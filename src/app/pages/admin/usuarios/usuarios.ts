@@ -13,10 +13,11 @@ import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaMedia } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +39,10 @@ export class AdminUsuarios implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
+
+  // ── Pagination ───────────────────────────────────────────
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
@@ -113,6 +118,11 @@ export class AdminUsuarios implements OnInit {
     });
   });
 
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.filtered().slice(start, start + this.PAGE_SIZE);
+  });
+
   drawerTitle = computed(() => {
     const u = this.editingUser();
     return u ? `Editar: ${u.nombre}` : 'Editar usuario';
@@ -141,10 +151,12 @@ export class AdminUsuarios implements OnInit {
 
   onSearch(value: string) {
     this.searchQuery.set(value);
+    this.page.set(1);
   }
 
   onStatusChange(value: string) {
     this.selectedStatus.set(value as 'all' | 'active' | 'inactive');
+    this.page.set(1);
   }
 
   openEdit(usuario: UsuarioAdmin) {

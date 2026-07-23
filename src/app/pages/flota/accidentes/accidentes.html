@@ -17,7 +17,7 @@
       <input
         type="checkbox"
         [checked]="mostrarPrueba()"
-        (change)="mostrarPrueba.set($any($event.target).checked)"
+        (change)="mostrarPrueba.set($any($event.target).checked); page.set(1)"
       />
       Mostrar datos de prueba
     </label>
@@ -42,7 +42,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (a of visibles(); track a.id) {
+            @for (a of paginated(); track a.id) {
               <tr class="ac-row" (click)="openDetail(a)" role="button" tabindex="0"
                 (keyup.enter)="openDetail(a)">
                 <td>{{ formatFecha(a.fecha) }}</td>
@@ -64,6 +64,7 @@
           </tbody>
         </table>
       </div>
+      <app-paginator [total]="visibles().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
     }
   </div>
 }

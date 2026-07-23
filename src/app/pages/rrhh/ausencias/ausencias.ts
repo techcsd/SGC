@@ -10,11 +10,12 @@ import { SolicitudAusencia, AUSENCIA_TIPOS, AUSENCIA_ESTADOS } from '../../../..
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 @Component({
   selector: 'app-ausencias',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator],
   templateUrl: './ausencias.html',
   styleUrl: './ausencias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -66,6 +67,13 @@ export class Ausencias implements OnInit {
     return tipo === 'all' ? base : base.filter((s) => s.tipo === tipo);
   });
 
+  page = signal(1);
+  readonly PAGE_SIZE = 20;
+  paginated = computed(() => {
+    const start = (this.page() - 1) * this.PAGE_SIZE;
+    return this.visible().slice(start, start + this.PAGE_SIZE);
+  });
+
   diasCalculados = computed(() => {
     const inicio = this.form.controls.fecha_inicio.value;
     const fin = this.form.controls.fecha_fin.value;
@@ -96,9 +104,11 @@ export class Ausencias implements OnInit {
 
   setTab(tab: 'pendientes' | 'todas') {
     this.tab.set(tab);
+    this.page.set(1);
   }
   onTipoChange(value: string) {
     this.selectedTipo.set(value);
+    this.page.set(1);
   }
 
   openCreate() {

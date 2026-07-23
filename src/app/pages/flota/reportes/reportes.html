@@ -21,21 +21,29 @@
 }
 
 @if (!loading()) {
-  <!-- Summary cards -->
+  <!-- Summary cards — regla del jefe: cada número abre su listado -->
   <div class="flota-reportes__summary">
-    <div class="flota-reportes__card flota-reportes__card--success">
+    <div class="flota-reportes__card flota-reportes__card--success flota-reportes__card--link"
+         role="button" tabindex="0" (click)="irAVehiculos()" (keydown.enter)="irAVehiculos()"
+         aria-label="Ver vehículos">
       <div class="flota-reportes__card-value">{{ totalActivos() }}</div>
       <div class="flota-reportes__card-label">Vehículos activos</div>
     </div>
-    <div class="flota-reportes__card flota-reportes__card--warning">
+    <div class="flota-reportes__card flota-reportes__card--warning flota-reportes__card--link"
+         role="button" tabindex="0" (click)="irAMantenimientos()" (keydown.enter)="irAMantenimientos()"
+         aria-label="Ver mantenimientos">
       <div class="flota-reportes__card-value">{{ enMantenimiento() }}</div>
       <div class="flota-reportes__card-label">En mantenimiento</div>
     </div>
-    <div class="flota-reportes__card flota-reportes__card--info">
+    <div class="flota-reportes__card flota-reportes__card--info flota-reportes__card--link"
+         role="button" tabindex="0" (click)="irAMantenimientos()" (keydown.enter)="irAMantenimientos()"
+         aria-label="Ver mantenimientos">
       <div class="flota-reportes__card-value">{{ mantenimientosEsteMes() }}</div>
       <div class="flota-reportes__card-label">Mantenimientos este mes</div>
     </div>
-    <div class="flota-reportes__card flota-reportes__card--primary">
+    <div class="flota-reportes__card flota-reportes__card--primary flota-reportes__card--link"
+         role="button" tabindex="0" (click)="irACombustible()" (keydown.enter)="irACombustible()"
+         aria-label="Ver registros de combustible">
       <div class="flota-reportes__card-value">RD$ {{ gastoCombustibleMes() | number:'1.0-0' }}</div>
       <div class="flota-reportes__card-label">Combustible este mes</div>
     </div>
