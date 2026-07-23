@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.24.0';
-export const APP_VERSION_TITULO: string | null = "Cierre de fuga de datos: inventario, almacenes y proveedores solo visibles para sus módulos";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"seguridad","d":"QA de permisos por rol (14 usuarios de prueba): se detectó y cerró una fuga en la que cualquier usuario autenticado (aunque no tuviera el módulo) podía leer todas las salidas de inventario, el stock por almacén, la lista de almacenes y los proveedores. Ahora solo los roles de Inventario/Compras (y Administración) los ven; el resto no."},{"t":"seguridad","d":"Se verificó que el resto del control de acceso está correcto: el alcance de datos de Flota por conductor, el ocultamiento de datos de prueba a los no-admin, y el gateo por módulo del resto de pantallas."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/76c5e10";
+export const APP_VERSION = '1.25.0';
+export const APP_VERSION_TITULO: string | null = "Los vehículos de la flota solo son visibles para quien tiene el módulo Flota";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"seguridad","d":"El listado de vehículos ahora requiere el módulo Flota: los usuarios con Flota ven los vehículos activos y los roles elevados (Administración/Dirección/Gerencia/Jefe de flota) ven también los inactivos; el resto de roles ya no ve la flota."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/a17ed60";

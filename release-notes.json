@@ -1,6 +1,12 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.25.0": {
+      "titulo": "Los vehículos de la flota solo son visibles para quien tiene el módulo Flota",
+      "cambios": [
+        { "t": "seguridad", "d": "El listado de vehículos ahora requiere el módulo Flota: los usuarios con Flota ven los vehículos activos y los roles elevados (Administración/Dirección/Gerencia/Jefe de flota) ven también los inactivos; el resto de roles ya no ve la flota." }
+      ]
+    },
     "1.24.0": {
       "titulo": "Cierre de fuga de datos: inventario, almacenes y proveedores solo visibles para sus módulos",
       "cambios": [
