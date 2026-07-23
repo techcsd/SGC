@@ -83,9 +83,14 @@
               tabindex="0" role="button"
               [attr.aria-label]="'Ver detalle de ' + usuario.nombre">
             <td class="admin-usuarios__name-cell">
-              <div class="admin-usuarios__avatar" aria-hidden="true">
-                {{ usuario.nombre[0]?.toUpperCase() }}
-              </div>
+              @if (avatarUrlDe(usuario); as av) {
+                <img class="admin-usuarios__avatar admin-usuarios__avatar--img" [src]="av"
+                     [alt]="usuario.nombre" loading="lazy" />
+              } @else {
+                <div class="admin-usuarios__avatar" aria-hidden="true">
+                  {{ usuario.nombre[0]?.toUpperCase() }}
+                </div>
+              }
               <span>{{ usuario.nombre }}</span>
             </td>
             <td class="admin-usuarios__email">{{ usuario.email }}</td>

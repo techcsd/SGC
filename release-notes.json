@@ -1,6 +1,20 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.27.0": {
+      "titulo": "Avisos de vencimiento más claros, visitas a taller tipificadas, fotos de accidentes y bitácora con varios bloques",
+      "cambios": [
+        { "t": "mejora", "d": "Los avisos de flota ahora distinguen \"por vencer\" (amarillo) de \"vencida/vencido\" (rojo) para licencias, matrículas y seguros, y cambian solos de color al pasar la fecha. El umbral de \"por vencer\" (30 días) es configurable por el admin." },
+        { "t": "nuevo", "d": "Los avisos de flota se dividen en \"Avisos activos\" e \"Historial de avisos\": al renovar un documento (p. ej. subir el seguro nuevo) su aviso se resuelve solo y pasa al historial con la nota de cómo se resolvió." },
+        { "t": "nuevo", "d": "Las visitas a taller se clasifican en 4 tipos (mantenimiento preventivo, reparación por falla, por accidente/daño, cambio de pieza). Solo el preventivo reinicia el ciclo de mantenimiento; una falla ya no adelanta la próxima cita." },
+        { "t": "mejora", "d": "El kilometraje del último mantenimiento del vehículo ahora se actualiza al registrar un mantenimiento preventivo (antes solo se ponía al dar de alta el vehículo)." },
+        { "t": "nuevo", "d": "Al registrar un accidente puedes adjuntar varias fotos del hecho además del acta AMET; el acta y las fotos se ven en miniatura y se abren en grande dentro de la misma página." },
+        { "t": "nuevo", "d": "La bitácora web permite registrar varios bloques/entrepisos en un mismo parte (paridad con la app) y guardar partes incompletos para retomarlos desde \"Documentación en proceso\"." },
+        { "t": "mejora", "d": "Marcar un vehículo o conductor como dato de prueba ahora también marca sus registros relacionados existentes (checklists, echadas, multas…), avisando cuántos se verán afectados; al desmarcar se revierte solo lo heredado." },
+        { "t": "mejora", "d": "El listado de usuarios muestra la foto de avatar, y el detalle del usuario y el historial de versiones muestran la fecha con hora." },
+        { "t": "mejora", "d": "Las notificaciones de Legal, RRHH y Compras ahora señalan el submódulo exacto donde atenderlas." }
+      ]
+    },
     "1.26.0": {
       "titulo": "Datos de prueba aislados, imágenes que ya no se recargan, detalle de usuario/multa y reporte de la app arreglado",
       "cambios": [

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { AppVersionesService } from '../../../../shared/services/app-versiones.service';
 import { AppVersion, CambioItem, CambioTag, CAMBIO_META, Plataforma } from '../../../../shared/models/app-version.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 
 const TAGS: CambioTag[] = ['nuevo', 'mejora', 'arreglo', 'seguridad'];
 
@@ -27,6 +27,7 @@ export class AdminHistorialVersiones implements OnInit {
   private service = inject(AppVersionesService);
 
   formatFecha = formatFechaDisplay;
+  formatFechaHora = formatFechaHumana; // X7 — fecha + hora
   readonly TAGS = TAGS;
   readonly CAMBIO_META = CAMBIO_META;
 

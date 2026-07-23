@@ -76,6 +76,18 @@ export class FlotaReportes implements OnInit {
   private supabase = inject(SupabaseService);
   private router = inject(Router);
 
+  // X6 — etiqueta legible del tipo de visita a taller.
+  tipoMantLabel(tipo: string): string {
+    return (
+      {
+        preventivo: 'Preventivo',
+        falla: 'Falla/avería',
+        accidente_dano: 'Accidente/daño',
+        cambio_pieza: 'Cambio de pieza',
+      }[tipo] ?? tipo
+    );
+  }
+
   formatFecha = formatFechaDisplay;
 
   // R4b — filas clicables: todo abre su origen (regla del jefe).

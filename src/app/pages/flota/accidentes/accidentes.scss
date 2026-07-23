@@ -64,3 +64,58 @@
   padding-top: 16px;
   border-top: 1px solid var(--sgc-border);
 }
+
+// X3 — evidencia (acta + fotos del hecho): thumbnails + grid
+.ac-evidencia {
+  margin-top: 14px;
+  &__label {
+    display: block;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--sgc-text-muted);
+    margin-bottom: 6px;
+  }
+}
+.ac-fotos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ac-foto-thumb {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border: 1px solid var(--sgc-border);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 0;
+  background: var(--sgc-surface-hover, #f0f0f0);
+  cursor: pointer;
+  img { width: 100%; height: 100%; object-fit: cover; }
+  &:hover { border-color: var(--sgc-primary-mid); }
+  &--doc { width: 120px; height: 120px; }
+}
+.ac-foto-cargando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--sgc-text-muted);
+}
+.ac-foto-quitar {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+}

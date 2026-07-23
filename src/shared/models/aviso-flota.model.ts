@@ -10,9 +10,17 @@ export type AvisoFlotaTipo =
   | 'licencia'
   | 'matricula'
   | 'seguro'
-  | 'reporte_semanal';
+  | 'reporte_semanal'
+  | 'conciliacion'
+  // X1 — tipos separados por-vencer (amarillo) vs vencida (rojo)
+  | 'licencia_por_vencer'
+  | 'licencia_vencida'
+  | 'matricula_por_vencer'
+  | 'matricula_vencida'
+  | 'seguro_por_vencer'
+  | 'seguro_vencida';
 
-export type AvisoFlotaEstado = 'pendiente' | 'atendido';
+export type AvisoFlotaEstado = 'pendiente' | 'atendido' | 'resuelto_auto';
 export type AvisoFlotaSeveridad = 'baja' | 'media' | 'alta';
 
 export interface AvisoFlota {
@@ -29,6 +37,9 @@ export interface AvisoFlota {
   atendido_at: string | null;
   nota_atencion: string | null;
   created_at: string;
+  // X2 — auto-resolución
+  resuelto_at?: string | null;
+  resuelto_nota?: string | null;
   vehiculo?: { placa: string; marca: string } | null;
   conductor?: { nombre: string } | null;
 }
@@ -43,6 +54,13 @@ export const AVISO_TIPO_LABEL: Record<AvisoFlotaTipo, string> = {
   matricula: 'Matrícula por vencer',
   seguro: 'Seguro por vencer',
   reporte_semanal: 'Reporte semanal pendiente',
+  conciliacion: 'Conciliación de combustible',
+  licencia_por_vencer: 'Licencia por vencer',
+  licencia_vencida: 'Licencia vencida',
+  matricula_por_vencer: 'Matrícula por vencer',
+  matricula_vencida: 'Matrícula vencida',
+  seguro_por_vencer: 'Seguro por vencer',
+  seguro_vencida: 'Seguro vencido',
 };
 
 export const AVISO_SEVERIDAD_BADGE: Record<AvisoFlotaSeveridad, string> = {

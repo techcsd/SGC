@@ -75,6 +75,18 @@ export class NotificacionesService {
     if (table === 'solicitudes_material') {
       this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.salidas': count ?? 0 }));
     }
+    // X12 — las aprobaciones legales pendientes se atienden en el submódulo Aprobaciones.
+    if (table === 'aprobaciones_legales') {
+      this._pendingBySubmodulo.update((m) => ({ ...m, 'legal.aprobaciones': count ?? 0 }));
+    }
+    // RRHH: las solicitudes de ausencia pendientes se atienden en Ausencias.
+    if (table === 'solicitudes_ausencia') {
+      this._pendingBySubmodulo.update((m) => ({ ...m, 'rrhh.ausencias': count ?? 0 }));
+    }
+    // Compras: las órdenes/solicitudes de compra pendientes se atienden en Órdenes de compra.
+    if (table === 'solicitudes_compra') {
+      this._pendingBySubmodulo.update((m) => ({ ...m, 'compras.ordenes': count ?? 0 }));
+    }
   }
 
   private async loadTareasPendientes(usuarioId: string): Promise<void> {

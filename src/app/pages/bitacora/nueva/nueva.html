@@ -5,13 +5,18 @@
   </div>
 </div>
 
-@if (draftAvailable()) {
+@if (enProceso().length) {
   <div class="bitacora-draft-banner" role="status">
-    <span>Se encontró un borrador sin enviar de una sesión anterior.</span>
-    <div class="bitacora-draft-banner__actions">
-      <button class="sgc-btn sgc-btn--primary" type="button" (click)="recuperarDraft()">Recuperar</button>
-      <button class="sgc-btn sgc-btn--ghost" type="button" (click)="descartarDraft()">Descartar</button>
-    </div>
+    <span class="bitacora-draft-banner__title">Documentación en proceso ({{ enProceso().length }})</span>
+    @for (b of enProceso(); track b.id) {
+      <div class="bitacora-draft-item">
+        <span class="bitacora-draft-item__label">{{ b.label }}</span>
+        <div class="bitacora-draft-banner__actions">
+          <button class="sgc-btn sgc-btn--secondary sgc-btn--sm" type="button" (click)="recuperar(b.id)">Retomar</button>
+          <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="descartar(b.id)">Descartar</button>
+        </div>
+      </div>
+    }
   </div>
 }
 
@@ -63,18 +68,14 @@
       @if (tipoActual() === 'parte_diario') {
         <div class="bitacora-form-row">
           <div class="sgc-field">
-            <label for="bloque_entrepiso">Bloque / Entrepiso <span class="required">*</span></label>
+            <label for="bloque_entrepiso">Bloque / Entrepiso por defecto</label>
             <input
               id="bloque_entrepiso"
               type="text"
               formControlName="bloque_entrepiso"
               placeholder="Ej: Bloque A - Entrepiso 3"
-              [class.invalid]="f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched"
             />
-            <span class="bitacora-section__hint">Bloque por defecto. Puedes indicar uno distinto por actividad más abajo.</span>
-            @if (f.bloque_entrepiso.invalid && f.bloque_entrepiso.touched) {
-              <span class="field-error">Este campo es obligatorio.</span>
-            }
+            <span class="bitacora-section__hint">Opcional. Para registrar en varios bloques usa los chips de la sección Actividades.</span>
           </div>
 
           <div class="sgc-field">
@@ -432,7 +433,27 @@
     @if (tipoActual() === 'parte_diario') {
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">2. Actividades</h2>
-      <p class="bitacora-section__hint">Opcional. Marca las actividades realizadas por estructura.</p>
+      <p class="bitacora-section__hint">Opcional. Marca las actividades realizadas por estructura. Puedes capturar varios bloques/entrepisos en un mismo parte.</p>
+
+      <!-- X13 — selector de bloque activo (multi-bloque real) -->
+      <div class="bitacora-bloques">
+        <span class="bitacora-bloques__label">Bloque / entrepiso:</span>
+        @for (b of bloquesLista(); track b) {
+          <span class="bitacora-bloque-chip" [class.active]="bloqueActivo() === b">
+            <button type="button" (click)="seleccionarBloque(b)">{{ b }}</button>
+            @if (bloquesLista().length > 1) {
+              <button type="button" class="bitacora-bloque-chip__x" (click)="quitarBloque(b)" aria-label="Quitar bloque">✕</button>
+            }
+          </span>
+        }
+        <input #nuevoBloque type="text" class="bitacora-bloque-add" placeholder="+ Agregar bloque"
+          (keydown.enter)="$event.preventDefault(); agregarBloque(nuevoBloque.value); nuevoBloque.value=''" />
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+          (click)="agregarBloque(nuevoBloque.value); nuevoBloque.value=''">Agregar</button>
+      </div>
+      @if (totalActividades() > 0) {
+        <p class="bitacora-section__hint">{{ totalActividades() }} actividad(es) en total en {{ bloquesLista().length }} bloque(s).</p>
+      }
 
       <div class="bitacora-matriz">
         @for (estructura of estructuras(); track estructura) {
@@ -489,16 +510,8 @@
                             <option [value]="u.codigo">{{ u.nombre }}</option>
                           }
                         </select>
-                        <!-- T3 — bloque/entrepiso por actividad (multi-bloque, paridad con la app) -->
-                        <span class="bitacora-matriz__qty-label">Bloque</span>
-                        <input
-                          type="text"
-                          class="bitacora-matriz__bloque"
-                          [value]="getBloque(estructura, actividad)"
-                          (input)="setBloque(estructura, actividad, $any($event.target).value)"
-                          [placeholder]="f.bloque_entrepiso.value || 'Bloque / Entrepiso'"
-                          [attr.aria-label]="'Bloque de ' + actividad"
-                        />
+                        <!-- X13 — el bloque ahora se elige con los chips de arriba
+                             (multi-bloque real); ya no hay input por actividad. -->
                       </div>
                     }
                   </div>

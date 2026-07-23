@@ -16,6 +16,7 @@ import { BitacoraCatalogosService } from '../../../../shared/services/bitacora-c
 import { UnidadesService } from '../../../../shared/services/unidades.service';
 import { Unidad } from '../../../../shared/models/unidad.model';
 import { UserService } from '../../../core/services/user.service';
+import { BorradoresWebService, BorradorMeta } from '../../../../shared/services/borradores-web.service';
 import { ContextService } from '../../../../shared/context/context.service';
 import { WeatherService } from '../../../../shared/context/weather.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -59,7 +60,8 @@ interface Draft {
   restricciones: string[];
   cantidades?: Record<string, number | null>;
   unidades?: Record<string, string | null>;
-  bloques?: Record<string, string | null>;
+  bloquesLista?: string[];
+  bloqueActivo?: string;
   descripciones?: Record<string, string>;
   equipos?: EquipoRow[];
 }
@@ -75,6 +77,11 @@ export class Nueva implements OnInit {
   private bitacoraService = inject(BitacoraService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
+  private borradores = inject(BorradoresWebService);
+  // X13 — borradores web multi-instancia.
+  private readonly MODULO_BORRADOR = 'bitacora';
+  private draftId: string = crypto.randomUUID();
+  enProceso = signal<BorradorMeta[]>([]);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private contextService = inject(ContextService);
@@ -118,18 +125,18 @@ export class Nueva implements OnInit {
   loading = signal(true);
   saving = signal(false);
   saveError = signal('');
-  draftAvailable = signal(false);
 
   tipoActual = signal<BitacoraTipo>('parte_diario');
 
+  // X13 — multi-bloque REAL (paridad app): la actividad se captura por el BLOQUE
+  // activo. Llave = `bloque|estructura|actividad`, así la misma actividad puede
+  // registrarse en dos bloques distintos en el mismo parte.
   actividadesSeleccionadas = signal<Set<string>>(new Set());
-  // R24 — cuántas se hicieron por actividad, misma llave `estructura|actividad`.
   cantidadesActividad = signal<Record<string, number | null>>({});
-  // Q6 — unidad de medida por actividad, misma llave `estructura|actividad`.
   unidadesActividad = signal<Record<string, string | null>>({});
-  // T3 — bloque/entrepiso POR actividad (paridad con la app: multi-bloque real).
-  // Misma llave `estructura|actividad`. Vacío ⇒ hereda el bloque de cabecera.
-  bloquesActividad = signal<Record<string, string | null>>({});
+  // Bloques/entrepisos/sujetos capturados en este parte + el que se edita ahora.
+  bloquesLista = signal<string[]>(['General']);
+  bloqueActivo = signal<string>('General');
   restriccionesSeleccionadas = signal<Set<string>>(new Set());
   archivos = signal<File[]>([]);
   expandedEstructura = signal<string | null>(null);
@@ -153,7 +160,9 @@ export class Nueva implements OnInit {
     tipo: new FormControl<BitacoraTipo>('parte_diario', [Validators.required]),
     fecha: new FormControl(this.today, [Validators.required]),
     proyecto_id: new FormControl<string | null>(null, [Validators.required]),
-    bloque_entrepiso: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    // X13 — bloque_entrepiso de cabecera ahora OPCIONAL (paridad app): actúa como
+    // default del bloque 'General'; el multi-bloque se maneja con los chips.
+    bloque_entrepiso: new FormControl('', [Validators.maxLength(100)]),
     ingeniero_responsable: new FormControl('', [Validators.required, Validators.maxLength(150)]),
     hora_fin_trabajo: new FormControl('', [Validators.required]),
     personal_carpinteria: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
@@ -298,7 +307,17 @@ export class Nueva implements OnInit {
 
   async ngOnInit() {
     this.form.controls.ingeniero_responsable.setValue(this.userService.profile()?.nombre ?? '');
-    this.draftAvailable.set(sessionStorage.getItem(DRAFT_KEY) !== null);
+    // X13 — cargar la lista de borradores "En proceso" (multi-instancia).
+    this.refrescarEnProceso();
+    // Migración suave del borrador viejo de slot único (sessionStorage) → lista.
+    const legacy = sessionStorage.getItem(DRAFT_KEY);
+    if (legacy) {
+      try {
+        this.borradores.save(this.MODULO_BORRADOR, this.draftId, 'Parte recuperado', JSON.parse(legacy));
+      } catch { /* ignora */ }
+      sessionStorage.removeItem(DRAFT_KEY);
+      this.refrescarEnProceso();
+    }
 
     this.form.controls.tipo.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -383,49 +402,102 @@ export class Nueva implements OnInit {
     }
   }
 
-  // ── Draft (sessionStorage) ─────────────────────────────────
+  // ── Borradores web (X13 — multi-instancia, localStorage) ───────────────────
+  private refrescarEnProceso() {
+    this.enProceso.set(this.borradores.list(this.MODULO_BORRADOR));
+  }
+
+  /** ¿El borrador actual tiene contenido que valga la pena guardar? */
+  private tieneContenido(): boolean {
+    const v = this.form.getRawValue();
+    return !!(v.proyecto_id || this.actividadesSeleccionadas().size || this.restriccionesSeleccionadas().size
+      || v.comentarios || v.incidente_descripcion || this.equiposAlquilados().length);
+  }
+
+  private draftLabel(): string {
+    const v = this.form.getRawValue();
+    const proy = this.proyectos().find((p) => p.id === v.proyecto_id)?.nombre;
+    const tipo = v.tipo === 'parte_diario' ? 'Parte' : v.tipo === 'incidente' ? 'Incidente' : 'Visita';
+    return `${tipo}${proy ? ' · ' + proy : ''} · ${v.fecha ?? ''}`.trim();
+  }
+
   private saveDraft() {
+    if (!this.tieneContenido()) return; // no ensuciar la lista con borradores vacíos
     const draft: Draft = {
       form: this.form.getRawValue(),
       actividades: [...this.actividadesSeleccionadas()],
       restricciones: [...this.restriccionesSeleccionadas()],
       cantidades: this.cantidadesActividad(),
       unidades: this.unidadesActividad(),
-      bloques: this.bloquesActividad(),
+      bloquesLista: this.bloquesLista(),
+      bloqueActivo: this.bloqueActivo(),
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
     };
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    this.borradores.save(this.MODULO_BORRADOR, this.draftId, this.draftLabel(), draft);
+    this.refrescarEnProceso();
   }
 
-  recuperarDraft() {
-    const raw = sessionStorage.getItem(DRAFT_KEY);
-    if (raw) {
-      try {
-        const draft = JSON.parse(raw) as Draft;
-        this.form.patchValue(draft.form);
-        this.actividadesSeleccionadas.set(new Set(draft.actividades));
-        this.restriccionesSeleccionadas.set(new Set(draft.restricciones));
-        this.cantidadesActividad.set(draft.cantidades ?? {});
-        this.unidadesActividad.set(draft.unidades ?? {});
-        this.bloquesActividad.set(draft.bloques ?? {});
-        this.restriccionDescripciones.set(draft.descripciones ?? {});
-        this.equiposAlquilados.set(draft.equipos ?? []);
-      } catch {
-        sessionStorage.removeItem(DRAFT_KEY);
-      }
+  /** Retoma un borrador de la lista "En proceso". */
+  recuperar(id: string) {
+    const draft = this.borradores.get<Draft>(this.MODULO_BORRADOR, id);
+    if (!draft) return;
+    this.draftId = id; // seguir editando ese borrador
+    this.form.patchValue(draft.form);
+    this.actividadesSeleccionadas.set(new Set(draft.actividades));
+    this.restriccionesSeleccionadas.set(new Set(draft.restricciones));
+    this.cantidadesActividad.set(draft.cantidades ?? {});
+    this.unidadesActividad.set(draft.unidades ?? {});
+    this.bloquesLista.set(draft.bloquesLista ?? ['General']);
+    this.bloqueActivo.set(draft.bloqueActivo ?? this.bloquesLista()[0] ?? 'General');
+    this.restriccionDescripciones.set(draft.descripciones ?? {});
+    this.equiposAlquilados.set(draft.equipos ?? []);
+  }
+
+  descartar(id: string) {
+    this.borradores.remove(this.MODULO_BORRADOR, id);
+    if (id === this.draftId) this.draftId = crypto.randomUUID();
+    this.refrescarEnProceso();
+  }
+
+  // ── Bloques (multi-bloque) ───────────────────────────────────
+  agregarBloque(nombre: string) {
+    const n = nombre.trim();
+    if (!n) return;
+    if (!this.bloquesLista().includes(n)) {
+      this.bloquesLista.update((l) => [...l, n]);
     }
-    this.draftAvailable.set(false);
+    this.bloqueActivo.set(n);
+    this.saveDraft();
   }
-
-  descartarDraft() {
-    sessionStorage.removeItem(DRAFT_KEY);
-    this.draftAvailable.set(false);
+  seleccionarBloque(b: string) {
+    this.bloqueActivo.set(b);
+  }
+  quitarBloque(b: string) {
+    if (this.bloquesLista().length <= 1) return; // siempre queda uno
+    // Purga las actividades/cantidades/unidades de ese bloque.
+    const prefix = `${b}|`;
+    this.actividadesSeleccionadas.update((set) => {
+      const next = new Set<string>();
+      for (const k of set) if (!k.startsWith(prefix)) next.add(k);
+      return next;
+    });
+    const purge = (m: Record<string, unknown>) => {
+      const next: Record<string, unknown> = {};
+      for (const k of Object.keys(m)) if (!k.startsWith(prefix)) next[k] = m[k];
+      return next;
+    };
+    this.cantidadesActividad.update((m) => purge(m) as Record<string, number | null>);
+    this.unidadesActividad.update((m) => purge(m) as Record<string, string | null>);
+    this.bloquesLista.update((l) => l.filter((x) => x !== b));
+    if (this.bloqueActivo() === b) this.bloqueActivo.set(this.bloquesLista()[0]);
+    this.saveDraft();
   }
 
   // ── Actividades matrix ───────────────────────────────────────
+  // Llave con el bloque activo → multi-bloque real.
   private key(estructura: string, actividad: string): string {
-    return `${estructura}|${actividad}`;
+    return `${this.bloqueActivo()}|${estructura}|${actividad}`;
   }
 
   isActividadChecked(estructura: string, actividad: string): boolean {
@@ -448,11 +520,6 @@ export class Nueva implements OnInit {
         return next;
       });
       this.unidadesActividad.update((m) => {
-        const next = { ...m };
-        delete next[k];
-        return next;
-      });
-      this.bloquesActividad.update((m) => {
         const next = { ...m };
         delete next[k];
         return next;
@@ -483,17 +550,6 @@ export class Nueva implements OnInit {
     return this.unidadesActividad()[this.key(estructura, actividad)] ?? '';
   }
 
-  // T3 — bloque/entrepiso por actividad (paridad con la app: multi-bloque real).
-  setBloque(estructura: string, actividad: string, bloque: string) {
-    const k = this.key(estructura, actividad);
-    this.bloquesActividad.update((m) => ({ ...m, [k]: bloque.trim() || null }));
-    this.saveDraft();
-  }
-
-  getBloque(estructura: string, actividad: string): string {
-    return this.bloquesActividad()[this.key(estructura, actividad)] ?? '';
-  }
-
   toggleEstructura(estructura: string) {
     this.expandedEstructura.update((cur) => (cur === estructura ? null : estructura));
   }
@@ -503,8 +559,14 @@ export class Nueva implements OnInit {
   }
 
   countForEstructura(estructura: string): number {
-    const prefix = `${estructura}|`;
+    // Scoped al bloque activo (la matriz muestra el bloque en edición).
+    const prefix = `${this.bloqueActivo()}|${estructura}|`;
     return [...this.actividadesSeleccionadas()].filter((k) => k.startsWith(prefix)).length;
+  }
+
+  /** Total de actividades a través de TODOS los bloques (para el resumen). */
+  totalActividades(): number {
+    return this.actividadesSeleccionadas().size;
   }
 
   // ── Restricciones ────────────────────────────────────────────
@@ -659,13 +721,15 @@ export class Nueva implements OnInit {
     const bloqueParte = esParte ? (v.bloque_entrepiso?.trim() || null) : null;
     const actividades = esParte
       ? [...this.actividadesSeleccionadas()].map((k) => {
-          const [estructura, actividad] = k.split('|') as [string, string];
+          // X13 — llave `bloque|estructura|actividad`.
+          const [bloque, estructura, actividad] = k.split('|') as [string, string, string];
           return {
             estructura,
             actividad,
             cantidad: this.cantidadesActividad()[k] ?? null,
             unidad: this.unidadesActividad()[k] ?? null,
-            bloque: this.bloquesActividad()[k]?.trim() || bloqueParte,
+            // 'General' sin bloque de cabecera ⇒ hereda el de cabecera (o queda null).
+            bloque: bloque === 'General' ? bloqueParte : bloque,
           };
         })
       : [];
@@ -779,7 +843,8 @@ export class Nueva implements OnInit {
         }
       }
 
-      sessionStorage.removeItem(DRAFT_KEY);
+      // X13 — al enviar con éxito, quita el borrador en proceso.
+      this.borradores.remove(this.MODULO_BORRADOR, this.draftId);
       this.router.navigate(['/bitacora/historial']);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar la bitácora.');

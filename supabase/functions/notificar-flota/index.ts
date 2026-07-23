@@ -39,6 +39,13 @@ const PREFIJO: Record<string, string> = {
   licencia: "🪪 Licencia por vencer",
   matricula: "📄 Matrícula por vencer",
   seguro: "🛡️ Seguro por vencer",
+  // X1 — tipos separados por-vencer (amarillo) vs vencida (rojo).
+  licencia_por_vencer: "🪪 Licencia por vencer",
+  licencia_vencida: "🚫 Licencia VENCIDA",
+  matricula_por_vencer: "📄 Matrícula por vencer",
+  matricula_vencida: "🚫 Matrícula VENCIDA",
+  seguro_por_vencer: "🛡️ Seguro por vencer",
+  seguro_vencida: "🚫 Seguro VENCIDO",
 };
 
 Deno.serve(async (req: Request) => {

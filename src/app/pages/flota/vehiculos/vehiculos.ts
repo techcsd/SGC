@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
@@ -78,6 +79,7 @@ export class FlotaVehiculos implements OnInit {
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Drawer ───────────────────────────────────────────────
@@ -308,6 +310,17 @@ export class FlotaVehiculos implements OnInit {
       placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' '),
       vin: vin || null,
     } as VehiculoFormData;
+
+    // X14 — al marcar un vehículo existente como prueba, avisar cuántos
+    // registros relacionados se marcarán también (checklists, echadas, etc.).
+    const idEdit = this.editingId();
+    if (idEdit && payload.es_prueba) {
+      const n = await this.datosPrueba.contarDerivados('vehiculos', idEdit, true);
+      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s) (checklists, echadas, entregas, mantenimientos…). ¿Continuar?`)) {
+        this.saving.set(false);
+        return;
+      }
+    }
 
     try {
       const id = this.editingId();

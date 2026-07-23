@@ -4,6 +4,8 @@ import { AvisosFlotaService } from '../../../../shared/services/avisos-flota.ser
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
+import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
+import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
   AvisoFlota,
@@ -29,10 +31,36 @@ export class Avisos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
   private notificaciones = inject(NotificacionesService);
+  private flotaConfig = inject(FlotaConfigService);
+  private user = inject(UserService);
   private toast = inject(ToastService);
   private router = inject(Router);
 
   reactivando = signal<string | null>(null);
+
+  // X1b — umbral "por vencer" configurable (solo elevados).
+  get esElevado() {
+    return this.user.esFlotaElevado();
+  }
+  umbralInput = signal(this.flotaConfig.umbralPorVencerDias());
+  guardandoUmbral = signal(false);
+  async guardarUmbral() {
+    const dias = Number(this.umbralInput());
+    if (!Number.isFinite(dias) || dias < 1 || dias > 365) {
+      this.toast.error('Umbral inválido', 'Debe estar entre 1 y 365 días.');
+      return;
+    }
+    this.guardandoUmbral.set(true);
+    try {
+      await this.flotaConfig.setUmbralPorVencer(dias);
+      this.toast.success('Umbral actualizado', `Ahora se avisa ${dias} días antes de vencer.`);
+      await this.load(false);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : '');
+    } finally {
+      this.guardandoUmbral.set(false);
+    }
+  }
 
   formatFecha = formatFechaRelativa;
   tipoLabel = AVISO_TIPO_LABEL;
@@ -44,8 +72,13 @@ export class Avisos implements OnInit {
   error = signal('');
 
   filtroTipo = signal('');
-  filtroEstado = signal<'pendiente' | 'atendido' | ''>('pendiente');
   filtroVehiculo = signal('');
+  // X2 — Avisos activos (pendientes) vs Historial (atendidos + resueltos auto).
+  vista = signal<'activos' | 'historial'>('activos');
+  setVista(v: 'activos' | 'historial') {
+    this.vista.set(v);
+    this.page.set(1);
+  }
 
   // Atender drawer
   drawerOpen = signal(false);
@@ -55,15 +88,23 @@ export class Avisos implements OnInit {
 
   filtered = computed(() => {
     const tipo = this.filtroTipo();
-    const estado = this.filtroEstado();
     const veh = this.filtroVehiculo();
+    const vista = this.vista();
     return this.avisos().filter((a) => {
+      const enVista =
+        vista === 'activos'
+          ? a.estado === 'pendiente'
+          : a.estado === 'atendido' || a.estado === 'resuelto_auto';
+      if (!enVista) return false;
       if (tipo && a.tipo !== tipo) return false;
-      if (estado && a.estado !== estado) return false;
       if (veh && a.vehiculo_id !== veh) return false;
       return true;
     });
   });
+
+  historialCount = computed(
+    () => this.avisos().filter((a) => a.estado === 'atendido' || a.estado === 'resuelto_auto').length,
+  );
 
   page = signal(1);
   readonly PAGE_SIZE = 20;
@@ -91,18 +132,11 @@ export class Avisos implements OnInit {
     this.error.set('');
     try {
       if (generar) {
-        // Genera (idempotente/día) avisos de vencimiento antes de listar.
-        const [vehiculos, conductores] = await Promise.all([
-          this.vehiculosService.getAll(),
-          this.conductoresService.getAll(),
-        ]);
+        // X1/X2 — evalúa vencimientos server-side (genera/transiciona/auto-resuelve).
         try {
-          const nuevos = await this.avisosService.generarVencimientos(vehiculos, conductores);
-          if (nuevos > 0) {
-            this.toast.info('Vencimientos', `${nuevos} aviso(s) de vencimiento generado(s).`);
-          }
+          await this.avisosService.evaluarVencimientos();
         } catch {
-          /* no bloquea la carga si falla la generación */
+          /* no bloquea la carga si falla la evaluación */
         }
       }
       this.avisos.set(await this.avisosService.getAll());
@@ -114,7 +148,6 @@ export class Avisos implements OnInit {
   }
 
   onTipo(v: string) { this.filtroTipo.set(v); this.page.set(1); }
-  onEstado(v: string) { this.filtroEstado.set(v as 'pendiente' | 'atendido' | ''); this.page.set(1); }
   onVehiculo(v: string) { this.filtroVehiculo.set(v); this.page.set(1); }
 
   openAtender(a: AvisoFlota) {
@@ -160,9 +193,9 @@ export class Avisos implements OnInit {
   /** R9: crea una cita de mantenimiento precargando el form del vehículo. */
   crearCita(a: AvisoFlota) {
     if (!a.vehiculo_id) return;
-    const tipo = a.tipo === 'mantenimiento_vencido' ? 'correctivo' : 'preventivo';
+    // X6 — una cita desde un aviso de mantenimiento es siempre preventiva.
     this.router.navigate(['/flota/mantenimientos'], {
-      queryParams: { nuevo: 1, vehiculo: a.vehiculo_id, tipo },
+      queryParams: { nuevo: 1, vehiculo: a.vehiculo_id, tipo: 'preventivo' },
     });
   }
 

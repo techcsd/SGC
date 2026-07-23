@@ -14,6 +14,7 @@ export interface VehiculoAccidente {
   ubicacion_lat: number | null;
   ubicacion_lng: number | null;
   reporte_amet_path: string | null;
+  fotos?: string[]; // X3 — fotos del hecho (paths en bucket flota-documentos)
   es_prueba?: boolean;
   creado_por: string | null;
   creado_en: string;

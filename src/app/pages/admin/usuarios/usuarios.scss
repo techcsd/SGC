@@ -169,6 +169,12 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+
+    // X11 — foto real de avatar en el listado (fallback a la inicial si no hay).
+    &--img {
+      object-fit: cover;
+      background: var(--sgc-border);
+    }
   }
 
   &__email {

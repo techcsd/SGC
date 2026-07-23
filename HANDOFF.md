@@ -2,6 +2,31 @@
 
 _Last updated: 2026-07-23_
 
+## PROMPT-19-SGC · Ronda 9 (X1–X14 lado padre) (23/07/2026 PM) — ✅ CÓDIGO LISTO, 7 migraciones en prod, build verde, SIN commit/push/deploy
+
+Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-8.md` (IDs X). Aditivo/retrocompatible. `ng build` verde. **7 migraciones `sql/2026-07-23-act8-*.sql` aplicadas a prod (Management API) e idempotentes.** Frontend **sin commit/push**; edge `notificar-flota` editada pero **sin desplegar** (X1). Helper SQL: `scratchpad/apply-sql.mjs` (proyecto `jeeqhgccqefbqilntcpu`).
+
+### Hecho por fase (todo verificado con JWT simulado en transacciones rollback)
+- **FASE 1** — X11 avatar real en listado de usuarios (thumbnail+fallback inicial); X7 historial de versiones con **fecha+hora** (`created_at`, `formatFechaHumana`); X12 badges por submódulo en **Legal/RRHH/Compras** (`pendingBySubmodulo` + `badgeKey`); **X9 diagnóstico: ping_actividad OK** — grant/columns/uid correctos, 0 usuarios sin fila `usuarios`; el vacío era pre-deploy (la función no existía hasta W12/Ronda 8); ahora Xaviel(app 22:19) y papo(22:18) registran. Verificado ping('app') actualiza.
+- **FASE 2 (X1/X2)** — avisos de vencimiento consolidados server-side: `evaluar_avisos_vencimiento()` (sweep, dedup estable `venc:{base}:{id}`, tipos separados `*_por_vencer`(media/amarillo)/`*_vencida`(alta/rojo), transición in-place); auto-resolución `estado='resuelto_auto'`+`resuelto_at`/`resuelto_nota` (trigger en conductores licencia + `reevaluar_vencimiento_vehiculo` para matrícula/seguro; el sweep re-evalúa). Umbral **30d configurable** (`flota_config.umbral_por_vencer_*` + RPC `set_umbral_por_vencer` + UI en avisos, elevados). UI avisos: pestañas **Avisos activos / Historial**. Edge `notificar-flota` prefijos por tipo (pendiente desplegar). Verificado: renovar seguro→resuelto_auto; licencia cruza→transición a vencida.
+- **FASE 3 (X5/X6)** — `mantenimientos.tipo` repurposed a 4 fijos `preventivo|falla|accidente_dano|cambio_pieza` (migró correctivo/emergencia→falla; CHECK; default preventivo) + `incluye_preventivo` + `accidente_id`. `km_ultimo_mantenimiento` por **trigger** `trg_mant_km_ultimo` (solo preventivo/incluye_preventivo, no retrocede) + backfill one-shot. Alertas de ciclo solo sobre preventivo. Form web pide tipo + checkbox "incluyó preventivo"; badge por tipo + reportes. Verificado: falla NO mueve ciclo, preventivo sí.
+- **FASE 4 (X3)** — `vehiculo_accidentes.fotos text[]` + `registrar_accidente_app` con `p_fotos`; form web sube múltiples fotos del hecho; detalle con thumbnails (cache W9) + **lightbox W11** (acta imagen→lightbox, acta PDF→enlace). Sin `window.open`.
+- **FASE 5 (X14)** — `es_prueba_origen 'manual'|'heredado'` en las 13 tablas; `marcar_prueba_cascada`+`contar_derivados_prueba`+`_cascada_prueba`; **triggers** `trg_cascada_prueba` en vehiculos/conductores (cubre form directo + RPC + app); W7 trigger marca derivados nuevos 'heredado'; `eliminar_dato_prueba` borra derivados test; `marcar_dato_prueba` delega. UI: confirm "Esto marcará también N registros" en conductores(row) y vehiculos(form). Verificado: marcar vehículo cascada 12 derivados (checklists→heredado), desmarcar revierte solo heredado.
+- **FASE 6 (X13)** — `PARIDAD.md` (matriz app↔web) creado. Gaps cerrados: **bitácora web multi-bloque** (llave `bloque|estructura|actividad` + chips de bloque; `bloque_entrepiso` cabecera ahora opcional); **borradores web multi-instancia** (`BorradoresWebService` localStorage + sección "Documentación en proceso" con Retomar/Descartar, migra el slot viejo sessionStorage). Resto en backlog de PARIDAD.md.
+
+### Migraciones en prod (`sql/2026-07-23-act8-*.sql`)
+`x1x2-avisos-vencimiento` · `x5x6-mantenimiento-tipos` · `x3-accidente-fotos` · `x14-datos-prueba-cascada` (+ el helper x14b aplicado, contenido ya en el archivo).
+
+### Pendiente — Xaviel
+- **Commit/push + deploy** (no hecho) + **bump de versión** (1.26.0 → 1.27.0, añadir entrada en `release-notes.json`).
+- **Desplegar edge `notificar-flota`** (`supabase functions deploy notificar-flota`) para los títulos vencida/por-vencer.
+- QA manual UI: avatar en listado; versión con hora; badge en submódulo Legal; multi-bloque bitácora (2 bloques, misma actividad); borradores "En proceso" retomar.
+
+### Pendiente — PROMPT-20-CSD-APP (app)
+X4 (onboarding permisos), X6-app (tipo en form), X8 (Face ID PWA), X9-app (log dev), X10 (recuperar PIN), X3-app (fotos accidente). El RPC `registrar_accidente_app` ya acepta `p_fotos`; `crear_mantenimiento_app` ya acepta `p_tipo`(4 valores)+`p_incluye_preventivo`+`p_accidente_id`.
+
+---
+
 ## PROMPT-17-SGC · Ronda 8 (W1/W3/W7/W8/W9/W10/W11/W12) (23/07/2026) — ✅ CÓDIGO LISTO, migraciones en prod, build verde, SIN commit/push/deploy
 
 Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-7.md` (ronda 8, IDs W). Todo aditivo/retrocompatible. `npm run build` (ng build) verde. **6 migraciones SQL aplicadas a prod (Management API) e idempotentes.** Frontend **sin commit/push** (esperando OK de Xaviel). El helper de SQL vive en el scratchpad de la sesión (`apply-sql.mjs`, Management API del proyecto `jeeqhgccqefbqilntcpu`).

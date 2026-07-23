@@ -123,6 +123,21 @@
       <input type="file" accept="image/*,application/pdf" (change)="onAmetSelected($event)" />
       @if (ametFile()) { <span class="ac-muted">{{ ametFile()!.name }}</span> }
     </div>
+    <!-- X3 — fotos del hecho (múltiples) -->
+    <div class="sgc-field">
+      <label>Fotos del hecho (opcional)</label>
+      <input type="file" accept="image/*" multiple (change)="onFotosSelected($event)" />
+      @if (fotoPreviews().length) {
+        <div class="ac-fotos-grid">
+          @for (p of fotoPreviews(); track $index) {
+            <div class="ac-foto-thumb">
+              <img [src]="p" alt="Foto del hecho" />
+              <button type="button" class="ac-foto-quitar" (click)="quitarFoto($index)" aria-label="Quitar foto">✕</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
     @if (saveError()) { <div class="save-error" role="alert">{{ saveError() }}</div> }
     <div class="ac-form__actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreate()">Cancelar</button>
@@ -145,12 +160,37 @@
       @if (a.tercero_involucrado) { <div><dt>Tercero</dt><dd>{{ a.tercero_involucrado }}</dd></div> }
       @if (a.descripcion) { <div><dt>Descripción</dt><dd>{{ a.descripcion }}</dd></div> }
     </dl>
-    @if (ametUrl(); as url) {
-      <a class="sgc-btn sgc-btn--primary" [href]="url" target="_blank" rel="noopener">Ver acta AMET</a>
-    } @else if (a.reporte_amet_path) {
-      <p class="ac-muted">Cargando documento…</p>
-    } @else {
-      <p class="ac-muted">Sin acta AMET adjunta.</p>
+    <!-- X3 — acta AMET con thumbnail + lightbox in-page (no nueva pestaña) -->
+    <div class="ac-evidencia">
+      <span class="ac-evidencia__label">Acta AMET</span>
+      @if (a.reporte_amet_path && esPdf(a.reporte_amet_path)) {
+        <!-- PDF: el visor de imagen no aplica; abrir el documento -->
+        <a class="sgc-btn sgc-btn--secondary" [href]="ametUrl()" target="_blank" rel="noopener">📄 Ver acta AMET (PDF)</a>
+      } @else if (ametUrl(); as url) {
+        <button type="button" class="ac-foto-thumb ac-foto-thumb--doc" (click)="abrirLightbox(a.reporte_amet_path!)">
+          <img [src]="url" alt="Acta AMET" loading="lazy" />
+        </button>
+      } @else if (a.reporte_amet_path) {
+        <p class="ac-muted">Cargando documento…</p>
+      } @else {
+        <p class="ac-muted">Sin acta AMET adjunta.</p>
+      }
+    </div>
+
+    <!-- X3 — fotos del hecho -->
+    @if (a.fotos?.length) {
+      <div class="ac-evidencia">
+        <span class="ac-evidencia__label">Fotos del hecho</span>
+        <div class="ac-fotos-grid">
+          @for (path of a.fotos; track path) {
+            <button type="button" class="ac-foto-thumb" (click)="abrirLightbox(path)">
+              @if (fotoThumb(path); as t) {
+                <img [src]="t" alt="Foto del hecho" loading="lazy" />
+              } @else { <span class="ac-foto-cargando">…</span> }
+            </button>
+          }
+        </div>
+      </div>
     }
 
     <!-- T2 — datos de prueba (solo admin) -->
@@ -172,3 +212,8 @@
     }
   }
 </app-form-drawer>
+
+<!-- X3 — lightbox in-page para acta/fotos del accidente -->
+@if (lightboxUrl(); as url) {
+  <app-lightbox [src]="url" alt="Evidencia del accidente" (closed)="lightboxUrl.set(null)" />
+}

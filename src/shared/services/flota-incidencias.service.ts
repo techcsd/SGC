@@ -74,9 +74,15 @@ export class FlotaIncidenciasService {
     payload: AccidenteFormData,
     _userId: string,
     ametFile?: File | null,
+    fotoFiles?: File[],
   ): Promise<VehiculoAccidente> {
     let ametPath: string | null = null;
     if (ametFile) ametPath = await this.upload('accidentes', ametFile);
+    // X3 — fotos del hecho al mismo bucket flota-documentos.
+    const fotos: { storage_path: string }[] = [];
+    for (const f of fotoFiles ?? []) {
+      fotos.push({ storage_path: await this.upload('accidentes', f) });
+    }
     const id = crypto.randomUUID();
     const { error } = await this.supabase.client.rpc('registrar_accidente_app', {
       p_id: id,
@@ -89,6 +95,7 @@ export class FlotaIncidenciasService {
       p_conductor_id: payload.conductor_id,
       p_gps: null,
       p_reporte_amet_path: ametPath,
+      p_fotos: fotos,
     });
     if (error) throw new Error(error.message);
     return this.accidenteById(id);
@@ -167,8 +174,11 @@ export class FlotaIncidenciasService {
     return path;
   }
 
-  async signedUrl(path: string | null | undefined): Promise<string | null> {
+  async signedUrl(
+    path: string | null | undefined,
+    transform?: { width?: number; height?: number; quality?: number },
+  ): Promise<string | null> {
     if (!path) return null;
-    return this.cache.signed(BUCKET, path);
+    return this.cache.signed(BUCKET, path, transform);
   }
 }

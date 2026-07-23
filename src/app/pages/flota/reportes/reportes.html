@@ -117,8 +117,8 @@
                   <span class="flota-reportes__sub">{{ resolverMarca(m.vehiculo_id, m.vehiculo?.marca) }} {{ m.vehiculo?.modelo }}</span>
                 </td>
                 <td>
-                  <span [class]="'sgc-badge sgc-badge--' + (m.tipo === 'emergencia' ? 'danger' : m.tipo === 'correctivo' ? 'warning' : 'info')">
-                    {{ m.tipo | titlecase }}
+                  <span [class]="'sgc-badge sgc-badge--' + (m.tipo === 'accidente_dano' ? 'danger' : m.tipo === 'falla' ? 'warning' : m.tipo === 'preventivo' ? 'success' : 'info')">
+                    {{ tipoMantLabel(m.tipo) }}
                   </span>
                 </td>
                 <td class="flota-reportes__desc">{{ m.descripcion }}</td>

@@ -117,7 +117,7 @@ export class Shell implements OnInit {
       modulo: 'compras',
       children: [
         { label: 'Proveedores', route: '/compras/proveedores' },
-        { label: 'Órdenes de Compra', route: '/compras/ordenes' },
+        { label: 'Órdenes de Compra', route: '/compras/ordenes', badgeKey: 'compras.ordenes' },
         { label: 'Reportes', route: '/compras/reportes' },
       ],
     },
@@ -128,7 +128,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Empleados', route: '/rrhh/empleados' },
         { label: 'Asistencia', route: '/rrhh/asistencia' },
-        { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias' },
+        { label: 'Ausencias y vacaciones', route: '/rrhh/ausencias', badgeKey: 'rrhh.ausencias' },
         { label: 'Reportes', route: '/rrhh/reportes' },
       ],
     },
@@ -194,7 +194,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Expedientes', route: '/legal/expedientes' },
         { label: 'Contratos', route: '/legal/contratos' },
-        { label: 'Aprobaciones', route: '/legal/aprobaciones' },
+        { label: 'Aprobaciones', route: '/legal/aprobaciones', badgeKey: 'legal.aprobaciones' },
       ],
     },
     {

@@ -8,18 +8,36 @@
 
 <p class="av-lead">
   Bandeja de avisos operativos: bloqueos, hallazgos, pre-citas, mantenimiento vencido, consumo anormal
-  y vencimientos de licencia / matrícula / seguro. Los vencimientos se generan al abrir esta página.
+  y vencimientos de licencia / matrícula / seguro. Los vencimientos se evalúan al abrir esta página.
 </p>
+
+@if (esElevado) {
+  <div class="av-umbral">
+    <label for="umbral">Avisar cuando falten</label>
+    <input id="umbral" type="number" min="1" max="365" [value]="umbralInput()"
+      (input)="umbralInput.set($any($event.target).valueAsNumber)" />
+    <span>días para vencer</span>
+    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+      [disabled]="guardandoUmbral()" (click)="guardarUmbral()">
+      @if (guardandoUmbral()) { Guardando… } @else { Guardar }
+    </button>
+  </div>
+}
+
+<!-- ── X2: Activos / Historial ── -->
+<div class="av-tabs" role="tablist">
+  <button type="button" role="tab" class="av-tab" [class.av-tab--active]="vista() === 'activos'"
+    [attr.aria-selected]="vista() === 'activos'" (click)="setVista('activos')">
+    Avisos activos ({{ pendientes() }})
+  </button>
+  <button type="button" role="tab" class="av-tab" [class.av-tab--active]="vista() === 'historial'"
+    [attr.aria-selected]="vista() === 'historial'" (click)="setVista('historial')">
+    Historial de avisos ({{ historialCount() }})
+  </button>
+</div>
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
-  <div class="sgc-field filters-bar__select">
-    <select [value]="filtroEstado()" (change)="onEstado($any($event.target).value)" aria-label="Estado">
-      <option value="pendiente">Pendientes</option>
-      <option value="atendido">Atendidos</option>
-      <option value="">Todos</option>
-    </select>
-  </div>
   <div class="sgc-field filters-bar__select">
     <select [value]="filtroTipo()" (change)="onTipo($any($event.target).value)" aria-label="Tipo">
       <option value="">Todos los tipos</option>
@@ -56,10 +74,18 @@
                 @if (a.vehiculo?.placa) { <span class="av-placa">{{ a.vehiculo!.placa }}</span> }
                 @if (a.conductor?.nombre) { <span class="av-cond">{{ a.conductor!.nombre }}</span> }
               </td>
-              <td class="av-msg">{{ a.mensaje }}</td>
+              <td class="av-msg">
+                {{ a.mensaje }}
+                @if (a.estado === 'resuelto_auto' && a.resuelto_nota) {
+                  <span class="av-resuelto-nota">✓ {{ a.resuelto_nota }}</span>
+                }
+              </td>
               <td>
-                @if (a.estado === 'pendiente') { <span class="sgc-badge sgc-badge--warning">Pendiente</span> }
-                @else { <span class="sgc-badge sgc-badge--success">Atendido</span> }
+                @switch (a.estado) {
+                  @case ('pendiente') { <span class="sgc-badge sgc-badge--warning">Pendiente</span> }
+                  @case ('resuelto_auto') { <span class="sgc-badge sgc-badge--info">Resuelto automáticamente</span> }
+                  @default { <span class="sgc-badge sgc-badge--success">Atendido</span> }
+                }
               </td>
               <td class="text-right">
                 <div class="av-actions">
@@ -125,6 +151,12 @@
           <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="atendiendo()" (click)="atender()">
             @if (atendiendo()) { Guardando… } @else { Marcar como atendido }
           </button>
+        </div>
+      } @else if (a.estado === 'resuelto_auto') {
+        <div class="av-atendido">
+          <span class="sgc-badge sgc-badge--info">Resuelto automáticamente</span>
+          @if (a.resuelto_nota) { <p class="av-detail__msg">“{{ a.resuelto_nota }}”</p> }
+          @if (a.resuelto_at) { <p class="av-meta__sub">{{ formatFecha(a.resuelto_at) }}</p> }
         </div>
       } @else {
         <div class="av-atendido">

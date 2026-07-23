@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MantenimientosService } from '../../../../shared/services/mantenimientos.service';
@@ -17,6 +18,7 @@ import {
   Mantenimiento,
   MantenimientoFormData,
   MANT_TIPOS,
+  MANT_TIPO_BADGE,
   MANT_ESTADOS,
 } from '../../../../shared/models/mantenimiento.model';
 import { Vehiculo, kmFaltanMantenimiento } from '../../../../shared/models/vehiculo.model';
@@ -105,7 +107,12 @@ export class Mantenimientos implements OnInit {
   editingId = signal<string | null>(null);
 
   readonly MANT_TIPOS = MANT_TIPOS;
+  readonly MANT_TIPO_BADGE = MANT_TIPO_BADGE;
   readonly MANT_ESTADOS = MANT_ESTADOS;
+
+  tipoBadge(tipo: string): string {
+    return (MANT_TIPO_BADGE as Record<string, string>)[tipo] ?? 'neutral';
+  }
 
   form = new FormGroup({
     vehiculo_id: new FormControl('', [Validators.required]),
@@ -117,7 +124,14 @@ export class Mantenimientos implements OnInit {
     kilometraje_al_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
     proveedor: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
+    incluye_preventivo: new FormControl<boolean>(false),
   });
+
+  // X6 — el tipo de forma reactiva (OnPush: no leer form.value directo).
+  tipoActual = toSignal(this.form.controls.tipo.valueChanges, {
+    initialValue: this.form.controls.tipo.value,
+  });
+  esNoPreventivo = computed(() => this.tipoActual() !== 'preventivo');
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -203,19 +217,17 @@ export class Mantenimientos implements OnInit {
     }
   }
 
-  /** Abre el drawer de creación precargando vehículo, km actual, tipo y fecha. */
-  openCreateDesdeAviso(vehiculoId: string | null, tipo: string) {
+  /** Abre el drawer de creación precargando vehículo, km actual y fecha. Una
+   *  cita desde un aviso de mantenimiento es SIEMPRE preventiva (X6). */
+  openCreateDesdeAviso(vehiculoId: string | null, _tipoAviso: string) {
     this.openCreate();
     const v = this.vehiculos().find((x) => x.id === vehiculoId);
     this.form.patchValue({
       vehiculo_id: vehiculoId ?? '',
-      tipo,
+      tipo: 'preventivo',
       fecha: this.toDateStr(new Date()),
       kilometraje_al_mantenimiento: v?.kilometraje ?? null,
-      descripcion:
-        tipo === 'correctivo'
-          ? 'Mantenimiento por alerta de kilometraje'
-          : 'Mantenimiento preventivo programado',
+      descripcion: 'Mantenimiento preventivo programado',
     });
   }
 
@@ -365,6 +377,7 @@ export class Mantenimientos implements OnInit {
       kilometraje_al_mantenimiento: m.kilometraje_al_mantenimiento,
       proveedor: m.proveedor,
       notas: m.notas,
+      incluye_preventivo: m.incluye_preventivo ?? false,
     });
     this.drawerOpen.set(true);
   }
@@ -417,6 +430,8 @@ export class Mantenimientos implements OnInit {
     if (this.form.invalid || this.saving()) return;
 
     const payload = this.form.value as MantenimientoFormData;
+    // X6 — el flag "incluyó preventivo" solo aplica a visitas no-preventivas.
+    if (payload.tipo === 'preventivo') payload.incluye_preventivo = false;
 
     const conflict = this.findWeekConflict(payload);
     if (conflict) {

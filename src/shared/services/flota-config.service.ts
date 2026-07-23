@@ -16,6 +16,7 @@ export class FlotaConfigService {
   umbralPrecitaKm = signal(500); // km restantes para sugerir pre-cita de mantenimiento
   umbralLicenciaDias = signal(90); // C6 — 3 meses antes del vencimiento de licencia (configurable en flota_config.umbral_licencia_dias)
   rendimientoMinimoKmGal = signal(10); // U10 — piso absoluto de coherencia de consumo (km/gal)
+  umbralPorVencerDias = signal(30); // X1 — ventana "por vencer" (amarillo) de licencia/matrícula/seguro
 
   private loaded = false;
 
@@ -49,10 +50,21 @@ export class FlotaConfigService {
           case 'rendimiento_minimo_km_gal':
             this.rendimientoMinimoKmGal.set(n);
             break;
+          case 'umbral_por_vencer_licencia':
+            // Los 3 documentos comparten el mismo umbral en la UI; toma cualquiera.
+            this.umbralPorVencerDias.set(n);
+            break;
         }
       }
     } catch {
       // Silencioso: se mantienen los defaults.
     }
+  }
+
+  /** X1 — set del umbral "por vencer" (admin/elevado) vía RPC; re-evalúa avisos. */
+  async setUmbralPorVencer(dias: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_umbral_por_vencer', { p_dias: dias });
+    if (error) throw new Error(error.message);
+    this.umbralPorVencerDias.set(dias);
   }
 }

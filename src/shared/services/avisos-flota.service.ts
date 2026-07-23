@@ -56,9 +56,33 @@ export class AvisosFlotaService {
   }
 
   /**
-   * Genera (idempotente por día vía dedup_key) avisos de vencimiento de
-   * licencias (≤ umbral días o vencida), matrículas y seguros. Se llama al
-   * abrir el panel de avisos. Devuelve cuántos avisos nuevos se insertaron.
+   * X1/X2 — evalúa server-side los avisos de vencimiento (licencias, matrículas,
+   * seguros): genera/transiciona por-vencer→vencida con dedup estable y
+   * auto-resuelve los que ya no aplican. Reemplaza a la generación client-side.
+   */
+  async evaluarVencimientos(): Promise<void> {
+    const { error } = await this.supabase.client.rpc('evaluar_avisos_vencimiento', {
+      p_vehiculo_id: null,
+      p_conductor_id: null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Historial de avisos (atendidos + resueltos automáticamente). */
+  async getHistorial(): Promise<AvisoFlota[]> {
+    const { data, error } = await this.supabase.client
+      .from('avisos_flota')
+      .select(SELECT)
+      .in('estado', ['atendido', 'resuelto_auto'])
+      .order('created_at', { ascending: false })
+      .limit(500);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as AvisoFlota[];
+  }
+
+  /**
+   * @deprecated Reemplazado por evaluarVencimientos() (server-side). Se conserva
+   * la firma por compatibilidad; delega en el sweep e ignora los argumentos.
    */
   async generarVencimientos(
     vehiculos: Vehiculo[],

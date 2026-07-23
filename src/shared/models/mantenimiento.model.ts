@@ -1,4 +1,5 @@
-export type MantenimientoTipo = 'preventivo' | 'correctivo' | 'emergencia';
+// X6 — 4 tipos fijos de visita a taller.
+export type MantenimientoTipo = 'preventivo' | 'falla' | 'accidente_dano' | 'cambio_pieza';
 export type MantenimientoEstado = 'pendiente' | 'en_proceso' | 'completado';
 
 export interface Mantenimiento {
@@ -15,6 +16,8 @@ export interface Mantenimiento {
   notas: string | null;
   fotos?: string[];
   es_prueba?: boolean;
+  incluye_preventivo?: boolean;
+  accidente_id?: string | null;
   created_at: string;
 }
 
@@ -28,13 +31,24 @@ export interface MantenimientoFormData {
   proveedor: string | null;
   estado: MantenimientoEstado;
   notas: string | null;
+  incluye_preventivo?: boolean;
+  accidente_id?: string | null;
 }
 
-export const MANT_TIPOS = [
-  { value: 'preventivo', label: 'Preventivo' },
-  { value: 'correctivo', label: 'Correctivo' },
-  { value: 'emergencia', label: 'Emergencia' },
+export const MANT_TIPOS: { value: MantenimientoTipo; label: string }[] = [
+  { value: 'preventivo', label: 'Mantenimiento preventivo' },
+  { value: 'falla', label: 'Reparación por falla/avería' },
+  { value: 'accidente_dano', label: 'Reparación por accidente/daño' },
+  { value: 'cambio_pieza', label: 'Cambio de pieza/consumible' },
 ];
+
+/** Badge por tipo de visita (color) para listados/detalle. */
+export const MANT_TIPO_BADGE: Record<MantenimientoTipo, string> = {
+  preventivo: 'success',
+  falla: 'warning',
+  accidente_dano: 'danger',
+  cambio_pieza: 'info',
+};
 
 export const MANT_ESTADOS = [
   { value: 'pendiente', label: 'Pendiente' },

@@ -14,6 +14,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 /**
  * S22 — Submódulo "Accidentes": los formularios de choque completos (no solo el
@@ -22,7 +24,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
  */
 @Component({
   selector: 'app-flota-accidentes',
-  imports: [FormDrawer, Skeleton, ReactiveFormsModule, Paginator],
+  imports: [FormDrawer, Skeleton, ReactiveFormsModule, Paginator, Lightbox],
   templateUrl: './accidentes.html',
   styleUrl: './accidentes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,12 +67,50 @@ export class Accidentes implements OnInit {
   detailOpen = signal(false);
   detail = signal<VehiculoAccidente | null>(null);
   ametUrl = signal<string | null>(null);
+  // X3 — fotos del hecho en el detalle (thumbnails) + lightbox in-page.
+  fotoThumbs = signal<Record<string, string>>({});
+  lightboxUrl = signal<string | null>(null);
 
   // ── T12: registrar accidente desde la web ──
   createOpen = signal(false);
   saving = signal(false);
   saveError = signal('');
   ametFile = signal<File | null>(null);
+  // X3 — fotos del hecho a adjuntar (previews antes de guardar).
+  fotoFiles = signal<File[]>([]);
+  fotoPreviews = signal<string[]>([]);
+
+  async onFotosSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    for (const file of files) {
+      const comp = await comprimirImagen(file);
+      this.fotoFiles.update((l) => [...l, comp]);
+      this.fotoPreviews.update((l) => [...l, URL.createObjectURL(comp)]);
+    }
+  }
+  quitarFoto(i: number) {
+    const prev = this.fotoPreviews()[i];
+    if (prev) URL.revokeObjectURL(prev);
+    this.fotoFiles.update((l) => l.filter((_, idx) => idx !== i));
+    this.fotoPreviews.update((l) => l.filter((_, idx) => idx !== i));
+  }
+  private limpiarFotos() {
+    for (const p of this.fotoPreviews()) URL.revokeObjectURL(p);
+    this.fotoFiles.set([]);
+    this.fotoPreviews.set([]);
+  }
+
+  /** X3 — thumbnail (cache W9) de una foto del hecho para el detalle. */
+  fotoThumb(path: string): string | null {
+    return this.fotoThumbs()[path] ?? null;
+  }
+  /** X3 — abre una foto/acta en grande dentro de la página (nunca nueva pestaña). */
+  async abrirLightbox(path: string) {
+    const url = await this.incidencias.signedUrl(path);
+    if (url) this.lightboxUrl.set(url);
+  }
 
   form = new FormGroup({
     vehiculo_id: new FormControl<string>('', [Validators.required]),
@@ -108,6 +148,7 @@ export class Accidentes implements OnInit {
   openCreate() {
     this.saveError.set('');
     this.ametFile.set(null);
+    this.limpiarFotos();
     this.form.reset({ fecha: this.today, fase: 'en_el_momento', lesionados: 0, vehiculo_id: '', conductor_id: null });
     this.createOpen.set(true);
   }
@@ -139,9 +180,11 @@ export class Accidentes implements OnInit {
         },
         userId,
         this.ametFile(),
+        this.fotoFiles(),
       );
       this.accidentes.update((list) => [creado, ...list]);
       this.createOpen.set(false);
+      this.limpiarFotos();
       this.toast.success('Accidente registrado', 'El reporte se guardó correctamente.');
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar el accidente.');
@@ -154,12 +197,29 @@ export class Accidentes implements OnInit {
     return this.form.controls;
   }
 
+  /** El acta puede ser PDF; en ese caso no se hace thumbnail ni lightbox de imagen. */
+  esPdf(path: string | null | undefined): boolean {
+    return !!path && /\.pdf$/i.test(path);
+  }
+
   async openDetail(a: VehiculoAccidente) {
     this.detail.set(a);
     this.ametUrl.set(null);
+    this.fotoThumbs.set({});
     this.detailOpen.set(true);
     if (a.reporte_amet_path) {
-      this.ametUrl.set(await this.incidencias.signedUrl(a.reporte_amet_path));
+      // PDF → URL directa (sin transform); imagen → thumbnail cacheado.
+      this.ametUrl.set(
+        this.esPdf(a.reporte_amet_path)
+          ? await this.incidencias.signedUrl(a.reporte_amet_path)
+          : await this.incidencias.signedUrl(a.reporte_amet_path, { width: 200, quality: 60 }),
+      );
+    }
+    // X3 — resolver thumbnails de las fotos del hecho (cache W9).
+    for (const path of a.fotos ?? []) {
+      this.incidencias.signedUrl(path, { width: 200, quality: 60 }).then((url) => {
+        if (url) this.fotoThumbs.update((m) => ({ ...m, [path]: url }));
+      });
     }
   }
 

@@ -515,6 +515,14 @@ export class Conductores implements OnInit {
   /** Marca/desmarca el conductor como dato de prueba. */
   async marcarPrueba(c: Conductor, valor: boolean) {
     if (!this.esAdmin()) return;
+    // X14 — avisar cuántos registros relacionados se marcarán/revertirán.
+    const n = await this.datosPrueba.contarDerivados('conductores', c.id, valor);
+    if (n > 0) {
+      const accion = valor ? 'marcará' : 'quitará de prueba';
+      if (!confirm(`Esto también ${accion} ${n} registro(s) relacionado(s) (multas, rutas, checklists, echadas). ¿Continuar?`)) {
+        return;
+      }
+    }
     try {
       await this.datosPrueba.marcar('conductores', c.id, valor);
       this.conductores.update((list) =>

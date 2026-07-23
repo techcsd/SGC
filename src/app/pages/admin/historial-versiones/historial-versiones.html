@@ -48,7 +48,11 @@
               <span class="hv-ver">v{{ v.version }}</span>
               @if (first && !filtro()) { <span class="hv-latest">● Actual</span> }
               @if (v.titulo) { <span class="hv-item__title">{{ v.titulo }}</span> }
-              @if (v.fecha) { <span class="hv-item__fecha">{{ formatFecha(v.fecha) }}</span> }
+              @if (v.created_at) {
+                <span class="hv-item__fecha">{{ formatFechaHora(v.created_at) }}</span>
+              } @else if (v.fecha) {
+                <span class="hv-item__fecha">{{ formatFecha(v.fecha) }}</span>
+              }
             </div>
 
             <ul class="hv-cambios">

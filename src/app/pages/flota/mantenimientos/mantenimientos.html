@@ -173,7 +173,12 @@
                   <span class="mantenimientos__vehiculo-sub">{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}</span>
                 }
               </td>
-              <td>{{ getTipoLabel(m.tipo) }}</td>
+              <td>
+                <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
+                @if (m.incluye_preventivo) {
+                  <span class="sgc-badge sgc-badge--success" title="También incluyó mantenimiento preventivo">+ prev.</span>
+                }
+              </td>
               <td>
                 <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) }}</span>
               </td>
@@ -363,6 +368,17 @@
         </select>
       </div>
     </div>
+
+    <!-- X6 — solo el preventivo reinicia el ciclo; para otras visitas, marcar si
+         también se hizo mantenimiento preventivo. -->
+    @if (esNoPreventivo()) {
+      <div class="sgc-field">
+        <label class="mant-check">
+          <input type="checkbox" formControlName="incluye_preventivo" />
+          También se hizo mantenimiento preventivo (cuenta para el ciclo)
+        </label>
+      </div>
+    }
 
     <div class="sgc-field">
       <label for="fecha">Fecha <span class="required">*</span></label>

@@ -315,3 +315,56 @@
 @media (max-width: 768px) {
   .equipo-row__main { grid-template-columns: 1fr; }
 }
+
+// X13 — selector de bloque activo (multi-bloque real)
+.bitacora-bloques {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 14px;
+  &__label { font-size: 13px; color: var(--sgc-text-muted); font-weight: 600; }
+}
+.bitacora-bloque-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--sgc-border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--sgc-surface, #fff);
+  button {
+    border: none;
+    background: none;
+    padding: 5px 10px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--sgc-text);
+  }
+  &.active {
+    border-color: var(--sgc-primary);
+    background: var(--sgc-primary-light);
+    button { color: var(--sgc-primary); font-weight: 600; }
+  }
+  &__x { padding: 5px 8px !important; color: var(--sgc-text-muted) !important; }
+}
+.bitacora-bloque-add {
+  width: 150px;
+  padding: 5px 10px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+}
+
+// X13 — lista de "Documentación en proceso" (borradores web multi-instancia)
+.bitacora-draft-banner__title { font-weight: 700; display: block; margin-bottom: 8px; }
+.bitacora-draft-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--sgc-border);
+  &__label { font-size: 13.5px; }
+}
