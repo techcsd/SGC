@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.24.0": {
+      "titulo": "Cierre de fuga de datos: inventario, almacenes y proveedores solo visibles para sus módulos",
+      "cambios": [
+        { "t": "seguridad", "d": "QA de permisos por rol (14 usuarios de prueba): se detectó y cerró una fuga en la que cualquier usuario autenticado (aunque no tuviera el módulo) podía leer todas las salidas de inventario, el stock por almacén, la lista de almacenes y los proveedores. Ahora solo los roles de Inventario/Compras (y Administración) los ven; el resto no." },
+        { "t": "seguridad", "d": "Se verificó que el resto del control de acceso está correcto: el alcance de datos de Flota por conductor, el ocultamiento de datos de prueba a los no-admin, y el gateo por módulo del resto de pantallas." }
+      ]
+    },
     "1.23.0": {
       "titulo": "Paginación en todos los listados, dashboards clicables, bloque por actividad en bitácora y datos de prueba fuera de los promedios de consumo",
       "cambios": [
