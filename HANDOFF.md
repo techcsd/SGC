@@ -1,6 +1,41 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-22_
+_Last updated: 2026-07-23_
+
+## PROMPT-17-SGC · Ronda 8 (W1/W3/W7/W8/W9/W10/W11/W12) (23/07/2026) — ✅ CÓDIGO LISTO, migraciones en prod, build verde, SIN commit/push/deploy
+
+Source: `C:\developer\improvements\imp 20072026\CONTEXTO-ACTUALIZACION-7.md` (ronda 8, IDs W). Todo aditivo/retrocompatible. `npm run build` (ng build) verde. **6 migraciones SQL aplicadas a prod (Management API) e idempotentes.** Frontend **sin commit/push** (esperando OK de Xaviel). El helper de SQL vive en el scratchpad de la sesión (`apply-sql.mjs`, Management API del proyecto `jeeqhgccqefbqilntcpu`).
+
+### Diagnóstico W1 (papo) — CAUSA RAÍZ
+La app móvil (`reportar.ts`) manda `tipo ∈ {error,mejora,duda}` y el RPC `crear_reporte_app` hace default a `'error'`, pero el CHECK `reportes_usuario_tipo_check` solo admite `{comentario,bug,sugerencia}` → **cada reporte revienta con SQLSTATE 23514**. El clasificador del outbox (`sync.service.ts`: `/^23/ → 'referencia'`) lo mostró como "hace referencia a algo que no existe o está duplicado" (mensaje engañoso). Confirmado en logs de prod (2026-07-22 20:20/20:45). **Fix (padre):** `crear_reporte_app` normaliza el vocabulario de la app al canónico (error→bug, mejora→sugerencia, duda→comentario; cualquier otro→comentario) → la app v1.x en prod funciona sin actualizarse. Verificado (tipo='error' ahora inserta OK). Nota secundaria: en papo también disparó el bloqueo W3 (Amarok Z3028392 tenía recepción abierta de "TEST Conductor Prueba"/Xaviel, `es_prueba=false` — dato test sin marcar → refuerza W7). Para PROMPT-18: el clasificador de la app debe tratar **23514/23502 como 'validacion'**, no 'referencia'.
+
+### Migraciones en prod (`sql/2026-07-23-act7-*.sql`, aplicadas + verificadas)
+- `w1-reporte-tipo-normalizar` — normaliza tipo en `crear_reporte_app`.
+- `w3-entrega-idempotente-handover` — `crear_entrega_vehiculo` (13 args; **dropeado el overload de 12**): idempotencia mismo-conductor (devuelve la existente), handover para otro conductor (error estructurado `errcode=DR409` + `hint=handover_requerido` + `detail` JSON; con `p_forzar_handover=true` cierra la anterior e inicia la nueva), índice único parcial `uq_entrega_recepcion_abierta` + manejo de carrera. Helper `entrega_abierta_de(uuid)` para pre-check de la app.
+- `w7-datos-prueba-aislamiento` + `w7-suprimir-avisos-test` + `w7-suprimir-avisos-combustible` — trigger genérico `tg_heredar_es_prueba` (BEFORE INSERT en 8 tablas derivadas + `avisos_flota`) que hereda `es_prueba` del vehículo/conductor padre; fugas cerradas en RPCs definer (`flota_placas`, `mis_rutas_hoy`, `mis_pendientes_transporte`, `mis_conduces_hoy`, `vehiculo_estado_actual`); `avisos_flota.es_prueba` + RLS restrictiva; checklist/combustible NO emiten aviso/notificación real para vehículos test.
+- `w8-inventario-stock-destino` — `stock_articulo_bodega(articulo,bodega)` (0 no NULL + unidad); `registrar_salida_app` con error estructurado (`hint=sin_existencias` + `detail.faltantes[]`, SQLSTATE P0001 para no reintentar en bucle); trigger `tg_notificar_salida_despachada` avisa al equipo de la obra destino ("Entrega en camino", deep-link `/bitacora/entregas?item=`).
+- `w12-actividad-usuario` — columnas `usuarios.ultima_actividad_web/app` + RPC `ping_actividad(canal)` (throttle 5 min server-side).
+
+### Frontend (sin commit) — por FASE
+- **W3 web** (`registrar-entrega`): pre-check con banner "vehículo entregado a X" al elegir; maneja `HandoverRequeridoError` (parsea `detail`) y ofrece "cerrar entrega anterior y recibir" **solo a roles elevados** (`esFlotaElevado`), reintentando sin re-subir fotos. Servicio: `entregaAbiertaDe()` + `crearEntrega({forzarHandover})` + `HandoverRequeridoError`.
+- **W7 web**: servicio global `DatosPruebaViewService` (señal `ver` persistida en sessionStorage) + **banner persistente** en el shell (solo admin) + las 10 listas `mostrarPrueba` ahora comparten esa señal global (un toggle mueve todas). Switch deslizable "Dato de prueba" en el form de Vehículos (patrón "Artículo activo").
+- **W9 web**: `SignedUrlCache` (memoria + sessionStorage, TTL 24 h, margen 5 min, `signed()`+`signedMany()` batch). Migrados 9 servicios de firma (`vehiculos`, `combustible`, `mantenimientos`, `checklists-vehiculo`, `flota-incidencias`, `entradas`, `salidas`, `documentos-flota`, `bitacora`) → **el browser cachea las imágenes al reentrar**. Thumbnails (transform width/quality) en listado + picker de vehículos.
+- **W10/W12 web** (`admin/usuarios`): fila clicable → **drawer de detalle** (avatar, email, roles, estado, última actividad web/app relativa + tooltip, vínculo a perfil de conductor, editar/reset pass); columnas "Última vez web/app" ordenables. Shell hace `ping_actividad('web')` al montar y en cada navegación (throttle cliente + servidor) vía `ActividadService`.
+- **W11 web**: componente compartido `app-lightbox` (✕/Esc/clic-fuera, nunca nueva pestaña); Entradas y Salidas muestran **thumbnail** (lazy, cacheado) en vez del emoji 📷 → clic abre lightbox (reemplazado el `window.open`).
+- **W5-web**: componente compartido `app-multa-detalle` (drawer: motivo, monto, estado, vehículo con link, conductor, fecha, documento con preview vía lightbox); abrible desde perfil de conductor y perfil de vehículo. Catálogo `motivos_multa` ya legible por el rol conductor (grant + policy `true`) — sin cambios.
+
+### Alcance deliberadamente diferido (documentado, NO hecho)
+- **W7 inventario**: `articulos`/`bodegas` NO se marcaron con `es_prueba` (el stock agregado `stock_por_bodega` no tiene flag → aislar stock de prueba es un rabbit-hole). El aislamiento de datos de prueba está completo para el dominio Flota (el problema verificado de papo). Marcar salidas/entradas como prueba sigue disponible por acción de fila (T2).
+- **W7 switch deslizable**: aplicado solo al form de Vehículos; el resto de entidades marca por acción de fila (ya existía).
+
+### Pendiente — Xaviel
+- **Commit/push + deploy** (no hecho). Bump de versión web sugerido cuando decidas (regla Y1: añadir entrada en `release-notes.json` bajo `web.<version>` o el `prebuild` FALLA).
+- **QA manual** (RPCs `_app`/RLS usan auth.uid → no verificable headless): (1) repetir el reporte de papo → debe pasar; (2) chofer NO ve ningún vehículo/entidad test en pickers; admin opera un vehículo test end-to-end sin generar avisos reales; (3) recibir un vehículo tomado por otro chofer → error legible + (elevado) botón handover; (4) Vehículos: entrar/salir/entrar sin re-descarga de fotos (Network "from cache"); (5) admin/usuarios: clic en fila → detalle + columnas de actividad; (6) multa → detalle con preview.
+
+### Pendiente — PROMPT-18-CSD-APP (app móvil)
+W2 (Maps intent), W4 (mis vehículos primero), W5-app (motivo catálogo + vehiculo-picker + detalle), W6 (cámara O galería), W1-UI (mostrar detalle legible + Descartar; **reclasificar 23514/23502 como validacion**), W3-app (pre-check `entrega_abierta_de`), W7-app (switch + ocultar test), W8-app (stock en vivo con `stock_articulo_bodega`, validación previa, destino + confirmación), W12-app (`ping_actividad('app')`).
+
+---
 
 ## Actualización 5 · PROMPT-13-SGC (U2/U7/U10/U11-web/U14) (22/07/2026) — ✅ EN PRODUCCIÓN (web 1.22.0), commit+push+deploy, versión publicada
 

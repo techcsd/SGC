@@ -129,8 +129,14 @@
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
               <td class="text-center">
                 @if (e.foto_path) {
-                  <button type="button" class="entradas__foto-btn" (click)="$event.stopPropagation(); verFoto(e)"
-                    title="Ver foto de la app de campo">📷</button>
+                  <button type="button" class="entradas__foto-thumb" (click)="$event.stopPropagation(); verFoto(e)"
+                    title="Ver foto de la app de campo">
+                    @if (thumb(e); as t) {
+                      <img [src]="t" alt="Foto de evidencia" loading="lazy" />
+                    } @else {
+                      📷
+                    }
+                  </button>
                 } @else {
                   —
                 }
@@ -559,3 +565,8 @@
     </div>
   }
 </app-form-drawer>
+
+<!-- W11 — lightbox de foto de evidencia (in-page, nunca nueva pestaña) -->
+@if (fotoLightbox(); as foto) {
+  <app-lightbox [src]="foto" alt="Foto de evidencia de la entrada" (closed)="fotoLightbox.set(null)" />
+}

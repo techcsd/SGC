@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import {
   VehiculoAccidente,
   VehiculoDano,
@@ -21,6 +22,7 @@ const MULTA_SELECT = '*, vehiculo:vehiculos(placa), conductor:conductores(nombre
 @Injectable({ providedIn: 'root' })
 export class FlotaIncidenciasService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   // ── Accidentes ─────────────────────────────────────────────
   async accidentesPorVehiculo(vehiculoId: string): Promise<VehiculoAccidente[]> {
@@ -167,10 +169,6 @@ export class FlotaIncidenciasService {
 
   async signedUrl(path: string | null | undefined): Promise<string | null> {
     if (!path) return null;
-    const { data, error } = await this.supabase.client.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 3600);
-    if (error) return null;
-    return data.signedUrl;
+    return this.cache.signed(BUCKET, path);
   }
 }

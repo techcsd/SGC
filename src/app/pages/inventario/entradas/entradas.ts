@@ -6,6 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { EntradasService } from '../../../../shared/services/entradas.service';
@@ -33,10 +34,11 @@ import { HighlightItemDirective } from '../../../../shared/directives/highlight-
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,7 +78,9 @@ export class Entradas implements OnInit {
   dateFrom = signal('');
   dateTo = signal('');
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
-  mostrarPrueba = signal(false);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -143,13 +147,31 @@ export class Entradas implements OnInit {
   readonly today = todayIso();
   fotoError = signal('');
 
-  /** Open the field evidence photo in a new tab via a fresh signed URL. */
+  // W11 — thumbnails de la lista + lightbox in-page (nunca nueva pestaña).
+  fotoThumbs = signal<Record<string, string>>({});
+  fotoLightbox = signal<string | null>(null);
+
+  thumb(e: EntradaInventario): string | null {
+    return this.fotoThumbs()[e.id] ?? null;
+  }
+
+  /** Resuelve los thumbnails livianos de las entradas con foto (W9 cache). */
+  private resolverThumbs(list: EntradaInventario[]) {
+    for (const e of list) {
+      if (!e.foto_path || this.fotoThumbs()[e.id]) continue;
+      this.entradasService.getFotoUrl(e.foto_path, { width: 96, quality: 60 }).then((url) => {
+        if (url) this.fotoThumbs.update((m) => ({ ...m, [e.id]: url }));
+      });
+    }
+  }
+
+  /** W11 — abre la foto en grande DENTRO de la página (lightbox), no en otra pestaña. */
   async verFoto(e: EntradaInventario) {
     if (!e.foto_path) return;
     this.fotoError.set('');
     try {
       const url = await this.entradasService.getFotoUrl(e.foto_path);
-      window.open(url, '_blank', 'noopener');
+      if (url) this.fotoLightbox.set(url);
     } catch {
       this.fotoError.set('No se pudo abrir la foto.');
     }
@@ -341,6 +363,7 @@ export class Entradas implements OnInit {
         this.proyectosService.getAll(),
       ]);
       this.entries.set(entries);
+      this.resolverThumbs(entries); // W11
       this.articulos.set(arts);
       this.categorias.set(cats);
       this.bodegas.set(bods);

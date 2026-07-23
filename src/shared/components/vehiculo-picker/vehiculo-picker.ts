@@ -75,7 +75,7 @@ export class VehiculoPicker implements ControlValueAccessor {
       for (const v of list) {
         const first = v.fotos?.[0];
         if (!first || loaded[v.id]) continue;
-        this.vehiculosService.getFotoUrl(first).then((url) => {
+        this.vehiculosService.getFotoUrl(first, { width: 200, quality: 60 }).then((url) => {
           if (url) this.fotoUrls.update((m) => ({ ...m, [v.id]: url }));
         });
       }

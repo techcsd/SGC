@@ -6,6 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -54,7 +55,9 @@ export class Conductores implements OnInit {
   // T2 — solo admin ve/gestiona datos de prueba (enforcement server-side vía RLS).
   esAdmin = computed(() => this.userService.hasRole('admin'));
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
-  mostrarPrueba = signal(false);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Data state ──────────────────────────────────────────
   conductores = signal<Conductor[]>([]);

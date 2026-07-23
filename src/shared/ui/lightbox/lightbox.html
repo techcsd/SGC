@@ -1,0 +1,9 @@
+<div class="lightbox" role="dialog" aria-modal="true" [attr.aria-label]="alt()" (click)="closed.emit()">
+  <button type="button" class="lightbox__close" (click)="closed.emit()" aria-label="Cerrar">✕</button>
+  <img
+    class="lightbox__img"
+    [src]="src()"
+    [alt]="alt()"
+    (click)="$event.stopPropagation()"
+  />
+</div>

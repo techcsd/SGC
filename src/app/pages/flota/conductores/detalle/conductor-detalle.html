@@ -298,17 +298,15 @@
           <thead><tr><th>Fecha</th><th>Motivo</th><th class="text-right">Monto</th><th>Estado</th><th></th></tr></thead>
           <tbody>
             @for (m of multas(); track m.id) {
-              <tr>
+              <tr class="cd-row--link" (click)="multaDetalle.set(m)" role="button" tabindex="0"
+                  (keydown.enter)="multaDetalle.set(m)" aria-label="Ver detalle de la multa">
                 <td>{{ formatFecha(m.fecha) }}</td>
                 <td>{{ m.motivo ?? '—' }}</td>
                 <td class="text-right">{{ m.monto != null ? ('RD$ ' + (m.monto | number: '1.0-2')) : '—' }}</td>
                 <td><span class="sgc-badge sgc-badge--{{ multaBadge(m.estado) }}">{{ multaEstadoLabel(m.estado) }}</span></td>
                 <td>
-                  @if (multaDocUrl(m.documento_path); as url) {
-                    <a class="cd-link" [href]="url" target="_blank" rel="noopener">Doc</a>
-                  }
                   @if (esElevado()) {
-                    <button type="button" class="cd-link cd-link--btn" (click)="togglePagada(m)">
+                    <button type="button" class="cd-link cd-link--btn" (click)="$event.stopPropagation(); togglePagada(m)">
                       {{ m.estado === 'pagada' ? 'Marcar pendiente' : 'Marcar pagada' }}
                     </button>
                   }
@@ -321,6 +319,9 @@
     }
   </section>
 }
+
+<!-- W5-web — detalle abrible de multa -->
+<app-multa-detalle [multa]="multaDetalle()" (closed)="multaDetalle.set(null)" />
 
 <!-- ── Drawer: Registrar multa ── -->
 <app-form-drawer title="Registrar multa" [open]="multaDrawer()" (closed)="multaDrawer.set(false)">

@@ -13,6 +13,8 @@ export interface UsuarioAdmin extends Usuario {
   roles: { rol: Rol }[];
   /** True when the user was invited but never signed in (invite still pending). */
   pendiente?: boolean;
+  /** W10 — vínculo al perfil de conductor si el usuario lo es. */
+  conductores?: { id: string; nombre: string }[];
 }
 
 /** Edge Functions return {error: "..."} in the body on failure, but functions.invoke()
@@ -36,7 +38,9 @@ export class AdminService {
   async getAllUsuarios(): Promise<UsuarioAdmin[]> {
     const { data, error } = await this.supabase.client
       .from('usuarios')
-      .select('*, roles:usuarios_roles!usuario_id(rol:roles(id, codigo, nombre, modulos))')
+      .select(
+        '*, roles:usuarios_roles!usuario_id(rol:roles(id, codigo, nombre, modulos)), conductores:conductores!usuario_id(id, nombre)',
+      )
       .order('nombre');
 
     if (error) throw new Error(error.message);

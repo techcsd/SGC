@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { EntradaInventario, EntradaFormData } from '../models/entrada.model';
 
 const SELECT_QUERY =
@@ -8,6 +9,7 @@ const SELECT_QUERY =
 @Injectable({ providedIn: 'root' })
 export class EntradasService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   async getAll(): Promise<EntradaInventario[]> {
     const { data, error } = await this.supabase.client
@@ -35,12 +37,8 @@ export class EntradasService {
   }
 
   /** Signed URL for the field-captured evidence photo (private `inventario` bucket). */
-  async getFotoUrl(path: string): Promise<string> {
-    const { data, error } = await this.supabase.client.storage
-      .from('inventario')
-      .createSignedUrl(path, 3600);
-    if (error) throw new Error(error.message);
-    return data.signedUrl;
+  async getFotoUrl(path: string, transform?: ImgTransform): Promise<string> {
+    return this.cache.signed('inventario', path, transform);
   }
 
   async getByOrdenCompra(ordenCompraId: string): Promise<EntradaInventario[]> {

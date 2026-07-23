@@ -362,16 +362,14 @@
       } @else {
         <ul class="vd-asig-list">
           @for (m of multas(); track m.id) {
-            <li class="vd-asig">
+            <li class="vd-asig vd-asig--link" (click)="multaDetalle.set(m)" role="button" tabindex="0"
+                (keydown.enter)="multaDetalle.set(m)" aria-label="Ver detalle de la multa">
               <div class="vd-asig__info">
                 <span class="vd-asig__nombre">{{ fecha(m.fecha) }} · {{ m.motivo ?? 'Sin motivo' }}</span>
                 @if (m.monto != null) { <span class="vd-muted">RD$ {{ m.monto | number:'1.0-2' }}</span> }
                 @if (m.conductor?.nombre) { <span class="vd-muted">· {{ m.conductor!.nombre }}</span> }
                 <span class="sgc-badge sgc-badge--{{ multaEstadoMeta(m.estado).badge }}">{{ multaEstadoMeta(m.estado).label }}</span>
               </div>
-              @if (incUrl(m.documento_path); as url) {
-                <a class="sgc-btn sgc-btn--ghost" [href]="url" target="_blank" rel="noopener">Ver doc</a>
-              }
             </li>
           }
         </ul>
@@ -379,6 +377,9 @@
     </div>
   }
 }
+
+<!-- W5-web — detalle abrible de multa -->
+<app-multa-detalle [multa]="multaDetalle()" (closed)="multaDetalle.set(null)" />
 
 <!-- ── Drawer: Asignar persona ── -->
 <app-form-drawer title="Asignar persona" [open]="drawerOpen()" (closed)="closeDrawer()">

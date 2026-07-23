@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import { DocumentoEntidad, DocumentoFlota } from '../models/documento-flota.model';
 
 const BUCKET = 'flota-documentos';
@@ -7,6 +8,7 @@ const BUCKET = 'flota-documentos';
 @Injectable({ providedIn: 'root' })
 export class DocumentosFlotaService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   async getByEntidad(entidad: DocumentoEntidad, entidadId: string): Promise<DocumentoFlota[]> {
     const { data, error } = await this.supabase.client
@@ -55,9 +57,7 @@ export class DocumentosFlotaService {
 
   /** Inline signed URL for the in-page viewer (browser renders PDFs/images). */
   async getSignedUrl(path: string): Promise<string> {
-    const { data, error } = await this.supabase.client.storage.from(BUCKET).createSignedUrl(path, 3600);
-    if (error) throw new Error(error.message);
-    return data.signedUrl;
+    return this.cache.signed(BUCKET, path);
   }
 
   /** Raw bytes so the caller can save them with the original filename. */

@@ -21,6 +21,7 @@ import { SalidasService } from '../../../../../shared/services/salidas.service';
 import { VehiculosService } from '../../../../../shared/services/vehiculos.service';
 import { FlotaIncidenciasService } from '../../../../../shared/services/flota-incidencias.service';
 import { MotivosMultaService, MotivoMulta } from '../../../../../shared/services/motivos-multa.service';
+import { MultaDetalle } from '../../../../../shared/components/multa-detalle/multa-detalle';
 import { UserService } from '../../../../core/services/user.service';
 import { Conductor, LicenciaCategoria } from '../../../../../shared/models/conductor.model';
 import { Ruta } from '../../../../../shared/models/ruta.model';
@@ -51,7 +52,7 @@ const MAX_HIST = 15;
 
 @Component({
   selector: 'app-conductor-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle],
   templateUrl: './conductor-detalle.html',
   styleUrl: './conductor-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -105,6 +106,7 @@ export class ConductorDetalle implements OnInit {
   accidentes = signal<VehiculoAccidente[]>([]);
   multas = signal<ConductorMulta[]>([]);
   multaDocUrls = signal<Record<string, string>>({});
+  multaDetalle = signal<ConductorMulta | null>(null); // W5-web
 
   histRutas = computed(() => this.rutas().slice(0, MAX_HIST));
   histConduces = computed(() => this.conduces().slice(0, MAX_HIST));

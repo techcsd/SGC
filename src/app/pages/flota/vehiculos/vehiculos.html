@@ -408,11 +408,12 @@
         placeholder="Observaciones sobre el vehículo..."></textarea>
     </div>
 
-    <!-- T2 — dato de prueba (solo admin) -->
+    <!-- W7 — dato de prueba (solo admin): switch deslizable -->
     @if (esAdmin()) {
       <div class="sgc-field flota-vehiculos__prueba-field">
-        <label class="flota-vehiculos__prueba-check">
-          <input type="checkbox" formControlName="es_prueba" />
+        <label class="toggle-label" for="veh-es-prueba">
+          <input id="veh-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
+          <span class="toggle-switch" aria-hidden="true"></span>
           Dato de prueba
         </label>
         <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>

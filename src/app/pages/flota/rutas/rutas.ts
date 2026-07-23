@@ -7,6 +7,7 @@ import {
   effect,
   OnInit,
 } from '@angular/core';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RutasService } from '../../../../shared/services/rutas.service';
@@ -61,7 +62,9 @@ export class Rutas implements OnInit {
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
-  mostrarPrueba = signal(false);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Data state ──────────────────────────────────────────
   rutas = signal<Ruta[]>([]);

@@ -12,6 +12,7 @@ import { ToastService } from '../../../../../shared/services/toast.service';
 import { NotificacionesService } from '../../../../../shared/services/notificaciones.service';
 import { UserService } from '../../../../core/services/user.service';
 import { FlotaIncidenciasService } from '../../../../../shared/services/flota-incidencias.service';
+import { MultaDetalle } from '../../../../../shared/components/multa-detalle/multa-detalle';
 import {
   VehiculoAccidente,
   VehiculoDano,
@@ -52,7 +53,7 @@ const HISTORIAL_LIMITE = 15;
 
 @Component({
   selector: 'app-vehiculo-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle],
   templateUrl: './vehiculo-detalle.html',
   styleUrl: './vehiculo-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -167,6 +168,7 @@ export class VehiculoDetalle implements OnInit {
   accidentes = signal<VehiculoAccidente[]>([]);
   danos = signal<VehiculoDano[]>([]);
   multas = signal<ConductorMulta[]>([]); // U11-web — multas del vehículo
+  multaDetalle = signal<ConductorMulta | null>(null); // W5-web
   incMediaUrls = signal<Record<string, string>>({});
   accDrawer = signal(false);
   danoDrawer = signal(false);

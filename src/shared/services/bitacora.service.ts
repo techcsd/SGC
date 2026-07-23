@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
 
 const SELECT_QUERY =
@@ -13,6 +14,7 @@ const MAX_TAMANO_BYTES = 50 * 1024 * 1024;
 @Injectable({ providedIn: 'root' })
 export class BitacoraService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   /** RLS scopes this automatically: engineers get their own rows, staff with proyectos access get all. */
   async getAll(): Promise<Bitacora[]> {
@@ -119,12 +121,7 @@ export class BitacoraService {
 
   /** Resolves a stored object path to a time-limited signed URL for viewing/downloading. */
   async getSignedUrl(path: string): Promise<string> {
-    const { data, error } = await this.supabase.client.storage
-      .from('sgc-bitacora')
-      .createSignedUrl(path, 3600);
-
-    if (error) throw new Error(error.message);
-    return data.signedUrl;
+    return this.cache.signed('sgc-bitacora', path);
   }
 
   get maxArchivos(): number {

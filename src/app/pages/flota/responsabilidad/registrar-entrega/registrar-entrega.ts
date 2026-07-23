@@ -8,9 +8,14 @@ import {
   viewChild,
   OnInit,
 } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { VehiculosService } from '../../../../../shared/services/vehiculos.service';
+import {
+  VehiculosService,
+  EntregaAbierta,
+  HandoverRequeridoError,
+} from '../../../../../shared/services/vehiculos.service';
+import { UserService } from '../../../../core/services/user.service';
 import { ToastService } from '../../../../../shared/services/toast.service';
 import { Vehiculo } from '../../../../../shared/models/vehiculo.model';
 import { NIVEL_COMBUSTIBLE_OPCIONES } from '../../../../../shared/models/flota-checklist.model';
@@ -42,13 +47,14 @@ const ENTREGA_SLOTS: { slot: string; label: string }[] = [
  */
 @Component({
   selector: 'app-registrar-entrega',
-  imports: [DecimalPipe, ReactiveFormsModule, VehiculoPicker, SignaturePad],
+  imports: [DecimalPipe, DatePipe, ReactiveFormsModule, VehiculoPicker, SignaturePad],
   templateUrl: './registrar-entrega.html',
   styleUrl: './registrar-entrega.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegistrarEntrega implements OnInit {
   private vehiculosService = inject(VehiculosService);
+  private user = inject(UserService);
   private toast = inject(ToastService);
 
   creada = output<void>();
@@ -60,6 +66,16 @@ export class RegistrarEntrega implements OnInit {
   vehiculos = signal<Vehiculo[]>([]);
   saving = signal(false);
   error = signal('');
+
+  // W3 — pre-check: recepción abierta de otro conductor sobre el vehículo elegido.
+  entregaAbierta = signal<EntregaAbierta | null>(null);
+  checkingAbierta = signal(false);
+  /** Cuando el server pide handover: guardamos el payload ya subido para reintentar. */
+  private handoverPendiente: Parameters<VehiculosService['crearEntrega']>[0] | null = null;
+  handoverInfo = signal<EntregaAbierta | null>(null);
+  get esFlotaElevado() {
+    return this.user.esFlotaElevado();
+  }
 
   private slotFotos = signal<Record<string, File>>({});
   slotPreviews = signal<Record<string, string>>({});
@@ -94,10 +110,31 @@ export class RegistrarEntrega implements OnInit {
     } catch {
       /* el picker queda vacío si falla */
     }
+    // W3 — al elegir vehículo/tipo, avisar ANTES de llenar si ya está entregado.
+    this.form.controls.vehiculo_id.valueChanges.subscribe(() => void this.precheckAbierta());
+    this.form.controls.tipo.valueChanges.subscribe(() => void this.precheckAbierta());
   }
 
   setTipo(tipo: 'recepcion' | 'devolucion') {
     this.form.controls.tipo.setValue(tipo);
+  }
+
+  /** W3 — pre-check online: ¿el vehículo ya tiene una recepción abierta? */
+  private async precheckAbierta() {
+    this.entregaAbierta.set(null);
+    const vehiculoId = this.form.controls.vehiculo_id.value;
+    // Solo aplica al RECIBIR (la devolución sí necesita una entrega abierta).
+    if (!vehiculoId || this.form.controls.tipo.value !== 'recepcion') return;
+    this.checkingAbierta.set(true);
+    try {
+      const info = await this.vehiculosService.entregaAbiertaDe(vehiculoId);
+      // Solo avisamos si es de OTRO conductor (la propia es un no-op idempotente).
+      this.entregaAbierta.set(info && !info.es_mia ? info : null);
+    } catch {
+      /* best-effort: si falla el pre-check, el server igual valida al guardar */
+    } finally {
+      this.checkingAbierta.set(false);
+    }
   }
 
   // ── Fotos guiadas ──
@@ -233,7 +270,13 @@ export class RegistrarEntrega implements OnInit {
         if (blob) firmaUrl = await this.vehiculosService.uploadEntregaFirma(id, blob);
       }
 
-      await this.vehiculosService.crearEntrega({
+      // Guardamos lo subido por si hay que reintentar con handover (sin re-subir).
+      this.pendingId = id;
+      this.pendingFotos = fotos;
+      this.pendingDanos = danos;
+      this.pendingFirma = firmaUrl;
+
+      const payload = {
         id,
         vehiculoId: v.vehiculo_id!,
         tipo: v.tipo!,
@@ -245,17 +288,79 @@ export class RegistrarEntrega implements OnInit {
         fotos,
         gps: this.gps(),
         observacion: v.observacion?.trim() || null,
-      });
-
-      this.toast.success(
-        v.tipo === 'recepcion' ? 'Recepción registrada' : 'Devolución registrada',
-        'La responsabilidad del vehículo quedó registrada con su evidencia.',
-      );
-      this.creada.emit();
+      };
+      await this.enviarEntrega(payload, false);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo registrar la entrega.');
+      this.manejarError(e);
     } finally {
       this.saving.set(false);
     }
   }
+
+  /** Llama al RPC; propaga HandoverRequeridoError para que lo maneje el caller. */
+  private async enviarEntrega(
+    payload: Parameters<VehiculosService['crearEntrega']>[0],
+    forzarHandover: boolean,
+  ) {
+    await this.vehiculosService.crearEntrega({ ...payload, forzarHandover });
+    this.handoverPendiente = null;
+    this.handoverInfo.set(null);
+    this.toast.success(
+      payload.tipo === 'recepcion' ? 'Recepción registrada' : 'Devolución registrada',
+      forzarHandover
+        ? 'Se cerró la entrega anterior y quedó a tu nombre.'
+        : 'La responsabilidad del vehículo quedó registrada con su evidencia.',
+    );
+    this.creada.emit();
+  }
+
+  private manejarError(e: unknown) {
+    if (e instanceof HandoverRequeridoError) {
+      // W3 — el vehículo está entregado a otro conductor. Guardamos el payload
+      // (fotos ya subidas) para reintentar con handover si el usuario confirma.
+      this.handoverInfo.set(e.info);
+      const v = this.form.getRawValue();
+      this.handoverPendiente = {
+        id: this.pendingId!,
+        vehiculoId: v.vehiculo_id!,
+        tipo: v.tipo!,
+        km: Number(v.km),
+        combustible: v.combustible!,
+        tieneDanos: this.tieneDanos() && this.pendingDanos.length > 0,
+        danos: this.pendingDanos,
+        firmaUrl: this.pendingFirma,
+        fotos: this.pendingFotos,
+        gps: this.gps(),
+        observacion: v.observacion?.trim() || null,
+      };
+      this.error.set('');
+      return;
+    }
+    this.error.set(e instanceof Error ? e.message : 'No se pudo registrar la entrega.');
+  }
+
+  /** W3 — confirmar el handover (solo roles elevados). Reintenta sin re-subir. */
+  async confirmarHandover() {
+    if (!this.handoverPendiente || !this.esFlotaElevado || this.saving()) return;
+    this.saving.set(true);
+    this.error.set('');
+    try {
+      await this.enviarEntrega(this.handoverPendiente, true);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo completar el handover.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  cancelarHandover() {
+    this.handoverPendiente = null;
+    this.handoverInfo.set(null);
+  }
+
+  // Buffers para reintentar el handover sin volver a subir archivos.
+  private pendingId: string | null = null;
+  private pendingFotos: { slot: string; path: string }[] = [];
+  private pendingDanos: { zona: string; descripcion: string | null; foto_path: string | null }[] = [];
+  private pendingFirma: string | null = null;
 }

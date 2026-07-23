@@ -278,6 +278,16 @@
 
     <!-- Content -->
     <main class="shell-content" id="main-content">
+      <!-- W7 — banner persistente mientras el admin ve datos de prueba (patrón Stripe) -->
+      @if (esAdmin() && verPrueba()) {
+        <div class="prueba-banner" role="status">
+          <span class="prueba-banner__dot" aria-hidden="true"></span>
+          <span class="prueba-banner__txt">
+            Estás viendo <strong>datos de prueba</strong>. Solo tú (admin) los ves; no afectan KPIs ni avisos.
+          </span>
+          <button type="button" class="prueba-banner__btn" (click)="ocultarPrueba()">Ocultar</button>
+        </div>
+      }
       <router-outlet />
     </main>
 

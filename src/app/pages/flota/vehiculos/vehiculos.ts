@@ -6,6 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
@@ -75,7 +76,9 @@ export class FlotaVehiculos implements OnInit {
   selectedTipo = signal('');
   selectedEstado = signal('');
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
-  mostrarPrueba = signal(false);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
@@ -173,7 +176,8 @@ export class FlotaVehiculos implements OnInit {
     for (const v of vehiculos) {
       const first = v.fotos?.[0];
       if (!first) continue;
-      this.vehiculosService.getFotoUrl(first).then((url) => {
+      // W9 — thumbnail liviano en el listado (la original solo en el detalle).
+      this.vehiculosService.getFotoUrl(first, { width: 320, quality: 60 }).then((url) => {
         if (url) this.listaFotos.update((m) => ({ ...m, [v.id]: url }));
       });
     }

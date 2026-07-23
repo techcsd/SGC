@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import {
   RegistroCombustible,
   RegistroCombustibleFormData,
@@ -12,6 +13,7 @@ const BUCKET = 'vehiculos';
 @Injectable({ providedIn: 'root' })
 export class CombustibleService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   async getAll(): Promise<RegistroCombustible[]> {
     const { data, error } = await this.supabase.client
@@ -100,10 +102,6 @@ export class CombustibleService {
   /** Resuelve un storage path a una URL firmada temporal (null si falla). */
   async getFotoUrl(path: string | null): Promise<string | null> {
     if (!path) return null;
-    const { data, error } = await this.supabase.client.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 3600);
-    if (error) return null;
-    return data?.signedUrl ?? null;
+    return this.cache.signed(BUCKET, path);
   }
 }

@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
@@ -31,7 +32,9 @@ export class Historial implements OnInit {
   // T2 — solo admin ve/gestiona datos de prueba (enforcement server-side vía RLS).
   esAdmin = computed(() => this.userService.hasRole('admin'));
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
-  mostrarPrueba = signal(false);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   formatFecha = formatFechaDisplay;
   formatFechaHora = formatFechaHumana; // U13 — "registrada el…"

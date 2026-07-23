@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import {
   ChecklistPlantilla,
   ChecklistVehiculo,
@@ -19,6 +20,7 @@ const DETAIL_QUERY =
 @Injectable({ providedIn: 'root' })
 export class ChecklistsVehiculoService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   async getPlantillas(): Promise<ChecklistPlantilla[]> {
     const { data, error } = await this.supabase.client
@@ -148,10 +150,6 @@ export class ChecklistsVehiculoService {
   }
 
   async getFotoUrl(path: string): Promise<string | null> {
-    const { data, error } = await this.supabase.client.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 3600);
-    if (error) return null;
-    return data?.signedUrl ?? null;
+    return this.cache.signed(BUCKET, path);
   }
 }

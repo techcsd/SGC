@@ -1,7 +1,32 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { Vehiculo, VehiculoFormData } from '../models/vehiculo.model';
 import { VehiculoAsignacion, VehiculoStats } from '../models/vehiculo-asignacion.model';
+
+/** W3 — recepción abierta de un vehículo (pre-check `entrega_abierta_de`). */
+export interface EntregaAbierta {
+  entrega_id: string;
+  conductor_usuario_id: string;
+  conductor: string;
+  desde: string;
+  km: number;
+  es_mia: boolean;
+}
+
+/**
+ * W3 — el servidor rechazó la recepción porque el vehículo tiene una recepción
+ * abierta de OTRO conductor. Trae la info estructurada para ofrecer el handover.
+ */
+export class HandoverRequeridoError extends Error {
+  constructor(
+    message: string,
+    readonly info: EntregaAbierta | null,
+  ) {
+    super(message);
+    this.name = 'HandoverRequeridoError';
+  }
+}
 
 /** A vehicle custody handoff captured from the CSD field app. */
 export interface VehiculoEntrega {
@@ -52,6 +77,7 @@ export interface VehiculoEntrega {
 @Injectable({ providedIn: 'root' })
 export class VehiculosService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   async getAll(): Promise<Vehiculo[]> {
     const { data, error } = await this.supabase.client
@@ -264,6 +290,18 @@ export class VehiculosService {
 
   /** Crea una entrega/recepción de vehículo desde la web (paridad app de campo).
    *  El RPC registra al usuario actual como conductor y exige las 6 fotos guiadas. */
+  /**
+   * W3 — pre-check ligero: ¿quién tiene este vehículo con recepción abierta?
+   * Devuelve `null` si está libre. Respeta RLS (RPC security definer).
+   */
+  async entregaAbiertaDe(vehiculoId: string): Promise<EntregaAbierta | null> {
+    const { data, error } = await this.supabase.client.rpc('entrega_abierta_de', {
+      p_vehiculo_id: vehiculoId,
+    });
+    if (error) throw new Error(error.message);
+    return (data as EntregaAbierta | null) ?? null;
+  }
+
   async crearEntrega(p: {
     id: string;
     vehiculoId: string;
@@ -276,6 +314,8 @@ export class VehiculosService {
     fotos: { slot: string; path: string }[];
     gps: { lat: number; lng: number } | null;
     observacion: string | null;
+    /** W3 — cerrar la recepción abierta de otro conductor y abrir la nueva. */
+    forzarHandover?: boolean;
   }): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('crear_entrega_vehiculo', {
       p_id: p.id,
@@ -290,18 +330,27 @@ export class VehiculosService {
       p_gps: p.gps ?? {},
       p_capturado_en: null, // el servidor usa now()
       p_observacion: p.observacion,
+      p_forzar_handover: p.forzarHandover ?? false,
     });
-    if (error) throw new Error(error.message);
+    if (error) {
+      // W3 — el servidor pide handover (recepción abierta de otro conductor).
+      if (error.hint === 'handover_requerido') {
+        let info: EntregaAbierta | null = null;
+        try {
+          info = error.details ? (JSON.parse(error.details) as EntregaAbierta) : null;
+        } catch {
+          /* detalle no parseable → sin info estructurada */
+        }
+        throw new HandoverRequeridoError(error.message, info);
+      }
+      throw new Error(error.message);
+    }
     return (data as string) ?? p.id;
   }
 
-  /** Resolves a checklist photo/signature path to a time-limited signed URL. */
+  /** Resolves a checklist photo/signature path to a cached signed URL (W9). */
   async getEntregaFotoUrl(path: string): Promise<string> {
-    const { data, error } = await this.supabase.client.storage
-      .from('vehiculos')
-      .createSignedUrl(path, 3600);
-    if (error) throw new Error(error.message);
-    return data.signedUrl;
+    return this.cache.signed('vehiculos', path);
   }
 
   // ── Vehicle photos (sgc.vehiculos.fotos text[] + `vehiculos` bucket) ──────
@@ -320,13 +369,12 @@ export class VehiculosService {
     return path;
   }
 
-  /** Resolves a stored photo path to a time-limited signed URL (null on failure). */
-  async getFotoUrl(path: string): Promise<string | null> {
-    const { data, error } = await this.supabase.client.storage
-      .from('vehiculos')
-      .createSignedUrl(path, 3600);
-    if (error) return null;
-    return data.signedUrl;
+  /**
+   * Resuelve un path de foto a una URL firmada CACHEADA (W9). Con `transform`
+   * pide un thumbnail liviano (para listados); sin él, la original (detalle).
+   */
+  async getFotoUrl(path: string, transform?: ImgTransform): Promise<string | null> {
+    return (await this.cache.signed('vehiculos', path, transform)) || null;
   }
 
   /** Persists the full list of photo paths on the vehicle row. */

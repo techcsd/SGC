@@ -7,6 +7,7 @@ import {
   OnInit,
   DestroyRef,
 } from '@angular/core';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -35,10 +36,11 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 
 @Component({
   selector: 'app-salidas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,7 +85,9 @@ export class Salidas implements OnInit {
   dateFrom = signal<string>('');
   dateTo = signal<string>('');
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
-  mostrarPrueba = signal(false);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -302,6 +306,7 @@ export class Salidas implements OnInit {
         this.solicitudesMaterialService.getAll(),
       ]);
       this.salidas.set(salidas);
+      this.resolverThumbs(salidas); // W11
       this.articulos.set(arts);
       this.categorias.set(cats);
       this.bodegas.set(bods);
@@ -698,13 +703,30 @@ export class Salidas implements OnInit {
     return MOTIVOS_SALIDA.find((m) => m.value === motivo)?.label ?? motivo;
   }
 
-  /** X4 — abre la foto de evidencia capturada por la app de campo (mismo patrón que entradas). */
+  // W11 — thumbnails de la lista + lightbox in-page.
+  fotoThumbs = signal<Record<string, string>>({});
+  fotoLightbox = signal<string | null>(null);
+
+  thumb(s: SalidaInventario): string | null {
+    return this.fotoThumbs()[s.id] ?? null;
+  }
+
+  private resolverThumbs(list: SalidaInventario[]) {
+    for (const s of list) {
+      if (!s.foto_path || this.fotoThumbs()[s.id]) continue;
+      this.salidasService.getFotoUrl(s.foto_path, { width: 96, quality: 60 }).then((url) => {
+        if (url) this.fotoThumbs.update((m) => ({ ...m, [s.id]: url }));
+      });
+    }
+  }
+
+  /** W11 — abre la foto de evidencia en grande DENTRO de la página (lightbox). */
   async verFoto(s: SalidaInventario) {
     if (!s.foto_path) return;
     this.fotoError.set('');
     try {
       const url = await this.salidasService.getFotoUrl(s.foto_path);
-      window.open(url, '_blank', 'noopener');
+      if (url) this.fotoLightbox.set(url);
     } catch {
       this.fotoError.set('No se pudo abrir la foto.');
     }

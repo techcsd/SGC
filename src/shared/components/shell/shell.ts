@@ -16,6 +16,8 @@ import { NotificacionesService } from '../../services/notificaciones.service';
 import { RealtimeNotificacionesService } from '../../services/realtime-notificaciones.service';
 import { NotificacionesCentroService, Notif } from '../../services/notificaciones-centro.service';
 import { AppVersionesService } from '../../services/app-versiones.service';
+import { DatosPruebaViewService } from '../../services/datos-prueba-view.service';
+import { ActividadService } from '../../services/actividad.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 import { formatFechaRelativa } from '../../utils/fecha.util';
@@ -58,10 +60,17 @@ export class Shell implements OnInit {
   private realtimeNotificaciones = inject(RealtimeNotificacionesService);
   private centro = inject(NotificacionesCentroService);
   private appVersiones = inject(AppVersionesService);
+  private datosPruebaView = inject(DatosPruebaViewService);
+  private actividad = inject(ActividadService);
   private destroyRef = inject(DestroyRef);
 
   profile = this.userService.profile;
   avatarUrl = this.userService.avatarUrl;
+
+  // W7 — banner persistente de datos de prueba (solo admin).
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  verPrueba = this.datosPruebaView.ver;
+  ocultarPrueba = () => this.datosPruebaView.set(false);
   collapsed = signal(false);
   /** Mobile off-canvas drawer (≤768px); independent of the desktop `collapsed`. */
   mobileNavOpen = signal(false);
@@ -311,11 +320,15 @@ export class Shell implements OnInit {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.notificaciones.refresh();
+        // W12 — registrar actividad web (throttled en cliente y servidor).
+        this.actividad.ping();
         // Close the bell dropdown + mobile drawer when navigating away.
         this.notifOpen.set(false);
         this.mobileNavOpen.set(false);
       }
     });
+    // W12 — ping inicial al montar el shell (sesión iniciada).
+    this.actividad.ping();
   }
 
   toggleNotif() {

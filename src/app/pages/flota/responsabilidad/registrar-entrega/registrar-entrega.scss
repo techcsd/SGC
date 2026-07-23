@@ -170,3 +170,33 @@
   font-size: 12px;
   color: var(--sgc-text-muted);
 }
+
+// W3 — pre-check y handover
+.re-precheck {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--sgc-warning-light);
+  border: 1px solid var(--sgc-warning);
+  color: var(--sgc-text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.re-handover {
+  margin: 4px 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--sgc-warning-light);
+  border: 1px solid var(--sgc-warning);
+  color: var(--sgc-text);
+  font-size: 13.5px;
+  line-height: 1.45;
+
+  p { margin: 0 0 8px; }
+}
+.re-handover-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}

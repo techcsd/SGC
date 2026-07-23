@@ -223,3 +223,10 @@
   padding: 0;
   font-size: 13px;
 }
+
+// W5-web — fila de multa clicable
+.cd-row--link {
+  cursor: pointer;
+  &:hover { background: var(--sgc-surface-hover, rgba(0,0,0,0.03)); }
+  &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
+}

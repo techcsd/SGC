@@ -55,17 +55,33 @@
     <table class="admin-usuarios__table" aria-label="Lista de usuarios">
       <thead>
         <tr>
-          <th scope="col">Usuario</th>
+          <th scope="col">
+            <button type="button" class="admin-usuarios__sort" (click)="setSort('nombre')">
+              Usuario @if (sortKey() === 'nombre') { <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+            </button>
+          </th>
           <th scope="col">Correo</th>
           <th scope="col">Roles</th>
           <th scope="col">Estado</th>
-          <th scope="col">Miembro desde</th>
+          <th scope="col">
+            <button type="button" class="admin-usuarios__sort" (click)="setSort('web')">
+              Última vez web @if (sortKey() === 'web') { <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+            </button>
+          </th>
+          <th scope="col">
+            <button type="button" class="admin-usuarios__sort" (click)="setSort('app')">
+              Última vez app @if (sortKey() === 'app') { <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+            </button>
+          </th>
           <th scope="col"><span class="sr-only">Acciones</span></th>
         </tr>
       </thead>
       <tbody>
         @for (usuario of paginated(); track usuario.id) {
-          <tr [class.inactive]="!usuario.activo">
+          <tr [class.inactive]="!usuario.activo" class="admin-usuarios__row"
+              (click)="openDetail(usuario)"
+              tabindex="0" role="button"
+              [attr.aria-label]="'Ver detalle de ' + usuario.nombre">
             <td class="admin-usuarios__name-cell">
               <div class="admin-usuarios__avatar" aria-hidden="true">
                 {{ usuario.nombre[0]?.toUpperCase() }}
@@ -96,14 +112,17 @@
                 <span class="sgc-badge sgc-badge--warning" title="Invitado pero aún no ha entrado">Pendiente</span>
               }
             </td>
-            <td class="admin-usuarios__date">
-              {{ formatFecha(usuario.created_at) }}
+            <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_web ? formatFecha(usuario.ultima_actividad_web) : 'Sin actividad web registrada'">
+              {{ actividad(usuario.ultima_actividad_web) }}
+            </td>
+            <td class="admin-usuarios__date" [title]="usuario.ultima_actividad_app ? formatFecha(usuario.ultima_actividad_app) : 'Sin actividad app registrada'">
+              {{ actividad(usuario.ultima_actividad_app) }}
             </td>
             <td class="admin-usuarios__actions">
               <button
                 type="button"
                 class="admin-usuarios__kebab"
-                (click)="openMenu(usuario, $event)"
+                (click)="openMenu(usuario, $event); $event.stopPropagation()"
                 [attr.aria-expanded]="openMenuId() === usuario.id"
                 aria-haspopup="menu"
                 [attr.aria-label]="'Acciones para ' + usuario.nombre"
@@ -116,12 +135,12 @@
           </tr>
           @if (resetMessage() && resetMessage()?.userId === usuario.id) {
             <tr>
-              <td colspan="6" class="admin-usuarios__reset-message" role="status">{{ resetMessage()?.text }}</td>
+              <td colspan="7" class="admin-usuarios__reset-message" role="status">{{ resetMessage()?.text }}</td>
             </tr>
           }
         } @empty {
           <tr>
-            <td colspan="6" class="admin-usuarios__empty">
+            <td colspan="7" class="admin-usuarios__empty">
               No se encontraron usuarios con los filtros aplicados.
             </td>
           </tr>
@@ -166,6 +185,97 @@
     </button>
   </div>
 }
+
+<!-- W10 — Detalle de usuario -->
+<app-form-drawer
+  title="Detalle del usuario"
+  [open]="detailOpen()"
+  (closed)="closeDetail()"
+>
+  @if (detailUser(); as u) {
+    <div class="admin-usuarios__detail">
+      <!-- Cabecera: avatar + nombre + estado -->
+      <div class="admin-usuarios__detail-head">
+        @if (avatarUrlDe(u); as av) {
+          <img class="admin-usuarios__detail-avatar" [src]="av" [alt]="u.nombre" loading="lazy" />
+        } @else {
+          <div class="admin-usuarios__detail-avatar admin-usuarios__detail-avatar--ph" aria-hidden="true">
+            {{ u.nombre[0]?.toUpperCase() }}
+          </div>
+        }
+        <div>
+          <h3 class="admin-usuarios__detail-name">{{ u.nombre }}</h3>
+          <p class="admin-usuarios__detail-email">{{ u.email }}</p>
+          <div class="admin-usuarios__detail-badges">
+            @if (u.activo) {
+              <span class="sgc-badge sgc-badge--success">Activo</span>
+            } @else {
+              <span class="sgc-badge sgc-badge--neutral">Inactivo</span>
+            }
+            @if (u.pendiente) { <span class="sgc-badge sgc-badge--warning">Pendiente</span> }
+          </div>
+        </div>
+      </div>
+
+      <!-- Roles / módulos -->
+      <div class="admin-usuarios__detail-section">
+        <span class="admin-usuarios__detail-label">Roles</span>
+        <div class="admin-usuarios__roles">
+          @for (ur of u.roles; track ur.rol.id) {
+            <span class="sgc-badge sgc-badge--info">{{ ur.rol.nombre }}</span>
+          } @empty {
+            <span class="sgc-badge sgc-badge--neutral">Sin rol</span>
+          }
+        </div>
+      </div>
+
+      <!-- Última actividad -->
+      <div class="admin-usuarios__detail-grid">
+        <div>
+          <span class="admin-usuarios__detail-label">Última vez en web</span>
+          <span [title]="u.ultima_actividad_web ? formatFecha(u.ultima_actividad_web) : ''">
+            {{ actividad(u.ultima_actividad_web) }}
+          </span>
+        </div>
+        <div>
+          <span class="admin-usuarios__detail-label">Última vez en app</span>
+          <span [title]="u.ultima_actividad_app ? formatFecha(u.ultima_actividad_app) : ''">
+            {{ actividad(u.ultima_actividad_app) }}
+          </span>
+        </div>
+        <div>
+          <span class="admin-usuarios__detail-label">Miembro desde</span>
+          <span>{{ formatFecha(u.created_at) }}</span>
+        </div>
+      </div>
+
+      <!-- Vínculo a perfil de conductor -->
+      @if (conductorDe(u); as c) {
+        <div class="admin-usuarios__detail-section">
+          <span class="admin-usuarios__detail-label">Perfil de conductor</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="irAConductor(c.id)">
+            🚚 Ver perfil de {{ c.nombre }}
+          </button>
+        </div>
+      }
+
+      <!-- Acciones -->
+      <div class="admin-usuarios__drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost"
+          (click)="resetPassword(u)" [disabled]="resettingId() === u.id">
+          Restablecer contraseña
+        </button>
+        <button type="button" class="sgc-btn sgc-btn--primary"
+          (click)="closeDetail(); openEdit(u)">
+          Editar
+        </button>
+      </div>
+      @if (resetMessage() && resetMessage()?.userId === u.id) {
+        <p class="admin-usuarios__reset-message" role="status">{{ resetMessage()?.text }}</p>
+      }
+    </div>
+  }
+</app-form-drawer>
 
 <!-- Edit Drawer -->
 <app-form-drawer

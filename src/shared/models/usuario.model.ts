@@ -19,4 +19,7 @@ export interface Usuario {
   created_at: string;
   updated_at: string;
   roles?: UsuarioRol[];
+  /** W12 — última actividad registrada por canal (ping throttled 5 min). */
+  ultima_actividad_web?: string | null;
+  ultima_actividad_app?: string | null;
 }

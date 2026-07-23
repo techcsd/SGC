@@ -6,14 +6,18 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminService, UsuarioAdmin } from '../../../../shared/services/admin.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 import { UserService } from '../../../core/services/user.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
-import { formatFechaMedia } from '../../../../shared/utils/fecha.util';
+import { formatFechaMedia, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+
+type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
   selector: 'app-admin-usuarios',
@@ -25,8 +29,19 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 export class AdminUsuarios implements OnInit {
   private adminService = inject(AdminService);
   private userService = inject(UserService);
+  private supabase = inject(SupabaseService);
+  private router = inject(Router);
 
   formatFecha = formatFechaMedia; // U9
+  formatRelativa = formatFechaRelativa; // W12
+
+  // ── W10 — detalle de usuario (drawer) ────────────────────
+  detailUser = signal<UsuarioAdmin | null>(null);
+  detailOpen = signal(false);
+
+  // ── W12 — orden por columnas (incl. última actividad) ────
+  sortKey = signal<SortKey>('nombre');
+  sortDir = signal<'asc' | 'desc'>('asc');
 
   // ── Data ─────────────────────────────────────────────────
   usuarios = signal<UsuarioAdmin[]>([]);
@@ -108,7 +123,7 @@ export class AdminUsuarios implements OnInit {
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const status = this.selectedStatus();
-    return this.usuarios().filter((u) => {
+    const list = this.usuarios().filter((u) => {
       if (q && !u.nombre.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) {
         return false;
       }
@@ -116,7 +131,64 @@ export class AdminUsuarios implements OnInit {
       if (status === 'inactive' && u.activo) return false;
       return true;
     });
+    // W12 — orden por columna (nombre / última actividad web / app).
+    const key = this.sortKey();
+    const dir = this.sortDir() === 'asc' ? 1 : -1;
+    const val = (u: UsuarioAdmin): string | number => {
+      if (key === 'nombre') return u.nombre.toLowerCase();
+      const d = key === 'web' ? u.ultima_actividad_web : u.ultima_actividad_app;
+      return d ? new Date(d).getTime() : 0; // sin actividad al final en asc
+    };
+    return [...list].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
   });
+
+  setSort(key: SortKey) {
+    if (this.sortKey() === key) {
+      this.sortDir.update((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      this.sortKey.set(key);
+      // La actividad más útil primero: fechas descendente por defecto.
+      this.sortDir.set(key === 'nombre' ? 'asc' : 'desc');
+    }
+    this.page.set(1);
+  }
+
+  // ── W10 — detalle de usuario ─────────────────────────────
+  openDetail(usuario: UsuarioAdmin) {
+    this.detailUser.set(usuario);
+    this.detailOpen.set(true);
+  }
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
+
+  /** Avatar público del usuario (bucket sgc-avatars) o null. */
+  avatarUrlDe(usuario: UsuarioAdmin | null): string | null {
+    if (!usuario?.avatar_path) return null;
+    return this.supabase.client.storage.from('sgc-avatars').getPublicUrl(usuario.avatar_path).data
+      .publicUrl;
+  }
+
+  /** Perfil de conductor vinculado (el primero si hay), o null. */
+  conductorDe(usuario: UsuarioAdmin | null): { id: string; nombre: string } | null {
+    return usuario?.conductores?.[0] ?? null;
+  }
+
+  irAConductor(id: string) {
+    this.closeDetail();
+    void this.router.navigate(['/flota/conductores', id]);
+  }
+
+  /** Texto relativo de actividad, con guion si nunca. */
+  actividad(fecha: string | null | undefined): string {
+    return fecha ? this.formatRelativa(fecha) : '—';
+  }
 
   paginated = computed(() => {
     const start = (this.page() - 1) * this.PAGE_SIZE;

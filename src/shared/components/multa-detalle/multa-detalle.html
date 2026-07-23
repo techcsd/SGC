@@ -1,0 +1,56 @@
+<app-form-drawer title="Detalle de la multa" [open]="!!multa()" (closed)="closed.emit()">
+  @if (multa(); as m) {
+    <div class="multa-det">
+      <div class="multa-det__head">
+        <span class="multa-det__monto">
+          {{ m.monto != null ? ('RD$ ' + (m.monto | number: '1.0-2')) : 'Monto no indicado' }}
+        </span>
+        <span class="sgc-badge sgc-badge--{{ estadoBadge() }}">{{ estadoLabel() }}</span>
+      </div>
+
+      <div class="multa-det__grid">
+        <div>
+          <span class="multa-det__label">Motivo</span>
+          <span>{{ m.motivo ?? '—' }}</span>
+        </div>
+        <div>
+          <span class="multa-det__label">Fecha</span>
+          <span>{{ formatFecha(m.fecha) }}</span>
+        </div>
+        <div>
+          <span class="multa-det__label">Conductor</span>
+          <span>{{ m.conductor?.nombre ?? '—' }}</span>
+        </div>
+        <div>
+          <span class="multa-det__label">Vehículo</span>
+          @if (m.vehiculo_id) {
+            <button type="button" class="multa-det__link" (click)="abrirVehiculo()">
+              {{ m.vehiculo?.placa ?? 'Ver vehículo' }}
+            </button>
+          } @else {
+            <span>—</span>
+          }
+        </div>
+      </div>
+
+      <!-- Documento adjunto con preview -->
+      <div class="multa-det__doc">
+        <span class="multa-det__label">Documento</span>
+        @if (docUrl(); as url) {
+          <button type="button" class="multa-det__thumb" (click)="lightboxOpen.set(true)"
+            title="Ver documento en grande">
+            <img [src]="url" alt="Documento de la multa" loading="lazy" />
+          </button>
+        } @else if (m.documento_path) {
+          <span class="multa-det__muted">Cargando documento…</span>
+        } @else {
+          <span class="multa-det__muted">Sin documento adjunto</span>
+        }
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+@if (lightboxOpen() && docUrl()) {
+  <app-lightbox [src]="docUrl()!" alt="Documento de la multa" (closed)="lightboxOpen.set(false)" />
+}

@@ -1,10 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import { Mantenimiento, MantenimientoFormData } from '../models/mantenimiento.model';
 
 @Injectable({ providedIn: 'root' })
 export class MantenimientosService {
   private supabase = inject(SupabaseService);
+  private cache = inject(SignedUrlCache);
 
   async getAll(): Promise<Mantenimiento[]> {
     const { data, error } = await this.supabase.client
@@ -71,11 +73,7 @@ export class MantenimientosService {
 
   /** Resolves a stored photo path to a time-limited signed URL (null on failure). */
   async getFotoUrl(path: string): Promise<string | null> {
-    const { data, error } = await this.supabase.client.storage
-      .from('vehiculos')
-      .createSignedUrl(path, 3600);
-    if (error) return null;
-    return data.signedUrl;
+    return this.cache.signed('vehiculos', path);
   }
 
   /** Persists the full list of photo paths on the maintenance row. */

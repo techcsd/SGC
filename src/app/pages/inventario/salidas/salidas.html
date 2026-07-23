@@ -173,8 +173,14 @@
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
               <td class="text-center">
                 @if (s.foto_path) {
-                  <button type="button" class="salidas__foto-btn" (click)="verFoto(s)"
-                    title="Ver foto de la app de campo">📷</button>
+                  <button type="button" class="salidas__foto-thumb" (click)="$event.stopPropagation(); verFoto(s)"
+                    title="Ver foto de la app de campo">
+                    @if (thumb(s); as t) {
+                      <img [src]="t" alt="Foto de evidencia" loading="lazy" />
+                    } @else {
+                      📷
+                    }
+                  </button>
                 } @else {
                   —
                 }
@@ -582,3 +588,8 @@
   </form>
   }
 </app-form-drawer>
+
+<!-- W11 — lightbox de foto de evidencia (in-page, nunca nueva pestaña) -->
+@if (fotoLightbox(); as foto) {
+  <app-lightbox [src]="foto" alt="Foto de evidencia de la salida" (closed)="fotoLightbox.set(null)" />
+}

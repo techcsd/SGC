@@ -1,6 +1,20 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.26.0": {
+      "titulo": "Datos de prueba aislados, imágenes que ya no se recargan, detalle de usuario/multa y reporte de la app arreglado",
+      "cambios": [
+        { "t": "arreglo", "d": "Los reportes enviados desde la app de campo (problema/mejora/duda) fallaban siempre con un mensaje confuso (\"hace referencia a algo que no existe\"). Se corrigió: ahora se guardan bien sin necesidad de actualizar la app." },
+        { "t": "mejora", "d": "Recibir un vehículo que ya tiene una entrega abierta ya no bloquea a ciegas: si es tuyo, no se duplica; si es de otro conductor, se avisa quién lo tiene y (para roles de flota) se ofrece cerrar la entrega anterior y recibirlo." },
+        { "t": "seguridad", "d": "Datos de prueba: un vehículo/entidad marcada como prueba y todo lo que se derive de ella (pre-usos, combustible, entregas, rutas, multas, avisos) queda oculto para los usuarios normales y fuera de KPIs, alertas y notificaciones reales. Solo Administración los ve." },
+        { "t": "mejora", "d": "Nuevo interruptor global \"Ver datos de prueba\" (solo admin) con un aviso persistente mientras está activo, para no confundir datos de prueba con reales." },
+        { "t": "mejora", "d": "Las imágenes (fotos de vehículos, checklists, documentos, evidencias de inventario, etc.) ya no se vuelven a descargar cada vez que entras a una pantalla: se cachean y los listados cargan miniaturas livianas." },
+        { "t": "nuevo", "d": "En Administración › Usuarios, cada fila abre un detalle del usuario (roles, estado, vínculo a su perfil de conductor y última vez activo en web y en app), con columnas ordenables de última actividad." },
+        { "t": "nuevo", "d": "Las multas se pueden abrir en un detalle (motivo, monto, estado, vehículo, conductor y documento con vista previa) desde el perfil del conductor y del vehículo." },
+        { "t": "mejora", "d": "En Inventario, la columna Foto de Entradas y Salidas muestra una miniatura y la abre en grande dentro de la misma página (ya no en otra pestaña)." },
+        { "t": "mejora", "d": "Inventario: al despachar material hacia una obra se avisa al equipo de esa obra (\"Entrega en camino\") para que confirme la recepción." }
+      ]
+    },
     "1.25.0": {
       "titulo": "Los vehículos de la flota solo son visibles para quien tiene el módulo Flota",
       "cambios": [

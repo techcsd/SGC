@@ -17,6 +17,18 @@
     @if (form.controls.vehiculo_id.invalid && form.controls.vehiculo_id.touched) {
       <span class="field-error">Selecciona el vehículo.</span>
     }
+    <!-- W3 — pre-check: el vehículo ya está entregado a otro conductor -->
+    @if (entregaAbierta(); as ea) {
+      <div class="re-precheck" role="status">
+        ⚠️ Este vehículo figura entregado a <strong>{{ ea.conductor }}</strong>
+        desde el {{ ea.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ ea.km | number: '1.0-0' }} km).
+        @if (esFlotaElevado) {
+          Puedes recibirlo igual: al guardar se cerrará la entrega anterior.
+        } @else {
+          Un responsable de flota debe cerrar la entrega anterior antes de que lo recibas.
+        }
+      </div>
+    }
   </div>
 
   <div class="form-row">
@@ -120,6 +132,30 @@
   </div>
 
   @if (error()) { <div class="save-error" role="alert">{{ error() }}</div> }
+
+  <!-- W3 — el server pidió handover: el vehículo está entregado a otro conductor -->
+  @if (handoverInfo(); as h) {
+    <div class="re-handover" role="alertdialog">
+      <p>
+        🔁 <strong>{{ h.conductor }}</strong> tiene este vehículo desde el
+        {{ h.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} km).
+      </p>
+      @if (esFlotaElevado) {
+        <p>Al confirmar, se cerrará esa entrega como devolución y el vehículo quedará a tu nombre.</p>
+        <div class="re-handover-actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarHandover()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="confirmarHandover()">
+            @if (saving()) { Procesando… } @else { Cerrar entrega anterior y recibir }
+          </button>
+        </div>
+      } @else {
+        <p>No tienes permiso para cerrar la entrega de otro conductor. Pide a un responsable de flota que lo haga.</p>
+        <div class="re-handover-actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarHandover()">Entendido</button>
+        </div>
+      }
+    </div>
+  }
 
   <div class="drawer-actions">
     <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelar.emit()">Cancelar</button>
