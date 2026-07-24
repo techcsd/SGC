@@ -2,9 +2,9 @@
 
 _Last updated: 2026-07-24_
 
-## PROMPT-21-SGC · Y5/Y4/Y9/Y6 (24/07/2026) — ✅ CÓDIGO LISTO, 2 migraciones en prod, build verde (web 1.28.0), SIN commit/push/deploy
+## PROMPT-21-SGC · Y5/Y4/Y9/Y6 (24/07/2026) — ✅ EN PRODUCCIÓN (web 1.28.0), commit+push+deploy, versión registrada, QA headless 24/24
 
-Aditivo/retrocompatible. `npm run build` **verde** (solo warnings pre-existentes). **2 migraciones en prod** (Management API, idempotentes): `sql/2026-07-24-y5y9-combustible-odometro-mantenimiento.sql`, `sql/2026-07-24-y4-rutas-tiempos-reales.sql`. Version bump **1.27.0 → 1.28.0** ya hecho (`package.json` + `release-notes.json` web[1.28.0]). Frontend **sin commit/push**. Helper SQL recreado: `scratchpad/apply-sql.mjs`.
+Aditivo/retrocompatible. `npm run build` **verde** (solo warnings pre-existentes). **2 migraciones en prod** (Management API, idempotentes): `sql/2026-07-24-y5y9-combustible-odometro-mantenimiento.sql`, `sql/2026-07-24-y4-rutas-tiempos-reales.sql`. Commit **`5e9ccb1`** en `main`, push → **deploy Vercel READY (production)** (dpl_BPWjVX…). Version **1.28.0** registrada en `sgc.app_versiones` (título + 6 cambios + link al commit `5e9ccb1`). Helper SQL recreado: `scratchpad/apply-sql.mjs`.
 
 ### FASE 1 (Y5) — combustible: una sola fuente de verdad = el ODÓMETRO
 - **Evidencia del dato corrupto:** echada `55066361-8660-4dbd-822b-d6d514a282ed` del D-Max (AB2890340, id `f7bf4913-…`): km 49 000, SIN galones, fecha 2026-07-03, conductor "TEST Conductor Prueba" (cédula TEST-000-0000000-0). Dato de QA capturado directo por SQL; `es_prueba=false` → contaminaba la validación no-retroceso (`max(echada)=49000` bloqueaba echadas reales de ~24 3xx). El odómetro real nunca subió (24 258) porque `avanzar_odometro` solo corre desde el RPC.
@@ -23,8 +23,16 @@ Aditivo/retrocompatible. `npm run build` **verde** (solo warnings pre-existentes
 ### FASE 4 (Y6) — fotos nítidas (regresión W9)
 - Regresión aislada: card de Vehículos pedía `width:320` para render ≥280 CSS px → borroso. Fix `vehiculos.ts` → **800/q75**. También entradas/salidas 96→160/q75, picker 200→96/q75, accidentes q60→75. Cache por transform → sin re-descargas.
 
-### Pendiente — Xaviel (QA manual)
-- **Commit/push + deploy** (no hecho; 1.28.0 listo). Reintentar los 2 registros de combustible atascados del D-Max en la app (drenan si km ≥ 24 258). Perfil del D-Max: ya no dice "faltan 30 742 km". Editar un vehículo con km_ultimo>odómetro → error legible. Ruta con TAP en la app → detalle muestra duración real vs estimada. Cards de Vehículos nítidas + Network sin re-descargas al reentrar.
+### QA hecho — headless contra PROD (JWT simulado admin + conductor no-admin, transacciones con rollback → 0 datos de prueba dejados) — **24/24 PASS**
+- **FASE 1:** D-Max km 24358 acepta+avanza odómetro; km 24000 rechaza citando 24258; km==odómetro acepta (permite igual); Amarok km 49850 → `km_anterior=49500` (real, excluye prueba), recorridos 350, rend 35; idempotencia por `client_uuid`; echada corrupta `es_prueba=true`.
+- **FASE 2:** TAP -90/-45 → duración 45 min; TAP anterior a created_at → clamp (sin negativo); completar sin iniciar → fin set/inicio null/dur null; `crear_ruta_app(…,38)` persiste; retrocompat `crear_ruta_app` sin arg nuevo y `marcar_ruta_estado` 2-arg; conductor marca **su** ruta OK; usuario sin admin/flota/match → **rechazado** ("No eres el conductor").
+- **FASE 3:** guard rechaza km_ultimo>odómetro; preventivo completado km≤odómetro mueve ciclo, km>odómetro no; `completar_mantenimiento` avanza odómetro+fija km_ultimo coherente; vista `v_vehiculo_stats` incoherente → `mantenimiento_por_revisar=true`+`proximo` null; `detectar_mantenimiento_incoherente()`=[]; CHECK acepta el tipo `mantenimiento_por_revisar`.
+- **Datos prod:** 0 vehículos con `max(echada real)>odómetro`; 0 con `km_ultimo>odómetro`; D-Max y Amarok `km_ultimo=null` (se fue el "faltan 30 742 km").
+- Runner: `scratchpad/qa.mjs`. **Nota:** los 2 "FAIL" iniciales del runner eran supuestos del test (Misael SÍ tiene módulo flota → puede gestionar rutas por diseño; el CHECK sí acepta el tipo — el parser regex del test estaba mal); ambos reconfirmados como comportamiento correcto.
+
+### Pendiente — Xaviel (solo QA visual en navegador — requiere tu sesión admin; NO headless por auth Supabase/SPA)
+- Reintentar en la **app** los 2 registros de combustible atascados del D-Max (drenan si km ≥ 24 258).
+- `sgcconstructorasd.com`: formulario de combustible muestra "Odómetro actual"; perfil del D-Max ya NO dice "faltan 30 742 km"; editar un vehículo con km_ultimo>odómetro → error legible; ruta con TAP (desde la app) → detalle muestra duración real vs estimada; **cards de Vehículos nítidas** + Network sin re-descargas al reentrar.
 
 ### Pendiente — PROMPT-22 (csd-app / móvil)
 - `marcar_ruta_estado(p_ruta_id, p_estado, p_at)`: mandar el timestamp del TAP (offline-first). `crear_ruta_app(…, p_tiempo_estimado_min)`: mandar el estimado del maps. `v_vehiculo_stats.mantenimiento_por_revisar`: no mostrar "faltan X km" si true. Validar km de combustible/mantenimiento vs odómetro (mensaje que cite el odómetro).
