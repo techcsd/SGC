@@ -18,7 +18,9 @@ export type AvisoFlotaTipo =
   | 'matricula_por_vencer'
   | 'matricula_vencida'
   | 'seguro_por_vencer'
-  | 'seguro_vencida';
+  | 'seguro_vencida'
+  // Y9 3.3 — dato de mantenimiento incoherente (km último > odómetro)
+  | 'mantenimiento_por_revisar';
 
 export type AvisoFlotaEstado = 'pendiente' | 'atendido' | 'resuelto_auto';
 export type AvisoFlotaSeveridad = 'baja' | 'media' | 'alta';
@@ -61,6 +63,7 @@ export const AVISO_TIPO_LABEL: Record<AvisoFlotaTipo, string> = {
   matricula_vencida: 'Matrícula vencida',
   seguro_por_vencer: 'Seguro por vencer',
   seguro_vencida: 'Seguro vencido',
+  mantenimiento_por_revisar: 'Mantenimiento por revisar',
 };
 
 export const AVISO_SEVERIDAD_BADGE: Record<AvisoFlotaSeveridad, string> = {

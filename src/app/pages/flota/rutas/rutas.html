@@ -453,6 +453,21 @@
         <div><dt>Tiempo real</dt><dd>{{ r.tiempo_real_min != null ? formatDur(r.tiempo_real_min) : '—' }}@if (tiempoDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="tiempoDesvio(r)! > 0">({{ tiempoDesvio(r)! > 0 ? '+' : '' }}{{ tiempoDesvio(r) }})</span> }</dd></div>
       </dl>
 
+      <!-- Y4 — Tiempos reales del TAP (inicio/fin) capturados en la app -->
+      @if (r.iniciada_at || r.finalizada_at) {
+        <h4 class="ruta-detalle__title">Tiempo real de la ruta</h4>
+        <p class="ruta-detalle__tiempos">
+          @if (r.iniciada_at) { <span>Inició <strong>{{ formatHora(r.iniciada_at) }}</strong></span> }
+          @if (r.finalizada_at) { <span class="rutas__dot">·</span><span>Finalizó <strong>{{ formatHora(r.finalizada_at) }}</strong></span> }
+          @if (duracionReal(r) !== null) {
+            <span class="rutas__dot">·</span><span>Duración <strong>{{ formatDur(duracionReal(r)!) }}</strong></span>
+            @if (r.tiempo_estimado_min != null) {
+              <span class="rutas__dot">·</span><span>Estimado {{ formatDur(r.tiempo_estimado_min) }}@if (desvioDuracionPct(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="desvioDuracionPct(r)! > 0"> ({{ desvioDuracionPct(r)! > 0 ? '+' : '' }}{{ desvioDuracionPct(r) }}%)</span> }</span>
+            }
+          }
+        </p>
+      }
+
       @if (r.notas) {
         <h4 class="ruta-detalle__title">Notas</h4>
         <p class="ruta-detalle__notas">{{ r.notas }}</p>

@@ -35,6 +35,7 @@ import {
   VENCIMIENTO_BADGE,
   proximoMantenimientoKm,
   kmFaltanMantenimiento,
+  mantenimientoPorRevisar,
 } from '../../../../../shared/models/vehiculo.model';
 import { VehiculoAsignacion, VehiculoStats } from '../../../../../shared/models/vehiculo-asignacion.model';
 import {
@@ -119,6 +120,13 @@ export class VehiculoDetalle implements OnInit {
   kmFaltanMant = computed(() => {
     const v = this.vehiculo();
     return v ? kmFaltanMantenimiento(v) : null;
+  });
+
+  // Y9 3.3 — dato de mantenimiento incoherente (km último > odómetro): no se
+  // muestra "faltan X km"; se pide revisar. El servidor ya avisó a flota.
+  mantPorRevisar = computed(() => {
+    const v = this.vehiculo();
+    return v ? mantenimientoPorRevisar(v) : false;
   });
 
   // ── U11-web — alerta de mantenimiento visible en el perfil ──

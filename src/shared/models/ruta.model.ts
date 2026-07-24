@@ -25,6 +25,10 @@ export interface Ruta {
   estado: RutaEstado;
   notas: string | null;
   creado_por: string | null;
+  // Y4 — instante real del TAP (offline-first): inicio y fin de la ruta.
+  // Duración real = finalizada_at − iniciada_at (ver duracionRealMin()).
+  iniciada_at?: string | null;
+  finalizada_at?: string | null;
   // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
   es_prueba?: boolean;
   created_at: string;
@@ -60,6 +64,19 @@ export function destinoCoords(r: {
   if (pLat != null && pLng != null) return { latitud: pLat, longitud: pLng };
   if (r.destino_lat != null && r.destino_lng != null) return { latitud: r.destino_lat, longitud: r.destino_lng };
   return null;
+}
+
+/** Y4 — Duración real en minutos desde los timestamps del TAP (fin − inicio).
+ *  null si falta alguno (ruta gestionada solo desde la web sin TAP). */
+export function duracionRealMin(r: {
+  iniciada_at?: string | null;
+  finalizada_at?: string | null;
+}): number | null {
+  if (!r.iniciada_at || !r.finalizada_at) return null;
+  const ini = new Date(r.iniciada_at).getTime();
+  const fin = new Date(r.finalizada_at).getTime();
+  if (!isFinite(ini) || !isFinite(fin) || fin < ini) return null;
+  return Math.round((fin - ini) / 60000);
 }
 
 export const RUTA_ESTADOS: { value: RutaEstado; label: string; badge: string }[] = [

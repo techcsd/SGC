@@ -159,12 +159,26 @@ export class Combustible implements OnInit {
   private kmVal = toSignal(this.form.controls.kilometraje.valueChanges, { initialValue: null });
   private vehiculoVal = toSignal(this.form.controls.vehiculo_id.valueChanges, { initialValue: '' });
 
-  /** Km de la última echada del vehículo seleccionado (calc. local = server). */
+  /**
+   * Y5 — Odómetro actual del vehículo (vehiculos.kilometraje): la ÚNICA fuente de
+   * verdad, la misma cifra que valida el servidor y que ve el usuario.
+   */
+  odometroActual = computed<number | null>(() => {
+    const vId = this.vehiculoVal();
+    if (!vId) return null;
+    return this.vehiculos().find((v) => v.id === vId)?.kilometraje ?? null;
+  });
+
+  /**
+   * Km de la última echada REAL del vehículo (excluye datos de prueba, = filtros
+   * del servidor). Solo para el preview de km recorridos/rendimiento, NO para el
+   * no-retroceso (eso lo gobierna el odómetro).
+   */
   kmAnterior = computed<number | null>(() => {
     const vId = this.vehiculoVal();
     if (!vId) return null;
     const kms = this.registros()
-      .filter((r) => r.vehiculo_id === vId && r.kilometraje != null)
+      .filter((r) => r.vehiculo_id === vId && r.kilometraje != null && !r.es_prueba)
       .map((r) => r.kilometraje as number);
     return kms.length ? Math.max(...kms) : null;
   });
@@ -338,10 +352,12 @@ export class Combustible implements OnInit {
     }
 
     const raw = this.form.getRawValue();
-    // El odómetro no retrocede: km > última echada del vehículo.
-    const kmAnt = this.kmAnterior();
-    if (kmAnt != null && (raw.kilometraje ?? 0) <= kmAnt) {
-      this.saveError.set(`El kilometraje debe ser mayor al de la última echada (${kmAnt} km).`);
+    // Y5 — el odómetro no retrocede: km >= odómetro actual (misma regla y cifra que el servidor).
+    const odo = this.odometroActual();
+    if (odo != null && (raw.kilometraje ?? 0) < odo) {
+      this.saveError.set(
+        `El kilometraje (${raw.kilometraje ?? 0} km) no puede ser menor al odómetro actual del vehículo (${odo} km).`,
+      );
       return;
     }
 

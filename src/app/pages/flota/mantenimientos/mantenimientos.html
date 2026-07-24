@@ -416,6 +416,12 @@
       <div class="sgc-field">
         <label for="kilometraje_al_mantenimiento">Kilometraje</label>
         <input id="kilometraje_al_mantenimiento" type="number" formControlName="kilometraje_al_mantenimiento" min="0" placeholder="km" />
+        @if (odometroSeleccionado() !== null) {
+          <span class="field-hint">Odómetro actual: {{ odometroSeleccionado() | number:'1.0-0' }} km.</span>
+        }
+        @if (kmMantExcedeOdometro()) {
+          <span class="field-error">El km del mantenimiento supera el odómetro del vehículo — verifica la cifra.</span>
+        }
       </div>
     </div>
 

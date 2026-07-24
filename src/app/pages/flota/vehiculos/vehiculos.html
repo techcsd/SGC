@@ -386,7 +386,11 @@
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
         <label for="km_ultimo_mantenimiento">Km último mantenimiento</label>
-        <input id="km_ultimo_mantenimiento" type="number" min="0" formControlName="km_ultimo_mantenimiento" placeholder="km" />
+        <input id="km_ultimo_mantenimiento" type="number" min="0" formControlName="km_ultimo_mantenimiento" placeholder="km"
+          [class.invalid]="form.errors?.['kmUltimoMantMayor']" />
+        @if (form.errors?.['kmUltimoMantMayor']) {
+          <span class="field-error">No puede ser mayor al kilometraje (odómetro) del vehículo.</span>
+        }
       </div>
       <div class="sgc-field">
         <label for="intervalo_mantenimiento_km">Intervalo mantenimiento (km)</label>

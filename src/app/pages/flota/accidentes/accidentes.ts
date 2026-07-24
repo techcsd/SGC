@@ -212,12 +212,12 @@ export class Accidentes implements OnInit {
       this.ametUrl.set(
         this.esPdf(a.reporte_amet_path)
           ? await this.incidencias.signedUrl(a.reporte_amet_path)
-          : await this.incidencias.signedUrl(a.reporte_amet_path, { width: 200, quality: 60 }),
+          : await this.incidencias.signedUrl(a.reporte_amet_path, { width: 200, quality: 75 }),
       );
     }
     // X3 — resolver thumbnails de las fotos del hecho (cache W9).
     for (const path of a.fotos ?? []) {
-      this.incidencias.signedUrl(path, { width: 200, quality: 60 }).then((url) => {
+      this.incidencias.signedUrl(path, { width: 200, quality: 75 }).then((url) => {
         if (url) this.fotoThumbs.update((m) => ({ ...m, [path]: url }));
       });
     }

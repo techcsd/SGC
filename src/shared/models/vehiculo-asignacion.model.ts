@@ -35,6 +35,8 @@ export interface VehiculoStats {
   proximo_mantenimiento_km: number | null;
   asignaciones_activas: number;
   ultima_actividad: string | null;
+  // Y9 3.3 — dato incoherente (km último > odómetro): la UI no muestra "faltan X km".
+  mantenimiento_por_revisar?: boolean;
 }
 
 export type EstadoLicencia = 'vigente' | 'por_vencer' | 'vencida' | 'sin_dato';

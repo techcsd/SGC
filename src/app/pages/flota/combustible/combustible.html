@@ -179,8 +179,8 @@
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
       <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
-      @if (kmAnterior() !== null) {
-        <span class="field-hint">Última echada: {{ kmAnterior() | number:'1.0-0' }} km</span>
+      @if (odometroActual() !== null) {
+        <span class="field-hint">Odómetro actual: {{ odometroActual() | number:'1.0-0' }} km · el nuevo km no puede ser menor.</span>
       }
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) { <span class="field-error">El vehículo es obligatorio.</span> }
     </div>

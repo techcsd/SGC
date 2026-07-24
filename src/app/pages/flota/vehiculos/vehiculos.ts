@@ -8,7 +8,14 @@ import {
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
@@ -35,6 +42,20 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 interface PendingFoto {
   file: File;
   preview: string;
+}
+
+/**
+ * Y9 3.1 — El km del último mantenimiento no puede superar el odómetro
+ * (vehiculos.kilometraje). Valida en cliente antes de escribir; el trigger de BD
+ * lo refuerza. Error en el grupo: `kmUltimoMantMayor`.
+ */
+function kmUltimoMantCoherente(group: AbstractControl): ValidationErrors | null {
+  const odo = group.get('kilometraje')?.value;
+  const kmUlt = group.get('km_ultimo_mantenimiento')?.value;
+  if (odo != null && kmUlt != null && Number(kmUlt) > Number(odo)) {
+    return { kmUltimoMantMayor: true };
+  }
+  return null;
 }
 
 @Component({
@@ -118,7 +139,7 @@ export class FlotaVehiculos implements OnInit {
     rendimiento_esperado_km_gal: new FormControl<number | null>(null, [Validators.min(0)]),
     // T2 — dato de prueba (solo admin lo edita).
     es_prueba: new FormControl<boolean>(false),
-  });
+  }, { validators: kmUltimoMantCoherente });
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -178,8 +199,10 @@ export class FlotaVehiculos implements OnInit {
     for (const v of vehiculos) {
       const first = v.fotos?.[0];
       if (!first) continue;
-      // W9 — thumbnail liviano en el listado (la original solo en el detalle).
-      this.vehiculosService.getFotoUrl(first, { width: 320, quality: 60 }).then((url) => {
+      // Y6 — la card se renderiza a ≥280 CSS px (grid minmax(280px,1fr)); a DPR 2
+      // necesita ~800px. Antes pedía 320 → borroso (regresión W9). Sin upscaling
+      // porque la original de cámara siempre supera 800px.
+      this.vehiculosService.getFotoUrl(first, { width: 800, quality: 75 }).then((url) => {
         if (url) this.listaFotos.update((m) => ({ ...m, [v.id]: url }));
       });
     }

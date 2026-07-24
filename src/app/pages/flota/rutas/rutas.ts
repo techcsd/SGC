@@ -19,7 +19,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
-import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS, destinoCoords } from '../../../../shared/models/ruta.model';
+import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS, destinoCoords, duracionRealMin } from '../../../../shared/models/ruta.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -588,6 +588,27 @@ export class Rutas implements OnInit {
   tiempoDesvio(r: Ruta): number | null {
     if (r.tiempo_real_min == null || r.tiempo_estimado_min == null) return null;
     return r.tiempo_real_min - r.tiempo_estimado_min;
+  }
+
+  // ── Y4 — tiempos reales de ruta (TAP inicio/fin) ─────────
+  /** Duración real (min) desde los timestamps del TAP; null si no hay ambos. */
+  duracionReal(r: Ruta): number | null {
+    return duracionRealMin(r);
+  }
+
+  /** Hora local legible del timestamp ("6:17 p. m."). */
+  formatHora(iso: string | null | undefined): string {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  /** Desvío % de la duración real vs. la estimada del maps (+18% = 18% más lenta). */
+  desvioDuracionPct(r: Ruta): number | null {
+    const real = duracionRealMin(r);
+    if (real == null || r.tiempo_estimado_min == null || r.tiempo_estimado_min <= 0) return null;
+    return Math.round(((real - r.tiempo_estimado_min) / r.tiempo_estimado_min) * 100);
   }
 
   get f() {

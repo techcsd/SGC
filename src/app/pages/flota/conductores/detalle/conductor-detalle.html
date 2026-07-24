@@ -200,13 +200,14 @@
     } @else {
       <div class="table-scroll">
         <table class="data-table" aria-label="Rutas del conductor">
-          <thead><tr><th>Fecha</th><th>Trayecto</th><th>Estado</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Trayecto</th><th>Estado</th><th>Duración real</th><th></th></tr></thead>
           <tbody>
             @for (r of histRutas(); track r.id) {
               <tr>
                 <td>{{ formatFecha(r.fecha) }}</td>
                 <td>{{ r.origen }} → {{ r.destino }}</td>
                 <td><span class="sgc-badge sgc-badge--neutral">{{ r.estado }}</span></td>
+                <td>{{ duracionRutaTxt(r) }}</td>
                 <td><a class="cd-link" [routerLink]="['/flota/rutas']" [queryParams]="{ item: r.id }">Ver</a></td>
               </tr>
             }

@@ -1,6 +1,37 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-23_
+_Last updated: 2026-07-24_
+
+## PROMPT-21-SGC · Y5/Y4/Y9/Y6 (24/07/2026) — ✅ CÓDIGO LISTO, 2 migraciones en prod, build verde (web 1.28.0), SIN commit/push/deploy
+
+Aditivo/retrocompatible. `npm run build` **verde** (solo warnings pre-existentes). **2 migraciones en prod** (Management API, idempotentes): `sql/2026-07-24-y5y9-combustible-odometro-mantenimiento.sql`, `sql/2026-07-24-y4-rutas-tiempos-reales.sql`. Version bump **1.27.0 → 1.28.0** ya hecho (`package.json` + `release-notes.json` web[1.28.0]). Frontend **sin commit/push**. Helper SQL recreado: `scratchpad/apply-sql.mjs`.
+
+### FASE 1 (Y5) — combustible: una sola fuente de verdad = el ODÓMETRO
+- **Evidencia del dato corrupto:** echada `55066361-8660-4dbd-822b-d6d514a282ed` del D-Max (AB2890340, id `f7bf4913-…`): km 49 000, SIN galones, fecha 2026-07-03, conductor "TEST Conductor Prueba" (cédula TEST-000-0000000-0). Dato de QA capturado directo por SQL; `es_prueba=false` → contaminaba la validación no-retroceso (`max(echada)=49000` bloqueaba echadas reales de ~24 3xx). El odómetro real nunca subió (24 258) porque `avanzar_odometro` solo corre desde el RPC.
+- **Fix RPC** `registrar_combustible_app`: no-retroceso vs `vehiculos.kilometraje` (odómetro), `km_anterior` (rendimiento) excluye `es_prueba`, error 23514 cita el odómetro. **Web** `combustible.ts/.html`: valida vs `odometroActual()`, muestra "Odómetro actual", `kmAnterior()` excluye prueba.
+- **Saneo:** echada corrupta → `es_prueba=true`. El conductor TEST NO se marcó en cascada (tiene rutas en vehículos reales). Verificado en rollback: km 24358 ACEPTA+avanza odómetro; km 24000 RECHAZA citando 24258. Global sweep `max(echada real) > odómetro` → vacío.
+
+### FASE 2 (Y4) — tiempos reales de ruta
+- Cols `rutas.iniciada_at/finalizada_at`. `marcar_ruta_estado` +`p_at timestamptz` (TAP del cliente; sanity: no futuro, no <created_at, fin≥inicio; fallback now()). `crear_ruta_app` +`p_tiempo_estimado_min` (la web ya guardaba `tiempo_estimado_min` vía OSRM). **Firmas viejas dropeadas** (sin overloads). Verificado en rollback: dur real 45 min, TAP futuro clamp a now().
+- **Web:** `duracionRealMin()` en `ruta.model.ts`; detalle "Inició·Finalizó·Duración·Estimado(+%)"; historial del conductor +columna duración. La web cambia estado por tabla directa (no RPC) → los timestamps vienen de la app (PROMPT-22).
+
+### FASE 3 (Y9) — coherencia km_ultimo_mantenimiento ≤ odómetro
+- Trigger nuevo `tg_vehiculo_km_coherencia` (rechaza km_ultimo>km, errcode 23514, verificado). `tg_mant_km_ultimo` solo mueve el ciclo si km_mant ≤ odómetro. `completar_mantenimiento` avanza odómetro ANTES de completar.
+- **Sweep:** recompute (solo preventivo/incluye_prev, no prueba, completado, ≤odómetro) → **D-Max y Amarok Z3028392 → NULL** (eran 50 000 y 50 067). El "faltan 30 742 km" = 50000+5000−24258, ya no aparece.
+- **Contrato defensivo:** `v_vehiculo_stats` +`mantenimiento_por_revisar` (+proximo NULL si incoherente); `detectar_mantenimiento_incoherente()` emite aviso `mantenimiento_por_revisar` (tipo añadido al CHECK y al modelo TS). **Web** `vehiculo.model.ts`: `mantenimientoPorRevisar()`; detalle muestra "revisar dato"; validador de grupo en form de vehículo; hint en form de mantenimiento.
+
+### FASE 4 (Y6) — fotos nítidas (regresión W9)
+- Regresión aislada: card de Vehículos pedía `width:320` para render ≥280 CSS px → borroso. Fix `vehiculos.ts` → **800/q75**. También entradas/salidas 96→160/q75, picker 200→96/q75, accidentes q60→75. Cache por transform → sin re-descargas.
+
+### Pendiente — Xaviel (QA manual)
+- **Commit/push + deploy** (no hecho; 1.28.0 listo). Reintentar los 2 registros de combustible atascados del D-Max en la app (drenan si km ≥ 24 258). Perfil del D-Max: ya no dice "faltan 30 742 km". Editar un vehículo con km_ultimo>odómetro → error legible. Ruta con TAP en la app → detalle muestra duración real vs estimada. Cards de Vehículos nítidas + Network sin re-descargas al reentrar.
+
+### Pendiente — PROMPT-22 (csd-app / móvil)
+- `marcar_ruta_estado(p_ruta_id, p_estado, p_at)`: mandar el timestamp del TAP (offline-first). `crear_ruta_app(…, p_tiempo_estimado_min)`: mandar el estimado del maps. `v_vehiculo_stats.mantenimiento_por_revisar`: no mostrar "faltan X km" si true. Validar km de combustible/mantenimiento vs odómetro (mensaje que cite el odómetro).
+
+---
+
+_Last updated (previo): 2026-07-23_
 
 ## PROMPT-19-SGC · Ronda 9 (X1–X14 lado padre) (23/07/2026 PM) — ✅ CÓDIGO LISTO, 7 migraciones en prod, build verde, SIN commit/push/deploy
 

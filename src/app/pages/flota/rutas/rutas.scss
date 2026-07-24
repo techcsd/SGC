@@ -246,3 +246,17 @@ textarea {
 }
 .rutas__prueba-actions { display: flex; gap: 8px; }
 .rutas__prueba-del { color: var(--sgc-danger, #d32f2f); }
+
+// Y4 — tiempos reales de ruta (inicio/fin del TAP)
+.ruta-detalle__tiempos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 4px 0 12px;
+  font-size: 0.9rem;
+  color: var(--sgc-text, #333);
+}
+.rutas__dot { color: var(--sgc-text-muted, #999); }
+.rutas__desvio { color: var(--sgc-text-muted, #777); font-size: 0.85em; }
+.rutas__desvio--over { color: var(--sgc-danger, #d32f2f); }

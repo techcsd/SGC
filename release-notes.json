@@ -1,6 +1,35 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.28.0": {
+      "titulo": "Kilometraje del combustible con una sola fuente de verdad, tiempos reales de ruta, coherencia de mantenimiento y fotos de vehículos nítidas",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "El registro de combustible valida el kilometraje contra el ODÓMETRO del vehículo (la misma cifra que ves), no contra una echada vieja. Se corrigió un dato de prueba del D-Max (49 000 km) que bloqueaba las echadas reales; ahora las echadas atascadas pasan y el odómetro avanza."
+        },
+        {
+          "t": "mejora",
+          "d": "Si el kilometraje que digitas es menor al odómetro, el mensaje de error cita el odómetro actual del vehículo en vez de una cifra que no ves. El formulario muestra \"Odómetro actual\" al elegir el vehículo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Las rutas guardan el instante real de inicio y fin (el toque del conductor en la app). El detalle de la ruta muestra \"Inició · Finalizó · Duración real · Estimado (+%)\" y el historial del conductor incluye la duración real."
+        },
+        {
+          "t": "arreglo",
+          "d": "El \"km del último mantenimiento\" no puede superar el odómetro del vehículo (se valida al editar el vehículo y al registrar mantenimiento). Se corrigieron el D-Max y el Amarok, que mostraban \"faltan 30 742 km\" por datos incoherentes."
+        },
+        {
+          "t": "mejora",
+          "d": "Si el dato de mantenimiento queda incoherente por cualquier vía, el perfil del vehículo ya no calcula \"faltan X km\": muestra \"revisar dato\" y avisa a Flota hasta corregirlo."
+        },
+        {
+          "t": "arreglo",
+          "d": "Las fotos de los vehículos en el listado vuelven a verse nítidas (se pedían miniaturas demasiado pequeñas para el tamaño de la tarjeta). También se afinó la nitidez de las miniaturas de entradas, salidas, accidentes y del selector de vehículos, sin perder velocidad ni caché."
+        }
+      ]
+    },
     "1.27.0": {
       "titulo": "Avisos de vencimiento más claros, visitas a taller tipificadas, fotos de accidentes y bitácora con varios bloques",
       "cambios": [

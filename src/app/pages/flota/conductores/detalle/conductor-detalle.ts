@@ -46,7 +46,8 @@ import {
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
-import { formatFechaDisplay, daysUntil } from '../../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, daysUntil, formatearDuracion } from '../../../../../shared/utils/fecha.util';
+import { duracionRealMin } from '../../../../../shared/models/ruta.model';
 
 const MAX_HIST = 15;
 
@@ -79,6 +80,16 @@ export class ConductorDetalle implements OnInit {
   readonly conduceNumero = conduceNumero;
   readonly conductorId = this.route.snapshot.paramMap.get('id') ?? '';
   formatFecha = formatFechaDisplay;
+
+  /** Y4 — duración de la ruta: real (TAP) si existe, si no el tiempo_real_min manual. */
+  duracionRutaTxt(r: {
+    iniciada_at?: string | null;
+    finalizada_at?: string | null;
+    tiempo_real_min: number | null;
+  }): string {
+    const min = duracionRealMin(r) ?? r.tiempo_real_min;
+    return min != null ? formatearDuracion(min) : '—';
+  }
 
   // tipo de documento a auto-abrir cuando se llega desde un aviso (?doc=licencia)
   readonly docAuto = this.route.snapshot.queryParamMap.get('doc');

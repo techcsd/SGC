@@ -714,7 +714,8 @@ export class Salidas implements OnInit {
   private resolverThumbs(list: SalidaInventario[]) {
     for (const s of list) {
       if (!s.foto_path || this.fotoThumbs()[s.id]) continue;
-      this.salidasService.getFotoUrl(s.foto_path, { width: 96, quality: 60 }).then((url) => {
+      // Y6 — celda de tabla 40px → ~160px cubre DPR 2/3 con margen (antes 96, algo justo).
+      this.salidasService.getFotoUrl(s.foto_path, { width: 160, quality: 75 }).then((url) => {
         if (url) this.fotoThumbs.update((m) => ({ ...m, [s.id]: url }));
       });
     }

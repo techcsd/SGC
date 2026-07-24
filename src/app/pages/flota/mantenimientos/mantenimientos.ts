@@ -133,6 +133,24 @@ export class Mantenimientos implements OnInit {
   });
   esNoPreventivo = computed(() => this.tipoActual() !== 'preventivo');
 
+  // Y9 3.1 — avisar si el km del mantenimiento supera el odómetro del vehículo.
+  private vehiculoSelId = toSignal(this.form.controls.vehiculo_id.valueChanges, {
+    initialValue: this.form.controls.vehiculo_id.value,
+  });
+  private kmMantVal = toSignal(this.form.controls.kilometraje_al_mantenimiento.valueChanges, {
+    initialValue: this.form.controls.kilometraje_al_mantenimiento.value,
+  });
+  odometroSeleccionado = computed<number | null>(() => {
+    const id = this.vehiculoSelId();
+    if (!id) return null;
+    return this.vehiculos().find((v) => v.id === id)?.kilometraje ?? null;
+  });
+  kmMantExcedeOdometro = computed<boolean>(() => {
+    const odo = this.odometroSeleccionado();
+    const km = this.kmMantVal();
+    return odo != null && km != null && Number(km) > Number(odo);
+  });
+
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();

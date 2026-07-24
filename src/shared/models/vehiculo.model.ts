@@ -107,9 +107,28 @@ export const VENCIMIENTO_BADGE: Record<EstadoVencimiento, string> = {
   vencido: 'danger',
 };
 
-/** Próximo mantenimiento (km) derivado de último + intervalo. */
-export function proximoMantenimientoKm(v: Pick<Vehiculo, 'km_ultimo_mantenimiento' | 'intervalo_mantenimiento_km'>): number | null {
+/**
+ * Y9 3.3 — Contrato defensivo: el dato es incoherente si el km del último
+ * mantenimiento supera el odómetro. En ese caso NO se calcula "faltan X km"
+ * (se muestra "revisar dato" y el servidor emite un aviso a flota).
+ */
+export function mantenimientoPorRevisar(
+  v: Pick<Vehiculo, 'km_ultimo_mantenimiento' | 'kilometraje'>,
+): boolean {
+  return (
+    v.km_ultimo_mantenimiento != null &&
+    v.kilometraje != null &&
+    v.km_ultimo_mantenimiento > v.kilometraje
+  );
+}
+
+/** Próximo mantenimiento (km) derivado de último + intervalo. Null si el dato
+ *  es incoherente (por revisar) — así "faltan X km" nunca muestra un disparate. */
+export function proximoMantenimientoKm(
+  v: Pick<Vehiculo, 'km_ultimo_mantenimiento' | 'intervalo_mantenimiento_km' | 'kilometraje'>,
+): number | null {
   if (v.km_ultimo_mantenimiento == null) return null;
+  if (mantenimientoPorRevisar(v)) return null;
   return v.km_ultimo_mantenimiento + (v.intervalo_mantenimiento_km || 5000);
 }
 

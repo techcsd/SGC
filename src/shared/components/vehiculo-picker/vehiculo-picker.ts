@@ -75,7 +75,8 @@ export class VehiculoPicker implements ControlValueAccessor {
       for (const v of list) {
         const first = v.fotos?.[0];
         if (!first || loaded[v.id]) continue;
-        this.vehiculosService.getFotoUrl(first, { width: 200, quality: 60 }).then((url) => {
+        // Y6 — el thumb del picker se renderiza a 34px; 96px cubre DPR 2/3 (antes 200, sobredimensionado).
+        this.vehiculosService.getFotoUrl(first, { width: 96, quality: 75 }).then((url) => {
           if (url) this.fotoUrls.update((m) => ({ ...m, [v.id]: url }));
         });
       }
