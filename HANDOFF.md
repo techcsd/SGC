@@ -2,9 +2,9 @@
 
 _Last updated: 2026-07-26_
 
-## PROMPT-1-SGC · Ronda 11 (IDs Z) (26/07/2026) — ✅ CÓDIGO LISTO, 4 migraciones en prod, build verde, SIN commit/push/deploy
+## PROMPT-1-SGC · Ronda 11 (IDs Z) (26/07/2026) — ✅ EN PRODUCCIÓN (web 1.29.0), commit+push, 4 migraciones en prod, build verde
 
-Source: `PROMPT 1 — Ronda 11` (IDs Z). **Nota:** el `CONTEXTO.md` de la carpeta `25072026` referenciado NO existe en disco; se hizo la FASE 0 de verificación directa contra el repo/BD (el prompt lo permite) y se ajustaron las fases. Todo aditivo/retrocompatible. `npx ng build` **verde** (solo warnings pre-existentes: NG8102 auditoria, CommonJS qrcode/leaflet/mammoth). **4 migraciones idempotentes aplicadas a prod** (Management API, proyecto `jeeqhgccqefbqilntcpu`). Frontend **sin commit/push**, versión **sin bump** (sigue 1.28.0). Helper SQL: `scratchpad/apply-sql.mjs`.
+Source: `PROMPT 1 — Ronda 11` (IDs Z). **Nota:** el `CONTEXTO.md` de la carpeta `25072026` referenciado NO existe en disco; se hizo la FASE 0 de verificación directa contra el repo/BD (el prompt lo permite) y se ajustaron las fases. Todo aditivo/retrocompatible. `npx ng build` **verde** (solo warnings pre-existentes: NG8102 auditoria, CommonJS qrcode/leaflet/mammoth). **4 migraciones idempotentes aplicadas a prod** (Management API, proyecto `jeeqhgccqefbqilntcpu`). Commit **`16c1343`** en `main` (push OK → Vercel auto-deploy), versión **bump 1.28.0 → 1.29.0** (entrada estructurada en `release-notes.json`, verify-version-notes ✓ 8 cambios). Helper SQL: `scratchpad/apply-sql.mjs`.
 
 ### FASE 0 — hallazgos que ajustaron el plan
 - Trigger de firma = `trg_cl_firmado()` (trigger `trg_cl_firma`); **antes exigía residente Y responsable** (`count distinct rol >= 2`); cliente/MIVHED ya opcionales; estado destino = `'firmado'`.
@@ -32,7 +32,7 @@ Source: `PROMPT 1 — Ronda 11` (IDs Z). **Nota:** el `CONTEXTO.md` de la carpet
 - **Z27a/b + Z7**: barrido de fechas (conductor-detalle capturado_en → timestamptz; ejecucion-obra created_at; tareas historial excel; `| date` en columnas date-only → `formatFechaDisplay` en tarea-detalle/expedientes/ausencias/mis-tareas/gestion/tareas-historial/proyectos-historial/contratos). Verificados y dejados intactos (correctos): tecnologia `asignado_en` (es DATE), reporte-semanal `toDate()` (local midnight), tareas `fecha_completada` (timestamptz).
 
 ### Pendiente — Xaviel
-- **Commit/push + deploy** (no hecho) + **bump 1.28.0→1.29.0** (añadir entrada en `release-notes.json` bajo `web.1.29.0` o el `prebuild` FALLA).
+- **Commit/push + bump 1.29.0**: ✅ hecho (commit `16c1343`, push a `main`). Verificar que el deploy de Vercel quede READY y que 1.29.0 se registre en `sgc.app_versiones` (si faltan `SUPABASE_URL`/`SERVICE_ROLE_KEY` en Vercel, el auto-registro al abrir como admin es la red de seguridad).
 - **QA manual** (RPCs con auth.uid/RLS, no headless): (1) proyecto → sección Responsables (vincular/quitar); (2) liberación de esa obra preselecciona firmantes + firma solo responsable/residente marca firmado + "en sustitución de" trazado; (3) bitácora "No se trabajó en obra" en pocos taps → dashboard la cuenta aparte + historial la etiqueta; (4) bitácora con lluvia guarda horas → detalle "afectó N h"; (5) cards/charts del dashboard de bitácora navegan; (6) grabar/reproducir 2+ notas de voz en un detalle de flota.
 
 ### Pendiente — PROMPT-2 (csd-app / móvil) — contratos nuevos
