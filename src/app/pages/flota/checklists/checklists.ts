@@ -45,6 +45,7 @@ import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad'
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 
 /**
  * Checklists digitales de flota (pre-uso e inspección de seguridad). Historial +
@@ -53,7 +54,7 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -715,6 +716,11 @@ export class Checklists implements OnInit {
 
   imprimir() {
     window.print();
+  }
+
+  /** Z23c — un reporte semanal usa el tipo 'reporte_semanal'; el resto, 'preuso'. */
+  audioEntidadTipo(c: ChecklistVehiculo): 'reporte_semanal' | 'preuso' {
+    return c.plantilla?.frecuencia === 'semanal' ? 'reporte_semanal' : 'preuso';
   }
 
   get f() { return this.form.controls; }

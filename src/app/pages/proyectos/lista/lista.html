@@ -553,6 +553,78 @@
       <!-- Documentos: contrato, presupuesto, cronograma, manual de ejecución -->
       <app-documentos-proyecto [proyectoId]="p.id" />
 
+      <!-- Z2 — Responsables (ingenieros firmantes de liberación) -->
+      <div class="proyectos__fases">
+        <div class="proyectos__fases-header">
+          <h3 class="proyectos__fases-title">Responsables</h3>
+        </div>
+
+        @if (responsablesLoading()) {
+          <app-skeleton variant="list" [rows]="2" />
+        } @else {
+          @if (responsables().length === 0) {
+            <p class="proyectos__fases-empty">
+              Sin ingenieros responsables vinculados. Se usan para preseleccionar los firmantes de la liberación (CL).
+            </p>
+          } @else {
+            @for (r of responsables(); track r.id) {
+              <div class="proyectos__fase-card">
+                <div class="proyectos__fase-info">
+                  <div>
+                    <p class="proyectos__fase-nombre">
+                      <span class="sgc-badge sgc-badge--info">{{ tipoRespLabel(r.tipo_responsabilidad) }}</span>
+                      {{ r.nombre }}
+                    </p>
+                    @if (r.email) {
+                      <p class="proyectos__fase-desc">{{ r.email }}</p>
+                    }
+                  </div>
+                </div>
+                @if (puedeGestionarResponsables()) {
+                  <button
+                    type="button"
+                    class="proyectos__btn-icon proyectos__btn-icon--danger"
+                    (click)="removeResponsable(r.id)"
+                    aria-label="Quitar responsable"
+                  >✕</button>
+                }
+              </div>
+            }
+          }
+
+          @if (puedeGestionarResponsables()) {
+            <!-- Alta de responsable -->
+            <div class="proyectos__add-miembro proyectos__add-miembro--obra">
+              <select
+                [value]="nuevoRespTipo()"
+                (change)="nuevoRespTipo.set($any($event.target).value)"
+                aria-label="Tipo de responsabilidad"
+              >
+                @for (t of TIPOS_RESPONSABILIDAD; track t.value) {
+                  <option [value]="t.value">{{ t.label }}</option>
+                }
+              </select>
+              <select
+                [value]="nuevoRespUsuarioId()"
+                (change)="nuevoRespUsuarioId.set($any($event.target).value)"
+                aria-label="Seleccionar ingeniero"
+              >
+                <option value="">Seleccionar ingeniero…</option>
+                @for (u of usuariosSinVincular(); track u.id) {
+                  <option [value]="u.id">{{ u.nombre }}</option>
+                }
+              </select>
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addResponsable()">
+                + Vincular
+              </button>
+            </div>
+            @if (responsableError()) {
+              <p class="proyectos__save-error" role="alert">{{ responsableError() }}</p>
+            }
+          }
+        }
+      </div>
+
       <!-- Equipo de Obra (A3.2) -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">

@@ -7,7 +7,7 @@ import { ProyectosService } from '../../../../shared/services/proyectos.service'
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
-import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_TIPOS, INCIDENTE_GRAVEDADES } from '../../../../shared/models/bitacora.model';
+import { Bitacora, BitacoraArchivo, BITACORA_TIPOS, VISITANTE_TIPOS, INCIDENTE_TIPOS, INCIDENTE_GRAVEDADES, MOTIVOS_SIN_ACTIVIDAD } from '../../../../shared/models/bitacora.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay, formatHora12, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -51,6 +51,9 @@ export class Historial implements OnInit {
   selectedTipo = signal(''); // Q9/Q3 — drill-down por tipo (parte_diario|visita|incidente)
   dateFrom = signal('');
   dateTo = signal('');
+  // Z4/Z8 — drill-down por estado especial desde el dashboard.
+  sinActividadFilter = signal(false);
+  llovioFilter = signal(false);
   private route = inject(ActivatedRoute);
 
   // ── Pagination ───────────────────────────────────────────
@@ -89,6 +92,8 @@ export class Historial implements OnInit {
       if (proyectoId && b.proyecto_id !== proyectoId) return false;
       if (from && b.fecha < from) return false;
       if (to && b.fecha > to) return false;
+      if (this.sinActividadFilter() && b.sin_actividad !== true) return false;
+      if (this.llovioFilter() && b.llovio !== true) return false;
       return true;
     });
   });
@@ -101,7 +106,7 @@ export class Historial implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   hasActiveFilters = computed(
-    () => !!(this.searchQuery() || this.selectedProyecto() || this.selectedTipo() || this.dateFrom() || this.dateTo()),
+    () => !!(this.searchQuery() || this.selectedProyecto() || this.selectedTipo() || this.dateFrom() || this.dateTo() || this.sinActividadFilter() || this.llovioFilter()),
   );
 
   drawerTitle = computed(() => {
@@ -116,6 +121,8 @@ export class Historial implements OnInit {
     const tipo = qp.get('tipo');
     if (proyecto) this.selectedProyecto.set(proyecto);
     if (tipo) this.selectedTipo.set(tipo);
+    if (qp.get('sin_actividad') === '1') this.sinActividadFilter.set(true);
+    if (qp.get('llovio') === '1') this.llovioFilter.set(true);
     await this.loadAll();
 
     // S7 — deep-link desde notificaciones (?item=): abre el detalle de esa bitácora.
@@ -177,6 +184,8 @@ export class Historial implements OnInit {
     this.selectedTipo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
+    this.sinActividadFilter.set(false);
+    this.llovioFilter.set(false);
     this.currentPage.set(1);
   }
 
@@ -314,6 +323,11 @@ export class Historial implements OnInit {
 
   gravedadLabel(v: string | null): string {
     return INCIDENTE_GRAVEDADES.find((x) => x.value === v)?.label ?? (v ?? '—');
+  }
+
+  /** Z4 — motivo del día sin actividad, legible. */
+  motivoSinActividadLabel(v: string | null | undefined): string {
+    return MOTIVOS_SIN_ACTIVIDAD.find((x) => x.value === v)?.label ?? (v ?? '—');
   }
 
   /** S13 — suceso (catálogo en MAYÚS) legible. */

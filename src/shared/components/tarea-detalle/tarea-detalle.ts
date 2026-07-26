@@ -6,7 +6,7 @@ import { TareasService, DirectorioUsuario } from '../../services/tareas.service'
 import { UserService } from '../../../app/core/services/user.service';
 import { ToastService } from '../../services/toast.service';
 import { Tarea, TareaComentario, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../models/tarea.model';
-import { todayIso } from '../../utils/fecha.util';
+import { todayIso, formatFechaDisplay } from '../../utils/fecha.util';
 import { FormDrawer } from '../form-drawer/form-drawer';
 import { WeatherCard } from '../../context/weather-card/weather-card';
 
@@ -41,6 +41,7 @@ export class TareaDetalle {
 
   readonly ESTADOS = TAREA_ESTADOS;
   readonly PRIORIDADES = TAREA_PRIORIDADES;
+  formatFecha = formatFechaDisplay;
 
   comentarios = signal<TareaComentario[]>([]);
   loadingComentarios = signal(false);

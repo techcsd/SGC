@@ -10,7 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ObraEjecucionService } from '../../services/obra-ejecucion.service';
 import { ToastService } from '../../services/toast.service';
-import { formatFechaDisplay } from '../../utils/fecha.util';
+import { formatFechaDisplay, formatTimestampDisplay } from '../../utils/fecha.util';
 import {
   ObraElemento,
   ObraVaciado,
@@ -39,6 +39,7 @@ export class EjecucionObra {
   private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
+  formatTs = formatTimestampDisplay;
   readonly VACIADO_ESTADOS = VACIADO_ESTADOS;
   readonly NC_SEVERIDADES = NC_SEVERIDADES;
 

@@ -41,6 +41,40 @@ export interface ProyectoEmpleado {
   created_at: string;
 }
 
+// Z2 — Ingenieros responsables vinculados al proyecto (firmantes de liberación).
+export type TipoResponsabilidad = 'residente' | 'responsable';
+
+export const TIPOS_RESPONSABILIDAD: { value: TipoResponsabilidad; label: string }[] = [
+  { value: 'responsable', label: 'Ing. Responsable' },
+  { value: 'residente', label: 'Ing. Residente' },
+];
+
+/** Fila cruda de la tabla proyecto_responsables. */
+export interface ProyectoResponsable {
+  id: string;
+  proyecto_id: string;
+  usuario_id: string;
+  tipo_responsabilidad: TipoResponsabilidad;
+  activo: boolean;
+  desde: string | null;
+  hasta: string | null;
+  notas: string | null;
+  created_at?: string;
+}
+
+/** Shape devuelto por el RPC `responsables_de_proyecto` (con datos de usuario). */
+export interface ProyectoResponsableLite {
+  id: string;
+  usuario_id: string;
+  nombre: string;
+  email: string | null;
+  tipo_responsabilidad: TipoResponsabilidad;
+  activo: boolean;
+  desde: string | null;
+  hasta: string | null;
+  notas: string | null;
+}
+
 /** Payload para agregar un miembro al Equipo de Obra (A3.2). */
 export interface EquipoMiembroFormData {
   empleado_id: string | null;

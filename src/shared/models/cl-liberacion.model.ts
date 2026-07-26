@@ -48,14 +48,17 @@ export type ClFirmaMetodo = 'pad' | 'foto';
 export interface ClRegistroFirma {
   id?: string;
   registro_id?: string;
-  rol: ClFirmaRol | string;
-  usuario_id: string | null;
+  rol: ClFirmaRol | string; // Z3 — en calidad de (rol de firma)
+  usuario_id: string | null; // Z3 — quien realmente firmó (firmado_por)
   nombre: string | null;
   firma_path: string | null;
   // Q5 — origen de la firma: pad (trazo) | foto (imagen de la firma en papel).
   metodo?: ClFirmaMetodo | string | null;
   firmado_en?: string | null;
   orden: number | null;
+  // Z3 — sustituibilidad: a quién sustituye el firmante (opcional, trazabilidad).
+  en_sustitucion_de?: string | null;
+  en_sustitucion_de_nombre?: string | null;
 }
 
 export interface ClRegistro {
@@ -88,8 +91,14 @@ export interface ClRegistroFormData {
   observaciones: string | null;
 }
 
+// Z3 — roles cuya firma LIBERA el checklist. Basta uno de estos (responsable
+// O residente) para que la BD marque el CL como 'firmado'. Cliente/MIVHED
+// siguen siendo opcionales (Q5).
+export const CL_ROLES_LIBERAN: ClFirmaRol[] = ['residente', 'responsable'];
+
 // Orden y etiqueta del ciclo de firmas del procedimiento.
-// Q5 — solo Residente + Responsable son obligatorias; Cliente y MIVHED opcionales.
+// Z3 — la firma requerida es "responsable O residente" (uno basta); Cliente y
+// MIVHED opcionales. El flag `obligatoria` marca los roles que liberan (chips).
 // `foto: true` habilita subir una foto de la firma en papel además del trazo.
 export const CL_FIRMA_ROLES: {
   value: ClFirmaRol;

@@ -29,6 +29,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 
 interface PendingFoto {
   file: File;
@@ -37,7 +38,7 @@ interface PendingFoto {
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -59,7 +59,7 @@ export interface ChecklistFoto {
 export interface ChecklistVehiculo {
   id: string;
   plantilla_id: string | null;
-  plantilla?: { nombre: string };
+  plantilla?: { nombre: string; frecuencia?: ChecklistFrecuencia | string };
   vehiculo_id: string;
   vehiculo?: {
     placa: string; marca: string; modelo: string; tipo?: string;

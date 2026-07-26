@@ -1,0 +1,54 @@
+.audio-notas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #f7f7f7;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+
+    audio { height: 34px; max-width: 100%; }
+  }
+
+  &__cap {
+    font-size: 0.74rem;
+    color: var(--main-ultra-light, #929090);
+    white-space: nowrap;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  &__del {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: var(--main-ultra-light, #929090);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+
+    &:hover { color: var(--primary, #ff5f00); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &__muted {
+    font-size: 0.74rem;
+    color: var(--main-ultra-light, #929090);
+    margin: 0;
+  }
+
+  &__disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}

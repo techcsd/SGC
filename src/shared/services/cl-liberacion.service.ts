@@ -8,6 +8,7 @@ import {
   ClRegistroItem,
   ClRegistroFirma,
 } from '../models/cl-liberacion.model';
+import { ProyectoResponsableLite } from '../models/proyecto.model';
 
 /**
  * CSD-OPE-01 §6.8/§9 — Checklists de Liberación (CL-01..07).
@@ -127,6 +128,8 @@ export class ClLiberacionService {
     firmaPath: string | null,
     orden: number,
     metodo: 'pad' | 'foto' = 'pad',
+    enSustitucionDe: string | null = null,
+    enSustitucionDeNombre: string | null = null,
   ): Promise<ClRegistroFirma> {
     const usuarioId = (await this.supabase.client.auth.getUser()).data.user?.id ?? null;
     const { data, error } = await this.supabase.client
@@ -139,11 +142,24 @@ export class ClLiberacionService {
         firma_path: firmaPath,
         metodo,
         orden,
+        // Z3 — sustituibilidad (opcional).
+        en_sustitucion_de: enSustitucionDe,
+        en_sustitucion_de_nombre: enSustitucionDeNombre,
       })
       .select('*')
       .single();
     if (error) throw new Error(error.message);
     return data as unknown as ClRegistroFirma;
+  }
+
+  // ── Z2 — Responsables vinculados a la obra (preselección de firmantes) ──────
+  /** Ingenieros responsables/residentes vinculados al proyecto (RPC definer). */
+  async getResponsables(proyectoId: string): Promise<ProyectoResponsableLite[]> {
+    const { data, error } = await this.supabase.client.rpc('responsables_de_proyecto', {
+      p_proyecto_id: proyectoId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ProyectoResponsableLite[];
   }
 
   // ── Q5 — Solicitar firma dentro de la plataforma ───────────

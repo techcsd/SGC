@@ -14,7 +14,7 @@ const LIST_QUERY =
 const DETAIL_QUERY =
   '*, vehiculo:vehiculos(placa, marca, modelo, tipo, vencimiento_matricula, vencimiento_seguro), ' +
   'conductor:conductores(nombre, licencia_tipo, licencia_numero, licencia_vencimiento, tipo_vehiculo_autorizado), ' +
-  'plantilla:checklist_plantillas(nombre), ' +
+  'plantilla:checklist_plantillas(nombre, frecuencia), ' +
   'respuestas:checklist_vehiculo_respuestas(*), fotos:checklist_vehiculo_fotos(*)';
 
 @Injectable({ providedIn: 'root' })

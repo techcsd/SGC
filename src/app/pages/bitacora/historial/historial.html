@@ -98,6 +98,9 @@
             <td>{{ formatFecha(b.fecha) }}</td>
             <td>
               <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
+              @if (b.sin_actividad) {
+                <span class="sgc-badge sgc-badge--warning historial__badge-inline">Sin actividad</span>
+              }
               @if (b.es_prueba) {
                 <span class="sgc-badge sgc-badge--neutral historial__badge-inline">PRUEBA</span>
               }
@@ -200,27 +203,37 @@
       </div>
 
       @if (b.tipo === 'parte_diario') {
-        <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Bloque/Entrepiso</span>
-          <span>{{ b.bloque_entrepiso ?? '—' }}</span>
-        </div>
-        <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Ingeniero</span>
-          <span>{{ b.ingeniero_responsable ?? '—' }}</span>
-        </div>
-        <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Hasta qué hora</span>
-          <span>{{ b.hora_fin_trabajo ? formatHora(b.hora_fin_trabajo) : '—' }}</span>
-        </div>
-        <div class="bitacora-detail__row">
-          <span class="bitacora-detail__label">Personal</span>
-          <span>Carpintería: {{ b.personal_carpinteria }} · Acero: {{ b.personal_acero }} · Casa: {{ b.trabajadores_casa }}</span>
-        </div>
-        @if (b.otro_personal) {
+        @if (b.sin_actividad) {
+          <!-- Z4 — día reportado sin trabajo -->
           <div class="bitacora-detail__row">
-            <span class="bitacora-detail__label">Otro personal</span>
-            <span>{{ b.otro_personal }}</span>
+            <span class="bitacora-detail__label">Sin actividad</span>
+            <span>
+              No se trabajó en obra — {{ motivoSinActividadLabel(b.motivo_sin_actividad) }}@if (b.motivo_sin_actividad_detalle) { : {{ b.motivo_sin_actividad_detalle }} }
+            </span>
           </div>
+        } @else {
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Bloque/Entrepiso</span>
+            <span>{{ b.bloque_entrepiso ?? '—' }}</span>
+          </div>
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Ingeniero</span>
+            <span>{{ b.ingeniero_responsable ?? '—' }}</span>
+          </div>
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Fin de jornada</span>
+            <span>{{ b.hora_fin_trabajo ? formatHora(b.hora_fin_trabajo) : '—' }}</span>
+          </div>
+          <div class="bitacora-detail__row">
+            <span class="bitacora-detail__label">Personal</span>
+            <span>Carpintería: {{ b.personal_carpinteria }} · Acero: {{ b.personal_acero }} · Casa: {{ b.trabajadores_casa }}</span>
+          </div>
+          @if (b.otro_personal) {
+            <div class="bitacora-detail__row">
+              <span class="bitacora-detail__label">Otro personal</span>
+              <span>{{ b.otro_personal }}</span>
+            </div>
+          }
         }
 
         <!-- R21 — lluvia (información normal, no incidente) -->
@@ -228,7 +241,9 @@
           <div class="bitacora-detail__row">
             <span class="bitacora-detail__label">Clima</span>
             <span>
-              @if (b.llovio) { 🌧 Llovió } @else { Sin lluvia }
+              @if (b.llovio) {
+                🌧 Llovió@if (b.horas_lluvia != null) { · afectó {{ b.horas_lluvia }} h }
+              } @else { Sin lluvia }
             </span>
           </div>
           @if (b.llovio && b.lluvia_detalle) {

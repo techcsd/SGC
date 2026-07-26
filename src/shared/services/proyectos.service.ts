@@ -17,6 +17,8 @@ import {
   ExpedienteDoc,
   ExpedienteResumen,
   ProyectoReadiness,
+  ProyectoResponsableLite,
+  TipoResponsabilidad,
 } from '../models/proyecto.model';
 import {
   ProyectoPartida,
@@ -287,6 +289,52 @@ export class ProyectosService {
       .eq('id', id);
 
     if (error) throw new Error(error.message);
+  }
+
+  // ── Z2 — Ingenieros responsables vinculados (firmantes de liberación) ───────
+  /** Responsables activos de la obra (RPC definer que trae nombre/email). */
+  async getResponsables(proyectoId: string): Promise<ProyectoResponsableLite[]> {
+    const { data, error } = await this.supabase.client.rpc('responsables_de_proyecto', {
+      p_proyecto_id: proyectoId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ProyectoResponsableLite[];
+  }
+
+  /** Vincula un usuario como responsable/residente de la obra. */
+  async addResponsable(
+    proyectoId: string,
+    usuarioId: string,
+    tipo: TipoResponsabilidad,
+  ): Promise<void> {
+    const creadoPor = (await this.supabase.client.auth.getUser()).data.user?.id ?? null;
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_responsables')
+      .insert({
+        proyecto_id: proyectoId,
+        usuario_id: usuarioId,
+        tipo_responsabilidad: tipo,
+        creado_por: creadoPor,
+      });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Desvincula un responsable (soft: activo=false, libera el índice único). */
+  async removeResponsable(id: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_responsables')
+      .update({ activo: false })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Directorio de usuarios activos (para el selector de responsables). */
+  async getDirectorioUsuarios(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string }[];
   }
 
   /** Raw per-project KPI metrics for the Encargados leaderboard (SECURITY DEFINER RPC). */

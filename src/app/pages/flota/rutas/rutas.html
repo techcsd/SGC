@@ -473,6 +473,10 @@
         <p class="ruta-detalle__notas">{{ r.notas }}</p>
       }
 
+      <!-- Z23c — notas de voz de la ruta -->
+      <h4 class="ruta-detalle__title">Notas de voz</h4>
+      <app-audio-notas entidadTipo="ruta" [entidadId]="r.id" bucket="flota-documentos" [esPrueba]="r.es_prueba ?? false" />
+
       @if (r.estado === 'planificada' || r.estado === 'en_curso') {
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail(); openEdit(r)">
           Editar ruta

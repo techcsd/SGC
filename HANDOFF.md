@@ -1,6 +1,48 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-24_
+_Last updated: 2026-07-26_
+
+## PROMPT-1-SGC · Ronda 11 (IDs Z) (26/07/2026) — ✅ CÓDIGO LISTO, 4 migraciones en prod, build verde, SIN commit/push/deploy
+
+Source: `PROMPT 1 — Ronda 11` (IDs Z). **Nota:** el `CONTEXTO.md` de la carpeta `25072026` referenciado NO existe en disco; se hizo la FASE 0 de verificación directa contra el repo/BD (el prompt lo permite) y se ajustaron las fases. Todo aditivo/retrocompatible. `npx ng build` **verde** (solo warnings pre-existentes: NG8102 auditoria, CommonJS qrcode/leaflet/mammoth). **4 migraciones idempotentes aplicadas a prod** (Management API, proyecto `jeeqhgccqefbqilntcpu`). Frontend **sin commit/push**, versión **sin bump** (sigue 1.28.0). Helper SQL: `scratchpad/apply-sql.mjs`.
+
+### FASE 0 — hallazgos que ajustaron el plan
+- Trigger de firma = `trg_cl_firmado()` (trigger `trg_cl_firma`); **antes exigía residente Y responsable** (`count distinct rol >= 2`); cliente/MIVHED ya opcionales; estado destino = `'firmado'`.
+- `proyecto_empleados` liga `empleados` (RRHH, incluye externos sin cuenta); las firmas de liberación referencian `usuarios` (auth) → NO equivalente. Decisión: tabla dedicada `proyecto_responsables` (→usuarios), que además generaliza `proyectos.responsable_id`.
+- Bitácora ya tenía `llovio/lluvia_detalle`; obreros ya numéricos (smallint, inputs number); faltaban `sin_actividad`/`horas_lluvia`. Audio de bitácora = N archivos en `bitacora_archivos`/bucket `sgc-bitacora` (se mantiene). Dashboard de bitácora ya clicable (Q8); faltaban 3 charts + card sin_actividad.
+- Bug Z27a confirmado: `conductor-detalle.html:255` pasaba timestamptz a `formatFechaDisplay` (date-only) → "22T16:21:59…/07/2026".
+
+### Migraciones en prod (`sql/2026-07-26-ronda11-*.sql`)
+- `z2-proyecto-responsables` — tabla `proyecto_responsables` (proyecto↔usuario, tipo residente|responsable, activo/vigencia) + RLS (is_admin/tiene_modulo('proyectos')/dueño) + grants + backfill (responsable_id + ingenieros del Equipo de Obra con cuenta) + RPC `responsables_de_proyecto(uuid)`.
+- `z3-firma-regla-sustitucion` — cols `cl_registro_firmas.en_sustitucion_de(_nombre)`; `trg_cl_firmado()` recreado: **basta responsable O residente** (`exists rol in (residente,responsable)`); reconciliación de CLs existentes. (usuario_id=firmado_por, rol=en_calidad_de.)
+- `z4z5-bitacora-sinactividad-lluvia` — cols `bitacoras.sin_actividad`/`motivo_sin_actividad`(+detalle)/`horas_lluvia` (checks) + DROP/CREATE de `crear_entrada_bitacora` (40 args) y `crear_bitacora_app` (41 args) con 4 params nuevos al final; el parte sin_actividad no exige actividades/fotos.
+- `z23c-audio-notas` — tabla genérica `audio_notas` (entidad_tipo/entidad_id/bucket/path/duracion/es_prueba) + RLS (+restrictiva es_prueba) + grants + RPCs `agregar_audio_nota`(límite 5, idempotente por path)/`audios_de`/`eliminar_audio_nota`.
+
+### Verificado en prod (transacciones rollback / JWT simulado)
+- Z3: firma solo residente → `firmado`; solo responsable (en sustitución) → `firmado`. Sin overloads (1 c/u; 40/41 args).
+- Z4/Z5: `crear_entrada_bitacora(sin_actividad=true, llovio=true, horas_lluvia=3.5)` → sin_act=t motivo=lluvia horas=3.5.
+- Z23c: idempotencia por path (mismo id), límite 5 (6º falla "Máximo 5 notas de voz por registro").
+
+### Frontend (sin commit) — por fase
+- **Z2**: `proyecto.model.ts` (ProyectoResponsable/Lite, TIPOS_RESPONSABILIDAD); `proyectos.service.ts` (getResponsables/addResponsable/removeResponsable soft/getDirectorioUsuarios); `proyectos/lista` sección **Responsables** (gate `puedeGestionarResponsables` = admin||módulo proyectos) + carga en openDetail.
+- **Z3/Z2-liberación**: `cl-liberacion.model.ts` (CL_ROLES_LIBERAN, en_sustitucion_de en ClRegistroFirma); `cl-liberacion.service.ts` (addFirma +sustitución, getResponsables); componente: preselección de firmantes desde responsables vinculados, regla "responsable o residente" con verde al cumplir, select "en sustitución de", detalle "en sustitución de Y", optgroup "Responsables de la obra" en solicitar-firma.
+- **Z4/Z5**: `bitacora.model.ts` (MOTIVOS_SIN_ACTIVIDAD + campos), `bitacora.service.ts` (4 params), `bitacora/nueva` toggle "No se trabajó en obra" + motivo(+detalle si otro) + `horas_lluvia` (input number, visible si llovió); relaja validadores/fotos/restricciones cuando sin_actividad. Z7: labels "Fin de jornada".
+- **Z8**: `bitacora/dashboard` cards nuevas (Días sin actividad, Horas de lluvia) + charts restricciones/equipos/equipos-por-obra ahora clicables; `bitacora/historial` filtros `?sin_actividad=1`/`?llovio=1`, badge "Sin actividad" en lista, bloque motivo + "afectó N h" en detalle.
+- **Z23c**: nuevos `audio-nota.model.ts`, `audio-notas.service.ts`, componente compartido `app-audio-notas` (grabar MediaRecorder / subir / reproducir / eliminar, límite 5). Wiring en detalles flota/checklist — ver estado del agente en el resumen de sesión.
+- **Z27a/b + Z7**: barrido de fechas (conductor-detalle capturado_en → timestamptz; ejecucion-obra created_at; tareas historial excel; `| date` en columnas date-only → `formatFechaDisplay` en tarea-detalle/expedientes/ausencias/mis-tareas/gestion/tareas-historial/proyectos-historial/contratos). Verificados y dejados intactos (correctos): tecnologia `asignado_en` (es DATE), reporte-semanal `toDate()` (local midnight), tareas `fecha_completada` (timestamptz).
+
+### Pendiente — Xaviel
+- **Commit/push + deploy** (no hecho) + **bump 1.28.0→1.29.0** (añadir entrada en `release-notes.json` bajo `web.1.29.0` o el `prebuild` FALLA).
+- **QA manual** (RPCs con auth.uid/RLS, no headless): (1) proyecto → sección Responsables (vincular/quitar); (2) liberación de esa obra preselecciona firmantes + firma solo responsable/residente marca firmado + "en sustitución de" trazado; (3) bitácora "No se trabajó en obra" en pocos taps → dashboard la cuenta aparte + historial la etiqueta; (4) bitácora con lluvia guarda horas → detalle "afectó N h"; (5) cards/charts del dashboard de bitácora navegan; (6) grabar/reproducir 2+ notas de voz en un detalle de flota.
+
+### Pendiente — PROMPT-2 (csd-app / móvil) — contratos nuevos
+- **Responsables por proyecto**: `responsables_de_proyecto(p_proyecto_id)` para preseleccionar firmantes; `proyecto_responsables` (tipo residente|responsable).
+- **Firma**: basta responsable O residente; `cl_registro_firmas.en_sustitucion_de(_nombre)` (usuario_id=firmado_por, rol=en_calidad_de).
+- **Bitácora**: `crear_bitacora_app` +`p_sin_actividad`,`p_motivo_sin_actividad`(lluvia|falta_material|feriado|otro),`p_motivo_sin_actividad_detalle`,`p_horas_lluvia`; el parte sin_actividad NO exige 2 fotos.
+- **Audio N**: `agregar_audio_nota(entidad_tipo,entidad_id,bucket,path,duracion_seg,tipo_mime,tamano_bytes,es_prueba)` (límite 5, idempotente por path), `audios_de`, `eliminar_audio_nota`. Buckets: `sgc-bitacora`/`flota-documentos`. entidad_tipo ∈ incidente|accidente|reporte_semanal|preuso|mantenimiento|ruta|checklist.
+- **Textos**: "fin de trabajo" → "fin de jornada" (revisar labels/PDF de la app).
+
+---
 
 ## PROMPT-21-SGC · Y5/Y4/Y9/Y6 (24/07/2026) — ✅ EN PRODUCCIÓN (web 1.28.0), commit+push+deploy, versión registrada, QA headless 24/24
 

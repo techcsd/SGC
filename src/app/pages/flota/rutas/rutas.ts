@@ -33,12 +33,13 @@ import { GeocodingService } from '../../../../shared/context/geocoding.service';
 import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
 import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../shared/utils/fecha.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -46,7 +46,7 @@ import {
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
-import { formatFechaDisplay, daysUntil, formatearDuracion } from '../../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHumana, daysUntil, formatearDuracion } from '../../../../../shared/utils/fecha.util';
 import { duracionRealMin } from '../../../../../shared/models/ruta.model';
 
 const MAX_HIST = 15;
@@ -80,6 +80,7 @@ export class ConductorDetalle implements OnInit {
   readonly conduceNumero = conduceNumero;
   readonly conductorId = this.route.snapshot.paramMap.get('id') ?? '';
   formatFecha = formatFechaDisplay;
+  formatTs = formatFechaHumana;
 
   /** Y4 — duración de la ruta: real (TAP) si existe, si no el tiempo_real_min manual. */
   duracionRutaTxt(r: {

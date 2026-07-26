@@ -1,0 +1,41 @@
+<div class="audio-notas">
+  @if (loading()) {
+    <p class="audio-notas__muted">Cargando notas de voz…</p>
+  } @else {
+    @if (notas().length === 0 && readOnly()) {
+      <p class="audio-notas__muted">Sin notas de voz.</p>
+    }
+
+    @for (n of notas(); track n.id) {
+      <div class="audio-notas__item">
+        <span class="audio-notas__cap">🎤 Nota de voz @if (duracionLabel(n.duracion_seg)) { · {{ duracionLabel(n.duracion_seg) }} }</span>
+        @if (urlOf(n)) {
+          <audio controls preload="none" [src]="urlOf(n)"></audio>
+        } @else {
+          <span class="audio-notas__muted">No se pudo cargar el audio.</span>
+        }
+        @if (!readOnly()) {
+          <button type="button" class="audio-notas__del" (click)="eliminar(n)" [disabled]="busy()"
+            aria-label="Eliminar nota de voz">✕</button>
+        }
+      </div>
+    }
+
+    @if (!readOnly()) {
+      <div class="audio-notas__actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+          (click)="toggleGrabar()" [disabled]="busy() || (!puedeAgregar() && !grabando())">
+          @if (grabando()) { ⏹ Detener } @else { 🎙 Grabar }
+        </button>
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" [class.audio-notas__disabled]="!puedeAgregar() || busy()">
+          + Subir audio
+          <input type="file" accept="audio/*" hidden (change)="onFile($event)" [disabled]="!puedeAgregar() || busy()" />
+        </label>
+        <span class="audio-notas__muted">{{ notas().length }}/{{ MAX }}</span>
+      </div>
+      @if (!puedeAgregar() && !grabando()) {
+        <p class="audio-notas__muted">Máximo {{ MAX }} notas de voz.</p>
+      }
+    }
+  }
+</div>

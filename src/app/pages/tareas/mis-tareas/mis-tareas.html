@@ -53,7 +53,7 @@
           }
           @if (t.fecha_limite) {
             <span class="tarea-card__fecha" [class.text-danger]="isVencida(t)">
-              Vence {{ t.fecha_limite | date:'dd/MM/yyyy' }}
+              Vence {{ formatFecha(t.fecha_limite) }}
             </span>
           }
         </div>

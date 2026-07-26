@@ -72,8 +72,8 @@
             <tr>
               <td>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</td>
               <td>{{ tipoLabel(s.tipo) }}</td>
-              <td>{{ s.fecha_inicio | date:'dd/MM/yyyy' }}</td>
-              <td>{{ s.fecha_fin | date:'dd/MM/yyyy' }}</td>
+              <td>{{ formatFecha(s.fecha_inicio) }}</td>
+              <td>{{ formatFecha(s.fecha_fin) }}</td>
               <td class="text-center">{{ s.dias }}</td>
               <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
               <td class="text-center">
@@ -180,11 +180,11 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Desde</span>
-          <span>{{ s.fecha_inicio | date:'dd/MM/yyyy' }}</span>
+          <span>{{ formatFecha(s.fecha_inicio) }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Hasta</span>
-          <span>{{ s.fecha_fin | date:'dd/MM/yyyy' }}</span>
+          <span>{{ formatFecha(s.fecha_fin) }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Días</span>

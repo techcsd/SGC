@@ -1,6 +1,43 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.29.0": {
+      "titulo": "Ingenieros responsables por obra, firma de liberación más flexible, bitácora de días sin trabajo, horas de lluvia y notas de voz",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Cada obra ahora tiene sus ingenieros Responsables/Residentes vinculados (sección \"Responsables\" en el detalle del proyecto). Al firmar una liberación (CL), los firmantes se preseleccionan de esos responsables y \"solicitar firma\" los ofrece primero."
+        },
+        {
+          "t": "mejora",
+          "d": "La liberación (CL) queda firmada cuando firma el Responsable O el Residente (basta uno de los dos); el cliente y MIVHED siguen siendo opcionales. El bloque de firmas indica la regla y se pone en verde al cumplirse."
+        },
+        {
+          "t": "nuevo",
+          "d": "Un responsable puede firmar en sustitución de otro: la firma registra quién firmó y a quién sustituye, con la traza \"Firmó X como responsable (en sustitución de Y)\" en el detalle."
+        },
+        {
+          "t": "nuevo",
+          "d": "Bitácora \"No se trabajó en obra\": registra el día sin trabajo con solo la obra, la fecha y el motivo (lluvia, falta de material, feriado u otro), sin exigir actividades ni fotos. El dashboard los cuenta aparte (ni faltante ni trabajado) y el historial los etiqueta."
+        },
+        {
+          "t": "nuevo",
+          "d": "El parte del día registra cuántas horas afectó la lluvia; el detalle muestra \"Llovió · afectó N h\". El dashboard de bitácoras suma días y horas de lluvia."
+        },
+        {
+          "t": "nuevo",
+          "d": "Notas de voz: se pueden grabar o subir hasta 5 audios por registro (accidentes, mantenimientos, rutas, pre-uso y reporte semanal) y reproducirlos desde el detalle."
+        },
+        {
+          "t": "mejora",
+          "d": "Todas las tarjetas y gráficas del dashboard de bitácoras abren su listado filtrado al hacer clic (nada muerto), incluyendo los días sin actividad y los días con lluvia."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigió el formato de fecha en \"Entregas / recepciones\" del perfil del conductor (mostraba una fecha ilegible) y se unificaron varias fechas que podían verse con un día de desfase; también se renombró \"fin de trabajo\" a \"fin de jornada\"."
+        }
+      ]
+    },
     "1.28.0": {
       "titulo": "Kilometraje del combustible con una sola fuente de verdad, tiempos reales de ruta, coherencia de mantenimiento y fotos de vehículos nítidas",
       "cambios": [

@@ -92,7 +92,7 @@
               <td>{{ c.proyecto?.nombre ?? '—' }}</td>
               <td>
                 @if (c.fecha_vencimiento) {
-                  <span [class.text-danger]="isPorVencer(c)">{{ c.fecha_vencimiento | date:'dd/MM/yyyy' }}</span>
+                  <span [class.text-danger]="isPorVencer(c)">{{ formatFecha(c.fecha_vencimiento) }}</span>
                 } @else {
                   <span class="text-muted">—</span>
                 }
@@ -236,15 +236,15 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha de inicio</span>
-          <span>{{ c.fecha_inicio ? (c.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</span>
+          <span>{{ formatFecha(c.fecha_inicio) }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha de vencimiento</span>
-          <span [class.text-danger]="isPorVencer(c)">{{ c.fecha_vencimiento ? (c.fecha_vencimiento | date:'dd/MM/yyyy') : '—' }}</span>
+          <span [class.text-danger]="isPorVencer(c)">{{ formatFecha(c.fecha_vencimiento) }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha de firma</span>
-          <span>{{ c.fecha_firma ? (c.fecha_firma | date:'dd/MM/yyyy') : '—' }}</span>
+          <span>{{ formatFecha(c.fecha_firma) }}</span>
         </div>
       </div>
 

@@ -120,7 +120,7 @@
                 @if (nc.elemento_id) {
                   <span>{{ elementoLabel(nc.elemento_id) }}</span>
                 }
-                <span>{{ formatFecha(nc.created_at) }}</span>
+                <span>{{ formatTs(nc.created_at) }}</span>
               </div>
               @if (nc.estado === 'abierta') {
                 <button type="button" class="sgc-btn sgc-btn--ghost ejec__nc-close" (click)="cerrarNC(nc)">

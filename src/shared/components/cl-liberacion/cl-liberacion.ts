@@ -22,7 +22,9 @@ import {
   ClRegistroItem,
   CL_FIRMA_ROLES,
   CL_ESTADOS,
+  CL_ROLES_LIBERAN,
 } from '../../models/cl-liberacion.model';
+import { ProyectoResponsableLite } from '../../models/proyecto.model';
 
 interface ItemForm extends ClRegistroItem {
   seccion: string | null;
@@ -55,6 +57,10 @@ export class ClLiberacion {
   formatFecha = formatFechaDisplay;
   readonly CL_FIRMA_ROLES = CL_FIRMA_ROLES;
   readonly CL_ESTADOS = CL_ESTADOS;
+  readonly CL_ROLES_LIBERAN = CL_ROLES_LIBERAN;
+
+  // Z2 — responsables vinculados a la obra (preselección de firmantes).
+  responsables = signal<ProyectoResponsableLite[]>([]);
 
   // ── Data ───────────────────────────────────────────────────
   plantillas = signal<ClPlantilla[]>([]);
@@ -111,6 +117,8 @@ export class ClLiberacion {
   // Q5 — método de firma (pad | foto) y solicitud de firma
   firmaMetodo = signal<'pad' | 'foto'>('pad');
   firmaFotoFile = signal<File | null>(null);
+  // Z3 — sustituibilidad: usuario responsable a quien sustituye el firmante.
+  firmaEnSustitucionDe = signal<string>('');
   directorio = signal<{ id: string; nombre: string }[]>([]);
   solicitarAbierto = signal<string | null>(null); // registroId con el panel abierto
   solicitarUsuarioId = signal<string>('');
@@ -128,18 +136,21 @@ export class ClLiberacion {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [plantillas, elementos, vaciados, registros, directorio] = await Promise.all([
-        this.service.getPlantillas(),
-        this.obra.getElementos(id),
-        this.obra.getVaciados(id),
-        this.service.getRegistros(id),
-        this.service.getDirectorio().catch(() => []),
-      ]);
+      const [plantillas, elementos, vaciados, registros, directorio, responsables] =
+        await Promise.all([
+          this.service.getPlantillas(),
+          this.obra.getElementos(id),
+          this.obra.getVaciados(id),
+          this.service.getRegistros(id),
+          this.service.getDirectorio().catch(() => []),
+          this.service.getResponsables(id).catch(() => []),
+        ]);
       this.plantillas.set(plantillas);
       this.elementos.set(elementos);
       this.vaciados.set(vaciados);
       this.registros.set(registros);
       this.directorio.set(directorio);
+      this.responsables.set(responsables);
       this.resolveMedia(registros);
       // Q5/Q2 — deep-link: expandir el CL señalado por la notificación.
       const focus = this.focusRegistroId();
@@ -219,10 +230,28 @@ export class ClLiberacion {
     }));
   }
 
-  /** Roles obligatorios que aún faltan por firmar (para el aviso de faltantes). */
+  /** Z3 — la firma requerida es "responsable O residente": basta uno de los dos.
+   *  faltanObligatorias = true cuando NINGUNO de los dos ha firmado todavía. */
   faltanObligatorias(r: ClRegistro): boolean {
-    const firmados = new Set((r.firmas ?? []).map((f) => f.rol));
-    return CL_FIRMA_ROLES.some((x) => x.obligatoria && !firmados.has(x.value));
+    return !this.firmaLiberada(r);
+  }
+
+  /** Z3 — ¿ya firmó alguien que libera (responsable o residente)? */
+  firmaLiberada(r: ClRegistro): boolean {
+    return (r.firmas ?? []).some((f) => CL_ROLES_LIBERAN.includes(f.rol as never));
+  }
+
+  // ── Z2/Z3 — responsables vinculados y sustituibilidad ──────────
+  /** Nombre legible de un responsable vinculado por su usuario_id. */
+  responsableNombre(usuarioId: string | null | undefined): string {
+    if (!usuarioId) return '';
+    return this.responsables().find((x) => x.usuario_id === usuarioId)?.nombre ?? '';
+  }
+
+  /** Responsables vinculados que pueden ser sustituidos al firmar como {rol}
+   *  (se excluye a quien firma en calidad de ese mismo tipo, si se pudiera). */
+  sustituibles(): ProyectoResponsableLite[] {
+    return this.responsables();
   }
 
   itemsOk(r: ClRegistro): number {
@@ -337,6 +366,7 @@ export class ClLiberacion {
     this.firmaError.set('');
     this.firmaMetodo.set('pad');
     this.firmaFotoFile.set(null);
+    this.firmaEnSustitucionDe.set('');
     this.mostrarFirma.set(false);
     this.pad()?.clear();
   }
@@ -352,10 +382,16 @@ export class ClLiberacion {
     this.pad()?.clear();
   }
 
-  /** Q5 — al elegir el rol, si no admite foto, forzar método 'pad'. */
+  /** Q5 — al elegir el rol, si no admite foto, forzar método 'pad'.
+   *  Z2 — prefill del nombre si hay un único responsable vinculado de ese tipo. */
   onFirmaRolChange(rol: string | null) {
     this.firmaRol.set(rol);
     if (!this.rolAdmiteFoto(rol)) this.firmaMetodo.set('pad');
+    this.firmaEnSustitucionDe.set('');
+    if (rol === 'responsable' || rol === 'residente') {
+      const vinc = this.responsables().filter((x) => x.tipo_responsabilidad === rol);
+      if (vinc.length === 1 && !this.firmaNombre().trim()) this.firmaNombre.set(vinc[0].nombre);
+    }
   }
 
   rolAdmiteFoto(rol: string | null | undefined): boolean {
@@ -406,7 +442,19 @@ export class ClLiberacion {
     try {
       const firmaPath = await this.service.upload(r.id, 'firma', blob, ext);
       const orden = CL_FIRMA_ROLES.findIndex((x) => x.value === rol);
-      await this.service.addFirma(r.id, rol, this.firmaNombre().trim() || null, firmaPath, orden, metodo);
+      // Z3 — sustituibilidad: registra a quién sustituye (usuario + nombre).
+      const sustId = this.firmaEnSustitucionDe() || null;
+      const sustNombre = sustId ? this.responsableNombre(sustId) || null : null;
+      await this.service.addFirma(
+        r.id,
+        rol,
+        this.firmaNombre().trim() || null,
+        firmaPath,
+        orden,
+        metodo,
+        sustId,
+        sustNombre,
+      );
       // Recargar el registro (el trigger pudo pasarlo a 'firmado').
       const fresh = await this.service.getRegistro(r.id);
       this.registros.update((list) => list.map((x) => (x.id === r.id ? fresh : x)));
@@ -429,6 +477,14 @@ export class ClLiberacion {
     this.solicitarAbierto.update((cur) => (cur === registroId ? null : registroId));
     this.solicitarUsuarioId.set('');
     this.solicitarRol.set('');
+  }
+
+  /** Z2 — al elegir a quién solicitar, si es un responsable vinculado
+   *  pre-selecciona su tipo (residente/responsable) como rol de la firma. */
+  onSolicitarUsuarioChange(usuarioId: string) {
+    this.solicitarUsuarioId.set(usuarioId);
+    const resp = this.responsables().find((x) => x.usuario_id === usuarioId);
+    if (resp && !this.solicitarRol()) this.solicitarRol.set(resp.tipo_responsabilidad);
   }
 
   async solicitarFirma(r: ClRegistro) {

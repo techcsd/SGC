@@ -66,6 +66,56 @@
       </div>
 
       @if (tipoActual() === 'parte_diario') {
+        <!-- Z4 — "No se trabajó en obra" -->
+        <div class="sgc-field bitacora-sinact">
+          <label class="bitacora-check-line">
+            <input type="checkbox" formControlName="sin_actividad" />
+            <span>No se trabajó en obra este día</span>
+          </label>
+          <span class="bitacora-section__hint">
+            Registra el día sin trabajo: solo necesitas la obra, la fecha y el motivo.
+          </span>
+        </div>
+
+        @if (sinActividad()) {
+          <div class="bitacora-form-row">
+            <div class="sgc-field">
+              <label for="motivo_sin_actividad">Motivo <span class="required">*</span></label>
+              <select
+                id="motivo_sin_actividad"
+                formControlName="motivo_sin_actividad"
+                (change)="actualizarReqMotivoDetallePublic()"
+                [class.invalid]="f.motivo_sin_actividad.invalid && f.motivo_sin_actividad.touched"
+              >
+                <option [value]="null">Selecciona el motivo…</option>
+                @for (m of MOTIVOS_SIN_ACTIVIDAD; track m.value) {
+                  <option [value]="m.value">{{ m.label }}</option>
+                }
+              </select>
+              @if (f.motivo_sin_actividad.invalid && f.motivo_sin_actividad.touched) {
+                <span class="field-error">Selecciona el motivo.</span>
+              }
+            </div>
+            @if (f.motivo_sin_actividad.value === 'otro') {
+              <div class="sgc-field">
+                <label for="motivo_sin_actividad_detalle">Detalle <span class="required">*</span></label>
+                <input
+                  id="motivo_sin_actividad_detalle"
+                  type="text"
+                  maxlength="500"
+                  formControlName="motivo_sin_actividad_detalle"
+                  placeholder="Describe el motivo"
+                  [class.invalid]="f.motivo_sin_actividad_detalle.invalid && f.motivo_sin_actividad_detalle.touched"
+                />
+                @if (f.motivo_sin_actividad_detalle.invalid && f.motivo_sin_actividad_detalle.touched) {
+                  <span class="field-error">Describe el motivo.</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (!sinActividad()) {
         <div class="bitacora-form-row">
           <div class="sgc-field">
             <label for="bloque_entrepiso">Bloque / Entrepiso por defecto</label>
@@ -79,7 +129,7 @@
           </div>
 
           <div class="sgc-field">
-            <label for="hora_fin_trabajo">Hasta qué hora se trabajó <span class="required">*</span></label>
+            <label for="hora_fin_trabajo">Fin de jornada <span class="required">*</span></label>
             <input
               id="hora_fin_trabajo"
               type="time"
@@ -104,6 +154,7 @@
             <span class="field-error">Este campo es obligatorio.</span>
           }
         </div>
+        }
       }
     </section>
 
@@ -296,15 +347,33 @@
         </label>
       </div>
       @if (f.llovio.value) {
-        <div class="sgc-field">
-          <label for="lluvia_detalle">Detalle de la lluvia (opcional)</label>
-          <textarea
-            id="lluvia_detalle"
-            rows="2"
-            maxlength="1000"
-            formControlName="lluvia_detalle"
-            placeholder="Ej: llovió toda la mañana, se detuvo el vaciado…"
-          ></textarea>
+        <div class="bitacora-form-row">
+          <div class="sgc-field">
+            <label for="lluvia_detalle">Detalle de la lluvia (opcional)</label>
+            <textarea
+              id="lluvia_detalle"
+              rows="2"
+              maxlength="1000"
+              formControlName="lluvia_detalle"
+              placeholder="Ej: llovió toda la mañana, se detuvo el vaciado…"
+            ></textarea>
+          </div>
+          <div class="sgc-field">
+            <label for="horas_lluvia">Horas que afectó (opcional)</label>
+            <input
+              id="horas_lluvia"
+              type="number"
+              min="0"
+              max="24"
+              step="0.5"
+              formControlName="horas_lluvia"
+              placeholder="Ej: 3"
+              [class.invalid]="f.horas_lluvia.invalid && f.horas_lluvia.touched"
+            />
+            @if (f.horas_lluvia.invalid && f.horas_lluvia.touched) {
+              <span class="field-error">Debe estar entre 0 y 24 horas.</span>
+            }
+          </div>
         </div>
       }
 
@@ -330,7 +399,7 @@
     }
 
     <!-- Sección: Equipos alquilados (W2) — solo parte diario -->
-    @if (tipoActual() === 'parte_diario') {
+    @if (tipoActual() === 'parte_diario' && !sinActividad()) {
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">Equipos alquilados</h2>
       <p class="bitacora-section__hint">
@@ -429,8 +498,8 @@
     </section>
     }
 
-    <!-- Sección 2: Actividades (solo parte diario) -->
-    @if (tipoActual() === 'parte_diario') {
+    <!-- Sección 2: Actividades + Personal (solo parte diario con trabajo) -->
+    @if (tipoActual() === 'parte_diario' && !sinActividad()) {
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">2. Actividades</h2>
       <p class="bitacora-section__hint">Opcional. Marca las actividades realizadas por estructura. Puedes capturar varios bloques/entrepisos en un mismo parte.</p>
@@ -564,11 +633,11 @@
     <!-- Sección 4: Restricciones, comentarios y archivos -->
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">
-        @if (tipoActual() === 'parte_diario') { 4. Restricciones, comentarios y archivos }
+        @if (tipoActual() === 'parte_diario' && !sinActividad()) { 4. Restricciones, comentarios y archivos }
         @else { Comentarios y archivos }
       </h2>
 
-      @if (tipoActual() === 'parte_diario') {
+      @if (tipoActual() === 'parte_diario' && !sinActividad()) {
         <div class="sgc-field">
           <label>Restricciones que afectaron el rendimiento <span class="required">*</span></label>
           <div class="bitacora-restricciones">
@@ -605,10 +674,12 @@
       <div class="sgc-field">
         <label>
           Imágenes y archivos
-          @if (tipoActual() === 'parte_diario') { <span class="required">*</span> }
+          @if (tipoActual() === 'parte_diario' && !sinActividad()) { <span class="required">*</span> }
         </label>
-        @if (tipoActual() === 'parte_diario') {
+        @if (tipoActual() === 'parte_diario' && !sinActividad()) {
           <p class="bitacora-section__hint">Agrega al menos {{ minFotosParte }} fotos del trabajo realizado.</p>
+        } @else if (sinActividad()) {
+          <p class="bitacora-section__hint">Opcional: una foto o comentario del motivo.</p>
         }
         <app-file-upload
           [files]="archivos()"

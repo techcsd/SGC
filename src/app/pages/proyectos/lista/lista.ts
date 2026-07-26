@@ -31,6 +31,9 @@ import {
   ROLES_PROYECTO,
   ROLES_OBRA,
   rolObraLabel,
+  ProyectoResponsableLite,
+  TipoResponsabilidad,
+  TIPOS_RESPONSABILIDAD,
 } from '../../../../shared/models/proyecto.model';
 import { ProyectoAvance } from '../../../../shared/models/proyecto-partida.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
@@ -94,6 +97,10 @@ export class Lista implements OnInit {
   puedeEditarPagado = computed(
     () => this.userService.hasRole('admin') || this.userService.hasModulo('direccion'),
   );
+  /** Z2 — gestionar responsables: admin o módulo Proyectos (coherente con RLS). */
+  puedeGestionarResponsables = computed(
+    () => this.userService.hasRole('admin') || this.userService.hasModulo('proyectos'),
+  );
 
   // ── Data ─────────────────────────────────────────────────
   proyectos = signal<Proyecto[]>([]);
@@ -126,6 +133,14 @@ export class Lista implements OnInit {
   nuevoMiembroDesde = signal<string>('');
   miembroError = signal<string>('');
   rolObraLabel = rolObraLabel;
+
+  // ── Z2 — Ingenieros responsables vinculados a la obra ─────
+  responsables = signal<ProyectoResponsableLite[]>([]);
+  responsablesLoading = signal(false);
+  nuevoRespUsuarioId = signal<string>('');
+  nuevoRespTipo = signal<TipoResponsabilidad>('responsable');
+  responsableError = signal<string>('');
+  readonly TIPOS_RESPONSABILIDAD = TIPOS_RESPONSABILIDAD;
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -476,27 +491,32 @@ export class Lista implements OnInit {
     this.selectedProyecto.set(p);
     this.detailLoading.set(true);
     this.equipoLoading.set(true);
+    this.responsablesLoading.set(true);
     this.gastoReal.set(0);
     this.equipo.set([]);
+    this.responsables.set([]);
     this.avance.set(null);
     this.pagadoInput.set(null);
     try {
-      const [full, gasto, equipo, avance] = await Promise.all([
+      const [full, gasto, equipo, avance, responsables] = await Promise.all([
         this.proyectosService.getById(p.id),
         this.proyectosService.getGastoReal(p.id),
         this.proyectosService.getEquipo(p.id),
         this.proyectosService.getAvanceById(p.id),
+        this.proyectosService.getResponsables(p.id).catch(() => []),
       ]);
       this.selectedProyecto.set(full);
       this.gastoReal.set(gasto);
       this.equipo.set(equipo);
       this.avance.set(avance);
       this.pagadoInput.set(avance?.porcentaje_pagado ?? null);
+      this.responsables.set(responsables);
     } catch {
       // keep basic data
     } finally {
       this.detailLoading.set(false);
       this.equipoLoading.set(false);
+      this.responsablesLoading.set(false);
     }
     // A3.1 — catálogos para el cuadre (best-effort, no bloquea el detalle).
     if (this.bodegasList().length === 0 || this.articulosList().length === 0) {
@@ -613,6 +633,49 @@ export class Lista implements OnInit {
       console.error('Error removing team member:', e);
       this.equipo.set(previous);
     }
+  }
+
+  // ── Z2 — Responsables vinculados (firmantes de liberación) ─────────────────
+  /** Usuarios que aún no están vinculados como responsables de la obra. */
+  usuariosSinVincular() {
+    const yaVinc = new Set(this.responsables().map((r) => r.usuario_id));
+    return this.usuarios().filter((u) => !yaVinc.has(u.id));
+  }
+
+  async addResponsable() {
+    const proyecto = this.selectedProyecto();
+    if (!proyecto) return;
+    this.responsableError.set('');
+    const usuarioId = this.nuevoRespUsuarioId();
+    if (!usuarioId) {
+      this.responsableError.set('Selecciona el ingeniero.');
+      return;
+    }
+    const tipo = this.nuevoRespTipo();
+    try {
+      await this.proyectosService.addResponsable(proyecto.id, usuarioId, tipo);
+      const fresh = await this.proyectosService.getResponsables(proyecto.id);
+      this.responsables.set(fresh);
+      this.nuevoRespUsuarioId.set('');
+      this.nuevoRespTipo.set('responsable');
+    } catch (e: unknown) {
+      this.responsableError.set(e instanceof Error ? e.message : 'Error al vincular el responsable.');
+    }
+  }
+
+  async removeResponsable(id: string) {
+    const previous = this.responsables();
+    this.responsables.update((list) => list.filter((r) => r.id !== id));
+    try {
+      await this.proyectosService.removeResponsable(id);
+    } catch (e: unknown) {
+      console.error('Error removing responsable:', e);
+      this.responsables.set(previous);
+    }
+  }
+
+  tipoRespLabel(tipo: string): string {
+    return TIPOS_RESPONSABILIDAD.find((t) => t.value === tipo)?.label ?? tipo;
   }
 
   // ── Fase Drawer ──────────────────────────────────────────

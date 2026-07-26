@@ -98,7 +98,7 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha límite</span>
-          <span [class.text-danger]="isVencida(t)">{{ t.fecha_limite ? (t.fecha_limite | date:'dd/MM/yyyy') : '—' }}</span>
+          <span [class.text-danger]="isVencida(t)">{{ formatFecha(t.fecha_limite) }}</span>
         </div>
       </div>
 

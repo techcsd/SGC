@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { TareasService, DirectorioUsuario } from '../../../../shared/services/tareas.service';
@@ -8,7 +7,7 @@ import { UserService } from '../../../core/services/user.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
 import { Tarea, TareaEstado, TAREA_ESTADOS, TAREA_PRIORIDADES } from '../../../../shared/models/tarea.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
-import { todayIso } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
@@ -18,7 +17,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, DatePipe, Skeleton, HighlightItemDirective, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +31,7 @@ export class Gestion implements OnInit, OnDestroy {
 
   readonly ESTADOS = TAREA_ESTADOS;
   readonly PRIORIDADES = TAREA_PRIORIDADES;
+  formatFecha = formatFechaDisplay;
 
   tareas = signal<Tarea[]>([]);
   usuarios = signal<DirectorioUsuario[]>([]);

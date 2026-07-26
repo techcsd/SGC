@@ -473,6 +473,14 @@
       </div>
     </div>
 
+    <!-- Z23c — notas de voz (solo en edición: requiere un registro existente) -->
+    @if (editingId(); as id) {
+      <div class="sgc-field">
+        <label>Notas de voz</label>
+        <app-audio-notas entidadTipo="mantenimiento" [entidadId]="id" bucket="flota-documentos" />
+      </div>
+    }
+
     @if (saveError()) {
       <div class="save-error" role="alert">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

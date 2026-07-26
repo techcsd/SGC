@@ -30,6 +30,7 @@ import {
   INCIDENTE_TIPOS,
   INCIDENTE_GRAVEDADES,
   SUCESO_CATALOGO_TIPO,
+  MOTIVOS_SIN_ACTIVIDAD,
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
@@ -98,6 +99,7 @@ export class Nueva implements OnInit {
   readonly TIPOS = BITACORA_TIPOS;
   readonly VISITANTE_TIPOS = VISITANTE_TIPOS;
   readonly INCIDENTE_TIPOS = INCIDENTE_TIPOS;
+  readonly MOTIVOS_SIN_ACTIVIDAD = MOTIVOS_SIN_ACTIVIDAD;
   readonly INCIDENTE_GRAVEDADES = INCIDENTE_GRAVEDADES;
   readonly SUCESO_OTRO = SUCESO_OTRO;
   readonly minFotosParte = MIN_FOTOS_PARTE;
@@ -127,6 +129,8 @@ export class Nueva implements OnInit {
   saveError = signal('');
 
   tipoActual = signal<BitacoraTipo>('parte_diario');
+  // Z4 — bridge reactivo para "sin actividad" (OnPush).
+  sinActividad = signal<boolean>(false);
 
   // X13 — multi-bloque REAL (paridad app): la actividad se captura por el BLOQUE
   // activo. Llave = `bloque|estructura|actividad`, así la misma actividad puede
@@ -174,6 +178,12 @@ export class Nueva implements OnInit {
     // Clima + migración (R21/R22) — parte diario. La lluvia NO es un incidente.
     llovio: new FormControl<boolean>(false, { nonNullable: true }),
     lluvia_detalle: new FormControl<string | null>(null, [Validators.maxLength(1000)]),
+    // Z5 — horas que la lluvia afectó el trabajo (0..24), solo si llovió.
+    horas_lluvia: new FormControl<number | null>(null, [Validators.min(0), Validators.max(24)]),
+    // Z4 — "No se trabajó en obra": el parte se registra solo con motivo.
+    sin_actividad: new FormControl<boolean>(false, { nonNullable: true }),
+    motivo_sin_actividad: new FormControl<string | null>(null),
+    motivo_sin_actividad_detalle: new FormControl<string | null>(null, [Validators.maxLength(500)]),
     hubo_migracion: new FormControl<boolean>(false, { nonNullable: true }),
     migracion_obreros_texto: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
     // Equipos alquilados (W2) — parte diario. La lista va aparte (equiposAlquilados).
@@ -259,6 +269,42 @@ export class Nueva implements OnInit {
     }
   }
 
+  /** Z4 — "No se trabajó en obra": relaja los campos del parte y exige solo el
+   *  motivo. Al desmarcarlo, restaura los validadores normales del parte. */
+  onSinActividadChange(on: boolean) {
+    this.sinActividad.set(on);
+    const motivo = this.form.controls.motivo_sin_actividad;
+    if (on) {
+      for (const name of this.PARTE_CONTROLS) {
+        const ctrl = this.form.get(name)!;
+        ctrl.clearValidators();
+        ctrl.updateValueAndValidity({ emitEvent: false });
+      }
+      motivo.setValidators([Validators.required]);
+    } else {
+      motivo.clearValidators();
+      motivo.setValue(null);
+      this.form.controls.motivo_sin_actividad_detalle.setValue(null);
+      // Restaura los validadores del parte diario.
+      if (this.tipoActual() === 'parte_diario') this.onTipoChange('parte_diario');
+    }
+    motivo.updateValueAndValidity({ emitEvent: false });
+    this.actualizarReqMotivoDetalle();
+  }
+
+  /** Z4 — el detalle del motivo es obligatorio cuando el motivo es "Otro".
+   *  (formControlName ya actualiza el valor; solo re-sincroniza el validador). */
+  actualizarReqMotivoDetallePublic() {
+    this.actualizarReqMotivoDetalle();
+  }
+
+  private actualizarReqMotivoDetalle() {
+    const req = this.sinActividad() && this.form.controls.motivo_sin_actividad.value === 'otro';
+    const ctrl = this.form.controls.motivo_sin_actividad_detalle;
+    ctrl.setValidators(req ? [Validators.required, Validators.maxLength(500)] : [Validators.maxLength(500)]);
+    ctrl.updateValueAndValidity({ emitEvent: false });
+  }
+
   /** S12/S13 — las preguntas del incidente cambian según el subtipo. */
   onIncidenteTipoChange(subtipo: string | null) {
     this.incidenteSubtipo.set(subtipo);
@@ -322,6 +368,11 @@ export class Nueva implements OnInit {
     this.form.controls.tipo.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((t) => this.onTipoChange((t ?? 'parte_diario') as BitacoraTipo));
+
+    // Z4 — mantener validadores en sync también al restaurar un borrador.
+    this.form.controls.sin_actividad.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((v) => this.onSinActividadChange(!!v));
 
     // S12/S13 — al cambiar el subtipo de incidente, ajusta preguntas + limpia suceso.
     this.form.controls.incidente_tipo.valueChanges
@@ -647,14 +698,20 @@ export class Nueva implements OnInit {
     if (this.form.invalid || this.saving()) return;
 
     const tipo = this.tipoActual();
+    // Z4 — parte "No se trabajó en obra": solo exige obra + fecha + motivo.
+    const sinAct = tipo === 'parte_diario' && this.form.controls.sin_actividad.value;
+    if (sinAct && !this.form.controls.motivo_sin_actividad.value) {
+      this.saveError.set('Indica el motivo de por qué no se trabajó en obra.');
+      return;
+    }
 
-    if (tipo === 'parte_diario' && this.restriccionesSeleccionadas().size === 0) {
+    if (!sinAct && tipo === 'parte_diario' && this.restriccionesSeleccionadas().size === 0) {
       this.saveError.set('Selecciona al menos una restricción ("Ninguna" si no hubo ninguna).');
       return;
     }
 
     // U12 — cada restricción seleccionada (menos "Ninguna") exige una descripción.
-    if (tipo === 'parte_diario') {
+    if (!sinAct && tipo === 'parte_diario') {
       const faltan = this.restriccionesADescribir().filter(
         (r) => !this.getRestriccionDescripcion(r).trim(),
       );
@@ -675,7 +732,7 @@ export class Nueva implements OnInit {
     }
 
     // W2 — si marcó "Sí hay equipos alquilados", exige al menos uno con nombre.
-    if (tipo === 'parte_diario' && this.form.controls.hubo_equipos.value) {
+    if (!sinAct && tipo === 'parte_diario' && this.form.controls.hubo_equipos.value) {
       const conNombre = this.equiposAlquilados().filter((e) => e.equipo.trim());
       if (conNombre.length === 0) {
         this.saveError.set('Indica al menos un equipo alquilado (o cambia la respuesta a "No").');
@@ -699,9 +756,10 @@ export class Nueva implements OnInit {
       }
     }
 
-    // S6 — mínimo de fotos (parte diario ≥2, incidente ≥1).
+    // S6 — mínimo de fotos (parte diario ≥2, incidente ≥1). Z4 — el parte "sin
+    // actividad" no exige fotos mínimas.
     const nfotos = this.archivos().length;
-    if (tipo === 'parte_diario' && nfotos < MIN_FOTOS_PARTE) {
+    if (!sinAct && tipo === 'parte_diario' && nfotos < MIN_FOTOS_PARTE) {
       this.saveError.set(`Agrega al menos ${MIN_FOTOS_PARTE} fotos del trabajo realizado.`);
       return;
     }
@@ -719,7 +777,7 @@ export class Nueva implements OnInit {
     // bloque; si el usuario no lo especifica, hereda el bloque de cabecera
     // (que actúa como valor por defecto). El RPC ya lee `bloque` por actividad.
     const bloqueParte = esParte ? (v.bloque_entrepiso?.trim() || null) : null;
-    const actividades = esParte
+    const actividades = esParte && !sinAct
       ? [...this.actividadesSeleccionadas()].map((k) => {
           // X13 — llave `bloque|estructura|actividad`.
           const [bloque, estructura, actividad] = k.split('|') as [string, string, string];
@@ -733,7 +791,7 @@ export class Nueva implements OnInit {
           };
         })
       : [];
-    const restricciones = esParte
+    const restricciones = esParte && !sinAct
       ? [...this.restriccionesSeleccionadas()].map((r) => ({
           tipo_restriccion: r,
           // U12 — descripción por restricción (null para "Ninguna").
@@ -807,9 +865,16 @@ export class Nueva implements OnInit {
               : (v.incidente_suceso || null)
             : null,
         weather_snapshot_id: weatherSnapshotId,
+        // Z4 — día reportado sin trabajo en obra (solo parte diario).
+        sin_actividad: sinAct,
+        motivo_sin_actividad: sinAct ? (v.motivo_sin_actividad ?? null) : null,
+        motivo_sin_actividad_detalle:
+          sinAct && v.motivo_sin_actividad === 'otro' ? (v.motivo_sin_actividad_detalle?.trim() || null) : null,
         // Clima + migración (R21/R22) — solo aplican al parte diario.
         llovio: esParte ? !!v.llovio : null,
         lluvia_detalle: esParte && v.llovio ? (v.lluvia_detalle || null) : null,
+        // Z5 — horas de lluvia (0..24), solo si llovió.
+        horas_lluvia: esParte && v.llovio ? (v.horas_lluvia ?? null) : null,
         hubo_migracion: esParte ? !!v.hubo_migracion : null,
         migracion_obreros:
           esParte && v.hubo_migracion && v.migracion_obreros_texto?.trim()

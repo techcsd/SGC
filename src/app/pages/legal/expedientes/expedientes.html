@@ -108,7 +108,7 @@
               <td>{{ e.proyecto?.nombre ?? '—' }}</td>
               <td>
                 @if (e.fecha_limite) {
-                  <span [class.text-danger]="isVencido(e)">{{ e.fecha_limite | date:'dd/MM/yyyy' }}</span>
+                  <span [class.text-danger]="isVencido(e)">{{ formatFecha(e.fecha_limite) }}</span>
                 } @else {
                   <span class="text-muted">—</span>
                 }
@@ -247,11 +247,11 @@
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha de apertura</span>
-          <span>{{ e.fecha_apertura | date:'dd/MM/yyyy' }}</span>
+          <span>{{ formatFecha(e.fecha_apertura) }}</span>
         </div>
         <div class="detail-field">
           <span class="detail-field__label">Fecha límite</span>
-          <span [class.text-danger]="isVencido(e)">{{ e.fecha_limite ? (e.fecha_limite | date:'dd/MM/yyyy') : '—' }}</span>
+          <span [class.text-danger]="isVencido(e)">{{ formatFecha(e.fecha_limite) }}</span>
         </div>
         @if (e.enlace) {
           <div class="detail-field detail-field--full">

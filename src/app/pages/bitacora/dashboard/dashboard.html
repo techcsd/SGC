@@ -31,7 +31,9 @@
     <div class="kpi-card kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día"><span class="kpi-label">Bitácoras del día</span><span class="kpi-value">{{ partes() | number }}</span></div>
     <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irATipo('visita')" (keydown.enter)="irATipo('visita')" aria-label="Ver visitas"><span class="kpi-label">Visitas</span><span class="kpi-value">{{ visitas() | number }}</span></div>
     <div class="kpi-card kpi-card--link" [class.kpi-card--danger]="incidentes() > 0" role="button" tabindex="0" (click)="irATipo('incidente')" (keydown.enter)="irATipo('incidente')" aria-label="Ver incidentes"><span class="kpi-label">Incidentes</span><span class="kpi-value">{{ incidentes() | number }}</span></div>
-    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día (lluvia)"><span class="kpi-label">Días con lluvia</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
+    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irALluvia()" (keydown.enter)="irALluvia()" aria-label="Ver días con lluvia"><span class="kpi-label">Días con lluvia</span><span class="kpi-value">{{ diasLluvia() | number }}</span></div>
+    <div class="kpi-card kpi-card--info kpi-card--link" role="button" tabindex="0" (click)="irALluvia()" (keydown.enter)="irALluvia()" aria-label="Ver días con lluvia (horas)"><span class="kpi-label">Horas de lluvia</span><span class="kpi-value">{{ horasLluvia() | number:'1.0-1' }}</span></div>
+    <div class="kpi-card kpi-card--link" [class.kpi-card--warning]="diasSinActividad() > 0" role="button" tabindex="0" (click)="irASinActividad()" (keydown.enter)="irASinActividad()" aria-label="Ver días sin actividad"><span class="kpi-label">Días sin actividad</span><span class="kpi-value">{{ diasSinActividad() | number }}</span></div>
     <div class="kpi-card kpi-card--link" [class.kpi-card--warning]="obrerosMigracion() > 0" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día (migración)"><span class="kpi-label">Obreros por migración</span><span class="kpi-value">{{ obrerosMigracion() | number }}</span></div>
     <div class="kpi-card kpi-card--link" role="button" tabindex="0" (click)="irATipo('parte_diario')" (keydown.enter)="irATipo('parte_diario')" aria-label="Ver bitácoras del día (equipos)"><span class="kpi-label">Días con equipos alquilados</span><span class="kpi-value">{{ diasEquipos() | number }}</span></div>
   </div>
@@ -53,17 +55,17 @@
     }
     @if (porRestriccion().length > 0) {
       <div class="sgc-card chart-card chart-card--wide">
-        <app-bar-chart titulo="Restricciones más frecuentes" [data]="porRestriccion()" />
+        <app-bar-chart titulo="Restricciones más frecuentes" [data]="porRestriccion()" [selectable]="true" (select)="irARestriccion($event)" />
       </div>
     }
     @if (equiposMasUsados().length > 0) {
       <div class="sgc-card chart-card chart-card--wide">
-        <app-bar-chart titulo="Equipos alquilados más usados" [data]="equiposMasUsados()" />
+        <app-bar-chart titulo="Equipos alquilados más usados" [data]="equiposMasUsados()" [selectable]="true" (select)="irAEquipo($event)" />
       </div>
     }
     @if (equiposPorObra().length > 0) {
       <div class="sgc-card chart-card chart-card--wide">
-        <app-bar-chart titulo="Días con equipos alquilados por obra" [data]="equiposPorObra()" />
+        <app-bar-chart titulo="Días con equipos alquilados por obra" [data]="equiposPorObra()" [selectable]="true" (select)="irAObra($event)" />
       </div>
     }
   </div>

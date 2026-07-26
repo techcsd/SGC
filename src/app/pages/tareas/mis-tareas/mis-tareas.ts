@@ -1,17 +1,16 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { TareasService } from '../../../../shared/services/tareas.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
 import { Tarea, TareaEstado, TAREA_ESTADOS } from '../../../../shared/models/tarea.model';
-import { todayIso } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
 @Component({
   selector: 'app-mis-tareas',
-  imports: [DatePipe, TareaDetalle, Skeleton],
+  imports: [TareaDetalle, Skeleton],
   templateUrl: './mis-tareas.html',
   styleUrl: './mis-tareas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +22,7 @@ export class MisTareas implements OnInit, OnDestroy {
   private channel: RealtimeChannel | null = null;
 
   readonly ESTADOS = TAREA_ESTADOS;
+  formatFecha = formatFechaDisplay;
 
   tareas = signal<Tarea[]>([]);
   loading = signal(true);

@@ -80,6 +80,11 @@ export class BitacoraService {
       // Nuevos (Act.4 W2): equipos alquilados. Retrocompatible (default en el RPC).
       p_hubo_equipos: payload.hubo_equipos ?? null,
       p_equipos_alquilados: payload.equipos_alquilados ?? [],
+      // Ronda 11 (Z4/Z5): sin actividad + horas de lluvia. Retrocompatible.
+      p_sin_actividad: payload.sin_actividad ?? false,
+      p_motivo_sin_actividad: payload.motivo_sin_actividad ?? null,
+      p_motivo_sin_actividad_detalle: payload.motivo_sin_actividad_detalle ?? null,
+      p_horas_lluvia: payload.horas_lluvia ?? null,
     });
 
     if (error) throw new Error(error.message);

@@ -252,7 +252,7 @@
           <tbody>
             @for (e of histEntregas(); track e.id) {
               <tr>
-                <td>{{ formatFecha(e.capturado_en) }}</td>
+                <td>{{ formatTs(e.capturado_en) }}</td>
                 <td>{{ entregaTipoLabel(e.tipo) }}</td>
                 <td><span class="cd-placa">{{ e.vehiculo?.placa ?? '—' }}</span></td>
                 <td class="text-right">{{ e.km | number: '1.0-0' }}</td>

@@ -67,6 +67,14 @@ export class BitacoraDashboard implements OnInit {
   );
   // W2 — días (bitácoras) con equipos alquilados.
   diasEquipos = computed(() => this.filtradas().filter((b) => (b.equipos?.length ?? 0) > 0).length);
+  // Z4 — días reportados SIN trabajo (ni faltante ni trabajado): su propio indicador.
+  diasSinActividad = computed(
+    () => this.filtradas().filter((b) => b.tipo === 'parte_diario' && b.sin_actividad === true).length,
+  );
+  // Z5 — horas de lluvia acumuladas (de los partes con lluvia).
+  horasLluvia = computed(() =>
+    this.filtradas().reduce((acc, b) => acc + (b.llovio ? Number(b.horas_lluvia ?? 0) : 0), 0),
+  );
 
   // ── Q9 — drill-down: navegar al historial filtrado ────────
   /** Navega al historial filtrando por la obra seleccionada (si hay) + extra. */
@@ -80,6 +88,13 @@ export class BitacoraDashboard implements OnInit {
   }
   irATipo(tipo: string) { this.irAlHistorial({ tipo }); }
   irAGravedad(_g: string) { this.irAlHistorial({ tipo: 'incidente' }); }
+  /** Z4/Z8 — días sin actividad → historial filtrado. */
+  irASinActividad() { this.irAlHistorial({ tipo: 'parte_diario', sin_actividad: '1' }); }
+  /** Z8 — días con lluvia → historial de partes filtrado. */
+  irALluvia() { this.irAlHistorial({ tipo: 'parte_diario', llovio: '1' }); }
+  /** Z8 — restricciones / equipos → partes del día (nada muerto al click). */
+  irARestriccion(_r: string) { this.irAlHistorial({ tipo: 'parte_diario' }); }
+  irAEquipo(_e: string) { this.irAlHistorial({ tipo: 'parte_diario' }); }
   /** KPI "Bitácoras" (total): abre el historial (respeta la obra filtrada). */
   verHistorial() { this.irAlHistorial({}); }
 
@@ -120,7 +135,7 @@ export class BitacoraDashboard implements OnInit {
     const all = this.filtradas().flatMap((b) => (b.equipos ?? []).map((e) => e.equipo));
     return this.groupCount(all)
       .slice(0, 8)
-      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] }));
+      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length], key: g.key }));
   });
 
   /** W2 — Bar: días con equipos alquilados por obra (top 10). */
@@ -141,7 +156,7 @@ export class BitacoraDashboard implements OnInit {
     return this.groupCount(all)
       .filter((g) => g.key !== 'NINGUNA')
       .slice(0, 8)
-      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length] }));
+      .map((g, i) => ({ label: g.key, value: g.count, color: CAT[i % CAT.length], key: g.key }));
   });
 
   async ngOnInit() {

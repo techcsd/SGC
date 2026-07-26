@@ -91,7 +91,7 @@
               <td>{{ t.proyecto?.nombre ?? '—' }}</td>
               <td>
                 @if (t.fecha_limite) {
-                  <span [class.text-danger]="isVencida(t)">{{ t.fecha_limite | date:'dd/MM/yyyy' }}</span>
+                  <span [class.text-danger]="isVencida(t)">{{ formatFecha(t.fecha_limite) }}</span>
                 } @else {
                   <span class="text-muted">—</span>
                 }

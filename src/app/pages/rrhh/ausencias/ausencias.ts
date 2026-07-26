@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AusenciasService, contarDiasLaborables } from '../../../../shared/services/ausencias.service';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
@@ -12,10 +11,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 @Component({
   selector: 'app-ausencias',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
   templateUrl: './ausencias.html',
   styleUrl: './ausencias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +30,7 @@ export class Ausencias implements OnInit {
   readonly TIPOS = AUSENCIA_TIPOS;
   readonly ESTADOS = AUSENCIA_ESTADOS;
   readonly anioActual = new Date().getFullYear();
+  formatFecha = formatFechaDisplay;
 
   solicitudes = signal<SolicitudAusencia[]>([]);
   empleados = signal<Empleado[]>([]);

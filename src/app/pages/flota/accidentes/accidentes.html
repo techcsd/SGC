@@ -193,6 +193,12 @@
       </div>
     }
 
+    <!-- Z23c — notas de voz del accidente -->
+    <div class="ac-evidencia">
+      <span class="ac-evidencia__label">Notas de voz</span>
+      <app-audio-notas entidadTipo="accidente" [entidadId]="a.id" bucket="flota-documentos" [esPrueba]="a.es_prueba ?? false" />
+    </div>
+
     <!-- T2 — datos de prueba (solo admin) -->
     @if (esAdmin()) {
       <div class="ac-detail__prueba">

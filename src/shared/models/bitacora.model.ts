@@ -76,6 +76,14 @@ export interface BitacoraEquipoAlquilado {
   created_at: string;
 }
 
+// Z4 — motivos de un día "No se trabajó en obra".
+export const MOTIVOS_SIN_ACTIVIDAD: { value: string; label: string }[] = [
+  { value: 'lluvia', label: 'Lluvia' },
+  { value: 'falta_material', label: 'Falta de material' },
+  { value: 'feriado', label: 'Feriado / día no laborable' },
+  { value: 'otro', label: 'Otro' },
+];
+
 export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente';
 
 export const BITACORA_TIPOS: { value: BitacoraTipo; label: string }[] = [
@@ -150,8 +158,13 @@ export interface Bitacora {
   // Clima + migración (R21/R22) — el clima NO es incidente
   llovio: boolean | null;
   lluvia_detalle: string | null;
+  horas_lluvia: number | null; // Z5 — horas que la lluvia afectó (0..24)
   hubo_migracion: boolean | null;
   migracion_obreros: unknown | null;
+  // Z4 — día reportado sin trabajo en obra
+  sin_actividad?: boolean;
+  motivo_sin_actividad?: string | null;
+  motivo_sin_actividad_detalle?: string | null;
   // Equipos alquilados (W2)
   hubo_equipos_alquilados: boolean | null;
   created_at: string;
@@ -203,8 +216,13 @@ export interface BitacoraFormData {
   // Clima + migración (R21/R22)
   llovio?: boolean | null;
   lluvia_detalle?: string | null;
+  horas_lluvia?: number | null; // Z5
   hubo_migracion?: boolean | null;
   migracion_obreros?: unknown | null;
+  // Z4 — día reportado sin trabajo en obra
+  sin_actividad?: boolean;
+  motivo_sin_actividad?: string | null;
+  motivo_sin_actividad_detalle?: string | null;
   // Equipos alquilados (W2) + S7 flags de retiro/daño
   hubo_equipos?: boolean | null;
   equipos_alquilados?: {

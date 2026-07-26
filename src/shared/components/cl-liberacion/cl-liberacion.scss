@@ -190,6 +190,21 @@
     }
   }
 
+  // Z3 — regla de firma (responsable o residente)
+  &__firma-regla {
+    margin: 4px 0 0;
+    font-size: 0.74rem;
+    color: var(--main-ultra-light, #929090);
+
+    &--ok { color: #1f7a44; font-weight: 600; }
+  }
+
+  // Z3 — "en sustitución de" en el detalle de la firma
+  &__firma-sust {
+    font-size: 0.68rem;
+    font-style: italic;
+  }
+
   // Q5 — toggle método de firma (dibujar / foto)
   &__metodo-toggle {
     display: inline-flex;

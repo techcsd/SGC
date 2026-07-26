@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -11,7 +11,7 @@ import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { daysFromNowIso } from '../../../../shared/utils/fecha.util';
+import { daysFromNowIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
@@ -24,7 +24,7 @@ const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
 
 @Component({
   selector: 'app-contratos',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +38,7 @@ export class Contratos implements OnInit {
 
   readonly TIPOS = CONTRATO_TIPOS;
   readonly ESTADOS = CONTRATO_ESTADOS;
+  formatFecha = formatFechaDisplay;
 
   contratos = signal<Contrato[]>([]);
   proyectos = signal<Proyecto[]>([]);

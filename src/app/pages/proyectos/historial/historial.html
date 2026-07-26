@@ -59,8 +59,8 @@
                 <td><code class="code-tag">{{ p.codigo }}</code></td>
                 <td>{{ p.nombre }}</td>
                 <td>{{ tipoLabel(p.tipo) }}</td>
-                <td>{{ p.fecha_inicio ? (p.fecha_inicio | date:'dd/MM/yyyy') : '—' }}</td>
-                <td>{{ p.fecha_fin_real ? (p.fecha_fin_real | date:'dd/MM/yyyy') : '—' }}</td>
+                <td>{{ formatFecha(p.fecha_inicio) }}</td>
+                <td>{{ formatFecha(p.fecha_fin_real) }}</td>
                 <td>{{ duracion(p) }}</td>
                 <td>{{ p.presupuesto ? ('RD$ ' + (p.presupuesto | number:'1.0-0')) : '—' }}</td>
                 <td><span [class]="estadoBadge(p.estado)">{{ estadoLabel(p.estado) }}</span></td>

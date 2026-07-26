@@ -17,7 +17,7 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { todayIso } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
@@ -44,6 +44,7 @@ export class Expedientes implements OnInit {
   readonly TIPOS = EXPEDIENTE_TIPOS;
   readonly ESTADOS = EXPEDIENTE_ESTADOS;
   readonly PRIORIDADES = EXPEDIENTE_PRIORIDADES;
+  formatFecha = formatFechaDisplay;
 
   expedientes = signal<ExpedienteLegal[]>([]);
   proyectos = signal<Proyecto[]>([]);

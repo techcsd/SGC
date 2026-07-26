@@ -168,11 +168,16 @@
             <div class="cl__firmas-progress">
               @for (f of firmasEstado(r); track f.rol) {
                 <span class="cl__firma-chip" [class.cl__firma-chip--done]="f.firmado"
-                  [attr.title]="f.obligatoria ? 'Obligatoria' : 'Opcional'">
+                  [attr.title]="f.obligatoria ? 'Firma requerida (responsable o residente)' : 'Opcional'">
                   {{ f.firmado ? '✓' : '○' }} {{ f.label }}
                 </span>
               }
             </div>
+            <!-- Z3 — regla de firma: basta responsable O residente -->
+            <p class="cl__firma-regla" [class.cl__firma-regla--ok]="firmaLiberada(r)">
+              @if (firmaLiberada(r)) { ✓ Firma requerida cumplida }
+              @else { Firma requerida: <strong>responsable o residente</strong> }
+            </p>
 
             @if (expandedId() === r.id) {
               <div class="cl__detail">
@@ -267,6 +272,11 @@
                             {{ rolLabel(s.rol) }}
                             @if (s.metodo === 'foto') { <span class="cl__firma-metodo">📷 foto</span> }
                             @if (s.nombre) { <br /><span class="text-muted">{{ s.nombre }}</span> }
+                            @if (s.en_sustitucion_de_nombre) {
+                              <br /><span class="cl__firma-sust text-muted">
+                                en sustitución de {{ s.en_sustitucion_de_nombre }}
+                              </span>
+                            }
                           </figcaption>
                         </figure>
                       }
@@ -307,11 +317,22 @@
                             <div class="cl__form-grid">
                               <label class="sgc-field">
                                 <span class="cl__label">¿A quién?</span>
-                                <select [value]="solicitarUsuarioId()" (change)="solicitarUsuarioId.set($any($event.target).value)">
+                                <select [value]="solicitarUsuarioId()" (change)="onSolicitarUsuarioChange($any($event.target).value)">
                                   <option value="">Selecciona un usuario…</option>
-                                  @for (u of directorio(); track u.id) {
-                                    <option [value]="u.id">{{ u.nombre }}</option>
+                                  @if (responsables().length > 0) {
+                                    <optgroup label="Responsables de la obra">
+                                      @for (resp of responsables(); track resp.usuario_id) {
+                                        <option [value]="resp.usuario_id">
+                                          {{ resp.nombre }} ({{ resp.tipo_responsabilidad === 'residente' ? 'Residente' : 'Responsable' }})
+                                        </option>
+                                      }
+                                    </optgroup>
                                   }
+                                  <optgroup label="Todos los usuarios">
+                                    @for (u of directorio(); track u.id) {
+                                      <option [value]="u.id">{{ u.nombre }}</option>
+                                    }
+                                  </optgroup>
                                 </select>
                               </label>
                               <label class="sgc-field">
@@ -358,6 +379,23 @@
                               placeholder="Nombre y apellido"
                             />
                           </label>
+                          <!-- Z3 — sustituibilidad: firmar en sustitución de otro responsable -->
+                          @if ((firmaRol() === 'responsable' || firmaRol() === 'residente') && sustituibles().length > 0) {
+                            <label class="sgc-field">
+                              <span class="cl__label">En sustitución de (opcional)</span>
+                              <select
+                                [value]="firmaEnSustitucionDe()"
+                                (change)="firmaEnSustitucionDe.set($any($event.target).value)"
+                              >
+                                <option value="">— Firma en su propio nombre —</option>
+                                @for (resp of sustituibles(); track resp.usuario_id) {
+                                  <option [value]="resp.usuario_id">
+                                    {{ resp.nombre }} ({{ resp.tipo_responsabilidad === 'residente' ? 'Ing. Residente' : 'Ing. Responsable' }})
+                                  </option>
+                                }
+                              </select>
+                            </label>
+                          }
                         </div>
 
                         <!-- Q5 — método de firma: dibujar o foto (cliente/MIVHED) -->
