@@ -19,6 +19,13 @@ export class AudioNotasService {
   private supabase = inject(SupabaseService);
   private cache = inject(SignedUrlCache);
 
+  /** Límite de notas de voz por registro (configurable en flota_config). */
+  async getLimite(): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('max_audio_notas');
+    if (error) throw new Error(error.message);
+    return Number(data) || 5;
+  }
+
   async list(entidadTipo: AudioEntidadTipo, entidadId: string): Promise<AudioNota[]> {
     const { data, error } = await this.supabase.client.rpc('audios_de', {
       p_entidad_tipo: entidadTipo,

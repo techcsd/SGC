@@ -106,6 +106,8 @@ export class Mantenimientos implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
+  // Z23c — es_prueba del registro en edición (para marcar sus notas de voz).
+  editingEsPrueba = signal<boolean>(false);
 
   readonly MANT_TIPOS = MANT_TIPOS;
   readonly MANT_TIPO_BADGE = MANT_TIPO_BADGE;
@@ -328,6 +330,7 @@ export class Mantenimientos implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   openCreate() {
     this.editingId.set(null);
+    this.editingEsPrueba.set(false);
     this.saveError.set('');
     this.resetFotos([]);
     this.form.reset({ tipo: 'preventivo', estado: 'pendiente' });
@@ -384,6 +387,7 @@ export class Mantenimientos implements OnInit {
 
   openEdit(m: Mantenimiento) {
     this.editingId.set(m.id);
+    this.editingEsPrueba.set(m.es_prueba ?? false);
     this.saveError.set('');
     this.resetFotos(m.fotos ?? []);
     this.form.reset({

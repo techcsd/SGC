@@ -1,6 +1,23 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.29.1": {
+      "titulo": "Responsables visibles en el listado de proyectos, límite de notas de voz configurable y consistencia de datos de prueba",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Los ingenieros Responsables/Residentes de cada obra ahora se muestran también en la tarjeta del listado de proyectos, no solo en el detalle."
+        },
+        {
+          "t": "mejora",
+          "d": "El máximo de notas de voz por registro es configurable (flota_config.max_audio_notas, por defecto 5); la pantalla refleja el límite real."
+        },
+        {
+          "t": "arreglo",
+          "d": "Las notas de voz de un mantenimiento marcado como dato de prueba quedan marcadas como prueba (se ocultan a no-admin), igual que en accidentes, rutas y checklists."
+        }
+      ]
+    },
     "1.29.0": {
       "titulo": "Ingenieros responsables por obra, firma de liberación más flexible, bitácora de días sin trabajo, horas de lluvia y notas de voz",
       "cambios": [

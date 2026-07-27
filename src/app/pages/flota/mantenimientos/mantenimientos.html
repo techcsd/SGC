@@ -477,7 +477,7 @@
     @if (editingId(); as id) {
       <div class="sgc-field">
         <label>Notas de voz</label>
-        <app-audio-notas entidadTipo="mantenimiento" [entidadId]="id" bucket="flota-documentos" />
+        <app-audio-notas entidadTipo="mantenimiento" [entidadId]="id" bucket="flota-documentos" [esPrueba]="editingEsPrueba()" />
       </div>
     }
 

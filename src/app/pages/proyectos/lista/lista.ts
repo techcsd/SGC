@@ -678,6 +678,11 @@ export class Lista implements OnInit {
     return TIPOS_RESPONSABILIDAD.find((t) => t.value === tipo)?.label ?? tipo;
   }
 
+  /** Z2 — responsables activos embebidos, para mostrarlos en la tarjeta del listado. */
+  responsablesActivos(p: Proyecto) {
+    return (p.responsables ?? []).filter((r) => r.activo);
+  }
+
   // ── Fase Drawer ──────────────────────────────────────────
   openNewFase() {
     this.editingFaseId.set(null);

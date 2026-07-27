@@ -23,6 +23,13 @@ export interface Proyecto {
   activo: boolean;
   created_at: string;
   fases?: FaseProyecto[];
+  // Z2 — responsables vinculados (embebidos en el listado; el detalle usa el RPC).
+  responsables?: {
+    id: string;
+    tipo_responsabilidad: TipoResponsabilidad;
+    activo: boolean;
+    usuario?: { nombre: string };
+  }[];
 }
 
 export interface ProyectoEmpleado {

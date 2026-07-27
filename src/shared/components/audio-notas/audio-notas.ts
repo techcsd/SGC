@@ -36,7 +36,8 @@ export class AudioNotas {
   private service = inject(AudioNotasService);
   private toast = inject(ToastService);
 
-  readonly MAX = MAX_AUDIO_NOTAS;
+  // Límite configurable (flota_config.max_audio_notas); MAX_AUDIO_NOTAS es el fallback.
+  max = signal<number>(MAX_AUDIO_NOTAS);
 
   notas = signal<AudioNota[]>([]);
   urls = signal<Record<string, string>>({});
@@ -47,9 +48,11 @@ export class AudioNotas {
   private chunks: Blob[] = [];
   private grabInicio = 0;
 
-  puedeAgregar = computed(() => !this.readOnly() && this.notas().length < this.MAX);
+  puedeAgregar = computed(() => !this.readOnly() && this.notas().length < this.max());
 
   constructor() {
+    // El límite real vive en config; si falla, queda el fallback MAX_AUDIO_NOTAS.
+    this.service.getLimite().then((n) => this.max.set(n)).catch(() => {});
     effect(() => {
       const id = this.entidadId();
       if (id) this.load(id);

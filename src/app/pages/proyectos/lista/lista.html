@@ -120,6 +120,16 @@
                 <p class="proyectos__card-tipo">{{ getTipoLabel(p.tipo) }}</p>
               }
 
+              @if (responsablesActivos(p).length > 0) {
+                <p class="proyectos__card-responsables">
+                  @for (r of responsablesActivos(p); track r.id) {
+                    <span class="sgc-badge sgc-badge--info">
+                      {{ tipoRespLabel(r.tipo_responsabilidad) }}: {{ r.usuario?.nombre }}
+                    </span>
+                  }
+                </p>
+              }
+
               @if (p.fecha_inicio || p.fecha_fin_estimada) {
                 <div class="proyectos__card-fechas">
                   @if (p.fecha_inicio) {

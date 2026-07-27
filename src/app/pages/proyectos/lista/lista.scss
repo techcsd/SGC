@@ -239,6 +239,14 @@
     text-transform: capitalize;
   }
 
+  // Z2 — chips de responsables vinculados en la tarjeta
+  &__card-responsables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 4px 0 0;
+  }
+
   &__card-fechas {
     display: flex;
     gap: 0.75rem;

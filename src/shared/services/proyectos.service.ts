@@ -37,7 +37,10 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyectos')
-      .select('*, responsable:usuarios(nombre), fases:fases_proyecto(*)')
+      .select(
+        '*, responsable:usuarios(nombre), fases:fases_proyecto(*), ' +
+          'responsables:proyecto_responsables(id, tipo_responsabilidad, activo, usuario:usuarios!usuario_id(nombre))',
+      )
       .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);

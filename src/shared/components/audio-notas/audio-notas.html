@@ -31,10 +31,10 @@
           + Subir audio
           <input type="file" accept="audio/*" hidden (change)="onFile($event)" [disabled]="!puedeAgregar() || busy()" />
         </label>
-        <span class="audio-notas__muted">{{ notas().length }}/{{ MAX }}</span>
+        <span class="audio-notas__muted">{{ notas().length }}/{{ max() }}</span>
       </div>
       @if (!puedeAgregar() && !grabando()) {
-        <p class="audio-notas__muted">Máximo {{ MAX }} notas de voz.</p>
+        <p class="audio-notas__muted">Máximo {{ max() }} notas de voz.</p>
       }
     }
   }
