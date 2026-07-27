@@ -1,6 +1,47 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.30.0": {
+      "titulo": "Estaciones simplificadas, año del vehículo en todo, reporte semanal compartido, handover sin muros, pre-uso administrativo, artículos con propiedad y foto, almacén por obra y conduces del transportista",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Al registrar combustible ahora solo aparecen \"Total Energies\" (por defecto) y \"Otro\" (texto libre). Los registros históricos se conservan."
+        },
+        {
+          "t": "mejora",
+          "d": "El año del vehículo se muestra en cards, pickers, reportes y detalle con el formato \"Marca Modelo Año\" (ej. \"Izuzu D-Max 2023\")."
+        },
+        {
+          "t": "mejora",
+          "d": "El reporte semanal es por vehículo: cualquier usuario ve \"Ya reportado por {nombre} · {fecha}\" y puede rehacerlo. Se recuperan los reportes enviados por quien no es el chofer asignado."
+        },
+        {
+          "t": "mejora",
+          "d": "Recibir un vehículo que tiene otra persona ya no es un muro: se ofrece \"Recibir de todas formas\" (handover), que cierra la entrega anterior y deja la cadena registrada."
+        },
+        {
+          "t": "nuevo",
+          "d": "Los vehículos se clasifican en Obra o Administrativo. Los administrativos usan un pre-uso reducido; los de obra, el completo."
+        },
+        {
+          "t": "mejora",
+          "d": "Las fotos del reporte semanal tienen etiquetas explícitas por zona, agrupadas en Exterior (4) e Interior (2)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Los artículos tienen propiedad (CSD / Alquilado) con badge y agrupación en la requisición y los pickers, y foto con thumbnail en los listados y una ficha de detalle (foto, stock por almacén y últimos movimientos)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Toda obra debe tener almacén: al crear una obra se ofrece crearlo, y hay un aviso con la lista de obras sin almacén para resolverlo rápido."
+        },
+        {
+          "t": "nuevo",
+          "d": "Un chofer/transportista puede crear conduces y confirmar su recepción (viendo solo los suyos). Las rutas muestran sus conduces y notas de voz en el detalle."
+        }
+      ]
+    },
     "1.29.1": {
       "titulo": "Responsables visibles en el listado de proyectos, límite de notas de voz configurable y consistencia de datos de prueba",
       "cambios": [

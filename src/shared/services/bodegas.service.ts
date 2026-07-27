@@ -47,4 +47,14 @@ export class BodegasService {
 
     if (error) throw new Error(error.message);
   }
+
+  /** Z21 — IDs de proyecto que ya tienen al menos un almacén (activo o no). */
+  async getProyectoIdsConAlmacen(): Promise<string[]> {
+    const { data, error } = await this.supabase.client
+      .from('bodegas')
+      .select('proyecto_id')
+      .not('proyecto_id', 'is', null);
+    if (error) throw new Error(error.message);
+    return [...new Set((data ?? []).map((r: { proyecto_id: string }) => r.proyecto_id))];
+  }
 }

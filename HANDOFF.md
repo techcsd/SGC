@@ -1,6 +1,46 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-26_
+_Last updated: 2026-07-27_
+
+## PROMPT-3-SGC · Ronda 11c (IDs Z: flota + inventario) (27/07/2026) — ✅ MIGRACIONES EN PROD, build+tests verdes, **SIN commit/push/deploy** (pendiente de Xaviel)
+
+Source: `PROMPT 3 — Ronda 11` (Z9/Z10/Z12/Z13/Z14/Z15/Z11/Z16/Z17/Z21/Z22). El `CONTEXTO.md` de `25072026` NO existe (igual que en ronda 11); FASE 0 hecha contra repo/BD viva. Todo aditivo/retrocompatible. `npm run build` **verde**, `npm test` **3/3**. Versión **bump 1.29.1 → 1.30.0** (release-notes.json, verify ✓ 9 cambios) — **listo para deploy, aún no commiteado**. **7 migraciones idempotentes aplicadas a prod** (Management API `jeeqhgccqefbqilntcpu`, helper `scratchpad/apply-sql.mjs`). NADA commiteado/pusheado/deployado (regla del prompt).
+
+### FASE 0 — hallazgos que redujeron el alcance
+- **Z10 (año)**: `vehiculos.anio` int NOT NULL YA existe → solo faltaba mostrarlo en todas las vistas + contratos app.
+- **Z14 (multi-asignación + handover)**: asignación YA es N:M (`vehiculo_asignaciones`); handover W3 YA existe (`crear_entrega_vehiculo(p_forzar_handover)`, front captura `HandoverRequeridoError`). Solo faltaba: quitar el muro (era elevado-only) y el contrato de aceptación para la app.
+- **Z9 (estaciones)**: tabla real `sgc.estaciones_combustible` (Total Energies/Shell/Esso/Sunix/United/Texaco/Otro). Estación se guarda como TEXTO en cada echada (no FK) → desactivar no rompe históricos.
+- **Z17 (foto artículo)**: `articulos.imagen_url` YA existía (dormida) → solo cablearla.
+- **Z13 (semanal)**: ya por-vehículo vía `v_reporte_semanal_cumplimiento`; faltaba exponer `reportado_por/at/km`. Huérfano localizado: checklist `7529422b…` de **L540986** (semana 22/07) enviado por **Eduardo NG** con conductor_id null → invisible para su autor por scoping T7.
+- **Z22 (conduces)**: no hay rol `chofer`; los choferes son `sgc.conductores` ligados por `usuario_id`. `confirmar_recepcion_salida` (T15, con entrada automática) existe. Rutas NO se ligaban a conduces.
+
+### Migraciones en prod (`sql/2026-07-27-ronda11c-*.sql`)
+1. `z9-estaciones-total-otro` — deja activas solo Total Energies (default) + Otro; desactiva las demás (sin borrar). Conciliación T4 intacta.
+2. `z10-anio-contratos` — `flota_placas()` recreada con `anio` (drop+recreate) + `mis_pendientes_transporte()` con `anio` en ambos bloques (aditivo).
+3. `z13z12-semanal-estado-global` — `v_reporte_semanal_cumplimiento` recreada con `reportado_por/reportado_por_id/reportado_at/km_reporte`; scoping ampliado: el AUTOR ve su propio reporte aunque no sea el chofer (recupera el huérfano). T7 intacto para faltantes.
+4. `z14-asignacion-contrato` — `asignarme_vehiculo` devuelve `aceptada:true` + `anio` (aditivo; rechazo sigue siendo excepción).
+5. `z15z11-uso-preuso-admin-fotos` — `vehiculos.uso` (obra|administrativo, default obra, check) + `checklist_plantillas.uso_aplica` (obra|administrativo|ambos) + seed **PRE-USO-ADMIN-V1** (4 ítems) + tabla `checklist_foto_slots` (semanal 6 / preuso 7, agrupadas por sección) + RPC `checklist_plantilla_vigente(vehiculo, frecuencia)` (sirve variante por uso). PRE-USO-V4 queda 'ambos' (sin regresión).
+6. `z16z17-articulo-propiedad-foto` — `articulos.propiedad` (propio_csd|alquilado, default propio_csd, check) + `mis_conduces_hoy()` con propiedad/imagen (aditivo).
+7. `z17-articulo-movimientos` — RPC `ultimos_movimientos_articulo(articulo, limit)` (unión salidas/entradas, gated inventario/admin).
+8. `z22-conduces-transportista` — `salidas_inventario.ruta_id` + `recepcion_foto_path`; SELECT policies para conductor (sus conduces); RPC `crear_conduce_transportista(...)` (SECURITY DEFINER, chofer crea y queda como conductor, valida stock, idempotente); `confirmar_recepcion_salida` recreada (**5 args**: +p_receptor, +p_foto_path, defaults) con auth ampliada al conductor asignado + **conserva entrada automática T15**; RPC `ruta_detalle_transporte(ruta)` (conduces+items+fotos+notas de voz).
+
+### Frontend (sin commit) — por fase
+- **Z9/Z10**: `vehiculo.model.ts` (helper `descripcionVehiculo`, `VehiculoUso`, `VEHICULO_USOS`); año añadido en picker compartido, cards, reportes (+ `resolverAnio` fallback para inactivos), y `<option>` de accidentes/combustible-dashboard/conductores/mantenimientos.
+- **Z13/Z12**: `ReporteSemanalFila` (+reportado_por/at/km); `reporte-semanal.html` muestra "Ya reportado por {nombre} · {fecha}" + "Rehacer" (vista chofer) y columna "Reporte" (tablas elevadas).
+- **Z14**: `registrar-entrega` — handover ya no gateado a elevado; texto "Recibir de todas formas".
+- **Z15/Z11**: `vehiculos` form + detalle con `uso`; `flota-checklist.model.ts` (FOTO_SLOTS_SEMANAL/PREUSO + `fotoSlotsPara`/`slotLabel`, nivel "E" en NIVEL_COMBUSTIBLE_OPCIONES, `uso_aplica`); `checklists` — fotos agrupadas por sección + sugerencia de plantilla por uso; `fotosGrid` tolerante a slots históricos.
+- **Z16/Z17**: `articulo.model.ts` (ArticuloPropiedad, ARTICULO_PROPIEDADES, propiedadLabel/Badge); `articulos.service` (uploadFoto/getFotoUrl/setPropiedad/getUltimosMovimientos); `articulos` page (thumbnail+badge+toggle rápido propiedad+foto en form+modal detalle); `articulo-picker` (subgrupos CSD/Alquilados + badge).
+- **Z21**: `proyectos/lista` — prompt confirmar "Almacén {obra}" al crear obra + banner admin de obras sin almacén + banner en detalle; `bodegasService.getProyectoIdsConAlmacen`; hint en form de bodega.
+- **Z22**: `rutas` — `getDetalleTransporte` + sección "Conduces de la ruta" + notas de voz en el detalle.
+- **Dudas**: FAQ nuevas en Flota (semanal compartido, estaciones, uso, handover, conduces de ruta) e Inventario (propiedad, foto/detalle, almacén por obra, conduces del chofer).
+
+### Pendiente para Xaviel
+- **Commit + push + deploy** (bump 1.30.0 ya preparado). Al deployar, el postbuild/auto-registro registra la versión.
+- **PROMPT-4 (app móvil)**: contratos nuevos listos (ver resumen al final de la sesión / abajo).
+- Backfill de `articulos.propiedad` (todo quedó propio_csd) y de `vehiculos.uso` (todo obra) — hay UI rápida para marcarlos.
+- Badge de propiedad en las líneas de salidas/entradas/conduce impresos: parcial (picker+listado+ficha sí; líneas históricas no).
+
+---
 
 ## PROMPT-1-SGC · Ronda 11 (IDs Z) (26/07/2026) — ✅ EN PRODUCCIÓN (web 1.29.0), commit+push, 4 migraciones en prod, build verde
 

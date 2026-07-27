@@ -8,7 +8,7 @@ import {
   ElementRef,
   viewChild,
 } from '@angular/core';
-import { Articulo } from '../../models/articulo.model';
+import { Articulo, propiedadLabel, propiedadBadge } from '../../models/articulo.model';
 import { Categoria } from '../../models/categoria.model';
 
 /** Emitido al elegir un renglón del picker. */
@@ -17,10 +17,19 @@ export interface ArticuloPickerSelection {
   esOtro: boolean;
 }
 
+/** Z16 — subgrupo por propiedad dentro de una categoría (CSD vs Alquilados). */
+interface SubGrupo {
+  propiedad: string;
+  label: string;
+  badge: string;
+  articulos: Articulo[];
+}
+
 interface Grupo {
   categoria: string;
   destacada: boolean;
   articulos: Articulo[];
+  subgrupos: SubGrupo[];
 }
 
 /**
@@ -58,6 +67,20 @@ export class ArticuloPicker {
   query = signal('');
   highlighted = signal(0);
 
+  readonly propiedadLabel = propiedadLabel;
+  readonly propiedadBadge = propiedadBadge;
+
+  /** Z16 — divide una lista de artículos en subgrupos CSD / Alquilados (propios
+   *  primero). Devuelve solo los subgrupos no vacíos; `articulos` queda ordenado. */
+  private dividirPorPropiedad(list: Articulo[]): { articulos: Articulo[]; subgrupos: SubGrupo[] } {
+    const csd = list.filter((a) => (a.propiedad ?? 'propio_csd') !== 'alquilado');
+    const alq = list.filter((a) => (a.propiedad ?? 'propio_csd') === 'alquilado');
+    const subgrupos: SubGrupo[] = [];
+    if (csd.length) subgrupos.push({ propiedad: 'propio_csd', label: 'CSD (propios)', badge: 'success', articulos: csd });
+    if (alq.length) subgrupos.push({ propiedad: 'alquilado', label: 'Alquilados (externos)', badge: 'warning', articulos: alq });
+    return { articulos: [...csd, ...alq], subgrupos };
+  }
+
   /** Artículos activos agrupados por categoría (destacadas primero, luego "Otros"). */
   private grupos = computed<Grupo[]>(() => {
     const arts = this.articulos().filter((a) => a.activo);
@@ -73,10 +96,16 @@ export class ArticuloPicker {
     for (const c of cats) {
       catIds.add(c.id);
       const list = byCat.get(c.id);
-      if (list && list.length) grupos.push({ categoria: c.nombre, destacada: !!c.destacada, articulos: list });
+      if (list && list.length) {
+        const { articulos, subgrupos } = this.dividirPorPropiedad(list);
+        grupos.push({ categoria: c.nombre, destacada: !!c.destacada, articulos, subgrupos });
+      }
     }
     const otros = arts.filter((a) => !catIds.has(a.categoria_id));
-    if (otros.length) grupos.push({ categoria: 'Otros', destacada: false, articulos: otros });
+    if (otros.length) {
+      const { articulos, subgrupos } = this.dividirPorPropiedad(otros);
+      grupos.push({ categoria: 'Otros', destacada: false, articulos, subgrupos });
+    }
     return grupos;
   });
 
@@ -85,15 +114,16 @@ export class ArticuloPicker {
     const q = this.query().toLowerCase().trim();
     if (!q) return this.grupos();
     return this.grupos()
-      .map((g) => ({
-        ...g,
-        articulos: g.articulos.filter(
+      .map((g) => {
+        const filtrados = g.articulos.filter(
           (a) =>
             a.nombre.toLowerCase().includes(q) ||
             (a.codigo ?? '').toLowerCase().includes(q) ||
             (a.subgrupo ?? '').toLowerCase().includes(q),
-        ),
-      }))
+        );
+        const { articulos, subgrupos } = this.dividirPorPropiedad(filtrados);
+        return { ...g, articulos, subgrupos };
+      })
       .filter((g) => g.articulos.length > 0);
   });
 

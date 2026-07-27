@@ -344,6 +344,26 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'En Inventario > Movimientos ves el historial de entradas y salidas de todos los almacenes, con filtros por almacén, tipo y fecha; cada salida trae el enlace a su conduce. Además, en Inventario > Almacenes cada fila tiene el botón «Ver movimientos», que abre esa misma vista ya filtrada por ese almacén.',
       },
+      {
+        pregunta: '¿Qué significa que un artículo sea "CSD" o "Alquilado"?',
+        respuesta:
+          'Cada artículo tiene una propiedad: CSD (propio de la empresa) o Alquilado (equipo externo rentado). Se marca en el alta/edición del artículo, o rápido desde el listado tocando la etiqueta. En la requisición y los pickers los artículos se muestran agrupados por CSD / Alquilados, con un badge que los acompaña en listados y conduces.',
+      },
+      {
+        pregunta: '¿Cómo le pongo foto a un artículo y veo su detalle?',
+        respuesta:
+          'En Inventario > Artículos, al crear o editar un artículo puedes subir una foto. En el listado aparece un thumbnail junto al nombre; al tocar el nombre o la foto se abre el detalle con la foto grande, código, categoría, propiedad, unidad, stock por almacén y sus últimos movimientos.',
+      },
+      {
+        pregunta: '¿Por qué me piden crear un almacén al abrir una obra nueva?',
+        respuesta:
+          'Toda obra debe tener su almacén para recibir y despachar material. Al crear una obra el sistema ofrece crear «Almacén {obra}» con un toque. Si hay obras antiguas sin almacén, en Proyectos verás un aviso (para admin/módulo Proyectos) con la lista y un botón para crearlo, y también dentro del detalle de cada obra.',
+      },
+      {
+        pregunta: '¿Un chofer/transportista puede crear conduces y confirmar la recepción?',
+        respuesta:
+          'Sí. Un usuario con cuenta de conductor puede crear conduces (queda como el transportista) y confirmar su recepción en el almacén destino, viendo solo los suyos y los que le asignan. Los roles de Inventario y los administradores siguen viendo y gestionando todo.',
+      },
     ],
   },
   {
@@ -573,6 +593,31 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Puedo adjuntar fotos y firma a un checklist desde la computadora (no solo desde el celular)?',
         respuesta:
           'Sí. Todo lo que se captura en el celular también se puede hacer desde la web: en Flota > Checklists > Nuevo checklist puedes adjuntar las fotos del vehículo (delantera, tablero, etc.), una foto por cada ítem (útil para documentar un hallazgo) y la firma del conductor directamente en pantalla. En el detalle del checklist se ven todas, incluidas las fotos por ítem junto a su punto correspondiente.',
+      },
+      {
+        pregunta: '¿Por qué el reporte semanal dice "Ya reportado por..." si no fui yo?',
+        respuesta:
+          'El reporte semanal es por VEHÍCULO, no por persona: basta con que cualquiera lo llene una vez por semana. Si un compañero ya reportó tu vehículo esta semana, verás "Ya reportado por {nombre} · {fecha}". Si necesitas corregirlo, usa "Rehacer" para enviar uno nuevo (reemplaza al anterior de esa semana).',
+      },
+      {
+        pregunta: '¿Solo la estación "Total Energies" aparece al registrar combustible?',
+        respuesta:
+          'Sí. Dejamos activas solo "Total Energies" (la habitual, con conciliación automática) y "Otro" (para escribir cualquier otra estación puntual). Los registros históricos con otras estaciones se conservan tal cual.',
+      },
+      {
+        pregunta: '¿Qué es el "uso" del vehículo (obra vs administrativo)?',
+        respuesta:
+          'Cada vehículo se marca como de Obra o Administrativo en su alta/edición (por defecto Obra). Los administrativos usan un pre-uso más corto (exterior, luces, gomas, frenos + km y combustible), mientras que los de obra usan el pre-uso completo.',
+      },
+      {
+        pregunta: 'Un vehículo lo tiene otro conductor. ¿Puedo recibirlo igual?',
+        respuesta:
+          'Sí. Al registrar la recepción, si el vehículo figura entregado a otra persona, el sistema te avisa "Lo tiene {X} desde…" y te ofrece "Recibir de todas formas": al confirmar, se cierra la entrega anterior y el vehículo queda a tu nombre, dejando la cadena registrada en el historial.',
+      },
+      {
+        pregunta: '¿Se ven los conduces de una ruta?',
+        respuesta:
+          'Sí. En Flota > Rutas, al abrir el detalle de una ruta se listan los conduces asociados (con su estado y artículos) y las notas de voz registradas.',
       },
     ],
   },

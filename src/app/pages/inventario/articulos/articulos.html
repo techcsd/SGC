@@ -112,16 +112,30 @@
                 <code class="code-tag">{{ art.codigo }}</code>
               </td>
               <td>
-                <span class="article-name">{{ art.nombre }}</span>
-                @if (art.subgrupo) {
-                  <span class="article-subgrupo">{{ art.subgrupo }}</span>
-                }
-                @if (art.descripcion) {
-                  <span class="article-desc">{{ art.descripcion }}</span>
-                }
-                @if (art.nota) {
-                  <span class="article-nota">{{ art.nota }}</span>
-                }
+                <div class="article-cell">
+                  <button type="button" class="article-thumb" (click)="abrirDetalle(art)"
+                          [attr.aria-label]="'Ver detalle de ' + art.nombre" title="Ver detalle">
+                    @if (thumbDe(art); as t) {
+                      <img [src]="t" [alt]="art.nombre" loading="lazy" />
+                    } @else {
+                      <span class="article-thumb__ph" aria-hidden="true">📦</span>
+                    }
+                  </button>
+                  <div class="article-cell__info">
+                    <button type="button" class="article-name article-name--link" (click)="abrirDetalle(art)">{{ art.nombre }}</button>
+                    <button type="button" class="sgc-badge sgc-badge--{{ propiedadBadge(art.propiedad) }} article-prop article-prop--btn"
+                            (click)="togglePropiedad(art)" title="Cambiar propiedad (CSD ↔ Alquilado)">{{ propiedadLabel(art.propiedad) }}</button>
+                    @if (art.subgrupo) {
+                      <span class="article-subgrupo">{{ art.subgrupo }}</span>
+                    }
+                    @if (art.descripcion) {
+                      <span class="article-desc">{{ art.descripcion }}</span>
+                    }
+                    @if (art.nota) {
+                      <span class="article-nota">{{ art.nota }}</span>
+                    }
+                  </div>
+                </div>
               </td>
               <td>{{ art.categoria?.nombre ?? getCategoryName(art.categoria_id) }}</td>
               <td>{{ art.unidad }}</td>
@@ -316,6 +330,33 @@
       }
     </div>
 
+    <!-- Z16 — propiedad del artículo -->
+    <div class="sgc-field">
+      <label for="propiedad">Propiedad <span class="required">*</span></label>
+      <select id="propiedad" formControlName="propiedad">
+        @for (p of PROPIEDADES; track p.value) {
+          <option [value]="p.value">{{ p.label }}</option>
+        }
+      </select>
+      <span class="field-hint">CSD = propio de la empresa · Alquilado = equipo externo rentado.</span>
+    </div>
+
+    <!-- Z17 — foto del artículo -->
+    <div class="sgc-field">
+      <label>Foto del artículo</label>
+      <div class="articulo-foto-edit">
+        @if (fotoPreview() || imagenActualUrl(); as prev) {
+          <img class="articulo-foto-edit__img" [src]="prev" alt="Foto del artículo" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFoto()">Quitar foto</button>
+        } @else {
+          <label class="articulo-foto-edit__add">
+            <span aria-hidden="true">📷</span> Subir foto
+            <input type="file" accept="image/*" hidden (change)="onFotoSeleccionada($event)" />
+          </label>
+        }
+      </div>
+    </div>
+
     <div class="form-row">
       <div class="sgc-field">
         <label for="stock_minimo">Stock mínimo <span class="required">*</span></label>
@@ -423,3 +464,65 @@
 
   </form>
 </app-form-drawer>
+
+<!-- ── Z17 — Detalle del artículo (modal) ── -->
+@if (detalle(); as d) {
+  <div class="art-modal-backdrop" (click)="cerrarDetalle()">
+    <div class="art-modal" role="dialog" aria-modal="true" [attr.aria-label]="'Detalle de ' + d.nombre" (click)="$event.stopPropagation()">
+      <div class="art-modal__head">
+        <h2 class="art-modal__title">{{ d.nombre }}</h2>
+        <button type="button" class="art-modal__close" (click)="cerrarDetalle()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="art-modal__body">
+        <div class="art-modal__foto">
+          @if (detalleFotoUrl(); as u) {
+            <a [href]="u" target="_blank" rel="noopener"><img [src]="u" [alt]="d.nombre" /></a>
+          } @else {
+            <div class="art-modal__foto-ph" aria-hidden="true">📦</div>
+          }
+        </div>
+
+        <dl class="art-modal__meta">
+          <div><dt>Código</dt><dd><code class="code-tag">{{ d.codigo }}</code></dd></div>
+          <div><dt>Categoría</dt><dd>{{ d.categoria?.nombre ?? getCategoryName(d.categoria_id) }}</dd></div>
+          <div><dt>Propiedad</dt><dd><span class="sgc-badge sgc-badge--{{ propiedadBadge(d.propiedad) }}">{{ propiedadLabel(d.propiedad) }}</span></dd></div>
+          <div><dt>Unidad</dt><dd>{{ d.unidad }}</dd></div>
+          <div><dt>Stock total</dt><dd>{{ detalleStockTotal() | number:'1.0-2' }} {{ d.unidad }}</dd></div>
+          <div><dt>Stock mín. / máx.</dt><dd>{{ d.stock_minimo | number:'1.0-2' }} / {{ d.stock_maximo != null ? (d.stock_maximo | number:'1.0-2') : '—' }}</dd></div>
+        </dl>
+      </div>
+
+      <h3 class="art-modal__section">Stock por almacén</h3>
+      @if (detalleLoading()) {
+        <p class="text-muted">Cargando…</p>
+      } @else if (detalleStock().length === 0) {
+        <p class="text-muted">Sin existencias registradas.</p>
+      } @else {
+        <ul class="art-modal__stock">
+          @for (s of detalleStock(); track s.bodega_id) {
+            <li><span>{{ s.bodega?.nombre ?? 'Almacén' }}</span><strong>{{ s.cantidad | number:'1.0-2' }}</strong></li>
+          }
+        </ul>
+      }
+
+      <h3 class="art-modal__section">Últimos movimientos</h3>
+      @if (detalleLoading()) {
+        <p class="text-muted">Cargando…</p>
+      } @else if (detalleMovs().length === 0) {
+        <p class="text-muted">Sin movimientos recientes.</p>
+      } @else {
+        <ul class="art-modal__movs">
+          @for (m of detalleMovs(); track $index) {
+            <li>
+              <span class="sgc-badge sgc-badge--{{ m.tipo === 'entrada' ? 'success' : 'neutral' }}">{{ m.tipo === 'entrada' ? 'Entrada' : 'Salida' }}</span>
+              <span class="art-modal__mov-cant">{{ m.cantidad | number:'1.0-2' }} {{ d.unidad }}</span>
+              <span class="text-muted">{{ m.bodega ?? '—' }}@if (m.proyecto) { → {{ m.proyecto }} }</span>
+              <span class="text-muted art-modal__mov-fecha">{{ m.fecha }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+}

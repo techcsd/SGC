@@ -425,6 +425,11 @@ textarea {
 }
 
 // ── Captura de fotos/firma en el form (paridad app de campo) ──
+.cl-fotos-grupo {
+  margin: 10px 0 4px;
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--sgc-text-secondary);
+}
 .cl-fotos-slots {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));

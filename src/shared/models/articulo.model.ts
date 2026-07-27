@@ -1,3 +1,6 @@
+/** Z16 — propiedad del artículo: propio de CSD vs alquilado a un externo. */
+export type ArticuloPropiedad = 'propio_csd' | 'alquilado';
+
 export interface Articulo {
   id: string;
   codigo: string;
@@ -9,6 +12,8 @@ export interface Articulo {
   stock_maximo: number | null;
   precio_estimado: number | null;
   imagen_url: string | null;
+  /** Z16 — propio_csd (default) | alquilado. */
+  propiedad: ArticuloPropiedad;
   activo: boolean;
   /** EPP: exige indicar talla al pedir (salida/requisición). */
   requiere_talla: boolean;
@@ -35,6 +40,21 @@ export interface ArticuloFormData {
   activo: boolean;
   requiere_talla?: boolean;
   nota?: string | null;
+  propiedad?: ArticuloPropiedad;
+  imagen_url?: string | null;
+}
+
+export const ARTICULO_PROPIEDADES: { value: ArticuloPropiedad; label: string; badge: string }[] = [
+  { value: 'propio_csd', label: 'CSD (propio)', badge: 'success' },
+  { value: 'alquilado', label: 'Alquilado (externo)', badge: 'warning' },
+];
+
+/** Etiqueta corta de la propiedad para badges/listados. */
+export function propiedadLabel(p: ArticuloPropiedad | string | null | undefined): string {
+  return p === 'alquilado' ? 'Alquilado' : 'CSD';
+}
+export function propiedadBadge(p: ArticuloPropiedad | string | null | undefined): string {
+  return p === 'alquilado' ? 'warning' : 'success';
 }
 
 export const UNIDADES = [

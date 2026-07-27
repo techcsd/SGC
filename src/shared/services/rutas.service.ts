@@ -60,4 +60,43 @@ export class RutasService {
     if (error) throw new Error(error.message);
     return data as unknown as Ruta;
   }
+
+  /** Z22.2 — conduces + notas de voz asociados a una ruta (detalle de transporte). */
+  async getDetalleTransporte(rutaId: string): Promise<RutaDetalleTransporte> {
+    const { data, error } = await this.supabase.client.rpc('ruta_detalle_transporte', {
+      p_ruta_id: rutaId,
+    });
+    if (error) throw new Error(error.message);
+    return (data as RutaDetalleTransporte) ?? { conduces: [], notas_voz: [] };
+  }
+}
+
+export interface RutaConduceItem {
+  articulo: string;
+  unidad: string;
+  cantidad: number;
+  cantidad_recibida: number | null;
+  propiedad: string | null;
+}
+export interface RutaConduce {
+  id: string;
+  fecha: string;
+  estado: string;
+  destino: string | null;
+  bodega: string | null;
+  foto_path: string | null;
+  entrega_foto_path: string | null;
+  recepcion_foto_path: string | null;
+  items: RutaConduceItem[];
+}
+export interface RutaNotaVoz {
+  id: string;
+  bucket: string;
+  path: string;
+  duracion_seg: number | null;
+  created_at: string;
+}
+export interface RutaDetalleTransporte {
+  conduces: RutaConduce[];
+  notas_voz: RutaNotaVoz[];
 }

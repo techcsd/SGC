@@ -36,26 +36,35 @@
           <div class="apk__group-label" [class.apk__group-label--star]="g.destacada">
             {{ g.destacada ? '★ ' : '' }}{{ g.categoria }}
           </div>
-          @for (a of g.articulos; track a.id) {
-            <button
-              type="button"
-              class="apk__opt"
-              role="option"
-              [class.apk__opt--active]="value() === a.id"
-              [class.apk__opt--hl]="highlighted() === indexDe(a)"
-              [attr.aria-selected]="value() === a.id"
-              (click)="elegir(a)"
-            >
-              <span class="apk__opt-main">
-                <span class="apk__opt-name">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}</span>
-                <span class="apk__opt-code">{{ a.codigo }}</span>
-              </span>
-              @if (stockDe(a.id) !== null) {
-                <span class="apk__opt-stock" [class.apk__opt-stock--zero]="stockDe(a.id) === 0">
-                  {{ stockDe(a.id) }} {{ a.unidad }}
+          @for (sg of g.subgrupos; track sg.propiedad) {
+            <!-- Z16 — subgrupo CSD / Alquilados dentro de la categoría (solo si hay ambos) -->
+            @if (g.subgrupos.length > 1) {
+              <div class="apk__subgroup-label apk__subgroup-label--{{ sg.badge }}">{{ sg.label }}</div>
+            }
+            @for (a of sg.articulos; track a.id) {
+              <button
+                type="button"
+                class="apk__opt"
+                role="option"
+                [class.apk__opt--active]="value() === a.id"
+                [class.apk__opt--hl]="highlighted() === indexDe(a)"
+                [attr.aria-selected]="value() === a.id"
+                (click)="elegir(a)"
+              >
+                <span class="apk__opt-main">
+                  <span class="apk__opt-name">
+                    {{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}
+                    <span class="sgc-badge sgc-badge--{{ propiedadBadge(a.propiedad) }} apk__opt-prop">{{ propiedadLabel(a.propiedad) }}</span>
+                  </span>
+                  <span class="apk__opt-code">{{ a.codigo }}</span>
                 </span>
-              }
-            </button>
+                @if (stockDe(a.id) !== null) {
+                  <span class="apk__opt-stock" [class.apk__opt-stock--zero]="stockDe(a.id) === 0">
+                    {{ stockDe(a.id) }} {{ a.unidad }}
+                  </span>
+                }
+              </button>
+            }
           }
         } @empty {
           <p class="apk__empty">Sin resultados para «{{ query() }}».</p>

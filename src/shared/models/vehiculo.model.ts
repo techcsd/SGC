@@ -15,6 +15,9 @@ export type VehiculoTipo =
 
 export type VehiculoEstado = 'activo' | 'mantenimiento' | 'no_disponible' | 'baja';
 
+/** Z15 — clasificación de uso del vehículo (afecta la variante de pre-uso servida). */
+export type VehiculoUso = 'obra' | 'administrativo';
+
 export interface Vehiculo {
   id: string;
   placa: string;
@@ -28,6 +31,8 @@ export interface Vehiculo {
   estado: VehiculoEstado;
   color: string | null;
   kilometraje: number;
+  // Z15 — obra | administrativo (default obra). Determina la variante de pre-uso.
+  uso: VehiculoUso;
   // V2 — números de matrícula y seguro (la foto va por documentos; las fechas de
   // vencimiento ya existen abajo).
   numero_matricula: string | null;
@@ -64,6 +69,7 @@ export interface VehiculoFormData {
   estado: VehiculoEstado;
   color: string | null;
   kilometraje: number;
+  uso: VehiculoUso;
   capacidad_valor: number | null;
   capacidad_unidad: string | null;
   notas: string | null;
@@ -149,6 +155,16 @@ export function claseVehiculo(tipo?: VehiculoTipo | string | null): 'Liviano' | 
   return TIPOS_LIVIANOS.has(tipo ?? '') ? 'Liviano' : 'Pesado';
 }
 
+/** Z10 — Descripción canónica del vehículo: "Marca Modelo Año" (ej. "Izuzu D-Max 2023").
+ *  Fuente única para listados, pickers, reportes y PDFs. El año se omite si no
+ *  viniera (defensivo con datos parciales/embebidos). */
+export function descripcionVehiculo(
+  v?: { marca?: string | null; modelo?: string | null; anio?: number | null } | null,
+): string {
+  if (!v) return '—';
+  return [v.marca, v.modelo, v.anio].filter((p) => p !== null && p !== undefined && p !== '').join(' ').trim() || '—';
+}
+
 export const CAPACIDAD_UNIDADES: { value: string; label: string }[] = [
   { value: 't', label: 'Toneladas (t)' },
   { value: 'kg', label: 'Kilogramos (kg)' },
@@ -169,6 +185,11 @@ export const VEHICULO_TIPOS: { value: VehiculoTipo; label: string }[] = [
   { value: 'compactadora', label: 'Compactadora' },
   { value: 'montacargas', label: 'Montacargas' },
   { value: 'otro', label: 'Otro' },
+];
+
+export const VEHICULO_USOS: { value: VehiculoUso; label: string }[] = [
+  { value: 'obra', label: 'Obra' },
+  { value: 'administrativo', label: 'Administrativo' },
 ];
 
 export const VEHICULO_ESTADOS: { value: VehiculoEstado; label: string }[] = [

@@ -72,7 +72,7 @@
                   (click)="irAVehiculo(v.id)" role="button" tabindex="0" (keydown.enter)="irAVehiculo(v.id)"
                   [attr.aria-label]="'Ver perfil de ' + v.placa">
                 <td class="flota-reportes__placa">{{ v.placa }}</td>
-                <td>{{ v.marca }} {{ v.modelo }}</td>
+                <td>{{ v.marca }} {{ v.modelo }} {{ v.anio }}</td>
                 <td>{{ getTipoLabel(v.tipo) }}</td>
                 <td>
                   <span [class]="'sgc-badge sgc-badge--' + vehiculoBadge(v)">
@@ -114,7 +114,7 @@
                 <td>{{ formatFecha(m.fecha) }}</td>
                 <td class="flota-reportes__placa">
                   {{ resolverPlaca(m.vehiculo_id, m.vehiculo?.placa) }}
-                  <span class="flota-reportes__sub">{{ resolverMarca(m.vehiculo_id, m.vehiculo?.marca) }} {{ m.vehiculo?.modelo }}</span>
+                  <span class="flota-reportes__sub">{{ resolverMarca(m.vehiculo_id, m.vehiculo?.marca) }} {{ m.vehiculo?.modelo }} {{ resolverAnio(m.vehiculo_id, m.vehiculo?.anio) }}</span>
                 </td>
                 <td>
                   <span [class]="'sgc-badge sgc-badge--' + (m.tipo === 'accidente_dano' ? 'danger' : m.tipo === 'falla' ? 'warning' : m.tipo === 'preventivo' ? 'success' : 'info')">

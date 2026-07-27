@@ -33,11 +33,13 @@ import {
   NIVEL_COMBUSTIBLE_OPCIONES,
   RESULTADO_META,
   ALERTA_MANT_META,
-  FOTO_SLOTS,
+  FotoSlot,
+  fotoSlotsPara,
+  slotLabel,
   categoriaPorTipoVehiculo,
   frecuenciaLabel,
 } from '../../../../shared/models/flota-checklist.model';
-import { claseVehiculo } from '../../../../shared/models/vehiculo.model';
+import { claseVehiculo, descripcionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
@@ -124,7 +126,6 @@ export class Checklists implements OnInit {
   readonly TIPOS = CHECKLIST_TIPOS;
   readonly OPCIONES = RESPUESTA_OPCIONES;
   readonly NIVELES = NIVEL_COMBUSTIBLE_OPCIONES;
-  readonly FOTO_SLOTS = FOTO_SLOTS;
 
   form = new FormGroup({
     vehiculo_id: new FormControl<string | null>(null, [Validators.required]),
@@ -166,6 +167,20 @@ export class Checklists implements OnInit {
   selectedPlantilla = computed(() =>
     this.plantillas().find((p) => p.id === this.selectedPlantillaId()) ?? null,
   );
+
+  /** Z11 — slots de foto según la frecuencia de la plantilla (semanal vs pre-uso). */
+  fotoSlots = computed<FotoSlot[]>(() => fotoSlotsPara(this.selectedPlantilla()?.frecuencia));
+
+  /** Z11 — slots de foto agrupados por sección (Exterior / Interior) para pintar. */
+  fotoSlotsPorGrupo = computed(() => {
+    const grupos = new Map<string, FotoSlot[]>();
+    for (const s of this.fotoSlots()) {
+      const g = grupos.get(s.grupo) ?? [];
+      g.push(s);
+      grupos.set(s.grupo, g);
+    }
+    return [...grupos.entries()].map(([grupo, slots]) => ({ grupo, slots }));
+  });
 
   /** Vehículo elegido en el formulario (para clase y validaciones). */
   private selectedVehiculoForm = signal<string | null>(null);
@@ -347,9 +362,24 @@ export class Checklists implements OnInit {
     if (this.selectedPlantillaId()) return; // respeta una elección previa
     const vehiculo = this.vehiculos().find((v) => v.id === vehiculoId);
     const categoria = categoriaPorTipoVehiculo(vehiculo?.tipo);
+    // Z15 — al sugerir un PRE-USO, respeta el uso del vehículo: administrativo →
+    // variante reducida; obra → completa. La semanal es agnóstica al uso.
+    const uso = vehiculo?.uso ?? 'obra';
+    const esSemanal = this.targetFrecuencia === 'semanal';
+    const candidatas = this.plantillas().filter((p) => {
+      if (esSemanal) return p.frecuencia === 'semanal';
+      if (p.frecuencia === 'semanal') return false;
+      const ua = p.uso_aplica ?? 'ambos';
+      return ua === uso || ua === 'ambos';
+    });
+    // Prioriza variante exacta por uso, luego categoría del vehículo, luego general.
+    const pool = candidatas.length ? candidatas : this.plantillas();
     const sugerida =
-      this.plantillas().find((p) => p.categoria === categoria) ??
-      this.plantillas().find((p) => p.categoria === 'general');
+      pool.find((p) => (p.uso_aplica ?? 'ambos') === uso && p.categoria === categoria) ??
+      pool.find((p) => (p.uso_aplica ?? 'ambos') === uso) ??
+      pool.find((p) => p.categoria === categoria) ??
+      pool.find((p) => p.categoria === 'general') ??
+      pool[0];
     if (sugerida) this.selectPlantilla(sugerida.id);
   }
 
@@ -686,7 +716,7 @@ export class Checklists implements OnInit {
 
   vehiculoLabel(c: ChecklistVehiculo): string {
     if (!c.vehiculo) return '—';
-    return `${c.vehiculo.marca} ${c.vehiculo.modelo}`;
+    return descripcionVehiculo(c.vehiculo);
   }
 
   // ── Reporte de inspección (detalle v2) ───────────────────
@@ -708,10 +738,16 @@ export class Checklists implements OnInit {
       .sort((a, b) => Number(b.es_critico) - Number(a.es_critico));
   });
 
-  /** 7 slots fijos con su URL firmada (o null) para la grilla de evidencia. */
+  /** Grilla de evidencia del checklist seleccionado: los slots esperados según su
+   *  frecuencia + cualquier slot histórico presente que no esté en el set actual. */
   fotosGrid = computed(() => {
     const map = this.fotoUrls();
-    return FOTO_SLOTS.map((s) => ({ ...s, url: map[s.slot] ?? null }));
+    const expected = fotoSlotsPara(this.selected()?.plantilla?.frecuencia);
+    const known = new Set(expected.map((s) => s.slot));
+    const extra = Object.keys(map)
+      .filter((slot) => !known.has(slot))
+      .map((slot) => ({ slot, label: slotLabel(slot), grupo: 'Exterior' as const }));
+    return [...expected, ...extra].map((s) => ({ ...s, url: map[s.slot] ?? null }));
   });
 
   imprimir() {

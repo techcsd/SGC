@@ -107,3 +107,10 @@
 
   &__empty { padding: 14px 10px; color: var(--sgc-text-muted); font-size: 13px; margin: 0; }
 }
+
+// Z16 — subgrupo por propiedad (CSD / Alquilados) y badge por opción
+.apk__subgroup-label {
+  padding: 4px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.03em; color: var(--sgc-text-secondary);
+}
+.apk__opt-prop { margin-left: 6px; font-size: 10px; vertical-align: middle; }

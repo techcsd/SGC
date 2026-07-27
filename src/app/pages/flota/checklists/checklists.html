@@ -326,27 +326,31 @@
       </div>
     }
 
-    <!-- Fotos del vehículo (opcional) — paridad app de campo -->
+    <!-- Fotos del vehículo (opcional) — paridad app de campo. Z11: etiquetas por
+         zona, agrupadas por sección (Exterior / Interior). -->
     <div class="sgc-field">
       <label>Fotos del vehículo (opcional)</label>
-      <div class="cl-fotos-slots">
-        @for (s of FOTO_SLOTS; track s.slot) {
-          <div class="cl-foto-slot-edit">
-            @if (slotPreview(s.slot); as prev) {
-              <img [src]="prev" [alt]="s.label" />
-              <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(s.slot)"
-                [attr.aria-label]="'Quitar ' + s.label">✕</button>
-            } @else {
-              <label class="cl-foto-slot-add">
-                <span>📷</span>
-                <input type="file" accept="image/*" capture="environment" hidden
-                  (change)="onSlotFoto(s.slot, $event)" />
-              </label>
-            }
-            <span class="cl-foto-slot-cap">{{ s.label }}</span>
-          </div>
-        }
-      </div>
+      @for (grupo of fotoSlotsPorGrupo(); track grupo.grupo) {
+        <p class="cl-fotos-grupo">{{ grupo.grupo }}</p>
+        <div class="cl-fotos-slots">
+          @for (s of grupo.slots; track s.slot) {
+            <div class="cl-foto-slot-edit">
+              @if (slotPreview(s.slot); as prev) {
+                <img [src]="prev" [alt]="s.label" />
+                <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(s.slot)"
+                  [attr.aria-label]="'Quitar ' + s.label">✕</button>
+              } @else {
+                <label class="cl-foto-slot-add">
+                  <span>📷</span>
+                  <input type="file" accept="image/*" capture="environment" hidden
+                    (change)="onSlotFoto(s.slot, $event)" />
+                </label>
+              }
+              <span class="cl-foto-slot-cap">{{ s.label }}</span>
+            </div>
+          }
+        </div>
+      }
     </div>
 
     <!-- Firma del conductor (opcional) -->

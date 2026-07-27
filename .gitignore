@@ -60,3 +60,6 @@ qa/report/
 test-results/
 .qa.local
 qa/*.local.json
+
+# Local QA/DB helper scripts (not part of the app)
+scratchpad/

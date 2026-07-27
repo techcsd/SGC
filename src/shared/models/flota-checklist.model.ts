@@ -21,6 +21,9 @@ export interface ChecklistPlantillaItem {
 /** U8/U10 — 'preuso' (inspección diaria) vs 'semanal' (reporte semanal). */
 export type ChecklistFrecuencia = 'preuso' | 'semanal';
 
+/** Z15 — a qué uso de vehículo aplica la plantilla (pre-uso obra vs administrativo). */
+export type ChecklistUsoAplica = 'obra' | 'administrativo' | 'ambos';
+
 export interface ChecklistPlantilla {
   id: string;
   codigo: string;
@@ -30,6 +33,7 @@ export interface ChecklistPlantilla {
   activo: boolean;
   orden: number;
   frecuencia?: ChecklistFrecuencia | string;
+  uso_aplica?: ChecklistUsoAplica | string;
   items?: ChecklistPlantillaItem[];
 }
 
@@ -115,7 +119,8 @@ export interface ChecklistFormData {
   }[];
 }
 
-export const NIVEL_COMBUSTIBLE_OPCIONES: string[] = ['1/4', '1/2', '3/4', 'Lleno'];
+// V5/Z15 — nivel de combustible: "E" (vacío/reserva) unificado con la app de campo.
+export const NIVEL_COMBUSTIBLE_OPCIONES: string[] = ['E', '1/4', '1/2', '3/4', 'Lleno'];
 
 export const RESULTADO_META: Record<ChecklistResultado, { label: string; badge: string }> = {
   aprobado: { label: 'Aprobado', badge: 'success' },
@@ -129,16 +134,51 @@ export const ALERTA_MANT_META: Record<AlertaMantenimiento, { label: string; badg
   vencido: { label: 'Mantenimiento vencido', badge: 'danger' },
 };
 
-/** Slots fijos de fotos del pre-uso v2 (7). */
-export const FOTO_SLOTS: { slot: string; label: string; grupo: 'Exterior' | 'Interior' }[] = [
-  { slot: 'delantera', label: 'Delantera', grupo: 'Exterior' },
-  { slot: 'lateral_izq', label: 'Lateral izquierda', grupo: 'Exterior' },
-  { slot: 'lateral_der', label: 'Lateral derecha', grupo: 'Exterior' },
-  { slot: 'trasera', label: 'Trasera', grupo: 'Exterior' },
-  { slot: 'tablero', label: 'Tablero', grupo: 'Interior' },
-  { slot: 'interior_del', label: 'Interior delantero', grupo: 'Interior' },
-  { slot: 'parte_trasera', label: 'Parte trasera', grupo: 'Interior' },
+export interface FotoSlot {
+  slot: string;
+  label: string;
+  grupo: 'Exterior' | 'Interior';
+}
+
+/** Z11 — slots de foto del PRE-USO (7), etiquetas explícitas por zona. Espejo del
+ *  catálogo sgc.checklist_foto_slots (frecuencia='preuso'). */
+export const FOTO_SLOTS_PREUSO: FotoSlot[] = [
+  { slot: 'delantera', label: 'Exterior — vista delantera', grupo: 'Exterior' },
+  { slot: 'lateral_izq', label: 'Exterior — lateral izquierdo', grupo: 'Exterior' },
+  { slot: 'lateral_der', label: 'Exterior — lateral derecho', grupo: 'Exterior' },
+  { slot: 'trasera', label: 'Exterior — vista trasera', grupo: 'Exterior' },
+  { slot: 'tablero', label: 'Interior — tablero / odómetro', grupo: 'Interior' },
+  { slot: 'interior_del', label: 'Interior — asientos delanteros', grupo: 'Interior' },
+  { slot: 'parte_trasera', label: 'Interior — asientos traseros / baúl', grupo: 'Interior' },
 ];
+
+/** Z11 — slots de foto del REPORTE SEMANAL (6): 4 exterior + 2 interior, con
+ *  etiquetas explícitas por zona. Espejo del catálogo (frecuencia='semanal'). */
+export const FOTO_SLOTS_SEMANAL: FotoSlot[] = [
+  { slot: 'ext_delantera', label: 'Exterior — vista delantera', grupo: 'Exterior' },
+  { slot: 'ext_trasera', label: 'Exterior — vista trasera', grupo: 'Exterior' },
+  { slot: 'ext_lateral_izq', label: 'Exterior — lateral izquierdo', grupo: 'Exterior' },
+  { slot: 'ext_lateral_der', label: 'Exterior — lateral derecho', grupo: 'Exterior' },
+  { slot: 'int_asientos_del', label: 'Interior — asientos delanteros', grupo: 'Interior' },
+  { slot: 'int_asientos_tras', label: 'Interior — asientos traseros / baúl', grupo: 'Interior' },
+];
+
+/** @deprecated usar fotoSlotsPara(frecuencia). Se mantiene por retrocompatibilidad. */
+export const FOTO_SLOTS: FotoSlot[] = FOTO_SLOTS_PREUSO;
+
+/** Devuelve los slots de foto según la frecuencia de la plantilla (Z11). */
+export function fotoSlotsPara(frecuencia: string | null | undefined): FotoSlot[] {
+  return frecuencia === 'semanal' ? FOTO_SLOTS_SEMANAL : FOTO_SLOTS_PREUSO;
+}
+
+/** Etiqueta legible de cualquier slot (une ambos sets + legado). Fallback = la clave. */
+const _SLOT_LABELS: Record<string, string> = Object.fromEntries(
+  [...FOTO_SLOTS_PREUSO, ...FOTO_SLOTS_SEMANAL].map((s) => [s.slot, s.label]),
+);
+export function slotLabel(slot: string | null | undefined): string {
+  if (!slot) return 'Foto';
+  return _SLOT_LABELS[slot] ?? slot;
+}
 
 export const CHECKLIST_TIPOS: { value: ChecklistTipo; label: string }[] = [
   { value: 'pre_uso', label: 'Pre-uso' },

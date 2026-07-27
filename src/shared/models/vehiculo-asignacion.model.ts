@@ -83,4 +83,9 @@ export interface ReporteSemanalFila {
   reporte_fecha: string | null;
   resultado: string | null;
   tiene_reporte: boolean;
+  // Z13a — quién reportó el semanal vigente de la semana (estado global por vehículo).
+  reportado_por: string | null;
+  reportado_por_id: string | null;
+  reportado_at: string | null;
+  km_reporte: number | null;
 }

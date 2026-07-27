@@ -862,3 +862,34 @@
   gap: 0.75rem;
   align-items: center;
 }
+
+// Z21 — diálogo de confirmación del almacén de la obra
+.art-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
+  display: grid; place-items: center; padding: 16px;
+}
+.art-modal {
+  background: var(--sgc-surface, #fff); border-radius: 14px; max-width: 560px; width: 100%;
+  max-height: 90vh; overflow-y: auto; padding: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  &--sm { max-width: 420px; }
+}
+.art-modal__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.art-modal__title { margin: 0; font-size: 18px; }
+.art-modal__close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--sgc-text-secondary); }
+.alm-prompt__text { margin: 14px 0 18px; line-height: 1.5; }
+
+// Z21 — banner de obras sin almacén
+.alm-faltantes {
+  margin: 0 0 16px; border: 1px solid var(--sgc-warning, #f0a500);
+  border-radius: 12px; background: color-mix(in srgb, var(--sgc-warning, #f0a500) 8%, transparent);
+}
+.alm-faltantes__head {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 16px; background: none; border: none; cursor: pointer; font-weight: 600;
+  color: var(--sgc-text, inherit);
+}
+.alm-faltantes__list { list-style: none; margin: 0; padding: 0 16px 12px; display: flex; flex-direction: column; gap: 8px;
+  li { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+}
+.alm-faltantes--inline { margin: 12px 0; }
+.alm-faltantes__inline { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }

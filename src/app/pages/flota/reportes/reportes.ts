@@ -18,6 +18,7 @@ interface VehiculoReport {
   placa: string;
   marca: string;
   modelo: string;
+  anio: number | null;
   tipo: string;
   estado: string;
   kilometraje: number;
@@ -27,7 +28,7 @@ interface VehiculoReport {
 interface MantenimientoReport {
   id: string;
   vehiculo_id: string;
-  vehiculo?: { placa: string; marca: string; modelo: string };
+  vehiculo?: { placa: string; marca: string; modelo: string; anio?: number | null };
   tipo: string;
   descripcion: string;
   fecha: string;
@@ -62,6 +63,7 @@ interface PlacaInfo {
   placa: string;
   marca: string;
   modelo: string;
+  anio: number | null;
   activo: boolean;
 }
 
@@ -122,6 +124,10 @@ export class FlotaReportes implements OnInit {
   resolverMarca(vehiculoId: string | null | undefined, embedded?: string | null): string {
     if (embedded) return embedded;
     return (vehiculoId && this.placaMap().get(vehiculoId)?.marca) || '';
+  }
+  resolverAnio(vehiculoId: string | null | undefined, embedded?: number | null): number | string {
+    if (embedded) return embedded;
+    return (vehiculoId && this.placaMap().get(vehiculoId)?.anio) || '';
   }
 
   // ── Summary computed ──────────────────────────────────────
@@ -207,7 +213,7 @@ export class FlotaReportes implements OnInit {
         this.supabase.client.from('vehiculos').select('*').order('placa'),
         this.supabase.client
           .from('mantenimientos')
-          .select('*, vehiculo:vehiculos(placa,marca,modelo)')
+          .select('*, vehiculo:vehiculos(placa,marca,modelo,anio)')
           .order('fecha', { ascending: false }),
         this.supabase.client
           .from('registros_combustible')

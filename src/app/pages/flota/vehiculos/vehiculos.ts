@@ -25,6 +25,7 @@ import {
   VehiculoFormData,
   VEHICULO_TIPOS,
   VEHICULO_ESTADOS,
+  VEHICULO_USOS,
   CAPACIDAD_UNIDADES,
   estadoVencimiento,
   VENCIMIENTO_LABEL,
@@ -109,6 +110,7 @@ export class FlotaVehiculos implements OnInit {
 
   readonly TIPOS = VEHICULO_TIPOS;
   readonly ESTADOS = VEHICULO_ESTADOS;
+  readonly USOS = VEHICULO_USOS;
   readonly CAPACIDAD_UNIDADES = CAPACIDAD_UNIDADES;
 
   form = new FormGroup({
@@ -123,6 +125,7 @@ export class FlotaVehiculos implements OnInit {
     ]),
     tipo: new FormControl('camion', [Validators.required]),
     estado: new FormControl('activo', [Validators.required]),
+    uso: new FormControl('obra', [Validators.required]),
     color: new FormControl<string | null>(null),
     kilometraje: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
     capacidad_valor: new FormControl<number | null>(null, [Validators.min(0)]),
@@ -239,7 +242,7 @@ export class FlotaVehiculos implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.resetFotos([]);
-    this.form.reset({ tipo: 'camion', estado: 'activo', kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000, es_prueba: false });
+    this.form.reset({ tipo: 'camion', estado: 'activo', uso: 'obra', kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -255,6 +258,7 @@ export class FlotaVehiculos implements OnInit {
       anio: vehiculo.anio,
       tipo: vehiculo.tipo,
       estado: vehiculo.estado,
+      uso: vehiculo.uso ?? 'obra',
       color: vehiculo.color,
       kilometraje: vehiculo.kilometraje,
       capacidad_valor: vehiculo.capacidad_valor,

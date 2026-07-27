@@ -453,6 +453,35 @@
         <div><dt>Tiempo real</dt><dd>{{ r.tiempo_real_min != null ? formatDur(r.tiempo_real_min) : '—' }}@if (tiempoDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="tiempoDesvio(r)! > 0">({{ tiempoDesvio(r)! > 0 ? '+' : '' }}{{ tiempoDesvio(r) }})</span> }</dd></div>
       </dl>
 
+      <!-- Z22.2 — Conduces y notas de voz asociados a la ruta -->
+      @if (detalleTransporte(); as t) {
+        @if (t.conduces.length > 0) {
+          <h4 class="ruta-detalle__title">Conduces de la ruta ({{ t.conduces.length }})</h4>
+          <ul class="ruta-conduces">
+            @for (c of t.conduces; track c.id) {
+              <li class="ruta-conduces__item">
+                <div class="ruta-conduces__head">
+                  <span class="ruta-conduces__cnd">CND-{{ c.id.slice(0, 8) }}</span>
+                  <span class="sgc-badge sgc-badge--{{ c.estado === 'entregado' ? 'success' : (c.estado === 'entregado_incompleto' ? 'warning' : 'neutral') }}">{{ c.estado }}</span>
+                  @if (c.destino) { <span class="text-muted">→ {{ c.destino }}</span> }
+                </div>
+                <div class="ruta-conduces__items">
+                  @for (it of c.items; track $index) {
+                    <span class="ruta-conduces__it">{{ it.cantidad }} {{ it.unidad }} · {{ it.articulo }}</span>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+        @if (t.notas_voz.length > 0) {
+          <h4 class="ruta-detalle__title">Notas de voz ({{ t.notas_voz.length }})</h4>
+          <p class="ruta-detalle__sub text-muted">{{ t.notas_voz.length }} nota(s) de voz registrada(s) en esta ruta.</p>
+        }
+      } @else if (detalleTransporteCargando()) {
+        <p class="ruta-detalle__sub text-muted">Cargando conduces…</p>
+      }
+
       <!-- Y4 — Tiempos reales del TAP (inicio/fin) capturados en la app -->
       @if (r.iniciada_at || r.finalizada_at) {
         <h4 class="ruta-detalle__title">Tiempo real de la ruta</h4>

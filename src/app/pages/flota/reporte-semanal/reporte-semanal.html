@@ -82,7 +82,7 @@
     <div class="table-scroll">
       <table class="data-table" aria-label="Detalle de la semana actual">
         <thead>
-          <tr><th>Placa</th><th>Chofer</th><th class="text-center">¿Reportó?</th><th>Fecha reporte</th><th>Resultado</th></tr>
+          <tr><th>Placa</th><th>Chofer</th><th class="text-center">¿Reportó?</th><th>Reporte</th><th>Resultado</th></tr>
         </thead>
         <tbody>
           @for (f of semanaActual()!.filas; track f.vehiculo_id) {
@@ -92,7 +92,12 @@
               <td class="text-center">
                 @if (f.tiene_reporte) { <span class="rs-check">✓</span> } @else { <span class="rs-cross">✕</span> }
               </td>
-              <td>{{ f.reporte_fecha ? (toDate(f.reporte_fecha) | date:'dd/MM/yyyy') : '—' }}</td>
+              <td>
+                @if (f.tiene_reporte) {
+                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}
+                  <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
+                } @else { — }
+              </td>
               <td>
                 @if (f.tiene_reporte) {
                   <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
@@ -127,7 +132,7 @@
               <div class="table-scroll rs-acc-body">
                 <table class="data-table" aria-label="Detalle semana {{ g.semana }}/{{ g.anio }}">
                   <thead>
-                    <tr><th>Placa</th><th>Chofer</th><th class="text-center">¿Reportó?</th><th>Fecha reporte</th><th>Resultado</th></tr>
+                    <tr><th>Placa</th><th>Chofer</th><th class="text-center">¿Reportó?</th><th>Reporte</th><th>Resultado</th></tr>
                   </thead>
                   <tbody>
                     @for (f of g.filas; track f.vehiculo_id) {
@@ -137,7 +142,12 @@
                         <td class="text-center">
                           @if (f.tiene_reporte) { <span class="rs-check">✓</span> } @else { <span class="rs-cross">✕</span> }
                         </td>
-                        <td>{{ f.reporte_fecha ? (toDate(f.reporte_fecha) | date:'dd/MM/yyyy') : '—' }}</td>
+                        <td>
+                @if (f.tiene_reporte) {
+                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}
+                  <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
+                } @else { — }
+              </td>
                         <td>
                           @if (f.tiene_reporte) {
                             <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
@@ -182,7 +192,14 @@
                 Llenar reporte
               </a>
             } @else {
-              <span class="rs-muted">{{ f.reporte_fecha ? (toDate(f.reporte_fecha) | date:'dd/MM/yyyy') : '' }}</span>
+              <span class="rs-reportado">
+                Ya reportado por <strong>{{ f.reportado_por ?? f.chofer_nombre ?? '—' }}</strong>
+                @if (f.reporte_fecha) { · {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }} }
+                @if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }
+              </span>
+              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">
+                Rehacer
+              </a>
             }
           </li>
         }

@@ -12,7 +12,7 @@ import {
   forwardRef,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Vehiculo } from '../../models/vehiculo.model';
+import { Vehiculo, descripcionVehiculo } from '../../models/vehiculo.model';
 import { VehiculosService } from '../../services/vehiculos.service';
 
 /**
@@ -90,7 +90,7 @@ export class VehiculoPicker implements ControlValueAccessor {
   }
 
   vehiculoLabel(v: Vehiculo): string {
-    return `${v.placa} — ${v.marca} ${v.modelo}`;
+    return `${v.placa} — ${descripcionVehiculo(v)}`;
   }
 
   toggle() {

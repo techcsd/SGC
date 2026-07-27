@@ -339,9 +339,11 @@ export class RegistrarEntrega implements OnInit {
     this.error.set(e instanceof Error ? e.message : 'No se pudo registrar la entrega.');
   }
 
-  /** W3 — confirmar el handover (solo roles elevados). Reintenta sin re-subir. */
+  /** W3/Z14 — confirmar el handover. Cualquier usuario que pueda registrar la
+   *  entrega (módulo flota) puede recibir el vehículo aunque lo tenga otro: cierra
+   *  la entrega anterior y deja la cadena registrada. Reintenta sin re-subir. */
   async confirmarHandover() {
-    if (!this.handoverPendiente || !this.esFlotaElevado || this.saving()) return;
+    if (!this.handoverPendiente || this.saving()) return;
     this.saving.set(true);
     this.error.set('');
     try {

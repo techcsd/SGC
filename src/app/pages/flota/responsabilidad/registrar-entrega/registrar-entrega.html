@@ -140,20 +140,15 @@
         🔁 <strong>{{ h.conductor }}</strong> tiene este vehículo desde el
         {{ h.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} km).
       </p>
-      @if (esFlotaElevado) {
-        <p>Al confirmar, se cerrará esa entrega como devolución y el vehículo quedará a tu nombre.</p>
-        <div class="re-handover-actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarHandover()">Cancelar</button>
-          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="confirmarHandover()">
-            @if (saving()) { Procesando… } @else { Cerrar entrega anterior y recibir }
-          </button>
-        </div>
-      } @else {
-        <p>No tienes permiso para cerrar la entrega de otro conductor. Pide a un responsable de flota que lo haga.</p>
-        <div class="re-handover-actions">
-          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarHandover()">Entendido</button>
-        </div>
-      }
+      <!-- Z14 — el handover deja de ser un muro: quien recibe puede tomarlo, cerrando
+           la entrega anterior y dejando la cadena registrada (quién lo tenía → quién recibe). -->
+      <p>Al confirmar, se cerrará esa entrega como devolución y el vehículo quedará a tu nombre. La cadena queda registrada en el historial.</p>
+      <div class="re-handover-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarHandover()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="confirmarHandover()">
+          @if (saving()) { Procesando… } @else { Recibir de todas formas }
+        </button>
+      </div>
     </div>
   }
 

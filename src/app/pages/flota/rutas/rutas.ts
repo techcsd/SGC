@@ -10,7 +10,7 @@ import {
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { RutasService } from '../../../../shared/services/rutas.service';
+import { RutasService, RutaDetalleTransporte } from '../../../../shared/services/rutas.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -113,9 +113,26 @@ export class Rutas implements OnInit {
     return r ? destinoCoords(r) : null;
   });
 
+  /** Z22.2 — conduces + notas de voz de la ruta en detalle. */
+  detalleTransporte = signal<RutaDetalleTransporte | null>(null);
+  detalleTransporteCargando = signal(false);
+
   openDetail(r: Ruta) {
     this.detailRuta.set(r);
     this.detailOpen.set(true);
+    this.cargarTransporte(r.id);
+  }
+
+  private async cargarTransporte(rutaId: string) {
+    this.detalleTransporte.set(null);
+    this.detalleTransporteCargando.set(true);
+    try {
+      this.detalleTransporte.set(await this.rutasService.getDetalleTransporte(rutaId));
+    } catch {
+      /* no bloquea el detalle si falla */
+    } finally {
+      this.detalleTransporteCargando.set(false);
+    }
   }
   closeDetail() {
     this.detailOpen.set(false);

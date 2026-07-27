@@ -38,6 +38,7 @@ import {
 import { ProyectoAvance } from '../../../../shared/models/proyecto-partida.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
+import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -80,6 +81,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
   private empleadosService = inject(EmpleadosService);
+  private bodegasService = inject(BodegasService);
   private supabase = inject(SupabaseService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
@@ -253,6 +255,7 @@ export class Lista implements OnInit {
       this.loadUsuarios(),
       this.loadEmpleados(),
       this.loadReadiness(),
+      this.loadAlmacenes(),
     ]);
     // Q3 — drill-down desde el dashboard: filtrar por estado (?estado=en_progreso).
     const qp = this.route.snapshot.queryParamMap;
@@ -476,6 +479,8 @@ export class Lista implements OnInit {
       } else {
         const created = await this.proyectosService.create(payload);
         this.proyectos.update((list) => [created, ...list]);
+        // Z21 — toda obra debe tener almacén: ofrecer crearlo (con confirmación).
+        this.almacenPrompt.set(created);
       }
       this.drawerOpen.set(false);
     } catch (e: unknown) {
@@ -483,6 +488,67 @@ export class Lista implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  // ── Z21 — almacén obligatorio por obra ─────────────────────
+  /** Proyecto recién creado pendiente de decidir su almacén (dispara el diálogo). */
+  almacenPrompt = signal<Proyecto | null>(null);
+  creandoAlmacen = signal(false);
+  /** IDs de proyecto que ya tienen almacén (Z21 faltantes). */
+  proyectosConAlmacen = signal<Set<string>>(new Set());
+  /** Banner admin de obras sin almacén: expandido/colapsado. */
+  faltantesAlmacenAbierto = signal(false);
+
+  /** Obras activas/planificación sin almacén (no incluye completadas/canceladas). */
+  obrasSinAlmacen = computed(() => {
+    const con = this.proyectosConAlmacen();
+    return this.proyectos().filter(
+      (p) => !con.has(p.id) && p.estado !== 'completado' && p.estado !== 'cancelado',
+    );
+  });
+
+  private async loadAlmacenes() {
+    try {
+      this.proyectosConAlmacen.set(new Set(await this.bodegasService.getProyectoIdsConAlmacen()));
+    } catch {
+      /* best-effort: sin esto, el banner de faltantes no aparece */
+    }
+  }
+
+  /** Z21 — ¿la obra seleccionada en el detalle tiene almacén? */
+  tieneAlmacen(proyectoId: string | null | undefined): boolean {
+    return !!proyectoId && this.proyectosConAlmacen().has(proyectoId);
+  }
+
+  /** Crea "Almacén {obra}" ligado al proyecto (principal). Sirve al diálogo de alta
+   *  y al banner/detalle de obras existentes sin almacén. */
+  async crearAlmacenParaObra(proyecto?: Proyecto) {
+    const proy = proyecto ?? this.almacenPrompt();
+    if (!proy || this.creandoAlmacen()) return;
+    this.creandoAlmacen.set(true);
+    try {
+      await this.bodegasService.create({
+        nombre: `Almacén ${proy.nombre}`,
+        descripcion: null,
+        ubicacion: null,
+        activo: true,
+        proyecto_id: proy.id,
+        es_principal: true,
+        latitud: proy.latitud ?? null,
+        longitud: proy.longitud ?? null,
+      });
+      this.toast.success('Almacén creado', `Se creó "Almacén ${proy.nombre}" para la obra.`);
+      this.almacenPrompt.set(null);
+      this.proyectosConAlmacen.update((s) => new Set(s).add(proy.id));
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear el almacén', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.creandoAlmacen.set(false);
+    }
+  }
+
+  descartarAlmacenPrompt() {
+    this.almacenPrompt.set(null);
   }
 
   // ── Detail Drawer ────────────────────────────────────────

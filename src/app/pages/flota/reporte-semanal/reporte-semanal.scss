@@ -72,3 +72,7 @@
   &--ok { border-color: var(--sgc-success, #2e7d32); }
 }
 .rs-mine__veh { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+// Z13a — estado global "Ya reportado por {nombre}"
+.rs-reportado { color: var(--sgc-text-secondary); font-size: 13px; margin-right: 10px; }
+.rs-small { display: block; font-size: 12px; }

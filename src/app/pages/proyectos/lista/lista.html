@@ -36,6 +36,30 @@
     </div>
   </div>
 
+  <!-- Z21 — Banner: obras sin almacén (admin / módulo Proyectos) -->
+  @if (puedeGestionarResponsables() && obrasSinAlmacen().length > 0) {
+    <div class="alm-faltantes" role="note">
+      <button type="button" class="alm-faltantes__head" (click)="faltantesAlmacenAbierto.set(!faltantesAlmacenAbierto())"
+              [attr.aria-expanded]="faltantesAlmacenAbierto()">
+        <span>⚠️ {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
+        <span aria-hidden="true">{{ faltantesAlmacenAbierto() ? '▾' : '▸' }}</span>
+      </button>
+      @if (faltantesAlmacenAbierto()) {
+        <ul class="alm-faltantes__list">
+          @for (p of obrasSinAlmacen(); track p.id) {
+            <li>
+              <span>{{ p.nombre }}</span>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                      [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
+                Crear «Almacén {{ p.nombre }}»
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
   <!-- Filters -->
   <div class="proyectos__filters">
     <input
@@ -365,6 +389,21 @@
         </div>
         <h2 class="proyectos__detail-nombre">{{ p.nombre }}</h2>
       </div>
+
+      <!-- Z21 — banner: esta obra no tiene almacén -->
+      @if (!tieneAlmacen(p.id) && p.estado !== 'completado' && p.estado !== 'cancelado') {
+        <div class="alm-faltantes alm-faltantes--inline" role="note">
+          <div class="alm-faltantes__inline">
+            <span>⚠️ Esta obra no tiene almacén asignado.</span>
+            @if (puedeGestionarResponsables()) {
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                      [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
+                Crear «Almacén {{ p.nombre }}»
+              </button>
+            }
+          </div>
+        </div>
+      }
 
       <!-- Info grid -->
       <div class="proyectos__detail-grid">
@@ -927,3 +966,26 @@
     </div>
   </form>
 </app-form-drawer>
+
+<!-- ── Z21 — Confirmar creación del almacén de la obra recién creada ── -->
+@if (almacenPrompt(); as proy) {
+  <div class="art-modal-backdrop" (click)="descartarAlmacenPrompt()">
+    <div class="art-modal art-modal--sm" role="dialog" aria-modal="true"
+         aria-label="Crear almacén de la obra" (click)="$event.stopPropagation()">
+      <div class="art-modal__head">
+        <h2 class="art-modal__title">Almacén de la obra</h2>
+        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="alm-prompt__text">
+        Toda obra debe tener un almacén. ¿Crear <strong>«Almacén {{ proy.nombre }}»</strong> ahora?
+        Podrás vincular artículos y registrar entradas/salidas desde él.
+      </p>
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descartarAlmacenPrompt()">Ahora no</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra()">
+          @if (creandoAlmacen()) { Creando… } @else { Crear «Almacén {{ proy.nombre }}» }
+        </button>
+      </div>
+    </div>
+  </div>
+}

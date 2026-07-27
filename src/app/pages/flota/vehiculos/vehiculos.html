@@ -138,7 +138,7 @@
 
           <div class="flota-vehiculos__card-body">
             <p class="flota-vehiculos__placa">{{ v.placa }}</p>
-            <p class="flota-vehiculos__name">{{ v.marca }} {{ v.modelo }}</p>
+            <p class="flota-vehiculos__name">{{ v.marca }} {{ v.modelo }} {{ v.anio }}</p>
             <p class="flota-vehiculos__anio">Año {{ v.anio }}</p>
             @if (v.vin) {
               <p class="flota-vehiculos__vin" [title]="'VIN: ' + v.vin">VIN: {{ v.vin }}</p>
@@ -322,6 +322,18 @@
             <option [value]="e.value">{{ e.label }}</option>
           }
         </select>
+      </div>
+    </div>
+
+    <div class="flota-vehiculos__form-row">
+      <div class="sgc-field">
+        <label for="uso">Uso <span class="required" aria-hidden="true">*</span></label>
+        <select id="uso" formControlName="uso" aria-required="true">
+          @for (u of USOS; track u.value) {
+            <option [value]="u.value">{{ u.label }}</option>
+          }
+        </select>
+        <small class="sgc-field__hint">Obra usa el pre-uso completo; Administrativo, uno reducido.</small>
       </div>
     </div>
 

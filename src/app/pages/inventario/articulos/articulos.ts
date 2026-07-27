@@ -15,7 +15,14 @@ import { ArticulosService } from '../../../../shared/services/articulos.service'
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { StockService } from '../../../../shared/services/stock.service';
 import { UnidadesService } from '../../../../shared/services/unidades.service';
-import { Articulo, ArticuloFormData } from '../../../../shared/models/articulo.model';
+import {
+  Articulo,
+  ArticuloFormData,
+  ARTICULO_PROPIEDADES,
+  propiedadLabel,
+  propiedadBadge,
+} from '../../../../shared/models/articulo.model';
+import { StockPorBodega } from '../../../../shared/models/stock.model';
 import { Unidad } from '../../../../shared/models/unidad.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -74,7 +81,29 @@ export class Articulos implements OnInit {
     activo: new FormControl<boolean>(true),
     requiere_talla: new FormControl<boolean>(false, { nonNullable: true }),
     nota: new FormControl<string | null>(null),
+    propiedad: new FormControl<'propio_csd' | 'alquilado'>('propio_csd', { nonNullable: true }),
   }, { validators: maxGteMin('stock_minimo', 'stock_maximo') });
+
+  // ── Z16/Z17 — propiedad + foto ────────────────────────────
+  readonly PROPIEDADES = ARTICULO_PROPIEDADES;
+  readonly propiedadLabel = propiedadLabel;
+  readonly propiedadBadge = propiedadBadge;
+
+  /** Foto seleccionada en el formulario (aún sin subir) + preview local. */
+  private fotoFile: File | null = null;
+  fotoPreview = signal<string | null>(null);
+  /** Path/URL de la imagen ya guardada del artículo en edición. */
+  imagenActualUrl = signal<string | null>(null);
+
+  /** Thumbnails firmados por artículo (para la lista). */
+  fotoThumbs = signal<Record<string, string>>({});
+
+  // ── Detalle (modal W11) ───────────────────────────────────
+  detalle = signal<Articulo | null>(null);
+  detalleFotoUrl = signal<string | null>(null);
+  detalleStock = signal<StockPorBodega[]>([]);
+  detalleMovs = signal<{ tipo: string; fecha: string; cantidad: number; bodega: string | null; proyecto: string | null }[]>([]);
+  detalleLoading = signal(false);
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -135,6 +164,7 @@ export class Articulos implements OnInit {
       this.articles.set(arts);
       this.stockMap.set(this.stockService.buildTotalMap(stock));
       this.unidades.set(unidades);
+      this.resolverThumbs();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -200,13 +230,15 @@ export class Articulos implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, stock_minimo: 0 });
+    this.resetFoto(null);
+    this.form.reset({ activo: true, stock_minimo: 0, propiedad: 'propio_csd', requiere_talla: false });
     this.drawerOpen.set(true);
   }
 
   openEdit(article: Articulo) {
     this.editingId.set(article.id);
     this.saveError.set('');
+    this.resetFoto(article.imagen_url ?? null);
     this.form.reset({
       codigo: article.codigo,
       nombre: article.nombre,
@@ -219,12 +251,43 @@ export class Articulos implements OnInit {
       activo: article.activo,
       requiere_talla: article.requiere_talla ?? false,
       nota: article.nota ?? null,
+      propiedad: article.propiedad ?? 'propio_csd',
     });
     this.drawerOpen.set(true);
   }
 
   closeDrawer() {
     this.drawerOpen.set(false);
+  }
+
+  // ── Z17 — foto en el formulario ───────────────────────────
+  private async resetFoto(imagenUrl: string | null) {
+    this.fotoFile = null;
+    this.fotoPreview.set(null);
+    this.imagenActualUrl.set(null);
+    if (imagenUrl) {
+      try {
+        this.imagenActualUrl.set(await this.articulosService.getFotoUrl(imagenUrl, { width: 320, quality: 80 }));
+      } catch {
+        /* imagen no resoluble → sin preview */
+      }
+    }
+  }
+
+  onFotoSeleccionada(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (!file) return;
+    this.fotoFile = file;
+    this.fotoPreview.set(URL.createObjectURL(file));
+  }
+
+  quitarFoto() {
+    this.fotoFile = null;
+    this.fotoPreview.set(null);
+    this.imagenActualUrl.set(null);
+    // Marca para borrar la imagen guardada al salvar.
+    this.form.markAsDirty();
   }
 
   async onSave() {
@@ -234,24 +297,87 @@ export class Articulos implements OnInit {
     this.saving.set(true);
     this.saveError.set('');
 
-    const payload = this.form.value as ArticuloFormData;
+    const payload = this.form.getRawValue() as unknown as ArticuloFormData;
+    // imagen_url: si se quitó la foto y no hay nueva, se limpia; si no cambió, se
+    // conserva (no lo mandamos para no pisarlo).
+    if (!this.fotoFile && !this.imagenActualUrl()) payload.imagen_url = null;
 
     try {
       const id = this.editingId();
       if (id) {
+        if (this.fotoFile) {
+          payload.imagen_url = await this.articulosService.uploadFoto(id, this.fotoFile);
+        } else if (this.imagenActualUrl()) {
+          delete payload.imagen_url; // sin cambio de foto → no tocar
+        }
         const updated = await this.articulosService.update(id, payload);
         this.articles.update((list) => list.map((a) => (a.id === id ? updated : a)));
       } else {
         const created = await this.articulosService.create(payload);
-        this.articles.update((list) => [created, ...list]);
+        if (this.fotoFile) {
+          const path = await this.articulosService.uploadFoto(created.id, this.fotoFile);
+          const updated = await this.articulosService.update(created.id, { imagen_url: path });
+          this.articles.update((list) => [updated, ...list]);
+        } else {
+          this.articles.update((list) => [created, ...list]);
+        }
       }
       this.drawerOpen.set(false);
+      this.resolverThumbs();
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
       this.saving.set(false);
     }
   }
+
+  // ── Z17 — thumbnails de la lista ──────────────────────────
+  /** Resuelve (perezosamente) los thumbnails firmados de los artículos con foto. */
+  async resolverThumbs() {
+    const pend = this.articles().filter((a) => a.imagen_url && !this.fotoThumbs()[a.id]);
+    for (const a of pend) {
+      try {
+        const url = await this.articulosService.getFotoUrl(a.imagen_url!, { width: 96, height: 96, quality: 70 });
+        this.fotoThumbs.update((m) => ({ ...m, [a.id]: url }));
+      } catch {
+        /* ignora fotos irresolubles */
+      }
+    }
+  }
+
+  thumbDe(a: Articulo): string | null {
+    return this.fotoThumbs()[a.id] ?? null;
+  }
+
+  // ── Z17 — detalle del artículo (modal) ────────────────────
+  async abrirDetalle(a: Articulo) {
+    this.detalle.set(a);
+    this.detalleFotoUrl.set(null);
+    this.detalleStock.set([]);
+    this.detalleMovs.set([]);
+    this.detalleLoading.set(true);
+    try {
+      const [stock, movs] = await Promise.all([
+        this.stockService.getByArticulo(a.id),
+        this.articulosService.getUltimosMovimientos(a.id, 10),
+      ]);
+      this.detalleStock.set(stock);
+      this.detalleMovs.set(movs);
+      if (a.imagen_url) {
+        this.detalleFotoUrl.set(await this.articulosService.getFotoUrl(a.imagen_url, { width: 640, quality: 85 }));
+      }
+    } catch {
+      /* detalle parcial si falla algo */
+    } finally {
+      this.detalleLoading.set(false);
+    }
+  }
+
+  cerrarDetalle() {
+    this.detalle.set(null);
+  }
+
+  detalleStockTotal = computed(() => this.detalleStock().reduce((s, r) => s + (r.cantidad ?? 0), 0));
 
   // ── Actions ──────────────────────────────────────────────
   async toggleActivo(article: Articulo) {
@@ -265,6 +391,19 @@ export class Articulos implements OnInit {
       // revert on error
       this.articles.update((list) =>
         list.map((a) => (a.id === article.id ? { ...a, activo: !next } : a)),
+      );
+    }
+  }
+
+  /** Z16 — marca rápida de propiedad desde el listado (backfill). Optimista. */
+  async togglePropiedad(article: Articulo) {
+    const next = (article.propiedad ?? 'propio_csd') === 'alquilado' ? 'propio_csd' : 'alquilado';
+    this.articles.update((list) => list.map((a) => (a.id === article.id ? { ...a, propiedad: next } : a)));
+    try {
+      await this.articulosService.setPropiedad(article.id, next);
+    } catch {
+      this.articles.update((list) =>
+        list.map((a) => (a.id === article.id ? { ...a, propiedad: article.propiedad } : a)),
       );
     }
   }
