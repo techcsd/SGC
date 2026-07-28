@@ -394,6 +394,11 @@
             @if (detailTableroUrl()) { <a [href]="detailTableroUrl()" target="_blank" rel="noopener"><img [src]="detailTableroUrl()" alt="Tablero" /></a> }
             @else { <div class="detail__photo-empty">Sin foto</div> }
           </div>
+          <div class="detail__photo">
+            <span class="detail__label">Bomba en 0</span>
+            @if (detailBombaUrl()) { <a [href]="detailBombaUrl()" target="_blank" rel="noopener"><img [src]="detailBombaUrl()" alt="Bomba en 0" /></a> }
+            @else { <div class="detail__photo-empty">Sin foto</div> }
+          </div>
         </div>
       }
 

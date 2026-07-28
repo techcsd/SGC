@@ -91,6 +91,7 @@ export class Combustible implements OnInit {
   selected = signal<RegistroCombustible | null>(null);
   detailReciboUrl = signal<string | null>(null);
   detailTableroUrl = signal<string | null>(null);
+  detailBombaUrl = signal<string | null>(null); // Y4 — 3ª foto (bomba en 0)
   loadingDetail = signal(false);
 
   readonly today = todayIso();
@@ -406,14 +407,17 @@ export class Combustible implements OnInit {
     this.selected.set(row);
     this.detailReciboUrl.set(null);
     this.detailTableroUrl.set(null);
+    this.detailBombaUrl.set(null); // Y4
     this.loadingDetail.set(true);
     try {
-      const [recibo, tablero] = await Promise.all([
+      const [recibo, tablero, bomba] = await Promise.all([
         this.combustibleService.getFotoUrl(row.foto_recibo_path),
         this.combustibleService.getFotoUrl(row.foto_tablero_path),
+        this.combustibleService.getFotoUrl(row.foto_bomba_path), // Y4
       ]);
       this.detailReciboUrl.set(recibo);
       this.detailTableroUrl.set(tablero);
+      this.detailBombaUrl.set(bomba); // Y4
     } finally {
       this.loadingDetail.set(false);
     }

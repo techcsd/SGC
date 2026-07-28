@@ -23,6 +23,8 @@ export interface RegistroCombustible {
   costo_por_km: number | null;
   foto_recibo_path: string | null;
   foto_tablero_path: string | null;
+  // Y4 — 3ª foto: bomba/estación en 0 (app móvil). Aditivo/retrocompatible.
+  foto_bomba_path: string | null;
   alerta_consumo: boolean;
   // U10 — motivo legible del disparo de la alerta (esperado / propio / piso absoluto).
   motivo_alerta: string | null;
