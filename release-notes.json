@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.34.1": {
+      "titulo": "Monitoreo de Infraestructura: alertas por correo (canal principal)",
+      "cambios": [
+        { "t": "mejora", "d": "Las alertas del monitoreo ahora llegan por correo como canal principal (más cómodo que un bot), enviadas desde el dominio del sistema — independiente del dominio vigilado, así siguen saliendo aunque el dominio de la empresa se caiga." },
+        { "t": "mejora", "d": "Telegram queda como canal opcional adicional; ya no es necesario para recibir las alertas." }
+      ]
+    },
     "1.34.0": {
       "titulo": "Monitoreo de Infraestructura: vigilancia de dominios, DNS y suscripciones con alertas anticipadas",
       "cambios": [

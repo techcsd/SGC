@@ -4,28 +4,31 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Y17 — check-domains (SGC-CSI-MOD-01). Corre checks sin API keys: DoH
 // (dns.google) para resolución/MX/SPF/DKIM + RDAP (rdap.org) para clientHold y
 // expiración + HTTP para web-up/SSL. Inserta en domain_checks, crea/actualiza
-// alertas SOLO en cambio de estado (dedup en sgc.raise_infra_alert) y envía
-// Telegram. Lo invoca pg_cron vía net.http_post con x-sync-secret. --no-verify-jwt.
+// alertas SOLO en cambio de estado (dedup en sgc.raise_infra_alert) y notifica.
+// Canal PRIMARIO: correo (Resend desde sgcconstructorasd.com, independiente del
+// dominio vigilado). Telegram opcional si TELEGRAM_BOT_TOKEN está seteado.
+// Lo invoca pg_cron vía net.http_post con x-sync-secret. --no-verify-jwt.
 
 type Status = "ok" | "warning" | "critical";
 type Sev = "info" | "media" | "alta" | "critica";
+// deno-lint-ignore no-explicit-any
+type SB = any;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
-
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 async function doh(name: string, type: string): Promise<{ Status: number; Answer?: { data: string }[] }> {
   const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${type}`, {
     headers: { accept: "application/dns-json" },
   });
   return await r.json();
 }
-
 function cleanHost(s: string): string {
   return s.replace(/^\d+\s+/, "").replace(/\.$/, "").toLowerCase().trim();
 }
-
-// Umbral de expiración → severidad (notas §2).
 function expirySeverity(days: number): Sev | null {
   if (days <= 7) return "critica";
   if (days <= 14) return "alta";
@@ -33,24 +36,48 @@ function expirySeverity(days: number): Sev | null {
   if (days <= 60) return "info";
   return null;
 }
+const SEV_PREFIX: Record<Sev, string> = { info: "ℹ️", media: "🟡", alta: "🟠", critica: "🔴" };
 
-async function sendTelegram(text: string): Promise<Record<string, unknown>> {
+// Destinatarios de alerta: INFRA_ALERT_EMAILS (coma) o, si no, los usuarios con
+// módulo tecnologia/admin. Debe incluir al menos una dirección EXTERNA al dominio.
+async function recipients(sb: SB): Promise<string[]> {
+  const cfg = (Deno.env.get("INFRA_ALERT_EMAILS") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (cfg.length) return cfg;
+  const { data } = await sb.rpc("usuarios_con_modulo", { p_modulo: "tecnologia" });
+  return [...new Set(((data ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean))];
+}
+
+async function sendEmail(sb: SB, to: string[], subject: string, html: string): Promise<Record<string, unknown>> {
+  if (!to.length) return { channel: "email", skipped: "sin destinatarios" };
+  const { data: key } = await sb.rpc("get_resend_api_key");
+  if (!key) return { channel: "email", skipped: "Resend key no configurada" };
+  const from = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to, subject, html }),
+    });
+    return { channel: "email", ok: r.ok, at: new Date().toISOString() };
+  } catch (e) {
+    return { channel: "email", error: e instanceof Error ? e.message : "fail" };
+  }
+}
+async function sendTelegram(text: string): Promise<Record<string, unknown> | null> {
   const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const chatId = Deno.env.get("TELEGRAM_ALERT_CHAT_ID");
-  if (!token || !chatId) return { channel: "telegram", skipped: "TELEGRAM_BOT_TOKEN/CHAT_ID no configurados" };
+  if (!token || !chatId) return null; // opcional
   try {
     const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
     });
-    return { channel: "telegram", ok: r.ok, at: new Date().toISOString() };
+    return { channel: "telegram", ok: r.ok };
   } catch (e) {
     return { channel: "telegram", error: e instanceof Error ? e.message : "fail" };
   }
 }
-
-const SEV_PREFIX: Record<Sev, string> = { info: "ℹ️", media: "🟡", alta: "🟠", critica: "🔴" };
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204 });
@@ -63,6 +90,7 @@ Deno.serve(async (req: Request) => {
     { db: { schema: "sgc" } },
   );
 
+  const to = await recipients(sb);
   const { data: domains } = await sb.from("monitored_domains").select("*").eq("is_active", true);
   const results: unknown[] = [];
 
@@ -72,15 +100,20 @@ Deno.serve(async (req: Request) => {
     const checks: { type: string; status: Status; detail: string; raw?: unknown }[] = [];
     let expires: string | null = null;
 
-    // Helper para registrar aviso + notificar.
     const raise = async (alertType: string, sev: Sev, msg: string) => {
       const { data } = await sb.rpc("raise_infra_alert", {
         p_source_type: "domain", p_source_id: id, p_alert_type: alertType, p_severity: sev, p_message: msg,
       });
       const res = data as { alert_id: string; should_notify: boolean } | null;
       if (res?.should_notify) {
-        const ch = await sendTelegram(`${SEV_PREFIX[sev]} <b>${domain}</b>\n${msg}`);
-        await sb.rpc("mark_alert_notified", { p_alert_id: res.alert_id, p_channels: [ch] });
+        const channels: Record<string, unknown>[] = [];
+        const subject = `${SEV_PREFIX[sev]} Alerta ${sev} · ${domain}`;
+        const html = `<h2 style="margin:0 0 8px">${SEV_PREFIX[sev]} ${esc(domain)}</h2><p>${esc(msg)}</p>` +
+          `<p style="margin-top:12px">SGC → Tecnología → Monitoreo de Infraestructura para reconocer la alerta.</p>`;
+        channels.push(await sendEmail(sb, to, subject, html));
+        const tg = await sendTelegram(`${SEV_PREFIX[sev]} <b>${domain}</b>\n${msg}`);
+        if (tg) channels.push(tg);
+        await sb.rpc("mark_alert_notified", { p_alert_id: res.alert_id, p_channels: channels });
       }
     };
     const resolve = (alertType: string) =>
@@ -124,18 +157,14 @@ Deno.serve(async (req: Request) => {
       const spf = records.find((r) => r.includes("v=spf1")) ?? "";
       const incs = (d.expected_spf_includes as string[]) ?? [];
       const missing = incs.filter((i) => !spf.includes(i));
-      if (!spf) {
-        checks.push({ type: "spf", status: "warning", detail: "Sin registro SPF" });
-      } else if (missing.length) {
-        checks.push({ type: "spf", status: "warning", detail: `SPF sin: ${missing.join(", ")}`, raw: { spf } });
-      } else {
-        checks.push({ type: "spf", status: "ok", detail: spf });
-      }
+      if (!spf) checks.push({ type: "spf", status: "warning", detail: "Sin registro SPF" });
+      else if (missing.length) checks.push({ type: "spf", status: "warning", detail: `SPF sin: ${missing.join(", ")}`, raw: { spf } });
+      else checks.push({ type: "spf", status: "ok", detail: spf });
     } catch (e) {
       checks.push({ type: "spf", status: "warning", detail: `Error: ${e}` });
     }
 
-    // 4) DKIM (selector._domainkey)
+    // 4) DKIM
     const selector = d.dkim_selector as string | null;
     if (selector) {
       try {
@@ -177,7 +206,7 @@ Deno.serve(async (req: Request) => {
       checks.push({ type: "rdap_status", status: "warning", detail: `Error RDAP: ${e}` });
     }
 
-    // 6) HTTP/SSL — web responde 200 (un cert vencido rompe el fetch https → critical)
+    // 6) HTTP/SSL — web responde 200 (cert vencido rompe el fetch https → critical)
     if (d.check_ssl) {
       try {
         const r = await fetch(`https://${domain}`, { method: "GET", redirect: "manual" });
@@ -190,15 +219,13 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Persistir checks + estado denormalizado.
     const rows = checks.map((c) => ({ domain_id: id, check_type: c.type, status: c.status, detail: c.detail, raw_response: c.raw ?? null }));
     if (rows.length) await sb.from("domain_checks").insert(rows);
     const worst: Status = checks.some((c) => c.status === "critical") ? "critical"
       : checks.some((c) => c.status === "warning") ? "warning" : "ok";
     await sb.rpc("set_domain_status", { p_domain_id: id, p_status: worst, p_expires: expires });
-
     results.push({ domain, status: worst, checks: checks.length, expires });
   }
 
-  return json({ ok: true, domains: results });
+  return json({ ok: true, recipients: to.length, domains: results });
 });
