@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.34.2';
-export const APP_VERSION_TITULO: string | null = "Rol Tecnología puede marcar versiones de la app como publicada/mínima";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"Quien tenga el rol Tecnología ahora puede marcar una versión de la app como publicada o como mínima. Crear, editar o eliminar versiones sigue reservado a administradores (a futuro, al rol Desarrollador de software)."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/c1f98c5";
+export const APP_VERSION = '1.35.0';
+export const APP_VERSION_TITULO: string | null = "Correcciones de datos de prueba (flota/conductores) y datos de prueba en todos los módulos";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"arreglo","d":"Corregido el error al marcar un vehículo como dato de prueba (\"record new has no field es_prueba_origen\")."},{"t":"arreglo","d":"Editar el perfil de un conductor ya no falla por cédula duplicada; si la cédula pertenece a otra cuenta, ahora se muestra un mensaje claro."},{"t":"arreglo","d":"\"Estados de conductores\" ya no muestra conductores de prueba a usuarios normales; solo el administrador los ve con el interruptor \"Mostrar datos de prueba\"."},{"t":"mejora","d":"La tarjeta de un vehículo de prueba ya no se descuadra: el botón de eliminar dato de prueba pasó a ser un ícono compacto."},{"t":"nuevo","d":"Ahora se pueden marcar como dato de prueba también proyectos, almacenes, empleados, proveedores, órdenes de compra, artículos, activos fijos y conteos — con cascada a sus derivados y ocultos para usuarios normales."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/df36864";

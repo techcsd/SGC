@@ -54,6 +54,7 @@ export interface ConductorStats {
   ultima_echada: string | null;
   vehiculos_usados: number;
   ultima_actividad: string | null;
+  es_prueba?: boolean;
 }
 
 export const ESTADO_LICENCIA_LABEL: Record<EstadoLicencia, string> = {

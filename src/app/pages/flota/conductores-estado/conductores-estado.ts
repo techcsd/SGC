@@ -9,6 +9,8 @@ import {
 } from '../../../../shared/models/vehiculo-asignacion.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { UserService } from '../../../core/services/user.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 /**
  * S25 — Dashboard "Estado de conductores": KPIs clicables (filtran la tabla),
@@ -26,6 +28,8 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 export class ConductoresEstado implements OnInit {
   private conductoresService = inject(ConductoresService);
   private router = inject(Router);
+  private userService = inject(UserService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
 
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
   readonly estadoBadge = ESTADO_LICENCIA_BADGE;
@@ -35,20 +39,29 @@ export class ConductoresEstado implements OnInit {
   error = signal('');
   conductores = signal<ConductorStats[]>([]);
 
+  // Z3 — datos de prueba solo visibles para admin con el toggle "Mostrar datos de prueba".
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
+  /** Conductores visibles según rol/toggle (base para KPIs y tabla). */
+  visibles = computed<ConductorStats[]>(() => {
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
+    return this.conductores().filter((c) => !(c.es_prueba && !verPrueba));
+  });
+
   // Filtros de presentación (no tocan la carga de datos)
   search = signal('');
   filtroEstado = signal<EstadoLicencia | null>(null);
 
-  vigentes = computed(() => this.conductores().filter((c) => c.estado_licencia === 'vigente').length);
-  porVencer = computed(() => this.conductores().filter((c) => c.estado_licencia === 'por_vencer').length);
-  vencidas = computed(() => this.conductores().filter((c) => c.estado_licencia === 'vencida').length);
-  sinDato = computed(() => this.conductores().filter((c) => c.estado_licencia === 'sin_dato').length);
+  vigentes = computed(() => this.visibles().filter((c) => c.estado_licencia === 'vigente').length);
+  porVencer = computed(() => this.visibles().filter((c) => c.estado_licencia === 'por_vencer').length);
+  vencidas = computed(() => this.visibles().filter((c) => c.estado_licencia === 'vencida').length);
+  sinDato = computed(() => this.visibles().filter((c) => c.estado_licencia === 'sin_dato').length);
 
   /** Filtra por estado + búsqueda y ordena por proximidad de vencimiento. */
   filtered = computed<ConductorStats[]>(() => {
     const estado = this.filtroEstado();
     const q = this.search().trim().toLowerCase();
-    return this.conductores()
+    return this.visibles()
       .filter((c) => (estado ? c.estado_licencia === estado : true))
       .filter((c) => (q ? c.nombre.toLowerCase().includes(q) : true))
       .slice()

@@ -173,9 +173,28 @@
     justify-content: flex-end;
   }
 
-  // T2 — botón eliminar dato de prueba
+  // T2/Z4 — botón eliminar dato de prueba: icono compacto (no rompe la geometría
+  // de la card). Se ancla a la derecha del row de acciones.
   &__delete-prueba {
+    margin-left: auto;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    background: var(--sgc-surface);
     color: var(--sgc-danger, #d32f2f);
+    cursor: pointer;
+    transition: var(--sgc-transition-fast);
+
+    &:hover {
+      background: var(--sgc-danger-light);
+      border-color: var(--sgc-danger);
+    }
   }
 
   // T2 — checkbox "Dato de prueba" en el drawer
