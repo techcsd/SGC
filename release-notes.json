@@ -1,98 +1,228 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.40.0": {
+      "titulo": "Proyectos: estructuras por obra y catálogo de tareas del cronograma",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Cada obra puede definir sus estructuras (bloques/pisos/torres); al crear una bitácora, el campo Bloque/Entrepiso ofrece esas opciones (y sigue permitiendo texto libre)."
+        },
+        {
+          "t": "nuevo",
+          "d": "El nombre de una tarea del cronograma ahora se elige de un catálogo global de tareas de construcción (o se escribe otra)."
+        }
+      ]
+    },
     "1.39.0": {
       "titulo": "Reposición accionable: generar solicitud de compra, editar mínimos y posponer sugerencias",
       "cambios": [
-        { "t": "nuevo", "d": "En Reposición ahora puedes seleccionar artículos bajo mínimo y generar una solicitud de compra de una vez (cuando el almacén pertenece a una obra)." },
-        { "t": "nuevo", "d": "Editar el stock mínimo de un artículo directamente desde la lista de reposición." },
-        { "t": "nuevo", "d": "Posponer una sugerencia de reposición con un motivo y por N días; se oculta hasta su fecha." }
+        {
+          "t": "nuevo",
+          "d": "En Reposición ahora puedes seleccionar artículos bajo mínimo y generar una solicitud de compra de una vez (cuando el almacén pertenece a una obra)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Editar el stock mínimo de un artículo directamente desde la lista de reposición."
+        },
+        {
+          "t": "nuevo",
+          "d": "Posponer una sugerencia de reposición con un motivo y por N días; se oculta hasta su fecha."
+        }
       ]
     },
     "1.38.0": {
       "titulo": "Inventario: detalle de conteos más claro, detalle de almacén y formularios de entrada/salida sin desbordes",
       "cambios": [
-        { "t": "mejora", "d": "El detalle de \"Conteos y ajustes\" ahora tiene encabezado claro (tipo, almacén, quién, fecha), tabla con zebra y leyenda solo cuando hay ajustes." },
-        { "t": "nuevo", "d": "Al hacer clic en un almacén se abre su detalle: obra vinculada, stock actual, últimos movimientos y accesos rápidos (entrada/salida/conteo/movimientos)." },
-        { "t": "mejora", "d": "Los formularios de registrar entrada y salida ya no desbordan: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo." }
+        {
+          "t": "mejora",
+          "d": "El detalle de \"Conteos y ajustes\" ahora tiene encabezado claro (tipo, almacén, quién, fecha), tabla con zebra y leyenda solo cuando hay ajustes."
+        },
+        {
+          "t": "nuevo",
+          "d": "Al hacer clic en un almacén se abre su detalle: obra vinculada, stock actual, últimos movimientos y accesos rápidos (entrada/salida/conteo/movimientos)."
+        },
+        {
+          "t": "mejora",
+          "d": "Los formularios de registrar entrada y salida ya no desbordan: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo."
+        }
       ]
     },
     "1.37.0": {
       "titulo": "Inventario: filtro CSD/Alquilado y edición de stock con trazabilidad",
       "cambios": [
-        { "t": "nuevo", "d": "Nuevo filtro en Artículos para ver solo material CSD (propio) o solo Alquilado." },
-        { "t": "nuevo", "d": "Desde el detalle de un artículo, admin/inventario puede ajustar el stock por almacén. El cambio queda registrado como un ajuste en \"Conteos y ajustes\" (con motivo, quién y cuándo), nunca como un cambio silencioso." }
+        {
+          "t": "nuevo",
+          "d": "Nuevo filtro en Artículos para ver solo material CSD (propio) o solo Alquilado."
+        },
+        {
+          "t": "nuevo",
+          "d": "Desde el detalle de un artículo, admin/inventario puede ajustar el stock por almacén. El cambio queda registrado como un ajuste en \"Conteos y ajustes\" (con motivo, quién y cuándo), nunca como un cambio silencioso."
+        }
       ]
     },
     "1.36.0": {
       "titulo": "Órdenes de Compra: ITBIS opcional, destino Oficina, proveedor rápido y detalle clicable",
       "cambios": [
-        { "t": "mejora", "d": "Rediseño del formulario de nueva orden: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo, sin desbordes en el panel." },
-        { "t": "nuevo", "d": "Interruptor \"Aplicar ITBIS (18%)\" por orden: al apagarlo, el total es igual al subtotal (para compras sin impuesto)." },
-        { "t": "nuevo", "d": "Destino de la orden: Proyecto/Obra u Oficina. Las órdenes de oficina ya no se fuerzan a un proyecto." },
-        { "t": "nuevo", "d": "Alta rápida de proveedor con \"+ Nuevo proveedor\" sin salir del formulario de la orden." },
-        { "t": "mejora", "d": "El número de una orden abre su detalle completo (también por enlace directo con ?item=). Las órdenes pueden marcarse como dato de prueba." }
+        {
+          "t": "mejora",
+          "d": "Rediseño del formulario de nueva orden: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo, sin desbordes en el panel."
+        },
+        {
+          "t": "nuevo",
+          "d": "Interruptor \"Aplicar ITBIS (18%)\" por orden: al apagarlo, el total es igual al subtotal (para compras sin impuesto)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Destino de la orden: Proyecto/Obra u Oficina. Las órdenes de oficina ya no se fuerzan a un proyecto."
+        },
+        {
+          "t": "nuevo",
+          "d": "Alta rápida de proveedor con \"+ Nuevo proveedor\" sin salir del formulario de la orden."
+        },
+        {
+          "t": "mejora",
+          "d": "El número de una orden abre su detalle completo (también por enlace directo con ?item=). Las órdenes pueden marcarse como dato de prueba."
+        }
       ]
     },
     "1.35.0": {
       "titulo": "Correcciones de datos de prueba (flota/conductores) y datos de prueba en todos los módulos",
       "cambios": [
-        { "t": "arreglo", "d": "Corregido el error al marcar un vehículo como dato de prueba (\"record new has no field es_prueba_origen\")." },
-        { "t": "arreglo", "d": "Editar el perfil de un conductor ya no falla por cédula duplicada; si la cédula pertenece a otra cuenta, ahora se muestra un mensaje claro." },
-        { "t": "arreglo", "d": "\"Estados de conductores\" ya no muestra conductores de prueba a usuarios normales; solo el administrador los ve con el interruptor \"Mostrar datos de prueba\"." },
-        { "t": "mejora", "d": "La tarjeta de un vehículo de prueba ya no se descuadra: el botón de eliminar dato de prueba pasó a ser un ícono compacto." },
-        { "t": "nuevo", "d": "Ahora se pueden marcar como dato de prueba también proyectos, almacenes, empleados, proveedores, órdenes de compra, artículos, activos fijos y conteos — con cascada a sus derivados y ocultos para usuarios normales." }
+        {
+          "t": "arreglo",
+          "d": "Corregido el error al marcar un vehículo como dato de prueba (\"record new has no field es_prueba_origen\")."
+        },
+        {
+          "t": "arreglo",
+          "d": "Editar el perfil de un conductor ya no falla por cédula duplicada; si la cédula pertenece a otra cuenta, ahora se muestra un mensaje claro."
+        },
+        {
+          "t": "arreglo",
+          "d": "\"Estados de conductores\" ya no muestra conductores de prueba a usuarios normales; solo el administrador los ve con el interruptor \"Mostrar datos de prueba\"."
+        },
+        {
+          "t": "mejora",
+          "d": "La tarjeta de un vehículo de prueba ya no se descuadra: el botón de eliminar dato de prueba pasó a ser un ícono compacto."
+        },
+        {
+          "t": "nuevo",
+          "d": "Ahora se pueden marcar como dato de prueba también proyectos, almacenes, empleados, proveedores, órdenes de compra, artículos, activos fijos y conteos — con cascada a sus derivados y ocultos para usuarios normales."
+        }
       ]
     },
     "1.34.2": {
       "titulo": "Rol Tecnología puede marcar versiones de la app como publicada/mínima",
       "cambios": [
-        { "t": "nuevo", "d": "Quien tenga el rol Tecnología ahora puede marcar una versión de la app como publicada o como mínima. Crear, editar o eliminar versiones sigue reservado a administradores (a futuro, al rol Desarrollador de software)." }
+        {
+          "t": "nuevo",
+          "d": "Quien tenga el rol Tecnología ahora puede marcar una versión de la app como publicada o como mínima. Crear, editar o eliminar versiones sigue reservado a administradores (a futuro, al rol Desarrollador de software)."
+        }
       ]
     },
     "1.34.1": {
       "titulo": "Monitoreo de Infraestructura: alertas por correo (canal principal)",
       "cambios": [
-        { "t": "mejora", "d": "Las alertas del monitoreo ahora llegan por correo como canal principal (más cómodo que un bot), enviadas desde el dominio del sistema — independiente del dominio vigilado, así siguen saliendo aunque el dominio de la empresa se caiga." },
-        { "t": "mejora", "d": "Telegram queda como canal opcional adicional; ya no es necesario para recibir las alertas." }
+        {
+          "t": "mejora",
+          "d": "Las alertas del monitoreo ahora llegan por correo como canal principal (más cómodo que un bot), enviadas desde el dominio del sistema — independiente del dominio vigilado, así siguen saliendo aunque el dominio de la empresa se caiga."
+        },
+        {
+          "t": "mejora",
+          "d": "Telegram queda como canal opcional adicional; ya no es necesario para recibir las alertas."
+        }
       ]
     },
     "1.34.0": {
       "titulo": "Monitoreo de Infraestructura: vigilancia de dominios, DNS y suscripciones con alertas anticipadas",
       "cambios": [
-        { "t": "nuevo", "d": "Nuevo módulo de Monitoreo de Infraestructura (en Tecnología, para admin y rol Tecnología): vigila dominios, DNS y suscripciones tecnológicas y avisa ANTES de que un vencimiento se vuelva fatal. Nace del incidente del dominio de la empresa." },
-        { "t": "nuevo", "d": "Checks automáticos sin claves: resolución DNS, registros MX, SPF, DKIM, estado del registro (RDAP / clientHold), fecha de expiración y web arriba. Corren solos cada pocas horas y dejan histórico auditable exportable a Excel." },
-        { "t": "nuevo", "d": "Alertas escalonadas (60/30/14/7 días y estado fatal inmediato) por un canal externo al dominio (Telegram), persistentes hasta que alguien las Reconozca en el panel; anti-ruido (solo avisan en cambios de estado)." },
-        { "t": "nuevo", "d": "Panel con semáforo por dominio (días para expirar, último check), tabla de suscripciones ordenada por vencimiento con alta/edición, y bandeja de alertas con acción Reconocer." }
+        {
+          "t": "nuevo",
+          "d": "Nuevo módulo de Monitoreo de Infraestructura (en Tecnología, para admin y rol Tecnología): vigila dominios, DNS y suscripciones tecnológicas y avisa ANTES de que un vencimiento se vuelva fatal. Nace del incidente del dominio de la empresa."
+        },
+        {
+          "t": "nuevo",
+          "d": "Checks automáticos sin claves: resolución DNS, registros MX, SPF, DKIM, estado del registro (RDAP / clientHold), fecha de expiración y web arriba. Corren solos cada pocas horas y dejan histórico auditable exportable a Excel."
+        },
+        {
+          "t": "nuevo",
+          "d": "Alertas escalonadas (60/30/14/7 días y estado fatal inmediato) por un canal externo al dominio (Telegram), persistentes hasta que alguien las Reconozca en el panel; anti-ruido (solo avisan en cambios de estado)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Panel con semáforo por dominio (días para expirar, último check), tabla de suscripciones ordenada por vencimiento con alta/edición, y bandeja de alertas con acción Reconocer."
+        }
       ]
     },
     "1.33.0": {
       "titulo": "Cronograma ↔ Bitácoras: completar desde la bitácora, evidencia enlazada y avisos en el menú",
       "cambios": [
-        { "t": "nuevo", "d": "Al registrar una bitácora enlazada a una tarea del cronograma, ahora puedes marcarla como completada: usa una foto de la bitácora como evidencia." },
-        { "t": "nuevo", "d": "En el cronograma, cada tarea muestra sus bitácoras enlazadas (botón 🔗) con acceso directo a cada una; en el historial de bitácoras aparece una etiqueta 🔗 Tarea cuando la entrada avanza una tarea del cronograma." },
-        { "t": "mejora", "d": "El menú de Proyectos ahora incluye en su contador los avisos de cronograma pendientes (tareas por iniciar, por vencer o atrasadas), además de las alertas de clima." },
-        { "t": "mejora", "d": "Los correos de avisos salen desde el dominio verificado de la empresa (notificaciones@sgcconstructorasd.com)." }
+        {
+          "t": "nuevo",
+          "d": "Al registrar una bitácora enlazada a una tarea del cronograma, ahora puedes marcarla como completada: usa una foto de la bitácora como evidencia."
+        },
+        {
+          "t": "nuevo",
+          "d": "En el cronograma, cada tarea muestra sus bitácoras enlazadas (botón 🔗) con acceso directo a cada una; en el historial de bitácoras aparece una etiqueta 🔗 Tarea cuando la entrada avanza una tarea del cronograma."
+        },
+        {
+          "t": "mejora",
+          "d": "El menú de Proyectos ahora incluye en su contador los avisos de cronograma pendientes (tareas por iniciar, por vencer o atrasadas), además de las alertas de clima."
+        },
+        {
+          "t": "mejora",
+          "d": "Los correos de avisos salen desde el dominio verificado de la empresa (notificaciones@sgcconstructorasd.com)."
+        }
       ]
     },
     "1.32.0": {
       "titulo": "Cronograma de Proyectos: línea de tiempo con auto-ajuste, evidencia y avisos",
       "cambios": [
-        { "t": "nuevo", "d": "Cada proyecto tiene ahora un Cronograma: tareas en secuencia con duración y fechas, tipo ordinaria/importante/crítica, y vista de línea de tiempo (Gantt) además de lista. Se entra desde el detalle del proyecto." },
-        { "t": "nuevo", "d": "El usuario notifica el inicio y el fin de cada tarea. Al completar es obligatorio adjuntar una foto de evidencia; si la tarea se completa tarde, exige una justificación." },
-        { "t": "nuevo", "d": "Auto-ajuste del cronograma: si una tarea termina antes de tiempo, los días sobrantes se suman a la próxima tarea importante/crítica (o quedan como holgura); si termina tarde, empuja las siguientes. Todo queda en un historial de ajustes auditable." },
-        { "t": "nuevo", "d": "Avisos al ingeniero responsable de tareas por iniciar, por vencer y atrasadas, en la campana de notificaciones y por correo." },
-        { "t": "mejora", "d": "Desde una bitácora se puede enlazar una tarea del cronograma, dejándola como evidencia del avance." }
+        {
+          "t": "nuevo",
+          "d": "Cada proyecto tiene ahora un Cronograma: tareas en secuencia con duración y fechas, tipo ordinaria/importante/crítica, y vista de línea de tiempo (Gantt) además de lista. Se entra desde el detalle del proyecto."
+        },
+        {
+          "t": "nuevo",
+          "d": "El usuario notifica el inicio y el fin de cada tarea. Al completar es obligatorio adjuntar una foto de evidencia; si la tarea se completa tarde, exige una justificación."
+        },
+        {
+          "t": "nuevo",
+          "d": "Auto-ajuste del cronograma: si una tarea termina antes de tiempo, los días sobrantes se suman a la próxima tarea importante/crítica (o quedan como holgura); si termina tarde, empuja las siguientes. Todo queda en un historial de ajustes auditable."
+        },
+        {
+          "t": "nuevo",
+          "d": "Avisos al ingeniero responsable de tareas por iniciar, por vencer y atrasadas, en la campana de notificaciones y por correo."
+        },
+        {
+          "t": "mejora",
+          "d": "Desde una bitácora se puede enlazar una tarea del cronograma, dejándola como evidencia del avance."
+        }
       ]
     },
     "1.31.0": {
       "titulo": "Módulo Tecnología, reportes de errores de la app y seguridad de datos",
       "cambios": [
-        { "t": "seguridad", "d": "Las vistas de contexto, movimientos de inventario y estadísticas de vehículo ahora respetan los permisos de cada usuario (RLS). Antes exponían datos de más a roles que no debían verlos; queda corregido." },
-        { "t": "nuevo", "d": "Nuevo módulo Tecnología que agrupa el historial de versiones, las versiones de la app y los reportes de errores, accesible para administradores y el nuevo rol Tecnología." },
-        { "t": "nuevo", "d": "Nuevo rol Tecnología: da acceso al módulo Tecnología sin ser administrador, para que la persona técnica atienda releases y fallos." },
-        { "t": "nuevo", "d": "Reportes de errores de la app: cuando un teléfono falla (crash, cámara, sincronización o permisos) envía el error al panel de Tecnología, filtrable por dispositivo/versión/tipo/fecha, agrupado por mensaje y exportable a Excel." },
-        { "t": "mejora", "d": "Dashboard principal con KPIs operativos nuevos y clicables: alertas de flota activas, documentos de flota por vencer, checklists de hoy y errores de app de los últimos 7 días." }
+        {
+          "t": "seguridad",
+          "d": "Las vistas de contexto, movimientos de inventario y estadísticas de vehículo ahora respetan los permisos de cada usuario (RLS). Antes exponían datos de más a roles que no debían verlos; queda corregido."
+        },
+        {
+          "t": "nuevo",
+          "d": "Nuevo módulo Tecnología que agrupa el historial de versiones, las versiones de la app y los reportes de errores, accesible para administradores y el nuevo rol Tecnología."
+        },
+        {
+          "t": "nuevo",
+          "d": "Nuevo rol Tecnología: da acceso al módulo Tecnología sin ser administrador, para que la persona técnica atienda releases y fallos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Reportes de errores de la app: cuando un teléfono falla (crash, cámara, sincronización o permisos) envía el error al panel de Tecnología, filtrable por dispositivo/versión/tipo/fecha, agrupado por mensaje y exportable a Excel."
+        },
+        {
+          "t": "mejora",
+          "d": "Dashboard principal con KPIs operativos nuevos y clicables: alertas de flota activas, documentos de flota por vencer, checklists de hoy y errores de app de los últimos 7 días."
+        }
       ]
     },
     "1.30.0": {
@@ -222,226 +352,586 @@
     "1.27.0": {
       "titulo": "Avisos de vencimiento más claros, visitas a taller tipificadas, fotos de accidentes y bitácora con varios bloques",
       "cambios": [
-        { "t": "mejora", "d": "Los avisos de flota ahora distinguen \"por vencer\" (amarillo) de \"vencida/vencido\" (rojo) para licencias, matrículas y seguros, y cambian solos de color al pasar la fecha. El umbral de \"por vencer\" (30 días) es configurable por el admin." },
-        { "t": "nuevo", "d": "Los avisos de flota se dividen en \"Avisos activos\" e \"Historial de avisos\": al renovar un documento (p. ej. subir el seguro nuevo) su aviso se resuelve solo y pasa al historial con la nota de cómo se resolvió." },
-        { "t": "nuevo", "d": "Las visitas a taller se clasifican en 4 tipos (mantenimiento preventivo, reparación por falla, por accidente/daño, cambio de pieza). Solo el preventivo reinicia el ciclo de mantenimiento; una falla ya no adelanta la próxima cita." },
-        { "t": "mejora", "d": "El kilometraje del último mantenimiento del vehículo ahora se actualiza al registrar un mantenimiento preventivo (antes solo se ponía al dar de alta el vehículo)." },
-        { "t": "nuevo", "d": "Al registrar un accidente puedes adjuntar varias fotos del hecho además del acta AMET; el acta y las fotos se ven en miniatura y se abren en grande dentro de la misma página." },
-        { "t": "nuevo", "d": "La bitácora web permite registrar varios bloques/entrepisos en un mismo parte (paridad con la app) y guardar partes incompletos para retomarlos desde \"Documentación en proceso\"." },
-        { "t": "mejora", "d": "Marcar un vehículo o conductor como dato de prueba ahora también marca sus registros relacionados existentes (checklists, echadas, multas…), avisando cuántos se verán afectados; al desmarcar se revierte solo lo heredado." },
-        { "t": "mejora", "d": "El listado de usuarios muestra la foto de avatar, y el detalle del usuario y el historial de versiones muestran la fecha con hora." },
-        { "t": "mejora", "d": "Las notificaciones de Legal, RRHH y Compras ahora señalan el submódulo exacto donde atenderlas." }
+        {
+          "t": "mejora",
+          "d": "Los avisos de flota ahora distinguen \"por vencer\" (amarillo) de \"vencida/vencido\" (rojo) para licencias, matrículas y seguros, y cambian solos de color al pasar la fecha. El umbral de \"por vencer\" (30 días) es configurable por el admin."
+        },
+        {
+          "t": "nuevo",
+          "d": "Los avisos de flota se dividen en \"Avisos activos\" e \"Historial de avisos\": al renovar un documento (p. ej. subir el seguro nuevo) su aviso se resuelve solo y pasa al historial con la nota de cómo se resolvió."
+        },
+        {
+          "t": "nuevo",
+          "d": "Las visitas a taller se clasifican en 4 tipos (mantenimiento preventivo, reparación por falla, por accidente/daño, cambio de pieza). Solo el preventivo reinicia el ciclo de mantenimiento; una falla ya no adelanta la próxima cita."
+        },
+        {
+          "t": "mejora",
+          "d": "El kilometraje del último mantenimiento del vehículo ahora se actualiza al registrar un mantenimiento preventivo (antes solo se ponía al dar de alta el vehículo)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Al registrar un accidente puedes adjuntar varias fotos del hecho además del acta AMET; el acta y las fotos se ven en miniatura y se abren en grande dentro de la misma página."
+        },
+        {
+          "t": "nuevo",
+          "d": "La bitácora web permite registrar varios bloques/entrepisos en un mismo parte (paridad con la app) y guardar partes incompletos para retomarlos desde \"Documentación en proceso\"."
+        },
+        {
+          "t": "mejora",
+          "d": "Marcar un vehículo o conductor como dato de prueba ahora también marca sus registros relacionados existentes (checklists, echadas, multas…), avisando cuántos se verán afectados; al desmarcar se revierte solo lo heredado."
+        },
+        {
+          "t": "mejora",
+          "d": "El listado de usuarios muestra la foto de avatar, y el detalle del usuario y el historial de versiones muestran la fecha con hora."
+        },
+        {
+          "t": "mejora",
+          "d": "Las notificaciones de Legal, RRHH y Compras ahora señalan el submódulo exacto donde atenderlas."
+        }
       ]
     },
     "1.26.0": {
       "titulo": "Datos de prueba aislados, imágenes que ya no se recargan, detalle de usuario/multa y reporte de la app arreglado",
       "cambios": [
-        { "t": "arreglo", "d": "Los reportes enviados desde la app de campo (problema/mejora/duda) fallaban siempre con un mensaje confuso (\"hace referencia a algo que no existe\"). Se corrigió: ahora se guardan bien sin necesidad de actualizar la app." },
-        { "t": "mejora", "d": "Recibir un vehículo que ya tiene una entrega abierta ya no bloquea a ciegas: si es tuyo, no se duplica; si es de otro conductor, se avisa quién lo tiene y (para roles de flota) se ofrece cerrar la entrega anterior y recibirlo." },
-        { "t": "seguridad", "d": "Datos de prueba: un vehículo/entidad marcada como prueba y todo lo que se derive de ella (pre-usos, combustible, entregas, rutas, multas, avisos) queda oculto para los usuarios normales y fuera de KPIs, alertas y notificaciones reales. Solo Administración los ve." },
-        { "t": "mejora", "d": "Nuevo interruptor global \"Ver datos de prueba\" (solo admin) con un aviso persistente mientras está activo, para no confundir datos de prueba con reales." },
-        { "t": "mejora", "d": "Las imágenes (fotos de vehículos, checklists, documentos, evidencias de inventario, etc.) ya no se vuelven a descargar cada vez que entras a una pantalla: se cachean y los listados cargan miniaturas livianas." },
-        { "t": "nuevo", "d": "En Administración › Usuarios, cada fila abre un detalle del usuario (roles, estado, vínculo a su perfil de conductor y última vez activo en web y en app), con columnas ordenables de última actividad." },
-        { "t": "nuevo", "d": "Las multas se pueden abrir en un detalle (motivo, monto, estado, vehículo, conductor y documento con vista previa) desde el perfil del conductor y del vehículo." },
-        { "t": "mejora", "d": "En Inventario, la columna Foto de Entradas y Salidas muestra una miniatura y la abre en grande dentro de la misma página (ya no en otra pestaña)." },
-        { "t": "mejora", "d": "Inventario: al despachar material hacia una obra se avisa al equipo de esa obra (\"Entrega en camino\") para que confirme la recepción." }
+        {
+          "t": "arreglo",
+          "d": "Los reportes enviados desde la app de campo (problema/mejora/duda) fallaban siempre con un mensaje confuso (\"hace referencia a algo que no existe\"). Se corrigió: ahora se guardan bien sin necesidad de actualizar la app."
+        },
+        {
+          "t": "mejora",
+          "d": "Recibir un vehículo que ya tiene una entrega abierta ya no bloquea a ciegas: si es tuyo, no se duplica; si es de otro conductor, se avisa quién lo tiene y (para roles de flota) se ofrece cerrar la entrega anterior y recibirlo."
+        },
+        {
+          "t": "seguridad",
+          "d": "Datos de prueba: un vehículo/entidad marcada como prueba y todo lo que se derive de ella (pre-usos, combustible, entregas, rutas, multas, avisos) queda oculto para los usuarios normales y fuera de KPIs, alertas y notificaciones reales. Solo Administración los ve."
+        },
+        {
+          "t": "mejora",
+          "d": "Nuevo interruptor global \"Ver datos de prueba\" (solo admin) con un aviso persistente mientras está activo, para no confundir datos de prueba con reales."
+        },
+        {
+          "t": "mejora",
+          "d": "Las imágenes (fotos de vehículos, checklists, documentos, evidencias de inventario, etc.) ya no se vuelven a descargar cada vez que entras a una pantalla: se cachean y los listados cargan miniaturas livianas."
+        },
+        {
+          "t": "nuevo",
+          "d": "En Administración › Usuarios, cada fila abre un detalle del usuario (roles, estado, vínculo a su perfil de conductor y última vez activo en web y en app), con columnas ordenables de última actividad."
+        },
+        {
+          "t": "nuevo",
+          "d": "Las multas se pueden abrir en un detalle (motivo, monto, estado, vehículo, conductor y documento con vista previa) desde el perfil del conductor y del vehículo."
+        },
+        {
+          "t": "mejora",
+          "d": "En Inventario, la columna Foto de Entradas y Salidas muestra una miniatura y la abre en grande dentro de la misma página (ya no en otra pestaña)."
+        },
+        {
+          "t": "mejora",
+          "d": "Inventario: al despachar material hacia una obra se avisa al equipo de esa obra (\"Entrega en camino\") para que confirme la recepción."
+        }
       ]
     },
     "1.25.0": {
       "titulo": "Los vehículos de la flota solo son visibles para quien tiene el módulo Flota",
       "cambios": [
-        { "t": "seguridad", "d": "El listado de vehículos ahora requiere el módulo Flota: los usuarios con Flota ven los vehículos activos y los roles elevados (Administración/Dirección/Gerencia/Jefe de flota) ven también los inactivos; el resto de roles ya no ve la flota." }
+        {
+          "t": "seguridad",
+          "d": "El listado de vehículos ahora requiere el módulo Flota: los usuarios con Flota ven los vehículos activos y los roles elevados (Administración/Dirección/Gerencia/Jefe de flota) ven también los inactivos; el resto de roles ya no ve la flota."
+        }
       ]
     },
     "1.24.0": {
       "titulo": "Cierre de fuga de datos: inventario, almacenes y proveedores solo visibles para sus módulos",
       "cambios": [
-        { "t": "seguridad", "d": "QA de permisos por rol (14 usuarios de prueba): se detectó y cerró una fuga en la que cualquier usuario autenticado (aunque no tuviera el módulo) podía leer todas las salidas de inventario, el stock por almacén, la lista de almacenes y los proveedores. Ahora solo los roles de Inventario/Compras (y Administración) los ven; el resto no." },
-        { "t": "seguridad", "d": "Se verificó que el resto del control de acceso está correcto: el alcance de datos de Flota por conductor, el ocultamiento de datos de prueba a los no-admin, y el gateo por módulo del resto de pantallas." }
+        {
+          "t": "seguridad",
+          "d": "QA de permisos por rol (14 usuarios de prueba): se detectó y cerró una fuga en la que cualquier usuario autenticado (aunque no tuviera el módulo) podía leer todas las salidas de inventario, el stock por almacén, la lista de almacenes y los proveedores. Ahora solo los roles de Inventario/Compras (y Administración) los ven; el resto no."
+        },
+        {
+          "t": "seguridad",
+          "d": "Se verificó que el resto del control de acceso está correcto: el alcance de datos de Flota por conductor, el ocultamiento de datos de prueba a los no-admin, y el gateo por módulo del resto de pantallas."
+        }
       ]
     },
     "1.23.0": {
       "titulo": "Paginación en todos los listados, dashboards clicables, bloque por actividad en bitácora y datos de prueba fuera de los promedios de consumo",
       "cambios": [
-        { "t": "mejora", "d": "Todos los listados largos ahora se paginan con un control de páginas uniforme (Administración, Flota, Inventario, Legal, Tareas, RRHH y Mensajes): ya no se carga todo el contenido de una vez." },
-        { "t": "mejora", "d": "\"Todo número abre su detalle\": las tarjetas KPI y las gráficas de los dashboards (Ranking de Encargados, Reportes de Flota, Combustible y Bitácora) ahora navegan al detalle filtrado." },
-        { "t": "mejora", "d": "Bitácora web: cada actividad puede registrar su propio bloque/piso/edificio (paridad con la app); el encabezado queda como valor por defecto." },
-        { "t": "arreglo", "d": "Registrar accidente desde la web ahora usa el mismo flujo del servidor (RPC registrar_accidente_app) que la app, para consistencia y auditoría." },
-        { "t": "seguridad", "d": "Los datos marcados como prueba ya no afectan los promedios de consumo del vehículo ni de la flota: las alertas de consumo anormal se calculan solo con datos reales." },
-        { "t": "nuevo", "d": "QA por rol: usuarios de prueba por rol y checklist de alcance de datos para verificar que cada rol solo ve lo que le corresponde (herramienta interna)." }
+        {
+          "t": "mejora",
+          "d": "Todos los listados largos ahora se paginan con un control de páginas uniforme (Administración, Flota, Inventario, Legal, Tareas, RRHH y Mensajes): ya no se carga todo el contenido de una vez."
+        },
+        {
+          "t": "mejora",
+          "d": "\"Todo número abre su detalle\": las tarjetas KPI y las gráficas de los dashboards (Ranking de Encargados, Reportes de Flota, Combustible y Bitácora) ahora navegan al detalle filtrado."
+        },
+        {
+          "t": "mejora",
+          "d": "Bitácora web: cada actividad puede registrar su propio bloque/piso/edificio (paridad con la app); el encabezado queda como valor por defecto."
+        },
+        {
+          "t": "arreglo",
+          "d": "Registrar accidente desde la web ahora usa el mismo flujo del servidor (RPC registrar_accidente_app) que la app, para consistencia y auditoría."
+        },
+        {
+          "t": "seguridad",
+          "d": "Los datos marcados como prueba ya no afectan los promedios de consumo del vehículo ni de la flota: las alertas de consumo anormal se calculan solo con datos reales."
+        },
+        {
+          "t": "nuevo",
+          "d": "QA por rol: usuarios de prueba por rol y checklist de alcance de datos para verificar que cada rol solo ve lo que le corresponde (herramienta interna)."
+        }
       ]
     },
     "1.22.0": {
       "titulo": "Consumo imposiblemente bajo siempre alerta, textos de checklist más simples y perfil del vehículo con mantenimiento, nivel y multas",
       "cambios": [
-        { "t": "mejora", "d": "Alertas de consumo con piso absoluto: si un vehículo rinde por debajo del mínimo razonable (10 km/gal configurable), se marca como consumo anormal SIEMPRE, aunque no tenga historial ni rendimiento esperado; el detalle de la echada ahora explica el motivo (esperado, promedio del vehículo o piso absoluto)." },
-        { "t": "mejora", "d": "Los textos del pre-uso y del reporte semanal se acortaron y se pasaron a español llano (sin tecnicismos): etiquetas rápidas de leer y el detalle largo queda como ayuda secundaria." },
-        { "t": "nuevo", "d": "Perfil del vehículo: alerta visible de mantenimiento atrasado (o próximo), último nivel de combustible registrado y sección de Multas del vehículo." },
-        { "t": "mejora", "d": "Se homologó el texto de mantenimiento vencido a \"pasado con X km\" en avisos y pantallas de flota." }
+        {
+          "t": "mejora",
+          "d": "Alertas de consumo con piso absoluto: si un vehículo rinde por debajo del mínimo razonable (10 km/gal configurable), se marca como consumo anormal SIEMPRE, aunque no tenga historial ni rendimiento esperado; el detalle de la echada ahora explica el motivo (esperado, promedio del vehículo o piso absoluto)."
+        },
+        {
+          "t": "mejora",
+          "d": "Los textos del pre-uso y del reporte semanal se acortaron y se pasaron a español llano (sin tecnicismos): etiquetas rápidas de leer y el detalle largo queda como ayuda secundaria."
+        },
+        {
+          "t": "nuevo",
+          "d": "Perfil del vehículo: alerta visible de mantenimiento atrasado (o próximo), último nivel de combustible registrado y sección de Multas del vehículo."
+        },
+        {
+          "t": "mejora",
+          "d": "Se homologó el texto de mantenimiento vencido a \"pasado con X km\" en avisos y pantallas de flota."
+        }
       ]
     },
     "1.21.0": {
       "titulo": "Paridad app: incidente de equipo con comentario de operatividad y selector de equipos de la obra",
       "cambios": [
-        { "t": "nuevo", "d": "En el registro de un incidente de equipo ahora puedes dejar un comentario de operatividad; es obligatorio explicar qué pasó si el equipo quedó fuera de servicio, y se muestra en el detalle de la bitácora." },
-        { "t": "mejora", "d": "El nombre del equipo (en incidente de equipo y en equipos alquilados del parte) se autocompleta con los equipos ya vistos en esa obra, para evitar nombres distintos para lo mismo (camión/patana, planta/planta eléctrica…)." }
+        {
+          "t": "nuevo",
+          "d": "En el registro de un incidente de equipo ahora puedes dejar un comentario de operatividad; es obligatorio explicar qué pasó si el equipo quedó fuera de servicio, y se muestra en el detalle de la bitácora."
+        },
+        {
+          "t": "mejora",
+          "d": "El nombre del equipo (en incidente de equipo y en equipos alquilados del parte) se autocompleta con los equipos ya vistos en esa obra, para evitar nombres distintos para lo mismo (camión/patana, planta/planta eléctrica…)."
+        }
       ]
     },
     "1.20.0": {
       "titulo": "Selector de artículos, conciliación de combustible, entrada automática en obra y mejoras de flota",
       "cambios": [
-        { "t": "nuevo", "d": "Nuevo selector de artículos (con búsqueda, categorías y stock por almacén) en Salidas, Requisición y Órdenes de compra; en la OC, elegir el artículo del catálogo habilita la conciliación automática de lo recibido vs lo ordenado." },
-        { "t": "arreglo", "d": "Requisición: el desplegable ya no arranca en \"Otro\"; ahora muestra \"Selecciona un artículo…\" y \"Otro (escribir)\" es una opción aparte." },
-        { "t": "arreglo", "d": "Salidas: el mensaje de stock insuficiente ahora dice el nombre real del artículo y el almacén, y lista de una vez todos los renglones sin existencia." },
-        { "t": "nuevo", "d": "Recepción de material en obra: al confirmar el recibido, si la obra tiene almacén propio, la entrada se registra automáticamente en ese almacén; y al crear una requisición para una obra sin almacén, se avisa para crearlo." },
-        { "t": "nuevo", "d": "Estación de combustible seleccionable (Total Energies por defecto) y nueva pantalla \"Conciliación de combustible\": importa el informe de la estación (Excel/CSV), lo cruza con lo registrado, resalta diferencias/faltantes, notifica discrepancias y guarda un historial con dashboard." },
-        { "t": "mejora", "d": "Alertas de consumo más inteligentes: se comparan contra el rendimiento esperado del vehículo (aunque no haya historial), su promedio propio y el de la flota; el listado de combustible muestra un badge Normal/Anormal por fila." },
-        { "t": "nuevo", "d": "Registrar accidentes desde la web (Flota › Accidentes) y catálogo de motivos de multa (desplegable en vez de texto libre)." },
-        { "t": "nuevo", "d": "Mantenimientos: banner con los vehículos cerca o vencidos de mantenimiento y botón para crear el mantenimiento prellenado." },
-        { "t": "mejora", "d": "Reporte semanal: el chofer solo ve sus vehículos y su cumplimiento (sin el listado global de la flota); los roles elevados mantienen el dashboard completo." },
-        { "t": "mejora", "d": "Estado de conductores rediseñado (KPIs clicables con color, búsqueda y filas al perfil) y Panel del día con listados paginados." },
-        { "t": "arreglo", "d": "Administración › Catálogos de bitácora vuelve a cargar e incluye los sucesos de incidente/accidente/equipo (administrables y ordenables)." },
-        { "t": "arreglo", "d": "El filtro de fechas ya no se corta contra el borde derecho de la pantalla." },
-        { "t": "nuevo", "d": "Datos de prueba: el admin puede marcar registros como \"prueba\" para ocultarlos del flujo real (los no-admin nunca los ven) y eliminarlos. Disponible en Vehículos, Conductores, Combustible, Checklists, Rutas, Mantenimientos, Accidentes, Entradas, Salidas e historial de Bitácora." }
+        {
+          "t": "nuevo",
+          "d": "Nuevo selector de artículos (con búsqueda, categorías y stock por almacén) en Salidas, Requisición y Órdenes de compra; en la OC, elegir el artículo del catálogo habilita la conciliación automática de lo recibido vs lo ordenado."
+        },
+        {
+          "t": "arreglo",
+          "d": "Requisición: el desplegable ya no arranca en \"Otro\"; ahora muestra \"Selecciona un artículo…\" y \"Otro (escribir)\" es una opción aparte."
+        },
+        {
+          "t": "arreglo",
+          "d": "Salidas: el mensaje de stock insuficiente ahora dice el nombre real del artículo y el almacén, y lista de una vez todos los renglones sin existencia."
+        },
+        {
+          "t": "nuevo",
+          "d": "Recepción de material en obra: al confirmar el recibido, si la obra tiene almacén propio, la entrada se registra automáticamente en ese almacén; y al crear una requisición para una obra sin almacén, se avisa para crearlo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Estación de combustible seleccionable (Total Energies por defecto) y nueva pantalla \"Conciliación de combustible\": importa el informe de la estación (Excel/CSV), lo cruza con lo registrado, resalta diferencias/faltantes, notifica discrepancias y guarda un historial con dashboard."
+        },
+        {
+          "t": "mejora",
+          "d": "Alertas de consumo más inteligentes: se comparan contra el rendimiento esperado del vehículo (aunque no haya historial), su promedio propio y el de la flota; el listado de combustible muestra un badge Normal/Anormal por fila."
+        },
+        {
+          "t": "nuevo",
+          "d": "Registrar accidentes desde la web (Flota › Accidentes) y catálogo de motivos de multa (desplegable en vez de texto libre)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Mantenimientos: banner con los vehículos cerca o vencidos de mantenimiento y botón para crear el mantenimiento prellenado."
+        },
+        {
+          "t": "mejora",
+          "d": "Reporte semanal: el chofer solo ve sus vehículos y su cumplimiento (sin el listado global de la flota); los roles elevados mantienen el dashboard completo."
+        },
+        {
+          "t": "mejora",
+          "d": "Estado de conductores rediseñado (KPIs clicables con color, búsqueda y filas al perfil) y Panel del día con listados paginados."
+        },
+        {
+          "t": "arreglo",
+          "d": "Administración › Catálogos de bitácora vuelve a cargar e incluye los sucesos de incidente/accidente/equipo (administrables y ordenables)."
+        },
+        {
+          "t": "arreglo",
+          "d": "El filtro de fechas ya no se corta contra el borde derecho de la pantalla."
+        },
+        {
+          "t": "nuevo",
+          "d": "Datos de prueba: el admin puede marcar registros como \"prueba\" para ocultarlos del flujo real (los no-admin nunca los ven) y eliminarlos. Disponible en Vehículos, Conductores, Combustible, Checklists, Rutas, Mantenimientos, Accidentes, Entradas, Salidas e historial de Bitácora."
+        }
       ]
     },
     "1.19.0": {
       "titulo": "Flota: rutas asignadas, vehículos no disponibles por documentos, accidentes/daños/multas y dashboard de conductores",
       "cambios": [
-        { "t": "nuevo", "d": "Al asignar (o cambiar) el conductor de una ruta, al chofer le llega una notificación con el trayecto y un enlace directo a la ruta." },
-        { "t": "mejora", "d": "El reporte semanal ahora tiene encabezados cortos y escaneables, e incluye que la matrícula y el seguro tengan copias físicas dentro del vehículo." },
-        { "t": "nuevo", "d": "Un vehículo con matrícula o seguro vencido pasa automáticamente a \"No disponible\" (con aviso) y vuelve a Activo al actualizar la vigencia. No puede recibirse para una salida nueva, pero sí devolverse para no dejarlo atrapado con el chofer." },
-        { "t": "nuevo", "d": "Accidentes y daños del vehículo: en el perfil del vehículo hay sección de Accidentes (acta AMET) y de Daños; los formularios de choque completos se listan en el nuevo submódulo Flota › Accidentes." },
-        { "t": "nuevo", "d": "Multas de conductores: en el perfil del conductor se registran multas (con documento y estado pagada/pendiente) y los accidentes en los que estuvo." },
-        { "t": "nuevo", "d": "Rendimiento esperado (km/gal) por vehículo: se compara contra el promedio real en el perfil y en el dashboard de combustible (aviso si el real queda por debajo)." },
-        { "t": "nuevo", "d": "Dashboard \"Estado de conductores\": licencias con KPIs (vigentes / por vencer / vencidas), ordenadas por proximidad de vencimiento y clicables al perfil." },
-        { "t": "mejora", "d": "Perfil de actividad del conductor completo: pre-usos y reportes semanales por separado, rutas, conduces, entregas/recepciones, accidentes y multas, cada uno con su detalle." }
+        {
+          "t": "nuevo",
+          "d": "Al asignar (o cambiar) el conductor de una ruta, al chofer le llega una notificación con el trayecto y un enlace directo a la ruta."
+        },
+        {
+          "t": "mejora",
+          "d": "El reporte semanal ahora tiene encabezados cortos y escaneables, e incluye que la matrícula y el seguro tengan copias físicas dentro del vehículo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Un vehículo con matrícula o seguro vencido pasa automáticamente a \"No disponible\" (con aviso) y vuelve a Activo al actualizar la vigencia. No puede recibirse para una salida nueva, pero sí devolverse para no dejarlo atrapado con el chofer."
+        },
+        {
+          "t": "nuevo",
+          "d": "Accidentes y daños del vehículo: en el perfil del vehículo hay sección de Accidentes (acta AMET) y de Daños; los formularios de choque completos se listan en el nuevo submódulo Flota › Accidentes."
+        },
+        {
+          "t": "nuevo",
+          "d": "Multas de conductores: en el perfil del conductor se registran multas (con documento y estado pagada/pendiente) y los accidentes en los que estuvo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Rendimiento esperado (km/gal) por vehículo: se compara contra el promedio real en el perfil y en el dashboard de combustible (aviso si el real queda por debajo)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Dashboard \"Estado de conductores\": licencias con KPIs (vigentes / por vencer / vencidas), ordenadas por proximidad de vencimiento y clicables al perfil."
+        },
+        {
+          "t": "mejora",
+          "d": "Perfil de actividad del conductor completo: pre-usos y reportes semanales por separado, rutas, conduces, entregas/recepciones, accidentes y multas, cada uno con su detalle."
+        }
       ]
     },
     "1.18.0": {
       "titulo": "Bitácora e incidentes más inteligentes y revisión de liberación antes de firmar",
       "cambios": [
-        { "t": "mejora", "d": "\"¿Qué se hizo hoy?\": las estructuras y actividades salen en el orden real de ejecución del proceso, y al elegir la obra se muestran primero las 3 más usadas en esa obra." },
-        { "t": "nuevo", "d": "Administración › Catálogos de bitácora: ahora puedes reordenar estructuras, actividades y restricciones con flechas (arriba/abajo)." },
-        { "t": "nuevo", "d": "Bitácora: cada actividad puede registrarse por bloque/piso/edificio; el detalle agrupa las actividades por bloque." },
-        { "t": "mejora", "d": "El parte diario ahora exige al menos 2 fotos del trabajo realizado (y el incidente al menos 1) antes de enviarse." },
-        { "t": "nuevo", "d": "Equipos alquilados: marca un equipo \"Para retirar\" (avisa automáticamente al transportista) o \"Dañado\" (con detalle); el historial los muestra con etiquetas." },
-        { "t": "nuevo", "d": "Incidentes: nuevo tipo \"Incidente de equipo\" y las preguntas cambian según el tipo (accidente, incidente o equipo)." },
-        { "t": "nuevo", "d": "\"¿Qué pasó?\" con opciones probables por tipo (ej. caída de altura, falla mecánica…) más la opción \"Otro\" con descripción libre." },
-        { "t": "mejora", "d": "Liberación (CL): estandarizamos los nombres a lenguaje de bitácora — Armado/Encofrado de muros y columnas, Encofrado/Armado de vigas y losas." },
-        { "t": "mejora", "d": "Liberación: al abrir un CL para firmar se ve primero la revisión completa (ítems, fotos, contexto y firmas) y solo al final el botón \"Firmar como {rol}\"; nunca se abre el pad de firma directo." }
+        {
+          "t": "mejora",
+          "d": "\"¿Qué se hizo hoy?\": las estructuras y actividades salen en el orden real de ejecución del proceso, y al elegir la obra se muestran primero las 3 más usadas en esa obra."
+        },
+        {
+          "t": "nuevo",
+          "d": "Administración › Catálogos de bitácora: ahora puedes reordenar estructuras, actividades y restricciones con flechas (arriba/abajo)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Bitácora: cada actividad puede registrarse por bloque/piso/edificio; el detalle agrupa las actividades por bloque."
+        },
+        {
+          "t": "mejora",
+          "d": "El parte diario ahora exige al menos 2 fotos del trabajo realizado (y el incidente al menos 1) antes de enviarse."
+        },
+        {
+          "t": "nuevo",
+          "d": "Equipos alquilados: marca un equipo \"Para retirar\" (avisa automáticamente al transportista) o \"Dañado\" (con detalle); el historial los muestra con etiquetas."
+        },
+        {
+          "t": "nuevo",
+          "d": "Incidentes: nuevo tipo \"Incidente de equipo\" y las preguntas cambian según el tipo (accidente, incidente o equipo)."
+        },
+        {
+          "t": "nuevo",
+          "d": "\"¿Qué pasó?\" con opciones probables por tipo (ej. caída de altura, falla mecánica…) más la opción \"Otro\" con descripción libre."
+        },
+        {
+          "t": "mejora",
+          "d": "Liberación (CL): estandarizamos los nombres a lenguaje de bitácora — Armado/Encofrado de muros y columnas, Encofrado/Armado de vigas y losas."
+        },
+        {
+          "t": "mejora",
+          "d": "Liberación: al abrir un CL para firmar se ve primero la revisión completa (ítems, fotos, contexto y firmas) y solo al final el botón \"Firmar como {rol}\"; nunca se abre el pad de firma directo."
+        }
       ]
     },
     "1.17.0": {
       "titulo": "Permisos por rol en Flota, detalles al click, filtros de fecha y arreglos varios",
       "cambios": [
-        { "t": "seguridad", "d": "Flota: cada chofer ahora ve SOLO sus datos (sus rutas, combustible, checklists, entregas y avisos). Reportes, Panel del día, Responsabilidad de otros y la lista de Conductores quedan solo para admin/Dirección/Gerencia/Jefe de Flota." },
-        { "t": "arreglo", "d": "Se corrigió el drawer de \"Editar conductor\" que recortaba los textos, y el botón \"Restablecer PIN\" ahora aparece de inmediato tras generar el acceso." },
-        { "t": "arreglo", "d": "Login de conductor: ya no se queda cargando indefinidamente (timeout con mensaje claro) y el acceso queda 100% configurado." },
-        { "t": "arreglo", "d": "Reportes de flota: los vehículos ya no muestran códigos raros (UUID); se ve la placa aunque el vehículo esté desactivado." },
-        { "t": "arreglo", "d": "Reposición de almacén: nueva opción \"Todas las bodegas\" con el mismo criterio que Reportes, y explica por qué no hay resultados." },
-        { "t": "nuevo", "d": "Al hacer click en una ruta, un vehículo, un activo, una entrada o una fila de reportes se abre su detalle u origen." },
-        { "t": "nuevo", "d": "Filtro de fechas unificado con presets (Hoy, 7, 15 días, 1, 3, 6, 12 meses) en movimientos, entradas, salidas, órdenes de compra, combustible, auditoría, historial de bitácora y conteos." },
-        { "t": "mejora", "d": "Las notificaciones de Flota ahora muestran en qué submódulo están (Avisos, Mantenimientos, Checklists, Combustible)." },
-        { "t": "mejora", "d": "Reportes de inventario: KPIs y filas clicables + paginación en stock crítico. Conteos con iconos, % de desviación, totales y leyenda. Activos Fijos con descripción de propósito y ficha completa." },
-        { "t": "mejora", "d": "Sección de subir archivos rediseñada (arrastrar/soltar, miniaturas) y filtros desplegables estilizados." },
-        { "t": "mejora", "d": "El clima siempre se etiqueta como \"Pronóstico\"; la lluvia se registra solo manualmente en la bitácora." }
+        {
+          "t": "seguridad",
+          "d": "Flota: cada chofer ahora ve SOLO sus datos (sus rutas, combustible, checklists, entregas y avisos). Reportes, Panel del día, Responsabilidad de otros y la lista de Conductores quedan solo para admin/Dirección/Gerencia/Jefe de Flota."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigió el drawer de \"Editar conductor\" que recortaba los textos, y el botón \"Restablecer PIN\" ahora aparece de inmediato tras generar el acceso."
+        },
+        {
+          "t": "arreglo",
+          "d": "Login de conductor: ya no se queda cargando indefinidamente (timeout con mensaje claro) y el acceso queda 100% configurado."
+        },
+        {
+          "t": "arreglo",
+          "d": "Reportes de flota: los vehículos ya no muestran códigos raros (UUID); se ve la placa aunque el vehículo esté desactivado."
+        },
+        {
+          "t": "arreglo",
+          "d": "Reposición de almacén: nueva opción \"Todas las bodegas\" con el mismo criterio que Reportes, y explica por qué no hay resultados."
+        },
+        {
+          "t": "nuevo",
+          "d": "Al hacer click en una ruta, un vehículo, un activo, una entrada o una fila de reportes se abre su detalle u origen."
+        },
+        {
+          "t": "nuevo",
+          "d": "Filtro de fechas unificado con presets (Hoy, 7, 15 días, 1, 3, 6, 12 meses) en movimientos, entradas, salidas, órdenes de compra, combustible, auditoría, historial de bitácora y conteos."
+        },
+        {
+          "t": "mejora",
+          "d": "Las notificaciones de Flota ahora muestran en qué submódulo están (Avisos, Mantenimientos, Checklists, Combustible)."
+        },
+        {
+          "t": "mejora",
+          "d": "Reportes de inventario: KPIs y filas clicables + paginación en stock crítico. Conteos con iconos, % de desviación, totales y leyenda. Activos Fijos con descripción de propósito y ficha completa."
+        },
+        {
+          "t": "mejora",
+          "d": "Sección de subir archivos rediseñada (arrastrar/soltar, miniaturas) y filtros desplegables estilizados."
+        },
+        {
+          "t": "mejora",
+          "d": "El clima siempre se etiqueta como \"Pronóstico\"; la lluvia se registra solo manualmente en la bitácora."
+        }
       ]
     },
     "1.16.1": {
       "titulo": "Historial de versiones con enlace a cada versión",
       "cambios": [
-        { "t": "mejora", "d": "Cada versión del historial (Administración › Historial de versiones) ahora incluye un enlace directo al código de esa versión (\"Abrir esta versión\"), registrado automáticamente en cada despliegue." }
+        {
+          "t": "mejora",
+          "d": "Cada versión del historial (Administración › Historial de versiones) ahora incluye un enlace directo al código de esa versión (\"Abrir esta versión\"), registrado automáticamente en cada despliegue."
+        }
       ]
     },
     "1.16.0": {
       "titulo": "Editar obras iniciadas, firmas de liberación flexibles, unidades en bitácora y dashboards clicables",
       "cambios": [
-        { "t": "arreglo", "d": "Ya puedes editar los datos de un proyecto que está \"en progreso\" sin que te bloquee por estrellas; la validación de estrellas solo aplica al momento de iniciar la obra." },
-        { "t": "mejora", "d": "Checklist de liberación: solo el Ing. Residente y el Ing. Responsable firman obligatoriamente; Cliente y MIVHED son opcionales. Cada firma se marca en verde al completarse." },
-        { "t": "nuevo", "d": "Liberación: puedes \"Solicitar firma\" a otro usuario (le llega una notificación que abre el CL en el rol que le toca) y la firma del Cliente/MIVHED puede subirse como foto de la firma en papel." },
-        { "t": "nuevo", "d": "Bitácora: ahora se registra la unidad de medida del trabajo realizado en cada actividad, visible en el historial." },
-        { "t": "mejora", "d": "Las notificaciones ahora resaltan el registro concreto al abrir el módulo (solicitudes, avisos de flota, aprobaciones legales, tareas y liberación)." },
-        { "t": "mejora", "d": "Dashboards clicables: las tarjetas y gráficas del inicio, Dirección y bitácora abren su listado ya filtrado (drill-down)." },
-        { "t": "mejora", "d": "Dashboard de bitácora: filtro por obra que recalcula todas las métricas y permite ver de qué obra vienen; clic en una barra/segmento abre el historial filtrado." },
-        { "t": "mejora", "d": "Se unificó el nombre visible \"parte diario\" a \"Bitácora del día\"." }
+        {
+          "t": "arreglo",
+          "d": "Ya puedes editar los datos de un proyecto que está \"en progreso\" sin que te bloquee por estrellas; la validación de estrellas solo aplica al momento de iniciar la obra."
+        },
+        {
+          "t": "mejora",
+          "d": "Checklist de liberación: solo el Ing. Residente y el Ing. Responsable firman obligatoriamente; Cliente y MIVHED son opcionales. Cada firma se marca en verde al completarse."
+        },
+        {
+          "t": "nuevo",
+          "d": "Liberación: puedes \"Solicitar firma\" a otro usuario (le llega una notificación que abre el CL en el rol que le toca) y la firma del Cliente/MIVHED puede subirse como foto de la firma en papel."
+        },
+        {
+          "t": "nuevo",
+          "d": "Bitácora: ahora se registra la unidad de medida del trabajo realizado en cada actividad, visible en el historial."
+        },
+        {
+          "t": "mejora",
+          "d": "Las notificaciones ahora resaltan el registro concreto al abrir el módulo (solicitudes, avisos de flota, aprobaciones legales, tareas y liberación)."
+        },
+        {
+          "t": "mejora",
+          "d": "Dashboards clicables: las tarjetas y gráficas del inicio, Dirección y bitácora abren su listado ya filtrado (drill-down)."
+        },
+        {
+          "t": "mejora",
+          "d": "Dashboard de bitácora: filtro por obra que recalcula todas las métricas y permite ver de qué obra vienen; clic en una barra/segmento abre el historial filtrado."
+        },
+        {
+          "t": "mejora",
+          "d": "Se unificó el nombre visible \"parte diario\" a \"Bitácora del día\"."
+        }
       ]
     },
     "1.15.0": {
       "titulo": "Kilometraje real, devolución de obra y comentarios obligatorios",
       "cambios": [
-        { "t": "mejora", "d": "El kilometraje que se registra en pre-uso, recepción/devolución de vehículos y mantenimientos ahora actualiza el kilometraje real del vehículo (nunca lo hace retroceder), igual que ya hacía combustible." },
-        { "t": "nuevo", "d": "Entradas de inventario: nuevo origen \"Devolución de obra\" — eliges la obra de origen y, si esa obra tiene almacén, puedes descontar el material de ese almacén registrando el traspaso (salida + entrada enlazadas y visibles en Movimientos)." },
-        { "t": "mejora", "d": "Checklists de flota: si un ítem crítico se marca en NO, el comentario que explica qué pasó con el vehículo pasa a ser obligatorio; el detalle muestra esa explicación de forma destacada." },
-        { "t": "mejora", "d": "Bitácora: ahora puedes adjuntar notas de voz y archivos de audio desde la web, y se reproducen en el historial." }
+        {
+          "t": "mejora",
+          "d": "El kilometraje que se registra en pre-uso, recepción/devolución de vehículos y mantenimientos ahora actualiza el kilometraje real del vehículo (nunca lo hace retroceder), igual que ya hacía combustible."
+        },
+        {
+          "t": "nuevo",
+          "d": "Entradas de inventario: nuevo origen \"Devolución de obra\" — eliges la obra de origen y, si esa obra tiene almacén, puedes descontar el material de ese almacén registrando el traspaso (salida + entrada enlazadas y visibles en Movimientos)."
+        },
+        {
+          "t": "mejora",
+          "d": "Checklists de flota: si un ítem crítico se marca en NO, el comentario que explica qué pasó con el vehículo pasa a ser obligatorio; el detalle muestra esa explicación de forma destacada."
+        },
+        {
+          "t": "mejora",
+          "d": "Bitácora: ahora puedes adjuntar notas de voz y archivos de audio desde la web, y se reproducen en el historial."
+        }
       ]
     },
     "1.14.1": {
       "titulo": "Ajustes: fecha de versiones, fotos de vehículos y acceso de conductores",
       "cambios": [
-        { "t": "arreglo", "d": "La fecha en \"Versiones de la app\" ahora se muestra legible (ej. \"18 jul 2026, 3:27 p. m.\") en vez de un texto confuso." },
-        { "t": "mejora", "d": "Las fotos de los vehículos ahora se ven a todo lo ancho de la tarjeta, sin franjas grises a los lados." },
-        { "t": "arreglo", "d": "El acceso por cédula + PIN es solo para conductores sin correo: a quienes ya inician con su correo de trabajo (p. ej. el jefe de flota) no se les ofrece PIN ni se les cambia la contraseña." }
+        {
+          "t": "arreglo",
+          "d": "La fecha en \"Versiones de la app\" ahora se muestra legible (ej. \"18 jul 2026, 3:27 p. m.\") en vez de un texto confuso."
+        },
+        {
+          "t": "mejora",
+          "d": "Las fotos de los vehículos ahora se ven a todo lo ancho de la tarjeta, sin franjas grises a los lados."
+        },
+        {
+          "t": "arreglo",
+          "d": "El acceso por cédula + PIN es solo para conductores sin correo: a quienes ya inician con su correo de trabajo (p. ej. el jefe de flota) no se les ofrece PIN ni se les cambia la contraseña."
+        }
       ]
     },
     "1.14.0": {
       "titulo": "Acceso de conductores, flota y mejoras visuales",
       "cambios": [
-        { "t": "arreglo", "d": "\"Mi proyecto\" ahora muestra las obras donde eres responsable o parte del equipo (antes ignoraba al responsable y a quien no tenía ficha de empleado)." },
-        { "t": "nuevo", "d": "Acceso de conductores por cédula + PIN de 6 dígitos (sin correo): el admin/Flota genera o restablece el PIN desde el perfil del conductor; nuevo modo \"Soy conductor\" en el inicio de sesión, con bloqueo tras varios intentos." },
-        { "t": "nuevo", "d": "Nuevos tipos de vehículo: Motocicleta, Automóvil/Sedán y SUV/Jeepeta (ajustan la clase Liviano/Pesado del checklist)." },
-        { "t": "mejora", "d": "Flota: un vehículo desactivado se muestra como \"Desactivado\", va al final y solo lo ven/gestionan admin, Dirección, Gerencia y Jefe de Flota." },
-        { "t": "mejora", "d": "Gestión de Usuarios: acciones en un menú \"⋯\" y tabla responsiva; encabezados fijos y filas alternas en las tablas." },
-        { "t": "mejora", "d": "Las imágenes cargan con un placeholder y aparecen con un suave fundido (menos \"saltos\" al abrir la página)." }
+        {
+          "t": "arreglo",
+          "d": "\"Mi proyecto\" ahora muestra las obras donde eres responsable o parte del equipo (antes ignoraba al responsable y a quien no tenía ficha de empleado)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Acceso de conductores por cédula + PIN de 6 dígitos (sin correo): el admin/Flota genera o restablece el PIN desde el perfil del conductor; nuevo modo \"Soy conductor\" en el inicio de sesión, con bloqueo tras varios intentos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Nuevos tipos de vehículo: Motocicleta, Automóvil/Sedán y SUV/Jeepeta (ajustan la clase Liviano/Pesado del checklist)."
+        },
+        {
+          "t": "mejora",
+          "d": "Flota: un vehículo desactivado se muestra como \"Desactivado\", va al final y solo lo ven/gestionan admin, Dirección, Gerencia y Jefe de Flota."
+        },
+        {
+          "t": "mejora",
+          "d": "Gestión de Usuarios: acciones en un menú \"⋯\" y tabla responsiva; encabezados fijos y filas alternas en las tablas."
+        },
+        {
+          "t": "mejora",
+          "d": "Las imágenes cargan con un placeholder y aparecen con un suave fundido (menos \"saltos\" al abrir la página)."
+        }
       ]
     },
     "1.13.0": {
       "titulo": "Conductores y vehículos: categorías RD, tags, documentos y VIN",
       "cambios": [
-        { "t": "arreglo", "d": "Corregido el error al desvincular un conductor de su usuario (\"invalid input syntax for type uuid\"); también en rutas, combustible y checklists." },
-        { "t": "nuevo", "d": "Categorías de licencia en formato dominicano (01, 02, 03…) desde un catálogo; los valores viejos (A/B/C) se migraron automáticamente." },
-        { "t": "nuevo", "d": "Nota y tags del conductor (Chofer, Encargado de Logística, Chofer Telehandler…), visibles en el listado y el perfil." },
-        { "t": "nuevo", "d": "Subir cédula y licencia (opcional) durante el alta del conductor, sin bloquear el guardado." },
-        { "t": "mejora", "d": "Documentos con vista previa (miniatura) y varias fotos por documento destacado (licencia frente y dorso)." },
-        { "t": "mejora", "d": "Aviso de licencia próxima a vencer (3 meses) también en el perfil del conductor." },
-        { "t": "nuevo", "d": "Badge y filtro de \"documentos incompletos\" en el listado de conductores." },
-        { "t": "nuevo", "d": "VIN (chasis) del vehículo como identificador único, más número de matrícula, número de seguro y compañía aseguradora." }
+        {
+          "t": "arreglo",
+          "d": "Corregido el error al desvincular un conductor de su usuario (\"invalid input syntax for type uuid\"); también en rutas, combustible y checklists."
+        },
+        {
+          "t": "nuevo",
+          "d": "Categorías de licencia en formato dominicano (01, 02, 03…) desde un catálogo; los valores viejos (A/B/C) se migraron automáticamente."
+        },
+        {
+          "t": "nuevo",
+          "d": "Nota y tags del conductor (Chofer, Encargado de Logística, Chofer Telehandler…), visibles en el listado y el perfil."
+        },
+        {
+          "t": "nuevo",
+          "d": "Subir cédula y licencia (opcional) durante el alta del conductor, sin bloquear el guardado."
+        },
+        {
+          "t": "mejora",
+          "d": "Documentos con vista previa (miniatura) y varias fotos por documento destacado (licencia frente y dorso)."
+        },
+        {
+          "t": "mejora",
+          "d": "Aviso de licencia próxima a vencer (3 meses) también en el perfil del conductor."
+        },
+        {
+          "t": "nuevo",
+          "d": "Badge y filtro de \"documentos incompletos\" en el listado de conductores."
+        },
+        {
+          "t": "nuevo",
+          "d": "VIN (chasis) del vehículo como identificador único, más número de matrícula, número de seguro y compañía aseguradora."
+        }
       ]
     },
     "1.9.0": {
       "titulo": "QA total + propuestas + exportación a Excel",
       "cambios": [
-        { "t": "arreglo", "d": "QA total del sistema: 9 hallazgos altos y decenas de medios/bajos corregidos (montos RD$, estados, zonas horarias, validaciones)." },
-        { "t": "nuevo", "d": "Exportación a Excel (lo filtrado) en inventario, flota, compras, RRHH, legal, tareas, tecnología, proyectos y auditoría." },
-        { "t": "nuevo", "d": "TI: costo/garantía/fecha de compra + origen desde compra; equipos asignados visibles en la ficha del empleado." },
-        { "t": "mejora", "d": "RRHH: una ausencia aprobada genera la asistencia de cada día; KPI de ausencias pendientes." },
-        { "t": "mejora", "d": "Compras: reconciliación de recibido vs ordenado por ítem; Legal: enlace externo y comentario del revisor." },
-        { "t": "seguridad", "d": "Endurecimiento de permisos (RLS) y pruebas E2E de gating por rol." }
+        {
+          "t": "arreglo",
+          "d": "QA total del sistema: 9 hallazgos altos y decenas de medios/bajos corregidos (montos RD$, estados, zonas horarias, validaciones)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Exportación a Excel (lo filtrado) en inventario, flota, compras, RRHH, legal, tareas, tecnología, proyectos y auditoría."
+        },
+        {
+          "t": "nuevo",
+          "d": "TI: costo/garantía/fecha de compra + origen desde compra; equipos asignados visibles en la ficha del empleado."
+        },
+        {
+          "t": "mejora",
+          "d": "RRHH: una ausencia aprobada genera la asistencia de cada día; KPI de ausencias pendientes."
+        },
+        {
+          "t": "mejora",
+          "d": "Compras: reconciliación de recibido vs ordenado por ítem; Legal: enlace externo y comentario del revisor."
+        },
+        {
+          "t": "seguridad",
+          "d": "Endurecimiento de permisos (RLS) y pruebas E2E de gating por rol."
+        }
       ]
     },
     "1.10.0": {
       "titulo": "Documentos de flota, GPS y paridad web/móvil",
       "cambios": [
-        { "t": "nuevo", "d": "Documentos de conductores (cédula/licencia) y vehículos (seguro/matrícula): subir, ver y descargar desde el perfil; abrir desde el aviso de vencimiento." },
-        { "t": "nuevo", "d": "Registrar entrega/recepción de vehículo desde la web (fotos guiadas, daños, firma y GPS del navegador)." },
-        { "t": "nuevo", "d": "Cerrar/firmar la entrega de un conduce desde la web; foto de evidencia en salidas y entradas; fotos en reportes de Soporte." },
-        { "t": "mejora", "d": "GPS de entrega/recepción con mini-mapa; fotos por ítem del checklist visibles junto a su hallazgo." },
-        { "t": "arreglo", "d": "Los mapas ya no se ven en gris ni desalineados dentro de formularios y filas." }
+        {
+          "t": "nuevo",
+          "d": "Documentos de conductores (cédula/licencia) y vehículos (seguro/matrícula): subir, ver y descargar desde el perfil; abrir desde el aviso de vencimiento."
+        },
+        {
+          "t": "nuevo",
+          "d": "Registrar entrega/recepción de vehículo desde la web (fotos guiadas, daños, firma y GPS del navegador)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Cerrar/firmar la entrega de un conduce desde la web; foto de evidencia en salidas y entradas; fotos en reportes de Soporte."
+        },
+        {
+          "t": "mejora",
+          "d": "GPS de entrega/recepción con mini-mapa; fotos por ítem del checklist visibles junto a su hallazgo."
+        },
+        {
+          "t": "arreglo",
+          "d": "Los mapas ya no se ven en gris ni desalineados dentro de formularios y filas."
+        }
       ]
     },
     "1.11.0": {
       "titulo": "Historial de versiones confiable + auditoría rediseñada",
       "cambios": [
-        { "t": "nuevo", "d": "Historial de versiones con formato uniforme (chips por tipo) para web y app móvil, y registro automático en cada despliegue." },
-        { "t": "mejora", "d": "Dashboard de Auditoría rediseñado: tarjetas KPI, cada sección en su panel y gráficos consistentes con los demás dashboards." },
-        { "t": "mejora", "d": "Al enlazar un usuario en el formulario de conductor se autollena su cédula y teléfono desde la ficha de empleado (editables)." },
-        { "t": "arreglo", "d": "Las categorías destacadas ahora solo marcan categorías oficiales activas." }
+        {
+          "t": "nuevo",
+          "d": "Historial de versiones con formato uniforme (chips por tipo) para web y app móvil, y registro automático en cada despliegue."
+        },
+        {
+          "t": "mejora",
+          "d": "Dashboard de Auditoría rediseñado: tarjetas KPI, cada sección en su panel y gráficos consistentes con los demás dashboards."
+        },
+        {
+          "t": "mejora",
+          "d": "Al enlazar un usuario en el formulario de conductor se autollena su cédula y teléfono desde la ficha de empleado (editables)."
+        },
+        {
+          "t": "arreglo",
+          "d": "Las categorías destacadas ahora solo marcan categorías oficiales activas."
+        }
       ]
     },
     "1.12.0": {
       "titulo": "Registro de versiones automático en el despliegue",
       "cambios": [
-        { "t": "mejora", "d": "El historial de versiones ahora se registra solo en cada despliegue del sitio, sin depender de que alguien abra la app." }
+        {
+          "t": "mejora",
+          "d": "El historial de versiones ahora se registra solo en cada despliegue del sitio, sin depender de que alguien abra la app."
+        }
       ]
     }
   }

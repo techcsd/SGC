@@ -822,6 +822,27 @@
         <app-cl-liberacion [proyectoId]="p.id" [focusRegistroId]="clFocusId()" [focusFirmaRol]="clFocusRol()" />
       </div>
 
+      <!-- Z14 — Estructuras de la obra (bloques/pisos) -->
+      <div class="proyectos__estructuras">
+        <h3 class="proyectos__fases-title">Estructuras (bloques / pisos)</h3>
+        <p class="proyectos__estructuras-hint">Se ofrecen como opciones en el campo "Bloque/Entrepiso" de las bitácoras de esta obra.</p>
+        <div class="proyectos__estructuras-chips">
+          @for (e of estructuras(); track e.id) {
+            <span class="proyectos__estructura-chip">
+              {{ e.nombre }}
+              <button type="button" (click)="eliminarEstructura(e)" aria-label="Eliminar estructura">×</button>
+            </span>
+          } @empty {
+            <span class="text-muted">Sin estructuras definidas.</span>
+          }
+        </div>
+        <div class="proyectos__estructuras-add">
+          <input type="text" [value]="nuevaEstructura()" (input)="nuevaEstructura.set($any($event.target).value)"
+                 (keyup.enter)="agregarEstructura()" placeholder="Ej: Bloque A, Piso 3, Torre Norte…" maxlength="100" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarEstructura()">+ Agregar</button>
+        </div>
+      </div>
+
       <!-- Fases -->
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">

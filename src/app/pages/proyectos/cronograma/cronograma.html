@@ -25,7 +25,11 @@
       <form [formGroup]="tareaForm" (ngSubmit)="guardarTarea()" class="cron__form">
         <label class="cron__field">
           <span>Nombre</span>
-          <input type="text" formControlName="nombre" maxlength="200" />
+          <input type="text" formControlName="nombre" maxlength="200" list="cronograma-catalogo"
+                 placeholder="Elige del catálogo o escribe otra…" />
+          <datalist id="cronograma-catalogo">
+            @for (t of catalogoTareas(); track t) { <option [value]="t"></option> }
+          </datalist>
         </label>
         <label class="cron__field">
           <span>Tipo</span>

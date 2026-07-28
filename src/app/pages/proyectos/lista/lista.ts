@@ -18,6 +18,7 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { ProyectoEstructurasService, ProyectoEstructura } from '../../../../shared/services/proyecto-estructuras.service';
 import {
   FaseProyecto,
   Proyecto,
@@ -80,6 +81,11 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 })
 export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
+  private estructurasService = inject(ProyectoEstructurasService);
+
+  // Z14 — estructuras (bloques/pisos) de la obra
+  estructuras = signal<ProyectoEstructura[]>([]);
+  nuevaEstructura = signal('');
   private empleadosService = inject(EmpleadosService);
   private bodegasService = inject(BodegasService);
   private supabase = inject(SupabaseService);
@@ -563,13 +569,15 @@ export class Lista implements OnInit {
     this.responsables.set([]);
     this.avance.set(null);
     this.pagadoInput.set(null);
+    this.estructuras.set([]);
     try {
-      const [full, gasto, equipo, avance, responsables] = await Promise.all([
+      const [full, gasto, equipo, avance, responsables, estructuras] = await Promise.all([
         this.proyectosService.getById(p.id),
         this.proyectosService.getGastoReal(p.id),
         this.proyectosService.getEquipo(p.id),
         this.proyectosService.getAvanceById(p.id),
         this.proyectosService.getResponsables(p.id).catch(() => []),
+        this.estructurasService.getByProyecto(p.id).catch(() => []),
       ]);
       this.selectedProyecto.set(full);
       this.gastoReal.set(gasto);
@@ -577,6 +585,7 @@ export class Lista implements OnInit {
       this.avance.set(avance);
       this.pagadoInput.set(avance?.porcentaje_pagado ?? null);
       this.responsables.set(responsables);
+      this.estructuras.set(estructuras);
     } catch {
       // keep basic data
     } finally {
@@ -602,6 +611,30 @@ export class Lista implements OnInit {
   closeDetailDrawer() {
     this.detailDrawerOpen.set(false);
     this.selectedProyecto.set(null);
+  }
+
+  // ── Z14 — estructuras (bloques/pisos) de la obra ──────────
+  async agregarEstructura() {
+    const p = this.selectedProyecto();
+    const nombre = this.nuevaEstructura().trim();
+    if (!p || !nombre) return;
+    try {
+      const orden = (this.estructuras().at(-1)?.orden ?? 0) + 1;
+      const e = await this.estructurasService.crear(p.id, nombre, orden);
+      this.estructuras.update((list) => [...list, e]);
+      this.nuevaEstructura.set('');
+    } catch {
+      /* noop */
+    }
+  }
+
+  async eliminarEstructura(e: ProyectoEstructura) {
+    try {
+      await this.estructurasService.eliminar(e.id);
+      this.estructuras.update((list) => list.filter((x) => x.id !== e.id));
+    } catch {
+      /* noop */
+    }
   }
 
   // ── R25: guardar % pagado (Admin/Dirección) ───────────────

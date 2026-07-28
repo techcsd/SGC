@@ -12,6 +12,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } 
 import { Router } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
+import { ProyectoEstructurasService } from '../../../../shared/services/proyecto-estructuras.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { BitacoraCatalogosService } from '../../../../shared/services/bitacora-catalogos.service';
 import { UnidadesService } from '../../../../shared/services/unidades.service';
@@ -78,8 +79,11 @@ interface Draft {
 export class Nueva implements OnInit {
   private bitacoraService = inject(BitacoraService);
   private cronogramaService = inject(CronogramaService);
+  private estructurasService = inject(ProyectoEstructurasService);
   // Y15 — tareas del cronograma del proyecto elegido (para enlazar la bitácora).
   tareasCronograma = signal<{ id: string; nombre: string }[]>([]);
+  // Z14 — estructuras (bloques/pisos) definidas por la obra elegida.
+  estructurasObra = signal<string[]>([]);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private borradores = inject(BorradoresWebService);
@@ -404,6 +408,7 @@ export class Nueva implements OnInit {
         this.aplicarRanking(id ?? null);
         void this.loadEquiposDeObra(id ?? null);
         void this.loadTareasCronograma(id ?? null);
+        void this.loadEstructuras(id ?? null);
       });
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saveDraft());
@@ -947,6 +952,19 @@ export class Nueva implements OnInit {
   }
 
   /** Y15 — carga las tareas no completadas del cronograma del proyecto elegido. */
+  /** Z14 — carga las estructuras (bloques/pisos) de la obra para el selector. */
+  private async loadEstructuras(proyectoId: string | null) {
+    if (!proyectoId) {
+      this.estructurasObra.set([]);
+      return;
+    }
+    try {
+      this.estructurasObra.set(await this.estructurasService.getNombres(proyectoId));
+    } catch {
+      this.estructurasObra.set([]);
+    }
+  }
+
   private async loadTareasCronograma(proyectoId: string | null) {
     this.form.controls.cronograma_tarea_id.setValue(null, { emitEvent: false });
     if (!proyectoId) {

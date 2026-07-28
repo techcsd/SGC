@@ -893,3 +893,19 @@
 }
 .alm-faltantes--inline { margin: 12px 0; }
 .alm-faltantes__inline { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; flex-wrap: wrap; }
+
+/* Z14 — estructuras de la obra */
+.proyectos__estructuras { margin: 18px 0; }
+.proyectos__estructuras-hint { font-size: 12px; color: var(--sgc-text-muted); margin: 2px 0 10px; }
+.proyectos__estructuras-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.proyectos__estructura-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  font-size: 13px;
+  button { background: none; border: none; cursor: pointer; color: var(--sgc-danger); font-size: 15px; line-height: 1; padding: 0; }
+}
+.proyectos__estructuras-add {
+  display: flex; gap: 8px;
+  input { flex: 1; padding: 8px 10px; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius); font-size: 14px; }
+}

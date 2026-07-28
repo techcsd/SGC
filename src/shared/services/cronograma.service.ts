@@ -12,6 +12,17 @@ const BUCKET = 'sgc-cronograma';
 export class CronogramaService {
   private supabase = inject(SupabaseService);
 
+  /** Z15 — catálogo global de nombres de tarea (para el selector + "Otro"). */
+  async getCatalogo(): Promise<string[]> {
+    const { data, error } = await this.supabase.client
+      .from('cronograma_tareas_catalogo')
+      .select('nombre')
+      .eq('activo', true)
+      .order('orden');
+    if (error) return [];
+    return (data ?? []).map((r) => (r as { nombre: string }).nombre);
+  }
+
   async listar(proyectoId: string): Promise<CronogramaData> {
     const { data, error } = await this.supabase.client.rpc('listar_cronograma', {
       p_proyecto_id: proyectoId,

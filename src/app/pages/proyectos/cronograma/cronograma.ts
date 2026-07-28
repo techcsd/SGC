@@ -46,6 +46,7 @@ export class Cronograma implements OnInit {
 
   proyectoId = signal('');
   proyectoNombre = signal('');
+  catalogoTareas = signal<string[]>([]);  // Z15
   highlightTarea = signal<string | null>(null);
 
   tareas = signal<CronogramaTarea[]>([]);
@@ -141,6 +142,7 @@ export class Cronograma implements OnInit {
     this.highlightTarea.set(this.route.snapshot.queryParamMap.get('tarea'));
     void this.cargarNombre(id);
     void this.cargar();
+    void this.service.getCatalogo().then((c) => this.catalogoTareas.set(c));
   }
 
   private async cargarNombre(id: string) {

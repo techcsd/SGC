@@ -143,9 +143,16 @@
               id="bloque_entrepiso"
               type="text"
               formControlName="bloque_entrepiso"
+              list="estructuras-obra"
               placeholder="Ej: Bloque A - Entrepiso 3"
             />
-            <span class="bitacora-section__hint">Opcional. Para registrar en varios bloques usa los chips de la sección Actividades.</span>
+            <datalist id="estructuras-obra">
+              @for (e of estructurasObra(); track e) { <option [value]="e"></option> }
+            </datalist>
+            <span class="bitacora-section__hint">
+              @if (estructurasObra().length > 0) { Elige una estructura de la obra o escribe otra. }
+              @else { Opcional. Para registrar en varios bloques usa los chips de la sección Actividades. }
+            </span>
           </div>
 
           <div class="sgc-field">
