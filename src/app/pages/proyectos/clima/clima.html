@@ -78,7 +78,7 @@
           </thead>
           <tbody>
             @for (o of r.porObra; track o.proyectoId) {
-              <tr>
+              <tr class="clima-row" (click)="verObra(o)" title="Ver bitácoras de lluvia">
                 <td><code class="code-tag">{{ o.codigo }}</code></td>
                 <td>{{ o.nombre }}</td>
                 <td>{{ o.diasMonitoreados }}</td>
@@ -96,6 +96,33 @@
         </table>
       </div>
     </div>
+
+    <!-- Z17 — detalle: bitácoras que reportaron lluvia en la obra -->
+    @if (detalleObra(); as o) {
+      <div class="sgc-card clima-detalle">
+        <div class="clima-detalle__head">
+          <h3>Bitácoras con lluvia — {{ o.nombre }}</h3>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarObra()">Cerrar</button>
+        </div>
+        @if (detalleLoading()) {
+          <p class="text-muted">Cargando…</p>
+        } @else if (detalleBitacoras().length === 0) {
+          <p class="text-muted">Ninguna bitácora reportó lluvia en este período para esta obra (el dato de días adversos viene de las lecturas automáticas de clima).</p>
+        } @else {
+          <ul class="clima-detalle__list">
+            @for (b of detalleBitacoras(); track b.id) {
+              <li>
+                <a [routerLink]="['/bitacora/historial']" [queryParams]="{ item: b.id }">
+                  {{ b.fecha | date:'dd/MM/yyyy' }} · {{ b.usuario?.nombre ?? b.ingeniero_responsable ?? '—' }}
+                </a>
+                @if (b.horas_lluvia) { <span class="text-muted"> · {{ b.horas_lluvia }}h lluvia</span> }
+                @if (b.lluvia_detalle) { <span class="text-muted"> · {{ b.lluvia_detalle }}</span> }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
 
     <p class="clima-note">
       Un día se cuenta como <strong>adverso</strong> cuando hubo lluvia significativa (≥0.5&nbsp;mm)

@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.41.0": {
+      "titulo": "Reportes de clima: detalle con las bitácoras de lluvia",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Al hacer clic en una obra del reporte de clima se listan las bitácoras que reportaron lluvia en el período, con enlace directo a cada una."
+        }
+      ]
+    },
     "1.40.0": {
       "titulo": "Proyectos: estructuras por obra y catálogo de tareas del cronograma",
       "cambios": [

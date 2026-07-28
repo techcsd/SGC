@@ -42,9 +42,33 @@ const VIENTO_ALTO_KMH = 40;
  *  weather_snapshots history into construction impact metrics (días perdidos por
  *  lluvia, obras con más interrupciones climáticas). Read-only aggregation, kept
  *  separate from the live ContextService so reporting can evolve independently. */
+export interface BitacoraLluvia {
+  id: string;
+  fecha: string;
+  ingeniero_responsable: string | null;
+  lluvia_detalle: string | null;
+  horas_lluvia: number | null;
+  usuario: { nombre: string } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WeatherBiService {
   private supabase = inject(SupabaseService);
+
+  /** Z17 — bitácoras que reportaron lluvia en una obra dentro del período (para el
+   *  detalle clicable del reporte de clima). Enlazan al histórico por ?item=. */
+  async getBitacorasLluvia(proyectoId: string, desde: string, hasta: string): Promise<BitacoraLluvia[]> {
+    const { data, error } = await this.supabase.client
+      .from('bitacoras')
+      .select('id, fecha, ingeniero_responsable, lluvia_detalle, horas_lluvia, usuario:usuarios(nombre)')
+      .eq('proyecto_id', proyectoId)
+      .eq('llovio', true)
+      .gte('fecha', desde)
+      .lte('fecha', hasta)
+      .order('fecha', { ascending: false });
+    if (error) return [];
+    return (data ?? []) as unknown as BitacoraLluvia[];
+  }
 
   /** desde/hasta are inclusive YYYY-MM-DD dates. */
   async getReporteClima(desde: string, hasta: string): Promise<ReporteClima> {
