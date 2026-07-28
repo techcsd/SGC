@@ -1,6 +1,12 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.34.2": {
+      "titulo": "Rol Tecnología puede marcar versiones de la app como publicada/mínima",
+      "cambios": [
+        { "t": "nuevo", "d": "Quien tenga el rol Tecnología ahora puede marcar una versión de la app como publicada o como mínima. Crear, editar o eliminar versiones sigue reservado a administradores (a futuro, al rol Desarrollador de software)." }
+      ]
+    },
     "1.34.1": {
       "titulo": "Monitoreo de Infraestructura: alertas por correo (canal principal)",
       "cambios": [

@@ -9,7 +9,9 @@
         ⬇️ Descargar última versión (v{{ ultima()!.version }})
       </a>
     }
-    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">Nueva versión</button>
+    @if (esAdmin()) {
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">Nueva versión</button>
+    }
   </div>
 </div>
 
@@ -160,8 +162,10 @@
                   <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleMinima(v)">
                     {{ v.minima ? 'Quitar mínima' : 'Marcar mínima' }}
                   </button>
-                  <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openEdit(v)">Editar</button>
-                  <button class="sgc-btn sgc-btn--ghost" type="button" (click)="eliminar(v)">Eliminar</button>
+                  @if (esAdmin()) {
+                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openEdit(v)">Editar</button>
+                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="eliminar(v)">Eliminar</button>
+                  }
                 </div>
               </td>
             </tr>

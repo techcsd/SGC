@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AppVersionesService } from '../../../../shared/services/app-versiones.service';
+import { UserService } from '../../../core/services/user.service';
 import { AppVersion, semverCode } from '../../../../shared/models/app-version.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -18,6 +19,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 export class AdminAppVersiones implements OnInit {
   private service = inject(AppVersionesService);
   private toast = inject(ToastService);
+  private userService = inject(UserService);
+
+  /** Y11b — crear/editar/eliminar versiones = solo admin (futuro rol "Desarrollador
+   *  de software"). El rol tecnología solo puede marcar publicada/mínima. */
+  esAdmin = computed(() => this.userService.hasRole('admin'));
 
   // created_at es un timestamp: formatFechaHumana lo muestra legible ("18 jul 2026, 3:27 p. m.").
   formatFecha = formatFechaHumana;

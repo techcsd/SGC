@@ -55,22 +55,22 @@ export class AppVersionesService {
     if (error) throw new Error(error.message);
   }
 
-  /** Publica/despublica una versión (sella publicada_at al publicar). */
+  /** Publica/despublica una versión (sella publicada_at al publicar).
+   *  Vía RPC gateado a es_tecnologia() (admin|tecnologia pueden marcar; crear/editar
+   *  sigue admin-only). Y11b. */
   async setPublicada(id: string, publicada: boolean): Promise<void> {
-    const patch: Record<string, unknown> = { publicada };
-    if (publicada) patch['publicada_at'] = new Date().toISOString();
-    const { error } = await this.supabase.client
-      .from('app_versiones')
-      .update(patch)
-      .eq('id', id);
+    const { error } = await this.supabase.client.rpc('marcar_version_publicada', {
+      p_id: id,
+      p_publicada: publicada,
+    });
     if (error) throw new Error(error.message);
   }
 
   async setMinima(id: string, minima: boolean): Promise<void> {
-    const { error } = await this.supabase.client
-      .from('app_versiones')
-      .update({ minima })
-      .eq('id', id);
+    const { error } = await this.supabase.client.rpc('marcar_version_minima', {
+      p_id: id,
+      p_minima: minima,
+    });
     if (error) throw new Error(error.message);
   }
 
