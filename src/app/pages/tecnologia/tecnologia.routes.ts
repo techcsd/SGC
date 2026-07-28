@@ -63,4 +63,11 @@ export const tecnologiaRoutes: Routes = [
       import('../admin/app-versiones/app-versiones').then((m) => m.AdminAppVersiones),
     title: 'Versiones de la App — Tecnología',
   },
+  {
+    // Y17 — Monitoreo de Infraestructura y Suscripciones (SGC-CSI-MOD-01).
+    path: 'monitoreo',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./monitoreo/monitoreo').then((m) => m.TecMonitoreo),
+    title: 'Monitoreo de Infraestructura — Tecnología',
+  },
 ];

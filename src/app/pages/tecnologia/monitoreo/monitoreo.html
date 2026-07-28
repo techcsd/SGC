@@ -1,0 +1,189 @@
+<div class="mon">
+  <header class="mon__head">
+    <div>
+      <h1 class="mon__title">Monitoreo de Infraestructura</h1>
+      <p class="mon__sub">Dominios, DNS y suscripciones tecnológicas · alertas escalonadas por Telegram</p>
+    </div>
+  </header>
+
+  <div class="mon__tabs">
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'dominios'" (click)="cambiarTab('dominios')">🌐 Dominios</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'suscripciones'" (click)="cambiarTab('suscripciones')">💳 Suscripciones</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'alertas'" (click)="cambiarTab('alertas')">
+      🔔 Alertas @if (alertasActivasCount() > 0) { <span class="mon__badge">{{ alertasActivasCount() }}</span> }
+    </button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'historico'" (click)="cambiarTab('historico')">📜 Histórico</button>
+  </div>
+
+  @if (error()) { <p class="mon__error">{{ error() }}</p> }
+  @if (loading()) { <p class="mon__muted">Cargando…</p> }
+
+  <!-- ── Dominios (semáforo) ── -->
+  @if (tab() === 'dominios' && !loading()) {
+    <div class="mon__cards">
+      @for (d of domains(); track d.id) {
+        <div class="mon__card" [attr.data-status]="semaforo(d)">
+          <div class="mon__card-top">
+            <span class="mon__light" [attr.data-status]="semaforo(d)"></span>
+            <strong>{{ d.domain }}</strong>
+            @if (!d.is_active) { <span class="mon__muted">(inactivo)</span> }
+          </div>
+          <div class="mon__card-body">
+            <div><span class="mon__k">Estado:</span> {{ d.last_status ?? 'sin datos' }}</div>
+            @if (d.rdap_expires_at) {
+              <div><span class="mon__k">Expira:</span> {{ formatFecha(d.rdap_expires_at) }}
+                @if (diasHasta(d.rdap_expires_at) !== null) { <em>({{ diasHasta(d.rdap_expires_at) }} días)</em> }
+              </div>
+            }
+            <div><span class="mon__k">Registrador:</span> {{ d.registrar ?? '—' }}</div>
+            <div><span class="mon__k">Último check:</span> {{ d.last_checked_at ? formatTs(d.last_checked_at) : 'nunca' }}</div>
+            @if (d.notes) { <div class="mon__notes">{{ d.notes }}</div> }
+          </div>
+        </div>
+      } @empty { <p class="mon__muted">No hay dominios configurados.</p> }
+    </div>
+  }
+
+  <!-- ── Suscripciones ── -->
+  @if (tab() === 'suscripciones' && !loading()) {
+    <div class="mon__toolbar">
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirNuevaSub()">+ Nueva suscripción</button>
+    </div>
+    <div class="mon__table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Servicio</th><th>Proveedor</th><th>Renovación</th><th>Auto</th><th>Pago</th><th>Monto</th><th>Responsable</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (s of subscriptions(); track s.id) {
+            <tr [class.mon__row--off]="!s.is_active">
+              <td>
+                <strong>{{ s.name }}</strong>
+                @if (s.panel_url) { <a class="mon__ext" [href]="s.panel_url" target="_blank" rel="noopener">↗</a> }
+                @if (s.impact_if_expired) { <div class="mon__muted mon__impact">{{ s.impact_if_expired }}</div> }
+              </td>
+              <td>{{ s.provider ?? '—' }}</td>
+              <td class="mon__ts">
+                @if (s.renewal_date) {
+                  {{ formatFecha(s.renewal_date) }}
+                  @if (diasHasta(s.renewal_date) !== null) {
+                    <span class="mon__dias" [class.mon__dias--warn]="(diasHasta(s.renewal_date) ?? 999) <= 30" [class.mon__dias--crit]="(diasHasta(s.renewal_date) ?? 999) <= 7">
+                      ({{ diasHasta(s.renewal_date) }}d)
+                    </span>
+                  }
+                } @else { <span class="mon__muted">sin fecha</span> }
+              </td>
+              <td>{{ s.auto_renew ? '✓' : '—' }}</td>
+              <td>{{ s.payment_ok ? '✓' : '⚠️' }}</td>
+              <td class="mon__ts">{{ s.amount ? (s.currency + ' ' + s.amount) : '—' }}</td>
+              <td>{{ s.internal_responsible ?? '—' }}</td>
+              <td class="mon__acciones">
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarSub(s)">Editar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminarSub(s)">Eliminar</button>
+              </td>
+            </tr>
+          } @empty { <tr><td colspan="8" class="mon__muted mon__empty">Sin suscripciones registradas.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ── Alertas ── -->
+  @if (tab() === 'alertas' && !loading()) {
+    <div class="mon__toolbar">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleAlertasFiltro()">
+        {{ alertasSoloActivas() ? 'Ver históricas' : 'Ver solo activas' }}
+      </button>
+    </div>
+    <div class="mon__table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Severidad</th><th>Fuente</th><th>Mensaje</th><th>Creada</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          @for (a of alerts(); track a.id) {
+            <tr>
+              <td><span class="mon__sev" [attr.data-sev]="a.severity">{{ sevLabel[a.severity] }}</span></td>
+              <td>{{ nombreFuente(a) }}</td>
+              <td>{{ a.message }}</td>
+              <td class="mon__ts">{{ formatTs(a.created_at) }}</td>
+              <td>
+                @if (a.resolved_at) { <span class="mon__muted">Resuelta</span> }
+                @else if (a.acknowledged_at) { <span class="mon__muted">Reconocida</span> }
+                @else { <span class="mon__sev" data-sev="alta">Activa</span> }
+              </td>
+              <td>
+                @if (!a.acknowledged_at && !a.resolved_at) {
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="reconocer(a)">Reconocer</button>
+                }
+              </td>
+            </tr>
+          } @empty { <tr><td colspan="6" class="mon__muted mon__empty">Sin alertas.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ── Histórico ── -->
+  @if (tab() === 'historico' && !loading()) {
+    <div class="mon__toolbar">
+      <select class="mon__input" [value]="histDomainId() ?? ''" (change)="histDomainId.set($any($event.target).value || null)">
+        <option value="">Todos los dominios</option>
+        @for (d of domains(); track d.id) { <option [value]="d.id">{{ d.domain }}</option> }
+      </select>
+      <select class="mon__input" [value]="histTipo() ?? ''" (change)="histTipo.set($any($event.target).value || null)">
+        <option value="">Todo tipo de check</option>
+        @for (t of ['dns_resolution','rdap_status','mx_records','spf','dkim','ssl','http']; track t) {
+          <option [value]="t">{{ checkLabel[t] }}</option>
+        }
+      </select>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="aplicarFiltroHist()">Filtrar</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarHistorico()">⬇️ Excel</button>
+    </div>
+    <div class="mon__table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Fecha</th><th>Dominio</th><th>Check</th><th>Estado</th><th>Detalle</th></tr></thead>
+        <tbody>
+          @for (c of checks(); track c.id) {
+            <tr>
+              <td class="mon__ts">{{ formatTs(c.checked_at) }}</td>
+              <td>{{ nombreDominio(c.domain_id) }}</td>
+              <td>{{ checkLabel[c.check_type] ?? c.check_type }}</td>
+              <td><span class="mon__st" [attr.data-status]="c.status">{{ c.status }}</span></td>
+              <td>{{ c.detail }}</td>
+            </tr>
+          } @empty { <tr><td colspan="5" class="mon__muted mon__empty">Sin checks en el histórico.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ── Drawer suscripción ── -->
+  @if (subDrawerOpen()) {
+    <div class="mon__overlay" (click)="subDrawerOpen.set(false)"></div>
+    <aside class="mon__drawer">
+      <h3>{{ editingSubId() ? 'Editar suscripción' : 'Nueva suscripción' }}</h3>
+      <form [formGroup]="subForm" (ngSubmit)="guardarSub()" class="mon__form">
+        <label class="mon__field"><span>Servicio *</span><input type="text" formControlName="name" /></label>
+        <label class="mon__field"><span>Proveedor</span><input type="text" formControlName="provider" /></label>
+        <label class="mon__field"><span>Categoría</span><input type="text" formControlName="category" /></label>
+        <label class="mon__field"><span>Fecha de renovación</span><input type="date" formControlName="renewal_date" /></label>
+        <label class="mon__field"><span>Monto</span><input type="number" formControlName="amount" /></label>
+        <label class="mon__field"><span>Moneda</span><input type="text" formControlName="currency" /></label>
+        <label class="mon__field"><span>Método de pago</span><input type="text" formControlName="payment_method" /></label>
+        <label class="mon__field"><span>Dueño de la cuenta</span><input type="text" formControlName="account_owner" /></label>
+        <label class="mon__field"><span>Responsable interno</span><input type="text" formControlName="internal_responsible" /></label>
+        <label class="mon__field"><span>URL del panel</span><input type="text" formControlName="panel_url" /></label>
+        <label class="mon__field mon__field--wide"><span>Impacto si vence</span><textarea rows="2" formControlName="impact_if_expired"></textarea></label>
+        <label class="mon__field mon__field--wide"><span>Notas</span><textarea rows="2" formControlName="notes"></textarea></label>
+        <div class="mon__checks">
+          <label class="sgc-checkbox"><input type="checkbox" formControlName="auto_renew" /><span>Auto-renovación</span></label>
+          <label class="sgc-checkbox"><input type="checkbox" formControlName="payment_ok" /><span>Pago al día</span></label>
+          <label class="sgc-checkbox"><input type="checkbox" formControlName="is_active" /><span>Activa</span></label>
+        </div>
+        <div class="mon__form-actions">
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="subDrawerOpen.set(false)">Cancelar</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">Guardar</button>
+        </div>
+      </form>
+    </aside>
+  }
+</div>

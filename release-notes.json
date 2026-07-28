@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.34.0": {
+      "titulo": "Monitoreo de Infraestructura: vigilancia de dominios, DNS y suscripciones con alertas anticipadas",
+      "cambios": [
+        { "t": "nuevo", "d": "Nuevo módulo de Monitoreo de Infraestructura (en Tecnología, para admin y rol Tecnología): vigila dominios, DNS y suscripciones tecnológicas y avisa ANTES de que un vencimiento se vuelva fatal. Nace del incidente del dominio de la empresa." },
+        { "t": "nuevo", "d": "Checks automáticos sin claves: resolución DNS, registros MX, SPF, DKIM, estado del registro (RDAP / clientHold), fecha de expiración y web arriba. Corren solos cada pocas horas y dejan histórico auditable exportable a Excel." },
+        { "t": "nuevo", "d": "Alertas escalonadas (60/30/14/7 días y estado fatal inmediato) por un canal externo al dominio (Telegram), persistentes hasta que alguien las Reconozca en el panel; anti-ruido (solo avisan en cambios de estado)." },
+        { "t": "nuevo", "d": "Panel con semáforo por dominio (días para expirar, último check), tabla de suscripciones ordenada por vencimiento con alta/edición, y bandeja de alertas con acción Reconocer." }
+      ]
+    },
     "1.33.0": {
       "titulo": "Cronograma ↔ Bitácoras: completar desde la bitácora, evidencia enlazada y avisos en el menú",
       "cambios": [

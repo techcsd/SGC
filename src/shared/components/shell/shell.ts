@@ -224,6 +224,7 @@ export class Shell implements OnInit {
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
         // Y11 — plataforma/sistema: solo admin | rol tecnologia.
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
+        { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', soloTecnologia: true },
         { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
         { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
       ],
