@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.36.0';
-export const APP_VERSION_TITULO: string | null = "Órdenes de Compra: ITBIS opcional, destino Oficina, proveedor rápido y detalle clicable";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"Rediseño del formulario de nueva orden: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo, sin desbordes en el panel."},{"t":"nuevo","d":"Interruptor \"Aplicar ITBIS (18%)\" por orden: al apagarlo, el total es igual al subtotal (para compras sin impuesto)."},{"t":"nuevo","d":"Destino de la orden: Proyecto/Obra u Oficina. Las órdenes de oficina ya no se fuerzan a un proyecto."},{"t":"nuevo","d":"Alta rápida de proveedor con \"+ Nuevo proveedor\" sin salir del formulario de la orden."},{"t":"mejora","d":"El número de una orden abre su detalle completo (también por enlace directo con ?item=). Las órdenes pueden marcarse como dato de prueba."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/2a45637";
+export const APP_VERSION = '1.37.0';
+export const APP_VERSION_TITULO: string | null = "Inventario: filtro CSD/Alquilado y edición de stock con trazabilidad";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"Nuevo filtro en Artículos para ver solo material CSD (propio) o solo Alquilado."},{"t":"nuevo","d":"Desde el detalle de un artículo, admin/inventario puede ajustar el stock por almacén. El cambio queda registrado como un ajuste en \"Conteos y ajustes\" (con motivo, quién y cuándo), nunca como un cambio silencioso."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/9940da7";

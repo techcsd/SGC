@@ -268,3 +268,32 @@ textarea {
 .art-modal__mov-fecha { margin-left: auto; }
 
 .article-prop--btn { cursor: pointer; border: none; }
+
+/* Z11 — ajuste de stock trazable desde el detalle */
+.art-ajuste-btn {
+  margin-left: 10px;
+  background: none;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  color: var(--sgc-primary);
+  font-size: 12px;
+  padding: 2px 8px;
+  cursor: pointer;
+  &:hover { background: var(--sgc-primary-light); }
+}
+.art-ajuste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 0;
+  input {
+    padding: 6px 8px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+    &[type='number'] { width: 120px; }
+    &[type='text'] { flex: 1; min-width: 140px; }
+  }
+}
+.art-ajuste-hint { font-size: 12px; margin-top: 6px; }

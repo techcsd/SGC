@@ -55,7 +55,20 @@
     </select>
   </div>
 
-  @if (searchQuery() || selectedCategory() || selectedStatus() !== 'all') {
+  <!-- Z10 — filtro CSD / Alquilado -->
+  <div class="sgc-field filters-bar__select">
+    <select
+      [value]="selectedPropiedad()"
+      (change)="selectedPropiedad.set($any($event.target).value)"
+      aria-label="Filtrar por propiedad"
+    >
+      <option value="all">CSD y Alquilado</option>
+      <option value="propio_csd">Solo CSD</option>
+      <option value="alquilado">Solo Alquilado</option>
+    </select>
+  </div>
+
+  @if (searchQuery() || selectedCategory() || selectedStatus() !== 'all' || selectedPropiedad() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros
     </button>
@@ -501,9 +514,25 @@
       } @else {
         <ul class="art-modal__stock">
           @for (s of detalleStock(); track s.bodega_id) {
-            <li><span>{{ s.bodega?.nombre ?? 'Almacén' }}</span><strong>{{ s.cantidad | number:'1.0-2' }}</strong></li>
+            <li>
+              <span>{{ s.bodega?.nombre ?? 'Almacén' }}</span>
+              <strong>{{ s.cantidad | number:'1.0-2' }}</strong>
+              @if (esInventario()) {
+                <button type="button" class="art-ajuste-btn" (click)="abrirAjuste(s.bodega_id, s.cantidad)">Ajustar</button>
+              }
+            </li>
+            @if (ajustandoBodega() === s.bodega_id) {
+              <li class="art-ajuste">
+                <input type="number" min="0" step="0.01" [value]="ajusteCantidad()"
+                       (input)="ajusteCantidad.set($any($event.target).valueAsNumber)" placeholder="Nueva cantidad" />
+                <input type="text" [value]="ajusteMotivo()" (input)="ajusteMotivo.set($any($event.target).value)" placeholder="Motivo del ajuste" />
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoAjuste()" (click)="guardarAjuste(d.id, s.bodega_id)">Guardar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ajustandoBodega.set(null)">Cancelar</button>
+              </li>
+            }
           }
         </ul>
+        <p class="text-muted art-ajuste-hint">El ajuste queda registrado en "Conteos y ajustes" (motivo, quién y cuándo).</p>
       }
 
       <h3 class="art-modal__section">Últimos movimientos</h3>

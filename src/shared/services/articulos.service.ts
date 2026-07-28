@@ -82,6 +82,18 @@ export class ArticulosService {
     if (error) throw new Error(error.message);
   }
 
+  /** Z11 — ajusta el stock de un artículo en una bodega como AJUSTE trazable
+   *  (crea un conteo tipo 'ajuste'; nunca update silencioso). */
+  async ajustarStock(articuloId: string, bodegaId: string, nuevaCantidad: number, motivo?: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('ajustar_stock_articulo', {
+      p_articulo_id: articuloId,
+      p_bodega_id: bodegaId,
+      p_nueva_cantidad: nuevaCantidad,
+      p_motivo: motivo ?? 'Ajuste manual desde edición de artículo',
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** Z16 — marca rápida de propiedad (lista admin de backfill). */
   async setPropiedad(id: string, propiedad: 'propio_csd' | 'alquilado'): Promise<void> {
     const { error } = await this.supabase.client

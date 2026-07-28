@@ -28,6 +28,8 @@ import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-articulos',
@@ -41,6 +43,15 @@ export class Articulos implements OnInit {
   private categoriasService = inject(CategoriasService);
   private stockService = inject(StockService);
   private unidadesService = inject(UnidadesService);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+
+  // Z11 — quién puede ajustar stock + estado del mini-form de ajuste.
+  esInventario = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('inventario'));
+  ajustandoBodega = signal<string | null>(null);
+  ajusteCantidad = signal<number | null>(null);
+  ajusteMotivo = signal('');
+  guardandoAjuste = signal(false);
 
   // ── Data state ──────────────────────────────────────────
   articles = signal<Articulo[]>([]);
@@ -57,6 +68,8 @@ export class Articulos implements OnInit {
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
   // Q3/R11 — drill-down desde dashboards/reportes: ?stock=critico | sin.
   selectedStock = signal<'all' | 'critico' | 'sin'>('all');
+  // Z10 — filtro por propiedad (CSD / Alquilado).
+  selectedPropiedad = signal<'all' | 'propio_csd' | 'alquilado'>('all');
   private route = inject(ActivatedRoute);
 
   // ── Pagination ───────────────────────────────────────────
@@ -117,6 +130,8 @@ export class Articulos implements OnInit {
         return false;
       }
       if (catId && a.categoria_id !== catId) return false;
+      const prop = this.selectedPropiedad();
+      if (prop !== 'all' && (a.propiedad ?? 'propio_csd') !== prop) return false;
       if (status === 'active' && !a.activo) return false;
       if (status === 'inactive' && a.activo) return false;
       // Q3/R11 — filtros de stock desde reportes/dashboard.
@@ -192,6 +207,7 @@ export class Articulos implements OnInit {
     this.searchQuery.set('');
     this.selectedCategory.set(null);
     this.selectedStatus.set('all');
+    this.selectedPropiedad.set('all');
     this.currentPage.set(1);
   }
 
@@ -375,6 +391,39 @@ export class Articulos implements OnInit {
 
   cerrarDetalle() {
     this.detalle.set(null);
+    this.ajustandoBodega.set(null);
+  }
+
+  // ── Z11 — ajuste de stock trazable desde el detalle ──────────
+  abrirAjuste(bodegaId: string, actual: number) {
+    this.ajustandoBodega.set(bodegaId);
+    this.ajusteCantidad.set(actual);
+    this.ajusteMotivo.set('');
+  }
+
+  async guardarAjuste(articuloId: string, bodegaId: string) {
+    const nueva = this.ajusteCantidad();
+    if (nueva == null || nueva < 0 || Number.isNaN(nueva)) {
+      this.toast.error('Ingresa una cantidad válida.');
+      return;
+    }
+    this.guardandoAjuste.set(true);
+    try {
+      await this.articulosService.ajustarStock(articuloId, bodegaId, nueva, this.ajusteMotivo().trim() || undefined);
+      this.ajustandoBodega.set(null);
+      // Recargar stock del detalle + mapa de la lista.
+      const [stock, all] = await Promise.all([
+        this.stockService.getByArticulo(articuloId),
+        this.stockService.getAll(),
+      ]);
+      this.detalleStock.set(stock);
+      this.stockMap.set(this.stockService.buildTotalMap(all));
+      this.toast.success('Stock ajustado', 'Queda registrado en Conteos y ajustes.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo ajustar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoAjuste.set(false);
+    }
   }
 
   detalleStockTotal = computed(() => this.detalleStock().reduce((s, r) => s + (r.cantidad ?? 0), 0));
