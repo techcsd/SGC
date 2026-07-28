@@ -43,6 +43,8 @@ interface NavSubItem {
   badgeKey?: string;
   /** R14 — solo visible para roles de flota elevados (no el chofer). */
   flotaElevado?: boolean;
+  /** Y11 — solo visible para admin | rol tecnologia (módulo Tecnología de plataforma). */
+  soloTecnologia?: boolean;
 }
 
 @Component({
@@ -220,6 +222,10 @@ export class Shell implements OnInit {
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
+        // Y11 — plataforma/sistema: solo admin | rol tecnologia.
+        { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
+        { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
+        { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
       ],
     },
     {
@@ -257,8 +263,7 @@ export class Shell implements OnInit {
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
       { label: 'Parámetros', route: '/admin/parametros' },
-      { label: 'Versiones de la app', route: '/admin/app-versiones' },
-      { label: 'Historial de versiones', route: '/admin/historial-versiones' },
+      // Y11 — "Versiones de la app" e "Historial de versiones" movidas al módulo Tecnología.
       { label: 'Valores "Otro"', route: '/admin/otros-valores' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
@@ -277,6 +282,8 @@ export class Shell implements OnInit {
   canAccessChild(child: NavSubItem): boolean {
     // R14 — submódulos de flota solo para roles elevados (oculto al chofer).
     if (child.flotaElevado && !this.userService.esFlotaElevado()) return false;
+    // Y11 — submódulos de plataforma solo para admin | rol tecnologia.
+    if (child.soloTecnologia && !this.userService.esTecnologia()) return false;
     if (!child.modulo) return true;
     return this.userService.hasModulo(child.modulo);
   }

@@ -37,16 +37,12 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./parametros/parametros').then((m) => m.AdminParametros),
     title: 'Parámetros — Administración',
   },
-  {
-    path: 'app-versiones',
-    loadComponent: () => import('./app-versiones/app-versiones').then((m) => m.AdminAppVersiones),
-    title: 'Versiones de la App — Administración',
-  },
+  // Y11 — movidas al módulo Tecnología. Redirect para no romper enlaces viejos.
+  { path: 'app-versiones', redirectTo: '/tecnologia/app-versiones', pathMatch: 'full' },
   {
     path: 'historial-versiones',
-    loadComponent: () =>
-      import('./historial-versiones/historial-versiones').then((m) => m.AdminHistorialVersiones),
-    title: 'Historial de versiones — Administración',
+    redirectTo: '/tecnologia/historial-versiones',
+    pathMatch: 'full',
   },
   {
     path: 'otros-valores',

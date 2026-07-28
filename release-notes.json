@@ -1,6 +1,16 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.31.0": {
+      "titulo": "Módulo Tecnología, reportes de errores de la app y seguridad de datos",
+      "cambios": [
+        { "t": "seguridad", "d": "Las vistas de contexto, movimientos de inventario y estadísticas de vehículo ahora respetan los permisos de cada usuario (RLS). Antes exponían datos de más a roles que no debían verlos; queda corregido." },
+        { "t": "nuevo", "d": "Nuevo módulo Tecnología que agrupa el historial de versiones, las versiones de la app y los reportes de errores, accesible para administradores y el nuevo rol Tecnología." },
+        { "t": "nuevo", "d": "Nuevo rol Tecnología: da acceso al módulo Tecnología sin ser administrador, para que la persona técnica atienda releases y fallos." },
+        { "t": "nuevo", "d": "Reportes de errores de la app: cuando un teléfono falla (crash, cámara, sincronización o permisos) envía el error al panel de Tecnología, filtrable por dispositivo/versión/tipo/fecha, agrupado por mensaje y exportable a Excel." },
+        { "t": "mejora", "d": "Dashboard principal con KPIs operativos nuevos y clicables: alertas de flota activas, documentos de flota por vencer, checklists de hoy y errores de app de los últimos 7 días." }
+      ]
+    },
     "1.30.0": {
       "titulo": "Estaciones simplificadas, año del vehículo en todo, reporte semanal compartido, handover sin muros, pre-uso administrativo, artículos con propiedad y foto, almacén por obra y conduces del transportista",
       "cambios": [

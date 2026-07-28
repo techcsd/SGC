@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { moduleGuard } from '../../core/guards/module.guard';
+import { tecnologiaGuard } from '../../core/guards/tecnologia.guard';
 
 export const tecnologiaRoutes: Routes = [
   { path: '', redirectTo: 'guia', pathMatch: 'full' },
@@ -33,5 +34,33 @@ export const tecnologiaRoutes: Routes = [
     canActivate: [moduleGuard('tecnologia')],
     loadComponent: () => import('./compras/compras').then((m) => m.TecCompras),
     title: 'Compras tecnológicas — Tecnología',
+  },
+
+  // ── Y11 — Plataforma / sistema: reservado a admin | rol tecnologia ──────────
+  // Reportes de errores (Y6), historial de versiones y versiones de la app.
+  // Los dos últimos vivían bajo /admin/*; se agrupan aquí sin mover el código
+  // (los componentes siguen en pages/admin/*), y /admin/* redirige aquí.
+  {
+    path: 'reportes-errores',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('./reportes-errores/reportes-errores').then((m) => m.TecReportesErrores),
+    title: 'Reportes de errores — Tecnología',
+  },
+  {
+    path: 'historial-versiones',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('../admin/historial-versiones/historial-versiones').then(
+        (m) => m.AdminHistorialVersiones,
+      ),
+    title: 'Historial de versiones — Tecnología',
+  },
+  {
+    path: 'app-versiones',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('../admin/app-versiones/app-versiones').then((m) => m.AdminAppVersiones),
+    title: 'Versiones de la App — Tecnología',
   },
 ];

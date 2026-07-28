@@ -1,0 +1,52 @@
+-- ============================================================================
+-- Y1 — Vistas con SECURITY DEFINER (CRITICAL del advisor de Supabase)
+-- Ronda 28/07/2026 · PROMPT-1 · FASE 1
+-- ============================================================================
+-- Problema: una vista sin `security_invoker` se ejecuta con los privilegios de
+-- su dueño (postgres) y SALTA el RLS de las tablas base para cualquiera que
+-- tenga SELECT sobre la vista. El advisor marca 3 vistas del esquema sgc como
+-- SECURITY DEFINER VIEW (CRITICAL):
+--   - sgc.v_app_mi_contexto
+--   - sgc.v_movimientos_inventario
+--   - sgc.v_vehiculo_stats
+--
+-- Verificado en el repo/BD que las otras 6 vistas del esquema ya tienen
+-- security_invoker=true (v_conductor_documentos, v_conductor_stats,
+-- v_expediente_obra_resumen, v_otros_valores_frecuentes, v_proyecto_avance,
+-- v_proyecto_readiness, v_reporte_semanal_cumplimiento). Solo faltan estas 3.
+--
+-- Fuga demostrada (antes de este fix): un usuario de RRHH (sin módulo flota ni
+-- inventario) veía las 19 filas de v_vehiculo_stats y las 18 de
+-- v_movimientos_inventario. Con security_invoker el RLS de las tablas base
+-- aplica y cada consumidor legítimo sigue viendo lo suyo.
+--
+-- Decisión por vista:
+--   * v_app_mi_contexto     -> security_invoker=true.
+--       La vista ya filtra WHERE u.id = auth.uid() y el RLS de usuarios /
+--       usuarios_roles / roles permite a cada usuario leer su propia fila
+--       (usuarios: id=auth.uid(); usuarios_roles: usuario_id=auth.uid();
+--       roles: read all). Comportamiento idéntico, sin necesidad de RPC.
+--   * v_movimientos_inventario -> security_invoker=true.
+--       Consumida por MovimientosService (página gateada por módulo inventario).
+--       Los policies de salidas_inventario/entradas_inventario preservan la
+--       visibilidad de admin/inventario/logistica/gerencia. Bonus: las filas
+--       es_prueba ahora quedan ocultas a no-admin (coherencia con el resto).
+--   * v_vehiculo_stats -> security_invoker=true.
+--       Consumida por VehiculosService (páginas gateadas por flota). El RLS de
+--       vehiculos y agregados preserva a flota-elevado la vista completa; los
+--       usuarios de flota ven vehículos activos. Bonus: es_prueba oculto a
+--       no-admin.
+--
+-- ALTER VIEW ... SET (security_invoker = true) es aditivo: preserva la
+-- definición y los GRANT existentes.
+-- ============================================================================
+
+alter view sgc.v_app_mi_contexto      set (security_invoker = true);
+alter view sgc.v_movimientos_inventario set (security_invoker = true);
+alter view sgc.v_vehiculo_stats        set (security_invoker = true);
+
+-- Verificación rápida (debe devolver las 3 con security_invoker=on/true):
+--   select c.relname, c.reloptions
+--     from pg_class c join pg_namespace n on n.oid=c.relnamespace
+--    where n.nspname='sgc' and c.relkind='v'
+--      and c.relname in ('v_app_mi_contexto','v_movimientos_inventario','v_vehiculo_stats');

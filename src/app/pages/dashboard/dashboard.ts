@@ -59,6 +59,8 @@ export class Dashboard implements OnInit {
   }
   /** Montos de contrato: solo Dirección/Admin (regla dura — obra nunca ve montos). */
   canVerMontos = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('direccion'));
+  /** Y12 — KPI de errores de app solo para admin/tecnología. */
+  esTecnologia = this.userService.esTecnologia;
 
   loading = signal(true);
   error = signal('');
@@ -180,6 +182,11 @@ export class Dashboard implements OnInit {
   contratosPorVencer = signal(0);
   misTareasPendientes = signal(0);
   ausenciasPendientes = signal(0);
+  // Y12 — KPIs operativos nuevos
+  flotaAvisosActivos = signal(0);
+  flotaDocsPorVencer = signal(0);
+  checklistsHoy = signal(0);
+  erroresApp7d = signal(0);
 
   // ── KPIs ─────────────────────────────────────────────────
   private stockMap = computed(() => {
@@ -444,6 +451,10 @@ export class Dashboard implements OnInit {
         contratosPorVencerRes,
         misTareasRes,
         ausenciasPendientesRes,
+        flotaAvisosActivosRes,
+        flotaDocsPorVencerRes,
+        checklistsHoyRes,
+        erroresApp7dRes,
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
@@ -505,6 +516,30 @@ export class Dashboard implements OnInit {
           .from('solicitudes_ausencia')
           .select('id', { count: 'exact', head: true })
           .eq('estado', 'pendiente'),
+        // Y12 — alertas de flota activas (avisos pendientes)
+        this.supabase.client
+          .from('avisos_flota')
+          .select('id', { count: 'exact', head: true })
+          .eq('estado', 'pendiente'),
+        // Y12 — documentos de flota por vencer/vencidos (subconjunto de avisos)
+        this.supabase.client
+          .from('avisos_flota')
+          .select('id', { count: 'exact', head: true })
+          .eq('estado', 'pendiente')
+          .in('tipo', [
+            'seguro', 'seguro_por_vencer', 'matricula', 'matricula_por_vencer',
+            'licencia', 'licencia_por_vencer', 'licencia_vencida', 'documento', 'documento_por_vencer',
+          ]),
+        // Y12 — checklists de vehículo enviados hoy
+        this.supabase.client
+          .from('checklists_vehiculo')
+          .select('id', { count: 'exact', head: true })
+          .eq('fecha', hoy),
+        // Y12 — errores de app últimos 7 días (RLS: solo admin/tecnologia ven filas)
+        this.supabase.client
+          .from('app_error_reports')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', `${fechaDesde}T00:00:00`),
       ]);
 
       this.articulos.set(
@@ -536,6 +571,10 @@ export class Dashboard implements OnInit {
       this.contratosPorVencer.set(contratosPorVencerRes.count ?? 0);
       this.misTareasPendientes.set(misTareasRes.count ?? 0);
       this.ausenciasPendientes.set(ausenciasPendientesRes.count ?? 0);
+      this.flotaAvisosActivos.set(flotaAvisosActivosRes.count ?? 0);
+      this.flotaDocsPorVencer.set(flotaDocsPorVencerRes.count ?? 0);
+      this.checklistsHoy.set(checklistsHoyRes.count ?? 0);
+      this.erroresApp7d.set(erroresApp7dRes.count ?? 0);
 
       const materialItems = (
         (solicitudesMaterialRes.data ?? []) as unknown as {

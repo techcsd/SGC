@@ -39,6 +39,17 @@ export class UserService {
   }
 
   /**
+   * Y11 — acceso al módulo "Tecnología" de plataforma (historial de versiones,
+   * versiones de la app, reportes de errores, monitoreo de infraestructura).
+   * Reservado a `admin` y al rol `tecnologia` — NO al `encargado_tecnologia`
+   * (que solo maneja contenido/inventario TI). Debe coincidir con la función
+   * SQL `sgc.es_tecnologia()` (fuente de verdad en RLS).
+   */
+  esTecnologia = computed(
+    () => this.hasRole('admin') || this.hasRole('tecnologia'),
+  );
+
+  /**
    * Quién puede ver el cuadre de materiales + señales antifraude (límites por
    * fase, consumo). Regla dura: los roles de obra/campo NUNCA lo ven. Se limita a
    * roles financieros/dirección aunque tengan el módulo `proyectos`.

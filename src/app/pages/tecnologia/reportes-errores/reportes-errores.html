@@ -1,0 +1,170 @@
+<div class="rep">
+  <header class="rep__head">
+    <div>
+      <h1 class="rep__title">Reportes de errores</h1>
+      <p class="rep__sub">Crashes y fallos que la app envía automáticamente — por dispositivo, versión y tipo.</p>
+    </div>
+  </header>
+
+  <!-- Filtros -->
+  <div class="rep__filters">
+    <select class="rep__input" [value]="fTipo()" (change)="fTipo.set($any($event.target).value)">
+      <option value="">Todo tipo</option>
+      @for (t of tipos; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+    <select class="rep__input" [value]="fDispositivo()" (change)="fDispositivo.set($any($event.target).value)">
+      <option value="">Todo dispositivo</option>
+      @for (d of dispositivos(); track d) {
+        <option [value]="d">{{ d }}</option>
+      }
+    </select>
+    <input
+      class="rep__input"
+      type="search"
+      placeholder="Versión de la app (ej. 1.25.0)"
+      [value]="fVersion()"
+      (input)="fVersion.set($any($event.target).value)"
+      (keyup.enter)="applyFilters()"
+    />
+    <app-date-range-filter [desde]="fDesde()" [hasta]="fHasta()" (rangeChange)="onRango($event)" />
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="applyFilters()">Filtrar</button>
+    @if (hasFilters()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearFilters()">Limpiar</button>
+    }
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="exportando()"
+            title="Exportar a Excel lo que coincide con el filtro actual">
+      @if (exportando()) { Exportando… } @else { ⬇️ Excel }
+    </button>
+  </div>
+
+  <!-- Vistas -->
+  <div class="rep__tabs">
+    <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'agrupado'" (click)="cambiarVista('agrupado')">📊 Agrupado</button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'detalle'" (click)="cambiarVista('detalle')">📄 Detalle</button>
+  </div>
+
+  @if (error()) {
+    <p class="rep__error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else {
+    <!-- ── Agrupado por mensaje ── -->
+    @if (vista() === 'agrupado') {
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-card--primary">
+          <span class="kpi-label">Ocurrencias</span>
+          <span class="kpi-value">{{ totalOcurrencias() | number }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Grupos</span>
+          <span class="kpi-value">{{ grupos().length | number }}</span>
+        </div>
+        @for (t of tipos; track t.value) {
+          @if (conteoPorTipo()[t.value]) {
+            <div class="kpi-card">
+              <span class="kpi-label">{{ t.label }}</span>
+              <span class="kpi-value">{{ conteoPorTipo()[t.value] | number }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="rep__table-wrap">
+        <table class="data-table rep__table" aria-label="Errores agrupados">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Mensaje</th>
+              <th class="rep__num">Ocurrencias</th>
+              <th class="rep__num">Dispositivos</th>
+              <th>Última vez</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (g of grupos(); track g.firma) {
+              <tr>
+                <td><span class="rep__badge" [attr.data-tipo]="g.error_type">{{ tipoLabel(g.error_type) }}</span></td>
+                <td class="rep__msg"><code>{{ g.firma }}</code></td>
+                <td class="rep__num">{{ g.ocurrencias | number }}</td>
+                <td class="rep__num">{{ g.dispositivos | number }}</td>
+                <td class="rep__ts">{{ formatTs(g.ultima_vez) }}</td>
+                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verGrupo(g)">Ver →</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="rep__muted rep__empty">Sin reportes que coincidan con el filtro.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- ── Detalle (filas) ── -->
+    @if (vista() === 'detalle') {
+      <div class="rep__table-wrap">
+        <table class="data-table rep__table" aria-label="Reportes de error">
+          <thead>
+            <tr>
+              <th>Fecha y hora</th>
+              <th>Tipo</th>
+              <th>Dispositivo</th>
+              <th>SO</th>
+              <th>Versión</th>
+              <th>Mensaje</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of rows(); track r.id) {
+              <tr class="rep__row" (click)="toggle(r.id)">
+                <td class="rep__ts">{{ formatTs(r.created_at) }}</td>
+                <td><span class="rep__badge" [attr.data-tipo]="r.error_type">{{ tipoLabel(r.error_type) }}</span></td>
+                <td>{{ r.device_brand }} {{ r.device_model }}</td>
+                <td>{{ r.os_version }}</td>
+                <td>{{ r.app_version }}</td>
+                <td class="rep__msg">{{ r.message }}</td>
+                <td class="rep__chev">{{ expandedId() === r.id ? '▲' : '▼' }}</td>
+              </tr>
+              @if (expandedId() === r.id) {
+                <tr class="rep__detail-row">
+                  <td colspan="7">
+                    <div class="rep__detail">
+                      <div class="rep__detail-meta">
+                        <span><strong>Plataforma:</strong> {{ r.platform || '—' }}</span>
+                        <span><strong>Marca/Modelo:</strong> {{ r.device_brand || '—' }} / {{ r.device_model || '—' }}</span>
+                        <span><strong>SO:</strong> {{ r.os_version || '—' }}</span>
+                        <span><strong>Versión app:</strong> {{ r.app_version || '—' }}</span>
+                      </div>
+                      @if (r.stack) {
+                        <h4 class="rep__detail-h">Stack</h4>
+                        <pre class="rep__pre">{{ r.stack }}</pre>
+                      }
+                      @if (contextStr(r.context)) {
+                        <h4 class="rep__detail-h">Contexto</h4>
+                        <pre class="rep__pre">{{ contextStr(r.context) }}</pre>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            } @empty {
+              <tr><td colspan="7" class="rep__muted rep__empty">Sin reportes que coincidan con el filtro.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (total() > 0) {
+        <div class="rep__pager">
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() === 0" (click)="goToPage(page() - 1)">← Anterior</button>
+          <span class="rep__pager-info">{{ rangeLabel() }}</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="page() >= totalPages() - 1" (click)="goToPage(page() + 1)">Siguiente →</button>
+        </div>
+      }
+    }
+  }
+</div>

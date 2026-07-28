@@ -135,7 +135,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -156,6 +156,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Qué hace el rol de Abogado / Legal?',
         respuesta:
           'El rol Abogado accede al módulo Legal (expedientes, contratos y la cola de aprobaciones legales) y a Documentos/Plantillas para gestionar plantillas de contratos. Otros módulos pueden enviarle documentos a revisión y él aprueba o rechaza desde Legal > Aprobaciones.',
+      },
+      {
+        pregunta: '¿Qué hace el rol de Tecnología y en qué se diferencia de un administrador?',
+        respuesta:
+          'El rol Tecnología da acceso al módulo Tecnología —incluida la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura— sin ser administrador del sistema. Sirve para que la persona técnica atienda releases y fallos sin poder gestionar usuarios, roles ni el resto de módulos operativos (eso sigue siendo exclusivo de Administración). Un usuario puede tener el rol Tecnología junto con otros roles y verá la suma de accesos.',
+      },
+      {
+        pregunta: '¿Qué son los "Reportes de errores" en Tecnología?',
+        respuesta:
+          'Cuando la app móvil falla en un teléfono (crash, error de cámara, de sincronización o de permisos), envía automáticamente los datos del error —modelo del teléfono, versión, mensaje y contexto— a Tecnología > Reportes de errores. Ahí, admin y el rol Tecnología pueden ver los fallos agrupados por mensaje, filtrarlos por dispositivo/versión/fecha y exportarlos a Excel, para diagnosticar problemas específicos de un equipo. No incluye datos personales ni fotos.',
       },
       {
         pregunta: '¿Por qué no puedo crear plantillas de documentos si sí puedo generar documentos?',

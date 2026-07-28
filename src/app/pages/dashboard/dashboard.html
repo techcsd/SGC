@@ -51,7 +51,19 @@
         </a>
       }
       @if (canSee('flota')) {
-        <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/vehiculos">
+        <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/avisos">
+          <span class="kpi-label">Alertas de flota activas</span>
+          <span class="kpi-value">{{ flotaAvisosActivos() }}</span>
+        </a>
+        <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/flota/avisos">
+          <span class="kpi-label">Documentos de flota por vencer</span>
+          <span class="kpi-value">{{ flotaDocsPorVencer() }}</span>
+        </a>
+        <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/flota/checklists">
+          <span class="kpi-label">Checklists de hoy</span>
+          <span class="kpi-value">{{ checklistsHoy() }}</span>
+        </a>
+        <a class="kpi-card kpi-card--link" routerLink="/flota/vehiculos">
           <span class="kpi-label">Vehículos activos</span>
           <span class="kpi-value">{{ vehiculosActivos() }}</span>
         </a>
@@ -92,6 +104,12 @@
         <span class="kpi-label">Mis tareas pendientes</span>
         <span class="kpi-value">{{ misTareasPendientes() }}</span>
       </a>
+      @if (esTecnologia()) {
+        <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/tecnologia/reportes-errores">
+          <span class="kpi-label">Errores de app (7 días)</span>
+          <span class="kpi-value">{{ erroresApp7d() }}</span>
+        </a>
+      }
     </div>
 
     <!-- Clima en obras (Sistema de Contexto Inteligente) -->
