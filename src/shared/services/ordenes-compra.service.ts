@@ -12,6 +12,10 @@ export interface OrdenCompraPayload {
   impuesto: number;
   total: number;
   notas?: string | null;
+  // Z6
+  destino?: 'proyecto' | 'oficina';
+  aplica_impuesto?: boolean;
+  es_prueba?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -58,6 +62,9 @@ export class OrdenesCompraService {
       p_notas: orden.notas ?? null,
       p_creado_por: creadoPor,
       p_items: items,
+      p_destino: orden.destino ?? 'proyecto',
+      p_aplica_impuesto: orden.aplica_impuesto ?? true,
+      p_es_prueba: orden.es_prueba ?? false,
     });
 
     if (error) throw new Error(error.message);

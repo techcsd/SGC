@@ -129,10 +129,13 @@
           @for (orden of filtered(); track orden.id) {
             <tr>
               <td>
-                <code class="code-tag">{{ orden.numero }}</code>
+                <button type="button" class="oc-numero-link" (click)="openDetail(orden)" title="Ver detalle">
+                  <code class="code-tag">{{ orden.numero }}</code>
+                </button>
+                @if (orden.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
               </td>
               <td>{{ orden.proveedor?.nombre ?? '—' }}</td>
-              <td class="text-muted">{{ orden.proyecto?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ orden.destino === 'oficina' ? 'Oficina' : (orden.proyecto?.nombre ?? '—') }}</td>
               <td>
                 <span [class]="estadoBadgeClass(orden.estado)">{{ estadoLabel(orden.estado) }}</span>
               </td>
@@ -180,31 +183,68 @@
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
     <div class="sgc-field">
-      <label for="proveedor_id">Proveedor <span class="required">*</span></label>
-      <select
-        id="proveedor_id"
-        formControlName="proveedor_id"
-        [class.invalid]="f.proveedor_id.invalid && f.proveedor_id.touched"
-      >
-        <option [value]="null">Seleccionar proveedor…</option>
-        @for (p of activeProveedores(); track p.id) {
-          <option [value]="p.id">{{ p.nombre }}</option>
+      <label for="proveedor_id">
+        Proveedor <span class="required">*</span>
+        <button type="button" class="oc-inline-link" (click)="toggleNuevoProveedor()">
+          {{ showNuevoProveedor() ? 'Cancelar' : '+ Nuevo proveedor' }}
+        </button>
+      </label>
+      @if (!showNuevoProveedor()) {
+        <select
+          id="proveedor_id"
+          formControlName="proveedor_id"
+          [class.invalid]="f.proveedor_id.invalid && f.proveedor_id.touched"
+        >
+          <option [value]="null">Seleccionar proveedor…</option>
+          @for (p of activeProveedores(); track p.id) {
+            <option [value]="p.id">{{ p.nombre }}</option>
+          }
+        </select>
+        @if (f.proveedor_id.invalid && f.proveedor_id.touched) {
+          <span class="field-error">El proveedor es obligatorio.</span>
         }
-      </select>
-      @if (f.proveedor_id.invalid && f.proveedor_id.touched) {
-        <span class="field-error">El proveedor es obligatorio.</span>
+      } @else {
+        <!-- Z6 — alta inline de proveedor -->
+        <div class="oc-nuevo-prov" [formGroup]="nuevoProveedorForm">
+          <input type="text" formControlName="nombre" placeholder="Nombre del proveedor *" />
+          <div class="form-row">
+            <input type="text" formControlName="rnc" placeholder="RNC / Cédula" />
+            <input type="text" formControlName="telefono" placeholder="Teléfono" />
+          </div>
+          <div class="form-row">
+            <input type="text" formControlName="contacto" placeholder="Contacto" />
+            <input type="email" formControlName="email" placeholder="Correo" />
+          </div>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                  [disabled]="guardandoProveedor()" (click)="crearProveedorInline()">
+            Guardar proveedor
+          </button>
+        </div>
       }
     </div>
 
+    <!-- Z6 — destino: proyecto | oficina -->
     <div class="sgc-field">
-      <label for="proyecto_id">Proyecto (opcional)</label>
-      <select id="proyecto_id" formControlName="proyecto_id">
-        <option [value]="null">Sin proyecto asociado</option>
-        @for (proy of proyectos(); track proy.id) {
-          <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
-        }
-      </select>
+      <label>Destino</label>
+      <div class="oc-destino">
+        <button type="button" class="oc-destino__opt" [class.active]="destino() === 'proyecto'"
+                (click)="destino.set('proyecto')">Proyecto / Obra</button>
+        <button type="button" class="oc-destino__opt" [class.active]="destino() === 'oficina'"
+                (click)="destino.set('oficina')">Oficina</button>
+      </div>
     </div>
+
+    @if (destino() === 'proyecto') {
+      <div class="sgc-field">
+        <label for="proyecto_id">Proyecto <span class="required">*</span></label>
+        <select id="proyecto_id" formControlName="proyecto_id">
+          <option [value]="null">Seleccionar proyecto…</option>
+          @for (proy of proyectos(); track proy.id) {
+            <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
+          }
+        </select>
+      </div>
+    }
 
     <div class="form-row">
       <div class="sgc-field">
@@ -325,21 +365,38 @@
         }
       </div>
 
+      <!-- Z6 — ITBIS opcional -->
+      <label class="oc-itbis">
+        <input type="checkbox" [checked]="aplicaImpuesto()"
+               (change)="aplicaImpuesto.set($any($event.target).checked)" />
+        <span>Aplicar ITBIS (18%)</span>
+      </label>
+
       <!-- Totals -->
       <div class="items-totals">
         <div class="items-totals__row">
           <span>Subtotal</span>
           <span>RD$ {{ subtotal() | number:'1.2-2' }}</span>
         </div>
-        <div class="items-totals__row">
-          <span>Impuesto (18%)</span>
-          <span>RD$ {{ impuesto() | number:'1.2-2' }}</span>
-        </div>
+        @if (aplicaImpuesto()) {
+          <div class="items-totals__row">
+            <span>Impuesto (18%)</span>
+            <span>RD$ {{ impuesto() | number:'1.2-2' }}</span>
+          </div>
+        }
         <div class="items-totals__row items-totals__row--total">
           <span>Total</span>
           <span>RD$ {{ total() | number:'1.2-2' }}</span>
         </div>
       </div>
+
+      @if (esAdmin()) {
+        <label class="oc-itbis">
+          <input type="checkbox" [checked]="esPruebaOrden()"
+                 (change)="esPruebaOrden.set($any($event.target).checked)" />
+          <span>Marcar como dato de prueba</span>
+        </label>
+      }
     </div>
 
     @if (saveError()) {

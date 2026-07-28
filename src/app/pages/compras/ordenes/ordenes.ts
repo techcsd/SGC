@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -83,8 +84,26 @@ export class Ordenes implements OnInit {
   private entradasService = inject(EntradasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   formatFecha = formatFechaDisplay;
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+
+  // ── Z6 — destino, ITBIS y dato de prueba (signals para reactividad OnPush) ──
+  destino = signal<'proyecto' | 'oficina'>('proyecto');
+  aplicaImpuesto = signal(true);
+  esPruebaOrden = signal(false);
+
+  // Alta inline de proveedor
+  showNuevoProveedor = signal(false);
+  guardandoProveedor = signal(false);
+  nuevoProveedorForm = new FormGroup({
+    nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
+    rnc: new FormControl<string | null>(null),
+    contacto: new FormControl<string | null>(null),
+    telefono: new FormControl<string | null>(null),
+    email: new FormControl<string | null>(null, [Validators.email]),
+  });
 
   // ── Data state ──────────────────────────────────────────
   ordenes = signal<OrdenCompra[]>([]);
@@ -149,7 +168,7 @@ export class Ordenes implements OnInit {
     this.formItems().reduce((sum, item) => sum + item.cantidad * item.precio_unitario, 0),
   );
 
-  impuesto = computed(() => this.subtotal() * this.IMPUESTO_RATE);
+  impuesto = computed(() => (this.aplicaImpuesto() ? this.subtotal() * this.IMPUESTO_RATE : 0));
 
   total = computed(() => this.subtotal() + this.impuesto());
 
@@ -203,6 +222,12 @@ export class Ordenes implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // Z6.5 — deep-link a una orden (?item=<id>) → abre su detalle.
+    const itemId = this.route.snapshot.queryParamMap.get('item');
+    if (itemId) {
+      const orden = this.ordenes().find((o) => o.id === itemId);
+      if (orden) void this.openDetail(orden);
+    }
   }
 
   private async loadAll() {
@@ -268,7 +293,45 @@ export class Ordenes implements OnInit {
     this.solicitudEnAtencion.set(null);
     this.form.reset();
     this.formItems.set([NUEVO_OC_ITEM()]);
+    this.destino.set('proyecto');
+    this.aplicaImpuesto.set(true);
+    this.esPruebaOrden.set(false);
+    this.showNuevoProveedor.set(false);
     this.createDrawerOpen.set(true);
+  }
+
+  // ── Z6 — alta inline de proveedor (reutiliza validaciones de Proveedores) ──
+  toggleNuevoProveedor() {
+    this.showNuevoProveedor.update((v) => !v);
+    this.nuevoProveedorForm.reset();
+  }
+
+  async crearProveedorInline() {
+    if (this.nuevoProveedorForm.invalid) {
+      this.nuevoProveedorForm.markAllAsTouched();
+      return;
+    }
+    this.guardandoProveedor.set(true);
+    try {
+      const v = this.nuevoProveedorForm.getRawValue();
+      const prov = await this.proveedoresService.create({
+        nombre: v.nombre!,
+        rnc: v.rnc || null,
+        contacto: v.contacto || null,
+        telefono: v.telefono || null,
+        email: v.email || null,
+        direccion: null,
+        activo: true,
+      });
+      this.proveedores.update((list) => [prov, ...list]);
+      this.form.controls.proveedor_id.setValue(prov.id);
+      this.showNuevoProveedor.set(false);
+      this.toast.success('Proveedor creado', prov.nombre);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear el proveedor', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoProveedor.set(false);
+    }
   }
 
   /** Opens the create drawer pre-filled from a pending solicitud de compra. */
@@ -356,6 +419,12 @@ export class Ordenes implements OnInit {
       return;
     }
 
+    // Z6 — destino proyecto exige proyecto; oficina no lleva proyecto.
+    if (this.destino() === 'proyecto' && !this.form.value.proyecto_id) {
+      this.saveError.set('Selecciona el proyecto de destino (o cambia el destino a Oficina).');
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 
@@ -395,7 +464,7 @@ export class Ordenes implements OnInit {
       } else {
         const payload: OrdenCompraPayload = {
           proveedor_id: fv.proveedor_id!,
-          proyecto_id: fv.proyecto_id ?? null,
+          proyecto_id: this.destino() === 'oficina' ? null : (fv.proyecto_id ?? null),
           estado: 'borrador',
           fecha: fv.fecha!,
           fecha_entrega_esperada: fv.fecha_entrega_esperada ?? null,
@@ -403,6 +472,9 @@ export class Ordenes implements OnInit {
           impuesto: imp,
           total: tot,
           notas: fv.notas ?? null,
+          destino: this.destino(),
+          aplica_impuesto: this.aplicaImpuesto(),
+          es_prueba: this.esAdmin() && this.esPruebaOrden(),
         };
         created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }

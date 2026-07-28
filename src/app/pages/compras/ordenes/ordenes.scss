@@ -162,20 +162,29 @@ textarea {
 }
 
 .item-row {
+  // Z6 — layout estable en el drawer angosto: el artículo ocupa su propia fila
+  // (full-width), y cantidad|precio|total|quitar van debajo. Nada desborda.
   display: grid;
-  grid-template-columns: 1fr 80px 100px 90px auto;
-  gap: 8px;
+  grid-template-columns: 80px 100px minmax(0, 1fr) 32px;
+  gap: 8px 8px;
   align-items: center;
+  padding: 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  background: var(--sgc-surface);
 
-  &__desc,
+  &__desc {
+    grid-column: 1 / -1;   // artículo a lo ancho, arriba
+    margin: 0;
+    min-width: 0;
+    input { width: 100%; min-width: 0; font-size: 13px; }
+  }
+
   &__qty,
   &__price {
     margin: 0;
-
-    input {
-      width: 100%;
-      font-size: 13px;
-    }
+    min-width: 0;
+    input { width: 100%; min-width: 0; font-size: 13px; }
   }
 
   &__total {
@@ -358,23 +367,8 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .item-row {
-    grid-template-columns: 1fr 70px 90px 80px auto;
-    gap: 6px;
-  }
-
   .detail-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .item-row {
-    grid-template-columns: 1fr;
-
-    &__total {
-      text-align: left;
-    }
   }
 }
 
@@ -392,3 +386,65 @@ textarea {
 
 // T8 — campo libre "Otro" bajo el picker de artículo
 .item-row__desc-otro { margin-top: 6px; }
+
+// ── Z6 — nuevos controles de la OC ──────────────────────────
+.oc-inline-link {
+  margin-left: 10px;
+  background: none;
+  border: none;
+  color: var(--sgc-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  &:hover { text-decoration: underline; }
+}
+.oc-nuevo-prov {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-bg);
+  input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    font-size: 13px;
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+.oc-destino {
+  display: inline-flex;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  overflow: hidden;
+  &__opt {
+    padding: 8px 16px;
+    background: var(--sgc-surface);
+    border: none;
+    color: var(--sgc-text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    &.active { background: var(--sgc-primary); color: #fff; }
+  }
+}
+.oc-itbis {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--sgc-text);
+  cursor: pointer;
+  margin: 10px 0 4px;
+}
+.oc-numero-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  &:hover code { text-decoration: underline; }
+}

@@ -26,4 +26,8 @@ export interface OrdenCompra {
   notas: string | null;
   items?: OrdenCompraItem[];
   created_at: string;
+  // Z6
+  destino?: 'proyecto' | 'oficina';
+  aplica_impuesto?: boolean;
+  es_prueba?: boolean;
 }
