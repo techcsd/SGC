@@ -120,6 +120,12 @@
   &--atrasada { color: var(--sgc-danger); font-weight: 700; }
 }
 .cron__completar-row td { background: var(--sgc-bg); }
+.cron__bitacoras { padding: 8px 4px 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline;
+  strong { flex-basis: 100%; }
+}
+.cron__bit-link { font-size: 13px; color: var(--sgc-primary); text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
 .cron__completar { padding: 8px 4px 12px; display: flex; flex-wrap: wrap; gap: 10px;
   strong { flex-basis: 100%; }
 }

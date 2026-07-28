@@ -313,9 +313,14 @@ Reglas verificadas: adelanto (ordinaria 2d→1d) donó +1d a la crítica siguien
 ### Integración Bitácoras
 - Selector opcional "Tarea del cronograma" en el form de nueva bitácora (aparece si el proyecto tiene tareas activas) → al guardar, `enlazar_bitacora_tarea` (enlace como evidencia).
 
-### Backlog / follow-ups (no en esta ronda)
-- Completar la tarea DESDE la bitácora (marcar + usar una foto de la bitácora como evidencia) — hoy solo enlaza.
-- En el detalle de la tarea, listar sus bitácoras enlazadas; chip "🔗 Tarea" en el historial de bitácora.
-- Badge en el nav de Proyectos con avisos de cronograma pendientes.
-- `NOTIFICATIONS_FROM_EMAIL` debe apuntar al dominio verificado `sgcconstructorasd.com` en Resend (compartido con las demás edge de email; si no, cae al sandbox `resend.dev`).
-- Resto del backlog Y16 (sección 11): reconciliación de avances, auto-partidas desde bitácora, seguridad por columna del presupuesto, CPM, calendario laborable.
+### Follow-ups completados (web 1.33.0, 28/07/2026)
+- ✅ Completar la tarea DESDE la bitácora: checkbox "Marcar la tarea como completada"; usa la primera foto de la bitácora como evidencia (best-effort, no bloquea el guardado).
+- ✅ Detalle de la tarea lista sus bitácoras enlazadas (botón 🔗, deep-link a `/bitacora/historial?item=`); chip "🔗 Tarea" en el historial de bitácora (embed inverso `cronograma_tarea_bitacoras`).
+- ✅ Badge en el nav de Proyectos = alertas de clima + avisos de cronograma pendientes.
+- ✅ `NOTIFICATIONS_FROM_EMAIL = notificaciones@sgcconstructorasd.com` — dominio verificado en Resend (comprobado por probe a `delivered@resend.dev` → 200).
+
+### Backlog Y16 restante (no en esta ronda — sección 11)
+- Reconciliación de avances (fases % / partidas / cronograma) en un indicador.
+- Auto-actualizar `proyecto_partidas.cantidad_ejecutada` desde `bitacora_actividades`.
+- Seguridad a nivel de columna para `presupuesto`.
+- Dependencias/DAG + ruta crítica (CPM); calendario de días laborables/feriados; re-baseline.

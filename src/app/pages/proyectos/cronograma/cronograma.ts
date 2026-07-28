@@ -298,4 +298,20 @@ export class Cronograma implements OnInit {
     if (!id) return '—';
     return this.tareas().find((t) => t.id === id)?.nombre ?? '(eliminada)';
   }
+
+  // ── Bitácoras enlazadas (evidencia) ──
+  bitacorasExpandida = signal<string | null>(null);
+  bitacorasDeTarea = signal<Record<string, { id: string; fecha: string; tipo: string }[]>>({});
+
+  async toggleBitacoras(t: CronogramaTarea) {
+    if (this.bitacorasExpandida() === t.id) {
+      this.bitacorasExpandida.set(null);
+      return;
+    }
+    if (!this.bitacorasDeTarea()[t.id]) {
+      const bits = await this.service.getBitacorasDeTarea(t.id);
+      this.bitacorasDeTarea.update((m) => ({ ...m, [t.id]: bits }));
+    }
+    this.bitacorasExpandida.set(t.id);
+  }
 }

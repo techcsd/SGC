@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.33.0": {
+      "titulo": "Cronograma ↔ Bitácoras: completar desde la bitácora, evidencia enlazada y avisos en el menú",
+      "cambios": [
+        { "t": "nuevo", "d": "Al registrar una bitácora enlazada a una tarea del cronograma, ahora puedes marcarla como completada: usa una foto de la bitácora como evidencia." },
+        { "t": "nuevo", "d": "En el cronograma, cada tarea muestra sus bitácoras enlazadas (botón 🔗) con acceso directo a cada una; en el historial de bitácoras aparece una etiqueta 🔗 Tarea cuando la entrada avanza una tarea del cronograma." },
+        { "t": "mejora", "d": "El menú de Proyectos ahora incluye en su contador los avisos de cronograma pendientes (tareas por iniciar, por vencer o atrasadas), además de las alertas de clima." },
+        { "t": "mejora", "d": "Los correos de avisos salen desde el dominio verificado de la empresa (notificaciones@sgcconstructorasd.com)." }
+      ]
+    },
     "1.32.0": {
       "titulo": "Cronograma de Proyectos: línea de tiempo con auto-ajuste, evidencia y avisos",
       "cambios": [

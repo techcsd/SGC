@@ -49,10 +49,10 @@ export class NotificacionesService {
     if (this.userService.hasModulo('rrhh') || isAdmin) {
       checks.push(this.loadCount('solicitudes_ausencia', 'pendiente', 'rrhh'));
     }
-    // Severe-weather alerts (Intelligent Context System): active alerts across
-    // obras, shown on the Proyectos nav. Same audience as the weather panels.
+    // Badge de Proyectos = alertas de clima vigentes (audiencia proyectos|bitacora)
+    // + avisos de cronograma pendientes (solo proyectos|admin, Y15).
     if (this.userService.hasModulo('proyectos') || this.userService.hasModulo('bitacora') || isAdmin) {
-      checks.push(this.loadWeatherAlertas());
+      checks.push(this.loadProyectosBadge(this.userService.hasModulo('proyectos') || isAdmin));
     }
     // Tareas badge is per-user (tasks assigned to me that are still open),
     // not module-gated — every user can be assigned tasks.
@@ -144,12 +144,22 @@ export class NotificacionesService {
     this._pendingByModulo.update((m) => ({ ...m, direccion: count ?? 0 }));
   }
 
-  private async loadWeatherAlertas(): Promise<void> {
-    const { count } = await this.supabase.client
-      .from('weather_alerts')
-      .select('id', { count: 'exact', head: true })
-      .eq('vigente', true);
-    this._pendingByModulo.update((m) => ({ ...m, proyectos: count ?? 0 }));
+  private async loadProyectosBadge(includeCronograma: boolean): Promise<void> {
+    const [weatherRes, cronogramaRes] = await Promise.all([
+      this.supabase.client
+        .from('weather_alerts')
+        .select('id', { count: 'exact', head: true })
+        .eq('vigente', true),
+      includeCronograma
+        ? this.supabase.client
+            .from('avisos_proyecto')
+            .select('id', { count: 'exact', head: true })
+            .eq('estado', 'pendiente')
+            .in('tipo', ['cronograma_por_iniciar', 'cronograma_por_vencer', 'cronograma_atrasada'])
+        : Promise.resolve({ count: 0 } as { count: number | null }),
+    ]);
+    const total = (weatherRes.count ?? 0) + (cronogramaRes.count ?? 0);
+    this._pendingByModulo.update((m) => ({ ...m, proyectos: total }));
   }
 
   private async loadMensajesNoLeidos(): Promise<void> {

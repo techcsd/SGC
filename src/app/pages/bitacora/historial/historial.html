@@ -104,6 +104,10 @@
               @if (b.es_prueba) {
                 <span class="sgc-badge sgc-badge--neutral historial__badge-inline">PRUEBA</span>
               }
+              @if (b.cronograma_tareas && b.cronograma_tareas.length > 0) {
+                <span class="sgc-badge sgc-badge--info historial__badge-inline"
+                      [title]="'Cronograma: ' + b.cronograma_tareas[0].tarea?.nombre">🔗 Tarea</span>
+              }
             </td>
             <td>{{ b.proyecto?.nombre ?? '—' }}</td>
             <td>{{ resumenEntrada(b) }}</td>

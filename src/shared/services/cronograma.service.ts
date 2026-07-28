@@ -131,6 +131,18 @@ export class CronogramaService {
     return path;
   }
 
+  /** Bitácoras enlazadas a una tarea (evidencia). */
+  async getBitacorasDeTarea(tareaId: string): Promise<{ id: string; fecha: string; tipo: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from('cronograma_tarea_bitacoras')
+      .select('bitacora:bitacoras(id, fecha, tipo)')
+      .eq('tarea_id', tareaId);
+    if (error) return [];
+    return ((data ?? []) as unknown as { bitacora: { id: string; fecha: string; tipo: string } | null }[])
+      .map((r) => r.bitacora)
+      .filter((b): b is { id: string; fecha: string; tipo: string } => !!b);
+  }
+
   async getEvidenciaUrl(path: string): Promise<string | null> {
     const { data, error } = await this.supabase.client.storage
       .from(BUCKET)

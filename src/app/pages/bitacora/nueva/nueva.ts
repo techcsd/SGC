@@ -180,6 +180,8 @@ export class Nueva implements OnInit {
     comentarios: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
     // Y15 — enlace opcional con una tarea del cronograma (evidencia).
     cronograma_tarea_id: new FormControl<string | null>(null),
+    // Y15 — marcar la tarea como completada con una foto de esta bitácora.
+    cronograma_completar: new FormControl<boolean>(false),
     descripcion_otro_restriccion: new FormControl<string | null>(null),
     // Clima + migración (R21/R22) — parte diario. La lluvia NO es un incidente.
     llovio: new FormControl<boolean>(false, { nonNullable: true }),
@@ -915,13 +917,22 @@ export class Nueva implements OnInit {
         }
       }
 
-      // Y15 — enlaza la bitácora a la tarea del cronograma elegida (evidencia).
+      // Y15 — enlaza la bitácora a la tarea del cronograma elegida (evidencia) y,
+      // si se marcó, completa la tarea usando una foto de esta bitácora.
       const tareaId = this.form.controls.cronograma_tarea_id.value;
       if (tareaId) {
         try {
           await this.cronogramaService.enlazarBitacora(tareaId, created.id, false);
+          if (this.form.controls.cronograma_completar.value) {
+            const imagen = this.archivos().find((f) => f.type.startsWith('image/'));
+            if (imagen) {
+              const path = await this.cronogramaService.subirEvidencia(tareaId, imagen);
+              // Usa los comentarios como justificación si la tarea está atrasada.
+              await this.cronogramaService.completar(tareaId, path, this.f.comentarios.value || null);
+            }
+          }
         } catch (e: unknown) {
-          console.error('Error enlazando tarea de cronograma:', e);
+          console.error('Error enlazando/completando tarea de cronograma:', e);
         }
       }
 

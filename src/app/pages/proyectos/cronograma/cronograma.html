@@ -123,6 +123,7 @@
                   @else { <span class="cron__estado" [attr.data-estado]="t.estado">{{ t.estado }}</span> }
                 </td>
                 <td class="cron__acciones">
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleBitacoras(t)" title="Bitácoras enlazadas">🔗</button>
                   @if (puedeGestionar()) {
                     @if (t.estado === 'pendiente') {
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="iniciar(t)">Iniciar</button>
@@ -135,6 +136,22 @@
                   }
                 </td>
               </tr>
+              @if (bitacorasExpandida() === t.id) {
+                <tr class="cron__completar-row">
+                  <td colspan="7">
+                    <div class="cron__bitacoras">
+                      <strong>Bitácoras enlazadas</strong>
+                      @for (b of bitacorasDeTarea()[t.id] ?? []; track b.id) {
+                        <a class="cron__bit-link" [routerLink]="['/bitacora/historial']" [queryParams]="{ item: b.id }">
+                          {{ formatFecha(b.fecha) }} · {{ b.tipo }}
+                        </a>
+                      } @empty {
+                        <span class="cron__muted">Sin bitácoras enlazadas.</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
               @if (completandoId() === t.id) {
                 <tr class="cron__completar-row">
                   <td colspan="7">

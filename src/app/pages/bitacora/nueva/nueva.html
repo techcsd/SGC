@@ -75,6 +75,12 @@
               }
             </select>
             <span class="field-hint">Esta bitácora quedará enlazada como evidencia de la tarea.</span>
+            @if (f.cronograma_tarea_id.value) {
+              <label class="sgc-checkbox">
+                <input type="checkbox" formControlName="cronograma_completar" />
+                <span>Marcar la tarea como completada (usa una foto de esta bitácora como evidencia)</span>
+              </label>
+            }
           </div>
         }
       </div>

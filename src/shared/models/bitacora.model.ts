@@ -174,6 +174,8 @@ export interface Bitacora {
   restricciones?: BitacoraRestriccion[];
   archivos?: BitacoraArchivo[];
   equipos?: BitacoraEquipoAlquilado[];
+  // Y15 — tareas del cronograma enlazadas a esta bitácora (evidencia).
+  cronograma_tareas?: { tarea: { id: string; nombre: string } | null }[];
   // T2 — dato de prueba (oculto a no-admin vía RLS; solo admin lo marca/elimina).
   es_prueba?: boolean;
 }
