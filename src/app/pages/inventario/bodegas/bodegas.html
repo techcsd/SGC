@@ -104,7 +104,9 @@
           @for (bodega of paginated(); track bodega.id) {
             <tr [class.row--inactive]="!bodega.activo">
               <td>
-                <span class="bodega-nombre">{{ bodega.nombre }}</span>
+                <button type="button" class="bodega-nombre bodega-nombre--link" (click)="openDetail(bodega)" title="Ver detalle del almacén">
+                  {{ bodega.nombre }}
+                </button>
               </td>
               <td>
                 @if (bodega.es_principal) {
@@ -328,4 +330,62 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── Z9 — Detalle de almacén ── -->
+<app-form-drawer
+  [title]="detailBodega()?.nombre ?? 'Almacén'"
+  [open]="detailOpen()"
+  (closed)="closeDetail()"
+>
+  @if (detailBodega(); as b) {
+    <div class="bodega-detalle">
+      <dl class="bodega-detalle__info">
+        <div><dt>Obra vinculada</dt><dd>{{ b.es_principal ? 'Principal (global)' : (b.proyecto?.nombre ?? 'General') }}</dd></div>
+        <div><dt>Ubicación</dt><dd>{{ b.ubicacion ?? '—' }}</dd></div>
+        <div><dt>Estado</dt><dd>{{ b.activo ? 'Activo' : 'Inactivo' }}</dd></div>
+        <div><dt>Stock total</dt><dd>{{ detailStockTotal() | number:'1.0-2' }} uds.</dd></div>
+      </dl>
+
+      <div class="bodega-detalle__acciones">
+        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/entradas" [queryParams]="{ bodega: b.id }">+ Entrada</a>
+        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/salidas" [queryParams]="{ bodega: b.id }">+ Salida</a>
+        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conteos" [queryParams]="{ bodega: b.id }">Conteo</a>
+        <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/movimientos" [queryParams]="{ bodega: b.id }">Movimientos</a>
+      </div>
+
+      <h3 class="bodega-detalle__section">Stock actual</h3>
+      @if (detailLoading()) {
+        <p class="text-muted">Cargando…</p>
+      } @else if (detailStock().length === 0) {
+        <p class="text-muted">Sin existencias en este almacén.</p>
+      } @else {
+        <ul class="bodega-detalle__stock">
+          @for (s of detailStock(); track s.articulo_id) {
+            <li>
+              <span>{{ s.articulo?.nombre ?? '—' }} <code class="code-tag">{{ s.articulo?.codigo }}</code></span>
+              <strong>{{ s.cantidad | number:'1.0-2' }}</strong>
+            </li>
+          }
+        </ul>
+      }
+
+      <h3 class="bodega-detalle__section">Últimos movimientos</h3>
+      @if (detailLoading()) {
+        <p class="text-muted">Cargando…</p>
+      } @else if (detailMovs().length === 0) {
+        <p class="text-muted">Sin movimientos.</p>
+      } @else {
+        <ul class="bodega-detalle__movs">
+          @for (m of detailMovs(); track $index) {
+            <li>
+              <span class="sgc-badge sgc-badge--{{ m.tipo === 'entrada' ? 'success' : 'neutral' }}">{{ m.tipo === 'entrada' ? 'Entrada' : 'Salida' }}</span>
+              <span class="text-muted">{{ m.concepto ?? '—' }}</span>
+              <span class="text-muted">{{ m.items }} ítem(s) · {{ m.fecha | date:'dd/MM/yyyy' }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
 </app-form-drawer>

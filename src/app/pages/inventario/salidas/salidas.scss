@@ -234,15 +234,24 @@ textarea {
 }
 
 .item-row {
+  // Z12 — el artículo (picker) ocupa su fila; cantidad + quitar van debajo.
+  // min-width:0 evita que el picker desborde el drawer.
   display: grid;
-  grid-template-columns: 1fr 100px auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+
+  &__articulo { grid-column: 1 / -1; min-width: 0; }
+  &__cantidad { min-width: 0; }
 
   select,
   input {
     width: 100%;
+    min-width: 0;
     font-size: 13px;
   }
 

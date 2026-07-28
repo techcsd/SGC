@@ -1,6 +1,14 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.38.0": {
+      "titulo": "Inventario: detalle de conteos más claro, detalle de almacén y formularios de entrada/salida sin desbordes",
+      "cambios": [
+        { "t": "mejora", "d": "El detalle de \"Conteos y ajustes\" ahora tiene encabezado claro (tipo, almacén, quién, fecha), tabla con zebra y leyenda solo cuando hay ajustes." },
+        { "t": "nuevo", "d": "Al hacer clic en un almacén se abre su detalle: obra vinculada, stock actual, últimos movimientos y accesos rápidos (entrada/salida/conteo/movimientos)." },
+        { "t": "mejora", "d": "Los formularios de registrar entrada y salida ya no desbordan: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo." }
+      ]
+    },
     "1.37.0": {
       "titulo": "Inventario: filtro CSD/Alquilado y edición de stock con trazabilidad",
       "cambios": [

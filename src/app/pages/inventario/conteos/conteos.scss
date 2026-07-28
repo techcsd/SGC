@@ -111,3 +111,20 @@
   font-size: 12px;
   span { font-weight: 600; }
 }
+
+/* Z7 — detalle del conteo con jerarquía clara */
+.cn-card__detail {
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--sgc-border);
+  background: var(--sgc-bg);
+}
+.cn-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 10px;
+  &__meta { font-size: 13px; color: var(--sgc-text-secondary); }
+}
+.cn-table--zebra tbody tr:nth-child(even) { background: var(--sgc-surface); }
+.cn-table--zebra .cn-row--ajuste { background: var(--sgc-warning-light); }

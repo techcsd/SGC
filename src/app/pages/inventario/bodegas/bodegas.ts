@@ -52,6 +52,13 @@ export class Bodegas implements OnInit {
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
+  // ── Z9 — detalle de almacén ───────────────────────────────
+  detailOpen = signal(false);
+  detailBodega = signal<Bodega | null>(null);
+  detailStock = signal<{ articulo_id: string; cantidad: number; articulo: { nombre: string; codigo: string } | null }[]>([]);
+  detailMovs = signal<{ tipo: string; fecha: string; concepto: string | null; items: number }[]>([]);
+  detailLoading = signal(false);
+
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     ubicacion: new FormControl<string | null>(null),
@@ -235,6 +242,34 @@ export class Bodegas implements OnInit {
       this.saving.set(false);
     }
   }
+
+  // ── Z9 — detalle de almacén ───────────────────────────────
+  async openDetail(bodega: Bodega) {
+    this.detailBodega.set(bodega);
+    this.detailOpen.set(true);
+    this.detailLoading.set(true);
+    this.detailStock.set([]);
+    this.detailMovs.set([]);
+    try {
+      const [stock, movs] = await Promise.all([
+        this.bodegasService.getStock(bodega.id),
+        this.bodegasService.getMovimientos(bodega.id),
+      ]);
+      this.detailStock.set(stock);
+      this.detailMovs.set(movs);
+    } catch {
+      /* detalle parcial */
+    } finally {
+      this.detailLoading.set(false);
+    }
+  }
+
+  closeDetail() {
+    this.detailOpen.set(false);
+    this.detailBodega.set(null);
+  }
+
+  detailStockTotal = computed(() => this.detailStock().reduce((s, r) => s + (r.cantidad ?? 0), 0));
 
   // ── Actions ──────────────────────────────────────────────
   async toggleActivo(bodega: Bodega) {

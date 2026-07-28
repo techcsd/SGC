@@ -60,7 +60,18 @@
           <span class="cn-card__count">{{ c.items?.length ?? 0 }} ítems ▾</span>
         </button>
         @if (expandedId() === c.id) {
+          <div class="cn-card__detail">
+          <!-- Z7 — encabezado claro del conteo -->
+          <div class="cn-detail-head">
+            <span class="sgc-badge" [class.sgc-badge--info]="esChequeo(c)" [class.sgc-badge--neutral]="!esChequeo(c)">
+              {{ esChequeo(c) ? 'Chequeo semanal' : 'Ajuste de inventario' }}
+            </span>
+            <span class="cn-detail-head__meta">🏬 {{ c.bodega?.nombre ?? 'Almacén' }}</span>
+            <span class="cn-detail-head__meta">👤 {{ c.creado?.nombre ?? '—' }}</span>
+            <span class="cn-detail-head__meta">🗓 {{ c.created_at | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
           @if (c.motivo) { <p class="cn-motivo"><strong>Motivo:</strong> {{ c.motivo }}</p> }
+          @if (c.observaciones) { <p class="cn-motivo">{{ c.observaciones }}</p> }
           <!-- R9 — totales del conteo -->
           <div class="cn-totales">
             <span class="cn-totales__item">{{ totales(c).ajustados }} ítem(s) ajustado(s)</span>
@@ -68,7 +79,7 @@
               Ajuste neto: {{ totales(c).neto > 0 ? '+' : '' }}{{ totales(c).neto }}
             </span>
           </div>
-          <table class="cn-table">
+          <table class="cn-table cn-table--zebra">
             <thead>
               <tr><th>Material</th><th class="text-right">Antes</th><th class="text-right">Contado</th><th class="text-right">Δ</th><th class="text-right">% desv.</th></tr>
             </thead>
@@ -90,9 +101,12 @@
               }
             </tbody>
           </table>
-          <div class="cn-leyenda">
-            <span class="cn-up">↑ Sobrante (contado &gt; sistema)</span>
-            <span class="cn-down">↓ Faltante (contado &lt; sistema)</span>
+          @if (totales(c).ajustados > 0) {
+            <div class="cn-leyenda">
+              <span class="cn-up">↑ Sobrante (contado &gt; sistema)</span>
+              <span class="cn-down">↓ Faltante (contado &lt; sistema)</span>
+            </div>
+          }
           </div>
         }
       </div>
