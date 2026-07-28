@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">Reposición de almacén</h1>
-    <span class="page-count">{{ rows().length }} por reponer</span>
+    <span class="page-count">{{ visibleRows().length }} por reponer</span>
   </div>
 </div>
 
@@ -26,6 +26,15 @@
   </div>
 </div>
 
+@if (puedeGestionar() && seleccionadas() > 0) {
+  <div class="rep-toolbar">
+    <span>{{ seleccionadas() }} seleccionado(s)</span>
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="generando()" (click)="generarSolicitud()">
+      Generar solicitud de compra
+    </button>
+  </div>
+}
+
 @if (error()) {
   <div class="page-error" role="alert">{{ error() }}</div>
 }
@@ -34,44 +43,60 @@
   <app-skeleton variant="table" [rows]="8" />
 } @else if (cargado()) {
   <div class="table-wrapper sgc-card">
-    @if (rows().length === 0) {
+    @if (visibleRows().length === 0) {
       <div class="table-empty">
-        @if (esGlobal()) {
-          <p>No hay artículos en o por debajo de su stock mínimo (global). 👍</p>
-          <p class="text-muted">Si esperabas ver artículos aquí, revisa que tengan un <strong>stock mínimo</strong> configurado en Artículos.</p>
-        } @else {
-          <p>Ningún artículo está bajo el mínimo en este almacén.</p>
-          <p class="text-muted">
-            Puede que este almacén no tenga <strong>mínimos configurados</strong>. Configura el stock mínimo
-            de los artículos en <strong>Inventario › Artículos</strong>, o usa <strong>“Todas las bodegas”</strong>
-            para ver el stock crítico global (mismo criterio que Reportes).
-          </p>
-        }
+        <p>No hay artículos por reponer en este momento. 👍</p>
+        <p class="text-muted">Configura el <strong>stock mínimo</strong> en Artículos, o usa “Todas las bodegas” para el stock crítico global. Las sugerencias pospuestas se ocultan hasta su fecha.</p>
       </div>
     } @else {
       <div class="table-scroll">
       <table class="data-table" aria-label="Artículos por reponer">
         <thead>
           <tr>
+            @if (puedeGestionar()) { <th></th> }
             <th>Artículo</th>
             <th>Código</th>
             <th class="text-right">Mínimo</th>
             <th class="text-right">Actual</th>
             <th class="text-right">Faltante</th>
+            @if (puedeGestionar()) { <th></th> }
           </tr>
         </thead>
         <tbody>
-          @for (r of rows(); track r.articulo_id) {
+          @for (r of visibleRows(); track r.articulo_id) {
             <tr [class.rep-row--critico]="r.actual === 0">
+              @if (puedeGestionar()) {
+                <td><input type="checkbox" [checked]="selected().has(r.articulo_id)" (change)="toggleSel(r.articulo_id)" [attr.aria-label]="'Seleccionar ' + r.nombre" /></td>
+              }
               <td>{{ r.nombre }}</td>
               <td class="text-muted">{{ r.codigo }}</td>
-              <td class="text-right">{{ r.minimo }} {{ r.unidad }}</td>
+              <td class="text-right">
+                @if (editMinId() === r.articulo_id) {
+                  <input class="rep-min-input" type="number" min="0" [value]="editMinValue()" (input)="editMinValue.set($any($event.target).valueAsNumber)" />
+                } @else { {{ r.minimo }} {{ r.unidad }} }
+              </td>
               <td class="text-right">{{ r.actual }}</td>
               <td class="text-right">
                 <span class="sgc-badge" [class.sgc-badge--danger]="r.actual === 0" [class.sgc-badge--warning]="r.actual > 0">
                   {{ r.faltante }} {{ r.unidad }}
                 </span>
               </td>
+              @if (puedeGestionar()) {
+                <td class="rep-actions">
+                  @if (editMinId() === r.articulo_id) {
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="guardarMinimo(r)">Guardar</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editMinId.set(null)">✕</button>
+                  } @else if (posponerId() === r.articulo_id) {
+                    <input class="rep-dias" type="number" min="1" [value]="posponerDias()" (input)="posponerDias.set($any($event.target).valueAsNumber)" title="Días" />
+                    <input class="rep-motivo" type="text" [value]="posponerMotivo()" (input)="posponerMotivo.set($any($event.target).value)" placeholder="Motivo" />
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="confirmarPosponer(r)">Posponer</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="posponerId.set(null)">✕</button>
+                  } @else {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditMin(r)">Mínimo</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPosponer(r)">Posponer</button>
+                  }
+                </td>
+              }
             </tr>
           }
         </tbody>

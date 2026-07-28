@@ -68,6 +68,30 @@ export class StockService {
     return map;
   }
 
+  /** Z8 — sugerencias de reposición pospuestas todavía vigentes (para ocultarlas). */
+  async getSnoozes(bodegaId: string | null): Promise<{ articulo_id: string }[]> {
+    let q = this.supabase.client
+      .from('reposicion_snooze')
+      .select('articulo_id, bodega_id')
+      .gte('snooze_until', new Date().toISOString().slice(0, 10));
+    if (bodegaId) q = q.or(`bodega_id.eq.${bodegaId},bodega_id.is.null`);
+    else q = q.is('bodega_id', null);
+    const { data, error } = await q;
+    if (error) return [];
+    return (data ?? []) as { articulo_id: string }[];
+  }
+
+  /** Z8 — posponer una sugerencia N días con motivo. */
+  async posponerReposicion(articuloId: string, bodegaId: string | null, dias: number, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('posponer_reposicion', {
+      p_articulo_id: articuloId,
+      p_bodega_id: bodegaId,
+      p_dias: dias,
+      p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** Returns a map of articulo_id → total quantity across all bodegas */
   buildTotalMap(stock: StockPorBodega[]): Map<string, number> {
     const map = new Map<string, number>();

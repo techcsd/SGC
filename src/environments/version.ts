@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.38.0';
-export const APP_VERSION_TITULO: string | null = "Inventario: detalle de conteos más claro, detalle de almacén y formularios de entrada/salida sin desbordes";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"El detalle de \"Conteos y ajustes\" ahora tiene encabezado claro (tipo, almacén, quién, fecha), tabla con zebra y leyenda solo cuando hay ajustes."},{"t":"nuevo","d":"Al hacer clic en un almacén se abre su detalle: obra vinculada, stock actual, últimos movimientos y accesos rápidos (entrada/salida/conteo/movimientos)."},{"t":"mejora","d":"Los formularios de registrar entrada y salida ya no desbordan: el artículo ocupa su fila y cantidad/precio/total quedan alineados debajo."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/e819ef9";
+export const APP_VERSION = '1.39.0';
+export const APP_VERSION_TITULO: string | null = "Reposición accionable: generar solicitud de compra, editar mínimos y posponer sugerencias";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"En Reposición ahora puedes seleccionar artículos bajo mínimo y generar una solicitud de compra de una vez (cuando el almacén pertenece a una obra)."},{"t":"nuevo","d":"Editar el stock mínimo de un artículo directamente desde la lista de reposición."},{"t":"nuevo","d":"Posponer una sugerencia de reposición con un motivo y por N días; se oculta hasta su fecha."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/7422cd2";

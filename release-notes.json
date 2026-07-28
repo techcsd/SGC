@@ -1,6 +1,14 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.39.0": {
+      "titulo": "Reposición accionable: generar solicitud de compra, editar mínimos y posponer sugerencias",
+      "cambios": [
+        { "t": "nuevo", "d": "En Reposición ahora puedes seleccionar artículos bajo mínimo y generar una solicitud de compra de una vez (cuando el almacén pertenece a una obra)." },
+        { "t": "nuevo", "d": "Editar el stock mínimo de un artículo directamente desde la lista de reposición." },
+        { "t": "nuevo", "d": "Posponer una sugerencia de reposición con un motivo y por N días; se oculta hasta su fecha." }
+      ]
+    },
     "1.38.0": {
       "titulo": "Inventario: detalle de conteos más claro, detalle de almacén y formularios de entrada/salida sin desbordes",
       "cambios": [
