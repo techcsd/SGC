@@ -1,6 +1,16 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.32.0": {
+      "titulo": "Cronograma de Proyectos: línea de tiempo con auto-ajuste, evidencia y avisos",
+      "cambios": [
+        { "t": "nuevo", "d": "Cada proyecto tiene ahora un Cronograma: tareas en secuencia con duración y fechas, tipo ordinaria/importante/crítica, y vista de línea de tiempo (Gantt) además de lista. Se entra desde el detalle del proyecto." },
+        { "t": "nuevo", "d": "El usuario notifica el inicio y el fin de cada tarea. Al completar es obligatorio adjuntar una foto de evidencia; si la tarea se completa tarde, exige una justificación." },
+        { "t": "nuevo", "d": "Auto-ajuste del cronograma: si una tarea termina antes de tiempo, los días sobrantes se suman a la próxima tarea importante/crítica (o quedan como holgura); si termina tarde, empuja las siguientes. Todo queda en un historial de ajustes auditable." },
+        { "t": "nuevo", "d": "Avisos al ingeniero responsable de tareas por iniciar, por vencer y atrasadas, en la campana de notificaciones y por correo." },
+        { "t": "mejora", "d": "Desde una bitácora se puede enlazar una tarea del cronograma, dejándola como evidencia del avance." }
+      ]
+    },
     "1.31.0": {
       "titulo": "Módulo Tecnología, reportes de errores de la app y seguridad de datos",
       "cambios": [

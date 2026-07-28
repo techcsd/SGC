@@ -16,7 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import {
   FaseProyecto,
@@ -73,7 +73,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

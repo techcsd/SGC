@@ -21,4 +21,10 @@ export const proyectosRoutes: Routes = [
     loadComponent: () => import('./clima/clima').then((m) => m.ProyectosClima),
     title: 'Reportes de clima — Proyectos',
   },
+  {
+    // Y15 — Cronograma de un proyecto (deep-linkable desde avisos/emails).
+    path: ':id/cronograma',
+    loadComponent: () => import('./cronograma/cronograma').then((m) => m.Cronograma),
+    title: 'Cronograma — Proyectos',
+  },
 ];

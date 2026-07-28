@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
+import { CronogramaService } from '../../../../shared/services/cronograma.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { BitacoraCatalogosService } from '../../../../shared/services/bitacora-catalogos.service';
 import { UnidadesService } from '../../../../shared/services/unidades.service';
@@ -76,6 +77,9 @@ interface Draft {
 })
 export class Nueva implements OnInit {
   private bitacoraService = inject(BitacoraService);
+  private cronogramaService = inject(CronogramaService);
+  // Y15 — tareas del cronograma del proyecto elegido (para enlazar la bitácora).
+  tareasCronograma = signal<{ id: string; nombre: string }[]>([]);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private borradores = inject(BorradoresWebService);
@@ -174,6 +178,8 @@ export class Nueva implements OnInit {
     trabajadores_casa: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
     otro_personal: new FormControl<string | null>(null, [Validators.maxLength(500)]),
     comentarios: new FormControl<string | null>(null, [Validators.maxLength(2000)]),
+    // Y15 — enlace opcional con una tarea del cronograma (evidencia).
+    cronograma_tarea_id: new FormControl<string | null>(null),
     descripcion_otro_restriccion: new FormControl<string | null>(null),
     // Clima + migración (R21/R22) — parte diario. La lluvia NO es un incidente.
     llovio: new FormControl<boolean>(false, { nonNullable: true }),
@@ -395,6 +401,7 @@ export class Nueva implements OnInit {
       .subscribe((id) => {
         this.aplicarRanking(id ?? null);
         void this.loadEquiposDeObra(id ?? null);
+        void this.loadTareasCronograma(id ?? null);
       });
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saveDraft());
@@ -908,6 +915,16 @@ export class Nueva implements OnInit {
         }
       }
 
+      // Y15 — enlaza la bitácora a la tarea del cronograma elegida (evidencia).
+      const tareaId = this.form.controls.cronograma_tarea_id.value;
+      if (tareaId) {
+        try {
+          await this.cronogramaService.enlazarBitacora(tareaId, created.id, false);
+        } catch (e: unknown) {
+          console.error('Error enlazando tarea de cronograma:', e);
+        }
+      }
+
       // X13 — al enviar con éxito, quita el borrador en proceso.
       this.borradores.remove(this.MODULO_BORRADOR, this.draftId);
       this.router.navigate(['/bitacora/historial']);
@@ -915,6 +932,25 @@ export class Nueva implements OnInit {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar la bitácora.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  /** Y15 — carga las tareas no completadas del cronograma del proyecto elegido. */
+  private async loadTareasCronograma(proyectoId: string | null) {
+    this.form.controls.cronograma_tarea_id.setValue(null, { emitEvent: false });
+    if (!proyectoId) {
+      this.tareasCronograma.set([]);
+      return;
+    }
+    try {
+      const data = await this.cronogramaService.listar(proyectoId);
+      this.tareasCronograma.set(
+        data.tareas
+          .filter((t) => t.estado !== 'completada')
+          .map((t) => ({ id: t.id, nombre: t.nombre })),
+      );
+    } catch {
+      this.tareasCronograma.set([]);
     }
   }
 

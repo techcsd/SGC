@@ -826,7 +826,10 @@
       <div class="proyectos__fases">
         <div class="proyectos__fases-header">
           <h3 class="proyectos__fases-title">Fases del proyecto</h3>
-          <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
+          <div class="proyectos__fases-actions">
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
+            <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
+          </div>
         </div>
 
         @if (detailLoading()) {

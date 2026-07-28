@@ -63,6 +63,20 @@
             <span class="field-error">La obra es obligatoria.</span>
           }
         </div>
+
+        <!-- Y15 — enlace opcional con una tarea del cronograma (evidencia) -->
+        @if (tareasCronograma().length > 0) {
+          <div class="sgc-field">
+            <label for="cronograma_tarea_id">Tarea del cronograma (opcional)</label>
+            <select id="cronograma_tarea_id" formControlName="cronograma_tarea_id">
+              <option [value]="null">Ninguna</option>
+              @for (t of tareasCronograma(); track t.id) {
+                <option [value]="t.id">{{ t.nombre }}</option>
+              }
+            </select>
+            <span class="field-hint">Esta bitácora quedará enlazada como evidencia de la tarea.</span>
+          </div>
+        }
       </div>
 
       @if (tipoActual() === 'parte_diario') {
