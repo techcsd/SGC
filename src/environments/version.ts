@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.46.0';
-export const APP_VERSION_TITULO: string | null = "Requisiciones: ver los artículos e ir al detalle";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"En Requisiciones puedes desplegar cada fila para ver sus artículos; los del catálogo son un enlace que te lleva al artículo en Inventario y lo resalta."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/8a80191";
+export const APP_VERSION = '1.47.0';
+export const APP_VERSION_TITULO: string | null = "Bitácora: tipos con iconos y separación Mis/Todas";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"En Nueva bitácora el tipo de entrada ahora se elige con tarjetas de icono (Bitácora del día, Visita, Incidente) con una breve descripción de cada una."},{"t":"nuevo","d":"El historial de bitácoras separa \"Mis bitácoras\" (las que registraste) de \"Todas\", con un selector y contador; los enlaces desde dashboards/notificaciones abren directamente en \"Todas\"."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/b4ab829";

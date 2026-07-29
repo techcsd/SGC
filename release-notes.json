@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.47.0": {
+      "titulo": "Bitácora: tipos con iconos y separación Mis/Todas",
+      "cambios": [
+        { "t": "mejora", "d": "En Nueva bitácora el tipo de entrada ahora se elige con tarjetas de icono (Bitácora del día, Visita, Incidente) con una breve descripción de cada una." },
+        { "t": "nuevo", "d": "El historial de bitácoras separa \"Mis bitácoras\" (las que registraste) de \"Todas\", con un selector y contador; los enlaces desde dashboards/notificaciones abren directamente en \"Todas\"." }
+      ]
+    },
     "1.46.0": {
       "titulo": "Requisiciones: ver los artículos e ir al detalle",
       "cambios": [

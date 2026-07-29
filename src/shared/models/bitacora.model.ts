@@ -86,10 +86,10 @@ export const MOTIVOS_SIN_ACTIVIDAD: { value: string; label: string }[] = [
 
 export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente';
 
-export const BITACORA_TIPOS: { value: BitacoraTipo; label: string }[] = [
-  { value: 'parte_diario', label: 'Bitácora del día' },
-  { value: 'visita', label: 'Visita a obra' },
-  { value: 'incidente', label: 'Incidente / accidente' },
+export const BITACORA_TIPOS: { value: BitacoraTipo; label: string; icono: string; desc: string }[] = [
+  { value: 'parte_diario', label: 'Bitácora del día', icono: '📋', desc: 'Actividades, personal y avance de la jornada' },
+  { value: 'visita', label: 'Visita a obra', icono: '👷', desc: 'Registro de una visita o inspección externa' },
+  { value: 'incidente', label: 'Incidente / accidente', icono: '⚠️', desc: 'Incidente, accidente o falla de equipo' },
 ];
 
 export const VISITANTE_TIPOS: { value: string; label: string }[] = [

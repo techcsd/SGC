@@ -224,22 +224,24 @@
   gap: 8px;
 }
 
-.bitacora-tipo-tab {
-  flex: 1;
-  min-width: 160px;
+// Z18 — selector de tipo como tarjetas con icono + descripción (2col en desktop)
+.bitacora-tipo-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.bitacora-tipo-card {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border: 1px solid var(--sgc-border);
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border: 1.5px solid var(--sgc-border);
   border-radius: var(--sgc-radius);
   cursor: pointer;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--sgc-text-secondary);
-  text-align: center;
   transition: var(--sgc-transition-fast);
+  background: var(--sgc-surface, #fff);
 
   input {
     position: absolute;
@@ -248,14 +250,20 @@
     height: 0;
   }
 
+  &__icon { font-size: 26px; line-height: 1; }
+  &__label { font-size: 14.5px; font-weight: 700; color: var(--sgc-text); }
+  &__desc { font-size: 12.5px; color: var(--sgc-text-secondary); line-height: 1.35; }
+
   &:hover {
     border-color: var(--sgc-primary-mid);
+    transform: translateY(-2px);
   }
 
   &.selected {
     background: var(--sgc-primary-light);
     border-color: var(--sgc-primary);
-    color: var(--sgc-primary);
+    box-shadow: 0 0 0 1px var(--sgc-primary);
+    .bitacora-tipo-card__label { color: var(--sgc-primary); }
   }
 }
 

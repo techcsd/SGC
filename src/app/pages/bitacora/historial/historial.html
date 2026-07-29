@@ -1,6 +1,6 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Mis Bitácoras</h1>
+    <h1 class="page-title">{{ alcance() === 'mias' ? 'Mis Bitácoras' : 'Todas las Bitácoras' }}</h1>
     <span class="page-count">{{ filtered().length }} bitácora{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
@@ -15,6 +15,18 @@
       Nueva bitácora
     </a>
   </div>
+</div>
+
+<!-- Z19 — alcance: mis bitácoras vs todas -->
+<div class="bitacora-alcance" role="tablist" aria-label="Alcance de bitácoras">
+  <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'mias'"
+    [attr.aria-selected]="alcance() === 'mias'" (click)="setAlcance('mias')">
+    Mis bitácoras <span class="bitacora-alcance__count">{{ countMias() }}</span>
+  </button>
+  <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'todas'"
+    [attr.aria-selected]="alcance() === 'todas'" (click)="setAlcance('todas')">
+    Todas <span class="bitacora-alcance__count">{{ countTodas() }}</span>
+  </button>
 </div>
 
 <!-- Filters -->

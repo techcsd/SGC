@@ -214,3 +214,40 @@
     color: var(--sgc-danger);
   }
 }
+
+/* Z19 — segmented control: mis bitácoras vs todas */
+.bitacora-alcance {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--sgc-surface-alt, #f0f0f0);
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+.bitacora-alcance__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--sgc-text-secondary);
+  transition: var(--sgc-transition-fast);
+}
+.bitacora-alcance__tab--active {
+  background: var(--sgc-surface, #fff);
+  color: var(--sgc-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.bitacora-alcance__count {
+  font-size: 12px;
+  background: var(--sgc-primary-light);
+  color: var(--sgc-primary);
+  padding: 1px 7px;
+  border-radius: 999px;
+}

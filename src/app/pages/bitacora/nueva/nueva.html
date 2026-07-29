@@ -28,11 +28,13 @@
     <!-- Sección 0: Tipo de entrada -->
     <section class="bitacora-section sgc-card">
       <h2 class="bitacora-section__title">Tipo de entrada</h2>
-      <div class="bitacora-tipo-tabs">
+      <div class="bitacora-tipo-cards">
         @for (t of TIPOS; track t.value) {
-          <label class="bitacora-tipo-tab" [class.selected]="tipoActual() === t.value">
+          <label class="bitacora-tipo-card" [class.selected]="tipoActual() === t.value">
             <input type="radio" formControlName="tipo" [value]="t.value" />
-            <span>{{ t.label }}</span>
+            <span class="bitacora-tipo-card__icon" aria-hidden="true">{{ t.icono }}</span>
+            <span class="bitacora-tipo-card__label">{{ t.label }}</span>
+            <span class="bitacora-tipo-card__desc">{{ t.desc }}</span>
           </label>
         }
       </div>

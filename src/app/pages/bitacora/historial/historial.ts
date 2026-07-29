@@ -45,6 +45,17 @@ export class Historial implements OnInit {
   loading = signal(true);
   error = signal('');
 
+  // ── Z19 — alcance: mis bitácoras vs todas ────────────────
+  alcance = signal<'mias' | 'todas'>('mias');
+  private miId = computed(() => this.userService.profile()?.id ?? null);
+  /** Conteo por alcance (respetando el resto de filtros salvo el propio alcance). */
+  private baseFiltradas = computed(() => this.aplicarFiltros(this.bitacoras()));
+  countMias = computed(() => {
+    const id = this.miId();
+    return id ? this.baseFiltradas().filter((b) => b.usuario_id === id).length : 0;
+  });
+  countTodas = computed(() => this.baseFiltradas().length);
+
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedProyecto = signal('');
@@ -68,7 +79,8 @@ export class Historial implements OnInit {
   /** Icon + label for the captured weather of the entry being viewed. */
   detailTiempo = computed(() => interpretarCodigoTiempo(this.detail()?.weather_snapshot?.codigo_tiempo ?? null));
 
-  filtered = computed(() => {
+  /** Aplica todos los filtros MENOS el alcance (mías/todas). */
+  private aplicarFiltros(list: Bitacora[]): Bitacora[] {
     const q = this.searchQuery().toLowerCase().trim();
     const proyectoId = this.selectedProyecto();
     const tipo = this.selectedTipo();
@@ -77,7 +89,7 @@ export class Historial implements OnInit {
     // T2 — no-admin nunca ve datos de prueba (RLS); admin los oculta salvo toggle.
     const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
-    return this.bitacoras().filter((b) => {
+    return list.filter((b) => {
       if (b.es_prueba && !verPrueba) return false;
       if (tipo && b.tipo !== tipo) return false;
       if (
@@ -96,6 +108,16 @@ export class Historial implements OnInit {
       if (this.llovioFilter() && b.llovio !== true) return false;
       return true;
     });
+  }
+
+  filtered = computed(() => {
+    const list = this.baseFiltradas();
+    // Z19 — alcance "mías": solo las registradas por el usuario actual.
+    if (this.alcance() === 'mias') {
+      const id = this.miId();
+      return id ? list.filter((b) => b.usuario_id === id) : list;
+    }
+    return list;
   });
 
   paginated = computed(() => {
@@ -123,6 +145,11 @@ export class Historial implements OnInit {
     if (tipo) this.selectedTipo.set(tipo);
     if (qp.get('sin_actividad') === '1') this.sinActividadFilter.set(true);
     if (qp.get('llovio') === '1') this.llovioFilter.set(true);
+    // Z19 — un drill-down desde dashboards/notificaciones abarca a todas las obras,
+    // no solo las mías: entra en "Todas" para no ocultar el registro buscado.
+    if (proyecto || tipo || qp.get('sin_actividad') || qp.get('llovio') || qp.get('item')) {
+      this.alcance.set('todas');
+    }
     await this.loadAll();
 
     // S7 — deep-link desde notificaciones (?item=): abre el detalle de esa bitácora.
@@ -148,6 +175,12 @@ export class Historial implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  // ── Z19 — alcance ────────────────────────────────────────
+  setAlcance(a: 'mias' | 'todas') {
+    this.alcance.set(a);
+    this.currentPage.set(1);
   }
 
   // ── Filters ──────────────────────────────────────────────
