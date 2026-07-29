@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { CronogramaData, CronogramaTarea, CronogramaTipo } from '../models/cronograma.model';
+import { CronogramaData, CronogramaTarea, CronogramaTipo, DependenciaTipo } from '../models/cronograma.model';
 
 const BUCKET = 'sgc-cronograma';
 
@@ -29,7 +29,32 @@ export class CronogramaService {
     });
     if (error) throw new Error(error.message);
     const d = (data ?? { tareas: [], recalculos: [] }) as CronogramaData;
-    return { tareas: d.tareas ?? [], recalculos: d.recalculos ?? [] };
+    return { tareas: d.tareas ?? [], recalculos: d.recalculos ?? [], dependencias: d.dependencias ?? [] };
+  }
+
+  /** AA24 — crea/actualiza una dependencia (predecesora → sucesora) y recalcula. */
+  async crearDependencia(
+    predecesoraId: string,
+    sucesoraId: string,
+    tipo: DependenciaTipo = 'FS',
+    lagDias = 0,
+  ): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_dependencia_tarea', {
+      p_predecesora_id: predecesoraId,
+      p_sucesora_id: sucesoraId,
+      p_tipo: tipo,
+      p_lag_dias: lagDias,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  /** AA24 — quita una dependencia y recalcula. */
+  async quitarDependencia(dependenciaId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('quitar_dependencia_tarea', {
+      p_id: dependenciaId,
+    });
+    if (error) throw new Error(error.message);
   }
 
   async crearTarea(input: {

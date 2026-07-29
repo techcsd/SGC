@@ -52,6 +52,24 @@ export class DatosPruebaService {
   }
 
   /**
+   * AA21b — marca/desmarca un MOVIMIENTO de inventario (entrada/salida) como prueba
+   * ajustando el stock (revierte al marcar test, re-aplica al volver a real). Usar
+   * para entradas/salidas en vez de `marcar` para que el stock quede consistente.
+   */
+  async marcarMovimiento(
+    tabla: 'entradas_inventario' | 'salidas_inventario',
+    id: string,
+    valor: boolean,
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('marcar_movimiento_inventario_prueba', {
+      p_tabla: tabla,
+      p_id: id,
+      p_valor: valor,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /**
    * X14 — cuántos registros derivados se verían afectados al marcar/desmarcar
    * este padre (para avisar "Esto marcará también N registros relacionados").
    */

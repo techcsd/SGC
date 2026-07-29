@@ -2,6 +2,33 @@
 
 _Last updated: 2026-07-29_
 
+## PROMPT-9 · Ronda AA (29/07/2026) — ✅ 7/7 FASES IMPLEMENTADAS · migraciones + edges EN PROD · `git` intacto · web **NO** desplegada (queda `1.53.0` listo)
+
+### TL;DR
+Fuente: `C:\developer\improvements\imp 28072026\CONTEXTO-ACTUALIZACION-2.md` (IDs AA). Las 7 fases quedaron implementadas y **verificadas contra prod** (SQL) o con build verde. **Todo lo aplicado a prod fue vía Management API (migraciones SQL) + 2 edges nuevas + updates de edge; NADA de git commit/push ni deploy web** — `package.json` quedó en **1.53.0** con `release-notes.json` estructurado (11 cambios), build verde, listo para que Xaviel despliegue. Migraciones en `sql/2026-07-29-aa*.sql`.
+
+### Shipped + verificado
+- **FASE 1 (AA1/AA2):** AA1 causa raíz = **overloads ambiguos de `report_app_error` (PGRST203)**; se dejó una sola firma (10-arg) → la app v1.34.0 vuelve a insertar (había 0 reportes de app en BD). AA2 = friendly dup de cédula (`conductor_cedula_en_uso`, compara solo dígitos) + mapeo 23505 + **resync del email sintético del acceso PIN** (modo `sync-cedula` en edge `conductor-crear-acceso`, **desplegada**).
+- **FASE 2 (AA17/18/19):** `medida_uso` km|horas (horómetro) + `intervalo_mantenimiento_horas` — helper P7 + `registrar_checklist_vehiculo` + `registrar_combustible_app` + `v_vehiculo_stats` unit-aware (verificado: telehandler 1000h+250 → próx. 1250, km existentes idénticos). Telehandler, color/aseguradora como select (Seguros Universal default), filtro+badge Obra/Oficina (reusa `uso`), fotos reordenar + `foto_portada`.
+- **FASE 3 (AA20):** `registros_combustible.subtipo` (regular|premium) + `set_echada_subtipo`; tabla `fuel_prices` + edge **`fuel-prices`** (baja CSV del MICM `micm.gob.do/...precios-de-combustibles-2010-2026.csv`, ~semanal, rezago 1-2 sem) + **cron `sgc-fuel-prices` sáb 6am**. Precios reales cargados (Premium 341/Regular 310/Diésel 262/Óptimo 293). Web: select subtipo + banda referencia + alerta ±10% + widget. Mapeo TE: EXC=premium/óptimo (confirmado).
+- **FASE 4 (AA24):** tabla `cronograma_dependencias` (FS/SS/FF+lag) + `crear_dependencia_tarea` (anti-ciclo + mismo proyecto) + `quitar_dependencia_tarea`. **Motor `recalcular_cronograma` reescrito** de lineal-por-orden a **relajación iterativa** que conserva la cadena implícita por `orden` para tareas sin deps → **cero regresión probado** (proyecto real idéntico). Escenarios FS/SS/FF + lag + **cascada** + ciclo rechazado verificados en proyecto de prueba (creado y borrado). `listar_cronograma` devuelve `dependencias`. UI: editor de predecesoras en el panel + Gantt con flechas reales por tipo. Diseño/backlog: `docs/CRONOGRAMA-RESEARCH.md`.
+- **FASE 5:** **AA21** (bug real prod: mov. de prueba movían stock real, 269 uds fantasma) — triggers de stock saltan es_prueba + **reconciliación** (verificado) + **AA21b** RPC `marcar_movimiento_inventario_prueba` (marca/desmarca ajustando stock; verificado 10→0) usado en marcar + toggle "crear como prueba" en forms entrada/salida. **AA10** catálogo de equipos administrable (`bitacora_catalogos` tipo `equipo`, 15 sembrados, "Mangosta/addsss" limpiados, `equipos_de_obra` une catálogo). **AA11** `mis_proyectos.encargado_nombre` + bitácora web precarga ingeniero. **AA9/AA13** contrato `audio_notas` listo; playback+transcripción en bitácora historial + componente flota.
+- **FASE 6 (AA22) — código completo, edge desplegada, cron activo:** columnas de transcripción en `audio_notas` + `bitacora_archivos`, edge **`transcribe-audio`** (proveedor configurable: `STT_PROVIDER`/`STT_API_KEY`, default OpenAI `gpt-4o-mini-transcribe`), **cron `sgc-transcribe-audio` cada 10 min**, RPC `solicitar_transcripcion`, `audios_de` devuelve transcripción, UI con texto+reintentar. Verificado: sin key la edge **no toca nada** (reporta 13 pendientes). **⚠️ ÚNICO PENDIENTE FÍSICO:** Xaviel pone el secret → arranca solo.
+- **FASE 7 (AA23):** costeo material por obra — `articulos.costo_promedio` (promedio móvil), `detalle_salidas.costo_unit` (trigger BEFORE INSERT), vista `v_costo_material_obra`, RPC `costo_material_obra`, página **Proyectos › 💰 Costos** (`/proyectos/:id/costos`) + Excel. Verificado E2E (10@100+10@200→150; salida 150; obra 750). Docs: `docs/PROPUESTA-REQUISICIONES-COSTOS.md` (E1-E4 = fase 2).
+
+### Cómo activar FASE 6 (lo único que falta)
+`npx supabase secrets set STT_API_KEY=sk-... --project-ref jeeqhgccqefbqilntcpu` (opcional `STT_PROVIDER=openai|groq`). El cron (cada 10 min) transcribe los 13 pendientes automáticamente.
+
+### Pendientes menores / notas
+- Playback de audio del **reporte semanal** en web: la página es un resumen sin drawer por-reporte; wiring de `<app-audio-notas>` ahí se define junto con el flujo de la app (PROMPT-10).
+- Contratos que consume PROMPT-10: `medida_uso`/`intervalo_mantenimiento_horas`, `subtipo`/`set_echada_subtipo` combustible, `mis_proyectos.encargado_nombre`, `equipos_de_obra` (catálogo), `audio_notas`+transcripción, `report_app_error` (firma única), fotos orden/portada, `cronograma_dependencias` (solo lectura).
+- Backlog cronograma (diseñado, no impl.): CPM/ruta crítica, baseline, calendario laboral RD, hitos/WBS, recursos. Backlog costos: E1 costo/partida, E2 OC→artículo, E3 export contable, E4 pagos reales.
+
+### Próximo paso
+Desplegar web `1.53.0` (commit/push cuando Xaviel dé la orden) + poner `STT_API_KEY` para FASE 6.
+
+---
+
 ## PROMPT-8 · Verificación total + cierre de pendientes (29/07/2026) — ✅ COMPLETO Y EN PRODUCCIÓN (web 1.51.0 `9a556d8` + Y8 1.52.0 `7a83ef8` + Telegram-out `d9409d2`, todo en `main`)
 
 ### TL;DR

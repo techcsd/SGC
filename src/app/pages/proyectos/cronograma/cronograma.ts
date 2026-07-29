@@ -9,12 +9,25 @@ import {
   CronogramaTarea,
   CronogramaRecalculo,
   CronogramaTipo,
+  CronogramaDependencia,
+  DependenciaTipo,
   CRONOGRAMA_TIPOS,
   CRONOGRAMA_MOTIVOS,
+  DEPENDENCIA_TIPOS,
   esTareaAtrasada,
 } from '../../../../shared/models/cronograma.model';
 import { FaseProyecto } from '../../../../shared/models/proyecto.model';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+
+/** AA24 — conector real de una dependencia (predecesora → esta tarea). */
+interface DepConn {
+  left: number;
+  width: number;
+  forward: boolean;
+  tipo: DependenciaTipo;
+  lag: number;
+  titulo: string;
+}
 
 interface GanttBar {
   tarea: CronogramaTarea;
@@ -23,12 +36,8 @@ interface GanttBar {
   realLeft: number;
   realWidth: number;
   atrasada: boolean;
-  // Z16 — conector de dependencia finish-to-start con la tarea anterior (encadenada).
-  tieneDep: boolean;
-  depLeft: number;
-  depWidth: number;
-  /** El inicio de esta tarea es posterior al fin de la anterior (dependencia sana). */
-  depForward: boolean;
+  // AA24 — conectores de dependencias REALES (una por predecesora).
+  deps: DepConn[];
 }
 
 interface EjeTick {
@@ -54,6 +63,7 @@ export class Cronograma implements OnInit {
 
   readonly tipos = CRONOGRAMA_TIPOS;
   readonly motivos = CRONOGRAMA_MOTIVOS;
+  readonly depTipos = DEPENDENCIA_TIPOS;
   formatFecha = formatFechaDisplay;
 
   proyectoId = signal('');
@@ -64,7 +74,14 @@ export class Cronograma implements OnInit {
 
   tareas = signal<CronogramaTarea[]>([]);
   recalculos = signal<CronogramaRecalculo[]>([]);
+  dependencias = signal<CronogramaDependencia[]>([]); // AA24
   loading = signal(true);
+
+  // AA24 — editor de predecesoras (en el panel de editar tarea).
+  nuevaDepPredecesora = signal<string | null>(null);
+  nuevaDepTipo = signal<DependenciaTipo>('FS');
+  nuevaDepLag = signal(0);
+  guardandoDep = signal(false);
   error = signal('');
   vista = signal<'gantt' | 'lista'>('gantt');
 
@@ -125,9 +142,9 @@ export class Cronograma implements OnInit {
     const { min, span } = r;
     const pct = (ms: number) => ((ms - min) / MS_DAY / span) * 100;
 
-    // Encadenamiento por `orden`: cada tarea depende de la anterior (finish-to-start).
-    const ordenadas = [...ts].sort((a, b) => a.orden - b.orden);
-    const idxById = new Map(ordenadas.map((t, i) => [t.id, i] as const));
+    // AA24 — dependencias REALES (predecesora → sucesora) indexadas por sucesora.
+    const tareaById = new Map(ts.map((t) => [t.id, t] as const));
+    const nombreCorto = (n: string) => (n.length > 24 ? n.slice(0, 22) + '…' : n);
 
     return ts.map((t) => {
       const pi = t.fecha_inicio_plan ? this.parse(t.fecha_inicio_plan) : min;
@@ -135,17 +152,29 @@ export class Cronograma implements OnInit {
       const ri = t.fecha_inicio_real ? this.parse(t.fecha_inicio_real) : null;
       const rf = t.fecha_fin_real ? this.parse(t.fecha_fin_real) : ri;
 
-      // Dependencia con la tarea anterior en el orden (si ambas tienen plan).
-      const myIdx = idxById.get(t.id) ?? 0;
-      const prev = myIdx > 0 ? ordenadas[myIdx - 1] : null;
-      let tieneDep = false, depLeft = 0, depWidth = 0, depForward = true;
-      if (prev && prev.fecha_fin_plan && t.fecha_inicio_plan) {
-        const prevFin = pct(this.parse(prev.fecha_fin_plan) + MS_DAY); // fin de día
-        const curIni = pct(pi);
-        tieneDep = true;
-        depForward = curIni >= prevFin - 0.01;
-        depLeft = Math.min(prevFin, curIni);
-        depWidth = Math.max(0, Math.abs(curIni - prevFin));
+      // Un conector por dependencia real de esta tarea (según su tipo/lag).
+      const deps: DepConn[] = [];
+      for (const d of this.dependencias()) {
+        if (d.sucesora_id !== t.id) continue;
+        const p = tareaById.get(d.predecesora_id);
+        if (!p || !p.fecha_inicio_plan || !p.fecha_fin_plan || !t.fecha_inicio_plan || !t.fecha_fin_plan) continue;
+        const pIni = this.parse(p.fecha_inicio_plan);
+        const pFin = this.parse(p.fecha_fin_plan) + MS_DAY; // fin de día
+        const sIni = this.parse(t.fecha_inicio_plan);
+        const sFin = this.parse(t.fecha_fin_plan) + MS_DAY;
+        let fromX: number, toX: number;
+        if (d.tipo === 'SS') { fromX = pct(pIni); toX = pct(sIni); }
+        else if (d.tipo === 'FF') { fromX = pct(pFin); toX = pct(sFin); }
+        else { fromX = pct(pFin); toX = pct(sIni); } // FS
+        const lagTxt = d.lag_dias ? ` ${d.lag_dias > 0 ? '+' : ''}${d.lag_dias}d` : '';
+        deps.push({
+          left: Math.min(fromX, toX),
+          width: Math.max(0, Math.abs(toX - fromX)),
+          forward: toX >= fromX - 0.01,
+          tipo: d.tipo,
+          lag: d.lag_dias,
+          titulo: `${d.tipo}${lagTxt} · depende de "${nombreCorto(p.nombre)}"`,
+        });
       }
 
       return {
@@ -155,7 +184,7 @@ export class Cronograma implements OnInit {
         realLeft: ri !== null ? pct(ri) : 0,
         realWidth: ri !== null ? Math.max(2, (((rf ?? ri) - ri) / MS_DAY + 1) / span * 100) : 0,
         atrasada: esTareaAtrasada(t, this.hoy),
-        tieneDep, depLeft, depWidth, depForward,
+        deps,
       };
     });
   });
@@ -231,6 +260,7 @@ export class Cronograma implements OnInit {
       const data = await this.service.listar(this.proyectoId());
       this.tareas.set(data.tareas);
       this.recalculos.set(data.recalculos);
+      this.dependencias.set(data.dependencias ?? []); // AA24
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el cronograma.');
     } finally {
@@ -302,6 +332,57 @@ export class Cronograma implements OnInit {
     } finally {
       this.guardando.set(false);
     }
+  }
+
+  // ── AA24 — predecesoras de la tarea en edición ──
+  /** Dependencias donde la tarea editada es la sucesora (sus predecesoras). */
+  predecesorasDeEditando = computed<{ dep: CronogramaDependencia; pred: CronogramaTarea | undefined }[]>(() => {
+    const id = this.editandoId();
+    if (!id) return [];
+    const byId = new Map(this.tareas().map((t) => [t.id, t] as const));
+    return this.dependencias()
+      .filter((d) => d.sucesora_id === id)
+      .map((dep) => ({ dep, pred: byId.get(dep.predecesora_id) }));
+  });
+
+  /** Tareas que se pueden elegir como predecesora (todas menos la editada). El
+   *  servidor rechaza duplicados y ciclos, así que no hace falta filtrarlos aquí. */
+  tareasComoPredecesora = computed<CronogramaTarea[]>(() => {
+    const id = this.editandoId();
+    return this.tareas().filter((t) => t.id !== id);
+  });
+
+  async agregarDependencia() {
+    const sucId = this.editandoId();
+    const predId = this.nuevaDepPredecesora();
+    if (!sucId || !predId) return;
+    this.guardandoDep.set(true);
+    try {
+      await this.service.crearDependencia(predId, sucId, this.nuevaDepTipo(), this.nuevaDepLag() || 0);
+      this.nuevaDepPredecesora.set(null);
+      this.nuevaDepTipo.set('FS');
+      this.nuevaDepLag.set(0);
+      await this.cargar();
+      this.toast.success('Dependencia agregada.');
+    } catch (e) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo agregar la dependencia.');
+    } finally {
+      this.guardandoDep.set(false);
+    }
+  }
+
+  async quitarDependencia(depId: string) {
+    try {
+      await this.service.quitarDependencia(depId);
+      await this.cargar();
+      this.toast.success('Dependencia eliminada.');
+    } catch (e) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo quitar la dependencia.');
+    }
+  }
+
+  depTipoLabel(t: DependenciaTipo): string {
+    return this.depTipos.find((x) => x.value === t)?.label ?? t;
   }
 
   async eliminar(t: CronogramaTarea) {

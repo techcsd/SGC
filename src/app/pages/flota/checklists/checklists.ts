@@ -481,8 +481,9 @@ export class Checklists implements OnInit {
     const kmForm = this.form.controls.kilometraje.value;
     const veh = this.selectedVehiculo();
     if (kmForm != null && veh && kmForm < veh.kilometraje) {
+      const u = veh.medida_uso === 'horas' ? 'h' : 'km'; // AA18.3
       this.saveError.set(
-        `El kilometraje (${kmForm} km) no puede ser menor al último registrado del vehículo (${veh.kilometraje} km).`,
+        `La lectura (${kmForm} ${u}) no puede ser menor a la última registrada del vehículo (${veh.kilometraje} ${u}).`,
       );
       return;
     }

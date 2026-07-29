@@ -164,4 +164,15 @@ export class AudioNotas {
     const s = seg % 60;
     return `${m}:${String(s).padStart(2, '0')}`;
   }
+
+  // AA22 — re-encolar transcripción (on-demand) para audios sin transcribir o fallidos.
+  async retranscribir(n: AudioNota) {
+    try {
+      await this.service.solicitarTranscripcion(n.id, 'audio_notas');
+      this.notas.update((list) => list.map((x) => (x.id === n.id ? { ...x, transcripcion_estado: 'pendiente' } : x)));
+      this.toast.success('Transcripción solicitada', 'Aparecerá en unos minutos.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo solicitar', e instanceof Error ? e.message : undefined);
+    }
+  }
 }

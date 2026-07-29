@@ -11,12 +11,16 @@ export type VehiculoTipo =
   | 'mixer'
   | 'compactadora'
   | 'montacargas'
+  | 'telehandler'
   | 'otro';
 
 export type VehiculoEstado = 'activo' | 'mantenimiento' | 'no_disponible' | 'baja';
 
 /** Z15 — clasificación de uso del vehículo (afecta la variante de pre-uso servida). */
 export type VehiculoUso = 'obra' | 'administrativo';
+
+/** AA18.3 — unidad del odómetro: km (default) u horas (maquinaria por horómetro). */
+export type VehiculoMedidaUso = 'km' | 'horas';
 
 export interface Vehiculo {
   id: string;
@@ -31,6 +35,8 @@ export interface Vehiculo {
   estado: VehiculoEstado;
   color: string | null;
   kilometraje: number;
+  // AA18.3 — unidad del odómetro (km | horas). Los equipos por horómetro miden horas.
+  medida_uso: VehiculoMedidaUso;
   // Z15 — obra | administrativo (default obra). Determina la variante de pre-uso.
   uso: VehiculoUso;
   // V2 — números de matrícula y seguro (la foto va por documentos; las fechas de
@@ -50,8 +56,12 @@ export interface Vehiculo {
   vencimiento_seguro: string | null;
   km_ultimo_mantenimiento: number | null;
   intervalo_mantenimiento_km: number;
+  // AA18.3 — ciclo de mantenimiento en HORAS (se usa cuando medida_uso = horas).
+  intervalo_mantenimiento_horas: number | null;
   // S20 — rendimiento de referencia (km/gal) para comparar contra el promedio real.
   rendimiento_esperado_km_gal: number | null;
+  // AA19 — path de la foto de portada (fallback: fotos[0]).
+  foto_portada: string | null;
   activo: boolean;
   // T2 — fila de datos de prueba (solo visible/eliminable por admin).
   es_prueba: boolean;
@@ -69,6 +79,7 @@ export interface VehiculoFormData {
   estado: VehiculoEstado;
   color: string | null;
   kilometraje: number;
+  medida_uso: VehiculoMedidaUso;
   uso: VehiculoUso;
   capacidad_valor: number | null;
   capacidad_unidad: string | null;
@@ -80,7 +91,9 @@ export interface VehiculoFormData {
   vencimiento_seguro: string | null;
   km_ultimo_mantenimiento: number | null;
   intervalo_mantenimiento_km: number;
+  intervalo_mantenimiento_horas: number | null;
   rendimiento_esperado_km_gal: number | null;
+  foto_portada: string | null;
   // T2 — marca de dato de prueba (opcional; solo lo escribe un admin).
   es_prueba?: boolean;
 }
@@ -128,17 +141,36 @@ export function mantenimientoPorRevisar(
   );
 }
 
-/** Próximo mantenimiento (km) derivado de último + intervalo. Null si el dato
- *  es incoherente (por revisar) — así "faltan X km" nunca muestra un disparate. */
+/** AA18.3 — etiqueta corta de la unidad del odómetro del vehículo. */
+export function unidadUso(v?: { medida_uso?: VehiculoMedidaUso | null } | null): 'km' | 'h' {
+  return v?.medida_uso === 'horas' ? 'h' : 'km';
+}
+
+/** AA18.3 — etiqueta larga ("Kilometraje" / "Horas de uso") para labels de formulario. */
+export function labelLecturaUso(medida?: VehiculoMedidaUso | null): string {
+  return medida === 'horas' ? 'Horas de uso' : 'Kilometraje';
+}
+
+/** AA18.3 — intervalo de mantenimiento efectivo según la unidad del vehículo. */
+export function intervaloMantenimiento(
+  v: Pick<Vehiculo, 'medida_uso' | 'intervalo_mantenimiento_km' | 'intervalo_mantenimiento_horas'>,
+): number {
+  return v.medida_uso === 'horas'
+    ? (v.intervalo_mantenimiento_horas || 250)
+    : (v.intervalo_mantenimiento_km || 5000);
+}
+
+/** Próximo mantenimiento (en la unidad del vehículo) derivado de último + intervalo.
+ *  Null si el dato es incoherente (por revisar) — así "faltan X" nunca muestra un disparate. */
 export function proximoMantenimientoKm(
-  v: Pick<Vehiculo, 'km_ultimo_mantenimiento' | 'intervalo_mantenimiento_km' | 'kilometraje'>,
+  v: Pick<Vehiculo, 'km_ultimo_mantenimiento' | 'intervalo_mantenimiento_km' | 'intervalo_mantenimiento_horas' | 'medida_uso' | 'kilometraje'>,
 ): number | null {
   if (v.km_ultimo_mantenimiento == null) return null;
   if (mantenimientoPorRevisar(v)) return null;
-  return v.km_ultimo_mantenimiento + (v.intervalo_mantenimiento_km || 5000);
+  return v.km_ultimo_mantenimiento + intervaloMantenimiento(v);
 }
 
-/** Km que faltan para el próximo mantenimiento (negativo = vencido). */
+/** Unidades que faltan para el próximo mantenimiento (negativo = vencido). */
 export function kmFaltanMantenimiento(v: Vehiculo): number | null {
   const prox = proximoMantenimientoKm(v);
   if (prox == null) return null;
@@ -184,12 +216,33 @@ export const VEHICULO_TIPOS: { value: VehiculoTipo; label: string }[] = [
   { value: 'mixer', label: 'Mixer / Hormigonera' },
   { value: 'compactadora', label: 'Compactadora' },
   { value: 'montacargas', label: 'Montacargas' },
+  { value: 'telehandler', label: 'Telehandler' },
   { value: 'otro', label: 'Otro' },
 ];
 
+// AA17 — "Administrativo" se muestra como "Oficina" (mismo valor en BD por
+// retrocompatibilidad; determina la variante de pre-uso).
 export const VEHICULO_USOS: { value: VehiculoUso; label: string }[] = [
   { value: 'obra', label: 'Obra' },
-  { value: 'administrativo', label: 'Administrativo' },
+  { value: 'administrativo', label: 'Oficina' },
+];
+
+/** AA18.3 — unidad del odómetro. */
+export const VEHICULO_MEDIDAS_USO: { value: VehiculoMedidaUso; label: string }[] = [
+  { value: 'km', label: 'Kilómetros (km)' },
+  { value: 'horas', label: 'Horas de uso (horómetro)' },
+];
+
+/** AA18.2 — colores estándar para el select del form (+ "Otro" → input manual). */
+export const VEHICULO_COLORES: string[] = [
+  'Blanco', 'Negro', 'Gris', 'Plateado', 'Rojo', 'Azul',
+  'Verde', 'Amarillo', 'Naranja', 'Marrón',
+];
+
+/** AA18.4 — aseguradoras comunes RD; "Seguros Universal" es la habitual (default). */
+export const VEHICULO_ASEGURADORAS: string[] = [
+  'Seguros Universal', 'Seguros Reservas', 'Mapfre BHD', 'Seguros Sura',
+  'La Colonial', 'Humano Seguros', 'Seguros Pepín', 'Angloamericana de Seguros',
 ];
 
 export const VEHICULO_ESTADOS: { value: VehiculoEstado; label: string }[] = [

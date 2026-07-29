@@ -18,6 +18,18 @@
           <button type="button" class="audio-notas__del" (click)="eliminar(n)" [disabled]="busy()"
             aria-label="Eliminar nota de voz">✕</button>
         }
+        <!-- AA22 — transcripción -->
+        @if (n.transcripcion) {
+          <p class="audio-notas__transcripcion">“{{ n.transcripcion }}”</p>
+        } @else if (n.transcripcion_estado === 'procesando') {
+          <span class="audio-notas__muted">Transcribiendo…</span>
+        } @else if (n.transcripcion_estado === 'pendiente') {
+          <span class="audio-notas__muted">Transcripción pendiente.</span>
+        } @else if (n.transcripcion_estado === 'fallida') {
+          <button type="button" class="audio-notas__retry" (click)="retranscribir(n)">↻ Reintentar transcripción</button>
+        } @else {
+          <button type="button" class="audio-notas__retry" (click)="retranscribir(n)">✎ Transcribir</button>
+        }
       </div>
     }
 

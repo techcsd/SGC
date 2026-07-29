@@ -422,6 +422,56 @@
 
     &:hover { background: var(--sgc-danger); }
   }
+
+  // AA19 — portada + reordenar
+  &--portada { border-color: var(--Hub, #ffb300); box-shadow: 0 0 0 2px var(--Hub, #ffb300) inset; }
+
+  &__portada-badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--Hub, #ffb300);
+    color: #121212;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+
+  &__actions {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    right: 4px;
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+
+    button {
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 6px;
+      background: rgb(0 0 0 / 0.6);
+      color: #fff;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover:not(:disabled) { background: rgb(0 0 0 / 0.85); }
+      &:disabled { opacity: 0.35; cursor: default; }
+      &.active { background: var(--Hub, #ffb300); color: #121212; }
+    }
+  }
+}
+
+// AA18.2/4 — input "Otro" que aparece bajo el select de color/aseguradora.
+.flota-vehiculos__otro-input {
+  margin-top: 6px;
 }
 
 @keyframes fotos-shimmer {

@@ -38,9 +38,28 @@ export interface CronogramaRecalculo {
   created_at: string;
 }
 
+// AA24 — dependencias entre tareas (FS/SS/FF + lag).
+export type DependenciaTipo = 'FS' | 'SS' | 'FF';
+
+export interface CronogramaDependencia {
+  id: string;
+  predecesora_id: string;
+  sucesora_id: string;
+  tipo: DependenciaTipo;
+  lag_dias: number;
+}
+
+export const DEPENDENCIA_TIPOS: { value: DependenciaTipo; label: string; desc: string }[] = [
+  { value: 'FS', label: 'Fin → Comienzo (FS)', desc: 'empieza cuando la predecesora termina' },
+  { value: 'SS', label: 'Comienzo → Comienzo (SS)', desc: 'empiezan juntas' },
+  { value: 'FF', label: 'Fin → Fin (FF)', desc: 'terminan juntas' },
+];
+
 export interface CronogramaData {
   tareas: CronogramaTarea[];
   recalculos: CronogramaRecalculo[];
+  // AA24 — presente desde la ronda de dependencias; opcional por retrocompatibilidad.
+  dependencias?: CronogramaDependencia[];
 }
 
 export const CRONOGRAMA_TIPOS: { value: CronogramaTipo; label: string }[] = [

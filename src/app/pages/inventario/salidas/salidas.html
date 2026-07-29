@@ -435,6 +435,17 @@
       ></textarea>
     </div>
 
+    <!-- AA21 — crear como dato de prueba (solo admin): no afecta el stock real -->
+    @if (esAdmin()) {
+      <div class="sgc-field">
+        <label class="toggle-label">
+          <input type="checkbox" [checked]="crearComoPrueba()" (change)="crearComoPrueba.set($any($event.target).checked)" />
+          Registrar como dato de prueba
+        </label>
+        <small class="sgc-field__hint">Los movimientos de prueba no afectan el stock real ni los KPIs; se ocultan salvo que actives “ver datos de prueba”.</small>
+      </div>
+    }
+
     <!-- Foto de evidencia (opcional) — paridad con la app de campo -->
     <div class="sgc-field">
       <label>Foto de evidencia (opcional)</label>

@@ -36,6 +36,7 @@ import {
   proximoMantenimientoKm,
   kmFaltanMantenimiento,
   mantenimientoPorRevisar,
+  unidadUso,
 } from '../../../../../shared/models/vehiculo.model';
 import { VehiculoAsignacion, VehiculoStats } from '../../../../../shared/models/vehiculo-asignacion.model';
 import {
@@ -89,6 +90,9 @@ export class VehiculoDetalle implements OnInit {
   estadoVenc = estadoVencimiento;
   kmFaltan = kmFaltanMantenimiento;
   proxKm = proximoMantenimientoKm;
+
+  // AA18.3 — unidad del odómetro del vehículo (km | h) para labels del perfil.
+  unidad = computed(() => unidadUso(this.vehiculo()));
 
   loading = signal(true);
   error = signal('');
@@ -224,7 +228,8 @@ export class VehiculoDetalle implements OnInit {
       // FASE 4 — accidentes/daños (best-effort, no bloquea el perfil).
       this.cargarIncidencias();
 
-      const primeraFoto = vehiculo?.fotos?.[0];
+      // AA19 — usa la portada elegida; fallback a la primera foto.
+      const primeraFoto = vehiculo?.foto_portada ?? vehiculo?.fotos?.[0];
       if (primeraFoto) {
         this.fotoUrl.set(await this.vehiculosService.getFotoUrl(primeraFoto));
       }

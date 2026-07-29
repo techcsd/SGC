@@ -16,6 +16,7 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
@@ -23,15 +24,21 @@ import { FlotaConfigService } from '../../../../shared/services/flota-config.ser
 import {
   Vehiculo,
   VehiculoFormData,
+  VehiculoMedidaUso,
   VEHICULO_TIPOS,
   VEHICULO_ESTADOS,
   VEHICULO_USOS,
+  VEHICULO_MEDIDAS_USO,
+  VEHICULO_COLORES,
+  VEHICULO_ASEGURADORAS,
   CAPACIDAD_UNIDADES,
   estadoVencimiento,
   VENCIMIENTO_LABEL,
   VENCIMIENTO_BADGE,
   proximoMantenimientoKm,
   kmFaltanMantenimiento,
+  unidadUso,
+  labelLecturaUso,
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -97,6 +104,8 @@ export class FlotaVehiculos implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedTipo = signal('');
+  // AA17 — filtro por uso (obra | administrativo/"oficina").
+  selectedUso = signal('');
   selectedEstado = signal('');
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
@@ -111,7 +120,13 @@ export class FlotaVehiculos implements OnInit {
   readonly TIPOS = VEHICULO_TIPOS;
   readonly ESTADOS = VEHICULO_ESTADOS;
   readonly USOS = VEHICULO_USOS;
+  readonly MEDIDAS_USO = VEHICULO_MEDIDAS_USO;
+  readonly COLORES = VEHICULO_COLORES;
+  readonly ASEGURADORAS = VEHICULO_ASEGURADORAS;
   readonly CAPACIDAD_UNIDADES = CAPACIDAD_UNIDADES;
+
+  // AA19 — path de la foto de portada elegida (existente o preview de una pendiente).
+  fotoPortada = signal<string | null>(null);
 
   form = new FormGroup({
     placa: new FormControl('', [Validators.required, Validators.maxLength(20)]),
@@ -126,23 +141,50 @@ export class FlotaVehiculos implements OnInit {
     tipo: new FormControl('camion', [Validators.required]),
     estado: new FormControl('activo', [Validators.required]),
     uso: new FormControl('obra', [Validators.required]),
-    color: new FormControl<string | null>(null),
+    // AA18.3 — unidad del odómetro (km | horas).
+    medida_uso: new FormControl<VehiculoMedidaUso>('km', [Validators.required]),
+    // AA18.2 — color como select + "Otro" → input manual (colorOtro).
+    colorSel: new FormControl<string | null>(null),
+    colorOtro: new FormControl<string | null>(null, [Validators.maxLength(40)]),
     kilometraje: new FormControl<number>(0, [Validators.required, Validators.min(0)]),
     capacidad_valor: new FormControl<number | null>(null, [Validators.min(0)]),
     capacidad_unidad: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
     numero_matricula: new FormControl<string | null>(null, [Validators.maxLength(50)]),
     numero_seguro: new FormControl<string | null>(null, [Validators.maxLength(50)]),
-    aseguradora: new FormControl<string | null>(null, [Validators.maxLength(80)]),
+    // AA18.4 — aseguradora como select con "Seguros Universal" por default + "Otro".
+    aseguradoraSel: new FormControl<string | null>('Seguros Universal'),
+    aseguradoraOtro: new FormControl<string | null>(null, [Validators.maxLength(80)]),
     vencimiento_matricula: new FormControl<string | null>(null),
     vencimiento_seguro: new FormControl<string | null>(null),
     km_ultimo_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
     intervalo_mantenimiento_km: new FormControl<number>(5000, [Validators.min(1)]),
+    // AA18.3 — ciclo de mantenimiento en horas (para equipos por horómetro).
+    intervalo_mantenimiento_horas: new FormControl<number | null>(null, [Validators.min(1)]),
     // S20 — rendimiento esperado (km/gal) de referencia manual.
     rendimiento_esperado_km_gal: new FormControl<number | null>(null, [Validators.min(0)]),
     // T2 — dato de prueba (solo admin lo edita).
     es_prueba: new FormControl<boolean>(false),
   }, { validators: kmUltimoMantCoherente });
+
+  // AA18.3 — bridge reactivo (OnPush): unidad del vehículo en edición para labels.
+  private medidaUsoSig = toSignal(this.form.controls.medida_uso.valueChanges, {
+    initialValue: 'km' as VehiculoMedidaUso | null,
+  });
+  esHoras = computed(() => this.medidaUsoSig() === 'horas');
+  labelLectura = computed(() => labelLecturaUso(this.medidaUsoSig() ?? 'km'));
+  unidadLectura = computed(() => (this.medidaUsoSig() === 'horas' ? 'h' : 'km'));
+
+  // AA18.2/4 — bridges para mostrar el input "Otro" del color/aseguradora.
+  private colorSelSig = toSignal(this.form.controls.colorSel.valueChanges, { initialValue: null as string | null });
+  colorEsOtro = computed(() => this.colorSelSig() === 'Otro');
+  private aseguradoraSelSig = toSignal(this.form.controls.aseguradoraSel.valueChanges, {
+    initialValue: 'Seguros Universal' as string | null,
+  });
+  aseguradoraEsOtro = computed(() => this.aseguradoraSelSig() === 'Otro');
+
+  /** AA18.3 — unidad de un vehículo del listado (para mostrar km/h). */
+  unidadDe = unidadUso;
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -164,9 +206,15 @@ export class FlotaVehiculos implements OnInit {
       }
       if (tipo && v.tipo !== tipo) return false;
       if (estado && v.estado !== estado) return false;
+      if (this.selectedUso() && (v.uso ?? 'obra') !== this.selectedUso()) return false;
       return true;
     });
   });
+
+  /** AA17 — etiqueta de uso ("Obra" / "Oficina") para badges y reportes. */
+  usoLabel(uso: string | null | undefined): string {
+    return this.USOS.find((u) => u.value === (uso ?? 'obra'))?.label ?? 'Obra';
+  }
 
   drawerTitle = computed(() => (this.editingId() ? 'Editar vehículo' : 'Nuevo vehículo'));
 
@@ -197,10 +245,10 @@ export class FlotaVehiculos implements OnInit {
     }
   }
 
-  /** Resuelve la 1ª foto de cada vehículo a URL firmada (thumbnails del listado). */
+  /** Resuelve la foto de PORTADA (fallback 1ª) de cada vehículo a URL firmada. */
   private resolverFotosLista(vehiculos: Vehiculo[]) {
     for (const v of vehiculos) {
-      const first = v.fotos?.[0];
+      const first = v.foto_portada ?? v.fotos?.[0];
       if (!first) continue;
       // Y6 — la card se renderiza a ≥280 CSS px (grid minmax(280px,1fr)); a DPR 2
       // necesita ~800px. Antes pedía 320 → borroso (regresión W9). Sin upscaling
@@ -218,6 +266,7 @@ export class FlotaVehiculos implements OnInit {
   onSearch(value: string) { this.searchQuery.set(value); }
   onTipoChange(value: string) { this.selectedTipo.set(value); }
   onEstadoChange(value: string) { this.selectedEstado.set(value); }
+  onUsoChange(value: string) { this.selectedUso.set(value); }
 
   /** Exporta los vehículos filtrados a Excel. */
   async exportar() {
@@ -229,7 +278,9 @@ export class FlotaVehiculos implements OnInit {
       Modelo: v.modelo,
       Año: v.anio,
       Estado: this.ESTADOS.find((e) => e.value === v.estado)?.label ?? v.estado,
-      Km: v.kilometraje,
+      Uso: this.usoLabel(v.uso),
+      Medida: v.medida_uso === 'horas' ? 'Horas' : 'Km',
+      Lectura: v.kilometraje,
       'Nº matrícula': v.numero_matricula ?? '',
       'Nº seguro': v.numero_seguro ?? '',
       Aseguradora: v.aseguradora ?? '',
@@ -241,15 +292,24 @@ export class FlotaVehiculos implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.resetFotos([]);
-    this.form.reset({ tipo: 'camion', estado: 'activo', uso: 'obra', kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000, es_prueba: false });
+    this.resetFotos([], null);
+    this.form.reset({
+      tipo: 'camion', estado: 'activo', uso: 'obra', medida_uso: 'km',
+      kilometraje: 0, anio: new Date().getFullYear(), intervalo_mantenimiento_km: 5000,
+      aseguradoraSel: 'Seguros Universal', es_prueba: false,
+    });
     this.drawerOpen.set(true);
   }
 
   openEdit(vehiculo: Vehiculo) {
     this.editingId.set(vehiculo.id);
     this.saveError.set('');
-    this.resetFotos(vehiculo.fotos ?? []);
+    this.resetFotos(vehiculo.fotos ?? [], vehiculo.foto_portada ?? null);
+    // AA18.2/4 — resolver color/aseguradora al par (select, "Otro"+input).
+    const color = vehiculo.color ?? null;
+    const colorEnLista = color != null && this.COLORES.includes(color);
+    const aseg = vehiculo.aseguradora ?? null;
+    const asegEnLista = aseg != null && this.ASEGURADORAS.includes(aseg);
     this.form.reset({
       placa: vehiculo.placa,
       vin: vehiculo.vin,
@@ -259,18 +319,22 @@ export class FlotaVehiculos implements OnInit {
       tipo: vehiculo.tipo,
       estado: vehiculo.estado,
       uso: vehiculo.uso ?? 'obra',
-      color: vehiculo.color,
+      medida_uso: vehiculo.medida_uso ?? 'km',
+      colorSel: color == null ? null : colorEnLista ? color : 'Otro',
+      colorOtro: color != null && !colorEnLista ? color : null,
       kilometraje: vehiculo.kilometraje,
       capacidad_valor: vehiculo.capacidad_valor,
       capacidad_unidad: vehiculo.capacidad_unidad,
       notas: vehiculo.notas,
       numero_matricula: vehiculo.numero_matricula,
       numero_seguro: vehiculo.numero_seguro,
-      aseguradora: vehiculo.aseguradora,
+      aseguradoraSel: aseg == null ? null : asegEnLista ? aseg : 'Otro',
+      aseguradoraOtro: aseg != null && !asegEnLista ? aseg : null,
       vencimiento_matricula: vehiculo.vencimiento_matricula,
       vencimiento_seguro: vehiculo.vencimiento_seguro,
       km_ultimo_mantenimiento: vehiculo.km_ultimo_mantenimiento,
       intervalo_mantenimiento_km: vehiculo.intervalo_mantenimiento_km ?? 5000,
+      intervalo_mantenimiento_horas: vehiculo.intervalo_mantenimiento_horas,
       rendimiento_esperado_km_gal: vehiculo.rendimiento_esperado_km_gal,
       es_prueba: vehiculo.es_prueba ?? false,
     });
@@ -283,17 +347,40 @@ export class FlotaVehiculos implements OnInit {
   }
 
   // ── Photos ───────────────────────────────────────────────
-  private resetFotos(existing: string[]) {
+  private resetFotos(existing: string[], portada: string | null) {
     this.revokePreviews();
     this.originalFotos = [...existing];
     this.fotoPaths.set([...existing]);
     this.fotoFiles.set([]);
     this.fotoUrls.set({});
+    // AA19 — portada: la guardada si sigue en la lista, si no la primera.
+    this.fotoPortada.set(portada && existing.includes(portada) ? portada : existing[0] ?? null);
     for (const path of existing) {
       this.vehiculosService.getFotoUrl(path).then((url) => {
         if (url) this.fotoUrls.update((m) => ({ ...m, [path]: url }));
       });
     }
+  }
+
+  // ── AA19 — reordenar + portada ────────────────────────────
+  /** Mueve una foto EXISTENTE una posición (dir -1 = arriba, +1 = abajo). */
+  moverFoto(index: number, dir: -1 | 1) {
+    this.fotoPaths.update((list) => {
+      const next = [...list];
+      const j = index + dir;
+      if (j < 0 || j >= next.length) return list;
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
+  }
+
+  /** Marca una foto (existente por path, o pendiente por preview) como portada. */
+  usarComoPortada(key: string) {
+    this.fotoPortada.set(key);
+  }
+
+  esPortada(key: string): boolean {
+    return this.fotoPortada() === key;
   }
 
   private revokePreviews() {
@@ -311,13 +398,18 @@ export class FlotaVehiculos implements OnInit {
   removePending(index: number) {
     this.fotoFiles.update((list) => {
       const target = list[index];
-      if (target) URL.revokeObjectURL(target.preview);
+      if (target) {
+        URL.revokeObjectURL(target.preview);
+        if (this.fotoPortada() === target.preview) this.fotoPortada.set(this.fotoPaths()[0] ?? null);
+      }
       return list.filter((_, i) => i !== index);
     });
   }
 
   removeExistingFoto(path: string) {
     this.fotoPaths.update((list) => list.filter((p) => p !== path));
+    // AA19 — si era la portada, cae a la primera restante.
+    if (this.fotoPortada() === path) this.fotoPortada.set(this.fotoPaths()[0] ?? null);
   }
 
   async onSave() {
@@ -332,10 +424,21 @@ export class FlotaVehiculos implements OnInit {
     // "A123 BC" don't become two different vehicles. V1 — VIN igual (mayúsculas,
     // sin espacios) para que el índice único case-insensitive sea consistente.
     const vin = (raw.vin ?? '').trim().toUpperCase().replace(/\s+/g, '');
+    // AA18.2/4 — resolver color/aseguradora del par (select, "Otro"+input).
+    const color = raw.colorSel === 'Otro' ? (raw.colorOtro?.trim() || null) : (raw.colorSel || null);
+    const aseguradora = raw.aseguradoraSel === 'Otro'
+      ? (raw.aseguradoraOtro?.trim() || null)
+      : (raw.aseguradoraSel || null);
+    // Descartar los controles auxiliares que no son columnas reales.
+    const { colorSel: _c, colorOtro: _co, aseguradoraSel: _a, aseguradoraOtro: _ao, ...rest } = raw;
     const payload = {
-      ...raw,
+      ...rest,
       placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' '),
       vin: vin || null,
+      color,
+      aseguradora,
+      // AA18.3 — para vehículos por km, no arrastrar el intervalo de horas.
+      intervalo_mantenimiento_horas: raw.medida_uso === 'horas' ? raw.intervalo_mantenimiento_horas : null,
     } as VehiculoFormData;
 
     // X14 — al marcar un vehículo existente como prueba, avisar cuántos
@@ -360,28 +463,42 @@ export class FlotaVehiculos implements OnInit {
 
       // Photos: upload any newly-picked files to the (now known) vehicle id,
       // then persist the full list. A failed upload never blocks the save.
+      // AA19 — mapear el preview de cada pendiente a su path subido, para poder
+      // resolver la portada aunque el usuario la haya elegido antes de subir.
       const uploaded: string[] = [];
+      const previewToPath: Record<string, string> = {};
       for (const pending of this.fotoFiles()) {
         try {
-          uploaded.push(await this.vehiculosService.uploadFoto(saved.id, pending.file));
+          const path = await this.vehiculosService.uploadFoto(saved.id, pending.file);
+          uploaded.push(path);
+          previewToPath[pending.preview] = path;
         } catch {
           this.toast.warning('Foto no subida', `No se pudo subir "${pending.file.name}".`);
         }
       }
 
       const finalFotos = [...this.fotoPaths(), ...uploaded];
+      // AA19 — portada final: si apuntaba a una pendiente, usar su path subido;
+      // si sigue siendo válida, mantenerla; si no, la primera.
+      const portadaSel = this.fotoPortada();
+      let finalPortada: string | null = null;
+      if (portadaSel && previewToPath[portadaSel]) finalPortada = previewToPath[portadaSel];
+      else if (portadaSel && finalFotos.includes(portadaSel)) finalPortada = portadaSel;
+      else finalPortada = finalFotos[0] ?? null;
+
       const changed =
         finalFotos.length !== this.originalFotos.length ||
-        finalFotos.some((p, i) => p !== this.originalFotos[i]);
+        finalFotos.some((p, i) => p !== this.originalFotos[i]) ||
+        finalPortada !== (saved.foto_portada ?? null);
       if (changed) {
         try {
-          await this.vehiculosService.setFotos(saved.id, finalFotos);
-          saved = { ...saved, fotos: finalFotos };
+          await this.vehiculosService.setFotos(saved.id, finalFotos, finalPortada);
+          saved = { ...saved, fotos: finalFotos, foto_portada: finalPortada };
         } catch {
           this.toast.warning('Fotos no guardadas', 'El vehículo se guardó, pero las fotos no.');
         }
       } else {
-        saved = { ...saved, fotos: finalFotos };
+        saved = { ...saved, fotos: finalFotos, foto_portada: finalPortada };
       }
 
       if (id) {
@@ -463,12 +580,14 @@ export class FlotaVehiculos implements OnInit {
   proximoMant = proximoMantenimientoKm;
   kmFaltanMant = kmFaltanMantenimiento;
 
-  /** Estado de mantenimiento por km para el badge de la lista. */
+  /** Estado de mantenimiento (km u horas) para el badge de la lista. AA18.3. */
   mantMeta(v: Vehiculo): { label: string; badge: string } | null {
     const faltan = kmFaltanMantenimiento(v);
     if (faltan == null) return null;
+    // Umbral de pre-cita según la unidad del vehículo (25 h por defecto para horómetro).
+    const umbral = v.medida_uso === 'horas' ? 25 : this.flotaConfig.umbralPrecitaKm();
     if (faltan <= 0) return { label: 'Mant. vencido', badge: 'danger' };
-    if (faltan <= this.flotaConfig.umbralPrecitaKm()) return { label: 'Agendar pre-cita', badge: 'warning' };
+    if (faltan <= umbral) return { label: 'Agendar pre-cita', badge: 'warning' };
     return { label: 'Mant. al día', badge: 'success' };
   }
 

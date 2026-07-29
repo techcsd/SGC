@@ -250,8 +250,9 @@
       </div>
 
       <div class="sgc-field">
-        <label for="kilometraje">Kilometraje</label>
-        <input id="kilometraje" type="number" formControlName="kilometraje" min="0" placeholder="km" />
+        <label for="kilometraje">{{ selectedVehiculo()?.medida_uso === 'horas' ? 'Horas de uso' : 'Kilometraje' }}</label>
+        <input id="kilometraje" type="number" formControlName="kilometraje" min="0"
+          [placeholder]="selectedVehiculo()?.medida_uso === 'horas' ? 'horas' : 'km'" />
       </div>
     </div>
 

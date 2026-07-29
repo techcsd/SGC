@@ -88,6 +88,8 @@ export class Salidas implements OnInit {
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
+  // AA21 — crear la salida directamente como dato de prueba (solo admin).
+  crearComoPrueba = signal(false);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -606,6 +608,15 @@ export class Salidas implements OnInit {
           this.toast.warning('Salida registrada', 'No se pudo adjuntar la foto; puedes reintentar luego.');
         }
       }
+      // AA21 — crear como prueba (admin): devuelve el stock recién descontado para
+      // que el movimiento de prueba NO afecte las existencias reales.
+      if (this.esAdmin() && this.crearComoPrueba()) {
+        try {
+          await this.datosPrueba.marcarMovimiento('salidas_inventario', created.id, true);
+          created.es_prueba = true;
+        } catch { /* el alta ya se hizo; la marca es secundaria */ }
+      }
+      this.crearComoPrueba.set(false);
       this.salidas.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');
@@ -738,7 +749,8 @@ export class Salidas implements OnInit {
   async marcarPrueba(s: SalidaInventario, valor: boolean) {
     if (!this.esAdmin()) return;
     try {
-      await this.datosPrueba.marcar(this.TABLA_PRUEBA, s.id, valor);
+      // AA21b — ajusta el stock al marcar/desmarcar (devuelve/re-descuenta el efecto).
+      await this.datosPrueba.marcarMovimiento('salidas_inventario', s.id, valor);
       this.salidas.update((list) => list.map((x) => (x.id === s.id ? { ...x, es_prueba: valor } : x)));
       this.toast.success(
         valor ? 'Marcada como prueba' : 'Prueba quitada',

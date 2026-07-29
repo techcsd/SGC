@@ -489,6 +489,9 @@
                 <div class="bitacora-archivo bitacora-archivo--audio">
                   <span class="bitacora-archivo__cap">🎤 Nota de voz</span>
                   <audio controls preload="none" [src]="url"></audio>
+                  @if (a.transcripcion) {
+                    <p class="bitacora-archivo__transcripcion">“{{ a.transcripcion }}”</p>
+                  }
                 </div>
               } @else {
                 <div class="bitacora-archivo bitacora-archivo--file">

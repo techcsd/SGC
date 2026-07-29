@@ -29,9 +29,37 @@ import {
 
 const EXPEDIENTE_BUCKET = 'sgc-documentos';
 
+/** AA23 QW4 — costo de material real consumido por una obra. */
+export interface CostoMaterialObra {
+  total: number;
+  por_articulo: {
+    articulo_id: string;
+    nombre: string;
+    unidad: string;
+    cantidad: number;
+    costo_unit_prom: number;
+    costo: number;
+  }[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProyectosService {
   private supabase = inject(SupabaseService);
+
+  /** AA23 QW4 — costo de material real por obra (Σ cantidad × costo_unit de salidas). */
+  async getCostoMaterialObra(
+    proyectoId: string,
+    desde?: string | null,
+    hasta?: string | null,
+  ): Promise<CostoMaterialObra> {
+    const { data, error } = await this.supabase.client.rpc('costo_material_obra', {
+      p_proyecto_id: proyectoId,
+      p_desde: desde ?? null,
+      p_hasta: hasta ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? { total: 0, por_articulo: [] }) as CostoMaterialObra;
+  }
 
   async getAll(): Promise<Proyecto[]> {
     const { data, error } = await this.supabase.client

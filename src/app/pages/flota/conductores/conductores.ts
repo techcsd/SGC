@@ -435,10 +435,45 @@ export class Conductores implements OnInit {
 
     try {
       const id = this.editingId();
+      const nuevaCedula = (payload.cedula ?? '').trim();
+
+      // AA2 — validación amable de cédula duplicada ANTES de escribir (mensaje claro
+      // en vez del error crudo `conductores_cedula_key`). El servicio igual mapea el
+      // 23505 como red de seguridad ante carreras.
+      if (nuevaCedula && (await this.conductoresService.cedulaEnUso(nuevaCedula, id))) {
+        this.saveError.set('Ya existe otro conductor con esa cédula. Revísala antes de guardar.');
+        this.saving.set(false);
+        return;
+      }
+
       if (id) {
+        // AA2 — cédula original (para saber si cambió y resincronizar el acceso PIN).
+        const original = this.conductores().find((c) => c.id === id);
+        const cedulaCambio =
+          !!original && this.soloDigitos(original.cedula) !== this.soloDigitos(nuevaCedula);
+
         const updated = await this.conductoresService.update(id, payload);
         this.conductores.update((list) => list.map((c) => (c.id === id ? updated : c)));
         await this.subirDocsAlta(id); // C4 — también en edición, si se eligieron
+
+        // AA2 — si cambió la cédula y el conductor tiene acceso, resincroniza su
+        // email sintético (c-{cedula}@…). El edge no-opea si entra con correo real.
+        if (cedulaCambio && original?.usuario_id) {
+          try {
+            const r = await this.conductoresService.syncAccesoCedula(id);
+            if (r.synced) {
+              this.toast.success('Acceso actualizado', 'La cédula cambió y el acceso por PIN se resincronizó.');
+            }
+          } catch (syncErr: unknown) {
+            // El conductor SÍ se guardó; solo avisamos que el acceso PIN quedó pendiente.
+            this.toast.error(
+              'Acceso por PIN sin resincronizar',
+              syncErr instanceof Error
+                ? `El conductor se guardó, pero su acceso por PIN quedó pendiente: ${syncErr.message}`
+                : 'El conductor se guardó, pero su acceso por PIN quedó pendiente.',
+            );
+          }
+        }
       } else {
         const created = await this.conductoresService.create(payload);
         this.conductores.update((list) => [...list, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
@@ -450,6 +485,11 @@ export class Conductores implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** AA2 — cédula reducida a dígitos, para comparar variantes con/sin guiones. */
+  private soloDigitos(cedula: string | null | undefined): string {
+    return (cedula ?? '').replace(/\D/g, '');
   }
 
   // ── C4 — documentos opcionales en el alta ─────────────────

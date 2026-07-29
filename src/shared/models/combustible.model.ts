@@ -13,6 +13,8 @@ export interface RegistroCombustible {
   estacion: string | null;
   // Z23-app — producto/tarjeta para conciliar con el reporte del proveedor.
   producto: string | null;
+  // AA20 — subtipo regular|premium (con producto → producto canónico para precios).
+  subtipo: string | null;
   tarjeta: string | null;
   // Z23.4 — titular de la tarjeta cuando es de una persona (no del vehículo).
   titular?: string | null;
@@ -59,9 +61,32 @@ export interface RegistroCombustibleFormData {
   notas: string | null;
   // Z23.4 — datos para conciliar con el reporte del proveedor (opcionales).
   producto: string | null;              // 'diesel' | 'gasolina'
+  subtipo: string | null;               // AA20 — 'regular' | 'premium'
   tarjeta: string | null;               // número/identificador de tarjeta
   titular: string | null;               // titular si la tarjeta es de una persona
   titular_es_persona: boolean;          // true → la tarjeta pertenece a una persona
+}
+
+/** AA20 — precio oficial vigente por producto canónico (widget/referencia). */
+export interface PrecioCombustibleVigente {
+  producto: string;   // gasolina_regular | gasolina_premium | diesel_regular | diesel_premium
+  precio: number;     // RD$/galón
+  vigencia_desde: string;
+  fuente: string;
+}
+
+/** AA20 — etiqueta legible de un producto canónico. */
+export const PRODUCTO_CANONICO_LABEL: Record<string, string> = {
+  gasolina_regular: 'Gasolina Regular',
+  gasolina_premium: 'Gasolina Premium',
+  diesel_regular: 'Diésel Regular',
+  diesel_premium: 'Diésel Óptimo',
+};
+
+/** AA20 — producto canónico a partir de producto (gasolina|diesel) + subtipo. */
+export function productoCanonico(producto: string | null, subtipo: string | null): string | null {
+  if (!producto) return null;
+  return subtipo ? `${producto}_${subtipo}` : producto;
 }
 
 /** jsonb que devuelve el RPC `registrar_combustible_app`. */

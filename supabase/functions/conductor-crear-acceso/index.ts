@@ -54,15 +54,67 @@ Deno.serve(async (req: Request) => {
       return json({ error: "No autorizado. Solo admin o Flota puede generar accesos." }, 403);
     }
 
-    const { conductorId, pin } = await req.json();
+    const { conductorId, pin, mode } = await req.json();
     if (typeof conductorId !== "string" || !conductorId) {
       return json({ error: "conductorId requerido." }, 400);
     }
-    if (typeof pin !== "string" || !/^\d{6}$/.test(pin)) {
+    // AA2 — modo 'sync-cedula' NO requiere PIN (solo resincroniza el email).
+    if (mode !== "sync-cedula" && (typeof pin !== "string" || !/^\d{6}$/.test(pin))) {
       return json({ error: "El PIN debe tener exactamente 6 dígitos." }, 400);
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
+
+    // ── AA2 — MODO sync-cedula ────────────────────────────────────────────
+    // Tras cambiar la cédula de un conductor con acceso PIN, el email sintético
+    // (c-{cedula}@…) queda desincronizado y su login cédula+PIN se rompe. Este
+    // modo recalcula el email desde la cédula ACTUAL y lo actualiza en auth +
+    // usuarios. No toca cuentas con correo REAL (jefes de flota, etc.).
+    if (mode === "sync-cedula") {
+      const { data: cond, error: cErr } = await admin
+        .from("conductores")
+        .select("id, cedula, usuario_id")
+        .eq("id", conductorId)
+        .maybeSingle();
+      if (cErr || !cond) return json({ error: "Conductor no encontrado." }, 404);
+      if (!cond.usuario_id) return json({ synced: false, reason: "sin_acceso" });
+
+      const SYNTH_DOMAIN = "@conductores.constructorasd.local";
+      const { data: linked } = await admin
+        .from("usuarios").select("email").eq("id", cond.usuario_id).maybeSingle();
+      const currentEmail = (linked?.email ?? "") as string;
+      // Solo se sincroniza el acceso sintético; una cuenta con correo real no se toca.
+      if (!currentEmail.endsWith(SYNTH_DOMAIN)) {
+        return json({ synced: false, reason: "correo_real" });
+      }
+      const newEmail = syntheticEmail(cond.cedula);
+      if (newEmail === currentEmail) return json({ synced: false, reason: "sin_cambio" });
+
+      // ¿El nuevo email ya lo usa otra cuenta? (cédula duplicada en el acceso)
+      const { data: clash } = await admin
+        .from("usuarios").select("id").eq("email", newEmail).neq("id", cond.usuario_id).maybeSingle();
+      if (clash?.id) {
+        return json({
+          error: "Otro conductor ya usa esa cédula para su acceso por PIN. Revisa que la cédula no esté duplicada.",
+        }, 409);
+      }
+
+      const { error: authErr } = await admin.auth.admin.updateUserById(cond.usuario_id, {
+        email: newEmail,
+        email_confirm: true,
+      });
+      if (authErr) return json({ error: `No se pudo actualizar el acceso: ${authErr.message}` }, 400);
+
+      const { error: profErr } = await admin
+        .from("usuarios").update({ email: newEmail }).eq("id", cond.usuario_id);
+      if (profErr) return json({ error: `No se pudo actualizar el perfil: ${profErr.message}` }, 400);
+
+      // Limpia cualquier bloqueo de login previo bajo la nueva cédula.
+      await admin.from("conductor_login_intentos").delete()
+        .eq("cedula", (cond.cedula || "").replace(/\D/g, ""));
+
+      return json({ synced: true, email: newEmail });
+    }
 
     // Cargar el conductor
     const { data: conductor, error: condError } = await admin

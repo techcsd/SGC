@@ -12,7 +12,8 @@ type Tipo =
   | 'restriccion'
   | 'suceso_incidente'
   | 'suceso_accidente'
-  | 'suceso_equipo';
+  | 'suceso_equipo'
+  | 'equipo';
 
 /** Admin management of the bitácora catalogs (estructuras/actividades/restricciones). */
 @Component({
@@ -32,6 +33,7 @@ export class AdminBitacoraCatalogos implements OnInit {
     { tipo: 'suceso_incidente', label: 'Sucesos de incidente' },
     { tipo: 'suceso_accidente', label: 'Sucesos de accidente' },
     { tipo: 'suceso_equipo', label: 'Sucesos de equipo' },
+    { tipo: 'equipo', label: 'Equipos (alquilados / en obra)' }, // AA10
   ];
 
   catalogos = signal<BitacoraCatalogo[]>([]);

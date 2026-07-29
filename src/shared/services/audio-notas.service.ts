@@ -35,6 +35,15 @@ export class AudioNotasService {
     return (data ?? []) as AudioNota[];
   }
 
+  /** AA22 — re-encola la transcripción de un audio (on-demand). */
+  async solicitarTranscripcion(id: string, tabla: 'audio_notas' | 'bitacora_archivos' = 'audio_notas'): Promise<void> {
+    const { error } = await this.supabase.client.rpc('solicitar_transcripcion', {
+      p_tabla: tabla,
+      p_id: id,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** Sube el audio al bucket y lo registra. Devuelve el id de la nota. */
   async add(
     entidadTipo: AudioEntidadTipo,

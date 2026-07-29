@@ -5,6 +5,7 @@ import {
   RegistroCombustible,
   RegistroCombustibleFormData,
   CombustibleDerivados,
+  PrecioCombustibleVigente,
 } from '../models/combustible.model';
 import { cleanUuid } from '../utils/uuid.util';
 
@@ -66,6 +67,17 @@ export class CombustibleService {
     if (error) throw new Error(error.message);
     const derivados = data as unknown as CombustibleDerivados;
 
+    // AA20 — subtipo (regular|premium) vía helper (no rompe la firma del RPC
+    // compartido con la app). No bloquea el guardado si falla.
+    if (payload.subtipo) {
+      try {
+        await this.supabase.client.rpc('set_echada_subtipo', {
+          p_id: derivados.id,
+          p_subtipo: payload.subtipo,
+        });
+      } catch { /* el subtipo es opcional; no romper el flujo */ }
+    }
+
     // 3) El row completo (con joins) para la lista.
     const { data: row, error: rowErr } = await this.supabase.client
       .from('registros_combustible')
@@ -75,6 +87,13 @@ export class CombustibleService {
     if (rowErr) throw new Error(rowErr.message);
 
     return { registro: row as unknown as RegistroCombustible, derivados };
+  }
+
+  /** AA20 — precios oficiales vigentes (RD$/galón) por producto canónico. */
+  async getPreciosVigentes(): Promise<PrecioCombustibleVigente[]> {
+    const { data, error } = await this.supabase.client.rpc('precios_combustible_vigentes');
+    if (error) return [];
+    return (data ?? []) as PrecioCombustibleVigente[];
   }
 
   /** Sube una foto (recibo|tablero) y devuelve su storage path. */

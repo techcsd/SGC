@@ -1,0 +1,57 @@
+<div class="costos">
+  <header class="costos__head">
+    <div>
+      <a class="costos__back" routerLink="/proyectos">← Proyectos</a>
+      <h1 class="costos__title">Costo de material</h1>
+      <p class="costos__sub">{{ proyectoNombre() || 'Obra' }}</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
+            [disabled]="data().por_articulo.length === 0">⬇️ Excel</button>
+  </header>
+
+  <!-- Filtro de fechas -->
+  <div class="costos__filtros">
+    <label>Desde <input #d type="date" [value]="desde() ?? ''" /></label>
+    <label>Hasta <input #h type="date" [value]="hasta() ?? ''" /></label>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="aplicarFiltro(d.value, h.value)">Aplicar</button>
+  </div>
+
+  @if (error()) { <p class="costos__error">{{ error() }}</p> }
+
+  @if (loading()) {
+    <p class="costos__muted">Cargando…</p>
+  } @else {
+    <div class="costos__total sgc-card">
+      <span class="costos__total-label">Costo total de material consumido</span>
+      <span class="costos__total-value">RD$ {{ data().total | number:'1.2-2' }}</span>
+    </div>
+
+    @if (data().por_articulo.length === 0) {
+      <p class="costos__muted">Aún no hay material valorizado consumido en esta obra.</p>
+    } @else {
+      <div class="costos__table-wrap">
+        <table class="costos__table">
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th class="num">Cantidad</th>
+              <th class="num">Costo unit. prom.</th>
+              <th class="num">Costo total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of data().por_articulo; track a.articulo_id) {
+              <tr>
+                <td>{{ a.nombre }}</td>
+                <td class="num">{{ a.cantidad | number:'1.0-2' }} {{ a.unidad }}</td>
+                <td class="num">RD$ {{ a.costo_unit_prom | number:'1.2-2' }}</td>
+                <td class="num">RD$ {{ a.costo | number:'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="costos__nota">El costo se congela al despachar cada salida, usando el costo promedio móvil del artículo. No incluye movimientos de prueba.</p>
+    }
+  }
+</div>

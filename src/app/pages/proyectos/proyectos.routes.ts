@@ -35,6 +35,12 @@ export const proyectosRoutes: Routes = [
     title: 'Cronograma — Proyectos',
   },
   {
+    // AA23 QW4 — reporte de costo de material real por obra.
+    path: ':id/costos',
+    loadComponent: () => import('./costos/costos').then((m) => m.ProyectoCostos),
+    title: 'Costo de material — Proyectos',
+  },
+  {
     // Z13 — detalle del proyecto como ruta dedicada (deep-linkable, botón Atrás).
     path: ':id',
     loadComponent: () => import('./lista/lista').then((m) => m.Lista),

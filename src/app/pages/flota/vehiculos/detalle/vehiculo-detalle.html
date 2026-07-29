@@ -52,18 +52,18 @@
     <!-- ── U11-web · Alerta de mantenimiento (visible en el perfil) ── -->
     @if (mantPorRevisar()) {
       <div class="vd-mant vd-mant--pre" role="status">
-        ⚠️ <strong>Dato de mantenimiento por revisar</strong> — el km del último mantenimiento supera el
-        odómetro del vehículo. No se calcula el próximo mantenimiento hasta corregirlo (se avisó a Flota).
+        ⚠️ <strong>Dato de mantenimiento por revisar</strong> — la lectura del último mantenimiento supera la
+        lectura actual del vehículo. No se calcula el próximo mantenimiento hasta corregirlo (se avisó a Flota).
       </div>
     } @else if (alertaMant(); as am) {
       @if (am.estado === 'vencido') {
         <div class="page-error vd-mant--vencido" role="alert">
-          🔴 <strong>Mantenimiento atrasado</strong> — pasado con {{ am.km | number:'1.0-0' }} km.
+          🔴 <strong>Mantenimiento atrasado</strong> — pasado con {{ am.km | number:'1.0-0' }} {{ unidad() }}.
           Agenda el mantenimiento de este vehículo cuanto antes.
         </div>
       } @else {
         <div class="vd-mant vd-mant--pre" role="status">
-          🟠 <strong>Mantenimiento próximo</strong> — faltan {{ am.km | number:'1.0-0' }} km para el próximo.
+          🟠 <strong>Mantenimiento próximo</strong> — faltan {{ am.km | number:'1.0-0' }} {{ unidad() }} para el próximo.
         </div>
       }
     }
@@ -71,8 +71,8 @@
     <!-- ── 2. Stats ── -->
     <div class="stat-grid">
       <div class="stat-card">
-        <span class="stat-card__label">Km actual</span>
-        <span class="stat-card__value">{{ (stats()?.km_actual ?? v.kilometraje) | number:'1.0-0' }}</span>
+        <span class="stat-card__label">{{ v.medida_uso === 'horas' ? 'Horas de uso' : 'Km actual' }}</span>
+        <span class="stat-card__value">{{ (stats()?.km_actual ?? v.kilometraje) | number:'1.0-0' }} {{ unidad() }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-card__label">Combustible</span>
@@ -125,13 +125,13 @@
         [class.stat-card--warn]="kmFaltanMant() != null && kmFaltanMant()! > 0 && kmFaltanMant()! <= 500">
         <span class="stat-card__label">Próximo mant.</span>
         <span class="stat-card__value">
-          @if (proxKm(v) != null) { {{ proxKm(v) | number:'1.0-0' }} km } @else { — }
+          @if (proxKm(v) != null) { {{ proxKm(v) | number:'1.0-0' }} {{ unidad() }} } @else { — }
         </span>
         <span class="stat-card__hint">
           @if (mantPorRevisar()) { <span class="vd-danger">revisar dato</span> }
           @else if (kmFaltanMant() == null) { sin dato }
-          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">pasado con {{ -kmFaltanMant()! | number:'1.0-0' }} km</span> }
-          @else { faltan {{ kmFaltanMant()! | number:'1.0-0' }} km }
+          @else if (kmFaltanMant()! <= 0) { <span class="vd-danger">pasado con {{ -kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }}</span> }
+          @else { faltan {{ kmFaltanMant()! | number:'1.0-0' }} {{ unidad() }} }
         </span>
       </div>
       <div class="stat-card">

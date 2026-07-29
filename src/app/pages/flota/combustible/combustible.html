@@ -24,6 +24,20 @@
   </div>
 </div>
 
+<!-- ── AA20 · Precios oficiales MICM vigentes ── -->
+@if (preciosVigentes().length > 0) {
+  <div class="combustible__precios-widget">
+    <span class="combustible__precios-titulo">⛽ Precios oficiales MICM (RD$/gal)</span>
+    <div class="combustible__precios-chips">
+      @for (p of preciosVigentes(); track p.producto) {
+        <span class="combustible__precio-chip">
+          {{ productoCanonicoLabel(p.producto) }}: <strong>{{ p.precio | number:'1.2-2' }}</strong>
+        </span>
+      }
+    </div>
+  </div>
+}
+
 <!-- ── Monthly totals bar ── -->
 <div class="combustible__totals-bar">
   <div class="combustible__total-item">
@@ -200,10 +214,11 @@
 
     <!-- Los 3 datos que digita el chofer -->
     <div class="sgc-field">
-      <label for="kilometraje">Kilometraje actual <span class="required">*</span></label>
-      <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1" placeholder="km en el tablero"
+      <label for="kilometraje">{{ labelLectura() }} <span class="required">*</span></label>
+      <input id="kilometraje" type="number" formControlName="kilometraje" min="1" step="1"
+        [placeholder]="medidaSel() === 'horas' ? 'horas en el horómetro' : 'km en el tablero'"
         [class.invalid]="f.kilometraje.invalid && f.kilometraje.touched" />
-      @if (f.kilometraje.invalid && f.kilometraje.touched) { <span class="field-error">El kilometraje es obligatorio.</span> }
+      @if (f.kilometraje.invalid && f.kilometraje.touched) { <span class="field-error">La lectura es obligatoria.</span> }
     </div>
 
     <div class="form-row">
@@ -306,6 +321,33 @@
           <option value="gasolina">Gasolina</option>
         </select>
       </div>
+      <!-- AA20 — subtipo regular/premium (tras elegir gasolina/diésel) -->
+      <div class="sgc-field">
+        <label for="subtipo">Tipo</label>
+        <select id="subtipo" formControlName="subtipo" [disabled]="!f.producto.value">
+          <option [value]="null">Sin especificar</option>
+          <option value="regular">Regular</option>
+          <option value="premium">Premium / Óptimo</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- AA20 — precio oficial de referencia + desviación suave -->
+    @if (precioReferencia(); as ref) {
+      <div class="sgc-field combustible__ref-precio"
+           [class.combustible__ref-precio--alerta]="desviacionPrecio() != null && (desviacionPrecio()! > 10 || desviacionPrecio()! < -10)">
+        Precio oficial MICM vigente: <strong>RD$ {{ ref | number:'1.2-2' }}/gal</strong>
+        @if (desviacionPrecio(); as d) {
+          @if (d > 10 || d < -10) {
+            <span class="combustible__ref-desv">⚠ lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
+          } @else {
+            <span class="combustible__ref-ok">✓ dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
+          }
+        }
+      </div>
+    }
+
+    <div class="form-row">
       <div class="sgc-field">
         <label for="tarjeta">Tarjeta (opcional)</label>
         <input id="tarjeta" type="text" formControlName="tarjeta" placeholder="Número o identificador de la tarjeta" />

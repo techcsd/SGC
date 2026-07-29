@@ -62,6 +62,9 @@ export interface BitacoraArchivo {
   tipo_mime: string | null;
   tamano_bytes: number | null;
   created_at: string;
+  // AA22 — transcripción de la nota de voz (si aplica).
+  transcripcion?: string | null;
+  transcripcion_estado?: string | null;
 }
 
 /** W2 — equipo alquilado usado en la obra ese día (gasto respaldado). */

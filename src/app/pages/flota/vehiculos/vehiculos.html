@@ -66,6 +66,18 @@
         <option [value]="e.value">{{ e.label }}</option>
       }
     </select>
+    <!-- AA17 — filtro por uso obra/oficina -->
+    <select
+      class="flota-vehiculos__select"
+      [value]="selectedUso()"
+      (change)="onUsoChange($any($event.target).value)"
+      aria-label="Filtrar por uso"
+    >
+      <option value="">Obra y oficina</option>
+      @for (u of USOS; track u.value) {
+        <option [value]="u.value">{{ u.label }}</option>
+      }
+    </select>
     @if (esAdmin()) {
       <label class="flota-vehiculos__prueba-toggle">
         <input
@@ -130,6 +142,8 @@
               @if (v.es_prueba) {
                 <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
               }
+              <!-- AA17 — badge de uso obra/oficina -->
+              <span class="sgc-badge sgc-badge--info">{{ usoLabel(v.uso) }}</span>
               <span [class]="'sgc-badge sgc-badge--' + vehiculoBadge(v)">
                 {{ vehiculoEstadoLabel(v) }}
               </span>
@@ -156,8 +170,8 @@
 
           <div class="flota-vehiculos__card-stats">
             <div class="flota-vehiculos__stat">
-              <span class="flota-vehiculos__stat-label">Kilometraje</span>
-              <span class="flota-vehiculos__stat-value">{{ v.kilometraje | number }} km</span>
+              <span class="flota-vehiculos__stat-label">{{ v.medida_uso === 'horas' ? 'Horas de uso' : 'Kilometraje' }}</span>
+              <span class="flota-vehiculos__stat-value">{{ v.kilometraje | number }} {{ unidadDe(v) }}</span>
             </div>
             @if (v.capacidad_valor != null) {
               <div class="flota-vehiculos__stat">
@@ -333,19 +347,41 @@
             <option [value]="u.value">{{ u.label }}</option>
           }
         </select>
-        <small class="sgc-field__hint">Obra usa el pre-uso completo; Administrativo, uno reducido.</small>
+        <small class="sgc-field__hint">Obra usa el pre-uso completo; Oficina, uno reducido.</small>
+      </div>
+
+      <!-- AA18.3 — unidad del odómetro: km u horas (horómetro). -->
+      <div class="sgc-field">
+        <label for="medida_uso">Medida de uso <span class="required" aria-hidden="true">*</span></label>
+        <select id="medida_uso" formControlName="medida_uso" aria-required="true">
+          @for (m of MEDIDAS_USO; track m.value) {
+            <option [value]="m.value">{{ m.label }}</option>
+          }
+        </select>
+        <small class="sgc-field__hint">Maquinaria como el Telehandler se mide por horas de uso.</small>
       </div>
     </div>
 
     <div class="flota-vehiculos__form-row">
+      <!-- AA18.2 — color como select + "Otro" → input manual. -->
       <div class="sgc-field">
-        <label for="color">Color</label>
-        <input id="color" type="text" formControlName="color" placeholder="Ej: Blanco" />
+        <label for="colorSel">Color</label>
+        <select id="colorSel" formControlName="colorSel">
+          <option [value]="null">—</option>
+          @for (c of COLORES; track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+          <option value="Otro">Otro…</option>
+        </select>
+        @if (colorEsOtro()) {
+          <input type="text" formControlName="colorOtro" placeholder="Especifica el color" class="flota-vehiculos__otro-input" />
+        }
       </div>
 
       <div class="sgc-field">
-        <label for="kilometraje">Kilometraje <span class="required" aria-hidden="true">*</span></label>
+        <label for="kilometraje">{{ labelLectura() }} <span class="required" aria-hidden="true">*</span></label>
         <input id="kilometraje" type="number" formControlName="kilometraje" min="0" aria-required="true" />
+        <small class="sgc-field__hint">Lectura actual del {{ esHoras() ? 'horómetro (horas)' : 'odómetro (km)' }}.</small>
       </div>
     </div>
 
@@ -377,9 +413,19 @@
       </div>
     </div>
 
+    <!-- AA18.4 — aseguradora como select ("Seguros Universal" por default) + "Otro". -->
     <div class="sgc-field">
-      <label for="aseguradora">Compañía aseguradora</label>
-      <input id="aseguradora" type="text" formControlName="aseguradora" placeholder="Ej: Seguros Universal" />
+      <label for="aseguradoraSel">Compañía aseguradora</label>
+      <select id="aseguradoraSel" formControlName="aseguradoraSel">
+        <option [value]="null">—</option>
+        @for (a of ASEGURADORAS; track a) {
+          <option [value]="a">{{ a }}</option>
+        }
+        <option value="Otro">Otro…</option>
+      </select>
+      @if (aseguradoraEsOtro()) {
+        <input type="text" formControlName="aseguradoraOtro" placeholder="Especifica la aseguradora" class="flota-vehiculos__otro-input" />
+      }
       <small class="sgc-field__hint">La foto de la matrícula y del seguro se sube desde el perfil del vehículo (Documentos).</small>
     </div>
 
@@ -397,17 +443,25 @@
 
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="km_ultimo_mantenimiento">Km último mantenimiento</label>
-        <input id="km_ultimo_mantenimiento" type="number" min="0" formControlName="km_ultimo_mantenimiento" placeholder="km"
+        <label for="km_ultimo_mantenimiento">{{ esHoras() ? 'Horas último mantenimiento' : 'Km último mantenimiento' }}</label>
+        <input id="km_ultimo_mantenimiento" type="number" min="0" formControlName="km_ultimo_mantenimiento" [placeholder]="unidadLectura()"
           [class.invalid]="form.errors?.['kmUltimoMantMayor']" />
         @if (form.errors?.['kmUltimoMantMayor']) {
-          <span class="field-error">No puede ser mayor al kilometraje (odómetro) del vehículo.</span>
+          <span class="field-error">No puede ser mayor a la lectura actual ({{ unidadLectura() }}) del vehículo.</span>
         }
       </div>
-      <div class="sgc-field">
-        <label for="intervalo_mantenimiento_km">Intervalo mantenimiento (km)</label>
-        <input id="intervalo_mantenimiento_km" type="number" min="1" formControlName="intervalo_mantenimiento_km" />
-      </div>
+      <!-- AA18.3 — el intervalo de mantenimiento se pide en km o en horas según la medida. -->
+      @if (esHoras()) {
+        <div class="sgc-field">
+          <label for="intervalo_mantenimiento_horas">Intervalo mantenimiento (horas)</label>
+          <input id="intervalo_mantenimiento_horas" type="number" min="1" formControlName="intervalo_mantenimiento_horas" placeholder="Ej: 250" />
+        </div>
+      } @else {
+        <div class="sgc-field">
+          <label for="intervalo_mantenimiento_km">Intervalo mantenimiento (km)</label>
+          <input id="intervalo_mantenimiento_km" type="number" min="1" formControlName="intervalo_mantenimiento_km" />
+        </div>
+      }
     </div>
 
     <div class="flota-vehiculos__form-row">
@@ -439,21 +493,36 @@
     <!-- Fotos -->
     <div class="sgc-field">
       <label>Fotos del vehículo</label>
+      <small class="sgc-field__hint">AA19 — usa las flechas para ordenar y ⭐ para elegir la portada (la que sale en las tarjetas y el perfil).</small>
       <div class="fotos-grid">
-        @for (path of fotoPaths(); track path) {
-          <div class="fotos-thumb">
+        @for (path of fotoPaths(); track path; let i = $index) {
+          <div class="fotos-thumb" [class.fotos-thumb--portada]="esPortada(path)">
             @if (fotoUrls()[path]) {
               <img [src]="fotoUrls()[path]" alt="Foto del vehículo" />
             } @else {
               <span class="fotos-thumb__loading" aria-hidden="true"></span>
             }
+            @if (esPortada(path)) {
+              <span class="fotos-thumb__portada-badge" aria-label="Portada">⭐ Portada</span>
+            }
+            <div class="fotos-thumb__actions">
+              <button type="button" (click)="moverFoto(i, -1)" [disabled]="i === 0" aria-label="Mover a la izquierda">‹</button>
+              <button type="button" (click)="usarComoPortada(path)" [class.active]="esPortada(path)" aria-label="Usar como portada" title="Usar como portada">⭐</button>
+              <button type="button" (click)="moverFoto(i, 1)" [disabled]="i === fotoPaths().length - 1" aria-label="Mover a la derecha">›</button>
+            </div>
             <button type="button" class="fotos-thumb__remove" (click)="removeExistingFoto(path)"
               aria-label="Quitar foto">&times;</button>
           </div>
         }
         @for (p of fotoFiles(); track p.preview; let i = $index) {
-          <div class="fotos-thumb fotos-thumb--pending">
+          <div class="fotos-thumb fotos-thumb--pending" [class.fotos-thumb--portada]="esPortada(p.preview)">
             <img [src]="p.preview" alt="Foto pendiente de subir" />
+            @if (esPortada(p.preview)) {
+              <span class="fotos-thumb__portada-badge" aria-label="Portada">⭐ Portada</span>
+            }
+            <div class="fotos-thumb__actions">
+              <button type="button" (click)="usarComoPortada(p.preview)" [class.active]="esPortada(p.preview)" aria-label="Usar como portada" title="Usar como portada">⭐</button>
+            </div>
             <button type="button" class="fotos-thumb__remove" (click)="removePending(i)"
               aria-label="Quitar foto">&times;</button>
           </div>

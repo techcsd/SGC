@@ -25,6 +25,9 @@ export interface AudioNota {
   es_prueba: boolean;
   creado_por: string | null;
   created_at: string;
+  // AA22 — transcripción automática (puede venir null si aún no se procesa).
+  transcripcion?: string | null;
+  transcripcion_estado?: 'pendiente' | 'procesando' | 'completada' | 'fallida' | 'omitida' | null;
 }
 
 /** Límite por defecto de notas de voz por registro (coincide con el RPC). */

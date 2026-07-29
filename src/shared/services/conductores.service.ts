@@ -122,6 +122,18 @@ export class ConductoresService {
     return (data ?? {}) as Record<string, unknown>;
   }
 
+  /**
+   * AA2 — traduce el choque de cédula duplicada (constraint conductores_cedula_key)
+   * a un mensaje claro en español, en vez de dejar salir el error crudo de Postgres.
+   */
+  private mapCedulaError(error: { code?: string; message?: string }): Error {
+    const msg = error.message ?? '';
+    if (error.code === '23505' || msg.includes('conductores_cedula_key')) {
+      return new Error('Ya existe otro conductor con esa cédula. Revísala antes de guardar.');
+    }
+    return new Error(msg || 'Error al guardar.');
+  }
+
   async create(payload: ConductorFormData): Promise<Conductor> {
     const { data, error } = await this.supabase.client
       .from('conductores')
@@ -129,7 +141,7 @@ export class ConductoresService {
       .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email)')
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) throw this.mapCedulaError(error);
     return data as unknown as Conductor;
   }
 
@@ -141,8 +153,37 @@ export class ConductoresService {
       .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email)')
       .single();
 
-    if (error) throw new Error(error.message);
+    if (error) throw this.mapCedulaError(error);
     return data as unknown as Conductor;
+  }
+
+  /**
+   * AA2 — ¿la cédula ya la usa OTRO conductor? (compara solo dígitos, RPC server-side).
+   * Devuelve true si está en uso por un conductor distinto a `excluirId`.
+   */
+  async cedulaEnUso(cedula: string, excluirId?: string | null): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('conductor_cedula_en_uso', {
+      p_cedula: cedula,
+      p_excluir_id: excluirId ?? null,
+    });
+    if (error) return false; // no bloquear el guardado por un fallo de la validación previa
+    return data != null;
+  }
+
+  /**
+   * AA2 — tras cambiar la cédula de un conductor con acceso cédula+PIN, resincroniza
+   * su email sintético (c-{cedula}@…) en auth + usuarios vía edge service-role.
+   * No-op si el conductor no tiene acceso o entra con correo real.
+   */
+  async syncAccesoCedula(
+    conductorId: string,
+  ): Promise<{ synced: boolean; email?: string; reason?: string }> {
+    const { data, error } = await this.supabase.client.functions.invoke('conductor-crear-acceso', {
+      body: { conductorId, mode: 'sync-cedula' },
+    });
+    if (error) throw new Error(await edgeErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { synced: boolean; email?: string; reason?: string };
   }
 
   /**

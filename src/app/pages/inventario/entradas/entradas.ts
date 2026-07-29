@@ -81,6 +81,8 @@ export class Entradas implements OnInit {
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
+  // AA21 — crear la entrada directamente como dato de prueba (solo admin).
+  crearComoPrueba = signal(false);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -102,7 +104,8 @@ export class Entradas implements OnInit {
   async marcarPrueba(e: EntradaInventario, valor: boolean) {
     if (!this.esAdmin()) return;
     try {
-      await this.datosPrueba.marcar(this.TABLA_PRUEBA, e.id, valor);
+      // AA21b — ajusta el stock al marcar/desmarcar (revierte/re-aplica el efecto).
+      await this.datosPrueba.marcarMovimiento('entradas_inventario', e.id, valor);
       this.entries.update((list) => list.map((x) => (x.id === e.id ? { ...x, es_prueba: valor } : x)));
       this.detailEntrada.update((d) => (d && d.id === e.id ? { ...d, es_prueba: valor } : d));
       this.toast.success(
@@ -607,6 +610,15 @@ export class Entradas implements OnInit {
           // La entrada ya se registró; la foto es opcional y no debe revertirla.
         }
       }
+      // AA21 — crear como prueba (admin): revierte el stock recién aplicado para
+      // que el movimiento de prueba NO afecte las existencias reales.
+      if (this.esAdmin() && this.crearComoPrueba()) {
+        try {
+          await this.datosPrueba.marcarMovimiento('entradas_inventario', created.id, true);
+          created.es_prueba = true;
+        } catch { /* el alta ya se hizo; la marca es secundaria */ }
+      }
+      this.crearComoPrueba.set(false);
       this.entries.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');

@@ -353,6 +353,28 @@ export class Nueva implements OnInit {
   /** T19 — sugerencias de equipos de ESTA obra (incidente de equipo + equipos
    *  alquilados). Si la obra tiene equipos, reemplaza el listado global; si no,
    *  conserva las sugerencias globales ya cargadas. */
+  /**
+   * AA11 — al elegir la obra, precarga el "ingeniero responsable" con el encargado
+   * asignado del proyecto (responsable, o primer responsable activo). Solo si el
+   * campo está vacío o aún tiene el default del usuario logueado (no pisa una
+   * edición manual). Editable siempre.
+   */
+  private defaultIngenieroDeObra(proyectoId: string | null) {
+    if (!proyectoId) return;
+    const p = this.proyectos().find((x) => x.id === proyectoId);
+    if (!p) return;
+    const encargado =
+      p.responsable?.nombre ??
+      p.responsables?.find((r) => r.activo)?.usuario?.nombre ??
+      null;
+    if (!encargado) return;
+    const actual = (this.form.controls.ingeniero_responsable.value ?? '').trim();
+    const propio = (this.userService.profile()?.nombre ?? '').trim();
+    if (!actual || actual === propio) {
+      this.form.controls.ingeniero_responsable.setValue(encargado);
+    }
+  }
+
   private async loadEquiposDeObra(proyectoId: string | null) {
     if (!proyectoId) return;
     try {
@@ -409,6 +431,7 @@ export class Nueva implements OnInit {
         void this.loadEquiposDeObra(id ?? null);
         void this.loadTareasCronograma(id ?? null);
         void this.loadEstructuras(id ?? null);
+        this.defaultIngenieroDeObra(id ?? null); // AA11
       });
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.saveDraft());

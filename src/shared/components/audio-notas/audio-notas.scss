@@ -52,3 +52,20 @@
     pointer-events: none;
   }
 }
+
+// AA22 — transcripción
+.audio-notas__transcripcion {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--main-ultra-light, #929090);
+  flex-basis: 100%;
+}
+.audio-notas__retry {
+  border: none;
+  background: transparent;
+  color: var(--primary, #ff5f00);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+}

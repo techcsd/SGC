@@ -24,6 +24,9 @@ import {
   RegistroCombustible,
   RegistroCombustibleFormData,
   esRegistroV2,
+  PrecioCombustibleVigente,
+  PRODUCTO_CANONICO_LABEL,
+  productoCanonico,
 } from '../../../../shared/models/combustible.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
@@ -109,6 +112,8 @@ export class Combustible implements OnInit {
     notas: new FormControl<string | null>(null),
     // Z23.4 — datos de conciliación con el reporte del proveedor (opcionales).
     producto: new FormControl<string | null>(null),
+    // AA20 — subtipo regular|premium (se pide tras elegir gasolina/diésel).
+    subtipo: new FormControl<string | null>(null),
     tarjeta: new FormControl<string | null>(null),
     titular: new FormControl<string | null>(null),
     titular_es_persona: new FormControl<boolean>(false, { nonNullable: true }),
@@ -124,6 +129,29 @@ export class Combustible implements OnInit {
     initialValue: this.form.controls.titular_es_persona.value,
   });
   tarjetaEsPersona = computed(() => this.titularEsPersonaVal() === true);
+
+  // ── AA20 — subtipo + precios oficiales ────────────────────
+  preciosVigentes = signal<PrecioCombustibleVigente[]>([]);
+  productoCanonicoLabel(p: string): string { return PRODUCTO_CANONICO_LABEL[p] ?? p; }
+  private productoVal = toSignal(this.form.controls.producto.valueChanges, { initialValue: null as string | null });
+  private subtipoVal = toSignal(this.form.controls.subtipo.valueChanges, { initialValue: null as string | null });
+
+  /** Precio oficial vigente del producto+subtipo seleccionado (RD$/gal), o null. */
+  precioReferencia = computed<number | null>(() => {
+    const canon = productoCanonico(this.productoVal(), this.subtipoVal());
+    if (!canon) return null;
+    return this.preciosVigentes().find((p) => p.producto === canon)?.precio ?? null;
+  });
+
+  /** Desviación del precio pagado vs. el oficial (%), o null si no hay referencia. */
+  desviacionPrecio = computed<number | null>(() => {
+    const ref = this.precioReferencia();
+    const g = this.galonesVal() ?? 0;
+    const m = this.montoVal() ?? 0;
+    if (!ref || g <= 0 || m <= 0) return null;
+    const pagado = m / g;
+    return Math.round(((pagado - ref) / ref) * 100);
+  });
 
   // ── Filtering ────────────────────────────────────────────
   filtered = computed(() => {
@@ -182,6 +210,14 @@ export class Combustible implements OnInit {
     if (!vId) return null;
     return this.vehiculos().find((v) => v.id === vId)?.kilometraje ?? null;
   });
+
+  // AA18.3 — unidad del vehículo seleccionado (km | horas) para labels/mensajes.
+  medidaSel = computed<'km' | 'horas'>(() => {
+    const vId = this.vehiculoVal();
+    return (this.vehiculos().find((v) => v.id === vId)?.medida_uso as 'km' | 'horas') ?? 'km';
+  });
+  unidadSel = computed(() => (this.medidaSel() === 'horas' ? 'h' : 'km'));
+  labelLectura = computed(() => (this.medidaSel() === 'horas' ? 'Horas de uso actual' : 'Kilometraje actual'));
 
   /**
    * Km de la última echada REAL del vehículo (excluye datos de prueba, = filtros
@@ -266,16 +302,18 @@ export class Combustible implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [registros, vehiculos, conductores, estaciones] = await Promise.all([
+      const [registros, vehiculos, conductores, estaciones, precios] = await Promise.all([
         this.combustibleService.getAll(),
         this.vehiculosService.getAll(),
         this.conductoresService.getAll(),
         this.estacionesService.getActivas(),
+        this.combustibleService.getPreciosVigentes(), // AA20
       ]);
       this.registros.set(registros);
       this.vehiculos.set(vehiculos);
       this.conductores.set(conductores);
       this.estaciones.set(estaciones);
+      this.preciosVigentes.set(precios);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -328,7 +366,7 @@ export class Combustible implements OnInit {
     this.form.reset({ fecha: this.today, vehiculo_id: '', conductor_id: null,
       kilometraje: null, galones: null, monto: null,
       estacionSel: 'Total Energies', estacion: null, notas: null,
-      producto: null, tarjeta: null, titular: null, titular_es_persona: false });
+      producto: null, subtipo: null, tarjeta: null, titular: null, titular_es_persona: false });
     this.drawerOpen.set(true);
   }
 
@@ -370,8 +408,9 @@ export class Combustible implements OnInit {
     // Y5 — el odómetro no retrocede: km >= odómetro actual (misma regla y cifra que el servidor).
     const odo = this.odometroActual();
     if (odo != null && (raw.kilometraje ?? 0) < odo) {
+      const u = this.unidadSel();
       this.saveError.set(
-        `El kilometraje (${raw.kilometraje ?? 0} km) no puede ser menor al odómetro actual del vehículo (${odo} km).`,
+        `La lectura (${raw.kilometraje ?? 0} ${u}) no puede ser menor a la lectura actual del vehículo (${odo} ${u}).`,
       );
       return;
     }
@@ -391,6 +430,7 @@ export class Combustible implements OnInit {
       notas: raw.notas?.trim() || null,
       // Z23.4 — datos de conciliación (opcionales).
       producto: raw.producto || null,
+      subtipo: raw.subtipo || null, // AA20
       tarjeta: raw.tarjeta?.trim() || null,
       titular: raw.titular_es_persona ? raw.titular?.trim() || null : null,
       titular_es_persona: !!raw.titular_es_persona,

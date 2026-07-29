@@ -1105,6 +1105,55 @@
           "d": "Cada activo fijo se puede relacionar con una obra/proyecto, un empleado, un ingeniero, un almacén o un vehículo, desde el formulario del activo. La relación se muestra en el detalle."
         }
       ]
+    },
+    "1.53.0": {
+      "titulo": "Flota por horómetro, precios oficiales de combustible, y correcciones (AA)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Vehículos por horas de uso (horómetro): maquinaria como el Telehandler se mide y mantiene por horas, no por km. Tipo Telehandler, color y aseguradora como listas seleccionables (Seguros Universal por defecto)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Fotos del vehículo: ahora se pueden reordenar y elegir la portada que sale en las tarjetas y el perfil."
+        },
+        {
+          "t": "nuevo",
+          "d": "Combustible: precios oficiales del MICM (República Dominicana) actualizados cada semana, con referencia y alerta al registrar echadas, y subtipo Regular/Premium por producto."
+        },
+        {
+          "t": "nuevo",
+          "d": "Cronograma: dependencias entre tareas (Fin→Comienzo, Comienzo→Comienzo, Fin→Fin) con retraso/adelanto en días. Al mover o atrasar una tarea, sus sucesoras se recalculan en cadena y el Gantt dibuja las relaciones reales."
+        },
+        {
+          "t": "nuevo",
+          "d": "Costeo de material por obra: el sistema valoriza el inventario (costo promedio) y congela el costo al despachar cada salida. Nueva vista de costo de material real por proyecto (Proyectos › 💰 Costos) con desglose por artículo y exportación a Excel."
+        },
+        {
+          "t": "nuevo",
+          "d": "Transcripción automática de notas de voz: las grabaciones se transcriben a texto y se muestran junto al reproductor (en bitácora y módulos de flota), con opción de reintentar. Se activa al configurar el proveedor de transcripción."
+        },
+        {
+          "t": "mejora",
+          "d": "Vehículos: filtro y distintivo De obra / De oficina."
+        },
+        {
+          "t": "arreglo",
+          "d": "Conductores: al editar y cambiar la cédula ya no aparece un error técnico; se avisa con claridad si la cédula ya existe y se resincroniza el acceso por PIN."
+        },
+        {
+          "t": "arreglo",
+          "d": "Inventario: las entradas y salidas marcadas como prueba ya no afectan el stock real que ve el personal."
+        },
+        {
+          "t": "arreglo",
+          "d": "Bitácora: catálogo de equipos administrable (Admin › Catálogos), sin valores basura; el ingeniero responsable se precarga con el encargado de la obra."
+        },
+        {
+          "t": "arreglo",
+          "d": "Reportes de error de la app: corregido el rechazo que dejaba reportes atascados en la app móvil."
+        }
+      ]
     }
   }
 }

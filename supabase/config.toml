@@ -3,3 +3,11 @@ project_id = "jeeqhgccqefbqilntcpu"
 # P5 — login público de conductores (cédula + PIN): pre-auth, sin JWT.
 [functions.conductor-login]
 verify_jwt = false
+
+# AA20 — precios de combustible (cron, x-sync-secret): sin JWT.
+[functions.fuel-prices]
+verify_jwt = false
+
+# AA22 — transcripción de notas de voz (cron, x-sync-secret): sin JWT.
+[functions.transcribe-audio]
+verify_jwt = false

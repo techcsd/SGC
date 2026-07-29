@@ -175,3 +175,37 @@ textarea { resize: vertical; min-height: 72px; }
   .combustible__totals-bar { flex-wrap: wrap; gap: 16px; }
   .form-row, .calc-card__grid, .detail__grid, .detail__photos { grid-template-columns: 1fr; }
 }
+
+// AA20 — widget de precios oficiales MICM
+.combustible__precios-widget {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+}
+.combustible__precios-titulo { font-weight: 600; color: var(--main-ultra-light, #929090); }
+.combustible__precios-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.combustible__precio-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #212121;
+  border: 1px solid #2d2d2d;
+  font-size: 0.85rem;
+}
+
+// AA20 — banda de precio de referencia en el form
+.combustible__ref-precio {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  font-size: 0.9rem;
+}
+.combustible__ref-precio--alerta { border-color: var(--primary, #ff5f00); }
+.combustible__ref-desv { margin-left: 8px; color: var(--primary, #ff5f00); font-weight: 600; }
+.combustible__ref-ok { margin-left: 8px; color: #4caf50; }

@@ -377,11 +377,14 @@ export class VehiculosService {
     return (await this.cache.signed('vehiculos', path, transform)) || null;
   }
 
-  /** Persists the full list of photo paths on the vehicle row. */
-  async setFotos(vehiculoId: string, fotos: string[]): Promise<void> {
+  /** Persists the full list of photo paths on the vehicle row (AA19 — el orden del
+   *  array ES el orden; `portada` fija la foto de portada, fallback fotos[0]). */
+  async setFotos(vehiculoId: string, fotos: string[], portada?: string | null): Promise<void> {
+    const patch: Record<string, unknown> = { fotos };
+    if (portada !== undefined) patch['foto_portada'] = portada;
     const { error } = await this.supabase.client
       .from('vehiculos')
-      .update({ fotos })
+      .update(patch)
       .eq('id', vehiculoId);
     if (error) throw new Error(error.message);
   }
