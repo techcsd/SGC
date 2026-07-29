@@ -50,6 +50,8 @@ export interface BitacoraRestriccion {
   bitacora_id: string;
   tipo_restriccion: string;
   descripcion_otro: string | null;
+  // Z21 — foto opcional por restricción (bucket privado sgc-bitacora).
+  foto_path: string | null;
 }
 
 export interface BitacoraArchivo {

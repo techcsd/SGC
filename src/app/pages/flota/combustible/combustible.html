@@ -337,6 +337,8 @@
         <div class="detail__item"><span class="detail__label">Rendimiento</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Costo / km</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Producto</span><span class="detail__value">{{ r.producto ? (r.producto === 'gasolina' ? 'Gasolina' : 'Diésel') : '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Tarjeta</span><span class="detail__value">{{ r.tarjeta ?? '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Conductor</span><span class="detail__value">{{ r.conductor?.nombre ?? '—' }}</span></div>
       </div>
 

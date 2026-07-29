@@ -11,6 +11,9 @@ export interface RegistroCombustible {
   fecha: string;
   kilometraje: number | null;
   estacion: string | null;
+  // Z23-app — producto/tarjeta para conciliar con el reporte del proveedor.
+  producto: string | null;
+  tarjeta: string | null;
   notas: string | null;
 
   // ── v2: galones / monto + derivados ──

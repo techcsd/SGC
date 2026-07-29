@@ -414,7 +414,17 @@
           <h3>Restricciones</h3>
           <ul class="bitacora-detail__list">
             @for (r of b.restricciones; track r.id) {
-              <li>{{ r.tipo_restriccion }}@if (r.descripcion_otro) { : {{ r.descripcion_otro }} }</li>
+              <li>
+                {{ r.tipo_restriccion }}@if (r.descripcion_otro) { : {{ r.descripcion_otro }} }
+                @if (r.foto_path) {
+                  @let rurl = getRestriccionUrl(r.id);
+                  @if (rurl) {
+                    <a class="bitacora-archivo bitacora-archivo--img" [href]="rurl" target="_blank" rel="noopener">
+                      <img [src]="rurl" [alt]="'Foto de ' + r.tipo_restriccion" loading="lazy" />
+                    </a>
+                  }
+                }
+              </li>
             }
           </ul>
         </div>

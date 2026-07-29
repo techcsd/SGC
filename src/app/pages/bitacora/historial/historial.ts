@@ -75,6 +75,8 @@ export class Historial implements OnInit {
   detailOpen = signal(false);
   detail = signal<Bitacora | null>(null);
   archivoUrls = signal<Map<string, string>>(new Map());
+  // Z21 — URLs firmadas de las fotos por restricción (keyed by restricción id).
+  restriccionUrls = signal<Map<string, string>>(new Map());
 
   /** Icon + label for the captured weather of the entry being viewed. */
   detailTiempo = computed(() => interpretarCodigoTiempo(this.detail()?.weather_snapshot?.codigo_tiempo ?? null));
@@ -245,10 +247,12 @@ export class Historial implements OnInit {
     this.detailOpen.set(true);
     this.detail.set(b);
     this.archivoUrls.set(new Map());
+    this.restriccionUrls.set(new Map());
     try {
       const full = await this.bitacoraService.getById(b.id);
       this.detail.set(full);
       await this.resolveArchivoUrls(full.archivos ?? []);
+      await this.resolveRestriccionUrls(full.restricciones ?? []); // Z21
     } catch {
       // keep basic data
     }
@@ -305,6 +309,28 @@ export class Historial implements OnInit {
 
   getArchivoUrl(archivo: BitacoraArchivo): string {
     return this.archivoUrls().get(archivo.id) ?? '';
+  }
+
+  // Z21 — resuelve las URLs firmadas de las fotos por restricción.
+  private async resolveRestriccionUrls(
+    restricciones: { id: string; foto_path: string | null }[],
+  ): Promise<void> {
+    const entries = await Promise.all(
+      restricciones
+        .filter((r) => !!r.foto_path)
+        .map(async (r) => {
+          try {
+            return [r.id, await this.bitacoraService.getSignedUrl(r.foto_path!)] as const;
+          } catch {
+            return [r.id, ''] as const;
+          }
+        }),
+    );
+    this.restriccionUrls.set(new Map(entries));
+  }
+
+  getRestriccionUrl(id: string): string {
+    return this.restriccionUrls().get(id) ?? '';
   }
 
   /** Photos captured in the field render inline; voice notes get an audio
