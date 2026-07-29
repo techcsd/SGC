@@ -1,8 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
-import { DUDAS_CATEGORIAS, DudaCategoria, GUIAS_VISUALES, GuiaVisual } from './dudas-content';
+import { SupabaseService } from '../../core/services/supabase.service';
+import { DudaCategoria, GuiaVisual } from './dudas-content';
 
+// Z30 — el contenido ahora vive en sgc.ayuda_contenido (misma fuente que el app,
+// sin duplicar). dudas-content.ts queda como semilla (scripts/seed-ayuda.mjs) y
+// origen de los tipos.
 @Component({
   selector: 'app-dudas',
   imports: [RouterLink],
@@ -12,13 +16,34 @@ import { DUDAS_CATEGORIAS, DudaCategoria, GUIAS_VISUALES, GuiaVisual } from './d
 })
 export class Dudas {
   private userService = inject(UserService);
+  private supabase = inject(SupabaseService);
 
   searchQuery = signal('');
   expandedKey = signal<string | null>(null);
 
-  private visibleCategorias = computed(() => DUDAS_CATEGORIAS.filter((c) => this.canSee(c)));
+  private _guias = signal<GuiaVisual[]>([]);
+  private _categorias = signal<DudaCategoria[]>([]);
 
-  guias = computed(() => GUIAS_VISUALES.filter((g) => this.canSeeGuia(g)));
+  constructor() {
+    void this.load();
+  }
+
+  private async load(): Promise<void> {
+    const { data } = await this.supabase.client
+      .from('ayuda_contenido')
+      .select('tipo, contenido, orden')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+    const rows = (data ?? []) as { tipo: string; contenido: GuiaVisual | DudaCategoria }[];
+    this._guias.set(rows.filter((r) => r.tipo === 'guia').map((r) => r.contenido as GuiaVisual));
+    this._categorias.set(
+      rows.filter((r) => r.tipo === 'duda_categoria').map((r) => r.contenido as DudaCategoria),
+    );
+  }
+
+  private visibleCategorias = computed(() => this._categorias().filter((c) => this.canSee(c)));
+
+  guias = computed(() => this._guias().filter((g) => this.canSeeGuia(g)));
 
   filteredCategorias = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
