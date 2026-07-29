@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.43.0';
-export const APP_VERSION_TITULO: string | null = "Soporte: contador de reportes sin atender";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"El menú \"Soporte\" ahora muestra un contador de reportes de usuarios sin atender; se limpia al resolverlos."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/a0031fa";
+export const APP_VERSION = '1.44.0';
+export const APP_VERSION_TITULO: string | null = "Conciliación de combustible: importador Total Energies con vista previa";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"El importador reconoce el reporte real de Total Energies (coma decimal, fechas dd/mm/aaaa, número de transacción) y muestra una vista previa obligatoria antes de importar nada."},{"t":"nuevo","d":"La vista previa cuadra la suma de montos contra el total de la factura y avisa si no coincide; marca filas ya importadas, inválidas y titulares que son personas."},{"t":"arreglo","d":"Se corrigió la lectura de galones y montos con coma decimal (28,57 ya no se leía como 2857) y el cruce de columnas de la factura."},{"t":"mejora","d":"Cada transacción del proveedor se guarda con su número único para evitar duplicados entre importaciones."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/7fbf522";

@@ -13,10 +13,28 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 /** Fila normalizada del informe importado (Total Energies u otro). */
 interface InformeRow {
-  identificador: string; // placa/tarjeta
+  identificador: string; // placa/registro/titular
   fecha: string | null; // YYYY-MM-DD
   galones: number | null;
   monto: number | null;
+  // Z23 — datos extra del reporte real (para dedupe, preview y persistencia).
+  transaccion_num: string;
+  titular: string;
+  titular_es_persona: boolean;
+  numero_tarjeta: string;
+  numero_registro: string;
+  producto: string;
+  kilometraje: number | null;
+  hora: string;
+  estacion_codigo: string;
+  estacion_ubicacion: string;
+  ncf: string;
+  trans_status: string;
+  numero_factura: string;
+  total_factura: number | null;
+  fecha_factura: string | null;
+  duplicada?: boolean; // Transacción_num ya importado
+  invalida?: boolean; // sin datos mínimos
 }
 
 // Tolerancias de matching.
@@ -53,6 +71,31 @@ export class ConciliacionCombustible implements OnInit {
   parsing = signal(false);
   saving = signal(false);
   parseError = signal('');
+
+  // Z23 — preview obligatorio antes de conciliar/insertar.
+  preview = signal<InformeRow[] | null>(null);
+  facturaNum = signal('');
+  facturaTotal = signal<number | null>(null);
+  importando = signal(false);
+  previewStats = computed(() => {
+    const rows = this.preview() ?? [];
+    const validas = rows.filter((r) => !r.invalida);
+    return {
+      total: rows.length,
+      validas: validas.length,
+      duplicadas: rows.filter((r) => r.duplicada).length,
+      invalidas: rows.filter((r) => r.invalida).length,
+      personas: rows.filter((r) => r.titular_es_persona).length,
+      sumaGalones: validas.reduce((s, r) => s + (r.galones ?? 0), 0),
+      sumaMonto: validas.reduce((s, r) => s + (r.monto ?? 0), 0),
+    };
+  });
+  /** ¿La suma de montos cuadra con el total de la factura (±1)? */
+  cuadraFactura = computed(() => {
+    const t = this.facturaTotal();
+    if (t == null) return null;
+    return Math.abs(this.previewStats().sumaMonto - t) <= 1;
+  });
 
   /** Detalles resultantes del último cruce (en memoria, aún sin guardar). */
   detalles = signal<ConciliacionDetalle[]>([]);
@@ -118,7 +161,7 @@ export class ConciliacionCombustible implements OnInit {
     this.estacionSel.set(value);
   }
 
-  /** Importa y cruza el archivo del informe. */
+  /** Z23 — Importa el archivo y muestra el PREVIEW (no inserta/concilia aún). */
   async onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -127,15 +170,24 @@ export class ConciliacionCombustible implements OnInit {
     this.parseError.set('');
     this.parsing.set(true);
     this.nombreArchivo.set(file.name);
+    this.preview.set(null);
+    this.detalles.set([]);
+    this.meta.set(null);
     try {
       const filas = await this.parseInforme(file);
       if (filas.length === 0) {
-        this.parseError.set('No se detectaron filas válidas (fecha/placa/galones/monto) en el archivo.');
-        this.detalles.set([]);
-        this.meta.set(null);
+        this.parseError.set('No se detectaron filas válidas en el archivo. Verifica que sea el reporte del proveedor.');
         return;
       }
-      await this.conciliar(filas, file.name);
+      // Dedupe: marca las transacciones ya importadas.
+      const nums = filas.map((f) => f.transaccion_num).filter(Boolean);
+      const existentes = new Set(await this.service.transaccionesExistentes(nums));
+      for (const f of filas) {
+        if (f.transaccion_num && existentes.has(f.transaccion_num)) f.duplicada = true;
+      }
+      this.facturaNum.set(filas.find((f) => f.numero_factura)?.numero_factura ?? '');
+      this.facturaTotal.set(filas.find((f) => f.total_factura != null)?.total_factura ?? null);
+      this.preview.set(filas);
     } catch (e: unknown) {
       this.parseError.set(e instanceof Error ? e.message : 'No se pudo leer el archivo.');
     } finally {
@@ -143,7 +195,55 @@ export class ConciliacionCombustible implements OnInit {
     }
   }
 
-  /** Lee el Excel/CSV y detecta columnas por palabras clave del encabezado. */
+  cancelarPreview() {
+    this.preview.set(null);
+    this.nombreArchivo.set(null);
+    this.parseError.set('');
+  }
+
+  /** Z23 — Confirma: inserta transacciones (dedupe) y concilia contra la plataforma. */
+  async confirmarImport() {
+    const filas = (this.preview() ?? []).filter((f) => !f.invalida && !f.duplicada);
+    if (filas.length === 0) {
+      this.toast.error('No hay transacciones nuevas que importar.');
+      return;
+    }
+    this.importando.set(true);
+    try {
+      const payload = filas.map((f) => ({
+        transaccion_num: f.transaccion_num,
+        numero_factura: f.numero_factura || null,
+        fecha_factura: f.fecha_factura,
+        total_factura: f.total_factura,
+        fecha: f.fecha,
+        hora: f.hora || null,
+        numero_tarjeta: f.numero_tarjeta || null,
+        numero_registro: f.numero_registro || null,
+        titular: f.titular || null,
+        titular_es_persona: f.titular_es_persona,
+        kilometraje: f.kilometraje,
+        estacion_codigo: f.estacion_codigo || null,
+        estacion_ubicacion: f.estacion_ubicacion || null,
+        producto: f.producto || null,
+        galones: f.galones,
+        precio_unitario: null,
+        importe: f.monto,
+        ncf: f.ncf || null,
+        trans_status: f.trans_status || null,
+      }));
+      const nuevas = await this.service.importarTransacciones(payload);
+      await this.conciliar(filas, this.nombreArchivo() ?? 'informe');
+      this.preview.set(null);
+      this.toast.success('Transacciones importadas', `${nuevas} nueva(s). Revisa la conciliación abajo.`);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo importar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.importando.set(false);
+    }
+  }
+
+  /** Lee el Excel/CSV. Prioriza los encabezados EXACTOS del reporte Total Energies
+   *  (con guiones bajos) y cae a detección difusa para otros formatos. */
   private async parseInforme(file: File): Promise<InformeRow[]> {
     const XLSX = await import('xlsx');
     const buf = await file.arrayBuffer();
@@ -153,30 +253,83 @@ export class ConciliacionCombustible implements OnInit {
     if (rows.length === 0) return [];
 
     const keys = Object.keys(rows[0]);
-    const find = (...kw: string[]) =>
-      keys.find((k) =>
-        kw.some((w) => k.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(w)),
-      );
-    const kFecha = find('fecha', 'date', 'dia');
-    const kId = find('placa', 'tarjeta', 'vehiculo', 'vehículo', 'unidad', 'ficha');
-    const kGal = find('galon', 'galón', 'gallon', 'cantidad', 'litro');
-    const kMonto = find('monto', 'importe', 'total', 'valor', 'amount');
+    const norm = (k: string) => k.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    // Coincidencia exacta (por nombre normalizado) o, si no, difusa que EXCLUYE términos.
+    const col = (exact: string[], incluye: string[] = [], excluye: string[] = []): string | undefined => {
+      for (const e of exact) { const k = keys.find((x) => norm(x) === norm(e)); if (k) return k; }
+      if (incluye.length === 0) return undefined;
+      return keys.find((x) => {
+        const n = norm(x);
+        return incluye.some((w) => n.includes(w)) && !excluye.some((w) => n.includes(w));
+      });
+    };
+
+    const kTrans = col(['Transacción_num']);
+    const kFecha = col(['Fecha_de_Transacción'], ['fecha'], ['documento', 'vencimiento', 'caducidad']);
+    const kHora = col(['hora_de_transacción'], ['hora']);
+    const kGal = col(['Cantidad'], ['galon', 'litro'], ['factura', 'impuesto']); // 'Cantidad' exacto, NO Cantidad_de_...
+    const kMonto = col(['Importe_IVA_incluido', 'Importe_sin_impuestos'], ['importe', 'monto'], ['factura', 'impuesto', 'iva']);
+    const kRegistro = col(['Número_de_registro']);
+    const kTitular = col(['Titular_de_la_tarjeta']);
+    const kTarjeta = col(['Número_de_tarjeta']);
+    const kProducto = col(['Producto_o_artículo'], ['producto', 'articulo']);
+    const kKm = col(['Kilometraje'], ['kilometraje', 'odometro']);
+    const kEstCod = col(['Código_de_estación']);
+    const kEstUbi = col(['Ubicación'], ['ubicacion']);
+    const kNcf = col(['Número_NCF']);
+    const kStatus = col(['Trans_Status']);
+    const kFactNum = col(['Número_del_Documento']);
+    const kFactTot = col(['Importe_de_la_factura_incl']);
+    const kFactFecha = col(['Fecha_del_documento']);
+    const kId = kRegistro ?? col([], ['placa', 'tarjeta', 'vehiculo', 'unidad', 'ficha']);
 
     const out: InformeRow[] = [];
     for (const r of rows) {
-      const fecha = this.toIso(kFecha ? r[kFecha] : null);
-      const identificador = kId ? String(r[kId] ?? '').trim() : '';
+      const registro = String(r[kRegistro ?? ''] ?? '').trim();
+      const titular = String(r[kTitular ?? ''] ?? '').trim();
+      const registroValido = registro !== '' && !/^x+$/i.test(registro);
+      const identificador = registroValido ? registro : (kId ? String(r[kId ?? ''] ?? '').trim() : titular);
       const galones = this.toNum(kGal ? r[kGal] : null);
       const monto = this.toNum(kMonto ? r[kMonto] : null);
-      if (!identificador && !fecha && galones == null && monto == null) continue;
-      out.push({ identificador, fecha, galones, monto });
+      const fecha = this.toIso(kFecha ? r[kFecha] : null);
+      const transaccion_num = String(r[kTrans ?? ''] ?? '').trim();
+      const invalida = !transaccion_num || (galones == null && monto == null);
+      if (invalida && !identificador && !fecha) continue;
+      out.push({
+        identificador,
+        fecha,
+        galones,
+        monto,
+        transaccion_num,
+        titular,
+        // Tarjeta a persona: sin placa válida en Número_de_registro.
+        titular_es_persona: !registroValido && titular !== '',
+        numero_tarjeta: String(r[kTarjeta ?? ''] ?? '').trim(),
+        numero_registro: registro,
+        producto: String(r[kProducto ?? ''] ?? '').trim(),
+        kilometraje: this.toNum(kKm ? r[kKm] : null),
+        hora: String(r[kHora ?? ''] ?? '').trim(),
+        estacion_codigo: String(r[kEstCod ?? ''] ?? '').trim(),
+        estacion_ubicacion: String(r[kEstUbi ?? ''] ?? '').trim(),
+        ncf: String(r[kNcf ?? ''] ?? '').trim(),
+        trans_status: String(r[kStatus ?? ''] ?? '').trim(),
+        numero_factura: String(r[kFactNum ?? ''] ?? '').trim(),
+        total_factura: this.toNum(kFactTot ? r[kFactTot] : null),
+        fecha_factura: this.toIso(kFactFecha ? r[kFactFecha] : null),
+        invalida,
+      });
     }
     return out;
   }
 
+  /** Convierte a número tolerando formato dominicano (coma decimal "28,57"). */
   private toNum(v: unknown): number | null {
     if (v == null || v === '') return null;
-    const n = Number(String(v).replace(/[$,\s]/g, ''));
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    let s = String(v).trim().replace(/rd\$?/i, '').replace(/[$\s]/g, '');
+    if (s.includes(',') && s.includes('.')) s = s.replace(/,/g, ''); // coma = miles
+    else if (s.includes(',')) s = s.replace(',', '.'); // coma = decimal
+    const n = Number(s);
     return Number.isFinite(n) ? n : null;
   }
 

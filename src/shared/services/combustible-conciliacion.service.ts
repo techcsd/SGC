@@ -95,6 +95,23 @@ export class CombustibleConciliacionService {
     return (data ?? []) as unknown as ConciliacionRegistro[];
   }
 
+  /** Z23 — inserta transacciones del proveedor deduplicando por Transacción_num. */
+  async importarTransacciones(transacciones: Record<string, unknown>[]): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('importar_transacciones_combustible', {
+      p_transacciones: transacciones,
+    });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
+  /** Z23 — cuáles de estos Transacción_num ya se importaron (para el preview). */
+  async transaccionesExistentes(nums: string[]): Promise<string[]> {
+    if (nums.length === 0) return [];
+    const { data, error } = await this.supabase.client.rpc('transacciones_existentes', { p_nums: nums });
+    if (error) return [];
+    return (data as string[]) ?? [];
+  }
+
   async getDetalle(conciliacionId: string): Promise<ConciliacionDetalle[]> {
     const { data, error } = await this.supabase.client
       .from('conciliacion_combustible_detalle')

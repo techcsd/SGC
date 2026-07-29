@@ -25,10 +25,68 @@
   @if (parsing()) { <p class="cc-muted">Procesando…</p> }
   @if (parseError()) { <p class="cc-error" role="alert">{{ parseError() }}</p> }
   <p class="cc-hint">
-    El importador detecta automáticamente las columnas de <strong>fecha</strong>, <strong>placa/tarjeta</strong>,
-    <strong>galones</strong> y <strong>monto</strong> por el nombre del encabezado.
+    Reconoce el reporte real de Total Energies (coma decimal, fechas dd/mm/aaaa, Transacción_num) y otros
+    formatos. Nada se inserta hasta que confirmes en la <strong>vista previa</strong>.
   </p>
 </div>
+
+<!-- ── Z23 — Vista previa obligatoria antes de importar/conciliar ── -->
+@if (preview(); as rows) {
+  <div class="sgc-card cc-preview">
+    <div class="cc-preview__head">
+      <h2 class="cc-section" style="margin:0">Vista previa — factura {{ facturaNum() || '—' }}</h2>
+      <div class="cc-preview__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarPreview()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="importando() || previewStats().validas === 0"
+                (click)="confirmarImport()">
+          {{ importando() ? 'Importando…' : 'Confirmar e importar (' + (previewStats().validas - previewStats().duplicadas) + ')' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><span class="stat-card__label">Filas</span><span class="stat-card__value">{{ previewStats().total }}</span></div>
+      <div class="stat-card"><span class="stat-card__label">Σ Galones</span><span class="stat-card__value">{{ previewStats().sumaGalones | number:'1.0-2' }}</span></div>
+      <div class="stat-card" [class.stat-card--ok]="cuadraFactura() === true" [class.stat-card--danger]="cuadraFactura() === false">
+        <span class="stat-card__label">Σ Monto vs factura</span>
+        <span class="stat-card__value">{{ previewStats().sumaMonto | number:'1.0-2' }} / {{ facturaTotal() === null ? '—' : (facturaTotal() | number:'1.0-2') }}</span>
+      </div>
+      @if (previewStats().duplicadas > 0) { <div class="stat-card stat-card--warn"><span class="stat-card__label">Duplicadas (ya importadas)</span><span class="stat-card__value">{{ previewStats().duplicadas }}</span></div> }
+      @if (previewStats().invalidas > 0) { <div class="stat-card stat-card--danger"><span class="stat-card__label">Inválidas</span><span class="stat-card__value">{{ previewStats().invalidas }}</span></div> }
+      @if (previewStats().personas > 0) { <div class="stat-card"><span class="stat-card__label">Titular = persona</span><span class="stat-card__value">{{ previewStats().personas }}</span></div> }
+    </div>
+    @if (cuadraFactura() === false) {
+      <p class="cc-error">⚠️ La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
+    }
+
+    <div class="table-wrapper sgc-card">
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Vista previa del reporte">
+          <thead>
+            <tr><th>Transacción</th><th>Fecha</th><th>Vehículo / Titular</th><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            @for (r of rows; track $index) {
+              <tr [class.cc-dup]="r.duplicada" [class.cc-neg]="r.invalida">
+                <td><code class="code-tag">{{ r.transaccion_num || '—' }}</code></td>
+                <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }} {{ r.hora }}</td>
+                <td>{{ r.identificador }} @if (r.titular_es_persona) { <span class="sgc-badge sgc-badge--neutral">persona</span> }</td>
+                <td>{{ r.producto || '—' }}</td>
+                <td class="text-right">{{ r.galones === null ? '—' : (r.galones | number:'1.0-2') }}</td>
+                <td class="text-right">{{ r.monto === null ? '—' : (r.monto | number:'1.0-2') }}</td>
+                <td>
+                  @if (r.invalida) { <span class="sgc-badge sgc-badge--danger">inválida</span> }
+                  @else if (r.duplicada) { <span class="sgc-badge sgc-badge--warning">ya importada</span> }
+                  @else { <span class="sgc-badge sgc-badge--success">nueva</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+}
 
 <!-- ── Resultado del cruce ── -->
 @if (meta(); as m) {
