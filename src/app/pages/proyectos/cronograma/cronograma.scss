@@ -62,11 +62,30 @@
 
 // ── Gantt ──
 .cron__gantt { padding: 18px; position: relative; overflow: hidden; }
-.cron__today {
-  position: absolute; top: 18px; bottom: 40px; width: 2px;
-  background: var(--sgc-primary); opacity: 0.5; z-index: 2;
+
+// Z16 — eje temporal alineado a la zona de barras (columna 1fr tras el label).
+.cron__axis { display: grid; grid-template-columns: 220px 1fr; gap: 12px; margin-bottom: 6px;
+  @media (max-width: 768px) { grid-template-columns: 130px 1fr; }
 }
-.cron__grow { display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 12px; margin-bottom: 8px;
+.cron__axis-track { position: relative; height: 16px; }
+.cron__axis-tick {
+  position: absolute; top: 0; transform: translateX(-50%);
+  font-size: 10.5px; color: var(--sgc-text-secondary); white-space: nowrap;
+  &:first-child { transform: translateX(0); }
+  &:last-child { transform: translateX(-100%); }
+}
+.cron__gantt-body { position: relative; }
+// Overlay que cubre solo la zona de barras (offset por el ancho del label).
+.cron__overlay {
+  position: absolute; top: 0; bottom: 0; left: 232px; right: 0; pointer-events: none; z-index: 0;
+  @media (max-width: 768px) { left: 142px; }
+}
+.cron__grid-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--sgc-border); opacity: 0.5; }
+.cron__today {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: var(--sgc-primary); opacity: 0.6; z-index: 2;
+}
+.cron__grow { position: relative; z-index: 1; display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 12px; margin-bottom: 8px;
   &--hl { background: var(--sgc-primary-light); border-radius: var(--sgc-radius); }
   @media (max-width: 768px) { grid-template-columns: 130px 1fr; }
 }
@@ -96,6 +115,23 @@
   span { display: flex; align-items: center; gap: 5px; }
 }
 .cron__legend-real { display: inline-block; width: 18px; height: 6px; border-radius: 3px; background: var(--sgc-text-secondary); }
+.cron__legend-dep i { display: inline-block; width: 18px; height: 0; border-top: 2px dashed var(--sgc-primary-mid, #9aa); }
+
+// Z16 — conector de dependencia finish-to-start (línea punteada + flecha).
+.cron__dep {
+  position: absolute; top: 0; height: 8px; z-index: 1;
+  border-top: 2px dashed var(--sgc-primary-mid, #9aa);
+  border-right: 2px dashed var(--sgc-primary-mid, #9aa);
+  border-top-right-radius: 4px;
+  &--warn { border-color: var(--sgc-danger); }
+}
+.cron__dep-arrow {
+  position: absolute; right: -1px; bottom: -5px;
+  width: 0; height: 0;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid var(--sgc-primary-mid, #9aa);
+}
+.cron__dep--warn .cron__dep-arrow { border-top-color: var(--sgc-danger); }
 
 // ── Lista ──
 .cron__table-wrap {

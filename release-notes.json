@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.48.0": {
+      "titulo": "Cronograma: Gantt con eje de fechas y dependencias",
+      "cambios": [
+        { "t": "nuevo", "d": "El timeline del cronograma ahora muestra un eje temporal con fechas reales y una rejilla alineada a las barras." },
+        { "t": "nuevo", "d": "Se dibujan conectores de dependencia entre tareas encadenadas (fin → inicio); se marcan en rojo cuando una tarea arranca antes de que termine la anterior." }
+      ]
+    },
     "1.47.0": {
       "titulo": "Bitácora: tipos con iconos y separación Mis/Todas",
       "cambios": [

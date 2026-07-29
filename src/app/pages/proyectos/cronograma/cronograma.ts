@@ -22,6 +22,17 @@ interface GanttBar {
   realLeft: number;
   realWidth: number;
   atrasada: boolean;
+  // Z16 — conector de dependencia finish-to-start con la tarea anterior (encadenada).
+  tieneDep: boolean;
+  depLeft: number;
+  depWidth: number;
+  /** El inicio de esta tarea es posterior al fin de la anterior (dependencia sana). */
+  depForward: boolean;
+}
+
+interface EjeTick {
+  pct: number;
+  label: string;
 }
 
 const MS_DAY = 86400000;
@@ -85,35 +96,8 @@ export class Cronograma implements OnInit {
   });
 
   // ── Gantt geometry ──
-  ganttBars = computed<GanttBar[]>(() => {
-    const ts = this.tareas();
-    const dates: number[] = [];
-    for (const t of ts) {
-      for (const d of [t.fecha_inicio_plan, t.fecha_fin_plan, t.fecha_inicio_real, t.fecha_fin_real]) {
-        if (d) dates.push(this.parse(d));
-      }
-    }
-    if (!dates.length) return [];
-    const min = Math.min(...dates);
-    const max = Math.max(...dates);
-    const span = Math.max(1, (max - min) / MS_DAY + 1);
-    return ts.map((t) => {
-      const pi = t.fecha_inicio_plan ? this.parse(t.fecha_inicio_plan) : min;
-      const pf = t.fecha_fin_plan ? this.parse(t.fecha_fin_plan) : pi;
-      const ri = t.fecha_inicio_real ? this.parse(t.fecha_inicio_real) : null;
-      const rf = t.fecha_fin_real ? this.parse(t.fecha_fin_real) : ri;
-      return {
-        tarea: t,
-        planLeft: ((pi - min) / MS_DAY / span) * 100,
-        planWidth: Math.max(2, ((pf - pi) / MS_DAY + 1) / span * 100),
-        realLeft: ri !== null ? ((ri - min) / MS_DAY / span) * 100 : 0,
-        realWidth: ri !== null ? Math.max(2, (((rf ?? ri) - ri) / MS_DAY + 1) / span * 100) : 0,
-        atrasada: esTareaAtrasada(t, this.hoy),
-      };
-    });
-  });
-
-  todayPct = computed(() => {
+  /** Rango temporal común (min/max/span en días) de todo el cronograma. */
+  private rango = computed<{ min: number; max: number; span: number } | null>(() => {
     const ts = this.tareas();
     const dates: number[] = [];
     for (const t of ts) {
@@ -124,7 +108,78 @@ export class Cronograma implements OnInit {
     if (!dates.length) return null;
     const min = Math.min(...dates);
     const max = Math.max(...dates);
-    const span = Math.max(1, (max - min) / MS_DAY + 1);
+    return { min, max, span: Math.max(1, (max - min) / MS_DAY + 1) };
+  });
+
+  ganttBars = computed<GanttBar[]>(() => {
+    const ts = this.tareas();
+    const r = this.rango();
+    if (!r) return [];
+    const { min, span } = r;
+    const pct = (ms: number) => ((ms - min) / MS_DAY / span) * 100;
+
+    // Encadenamiento por `orden`: cada tarea depende de la anterior (finish-to-start).
+    const ordenadas = [...ts].sort((a, b) => a.orden - b.orden);
+    const idxById = new Map(ordenadas.map((t, i) => [t.id, i] as const));
+
+    return ts.map((t) => {
+      const pi = t.fecha_inicio_plan ? this.parse(t.fecha_inicio_plan) : min;
+      const pf = t.fecha_fin_plan ? this.parse(t.fecha_fin_plan) : pi;
+      const ri = t.fecha_inicio_real ? this.parse(t.fecha_inicio_real) : null;
+      const rf = t.fecha_fin_real ? this.parse(t.fecha_fin_real) : ri;
+
+      // Dependencia con la tarea anterior en el orden (si ambas tienen plan).
+      const myIdx = idxById.get(t.id) ?? 0;
+      const prev = myIdx > 0 ? ordenadas[myIdx - 1] : null;
+      let tieneDep = false, depLeft = 0, depWidth = 0, depForward = true;
+      if (prev && prev.fecha_fin_plan && t.fecha_inicio_plan) {
+        const prevFin = pct(this.parse(prev.fecha_fin_plan) + MS_DAY); // fin de día
+        const curIni = pct(pi);
+        tieneDep = true;
+        depForward = curIni >= prevFin - 0.01;
+        depLeft = Math.min(prevFin, curIni);
+        depWidth = Math.max(0, Math.abs(curIni - prevFin));
+      }
+
+      return {
+        tarea: t,
+        planLeft: pct(pi),
+        planWidth: Math.max(2, ((pf - pi) / MS_DAY + 1) / span * 100),
+        realLeft: ri !== null ? pct(ri) : 0,
+        realWidth: ri !== null ? Math.max(2, (((rf ?? ri) - ri) / MS_DAY + 1) / span * 100) : 0,
+        atrasada: esTareaAtrasada(t, this.hoy),
+        tieneDep, depLeft, depWidth, depForward,
+      };
+    });
+  });
+
+  /** Z16 — eje temporal: ~7 marcas equiespaciadas con su fecha. */
+  ejeTicks = computed<EjeTick[]>(() => {
+    const r = this.rango();
+    if (!r) return [];
+    const { min, max } = r;
+    const totalDias = (max - min) / MS_DAY;
+    const n = Math.min(7, Math.max(2, Math.round(totalDias / 7) + 1));
+    const ticks: EjeTick[] = [];
+    for (let i = 0; i < n; i++) {
+      const frac = i / (n - 1);
+      const ms = min + (max - min) * frac;
+      ticks.push({ pct: frac * 100, label: this.tickLabel(ms) });
+    }
+    return ticks;
+  });
+
+  private tickLabel(ms: number): string {
+    const d = new Date(ms);
+    const dia = d.getUTCDate();
+    const mes = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][d.getUTCMonth()];
+    return `${dia} ${mes}`;
+  }
+
+  todayPct = computed(() => {
+    const r = this.rango();
+    if (!r) return null;
+    const { min, max, span } = r;
     const today = this.parse(this.hoy);
     if (today < min || today > max) return null;
     return ((today - min) / MS_DAY / span) * 100;

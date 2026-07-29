@@ -68,32 +68,60 @@
     <!-- ── Timeline (Gantt simple) ── -->
     @if (vista() === 'gantt') {
       <div class="cron__gantt sgc-card">
-        @if (todayPct() !== null) {
-          <div class="cron__today" [style.left.%]="todayPct()" title="Hoy"></div>
-        }
-        @for (b of ganttBars(); track b.tarea.id) {
-          <div class="cron__grow" [class.cron__grow--hl]="b.tarea.id === highlightTarea()">
-            <div class="cron__grow-label">
-              <span class="cron__dot" [attr.data-tipo]="b.tarea.tipo"></span>
-              {{ b.tarea.nombre }}
-            </div>
-            <div class="cron__track">
-              <div class="cron__bar cron__bar--plan" [attr.data-tipo]="b.tarea.tipo" [class.cron__bar--atrasada]="b.atrasada"
-                   [style.left.%]="b.planLeft" [style.width.%]="b.planWidth"
-                   [title]="'Plan: ' + formatFecha(b.tarea.fecha_inicio_plan) + ' → ' + formatFecha(b.tarea.fecha_fin_plan)"></div>
-              @if (b.realWidth > 0) {
-                <div class="cron__bar cron__bar--real" [style.left.%]="b.realLeft" [style.width.%]="b.realWidth"
-                     [class.cron__bar--done]="b.tarea.estado === 'completada'"
-                     [title]="'Real: ' + formatFecha(b.tarea.fecha_inicio_real) + ' → ' + (b.tarea.fecha_fin_real ? formatFecha(b.tarea.fecha_fin_real) : 'en curso')"></div>
+        <!-- Z16 — eje temporal real: marcas de fecha + líneas de rejilla -->
+        @if (ejeTicks().length) {
+          <div class="cron__axis">
+            <div class="cron__axis-spacer"></div>
+            <div class="cron__axis-track">
+              @for (tk of ejeTicks(); track $index) {
+                <span class="cron__axis-tick" [style.left.%]="tk.pct">{{ tk.label }}</span>
               }
             </div>
           </div>
         }
+        <div class="cron__gantt-body">
+          <!-- Rejilla vertical + marca de hoy, alineadas a la zona de barras -->
+          <div class="cron__overlay" aria-hidden="true">
+            @for (tk of ejeTicks(); track $index) {
+              <span class="cron__grid-line" [style.left.%]="tk.pct"></span>
+            }
+            @if (todayPct() !== null) {
+              <div class="cron__today" [style.left.%]="todayPct()" title="Hoy"></div>
+            }
+          </div>
+          @for (b of ganttBars(); track b.tarea.id) {
+            <div class="cron__grow" [class.cron__grow--hl]="b.tarea.id === highlightTarea()">
+              <div class="cron__grow-label">
+                <span class="cron__dot" [attr.data-tipo]="b.tarea.tipo"></span>
+                {{ b.tarea.nombre }}
+              </div>
+              <div class="cron__track">
+                <!-- Z16 — conector de dependencia con la tarea anterior (finish-to-start) -->
+                @if (b.tieneDep) {
+                  <div class="cron__dep" [class.cron__dep--warn]="!b.depForward"
+                       [style.left.%]="b.depLeft" [style.width.%]="b.depWidth"
+                       [title]="b.depForward ? 'Depende de la tarea anterior' : '⚠ Empieza antes de que termine la anterior'">
+                    <span class="cron__dep-arrow" aria-hidden="true"></span>
+                  </div>
+                }
+                <div class="cron__bar cron__bar--plan" [attr.data-tipo]="b.tarea.tipo" [class.cron__bar--atrasada]="b.atrasada"
+                     [style.left.%]="b.planLeft" [style.width.%]="b.planWidth"
+                     [title]="'Plan: ' + formatFecha(b.tarea.fecha_inicio_plan) + ' → ' + formatFecha(b.tarea.fecha_fin_plan)"></div>
+                @if (b.realWidth > 0) {
+                  <div class="cron__bar cron__bar--real" [style.left.%]="b.realLeft" [style.width.%]="b.realWidth"
+                       [class.cron__bar--done]="b.tarea.estado === 'completada'"
+                       [title]="'Real: ' + formatFecha(b.tarea.fecha_inicio_real) + ' → ' + (b.tarea.fecha_fin_real ? formatFecha(b.tarea.fecha_fin_real) : 'en curso')"></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
         <div class="cron__legend">
           <span><i class="cron__dot" data-tipo="ordinaria"></i> Ordinaria</span>
           <span><i class="cron__dot" data-tipo="importante"></i> Importante</span>
           <span><i class="cron__dot" data-tipo="critica"></i> Crítica</span>
           <span class="cron__legend-real"></span> Real
+          <span class="cron__legend-dep"><i></i> Dependencia</span>
         </div>
       </div>
     }
