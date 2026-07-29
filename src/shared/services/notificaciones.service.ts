@@ -61,6 +61,8 @@ export class NotificacionesService {
       checks.push(this.loadTareasPendientes(userId));
       checks.push(this.loadMensajesNoLeidos());
     }
+    // Z29 — reportes de soporte sin atender (RLS: admin ve todos; usuario, los suyos).
+    checks.push(this.loadReportesSoporte());
 
     await Promise.all(checks);
   }
@@ -160,6 +162,15 @@ export class NotificacionesService {
     ]);
     const total = (weatherRes.count ?? 0) + (cronogramaRes.count ?? 0);
     this._pendingByModulo.update((m) => ({ ...m, proyectos: total }));
+  }
+
+  /** Z29 — reportes de soporte no resueltos → badge en "Soporte". */
+  private async loadReportesSoporte(): Promise<void> {
+    const { count } = await this.supabase.client
+      .from('reportes_usuario')
+      .select('id', { count: 'exact', head: true })
+      .neq('estado', 'resuelto');
+    this._pendingByModulo.update((m) => ({ ...m, soporte: count ?? 0 }));
   }
 
   private async loadMensajesNoLeidos(): Promise<void> {

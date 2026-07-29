@@ -1,6 +1,12 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.43.0": {
+      "titulo": "Soporte: contador de reportes sin atender",
+      "cambios": [
+        { "t": "nuevo", "d": "El menú \"Soporte\" ahora muestra un contador de reportes de usuarios sin atender; se limpia al resolverlos." }
+      ]
+    },
     "1.42.0": {
       "titulo": "Tecnología: permisos por submódulo y captura de errores de la web",
       "cambios": [

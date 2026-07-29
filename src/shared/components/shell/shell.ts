@@ -247,6 +247,7 @@ export class Shell implements OnInit {
       label: 'Soporte',
       icon: 'soporte',
       route: '/soporte',
+      badgeKey: 'soporte',
     },
     {
       label: 'Dudas',
