@@ -10,7 +10,18 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DecimalPipe } from '@angular/common';
 import { ActivosService } from '../../../../shared/services/activos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
-import { ActivoFijo, ActivoFormData, ACTIVO_ESTADOS, ActivoEstado } from '../../../../shared/models/activo.model';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { EmpleadosService } from '../../../../shared/services/empleados.service';
+import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import {
+  ActivoFijo,
+  ActivoFormData,
+  ACTIVO_ESTADOS,
+  ActivoEstado,
+  ActivoAsignadoTipo,
+  ACTIVO_ASIGNADO_TIPOS,
+} from '../../../../shared/models/activo.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -32,6 +43,10 @@ export class Activos implements OnInit {
 
   private activosService = inject(ActivosService);
   private categoriasService = inject(CategoriasService);
+  private proyectosService = inject(ProyectosService);
+  private empleadosService = inject(EmpleadosService);
+  private bodegasService = inject(BodegasService);
+  private vehiculosService = inject(VehiculosService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private toast = inject(ToastService);
@@ -43,6 +58,23 @@ export class Activos implements OnInit {
   // ── Data state ──────────────────────────────────────────
   activos = signal<ActivoFijo[]>([]);
   categories = signal<CategoriaFlat[]>([]);
+
+  // Y8 — listas de entidades relacionables (id + etiqueta) para el selector.
+  readonly ACTIVO_ASIGNADO_TIPOS = ACTIVO_ASIGNADO_TIPOS;
+  asignables = signal<Record<ActivoAsignadoTipo, { id: string; label: string }[]>>({
+    proyecto: [],
+    empleado: [],
+    ingeniero: [],
+    almacen: [],
+    vehiculo: [],
+  });
+  /** Espejo reactivo del tipo elegido en el form (para el computed con OnPush). */
+  asignadoTipoSel = signal<ActivoAsignadoTipo | null>(null);
+  asignadoOpciones = computed(() => {
+    const t = this.asignadoTipoSel();
+    return t ? this.asignables()[t] : [];
+  });
+
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -105,6 +137,8 @@ export class Activos implements OnInit {
     vida_util_anios: new FormControl<number | null>(null, [Validators.min(1)]),
     estado: new FormControl<ActivoEstado>('activo', [Validators.required]),
     ubicacion: new FormControl<string | null>(null),
+    asignado_tipo: new FormControl<ActivoAsignadoTipo | null>(null),
+    asignado_id: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
     es_prueba: new FormControl<boolean>(false),
@@ -147,12 +181,25 @@ export class Activos implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [cats, activos] = await Promise.all([
+      const [cats, activos, proyectos, empleados, bodegas, vehiculos, ingenieros] = await Promise.all([
         this.categoriasService.getAll(),
         this.activosService.getAll(),
+        this.proyectosService.getAll(),
+        this.empleadosService.getAll(),
+        this.bodegasService.getAll(),
+        this.vehiculosService.getAll(),
+        this.proyectosService.getDirectorioUsuarios(),
       ]);
       this.categories.set(this.categoriasService.buildFlatList(cats));
       this.activos.set(activos);
+      // Y8 — construir las listas relacionables (id + etiqueta legible).
+      this.asignables.set({
+        proyecto: proyectos.map((p) => ({ id: p.id, label: p.nombre })),
+        empleado: empleados.map((e) => ({ id: e.id, label: `${e.nombre} ${e.apellido ?? ''}`.trim() })),
+        ingeniero: ingenieros.map((u) => ({ id: u.id, label: u.nombre })),
+        almacen: bodegas.map((b) => ({ id: b.id, label: b.nombre })),
+        vehiculo: vehiculos.map((v) => ({ id: v.id, label: `${v.placa} — ${v.marca}` })),
+      });
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -206,6 +253,7 @@ export class Activos implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.form.reset({ activo: true, estado: 'activo', valor_adquisicion: 0, es_prueba: false });
+    this.asignadoTipoSel.set(null);
     this.drawerOpen.set(true);
   }
 
@@ -222,11 +270,22 @@ export class Activos implements OnInit {
       vida_util_anios: activo.vida_util_anios,
       estado: activo.estado,
       ubicacion: activo.ubicacion,
+      asignado_tipo: activo.asignado_tipo,
+      asignado_id: activo.asignado_id,
       notas: activo.notas,
       activo: activo.activo,
       es_prueba: activo.es_prueba ?? false,
     });
+    this.asignadoTipoSel.set(activo.asignado_tipo);
     this.drawerOpen.set(true);
+  }
+
+  /** Y8 — al cambiar el tipo de relación, refresca las opciones y limpia el id. */
+  onAsignadoTipoChange(value: string) {
+    const tipo = (value || null) as ActivoAsignadoTipo | null;
+    this.asignadoTipoSel.set(tipo);
+    this.form.controls.asignado_tipo.setValue(tipo);
+    this.form.controls.asignado_id.setValue(null);
   }
 
   closeDrawer() {
@@ -312,6 +371,14 @@ export class Activos implements OnInit {
   getCategoryName(id: number | null): string {
     if (id === null) return '—';
     return this.categories().find((c) => c.id === id)?.nombre ?? '—';
+  }
+
+  /** Y8 — texto legible de la relación del activo (icono + tipo + nombre). */
+  asignadoLabel(a: ActivoFijo): string | null {
+    if (!a.asignado_tipo || !a.asignado_id) return null;
+    const meta = ACTIVO_ASIGNADO_TIPOS.find((t) => t.value === a.asignado_tipo);
+    const nombre = this.asignables()[a.asignado_tipo].find((o) => o.id === a.asignado_id)?.label ?? '—';
+    return `${meta?.icono ?? ''} ${meta?.label ?? a.asignado_tipo}: ${nombre}`.trim();
   }
 
   get f() {

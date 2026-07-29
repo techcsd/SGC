@@ -1096,6 +1096,15 @@
           "d": "Diseño responsive: los paneles de Orden de compra y Registrar salida son más anchos para las tablas de ítems, y el menú lateral arranca colapsado en tablets y laptops."
         }
       ]
+    },
+    "1.52.0": {
+      "titulo": "Activos fijos: relación a obra, empleado, ingeniero, almacén o vehículo (Y8)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Cada activo fijo se puede relacionar con una obra/proyecto, un empleado, un ingeniero, un almacén o un vehículo, desde el formulario del activo. La relación se muestra en el detalle."
+        }
+      ]
     }
   }
 }

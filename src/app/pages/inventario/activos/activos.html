@@ -377,6 +377,35 @@
       </div>
     </div>
 
+    <!-- Y8 — Relación del activo a obra / empleado / ingeniero / almacén / vehículo -->
+    <div class="form-row form-row--2">
+      <div class="sgc-field">
+        <label for="asignado_tipo">Relacionado con</label>
+        <select
+          id="asignado_tipo"
+          [value]="asignadoTipoSel() ?? ''"
+          (change)="onAsignadoTipoChange($any($event.target).value)"
+        >
+          <option value="">Sin relación</option>
+          @for (t of ACTIVO_ASIGNADO_TIPOS; track t.value) {
+            <option [value]="t.value">{{ t.icono }} {{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      @if (asignadoTipoSel()) {
+        <div class="sgc-field">
+          <label for="asignado_id">¿Cuál?</label>
+          <select id="asignado_id" formControlName="asignado_id">
+            <option [ngValue]="null">Seleccionar…</option>
+            @for (o of asignadoOpciones(); track o.id) {
+              <option [ngValue]="o.id">{{ o.label }}</option>
+            }
+          </select>
+        </div>
+      }
+    </div>
+
     <div class="sgc-field">
       <label for="notas">Notas</label>
       <textarea
@@ -452,6 +481,7 @@
         <div><dt>Categoría</dt><dd>{{ a.categoria?.nombre ?? getCategoryName(a.categoria_id) }}</dd></div>
         <div><dt>Ubicación</dt><dd>{{ a.ubicacion ?? '—' }}</dd></div>
         <div><dt>Responsable</dt><dd>{{ a.responsable?.nombre ?? '—' }}</dd></div>
+        <div><dt>Relacionado con</dt><dd>{{ asignadoLabel(a) ?? '—' }}</dd></div>
         <div><dt>Fecha de adquisición</dt><dd>{{ formatFecha(a.fecha_adquisicion) }}</dd></div>
         <div><dt>Valor de adquisición</dt><dd>RD$ {{ a.valor_adquisicion | number:'1.2-2' }}</dd></div>
         <div><dt>Vida útil</dt><dd>{{ a.vida_util_anios ? a.vida_util_anios + ' años' : '—' }}</dd></div>
