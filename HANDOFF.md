@@ -2,10 +2,13 @@
 
 _Last updated: 2026-07-29_
 
-## PROMPT-8 · Verificación total + cierre de pendientes (29/07/2026) — ✅ COMPLETO Y EN PRODUCCIÓN (web 1.51.0, commit `9a556d8` en `main`)
+## PROMPT-8 · Verificación total + cierre de pendientes (29/07/2026) — ✅ COMPLETO Y EN PRODUCCIÓN (web 1.51.0 `9a556d8` + Y8 1.52.0 `7a83ef8` + Telegram-out `d9409d2`, todo en `main`)
 
 ### TL;DR
-Auditoría total del paquete `imp 28072026` (Y1–Y17 + Z1–Z33) → `C:\developer\improvements\imp 28072026\INFORME-VERIFICACION.md`. Resultado 45✅/11🟡/1⏸; luego Xaviel autorizó **cerrar todo**. Los 15 pendientes de la lista priorizada quedaron cerrados y en prod (web 1.51.0). El detalle de qué era cada ID está en la sección `## ✅ CIERRE` del informe.
+Auditoría total del paquete `imp 28072026` (Y1–Y17 + Z1–Z33) → `C:\developer\improvements\imp 28072026\INFORME-VERIFICACION.md`. Resultado 45✅/11🟡/1⏸; luego Xaviel autorizó **cerrar todo**. Los 15 pendientes de la lista priorizada quedaron cerrados y en prod (web 1.51.0), **+ Y8** (activo fijo relacionable, web 1.52.0). El detalle de qué era cada ID está en la sección `## ✅ CIERRE` del informe.
+
+### Telegram eliminado + monitoreo verificado (29/07, commit `d9409d2`)
+**Decisión permanente:** SGC no usa Telegram — notificaciones solo por **correo (Resend)** o in-app. Se quitó `sendTelegram()` de los edges `check-domains`/`check-subscriptions` y ambas se **redesplegaron** (`npx supabase functions deploy … --no-verify-jwt`). **Cron verificado en vivo (17:45 UTC):** `sgc-check-domains` (cada 2h) y `sgc-check-subscriptions` (cada 12h) activos, **0 corridas fallidas en 24h**, última `succeeded`; invocación manual de ambos edges → **HTTP 200** (`ok:true`, `recipients:2`), `domain_checks` con escritura fresca, **0 alertas activas**. El monitoreo corre completo notificando solo por correo.
 
 ### Done this session (web 1.51.0)
 - **🔴 Z5 fuga de datos de prueba (bug confirmado en BD viva) — CERRADO.** Causa: `trg_cascada_prueba` solo existía en `vehiculos`/`conductores`; `proyectos`/`bodegas` tenían el mapa en `_cascada_prueba` pero **sin trigger** → marcar un proyecto/almacén no ocultaba sus derivados a usuarios normales. Fix `sql/2026-07-29-z5-fix-cascada-proyecto-bodega.sql`: engancha `trg_cascada_prueba` a proyectos/bodegas + extiende `tg_heredar_es_prueba` a `proyecto_id`/`bodega_id` y lo engancha a las 6 derivadas + **backfill retroactivo**. Probado en transacción con rollback (marcar proyecto → OCs pasan a `es_prueba_origen='heredado'`).
