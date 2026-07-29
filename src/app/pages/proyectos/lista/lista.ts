@@ -16,7 +16,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ProyectoEstructurasService, ProyectoEstructura } from '../../../../shared/services/proyecto-estructuras.service';
 import {
@@ -156,6 +156,10 @@ export class Lista implements OnInit {
   filterTipo = signal('');
 
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  /** Z13 — se llegó por una ruta dedicada (/proyectos/:id o /proyectos/nuevo);
+   *  al cerrar el detalle/formulario se vuelve al listado para mantener la URL. */
+  private navegadoPorRuta = signal(false);
   /** Q5/Q2 — CL a enfocar en el detalle (deep-link ?proyecto=&cl= de una notificación). */
   clFocusId = signal<string | null>(null);
   clFocusRol = signal<string | null>(null);
@@ -279,6 +283,34 @@ export class Lista implements OnInit {
         this.clFocusRol.set(qp.get('firmaRol'));
         this.openDetail(p);
       }
+    }
+
+    // Z13 — rutas dedicadas: /proyectos/nuevo (crear) y /proyectos/:id (detalle).
+    const modo = this.route.snapshot.data['modo'];
+    const idRuta = this.route.snapshot.paramMap.get('id');
+    if (modo === 'crear') {
+      this.navegadoPorRuta.set(true);
+      this.openCreate();
+    } else if (idRuta) {
+      const p = this.proyectos().find((x) => x.id === idRuta);
+      if (p) {
+        this.navegadoPorRuta.set(true);
+        this.clFocusId.set(qp.get('cl'));
+        this.clFocusRol.set(qp.get('firmaRol'));
+        this.openDetail(p);
+      } else {
+        // Deep-link a una obra inexistente/sin acceso: vuelve al listado.
+        this.router.navigate(['/proyectos']);
+      }
+    }
+  }
+
+  /** Z13 — al cerrar un detalle/formulario abierto por ruta dedicada, vuelve al
+   *  listado para que la URL quede consistente (soporta el botón Atrás). */
+  private volverAlListadoSiEsRuta() {
+    if (this.navegadoPorRuta()) {
+      this.navegadoPorRuta.set(false);
+      this.router.navigate(['/proyectos']);
     }
   }
 
@@ -433,6 +465,7 @@ export class Lista implements OnInit {
 
   closeDrawer() {
     this.drawerOpen.set(false);
+    this.volverAlListadoSiEsRuta();
   }
 
   async onSave() {
@@ -611,6 +644,7 @@ export class Lista implements OnInit {
   closeDetailDrawer() {
     this.detailDrawerOpen.set(false);
     this.selectedProyecto.set(null);
+    this.volverAlListadoSiEsRuta();
   }
 
   // ── Z14 — estructuras (bloques/pisos) de la obra ──────────

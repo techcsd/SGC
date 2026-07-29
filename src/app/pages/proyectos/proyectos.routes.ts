@@ -7,6 +7,13 @@ export const proyectosRoutes: Routes = [
     title: 'Proyectos',
   },
   {
+    // Z13 — crear proyecto como ruta dedicada (deep-linkable, botón Atrás).
+    path: 'nuevo',
+    loadComponent: () => import('./lista/lista').then((m) => m.Lista),
+    data: { modo: 'crear' },
+    title: 'Nuevo proyecto',
+  },
+  {
     path: 'kpi',
     loadComponent: () => import('./kpi/kpi').then((m) => m.Kpi),
     title: 'Ranking de Encargados — Proyectos',
@@ -26,5 +33,11 @@ export const proyectosRoutes: Routes = [
     path: ':id/cronograma',
     loadComponent: () => import('./cronograma/cronograma').then((m) => m.Cronograma),
     title: 'Cronograma — Proyectos',
+  },
+  {
+    // Z13 — detalle del proyecto como ruta dedicada (deep-linkable, botón Atrás).
+    path: ':id',
+    loadComponent: () => import('./lista/lista').then((m) => m.Lista),
+    title: 'Proyecto',
   },
 ];

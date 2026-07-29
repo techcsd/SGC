@@ -1,6 +1,12 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.49.0": {
+      "titulo": "Proyectos: enlaces directos a cada obra y a Nuevo proyecto",
+      "cambios": [
+        { "t": "nuevo", "d": "Cada obra tiene ahora su propia dirección web (/proyectos/su-id) y \"Nuevo proyecto\" es una página propia (/proyectos/nuevo): se pueden compartir, marcar como favorito y funcionan con el botón Atrás del navegador." }
+      ]
+    },
     "1.48.0": {
       "titulo": "Cronograma: Gantt con eje de fechas y dependencias",
       "cambios": [
