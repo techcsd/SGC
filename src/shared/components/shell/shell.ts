@@ -225,7 +225,8 @@ export class Shell implements OnInit {
         // Y11 — plataforma/sistema: solo admin | rol tecnologia.
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
         { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', soloTecnologia: true },
-        { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
+        // Z26 — Historial de versiones es público (todos lo ven).
+        { label: 'Historial de versiones', route: '/tecnologia/historial-versiones' },
         { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
       ],
     },

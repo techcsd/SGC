@@ -30,6 +30,7 @@ export class TecReportesErrores implements OnInit {
 
   // ── Filtros ──
   fTipo = signal<AppErrorType | ''>('');
+  fSource = signal<'' | 'app' | 'web'>('');
   fDispositivo = signal('');
   fVersion = signal('');
   fDesde = signal<string | null>(null);
@@ -64,7 +65,7 @@ export class TecReportesErrores implements OnInit {
   totalOcurrencias = computed(() => this.grupos().reduce((s, g) => s + g.ocurrencias, 0));
 
   hasFilters = computed(
-    () => !!(this.fTipo() || this.fDispositivo() || this.fVersion() || this.fDesde() || this.fHasta()),
+    () => !!(this.fTipo() || this.fSource() || this.fDispositivo() || this.fVersion() || this.fDesde() || this.fHasta()),
   );
 
   ngOnInit() {
@@ -75,6 +76,7 @@ export class TecReportesErrores implements OnInit {
   private filtros(): AppErrorFiltros {
     return {
       errorType: this.fTipo() || null,
+      source: this.fSource() || null,
       deviceModel: this.fDispositivo() || null,
       appVersion: this.fVersion().trim() || null,
       desde: this.fDesde() ? `${this.fDesde()}T00:00:00` : null,
@@ -115,6 +117,7 @@ export class TecReportesErrores implements OnInit {
 
   clearFilters() {
     this.fTipo.set('');
+    this.fSource.set('');
     this.fDispositivo.set('');
     this.fVersion.set('');
     this.fDesde.set(null);

@@ -48,8 +48,8 @@ export const tecnologiaRoutes: Routes = [
     title: 'Reportes de errores — Tecnología',
   },
   {
+    // Z26 — Historial de versiones es público (sin guard).
     path: 'historial-versiones',
-    canActivate: [tecnologiaGuard],
     loadComponent: () =>
       import('../admin/historial-versiones/historial-versiones').then(
         (m) => m.AdminHistorialVersiones,

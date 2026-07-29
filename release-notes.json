@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.42.0": {
+      "titulo": "Tecnología: permisos por submódulo y captura de errores de la web",
+      "cambios": [
+        { "t": "mejora", "d": "\"Versiones de App\", \"Reportes de errores\" y \"Monitoreo\" ahora los ven admin, tecnología, gerencia y dirección. \"Historial de versiones\" quedó visible para todos." },
+        { "t": "nuevo", "d": "La página web ahora reporta automáticamente sus errores al panel de Reportes de errores, con filtro por origen (App móvil / Página web)." }
+      ]
+    },
     "1.41.0": {
       "titulo": "Reportes de clima: detalle con las bitácoras de lluvia",
       "cambios": [

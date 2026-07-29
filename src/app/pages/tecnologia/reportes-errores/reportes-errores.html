@@ -6,6 +6,13 @@
     </div>
   </header>
 
+  <!-- Z28 — origen del error -->
+  <div class="rep__tabs">
+    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === ''" (click)="fSource.set(''); applyFilters()">Todos</button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'app'" (click)="fSource.set('app'); applyFilters()">📱 App móvil</button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'web'" (click)="fSource.set('web'); applyFilters()">💻 Página web</button>
+  </div>
+
   <!-- Filtros -->
   <div class="rep__filters">
     <select class="rep__input" [value]="fTipo()" (change)="fTipo.set($any($event.target).value)">

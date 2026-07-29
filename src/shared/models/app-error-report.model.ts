@@ -14,6 +14,7 @@ export interface AppErrorReport {
   message: string;
   stack: string | null;
   context: Record<string, unknown>;
+  source?: 'app' | 'web';
   created_at: string;
 }
 
@@ -21,6 +22,7 @@ export interface AppErrorReport {
 export interface AppErrorGrupo {
   firma: string;
   error_type: AppErrorType;
+  source?: 'app' | 'web';
   ocurrencias: number;
   dispositivos: number;
   primera_vez: string;
@@ -33,6 +35,7 @@ export interface AppErrorFiltros {
   deviceModel?: string | null;
   deviceBrand?: string | null;
   appVersion?: string | null;
+  source?: 'app' | 'web' | null;
   desde?: string | null; // ISO date (inicio de día)
   hasta?: string | null; // ISO date (fin de día)
 }

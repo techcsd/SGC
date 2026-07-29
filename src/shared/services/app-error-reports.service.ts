@@ -29,6 +29,7 @@ export class AppErrorReportsService {
       .order('created_at', { ascending: false });
 
     if (filtros.errorType) q = q.eq('error_type', filtros.errorType);
+    if (filtros.source) q = q.eq('source', filtros.source);
     if (filtros.deviceModel) q = q.ilike('device_model', `%${filtros.deviceModel}%`);
     if (filtros.deviceBrand) q = q.ilike('device_brand', `%${filtros.deviceBrand}%`);
     if (filtros.appVersion) q = q.eq('app_version', filtros.appVersion);
@@ -50,6 +51,7 @@ export class AppErrorReportsService {
       p_hasta: filtros.hasta ?? null,
       p_error_type: filtros.errorType ?? null,
       p_limit: 200,
+      p_source: filtros.source ?? null,
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as AppErrorGrupo[];

@@ -46,7 +46,11 @@ export class UserService {
    * SQL `sgc.es_tecnologia()` (fuente de verdad en RLS).
    */
   esTecnologia = computed(
-    () => this.hasRole('admin') || this.hasRole('tecnologia'),
+    () =>
+      this.hasRole('admin') ||
+      this.hasRole('tecnologia') ||
+      this.hasRole('gerencia') ||
+      this.hasRole('direccion'),
   );
 
   /**
