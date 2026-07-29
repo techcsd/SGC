@@ -15,6 +15,10 @@ import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-activos',
@@ -28,6 +32,13 @@ export class Activos implements OnInit {
 
   private activosService = inject(ActivosService);
   private categoriasService = inject(CategoriasService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
+  private toast = inject(ToastService);
+  private userService = inject(UserService);
+
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Data state ──────────────────────────────────────────
   activos = signal<ActivoFijo[]>([]);
@@ -96,6 +107,7 @@ export class Activos implements OnInit {
     ubicacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
+    es_prueba: new FormControl<boolean>(false),
   });
 
   // ── Computed ─────────────────────────────────────────────
@@ -103,8 +115,10 @@ export class Activos implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const catId = this.selectedCategory();
     const estado = this.selectedEstado();
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.activos().filter((a) => {
+      if (a.es_prueba && !verPrueba) return false;
       if (q && !a.nombre.toLowerCase().includes(q) && !a.codigo.toLowerCase().includes(q)) {
         return false;
       }
@@ -191,7 +205,7 @@ export class Activos implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, estado: 'activo', valor_adquisicion: 0 });
+    this.form.reset({ activo: true, estado: 'activo', valor_adquisicion: 0, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -210,6 +224,7 @@ export class Activos implements OnInit {
       ubicacion: activo.ubicacion,
       notas: activo.notas,
       activo: activo.activo,
+      es_prueba: activo.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
   }
@@ -226,6 +241,17 @@ export class Activos implements OnInit {
     this.saveError.set('');
 
     const payload = this.form.value as ActivoFormData;
+
+    // Z5(d) — al marcar un activo existente como prueba, avisar cuántos
+    // registros relacionados se marcarán también.
+    const idEdit = this.editingId();
+    if (idEdit && this.form.value.es_prueba) {
+      const n = await this.datosPrueba.contarDerivados('activos_fijos', idEdit, true);
+      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+        this.saving.set(false);
+        return;
+      }
+    }
 
     try {
       const id = this.editingId();
@@ -257,6 +283,19 @@ export class Activos implements OnInit {
       this.activos.update((list) =>
         list.map((a) => (a.id === activo.id ? { ...a, activo: !next } : a)),
       );
+    }
+  }
+
+  /** Z5(d) — elimina definitivamente una fila de datos de prueba (solo admin). */
+  async eliminarPrueba(activo: ActivoFijo) {
+    if (!this.esAdmin() || !activo.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${activo.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('activos_fijos', activo.id);
+      this.activos.update((list) => list.filter((x) => x.id !== activo.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${activo.nombre}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

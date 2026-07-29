@@ -10,6 +10,7 @@ export interface ProveedorPayload {
   email?: string | null;
   direccion?: string | null;
   activo?: boolean;
+  es_prueba?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

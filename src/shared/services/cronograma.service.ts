@@ -111,7 +111,7 @@ export class CronogramaService {
   async actualizarTarea(
     tareaId: string,
     proyectoId: string,
-    patch: Partial<Pick<CronogramaTarea, 'nombre' | 'descripcion' | 'tipo' | 'orden' | 'duracion_dias_plan'>>,
+    patch: Partial<Pick<CronogramaTarea, 'nombre' | 'descripcion' | 'tipo' | 'orden' | 'duracion_dias_plan' | 'fase_id'>>,
   ): Promise<void> {
     const { error } = await this.supabase.client
       .from('cronograma_tareas')

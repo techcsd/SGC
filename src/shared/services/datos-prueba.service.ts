@@ -15,7 +15,17 @@ export type TablaPrueba =
   | 'salidas_inventario'
   | 'vehiculo_accidentes'
   | 'conductor_multas'
-  | 'vehiculo_danos';
+  | 'vehiculo_danos'
+  // Z5(d) — entidades nuevas soportadas por la whitelist server-side
+  // (marcar_prueba_cascada / eliminar_dato_prueba).
+  | 'proyectos'
+  | 'bodegas'
+  | 'empleados'
+  | 'proveedores'
+  | 'articulos'
+  | 'activos_fijos'
+  | 'conteos_inventario'
+  | 'ordenes_compra';
 
 /**
  * T2 — helper compartido para marcar/eliminar datos de prueba (solo admin).

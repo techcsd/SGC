@@ -296,6 +296,32 @@
       </div>
     </div>
 
+    <!-- Z23.4 — Datos para conciliar con el reporte del proveedor (opcionales) -->
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="producto">Producto</label>
+        <select id="producto" formControlName="producto">
+          <option [value]="null">Sin especificar</option>
+          <option value="diesel">Diésel</option>
+          <option value="gasolina">Gasolina</option>
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="tarjeta">Tarjeta (opcional)</label>
+        <input id="tarjeta" type="text" formControlName="tarjeta" placeholder="Número o identificador de la tarjeta" />
+      </div>
+    </div>
+
+    <div class="sgc-field">
+      <label class="combustible__prueba-toggle">
+        <input type="checkbox" formControlName="titular_es_persona" />
+        La tarjeta es de una persona (no del vehículo)
+      </label>
+      @if (tarjetaEsPersona()) {
+        <input class="estacion-otro" type="text" formControlName="titular" placeholder="Nombre del titular de la tarjeta" />
+      }
+    </div>
+
     @if (saveError()) {
       <div class="save-error" role="alert">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -338,7 +364,7 @@
         <div class="detail__item"><span class="detail__label">Costo / km</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Producto</span><span class="detail__value">{{ r.producto ? (r.producto === 'gasolina' ? 'Gasolina' : 'Diésel') : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Tarjeta</span><span class="detail__value">{{ r.tarjeta ?? '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Tarjeta</span><span class="detail__value">{{ r.tarjeta ?? '—' }}{{ r.titular_es_persona && r.titular ? ' · ' + r.titular : '' }}</span></div>
         <div class="detail__item"><span class="detail__label">Conductor</span><span class="detail__value">{{ r.conductor?.nombre ?? '—' }}</span></div>
       </div>
 

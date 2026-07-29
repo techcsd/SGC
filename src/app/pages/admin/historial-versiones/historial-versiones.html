@@ -29,8 +29,26 @@
       <span class="hv-kpi__label">Versiones publicadas</span>
       <span class="hv-kpi__value">{{ kpis().total }}</span>
     </div>
+    <!-- Z27 — versión actual de AMBAS plataformas a la vez -->
+    <div class="hv-kpi hv-kpi--both sgc-card">
+      <span class="hv-kpi__label">Versión actual</span>
+      <div class="hv-kpi__both">
+        <span class="hv-kpi__both-row">🖥️ Web <strong>{{ ultimaWeb() ? 'v' + ultimaWeb() : '—' }}</strong></span>
+        <span class="hv-kpi__both-row">📱 App <strong>{{ ultimaMovil() ? 'v' + ultimaMovil() : '—' }}</strong></span>
+      </div>
+    </div>
     <div class="hv-kpi sgc-card">
-      <span class="hv-kpi__label">Última versión</span>
+      <span class="hv-kpi__label">Últimos 30 días</span>
+      <span class="hv-kpi__value">{{ kpis().releases30 }}</span>
+      <span class="hv-kpi__sub">releases</span>
+    </div>
+    <div class="hv-kpi sgc-card">
+      <span class="hv-kpi__label">Últimos 90 días</span>
+      <span class="hv-kpi__value">{{ kpis().releases90 }}</span>
+      <span class="hv-kpi__sub">releases</span>
+    </div>
+    <div class="hv-kpi sgc-card">
+      <span class="hv-kpi__label">Último release</span>
       <span class="hv-kpi__value">{{ kpis().ultimaVersion ? 'v' + kpis().ultimaVersion : '—' }}</span>
       @if (kpis().ultimaFecha) { <span class="hv-kpi__sub">{{ formatFecha(kpis().ultimaFecha!) }}</span> }
     </div>
@@ -45,6 +63,20 @@
           <span class="hv-tag hv-tag--{{ t }}">{{ tagLabel(t) }} {{ kpis().porTipo[t] }}</span>
         }
       </div>
+    </div>
+  </div>
+
+  <!-- ── Z27 — Mini-gráficos analíticos (plataforma activa) ── -->
+  <div class="hv-charts">
+    <div class="hv-chart-card sgc-card">
+      <app-bar-chart titulo="Releases por mes" [data]="chartPorMes()" />
+    </div>
+    <div class="hv-chart-card sgc-card">
+      @if (chartPorTipo().length > 0) {
+        <app-donut-chart titulo="Distribución por tipo" [data]="chartPorTipo()" />
+      } @else {
+        <p class="hv-chart-empty">Distribución por tipo — sin cambios etiquetados aún.</p>
+      }
     </div>
   </div>
 

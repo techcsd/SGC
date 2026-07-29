@@ -7,5 +7,6 @@ export interface Proveedor {
   email: string | null;
   direccion: string | null;
   activo: boolean;
+  es_prueba?: boolean;
   created_at: string;
 }

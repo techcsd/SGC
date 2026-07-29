@@ -36,6 +36,32 @@
     border-color: var(--sgc-primary-mid);
     color: var(--sgc-primary);
   }
+
+  // Z5(d) — eliminar dato de prueba (solo admin)
+  &--delete-prueba {
+    color: var(--sgc-danger, #d32f2f);
+
+    &:hover {
+      background: var(--sgc-danger-light);
+      border-color: var(--sgc-danger);
+    }
+  }
+}
+
+// Z5(d) — toggle "Mostrar datos de prueba" en la barra de filtros (solo admin)
+.prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    cursor: pointer;
+  }
 }
 
 // ── Inline toggle (table cell) ───────────────────────────

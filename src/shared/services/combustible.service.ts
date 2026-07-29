@@ -57,6 +57,11 @@ export class CombustibleService {
       p_foto_recibo_path: reciboPath,
       p_foto_tablero_path: tableroPath,
       p_notas: payload.notas,
+      // Z23.4 — producto/tarjeta/titular para conciliar con el reporte del proveedor.
+      p_producto: payload.producto,
+      p_tarjeta: payload.tarjeta,
+      p_titular: payload.titular,
+      p_titular_es_persona: payload.titular_es_persona,
     });
     if (error) throw new Error(error.message);
     const derivados = data as unknown as CombustibleDerivados;

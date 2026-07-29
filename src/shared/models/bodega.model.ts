@@ -11,6 +11,8 @@ export interface Bodega {
   // U22 — coordenadas para usar el almacén como origen/destino de rutas
   latitud?: number | null;
   longitud?: number | null;
+  // Z5(d) — dato de prueba (solo admin lo ve/gestiona)
+  es_prueba?: boolean;
 }
 
 export interface BodegaFormData {
@@ -22,4 +24,5 @@ export interface BodegaFormData {
   es_principal: boolean;
   latitud: number | null;
   longitud: number | null;
+  es_prueba?: boolean;
 }

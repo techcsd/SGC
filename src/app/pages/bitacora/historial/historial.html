@@ -23,10 +23,13 @@
     [attr.aria-selected]="alcance() === 'mias'" (click)="setAlcance('mias')">
     Mis bitácoras <span class="bitacora-alcance__count">{{ countMias() }}</span>
   </button>
-  <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'todas'"
-    [attr.aria-selected]="alcance() === 'todas'" (click)="setAlcance('todas')">
-    Todas <span class="bitacora-alcance__count">{{ countTodas() }}</span>
-  </button>
+  <!-- Z19 — "Todas" solo para roles que pueden ver bitácoras de otros (admin o módulo proyectos, espejo de RLS) -->
+  @if (puedeVerTodas()) {
+    <button type="button" role="tab" class="bitacora-alcance__tab" [class.bitacora-alcance__tab--active]="alcance() === 'todas'"
+      [attr.aria-selected]="alcance() === 'todas'" (click)="setAlcance('todas')">
+      Todas <span class="bitacora-alcance__count">{{ countTodas() }}</span>
+    </button>
+  }
 </div>
 
 <!-- Filters -->
@@ -49,6 +52,18 @@
       }
     </select>
   </div>
+
+  <!-- Z19 — filtro por autor (solo en alcance "Todas") -->
+  @if (alcance() === 'todas') {
+    <div class="sgc-field filters-bar__select">
+      <select [value]="selectedUsuario()" (change)="onUsuarioChange($any($event.target).value)" aria-label="Filtrar por usuario">
+        <option value="">Todos los usuarios</option>
+        @for (u of usuarios(); track u.id) {
+          <option [value]="u.id">{{ u.nombre }}</option>
+        }
+      </select>
+    </div>
+  }
 
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
 

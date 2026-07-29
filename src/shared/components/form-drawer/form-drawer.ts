@@ -19,6 +19,8 @@ import {
 export class FormDrawer {
   title = input<string>('');
   open = input<boolean>(false);
+  /** Z33 — panel ancho para drawers con tablas de ítems (OC, salidas). */
+  wide = input<boolean>(false);
   /**
    * U4 — evita perder datos: si el form tiene cambios sin guardar, cerrar por
    * click-afuera o Escape pide confirmación. Se auto-detecta cualquier

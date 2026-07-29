@@ -1,216 +1,958 @@
-<section class="proyectos">
-  <!-- Header -->
-  <div class="proyectos__header">
-    <div class="proyectos__header-left">
-      <h1 class="proyectos__title">Proyectos</h1>
-      <p class="proyectos__subtitle">Gestión y seguimiento de proyectos de construcción</p>
-    </div>
-    <div class="proyectos__header-actions">
-      <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
-              [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-        ⬇️ Excel
-      </button>
-      <a class="proyectos__btn-new" routerLink="/proyectos/nuevo">
-        + Nuevo proyecto
-      </a>
-    </div>
-  </div>
+<!-- ══════════════════════════════════════════════════════════════
+     Z13 — Proyectos como PÁGINAS dedicadas (no drawer):
+       · /proyectos/nuevo  → página de creación
+       · /proyectos/:id     → página de detalle con pestañas
+     El listado navega a estas rutas (routerLink), no abre modales.
+     ══════════════════════════════════════════════════════════════ -->
 
-  <!-- Stats -->
-  <div class="proyectos__stats">
-    <div class="proyectos__stat-card">
-      <span class="proyectos__stat-value">{{ statsTotal() }}</span>
-      <span class="proyectos__stat-label">Total</span>
+@if (enPaginaCrear()) {
+  <!-- ── PÁGINA: Nuevo proyecto ─────────────────────────────────── -->
+  <section class="proyectos proyectos--pagina">
+    <div class="proyectos__pagina-head">
+      <button type="button" class="proyectos__back" (click)="cancelarCrear()">← Proyectos</button>
+      <h1 class="proyectos__title">Nuevo proyecto</h1>
+      <p class="proyectos__subtitle">Registra una nueva obra. El código se genera automáticamente.</p>
     </div>
-    <div class="proyectos__stat-card proyectos__stat-card--info">
-      <span class="proyectos__stat-value">{{ statsEnProgreso() }}</span>
-      <span class="proyectos__stat-label">En progreso</span>
+    <div class="proyectos__pagina-body proyectos__pagina-body--form">
+      <ng-container [ngTemplateOutlet]="proyectoFormTpl" />
     </div>
-    <div class="proyectos__stat-card proyectos__stat-card--success">
-      <span class="proyectos__stat-value">{{ statsCompletados() }}</span>
-      <span class="proyectos__stat-label">Completados</span>
-    </div>
-    <div class="proyectos__stat-card proyectos__stat-card--hub">
-      <span class="proyectos__stat-value">RD${{ statsPresupuesto() | number:'1.0-0' }}</span>
-      <span class="proyectos__stat-label">Presupuesto total</span>
-    </div>
-  </div>
+  </section>
+}
 
-  <!-- Z21 — Banner: obras sin almacén (admin / módulo Proyectos) -->
-  @if (puedeGestionarResponsables() && obrasSinAlmacen().length > 0) {
-    <div class="alm-faltantes" role="note">
-      <button type="button" class="alm-faltantes__head" (click)="faltantesAlmacenAbierto.set(!faltantesAlmacenAbierto())"
-              [attr.aria-expanded]="faltantesAlmacenAbierto()">
-        <span>⚠️ {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
-        <span aria-hidden="true">{{ faltantesAlmacenAbierto() ? '▾' : '▸' }}</span>
-      </button>
-      @if (faltantesAlmacenAbierto()) {
-        <ul class="alm-faltantes__list">
-          @for (p of obrasSinAlmacen(); track p.id) {
-            <li>
-              <span>{{ p.nombre }}</span>
+@else if (enPaginaDetalle()) {
+  <!-- ── PÁGINA: Detalle del proyecto (con pestañas) ────────────── -->
+  @if (selectedProyecto(); as p) {
+    <section class="proyectos proyectos--pagina">
+      <!-- Encabezado -->
+      <div class="proyectos__pagina-head">
+        <button type="button" class="proyectos__back" (click)="volverListado()">← Proyectos</button>
+        <div class="proyectos__detail-title-row">
+          <div>
+            <span class="proyectos__codigo">{{ p.codigo }}</span>
+            @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+            <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }} proyectos__badge--lg">
+              {{ getEstadoLabel(p.estado) }}
+            </span>
+            <h1 class="proyectos__detail-nombre">{{ p.nombre }}</h1>
+          </div>
+          <div class="proyectos__detail-title-actions">
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
+            <button type="button" class="proyectos__btn-edit" (click)="openEdit(p, $event)">Editar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Z21 — banner: esta obra no tiene almacén -->
+      @if (!tieneAlmacen(p.id) && p.estado !== 'completado' && p.estado !== 'cancelado') {
+        <div class="alm-faltantes alm-faltantes--inline" role="note">
+          <div class="alm-faltantes__inline">
+            <span>⚠️ Esta obra no tiene almacén asignado.</span>
+            @if (puedeGestionarResponsables()) {
               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                       [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
                 Crear «Almacén {{ p.nombre }}»
               </button>
-            </li>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Pestañas -->
+      <nav class="proyectos__tabs" role="tablist" aria-label="Secciones del proyecto">
+        @for (t of tabsVisibles(); track t.id) {
+          <button
+            type="button"
+            role="tab"
+            class="proyectos__tab"
+            [class.proyectos__tab--active]="detalleTab() === t.id"
+            [attr.aria-selected]="detalleTab() === t.id"
+            (click)="detalleTab.set(t.id)"
+          >{{ t.label }}</button>
+        }
+      </nav>
+
+      <div class="proyectos__detail">
+        <!-- ── Tab: General ── -->
+        @if (detalleTab() === 'general') {
+          <!-- Info grid -->
+          <div class="proyectos__detail-grid">
+            @if (p.cliente) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Cliente</span>
+                <span class="proyectos__detail-val">{{ p.cliente }}</span>
+              </div>
+            }
+            @if (p.tipo) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Tipo</span>
+                <span class="proyectos__detail-val">{{ getTipoLabel(p.tipo) }}</span>
+              </div>
+            }
+            @if (p.fecha_inicio) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Fecha inicio</span>
+                <span class="proyectos__detail-val">{{ formatFecha(p.fecha_inicio) }}</span>
+              </div>
+            }
+            @if (p.fecha_fin_estimada) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Fin estimado</span>
+                <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_estimada) }}</span>
+              </div>
+            }
+            @if (p.fecha_fin_real) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Fin real</span>
+                <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_real) }}</span>
+              </div>
+            }
+            @if (p.presupuesto) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Presupuesto</span>
+                <span class="proyectos__detail-val">RD${{ p.presupuesto | number:'1.0-0' }}</span>
+              </div>
+            }
+            <div class="proyectos__detail-item">
+              <span class="proyectos__detail-key">Gasto real (compras)</span>
+              <span
+                class="proyectos__detail-val"
+                [class.proyectos__detail-val--over]="p.presupuesto != null && gastoReal() > p.presupuesto"
+              >
+                RD${{ gastoReal() | number:'1.0-0' }}
+                @if (p.presupuesto) {
+                  ({{ (gastoReal() / p.presupuesto * 100) | number:'1.0-0' }}% del presupuesto)
+                }
+              </span>
+            </div>
+            @if (p.ubicacion) {
+              <div class="proyectos__detail-item proyectos__detail-item--full">
+                <span class="proyectos__detail-key">Ubicación</span>
+                <span class="proyectos__detail-val">{{ p.ubicacion }}</span>
+              </div>
+            }
+            @if (p.responsable?.nombre) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Responsable</span>
+                <span class="proyectos__detail-val">{{ p.responsable!.nombre }}</span>
+              </div>
+            }
+            @if (p.descripcion) {
+              <div class="proyectos__detail-item proyectos__detail-item--full">
+                <span class="proyectos__detail-key">Descripción</span>
+                <span class="proyectos__detail-val">{{ p.descripcion }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Clima en obra (Context System) -->
+          @if (p.latitud != null && p.longitud != null) {
+            <div class="proyectos__detail-weather">
+              <app-weather-card [latitud]="p.latitud" [longitud]="p.longitud" [titulo]="'Clima en ' + p.nombre" />
+            </div>
           }
-        </ul>
-      }
-    </div>
-  }
 
-  <!-- Filters -->
-  <div class="proyectos__filters">
-    <input
-      class="proyectos__search"
-      type="search"
-      placeholder="Buscar por nombre, código o cliente..."
-      [value]="searchQuery()"
-      (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar proyectos"
-    />
-    <select
-      class="proyectos__select"
-      [value]="filterEstado()"
-      (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
-    >
-      <option value="">Todos los estados</option>
-      @for (e of PROYECTO_ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
-      }
-    </select>
-    <select
-      class="proyectos__select"
-      [value]="filterTipo()"
-      (change)="onTipoChange($any($event.target).value)"
-      aria-label="Filtrar por tipo"
-    >
-      <option value="">Todos los tipos</option>
-      @for (t of PROYECTO_TIPOS; track t.value) {
-        <option [value]="t.value">{{ t.label }}</option>
-      }
-    </select>
-    @if (searchQuery() || filterEstado() || filterTipo()) {
-      <button class="proyectos__btn-clear" (click)="clearFilters()">Limpiar</button>
-    }
-  </div>
+          <!-- Progreso general -->
+          <div class="proyectos__detail-progress-section">
+            <span class="proyectos__detail-key">Progreso general</span>
+            <div class="proyectos__progress-bar">
+              <div
+                class="proyectos__progress-fill"
+                [style.width.%]="getProgresoPromedio(p)"
+                role="progressbar"
+                [attr.aria-valuenow]="getProgresoPromedio(p)"
+                aria-valuemin="0"
+                aria-valuemax="100"
+              ></div>
+            </div>
+            <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+          </div>
 
-  <!-- Loading -->
-  @if (loading()) {
-    <app-skeleton variant="cards" [rows]="6" />
-  }
+          <!-- R25: Pagado vs Trabajado -->
+          <div class="proyectos__pagado">
+            <span class="proyectos__detail-key">Pagado vs Trabajado</span>
 
-  <!-- Error -->
-  @if (error()) {
-    <div class="proyectos__error" role="alert">{{ error() }}</div>
-  }
+            @if (avance()?.pago_excede) {
+              <div class="proyectos__pagado-alert" role="alert">
+                ⚠ El % pagado supera al % trabajado
+              </div>
+            }
 
-  <!-- Grid -->
-  @if (!loading()) {
-    @if (filtered().length === 0) {
-      <div class="proyectos__empty">No se encontraron proyectos.</div>
-    } @else {
-      <div class="proyectos__grid">
-        @for (p of filtered(); track p.id) {
-          <article class="proyectos__card" (click)="openDetail(p)" role="button" tabindex="0" (keydown.enter)="openDetail(p)" [attr.aria-label]="'Ver detalle de ' + p.nombre">
-            <!-- Card Header -->
-            <div class="proyectos__card-header">
-              <span class="proyectos__codigo">{{ p.codigo }}</span>
-              <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }}">
-                {{ getEstadoLabel(p.estado) }}
+            <div class="proyectos__pagado-row">
+              <span class="proyectos__pagado-tag">Trabajado</span>
+              <div class="proyectos__progress-bar">
+                <div
+                  class="proyectos__progress-fill"
+                  [style.width.%]="avance()?.avance_trabajado ?? 0"
+                  role="progressbar"
+                  [attr.aria-valuenow]="avance()?.avance_trabajado ?? 0"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <span class="proyectos__progress-pct">{{ avance()?.avance_trabajado ?? 0 }}%</span>
+            </div>
+
+            <div class="proyectos__pagado-row">
+              <span class="proyectos__pagado-tag">Pagado</span>
+              <div class="proyectos__progress-bar">
+                <div
+                  class="proyectos__progress-fill proyectos__progress-fill--pagado"
+                  [class.proyectos__progress-fill--excede]="avance()?.pago_excede"
+                  [style.width.%]="avance()?.porcentaje_pagado ?? 0"
+                  role="progressbar"
+                  [attr.aria-valuenow]="avance()?.porcentaje_pagado ?? 0"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                ></div>
+              </div>
+              <span class="proyectos__progress-pct">
+                {{ avance()?.porcentaje_pagado != null ? avance()!.porcentaje_pagado + '%' : '—' }}
               </span>
             </div>
 
-            <!-- Estrellas de preparación -->
-            <div
-              class="proyectos__stars"
-              [attr.title]="'Preparación para iniciar: ' + estrellas(p.id) + '/4'"
-              [attr.aria-label]="'Preparación para iniciar: ' + estrellas(p.id) + ' de 4'"
-            >
-              @for (s of READINESS_ESTRELLAS; track s.key; let i = $index) {
-                <span>{{ i < estrellas(p.id) ? '★' : '☆' }}</span>
+            @if (puedeEditarPagado()) {
+              <div class="proyectos__pagado-edit">
+                <label class="proyectos__label" for="pagado-input">Fijar % pagado (0-100)</label>
+                <div class="proyectos__pagado-edit-row">
+                  <input
+                    id="pagado-input"
+                    class="proyectos__input"
+                    type="number"
+                    min="0"
+                    max="100"
+                    [value]="pagadoInput()"
+                    (input)="pagadoInput.set($any($event.target).value === '' ? null : +$any($event.target).value)"
+                    placeholder="—"
+                  />
+                  <button
+                    type="button"
+                    class="sgc-btn sgc-btn--secondary"
+                    (click)="guardarPagado()"
+                    [disabled]="avanceSaving()"
+                  >
+                    {{ avanceSaving() ? 'Guardando…' : 'Guardar' }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Preparación para iniciar (sistema de estrellas) -->
+          <div class="proyectos__readiness">
+            <div class="proyectos__readiness-head">
+              <span class="proyectos__detail-key">Preparación para iniciar</span>
+              <span
+                class="proyectos__readiness-score"
+                [class.proyectos__readiness-score--complete]="listoParaIniciar(p.id)"
+              >{{ estrellas(p.id) }}/4 ★</span>
+            </div>
+            <ul class="proyectos__readiness-list">
+              @for (s of READINESS_ESTRELLAS; track s.key) {
+                <li
+                  class="proyectos__readiness-item"
+                  [class.proyectos__readiness-item--ok]="readinessDe(p.id)?.[s.key]"
+                >
+                  <span class="proyectos__readiness-mark">{{ readinessDe(p.id)?.[s.key] ? '✓' : '○' }}</span>
+                  <span>{{ s.label }}</span>
+                </li>
               }
+            </ul>
+            @if (listoParaIniciar(p.id)) {
+              <p class="proyectos__readiness-note proyectos__readiness-note--ok">
+                ✓ Lista para iniciar — puedes cambiar el estado a "En progreso".
+              </p>
+            } @else {
+              <p class="proyectos__readiness-note">
+                Aún no se puede iniciar: completa los 4 parámetros para habilitar el estado "En progreso".
+              </p>
+            }
+          </div>
+
+          <!-- Documentos: contrato, presupuesto, cronograma, manual de ejecución -->
+          <app-documentos-proyecto [proyectoId]="p.id" />
+        }
+
+        <!-- ── Tab: Equipo y responsables ── -->
+        @if (detalleTab() === 'equipo') {
+          <!-- Z2 — Responsables (ingenieros firmantes de liberación) -->
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Responsables</h3>
             </div>
 
-            <!-- Card Body -->
-            <div class="proyectos__card-body">
-              <h2 class="proyectos__card-nombre">{{ p.nombre }}</h2>
-              @if (p.cliente) {
-                <p class="proyectos__card-cliente">{{ p.cliente }}</p>
-              }
-              @if (p.tipo) {
-                <p class="proyectos__card-tipo">{{ getTipoLabel(p.tipo) }}</p>
-              }
-
-              @if (responsablesActivos(p).length > 0) {
-                <p class="proyectos__card-responsables">
-                  @for (r of responsablesActivos(p); track r.id) {
-                    <span class="sgc-badge sgc-badge--info">
-                      {{ tipoRespLabel(r.tipo_responsabilidad) }}: {{ r.usuario?.nombre }}
-                    </span>
-                  }
+            @if (responsablesLoading()) {
+              <app-skeleton variant="list" [rows]="2" />
+            } @else {
+              @if (responsables().length === 0) {
+                <p class="proyectos__fases-empty">
+                  Sin ingenieros responsables vinculados. Se usan para preseleccionar los firmantes de la liberación (CL).
                 </p>
+              } @else {
+                @for (r of responsables(); track r.id) {
+                  <div class="proyectos__fase-card">
+                    <div class="proyectos__fase-info">
+                      <div>
+                        <p class="proyectos__fase-nombre">
+                          <span class="sgc-badge sgc-badge--info">{{ tipoRespLabel(r.tipo_responsabilidad) }}</span>
+                          {{ r.nombre }}
+                        </p>
+                        @if (r.email) {
+                          <p class="proyectos__fase-desc">{{ r.email }}</p>
+                        }
+                      </div>
+                    </div>
+                    @if (puedeGestionarResponsables()) {
+                      <button
+                        type="button"
+                        class="proyectos__btn-icon proyectos__btn-icon--danger"
+                        (click)="removeResponsable(r.id)"
+                        aria-label="Quitar responsable"
+                      >✕</button>
+                    }
+                  </div>
+                }
               }
 
-              @if (p.fecha_inicio || p.fecha_fin_estimada) {
-                <div class="proyectos__card-fechas">
-                  @if (p.fecha_inicio) {
-                    <span>Inicio: {{ formatFecha(p.fecha_inicio) }}</span>
-                  }
-                  @if (p.fecha_fin_estimada) {
-                    <span>Fin est.: {{ formatFecha(p.fecha_fin_estimada) }}</span>
-                  }
+              @if (puedeGestionarResponsables()) {
+                <!-- Alta de responsable -->
+                <div class="proyectos__add-miembro proyectos__add-miembro--obra">
+                  <select
+                    [value]="nuevoRespTipo()"
+                    (change)="nuevoRespTipo.set($any($event.target).value)"
+                    aria-label="Tipo de responsabilidad"
+                  >
+                    @for (t of TIPOS_RESPONSABILIDAD; track t.value) {
+                      <option [value]="t.value">{{ t.label }}</option>
+                    }
+                  </select>
+                  <select
+                    [value]="nuevoRespUsuarioId()"
+                    (change)="nuevoRespUsuarioId.set($any($event.target).value)"
+                    aria-label="Seleccionar ingeniero"
+                  >
+                    <option value="">Seleccionar ingeniero…</option>
+                    @for (u of usuariosSinVincular(); track u.id) {
+                      <option [value]="u.id">{{ u.nombre }}</option>
+                    }
+                  </select>
+                  <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addResponsable()">
+                    + Vincular
+                  </button>
                 </div>
+                @if (responsableError()) {
+                  <p class="proyectos__save-error" role="alert">{{ responsableError() }}</p>
+                }
+              }
+            }
+          </div>
+
+          <!-- Equipo de Obra (A3.2) -->
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Equipo de Obra</h3>
+            </div>
+
+            @if (equipoLoading()) {
+              <app-skeleton variant="list" [rows]="4" />
+            } @else {
+              @if (equipo().length === 0) {
+                <p class="proyectos__fases-empty">Sin miembros asignados a esta obra.</p>
+              } @else {
+                @for (m of equipo(); track m.id) {
+                  <div class="proyectos__fase-card">
+                    <div class="proyectos__fase-info">
+                      <div>
+                        <p class="proyectos__fase-nombre">
+                          @if (m.rol) {
+                            <span class="sgc-badge sgc-badge--info">{{ rolObraLabel(m.rol) }}</span>
+                          }
+                          @if (m.empleado_id) {
+                            {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
+                          } @else {
+                            {{ m.externo_nombre }}
+                            <span class="text-muted"> (externo)</span>
+                          }
+                        </p>
+                        <p class="proyectos__fase-desc">
+                          @if (m.empleado_id) {
+                            {{ m.empleado?.cargo }}
+                          } @else {
+                            {{ m.externo_tipo === 'topografia' ? 'Topografía subcontratada' : (m.externo_tipo === 'subcontratista' ? 'Subcontratista' : 'Entidad externa') }}
+                          }
+                          @if (m.desde) { · desde {{ formatFecha(m.desde) }} }
+                          @if (m.hasta) { · hasta {{ formatFecha(m.hasta) }} }
+                        </p>
+                        @if (m.notas) {
+                          <p class="proyectos__fase-desc">{{ m.notas }}</p>
+                        }
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="proyectos__btn-icon proyectos__btn-icon--danger"
+                      (click)="removeMiembro(m.id)"
+                      [attr.aria-label]="'Quitar miembro del equipo'"
+                    >✕</button>
+                  </div>
+                }
               }
 
-              @if (p.presupuesto) {
-                <p class="proyectos__card-presupuesto">RD${{ p.presupuesto | number:'1.0-0' }}</p>
-              }
+              <!-- Alta de miembro -->
+              <div class="proyectos__add-miembro proyectos__add-miembro--obra">
+                <select
+                  [value]="nuevoMiembroRol()"
+                  (change)="onNuevoMiembroRolChange($any($event.target).value)"
+                  aria-label="Rol en la obra"
+                >
+                  <option value="">Rol en la obra…</option>
+                  @for (r of ROLES_OBRA; track r.value) {
+                    <option [value]="r.value">{{ r.label }}</option>
+                  }
+                </select>
 
-              <!-- Progress -->
-              <div class="proyectos__card-progress">
-                <div class="proyectos__progress-bar">
-                  <div
-                    class="proyectos__progress-fill"
-                    [style.width.%]="getProgresoPromedio(p)"
-                    role="progressbar"
-                    [attr.aria-valuenow]="getProgresoPromedio(p)"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  ></div>
+                <div class="proyectos__miembro-modo">
+                  <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'empleado'" (click)="setMiembroModo('empleado')">Empleado</button>
+                  <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'externo'" (click)="setMiembroModo('externo')">Externo</button>
                 </div>
-                <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+
+                @if (nuevoMiembroModo() === 'empleado') {
+                  <select
+                    [value]="nuevoMiembroEmpleadoId()"
+                    (change)="onNuevoMiembroChange($any($event.target).value)"
+                    aria-label="Seleccionar empleado"
+                  >
+                    <option value="">Seleccionar empleado…</option>
+                    @for (e of empleadosDisponibles(); track e.id) {
+                      <option [value]="e.id">{{ e.apellido }}, {{ e.nombre }} — {{ e.cargo }}</option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    type="text"
+                    placeholder="Nombre de la empresa/entidad externa"
+                    [value]="nuevoMiembroExternoNombre()"
+                    (input)="nuevoMiembroExternoNombre.set($any($event.target).value)"
+                    aria-label="Nombre de la entidad externa"
+                  />
+                }
+
+                <input
+                  type="date"
+                  [value]="nuevoMiembroDesde()"
+                  (change)="nuevoMiembroDesde.set($any($event.target).value)"
+                  aria-label="Vigente desde"
+                  title="Vigente desde (opcional)"
+                />
+
+                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()">
+                  + Agregar
+                </button>
+              </div>
+              @if (miembroError()) {
+                <p class="proyectos__save-error" role="alert">{{ miembroError() }}</p>
+              }
+            }
+          </div>
+        }
+
+        <!-- ── Tab: Expediente ── -->
+        @if (detalleTab() === 'expediente') {
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Expediente de inicio de obra</h3>
+            </div>
+            <app-expediente-obra [proyectoId]="p.id" [usuarios]="usuarios()" />
+          </div>
+        }
+
+        <!-- ── Tab: Cuadre inicial (solo roles financieros/dirección) ── -->
+        @if (detalleTab() === 'cuadre' && verCuadre()) {
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Cuadre inicial de materiales</h3>
+            </div>
+            <app-cuadre-obra [proyectoId]="p.id" [bodegas]="bodegasList()" [articulos]="articulosList()" />
+          </div>
+        }
+
+        <!-- ── Tab: Ejecución (Vaciados y No Conformidades) ── -->
+        @if (detalleTab() === 'ejecucion') {
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Vaciados y No Conformidades</h3>
+            </div>
+            <app-ejecucion-obra [proyectoId]="p.id" />
+          </div>
+        }
+
+        <!-- ── Tab: Partidas ── -->
+        @if (detalleTab() === 'partidas') {
+          <div class="proyectos__fases">
+            <h3 class="proyectos__fases-title">Partidas</h3>
+            <app-proyecto-partidas [proyectoId]="p.id" />
+          </div>
+        }
+
+        <!-- ── Tab: Liberación (CL) ── -->
+        @if (detalleTab() === 'cl') {
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Checklists de Liberación (CL)</h3>
+            </div>
+            <app-cl-liberacion [proyectoId]="p.id" [focusRegistroId]="clFocusId()" [focusFirmaRol]="clFocusRol()" />
+          </div>
+        }
+
+        <!-- ── Tab: Estructuras y fases ── -->
+        @if (detalleTab() === 'fases') {
+          <!-- Z14 — Estructuras de la obra (bloques/pisos) -->
+          <div class="proyectos__estructuras">
+            <h3 class="proyectos__fases-title">Estructuras (bloques / pisos)</h3>
+            <p class="proyectos__estructuras-hint">Se ofrecen como opciones en el campo "Bloque/Entrepiso" de las bitácoras de esta obra.</p>
+            <div class="proyectos__estructuras-chips">
+              @for (e of estructuras(); track e.id) {
+                <span class="proyectos__estructura-chip">
+                  {{ e.nombre }}
+                  <button type="button" (click)="eliminarEstructura(e)" aria-label="Eliminar estructura">×</button>
+                </span>
+              } @empty {
+                <span class="text-muted">Sin estructuras definidas.</span>
+              }
+            </div>
+            <div class="proyectos__estructuras-add">
+              <input type="text" [value]="nuevaEstructura()" (input)="nuevaEstructura.set($any($event.target).value)"
+                     (keyup.enter)="agregarEstructura()" placeholder="Ej: Bloque A, Piso 3, Torre Norte…" maxlength="100" />
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarEstructura()">+ Agregar</button>
+            </div>
+          </div>
+
+          <!-- Fases -->
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Fases del proyecto</h3>
+              <div class="proyectos__fases-actions">
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
+                <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
               </div>
             </div>
 
-            <!-- Card Footer -->
-            <div class="proyectos__card-footer">
-              @if (p.responsable?.nombre) {
-                <span class="proyectos__responsable">👤 {{ p.responsable!.nombre }}</span>
-              }
-              <button
-                class="proyectos__btn-edit"
-                (click)="openEdit(p, $event)"
-                aria-label="Editar {{ p.nombre }}"
-              >
-                Editar
-              </button>
-            </div>
-          </article>
+            @if (detailLoading()) {
+              <app-skeleton variant="list" [rows]="4" />
+            }
+
+            @if (!detailLoading() && (p.fases?.length ?? 0) === 0) {
+              <p class="proyectos__fases-empty">Sin fases registradas.</p>
+            }
+
+            @for (fase of p.fases; track fase.id) {
+              <div class="proyectos__fase-card">
+                <div class="proyectos__fase-header">
+                  <div class="proyectos__fase-info">
+                    <span class="proyectos__fase-orden">{{ fase.orden }}</span>
+                    <div>
+                      <p class="proyectos__fase-nombre">{{ fase.nombre }}</p>
+                      @if (fase.descripcion) {
+                        <p class="proyectos__fase-desc">{{ fase.descripcion }}</p>
+                      }
+                    </div>
+                  </div>
+                  <div class="proyectos__fase-actions">
+                    <span class="proyectos__badge proyectos__badge--{{ getFaseEstadoBadge(fase.estado) }}">
+                      {{ getFaseEstadoLabel(fase.estado) }}
+                    </span>
+                    <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase">✏️</button>
+                    <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase">🗑️</button>
+                  </div>
+                </div>
+                <div class="proyectos__fase-progress">
+                  <div class="proyectos__progress-bar">
+                    <div
+                      class="proyectos__progress-fill"
+                      [style.width.%]="fase.progreso"
+                      role="progressbar"
+                      [attr.aria-valuenow]="fase.progreso"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    ></div>
+                  </div>
+                  <span class="proyectos__progress-pct">{{ fase.progreso }}%</span>
+                </div>
+                @if (fase.fecha_inicio || fase.fecha_fin) {
+                  <div class="proyectos__fase-fechas">
+                    @if (fase.fecha_inicio) { <span>{{ formatFecha(fase.fecha_inicio) }}</span> }
+                    @if (fase.fecha_fin) { <span>→ {{ formatFecha(fase.fecha_fin) }}</span> }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+}
+
+@else {
+  <!-- ── LISTADO ─────────────────────────────────────────────────── -->
+  <section class="proyectos">
+    <!-- Header -->
+    <div class="proyectos__header">
+      <div class="proyectos__header-left">
+        <h1 class="proyectos__title">Proyectos</h1>
+        <p class="proyectos__subtitle">Gestión y seguimiento de proyectos de construcción</p>
+      </div>
+      <div class="proyectos__header-actions">
+        <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+                [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+          ⬇️ Excel
+        </button>
+        <a class="proyectos__btn-new" routerLink="/proyectos/nuevo">
+          + Nuevo proyecto
+        </a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="proyectos__stats">
+      <div class="proyectos__stat-card">
+        <span class="proyectos__stat-value">{{ statsTotal() }}</span>
+        <span class="proyectos__stat-label">Total</span>
+      </div>
+      <div class="proyectos__stat-card proyectos__stat-card--info">
+        <span class="proyectos__stat-value">{{ statsEnProgreso() }}</span>
+        <span class="proyectos__stat-label">En progreso</span>
+      </div>
+      <div class="proyectos__stat-card proyectos__stat-card--success">
+        <span class="proyectos__stat-value">{{ statsCompletados() }}</span>
+        <span class="proyectos__stat-label">Completados</span>
+      </div>
+      <div class="proyectos__stat-card proyectos__stat-card--hub">
+        <span class="proyectos__stat-value">RD${{ statsPresupuesto() | number:'1.0-0' }}</span>
+        <span class="proyectos__stat-label">Presupuesto total</span>
+      </div>
+    </div>
+
+    <!-- Z21 — Banner: obras sin almacén (admin / módulo Proyectos) -->
+    @if (puedeGestionarResponsables() && obrasSinAlmacen().length > 0) {
+      <div class="alm-faltantes" role="note">
+        <button type="button" class="alm-faltantes__head" (click)="faltantesAlmacenAbierto.set(!faltantesAlmacenAbierto())"
+                [attr.aria-expanded]="faltantesAlmacenAbierto()">
+          <span>⚠️ {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
+          <span aria-hidden="true">{{ faltantesAlmacenAbierto() ? '▾' : '▸' }}</span>
+        </button>
+        @if (faltantesAlmacenAbierto()) {
+          <ul class="alm-faltantes__list">
+            @for (p of obrasSinAlmacen(); track p.id) {
+              <li>
+                <span>{{ p.nombre }}</span>
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                        [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
+                  Crear «Almacén {{ p.nombre }}»
+                </button>
+              </li>
+            }
+          </ul>
         }
       </div>
     }
-  }
-</section>
 
-<!-- ── Create / Edit Drawer ──────────────────────────────────── -->
+    <!-- Filters -->
+    <div class="proyectos__filters">
+      <input
+        class="proyectos__search"
+        type="search"
+        placeholder="Buscar por nombre, código o cliente..."
+        [value]="searchQuery()"
+        (input)="onSearch($any($event.target).value)"
+        aria-label="Buscar proyectos"
+      />
+      <select
+        class="proyectos__select"
+        [value]="filterEstado()"
+        (change)="onEstadoChange($any($event.target).value)"
+        aria-label="Filtrar por estado"
+      >
+        <option value="">Todos los estados</option>
+        @for (e of PROYECTO_ESTADOS; track e.value) {
+          <option [value]="e.value">{{ e.label }}</option>
+        }
+      </select>
+      <select
+        class="proyectos__select"
+        [value]="filterTipo()"
+        (change)="onTipoChange($any($event.target).value)"
+        aria-label="Filtrar por tipo"
+      >
+        <option value="">Todos los tipos</option>
+        @for (t of PROYECTO_TIPOS; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+      @if (searchQuery() || filterEstado() || filterTipo()) {
+        <button class="proyectos__btn-clear" (click)="clearFilters()">Limpiar</button>
+      }
+      <!-- Z5(d) — mostrar datos de prueba (solo admin) -->
+      @if (esAdmin()) {
+        <label class="proyectos__prueba-toggle">
+          <input
+            type="checkbox"
+            [checked]="mostrarPrueba()"
+            (change)="mostrarPrueba.set($any($event.target).checked)"
+          />
+          Mostrar datos de prueba
+        </label>
+      }
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <app-skeleton variant="cards" [rows]="6" />
+    }
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="proyectos__error" role="alert">{{ error() }}</div>
+    }
+
+    <!-- Grid -->
+    @if (!loading()) {
+      @if (filtered().length === 0) {
+        <div class="proyectos__empty">No se encontraron proyectos.</div>
+      } @else {
+        <div class="proyectos__grid">
+          @for (p of filtered(); track p.id) {
+            <article
+              class="proyectos__card"
+              [class.proyectos__card--prueba]="p.es_prueba"
+              [routerLink]="['/proyectos', p.id]"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="verDetalle(p.id)"
+              [attr.aria-label]="'Ver detalle de ' + p.nombre"
+            >
+              <!-- Card Header -->
+              <div class="proyectos__card-header">
+                <span class="proyectos__codigo">{{ p.codigo }}</span>
+                <div class="proyectos__card-badges">
+                  @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                  <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }}">
+                    {{ getEstadoLabel(p.estado) }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Estrellas de preparación -->
+              <div
+                class="proyectos__stars"
+                [attr.title]="'Preparación para iniciar: ' + estrellas(p.id) + '/4'"
+                [attr.aria-label]="'Preparación para iniciar: ' + estrellas(p.id) + ' de 4'"
+              >
+                @for (s of READINESS_ESTRELLAS; track s.key; let i = $index) {
+                  <span>{{ i < estrellas(p.id) ? '★' : '☆' }}</span>
+                }
+              </div>
+
+              <!-- Card Body -->
+              <div class="proyectos__card-body">
+                <h2 class="proyectos__card-nombre">{{ p.nombre }}</h2>
+                @if (p.cliente) {
+                  <p class="proyectos__card-cliente">{{ p.cliente }}</p>
+                }
+                @if (p.tipo) {
+                  <p class="proyectos__card-tipo">{{ getTipoLabel(p.tipo) }}</p>
+                }
+
+                @if (responsablesActivos(p).length > 0) {
+                  <p class="proyectos__card-responsables">
+                    @for (r of responsablesActivos(p); track r.id) {
+                      <span class="sgc-badge sgc-badge--info">
+                        {{ tipoRespLabel(r.tipo_responsabilidad) }}: {{ r.usuario?.nombre }}
+                      </span>
+                    }
+                  </p>
+                }
+
+                @if (p.fecha_inicio || p.fecha_fin_estimada) {
+                  <div class="proyectos__card-fechas">
+                    @if (p.fecha_inicio) {
+                      <span>Inicio: {{ formatFecha(p.fecha_inicio) }}</span>
+                    }
+                    @if (p.fecha_fin_estimada) {
+                      <span>Fin est.: {{ formatFecha(p.fecha_fin_estimada) }}</span>
+                    }
+                  </div>
+                }
+
+                @if (p.presupuesto) {
+                  <p class="proyectos__card-presupuesto">RD${{ p.presupuesto | number:'1.0-0' }}</p>
+                }
+
+                <!-- Progress -->
+                <div class="proyectos__card-progress">
+                  <div class="proyectos__progress-bar">
+                    <div
+                      class="proyectos__progress-fill"
+                      [style.width.%]="getProgresoPromedio(p)"
+                      role="progressbar"
+                      [attr.aria-valuenow]="getProgresoPromedio(p)"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    ></div>
+                  </div>
+                  <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
+                </div>
+              </div>
+
+              <!-- Card Footer -->
+              <div class="proyectos__card-footer">
+                @if (p.responsable?.nombre) {
+                  <span class="proyectos__responsable">👤 {{ p.responsable!.nombre }}</span>
+                }
+                <div class="proyectos__card-footer-actions">
+                  @if (esAdmin() && p.es_prueba) {
+                    <button
+                      class="proyectos__btn-delete-prueba"
+                      type="button"
+                      (click)="eliminarPrueba(p, $event)"
+                      title="Eliminar dato de prueba"
+                      [attr.aria-label]="'Eliminar dato de prueba ' + p.nombre"
+                    >🗑</button>
+                  }
+                  <button
+                    class="proyectos__btn-edit"
+                    (click)="openEdit(p, $event)"
+                    aria-label="Editar {{ p.nombre }}"
+                  >
+                    Editar
+                  </button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  </section>
+}
+
+<!-- ── Edit Drawer (edición como drawer superpuesto) ─────────────── -->
 <app-form-drawer
   [title]="drawerTitle()"
-  [open]="drawerOpen()"
-  (closed)="closeDrawer()"
+  [open]="drawerOpen() && !!editingId()"
+  (closed)="cerrarEdicion()"
 >
+  <ng-container [ngTemplateOutlet]="proyectoFormTpl" />
+</app-form-drawer>
+
+<!-- ── Fase Drawer ─────────────────────────────────────────────── -->
+<app-form-drawer
+  [title]="editingFaseId() ? 'Editar fase' : 'Nueva fase'"
+  [open]="faseDrawerOpen()"
+  (closed)="closeFaseDrawer()"
+>
+  <form [formGroup]="faseForm" (ngSubmit)="onSaveFase()" class="proyectos__form" novalidate>
+    <div class="proyectos__form-grid">
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="fase-nombre">Nombre *</label>
+        <input
+          id="fase-nombre"
+          class="proyectos__input"
+          [class.proyectos__input--error]="ff['nombre'].invalid && ff['nombre'].touched"
+          formControlName="nombre"
+          type="text"
+          placeholder="Nombre de la fase"
+        />
+        @if (ff['nombre'].invalid && ff['nombre'].touched) {
+          <span class="proyectos__field-error">El nombre es requerido.</span>
+        }
+      </div>
+
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="fase-desc">Descripción</label>
+        <textarea
+          id="fase-desc"
+          class="proyectos__textarea"
+          formControlName="descripcion"
+          rows="2"
+        ></textarea>
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-estado">Estado</label>
+        <select id="fase-estado" class="proyectos__input" formControlName="estado">
+          @for (e of FASE_ESTADOS; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-orden">Orden</label>
+        <input id="fase-orden" class="proyectos__input" formControlName="orden" type="number" min="1" />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-inicio">Fecha inicio</label>
+        <input id="fase-inicio" class="proyectos__input" formControlName="fecha_inicio" type="date" />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="fase-fin">Fecha fin</label>
+        <input id="fase-fin" class="proyectos__input" formControlName="fecha_fin" type="date" />
+      </div>
+
+      <div class="proyectos__field proyectos__field--full">
+        <label class="proyectos__label" for="fase-progreso">Progreso: {{ ff['progreso'].value }}%</label>
+        <input
+          id="fase-progreso"
+          class="proyectos__range"
+          formControlName="progreso"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+        />
+      </div>
+    </div>
+
+    @if (faseError()) {
+      <div class="proyectos__save-error" role="alert">{{ faseError() }}</div>
+    }
+
+    <div class="proyectos__form-actions">
+      <button type="button" class="proyectos__btn-cancel" (click)="closeFaseDrawer()">Cancelar</button>
+      <button type="submit" class="proyectos__btn-save" [disabled]="faseSaving()">
+        {{ faseSaving() ? 'Guardando...' : 'Guardar fase' }}
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Z21 — Confirmar creación del almacén de la obra recién creada ── -->
+@if (almacenPrompt(); as proy) {
+  <div class="art-modal-backdrop" (click)="descartarAlmacenPrompt()">
+    <div class="art-modal art-modal--sm" role="dialog" aria-modal="true"
+         aria-label="Crear almacén de la obra" (click)="$event.stopPropagation()">
+      <div class="art-modal__head">
+        <h2 class="art-modal__title">Almacén de la obra</h2>
+        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="Cerrar">✕</button>
+      </div>
+      <p class="alm-prompt__text">
+        Toda obra debe tener un almacén. ¿Crear <strong>«Almacén {{ proy.nombre }}»</strong> ahora?
+        Podrás vincular artículos y registrar entradas/salidas desde él.
+      </p>
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descartarAlmacenPrompt()">Ahora no</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra()">
+          @if (creandoAlmacen()) { Creando… } @else { Crear «Almacén {{ proy.nombre }}» }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══ Formulario compartido crear/editar (Z13) ══════════════════════ -->
+<ng-template #proyectoFormTpl>
   <form [formGroup]="form" (ngSubmit)="onSave()" class="proyectos__form" novalidate>
     <div class="proyectos__form-grid">
       <!-- Código -->
@@ -354,6 +1096,18 @@
           placeholder="Descripción del proyecto..."
         ></textarea>
       </div>
+
+      <!-- Z5(d) — dato de prueba (solo admin): switch deslizable -->
+      @if (esAdmin()) {
+        <div class="proyectos__field proyectos__field--full">
+          <label class="toggle-label" for="proy-es-prueba">
+            <input id="proy-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
+            <span class="toggle-switch" aria-hidden="true"></span>
+            Dato de prueba
+          </label>
+          <small class="proyectos__field-hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+        </div>
+      }
     </div>
 
     @if (saveError()) {
@@ -369,647 +1123,4 @@
       </button>
     </div>
   </form>
-</app-form-drawer>
-
-<!-- ── Detail Drawer ──────────────────────────────────────────── -->
-<app-form-drawer
-  title="Detalle del proyecto"
-  [open]="detailDrawerOpen()"
-  (closed)="closeDetailDrawer()"
->
-  @if (selectedProyecto(); as p) {
-    <div class="proyectos__detail">
-      <!-- Header info -->
-      <div class="proyectos__detail-header">
-        <div>
-          <span class="proyectos__codigo">{{ p.codigo }}</span>
-          <span class="proyectos__badge proyectos__badge--{{ getEstadoBadge(p.estado) }} proyectos__badge--lg">
-            {{ getEstadoLabel(p.estado) }}
-          </span>
-        </div>
-        <h2 class="proyectos__detail-nombre">{{ p.nombre }}</h2>
-      </div>
-
-      <!-- Z21 — banner: esta obra no tiene almacén -->
-      @if (!tieneAlmacen(p.id) && p.estado !== 'completado' && p.estado !== 'cancelado') {
-        <div class="alm-faltantes alm-faltantes--inline" role="note">
-          <div class="alm-faltantes__inline">
-            <span>⚠️ Esta obra no tiene almacén asignado.</span>
-            @if (puedeGestionarResponsables()) {
-              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
-                      [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
-                Crear «Almacén {{ p.nombre }}»
-              </button>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- Info grid -->
-      <div class="proyectos__detail-grid">
-        @if (p.cliente) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Cliente</span>
-            <span class="proyectos__detail-val">{{ p.cliente }}</span>
-          </div>
-        }
-        @if (p.tipo) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Tipo</span>
-            <span class="proyectos__detail-val">{{ getTipoLabel(p.tipo) }}</span>
-          </div>
-        }
-        @if (p.fecha_inicio) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Fecha inicio</span>
-            <span class="proyectos__detail-val">{{ formatFecha(p.fecha_inicio) }}</span>
-          </div>
-        }
-        @if (p.fecha_fin_estimada) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Fin estimado</span>
-            <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_estimada) }}</span>
-          </div>
-        }
-        @if (p.fecha_fin_real) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Fin real</span>
-            <span class="proyectos__detail-val">{{ formatFecha(p.fecha_fin_real) }}</span>
-          </div>
-        }
-        @if (p.presupuesto) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Presupuesto</span>
-            <span class="proyectos__detail-val">RD${{ p.presupuesto | number:'1.0-0' }}</span>
-          </div>
-        }
-        <div class="proyectos__detail-item">
-          <span class="proyectos__detail-key">Gasto real (compras)</span>
-          <span
-            class="proyectos__detail-val"
-            [class.proyectos__detail-val--over]="p.presupuesto != null && gastoReal() > p.presupuesto"
-          >
-            RD${{ gastoReal() | number:'1.0-0' }}
-            @if (p.presupuesto) {
-              ({{ (gastoReal() / p.presupuesto * 100) | number:'1.0-0' }}% del presupuesto)
-            }
-          </span>
-        </div>
-        @if (p.ubicacion) {
-          <div class="proyectos__detail-item proyectos__detail-item--full">
-            <span class="proyectos__detail-key">Ubicación</span>
-            <span class="proyectos__detail-val">{{ p.ubicacion }}</span>
-          </div>
-        }
-        @if (p.responsable?.nombre) {
-          <div class="proyectos__detail-item">
-            <span class="proyectos__detail-key">Responsable</span>
-            <span class="proyectos__detail-val">{{ p.responsable!.nombre }}</span>
-          </div>
-        }
-        @if (p.descripcion) {
-          <div class="proyectos__detail-item proyectos__detail-item--full">
-            <span class="proyectos__detail-key">Descripción</span>
-            <span class="proyectos__detail-val">{{ p.descripcion }}</span>
-          </div>
-        }
-      </div>
-
-      <!-- Clima en obra (Context System) -->
-      @if (p.latitud != null && p.longitud != null) {
-        <div class="proyectos__detail-weather">
-          <app-weather-card [latitud]="p.latitud" [longitud]="p.longitud" [titulo]="'Clima en ' + p.nombre" />
-        </div>
-      }
-
-      <!-- Progreso general -->
-      <div class="proyectos__detail-progress-section">
-        <span class="proyectos__detail-key">Progreso general</span>
-        <div class="proyectos__progress-bar">
-          <div
-            class="proyectos__progress-fill"
-            [style.width.%]="getProgresoPromedio(p)"
-            role="progressbar"
-            [attr.aria-valuenow]="getProgresoPromedio(p)"
-            aria-valuemin="0"
-            aria-valuemax="100"
-          ></div>
-        </div>
-        <span class="proyectos__progress-pct">{{ getProgresoPromedio(p) }}%</span>
-      </div>
-
-      <!-- R25: Pagado vs Trabajado -->
-      <div class="proyectos__pagado">
-        <span class="proyectos__detail-key">Pagado vs Trabajado</span>
-
-        @if (avance()?.pago_excede) {
-          <div class="proyectos__pagado-alert" role="alert">
-            ⚠ El % pagado supera al % trabajado
-          </div>
-        }
-
-        <div class="proyectos__pagado-row">
-          <span class="proyectos__pagado-tag">Trabajado</span>
-          <div class="proyectos__progress-bar">
-            <div
-              class="proyectos__progress-fill"
-              [style.width.%]="avance()?.avance_trabajado ?? 0"
-              role="progressbar"
-              [attr.aria-valuenow]="avance()?.avance_trabajado ?? 0"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            ></div>
-          </div>
-          <span class="proyectos__progress-pct">{{ avance()?.avance_trabajado ?? 0 }}%</span>
-        </div>
-
-        <div class="proyectos__pagado-row">
-          <span class="proyectos__pagado-tag">Pagado</span>
-          <div class="proyectos__progress-bar">
-            <div
-              class="proyectos__progress-fill proyectos__progress-fill--pagado"
-              [class.proyectos__progress-fill--excede]="avance()?.pago_excede"
-              [style.width.%]="avance()?.porcentaje_pagado ?? 0"
-              role="progressbar"
-              [attr.aria-valuenow]="avance()?.porcentaje_pagado ?? 0"
-              aria-valuemin="0"
-              aria-valuemax="100"
-            ></div>
-          </div>
-          <span class="proyectos__progress-pct">
-            {{ avance()?.porcentaje_pagado != null ? avance()!.porcentaje_pagado + '%' : '—' }}
-          </span>
-        </div>
-
-        @if (puedeEditarPagado()) {
-          <div class="proyectos__pagado-edit">
-            <label class="proyectos__label" for="pagado-input">Fijar % pagado (0-100)</label>
-            <div class="proyectos__pagado-edit-row">
-              <input
-                id="pagado-input"
-                class="proyectos__input"
-                type="number"
-                min="0"
-                max="100"
-                [value]="pagadoInput()"
-                (input)="pagadoInput.set($any($event.target).value === '' ? null : +$any($event.target).value)"
-                placeholder="—"
-              />
-              <button
-                type="button"
-                class="sgc-btn sgc-btn--secondary"
-                (click)="guardarPagado()"
-                [disabled]="avanceSaving()"
-              >
-                {{ avanceSaving() ? 'Guardando…' : 'Guardar' }}
-              </button>
-            </div>
-          </div>
-        }
-      </div>
-
-      <!-- Preparación para iniciar (sistema de estrellas) -->
-      <div class="proyectos__readiness">
-        <div class="proyectos__readiness-head">
-          <span class="proyectos__detail-key">Preparación para iniciar</span>
-          <span
-            class="proyectos__readiness-score"
-            [class.proyectos__readiness-score--complete]="listoParaIniciar(p.id)"
-          >{{ estrellas(p.id) }}/4 ★</span>
-        </div>
-        <ul class="proyectos__readiness-list">
-          @for (s of READINESS_ESTRELLAS; track s.key) {
-            <li
-              class="proyectos__readiness-item"
-              [class.proyectos__readiness-item--ok]="readinessDe(p.id)?.[s.key]"
-            >
-              <span class="proyectos__readiness-mark">{{ readinessDe(p.id)?.[s.key] ? '✓' : '○' }}</span>
-              <span>{{ s.label }}</span>
-            </li>
-          }
-        </ul>
-        @if (listoParaIniciar(p.id)) {
-          <p class="proyectos__readiness-note proyectos__readiness-note--ok">
-            ✓ Lista para iniciar — puedes cambiar el estado a "En progreso".
-          </p>
-        } @else {
-          <p class="proyectos__readiness-note">
-            Aún no se puede iniciar: completa los 4 parámetros para habilitar el estado "En progreso".
-          </p>
-        }
-      </div>
-
-      <!-- Documentos: contrato, presupuesto, cronograma, manual de ejecución -->
-      <app-documentos-proyecto [proyectoId]="p.id" />
-
-      <!-- Z2 — Responsables (ingenieros firmantes de liberación) -->
-      <div class="proyectos__fases">
-        <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Responsables</h3>
-        </div>
-
-        @if (responsablesLoading()) {
-          <app-skeleton variant="list" [rows]="2" />
-        } @else {
-          @if (responsables().length === 0) {
-            <p class="proyectos__fases-empty">
-              Sin ingenieros responsables vinculados. Se usan para preseleccionar los firmantes de la liberación (CL).
-            </p>
-          } @else {
-            @for (r of responsables(); track r.id) {
-              <div class="proyectos__fase-card">
-                <div class="proyectos__fase-info">
-                  <div>
-                    <p class="proyectos__fase-nombre">
-                      <span class="sgc-badge sgc-badge--info">{{ tipoRespLabel(r.tipo_responsabilidad) }}</span>
-                      {{ r.nombre }}
-                    </p>
-                    @if (r.email) {
-                      <p class="proyectos__fase-desc">{{ r.email }}</p>
-                    }
-                  </div>
-                </div>
-                @if (puedeGestionarResponsables()) {
-                  <button
-                    type="button"
-                    class="proyectos__btn-icon proyectos__btn-icon--danger"
-                    (click)="removeResponsable(r.id)"
-                    aria-label="Quitar responsable"
-                  >✕</button>
-                }
-              </div>
-            }
-          }
-
-          @if (puedeGestionarResponsables()) {
-            <!-- Alta de responsable -->
-            <div class="proyectos__add-miembro proyectos__add-miembro--obra">
-              <select
-                [value]="nuevoRespTipo()"
-                (change)="nuevoRespTipo.set($any($event.target).value)"
-                aria-label="Tipo de responsabilidad"
-              >
-                @for (t of TIPOS_RESPONSABILIDAD; track t.value) {
-                  <option [value]="t.value">{{ t.label }}</option>
-                }
-              </select>
-              <select
-                [value]="nuevoRespUsuarioId()"
-                (change)="nuevoRespUsuarioId.set($any($event.target).value)"
-                aria-label="Seleccionar ingeniero"
-              >
-                <option value="">Seleccionar ingeniero…</option>
-                @for (u of usuariosSinVincular(); track u.id) {
-                  <option [value]="u.id">{{ u.nombre }}</option>
-                }
-              </select>
-              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addResponsable()">
-                + Vincular
-              </button>
-            </div>
-            @if (responsableError()) {
-              <p class="proyectos__save-error" role="alert">{{ responsableError() }}</p>
-            }
-          }
-        }
-      </div>
-
-      <!-- Equipo de Obra (A3.2) -->
-      <div class="proyectos__fases">
-        <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Equipo de Obra</h3>
-        </div>
-
-        @if (equipoLoading()) {
-          <app-skeleton variant="list" [rows]="4" />
-        } @else {
-          @if (equipo().length === 0) {
-            <p class="proyectos__fases-empty">Sin miembros asignados a esta obra.</p>
-          } @else {
-            @for (m of equipo(); track m.id) {
-              <div class="proyectos__fase-card">
-                <div class="proyectos__fase-info">
-                  <div>
-                    <p class="proyectos__fase-nombre">
-                      @if (m.rol) {
-                        <span class="sgc-badge sgc-badge--info">{{ rolObraLabel(m.rol) }}</span>
-                      }
-                      @if (m.empleado_id) {
-                        {{ m.empleado?.apellido }}, {{ m.empleado?.nombre }}
-                      } @else {
-                        {{ m.externo_nombre }}
-                        <span class="text-muted"> (externo)</span>
-                      }
-                    </p>
-                    <p class="proyectos__fase-desc">
-                      @if (m.empleado_id) {
-                        {{ m.empleado?.cargo }}
-                      } @else {
-                        {{ m.externo_tipo === 'topografia' ? 'Topografía subcontratada' : (m.externo_tipo === 'subcontratista' ? 'Subcontratista' : 'Entidad externa') }}
-                      }
-                      @if (m.desde) { · desde {{ formatFecha(m.desde) }} }
-                      @if (m.hasta) { · hasta {{ formatFecha(m.hasta) }} }
-                    </p>
-                    @if (m.notas) {
-                      <p class="proyectos__fase-desc">{{ m.notas }}</p>
-                    }
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  class="proyectos__btn-icon proyectos__btn-icon--danger"
-                  (click)="removeMiembro(m.id)"
-                  [attr.aria-label]="'Quitar miembro del equipo'"
-                >✕</button>
-              </div>
-            }
-          }
-
-          <!-- Alta de miembro -->
-          <div class="proyectos__add-miembro proyectos__add-miembro--obra">
-            <select
-              [value]="nuevoMiembroRol()"
-              (change)="onNuevoMiembroRolChange($any($event.target).value)"
-              aria-label="Rol en la obra"
-            >
-              <option value="">Rol en la obra…</option>
-              @for (r of ROLES_OBRA; track r.value) {
-                <option [value]="r.value">{{ r.label }}</option>
-              }
-            </select>
-
-            <div class="proyectos__miembro-modo">
-              <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'empleado'" (click)="setMiembroModo('empleado')">Empleado</button>
-              <button type="button" class="proyectos__toggle" [class.proyectos__toggle--active]="nuevoMiembroModo() === 'externo'" (click)="setMiembroModo('externo')">Externo</button>
-            </div>
-
-            @if (nuevoMiembroModo() === 'empleado') {
-              <select
-                [value]="nuevoMiembroEmpleadoId()"
-                (change)="onNuevoMiembroChange($any($event.target).value)"
-                aria-label="Seleccionar empleado"
-              >
-                <option value="">Seleccionar empleado…</option>
-                @for (e of empleadosDisponibles(); track e.id) {
-                  <option [value]="e.id">{{ e.apellido }}, {{ e.nombre }} — {{ e.cargo }}</option>
-                }
-              </select>
-            } @else {
-              <input
-                type="text"
-                placeholder="Nombre de la empresa/entidad externa"
-                [value]="nuevoMiembroExternoNombre()"
-                (input)="nuevoMiembroExternoNombre.set($any($event.target).value)"
-                aria-label="Nombre de la entidad externa"
-              />
-            }
-
-            <input
-              type="date"
-              [value]="nuevoMiembroDesde()"
-              (change)="nuevoMiembroDesde.set($any($event.target).value)"
-              aria-label="Vigente desde"
-              title="Vigente desde (opcional)"
-            />
-
-            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="addMiembro()">
-              + Agregar
-            </button>
-          </div>
-          @if (miembroError()) {
-            <p class="proyectos__save-error" role="alert">{{ miembroError() }}</p>
-          }
-        }
-      </div>
-
-      <!-- Expediente de inicio de obra (A8) -->
-      <div class="proyectos__fases">
-        <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Expediente de inicio de obra</h3>
-        </div>
-        <app-expediente-obra [proyectoId]="p.id" [usuarios]="usuarios()" />
-      </div>
-
-      <!-- Cuadre inicial + Kit de inicio (A3.1) — solo roles financieros/dirección -->
-      @if (verCuadre()) {
-        <div class="proyectos__fases">
-          <div class="proyectos__fases-header">
-            <h3 class="proyectos__fases-title">Cuadre inicial de materiales</h3>
-          </div>
-          <app-cuadre-obra [proyectoId]="p.id" [bodegas]="bodegasList()" [articulos]="articulosList()" />
-        </div>
-      }
-
-      <!-- Vaciados y No Conformidades (CSD-OPE-01) -->
-      <div class="proyectos__fases">
-        <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Vaciados y No Conformidades</h3>
-        </div>
-        <app-ejecucion-obra [proyectoId]="p.id" />
-      </div>
-
-      <!-- Partidas de obra + avance físico (R24) -->
-      <div class="proyectos__fases">
-        <h3 class="proyectos__fases-title">Partidas</h3>
-        <app-proyecto-partidas [proyectoId]="p.id" />
-      </div>
-
-      <!-- Checklists de Liberación CL-01..07 (CSD-OPE-01 §6.8/§9) -->
-      <div class="proyectos__fases">
-        <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Checklists de Liberación (CL)</h3>
-        </div>
-        <app-cl-liberacion [proyectoId]="p.id" [focusRegistroId]="clFocusId()" [focusFirmaRol]="clFocusRol()" />
-      </div>
-
-      <!-- Z14 — Estructuras de la obra (bloques/pisos) -->
-      <div class="proyectos__estructuras">
-        <h3 class="proyectos__fases-title">Estructuras (bloques / pisos)</h3>
-        <p class="proyectos__estructuras-hint">Se ofrecen como opciones en el campo "Bloque/Entrepiso" de las bitácoras de esta obra.</p>
-        <div class="proyectos__estructuras-chips">
-          @for (e of estructuras(); track e.id) {
-            <span class="proyectos__estructura-chip">
-              {{ e.nombre }}
-              <button type="button" (click)="eliminarEstructura(e)" aria-label="Eliminar estructura">×</button>
-            </span>
-          } @empty {
-            <span class="text-muted">Sin estructuras definidas.</span>
-          }
-        </div>
-        <div class="proyectos__estructuras-add">
-          <input type="text" [value]="nuevaEstructura()" (input)="nuevaEstructura.set($any($event.target).value)"
-                 (keyup.enter)="agregarEstructura()" placeholder="Ej: Bloque A, Piso 3, Torre Norte…" maxlength="100" />
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarEstructura()">+ Agregar</button>
-        </div>
-      </div>
-
-      <!-- Fases -->
-      <div class="proyectos__fases">
-        <div class="proyectos__fases-header">
-          <h3 class="proyectos__fases-title">Fases del proyecto</h3>
-          <div class="proyectos__fases-actions">
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
-            <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
-          </div>
-        </div>
-
-        @if (detailLoading()) {
-          <app-skeleton variant="list" [rows]="4" />
-        }
-
-        @if (!detailLoading() && (p.fases?.length ?? 0) === 0) {
-          <p class="proyectos__fases-empty">Sin fases registradas.</p>
-        }
-
-        @for (fase of p.fases; track fase.id) {
-          <div class="proyectos__fase-card">
-            <div class="proyectos__fase-header">
-              <div class="proyectos__fase-info">
-                <span class="proyectos__fase-orden">{{ fase.orden }}</span>
-                <div>
-                  <p class="proyectos__fase-nombre">{{ fase.nombre }}</p>
-                  @if (fase.descripcion) {
-                    <p class="proyectos__fase-desc">{{ fase.descripcion }}</p>
-                  }
-                </div>
-              </div>
-              <div class="proyectos__fase-actions">
-                <span class="proyectos__badge proyectos__badge--{{ getFaseEstadoBadge(fase.estado) }}">
-                  {{ getFaseEstadoLabel(fase.estado) }}
-                </span>
-                <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase">✏️</button>
-                <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase">🗑️</button>
-              </div>
-            </div>
-            <div class="proyectos__fase-progress">
-              <div class="proyectos__progress-bar">
-                <div
-                  class="proyectos__progress-fill"
-                  [style.width.%]="fase.progreso"
-                  role="progressbar"
-                  [attr.aria-valuenow]="fase.progreso"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                ></div>
-              </div>
-              <span class="proyectos__progress-pct">{{ fase.progreso }}%</span>
-            </div>
-            @if (fase.fecha_inicio || fase.fecha_fin) {
-              <div class="proyectos__fase-fechas">
-                @if (fase.fecha_inicio) { <span>{{ formatFecha(fase.fecha_inicio) }}</span> }
-                @if (fase.fecha_fin) { <span>→ {{ formatFecha(fase.fecha_fin) }}</span> }
-              </div>
-            }
-          </div>
-        }
-      </div>
-    </div>
-  }
-</app-form-drawer>
-
-<!-- ── Fase Drawer ─────────────────────────────────────────────── -->
-<app-form-drawer
-  [title]="editingFaseId() ? 'Editar fase' : 'Nueva fase'"
-  [open]="faseDrawerOpen()"
-  (closed)="closeFaseDrawer()"
->
-  <form [formGroup]="faseForm" (ngSubmit)="onSaveFase()" class="proyectos__form" novalidate>
-    <div class="proyectos__form-grid">
-      <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="fase-nombre">Nombre *</label>
-        <input
-          id="fase-nombre"
-          class="proyectos__input"
-          [class.proyectos__input--error]="ff['nombre'].invalid && ff['nombre'].touched"
-          formControlName="nombre"
-          type="text"
-          placeholder="Nombre de la fase"
-        />
-        @if (ff['nombre'].invalid && ff['nombre'].touched) {
-          <span class="proyectos__field-error">El nombre es requerido.</span>
-        }
-      </div>
-
-      <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="fase-desc">Descripción</label>
-        <textarea
-          id="fase-desc"
-          class="proyectos__textarea"
-          formControlName="descripcion"
-          rows="2"
-        ></textarea>
-      </div>
-
-      <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-estado">Estado</label>
-        <select id="fase-estado" class="proyectos__input" formControlName="estado">
-          @for (e of FASE_ESTADOS; track e.value) {
-            <option [value]="e.value">{{ e.label }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-orden">Orden</label>
-        <input id="fase-orden" class="proyectos__input" formControlName="orden" type="number" min="1" />
-      </div>
-
-      <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-inicio">Fecha inicio</label>
-        <input id="fase-inicio" class="proyectos__input" formControlName="fecha_inicio" type="date" />
-      </div>
-
-      <div class="proyectos__field">
-        <label class="proyectos__label" for="fase-fin">Fecha fin</label>
-        <input id="fase-fin" class="proyectos__input" formControlName="fecha_fin" type="date" />
-      </div>
-
-      <div class="proyectos__field proyectos__field--full">
-        <label class="proyectos__label" for="fase-progreso">Progreso: {{ ff['progreso'].value }}%</label>
-        <input
-          id="fase-progreso"
-          class="proyectos__range"
-          formControlName="progreso"
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-        />
-      </div>
-    </div>
-
-    @if (faseError()) {
-      <div class="proyectos__save-error" role="alert">{{ faseError() }}</div>
-    }
-
-    <div class="proyectos__form-actions">
-      <button type="button" class="proyectos__btn-cancel" (click)="closeFaseDrawer()">Cancelar</button>
-      <button type="submit" class="proyectos__btn-save" [disabled]="faseSaving()">
-        {{ faseSaving() ? 'Guardando...' : 'Guardar fase' }}
-      </button>
-    </div>
-  </form>
-</app-form-drawer>
-
-<!-- ── Z21 — Confirmar creación del almacén de la obra recién creada ── -->
-@if (almacenPrompt(); as proy) {
-  <div class="art-modal-backdrop" (click)="descartarAlmacenPrompt()">
-    <div class="art-modal art-modal--sm" role="dialog" aria-modal="true"
-         aria-label="Crear almacén de la obra" (click)="$event.stopPropagation()">
-      <div class="art-modal__head">
-        <h2 class="art-modal__title">Almacén de la obra</h2>
-        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="Cerrar">✕</button>
-      </div>
-      <p class="alm-prompt__text">
-        Toda obra debe tener un almacén. ¿Crear <strong>«Almacén {{ proy.nombre }}»</strong> ahora?
-        Podrás vincular artículos y registrar entradas/salidas desde él.
-      </p>
-      <div class="drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descartarAlmacenPrompt()">Ahora no</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra()">
-          @if (creandoAlmacen()) { Creando… } @else { Crear «Almacén {{ proy.nombre }}» }
-        </button>
-      </div>
-    </div>
-  </div>
-}
+</ng-template>

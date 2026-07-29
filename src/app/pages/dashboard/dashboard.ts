@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet, DecimalPipe } from '@angular/common';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { DatosPruebaViewService } from '../../../shared/services/datos-prueba-view.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
 import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
@@ -48,8 +49,25 @@ export class Dashboard implements OnInit {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private proyectosService = inject(ProyectosService);
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
 
   formatFecha = formatFechaDisplay;
+
+  // Z5(c) — el admin oculta datos de prueba por defecto; los KPIs los excluyen salvo
+  // que active el toggle global. `verPrueba` gobierna las queries de KPIs.
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
+  verPrueba = computed(() => this.userService.hasRole('admin') && this.mostrarPrueba());
+  private kpisCargados = false;
+
+  constructor() {
+    // Al cambiar el toggle global de datos de prueba, recargar los KPIs (la primera
+    // carga la dispara ngOnInit).
+    effect(() => {
+      this.mostrarPrueba(); // seguimiento reactivo del interruptor
+      if (this.kpisCargados) void this.loadAll();
+    });
+  }
 
   profile = this.userService.profile;
 
@@ -422,6 +440,7 @@ export class Dashboard implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    this.kpisCargados = true;
   }
 
   private async loadAll() {
@@ -430,6 +449,14 @@ export class Dashboard implements OnInit {
     try {
       const fechaDesde = daysAgoIso(6);
       const hoy = todayIso();
+
+      // Z5(c) — por defecto los KPIs excluyen datos de prueba (es_prueba). Solo un admin
+      // que activa el toggle global los ve. Se aplica a las tablas que tienen la columna.
+      const soloReales = !this.verPrueba();
+      // NB: typed as `any` on purpose — chaining `.eq()` on the Supabase query
+      // builder through a generic makes TS expand its recursive type (TS2589).
+      // The client is untyped here anyway, so `any` is the pragmatic, safe choice.
+      const sinPrueba = (q: any): any => (soloReales ? q.eq('es_prueba', false) : q);
 
       const [
         articulosRes,
@@ -458,20 +485,20 @@ export class Dashboard implements OnInit {
       ] = await Promise.all([
         this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
-        this.supabase.client
+        sinPrueba(this.supabase.client
           .from('entradas_inventario')
           .select('fecha, detalle_entradas(cantidad)')
-          .gte('fecha', fechaDesde),
-        this.supabase.client
+          .gte('fecha', fechaDesde)),
+        sinPrueba(this.supabase.client
           .from('salidas_inventario')
           .select('fecha, detalle_salidas(cantidad)')
-          .gte('fecha', fechaDesde),
-        this.supabase.client.from('ordenes_compra').select('estado, fecha, total'),
+          .gte('fecha', fechaDesde)),
+        sinPrueba(this.supabase.client.from('ordenes_compra').select('estado, fecha, total')),
         this.supabase.client.from('empleados').select('activo, departamento'),
         this.supabase.client.from('asistencia').select('estado').eq('fecha', hoy),
         this.supabase.client.from('proyectos').select('estado, presupuesto'),
-        this.supabase.client.from('vehiculos').select('estado, activo'),
-        this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa)'),
+        sinPrueba(this.supabase.client.from('vehiculos').select('estado, activo')),
+        sinPrueba(this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa)')),
         this.supabase.client
           .from('solicitudes_material')
           .select('proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre), urgencia, created_at', { count: 'exact' })
@@ -484,19 +511,19 @@ export class Dashboard implements OnInit {
           .eq('estado', 'pendiente')
           .order('created_at', { ascending: false })
           .limit(5),
-        this.supabase.client
+        sinPrueba(this.supabase.client
           .from('bitacoras')
           .select('id', { count: 'exact', head: true })
-          .gte('fecha', fechaDesde),
-        this.supabase.client
+          .gte('fecha', fechaDesde)),
+        sinPrueba(this.supabase.client
           .from('salidas_inventario')
           .select('id', { count: 'exact', head: true })
-          .eq('estado', 'despachado'),
-        this.supabase.client
+          .eq('estado', 'despachado')),
+        sinPrueba(this.supabase.client
           .from('salidas_inventario')
           .select('id', { count: 'exact', head: true })
           .eq('estado', 'entregado_incompleto')
-          .gte('fecha', daysAgoIso(29)),
+          .gte('fecha', daysAgoIso(29))),
         this.supabase.client
           .from('expedientes_legales')
           .select('id', { count: 'exact', head: true })
@@ -517,24 +544,24 @@ export class Dashboard implements OnInit {
           .select('id', { count: 'exact', head: true })
           .eq('estado', 'pendiente'),
         // Y12 — alertas de flota activas (avisos pendientes)
-        this.supabase.client
+        sinPrueba(this.supabase.client
           .from('avisos_flota')
           .select('id', { count: 'exact', head: true })
-          .eq('estado', 'pendiente'),
+          .eq('estado', 'pendiente')),
         // Y12 — documentos de flota por vencer/vencidos (subconjunto de avisos)
-        this.supabase.client
+        sinPrueba(this.supabase.client
           .from('avisos_flota')
           .select('id', { count: 'exact', head: true })
           .eq('estado', 'pendiente')
           .in('tipo', [
             'seguro', 'seguro_por_vencer', 'matricula', 'matricula_por_vencer',
             'licencia', 'licencia_por_vencer', 'licencia_vencida', 'documento', 'documento_por_vencer',
-          ]),
+          ])),
         // Y12 — checklists de vehículo enviados hoy
-        this.supabase.client
+        sinPrueba(this.supabase.client
           .from('checklists_vehiculo')
           .select('id', { count: 'exact', head: true })
-          .eq('fecha', hoy),
+          .eq('fecha', hoy)),
         // Y12 — errores de app últimos 7 días (RLS: solo admin/tecnologia ven filas)
         this.supabase.client
           .from('app_error_reports')

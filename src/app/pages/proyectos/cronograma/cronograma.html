@@ -41,6 +41,15 @@
           <span>Duración (días)</span>
           <input type="number" min="1" formControlName="duracion_dias_plan" />
         </label>
+        @if (fases().length) {
+          <label class="cron__field">
+            <span>Fase (contenedor)</span>
+            <select formControlName="fase_id">
+              <option [ngValue]="null">Sin fase</option>
+              @for (f of fases(); track f.id) { <option [ngValue]="f.id">{{ f.nombre }}</option> }
+            </select>
+          </label>
+        }
         @if (!editandoId()) {
           <label class="cron__field">
             <span>Inicio planificado (opcional, solo la 1.ª)</span>
@@ -141,6 +150,7 @@
                 <td>{{ t.orden }}</td>
                 <td>
                   <strong>{{ t.nombre }}</strong>
+                  @if (faseNombre(t.fase_id)) { <span class="cron__fase-tag">📁 {{ faseNombre(t.fase_id) }}</span> }
                   @if (t.descripcion) { <div class="cron__muted cron__desc">{{ t.descripcion }}</div> }
                   @if (t.justificacion_retraso) { <div class="cron__just">⚠ {{ t.justificacion_retraso }}</div> }
                 </td>
@@ -163,6 +173,10 @@
                     @if (t.estado !== 'completada') {
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCompletar(t)">Completar</button>
                     }
+                    @if (atrasada(t)) {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm cron__btn-just" (click)="abrirJustificar(t)"
+                              title="Justificar el retraso de esta tarea">⚠ Justificar retraso</button>
+                    }
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(t)">Editar</button>
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar(t)">Eliminar</button>
                   }
@@ -180,6 +194,23 @@
                       } @empty {
                         <span class="cron__muted">Sin bitácoras enlazadas.</span>
                       }
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (justificandoId() === t.id) {
+                <tr class="cron__completar-row">
+                  <td colspan="7">
+                    <div class="cron__completar">
+                      <strong>Justificar retraso de «{{ t.nombre }}»</strong>
+                      <label class="cron__field cron__field--wide">
+                        <span>Justificación del retraso (obligatoria)</span>
+                        <textarea rows="2" [value]="justificacionTexto()" (input)="justificacionTexto.set($any($event.target).value)"></textarea>
+                      </label>
+                      <div class="cron__form-actions">
+                        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cancelarJustificar()">Cancelar</button>
+                        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardando()" (click)="confirmarJustificar(t)">Guardar justificación</button>
+                      </div>
                     </div>
                   </td>
                 </tr>

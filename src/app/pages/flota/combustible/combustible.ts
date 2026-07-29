@@ -107,12 +107,23 @@ export class Combustible implements OnInit {
     estacionSel: new FormControl<string>('Total Energies'),
     estacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
+    // Z23.4 — datos de conciliación con el reporte del proveedor (opcionales).
+    producto: new FormControl<string | null>(null),
+    tarjeta: new FormControl<string | null>(null),
+    titular: new FormControl<string | null>(null),
+    titular_es_persona: new FormControl<boolean>(false, { nonNullable: true }),
   });
 
   private estacionSelVal = toSignal(this.form.controls.estacionSel.valueChanges, {
     initialValue: this.form.controls.estacionSel.value,
   });
   estacionEsOtro = computed(() => this.estacionSelVal() === 'Otro');
+
+  // Z23.4 — el campo "titular" solo aplica cuando la tarjeta es de una persona.
+  private titularEsPersonaVal = toSignal(this.form.controls.titular_es_persona.valueChanges, {
+    initialValue: this.form.controls.titular_es_persona.value,
+  });
+  tarjetaEsPersona = computed(() => this.titularEsPersonaVal() === true);
 
   // ── Filtering ────────────────────────────────────────────
   filtered = computed(() => {
@@ -143,9 +154,11 @@ export class Combustible implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   // ── Monthly totals (current month) ───────────────────────
+  // Z5(c) — los KPIs del mes excluyen datos de prueba salvo que el admin active el toggle.
   private mesActual = computed(() => {
     const ym = todayIso().slice(0, 7);
-    return this.registros().filter((r) => r.fecha.startsWith(ym));
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
+    return this.registros().filter((r) => r.fecha.startsWith(ym) && !(r.es_prueba && !verPrueba));
   });
   totalGalonesMes = computed(() =>
     this.mesActual().reduce((s, r) => s + (r.galones ?? r.litros ?? 0), 0),
@@ -314,7 +327,8 @@ export class Combustible implements OnInit {
     this.clearFiles();
     this.form.reset({ fecha: this.today, vehiculo_id: '', conductor_id: null,
       kilometraje: null, galones: null, monto: null,
-      estacionSel: 'Total Energies', estacion: null, notas: null });
+      estacionSel: 'Total Energies', estacion: null, notas: null,
+      producto: null, tarjeta: null, titular: null, titular_es_persona: false });
     this.drawerOpen.set(true);
   }
 
@@ -375,6 +389,11 @@ export class Combustible implements OnInit {
       estacion:
         raw.estacionSel === 'Otro' ? raw.estacion?.trim() || 'Otro' : raw.estacionSel || null,
       notas: raw.notas?.trim() || null,
+      // Z23.4 — datos de conciliación (opcionales).
+      producto: raw.producto || null,
+      tarjeta: raw.tarjeta?.trim() || null,
+      titular: raw.titular_es_persona ? raw.titular?.trim() || null : null,
+      titular_es_persona: !!raw.titular_es_persona,
     };
 
     try {

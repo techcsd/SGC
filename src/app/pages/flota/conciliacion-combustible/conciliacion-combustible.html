@@ -125,6 +125,29 @@
     </button>
   </div>
 
+  <!-- Z23.3 — Filtros del detalle + exportar filas visibles -->
+  <div class="filters-bar">
+    <div class="sgc-field filters-bar__select">
+      <select aria-label="Filtrar por vehículo o tarjeta"
+              [value]="filtroVehiculo()" (change)="onFiltroVehiculo($any($event.target).value)">
+        <option value="">Todos los vehículos / tarjetas</option>
+        @for (id of identificadoresDisponibles(); track id) {
+          <option [value]="id">{{ id }}</option>
+        }
+      </select>
+    </div>
+    <app-date-range-filter [desde]="filtroDesde()" [hasta]="filtroHasta()" (rangeChange)="onRangoDetalle($event)" />
+    @if (hayFiltrosDetalle()) {
+      <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="limpiarFiltrosDetalle()">
+        Limpiar filtros
+      </button>
+    }
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="detallesFiltrados().length === 0" title="Exportar las filas visibles a Excel">
+      ⬇️ Excel
+    </button>
+  </div>
+
   <div class="table-wrapper sgc-card">
     <div class="table-scroll">
       <table class="data-table" aria-label="Detalle de conciliación">
@@ -137,7 +160,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (d of detallesPorTab(); track $index) {
+          @for (d of detallesFiltrados(); track $index) {
             <tr>
               <td>{{ d.identificador ?? '—' }}</td>
               <td>{{ d.fecha ? formatFecha(d.fecha) : '—' }}</td>

@@ -14,6 +14,9 @@ export interface RegistroCombustible {
   // Z23-app — producto/tarjeta para conciliar con el reporte del proveedor.
   producto: string | null;
   tarjeta: string | null;
+  // Z23.4 — titular de la tarjeta cuando es de una persona (no del vehículo).
+  titular?: string | null;
+  titular_es_persona?: boolean;
   notas: string | null;
 
   // ── v2: galones / monto + derivados ──
@@ -54,6 +57,11 @@ export interface RegistroCombustibleFormData {
   monto: number;
   estacion: string | null;
   notas: string | null;
+  // Z23.4 — datos para conciliar con el reporte del proveedor (opcionales).
+  producto: string | null;              // 'diesel' | 'gasolina'
+  tarjeta: string | null;               // número/identificador de tarjeta
+  titular: string | null;               // titular si la tarjeta es de una persona
+  titular_es_persona: boolean;          // true → la tarjeta pertenece a una persona
 }
 
 /** jsonb que devuelve el RPC `registrar_combustible_app`. */

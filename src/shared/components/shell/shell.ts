@@ -308,6 +308,11 @@ export class Shell implements OnInit {
     const saved = localStorage.getItem('sgc-sidebar-collapsed');
     if (saved !== null) {
       this.collapsed.set(saved === 'true');
+    } else if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
+      // Z33 — en laptops/tablets (769–1024px) el sidebar arranca colapsado a
+      // riel de iconos para dar más ancho al contenido; solo si el usuario no
+      // fijó una preferencia (≤768px ya es drawer off-canvas, no aplica).
+      this.collapsed.set(true);
     }
     this.notificaciones.refresh();
     this.realtimeNotificaciones.start();

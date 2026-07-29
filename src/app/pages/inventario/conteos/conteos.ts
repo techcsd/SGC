@@ -6,6 +6,9 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { UserService } from '../../../core/services/user.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
@@ -26,6 +29,13 @@ export class Conteos implements OnInit {
   private service = inject(ConteosService);
   private bodegasService = inject(BodegasService);
   private toast = inject(ToastService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
+  private userService = inject(UserService);
+
+  // Z5(d) — datos de prueba (solo admin).
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   conteos = signal<Conteo[]>([]);
   bodegas = signal<Bodega[]>([]);
@@ -62,7 +72,9 @@ export class Conteos implements OnInit {
     const bod = this.filtroBodega();
     const desde = this.desde();
     const hasta = this.hasta();
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
     return this.conteos().filter((c) => {
+      if (c.es_prueba && !verPrueba) return false;
       if (q && !(c.bodega?.nombre ?? '').toLowerCase().includes(q) && !(c.creado?.nombre ?? '').toLowerCase().includes(q)) return false;
       if (bod && c.bodega_id !== bod) return false;
       // c.created_at es timestamp ISO; comparamos solo la parte de fecha.
@@ -123,6 +135,33 @@ export class Conteos implements OnInit {
 
   esChequeo(c: Conteo): boolean {
     return c.tipo === 'chequeo_semanal';
+  }
+
+  // Z5(d) — marcar/desmarcar un conteo como dato de prueba (solo admin).
+  async marcarPrueba(item: Conteo, valor: boolean) {
+    if (!this.esAdmin()) return;
+    try {
+      await this.datosPrueba.marcar('conteos_inventario', item.id, valor);
+      this.conteos.update((l) => l.map((x) => (x.id === item.id ? { ...x, es_prueba: valor } : x)));
+      this.toast.success(valor ? 'Marcado como prueba' : 'Desmarcado', '');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
+  }
+
+  // Z5(d) — eliminar definitivamente un conteo marcado como prueba (solo admin).
+  async eliminarPrueba(item: Conteo) {
+    if (!this.esAdmin() || !item.es_prueba) return;
+    const nombre = item.bodega?.nombre ?? 'este almacén';
+    if (!confirm(`¿Eliminar definitivamente el conteo de "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('conteos_inventario', item.id);
+      this.conteos.update((l) => l.filter((x) => x.id !== item.id));
+      if (this.expandedId() === item.id) this.expandedId.set(null);
+      this.toast.success('Conteo de prueba eliminado', '');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'Intenta de nuevo.');
+    }
   }
 
   // ── Chequeo semanal ──

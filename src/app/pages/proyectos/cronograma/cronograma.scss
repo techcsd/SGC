@@ -177,3 +177,22 @@
   min-width: 44px;
   &--neg { color: var(--sgc-danger); }
 }
+
+// Y15 — etiqueta de fase (contenedor) en la lista de tareas
+.cron__fase-tag {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-bg-subtle, #f1f1f3);
+  border-radius: 6px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+
+// Y15 — botón "Justificar retraso"
+.cron__btn-just {
+  color: var(--sgc-warning);
+  border-color: var(--sgc-warning);
+}

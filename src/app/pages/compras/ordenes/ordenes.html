@@ -178,6 +178,7 @@
 <app-form-drawer
   title="Nueva orden de compra"
   [open]="createDrawerOpen()"
+  [wide]="true"
   (closed)="closeCreate()"
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
@@ -304,7 +305,7 @@
             <div class="item-row__desc sgc-field">
               <label [for]="'desc-' + $index" class="sr-only">Artículo</label>
               <app-articulo-picker
-                [articulos]="articulos()"
+                [articulos]="articulosParaDestino()"
                 [categorias]="categorias()"
                 [value]="item.articulo_id"
                 [esOtro]="item.esOtro"

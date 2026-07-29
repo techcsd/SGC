@@ -3,8 +3,20 @@ import { AppVersionesService } from '../../../../shared/services/app-versiones.s
 import { AppVersion, CambioItem, CambioTag, CAMBIO_META, Plataforma } from '../../../../shared/models/app-version.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHumana } from '../../../../shared/utils/fecha.util';
+import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
+import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 
 const TAGS: CambioTag[] = ['nuevo', 'mejora', 'arreglo', 'seguridad'];
+
+/** Z27 — colores por tipo de cambio (paridad con los chips del historial). */
+const TAG_COLORS: Record<CambioTag, string> = {
+  nuevo: '#2d7d46',
+  mejora: '#2e75b6',
+  arreglo: '#b7791f',
+  seguridad: '#7c3aed',
+};
+
+const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
 interface VersionVista extends AppVersion {
   cambiosVisibles: CambioItem[];
@@ -18,7 +30,7 @@ interface VersionVista extends AppVersion {
  */
 @Component({
   selector: 'app-historial-versiones',
-  imports: [Skeleton],
+  imports: [Skeleton, BarChart, DonutChart],
   templateUrl: './historial-versiones.html',
   styleUrl: './historial-versiones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,7 +52,7 @@ export class AdminHistorialVersiones implements OnInit {
   totalWeb = computed(() => this.todas().filter((v) => v.plataforma === 'web').length);
   totalMovil = computed(() => this.todas().filter((v) => v.plataforma === 'movil').length);
 
-  /** Z27 — KPIs de la plataforma activa: total, última versión + fecha, y conteo por tipo de cambio. */
+  /** Z27 — KPIs de la plataforma activa: total, última versión + fecha, conteo por tipo y releases 30/90 días. */
   kpis = computed(() => {
     const list = this.todas().filter((v) => v.plataforma === this.plataforma());
     const porTipo: Record<CambioTag, number> = { nuevo: 0, mejora: 0, arreglo: 0, seguridad: 0 };
@@ -50,13 +62,55 @@ export class AdminHistorialVersiones implements OnInit {
       }
     }
     const ultima = list[0] ?? null; // getHistorial ya viene ordenado desc
+    const now = Date.now();
+    const dias = (v: AppVersion) => {
+      const raw = v.created_at ?? v.fecha;
+      if (!raw) return Infinity;
+      const t = new Date(raw).getTime();
+      return Number.isNaN(t) ? Infinity : (now - t) / 86_400_000;
+    };
     return {
       total: list.length,
       ultimaVersion: ultima?.version ?? null,
       ultimaFecha: ultima?.created_at ?? ultima?.fecha ?? null,
       porTipo,
       totalCambios: Object.values(porTipo).reduce((a, b) => a + b, 0),
+      releases30: list.filter((v) => dias(v) <= 30).length,
+      releases90: list.filter((v) => dias(v) <= 90).length,
     };
+  });
+
+  /** Z27 — versión actual de AMBAS plataformas, mostradas a la vez (getHistorial viene ordenado desc). */
+  ultimaWeb = computed(() => this.todas().find((v) => v.plataforma === 'web')?.version ?? null);
+  ultimaMovil = computed(() => this.todas().find((v) => v.plataforma === 'movil')?.version ?? null);
+
+  /** Z27 — mini-gráfico: releases por mes (últimos 6 meses) de la plataforma activa. */
+  chartPorMes = computed<BarDatum[]>(() => {
+    const list = this.todas().filter((v) => v.plataforma === this.plataforma());
+    const conteo = new Map<string, number>();
+    for (const v of list) {
+      const raw = v.created_at ?? v.fecha;
+      if (!raw || raw.length < 7) continue;
+      const key = raw.slice(0, 7); // "YYYY-MM"
+      conteo.set(key, (conteo.get(key) ?? 0) + 1);
+    }
+    const now = new Date();
+    const bars: BarDatum[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      bars.push({
+        label: `${MESES_CORTOS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`,
+        value: conteo.get(key) ?? 0,
+      });
+    }
+    return bars;
+  });
+
+  /** Z27 — mini-gráfico: distribución por tipo de cambio de la plataforma activa. */
+  chartPorTipo = computed<DonutDatum[]>(() => {
+    const { porTipo } = this.kpis();
+    return TAGS.map((t) => ({ label: this.tagLabel(t), value: porTipo[t], color: TAG_COLORS[t] })).filter((d) => d.value > 0);
   });
 
   /** Versiones de la plataforma activa, aplicando el filtro de tipo de cambio. */

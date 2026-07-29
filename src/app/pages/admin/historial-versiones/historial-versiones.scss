@@ -118,3 +118,20 @@
 .hv-kpi__value { font-size: 1.6rem; font-weight: 700; }
 .hv-kpi__sub { font-size: 0.82rem; color: var(--main-ultra-light); }
 .hv-kpi--tags .hv-kpi__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+// Z27 — versión actual de ambas plataformas
+.hv-kpi__both { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
+.hv-kpi__both-row {
+  display: flex; align-items: baseline; gap: 8px; font-size: 0.9rem; color: var(--main-ultra-light);
+  strong { margin-left: auto; font-size: 1.15rem; font-weight: 700; color: var(--sgc-text, inherit); font-variant-numeric: tabular-nums; }
+}
+
+// Z27 — mini-gráficos
+.hv-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.hv-chart-card { padding: 14px 16px; }
+.hv-chart-empty { font-size: 0.85rem; color: var(--main-ultra-light); margin: 0; }

@@ -12,6 +12,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { Bodega, BodegaFormData } from '../../../../shared/models/bodega.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -29,6 +33,15 @@ import { homologarTexto } from '../../../../shared/utils/texto.util';
 export class Bodegas implements OnInit {
   private bodegasService = inject(BodegasService);
   private proyectosService = inject(ProyectosService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+
+  // Z5(d) — solo admin ve/gestiona datos de prueba.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Data state ──────────────────────────────────────────
   bodegas = signal<Bodega[]>([]);
@@ -68,6 +81,7 @@ export class Bodegas implements OnInit {
     es_principal: new FormControl<boolean>(false),
     latitud: new FormControl<number | null>(null),
     longitud: new FormControl<number | null>(null),
+    es_prueba: new FormControl<boolean>(false),
   });
 
   /** U22 — fija las coordenadas del almacén desde el mapa. */
@@ -83,8 +97,11 @@ export class Bodegas implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const status = this.selectedStatus();
     const obra = this.selectedObra();
+    // Z5(d) — no-admin: nunca ve datos de prueba. Admin: los oculta salvo que active el toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.bodegas().filter((b) => {
+      if (b.es_prueba && !verPrueba) return false;
       if (
         q &&
         !b.nombre.toLowerCase().includes(q) &&
@@ -193,6 +210,7 @@ export class Bodegas implements OnInit {
       es_principal: false,
       latitud: null,
       longitud: null,
+      es_prueba: false,
     });
     this.drawerOpen.set(true);
   }
@@ -209,6 +227,7 @@ export class Bodegas implements OnInit {
       es_principal: bodega.es_principal ?? false,
       latitud: bodega.latitud ?? null,
       longitud: bodega.longitud ?? null,
+      es_prueba: bodega.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
   }
@@ -225,6 +244,17 @@ export class Bodegas implements OnInit {
     this.saveError.set('');
 
     const payload = this.form.value as BodegaFormData;
+
+    // Z5(d) — al marcar un almacén existente como prueba, avisar cuántos
+    // registros relacionados se marcarán también.
+    const idEdit = this.editingId();
+    if (idEdit && this.form.value.es_prueba) {
+      const n = await this.datosPrueba.contarDerivados('bodegas', idEdit, true);
+      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+        this.saving.set(false);
+        return;
+      }
+    }
 
     try {
       const id = this.editingId();
@@ -284,6 +314,19 @@ export class Bodegas implements OnInit {
       this.bodegas.update((list) =>
         list.map((b) => (b.id === bodega.id ? { ...b, activo: !next } : b)),
       );
+    }
+  }
+
+  /** Z5(d) — elimina definitivamente un almacén marcado como prueba (solo admin). */
+  async eliminarPrueba(b: Bodega) {
+    if (!this.esAdmin() || !b.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${b.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('bodegas', b.id);
+      this.bodegas.update((list) => list.filter((x) => x.id !== b.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${b.nombre}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

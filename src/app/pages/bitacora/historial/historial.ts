@@ -48,6 +48,14 @@ export class Historial implements OnInit {
   // ── Z19 — alcance: mis bitácoras vs todas ────────────────
   alcance = signal<'mias' | 'todas'>('mias');
   private miId = computed(() => this.userService.profile()?.id ?? null);
+  /**
+   * Z19 — quién puede ver "Todas las bitácoras" (las de otros usuarios). Espejo
+   * EXACTO de la política RLS `bitacoras: select`:
+   *   usuario_id = auth.uid() OR sgc.is_admin() OR sgc.tiene_modulo('proyectos')
+   * El tab "Todas" y el filtro por usuario solo se muestran a estos roles; para
+   * el resto, la vista queda anclada a "Mis bitácoras".
+   */
+  puedeVerTodas = computed(() => this.esAdmin() || this.userService.hasModulo('proyectos'));
   /** Conteo por alcance (respetando el resto de filtros salvo el propio alcance). */
   private baseFiltradas = computed(() => this.aplicarFiltros(this.bitacoras()));
   countMias = computed(() => {
@@ -59,6 +67,8 @@ export class Historial implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedProyecto = signal('');
+  selectedUsuario = signal(''); // Z19 — filtro por autor (solo en alcance "Todas")
+  usuarios = signal<{ id: string; nombre: string }[]>([]); // directorio para el select
   selectedTipo = signal(''); // Q9/Q3 — drill-down por tipo (parte_diario|visita|incidente)
   dateFrom = signal('');
   dateTo = signal('');
@@ -119,7 +129,9 @@ export class Historial implements OnInit {
       const id = this.miId();
       return id ? list.filter((b) => b.usuario_id === id) : list;
     }
-    return list;
+    // Z19 — alcance "Todas": filtro dedicado por autor (además de obra/fecha).
+    const uid = this.selectedUsuario();
+    return uid ? list.filter((b) => b.usuario_id === uid) : list;
   });
 
   paginated = computed(() => {
@@ -130,7 +142,7 @@ export class Historial implements OnInit {
   totalPages = computed(() => Math.ceil(this.filtered().length / this.PAGE_SIZE));
 
   hasActiveFilters = computed(
-    () => !!(this.searchQuery() || this.selectedProyecto() || this.selectedTipo() || this.dateFrom() || this.dateTo() || this.sinActividadFilter() || this.llovioFilter()),
+    () => !!(this.searchQuery() || this.selectedProyecto() || this.selectedUsuario() || this.selectedTipo() || this.dateFrom() || this.dateTo() || this.sinActividadFilter() || this.llovioFilter()),
   );
 
   drawerTitle = computed(() => {
@@ -149,7 +161,8 @@ export class Historial implements OnInit {
     if (qp.get('llovio') === '1') this.llovioFilter.set(true);
     // Z19 — un drill-down desde dashboards/notificaciones abarca a todas las obras,
     // no solo las mías: entra en "Todas" para no ocultar el registro buscado.
-    if (proyecto || tipo || qp.get('sin_actividad') || qp.get('llovio') || qp.get('item')) {
+    // Solo si el usuario tiene permiso para verlas (si no, RLS igual las ocultaría).
+    if (this.puedeVerTodas() && (proyecto || tipo || qp.get('sin_actividad') || qp.get('llovio') || qp.get('item'))) {
       this.alcance.set('todas');
     }
     await this.loadAll();
@@ -172,6 +185,14 @@ export class Historial implements OnInit {
       ]);
       this.bitacoras.set(bitacoras);
       this.proyectos.set(proyectos);
+      // Z19 — directorio para el filtro por autor (solo lo usan quienes ven "Todas").
+      if (this.puedeVerTodas()) {
+        try {
+          this.usuarios.set(await this.proyectosService.getDirectorioUsuarios());
+        } catch {
+          this.usuarios.set([]); // el filtro por usuario queda vacío; el resto funciona
+        }
+      }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las bitácoras.');
     } finally {
@@ -181,7 +202,16 @@ export class Historial implements OnInit {
 
   // ── Z19 — alcance ────────────────────────────────────────
   setAlcance(a: 'mias' | 'todas') {
+    // Gate: solo quien puede ver "Todas" puede cambiar a ese alcance.
+    if (a === 'todas' && !this.puedeVerTodas()) return;
+    // Al volver a "Mis bitácoras" el filtro por autor deja de aplicar.
+    if (a === 'mias') this.selectedUsuario.set('');
     this.alcance.set(a);
+    this.currentPage.set(1);
+  }
+
+  onUsuarioChange(value: string) {
+    this.selectedUsuario.set(value);
     this.currentPage.set(1);
   }
 
@@ -216,6 +246,7 @@ export class Historial implements OnInit {
   clearFilters() {
     this.searchQuery.set('');
     this.selectedProyecto.set('');
+    this.selectedUsuario.set('');
     this.selectedTipo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');

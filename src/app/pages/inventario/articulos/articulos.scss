@@ -297,3 +297,37 @@ textarea {
   }
 }
 .art-ajuste-hint { font-size: 12px; margin-top: 6px; }
+
+// ── Z5(d) — datos de prueba (marcar/ocultar/eliminar) ──────────────────────
+.articulos__prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+
+.articulos__delete-prueba {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+  color: var(--sgc-danger, #d32f2f);
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+
+  &:hover {
+    background: var(--sgc-danger-light);
+    border-color: var(--sgc-danger);
+  }
+}

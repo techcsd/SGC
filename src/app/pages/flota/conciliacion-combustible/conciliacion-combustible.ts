@@ -9,7 +9,9 @@ import {
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 /** Fila normalizada del informe importado (Total Energies u otro). */
 interface InformeRow {
@@ -50,7 +52,7 @@ const MONTO_TOLERANCIA = 50;
  */
 @Component({
   selector: 'app-conciliacion-combustible',
-  imports: [DecimalPipe, Skeleton],
+  imports: [DecimalPipe, Skeleton, DateRangeFilter],
   templateUrl: './conciliacion-combustible.html',
   styleUrl: './conciliacion-combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -104,6 +106,39 @@ export class ConciliacionCombustible implements OnInit {
   tab = signal<'diferencia' | 'solo_plataforma' | 'solo_informe' | 'match'>('diferencia');
 
   detallesPorTab = computed(() => this.detalles().filter((d) => d.tipo === this.tab()));
+
+  // ── Z23.3 — Filtros del detalle (por vehículo/tarjeta y rango de fecha) ──────
+  filtroVehiculo = signal('');
+  filtroDesde = signal('');
+  filtroHasta = signal('');
+
+  /** Identificadores (placa/tarjeta) presentes en la pestaña activa, para el select. */
+  identificadoresDisponibles = computed(() => {
+    const set = new Set<string>();
+    for (const d of this.detallesPorTab()) {
+      if (d.identificador) set.add(d.identificador);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
+  });
+
+  /** Filas visibles = pestaña activa + filtro de vehículo/tarjeta + rango de fecha. */
+  detallesFiltrados = computed(() => {
+    const veh = this.filtroVehiculo();
+    const desde = this.filtroDesde();
+    const hasta = this.filtroHasta();
+    return this.detallesPorTab().filter((d) => {
+      if (veh && d.identificador !== veh) return false;
+      if (desde && (!d.fecha || d.fecha < desde)) return false;
+      if (hasta && (!d.fecha || d.fecha > hasta)) return false;
+      return true;
+    });
+  });
+
+  hayFiltrosDetalle = computed(() => !!(this.filtroVehiculo() || this.filtroDesde() || this.filtroHasta()));
+
+  onFiltroVehiculo(v: string) { this.filtroVehiculo.set(v); }
+  onRangoDetalle(r: RangoFecha) { this.filtroDesde.set(r.desde ?? ''); this.filtroHasta.set(r.hasta ?? ''); }
+  limpiarFiltrosDetalle() { this.filtroVehiculo.set(''); this.filtroDesde.set(''); this.filtroHasta.set(''); }
 
   discrepancias = computed(() => {
     const m = this.meta();
@@ -462,6 +497,28 @@ export class ConciliacionCombustible implements OnInit {
       notas: null,
     });
     this.tab.set(diferencias > 0 ? 'diferencia' : soloInforme > 0 ? 'solo_informe' : 'match');
+  }
+
+  /** Z23.3 — Exporta a Excel las filas visibles (pestaña activa + filtros). */
+  async exportar() {
+    const etiquetaTipo: Record<ConciliacionDetalle['tipo'], string> = {
+      match: 'Coincide',
+      diferencia: 'Diferencia',
+      solo_plataforma: 'Solo plataforma',
+      solo_informe: 'Solo informe',
+    };
+    const filas = this.detallesFiltrados().map((d) => ({
+      Tipo: etiquetaTipo[d.tipo],
+      'Placa / tarjeta': d.identificador ?? '',
+      Fecha: d.fecha ? this.formatFecha(d.fecha) : '',
+      'Galones informe': d.galones_informe ?? '',
+      'Galones plataforma': d.galones_plataforma ?? '',
+      'Monto informe': d.monto_informe ?? '',
+      'Monto plataforma': d.monto_plataforma ?? '',
+      'Δ galones': d.diferencia_galones ?? '',
+      'Δ monto': d.diferencia_monto ?? '',
+    }));
+    await exportarExcel(`conciliacion-combustible-${this.tab()}`, filas);
   }
 
   async guardar() {

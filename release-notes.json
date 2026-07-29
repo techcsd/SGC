@@ -4,63 +4,114 @@
     "1.50.0": {
       "titulo": "Ajustes de diseño para móviles y tablets",
       "cambios": [
-        { "t": "mejora", "d": "En pantallas pequeñas los encabezados de las páginas apilan el título sobre los botones de acción, que ahora ocupan el ancho completo y no se desbordan (afecta a listados de Inventario, Compras, Flota, RRHH, Legal, Tareas, Tecnología, Administración y Proyectos)." },
-        { "t": "arreglo", "d": "La tabla de Unidades y los reportes de inventario ya no se recortan en el celular: se desplazan horizontalmente cuando no caben." }
+        {
+          "t": "mejora",
+          "d": "En pantallas pequeñas los encabezados de las páginas apilan el título sobre los botones de acción, que ahora ocupan el ancho completo y no se desbordan (afecta a listados de Inventario, Compras, Flota, RRHH, Legal, Tareas, Tecnología, Administración y Proyectos)."
+        },
+        {
+          "t": "arreglo",
+          "d": "La tabla de Unidades y los reportes de inventario ya no se recortan en el celular: se desplazan horizontalmente cuando no caben."
+        }
       ]
     },
     "1.49.0": {
       "titulo": "Proyectos: enlaces directos a cada obra y a Nuevo proyecto",
       "cambios": [
-        { "t": "nuevo", "d": "Cada obra tiene ahora su propia dirección web (/proyectos/su-id) y \"Nuevo proyecto\" es una página propia (/proyectos/nuevo): se pueden compartir, marcar como favorito y funcionan con el botón Atrás del navegador." }
+        {
+          "t": "nuevo",
+          "d": "Cada obra tiene ahora su propia dirección web (/proyectos/su-id) y \"Nuevo proyecto\" es una página propia (/proyectos/nuevo): se pueden compartir, marcar como favorito y funcionan con el botón Atrás del navegador."
+        }
       ]
     },
     "1.48.0": {
       "titulo": "Cronograma: Gantt con eje de fechas y dependencias",
       "cambios": [
-        { "t": "nuevo", "d": "El timeline del cronograma ahora muestra un eje temporal con fechas reales y una rejilla alineada a las barras." },
-        { "t": "nuevo", "d": "Se dibujan conectores de dependencia entre tareas encadenadas (fin → inicio); se marcan en rojo cuando una tarea arranca antes de que termine la anterior." }
+        {
+          "t": "nuevo",
+          "d": "El timeline del cronograma ahora muestra un eje temporal con fechas reales y una rejilla alineada a las barras."
+        },
+        {
+          "t": "nuevo",
+          "d": "Se dibujan conectores de dependencia entre tareas encadenadas (fin → inicio); se marcan en rojo cuando una tarea arranca antes de que termine la anterior."
+        }
       ]
     },
     "1.47.0": {
       "titulo": "Bitácora: tipos con iconos y separación Mis/Todas",
       "cambios": [
-        { "t": "mejora", "d": "En Nueva bitácora el tipo de entrada ahora se elige con tarjetas de icono (Bitácora del día, Visita, Incidente) con una breve descripción de cada una." },
-        { "t": "nuevo", "d": "El historial de bitácoras separa \"Mis bitácoras\" (las que registraste) de \"Todas\", con un selector y contador; los enlaces desde dashboards/notificaciones abren directamente en \"Todas\"." }
+        {
+          "t": "mejora",
+          "d": "En Nueva bitácora el tipo de entrada ahora se elige con tarjetas de icono (Bitácora del día, Visita, Incidente) con una breve descripción de cada una."
+        },
+        {
+          "t": "nuevo",
+          "d": "El historial de bitácoras separa \"Mis bitácoras\" (las que registraste) de \"Todas\", con un selector y contador; los enlaces desde dashboards/notificaciones abren directamente en \"Todas\"."
+        }
       ]
     },
     "1.46.0": {
       "titulo": "Requisiciones: ver los artículos e ir al detalle",
       "cambios": [
-        { "t": "nuevo", "d": "En Requisiciones puedes desplegar cada fila para ver sus artículos; los del catálogo son un enlace que te lleva al artículo en Inventario y lo resalta." }
+        {
+          "t": "nuevo",
+          "d": "En Requisiciones puedes desplegar cada fila para ver sus artículos; los del catálogo son un enlace que te lleva al artículo en Inventario y lo resalta."
+        }
       ]
     },
     "1.45.0": {
       "titulo": "Historial de versiones con indicadores y Dudas al día",
       "cambios": [
-        { "t": "nuevo", "d": "El historial de versiones ahora muestra tarjetas de resumen: versiones publicadas, última versión con su fecha, cambios registrados y desglose por tipo, para la plataforma seleccionada." },
-        { "t": "mejora", "d": "Se actualizó la ayuda (Dudas) con la conciliación de combustible, la reposición accionable, los datos de prueba, las estructuras de obra, el catálogo de cronograma y los reportes de errores de la web." }
+        {
+          "t": "nuevo",
+          "d": "El historial de versiones ahora muestra tarjetas de resumen: versiones publicadas, última versión con su fecha, cambios registrados y desglose por tipo, para la plataforma seleccionada."
+        },
+        {
+          "t": "mejora",
+          "d": "Se actualizó la ayuda (Dudas) con la conciliación de combustible, la reposición accionable, los datos de prueba, las estructuras de obra, el catálogo de cronograma y los reportes de errores de la web."
+        }
       ]
     },
     "1.44.0": {
       "titulo": "Conciliación de combustible: importador Total Energies con vista previa",
       "cambios": [
-        { "t": "nuevo", "d": "El importador reconoce el reporte real de Total Energies (coma decimal, fechas dd/mm/aaaa, número de transacción) y muestra una vista previa obligatoria antes de importar nada." },
-        { "t": "nuevo", "d": "La vista previa cuadra la suma de montos contra el total de la factura y avisa si no coincide; marca filas ya importadas, inválidas y titulares que son personas." },
-        { "t": "arreglo", "d": "Se corrigió la lectura de galones y montos con coma decimal (28,57 ya no se leía como 2857) y el cruce de columnas de la factura." },
-        { "t": "mejora", "d": "Cada transacción del proveedor se guarda con su número único para evitar duplicados entre importaciones." }
+        {
+          "t": "nuevo",
+          "d": "El importador reconoce el reporte real de Total Energies (coma decimal, fechas dd/mm/aaaa, número de transacción) y muestra una vista previa obligatoria antes de importar nada."
+        },
+        {
+          "t": "nuevo",
+          "d": "La vista previa cuadra la suma de montos contra el total de la factura y avisa si no coincide; marca filas ya importadas, inválidas y titulares que son personas."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigió la lectura de galones y montos con coma decimal (28,57 ya no se leía como 2857) y el cruce de columnas de la factura."
+        },
+        {
+          "t": "mejora",
+          "d": "Cada transacción del proveedor se guarda con su número único para evitar duplicados entre importaciones."
+        }
       ]
     },
     "1.43.0": {
       "titulo": "Soporte: contador de reportes sin atender",
       "cambios": [
-        { "t": "nuevo", "d": "El menú \"Soporte\" ahora muestra un contador de reportes de usuarios sin atender; se limpia al resolverlos." }
+        {
+          "t": "nuevo",
+          "d": "El menú \"Soporte\" ahora muestra un contador de reportes de usuarios sin atender; se limpia al resolverlos."
+        }
       ]
     },
     "1.42.0": {
       "titulo": "Tecnología: permisos por submódulo y captura de errores de la web",
       "cambios": [
-        { "t": "mejora", "d": "\"Versiones de App\", \"Reportes de errores\" y \"Monitoreo\" ahora los ven admin, tecnología, gerencia y dirección. \"Historial de versiones\" quedó visible para todos." },
-        { "t": "nuevo", "d": "La página web ahora reporta automáticamente sus errores al panel de Reportes de errores, con filtro por origen (App móvil / Página web)." }
+        {
+          "t": "mejora",
+          "d": "\"Versiones de App\", \"Reportes de errores\" y \"Monitoreo\" ahora los ven admin, tecnología, gerencia y dirección. \"Historial de versiones\" quedó visible para todos."
+        },
+        {
+          "t": "nuevo",
+          "d": "La página web ahora reporta automáticamente sus errores al panel de Reportes de errores, con filtro por origen (App móvil / Página web)."
+        }
       ]
     },
     "1.41.0": {
@@ -1002,6 +1053,47 @@
         {
           "t": "mejora",
           "d": "El historial de versiones ahora se registra solo en cada despliegue del sitio, sin depender de que alguien abra la app."
+        }
+      ]
+    },
+    "1.51.0": {
+      "titulo": "Cierre PROMPT-8: fuga de datos de prueba, proyecto en página completa y más",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "d": "Se cerró una fuga de datos de prueba: al marcar un proyecto o almacén como prueba, ahora sus bitácoras, cronograma, salidas, entradas, órdenes y conteos también se marcan y dejan de verse para usuarios normales (antes solo se ocultaba el registro padre)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Se puede marcar como \"dato de prueba\" en proyectos, almacenes, empleados, proveedores, artículos, activos fijos, conteos y órdenes de compra (con badge PRUEBA y el interruptor \"Mostrar datos de prueba\" para administradores)."
+        },
+        {
+          "t": "arreglo",
+          "d": "Los KPIs del panel principal, del panel del día y de combustible ya no incluyen datos de prueba; respetan el interruptor \"Mostrar datos de prueba\"."
+        },
+        {
+          "t": "nuevo",
+          "d": "Los proyectos se abren y se crean en página completa con pestañas (General, Equipo, Expediente, Cuadre, Ejecución, Partidas, Liberación, Estructuras y fases), en lugar de un panel lateral."
+        },
+        {
+          "t": "mejora",
+          "d": "Registrar una echada de combustible desde la web ahora captura producto (diésel/gasolina), tarjeta y titular; la conciliación con Total Energies permite exportar a Excel y filtrar por vehículo y fecha."
+        },
+        {
+          "t": "nuevo",
+          "d": "Cronograma: acción independiente \"Justificar retraso\" en tareas atrasadas y selector de fase al crear/editar una tarea."
+        },
+        {
+          "t": "nuevo",
+          "d": "El Historial de versiones muestra KPIs (versión web y app, releases de 30/90 días) y mini-gráficos de releases por mes y por tipo."
+        },
+        {
+          "t": "mejora",
+          "d": "Bitácora: \"Todas las bitácoras\" solo la ven los roles con permiso y ahora tiene filtro por usuario. Las órdenes de compra filtran los artículos según el destino (obra u oficina)."
+        },
+        {
+          "t": "mejora",
+          "d": "Diseño responsive: los paneles de Orden de compra y Registrar salida son más anchos para las tablas de ítems, y el menú lateral arranca colapsado en tablets y laptops."
         }
       ]
     }

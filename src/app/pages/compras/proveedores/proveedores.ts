@@ -15,6 +15,9 @@ import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { UserService } from '../../../core/services/user.service';
 
 // RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
 const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
@@ -29,8 +32,15 @@ const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 export class Proveedores implements OnInit {
   private proveedoresService = inject(ProveedoresService);
   private toast = inject(ToastService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
+  private userService = inject(UserService);
 
   formatTelefono = formatearTelefono;
+
+  // ── Datos de prueba (Z5) ─────────────────────────────────
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Data state ──────────────────────────────────────────
   proveedores = signal<Proveedor[]>([]);
@@ -55,14 +65,17 @@ export class Proveedores implements OnInit {
     email: new FormControl<string | null>(null, [Validators.email, Validators.maxLength(150)]),
     direccion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
+    es_prueba: new FormControl<boolean>(false),
   });
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const activo = this.selectedActivo();
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.proveedores().filter((p) => {
+      if (p.es_prueba && !verPrueba) return false;
       if (
         q &&
         !p.nombre.toLowerCase().includes(q) &&
@@ -116,7 +129,7 @@ export class Proveedores implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true });
+    this.form.reset({ activo: true, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -131,6 +144,7 @@ export class Proveedores implements OnInit {
       email: p.email,
       direccion: p.direccion,
       activo: p.activo,
+      es_prueba: p.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
   }
@@ -147,6 +161,17 @@ export class Proveedores implements OnInit {
     this.saveError.set('');
 
     const payload = this.form.value as ProveedorPayload;
+
+    // Z5 — al marcar un proveedor existente como prueba, avisar cuántos
+    // registros relacionados se marcarán también.
+    const idEdit = this.editingId();
+    if (idEdit && this.form.value.es_prueba) {
+      const n = await this.datosPrueba.contarDerivados('proveedores', idEdit, true);
+      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+        this.saving.set(false);
+        return;
+      }
+    }
 
     try {
       const id = this.editingId();
@@ -178,6 +203,19 @@ export class Proveedores implements OnInit {
         list.map((item) => (item.id === p.id ? { ...item, activo: !next } : item)),
       );
       this.toast.error('No se pudo cambiar el estado del proveedor', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  /** Z5 — elimina definitivamente una fila de datos de prueba (solo admin). */
+  async eliminarPrueba(p: Proveedor) {
+    if (!this.esAdmin() || !p.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('proveedores', p.id);
+      this.proveedores.update((list) => list.filter((x) => x.id !== p.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${p.nombre}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

@@ -15,9 +15,11 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ProyectoEstructurasService, ProyectoEstructura } from '../../../../shared/services/proyecto-estructuras.service';
 import {
   FaseProyecto,
@@ -74,7 +76,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, NgTemplateOutlet, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -91,6 +93,13 @@ export class Lista implements OnInit {
   private supabase = inject(SupabaseService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  // Z5(d) — datos de prueba (mismo patrón que Flota).
+  private datosPrueba = inject(DatosPruebaService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  /** Toggle GLOBAL "Ver datos de prueba" (compartido con el shell y demás listas). */
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
+  /** Solo un admin puede marcar/ver/eliminar datos de prueba. */
+  esAdmin = computed(() => this.userService.hasRole('admin'));
 
   formatFecha = formatFechaDisplay;
 
@@ -211,6 +220,8 @@ export class Lista implements OnInit {
       ubicacion: new FormControl<string | null>(null),
       descripcion: new FormControl<string | null>(null),
       responsable_id: new FormControl<string | null>(null),
+      // Z5(d) — dato de prueba (solo admin lo ve/edita).
+      es_prueba: new FormControl<boolean>(false),
     },
     { validators: fechaOrdenValidator('fecha_inicio', 'fecha_fin_estimada') },
   );
@@ -234,8 +245,11 @@ export class Lista implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const estado = this.filterEstado();
     const tipo = this.filterTipo();
+    // Z5(d) — no-admin nunca ve prueba; admin la oculta salvo que active el toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.proyectos().filter((p) => {
+      if (p.es_prueba && !verPrueba) return false;
       if (
         q &&
         !p.nombre.toLowerCase().includes(q) &&
@@ -259,6 +273,27 @@ export class Lista implements OnInit {
 
   drawerTitle = computed(() => (this.editingId() ? 'Editar proyecto' : 'Nuevo proyecto'));
 
+  // ── Z13 — página completa (no drawer) ────────────────────
+  /** Formulario de creación como PÁGINA (ruta /proyectos/nuevo). El de edición
+   *  sigue siendo un drawer superpuesto sobre el listado o el detalle. */
+  enPaginaCrear = computed(() => this.drawerOpen() && !this.editingId());
+  /** Detalle del proyecto como PÁGINA (ruta /proyectos/:id) con pestañas. */
+  enPaginaDetalle = computed(() => this.detailDrawerOpen() && !!this.selectedProyecto());
+  /** Pestaña activa del detalle. */
+  detalleTab = signal<string>('general');
+  readonly DETALLE_TABS: { id: string; label: string; soloCuadre?: boolean }[] = [
+    { id: 'general', label: 'General' },
+    { id: 'equipo', label: 'Equipo y responsables' },
+    { id: 'expediente', label: 'Expediente' },
+    { id: 'cuadre', label: 'Cuadre inicial', soloCuadre: true },
+    { id: 'ejecucion', label: 'Ejecución' },
+    { id: 'partidas', label: 'Partidas' },
+    { id: 'cl', label: 'Liberación (CL)' },
+    { id: 'fases', label: 'Estructuras y fases' },
+  ];
+  /** Pestañas visibles (oculta "Cuadre" si el rol no puede verlo). */
+  tabsVisibles = computed(() => this.DETALLE_TABS.filter((t) => !t.soloCuadre || this.verCuadre()));
+
   async ngOnInit() {
     await Promise.all([
       this.loadProyectos(),
@@ -271,18 +306,16 @@ export class Lista implements OnInit {
     const qp = this.route.snapshot.queryParamMap;
     const estado = qp.get('estado');
     if (estado) this.filterEstado.set(estado);
-    // Q5/Q2 — deep-link desde una notificación: abrir el detalle del proyecto y
-    // enfocar el CL señalado (?proyecto={id}&cl={registroId}).
+    // Q5/Q2 — deep-link LEGACY desde una notificación (?proyecto={id}&cl={reg}).
+    // Z13 — se redirige a la ruta dedicada /proyectos/:id para no romper enlaces
+    // viejos y dejar la URL consistente con la nueva página de detalle.
     const proyectoId = qp.get('proyecto');
-    const clId = qp.get('cl');
     if (proyectoId) {
-      const p = this.proyectos().find((x) => x.id === proyectoId);
-      if (p) {
-        this.clFocusId.set(clId);
-        // S14 — la solicitud de firma trae el rol pedido para pre-seleccionarlo.
-        this.clFocusRol.set(qp.get('firmaRol'));
-        this.openDetail(p);
-      }
+      this.router.navigate(['/proyectos', proyectoId], {
+        queryParams: { cl: qp.get('cl'), firmaRol: qp.get('firmaRol') },
+        replaceUrl: true,
+      });
+      return;
     }
 
     // Z13 — rutas dedicadas: /proyectos/nuevo (crear) y /proyectos/:id (detalle).
@@ -295,14 +328,27 @@ export class Lista implements OnInit {
       const p = this.proyectos().find((x) => x.id === idRuta);
       if (p) {
         this.navegadoPorRuta.set(true);
-        this.clFocusId.set(qp.get('cl'));
+        const clId = qp.get('cl');
+        this.clFocusId.set(clId);
         this.clFocusRol.set(qp.get('firmaRol'));
+        // Si el enlace apunta a un CL, abrir directamente esa pestaña.
+        this.detalleTab.set(clId ? 'cl' : 'general');
         this.openDetail(p);
       } else {
         // Deep-link a una obra inexistente/sin acceso: vuelve al listado.
         this.router.navigate(['/proyectos']);
       }
     }
+  }
+
+  /** Z13 — navega a la página de detalle de una obra (click/enter en la tarjeta). */
+  verDetalle(id: string) {
+    this.router.navigate(['/proyectos', id]);
+  }
+
+  /** Z13 — vuelve al listado desde la página de detalle o de creación. */
+  volverListado() {
+    this.router.navigate(['/proyectos']);
   }
 
   /** Z13 — al cerrar un detalle/formulario abierto por ruta dedicada, vuelve al
@@ -426,7 +472,7 @@ export class Lista implements OnInit {
     this.editingId.set(null);
     this.editingEstadoOriginal.set(null);
     this.saveError.set('');
-    this.form.reset({ estado: 'planificacion' });
+    this.form.reset({ estado: 'planificacion', es_prueba: false });
     this.formLat.set(null);
     this.formLng.set(null);
     this.formDireccionGeo.set(null);
@@ -456,6 +502,7 @@ export class Lista implements OnInit {
       ubicacion: p.ubicacion,
       descripcion: p.descripcion,
       responsable_id: p.responsable_id,
+      es_prueba: p.es_prueba ?? false,
     });
     this.formLat.set(p.latitud);
     this.formLng.set(p.longitud);
@@ -463,9 +510,26 @@ export class Lista implements OnInit {
     this.drawerOpen.set(true);
   }
 
-  closeDrawer() {
+  /** Z13 — el drawer de EDICIÓN solo cierra (no navega); el detalle/listado
+   *  detrás permanece. */
+  cerrarEdicion() {
     this.drawerOpen.set(false);
-    this.volverAlListadoSiEsRuta();
+    this.editingId.set(null);
+  }
+
+  /** Z13 — cancelar la creación (página /proyectos/nuevo) vuelve al listado. */
+  cancelarCrear() {
+    this.drawerOpen.set(false);
+    this.volverListado();
+  }
+
+  /** Compat: cierre genérico usado por el drawer legacy. */
+  closeDrawer() {
+    if (this.enPaginaCrear()) {
+      this.cancelarCrear();
+      return;
+    }
+    this.cerrarEdicion();
   }
 
   async onSave() {
@@ -501,6 +565,26 @@ export class Lista implements OnInit {
       }
     }
 
+    const id = this.editingId();
+    const nuevoPrueba = !!this.form.get('es_prueba')?.value;
+    const pruebaOriginal = id
+      ? (this.proyectos().find((x) => x.id === id)?.es_prueba ?? false)
+      : false;
+
+    // Z5(d) — al MARCAR una obra existente como prueba, avisar cuántos derivados
+    // (bitácoras, solicitudes, etc.) se arrastran en cascada.
+    if (id && nuevoPrueba && !pruebaOriginal) {
+      const n = await this.datosPrueba.contarDerivados('proyectos', id, true);
+      if (
+        n > 0 &&
+        !confirm(
+          `Esto también marcará como prueba ${n} registro(s) relacionado(s) de esta obra. ¿Continuar?`,
+        )
+      ) {
+        return;
+      }
+    }
+
     this.saving.set(true);
     this.saveError.set('');
     const payload = {
@@ -511,21 +595,49 @@ export class Lista implements OnInit {
     } as Partial<Proyecto>;
 
     try {
-      const id = this.editingId();
       if (id) {
         const updated = await this.proyectosService.update(id, payload);
         this.proyectos.update((list) => list.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+        // Reflejar la edición en el detalle abierto (Z13 — página de detalle).
+        this.selectedProyecto.update((sp) => (sp && sp.id === id ? { ...sp, ...updated } : sp));
+        // Z5(d) — si cambió el flag de prueba, propagar la cascada server-side.
+        if (nuevoPrueba !== pruebaOriginal) {
+          try {
+            await this.datosPrueba.marcar('proyectos', id, nuevoPrueba);
+          } catch {
+            /* best-effort: la columna ya quedó guardada por el update */
+          }
+        }
+        this.cerrarEdicion();
       } else {
         const created = await this.proyectosService.create(payload);
         this.proyectos.update((list) => [created, ...list]);
-        // Z21 — toda obra debe tener almacén: ofrecer crearlo (con confirmación).
-        this.almacenPrompt.set(created);
+        this.drawerOpen.set(false);
+        this.editingId.set(null);
+        // Z13 — tras crear, ir a la PÁGINA de detalle de la nueva obra. Ahí el
+        // banner "sin almacén" (Z21) ofrece crear el almacén de la obra.
+        this.router.navigate(['/proyectos', created.id]);
       }
-      this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  /** Z5(d) — elimina definitivamente una obra marcada como prueba (solo admin). */
+  async eliminarPrueba(p: Proyecto, event: Event) {
+    event.stopPropagation();
+    if (!this.esAdmin() || !p.es_prueba) return;
+    if (!confirm(`¿Eliminar la obra de prueba "${p.nombre}" y todos sus datos derivados? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    try {
+      await this.datosPrueba.eliminar('proyectos', p.id);
+      this.proyectos.update((list) => list.filter((x) => x.id !== p.id));
+      this.toast.success('Obra de prueba eliminada');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
     }
   }
 

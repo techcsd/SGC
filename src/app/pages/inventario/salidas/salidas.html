@@ -268,6 +268,7 @@
 <app-form-drawer
   [title]="drawerTitle()"
   [open]="drawerOpen()"
+  [wide]="true"
   (closed)="closeDrawer()"
 >
   @if (step() === 'exito' && creado(); as c) {

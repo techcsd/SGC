@@ -23,6 +23,8 @@ export interface Articulo {
   subgrupo: string | null;
   /** Orden oficial dentro de la categoría (según el Excel). */
   orden: number | null;
+  /** Z5(d) — dato de prueba: oculto salvo que un admin active "Mostrar datos de prueba". */
+  es_prueba?: boolean;
   created_at: string;
   updated_at: string;
   categoria?: { nombre: string };
@@ -42,6 +44,7 @@ export interface ArticuloFormData {
   nota?: string | null;
   propiedad?: ArticuloPropiedad;
   imagen_url?: string | null;
+  es_prueba?: boolean;
 }
 
 export const ARTICULO_PROPIEDADES: { value: ArticuloPropiedad; label: string; badge: string }[] = [

@@ -62,6 +62,13 @@
       Limpiar filtros
     </button>
   }
+
+  @if (esAdmin()) {
+    <label class="activos__prueba-toggle">
+      <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 <!-- ── Error ── -->
@@ -118,6 +125,9 @@
               </td>
               <td>
                 <span class="activos__item-name">{{ activo.nombre }}</span>
+                @if (activo.es_prueba) {
+                  <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                }
                 @if (activo.descripcion) {
                   <span class="activos__item-desc">{{ activo.descripcion }}</span>
                 }
@@ -181,6 +191,14 @@
                       </svg>
                     }
                   </button>
+                  @if (esAdmin() && activo.es_prueba) {
+                    <button class="activos__delete-prueba" type="button" (click)="eliminarPrueba(activo)" title="Eliminar dato de prueba" [attr.aria-label]="'Eliminar dato de prueba ' + activo.nombre">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -381,6 +399,17 @@
         Activo habilitado
       </label>
     </div>
+
+    @if (esAdmin()) {
+      <div class="sgc-field">
+        <label class="toggle-label" for="activo-es-prueba">
+          <input id="activo-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+          Dato de prueba
+        </label>
+        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+      </div>
+    }
 
     @if (saveError()) {
       <div class="save-error" role="alert">

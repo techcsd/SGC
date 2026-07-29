@@ -30,6 +30,8 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 
 @Component({
   selector: 'app-articulos',
@@ -45,6 +47,13 @@ export class Articulos implements OnInit {
   private unidadesService = inject(UnidadesService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  // Z5(d) — datos de prueba (marcar/ocultar/eliminar), patrón de vehículos.
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  // Z5(d) — solo admin ve/gestiona datos de prueba; visibilidad GLOBAL compartida.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // Z11 — quién puede ajustar stock + estado del mini-form de ajuste.
   esInventario = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('inventario'));
@@ -95,6 +104,8 @@ export class Articulos implements OnInit {
     requiere_talla: new FormControl<boolean>(false, { nonNullable: true }),
     nota: new FormControl<string | null>(null),
     propiedad: new FormControl<'propio_csd' | 'alquilado'>('propio_csd', { nonNullable: true }),
+    // Z5(d) — dato de prueba (solo admin lo edita).
+    es_prueba: new FormControl<boolean>(false),
   }, { validators: maxGteMin('stock_minimo', 'stock_maximo') });
 
   // ── Z16/Z17 — propiedad + foto ────────────────────────────
@@ -124,8 +135,11 @@ export class Articulos implements OnInit {
     const catId = this.selectedCategory();
     const status = this.selectedStatus();
     const stock = this.selectedStock();
+    // Z5(d) — no-admin: nunca ve datos de prueba. Admin: ocultos salvo el toggle.
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.articles().filter((a) => {
+      if (a.es_prueba && !verPrueba) return false;
       if (q && !a.nombre.toLowerCase().includes(q) && !a.codigo.toLowerCase().includes(q)) {
         return false;
       }
@@ -247,7 +261,7 @@ export class Articulos implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.resetFoto(null);
-    this.form.reset({ activo: true, stock_minimo: 0, propiedad: 'propio_csd', requiere_talla: false });
+    this.form.reset({ activo: true, stock_minimo: 0, propiedad: 'propio_csd', requiere_talla: false, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -268,6 +282,7 @@ export class Articulos implements OnInit {
       requiere_talla: article.requiere_talla ?? false,
       nota: article.nota ?? null,
       propiedad: article.propiedad ?? 'propio_csd',
+      es_prueba: article.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
   }
@@ -317,6 +332,17 @@ export class Articulos implements OnInit {
     // imagen_url: si se quitó la foto y no hay nueva, se limpia; si no cambió, se
     // conserva (no lo mandamos para no pisarlo).
     if (!this.fotoFile && !this.imagenActualUrl()) payload.imagen_url = null;
+
+    // Z5(d) — al marcar un artículo existente como prueba, avisar cuántos
+    // registros relacionados se marcarán también (entradas/salidas de inventario).
+    const idEdit = this.editingId();
+    if (idEdit && this.form.value.es_prueba) {
+      const n = await this.datosPrueba.contarDerivados('articulos', idEdit, true);
+      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s) (entradas/salidas de inventario). ¿Continuar?`)) {
+        this.saving.set(false);
+        return;
+      }
+    }
 
     try {
       const id = this.editingId();
@@ -454,6 +480,19 @@ export class Articulos implements OnInit {
       this.articles.update((list) =>
         list.map((a) => (a.id === article.id ? { ...a, propiedad: article.propiedad } : a)),
       );
+    }
+  }
+
+  /** Z5(d) — elimina definitivamente un artículo de prueba (solo admin). */
+  async eliminarPrueba(article: Articulo) {
+    if (!this.esAdmin() || !article.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${article.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('articulos', article.id);
+      this.articles.update((list) => list.filter((a) => a.id !== article.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${article.nombre}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

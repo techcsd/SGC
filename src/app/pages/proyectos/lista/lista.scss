@@ -919,3 +919,71 @@
   display: flex; gap: 8px;
   input { flex: 1; padding: 8px 10px; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius); font-size: 14px; }
 }
+
+/* ══ Z13 — Proyecto como PÁGINA (detalle/crear) ══════════════════ */
+.proyectos--pagina { max-width: 1100px; margin: 0 auto; }
+.proyectos__pagina-head { margin-bottom: 16px; }
+.proyectos__back {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 13px; color: var(--sgc-text-secondary); margin-bottom: 10px;
+  &:hover { color: var(--sgc-primary-mid); }
+}
+.proyectos__pagina-body--form {
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius); padding: 20px;
+}
+.proyectos__detail-title-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; flex-wrap: wrap;
+}
+.proyectos__detail-title-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Pestañas del detalle */
+.proyectos__tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--sgc-border);
+  margin: 16px 0 20px;
+}
+.proyectos__tab {
+  background: none; border: none; cursor: pointer;
+  padding: 10px 14px; font-size: 14px; font-weight: 500;
+  color: var(--sgc-text-secondary);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: var(--sgc-transition-fast);
+  &:hover { color: var(--sgc-primary-mid); }
+  &--active { color: var(--sgc-primary-mid); border-bottom-color: var(--sgc-primary-mid); font-weight: 600; }
+}
+
+/* ══ Z5(d) — datos de prueba ═════════════════════════════════════ */
+.proyectos__card-badges { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.proyectos__card--prueba { border-style: dashed; }
+.proyectos__card-footer-actions { display: inline-flex; gap: 6px; align-items: center; }
+.proyectos__btn-delete-prueba {
+  background: transparent; border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm); color: var(--sgc-danger);
+  padding: 0.3rem 0.5rem; font-size: 0.85rem; cursor: pointer; line-height: 1;
+  transition: var(--sgc-transition-fast);
+  &:hover { background: var(--sgc-danger-light); border-color: var(--sgc-danger); }
+}
+.proyectos__prueba-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--sgc-text-secondary); cursor: pointer;
+  input { cursor: pointer; }
+}
+.proyectos__field-hint { font-size: 12px; color: var(--sgc-text-muted); margin-top: 4px; display: block; }
+
+/* Switch deslizable "dato de prueba" (mismo patrón que Flota) */
+.toggle-label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; }
+.toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-switch {
+  position: relative; display: inline-block; width: 40px; height: 22px;
+  background: var(--sgc-border); border-radius: 999px; transition: background 0.2s ease; flex-shrink: 0;
+  &::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; background: #fff; border-radius: 50%;
+    transition: transform 0.2s ease;
+  }
+}
+.toggle-input:checked ~ .toggle-switch { background: var(--sgc-warning); }
+.toggle-input:checked ~ .toggle-switch::after { transform: translateX(18px); }
+.toggle-input:focus-visible ~ .toggle-switch { outline: 2px solid var(--sgc-primary-mid); outline-offset: 2px; }

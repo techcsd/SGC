@@ -9,6 +9,8 @@ import { Conductor } from '../../../../shared/models/conductor.model';
 import { AvisoFlota, AVISO_TIPO_LABEL, AVISO_SEVERIDAD_BADGE } from '../../../../shared/models/aviso-flota.model';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { UserService } from '../../../core/services/user.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
@@ -24,6 +26,14 @@ export class PanelDia implements OnInit {
   private checklistsService = inject(ChecklistsVehiculoService);
   private conductoresService = inject(ConductoresService);
   private avisosService = inject(AvisosFlotaService);
+  private userService = inject(UserService);
+
+  // Z5(c) — solo admin ve datos de prueba; los KPIs del panel los ocultan por defecto.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
+  private verPrueba = computed(() => this.esAdmin() && this.mostrarPrueba());
 
   formatFecha = formatFechaDisplay;
   tipoLabel = AVISO_TIPO_LABEL;
@@ -41,10 +51,17 @@ export class PanelDia implements OnInit {
   }
   resultadoMeta(c: ChecklistVehiculo) { return RESULTADO_META[this.resultadoDe(c)]; }
 
-  conductoresActivos = computed(() => this.conductores().filter((c) => c.activo));
+  // Z5(c) — checklists visibles: sin datos de prueba salvo que el admin active el toggle.
+  private checklistsVisibles = computed(() =>
+    this.checklists().filter((c) => !(c.es_prueba && !this.verPrueba())),
+  );
+
+  conductoresActivos = computed(() =>
+    this.conductores().filter((c) => c.activo && !(c.es_prueba && !this.verPrueba())),
+  );
 
   inspeccionesHoy = computed(() =>
-    this.checklists()
+    this.checklistsVisibles()
       .filter((c) => c.fecha === this.hoy)
       .sort((a, b) => (b.capturado_en ?? '').localeCompare(a.capturado_en ?? '')),
   );
@@ -96,7 +113,7 @@ export class PanelDia implements OnInit {
       const d = new Date(base);
       d.setDate(base.getDate() - i);
       const iso = d.toISOString().slice(0, 10);
-      const count = this.checklists().filter((c) => c.fecha === iso).length;
+      const count = this.checklistsVisibles().filter((c) => c.fecha === iso).length;
       dias.push({ label: DIAS[d.getDay()], value: count });
     }
     return dias;

@@ -128,3 +128,48 @@
 }
 .cn-table--zebra tbody tr:nth-child(even) { background: var(--sgc-surface); }
 .cn-table--zebra .cn-row--ajuste { background: var(--sgc-warning-light); }
+
+// ── Z5(d) — datos de prueba (solo admin) ──
+.sgc-btn--sm {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+.cn-prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { cursor: pointer; }
+}
+.cn-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--sgc-border);
+}
+.cn-delete-prueba {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+  color: var(--sgc-danger, #d32f2f);
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+
+  &:hover {
+    background: var(--sgc-danger-light);
+    border-color: var(--sgc-danger);
+  }
+}

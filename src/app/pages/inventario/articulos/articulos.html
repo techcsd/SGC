@@ -68,6 +68,18 @@
     </select>
   </div>
 
+  <!-- Z5(d) — mostrar datos de prueba (solo admin) -->
+  @if (esAdmin()) {
+    <label class="articulos__prueba-toggle">
+      <input
+        type="checkbox"
+        [checked]="mostrarPrueba()"
+        (change)="mostrarPrueba.set($any($event.target).checked)"
+      />
+      Mostrar datos de prueba
+    </label>
+  }
+
   @if (searchQuery() || selectedCategory() || selectedStatus() !== 'all' || selectedPropiedad() !== 'all') {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
       Limpiar filtros
@@ -136,6 +148,9 @@
                   </button>
                   <div class="article-cell__info">
                     <button type="button" class="article-name article-name--link" (click)="abrirDetalle(art)">{{ art.nombre }}</button>
+                    @if (art.es_prueba) {
+                      <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
+                    }
                     <button type="button" class="sgc-badge sgc-badge--{{ propiedadBadge(art.propiedad) }} article-prop article-prop--btn"
                             (click)="togglePropiedad(art)" title="Cambiar propiedad (CSD ↔ Alquilado)">{{ propiedadLabel(art.propiedad) }}</button>
                     @if (art.subgrupo) {
@@ -210,6 +225,20 @@
                       </svg>
                     }
                   </button>
+                  @if (esAdmin() && art.es_prueba) {
+                    <button
+                      class="articulos__delete-prueba"
+                      type="button"
+                      (click)="eliminarPrueba(art)"
+                      title="Eliminar dato de prueba"
+                      [attr.aria-label]="'Eliminar dato de prueba ' + art.nombre"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -451,6 +480,18 @@
         Artículo activo
       </label>
     </div>
+
+    <!-- Z5(d) — dato de prueba (solo admin) -->
+    @if (esAdmin()) {
+      <div class="sgc-field">
+        <label class="toggle-label" for="art-es-prueba">
+          <input id="art-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+          Dato de prueba
+        </label>
+        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+      </div>
+    }
 
     @if (saveError()) {
       <div class="save-error" role="alert">

@@ -174,6 +174,20 @@ export class Ordenes implements OnInit {
 
   activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
 
+  // ── Z6.4b — el picker de ítems filtra por el destino de la OC ──────────────
+  // `articulos.ambito` (obra | oficina | ambos, default 'ambos') distingue material
+  // de obra de suministro de oficina. 'ambos' aparece en los dos destinos, así que
+  // sin curar el catálogo el comportamiento es idéntico al de hoy (retrocompatible).
+  // Migración: sql/2026-07-29-z6.4b-articulo-ambito.sql (pendiente de aplicar).
+  articulosParaDestino = computed<Articulo[]>(() => {
+    const dest = this.destino();
+    return this.articulos().filter((a) => {
+      const ambito = (a as Articulo & { ambito?: string }).ambito ?? 'ambos';
+      if (ambito === 'ambos') return true;
+      return dest === 'oficina' ? ambito === 'oficina' : ambito === 'obra';
+    });
+  });
+
   // ── QA-076 — Reconciliación recibido vs ordenado por renglón ──────────
   // Suma las cantidades de detalle_entradas (de todas las entradas ligadas a la
   // OC) que coinciden por articulo_id con cada renglón de la orden. Los ítems sin

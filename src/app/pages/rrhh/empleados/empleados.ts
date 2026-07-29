@@ -33,6 +33,9 @@ import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
 import { TecEquipo } from '../../../../shared/models/tecnologia.model';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-empleados',
@@ -45,6 +48,13 @@ export class Empleados implements OnInit {
   private empleadosService = inject(EmpleadosService);
   private userService = inject(UserService);
   private tecnologiaService = inject(TecnologiaService);
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private datosPrueba = inject(DatosPruebaService);
+  private toast = inject(ToastService);
+
+  // Z5(d) — datos de prueba (marcar/badge/toggle/eliminar), solo admin.
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   // ── Data state ──────────────────────────────────────────
   empleados = signal<Empleado[]>([]);
@@ -124,6 +134,7 @@ export class Empleados implements OnInit {
     ars: new FormControl<string | null>(null),
     banco: new FormControl<string | null>(null),
     cuenta_banco: new FormControl<string | null>(null),
+    es_prueba: new FormControl<boolean>(false),
   });
 
   // Possible supervisors: any active employee other than the one being edited.
@@ -137,8 +148,10 @@ export class Empleados implements OnInit {
     const dept = this.selectedDepartamento();
     const tipo = this.selectedTipoContrato();
     const status = this.selectedActivo();
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
     return this.empleados().filter((e) => {
+      if (e.es_prueba && !verPrueba) return false;
       if (q) {
         const full = `${e.nombre} ${e.apellido} ${e.cedula} ${e.cargo}`.toLowerCase();
         if (!full.includes(q)) return false;
@@ -241,7 +254,7 @@ export class Empleados implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.documentos.set([]);
-    this.form.reset({ activo: true, tipo_contrato: 'indefinido', dias_vacaciones_anuales: 14 });
+    this.form.reset({ activo: true, tipo_contrato: 'indefinido', dias_vacaciones_anuales: 14, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -275,6 +288,7 @@ export class Empleados implements OnInit {
       ars: emp.ars,
       banco: emp.banco,
       cuenta_banco: emp.cuenta_banco,
+      es_prueba: emp.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
     void this.loadDocumentos(emp.id);
@@ -381,6 +395,17 @@ export class Empleados implements OnInit {
     if (this.form.invalid || this.saving()) return;
 
     this.saving.set(true);
+
+    // Z5(d) — al marcar como prueba en edición, avisar de derivados afectados.
+    const idEdit = this.editingId();
+    if (idEdit && this.form.value.es_prueba) {
+      const n = await this.datosPrueba.contarDerivados('empleados', idEdit, true);
+      if (n > 0 && !confirm(`Esto también marcará como prueba ${n} registro(s) relacionado(s). ¿Continuar?`)) {
+        this.saving.set(false);
+        return;
+      }
+    }
+
     this.saveError.set('');
 
     const raw = this.form.value;
@@ -411,6 +436,7 @@ export class Empleados implements OnInit {
       ars: raw.ars || null,
       banco: raw.banco || null,
       cuenta_banco: raw.cuenta_banco || null,
+      es_prueba: raw.es_prueba ?? false,
     };
 
     try {
@@ -441,6 +467,19 @@ export class Empleados implements OnInit {
       this.empleados.update((list) =>
         list.map((e) => (e.id === emp.id ? { ...e, activo: !next } : e)),
       );
+    }
+  }
+
+  /** Z5(d) — elimina definitivamente un empleado marcado como dato de prueba (solo admin). */
+  async eliminarPrueba(emp: Empleado) {
+    if (!this.esAdmin() || !emp.es_prueba) return;
+    if (!confirm(`¿Eliminar el dato de prueba "${emp.nombre} ${emp.apellido}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await this.datosPrueba.eliminar('empleados', emp.id);
+      this.empleados.update((list) => list.filter((x) => x.id !== emp.id));
+      this.toast.success('Dato de prueba eliminado', `Se eliminó "${emp.nombre} ${emp.apellido}".`);
+    } catch (e: unknown) {
+      this.toast.error('Error al eliminar', e instanceof Error ? e.message : 'Intenta de nuevo.');
     }
   }
 

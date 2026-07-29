@@ -21,6 +21,8 @@ export interface Proyecto {
   responsable_id: string | null;
   responsable?: { nombre: string };
   activo: boolean;
+  /** Z5(d) — dato de prueba: oculto del listado salvo toggle admin; eliminable. */
+  es_prueba?: boolean;
   created_at: string;
   fases?: FaseProyecto[];
   // Z2 — responsables vinculados (embebidos en el listado; el detalle usa el RPC).

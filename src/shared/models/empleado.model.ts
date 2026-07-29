@@ -34,6 +34,7 @@ export interface Empleado {
   dias_vacaciones_anuales: number;
   banco: string | null;
   cuenta_banco: string | null;
+  es_prueba?: boolean;
 }
 
 export interface EmpleadoDocumento {

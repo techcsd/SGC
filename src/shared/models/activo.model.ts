@@ -16,6 +16,7 @@ export interface ActivoFijo {
   responsable?: { nombre: string };
   notas: string | null;
   activo: boolean;
+  es_prueba?: boolean;
   created_at: string;
 }
 
@@ -31,6 +32,7 @@ export interface ActivoFormData {
   ubicacion: string | null;
   notas: string | null;
   activo: boolean;
+  es_prueba?: boolean;
 }
 
 export const ACTIVO_ESTADOS: { value: ActivoEstado; label: string }[] = [

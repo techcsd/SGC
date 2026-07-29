@@ -13,6 +13,7 @@ import {
   CRONOGRAMA_MOTIVOS,
   esTareaAtrasada,
 } from '../../../../shared/models/cronograma.model';
+import { FaseProyecto } from '../../../../shared/models/proyecto.model';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface GanttBar {
@@ -58,6 +59,7 @@ export class Cronograma implements OnInit {
   proyectoId = signal('');
   proyectoNombre = signal('');
   catalogoTareas = signal<string[]>([]);  // Z15
+  fases = signal<FaseProyecto[]>([]);      // Y15 — contenedores (fases) del proyecto
   highlightTarea = signal<string | null>(null);
 
   tareas = signal<CronogramaTarea[]>([]);
@@ -78,9 +80,14 @@ export class Cronograma implements OnInit {
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
     tipo: new FormControl<CronogramaTipo>('ordinaria', [Validators.required]),
     duracion_dias_plan: new FormControl(1, [Validators.required, Validators.min(1)]),
+    fase_id: new FormControl<string | null>(null),  // Y15 — contenedor (fase) opcional
     descripcion: new FormControl(''),
     fecha_inicio_plan: new FormControl<string | null>(null),
   });
+
+  // ── Y15 — Justificar retraso (independiente de completar) ──
+  justificandoId = signal<string | null>(null);
+  justificacionTexto = signal('');
 
   // ── Completar ──
   completandoId = signal<string | null>(null);
@@ -204,9 +211,17 @@ export class Cronograma implements OnInit {
     try {
       const p = await this.proyectosService.getById(id);
       this.proyectoNombre.set(p?.nombre ?? '');
+      // Y15 — fases del proyecto para el selector de contenedor en el form.
+      this.fases.set((p?.fases ?? []).slice().sort((a, b) => a.orden - b.orden));
     } catch {
       /* nombre es cosmético */
     }
+  }
+
+  /** Y15 — nombre de la fase (contenedor) de una tarea, para pintarlo en la lista. */
+  faseNombre(id: string | null): string {
+    if (!id) return '';
+    return this.fases().find((f) => f.id === id)?.nombre ?? '';
   }
 
   async cargar() {
@@ -234,7 +249,7 @@ export class Cronograma implements OnInit {
   // ── Nueva / editar ──
   abrirNueva() {
     this.editandoId.set(null);
-    this.tareaForm.reset({ nombre: '', tipo: 'ordinaria', duracion_dias_plan: 1, descripcion: '', fecha_inicio_plan: null });
+    this.tareaForm.reset({ nombre: '', tipo: 'ordinaria', duracion_dias_plan: 1, fase_id: null, descripcion: '', fecha_inicio_plan: null });
     // La primera tarea puede fijar la fecha de inicio; el resto se encadena.
     this.panelTareaAbierto.set(true);
   }
@@ -245,6 +260,7 @@ export class Cronograma implements OnInit {
       nombre: t.nombre,
       tipo: t.tipo,
       duracion_dias_plan: t.duracion_dias_plan,
+      fase_id: t.fase_id,
       descripcion: t.descripcion ?? '',
       fecha_inicio_plan: t.fecha_inicio_plan,
     });
@@ -264,6 +280,7 @@ export class Cronograma implements OnInit {
           nombre: v.nombre!,
           tipo: v.tipo!,
           duracion_dias_plan: v.duracion_dias_plan!,
+          fase_id: v.fase_id || null,
           descripcion: v.descripcion || null,
         });
       } else {
@@ -272,6 +289,7 @@ export class Cronograma implements OnInit {
           nombre: v.nombre!,
           tipo: v.tipo!,
           duracionDias: v.duracion_dias_plan!,
+          faseId: v.fase_id || null,
           descripcion: v.descripcion || null,
           fechaInicioPlan: v.fecha_inicio_plan || null,
         });
@@ -349,6 +367,37 @@ export class Cronograma implements OnInit {
   cancelarCompletar() {
     this.completandoId.set(null);
     this.completarFile = null;
+  }
+
+  // ── Y15 — Justificar retraso (sin completar la tarea) ──
+  abrirJustificar(t: CronogramaTarea) {
+    this.justificandoId.set(t.id);
+    this.justificacionTexto.set(t.justificacion_retraso ?? '');
+  }
+
+  cancelarJustificar() {
+    this.justificandoId.set(null);
+    this.justificacionTexto.set('');
+  }
+
+  async confirmarJustificar(t: CronogramaTarea) {
+    const texto = this.justificacionTexto().trim();
+    if (!texto) {
+      this.toast.error('Escribe la justificación del retraso.');
+      return;
+    }
+    this.guardando.set(true);
+    try {
+      await this.service.justificarRetraso(t.id, texto);
+      this.justificandoId.set(null);
+      this.justificacionTexto.set('');
+      await this.cargar();
+      this.toast.success('Retraso justificado.');
+    } catch (e) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo justificar.');
+    } finally {
+      this.guardando.set(false);
+    }
   }
 
   nombreTarea(id: string | null): string {

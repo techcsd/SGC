@@ -13,9 +13,11 @@
 --      opcionales al final (defaults null/false → clientes viejos siguen igual)
 --      y persistiéndolos. El resto del cuerpo queda EXACTAMENTE igual.
 --
--- REVISAR ANTES DE APLICAR. No aplicada a producción por Claude Code.
--- Regla #5 (SGC): al aplicar, exponer producto/tarjeta en las vistas web de
--- combustible (detalle de echada + reporte de conciliación).
+-- ✅ APLICADA A PRODUCCIÓN (29-jul-2026, PROMPT-7 / verificado en PROMPT-8 vía
+--    management API: columnas producto/tarjeta/titular/titular_es_persona presentes
+--    en sgc.registros_combustible). NO reaplicar sin necesidad.
+-- Regla #5 (SGC): producto/tarjeta ya expuestos en el detalle de echada web y en
+-- el reporte de conciliación.
 -- ============================================================================
 
 -- 1) Columnas aditivas -------------------------------------------------------

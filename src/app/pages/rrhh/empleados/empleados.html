@@ -89,6 +89,13 @@
       Limpiar filtros
     </button>
   }
+
+  @if (esAdmin()) {
+    <label class="empleados__prueba-toggle">
+      <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
+      Mostrar datos de prueba
+    </label>
+  }
 </div>
 
 <!-- ── Error ── -->
@@ -141,7 +148,10 @@
             <tr [class.row--inactive]="!emp.activo">
               <td>
                 <div class="empleados__name-cell">
-                  <span class="empleados__name">{{ emp.apellido }}, {{ emp.nombre }}</span>
+                  <span class="empleados__name">
+                    {{ emp.apellido }}, {{ emp.nombre }}
+                    @if (emp.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                  </span>
                   @if (emp.email) {
                     <span class="empleados__email">{{ emp.email }}</span>
                   }
@@ -213,6 +223,13 @@
                       </svg>
                     }
                   </button>
+                  @if (esAdmin() && emp.es_prueba) {
+                    <button class="empleados__delete-prueba" type="button" (click)="eliminarPrueba(emp)" title="Eliminar dato de prueba" [attr.aria-label]="'Eliminar dato de prueba ' + emp.nombre">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>
@@ -588,6 +605,17 @@
           }
         </ul>
       }
+    }
+
+    @if (esAdmin()) {
+      <div class="sgc-field">
+        <label class="toggle-label" for="emp-es-prueba">
+          <input id="emp-es-prueba" type="checkbox" formControlName="es_prueba" class="toggle-input" />
+          <span class="toggle-switch" aria-hidden="true"></span>
+          Dato de prueba
+        </label>
+        <small class="sgc-field__hint">Los datos de prueba se ocultan del listado salvo que un admin active "Mostrar datos de prueba", y pueden eliminarse definitivamente.</small>
+      </div>
     }
 
     @if (saveError()) {

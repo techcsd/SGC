@@ -33,6 +33,12 @@
     </select>
   </div>
   <app-date-range-filter [desde]="desde()" [hasta]="hasta()" (rangeChange)="onRango($event)" />
+  @if (esAdmin()) {
+    <label class="cn-prueba-toggle">
+      <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
+      Mostrar datos de prueba
+    </label>
+  }
   @if (hayFiltros()) {
     <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="limpiarFiltros()">Limpiar filtros</button>
   }
@@ -51,6 +57,7 @@
             <span class="cn-card__bodega">
               {{ c.bodega?.nombre ?? 'Almacén' }}
               @if (esChequeo(c)) { <span class="sgc-badge sgc-badge--info">Chequeo semanal</span> }
+              @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
             </span>
             <span class="cn-card__meta">
               {{ c.creado?.nombre ?? '—' }} · {{ c.created_at | date: 'dd/MM/yyyy HH:mm' }}
@@ -59,6 +66,18 @@
           </div>
           <span class="cn-card__count">{{ c.items?.length ?? 0 }} ítems ▾</span>
         </button>
+        @if (esAdmin()) {
+          <div class="cn-admin-actions">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(c, !c.es_prueba)">
+              {{ c.es_prueba ? 'Quitar prueba' : 'Marcar como prueba' }}
+            </button>
+            @if (c.es_prueba) {
+              <button class="cn-delete-prueba" type="button" (click)="eliminarPrueba(c)" title="Eliminar dato de prueba" aria-label="Eliminar dato de prueba">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            }
+          </div>
+        }
         @if (expandedId() === c.id) {
           <div class="cn-card__detail">
           <!-- Z7 — encabezado claro del conteo -->
