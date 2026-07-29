@@ -6,7 +6,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // expiración + HTTP para web-up/SSL. Inserta en domain_checks, crea/actualiza
 // alertas SOLO en cambio de estado (dedup en sgc.raise_infra_alert) y notifica.
 // Canal PRIMARIO: correo (Resend desde sgcconstructorasd.com, independiente del
-// dominio vigilado). Telegram opcional si TELEGRAM_BOT_TOKEN está seteado.
+// dominio vigilado). Notificación SOLO por correo (Resend) — sin Telegram.
 // Lo invoca pg_cron vía net.http_post con x-sync-secret. --no-verify-jwt.
 
 type Status = "ok" | "warning" | "critical";
@@ -63,21 +63,6 @@ async function sendEmail(sb: SB, to: string[], subject: string, html: string): P
     return { channel: "email", error: e instanceof Error ? e.message : "fail" };
   }
 }
-async function sendTelegram(text: string): Promise<Record<string, unknown> | null> {
-  const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
-  const chatId = Deno.env.get("TELEGRAM_ALERT_CHAT_ID");
-  if (!token || !chatId) return null; // opcional
-  try {
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
-    });
-    return { channel: "telegram", ok: r.ok };
-  } catch (e) {
-    return { channel: "telegram", error: e instanceof Error ? e.message : "fail" };
-  }
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204 });
@@ -111,8 +96,6 @@ Deno.serve(async (req: Request) => {
         const html = `<h2 style="margin:0 0 8px">${SEV_PREFIX[sev]} ${esc(domain)}</h2><p>${esc(msg)}</p>` +
           `<p style="margin-top:12px">SGC → Tecnología → Monitoreo de Infraestructura para reconocer la alerta.</p>`;
         channels.push(await sendEmail(sb, to, subject, html));
-        const tg = await sendTelegram(`${SEV_PREFIX[sev]} <b>${domain}</b>\n${msg}`);
-        if (tg) channels.push(tg);
         await sb.rpc("mark_alert_notified", { p_alert_id: res.alert_id, p_channels: channels });
       }
     };

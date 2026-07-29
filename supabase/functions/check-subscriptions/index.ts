@@ -5,7 +5,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // días restantes desde renewal_date y aplica los umbrales escalonados (notas §2).
 // payment_ok=false = fatal inmediato. Crea/actualiza alertas SOLO en cambio de
 // estado (dedup) y notifica por correo (primario, Resend desde sgcconstructorasd.com)
-// + Telegram opcional. pg_cron vía net.http_post + x-sync-secret.
+// Notificación SOLO por correo (Resend). pg_cron vía net.http_post + x-sync-secret.
 
 type Sev = "info" | "media" | "alta" | "critica";
 // deno-lint-ignore no-explicit-any
@@ -48,21 +48,6 @@ async function sendEmail(sb: SB, to: string[], subject: string, html: string): P
     return { channel: "email", error: e instanceof Error ? e.message : "fail" };
   }
 }
-async function sendTelegram(text: string): Promise<Record<string, unknown> | null> {
-  const token = Deno.env.get("TELEGRAM_BOT_TOKEN");
-  const chatId = Deno.env.get("TELEGRAM_ALERT_CHAT_ID");
-  if (!token || !chatId) return null;
-  try {
-    const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
-    });
-    return { channel: "telegram", ok: r.ok };
-  } catch (e) {
-    return { channel: "telegram", error: e instanceof Error ? e.message : "fail" };
-  }
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204 });
@@ -90,8 +75,6 @@ Deno.serve(async (req: Request) => {
       const html = `<h2 style="margin:0 0 8px">${SEV_PREFIX[sev]} ${esc(name)}</h2><p>${esc(msg)}</p>` +
         `<p style="margin-top:12px">SGC → Tecnología → Monitoreo de Infraestructura para reconocer la alerta.</p>`;
       channels.push(await sendEmail(sb, to, subject, html));
-      const tg = await sendTelegram(`${SEV_PREFIX[sev]} <b>${name}</b>\n${msg}`);
-      if (tg) channels.push(tg);
       await sb.rpc("mark_alert_notified", { p_alert_id: res.alert_id, p_channels: channels });
     }
   };
