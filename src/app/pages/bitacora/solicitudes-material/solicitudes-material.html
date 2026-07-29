@@ -38,11 +38,21 @@
       </thead>
       <tbody>
         @for (s of solicitudes(); track s.id) {
-          <tr [appHighlightItem]="s.id">
+          <tr [appHighlightItem]="s.id" [class.req-row--open]="estaExpandida(s.id)">
             <td>{{ formatTimestamp(s.created_at) }}</td>
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
             <td>{{ s.solicitante?.nombre ?? '—' }}</td>
-            <td class="text-muted">{{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}</td>
+            <td>
+              @if ((s.items ?? []).length) {
+                <button type="button" class="req-toggle" [attr.aria-expanded]="estaExpandida(s.id)"
+                  (click)="toggleExpand(s.id)">
+                  <span class="req-toggle__chevron" [class.req-toggle__chevron--open]="estaExpandida(s.id)" aria-hidden="true">▸</span>
+                  {{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}
+                </button>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
             <td>
               @if (s.urgencia === 'urgente') {
                 <span class="sgc-badge sgc-badge--danger">Urgente</span>
@@ -72,6 +82,27 @@
               }
             </td>
           </tr>
+          @if (estaExpandida(s.id)) {
+            <tr class="req-detail-row">
+              <td colspan="7">
+                <ul class="req-items">
+                  @for (it of s.items ?? []; track it.id) {
+                    <li class="req-item">
+                      @if (it.articulo_id) {
+                        <a class="req-item__link" [routerLink]="['/inventario/articulos']" [queryParams]="{ item: it.articulo_id }">
+                          {{ it.descripcion }}
+                        </a>
+                      } @else {
+                        <span class="req-item__otro">{{ it.descripcion }} <span class="sgc-badge sgc-badge--neutral">Otro</span></span>
+                      }
+                      <span class="req-item__qty">{{ it.cantidad }}@if (it.unidad) { {{ it.unidad }} }</span>
+                      @if (it.talla) { <span class="req-item__talla">Talla: {{ it.talla }}</span> }
+                    </li>
+                  }
+                </ul>
+              </td>
+            </tr>
+          }
         }
       </tbody>
     </table>

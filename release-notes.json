@@ -1,6 +1,12 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.46.0": {
+      "titulo": "Requisiciones: ver los artículos e ir al detalle",
+      "cambios": [
+        { "t": "nuevo", "d": "En Requisiciones puedes desplegar cada fila para ver sus artículos; los del catálogo son un enlace que te lleva al artículo en Inventario y lo resalta." }
+      ]
+    },
     "1.45.0": {
       "titulo": "Historial de versiones con indicadores y Dudas al día",
       "cambios": [

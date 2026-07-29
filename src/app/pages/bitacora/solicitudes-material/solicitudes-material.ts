@@ -91,6 +91,8 @@ export class SolicitudesMaterial implements OnInit {
   saveError = signal('');
 
   drawerOpen = signal(false);
+  /** Z25 — filas expandibles: ids de requisiciones con sus renglones visibles. */
+  expandidas = signal<Set<string>>(new Set());
   /** Paso del wizard (patrón hojas): 'form' → 'resumen'. */
   step = signal<'form' | 'resumen'>('form');
   formItems = signal<ItemRow[]>([NUEVO_ITEM()]);
@@ -205,6 +207,19 @@ export class SolicitudesMaterial implements OnInit {
   }
   itemNota(articuloId: string): string | null {
     return this.articuloById(articuloId)?.nota ?? null;
+  }
+
+  /** Z25 — abre/cierra el detalle de renglones de una requisición. */
+  toggleExpand(id: string) {
+    this.expandidas.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  estaExpandida(id: string): boolean {
+    return this.expandidas().has(id);
   }
 
   openCreate() {
