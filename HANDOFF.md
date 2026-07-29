@@ -2,6 +2,37 @@
 
 _Last updated: 2026-07-29_
 
+## PROMPT-8 · Verificación total + cierre de pendientes (29/07/2026) — ✅ COMPLETO Y EN PRODUCCIÓN (web 1.51.0, commit `9a556d8` en `main`)
+
+### TL;DR
+Auditoría total del paquete `imp 28072026` (Y1–Y17 + Z1–Z33) → `C:\developer\improvements\imp 28072026\INFORME-VERIFICACION.md`. Resultado 45✅/11🟡/1⏸; luego Xaviel autorizó **cerrar todo**. Los 15 pendientes de la lista priorizada quedaron cerrados y en prod (web 1.51.0). El detalle de qué era cada ID está en la sección `## ✅ CIERRE` del informe.
+
+### Done this session (web 1.51.0)
+- **🔴 Z5 fuga de datos de prueba (bug confirmado en BD viva) — CERRADO.** Causa: `trg_cascada_prueba` solo existía en `vehiculos`/`conductores`; `proyectos`/`bodegas` tenían el mapa en `_cascada_prueba` pero **sin trigger** → marcar un proyecto/almacén no ocultaba sus derivados a usuarios normales. Fix `sql/2026-07-29-z5-fix-cascada-proyecto-bodega.sql`: engancha `trg_cascada_prueba` a proyectos/bodegas + extiende `tg_heredar_es_prueba` a `proyecto_id`/`bodega_id` y lo engancha a las 6 derivadas + **backfill retroactivo**. Probado en transacción con rollback (marcar proyecto → OCs pasan a `es_prueba_origen='heredado'`).
+- **Z5(c)**: `dashboard`, `panel-dia`, `combustible` excluyen datos de prueba de los KPIs (respetan `DatosPruebaViewService.ver`). `sinPrueba()` en dashboard tipado `any` a propósito (evita TS2589 del builder de Supabase).
+- **Z5(d)**: switch/badge/eliminar de "dato de prueba" en bodegas, empleados, proveedores, artículos, activos fijos, conteos y OC + `datos-prueba.service.ts` union ampliado.
+- **Z23.4**: form web de combustible captura `producto/tarjeta/titular` (paridad web-padre).
+- **Z23.3**: conciliación con exportar a Excel + filtros vehículo/fecha (reusa `exportarExcel`/`DateRangeFilter`).
+- **Z13**: proyecto en **página completa con pestañas** (ver/crear); las cards navegan por ruta (`Lista` transformada en sitio, drawer de detalle retirado de ese flujo).
+- **Y15**: acción independiente "Justificar retraso" + selector de fase en el cronograma web.
+- **Z27**: KPIs (30/90 días + versión web/app) y mini-gráficos bar/donut en `admin/historial-versiones` (reusa `BarChart`/`DonutChart`).
+- **Z19**: "Todas las bitácoras" gateado en UI (`esAdmin() || hasModulo('proyectos')`, espejo de la RLS) + filtro por usuario (`directorio_usuarios`).
+- **Z6.4b**: selector de ítems de OC filtra por destino (obra/oficina) vía `articulos.ambito` (`sql/2026-07-29-z6.4b-articulo-ambito.sql`, default `ambos` = sin cambio hasta curar).
+- **Z33 web**: `form-drawer` con variante `[wide]` (720px) aplicada a OC y Registrar salida; sidebar arranca colapsado en tablet/laptop (≤1024px) reusando el mecanismo `collapsed`.
+- **Contratos de la app (migraciones aditivas aplicadas a prod y verificadas)**: `z22-bitacora-equipo-dano-foto` (`bitacora_equipos_alquilados.foto_path` + `crear_bitacora_app` recreado fielmente vs. la definición viva) y `z23-echada-persona` (`registros_combustible.vehiculo_id/kilometraje` nullable + rama de persona en `registrar_combustible_app`, recreado fielmente). Header stale de `z23app-...sql` corregido.
+
+### Verificación
+- `npm run build` VERDE. Advisor Supabase **0 CRITICAL**. 4 migraciones aplicadas y verificadas en vivo (columnas/triggers presentes).
+
+### Pending — Claude can do
+- Nada de PROMPT-8. Residual near-nil: KPI `alertasActivas` (avisos_flota) en `panel-dia` no filtra `es_prueba` (el modelo/SELECT del servicio no expone la columna); irrelevante porque W7 ya suprime avisos de vehículos de prueba al crearse.
+
+### Pending — Xavier only
+- **APK 1.35.0 de csd-app** (código ya pusheado): `npm run apk && npm run apk:publish` (keystore + `SUPABASE_SERVICE_ROLE_KEY`).
+- Y17 token de Telegram; Y8 (decisión pendiente); device-QA móvil.
+
+---
+
 ## PROMPT-6-SGC · imp28 PM (IDs Z1–Z33, 9 fases QA+features) (28–29/07/2026) — ✅ COMPLETO Y EN PRODUCCIÓN (web 1.35.0 → 1.50.0, todo en `main`, deploys automáticos)
 
 ### TL;DR
