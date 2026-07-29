@@ -7,6 +7,12 @@
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 24px;
+
+    @media (max-width: 640px) { // Z33
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
   }
 
   &__header-left {
@@ -157,7 +163,8 @@
   }
 
   &__table-wrap {
-    overflow: hidden;
+    // Z33 — no recortar tablas anchas en móvil; permitir scroll horizontal.
+    overflow-x: auto;
   }
 
   &__table-scroll {

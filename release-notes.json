@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.50.0": {
+      "titulo": "Ajustes de diseño para móviles y tablets",
+      "cambios": [
+        { "t": "mejora", "d": "En pantallas pequeñas los encabezados de las páginas apilan el título sobre los botones de acción, que ahora ocupan el ancho completo y no se desbordan (afecta a listados de Inventario, Compras, Flota, RRHH, Legal, Tareas, Tecnología, Administración y Proyectos)." },
+        { "t": "arreglo", "d": "La tabla de Unidades y los reportes de inventario ya no se recortan en el celular: se desplazan horizontalmente cuando no caben." }
+      ]
+    },
     "1.49.0": {
       "titulo": "Proyectos: enlaces directos a cada obra y a Nuevo proyecto",
       "cambios": [

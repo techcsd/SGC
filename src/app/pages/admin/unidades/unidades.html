@@ -31,6 +31,7 @@
 @if (loading()) {
   <app-skeleton variant="table" [rows]="8" />
 } @else {
+  <div class="table-scroll">
   <table class="und-table">
     <thead>
       <tr><th>Nombre</th><th>Código</th><th>Estado</th><th></th></tr>
@@ -64,4 +65,5 @@
       }
     </tbody>
   </table>
+  </div>
 }

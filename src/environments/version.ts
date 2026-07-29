@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.49.0';
-export const APP_VERSION_TITULO: string | null = "Proyectos: enlaces directos a cada obra y a Nuevo proyecto";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"Cada obra tiene ahora su propia dirección web (/proyectos/su-id) y \"Nuevo proyecto\" es una página propia (/proyectos/nuevo): se pueden compartir, marcar como favorito y funcionan con el botón Atrás del navegador."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/3d54998";
+export const APP_VERSION = '1.50.0';
+export const APP_VERSION_TITULO: string | null = "Ajustes de diseño para móviles y tablets";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"En pantallas pequeñas los encabezados de las páginas apilan el título sobre los botones de acción, que ahora ocupan el ancho completo y no se desbordan (afecta a listados de Inventario, Compras, Flota, RRHH, Legal, Tareas, Tecnología, Administración y Proyectos)."},{"t":"arreglo","d":"La tabla de Unidades y los reportes de inventario ya no se recortan en el celular: se desplazan horizontalmente cuando no caben."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/49b0ed3";

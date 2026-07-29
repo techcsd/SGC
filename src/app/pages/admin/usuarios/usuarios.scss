@@ -6,6 +6,11 @@
     gap: 16px;
     margin-bottom: 24px;
 
+    @media (max-width: 640px) { // Z33 — apila en móvil
+      flex-direction: column;
+      align-items: stretch;
+    }
+
     h1 {
       font-size: 22px;
       font-weight: 700;

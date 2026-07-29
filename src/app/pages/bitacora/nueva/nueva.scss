@@ -3,6 +3,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap; // Z33 — el banner de borrador no debe desbordar en móvil
   padding: 12px 16px;
   margin-bottom: 16px;
   background: var(--sgc-info-light);

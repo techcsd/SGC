@@ -2,6 +2,8 @@
   padding: 2rem;
   max-width: 1100px;
 
+  @media (max-width: 640px) { padding: 1rem; } // Z33
+
   // Header
   &__header {
     display: flex;
@@ -9,6 +11,12 @@
     justify-content: space-between;
     margin-bottom: 1.25rem;
     gap: 1rem;
+
+    @media (max-width: 640px) { // Z33
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
   }
 
   &__header-text {

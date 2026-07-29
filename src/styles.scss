@@ -337,6 +337,28 @@ select.sgc-select {
     align-items: baseline;
     gap: 10px;
   }
+
+  // Z33 — la barra de acciones (Excel + Nuevo…) debe poder envolver en pantallas
+  // estrechas; sin esto, dos botones desbordan la fila en móviles.
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+// Z33 — auditoría responsive: en móviles el encabezado apila el título sobre las
+// acciones y estas ocupan todo el ancho. Cubre las ~30 páginas que usan
+// `.page-header` (listados de inventario, compras, flota, RRHH, legal, tareas,
+// tecnología, admin, etc.) de una sola vez.
+@media (max-width: 640px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .page-header__actions { width: 100%; }
 }
 
 .page-title {
