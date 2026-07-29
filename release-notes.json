@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.45.0": {
+      "titulo": "Historial de versiones con indicadores y Dudas al día",
+      "cambios": [
+        { "t": "nuevo", "d": "El historial de versiones ahora muestra tarjetas de resumen: versiones publicadas, última versión con su fecha, cambios registrados y desglose por tipo, para la plataforma seleccionada." },
+        { "t": "mejora", "d": "Se actualizó la ayuda (Dudas) con la conciliación de combustible, la reposición accionable, los datos de prueba, las estructuras de obra, el catálogo de cronograma y los reportes de errores de la web." }
+      ]
+    },
     "1.44.0": {
       "titulo": "Conciliación de combustible: importador Total Energies con vista previa",
       "cambios": [

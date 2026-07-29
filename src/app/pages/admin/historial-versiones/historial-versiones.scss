@@ -100,3 +100,21 @@
   .hv-item__fecha { margin-left: 0; width: 100%; }
   .hv-cambio { grid-template-columns: 1fr; gap: 4px; }
 }
+
+/* Z27 — KPIs del historial */
+.hv-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.hv-kpi {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hv-kpi__label { font-size: 0.78rem; color: var(--main-ultra-light); text-transform: uppercase; letter-spacing: 0.03em; }
+.hv-kpi__value { font-size: 1.6rem; font-weight: 700; }
+.hv-kpi__sub { font-size: 0.82rem; color: var(--main-ultra-light); }
+.hv-kpi--tags .hv-kpi__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }

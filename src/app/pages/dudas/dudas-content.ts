@@ -165,7 +165,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué son los "Reportes de errores" en Tecnología?',
         respuesta:
-          'Cuando la app móvil falla en un teléfono (crash, error de cámara, de sincronización o de permisos), envía automáticamente los datos del error —modelo del teléfono, versión, mensaje y contexto— a Tecnología > Reportes de errores. Ahí, admin y el rol Tecnología pueden ver los fallos agrupados por mensaje, filtrarlos por dispositivo/versión/fecha y exportarlos a Excel, para diagnosticar problemas específicos de un equipo. No incluye datos personales ni fotos.',
+          'Cuando la app móvil falla en un teléfono (crash, error de cámara, de sincronización o de permisos), o cuando la página web tiene un error en el navegador, se envían automáticamente los datos del error —modelo/dispositivo o navegador, versión, mensaje y contexto— a Tecnología > Reportes de errores. Ahí, admin y el rol Tecnología pueden ver los fallos agrupados por mensaje, filtrarlos por origen (App móvil / Página web), dispositivo, versión y fecha, y exportarlos a Excel, para diagnosticar problemas específicos. No incluye datos personales ni fotos.',
       },
       {
         pregunta: '¿Por qué no puedo crear plantillas de documentos si sí puedo generar documentos?',
@@ -335,6 +335,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Ve a Inventario > Reposición y elige el almacén. Verás los artículos que están en o por debajo de su stock mínimo, con la cantidad faltante (los que están en cero se marcan como críticos). Es una guía operativa de reposición para el almacén de obra — no maneja montos ni presupuesto.',
       },
       {
+        pregunta: 'En Reposición, ¿puedo pedir la compra o posponer un artículo directamente?',
+        respuesta:
+          'Sí. En Inventario > Reposición selecciona uno o varios artículos por reponer y pulsa "Generar solicitud de compra": crea la solicitud hacia Compras por lo seleccionado (requiere que el almacén esté ligado a una obra). También puedes ajustar el stock mínimo ahí mismo, o "Posponer" un artículo con un motivo para que no vuelva a aparecer por un tiempo — los pospuestos vigentes quedan ocultos hasta que vence el aplazamiento.',
+      },
+      {
+        pregunta: '¿Qué son los "datos de prueba" y por qué a veces no los veo?',
+        respuesta:
+          'Para practicar sin ensuciar la información real, casi todo (proyectos, almacenes, empleados, proveedores, órdenes, artículos, activos, vehículos, conductores…) puede marcarse como "dato de prueba". Los datos de prueba quedan OCULTOS para los usuarios normales — solo un administrador puede verlos, activando "Mostrar datos de prueba". Cuando marcas algo como prueba, lo relacionado (sus bitácoras, salidas, órdenes, etc.) se marca en cascada; y al eliminar un dato de prueba se limpia todo lo que dependía de él.',
+      },
+      {
         pregunta: '¿Cómo hago el chequeo semanal de un almacén?',
         respuesta:
           'Ve a Inventario > Conteos > "Nuevo chequeo semanal", elige el almacén y ajusta la cantidad física de cada artículo (el sistema precarga la cantidad registrada). Al guardar, el stock se ajusta al conteo físico y las diferencias se reportan automáticamente a Dirección. Cada almacén de obra tiene además una tarea semanal recordatoria asignada a su Guarda-Almacén.',
@@ -484,6 +494,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'En Proyectos > Historial. Verás los proyectos completados y cancelados con su duración real, presupuesto y fecha de fin, además de tiles y gráficos por estado y por tipo. Puedes cambiar entre "Finalizados" y "Todos".',
       },
+      {
+        pregunta: '¿Qué son las "estructuras" de un proyecto y para qué sirven?',
+        respuesta:
+          'Cada obra define sus propias estructuras (bloques, torres, entrepisos, áreas…) en el detalle del proyecto. Al registrar una bitácora eliges la estructura del proyecto en vez de escribir "Bloque/Entrepiso" a mano, así los reportes quedan consistentes por obra. Puedes agregar, renombrar o desactivar estructuras sin perder el historial de lo ya registrado.',
+      },
+      {
+        pregunta: '¿De dónde salen las tareas sugeridas al armar el cronograma?',
+        respuesta:
+          'Hay un catálogo global de tareas de cronograma (administrado por Tecnología/Administración) que sirve de plantilla común para todas las obras. Al agregar una tarea al cronograma de un proyecto puedes elegirla del catálogo (escribiendo para autocompletar) o escribir una nueva. Así los cronogramas de obras distintas hablan el mismo idioma.',
+      },
     ],
   },
   {
@@ -628,6 +648,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Se ven los conduces de una ruta?',
         respuesta:
           'Sí. En Flota > Rutas, al abrir el detalle de una ruta se listan los conduces asociados (con su estado y artículos) y las notas de voz registradas.',
+      },
+      {
+        pregunta: '¿Cómo concilio el reporte de Total Energies contra lo registrado?',
+        respuesta:
+          'En Flota > Conciliación de combustible importa el reporte que envía la estación (Excel/CSV). El sistema reconoce el formato real de Total Energies (coma decimal, fechas dd/mm/aaaa y el número de transacción para no duplicar) y NO inserta nada de inmediato: primero muestra una vista previa obligatoria donde ves cada transacción, la suma de galones y la suma de montos cuadrada contra el total de la factura (te avisa si no coincide), y marca las filas ya importadas antes, las inválidas y los titulares que son personas en vez de vehículos. Solo cuando confirmas se importan las transacciones nuevas y se cruzan contra los registros de combustible de la plataforma, mostrándote qué coincide, qué tiene diferencias y qué está solo en el informe o solo en la plataforma. El kilometraje del reporte es solo referencia: nunca pisa el odómetro del vehículo.',
       },
     ],
   },

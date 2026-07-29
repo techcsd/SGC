@@ -40,6 +40,25 @@ export class AdminHistorialVersiones implements OnInit {
   totalWeb = computed(() => this.todas().filter((v) => v.plataforma === 'web').length);
   totalMovil = computed(() => this.todas().filter((v) => v.plataforma === 'movil').length);
 
+  /** Z27 — KPIs de la plataforma activa: total, última versión + fecha, y conteo por tipo de cambio. */
+  kpis = computed(() => {
+    const list = this.todas().filter((v) => v.plataforma === this.plataforma());
+    const porTipo: Record<CambioTag, number> = { nuevo: 0, mejora: 0, arreglo: 0, seguridad: 0 };
+    for (const v of list) {
+      for (const c of v.cambios ?? []) {
+        if (c.t in porTipo) porTipo[c.t as CambioTag]++;
+      }
+    }
+    const ultima = list[0] ?? null; // getHistorial ya viene ordenado desc
+    return {
+      total: list.length,
+      ultimaVersion: ultima?.version ?? null,
+      ultimaFecha: ultima?.created_at ?? ultima?.fecha ?? null,
+      porTipo,
+      totalCambios: Object.values(porTipo).reduce((a, b) => a + b, 0),
+    };
+  });
+
   /** Versiones de la plataforma activa, aplicando el filtro de tipo de cambio. */
   versiones = computed<VersionVista[]>(() => {
     const f = this.filtro();

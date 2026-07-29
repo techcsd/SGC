@@ -23,6 +23,31 @@
 @if (loading()) {
   <app-skeleton variant="cards" [rows]="5" />
 } @else {
+  <!-- ── Z27 — KPIs de la plataforma activa ── -->
+  <div class="hv-kpis">
+    <div class="hv-kpi sgc-card">
+      <span class="hv-kpi__label">Versiones publicadas</span>
+      <span class="hv-kpi__value">{{ kpis().total }}</span>
+    </div>
+    <div class="hv-kpi sgc-card">
+      <span class="hv-kpi__label">Última versión</span>
+      <span class="hv-kpi__value">{{ kpis().ultimaVersion ? 'v' + kpis().ultimaVersion : '—' }}</span>
+      @if (kpis().ultimaFecha) { <span class="hv-kpi__sub">{{ formatFecha(kpis().ultimaFecha!) }}</span> }
+    </div>
+    <div class="hv-kpi sgc-card">
+      <span class="hv-kpi__label">Cambios registrados</span>
+      <span class="hv-kpi__value">{{ kpis().totalCambios }}</span>
+    </div>
+    <div class="hv-kpi hv-kpi--tags sgc-card">
+      <span class="hv-kpi__label">Por tipo</span>
+      <div class="hv-kpi__tags">
+        @for (t of TAGS; track t) {
+          <span class="hv-tag hv-tag--{{ t }}">{{ tagLabel(t) }} {{ kpis().porTipo[t] }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
   <!-- ── Filtro por tipo de cambio ── -->
   <div class="hv-filtros">
     <span class="hv-filtros__label">Filtrar:</span>
