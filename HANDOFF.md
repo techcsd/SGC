@@ -1,6 +1,52 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-27_
+_Last updated: 2026-07-29_
+
+## PROMPT-6-SGC · imp28 PM (IDs Z1–Z33, 9 fases QA+features) (28–29/07/2026) — ✅ COMPLETO Y EN PRODUCCIÓN (web 1.35.0 → 1.50.0, todo en `main`, deploys automáticos)
+
+### TL;DR
+PROMPT-6 (CONTEXTO-ACTUALIZACION-1, IDs Z1–Z33) quedó **100% cerrado**. Todas las fases commiteadas y pusheadas a `main`; cada push auto-registra su versión en `sgc.app_versiones`. La parte web está terminada; la **móvil (csd-app) la maneja Xaviel en otra ventana** (contratos ya expuestos en la BD).
+
+### Done this session (esta tanda: 1.44.0 → 1.50.0)
+- **Z23 — Conciliación de combustible (1.44.0)**: parser exacto del reporte real Total Energies (coma decimal `28,57→28.57`, fechas dd/mm/aaaa, `Transacción_num`; galones=col `Cantidad`, monto=`Importe_IVA_incluido`, evitando columnas de factura/impuesto). **Vista previa OBLIGATORIA** antes de insertar: cuadra Σmonto vs total de factura, marca duplicadas/inválidas/titular-persona. Tabla `sgc.combustible_transacciones_proveedor` (dedupe por `transaccion_num`) + RPCs `importar_transacciones_combustible`/`transacciones_existentes` (RLS `is_admin()||es_flota_elevado()`). Migración `sql/2026-07-28-z23-transacciones-proveedor.sql` **aplicada a prod**. **Verificado contra el xlsx real**: 23 transacciones únicas, Σ monto = **115,324.19** = total de la factura ✓, galones coma-decimal OK.
+- **Z27 (1.45.0)**: KPIs cards en `admin/historial-versiones` (total, última versión + fecha, cambios registrados, desglose por tipo) por plataforma activa.
+- **Z30 (1.45.0)**: Dudas actualizadas (conciliación, reposición accionable, datos de prueba, estructuras de obra, catálogo de cronograma, reportes de errores de la web).
+- **Z25 (1.46.0)**: Requisiciones con filas expandibles; cada renglón de catálogo enlaza a `/inventario/articulos?item=<id>` (HighlightItemDirective). "Otro" se muestra como texto con badge.
+- **Z18 (1.47.0)**: tipo de bitácora como **tarjetas icono + descripción** (`BITACORA_TIPOS` +`icono`+`desc`).
+- **Z19 (1.47.0)**: historial de bitácoras **split Mis / Todas** (por `usuario_id`) con segmented control + contadores; un drill-down por query param entra en "Todas" para no ocultar el registro buscado.
+- **Z16 (1.48.0)**: **Gantt real** — computed `rango` reutilizable; eje temporal (~7 ticks de fecha) + rejilla + marca "hoy" alineados vía overlay con offset del label (232px / 142px móvil); conectores de dependencia finish-to-start por `orden` (rojo si el inicio se solapa con el fin de la anterior).
+- **Z13 (1.49.0)**: proyecto como **ruta dedicada** — `/proyectos/nuevo` (`data.modo='crear'`) y `/proyectos/:id` (detalle), ambas reusan la `Lista` ya probada; deep-linkable + botón Atrás. `ngOnInit` lee `route.data.modo`/`paramMap.id`; `closeDrawer`/`closeDetailDrawer` vuelven a `/proyectos` si `navegadoPorRuta`. **Decisión deliberada**: NO es un rewrite visual full-page (la Lista son ~2800 líneas del módulo más crítico y no se puede QA de clics a ciegas); el detalle sigue en drawer instantáneo al hacer click en tarjeta (sin regresión de latencia), pero ahora es addressable por URL.
+- **Z33 (1.50.0)**: auditoría responsive (vía agente Explore, top-10 concretos). Fix **global** en `styles.scss`: `.page-header` apila (título sobre acciones) y `.page-header__actions` envuelven/ocupan 100% en ≤640px (cubre ~30 listados). Encabezados bespoke apilados (`proyectos/lista`+padding, `inventario/reportes`, `admin/usuarios`, `admin/roles`+padding, `flota/vehiculos` 480→640); `bitacora/nueva` draft-banner con `flex-wrap`. Tablas: `admin/unidades` envuelta en `.table-scroll`; `inventario/reportes` `__table-wrap` → `overflow-x:auto` (ya no recorta).
+- **Fases previas de esta ronda (ya estaban shipped 1.35.0→1.43.0)**: Z1–Z4 (datos-prueba fixes), Z5 (es_prueba en todas las entidades), Z6 (Compras OC destino+ITBIS), Z7–Z12 (inventario: conteos, almacén drawer, ajuste stock, layout), Z8 (reposición accionable), Z14/Z15/Z17 (estructuras, catálogo cronograma, clima clicable), Z26/Z28/Z29 (Tecnología gate, errores web, badge Soporte).
+
+### Pending — Claude can do
+- Nada de PROMPT-6 (cerrado). Follow-ups **opcionales** cuando Xaviel los pida:
+  - **Z13 full-page real**: extraer el drawer de detalle de `proyectos/lista` (líneas 375–908 de `lista.html`) a un componente `proyecto-detalle` routed. Es grande y toca el módulo crítico → merece su propia sesión con QA manual.
+  - Backfill/higiene de datos: `articulos.propiedad` (todo `propio_csd`), `vehiculos.uso` (todo `obra`) — hay UI rápida.
+  - Migrar `entradas` de `<select>` nativo a `app-articulo-picker` (paridad con salidas/requisición).
+
+### Pending — Xavier only
+- **Parte móvil (csd-app)**: implementar en la otra ventana los contratos ya expuestos por la BD (estructuras de obra, conciliación/combustible, dudas, gating por submódulo, split de bitácoras).
+- **QA de clics** de lo que Claude no puede verificar solo: vista previa de conciliación end-to-end en la UI de Flota; navegación responsive en tu teléfono real.
+- **Rotar tu contraseña**: la pegaste en el chat en una sesión anterior; queda en el historial.
+- Telegram del módulo de monitoreo (PROMPT-5): el secret sigue pendiente si aún lo quieres (se decidió email en su lugar).
+
+### Gotchas discovered
+- **release-notes.json se edita con la herramienta Edit, NUNCA con `node -e` + JSON entre comillas dobles** — rompe el parseo de PowerShell/heredoc y deja `package.json` bumpeado sin la entrada, lo que hace fallar el prebuild `verify-version-notes.mjs`.
+- El fixture real de Z23 (`C:\developer\improvements\imp 28072026\reporte-total-energies-FA26463587.xlsx`) tiene **23 filas** (no 24), Σ = 115,324.19. Verificación repetible: `node scratchpad/verifyparse.cjs`.
+- `parseInforme`: la col de galones es `Cantidad` (exacta), NO cualquier "importe" (había un bug de `find('importe')` que atrapaba `Importe_de_la_factura`); monto = `Importe_IVA_incluido`. `toNum` distingue coma-decimal (`28,57`) de miles (`1,234.56`).
+- Rutas de proyectos: **los literales (`nuevo`,`kpi`,`historial`,`clima`) deben ir ANTES de `:id`** en `proyectos.routes.ts`, y `:id/cronograma` antes de `:id`, o `:id` se traga todo.
+- Responsive: el patrón sano es `.page-header` global (ya arreglado a ≤640px). Páginas con encabezado propio (`.xxx__header`) NO heredan ese fix — hay que apilarlas una por una.
+
+### Verify on resume
+```bash
+cd "C:/Users/xavie/Desktop/X Dev/dev/SGC"
+git log --oneline -8            # deben verse los commits z23…z33 (1.44.0→1.50.0)
+grep '"version"' package.json   # 1.50.0
+npm run build                   # verde (prebuild verify ✓)
+```
+
+---
 
 ## PROMPT-3-SGC · Ronda 11c (IDs Z: flota + inventario) (27/07/2026) — ✅ MIGRACIONES EN PROD, build+tests verdes, **SIN commit/push/deploy** (pendiente de Xaviel)
 
