@@ -51,6 +51,9 @@ export interface ChecklistRespuesta {
   respuesta: ChecklistRespuestaValor;
   comentario: string | null;
   orden: number;
+  // AA13 — foto + nota de voz opcionales por falla (bucket vehiculos).
+  foto_path: string | null;
+  audio_path: string | null;
 }
 
 export interface ChecklistFoto {

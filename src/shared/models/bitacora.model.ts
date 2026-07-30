@@ -52,6 +52,8 @@ export interface BitacoraRestriccion {
   descripcion_otro: string | null;
   // Z21 — foto opcional por restricción (bucket privado sgc-bitacora).
   foto_path: string | null;
+  // AA9 — nota de voz opcional por restricción (bucket privado sgc-bitacora).
+  audio_path: string | null;
 }
 
 export interface BitacoraArchivo {
@@ -78,6 +80,9 @@ export interface BitacoraEquipoAlquilado {
   para_retirar: boolean;
   danado: boolean;
   dano_detalle: string | null;
+  // Z22 — foto (única) del daño; AA10 — fotos MÚLTIPLES del daño (bucket sgc-bitacora).
+  foto_path: string | null;
+  fotos_paths: string[] | null;
   created_at: string;
 }
 

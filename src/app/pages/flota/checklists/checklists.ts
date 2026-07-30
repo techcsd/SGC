@@ -120,6 +120,9 @@ export class Checklists implements OnInit {
   private itemFotos = signal<{ orden: number; etiqueta: string; url: string }[]>([]);
   /** URL firmada de la firma del conductor (o null). */
   firmaUrl = signal<string | null>(null);
+  // AA13 — foto + nota de voz por falla (respuesta), keyed por respuesta id.
+  private respuestaFotoUrls = signal<Record<string, string>>({});
+  private respuestaAudioUrls = signal<Record<string, string>>({});
   notaAtencion = signal('');
   atendiendo = signal(false);
 
@@ -574,6 +577,8 @@ export class Checklists implements OnInit {
     this.fotoUrls.set({});
     this.itemFotos.set([]);
     this.firmaUrl.set(null);
+    this.respuestaFotoUrls.set({});
+    this.respuestaAudioUrls.set({});
     this.notaAtencion.set('');
     try {
       const full = await this.checklistsService.getById(row.id);
@@ -619,6 +624,32 @@ export class Checklists implements OnInit {
     items.sort((a, b) => a.orden - b.orden);
     this.fotoUrls.set(map);
     this.itemFotos.set(items);
+
+    // AA13 — foto + nota de voz que la app guarda POR RESPUESTA (columnas
+    // foto_path/audio_path), distinto de las fotos por slot `item_N`.
+    const fotoResp: Record<string, string> = {};
+    const audioResp: Record<string, string> = {};
+    await Promise.all(
+      (checklist.respuestas ?? []).map(async (r) => {
+        try {
+          if (r.foto_path) fotoResp[r.id] = await this.checklistsService.getFotoUrl(r.foto_path);
+          if (r.audio_path) audioResp[r.id] = await this.checklistsService.getFotoUrl(r.audio_path);
+        } catch {
+          /* omite la evidencia que no se pueda firmar */
+        }
+      }),
+    );
+    this.respuestaFotoUrls.set(fotoResp);
+    this.respuestaAudioUrls.set(audioResp);
+  }
+
+  /** AA13 — URL firmada de la foto de una falla (o ''). */
+  getRespuestaFoto(id: string): string {
+    return this.respuestaFotoUrls()[id] ?? '';
+  }
+  /** AA13 — URL firmada de la nota de voz de una falla (o ''). */
+  getRespuestaAudio(id: string): string {
+    return this.respuestaAudioUrls()[id] ?? '';
   }
 
   /** X3 — fotos por ítem del ítem con ese `orden` (para la galería inline en hallazgos). */

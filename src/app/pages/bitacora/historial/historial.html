@@ -439,6 +439,15 @@
                     </a>
                   }
                 }
+                @if (r.audio_path) {
+                  @let raudio = getRestriccionAudioUrl(r.id);
+                  @if (raudio) {
+                    <div class="bitacora-archivo bitacora-archivo--audio">
+                      <span>🎤 Nota de voz</span>
+                      <audio controls preload="none" [src]="raudio"></audio>
+                    </div>
+                  }
+                }
               </li>
             }
           </ul>
@@ -454,6 +463,15 @@
                 <strong>{{ e.equipo }}</strong>@if (e.uso) { — {{ e.uso }} }@if (e.proveedor) { <span class="text-muted">· {{ e.proveedor }}</span> }
                 @if (e.para_retirar) { <span class="sgc-badge sgc-badge--warning">Para retirar</span> }
                 @if (e.danado) { <span class="sgc-badge sgc-badge--danger">Dañado</span>@if (e.dano_detalle) { <span class="text-muted">: {{ e.dano_detalle }}</span> } }
+                @if (getEquipoFotos(e.id).length) {
+                  <div class="bitacora-archivos">
+                    @for (u of getEquipoFotos(e.id); track u) {
+                      <a class="bitacora-archivo bitacora-archivo--img" [href]="u" target="_blank" rel="noopener">
+                        <img [src]="u" [alt]="'Foto de daño de ' + e.equipo" loading="lazy" />
+                      </a>
+                    }
+                  </div>
+                }
               </li>
             }
           </ul>

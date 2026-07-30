@@ -87,6 +87,10 @@ export class Historial implements OnInit {
   archivoUrls = signal<Map<string, string>>(new Map());
   // Z21 — URLs firmadas de las fotos por restricción (keyed by restricción id).
   restriccionUrls = signal<Map<string, string>>(new Map());
+  // AA9 — URLs firmadas de las notas de voz por restricción (keyed by restricción id).
+  restriccionAudioUrls = signal<Map<string, string>>(new Map());
+  // AA10 — URLs firmadas de las fotos (varias) por equipo dañado (keyed by equipo id).
+  equipoFotoUrls = signal<Map<string, string[]>>(new Map());
 
   /** Icon + label for the captured weather of the entry being viewed. */
   detailTiempo = computed(() => interpretarCodigoTiempo(this.detail()?.weather_snapshot?.codigo_tiempo ?? null));
@@ -279,11 +283,14 @@ export class Historial implements OnInit {
     this.detail.set(b);
     this.archivoUrls.set(new Map());
     this.restriccionUrls.set(new Map());
+    this.restriccionAudioUrls.set(new Map());
+    this.equipoFotoUrls.set(new Map());
     try {
       const full = await this.bitacoraService.getById(b.id);
       this.detail.set(full);
       await this.resolveArchivoUrls(full.archivos ?? []);
-      await this.resolveRestriccionUrls(full.restricciones ?? []); // Z21
+      await this.resolveRestriccionUrls(full.restricciones ?? []); // Z21/AA9
+      await this.resolveEquipoFotos(full.equipos ?? []); // AA10
     } catch {
       // keep basic data
     }
@@ -342,26 +349,63 @@ export class Historial implements OnInit {
     return this.archivoUrls().get(archivo.id) ?? '';
   }
 
-  // Z21 — resuelve las URLs firmadas de las fotos por restricción.
+  // Z21/AA9 — resuelve las URLs firmadas de la foto y la nota de voz por restricción.
   private async resolveRestriccionUrls(
-    restricciones: { id: string; foto_path: string | null }[],
+    restricciones: { id: string; foto_path: string | null; audio_path: string | null }[],
   ): Promise<void> {
-    const entries = await Promise.all(
-      restricciones
-        .filter((r) => !!r.foto_path)
-        .map(async (r) => {
-          try {
-            return [r.id, await this.bitacoraService.getSignedUrl(r.foto_path!)] as const;
-          } catch {
-            return [r.id, ''] as const;
-          }
-        }),
+    const sign = async (path: string | null): Promise<string> => {
+      if (!path) return '';
+      try {
+        return await this.bitacoraService.getSignedUrl(path);
+      } catch {
+        return '';
+      }
+    };
+    const fotos = new Map<string, string>();
+    const audios = new Map<string, string>();
+    await Promise.all(
+      restricciones.map(async (r) => {
+        if (r.foto_path) fotos.set(r.id, await sign(r.foto_path));
+        if (r.audio_path) audios.set(r.id, await sign(r.audio_path));
+      }),
     );
-    this.restriccionUrls.set(new Map(entries));
+    this.restriccionUrls.set(fotos);
+    this.restriccionAudioUrls.set(audios);
   }
 
   getRestriccionUrl(id: string): string {
     return this.restriccionUrls().get(id) ?? '';
+  }
+  getRestriccionAudioUrl(id: string): string {
+    return this.restriccionAudioUrls().get(id) ?? '';
+  }
+
+  // AA10 — resuelve las URLs firmadas de las fotos (varias) por equipo dañado.
+  private async resolveEquipoFotos(
+    equipos: { id: string; fotos_paths: string[] | null; foto_path: string | null }[],
+  ): Promise<void> {
+    const map = new Map<string, string[]>();
+    await Promise.all(
+      equipos.map(async (e) => {
+        const paths = e.fotos_paths?.length ? e.fotos_paths : e.foto_path ? [e.foto_path] : [];
+        if (!paths.length) return;
+        const urls = await Promise.all(
+          paths.map(async (p) => {
+            try {
+              return await this.bitacoraService.getSignedUrl(p);
+            } catch {
+              return '';
+            }
+          }),
+        );
+        map.set(e.id, urls.filter(Boolean));
+      }),
+    );
+    this.equipoFotoUrls.set(map);
+  }
+
+  getEquipoFotos(id: string): string[] {
+    return this.equipoFotoUrls().get(id) ?? [];
   }
 
   /** Photos captured in the field render inline; voice notes get an audio

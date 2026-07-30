@@ -486,6 +486,17 @@
                     }
                   </div>
                 }
+                <!-- AA13 — foto + nota de voz por falla (reporte semanal app). -->
+                @if (getRespuestaFoto(r.id); as rf) {
+                  <div class="cl-item-fotos">
+                    <a [href]="rf" target="_blank" rel="noopener">
+                      <img [src]="rf" alt="Foto de la falla" loading="lazy" />
+                    </a>
+                  </div>
+                }
+                @if (getRespuestaAudio(r.id); as ra) {
+                  <audio controls preload="none" [src]="ra"></audio>
+                }
               </div>
               <span class="sgc-badge sgc-badge--danger">NO</span>
             </div>
