@@ -497,6 +497,7 @@
                 @if (getRespuestaAudio(r.id); as ra) {
                   <audio controls preload="none" [src]="ra"></audio>
                 }
+                @if (r.transcripcion) { <span class="cl-coment-read">“{{ r.transcripcion }}”</span> }
               </div>
               <span class="sgc-badge sgc-badge--danger">NO</span>
             </div>

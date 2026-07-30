@@ -54,6 +54,8 @@ export interface ChecklistRespuesta {
   // AA13 — foto + nota de voz opcionales por falla (bucket vehiculos).
   foto_path: string | null;
   audio_path: string | null;
+  // AA22 — transcripción de esa nota de voz.
+  transcripcion: string | null;
 }
 
 export interface ChecklistFoto {

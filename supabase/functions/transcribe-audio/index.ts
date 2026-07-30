@@ -122,5 +122,36 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // AA22 (sub-ítem) — voz por restricción / por falla, guardada en columnas
+  // `audio_path`. Mismo patrón; el bucket difiere por tabla.
+  const SUBITEM: { tabla: string; bucket: string }[] = [
+    { tabla: "bitacora_restricciones", bucket: "sgc-bitacora" },
+    { tabla: "checklist_vehiculo_respuestas", bucket: "vehiculos" },
+  ];
+  for (const { tabla, bucket } of SUBITEM) {
+    const { data: rows } = await admin.from(tabla)
+      .select("id, audio_path, transcripcion_intentos")
+      .in("transcripcion_estado", ["pendiente", "fallida"])
+      .not("audio_path", "is", null)
+      .lt("transcripcion_intentos", MAX_INTENTOS)
+      .limit(BATCH);
+    for (const r of rows ?? []) {
+      await admin.from(tabla).update({ transcripcion_estado: "procesando" }).eq("id", r.id);
+      try {
+        const t = await transcribir(bucket, r.audio_path as string);
+        await admin.from(tabla).update({
+          transcripcion: t, transcripcion_estado: "completada", transcrito_at: new Date().toISOString(), transcripcion_error: null,
+        }).eq("id", r.id);
+        ok++;
+      } catch (e) {
+        await admin.from(tabla).update({
+          transcripcion_estado: "fallida", transcripcion_error: String(e instanceof Error ? e.message : e).slice(0, 400),
+          transcripcion_intentos: (r.transcripcion_intentos ?? 0) + 1,
+        }).eq("id", r.id);
+        fail++;
+      }
+    }
+  }
+
   return json({ ok: true, provider: providerKey, model, transcritos: ok, fallidos: fail });
 });

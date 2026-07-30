@@ -632,8 +632,8 @@ export class Checklists implements OnInit {
     await Promise.all(
       (checklist.respuestas ?? []).map(async (r) => {
         try {
-          if (r.foto_path) fotoResp[r.id] = await this.checklistsService.getFotoUrl(r.foto_path);
-          if (r.audio_path) audioResp[r.id] = await this.checklistsService.getFotoUrl(r.audio_path);
+          if (r.foto_path) fotoResp[r.id] = (await this.checklistsService.getFotoUrl(r.foto_path)) ?? '';
+          if (r.audio_path) audioResp[r.id] = (await this.checklistsService.getFotoUrl(r.audio_path)) ?? '';
         } catch {
           /* omite la evidencia que no se pueda firmar */
         }

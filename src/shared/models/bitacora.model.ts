@@ -54,6 +54,8 @@ export interface BitacoraRestriccion {
   foto_path: string | null;
   // AA9 — nota de voz opcional por restricción (bucket privado sgc-bitacora).
   audio_path: string | null;
+  // AA22 — transcripción de esa nota de voz (si el proveedor la generó).
+  transcripcion: string | null;
 }
 
 export interface BitacoraArchivo {
