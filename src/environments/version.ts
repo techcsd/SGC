@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.53.1';
-export const APP_VERSION_TITULO: string | null = "Sesión más robusta: menos errores raros y avisos claros al expirar";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"arreglo","d":"Se corrigió un problema por el que, con la pestaña abierta mucho tiempo, la sesión quedaba \"a medias\" (se veía conectada pero el acceso ya había vencido) y acciones como generar el PIN de un conductor fallaban con un mensaje confuso (\"Sesión inválida\"). Ahora el sistema renueva la sesión automáticamente al volver a la pestaña y antes de esa acción."},{"t":"mejora","d":"Cuando tu sesión expira de verdad, ahora te lleva al inicio de sesión con un aviso claro (\"Tu sesión expiró\") en vez de dejar errores sueltos en pantalla."},{"t":"seguridad","d":"Al entrar a cualquier página protegida se valida y renueva el token de acceso; si el acceso ya no es válido, se cierra la sesión limpiamente."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/1b23f78";
+export const APP_VERSION = '1.53.2';
+export const APP_VERSION_TITULO: string | null = "Arreglo: la sesión ya no se cierra sola al refrescar la página";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"arreglo","d":"Se corrigió un fallo introducido en 1.53.1 por el que, al refrescar la página, a veces la sesión se cerraba sola y te devolvía al inicio de sesión. Ahora la sesión se revalida de forma segura y solo se cierra cuando de verdad expiró."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/de14edc";

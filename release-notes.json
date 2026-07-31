@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.53.2": {
+      "titulo": "Arreglo: la sesión ya no se cierra sola al refrescar la página",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Se corrigió un fallo introducido en 1.53.1 por el que, al refrescar la página, a veces la sesión se cerraba sola y te devolvía al inicio de sesión. Ahora la sesión se revalida de forma segura y solo se cierra cuando de verdad expiró."
+        }
+      ]
+    },
     "1.53.1": {
       "titulo": "Sesión más robusta: menos errores raros y avisos claros al expirar",
       "cambios": [

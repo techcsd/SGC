@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { AuthApiError, AuthError, Session, User } from '@supabase/supabase-js';
+import { AuthError, Session, User } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { environment } from '../../../environments/environment';
 import { edgeErrorDetail } from '../../../shared/utils/edge.util';
@@ -104,41 +104,23 @@ export class AuthService {
   }
 
   /**
-   * Devuelve una sesión con `access_token` VIGENTE, o `null` si el usuario ya no
-   * tiene sesión válida.
+   * Devuelve una sesión con `access_token` VIGENTE, o `null` si la sesión está
+   * genuinamente muerta (para que el guard/app redirijan a login).
    *
-   * Evita el estado "zombie" que confundía a los usuarios: si el refresco en
-   * segundo plano falló (la pestaña quedó abierta > 1 h, o un fallo de red
-   * intermitente al llamar a `/auth/v1/token`), `getSession()` sigue devolviendo
-   * la sesión vieja con el token VENCIDO. Cualquier llamada autenticada posterior
-   * (edge function, RLS) fallaba luego con un críptico "Sesión inválida" —p. ej.
-   * al generar el PIN de un conductor— aunque la UI se viera logueada.
+   * Delega en `getSession()` a propósito: internamente refresca el token si está
+   * vencido (single-flight, SIN carrera con el auto-refresh), CONSERVA la sesión
+   * ante fallos de refresco transitorios (blip de red) y solo devuelve `null`
+   * cuando el token realmente expiró y el refresh token ya no sirve. Eso evita el
+   * estado "zombie" (token muerto pero UI logueada) que hacía fallar acciones
+   * como generar el PIN con "Sesión inválida".
    *
-   * Aquí forzamos un refresco proactivo cuando el token está por vencer y, si el
-   * refresh token ya no sirve, cerramos sesión limpiamente para que el guard/app
-   * redirijan a login en vez de dejar al usuario atascado.
+   * NO usar `refreshSession()` aquí: es un "explicit refresh entry point" que
+   * ante CUALQUIER error de refresco cierra la sesión de golpe → provocaba que la
+   * web saliera sola al refrescar (carrera con el auto-refresh de arranque).
    */
   async ensureValidSession(): Promise<Session | null> {
     const { data } = await this.supabase.client.auth.getSession();
-    const session = data.session;
-    if (!session) return null;
-
-    const expiresAt = session.expires_at ?? 0;
-    const now = Math.floor(Date.now() / 1000);
-    // Aún vigente con holgura (> 90 s): no toques nada.
-    if (expiresAt - now > 90) return session;
-
-    // Token vencido o por vencer → fuerza un refresco explícito.
-    const { data: refreshed, error } = await this.supabase.client.auth.refreshSession();
-    if (error) {
-      // Refresh token inválido/revocado (AuthApiError): supabase-js ya limpió la
-      // sesión y emitió SIGNED_OUT. Devolvemos null para que se redirija a login.
-      if (error instanceof AuthApiError) return null;
-      // Fallo de red transitorio (retryable): NO expulsamos por un blip; se
-      // reintentará solo. Devolvemos lo que haya.
-      return session;
-    }
-    return refreshed.session ?? null;
+    return data.session ?? null;
   }
 
   async getUser(): Promise<User | null> {
