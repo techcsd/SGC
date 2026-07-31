@@ -27,6 +27,7 @@ import { Unidad } from '../../../../shared/models/unidad.model';
 import { CategoriaFlat } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -35,7 +36,7 @@ import { DatosPruebaService } from '../../../../shared/services/datos-prueba.ser
 
 @Component({
   selector: 'app-articulos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +65,31 @@ export class Articulos implements OnInit {
 
   // ── Data state ──────────────────────────────────────────
   articles = signal<Articulo[]>([]);
+
+  // ── Export a Excel (con seccionado por categoría / propiedad / estado / stock) ──
+  private stockStatusLabel(a: Articulo): string {
+    return { none: 'Sin stock', low: 'Stock bajo', ok: 'OK', inactive: 'Inactivo' }[this.getStockStatus(a)] ?? '';
+  }
+  readonly exportCols: ExportColumn[] = [
+    { key: 'codigo', label: 'Código', value: (r) => (r as Articulo).codigo },
+    { key: 'nombre', label: 'Nombre', value: (r) => (r as Articulo).nombre },
+    { key: 'categoria', label: 'Categoría', value: (r) => this.getCategoryName((r as Articulo).categoria_id) },
+    { key: 'unidad', label: 'Unidad', value: (r) => (r as Articulo).unidad },
+    { key: 'stock', label: 'Stock actual', value: (r) => this.getStock((r as Articulo).id) },
+    { key: 'stock_min', label: 'Stock mínimo', value: (r) => (r as Articulo).stock_minimo ?? '' },
+    { key: 'propiedad', label: 'Propiedad', value: (r) => ((r as Articulo).propiedad === 'alquilado' ? 'Alquilado' : 'Propio CSD') },
+    { key: 'precio', label: 'Precio estimado', value: (r) => (r as Articulo).precio_estimado ?? '' },
+    { key: 'estado', label: 'Estado', value: (r) => ((r as Articulo).activo ? 'Activo' : 'Inactivo') },
+    { key: 'talla', label: 'Requiere talla', value: (r) => ((r as Articulo).requiere_talla ? 'Sí' : 'No'), default: false },
+    { key: 'nota', label: 'Nota', value: (r) => (r as Articulo).nota ?? '', default: false },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'categoria', label: 'Categoría', values: (r) => [this.getCategoryName((r as Articulo).categoria_id)] },
+    { key: 'propiedad', label: 'Propiedad', values: (r) => [(r as Articulo).propiedad === 'alquilado' ? 'Alquilado' : 'Propio CSD'] },
+    { key: 'estado', label: 'Estado', values: (r) => [(r as Articulo).activo ? 'Activo' : 'Inactivo'] },
+    { key: 'stock', label: 'Estado de stock', values: (r) => [this.stockStatusLabel(r as Articulo)] },
+    { key: 'unidad', label: 'Unidad', values: (r) => { const u = (r as Articulo).unidad; return u ? [u] : []; } },
+  ];
   categories = signal<CategoriaFlat[]>([]);
   stockMap = signal<Map<string, number>>(new Map());
   loading = signal(true);

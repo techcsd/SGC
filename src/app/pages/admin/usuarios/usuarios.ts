@@ -16,12 +16,13 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { formatFechaMedia, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 
 type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, ExportExcel],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -110,6 +111,24 @@ export class AdminUsuarios implements OnInit {
     this.menuUser.set(null);
     this.menuPos.set(null);
   }
+
+  // ── Export a Excel (con seccionado por estado / rol) ─────
+  private rolesDe(u: UsuarioAdmin): string[] {
+    return (u.roles ?? []).map((ur) => ur.rol.nombre);
+  }
+  readonly exportCols: ExportColumn[] = [
+    { key: 'nombre', label: 'Nombre', value: (r) => (r as UsuarioAdmin).nombre },
+    { key: 'email', label: 'Email', value: (r) => (r as UsuarioAdmin).email },
+    { key: 'estado', label: 'Estado', value: (r) => ((r as UsuarioAdmin).activo ? 'Activo' : 'Inactivo') },
+    { key: 'roles', label: 'Roles', value: (r) => this.rolesDe(r as UsuarioAdmin).join(', ') },
+    { key: 'acceso_conductor', label: 'Acceso conductor', value: (r) => ((r as UsuarioAdmin).conductores?.length ? 'Sí' : 'No') },
+    { key: 'ult_web', label: 'Última actividad web', value: (r) => { const d = (r as UsuarioAdmin).ultima_actividad_web; return d ? formatFechaMedia(d) : ''; } },
+    { key: 'ult_app', label: 'Última actividad app', value: (r) => { const d = (r as UsuarioAdmin).ultima_actividad_app; return d ? formatFechaMedia(d) : ''; } },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'estado', label: 'Estado', values: (r) => [(r as UsuarioAdmin).activo ? 'Activo' : 'Inactivo'] },
+    { key: 'rol', label: 'Rol', values: (r) => this.rolesDe(r as UsuarioAdmin) },
+  ];
 
   /** P1 — tooltip con los roles no mostrados (a partir del 3.º) en el chip "+N". */
   rolesRestantesTitle(usuario: UsuarioAdmin): string {

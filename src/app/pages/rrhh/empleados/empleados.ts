@@ -28,6 +28,7 @@ import {
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { formatAntiguedad, formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -39,7 +40,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-empleados',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, ExportExcel],
   templateUrl: './empleados.html',
   styleUrl: './empleados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,6 +59,28 @@ export class Empleados implements OnInit {
 
   // ── Data state ──────────────────────────────────────────
   empleados = signal<Empleado[]>([]);
+
+  // ── Export a Excel (con seccionado por estado / departamento / contrato / cargo) ──
+  readonly exportCols: ExportColumn[] = [
+    { key: 'nombre', label: 'Nombre', value: (r) => `${(r as Empleado).nombre} ${(r as Empleado).apellido}`.trim() },
+    { key: 'cedula', label: 'Cédula', value: (r) => (r as Empleado).cedula },
+    { key: 'cargo', label: 'Cargo', value: (r) => (r as Empleado).cargo },
+    { key: 'departamento', label: 'Departamento', value: (r) => (r as Empleado).departamento ?? '' },
+    { key: 'contrato', label: 'Tipo de contrato', value: (r) => this.getTipoContratoLabel((r as Empleado).tipo_contrato) },
+    { key: 'ingreso', label: 'Fecha de ingreso', value: (r) => (r as Empleado).fecha_ingreso ?? '' },
+    { key: 'estado', label: 'Estado', value: (r) => ((r as Empleado).activo ? 'Activo' : 'Inactivo') },
+    { key: 'telefono', label: 'Teléfono', value: (r) => (r as Empleado).telefono ?? '' },
+    { key: 'email', label: 'Email', value: (r) => (r as Empleado).email ?? '' },
+    { key: 'genero', label: 'Género', value: (r) => { const g = (r as Empleado).genero; return g ? this.generoLabel(g) : ''; } },
+    { key: 'jefe', label: 'Supervisor', value: (r) => this.jefeNombre(r as Empleado) },
+    { key: 'salario', label: 'Salario', value: (r) => (r as Empleado).salario ?? '', default: false },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'estado', label: 'Estado', values: (r) => [(r as Empleado).activo ? 'Activo' : 'Inactivo'] },
+    { key: 'depto', label: 'Departamento', values: (r) => { const d = (r as Empleado).departamento; return d ? [d] : []; } },
+    { key: 'contrato', label: 'Tipo de contrato', values: (r) => [this.getTipoContratoLabel((r as Empleado).tipo_contrato)] },
+    { key: 'cargo', label: 'Cargo', values: (r) => { const c = (r as Empleado).cargo; return c ? [c] : []; } },
+  ];
   loading = signal(true);
   saving = signal(false);
   error = signal('');

@@ -1,4 +1,11 @@
 .admin-usuarios {
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
   &__header {
     display: flex;
     align-items: flex-start;

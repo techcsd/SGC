@@ -44,6 +44,7 @@ import {
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { Img } from '../../../../shared/components/img/img';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
@@ -70,7 +71,7 @@ function kmUltimoMantCoherente(group: AbstractControl): ValidationErrors | null 
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -95,6 +96,29 @@ export class FlotaVehiculos implements OnInit {
 
   // ── Data ─────────────────────────────────────────────────
   vehiculos = signal<Vehiculo[]>([]);
+
+  // ── Export a Excel (con seccionado por tipo / estado / uso / medida) ──────
+  readonly exportCols: ExportColumn[] = [
+    { key: 'placa', label: 'Placa', value: (r) => (r as Vehiculo).placa ?? '(sin placa)' },
+    { key: 'marca', label: 'Marca', value: (r) => (r as Vehiculo).marca },
+    { key: 'modelo', label: 'Modelo', value: (r) => (r as Vehiculo).modelo },
+    { key: 'anio', label: 'Año', value: (r) => (r as Vehiculo).anio ?? '' },
+    { key: 'tipo', label: 'Tipo', value: (r) => this.getTipoLabel((r as Vehiculo).tipo) },
+    { key: 'estado', label: 'Estado', value: (r) => this.vehiculoEstadoLabel(r as Vehiculo) },
+    { key: 'uso', label: 'Uso', value: (r) => this.usoLabel((r as Vehiculo).uso) },
+    { key: 'lectura', label: 'Km / Horas', value: (r) => (r as Vehiculo).kilometraje ?? '' },
+    { key: 'aseguradora', label: 'Aseguradora', value: (r) => (r as Vehiculo).aseguradora ?? '' },
+    { key: 'venc_seguro', label: 'Venc. seguro', value: (r) => (r as Vehiculo).vencimiento_seguro ?? '' },
+    { key: 'venc_matricula', label: 'Venc. matrícula', value: (r) => (r as Vehiculo).vencimiento_matricula ?? '' },
+    { key: 'activo', label: 'Activo', value: (r) => ((r as Vehiculo).activo ? 'Sí' : 'No') },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'tipo', label: 'Tipo', values: (r) => [this.getTipoLabel((r as Vehiculo).tipo)] },
+    { key: 'estado', label: 'Estado', values: (r) => [this.vehiculoEstadoLabel(r as Vehiculo)] },
+    { key: 'uso', label: 'Uso', values: (r) => [this.usoLabel((r as Vehiculo).uso)] },
+    { key: 'medida', label: 'Medida de uso', values: (r) => [(r as Vehiculo).medida_uso === 'horas' ? 'Horas' : 'Km'] },
+    { key: 'aseguradora', label: 'Aseguradora', values: (r) => { const a = (r as Vehiculo).aseguradora; return a ? [a] : []; } },
+  ];
   /** U6 — primera foto (URL firmada) por vehículo, para el thumbnail del listado. */
   listaFotos = signal<Record<string, string>>({});
   loading = signal(true);

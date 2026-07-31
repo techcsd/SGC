@@ -1,0 +1,79 @@
+<div class="export-excel">
+  <div class="export-excel__buttons">
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarRapido()"
+      [disabled]="exportando() || rows().length === 0"
+      [title]="'Descargar la vista actual (' + rows().length + ') a Excel'">
+      ⬇️ Excel
+    </button>
+    <button type="button" class="sgc-btn sgc-btn--ghost export-excel__more" (click)="abrir()"
+      [disabled]="exportando()" title="Opciones de exportación (seccionar / columnas)"
+      aria-label="Opciones de exportación">▾</button>
+  </div>
+
+  @if (dialogOpen()) {
+    <div class="export-excel__backdrop" (click)="cerrar()"></div>
+    <div class="export-excel__panel" role="dialog" aria-label="Opciones de exportación">
+      <h3 class="export-excel__title">Exportar a Excel</h3>
+
+      <!-- Base: vista actual vs todos -->
+      <div class="export-excel__group">
+        <span class="export-excel__group-label">Basado en</span>
+        <label class="export-excel__radio">
+          <input type="radio" name="base" [checked]="base() === 'vista'" (change)="base.set('vista')" />
+          Vista actual ({{ vistaLabel() }}) · {{ rows().length }}
+        </label>
+        @if (allRows()) {
+          <label class="export-excel__radio">
+            <input type="radio" name="base" [checked]="base() === 'todos'" (change)="base.set('todos')" />
+            Todos · {{ allRows()?.length }}
+          </label>
+        }
+      </div>
+
+      <!-- Secciones (filtros) -->
+      @for (sec of opcionesPorSeccion(); track sec.key) {
+        @if (sec.opciones.length > 0) {
+          <div class="export-excel__group">
+            <div class="export-excel__group-head">
+              <span class="export-excel__group-label">{{ sec.label }}</span>
+              <button type="button" class="export-excel__clear" (click)="limpiarSeccion(sec.key)">Todos</button>
+            </div>
+            <div class="export-excel__chips">
+              @for (op of sec.opciones; track op.value) {
+                <button type="button" class="export-excel__chip"
+                  [class.is-active]="seccionActiva(sec.key, op.value)"
+                  (click)="toggleSeccion(sec.key, op.value)">
+                  {{ op.value }} <span class="export-excel__chip-count">{{ op.count }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Columnas -->
+      <div class="export-excel__group">
+        <span class="export-excel__group-label">Columnas</span>
+        <div class="export-excel__cols">
+          @for (c of columns(); track c.key) {
+            <label class="export-excel__col">
+              <input type="checkbox" [checked]="colActiva(c.key)" (change)="toggleCol(c.key)" />
+              {{ c.label }}
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="export-excel__footer">
+        <span class="export-excel__count">{{ matching().length }} registro(s) · {{ columnasIncluidas().length }} columna(s)</span>
+        <div class="export-excel__actions">
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrar()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="descargar()"
+            [disabled]="exportando() || matching().length === 0 || columnasIncluidas().length === 0">
+            {{ exportando() ? 'Generando…' : 'Descargar Excel' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

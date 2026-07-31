@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.57.0": {
+      "titulo": "Descarga a Excel por secciones (Usuarios, Conductores y más)",
+      "cambios": [
+        { "t": "nuevo", "d": "Usuarios y Conductores ahora tienen botón de descarga a Excel (antes no lo tenían)." },
+        { "t": "nuevo", "d": "Exportación a Excel \"por secciones\": junto al botón ⬇️ Excel hay un ▾ que abre opciones para armar el Excel a tu medida — elegir la base (vista actual con tus filtros, o todos), seccionar por uno o varios valores (p. ej. conductores por categoría de licencia o estado; usuarios por rol; empleados por departamento/contrato; vehículos por tipo/estado; artículos por categoría/stock; tareas por estado/prioridad) y elegir qué columnas incluir, con conteo en vivo de cuántos registros saldrán." },
+        { "t": "mejora", "d": "El seccionado está disponible en Usuarios, Conductores, Empleados, Vehículos, Artículos, Mantenimientos y Tareas. El botón ⬇️ Excel sigue descargando de una la vista filtrada actual." }
+      ],
+      "url": ""
+    },
     "1.56.0": {
       "titulo": "Arreglos de permisos y Notas, combustible calibrado, Transporte del chofer, Notas v2 y proyectos en curso",
       "cambios": [

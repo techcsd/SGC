@@ -24,6 +24,7 @@ import {
 import { Vehiculo, kmFaltanMantenimiento } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -38,7 +39,7 @@ interface PendingFoto {
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,6 +88,30 @@ export class Mantenimientos implements OnInit {
 
   // ── Data state ──────────────────────────────────────────
   mantenimientos = signal<Mantenimiento[]>([]);
+
+  // ── Export a Excel (con seccionado por tipo / estado / proveedor / vehículo) ──
+  private vehiculoLabel(m: Mantenimiento): string {
+    const v = m.vehiculo;
+    if (!v) return '';
+    return v.placa ?? `${v.marca ?? ''} ${v.modelo ?? ''}`.trim();
+  }
+  readonly exportCols: ExportColumn[] = [
+    { key: 'fecha', label: 'Fecha', value: (r) => (r as Mantenimiento).fecha ?? '' },
+    { key: 'vehiculo', label: 'Vehículo', value: (r) => this.vehiculoLabel(r as Mantenimiento) },
+    { key: 'tipo', label: 'Tipo', value: (r) => this.getTipoLabel((r as Mantenimiento).tipo) },
+    { key: 'estado', label: 'Estado', value: (r) => this.getEstadoLabel((r as Mantenimiento).estado) },
+    { key: 'descripcion', label: 'Descripción', value: (r) => (r as Mantenimiento).descripcion ?? '' },
+    { key: 'costo', label: 'Costo', value: (r) => (r as Mantenimiento).costo ?? '' },
+    { key: 'km', label: 'Kilometraje', value: (r) => (r as Mantenimiento).kilometraje_al_mantenimiento ?? '' },
+    { key: 'proveedor', label: 'Proveedor', value: (r) => (r as Mantenimiento).proveedor ?? '' },
+    { key: 'notas', label: 'Notas', value: (r) => (r as Mantenimiento).notas ?? '', default: false },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'tipo', label: 'Tipo', values: (r) => [this.getTipoLabel((r as Mantenimiento).tipo)] },
+    { key: 'estado', label: 'Estado', values: (r) => [this.getEstadoLabel((r as Mantenimiento).estado)] },
+    { key: 'proveedor', label: 'Proveedor', values: (r) => { const p = (r as Mantenimiento).proveedor; return p ? [p] : []; } },
+    { key: 'vehiculo', label: 'Vehículo', values: (r) => { const v = this.vehiculoLabel(r as Mantenimiento); return v ? [v] : []; } },
+  ];
   vehiculos = signal<Vehiculo[]>([]);
   loading = signal(true);
   saving = signal(false);

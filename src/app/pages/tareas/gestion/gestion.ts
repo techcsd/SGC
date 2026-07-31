@@ -12,12 +12,13 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-detalle';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-tareas-gestion',
-  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, TareaDetalle, Skeleton, HighlightItemDirective, Paginator, ExportExcel],
   templateUrl: './gestion.html',
   styleUrl: './gestion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,27 @@ export class Gestion implements OnInit, OnDestroy {
   formatFecha = formatFechaDisplay;
 
   tareas = signal<Tarea[]>([]);
+
+  // ── Export a Excel (con seccionado por estado / prioridad / responsable / proyecto) ──
+  readonly exportCols: ExportColumn[] = [
+    { key: 'titulo', label: 'Título', value: (r) => (r as Tarea).titulo },
+    { key: 'estado', label: 'Estado', value: (r) => this.estadoLabel((r as Tarea).estado) },
+    { key: 'prioridad', label: 'Prioridad', value: (r) => this.prioridadLabel((r as Tarea).prioridad) },
+    { key: 'responsable', label: 'Responsable', value: (r) => (r as Tarea).asignado?.nombre ?? '' },
+    { key: 'asignador', label: 'Asignada por', value: (r) => (r as Tarea).asignador?.nombre ?? '' },
+    { key: 'proyecto', label: 'Proyecto', value: (r) => (r as Tarea).proyecto?.nombre ?? '' },
+    { key: 'limite', label: 'Fecha límite', value: (r) => (r as Tarea).fecha_limite ?? '' },
+    { key: 'vencida', label: 'Vencida', value: (r) => (this.isVencida(r as Tarea) ? 'Sí' : 'No') },
+    { key: 'completada', label: 'Completada', value: (r) => (r as Tarea).fecha_completada ?? '', default: false },
+    { key: 'descripcion', label: 'Descripción', value: (r) => (r as Tarea).descripcion ?? '', default: false },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'estado', label: 'Estado', values: (r) => [this.estadoLabel((r as Tarea).estado)] },
+    { key: 'prioridad', label: 'Prioridad', values: (r) => [this.prioridadLabel((r as Tarea).prioridad)] },
+    { key: 'responsable', label: 'Responsable', values: (r) => { const n = (r as Tarea).asignado?.nombre; return n ? [n] : []; } },
+    { key: 'proyecto', label: 'Proyecto', values: (r) => { const n = (r as Tarea).proyecto?.nombre; return n ? [n] : []; } },
+    { key: 'vencida', label: 'Vencimiento', values: (r) => [this.isVencida(r as Tarea) ? 'Vencida' : 'Al día'] },
+  ];
   usuarios = signal<DirectorioUsuario[]>([]);
   proyectos = signal<Proyecto[]>([]);
   loading = signal(true);

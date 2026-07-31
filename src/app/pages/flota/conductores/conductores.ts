@@ -31,6 +31,7 @@ import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { VehiculoAsignacion } from '../../../../shared/models/vehiculo-asignacion.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { daysUntil, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
@@ -38,7 +39,7 @@ import { cleanUuid } from '../../../../shared/utils/uuid.util';
 
 @Component({
   selector: 'app-conductores',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -179,6 +180,29 @@ export class Conductores implements OnInit {
     const c = this.categorias().find((x) => x.codigo === codigo);
     return c ? `${c.codigo} — ${c.nombre}` : codigo;
   }
+
+  // ── Export a Excel (con seccionado por licencia / estado / tipo / tag) ────
+  readonly exportCols: ExportColumn[] = [
+    { key: 'nombre', label: 'Nombre', value: (r) => (r as Conductor).nombre },
+    { key: 'cedula', label: 'Cédula', value: (r) => (r as Conductor).cedula },
+    { key: 'telefono', label: 'Teléfono', value: (r) => (r as Conductor).telefono ?? '' },
+    { key: 'lic_cat', label: 'Categoría de licencia', value: (r) => this.categoriaLabel((r as Conductor).licencia_tipo) },
+    { key: 'lic_num', label: 'N° de licencia', value: (r) => (r as Conductor).licencia_numero ?? '' },
+    { key: 'lic_venc', label: 'Vencimiento licencia', value: (r) => (r as Conductor).licencia_vencimiento ?? '' },
+    { key: 'estado', label: 'Estado', value: (r) => ((r as Conductor).activo ? 'Activo' : 'Inactivo') },
+    { key: 'tipo_veh', label: 'Vehículo autorizado', value: (r) => (r as Conductor).tipo_vehiculo_autorizado ?? '' },
+    { key: 'vehiculo', label: 'Vehículo asignado', value: (r) => (r as Conductor).vehiculo?.placa ?? '' },
+    { key: 'acceso', label: 'Acceso (usuario)', value: (r) => (r as Conductor).usuario?.nombre ?? 'Sin acceso' },
+    { key: 'tags', label: 'Tags / rol', value: (r) => ((r as Conductor).tags ?? []).join(', ') },
+    { key: 'nota', label: 'Nota', value: (r) => (r as Conductor).nota ?? '', default: false },
+  ];
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'estado', label: 'Estado', values: (r) => [(r as Conductor).activo ? 'Activo' : 'Inactivo'] },
+    { key: 'lic', label: 'Categoría de licencia', values: (r) => [this.categoriaLabel((r as Conductor).licencia_tipo)] },
+    { key: 'tipo', label: 'Vehículo autorizado', values: (r) => { const t = (r as Conductor).tipo_vehiculo_autorizado; return t ? [t] : []; } },
+    { key: 'acceso', label: 'Acceso', values: (r) => [(r as Conductor).usuario_id ? 'Con acceso' : 'Sin acceso'] },
+    { key: 'tags', label: 'Tags / rol', values: (r) => (r as Conductor).tags ?? [] },
+  ];
 
   form = new FormGroup({
     cedula: new FormControl('', [Validators.required, Validators.pattern(/^\d{3}-?\d{7}-?\d$/)]),
