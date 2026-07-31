@@ -1,6 +1,23 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.53.1": {
+      "titulo": "Sesión más robusta: menos errores raros y avisos claros al expirar",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Se corrigió un problema por el que, con la pestaña abierta mucho tiempo, la sesión quedaba \"a medias\" (se veía conectada pero el acceso ya había vencido) y acciones como generar el PIN de un conductor fallaban con un mensaje confuso (\"Sesión inválida\"). Ahora el sistema renueva la sesión automáticamente al volver a la pestaña y antes de esa acción."
+        },
+        {
+          "t": "mejora",
+          "d": "Cuando tu sesión expira de verdad, ahora te lleva al inicio de sesión con un aviso claro (\"Tu sesión expiró\") en vez de dejar errores sueltos en pantalla."
+        },
+        {
+          "t": "seguridad",
+          "d": "Al entrar a cualquier página protegida se valida y renueva el token de acceso; si el acceso ya no es válido, se cierra la sesión limpiamente."
+        }
+      ]
+    },
     "1.50.0": {
       "titulo": "Ajustes de diseño para móviles y tablets",
       "cambios": [

@@ -8,7 +8,10 @@ export const authGuard: CanActivateFn = async () => {
   const userService = inject(UserService);
   const router = inject(Router);
 
-  const session = await authService.getSession();
+  // ensureValidSession (no getSession) refresca proactivamente un token vencido
+  // y devuelve null si el refresh token ya no sirve, evitando entrar a una ruta
+  // protegida con una sesión "zombie" (token muerto) que rompería toda escritura.
+  const session = await authService.ensureValidSession();
   if (!session) {
     return router.createUrlTree(['/auth']);
   }

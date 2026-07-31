@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { AuthService } from '../../app/core/services/auth.service';
 import {
   Conductor,
   ConductorFormData,
@@ -33,6 +34,7 @@ export interface UsuarioVinculable {
 @Injectable({ providedIn: 'root' })
 export class ConductoresService {
   private supabase = inject(SupabaseService);
+  private auth = inject(AuthService);
 
   /**
    * C1 — catálogo de categorías de licencia RD (`sgc.licencia_categorias`).
@@ -178,6 +180,9 @@ export class ConductoresService {
   async syncAccesoCedula(
     conductorId: string,
   ): Promise<{ synced: boolean; email?: string; reason?: string }> {
+    if (!(await this.auth.ensureValidSession())) {
+      throw new Error('Tu sesión expiró. Inicia sesión de nuevo e intenta otra vez.');
+    }
     const { data, error } = await this.supabase.client.functions.invoke('conductor-crear-acceso', {
       body: { conductorId, mode: 'sync-cedula' },
     });
@@ -206,6 +211,13 @@ export class ConductoresService {
     conductorId: string,
     pin: string,
   ): Promise<{ email: string; usuarioId: string; created?: boolean; rotated?: boolean }> {
+    // Refresca el token ANTES de invocar: si la pestaña quedó abierta y el
+    // access_token venció, la edge respondía "Sesión inválida" (lo que el
+    // usuario reportaba como error al crear el PIN). ensureValidSession lo
+    // renueva o, si el refresh token murió, cierra sesión y redirige a login.
+    if (!(await this.auth.ensureValidSession())) {
+      throw new Error('Tu sesión expiró. Inicia sesión de nuevo e intenta otra vez.');
+    }
     const { data, error } = await this.supabase.client.functions.invoke('conductor-crear-acceso', {
       body: { conductorId, pin },
     });
