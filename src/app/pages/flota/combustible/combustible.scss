@@ -223,3 +223,35 @@ textarea { resize: vertical; min-height: 72px; }
 }
 .combustible__ref-desv { margin-left: 8px; color: var(--sgc-danger); font-weight: 600; }
 .combustible__ref-ok { margin-left: 8px; color: var(--sgc-success); font-weight: 600; }
+
+// AD7 / precios — paneles admin (umbrales + edición de precios de combustible)
+.combustible__config-panel {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+}
+.combustible__config-title { margin: 0 0 4px; font-size: 1rem; }
+.combustible__config-hint,
+.combustible__precios-hint { margin: 0 0 12px; font-size: 0.82rem; color: var(--main-ultra-light, #929090); }
+.combustible__config-grid,
+.combustible__precios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; }
+  input {
+    padding: 8px; border: 1px solid #2d2d2d; border-radius: 8px;
+    background: #121212; color: inherit;
+  }
+}
+.combustible__config-actions,
+.combustible__precios-actions {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;
+}
+.combustible__precios-edit-btn {
+  margin-left: 8px; border: none; background: transparent;
+  color: var(--Hub, #ffb300); cursor: pointer; font-size: 0.78rem;
+}
+.combustible__precios-form { margin-top: 12px; }

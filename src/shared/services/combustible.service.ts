@@ -100,6 +100,18 @@ export class CombustibleService {
     return (data ?? []) as PrecioCombustibleVigente[];
   }
 
+  /**
+   * Override MANUAL del precio vigente (admin/flota). Útil cuando el MICM publica
+   * con rezago. Fija el precio con fecha de hoy → pasa a ser el vigente.
+   */
+  async setPrecio(producto: string, precio: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_precio_combustible', {
+      p_producto: producto,
+      p_precio: precio,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** Sube una foto (recibo|tablero) y devuelve su storage path. */
   private async uploadFoto(clientUuid: string, slot: string, file: File): Promise<string> {
     const path = `combustible/${clientUuid}/${slot}.jpg`;

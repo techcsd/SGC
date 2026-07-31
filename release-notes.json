@@ -1,6 +1,16 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.58.0": {
+      "titulo": "Arreglo de registro de combustible, aislamiento de proyectos de prueba y precios editables",
+      "cambios": [
+        { "t": "arreglo", "d": "Combustible: al registrar una echada en un vehículo de PRUEBA, el sistema ya recuerda la echada anterior y el kilometraje (antes decía \"primera echada del vehículo\" y no calculaba el rendimiento). Ahora la continuidad y las estadísticas se comparan dentro del mismo contexto (prueba con prueba, real con real). Se recalculó el histórico afectado. Los vehículos reales nunca se vieron afectados." },
+        { "t": "seguridad", "d": "Proyectos marcados como \"de prueba\" ya no aparecen en el dashboard (Ranking de Encargados / KPIs de proyectos) ni en las listas de proyectos de otros usuarios: solo el administrador los ve. Los KPIs siempre cuentan únicamente datos reales." },
+        { "t": "nuevo", "d": "Combustible: cuando el MICM publica los precios con rezago, un administrador puede fijar el precio vigente a mano con el botón ✎ Editar del widget de precios (queda como fuente \"Manual\" con la fecha de hoy). El descargue automático semanal del MICM sigue funcionando." },
+        { "t": "arreglo", "d": "Proyectos: se actualizó el enlace de Google Maps del proyecto NOVAL - Poseidonia (Cana Bay) con la ubicación más reciente." }
+      ],
+      "url": ""
+    },
     "1.57.0": {
       "titulo": "Descarga a Excel por secciones (Usuarios, Conductores y más)",
       "cambios": [

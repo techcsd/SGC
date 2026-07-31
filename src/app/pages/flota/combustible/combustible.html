@@ -60,7 +60,13 @@
 <!-- ── AA20 · Precios oficiales MICM vigentes ── -->
 @if (preciosVigentes().length > 0) {
   <div class="combustible__precios-widget">
-    <span class="combustible__precios-titulo">⛽ Precios oficiales MICM (RD$/gal)</span>
+    <span class="combustible__precios-titulo">
+      ⛽ Precios oficiales MICM (RD$/gal)
+      @if (esAdmin()) {
+        <button type="button" class="combustible__precios-edit-btn" (click)="togglePreciosEdit()"
+          title="El MICM a veces publica con rezago. Edita el precio vigente a mano.">✎ Editar</button>
+      }
+    </span>
     <div class="combustible__precios-chips">
       @for (p of preciosVigentes(); track p.producto) {
         <span class="combustible__precio-chip">
@@ -68,6 +74,25 @@
         </span>
       }
     </div>
+    @if (esAdmin() && preciosEditOpen()) {
+      <div class="combustible__precios-form">
+        <p class="combustible__precios-hint">Precio vigente (RD$/galón). Se marca como fuente "Manual" con fecha de hoy.</p>
+        <div class="combustible__precios-grid">
+          @for (p of preciosVigentes(); track p.producto) {
+            <label>{{ productoCanonicoLabel(p.producto) }}
+              <input type="number" step="0.01" min="0" [value]="preciosEdit()[p.producto]"
+                (input)="setPrecioForm(p.producto, $any($event.target).value)" />
+            </label>
+          }
+        </div>
+        <div class="combustible__precios-actions">
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePreciosEdit()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarPrecios()" [disabled]="savingPrecios()">
+            {{ savingPrecios() ? 'Guardando…' : 'Guardar precios' }}
+          </button>
+        </div>
+      </div>
+    }
   </div>
 }
 

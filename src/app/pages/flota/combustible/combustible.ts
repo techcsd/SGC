@@ -177,6 +177,49 @@ export class Combustible implements OnInit {
     return { optimo: '✓', bajo: '↓', anormal: '⚠', datos_insuficientes: '•' }[this.estadoDe(r)];
   }
 
+  // ── Precios de combustible: override manual (admin/flota) ─
+  preciosEditOpen = signal(false);
+  savingPrecios = signal(false);
+  preciosEdit = signal<Record<string, number>>({});
+
+  togglePreciosEdit() {
+    const open = !this.preciosEditOpen();
+    this.preciosEditOpen.set(open);
+    if (open) {
+      const map: Record<string, number> = {};
+      for (const p of this.preciosVigentes()) map[p.producto] = p.precio;
+      this.preciosEdit.set(map);
+    }
+  }
+  setPrecioForm(producto: string, valor: string) {
+    const n = Number(valor);
+    this.preciosEdit.update((m) => ({ ...m, [producto]: Number.isFinite(n) ? n : 0 }));
+  }
+  async guardarPrecios() {
+    if (this.savingPrecios()) return;
+    this.savingPrecios.set(true);
+    try {
+      const actuales = new Map(this.preciosVigentes().map((p) => [p.producto, p.precio]));
+      const edits = this.preciosEdit();
+      let cambios = 0;
+      for (const [producto, precio] of Object.entries(edits)) {
+        if (precio > 0 && precio !== actuales.get(producto)) {
+          await this.combustibleService.setPrecio(producto, precio);
+          cambios++;
+        }
+      }
+      if (cambios > 0) {
+        this.preciosVigentes.set(await this.combustibleService.getPreciosVigentes());
+        this.toast.success('Precios actualizados', `Se actualizaron ${cambios} precio(s).`);
+      }
+      this.preciosEditOpen.set(false);
+    } catch (e: unknown) {
+      this.toast.error('No se pudieron guardar los precios', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.savingPrecios.set(false);
+    }
+  }
+
   // ── AD7 — panel de umbrales (admin, Hard-rule #2) ─────────
   configPanelOpen = signal(false);
   savingConfig = signal(false);
@@ -318,15 +361,17 @@ export class Combustible implements OnInit {
   labelLectura = computed(() => (this.medidaSel() === 'horas' ? 'Horas de uso actual' : 'Kilometraje actual'));
 
   /**
-   * Km de la última echada REAL del vehículo (excluye datos de prueba, = filtros
-   * del servidor). Solo para el preview de km recorridos/rendimiento, NO para el
-   * no-retroceso (eso lo gobierna el odómetro).
+   * Km de la última echada del vehículo, en el MISMO contexto es_prueba del vehículo
+   * (AD7c: un vehículo de prueba compara contra sus echadas de prueba; uno real,
+   * contra las reales). Igual que el servidor. Solo para el preview de km recorridos/
+   * rendimiento, NO para el no-retroceso (eso lo gobierna el odómetro).
    */
   kmAnterior = computed<number | null>(() => {
     const vId = this.vehiculoVal();
     if (!vId) return null;
+    const vEsPrueba = !!this.vehiculos().find((v) => v.id === vId)?.es_prueba;
     const kms = this.registros()
-      .filter((r) => r.vehiculo_id === vId && r.kilometraje != null && !r.es_prueba)
+      .filter((r) => r.vehiculo_id === vId && r.kilometraje != null && !!r.es_prueba === vEsPrueba)
       .map((r) => r.kilometraje as number);
     return kms.length ? Math.max(...kms) : null;
   });
