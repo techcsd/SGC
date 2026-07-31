@@ -11,7 +11,7 @@ export class MantenimientosService {
   async getAll(): Promise<Mantenimiento[]> {
     const { data, error } = await this.supabase.client
       .from('mantenimientos')
-      .select('*, vehiculo:vehiculos(placa,marca,modelo)')
+      .select('*, vehiculo:vehiculos(placa,marca,modelo), creado_por_usuario:usuarios(nombre)')
       .order('fecha', { ascending: false });
 
     if (error) throw new Error(error.message);
@@ -22,7 +22,7 @@ export class MantenimientosService {
     const { data, error } = await this.supabase.client
       .from('mantenimientos')
       .insert(payload)
-      .select('*, vehiculo:vehiculos(placa,marca,modelo)')
+      .select('*, vehiculo:vehiculos(placa,marca,modelo), creado_por_usuario:usuarios(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
@@ -34,7 +34,7 @@ export class MantenimientosService {
       .from('mantenimientos')
       .update(payload)
       .eq('id', id)
-      .select('*, vehiculo:vehiculos(placa,marca,modelo)')
+      .select('*, vehiculo:vehiculos(placa,marca,modelo), creado_por_usuario:usuarios(nombre)')
       .single();
 
     if (error) throw new Error(error.message);

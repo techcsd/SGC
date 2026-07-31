@@ -19,6 +19,9 @@ export interface Mantenimiento {
   incluye_preventivo?: boolean;
   accidente_id?: string | null;
   created_at: string;
+  // AB3 — quién lo registró (default auth.uid() en el insert; NULL en históricos).
+  creado_por?: string | null;
+  creado_por_usuario?: { nombre: string } | null;
 }
 
 export interface MantenimientoFormData {

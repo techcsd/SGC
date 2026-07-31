@@ -162,7 +162,11 @@
         </thead>
         <tbody>
           @for (m of paginated(); track m.id) {
-            <tr>
+            <tr class="mantenimientos__row" role="button" tabindex="0"
+                (click)="openDetail(m)"
+                (keydown.enter)="openDetail(m)"
+                (keydown.space)="openDetail(m); $event.preventDefault()"
+                [attr.aria-label]="'Ver detalle del mantenimiento del ' + formatFecha(m.fecha)">
               <td class="mantenimientos__fecha">{{ formatFecha(m.fecha) }}</td>
               <td>
                 <span class="mantenimientos__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
@@ -195,7 +199,7 @@
                   <span class="mantenimientos__notas">{{ m.notas }}</span>
                 }
                 @if (m.fotos?.length) {
-                  <div class="mantenimientos__fotos">
+                  <div class="mantenimientos__fotos" (click)="$event.stopPropagation()">
                     @for (path of m.fotos; track path) {
                       @if (rowFotoUrl(path); as url) {
                         <a [href]="url" target="_blank" rel="noopener" class="mantenimientos__foto-thumb" title="Ver foto">
@@ -206,7 +210,7 @@
                   </div>
                 }
               </td>
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <div class="row-actions">
                   @if (m.estado !== 'completado') {
                     <button
@@ -505,4 +509,103 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── AB3 — Detail Drawer (read-only) ── -->
+<app-form-drawer title="Detalle del mantenimiento" [open]="detailOpen()" (closed)="closeDetail()">
+  @if (selected(); as m) {
+    <div class="detail">
+      <div class="detail__header">
+        <div>
+          <span class="detail__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
+          <span class="detail__sub">
+            {{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }} · {{ formatFecha(m.fecha) }}
+          </span>
+        </div>
+        <div class="detail__badges">
+          <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
+          <span [class]="getEstadoBadge(m.estado)">{{ getEstadoLabel(m.estado) }}</span>
+          @if (m.incluye_preventivo) {
+            <span class="sgc-badge sgc-badge--success" title="También incluyó mantenimiento preventivo">+ prev.</span>
+          }
+          @if (m.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+        </div>
+      </div>
+
+      <div class="detail__grid">
+        <div class="detail__item">
+          <span class="detail__label">Tipo de visita</span>
+          <span class="detail__value detail__value--wrap">{{ getTipoLabel(m.tipo) }}</span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Estado</span>
+          <span class="detail__value detail__value--wrap">{{ getEstadoLabel(m.estado) }}</span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Vehículo</span>
+          <span class="detail__value detail__value--wrap">
+            {{ m.vehiculo?.placa ?? '—' }}<br />
+            <small>{{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }}</small>
+          </span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Kilometraje</span>
+          <span class="detail__value">
+            {{ m.kilometraje_al_mantenimiento !== null ? (m.kilometraje_al_mantenimiento | number:'1.0-0') + ' km' : '—' }}
+          </span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Costo (DOP)</span>
+          <span class="detail__value">{{ m.costo !== null ? ('RD$ ' + (m.costo | number:'1.2-2')) : '—' }}</span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Proveedor / Taller</span>
+          <span class="detail__value detail__value--wrap">{{ m.proveedor ?? '—' }}</span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Fecha del mantenimiento</span>
+          <span class="detail__value">{{ formatFecha(m.fecha) }}</span>
+        </div>
+        <div class="detail__item">
+          <span class="detail__label">Registrado</span>
+          <span class="detail__value">{{ formatFechaHora(m.created_at) }}</span>
+        </div>
+        <div class="detail__item detail__item--full">
+          <span class="detail__label">Registrado por</span>
+          <span class="detail__value detail__value--wrap">{{ m.creado_por_usuario?.nombre ?? '—' }}</span>
+        </div>
+        <div class="detail__item detail__item--full">
+          <span class="detail__label">Descripción</span>
+          <span class="detail__value detail__value--wrap">{{ m.descripcion || '—' }}</span>
+        </div>
+        @if (m.notas) {
+          <div class="detail__item detail__item--full">
+            <span class="detail__label">Notas</span>
+            <span class="detail__value detail__value--wrap">{{ m.notas }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Adjuntos (fotos de la reparación) -->
+      @if (m.fotos?.length) {
+        <div class="detail__item detail__item--full">
+          <span class="detail__label">Fotos de la reparación</span>
+          <div class="detail__photos">
+            @for (path of m.fotos; track path) {
+              @if (rowFotoUrl(path); as url) {
+                <a class="detail__photo" [href]="url" target="_blank" rel="noopener" title="Ver foto">
+                  <img [src]="url" alt="Foto del mantenimiento" loading="lazy" />
+                </a>
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">Cerrar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="editDesdeDetalle(m)">Editar</button>
+      </div>
+    </div>
+  }
 </app-form-drawer>

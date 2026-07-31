@@ -41,7 +41,7 @@
   border-collapse: collapse;
   font-size: 0.9rem;
 
-  th, td { padding: 8px 10px; border-bottom: 1px solid #2d2d2d; text-align: left; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--sgc-border); text-align: left; }
   th { color: var(--main-ultra-light, #929090); font-weight: 600; }
   .num { text-align: right; }
 }

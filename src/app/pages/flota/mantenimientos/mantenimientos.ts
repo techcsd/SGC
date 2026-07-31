@@ -109,6 +109,10 @@ export class Mantenimientos implements OnInit {
   // Z23c — es_prueba del registro en edición (para marcar sus notas de voz).
   editingEsPrueba = signal<boolean>(false);
 
+  // ── AB3 — Detalle (fila → detalle read-only) ─────────────
+  detailOpen = signal(false);
+  selected = signal<Mantenimiento | null>(null);
+
   readonly MANT_TIPOS = MANT_TIPOS;
   readonly MANT_TIPO_BADGE = MANT_TIPO_BADGE;
   readonly MANT_ESTADOS = MANT_ESTADOS;
@@ -235,6 +239,12 @@ export class Mantenimientos implements OnInit {
     } else if (qp.get('vehiculo')) {
       // R4b — llegada desde Reportes: filtra la lista por ese vehículo.
       this.selectedVehiculo.set(qp.get('vehiculo')!);
+    }
+    // AB3 — deep-link a un detalle concreto (?item=<id>).
+    const itemId = qp.get('item');
+    if (itemId) {
+      const m = this.mantenimientos().find((x) => x.id === itemId);
+      if (m) this.openDetail(m);
     }
   }
 
@@ -408,6 +418,33 @@ export class Mantenimientos implements OnInit {
   closeDrawer() {
     this.drawerOpen.set(false);
     this.revokePreviews();
+  }
+
+  // ── AB3 — Detalle read-only ──────────────────────────────
+  /** Abre el detalle de una fila. Reutiliza las URLs firmadas ya resueltas para
+   *  las miniaturas del listado (resolveListaFotos). */
+  openDetail(m: Mantenimiento) {
+    this.selected.set(m);
+    this.resolveListaFotos([m]);
+    this.detailOpen.set(true);
+  }
+
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
+
+  /** Pasa de detalle a edición del mismo registro. */
+  editDesdeDetalle(m: Mantenimiento) {
+    this.detailOpen.set(false);
+    this.openEdit(m);
+  }
+
+  /** Formatea un timestamptz (created_at) a fecha legible; '—' si no hay. */
+  formatFechaHora(iso: string | null | undefined): string {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   // ── Photos ───────────────────────────────────────────────

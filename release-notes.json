@@ -1,6 +1,27 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.54.0": {
+      "titulo": "Detalle de mantenimientos y precios de combustible legibles",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "En Flota → Mantenimientos ahora puedes hacer clic en cualquier fila para ver su detalle completo: tipo de visita, vehículo, kilometraje, costo, taller, fechas, descripción, notas, fotos de la reparación y quién lo registró."
+        },
+        {
+          "t": "mejora",
+          "d": "Los mantenimientos nuevos guardan automáticamente quién los registró, para que quede el rastro de responsabilidad en el detalle."
+        },
+        {
+          "t": "arreglo",
+          "d": "Los precios oficiales MICM en Combustible (la franja del listado y el recuadro dentro de \"Nuevo registro\") se veían como bloques negros con texto casi invisible. Ahora usan el estilo claro del resto del sistema y se leen bien."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigieron otros recuadros oscuros heredados: el detalle expandido de una requisición de material, los bordes de la tabla de costos de proyecto y detalles del cronograma, para que todo tenga el mismo aspecto claro y legible."
+        }
+      ]
+    },
     "1.53.3": {
       "titulo": "Adopta las actualizaciones sin pantallas en blanco",
       "cambios": [

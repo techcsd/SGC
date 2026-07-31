@@ -25,6 +25,14 @@
 
 // ── Mantenimientos-specific ───────────────────────────────
 .mantenimientos {
+  // AB3 — fila clicable → detalle
+  &__row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+    &:hover { background: var(--sgc-surface-hover); }
+    &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
+  }
+
   &__fecha {
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -242,11 +250,43 @@ textarea {
   &:hover { border-color: var(--sgc-primary-mid); color: var(--sgc-primary); }
 }
 
+// ── AB3 — Detalle (drawer read-only) ─────────────────────
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  &__header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    padding-bottom: 12px; border-bottom: 1px solid var(--sgc-border);
+  }
+  &__placa { display: block; font-size: 18px; font-weight: 700; color: var(--sgc-text); }
+  &__sub { display: block; font-size: 13px; color: var(--sgc-text-muted); margin-top: 2px; }
+  &__badges { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  &__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  &__item { display: flex; flex-direction: column; gap: 2px; }
+  &__item--full { grid-column: 1 / -1; }
+  &__label {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--sgc-text-muted);
+  }
+  &__value { font-size: 15px; font-weight: 600; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
+  &__value--wrap { font-weight: 500; white-space: pre-wrap; }
+
+  &__photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  &__photo {
+    img { width: 100%; border-radius: var(--sgc-radius); border: 1px solid var(--sgc-border); display: block; }
+  }
+}
+
 // ── Responsive ───────────────────────────────────────────
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
   }
+  .detail__grid { grid-template-columns: 1fr; }
 }
 
 .page-header__actions {

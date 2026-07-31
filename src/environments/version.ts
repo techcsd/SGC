@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.53.3';
-export const APP_VERSION_TITULO: string | null = "Adopta las actualizaciones sin pantallas en blanco";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"arreglo","d":"Si tenías la página abierta desde antes de una actualización, al navegar (por ejemplo a Iniciar sesión) podía fallar la carga de un módulo (\"disallowed MIME type\" / \"error loading dynamically imported module\") y quedar la pantalla rota. Ahora la app detecta ese caso y se recarga sola una vez para tomar la versión nueva."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/f2475fe";
+export const APP_VERSION = '1.54.0';
+export const APP_VERSION_TITULO: string | null = "Detalle de mantenimientos y precios de combustible legibles";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"nuevo","d":"En Flota → Mantenimientos ahora puedes hacer clic en cualquier fila para ver su detalle completo: tipo de visita, vehículo, kilometraje, costo, taller, fechas, descripción, notas, fotos de la reparación y quién lo registró."},{"t":"mejora","d":"Los mantenimientos nuevos guardan automáticamente quién los registró, para que quede el rastro de responsabilidad en el detalle."},{"t":"arreglo","d":"Los precios oficiales MICM en Combustible (la franja del listado y el recuadro dentro de \"Nuevo registro\") se veían como bloques negros con texto casi invisible. Ahora usan el estilo claro del resto del sistema y se leen bien."},{"t":"arreglo","d":"Se corrigieron otros recuadros oscuros heredados: el detalle expandido de una requisición de material, los bordes de la tabla de costos de proyecto y detalles del cronograma, para que todo tenga el mismo aspecto claro y legible."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/de01483";
