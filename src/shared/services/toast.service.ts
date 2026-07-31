@@ -1,4 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { humanizeError } from '../utils/friendly-error.util';
+import { TelemetryService } from './telemetry.service';
 
 export type ToastTipo = 'info' | 'success' | 'warning' | 'error';
 
@@ -14,6 +16,7 @@ export interface Toast {
 /** App-wide, signal-based toast queue. Rendered once by <app-toast> in the root. */
 @Injectable({ providedIn: 'root' })
 export class ToastService {
+  private telemetry = inject(TelemetryService);
   private _toasts = signal<Toast[]>([]);
   toasts = this._toasts.asReadonly();
 
@@ -47,8 +50,27 @@ export class ToastService {
   warning(titulo: string, mensaje?: string, route?: string) {
     return this.show(titulo, { tipo: 'warning', mensaje, route });
   }
+  /**
+   * AD1 — Muestra un error. Si `mensaje` es un error crudo de BD/red, se traduce
+   * a un texto amable y el original se reporta a telemetría (una sola vez). Así,
+   * los cientos de `toast.error('...', e.message)` existentes dejan de filtrar
+   * jerga técnica a la UI sin tocar cada sitio.
+   */
   error(titulo: string, mensaje?: string) {
-    return this.show(titulo, { tipo: 'error', mensaje, durationMs: 9000 });
+    let texto = mensaje;
+    if (mensaje != null && mensaje !== '') {
+      const f = humanizeError(mensaje);
+      texto = f.mensaje;
+      if (f.technical) this.telemetry.reportCaught(f.raw, { titulo });
+    }
+    return this.show(titulo, { tipo: 'error', mensaje: texto, durationMs: 9000 });
+  }
+
+  /** Conveniencia: muestra un error a partir de un objeto de error cualquiera. */
+  errorFrom(error: unknown, titulo = 'Ocurrió un error') {
+    const f = humanizeError(error);
+    if (f.technical) this.telemetry.reportCaught(f.raw, { titulo });
+    return this.show(titulo, { tipo: 'error', mensaje: f.mensaje, durationMs: 9000 });
   }
 
   dismiss(id: number) {

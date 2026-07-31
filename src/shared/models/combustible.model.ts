@@ -2,6 +2,20 @@
 // por el RPC `registrar_combustible_app`. Las columnas litros/costo_por_litro
 // quedan legacy (registros históricos previos a v2).
 
+/** AD7 — estado calibrado del rendimiento de una echada. */
+export type RendimientoEstado = 'optimo' | 'bajo' | 'anormal' | 'datos_insuficientes';
+
+/** AD7 — metadatos de UI por estado (etiqueta + clase de badge + emoji). */
+export const RENDIMIENTO_ESTADO_META: Record<
+  RendimientoEstado,
+  { label: string; badge: 'success' | 'info' | 'warning' | 'danger' | 'neutral' }
+> = {
+  optimo: { label: 'Óptimo', badge: 'success' },
+  bajo: { label: 'Bajo', badge: 'warning' },
+  anormal: { label: 'Anormal', badge: 'danger' },
+  datos_insuficientes: { label: 'Datos insuficientes', badge: 'neutral' },
+};
+
 export interface RegistroCombustible {
   id: string;
   vehiculo_id: string;
@@ -36,6 +50,8 @@ export interface RegistroCombustible {
   alerta_consumo: boolean;
   // U10 — motivo legible del disparo de la alerta (esperado / propio / piso absoluto).
   motivo_alerta: string | null;
+  // AD7 — estado calibrado del rendimiento. `alerta_consumo` = (estado==='anormal').
+  estado?: RendimientoEstado | null;
   client_uuid: string | null;
 
   // ── Legacy (litros) ──
@@ -106,6 +122,8 @@ export interface CombustibleDerivados {
   rendimiento_km_gal: number | null;
   costo_por_km: number | null;
   alerta_consumo: boolean;
+  // AD7 — estado calibrado (optimo|bajo|anormal|datos_insuficientes).
+  estado?: RendimientoEstado | null;
   promedio_rendimiento: number | null;
   /** T5 — referencias de la evaluación en cascada. */
   rendimiento_esperado?: number | null;

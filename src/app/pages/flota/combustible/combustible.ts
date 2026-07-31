@@ -30,6 +30,8 @@ import {
   PrecioCombustibleVigente,
   PRODUCTO_CANONICO_LABEL,
   productoCanonico,
+  RendimientoEstado,
+  RENDIMIENTO_ESTADO_META,
 } from '../../../../shared/models/combustible.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
@@ -51,7 +53,7 @@ export class Combustible implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private proyectosService = inject(ProyectosService);
   private conductoresService = inject(ConductoresService);
-  private flotaConfig = inject(FlotaConfigService);
+  protected flotaConfig = inject(FlotaConfigService);
   private estacionesService = inject(EstacionesCombustibleService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
@@ -162,6 +164,73 @@ export class Combustible implements OnInit {
   // ── AA20 — subtipo + precios oficiales ────────────────────
   preciosVigentes = signal<PrecioCombustibleVigente[]>([]);
   productoCanonicoLabel(p: string): string { return PRODUCTO_CANONICO_LABEL[p] ?? p; }
+
+  // ── AD7 — estado calibrado del rendimiento (4 estados) ────
+  /** Estado del registro; si `estado` no vino (legacy), se deriva de forma segura. */
+  estadoDe(r: RegistroCombustible): RendimientoEstado {
+    if (r.estado) return r.estado;
+    if (r.rendimiento_km_gal == null) return 'datos_insuficientes';
+    return r.alerta_consumo ? 'anormal' : 'optimo';
+  }
+  estadoMeta(r: RegistroCombustible) { return RENDIMIENTO_ESTADO_META[this.estadoDe(r)]; }
+  estadoIcon(r: RegistroCombustible): string {
+    return { optimo: '✓', bajo: '↓', anormal: '⚠', datos_insuficientes: '•' }[this.estadoDe(r)];
+  }
+
+  // ── AD7 — panel de umbrales (admin, Hard-rule #2) ─────────
+  configPanelOpen = signal(false);
+  savingConfig = signal(false);
+  configForm = new FormGroup({
+    dist_min_km: new FormControl(50, [Validators.required, Validators.min(1)]),
+    rendimiento_minimo_km_gal: new FormControl(10, [Validators.required, Validators.min(0.01)]),
+    rendimiento_maximo_km_gal: new FormControl(35, [Validators.required, Validators.min(1)]),
+    umbral_consumo_pct: new FormControl(20, [Validators.required, Validators.min(1), Validators.max(99)]),
+    umbral_anormal_pct: new FormControl(40, [Validators.required, Validators.min(1), Validators.max(99)]),
+  });
+
+  toggleConfig() {
+    const open = !this.configPanelOpen();
+    this.configPanelOpen.set(open);
+    if (open) {
+      this.configForm.reset({
+        dist_min_km: this.flotaConfig.distMinKm(),
+        rendimiento_minimo_km_gal: this.flotaConfig.rendimientoMinimoKmGal(),
+        rendimiento_maximo_km_gal: this.flotaConfig.rendimientoMaximoKmGal(),
+        umbral_consumo_pct: this.flotaConfig.umbralConsumoPct(),
+        umbral_anormal_pct: this.flotaConfig.umbralAnormalPct(),
+      });
+    }
+  }
+
+  async saveConfig() {
+    if (this.configForm.invalid || this.savingConfig()) return;
+    this.savingConfig.set(true);
+    try {
+      const v = this.configForm.value;
+      const entries: [string, number][] = [
+        ['dist_min_km', v.dist_min_km!],
+        ['rendimiento_minimo_km_gal', v.rendimiento_minimo_km_gal!],
+        ['rendimiento_maximo_km_gal', v.rendimiento_maximo_km_gal!],
+        ['umbral_consumo_pct', v.umbral_consumo_pct!],
+        ['umbral_anormal_pct', v.umbral_anormal_pct!],
+      ];
+      for (const [k, val] of entries) await this.flotaConfig.setConfig(k, val);
+      // Refleja en los signals + recalcula el histórico con los nuevos umbrales.
+      this.flotaConfig.distMinKm.set(v.dist_min_km!);
+      this.flotaConfig.rendimientoMinimoKmGal.set(v.rendimiento_minimo_km_gal!);
+      this.flotaConfig.rendimientoMaximoKmGal.set(v.rendimiento_maximo_km_gal!);
+      this.flotaConfig.umbralConsumoPct.set(v.umbral_consumo_pct!);
+      this.flotaConfig.umbralAnormalPct.set(v.umbral_anormal_pct!);
+      const n = await this.flotaConfig.recalcularEstados();
+      this.toast.success('Umbrales guardados', `Se recalcularon ${n} registros con las reglas nuevas.`);
+      this.configPanelOpen.set(false);
+      await this.loadAll();
+    } catch (e: unknown) {
+      this.toast.error('No se pudieron guardar los umbrales', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.savingConfig.set(false);
+    }
+  }
   private productoVal = toSignal(this.form.controls.producto.valueChanges, { initialValue: null as string | null });
   private subtipoVal = toSignal(this.form.controls.subtipo.valueChanges, { initialValue: null as string | null });
 

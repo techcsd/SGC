@@ -126,7 +126,7 @@
         [class.invalid]="f.categoria.invalid && f.categoria.touched"
       >
         <option [value]="null">Seleccionar categoría…</option>
-        @for (c of CATEGORIAS; track c.value) {
+        @for (c of categorias(); track c.value) {
           <option [value]="c.value">{{ c.label }}</option>
         }
       </select>

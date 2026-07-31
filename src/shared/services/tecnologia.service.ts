@@ -8,6 +8,8 @@ import {
   TecEquipoFormData,
   TecEquipoHistorial,
   TecCompraOpcion,
+  TecCategoria,
+  TEC_CATEGORIAS,
   TEC_EQUIPO_ESTADOS,
 } from '../models/tecnologia.model';
 import { formatFechaMedia } from '../utils/fecha.util';
@@ -16,6 +18,39 @@ import { SolicitudCompra } from '../models/solicitud.model';
 @Injectable({ providedIn: 'root' })
 export class TecnologiaService {
   private supabase = inject(SupabaseService);
+
+  // ── AD5 — Catálogo administrable de categorías ────────────
+  /**
+   * Categorías activas del catálogo `sgc.tec_categorias`. Cae al fallback local
+   * (TEC_CATEGORIAS) si la tabla no responde, para no dejar el select vacío.
+   */
+  async getCategorias(): Promise<{ value: string; label: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_categorias')
+      .select('clave, label, orden, activo')
+      .eq('activo', true)
+      .order('orden', { ascending: true });
+    if (error || !data || data.length === 0) return TEC_CATEGORIAS;
+    return (data as unknown as TecCategoria[]).map((c) => ({ value: c.clave, label: c.label }));
+  }
+
+  /** AD5 — alta de una categoría nueva (admin/tecnología). Devuelve la clave. */
+  async addCategoria(label: string): Promise<{ value: string; label: string }> {
+    const clave = label
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40);
+    const { data, error } = await this.supabase.client
+      .from('tec_categorias')
+      .insert({ clave, label: label.trim(), orden: 150 })
+      .select('clave, label')
+      .single();
+    if (error) throw new Error(error.message);
+    return { value: (data as { clave: string }).clave, label: (data as { label: string }).label };
+  }
 
   // ── Homologación de herramientas ──────────────────────────
   async getHerramientas(soloActivas = false): Promise<TecHerramienta[]> {

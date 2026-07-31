@@ -30,6 +30,11 @@ export interface EntradaInventario {
   origen_proyecto_id: string | null;
   origen_proyecto?: { nombre: string } | null;
   salida_id: string | null;
+  // AD6 — recepción/compra registrada por un chofer, PENDIENTE de confirmar por Almacén
+  // (no mueve stock hasta confirmar). `items_propuestos` = líneas propuestas.
+  pendiente_confirmacion?: boolean;
+  items_propuestos?: EntradaItemFormData[] | null;
+  registrado_por?: string | null;
   // T2 — dato de prueba (oculto a no-admin por RLS; admin lo marca/elimina).
   es_prueba?: boolean;
   detalle_entradas?: DetalleEntrada[];

@@ -7,6 +7,7 @@ import {
   TecHerramientaFormData,
   TEC_CATEGORIAS,
 } from '../../../../shared/models/tecnologia.model';
+
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 
@@ -21,7 +22,8 @@ export class TecHomologacion implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private toast = inject(ToastService);
 
-  readonly CATEGORIAS = TEC_CATEGORIAS;
+  // AD5 — categorías desde el catálogo administrable (fallback al const local).
+  categorias = signal<{ value: string; label: string }[]>(TEC_CATEGORIAS);
 
   herramientas = signal<TecHerramienta[]>([]);
   loading = signal(true);
@@ -51,8 +53,12 @@ export class TecHomologacion implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const herramientas = await this.tecnologia.getHerramientas(false);
+      const [herramientas, categorias] = await Promise.all([
+        this.tecnologia.getHerramientas(false),
+        this.tecnologia.getCategorias(),
+      ]);
       this.herramientas.set(herramientas);
+      this.categorias.set(categorias);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las herramientas.');
     } finally {
@@ -61,7 +67,7 @@ export class TecHomologacion implements OnInit {
   }
 
   getCategoriaLabel(value: string): string {
-    return this.CATEGORIAS.find((c) => c.value === value)?.label ?? value;
+    return this.categorias().find((c) => c.value === value)?.label ?? value;
   }
 
   // ── Drawer ────────────────────────────────────────────────

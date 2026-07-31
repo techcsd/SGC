@@ -1,0 +1,164 @@
+<!-- AD9 — Editor de nota en página completa -->
+<div class="nota-editor" [style.--accent]="color() || 'transparent'">
+  <!-- Barra superior -->
+  <div class="nota-editor__topbar">
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()">← Volver</button>
+    <div class="nota-editor__status">
+      @if (soloLectura()) {
+        <span class="sgc-badge sgc-badge--neutral">Solo lectura (compartida)</span>
+      } @else if (guardando()) {
+        <span class="nota-editor__saving">Guardando…</span>
+      } @else if (guardadoOk()) {
+        <span class="nota-editor__saved">✓ Guardado</span>
+      }
+    </div>
+    @if (!soloLectura()) {
+      <div class="nota-editor__topbar-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePin()" [class.is-active]="pinned()"
+          [title]="pinned() ? 'Quitar fijado' : 'Fijar'">{{ pinned() ? '📌 Fijada' : '📌 Fijar' }}</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleArchivar()"
+          [title]="archivada() ? 'Desarchivar' : 'Archivar'">{{ archivada() ? '🗃️ Archivada' : '🗃️ Archivar' }}</button>
+      </div>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="nota-editor__loading">Cargando…</p>
+  } @else {
+    <!-- Título -->
+    <input class="nota-editor__titulo" type="text" placeholder="Título"
+      [value]="titulo()" (input)="onTitulo($any($event.target).value)" [disabled]="soloLectura()" />
+
+    <!-- Barra de herramientas tipo Word -->
+    @if (!soloLectura()) {
+      <div class="nota-editor__toolbar" role="toolbar" aria-label="Formato">
+        <button type="button" title="Negrita" (click)="exec('bold')"><b>B</b></button>
+        <button type="button" title="Cursiva" (click)="exec('italic')"><i>I</i></button>
+        <button type="button" title="Subrayado" (click)="exec('underline')"><u>U</u></button>
+        <span class="nota-editor__sep"></span>
+        <button type="button" title="Título" (click)="exec('formatBlock','H2')">H</button>
+        <button type="button" title="Lista con viñetas" (click)="exec('insertUnorderedList')">• Lista</button>
+        <button type="button" title="Lista numerada" (click)="exec('insertOrderedList')">1. Lista</button>
+        <span class="nota-editor__sep"></span>
+        <label class="nota-editor__color-tool" title="Color del texto">
+          A
+          <input type="color" (change)="exec('foreColor', $any($event.target).value)" />
+        </label>
+        <button type="button" title="Deshacer" (click)="exec('undo')">↶</button>
+        <button type="button" title="Rehacer" (click)="exec('redo')">↷</button>
+      </div>
+    }
+
+    <!-- Cuerpo editable -->
+    <div #body class="nota-editor__body" [attr.contenteditable]="!soloLectura()"
+      (input)="onBodyInput()" data-placeholder="Escribe aquí…"></div>
+
+    <!-- Checklist -->
+    <section class="nota-editor__section">
+      <div class="nota-editor__section-head">
+        <h2>✓ Checklist
+          @if (checklistProgreso().total > 0) {
+            <span class="nota-editor__progress">{{ checklistProgreso().done }}/{{ checklistProgreso().total }}</span>
+          }
+        </h2>
+      </div>
+
+      <ul class="nota-editor__checklist">
+        @for (item of checklist(); track item.id) {
+          <li class="nota-editor__check" [class.is-done]="item.done">
+            <input type="checkbox" [checked]="item.done" (change)="toggleItem(item)" [disabled]="soloLectura()"
+              [attr.aria-label]="'Marcar ' + item.texto" />
+            <input class="nota-editor__check-text" type="text" [value]="item.texto"
+              (blur)="editarTextoItem(item, $any($event.target).value)" [disabled]="soloLectura()" />
+
+            @if (item.ref_tipo === 'tarea') {
+              <span class="nota-editor__link-chip" title="Vinculado a una tarea; se marca solo al completarse">
+                🔗 {{ item.ref_label || 'Tarea' }}
+                @if (!soloLectura()) {
+                  <button type="button" (click)="desvincularTarea(item)" aria-label="Desvincular">✕</button>
+                }
+              </span>
+            }
+
+            @if (!soloLectura()) {
+              <div class="nota-editor__check-actions">
+                <button type="button" (click)="moverItem(item, -1)" title="Subir">↑</button>
+                <button type="button" (click)="moverItem(item, 1)" title="Bajar">↓</button>
+                @if (item.ref_tipo !== 'tarea') {
+                  <button type="button" (click)="abrirVincular(item)" title="Vincular a una tarea">🔗</button>
+                }
+                <button type="button" (click)="quitarItem(item)" title="Quitar">🗑️</button>
+              </div>
+            }
+
+            @if (linkingItemId() === item.id) {
+              <select class="nota-editor__link-select" (change)="vincularTarea(item, $any($event.target).value)">
+                <option value="">Elige una tarea…</option>
+                @for (t of tareas(); track t.id) {
+                  <option [value]="t.id">{{ t.titulo }} ({{ t.estado }})</option>
+                }
+              </select>
+            }
+          </li>
+        }
+      </ul>
+
+      @if (!soloLectura()) {
+        <div class="nota-editor__add-item">
+          <input type="text" placeholder="Agregar ítem y presiona Enter" [value]="nuevoItemTexto()"
+            (input)="nuevoItemTexto.set($any($event.target).value)"
+            (keydown.enter)="agregarItem()" />
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="agregarItem()">+ Agregar</button>
+        </div>
+      }
+    </section>
+
+    <!-- Compartir + color (solo dueño/editor) -->
+    @if (!soloLectura()) {
+      <section class="nota-editor__section">
+        <div class="nota-editor__section-head"><h2>🎨 Color</h2></div>
+        <div class="nota-editor__colors">
+          <button type="button" class="nota-editor__color-dot" [class.is-active]="color() === null"
+            (click)="setColor(null)" title="Sin color" style="background:#ffffff;border:1px solid #ccc"></button>
+          @for (c of COLORES; track c.value) {
+            <button type="button" class="nota-editor__color-dot" [class.is-active]="color() === c.value"
+              [style.background]="c.value" [title]="c.label" (click)="setColor(c.value)"></button>
+          }
+        </div>
+      </section>
+
+      <section class="nota-editor__section">
+        <div class="nota-editor__section-head"><h2>👥 Compartir con…</h2></div>
+        <div class="nota-editor__share-add">
+          <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
+            <option [value]="''">Elige una persona…</option>
+            @for (u of directorio(); track u.id) {
+              <option [value]="u.id">{{ u.nombre }}</option>
+            }
+          </select>
+          <select [value]="compartirPermiso()" (change)="compartirPermiso.set($any($event.target).value)">
+            <option value="ver">Puede ver</option>
+            <option value="editar">Puede editar</option>
+          </select>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="agregarCompartido()"
+            [disabled]="!compartirUsuario()">Compartir</button>
+        </div>
+
+        @if (compartidos().length > 0) {
+          <ul class="nota-editor__shares">
+            @for (c of compartidos(); track c.id) {
+              <li>
+                <span>{{ c.usuario?.nombre ?? 'Usuario' }}</span>
+                <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
+                  <option value="ver">Puede ver</option>
+                  <option value="editar">Puede editar</option>
+                </select>
+                <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso">✕</button>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  }
+</div>

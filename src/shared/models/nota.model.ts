@@ -16,6 +16,31 @@ export interface Nota {
   mi_permiso?: NotaPermiso;
 }
 
+/** AD9 — un ítem de checklist estructurado de una nota. Puede vincularse a una Tarea. */
+export type NotaChecklistRefTipo = 'tarea';
+
+export interface NotaChecklistItem {
+  id: string;
+  nota_id: string;
+  orden: number;
+  texto: string;
+  done: boolean;
+  /** true si lo marcó un objeto vinculado (no el usuario a mano). */
+  done_auto: boolean;
+  done_at: string | null;
+  ref_tipo: NotaChecklistRefTipo | null;
+  ref_id: string | null;
+  /** Enriquecido en cliente: título/estado de la tarea vinculada. */
+  ref_label?: string | null;
+}
+
+/** AD9 — opción ligera de tarea para el selector "Vincular a tarea…". */
+export interface TareaVinculable {
+  id: string;
+  titulo: string;
+  estado: string;
+}
+
 export interface NotaCompartido {
   id: string;
   nota_id: string;

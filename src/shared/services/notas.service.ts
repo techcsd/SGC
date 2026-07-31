@@ -1,6 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { Nota, NotaCompartido, NotaPermiso } from '../models/nota.model';
+import {
+  Nota,
+  NotaCompartido,
+  NotaPermiso,
+  NotaChecklistItem,
+  NotaChecklistRefTipo,
+  TareaVinculable,
+} from '../models/nota.model';
 
 export interface DirectorioUsuario {
   id: string;
@@ -129,5 +136,74 @@ export class NotasService {
       .eq('nota_id', notaId)
       .eq('usuario_id', usuarioId);
     if (error) throw new Error(error.message);
+  }
+
+  // ── AD9 — checklist estructurado + vínculo a tareas ───────────────────────
+  /** Ítems del checklist de una nota (con el título de la tarea vinculada). */
+  async getChecklist(notaId: string): Promise<NotaChecklistItem[]> {
+    // Reconciliar primero: alinea los ítems vinculados con el estado real de su tarea.
+    await this.supabase.client.rpc('sync_checklist_nota', { p_nota_id: notaId });
+    const { data, error } = await this.supabase.client
+      .from('nota_checklist_items')
+      .select('*, tarea:tareas(titulo, estado)')
+      .eq('nota_id', notaId)
+      .order('orden', { ascending: true });
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as unknown as (NotaChecklistItem & { tarea?: { titulo: string; estado: string } | null })[];
+    return rows.map((r) => ({ ...r, ref_label: r.tarea ? r.tarea.titulo : null }));
+  }
+
+  async addChecklistItem(notaId: string, texto: string, orden: number): Promise<NotaChecklistItem> {
+    const { data, error } = await this.supabase.client
+      .from('nota_checklist_items')
+      .insert({ nota_id: notaId, texto, orden })
+      .select('*')
+      .single();
+    if (error) throw new Error(error.message);
+    return data as unknown as NotaChecklistItem;
+  }
+
+  async updateChecklistItem(id: string, patch: Partial<Pick<NotaChecklistItem, 'texto' | 'done' | 'orden'>>): Promise<void> {
+    const body: Record<string, unknown> = { ...patch, updated_at: new Date().toISOString() };
+    // Un toggle manual deja de ser "automático" (para que reabrir la tarea no lo pise).
+    if (patch.done !== undefined) {
+      body['done_auto'] = false;
+      body['done_at'] = patch.done ? new Date().toISOString() : null;
+    }
+    const { error } = await this.supabase.client
+      .from('nota_checklist_items')
+      .update(body)
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  async removeChecklistItem(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('nota_checklist_items').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Vincula (o desvincula con ref=null) un ítem a una tarea. */
+  async linkChecklistItem(id: string, refTipo: NotaChecklistRefTipo | null, refId: string | null): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('nota_checklist_items')
+      .update({ ref_tipo: refTipo, ref_id: refId, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Persiste el nuevo orden (drag/reorder) de todos los ítems. */
+  async reordenarChecklist(items: { id: string; orden: number }[]): Promise<void> {
+    await Promise.all(items.map((it) => this.updateChecklistItem(it.id, { orden: it.orden })));
+  }
+
+  /** Tareas que el usuario puede ver (RLS), para el selector "Vincular a tarea…". */
+  async getTareasVinculables(): Promise<TareaVinculable[]> {
+    const { data, error } = await this.supabase.client
+      .from('tareas')
+      .select('id, titulo, estado')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as TareaVinculable[];
   }
 }

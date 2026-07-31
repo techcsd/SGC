@@ -423,6 +423,10 @@ export class Conductores implements OnInit {
     // C2 — sanea los uuid opcionales: un <select> nativo con [value]="null"
     // entrega el string "null", que rompe el cast a uuid en Postgres.
     // C3 — nota + tags (tags viven fuera del FormGroup).
+    // AD3 — si el usuario escribió un tag pero NO pulsó Enter/coma antes de
+    // guardar, ese texto quedaba en `tagInput` y se perdía ("el Tag/rol no se
+    // guarda"). Aquí lo confirmamos primero para que sí se persista.
+    if (this.tagInput().trim()) this.addTag(this.tagInput());
     const raw = this.form.value;
     const tags = this.tags();
     const payload = {

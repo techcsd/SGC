@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { NotasService, DirectorioUsuario } from '../../../shared/services/notas.service';
@@ -38,6 +39,7 @@ export class Notas implements OnInit {
   private notasSvc = inject(NotasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private router = inject(Router);
 
   miId = this.userService.profile()?.id ?? '';
 
@@ -174,35 +176,14 @@ export class Notas implements OnInit {
   }
 
   // ── Editor ────────────────────────────────────────────────
+  // AD9 — el alta y la apertura ahora van a la PÁGINA COMPLETA (editor v2),
+  // no al drawer. Se conserva el drawer legacy solo como fallback.
   openNueva() {
-    this.currentId.set(crypto.randomUUID());
-    this.isNew.set(true);
-    this.openedNota.set(null);
-    this.editorUpdatedAt = null;
-    this.tituloText.set('');
-    this.contenidoText.set('');
-    this.colorSel.set(this.colores[0].value);
-    this.pinnedSel.set(false);
-    this.archivadaSel.set(false);
-    this.compartidos.set([]);
-    this.shareBuscar.set('');
-    this.editorOpen.set(true);
+    this.router.navigate(['/notas/nueva']);
   }
 
-  async openNota(n: Nota) {
-    this.currentId.set(n.id);
-    this.isNew.set(false);
-    this.openedNota.set(n);
-    this.editorUpdatedAt = n.updated_at;
-    this.tituloText.set(n.titulo ?? '');
-    this.contenidoText.set(n.contenido ?? '');
-    this.colorSel.set(n.color);
-    this.pinnedSel.set(n.pinned);
-    this.archivadaSel.set(n.archivada);
-    this.compartidos.set([]);
-    this.shareBuscar.set('');
-    this.editorOpen.set(true);
-    if (n.owner_id === this.miId) await this.cargarCompartidos(n.id);
+  openNota(n: Nota) {
+    this.router.navigate(['/notas', n.id]);
   }
 
   closeEditor() {

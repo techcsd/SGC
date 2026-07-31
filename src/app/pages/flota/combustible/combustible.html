@@ -5,6 +5,10 @@
     <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
+    @if (esAdmin()) {
+      <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleConfig()"
+              title="Umbrales de rendimiento (admin)">⚙️ Umbrales</button>
+    }
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
       ⬇️ Excel
@@ -23,6 +27,35 @@
     </button>
   </div>
 </div>
+
+<!-- ── AD7 · Umbrales de rendimiento (admin, Hard-rule #2) ── -->
+@if (esAdmin() && configPanelOpen()) {
+  <form class="combustible__config-panel sgc-card" [formGroup]="configForm" (ngSubmit)="saveConfig()">
+    <h3 class="combustible__config-title">Calibración del rendimiento de combustible</h3>
+    <p class="combustible__config-hint">
+      El rendimiento solo es confiable de tanque lleno a tanque lleno y con distancia suficiente.
+      Ajusta los umbrales; al guardar se recalcula el histórico.
+    </p>
+    <div class="combustible__config-grid">
+      <label>Distancia mínima entre echadas (km)
+        <input type="number" formControlName="dist_min_km" min="1" /></label>
+      <label>Rendimiento mínimo coherente (km/gal)
+        <input type="number" step="0.1" formControlName="rendimiento_minimo_km_gal" min="0.01" /></label>
+      <label>Rendimiento máximo coherente (km/gal)
+        <input type="number" step="0.1" formControlName="rendimiento_maximo_km_gal" min="1" /></label>
+      <label>Tolerancia "bajo" bajo el baseline (%)
+        <input type="number" formControlName="umbral_consumo_pct" min="1" max="99" /></label>
+      <label>Desviación "anormal" del baseline (%)
+        <input type="number" formControlName="umbral_anormal_pct" min="1" max="99" /></label>
+    </div>
+    <div class="combustible__config-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleConfig()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="configForm.invalid || savingConfig()">
+        {{ savingConfig() ? 'Guardando…' : 'Guardar y recalcular' }}
+      </button>
+    </div>
+  </form>
+}
 
 <!-- ── AA20 · Precios oficiales MICM vigentes ── -->
 @if (preciosVigentes().length > 0) {
@@ -151,13 +184,12 @@
               </td>
               <td class="text-right text-muted">{{ r.costo_por_km ? (r.costo_por_km | number:'1.2-2') : '—' }}</td>
               <td class="text-center">
-                @if (r.rendimiento_km_gal === null) {
-                  <span class="text-muted" title="Sin rendimiento comparable">—</span>
-                } @else if (r.alerta_consumo) {
-                  <span class="sgc-badge sgc-badge--danger" title="Consumo anormal">⚠ Anormal</span>
-                } @else {
-                  <span class="sgc-badge sgc-badge--success" title="Consumo normal">✓ Normal</span>
-                }
+                <!-- AD7 — estado calibrado (4 estados) con tooltip explicando POR QUÉ. -->
+                <span
+                  class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"
+                  [title]="r.motivo_alerta || estadoMeta(r).label">
+                  {{ estadoIcon(r) }} {{ estadoMeta(r).label }}
+                </span>
               </td>
             </tr>
           }
@@ -449,16 +481,13 @@
       <!-- Análisis automático -->
       <div class="detail__analysis">
         <h3 class="detail__analysis-title">Análisis automático</h3>
-        @if (r.rendimiento_km_gal === null) {
-          <p class="detail__analysis-line">Primera echada registrada del vehículo — sin rendimiento comparable todavía.</p>
-        } @else if (r.alerta_consumo) {
-          <p class="detail__analysis-line detail__analysis-line--alerta">
-            ⚠ Consumo anormal: {{ r.motivo_alerta ?? 'rinde por debajo de lo normal para este vehículo.' }}
-            Posible fuga, problema mecánico o combustible desviado.
-          </p>
-        } @else {
-          <p class="detail__analysis-line detail__analysis-line--ok">✓ Consumo dentro de lo normal para este vehículo.</p>
-        }
+        <!-- AD7 — estado calibrado + explicación del POR QUÉ (motivo_alerta). -->
+        <p class="detail__analysis-line"
+           [class.detail__analysis-line--alerta]="estadoDe(r) === 'anormal'"
+           [class.detail__analysis-line--ok]="estadoDe(r) === 'optimo'">
+          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}">{{ estadoIcon(r) }} {{ estadoMeta(r).label }}</span>
+          {{ r.motivo_alerta ?? estadoMeta(r).label }}
+        </p>
         @if (r.rendimiento_km_gal !== null) {
           <p class="detail__analysis-line detail__analysis-refs">
             Rendimiento: <strong>{{ r.rendimiento_km_gal | number:'1.1-2' }} km/gal</strong> ·

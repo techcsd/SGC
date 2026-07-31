@@ -103,6 +103,9 @@
               <td>{{ r.conductor?.nombre ?? '—' }}</td>
               <td>
                 <span class="rutas__trip">{{ r.origen }} <span class="rutas__arrow">→</span> {{ r.destino }}</span>
+                <span class="sgc-badge sgc-badge--neutral" [title]="'Ruta de ' + getTipoInfo(r.tipo).label">
+                  {{ getTipoInfo(r.tipo).icon }} {{ getTipoInfo(r.tipo).label }}
+                </span>
                 @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
                 @if (climaRuta(r); as rec) {
                   <span class="clima-chip" [class]="nivelClima(rec.nivel)" [title]="rec.detalle">
@@ -176,6 +179,16 @@
   (closed)="closeDrawer()"
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
+
+    <!-- AD6 — tipo de ruta (personal/traslado no exigen carga) -->
+    <div class="sgc-field">
+      <label for="tipo">Tipo de ruta <span class="required">*</span></label>
+      <select id="tipo" formControlName="tipo">
+        @for (t of RUTA_TIPOS; track t.value) {
+          <option [value]="t.value">{{ t.icon }} {{ t.label }}</option>
+        }
+      </select>
+    </div>
 
     <div class="form-row">
       <div class="sgc-field">

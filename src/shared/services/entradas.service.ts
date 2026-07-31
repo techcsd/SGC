@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
-import { EntradaInventario, EntradaFormData } from '../models/entrada.model';
+import { EntradaInventario, EntradaFormData, EntradaItemFormData } from '../models/entrada.model';
 
 const SELECT_QUERY =
   '*, bodega:bodegas(nombre), proveedor:proveedores(nombre), orden_compra:ordenes_compra(numero), origen_proyecto:proyectos!entradas_inventario_origen_proyecto_id_fkey(nombre), detalle_entradas(*, articulo:articulos(nombre, codigo, unidad))';
@@ -19,6 +19,18 @@ export class EntradasService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as EntradaInventario[];
+  }
+
+  /**
+   * AD6 — Almacén confirma (y opcionalmente ajusta) una recepción/compra que un
+   * chofer dejó PENDIENTE. Materializa el stock vía RPC `confirmar_entrada_chofer`.
+   */
+  async confirmarChofer(entradaId: string, items?: EntradaItemFormData[]): Promise<void> {
+    const { error } = await this.supabase.client.rpc('confirmar_entrada_chofer', {
+      p_entrada_id: entradaId,
+      p_items: items ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la entrada.

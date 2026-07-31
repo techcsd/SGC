@@ -238,6 +238,32 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
     ],
   },
   {
+    id: 'notas',
+    titulo: 'Notas',
+    items: [
+      {
+        pregunta: '¿Cómo creo una nota?',
+        respuesta:
+          'En Notas pulsa "Nueva nota": se abre una página completa con una barra de herramientas tipo Word (negrita, cursiva, títulos, listas, color, deshacer). Todo es por botones, no necesitas escribir ningún símbolo. La nota se guarda sola mientras escribes (verás "Guardando…" y luego "✓ Guardado").',
+      },
+      {
+        pregunta: '¿Cómo hago una lista de tareas (checklist) dentro de una nota?',
+        respuesta:
+          'En la sección "Checklist" de la nota escribe un ítem y presiona Enter (o "+ Agregar"). Cada ítem tiene una casilla para marcarlo, se puede editar, reordenar con las flechas ↑↓ y eliminar. El contador muestra cuántos llevas hechos.',
+      },
+      {
+        pregunta: '¿Puedo hacer que un ítem del checklist se marque solo cuando termine una tarea?',
+        respuesta:
+          'Sí. En el ítem pulsa el botón 🔗 y elige una Tarea del módulo Tareas. Cuando esa tarea se complete, el ítem se marca solo; si la tarea se reabre, se desmarca. Así tu checklist refleja el avance real sin que lo actualices a mano.',
+      },
+      {
+        pregunta: '¿Cómo comparto una nota con alguien?',
+        respuesta:
+          'Desde la misma página de la nota, en "Compartir con…", elige a la persona y si puede "ver" o "editar". Puedes hacerlo desde que la creas. Solo el dueño comparte, cambia permisos o elimina la nota; quien la recibe como "ver" la abre en modo solo lectura.',
+      },
+    ],
+  },
+  {
     id: 'clima-ubicacion',
     titulo: 'Clima y ubicación de obra',
     modulo: 'proyectos',
@@ -288,6 +314,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo registro una entrada de inventario?',
         respuesta:
           'Ve a Inventario > Entradas > Nueva entrada. Indica almacén, proveedor y los artículos recibidos. Si la entrada corresponde a una orden de compra, selecciónala en el campo "Orden de compra" — así queda vinculada y visible en el historial de esa orden.',
+      },
+      {
+        pregunta: '¿Qué es una entrada "⏳ Por confirmar" y cómo la confirmo?',
+        respuesta:
+          'Cuando un chofer registra una compra/retiro de ferretería desde Transporte, la entrada queda "Por confirmar" y NO suma stock todavía (control antifraude: el chofer registra, Almacén valida). En Inventario > Entradas verás el badge "⏳ Por confirmar" y un botón "Confirmar": al confirmarlo se suma el stock al almacén y, si la compra venía de una orden de compra, esa orden pasa a "recibida".',
       },
       {
         pregunta: '¿Cómo registro una salida de inventario?',
@@ -518,7 +549,12 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Cómo registro combustible (v2)?',
         respuesta:
-          'En Flota > Combustible > Nuevo registro digitas solo 3 datos: kilometraje actual, galones echados y monto pagado (RD$), más 2 fotos obligatorias (recibo y tablero). El sistema calcula solo el precio/galón, los km recorridos, el rendimiento (km/gal) y el costo/km, y te los muestra en vivo antes de guardar. Si el rendimiento cae más de 20% bajo el promedio del vehículo, se marca "consumo anormal" y se avisa a Flota (posible fuga o problema mecánico). Toca una fila para ver el detalle con las 2 fotos y el análisis.',
+          'En Flota > Combustible > Nuevo registro digitas solo 3 datos: kilometraje actual, galones echados y monto pagado (RD$), más 2 fotos obligatorias (recibo y tablero). El sistema calcula solo el precio/galón, los km recorridos, el rendimiento (km/gal) y el costo/km, y te los muestra en vivo antes de guardar. Toca una fila para ver el detalle con las 2 fotos y el análisis.',
+      },
+      {
+        pregunta: '¿Qué significan los estados de rendimiento (Óptimo, Bajo, Anormal, Datos insuficientes)?',
+        respuesta:
+          'El rendimiento solo es confiable de tanque lleno a tanque lleno y con distancia suficiente. Por eso cada echada muestra un estado con un tooltip que explica el porqué: "Datos insuficientes" = muy poca distancia desde la última echada (por defecto menos de 50 km) o primera echada del vehículo, no se puede medir; "Anormal" = fuera de rango (imposiblemente bajo → posible fuga/robo/falla, o imposiblemente alto → probable error de odómetro), avisa a Flota; "Bajo" = por debajo de lo normal pero explicable, a vigilar; "Óptimo" = dentro de lo esperado. Un administrador ajusta los umbrales en Flota > Combustible > ⚙️ Umbrales (al guardar se recalcula el histórico).',
       },
       {
         pregunta: '¿Dónde veo los dashboards de combustible?',
@@ -527,7 +563,8 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       },
       {
         pregunta: '¿Cómo registro una ruta?',
-        respuesta: 'Usa Flota > Rutas, con su propio formulario de registro.',
+        respuesta:
+          'Usa Flota > Rutas > Nueva ruta. Elige el tipo de ruta: "Material" (lleva carga), "Personal" (reparto de personal entre obras, no exige carga) o "Traslado" (mover el vehículo vacío). Cada ruta muestra un chip con su tipo en el listado.',
       },
       {
         pregunta: '¿La ruta muestra el clima del destino?',
@@ -669,6 +706,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Dónde se gestionan el inventario tecnológico y las compras de tecnología?',
         respuesta:
           'Con el módulo "Tecnología": en Tecnología > Inventario tecnológico se registran laptops, cámaras, teléfonos, impresoras, etc., con su estado y a qué empleado están asignados (con historial). Cada equipo y cada renglón de compra pueden llevar una foto. En Tecnología > Compras tecnológicas el encargado crea solicitudes que van a Compras/Gerencia para aprobación, igual que cualquier compra; al crear una compra puedes adjuntar una foto por artículo, y al abrir una solicitud ves sus renglones con las fotos. La matriz puesto × herramienta define qué necesita cada puesto.',
+      },
+      {
+        pregunta: 'Al registrar una herramienta, ¿qué categoría elijo?',
+        respuesta:
+          'El selector de categorías ahora trae opciones de ingeniería/oficina: CAD/DWG (AutoCAD), Mapeos/Take-off (Planswift), Presupuestos, Ofimática (Microsoft 365), Email (Gmail), Calendarios (Google Calendar), Videollamadas (Google Meet), Mensajería, Almacenamiento en la nube, Contabilidad/ERP, Diseño, Seguridad, IA/Asistentes y Otro. El catálogo es administrable: Tecnología puede agregar categorías nuevas.',
       },
     ],
   },

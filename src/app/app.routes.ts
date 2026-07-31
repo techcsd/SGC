@@ -117,6 +117,15 @@ export const routes: Routes = [
         path: 'notas',
         loadComponent: () => import('./pages/notas/notas').then((m) => m.Notas),
       },
+      {
+        // AD9 — Notas v2: editor en página completa (nueva/:id).
+        path: 'notas/nueva',
+        loadComponent: () => import('./pages/notas/editor/nota-editor').then((m) => m.NotaEditor),
+      },
+      {
+        path: 'notas/:id',
+        loadComponent: () => import('./pages/notas/editor/nota-editor').then((m) => m.NotaEditor),
+      },
     ],
   },
   {

@@ -17,6 +17,12 @@ export class FlotaConfigService {
   umbralLicenciaDias = signal(90); // C6 — 3 meses antes del vencimiento de licencia (configurable en flota_config.umbral_licencia_dias)
   rendimientoMinimoKmGal = signal(10); // U10 — piso absoluto de coherencia de consumo (km/gal)
   umbralPorVencerDias = signal(30); // X1 — ventana "por vencer" (amarillo) de licencia/matrícula/seguro
+  // AD7 — calibración de rendimiento.
+  distMinKm = signal(50); // km mínimos entre echadas para medir rendimiento
+  distMinHoras = signal(3); // horas mínimas (equipos por horas)
+  rendimientoMaximoKmGal = signal(35); // techo absoluto (arriba = error/echada saltada)
+  umbralAnormalPct = signal(40); // desviación ± del baseline que marca "anormal"
+  minRegistrosBaseline = signal(3); // echadas plausibles mínimas para confiar el promedio propio
 
   private loaded = false;
 
@@ -54,6 +60,21 @@ export class FlotaConfigService {
             // Los 3 documentos comparten el mismo umbral en la UI; toma cualquiera.
             this.umbralPorVencerDias.set(n);
             break;
+          case 'dist_min_km':
+            this.distMinKm.set(n);
+            break;
+          case 'dist_min_horas':
+            this.distMinHoras.set(n);
+            break;
+          case 'rendimiento_maximo_km_gal':
+            this.rendimientoMaximoKmGal.set(n);
+            break;
+          case 'umbral_anormal_pct':
+            this.umbralAnormalPct.set(n);
+            break;
+          case 'min_registros_baseline':
+            this.minRegistrosBaseline.set(n);
+            break;
         }
       }
     } catch {
@@ -66,5 +87,21 @@ export class FlotaConfigService {
     const { error } = await this.supabase.client.rpc('set_umbral_por_vencer', { p_dias: dias });
     if (error) throw new Error(error.message);
     this.umbralPorVencerDias.set(dias);
+  }
+
+  /** AD7 — set genérico de un umbral de flota (admin/flota) vía RPC set_flota_config. */
+  async setConfig(clave: string, valor: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_flota_config', {
+      p_clave: clave,
+      p_valor: valor,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** AD7 — recalcula el estado del histórico con las reglas/umbrales vigentes (admin). */
+  async recalcularEstados(): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('recalcular_estados_combustible');
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
   }
 }

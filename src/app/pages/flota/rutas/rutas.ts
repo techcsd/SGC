@@ -19,7 +19,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
-import { Ruta, RutaFormData, RutaEstado, RutaParada, RutaFoto, RUTA_ESTADOS, destinoCoords, duracionRealMin } from '../../../../shared/models/ruta.model';
+import { Ruta, RutaFormData, RutaEstado, RutaTipo, RutaParada, RutaFoto, RUTA_ESTADOS, RUTA_TIPO_META, destinoCoords, duracionRealMin } from '../../../../shared/models/ruta.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -224,6 +224,7 @@ export class Rutas implements OnInit {
   }
 
   form = new FormGroup({
+    tipo: new FormControl<RutaTipo>('material', [Validators.required]),
     vehiculo_id: new FormControl('', [Validators.required]),
     conductor_id: new FormControl<string | null>(null),
     origen: new FormControl('', [Validators.required]),
@@ -412,7 +413,7 @@ export class Rutas implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ fecha: this.today, estado: 'planificada' });
+    this.form.reset({ fecha: this.today, estado: 'planificada', tipo: 'material' });
     this.origenLat.set(null);
     this.origenLng.set(null);
     this.autoEstimado.set(false);
@@ -426,6 +427,7 @@ export class Rutas implements OnInit {
     this.editingId.set(r.id);
     this.saveError.set('');
     this.form.reset({
+      tipo: r.tipo ?? 'material',
       vehiculo_id: r.vehiculo_id,
       conductor_id: r.conductor_id,
       origen: r.origen,
@@ -773,6 +775,15 @@ export class Rutas implements OnInit {
   // ── Helpers ──────────────────────────────────────────────
   getEstadoInfo(estado: RutaEstado) {
     return RUTA_ESTADOS.find((e) => e.value === estado);
+  }
+
+  // AD6 — tipo de ruta (chip + selector).
+  readonly RUTA_TIPOS = (Object.keys(RUTA_TIPO_META) as RutaTipo[]).map((t) => ({
+    value: t,
+    ...RUTA_TIPO_META[t],
+  }));
+  getTipoInfo(tipo: RutaTipo | undefined | null) {
+    return RUTA_TIPO_META[(tipo ?? 'material') as RutaTipo];
   }
 
   kmDesvio(r: Ruta): number | null {

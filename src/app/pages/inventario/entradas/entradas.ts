@@ -99,6 +99,23 @@ export class Entradas implements OnInit {
     this.detailOpen.set(false);
   }
 
+  // ── AD6 — confirmar recepción/compra registrada por un chofer ─────────────
+  confirmandoId = signal<string | null>(null);
+  async confirmarChofer(e: EntradaInventario) {
+    if (!e.pendiente_confirmacion || this.confirmandoId()) return;
+    if (!confirm('¿Confirmar esta recepción/compra? Se sumará el stock al almacén.')) return;
+    this.confirmandoId.set(e.id);
+    try {
+      await this.entradasService.confirmarChofer(e.id);
+      this.toast.success('Recepción confirmada', 'El stock se actualizó.');
+      await this.loadAll();
+    } catch (err: unknown) {
+      this.toast.error('No se pudo confirmar', err instanceof Error ? err.message : undefined);
+    } finally {
+      this.confirmandoId.set(null);
+    }
+  }
+
   // ── T2 — datos de prueba (solo admin) ────────────────────
   /** Marca o desmarca la entrada como dato de prueba. */
   async marcarPrueba(e: EntradaInventario, valor: boolean) {

@@ -116,6 +116,9 @@
                 @if (e.es_prueba) {
                   <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
                 }
+                @if (e.pendiente_confirmacion) {
+                  <span class="sgc-badge sgc-badge--warning" title="Compra/recepción registrada por un chofer, aún sin confirmar (no ha movido stock)">⏳ Por confirmar</span>
+                }
               </td>
               <td>{{ e.bodega?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ e.proveedor?.nombre ?? '—' }}</td>
@@ -141,9 +144,17 @@
                   —
                 }
               </td>
-              <td class="text-right">{{ (e.detalle_entradas ?? []).length }}</td>
+              <td class="text-right">{{ e.pendiente_confirmacion ? (e.items_propuestos ?? []).length : (e.detalle_entradas ?? []).length }}</td>
               <td class="text-right">
-                <span class="entradas__cantidad">RD$ {{ entryTotal(e) | number:'1.0-2' }}</span>
+                @if (e.pendiente_confirmacion) {
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                    (click)="$event.stopPropagation(); confirmarChofer(e)"
+                    [disabled]="confirmandoId() === e.id">
+                    {{ confirmandoId() === e.id ? 'Confirmando…' : 'Confirmar' }}
+                  </button>
+                } @else {
+                  <span class="entradas__cantidad">RD$ {{ entryTotal(e) | number:'1.0-2' }}</span>
+                }
               </td>
             </tr>
           }

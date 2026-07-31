@@ -94,15 +94,33 @@ export interface TecEquipoHistorial {
   created_at: string;
 }
 
+/** AD5 — categoría de herramienta (catálogo administrable `sgc.tec_categorias`). */
+export interface TecCategoria {
+  id: string;
+  clave: string;
+  label: string;
+  orden: number;
+  activo: boolean;
+}
+
+/**
+ * AD5 — Fallback local por si la tabla `tec_categorias` no responde. El catálogo
+ * real vive en BD (administrable); esto solo evita dejar el select vacío.
+ */
 export const TEC_CATEGORIAS: { value: string; label: string }[] = [
-  { value: 'nube', label: 'Nube' },
-  { value: 'ia', label: 'Inteligencia Artificial' },
-  { value: 'notas', label: 'Notas de reuniones' },
-  { value: 'reuniones', label: 'Reuniones' },
-  { value: 'comunicacion', label: 'Comunicación' },
+  { value: 'cad_dwg', label: 'CAD / DWG' },
+  { value: 'takeoff', label: 'Mapeos / Take-off' },
+  { value: 'presupuestos', label: 'Presupuestos' },
+  { value: 'ofimatica', label: 'Ofimática' },
+  { value: 'email', label: 'Email' },
+  { value: 'calendarios', label: 'Calendarios' },
+  { value: 'videollamadas', label: 'Videollamadas' },
+  { value: 'mensajeria', label: 'Mensajería' },
+  { value: 'nube', label: 'Almacenamiento en la nube' },
+  { value: 'contabilidad_erp', label: 'Contabilidad / ERP' },
   { value: 'diseno', label: 'Diseño' },
-  { value: 'gestion', label: 'Gestión / Productividad' },
-  { value: 'desarrollo', label: 'Desarrollo' },
+  { value: 'seguridad', label: 'Seguridad' },
+  { value: 'ia', label: 'IA / Asistentes' },
   { value: 'otro', label: 'Otro' },
 ];
 

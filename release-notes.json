@@ -1,6 +1,21 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.56.0": {
+      "titulo": "Arreglos de permisos y Notas, combustible calibrado, Transporte del chofer, Notas v2 y proyectos en curso",
+      "cambios": [
+        { "t": "arreglo", "d": "El Reporte semanal vuelve a abrir para Almacén (ya no aparece el error \"permission denied for table flota_reporte_dias\"). Se revisaron los permisos de todas las tablas nuevas de las últimas rondas." },
+        { "t": "arreglo", "d": "El módulo Notas vuelve a cargar: se corrigió la \"recursión infinita\" en los permisos de notas y notas compartidas (dueño, compartido-ver, compartido-editar y terceros funcionan bien)." },
+        { "t": "arreglo", "d": "En Flota › Conductores, el Tag/rol ahora se guarda aunque no presiones Enter antes de Guardar." },
+        { "t": "mejora", "d": "Los errores técnicos de base de datos ya no llegan crudos a la pantalla: se muestran mensajes claros en español y el detalle técnico se reporta a telemetría automáticamente." },
+        { "t": "mejora", "d": "Rendimiento de combustible calibrado: 4 estados (óptimo, bajo, anormal, datos insuficientes) con umbrales configurables por un administrador y un tooltip que explica el porqué de cada echada. Una echada a pocos km de la anterior ahora sale \"datos insuficientes\", nunca \"óptimo\"; un rendimiento imposiblemente alto se marca \"anormal\"." },
+        { "t": "nuevo", "d": "Homologación de Tecnología: el catálogo de categorías de herramientas ahora es administrable e incluye CAD/DWG, Mapeos/Take-off, Presupuestos, Ofimática, Email, Calendarios, Videollamadas, Mensajería, Nube, Contabilidad/ERP, Diseño, Seguridad e IA/Asistentes." },
+        { "t": "nuevo", "d": "Transporte del chofer: las rutas ahora tienen tipo (material, personal o traslado) y las compras/retiros de ferretería que registra un chofer quedan \"por confirmar\" hasta que Almacén las valida (recién ahí suman al stock)." },
+        { "t": "nuevo", "d": "Notas v2: crear/editar una nota es ahora una página completa con barra de herramientas tipo Word, checklists de verdad (clic para marcar, reordenar) que pueden vincularse a una Tarea y se marcan solas al completarse, y \"Compartir con…\" desde el inicio." },
+        { "t": "nuevo", "d": "Se cargaron los 10 proyectos en curso (con su ubicación en Maps, ingenieros, contactos y maestros encargados); los ingenieros que ya son usuarios ven sus proyectos asignados." }
+      ],
+      "url": ""
+    },
     "1.55.0": {
       "titulo": "Telehandler y equipos, conduces con firmas, rutas con paradas, y módulos QA y Notas",
       "cambios": [
