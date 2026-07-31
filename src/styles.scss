@@ -231,6 +231,14 @@ textarea {
       color: var(--sgc-danger);
       margin-left: 2px;
     }
+
+    // AC14 — marca "(opcional)" junto a un label (p. ej. placa de maquinaria).
+    .sgc-field__opt {
+      color: var(--sgc-text-secondary);
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 2px;
+    }
   }
 
   input,

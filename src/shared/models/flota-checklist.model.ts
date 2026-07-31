@@ -34,6 +34,9 @@ export interface ChecklistPlantilla {
   orden: number;
   frecuencia?: ChecklistFrecuencia | string;
   uso_aplica?: ChecklistUsoAplica | string;
+  // AC14.1 — plantilla específica por tipo de vehículo (null = genérica). Ej.
+  // 'telehandler' usa REPORTE-SEMANAL-TELEHANDLER-V1; el resto la genérica.
+  tipo_vehiculo?: string | null;
   items?: ChecklistPlantillaItem[];
 }
 
@@ -168,6 +171,16 @@ export const FOTO_SLOTS_SEMANAL: FotoSlot[] = [
   { slot: 'int_asientos_tras', label: 'Interior — asientos traseros / baúl', grupo: 'Interior' },
 ];
 
+/** AC12 — slots de foto de GOMAS del reporte semanal (equipos como telehandler).
+ *  Espejo del catálogo (seccion='Gomas', frecuencia='semanal'). Se capturan/renderizan
+ *  genéricamente; aquí solo se definen etiquetas legibles. */
+export const FOTO_SLOTS_GOMAS: FotoSlot[] = [
+  { slot: 'goma_del_izq', label: 'Goma — delantera izquierda', grupo: 'Exterior' },
+  { slot: 'goma_del_der', label: 'Goma — delantera derecha', grupo: 'Exterior' },
+  { slot: 'goma_tras_izq', label: 'Goma — trasera izquierda', grupo: 'Exterior' },
+  { slot: 'goma_tras_der', label: 'Goma — trasera derecha', grupo: 'Exterior' },
+];
+
 /** @deprecated usar fotoSlotsPara(frecuencia). Se mantiene por retrocompatibilidad. */
 export const FOTO_SLOTS: FotoSlot[] = FOTO_SLOTS_PREUSO;
 
@@ -178,7 +191,7 @@ export function fotoSlotsPara(frecuencia: string | null | undefined): FotoSlot[]
 
 /** Etiqueta legible de cualquier slot (une ambos sets + legado). Fallback = la clave. */
 const _SLOT_LABELS: Record<string, string> = Object.fromEntries(
-  [...FOTO_SLOTS_PREUSO, ...FOTO_SLOTS_SEMANAL].map((s) => [s.slot, s.label]),
+  [...FOTO_SLOTS_PREUSO, ...FOTO_SLOTS_SEMANAL, ...FOTO_SLOTS_GOMAS].map((s) => [s.slot, s.label]),
 );
 export function slotLabel(slot: string | null | undefined): string {
   if (!slot) return 'Foto';

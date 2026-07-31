@@ -61,6 +61,16 @@
     &:hover { background: var(--sgc-bg, #f1f2f4); }
     &--sel { background: var(--sgc-primary-light, #e8f0fe); }
     &--clear { color: var(--sgc-text-muted); }
+    &--disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      &:hover { background: none; }
+    }
+  }
+
+  &__asignado {
+    color: var(--sgc-danger, #d32f2f);
+    font-weight: 600;
   }
 
   &__opt-body { display: flex; flex-direction: column; gap: 1px; overflow: hidden; }

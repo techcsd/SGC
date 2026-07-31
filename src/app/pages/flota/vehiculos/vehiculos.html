@@ -268,10 +268,14 @@
 
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
-        <label for="placa">Placa <span class="required" aria-hidden="true">*</span></label>
+        <label for="placa">Placa
+          @if (!placaOpcional()) { <span class="required" aria-hidden="true">*</span> }
+          @else { <span class="sgc-field__opt">(opcional)</span> }
+        </label>
         <input id="placa" type="text" formControlName="placa"
           [class.invalid]="f.placa.invalid && f.placa.touched"
-          placeholder="Ej: A123BC" aria-required="true" style="text-transform:uppercase" />
+          [placeholder]="placaOpcional() ? 'Maquinaria sin placa — usa VIN / Serial' : 'Ej: A123BC'"
+          [attr.aria-required]="!placaOpcional()" style="text-transform:uppercase" />
         @if (f.placa.invalid && f.placa.touched) {
           <span class="field-error" role="alert">La placa es requerida.</span>
         }
@@ -287,15 +291,15 @@
       </div>
     </div>
 
-    <!-- V1 — VIN (chasis) -->
+    <!-- V1 / AC14 — VIN o número de serial (maquinaria pesada usa serial) -->
     <div class="sgc-field">
-      <label for="vin">VIN (número de chasis)</label>
+      <label for="vin">VIN / Serial</label>
       <input id="vin" type="text" formControlName="vin" maxlength="17"
-        placeholder="Ej: 1HGCM82633A004352" style="text-transform:uppercase"
+        placeholder="VIN o número de serial del equipo" style="text-transform:uppercase"
         [class.invalid]="f.vin.invalid && f.vin.touched" />
-      <small class="sgc-field__hint">Identificador único del vehículo (hasta 17 caracteres). Útil para diferenciar vehículos casi idénticos.</small>
+      <small class="sgc-field__hint">Identificador único del vehículo o maquinaria (hasta 17 caracteres). En equipos sin placa (telehandler, excavadora…) es su número de serial.</small>
       @if (f.vin.invalid && f.vin.touched) {
-        <span class="field-error" role="alert">El VIN no debe exceder 17 caracteres.</span>
+        <span class="field-error" role="alert">El VIN / serial no debe exceder 17 caracteres.</span>
       }
     </div>
 

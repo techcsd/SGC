@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
-import { SalidaInventario, SalidaFormData } from '../models/salida.model';
+import { SalidaInventario, SalidaFormData, SalidaFirma } from '../models/salida.model';
 import { NotificacionesService } from './notificaciones.service';
 
 // usuarios is joined twice (creado_por, recibido_por) — must be disambiguated
@@ -44,7 +44,12 @@ export class SalidasService {
   }
 
   /** Sube evidencia de entrega del conduce (firma/foto) al bucket `conduces`. */
-  async subirEvidenciaConduce(salidaId: string, tipo: 'firma' | 'foto', data: Blob | File, ext: string): Promise<string> {
+  async subirEvidenciaConduce(
+    salidaId: string,
+    tipo: 'firma' | 'foto' | 'firma-emisor' | 'firma-receptor',
+    data: Blob | File,
+    ext: string,
+  ): Promise<string> {
     const path = `salida/${salidaId}/${tipo}-${crypto.randomUUID()}.${ext}`;
     const { error } = await this.supabase.client.storage.from('conduces').upload(path, data);
     if (error) throw new Error(error.message);
@@ -72,6 +77,40 @@ export class SalidasService {
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
     return data as string;
+  }
+
+  /** AC7 — registra (upsert) una firma canónica del conduce (emisor/receptor) en
+   *  `sgc.salida_firmas` vía RPC `firmar_conduce`. Devuelve el id de la firma. */
+  async firmarConduce(
+    salidaId: string,
+    rol: 'emisor' | 'receptor',
+    nombre: string,
+    firmaPath: string,
+    opts?: { cedula?: string | null; rolDesc?: string | null; metodo?: 'pad' | 'foto'; usuarioId?: string | null },
+  ): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('firmar_conduce', {
+      p_salida_id: salidaId,
+      p_rol: rol,
+      p_nombre: nombre,
+      p_firma_path: firmaPath,
+      p_cedula: opts?.cedula ?? null,
+      p_rol_desc: opts?.rolDesc ?? null,
+      p_metodo: opts?.metodo ?? 'pad',
+      p_usuario_id: opts?.usuarioId ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  /** AC7 — firmas canónicas de un conduce (emisor primero, receptor después). */
+  async getFirmas(salidaId: string): Promise<SalidaFirma[]> {
+    const { data, error } = await this.supabase.client
+      .from('salida_firmas')
+      .select('*')
+      .eq('salida_id', salidaId)
+      .order('rol', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as SalidaFirma[];
   }
 
   /** Signed URL for the field-captured evidence photo (private `inventario` bucket). */

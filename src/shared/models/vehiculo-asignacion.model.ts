@@ -89,4 +89,8 @@ export interface ReporteSemanalFila {
   reportado_por_id: string | null;
   reportado_at: string | null;
   km_reporte: number | null;
+  // AC12 — día programado del reporte semanal (0=Domingo..6=Sábado) y si el
+  // reporte vigente se envió fuera de ese día.
+  dia_reporte_dow: number | null;
+  reportado_fuera_de_dia: boolean | null;
 }

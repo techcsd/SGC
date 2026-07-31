@@ -180,7 +180,7 @@
     <div class="form-row">
       <div class="sgc-field">
         <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
-        <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="activeVehiculos()" />
+        <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="activeVehiculos()" [asignados]="asignadosOtros()" />
         @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
           <span class="field-error">El vehículo es obligatorio.</span>
         }
@@ -282,6 +282,65 @@
         />
       </div>
     }
+
+    <!-- AC13 — Paradas intermedias (multi-stop) -->
+    <div class="sgc-field rutas__paradas">
+      <div class="rutas__paradas-head">
+        <label>Paradas (opcional)</label>
+        <button type="button" class="sgc-btn sgc-btn--ghost rutas__geo-btn" (click)="agregarParada()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Agregar parada
+        </button>
+      </div>
+      @if (paradas().length === 0) {
+        <span class="field-hint">Agrega paradas intermedias en orden entre el origen y el destino.</span>
+      }
+      @for (p of paradas(); track $index) {
+        <div class="rutas__parada">
+          <div class="rutas__parada-head">
+            <span class="rutas__parada-num">Parada {{ $index + 1 }}</span>
+            <div class="rutas__parada-ctrl">
+              <button type="button" class="rutas__parada-btn" (click)="moverParada($index, -1)"
+                      [disabled]="$index === 0" title="Subir" aria-label="Subir parada">↑</button>
+              <button type="button" class="rutas__parada-btn" (click)="moverParada($index, 1)"
+                      [disabled]="$index === paradas().length - 1" title="Bajar" aria-label="Bajar parada">↓</button>
+              <button type="button" class="rutas__parada-btn rutas__parada-btn--del" (click)="quitarParada($index)"
+                      title="Quitar" aria-label="Quitar parada">✕</button>
+            </div>
+          </div>
+          <input type="text" class="rutas__parada-input" [value]="p.ubicacion"
+                 (input)="updateParadaCampo($index, 'ubicacion', $any($event.target).value)"
+                 placeholder="Nombre o dirección de la parada" />
+          <app-location-picker
+            [latitud]="p.lat"
+            [longitud]="p.lng"
+            (ubicacionChange)="onParadaPicked($index, $event)"
+          />
+          <input type="text" class="rutas__parada-input" [value]="p.notas"
+                 (input)="updateParadaCampo($index, 'notas', $any($event.target).value)"
+                 placeholder="Notas de la parada (opcional)" />
+        </div>
+      }
+    </div>
+
+    <!-- AC6 — Fotos de evidencia (carga/vehículo/documento) -->
+    <div class="sgc-field">
+      <label>Fotos de evidencia (carga/vehículo/documento)</label>
+      <input type="file" accept="image/*" capture="environment" multiple (change)="onRutaFotosSelected($event)" />
+      @if (fotoPreviews().length) {
+        <div class="rutas__fotos-grid">
+          @for (p of fotoPreviews(); track $index) {
+            <div class="rutas__foto-thumb">
+              <img [src]="p" alt="Foto de evidencia" />
+              <button type="button" class="rutas__foto-quitar" (click)="quitarRutaFoto($index)" aria-label="Quitar foto">✕</button>
+            </div>
+          }
+        </div>
+      }
+      <span class="field-hint">Se suben al guardar la ruta. Usa la cámara para capturar en campo.</span>
+    </div>
 
     <div class="form-row">
       <div class="sgc-field">
@@ -442,6 +501,31 @@
         <p class="ruta-detalle__sub text-muted">Sin ubicación exacta del destino — no hay pronóstico.</p>
       }
 
+      <!-- AC13 — Paradas intermedias (en orden) -->
+      @if (detailParadas().length > 0) {
+        <h4 class="ruta-detalle__title">Paradas ({{ detailParadas().length }})</h4>
+        <ol class="ruta-paradas">
+          @for (p of detailParadas(); track p.id ?? $index) {
+            <li class="ruta-paradas__item">
+              <span class="ruta-paradas__ubi">{{ p.ubicacion }}</span>
+              @if (p.notas) { <span class="ruta-paradas__notas">{{ p.notas }}</span> }
+            </li>
+          }
+        </ol>
+      }
+
+      <!-- AC6 — Fotos de evidencia de la ruta -->
+      @if (detailFotos().length > 0) {
+        <h4 class="ruta-detalle__title">Fotos de evidencia ({{ detailFotos().length }})</h4>
+        <div class="rutas__fotos-grid">
+          @for (f of detailFotos(); track f.id) {
+            <button type="button" class="rutas__foto-thumb" (click)="abrirFotoLightbox(f.storage_path)">
+              <img [src]="f.url" alt="Foto de evidencia de la ruta" loading="lazy" />
+            </button>
+          }
+        </div>
+      }
+
       <!-- Datos -->
       <h4 class="ruta-detalle__title">Datos</h4>
       <dl class="ruta-detalle__meta">
@@ -529,3 +613,8 @@
     </div>
   }
 </app-form-drawer>
+
+<!-- AC6 — lightbox in-page para las fotos de evidencia de la ruta -->
+@if (fotoLightbox(); as url) {
+  <app-lightbox [src]="url" alt="Foto de evidencia de la ruta" (closed)="fotoLightbox.set(null)" />
+}

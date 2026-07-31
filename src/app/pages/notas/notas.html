@@ -1,0 +1,364 @@
+<div class="notas">
+  <!-- ── Encabezado ── -->
+  <div class="notas__header">
+    <div class="notas__title-row">
+      <h1 class="page-title">Notas</h1>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="openNueva()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        Nueva nota
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="notas__tabs" role="tablist" aria-label="Tipo de notas">
+      <button
+        type="button"
+        role="tab"
+        class="notas__tab"
+        [class.notas__tab--active]="tab() === 'mias'"
+        [attr.aria-selected]="tab() === 'mias'"
+        (click)="cambiarTab('mias')"
+      >
+        Mis notas
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="notas__tab"
+        [class.notas__tab--active]="tab() === 'compartidas'"
+        [attr.aria-selected]="tab() === 'compartidas'"
+        (click)="cambiarTab('compartidas')"
+      >
+        Compartidas conmigo
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="notas__filters">
+      <div class="sgc-field notas__search">
+        <input
+          type="search"
+          placeholder="Buscar por título o contenido…"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+          aria-label="Buscar notas"
+        />
+      </div>
+      @if (tab() === 'mias') {
+        <button
+          type="button"
+          class="notas__archivadas-toggle"
+          [class.active]="verArchivadas()"
+          (click)="verArchivadas.update((v) => !v)"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="4" width="20" height="5" rx="1" /><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9" /><line x1="10" y1="13" x2="14" y2="13" />
+          </svg>
+          Archivadas
+          @if (countArchivadas() > 0) {
+            <span class="notas__archivadas-count">{{ countArchivadas() }}</span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ── Contenido ── -->
+  @if (loading()) {
+    <app-skeleton variant="list" />
+  } @else if (error()) {
+    <div class="page-error" role="alert">{{ error() }}</div>
+  } @else if (notasVisibles().length === 0) {
+    <div class="notas__empty">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+        <line x1="9" y1="13" x2="15" y2="13" /><line x1="9" y1="17" x2="13" y2="17" />
+      </svg>
+      <p>
+        @if (tab() === 'mias') {
+          @if (verArchivadas()) {
+            No tienes notas archivadas.
+          } @else {
+            No tienes notas todavía. Crea la primera con "Nueva nota".
+          }
+        } @else {
+          Nadie ha compartido notas contigo.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="notas__grid">
+      @for (n of notasVisibles(); track n.id) {
+        <button
+          type="button"
+          class="nota-card"
+          [style.--nota-accent]="n.color || 'var(--sgc-border)'"
+          (click)="openNota(n)"
+        >
+          <div class="nota-card__head">
+            <span class="nota-card__title">{{ n.titulo || 'Sin título' }}</span>
+            @if (tab() === 'mias') {
+              <span
+                class="nota-card__pin"
+                [class.nota-card__pin--on]="n.pinned"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="n.pinned ? 'Quitar fijado' : 'Fijar nota'"
+                (click)="togglePinCard(n, $event)"
+                (keydown.enter)="togglePinCard(n, $event)"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="n.pinned ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 17v5" /><path d="M9 10.76V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4.76l2 2.24H7z" />
+                </svg>
+              </span>
+            } @else if (n.pinned) {
+              <span class="nota-card__pin nota-card__pin--on" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8">
+                  <path d="M12 17v5" /><path d="M9 10.76V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4.76l2 2.24H7z" />
+                </svg>
+              </span>
+            }
+          </div>
+          <span class="nota-card__excerpt">{{ excerpt(n) }}</span>
+          <div class="nota-card__foot">
+            @if (tab() === 'compartidas') {
+              <span class="nota-card__owner">Compartida por {{ ownerNombre(n) }}</span>
+              <span
+                class="sgc-badge"
+                [class.sgc-badge--info]="n.mi_permiso === 'editar'"
+                [class.sgc-badge--neutral]="n.mi_permiso !== 'editar'"
+              >
+                {{ n.mi_permiso === 'editar' ? 'Puedo editar' : 'Solo ver' }}
+              </span>
+            } @else {
+              @if (n.archivada) {
+                <span class="sgc-badge sgc-badge--neutral">Archivada</span>
+              }
+              <span class="nota-card__date">{{ n.updated_at | date: 'dd/MM/yy HH:mm' }}</span>
+            }
+          </div>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+<!-- ── Editor (drawer) ── -->
+<app-form-drawer
+  [title]="isNew() ? 'Nueva nota' : soloVer() ? 'Ver nota' : 'Editar nota'"
+  [open]="editorOpen()"
+  (closed)="closeEditor()"
+>
+  <div class="editor">
+    @if (soloVer()) {
+      <div class="editor__readonly-banner" role="status">
+        Solo lectura — esta nota se compartió contigo con permiso de ver.
+      </div>
+    }
+
+    <!-- Título -->
+    <div class="sgc-field">
+      <label for="nota_titulo">Título</label>
+      <input
+        id="nota_titulo"
+        type="text"
+        placeholder="Título de la nota"
+        [value]="tituloText()"
+        (input)="onTituloInput($any($event.target).value)"
+        [readOnly]="soloVer()"
+      />
+    </div>
+
+    <!-- Contenido -->
+    <div class="sgc-field">
+      <div class="editor__label-row">
+        <label for="nota_contenido">Contenido</label>
+        @if (!soloVer()) {
+          <button type="button" class="editor__mini-btn" (click)="agregarChecklist()">
+            + Ítem de checklist
+          </button>
+        }
+      </div>
+      <textarea
+        id="nota_contenido"
+        rows="7"
+        placeholder="Escribe aquí. Usa &quot;- [ ] tarea&quot; para una casilla de verificación."
+        [value]="contenidoText()"
+        (input)="onContenidoInput($any($event.target).value)"
+        [readOnly]="soloVer()"
+      ></textarea>
+      <p class="editor__hint">
+        Consejo: una línea que empieza con <code>- [ ]</code> o <code>- [x]</code> se vuelve una casilla marcable abajo.
+      </p>
+    </div>
+
+    <!-- Preview con checklist interactivo -->
+    @if (contenidoText().trim()) {
+      <div class="editor__preview" aria-label="Vista previa">
+        @for (l of lineasPreview(); track l.idx) {
+          @if (l.tipo === 'check') {
+            <label class="editor__check">
+              <input
+                type="checkbox"
+                [checked]="l.checked"
+                [disabled]="soloVer()"
+                (change)="toggleChecklistLine(l.idx)"
+              />
+              <span [class.editor__check-done]="l.checked">{{ l.texto || '(vacío)' }}</span>
+            </label>
+          } @else if (l.texto.trim()) {
+            <p class="editor__preview-line">{{ l.texto }}</p>
+          }
+        }
+      </div>
+    }
+
+    <!-- Color -->
+    <div class="editor__block">
+      <span class="editor__block-label">Color</span>
+      <div class="editor__swatches">
+        <button
+          type="button"
+          class="editor__swatch editor__swatch--none"
+          [class.editor__swatch--active]="!colorSel()"
+          [disabled]="soloVer()"
+          aria-label="Sin color"
+          (click)="seleccionarColor(null)"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5" /></svg>
+        </button>
+        @for (c of colores; track c.value) {
+          <button
+            type="button"
+            class="editor__swatch"
+            [style.background]="c.value"
+            [class.editor__swatch--active]="colorSel() === c.value"
+            [disabled]="soloVer()"
+            [attr.aria-label]="c.label"
+            [attr.title]="c.label"
+            (click)="seleccionarColor(c.value)"
+          ></button>
+        }
+      </div>
+    </div>
+
+    <!-- Opciones -->
+    <div class="editor__toggles">
+      <button
+        type="button"
+        class="editor__toggle"
+        [class.editor__toggle--on]="pinnedSel()"
+        [disabled]="soloVer()"
+        (click)="togglePinnedEditor()"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" [attr.fill]="pinnedSel() ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 17v5" /><path d="M9 10.76V6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4.76l2 2.24H7z" />
+        </svg>
+        {{ pinnedSel() ? 'Fijada' : 'Fijar' }}
+      </button>
+      <button
+        type="button"
+        class="editor__toggle"
+        [class.editor__toggle--on]="archivadaSel()"
+        [disabled]="soloVer()"
+        (click)="toggleArchivadaEditor()"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="4" width="20" height="5" rx="1" /><path d="M4 9v10a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9" /><line x1="10" y1="13" x2="14" y2="13" />
+        </svg>
+        {{ archivadaSel() ? 'Archivada' : 'Archivar' }}
+      </button>
+    </div>
+
+    <!-- Compartir (solo dueño y nota guardada) -->
+    @if (puedeCompartir()) {
+      <div class="editor__block editor__share">
+        <span class="editor__block-label">Compartir con</span>
+
+        <div class="sgc-field">
+          <input
+            type="search"
+            placeholder="Buscar persona…"
+            [value]="shareBuscar()"
+            (input)="onShareBuscar($any($event.target).value)"
+            aria-label="Buscar persona para compartir"
+          />
+        </div>
+
+        @if (shareBuscar().trim() && shareResultados().length > 0) {
+          <ul class="editor__share-results">
+            @for (u of shareResultados(); track u.id) {
+              <li class="editor__share-result">
+                <span class="editor__avatar">{{ iniciales(u.nombre) }}</span>
+                <span class="editor__share-name">{{ u.nombre }}</span>
+                <span class="editor__share-add">
+                  <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="sharing()" (click)="agregarCompartido(u, 'ver')">Ver</button>
+                  <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--primary" [disabled]="sharing()" (click)="agregarCompartido(u, 'editar')">Editar</button>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (compartidos().length > 0) {
+          <ul class="editor__shared-list">
+            @for (c of compartidos(); track c.id) {
+              <li class="editor__shared-item">
+                <span class="editor__avatar">{{ iniciales(c.usuario?.nombre ?? '?') }}</span>
+                <span class="editor__share-name">{{ c.usuario?.nombre ?? 'Usuario' }}</span>
+                <select
+                  class="editor__perm-select"
+                  [value]="c.permiso"
+                  (change)="onSelectPermiso(c, $any($event.target).value)"
+                  aria-label="Permiso"
+                >
+                  <option value="ver">Solo ver</option>
+                  <option value="editar">Editar</option>
+                </select>
+                <button type="button" class="editor__remove" aria-label="Quitar acceso" (click)="quitarCompartido(c)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="editor__share-empty">Aún no la has compartido con nadie.</p>
+        }
+      </div>
+    }
+
+    <!-- Acciones -->
+    <div class="drawer-actions editor__actions">
+      @if (esOwner() && !isNew()) {
+        <button type="button" class="sgc-btn sgc-btn--danger" (click)="pedirEliminar()">Eliminar</button>
+      }
+      <span class="editor__actions-spacer"></span>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeEditor()">
+        {{ soloVer() ? 'Cerrar' : 'Cancelar' }}
+      </button>
+      @if (!soloVer()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
+          @if (saving()) {
+            <span class="spinner" aria-hidden="true"></span>
+          } @else {
+            Guardar
+          }
+        </button>
+      }
+    </div>
+  </div>
+</app-form-drawer>
+
+<!-- Confirmar eliminación -->
+<app-confirm-dialog
+  [open]="confirmDeleteOpen()"
+  title="Eliminar nota"
+  message="¿Seguro que quieres eliminar esta nota? Esta acción no se puede deshacer."
+  confirmLabel="Eliminar"
+  cancelLabel="Cancelar"
+  tone="danger"
+  (confirmed)="confirmarEliminar()"
+  (cancelled)="cancelarEliminar()"
+/>

@@ -261,6 +261,124 @@ textarea {
 .rutas__desvio { color: var(--sgc-text-muted, #777); font-size: 0.85em; }
 .rutas__desvio--over { color: var(--sgc-danger, #d32f2f); }
 
+// ── AC13 — Paradas intermedias (formulario) ──────────────
+.rutas__paradas-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.rutas__parada {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius-sm);
+  background: var(--sgc-surface-hover);
+}
+
+.rutas__parada-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rutas__parada-num {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--sgc-text);
+}
+
+.rutas__parada-ctrl {
+  display: flex;
+  gap: 4px;
+}
+
+.rutas__parada-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sgc-radius-sm);
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  color: var(--sgc-text-muted);
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover:not(:disabled) { border-color: var(--sgc-primary-mid); color: var(--sgc-primary); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &--del:hover:not(:disabled) { border-color: var(--sgc-danger); color: var(--sgc-danger); }
+}
+
+.rutas__parada-input {
+  width: 100%;
+}
+
+// ── AC13 — Paradas en el detalle (read-only) ─────────────
+.ruta-paradas {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__item { font-size: 14px; color: var(--sgc-text); }
+  &__ubi { font-weight: 500; }
+  &__notas {
+    display: block;
+    font-size: 12.5px;
+    color: var(--sgc-text-secondary);
+  }
+}
+
+// ── AC6 — Fotos de evidencia (grid + thumbnails) ─────────
+.rutas__fotos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.rutas__foto-thumb {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--sgc-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--sgc-border);
+  padding: 0;
+  cursor: pointer;
+  background: var(--sgc-surface-hover);
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.rutas__foto-quitar {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 // Z22.2 — conduces asociados a la ruta
 .ruta-conduces { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .ruta-conduces__item { border: 1px solid var(--sgc-border); border-radius: 10px; padding: 8px 12px; }

@@ -11,7 +11,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { RutasService, RutaDetalleTransporte } from '../../../../shared/services/rutas.service';
-import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { VehiculosService, VehiculoAsignado } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -19,7 +19,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
-import { Ruta, RutaFormData, RutaEstado, RUTA_ESTADOS, destinoCoords, duracionRealMin } from '../../../../shared/models/ruta.model';
+import { Ruta, RutaFormData, RutaEstado, RutaParada, RutaFoto, RUTA_ESTADOS, destinoCoords, duracionRealMin } from '../../../../shared/models/ruta.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -34,12 +34,22 @@ import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-c
 import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../shared/utils/fecha.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
+/** AC13 — parada editable en el formulario (antes de guardarse vía set_ruta_paradas). */
+interface ParadaEdit {
+  ubicacion: string;
+  lat: number | null;
+  lng: number | null;
+  notas: string;
+  proyecto_id: string | null;
+}
+
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -104,6 +114,25 @@ export class Rutas implements OnInit {
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
+  // ── AC13 — Paradas intermedias (multi-stop) del formulario ──
+  paradas = signal<ParadaEdit[]>([]);
+
+  // ── AC6 — Fotos de evidencia a subir al crear/editar la ruta ──
+  fotoFiles = signal<File[]>([]);
+  fotoPreviews = signal<string[]>([]);
+
+  // ── AC8 — vehículos ya retenidos/asignados (por vehiculo_id) ──
+  private asignadosMap = signal<Map<string, VehiculoAsignado>>(new Map());
+  /** Solo los que tiene OTRA persona (excluye los del usuario actual). */
+  asignadosOtros = computed(() => {
+    const self = this.userService.profile()?.id ?? null;
+    const out = new Map<string, { nombre: string; motivo: string }>();
+    for (const [id, a] of this.asignadosMap()) {
+      if (a.usuario_id !== self) out.set(id, { nombre: a.nombre, motivo: a.motivo });
+    }
+    return out;
+  });
+
   // ── R3 — Detalle de ruta (read-only) ─────────────────────
   detailOpen = signal(false);
   detailRuta = signal<Ruta | null>(null);
@@ -117,10 +146,38 @@ export class Rutas implements OnInit {
   detalleTransporte = signal<RutaDetalleTransporte | null>(null);
   detalleTransporteCargando = signal(false);
 
+  // ── AC13/AC6 — paradas y fotos de la ruta en detalle (read-only) ──
+  detailParadas = signal<RutaParada[]>([]);
+  detailFotos = signal<(RutaFoto & { url: string })[]>([]);
+  /** AC6 — foto abierta en grande (lightbox in-page). */
+  fotoLightbox = signal<string | null>(null);
+
   openDetail(r: Ruta) {
     this.detailRuta.set(r);
     this.detailOpen.set(true);
+    this.detailParadas.set([]);
+    this.detailFotos.set([]);
     this.cargarTransporte(r.id);
+    void this.cargarParadasFotos(r.id);
+  }
+
+  private async cargarParadasFotos(rutaId: string) {
+    try {
+      const [paradas, fotos] = await Promise.all([
+        this.rutasService.getParadas(rutaId),
+        this.rutasService.getRutaFotos(rutaId),
+      ]);
+      this.detailParadas.set(paradas);
+      this.detailFotos.set(fotos.filter((f) => f.url));
+    } catch {
+      /* no bloquea el detalle si falla */
+    }
+  }
+
+  /** AC6 — abre una foto de la ruta en grande (URL original firmada). */
+  async abrirFotoLightbox(path: string) {
+    const url = await this.rutasService.getRutaFotoUrl(path);
+    if (url) this.fotoLightbox.set(url);
   }
 
   private async cargarTransporte(rutaId: string) {
@@ -301,6 +358,17 @@ export class Rutas implements OnInit {
     }
     // Weather-at-destination for upcoming trips — best-effort, after the list shows.
     void this.cargarClimaRutas();
+    // AC8 — vehículos ya retenidos/asignados (para deshabilitarlos en el selector).
+    void this.cargarAsignados();
+  }
+
+  /** AC8 — carga el mapa de vehículos retenidos/asignados (best-effort). */
+  private async cargarAsignados() {
+    try {
+      this.asignadosMap.set(await this.vehiculosService.getVehiculosAsignados());
+    } catch {
+      /* enrichment only — si falla, el selector no anota nada */
+    }
   }
 
   /** Trip-day weather for upcoming (not-yet-done) rutas that have a destination point. */
@@ -349,6 +417,8 @@ export class Rutas implements OnInit {
     this.origenLng.set(null);
     this.autoEstimado.set(false);
     this.syncDestinoSignals(null, null, null, this.today);
+    this.paradas.set([]);
+    this.limpiarFotos();
     this.drawerOpen.set(true);
   }
 
@@ -375,7 +445,28 @@ export class Rutas implements OnInit {
     this.origenLng.set(r.origen_lng ?? null);
     this.autoEstimado.set(false);
     this.syncDestinoSignals(r.destino_proyecto_id, r.destino_lat, r.destino_lng, r.fecha);
+    this.paradas.set([]);
+    this.limpiarFotos();
+    void this.cargarParadasEdit(r.id);
     this.drawerOpen.set(true);
+  }
+
+  /** AC13 — carga las paradas existentes al editar una ruta. */
+  private async cargarParadasEdit(rutaId: string) {
+    try {
+      const paradas = await this.rutasService.getParadas(rutaId);
+      this.paradas.set(
+        paradas.map((p) => ({
+          ubicacion: p.ubicacion,
+          lat: p.lat ?? null,
+          lng: p.lng ?? null,
+          notas: p.notas ?? '',
+          proyecto_id: p.proyecto_id ?? null,
+        })),
+      );
+    } catch {
+      /* si falla, se edita sin paradas precargadas */
+    }
   }
 
   closeDrawer() {
@@ -387,6 +478,66 @@ export class Rutas implements OnInit {
     this.destinoLat.set(lat);
     this.destinoLng.set(lng);
     this.formFecha.set(fecha);
+  }
+
+  // ── AC13 — Paradas intermedias (multi-stop) ──────────────
+  agregarParada() {
+    this.paradas.update((list) => [
+      ...list,
+      { ubicacion: '', lat: null, lng: null, notas: '', proyecto_id: null },
+    ]);
+  }
+
+  quitarParada(i: number) {
+    this.paradas.update((list) => list.filter((_, idx) => idx !== i));
+  }
+
+  moverParada(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    this.paradas.update((list) => {
+      if (j < 0 || j >= list.length) return list;
+      const copia = [...list];
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+      return copia;
+    });
+  }
+
+  onParadaPicked(i: number, u: UbicacionSeleccionada) {
+    this.paradas.update((list) =>
+      list.map((p, idx) =>
+        idx === i
+          ? { ...p, lat: u.latitud, lng: u.longitud, ubicacion: p.ubicacion.trim() || u.direccion }
+          : p,
+      ),
+    );
+  }
+
+  updateParadaCampo(i: number, campo: 'ubicacion' | 'notas', valor: string) {
+    this.paradas.update((list) => list.map((p, idx) => (idx === i ? { ...p, [campo]: valor } : p)));
+  }
+
+  // ── AC6 — Fotos de evidencia de la ruta ──────────────────
+  async onRutaFotosSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    for (const file of files) {
+      this.fotoFiles.update((l) => [...l, file]);
+      this.fotoPreviews.update((l) => [...l, URL.createObjectURL(file)]);
+    }
+  }
+
+  quitarRutaFoto(i: number) {
+    const prev = this.fotoPreviews()[i];
+    if (prev) URL.revokeObjectURL(prev);
+    this.fotoFiles.update((l) => l.filter((_, idx) => idx !== i));
+    this.fotoPreviews.update((l) => l.filter((_, idx) => idx !== i));
+  }
+
+  private limpiarFotos() {
+    for (const p of this.fotoPreviews()) URL.revokeObjectURL(p);
+    this.fotoFiles.set([]);
+    this.fotoPreviews.set([]);
   }
 
   // ── Origin selection + auto route estimate ───────────────
@@ -532,14 +683,40 @@ export class Rutas implements OnInit {
 
     try {
       const id = this.editingId();
+      let rutaId: string;
       if (id) {
         const updated = await this.rutasService.update(id, payload);
         this.rutas.update((list) => list.map((r) => (r.id === id ? updated : r)));
+        rutaId = id;
       } else {
         const created = await this.rutasService.create(payload, userId);
         this.rutas.update((list) => [created, ...list]);
+        rutaId = created.id;
       }
+
+      // AC13 — persistir las paradas (reemplaza todas). Solo paradas con ubicación.
+      const paradas: RutaParada[] = this.paradas()
+        .filter((p) => p.ubicacion.trim() || (p.lat != null && p.lng != null))
+        .map((p, i) => ({
+          orden: i + 1,
+          ubicacion: p.ubicacion.trim() || 'Parada sin nombre',
+          lat: p.lat,
+          lng: p.lng,
+          notas: p.notas.trim() || null,
+          proyecto_id: p.proyecto_id,
+        }));
+      // Si editando y quedaron 0 paradas, igual reemplaza (limpia las anteriores).
+      if (paradas.length > 0 || id) {
+        await this.rutasService.setParadas(rutaId, paradas);
+      }
+
+      // AC6 — subir las fotos de evidencia seleccionadas.
+      for (const file of this.fotoFiles()) {
+        await this.rutasService.uploadRutaFoto(rutaId, file, 'inicial');
+      }
+
       this.drawerOpen.set(false);
+      this.limpiarFotos();
       void this.cargarClimaRutas();
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');

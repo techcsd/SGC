@@ -1,0 +1,133 @@
+import { Injectable, inject } from '@angular/core';
+import { SupabaseService } from '../../app/core/services/supabase.service';
+import { Nota, NotaCompartido, NotaPermiso } from '../models/nota.model';
+
+export interface DirectorioUsuario {
+  id: string;
+  nombre: string;
+}
+
+/** Payload que la UI envía a `guardar_nota` (crea si el id no existe, actualiza si sí). */
+export interface GuardarNotaInput {
+  id: string;
+  titulo: string;
+  contenido: string;
+  color: string | null;
+  pinned: boolean;
+  archivada: boolean;
+}
+
+export interface GuardarNotaResult {
+  conflict: boolean;
+  nota: Nota;
+}
+
+@Injectable({ providedIn: 'root' })
+export class NotasService {
+  private supabase = inject(SupabaseService);
+
+  /** Lista mínima de usuarios activos (SECURITY DEFINER) para el selector de compartir. */
+  async getDirectorio(): Promise<DirectorioUsuario[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as DirectorioUsuario[];
+  }
+
+  /** Mis notas (owner_id = yo). La RLS también devuelve compartidas; por eso
+   *  filtramos explícitamente por dueño aquí. */
+  async getMisNotas(ownerId: string, includeArchivadas = false): Promise<Nota[]> {
+    let query = this.supabase.client
+      .from('notas')
+      .select('*')
+      .eq('owner_id', ownerId)
+      .order('updated_at', { ascending: false });
+
+    if (!includeArchivadas) query = query.eq('archivada', false);
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Nota[];
+  }
+
+  /** Notas compartidas conmigo: filas de `nota_compartidos` con usuario_id = yo,
+   *  trayendo la nota embebida (FK única nota_id → notas). */
+  async getCompartidasConmigo(usuarioId: string): Promise<Nota[]> {
+    const { data, error } = await this.supabase.client
+      .from('nota_compartidos')
+      .select('permiso, nota:notas(*)')
+      .eq('usuario_id', usuarioId);
+
+    if (error) throw new Error(error.message);
+
+    const rows = (data ?? []) as unknown as { permiso: NotaPermiso; nota: Nota | null }[];
+    return rows
+      .filter((r) => r.nota)
+      .map((r) => ({ ...(r.nota as Nota), mi_permiso: r.permiso }))
+      .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+  }
+
+  /** Crea (id nuevo) o actualiza (id existente) vía RPC; devuelve { conflict, nota }.
+   *  `conflict=true` si el servidor tenía una edición posterior a `expectedUpdatedAt`
+   *  (última edición gana, pero se avisa). */
+  async guardarNota(input: GuardarNotaInput, expectedUpdatedAt?: string | null): Promise<GuardarNotaResult> {
+    const { data, error } = await this.supabase.client.rpc('guardar_nota', {
+      p_id: input.id,
+      p_titulo: input.titulo,
+      p_contenido: input.contenido,
+      p_color: input.color,
+      p_pinned: input.pinned,
+      p_archivada: input.archivada,
+      p_expected_updated_at: expectedUpdatedAt ?? null,
+    });
+
+    if (error) throw new Error(error.message);
+    const res = data as { conflict: boolean; nota: Nota };
+    return { conflict: !!res?.conflict, nota: res.nota };
+  }
+
+  /** Eliminar (solo dueño; la RLS lo garantiza server-side). */
+  async eliminarNota(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('notas').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Compartidos de una nota (solo el dueño puede leer todos), con nombre del usuario. */
+  async getCompartidos(notaId: string): Promise<NotaCompartido[]> {
+    const { data, error } = await this.supabase.client
+      .from('nota_compartidos')
+      .select('*, usuario:usuarios(nombre)')
+      .eq('nota_id', notaId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as NotaCompartido[];
+  }
+
+  /** Compartir con un usuario (upsert: si ya existe, actualiza el permiso). Solo dueño. */
+  async compartir(notaId: string, usuarioId: string, permiso: NotaPermiso): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('nota_compartidos')
+      .upsert({ nota_id: notaId, usuario_id: usuarioId, permiso }, { onConflict: 'nota_id,usuario_id' });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Cambiar el permiso de un compartido existente. Solo dueño. */
+  async cambiarPermiso(notaId: string, usuarioId: string, permiso: NotaPermiso): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('nota_compartidos')
+      .update({ permiso })
+      .eq('nota_id', notaId)
+      .eq('usuario_id', usuarioId);
+    if (error) throw new Error(error.message);
+  }
+
+  /** Quitar un compartido. Solo dueño. */
+  async quitarCompartido(notaId: string, usuarioId: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('nota_compartidos')
+      .delete()
+      .eq('nota_id', notaId)
+      .eq('usuario_id', usuarioId);
+    if (error) throw new Error(error.message);
+  }
+}

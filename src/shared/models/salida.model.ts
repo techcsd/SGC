@@ -52,6 +52,21 @@ export interface SalidaInventario {
   detalle_salidas?: DetalleSalida[];
 }
 
+/** AC7 — firma capturada de un conduce (emisor entrega / receptor recibe). Vive en
+ *  `sgc.salida_firmas`; es la fuente canónica de las firmas del conduce. */
+export interface SalidaFirma {
+  id?: string;
+  salida_id?: string;
+  rol: 'emisor' | 'receptor';
+  nombre: string;
+  cedula?: string | null;
+  rol_desc?: string | null;
+  usuario_id?: string | null;
+  firma_path: string;
+  metodo?: 'pad' | 'foto';
+  firmado_en?: string;
+}
+
 export interface SalidaItemFormData {
   articulo_id: string;
   cantidad: number;

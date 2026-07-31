@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
+import { noChoferGuard } from './core/guards/no-chofer.guard';
 
 export const routes: Routes = [
   {
@@ -100,7 +101,9 @@ export const routes: Routes = [
       {
         // No module guard on the parent: the homologación guide is informative for
         // every authenticated user. Management children self-guard with moduleGuard('tecnologia').
+        // AC2 — pero la persona "chofer" no ve Tecnología en absoluto.
         path: 'tecnologia',
+        canActivate: [noChoferGuard],
         loadChildren: () =>
           import('./pages/tecnologia/tecnologia.routes').then((m) => m.tecnologiaRoutes),
       },
@@ -108,6 +111,11 @@ export const routes: Routes = [
         // Internal messaging — available to every authenticated user.
         path: 'mensajes',
         loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),
+      },
+      {
+        // Personal + shared notes — no module gate, every authenticated user.
+        path: 'notas',
+        loadComponent: () => import('./pages/notas/notas').then((m) => m.Notas),
       },
     ],
   },

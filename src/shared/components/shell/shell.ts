@@ -31,6 +31,8 @@ interface NavItem {
    *  module gate on the parent but still shows a per-user pending count). */
   badgeKey?: string;
   phase?: string;
+  /** AC2 — oculto para la persona "chofer" (rol chofer_transportista). */
+  noChofer?: boolean;
   children?: NavSubItem[];
 }
 
@@ -214,8 +216,10 @@ export class Shell implements OnInit {
     {
       // Sin `modulo`: la guía de homologación es informativa para todos.
       // Las secciones de gestión se gatean con el módulo 'tecnologia'.
+      // AC2 — el módulo es público EXCEPTO para la persona "chofer".
       label: 'Tecnología',
       icon: 'tecnologia',
+      noChofer: true,
       children: [
         { label: 'Guía de herramientas', route: '/tecnologia/guia' },
         { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
@@ -224,6 +228,7 @@ export class Shell implements OnInit {
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
         // Y11 — plataforma/sistema: solo admin | rol tecnologia.
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
+        { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
         { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', soloTecnologia: true },
         // Z26 — Historial de versiones es público (todos lo ven).
         { label: 'Historial de versiones', route: '/tecnologia/historial-versiones' },
@@ -236,6 +241,12 @@ export class Shell implements OnInit {
       icon: 'mensajes',
       route: '/mensajes',
       badgeKey: 'mensajes',
+    },
+    {
+      // Personal + shared notes — no module gate, visible to everyone.
+      label: 'Notas',
+      icon: 'notas',
+      route: '/notas',
     },
     {
       // App móvil de campo (APK Android + PWA iPhone) — visible para todos.
@@ -396,6 +407,9 @@ export class Shell implements OnInit {
   }
 
   canAccess(item: NavItem): boolean {
+    // AC2 — la persona "chofer" no ve Tecnología (salvo que sea elevado/tecnología).
+    if (item.noChofer && this.userService.esChofer() && !this.userService.esTecnologia())
+      return false;
     if (!item.modulo) return true;
     if (item.phase) return false;
     return this.userService.hasModulo(item.modulo);

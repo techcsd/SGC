@@ -1,5 +1,11 @@
-// X6 — 4 tipos fijos de visita a taller.
-export type MantenimientoTipo = 'preventivo' | 'falla' | 'accidente_dano' | 'cambio_pieza';
+// X6 — tipos de visita a taller (+ AC14.3 equipos: engrase / hidráulico).
+export type MantenimientoTipo =
+  | 'preventivo'
+  | 'falla'
+  | 'accidente_dano'
+  | 'cambio_pieza'
+  | 'engrase'
+  | 'hidraulico';
 export type MantenimientoEstado = 'pendiente' | 'en_proceso' | 'completado';
 
 export interface Mantenimiento {
@@ -43,6 +49,9 @@ export const MANT_TIPOS: { value: MantenimientoTipo; label: string }[] = [
   { value: 'falla', label: 'Reparación por falla/avería' },
   { value: 'accidente_dano', label: 'Reparación por accidente/daño' },
   { value: 'cambio_pieza', label: 'Cambio de pieza/consumible' },
+  // AC14.3 — visitas propias de equipos por horas (telehandler, etc.).
+  { value: 'engrase', label: 'Engrase' },
+  { value: 'hidraulico', label: 'Servicio hidráulico' },
 ];
 
 /** Badge por tipo de visita (color) para listados/detalle. */
@@ -51,6 +60,8 @@ export const MANT_TIPO_BADGE: Record<MantenimientoTipo, string> = {
   falla: 'warning',
   accidente_dano: 'danger',
   cambio_pieza: 'info',
+  engrase: 'neutral',
+  hidraulico: 'info',
 };
 
 export const MANT_ESTADOS = [

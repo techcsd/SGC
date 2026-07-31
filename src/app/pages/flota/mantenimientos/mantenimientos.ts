@@ -170,7 +170,7 @@ export class Mantenimientos implements OnInit {
       if (m.es_prueba && !verPrueba) return false;
       if (
         q &&
-        !m.vehiculo?.placa.toLowerCase().includes(q) &&
+        !m.vehiculo?.placa?.toLowerCase().includes(q) &&
         !m.vehiculo?.marca.toLowerCase().includes(q) &&
         !m.proveedor?.toLowerCase().includes(q)
       ) {

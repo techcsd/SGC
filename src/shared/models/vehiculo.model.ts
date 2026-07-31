@@ -24,7 +24,9 @@ export type VehiculoMedidaUso = 'km' | 'horas';
 
 export interface Vehiculo {
   id: string;
-  placa: string;
+  // AC14 — la placa es opcional en maquinaria pesada sin matrícula (telehandler,
+  // excavadora…). Se identifican por VIN/serial. Ver EQUIPO_SIN_PLACA.
+  placa: string | null;
   // V1 — número VIN (chasis): identificador único para diferenciar vehículos casi
   // idénticos (mismo modelo/año, placas parecidas).
   vin: string | null;
@@ -70,7 +72,8 @@ export interface Vehiculo {
 }
 
 export interface VehiculoFormData {
-  placa: string;
+  // AC14 — null cuando el equipo no tiene placa (ver EQUIPO_SIN_PLACA / tipoSinPlaca).
+  placa: string | null;
   vin: string | null;
   marca: string;
   modelo: string;
@@ -185,6 +188,19 @@ const TIPOS_LIVIANOS = new Set<string>(['motocicleta', 'automovil', 'suv', 'pick
 /** Clase Liviano/Pesado según el tipo (para filtrar ítems de checklist). */
 export function claseVehiculo(tipo?: VehiculoTipo | string | null): 'Liviano' | 'Pesado' {
   return TIPOS_LIVIANOS.has(tipo ?? '') ? 'Liviano' : 'Pesado';
+}
+
+/** AC14 — maquinaria pesada sin matrícula/placa (se identifica por VIN/serial).
+ *  Para estos tipos la placa es OPCIONAL en el formulario; el resto la exige. */
+export const EQUIPO_SIN_PLACA: VehiculoTipo[] = [
+  'telehandler', 'excavadora', 'retroexcavadora', 'bulldozer',
+  'grua', 'mixer', 'compactadora', 'montacargas',
+];
+const _EQUIPO_SIN_PLACA = new Set<string>(EQUIPO_SIN_PLACA);
+
+/** AC14 — true si el tipo es maquinaria sin placa (placa opcional en el form). */
+export function tipoSinPlaca(tipo?: VehiculoTipo | string | null): boolean {
+  return _EQUIPO_SIN_PLACA.has(tipo ?? '');
 }
 
 /** Z10 — Descripción canónica del vehículo: "Marca Modelo Año" (ej. "Izuzu D-Max 2023").

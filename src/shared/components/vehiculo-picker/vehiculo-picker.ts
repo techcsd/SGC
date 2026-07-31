@@ -49,6 +49,12 @@ export class VehiculoPicker implements ControlValueAccessor {
   allowClear = input(false);
   /** Modo suelto (sin formulario): valor controlado por el padre. */
   value = input<string | null | undefined>(undefined);
+  /**
+   * AC8 — vehículos ya retenidos/asignados a OTRA persona (por `vehiculo_id`).
+   * Los que estén en el mapa se muestran deshabilitados y anotados con
+   * "· Asignado a X". Opcional: `undefined` = comportamiento anterior sin cambios.
+   */
+  asignados = input<Map<string, { nombre: string; motivo: string }> | undefined>(undefined);
 
   valueChange = output<string | null>();
 
@@ -89,6 +95,11 @@ export class VehiculoPicker implements ControlValueAccessor {
     return this.fotoUrls()[v.id] ?? null;
   }
 
+  /** AC8 — anotación de asignación de un vehículo (null = libre / no aplica). */
+  asignadoDe(v: Vehiculo): { nombre: string; motivo: string } | null {
+    return this.asignados()?.get(v.id) ?? null;
+  }
+
   vehiculoLabel(v: Vehiculo): string {
     return `${v.placa} — ${descripcionVehiculo(v)}`;
   }
@@ -100,6 +111,8 @@ export class VehiculoPicker implements ControlValueAccessor {
   }
 
   pick(v: Vehiculo) {
+    // AC8 — no se puede elegir un vehículo retenido/asignado a otra persona.
+    if (this.asignadoDe(v) && v.id !== this.selectedId()) return;
     this.selectedId.set(v.id);
     this.open.set(false);
     this.onChange(v.id);

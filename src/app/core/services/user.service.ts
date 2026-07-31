@@ -39,11 +39,10 @@ export class UserService {
   }
 
   /**
-   * Y11 — acceso al módulo "Tecnología" de plataforma (historial de versiones,
-   * versiones de la app, reportes de errores, monitoreo de infraestructura).
-   * Reservado a `admin` y al rol `tecnologia` — NO al `encargado_tecnologia`
-   * (que solo maneja contenido/inventario TI). Debe coincidir con la función
-   * SQL `sgc.es_tecnologia()` (fuente de verdad en RLS).
+   * Y11 / AC2 — acceso a las secciones RESTRINGIDAS de "Tecnología" de plataforma
+   * (versiones de la app, reportes de errores, monitoreo de infraestructura).
+   * Reservado a `admin`, `tecnologia`, `gerencia` y `direccion`. Debe coincidir
+   * con la función SQL `sgc.es_tecnologia()` (fuente de verdad en RLS).
    */
   esTecnologia = computed(
     () =>
@@ -52,6 +51,15 @@ export class UserService {
       this.hasRole('gerencia') ||
       this.hasRole('direccion'),
   );
+
+  /**
+   * AC2 — persona "chofer": el usuario de experiencia reducida que entra por
+   * cédula + PIN (rol `chofer_transportista`). El módulo Tecnología es visible
+   * para todos EXCEPTO este perfil. Debe coincidir con `sgc.es_chofer()`.
+   * Un usuario elevado (admin/tecnología) que además fuera chofer SÍ ve
+   * Tecnología, de ahí el `&& !esTecnologia()` en los gates.
+   */
+  esChofer = computed(() => this.hasRole('chofer_transportista'));
 
   /**
    * Quién puede ver el cuadre de materiales + señales antifraude (límites por

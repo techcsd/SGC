@@ -159,4 +159,13 @@ export class ReporteSemanal implements OnInit {
   resultadoLabel(r: string | null): string {
     return r ? (RESULTADO_LABEL[r] ?? r) : '—';
   }
+
+  /** AC12 — nombre del día programado del reporte (0=Domingo..6=Sábado). */
+  diaLabel(dow: number | null | undefined): string {
+    if (dow == null) return '—';
+    return DIAS_SEMANA[dow] ?? '—';
+  }
 }
+
+/** AC12 — nombres de día por índice DOW de Postgres (0=Domingo..6=Sábado). */
+const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

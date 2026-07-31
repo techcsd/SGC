@@ -12,13 +12,54 @@
 @if (mostrarCierre() && salida(); as s) {
   <section class="conduce-cierre no-print">
     <h2 class="conduce-cierre__title">Registrar entrega del conduce</h2>
-    <p class="conduce-cierre__lead">Confirma lo que recibe la obra, la firma y (opcional) una foto. Queda como evidencia de entrega.</p>
+    <p class="conduce-cierre__lead">Confirma lo que recibe la obra, ambas firmas (quien entrega y quien recibe) y (opcional) una foto. Queda como evidencia de entrega.</p>
 
-    <div class="sgc-field">
-      <label for="cc-receptor">Recibido por <span class="required">*</span></label>
-      <input id="cc-receptor" type="text" [value]="receptor()" (input)="receptor.set($any($event.target).value)"
-        placeholder="Nombre de quien recibe en obra" />
-    </div>
+    <!-- Emisor: quien entrega (chofer / almacén) -->
+    <fieldset class="conduce-cierre__party">
+      <legend>Quien entrega (emisor)</legend>
+      <div class="sgc-field">
+        <label for="cc-emisor">Nombre <span class="required">*</span></label>
+        <input id="cc-emisor" type="text" [value]="emisorNombre()" (input)="emisorNombre.set($any($event.target).value)"
+          placeholder="Nombre de quien entrega" />
+      </div>
+      <div class="conduce-cierre__row">
+        <div class="sgc-field">
+          <label for="cc-emisor-ced">Cédula (opcional)</label>
+          <input id="cc-emisor-ced" type="text" [value]="emisorCedula()" (input)="emisorCedula.set($any($event.target).value)"
+            placeholder="000-0000000-0" />
+        </div>
+        <div class="sgc-field">
+          <label for="cc-emisor-rol">Cargo / rol (opcional)</label>
+          <input id="cc-emisor-rol" type="text" [value]="emisorRolDesc()" (input)="emisorRolDesc.set($any($event.target).value)"
+            placeholder="Ej. Chofer, Almacén" />
+        </div>
+      </div>
+      <div class="sgc-field">
+        <label>Firma de quien entrega <span class="required">*</span></label>
+        <app-signature-pad #firmaEmisorPad ariaLabel="Firma de quien entrega" />
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaEmisorPad.clear()">Limpiar firma</button>
+      </div>
+    </fieldset>
+
+    <!-- Receptor: quien recibe en obra -->
+    <fieldset class="conduce-cierre__party">
+      <legend>Quien recibe (receptor)</legend>
+      <div class="sgc-field">
+        <label for="cc-receptor">Nombre <span class="required">*</span></label>
+        <input id="cc-receptor" type="text" [value]="receptor()" (input)="receptor.set($any($event.target).value)"
+          placeholder="Nombre de quien recibe en obra" />
+      </div>
+      <div class="sgc-field">
+        <label for="cc-receptor-ced">Cédula (opcional)</label>
+        <input id="cc-receptor-ced" type="text" [value]="receptorCedula()" (input)="receptorCedula.set($any($event.target).value)"
+          placeholder="000-0000000-0" />
+      </div>
+      <div class="sgc-field">
+        <label>Firma de quien recibe <span class="required">*</span></label>
+        <app-signature-pad #firmaPad ariaLabel="Firma de quien recibe" />
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaPad.clear()">Limpiar firma</button>
+      </div>
+    </fieldset>
 
     <div class="conduce-cierre__items">
       <span class="conduce-cierre__items-label">Cantidades recibidas</span>
@@ -45,12 +86,6 @@
           <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoCierre($event)" />
         </label>
       }
-    </div>
-
-    <div class="sgc-field">
-      <label>Firma de quien recibe (opcional)</label>
-      <app-signature-pad #firmaPad ariaLabel="Firma de quien recibe" />
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaPad.clear()">Limpiar firma</button>
     </div>
 
     <div class="sgc-field">
@@ -185,7 +220,7 @@
       <p class="conduce__obs"><strong>Notas de recepción:</strong> {{ s.notas_recepcion }}</p>
     }
 
-    @if (entregaFotoUrl() || entregaFirmaUrl() || salidaFotoUrl()) {
+    @if (entregaFotoUrl() || salidaFotoUrl()) {
       <section class="conduce__evidencia">
         <h2 class="conduce__evidencia-title">Evidencia (app de campo)</h2>
         <div class="conduce__evidencia-grid">
@@ -201,23 +236,43 @@
               <figcaption>Foto de la entrega</figcaption>
             </figure>
           }
-          @if (entregaFirmaUrl(); as url) {
-            <figure class="conduce__evidencia-item">
-              <img [src]="url" alt="Firma de quien recibe" />
-              <figcaption>Firma de quien recibe@if (s.entrega_receptor) { — {{ s.entrega_receptor }}}</figcaption>
-            </figure>
-          }
         </div>
       </section>
     }
 
     <section class="conduce__firmas">
+      <!-- Entregado por (emisor) -->
       <div class="conduce__firma">
-        <span class="conduce__firma-line"></span>
-        <span>Entregado por (Almacén)</span>
+        @if (firmaEmisor(); as f) {
+          @if (f.url) { <img class="conduce__firma-img" [src]="f.url" alt="Firma de quien entrega" /> }
+          <span class="conduce__firma-line conduce__firma-line--signed"></span>
+          <span class="conduce__firma-name">{{ f.nombre }}</span>
+          @if (f.cedula || f.rol_desc) {
+            <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { Céd. {{ f.cedula }} }</span>
+          }
+          @if (f.firmado_en) { <span class="conduce__firma-meta">{{ formatTimestamp(f.firmado_en) }}</span> }
+        } @else {
+          <span class="conduce__firma-line"></span>
+        }
+        <span>Entregado por</span>
       </div>
+      <!-- Recibido por (receptor) — con fallback a la firma legacy -->
       <div class="conduce__firma">
-        <span class="conduce__firma-line"></span>
+        @if (firmaReceptor(); as f) {
+          @if (f.url) { <img class="conduce__firma-img" [src]="f.url" alt="Firma de quien recibe" /> }
+          <span class="conduce__firma-line conduce__firma-line--signed"></span>
+          <span class="conduce__firma-name">{{ f.nombre }}</span>
+          @if (f.cedula || f.rol_desc) {
+            <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { Céd. {{ f.cedula }} }</span>
+          }
+          @if (f.firmado_en) { <span class="conduce__firma-meta">{{ formatTimestamp(f.firmado_en) }}</span> }
+        } @else if (entregaFirmaUrl(); as url) {
+          <img class="conduce__firma-img" [src]="url" alt="Firma de quien recibe" />
+          <span class="conduce__firma-line conduce__firma-line--signed"></span>
+          @if (s.entrega_receptor) { <span class="conduce__firma-name">{{ s.entrega_receptor }}</span> }
+        } @else {
+          <span class="conduce__firma-line"></span>
+        }
         <span>Recibido por</span>
       </div>
     </section>

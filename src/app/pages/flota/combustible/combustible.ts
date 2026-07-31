@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
@@ -14,6 +15,8 @@ import { RouterLink } from '@angular/router';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
@@ -46,6 +49,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 export class Combustible implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
+  private proyectosService = inject(ProyectosService);
   private conductoresService = inject(ConductoresService);
   private flotaConfig = inject(FlotaConfigService);
   private estacionesService = inject(EstacionesCombustibleService);
@@ -67,6 +71,8 @@ export class Combustible implements OnInit {
   vehiculos = signal<Vehiculo[]>([]);
   conductores = signal<Conductor[]>([]);
   estaciones = signal<EstacionCombustible[]>([]);
+  // AC11 — obras activas para asociar el combustible de depósito en obra.
+  proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -106,6 +112,9 @@ export class Combustible implements OnInit {
     kilometraje: new FormControl<number | null>(null, [Validators.required, Validators.min(1)]),
     galones: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
     monto: new FormControl<number | null>(null, [Validators.required, Validators.min(0.01)]),
+    // AC11 — origen: estación (conciliable) o depósito/garrafón en obra.
+    origen: new FormControl<'estacion' | 'deposito_obra'>('estacion', { nonNullable: true }),
+    proyecto_id: new FormControl<string | null>(null),
     // T4 — estación desde el catálogo (Total Energies default); 'Otro' habilita texto libre.
     estacionSel: new FormControl<string>('Total Energies'),
     estacion: new FormControl<string | null>(null),
@@ -123,6 +132,26 @@ export class Combustible implements OnInit {
     initialValue: this.form.controls.estacionSel.value,
   });
   estacionEsOtro = computed(() => this.estacionSelVal() === 'Otro');
+
+  // AC11 — depósito en obra: monto opcional, sin conciliación, con obra asociada.
+  private origenVal = toSignal(this.form.controls.origen.valueChanges, {
+    initialValue: this.form.controls.origen.value,
+  });
+  esDepositoObra = computed(() => this.origenVal() === 'deposito_obra');
+
+  constructor() {
+    // AC11 — el origen reconfigura las validaciones: en depósito de obra el monto
+    // es opcional (garrafón sin factura) y la obra pasa a ser obligatoria.
+    effect(() => {
+      const deposito = this.esDepositoObra();
+      const monto = this.form.controls.monto;
+      const proyecto = this.form.controls.proyecto_id;
+      monto.setValidators(deposito ? [] : [Validators.required, Validators.min(0.01)]);
+      proyecto.setValidators(deposito ? [Validators.required] : []);
+      monto.updateValueAndValidity({ emitEvent: false });
+      proyecto.updateValueAndValidity({ emitEvent: false });
+    });
+  }
 
   // Z23.4 — el campo "titular" solo aplica cuando la tarjeta es de una persona.
   private titularEsPersonaVal = toSignal(this.form.controls.titular_es_persona.valueChanges, {
@@ -164,7 +193,7 @@ export class Combustible implements OnInit {
 
     return this.registros().filter((r) => {
       if (r.es_prueba && !verPrueba) return false;
-      if (q && !r.vehiculo?.placa.toLowerCase().includes(q) && !r.estacion?.toLowerCase().includes(q)) {
+      if (q && !r.vehiculo?.placa?.toLowerCase().includes(q) && !r.estacion?.toLowerCase().includes(q)) {
         return false;
       }
       if (vId && r.vehiculo_id !== vId) return false;
@@ -302,18 +331,21 @@ export class Combustible implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [registros, vehiculos, conductores, estaciones, precios] = await Promise.all([
+      const [registros, vehiculos, conductores, estaciones, precios, proyectos] = await Promise.all([
         this.combustibleService.getAll(),
         this.vehiculosService.getAll(),
         this.conductoresService.getAll(),
         this.estacionesService.getActivas(),
         this.combustibleService.getPreciosVigentes(), // AA20
+        this.proyectosService.getAll(), // AC11 — obras para depósito en obra
       ]);
       this.registros.set(registros);
       this.vehiculos.set(vehiculos);
       this.conductores.set(conductores);
       this.estaciones.set(estaciones);
       this.preciosVigentes.set(precios);
+      // AC11 — solo obras activas en el selector de depósito en obra.
+      this.proyectos.set(proyectos.filter((p) => p.activo));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -365,6 +397,7 @@ export class Combustible implements OnInit {
     this.clearFiles();
     this.form.reset({ fecha: this.today, vehiculo_id: '', conductor_id: null,
       kilometraje: null, galones: null, monto: null,
+      origen: 'estacion', proyecto_id: null,
       estacionSel: 'Total Energies', estacion: null, notas: null,
       producto: null, subtipo: null, tarjeta: null, titular: null, titular_es_persona: false });
     this.drawerOpen.set(true);
@@ -418,22 +451,29 @@ export class Combustible implements OnInit {
     this.saving.set(true);
     this.saveError.set('');
 
+    // AC11 — depósito en obra: no entra a conciliación de estación, así que no se
+    // envían estación/producto/tarjeta/titular; el monto es opcional.
+    const deposito = raw.origen === 'deposito_obra';
     const payload: RegistroCombustibleFormData = {
       vehiculo_id: raw.vehiculo_id!,
       conductor_id: raw.conductor_id || null,
       fecha: raw.fecha!,
       kilometraje: raw.kilometraje!,
       galones: raw.galones!,
-      monto: raw.monto!,
-      estacion:
-        raw.estacionSel === 'Otro' ? raw.estacion?.trim() || 'Otro' : raw.estacionSel || null,
+      monto: raw.monto ?? 0,
+      estacion: deposito
+        ? null
+        : raw.estacionSel === 'Otro' ? raw.estacion?.trim() || 'Otro' : raw.estacionSel || null,
       notas: raw.notas?.trim() || null,
-      // Z23.4 — datos de conciliación (opcionales).
-      producto: raw.producto || null,
-      subtipo: raw.subtipo || null, // AA20
-      tarjeta: raw.tarjeta?.trim() || null,
-      titular: raw.titular_es_persona ? raw.titular?.trim() || null : null,
-      titular_es_persona: !!raw.titular_es_persona,
+      // Z23.4 — datos de conciliación (solo aplican a estación).
+      producto: deposito ? null : raw.producto || null,
+      subtipo: deposito ? null : raw.subtipo || null, // AA20
+      tarjeta: deposito ? null : raw.tarjeta?.trim() || null,
+      titular: deposito ? null : (raw.titular_es_persona ? raw.titular?.trim() || null : null),
+      titular_es_persona: deposito ? false : !!raw.titular_es_persona,
+      // AC11 — origen + obra asociada.
+      origen: deposito ? 'deposito_obra' : 'estacion',
+      proyecto_id: deposito ? raw.proyecto_id || null : null,
     };
 
     try {
@@ -535,6 +575,18 @@ export class Combustible implements OnInit {
       .filter((r) => r.fecha.startsWith(ym) && r.precio_por_galon != null)
       .map((r) => r.precio_por_galon as number);
     return precios.length ? precios.reduce((a, b) => a + b, 0) / precios.length : null;
+  }
+
+  /** AC11 — nombre de la obra asociada a una echada de depósito (o null). */
+  proyectoNombre(id: string | null | undefined): string | null {
+    if (!id) return null;
+    const p = this.proyectos().find((x) => x.id === id);
+    return p ? (p.codigo ? `${p.codigo} · ${p.nombre}` : p.nombre) : null;
+  }
+
+  /** AC11 — etiqueta legible del origen de la echada. */
+  origenLabel(r: RegistroCombustible): string {
+    return r.origen === 'deposito_obra' ? 'Depósito en obra' : 'Estación';
   }
 
   get f() { return this.form.controls; }

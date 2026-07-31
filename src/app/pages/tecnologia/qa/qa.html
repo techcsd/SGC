@@ -1,0 +1,365 @@
+<div class="qa">
+  <header class="qa__head">
+    <div>
+      <h1 class="qa__title">QA — Gestión de pruebas</h1>
+      <p class="qa__sub">Casos de prueba reutilizables y corridas fechadas por versión. Trazabilidad de qué se probó en cada release.</p>
+    </div>
+  </header>
+
+  <!-- Tabs principales -->
+  <div class="qa__tabs">
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'casos'" (click)="cambiarTab('casos')">📋 Casos</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'nueva'" (click)="cambiarTab('nueva')">➕ Nueva corrida</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'ejecutar'" (click)="cambiarTab('ejecutar')" [disabled]="!activeRun()">▶️ Ejecutar</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'historial'" (click)="cambiarTab('historial')">🕑 Historial</button>
+  </div>
+
+  @if (error()) {
+    <p class="qa__error">{{ error() }}</p>
+  }
+
+  <!-- ══════════════════ CASOS ══════════════════ -->
+  @if (tab() === 'casos') {
+    <div class="qa__filters">
+      <select class="qa__input" [value]="fModulo()" (change)="fModulo.set($any($event.target).value)">
+        <option value="">Todo módulo</option>
+        @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
+      </select>
+      <select class="qa__input" [value]="fPlataforma()" (change)="fPlataforma.set($any($event.target).value)">
+        <option value="">Toda plataforma</option>
+        @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+      </select>
+      <select class="qa__input" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)">
+        <option value="">Toda prioridad</option>
+        @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+      </select>
+      <select class="qa__input" [value]="fActivo()" (change)="fActivo.set($any($event.target).value)">
+        <option value="">Activos e inactivos</option>
+        <option value="si">Solo activos</option>
+        <option value="no">Solo inactivos</option>
+      </select>
+      @if (hasCaseFilters()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="clearCaseFilters()">Limpiar</button>
+      }
+      <button type="button" class="sgc-btn sgc-btn--primary qa__spacer" (click)="nuevoCaso()">+ Nuevo caso</button>
+    </div>
+
+    @if (loading()) {
+      <app-skeleton variant="table" [rows]="8" />
+    } @else {
+      @for (grupo of casosPorModulo(); track grupo.modulo) {
+        <section class="qa__group">
+          <h2 class="qa__group-title">{{ grupo.modulo }} <span class="qa__group-count">{{ grupo.items.length }}</span></h2>
+          <div class="qa__table-wrap">
+            <table class="data-table" aria-label="Casos de prueba">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Prioridad</th>
+                  <th>Plataforma</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of grupo.items; track c.id) {
+                  <tr class="qa__row" [class.qa__row--inactive]="!c.activo">
+                    <td class="qa__case-title">
+                      <button type="button" class="qa__linkbtn" (click)="editarCaso(c)">{{ c.titulo }}</button>
+                      @if (c.pasos) { <span class="qa__hint" [title]="c.pasos">· pasos</span> }
+                    </td>
+                    <td><span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) }}</span></td>
+                    <td>{{ plataformaLabel(c.plataforma) }}</td>
+                    <td>
+                      @if (c.activo) { <span class="sgc-badge sgc-badge--success">Activo</span> }
+                      @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+                    </td>
+                    <td class="qa__actions">
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editarCaso(c)">Editar</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleActivo(c)">
+                        {{ c.activo ? 'Desactivar' : 'Activar' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      } @empty {
+        <p class="qa__empty">No hay casos que coincidan con el filtro. <button type="button" class="qa__linkbtn" (click)="nuevoCaso()">Crear el primero</button>.</p>
+      }
+    }
+  }
+
+  <!-- ══════════════════ NUEVA CORRIDA ══════════════════ -->
+  @if (tab() === 'nueva') {
+    <div class="qa__panel">
+      <div class="qa__form-row">
+        <label class="qa__field">
+          <span class="qa__label">Plataforma objetivo</span>
+          <select class="qa__input" [value]="nuevaPlataforma()" (change)="onNuevaPlataforma($any($event.target).value)">
+            @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+          </select>
+        </label>
+        <label class="qa__field">
+          <span class="qa__label">Versión objetivo</span>
+          <input class="qa__input" type="text" placeholder="ej. web 1.55.0" [value]="nuevaVersion()" (input)="nuevaVersion.set($any($event.target).value)" />
+        </label>
+        <label class="qa__field qa__field--grow">
+          <span class="qa__label">Título (opcional)</span>
+          <input class="qa__input" type="text" placeholder="ej. Smoke test release" [value]="nuevaTitulo()" (input)="nuevaTitulo.set($any($event.target).value)" />
+        </label>
+      </div>
+
+      <div class="qa__sel-head">
+        <select class="qa__input" [value]="selModulo()" (change)="selModulo.set($any($event.target).value)">
+          <option value="">Todos los módulos</option>
+          @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
+        </select>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTodos()" [disabled]="casosElegibles().length === 0">
+          {{ todosElegiblesSeleccionados() ? 'Quitar todos' : 'Seleccionar todos' }}
+        </button>
+        <span class="qa__sel-count">{{ seleccionadosCount() }} seleccionado(s)</span>
+      </div>
+
+      <div class="qa__checklist">
+        @for (c of casosElegibles(); track c.id) {
+          <label class="qa__check-item">
+            <input type="checkbox" [checked]="seleccionados().has(c.id)" (change)="toggleSeleccion(c.id)" />
+            <span class="qa__check-body">
+              <span class="qa__check-title">{{ c.titulo }}</span>
+              <span class="qa__check-meta">
+                <span class="qa__chip">{{ c.modulo }}</span>
+                <span [class]="prioridadBadge(c.prioridad)">{{ prioridadLabel(c.prioridad) }}</span>
+                <span class="qa__chip">{{ plataformaLabel(c.plataforma) }}</span>
+              </span>
+            </span>
+          </label>
+        } @empty {
+          <p class="qa__empty">No hay casos activos elegibles para esta plataforma/módulo.</p>
+        }
+      </div>
+
+      <div class="qa__panel-foot">
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearCorrida()" [disabled]="creando() || seleccionadosCount() === 0">
+          @if (creando()) { Creando… } @else { Crear corrida con {{ seleccionadosCount() }} caso(s) }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════ EJECUTAR ══════════════════ -->
+  @if (tab() === 'ejecutar') {
+    @if (loading()) {
+      <app-skeleton variant="table" [rows]="8" />
+    } @else if (activeRun(); as run) {
+      <div class="qa__run-head">
+        <div>
+          <h2 class="qa__run-title">{{ run.titulo || 'Corrida' }}</h2>
+          <p class="qa__run-sub">
+            {{ plataformaLabel(run.plataforma) }}
+            @if (run.version_objetivo) { · <strong>{{ run.version_objetivo }}</strong> }
+            · {{ formatFecha(run.fecha) }}
+            · <span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) }}</span>
+          </p>
+        </div>
+        @if (!corridaCerrada()) {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="completar()">✓ Marcar completada</button>
+        }
+      </div>
+
+      <!-- Métricas -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-card--primary">
+          <span class="kpi-label">% pass</span>
+          <span class="kpi-value">{{ passPct() }}%</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Progreso</span>
+          <span class="kpi-value">{{ progresoPct() }}%</span>
+        </div>
+        <div class="kpi-card qa__kpi--ok">
+          <span class="kpi-label">Pasó</span>
+          <span class="kpi-value">{{ conteos().passed }}</span>
+        </div>
+        <div class="kpi-card qa__kpi--bad">
+          <span class="kpi-label">Falló</span>
+          <span class="kpi-value">{{ conteos().failed }}</span>
+        </div>
+        <div class="kpi-card qa__kpi--warn">
+          <span class="kpi-label">Bloqueado</span>
+          <span class="kpi-value">{{ conteos().blocked }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Omitido</span>
+          <span class="kpi-value">{{ conteos().skipped }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Pendiente</span>
+          <span class="kpi-value">{{ conteos().pendiente }}</span>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="qa__exec-list">
+        @for (r of resultados(); track r.id) {
+          <article class="qa__exec-item" [attr.data-res]="r.resultado">
+            <div class="qa__exec-top">
+              <div class="qa__exec-info">
+                <span class="qa__chip">{{ r.modulo }}</span>
+                <span class="qa__exec-title">{{ r.caso_titulo }}</span>
+              </div>
+              <span [class]="resultadoBadge(r.resultado)">{{ resultadoLabel(r.resultado) }}</span>
+            </div>
+
+            <div class="qa__exec-btns">
+              @for (e of ESTADOS_EJEC; track e) {
+                <button type="button" class="qa__res-btn" [attr.data-res]="e"
+                        [class.qa__res-btn--active]="r.resultado === e"
+                        [disabled]="corridaCerrada()"
+                        (click)="setEstado(r, e)">
+                  {{ resultadoLabel(e) }}
+                </button>
+              }
+            </div>
+
+            <textarea class="qa__notas" rows="2" placeholder="Notas / observaciones…"
+                      [value]="notasDraft()[r.id] || ''"
+                      [disabled]="corridaCerrada()"
+                      (input)="onNotasInput(r.id, $any($event.target).value)"
+                      (blur)="guardarNotas(r)"></textarea>
+
+            <div class="qa__exec-foot">
+              @if (evidenciaUrls()[r.id]) {
+                <a class="qa__evidencia" [href]="evidenciaUrls()[r.id]" target="_blank" rel="noopener">
+                  <img [src]="evidenciaUrls()[r.id]" alt="Evidencia" />
+                </a>
+              }
+              @if (!corridaCerrada()) {
+                <label class="sgc-btn sgc-btn--ghost sgc-btn--sm qa__upload">
+                  @if (subiendo() === r.id) { Subiendo… } @else { 📎 {{ r.evidencia_path ? 'Cambiar' : 'Evidencia' }} }
+                  <input type="file" accept="image/*" hidden (change)="onEvidencia(r, $event)" [disabled]="subiendo() === r.id" />
+                </label>
+              }
+
+              @if (r.error_report_id) {
+                <span class="sgc-badge sgc-badge--danger" title="Reporte de error enlazado">🐞 Defecto enlazado</span>
+              } @else if (r.resultado === 'failed' && !corridaCerrada()) {
+                <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="crearReporte(r)">🐞 Crear reporte de error</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="enlazarReporte(r)">Enlazar existente</button>
+              }
+            </div>
+          </article>
+        } @empty {
+          <p class="qa__empty">Esta corrida no tiene casos.</p>
+        }
+      </div>
+    } @else {
+      <p class="qa__empty">No hay ninguna corrida abierta. Crea una en <button type="button" class="qa__linkbtn" (click)="cambiarTab('nueva')">Nueva corrida</button> o abre una del <button type="button" class="qa__linkbtn" (click)="cambiarTab('historial')">Historial</button>.</p>
+    }
+  }
+
+  <!-- ══════════════════ HISTORIAL ══════════════════ -->
+  @if (tab() === 'historial') {
+    @if (loading()) {
+      <app-skeleton variant="table" [rows]="8" />
+    } @else {
+      <div class="qa__table-wrap">
+        <table class="data-table" aria-label="Historial de corridas">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Título</th>
+              <th>Plataforma</th>
+              <th>Versión</th>
+              <th class="qa__num">% pass</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (run of runs(); track run.id) {
+              <tr class="qa__row">
+                <td class="qa__ts">{{ formatFecha(run.fecha) }}</td>
+                <td>{{ run.titulo || '—' }}</td>
+                <td>{{ plataformaLabel(run.plataforma) }}</td>
+                <td>{{ run.version_objetivo || '—' }}</td>
+                <td class="qa__num">{{ pctDe(run.id) }}%</td>
+                <td><span [class]="runEstadoBadge(run.estado)">{{ estadoLabel(run.estado) }}</span></td>
+                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCorrida(run.id)">Abrir →</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="qa__empty qa__empty--cell">Aún no hay corridas registradas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
+
+<!-- Drawer: crear/editar caso -->
+<app-form-drawer [open]="drawerOpen()" [title]="editingId() ? 'Editar caso' : 'Nuevo caso'" (closed)="cerrarDrawer()">
+  <form class="qa__drawer-form" [formGroup]="form" (ngSubmit)="guardarCaso()">
+    <div class="qa__form-row">
+      <label class="qa__field qa__field--grow">
+        <span class="qa__label">Módulo *</span>
+        <select class="qa__input" formControlName="modulo">
+          @for (m of MODULOS; track m) { <option [value]="m">{{ m }}</option> }
+        </select>
+      </label>
+      <label class="qa__field">
+        <span class="qa__label">Orden</span>
+        <input class="qa__input" type="number" formControlName="orden" placeholder="—" />
+      </label>
+    </div>
+
+    <label class="qa__field">
+      <span class="qa__label">Título *</span>
+      <input class="qa__input" type="text" formControlName="titulo" placeholder="ej. Crear parte diario con lluvia" />
+    </label>
+
+    <label class="qa__field">
+      <span class="qa__label">Precondiciones</span>
+      <textarea class="qa__input" rows="2" formControlName="precondiciones" placeholder="Estado previo requerido…"></textarea>
+    </label>
+
+    <label class="qa__field">
+      <span class="qa__label">Pasos</span>
+      <textarea class="qa__input" rows="4" formControlName="pasos" placeholder="1. … &#10;2. …"></textarea>
+    </label>
+
+    <label class="qa__field">
+      <span class="qa__label">Resultado esperado</span>
+      <textarea class="qa__input" rows="2" formControlName="resultado_esperado" placeholder="Qué debe ocurrir…"></textarea>
+    </label>
+
+    <div class="qa__form-row">
+      <label class="qa__field">
+        <span class="qa__label">Prioridad *</span>
+        <select class="qa__input" formControlName="prioridad">
+          @for (p of PRIORIDADES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        </select>
+      </label>
+      <label class="qa__field">
+        <span class="qa__label">Plataforma *</span>
+        <select class="qa__input" formControlName="plataforma">
+          @for (p of PLATAFORMAS; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        </select>
+      </label>
+    </div>
+
+    <label class="qa__check-inline">
+      <input type="checkbox" formControlName="activo" />
+      <span>Caso activo (se incluye en las corridas)</span>
+    </label>
+
+    <div class="qa__drawer-foot">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarDrawer()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { Guardando… } @else { Guardar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

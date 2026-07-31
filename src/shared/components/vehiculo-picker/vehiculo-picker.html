@@ -40,7 +40,9 @@
           class="veh-picker__opt"
           role="option"
           [attr.aria-selected]="v.id === selectedId()"
+          [attr.aria-disabled]="!!asignadoDe(v) && v.id !== selectedId()"
           [class.veh-picker__opt--sel]="v.id === selectedId()"
+          [class.veh-picker__opt--disabled]="!!asignadoDe(v) && v.id !== selectedId()"
           (click)="pick(v)"
         >
           <span class="veh-picker__thumb">
@@ -52,7 +54,12 @@
           </span>
           <span class="veh-picker__opt-body">
             <span class="veh-picker__opt-placa">{{ v.placa }}</span>
-            <span class="veh-picker__opt-sub">{{ v.marca }} {{ v.modelo }} {{ v.anio }}</span>
+            <span class="veh-picker__opt-sub">
+              {{ v.marca }} {{ v.modelo }} {{ v.anio }}
+              @if (asignadoDe(v); as a) {
+                <span class="veh-picker__asignado">· Asignado a {{ a.nombre }}</span>
+              }
+            </span>
           </span>
         </li>
       }

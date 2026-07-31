@@ -131,6 +131,7 @@
               <td>
                 <span class="combustible__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
                 @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                @if (r.origen === 'deposito_obra') { <span class="sgc-badge sgc-badge--info" title="Depósito en obra (no concilia)">Depósito</span> }
                 @if (r.vehiculo?.marca) { <span class="combustible__marca">{{ r.vehiculo!.marca }}</span> }
                 @if (r.conductor?.nombre) { <span class="combustible__marca">{{ r.conductor!.nombre }}</span> }
               </td>
@@ -212,6 +213,29 @@
       <input id="fecha" type="date" formControlName="fecha" [max]="today" [class.invalid]="f.fecha.invalid && f.fecha.touched" />
     </div>
 
+    <!-- AC11 — origen: estación (conciliable) o depósito/garrafón en obra -->
+    <div class="sgc-field">
+      <label for="origen">Origen del combustible <span class="required">*</span></label>
+      <select id="origen" formControlName="origen">
+        <option value="estacion">Estación</option>
+        <option value="deposito_obra">Depósito en obra (garrafón)</option>
+      </select>
+    </div>
+
+    @if (esDepositoObra()) {
+      <div class="sgc-field">
+        <label for="proyecto_id">Obra <span class="required">*</span></label>
+        <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
+          <option [value]="null">Selecciona la obra…</option>
+          @for (p of proyectos(); track p.id) {
+            <option [value]="p.id">{{ p.codigo ? p.codigo + ' · ' + p.nombre : p.nombre }}</option>
+          }
+        </select>
+        @if (f.proyecto_id.invalid && f.proyecto_id.touched) { <span class="field-error">Selecciona la obra.</span> }
+        <span class="field-hint">El combustible de depósito en obra <strong>no entra</strong> a la conciliación de estación.</span>
+      </div>
+    }
+
     <!-- Los 3 datos que digita el chofer -->
     <div class="sgc-field">
       <label for="kilometraje">{{ labelLectura() }} <span class="required">*</span></label>
@@ -229,7 +253,10 @@
         @if (f.galones.invalid && f.galones.touched) { <span class="field-error">Requerido.</span> }
       </div>
       <div class="sgc-field">
-        <label for="monto">Monto pagado (RD$) <span class="required">*</span></label>
+        <label for="monto">Monto pagado (RD$)
+          @if (!esDepositoObra()) { <span class="required">*</span> }
+          @else { <span class="sgc-field__opt">(opcional)</span> }
+        </label>
         <input id="monto" type="number" formControlName="monto" min="0.01" step="0.01" placeholder="0.00"
           [class.invalid]="f.monto.invalid && f.monto.touched" />
         @if (f.monto.invalid && f.monto.touched) { <span class="field-error">Requerido.</span> }
@@ -276,15 +303,15 @@
     <!-- 2 fotos obligatorias -->
     <div class="form-row">
       <div class="sgc-field photo-field">
-        <label>Foto del recibo <span class="required">*</span></label>
+        <label>{{ esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo' }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()">
-          @if (reciboPreview()) { <img [src]="reciboPreview()" alt="Recibo" /> }
-          @else { <span>📷 Subir recibo</span> }
-          <input type="file" accept="image/*" (change)="onFileSelected('recibo', $event)" hidden />
+          @if (reciboPreview()) { <img [src]="reciboPreview()" alt="Evidencia" /> }
+          @else { <span>📷 {{ esDepositoObra() ? 'Subir foto' : 'Subir recibo' }}</span> }
+          <input type="file" accept="image/*" capture (change)="onFileSelected('recibo', $event)" hidden />
         </label>
       </div>
       <div class="sgc-field photo-field">
-        <label>Foto del tablero (km) <span class="required">*</span></label>
+        <label>{{ esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)' }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()">
           @if (tableroPreview()) { <img [src]="tableroPreview()" alt="Tablero" /> }
           @else { <span>📷 Subir tablero</span> }
@@ -294,75 +321,79 @@
     </div>
 
     <div class="form-row">
-      <div class="sgc-field">
-        <label for="estacionSel">Estación</label>
-        <select id="estacionSel" formControlName="estacionSel">
-          @for (e of estaciones(); track e.id) {
-            <option [value]="e.nombre">{{ e.nombre }}</option>
+      @if (!esDepositoObra()) {
+        <div class="sgc-field">
+          <label for="estacionSel">Estación</label>
+          <select id="estacionSel" formControlName="estacionSel">
+            @for (e of estaciones(); track e.id) {
+              <option [value]="e.nombre">{{ e.nombre }}</option>
+            }
+          </select>
+          @if (estacionEsOtro()) {
+            <input class="estacion-otro" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
           }
-        </select>
-        @if (estacionEsOtro()) {
-          <input class="estacion-otro" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
-        }
-      </div>
+        </div>
+      }
       <div class="sgc-field">
         <label for="notas">Notas (opcional)</label>
         <input id="notas" type="text" formControlName="notas" placeholder="Notas adicionales" />
       </div>
     </div>
 
-    <!-- Z23.4 — Datos para conciliar con el reporte del proveedor (opcionales) -->
-    <div class="form-row">
-      <div class="sgc-field">
-        <label for="producto">Producto</label>
-        <select id="producto" formControlName="producto">
-          <option [value]="null">Sin especificar</option>
-          <option value="diesel">Diésel</option>
-          <option value="gasolina">Gasolina</option>
-        </select>
+    <!-- Z23.4 / AA20 — conciliación con el proveedor: solo aplica a estación -->
+    @if (!esDepositoObra()) {
+      <div class="form-row">
+        <div class="sgc-field">
+          <label for="producto">Producto</label>
+          <select id="producto" formControlName="producto">
+            <option [value]="null">Sin especificar</option>
+            <option value="diesel">Diésel</option>
+            <option value="gasolina">Gasolina</option>
+          </select>
+        </div>
+        <!-- AA20 — subtipo regular/premium (tras elegir gasolina/diésel) -->
+        <div class="sgc-field">
+          <label for="subtipo">Tipo</label>
+          <select id="subtipo" formControlName="subtipo" [disabled]="!f.producto.value">
+            <option [value]="null">Sin especificar</option>
+            <option value="regular">Regular</option>
+            <option value="premium">Premium / Óptimo</option>
+          </select>
+        </div>
       </div>
-      <!-- AA20 — subtipo regular/premium (tras elegir gasolina/diésel) -->
-      <div class="sgc-field">
-        <label for="subtipo">Tipo</label>
-        <select id="subtipo" formControlName="subtipo" [disabled]="!f.producto.value">
-          <option [value]="null">Sin especificar</option>
-          <option value="regular">Regular</option>
-          <option value="premium">Premium / Óptimo</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- AA20 — precio oficial de referencia + desviación suave -->
-    @if (precioReferencia(); as ref) {
-      <div class="sgc-field combustible__ref-precio"
-           [class.combustible__ref-precio--alerta]="desviacionPrecio() != null && (desviacionPrecio()! > 10 || desviacionPrecio()! < -10)">
-        Precio oficial MICM vigente: <strong>RD$ {{ ref | number:'1.2-2' }}/gal</strong>
-        @if (desviacionPrecio(); as d) {
-          @if (d > 10 || d < -10) {
-            <span class="combustible__ref-desv">⚠ lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
-          } @else {
-            <span class="combustible__ref-ok">✓ dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
+      <!-- AA20 — precio oficial de referencia + desviación suave -->
+      @if (precioReferencia(); as ref) {
+        <div class="sgc-field combustible__ref-precio"
+             [class.combustible__ref-precio--alerta]="desviacionPrecio() != null && (desviacionPrecio()! > 10 || desviacionPrecio()! < -10)">
+          Precio oficial MICM vigente: <strong>RD$ {{ ref | number:'1.2-2' }}/gal</strong>
+          @if (desviacionPrecio(); as d) {
+            @if (d > 10 || d < -10) {
+              <span class="combustible__ref-desv">⚠ lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
+            } @else {
+              <span class="combustible__ref-ok">✓ dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
+            }
           }
+        </div>
+      }
+
+      <div class="form-row">
+        <div class="sgc-field">
+          <label for="tarjeta">Tarjeta (opcional)</label>
+          <input id="tarjeta" type="text" formControlName="tarjeta" placeholder="Número o identificador de la tarjeta" />
+        </div>
+      </div>
+
+      <div class="sgc-field">
+        <label class="combustible__prueba-toggle">
+          <input type="checkbox" formControlName="titular_es_persona" />
+          La tarjeta es de una persona (no del vehículo)
+        </label>
+        @if (tarjetaEsPersona()) {
+          <input class="estacion-otro" type="text" formControlName="titular" placeholder="Nombre del titular de la tarjeta" />
         }
       </div>
     }
-
-    <div class="form-row">
-      <div class="sgc-field">
-        <label for="tarjeta">Tarjeta (opcional)</label>
-        <input id="tarjeta" type="text" formControlName="tarjeta" placeholder="Número o identificador de la tarjeta" />
-      </div>
-    </div>
-
-    <div class="sgc-field">
-      <label class="combustible__prueba-toggle">
-        <input type="checkbox" formControlName="titular_es_persona" />
-        La tarjeta es de una persona (no del vehículo)
-      </label>
-      @if (tarjetaEsPersona()) {
-        <input class="estacion-otro" type="text" formControlName="titular" placeholder="Nombre del titular de la tarjeta" />
-      }
-    </div>
 
     @if (saveError()) {
       <div class="save-error" role="alert">
@@ -404,7 +435,12 @@
         <div class="detail__item"><span class="detail__label">Km recorridos</span><span class="detail__value">{{ r.km_recorridos !== null ? (r.km_recorridos | number:'1.0-0') : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Rendimiento</span><span class="detail__value">{{ r.rendimiento_km_gal !== null ? (r.rendimiento_km_gal | number:'1.1-2') + ' km/gal' : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Costo / km</span><span class="detail__value">{{ r.costo_por_km ? ('RD$ ' + (r.costo_por_km | number:'1.2-2')) : '—' }}</span></div>
-        <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
+        <div class="detail__item"><span class="detail__label">Origen</span><span class="detail__value">{{ origenLabel(r) }}</span></div>
+        @if (r.origen === 'deposito_obra') {
+          <div class="detail__item"><span class="detail__label">Obra</span><span class="detail__value">{{ proyectoNombre(r.proyecto_id) ?? '—' }}</span></div>
+        } @else {
+          <div class="detail__item"><span class="detail__label">Estación</span><span class="detail__value">{{ r.estacion ?? '—' }}</span></div>
+        }
         <div class="detail__item"><span class="detail__label">Producto</span><span class="detail__value">{{ r.producto ? (r.producto === 'gasolina' ? 'Gasolina' : 'Diésel') : '—' }}</span></div>
         <div class="detail__item"><span class="detail__label">Tarjeta</span><span class="detail__value">{{ r.tarjeta ?? '—' }}{{ r.titular_es_persona && r.titular ? ' · ' + r.titular : '' }}</span></div>
         <div class="detail__item"><span class="detail__label">Conductor</span><span class="detail__value">{{ r.conductor?.nombre ?? '—' }}</span></div>

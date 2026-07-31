@@ -6,10 +6,12 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { SupabaseService } from '../../../../app/core/services/supabase.service';
 import {
   SalidaInventario,
+  SalidaFirma,
   SALIDA_ESTADO_LABELS,
   MOTIVOS_SALIDA,
   conduceNumero,
 } from '../../../../shared/models/salida.model';
+import { UserService } from '../../../../app/core/services/user.service';
 import { formatFechaDisplay, formatTimestampDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
@@ -21,6 +23,9 @@ interface ItemCierre {
   cantidad: number;
   cantidad_recibida: number;
 }
+
+/** AC7 — firma canónica del conduce ya resuelta con su URL firmada para pintarla. */
+type FirmaConUrl = SalidaFirma & { url: string | null };
 
 @Component({
   selector: 'app-conduce',
@@ -36,6 +41,7 @@ export class Conduce implements OnInit {
   private salidasService = inject(SalidasService);
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
+  private userService = inject(UserService);
 
   formatFecha = formatFechaDisplay;
   formatTimestamp = formatTimestampDisplay;
@@ -54,16 +60,26 @@ export class Conduce implements OnInit {
   entregaFirmaUrl = signal<string | null>(null);
   // Evidence photo taken when the salida itself was captured in the field.
   salidaFotoUrl = signal<string | null>(null);
+  // AC7 — firmas canónicas del conduce (emisor entrega / receptor recibe), con su URL firmada.
+  firmaEmisor = signal<FirmaConUrl | null>(null);
+  firmaReceptor = signal<FirmaConUrl | null>(null);
 
   // ── Cierre de conduce por el chofer (paridad app de campo) ──
   mostrarCierre = signal(false);
   itemsCierre = signal<ItemCierre[]>([]);
+  // Emisor = quien entrega (chofer/almacén). Se prellena con el usuario actual.
+  emisorNombre = signal('');
+  emisorCedula = signal('');
+  emisorRolDesc = signal('');
+  // Receptor = quien recibe en obra (puede no estar registrado → nombre libre).
   receptor = signal('');
+  receptorCedula = signal('');
   notasCierre = signal('');
   fotoCierreFile = signal<File | null>(null);
   fotoCierrePreview = signal<string | null>(null);
   guardandoCierre = signal(false);
   cierreError = signal('');
+  private firmaEmisorPad = viewChild<SignaturePad>('firmaEmisorPad');
   private firmaPad = viewChild<SignaturePad>('firmaPad');
 
   puedeCerrar = computed(() => this.salida()?.estado === 'despachado');
@@ -107,13 +123,32 @@ export class Conduce implements OnInit {
     this.entregaFotoUrl.set(await sign('conduces', s.entrega_foto_path));
     this.entregaFirmaUrl.set(await sign('conduces', s.entrega_firma_path));
     this.salidaFotoUrl.set(await sign('inventario', s.foto_path));
+
+    // AC7 — firmas canónicas (emisor/receptor) desde salida_firmas.
+    this.firmaEmisor.set(null);
+    this.firmaReceptor.set(null);
+    try {
+      const firmas = await this.salidasService.getFirmas(s.id);
+      for (const f of firmas) {
+        const withUrl: FirmaConUrl = { ...f, url: await sign('conduces', f.firma_path) };
+        if (f.rol === 'emisor') this.firmaEmisor.set(withUrl);
+        else this.firmaReceptor.set(withUrl);
+      }
+    } catch {
+      // Conduces legacy sin salida_firmas: se cae al render de entrega_firma_path.
+    }
   }
 
   // ── Cierre de conduce ──
   abrirCierre() {
     const s = this.salida();
     if (!s) return;
+    // Emisor = usuario actual (chofer/almacén) por defecto; editable.
+    this.emisorNombre.set(this.userService.profile()?.nombre ?? '');
+    this.emisorCedula.set('');
+    this.emisorRolDesc.set('');
     this.receptor.set(s.responsable ?? '');
+    this.receptorCedula.set('');
     this.notasCierre.set('');
     this.quitarFotoCierre();
     this.cierreError.set('');
@@ -161,20 +196,51 @@ export class Conduce implements OnInit {
   async confirmarCierre() {
     const s = this.salida();
     if (!s || this.guardandoCierre()) return;
+    const emisor = this.emisorNombre().trim();
     const receptor = this.receptor().trim();
+    const emisorPad = this.firmaEmisorPad();
+    const receptorPad = this.firmaPad();
+    if (!emisor) {
+      this.cierreError.set('Indica quién entrega el material.');
+      return;
+    }
+    if (!emisorPad || emisorPad.isEmpty()) {
+      this.cierreError.set('Falta la firma de quien entrega.');
+      return;
+    }
     if (!receptor) {
       this.cierreError.set('Indica quién recibe el material.');
+      return;
+    }
+    if (!receptorPad || receptorPad.isEmpty()) {
+      this.cierreError.set('Falta la firma de quien recibe.');
       return;
     }
     this.guardandoCierre.set(true);
     this.cierreError.set('');
     try {
-      let firmaPath: string | null = null;
-      const pad = this.firmaPad();
-      if (pad && !pad.isEmpty()) {
-        const blob = await pad.toBlob();
-        if (blob) firmaPath = await this.salidasService.subirEvidenciaConduce(s.id, 'firma', blob, 'png');
+      // AC7 — firma del EMISOR (quien entrega): sube a `conduces` y registra en salida_firmas.
+      const emisorBlob = await emisorPad.toBlob();
+      if (emisorBlob) {
+        const emisorPath = await this.salidasService.subirEvidenciaConduce(s.id, 'firma-emisor', emisorBlob, 'png');
+        await this.salidasService.firmarConduce(s.id, 'emisor', emisor, emisorPath, {
+          cedula: this.emisorCedula().trim() || null,
+          rolDesc: this.emisorRolDesc().trim() || null,
+          usuarioId: this.userService.profile()?.id ?? null,
+        });
       }
+
+      // AC7 — firma del RECEPTOR (quien recibe). Se reutiliza también como firma
+      // legacy `entrega_firma_path` para compatibilidad con la vista existente.
+      let firmaPath: string | null = null;
+      const receptorBlob = await receptorPad.toBlob();
+      if (receptorBlob) {
+        firmaPath = await this.salidasService.subirEvidenciaConduce(s.id, 'firma-receptor', receptorBlob, 'png');
+        await this.salidasService.firmarConduce(s.id, 'receptor', receptor, firmaPath, {
+          cedula: this.receptorCedula().trim() || null,
+        });
+      }
+
       let fotoPath: string | null = null;
       const foto = this.fotoCierreFile();
       if (foto) fotoPath = await this.salidasService.subirEvidenciaConduce(s.id, 'foto', foto, 'jpg');

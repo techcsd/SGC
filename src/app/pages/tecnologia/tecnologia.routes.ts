@@ -48,6 +48,13 @@ export const tecnologiaRoutes: Routes = [
     title: 'Reportes de errores — Tecnología',
   },
   {
+    // AC3 — QA (gestión de pruebas): casos, corridas y checklist por versión.
+    path: 'qa',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./qa/qa').then((m) => m.TecQa),
+    title: 'QA (pruebas) — Tecnología',
+  },
+  {
     // Z26 — Historial de versiones es público (sin guard).
     path: 'historial-versiones',
     loadComponent: () =>

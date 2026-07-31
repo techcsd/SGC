@@ -79,6 +79,7 @@
   <!-- ── Detalle de la semana actual ── -->
   <div class="table-wrapper sgc-card rs-block">
     <div class="rs-card-title">Detalle de la semana actual</div>
+    <p class="rs-muted rs-small">La etiqueta <strong>«Fuera de día»</strong> marca los reportes enviados fuera del día programado del vehículo.</p>
     <div class="table-scroll">
       <table class="data-table" aria-label="Detalle de la semana actual">
         <thead>
@@ -96,6 +97,9 @@
                 @if (f.tiene_reporte) {
                   {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}
                   <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
+                  @if (f.reportado_fuera_de_dia) {
+                    <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">Fuera de día</span>
+                  }
                 } @else { — }
               </td>
               <td>
@@ -146,6 +150,9 @@
                 @if (f.tiene_reporte) {
                   {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}
                   <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
+                  @if (f.reportado_fuera_de_dia) {
+                    <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">Fuera de día</span>
+                  }
                 } @else { — }
               </td>
                         <td>
@@ -183,10 +190,16 @@
                 @if (f.resultado) {
                   <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
                 }
+                @if (f.reportado_fuera_de_dia) {
+                  <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">Fuera de día</span>
+                }
               } @else {
                 <span class="sgc-badge sgc-badge--warning">Pendiente</span>
               }
             </div>
+            @if (f.dia_reporte_dow != null) {
+              <span class="rs-muted rs-small">Día programado: {{ diaLabel(f.dia_reporte_dow) }}</span>
+            }
             @if (!f.tiene_reporte) {
               <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">
                 Llenar reporte

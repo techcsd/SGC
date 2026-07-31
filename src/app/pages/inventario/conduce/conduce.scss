@@ -144,13 +144,40 @@
     flex: 1;
     text-align: center;
     font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  &__firma-img {
+    display: block;
+    width: 180px;
+    max-width: 100%;
+    height: 64px;
+    object-fit: contain;
+    margin-bottom: 2px;
   }
 
   &__firma-line {
     display: block;
+    align-self: stretch;
     border-top: 1px solid #111;
     margin-bottom: 6px;
     padding-top: 32px;
+
+    // Con firma capturada la imagen ya aporta el alto; la línea solo subraya.
+    &--signed {
+      padding-top: 4px;
+    }
+  }
+
+  &__firma-name {
+    font-weight: 600;
+  }
+
+  &__firma-meta {
+    font-size: 11px;
+    color: #555;
   }
 }
 
@@ -240,4 +267,32 @@
   &__foto-pick { display: inline-flex; align-items: center; cursor: pointer; width: fit-content; }
 
   &__actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+  // AC7 — bloques de firma emisor / receptor
+  &__party {
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius, 10px);
+    padding: 14px 16px 16px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    legend {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--sgc-text-muted);
+      padding: 0 6px;
+    }
+  }
+
+  &__row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .sgc-field { flex: 1; min-width: 160px; }
+  }
 }

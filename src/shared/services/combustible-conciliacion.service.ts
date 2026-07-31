@@ -61,7 +61,10 @@ export class CombustibleConciliacionService {
   async getRegistrosEnRango(desde: string | null, hasta: string | null) {
     let q = this.supabase.client
       .from('registros_combustible')
-      .select('id, vehiculo_id, fecha, galones, monto, estacion, vehiculo:vehiculos(placa)');
+      .select('id, vehiculo_id, fecha, galones, monto, estacion, vehiculo:vehiculos(placa)')
+      // AC11 — las echadas de depósito en obra (garrafón) son consumo interno:
+      // no tienen contraparte en el reporte de la estación, no se concilian.
+      .neq('origen', 'deposito_obra');
     if (desde) q = q.gte('fecha', desde);
     if (hasta) q = q.lte('fecha', hasta);
     const { data, error } = await q.order('fecha', { ascending: true });

@@ -43,6 +43,11 @@ export interface RegistroCombustible {
   costo_por_litro: number | null;
   total: number | null;
 
+  // AC11 — origen de la echada: estación (default, entra a conciliación) o
+  // depósito/garrafón en obra (NO entra a conciliación; se asocia a un proyecto).
+  origen?: 'estacion' | 'deposito_obra';
+  proyecto_id?: string | null;
+
   // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
   es_prueba?: boolean;
 
@@ -65,6 +70,9 @@ export interface RegistroCombustibleFormData {
   tarjeta: string | null;               // número/identificador de tarjeta
   titular: string | null;               // titular si la tarjeta es de una persona
   titular_es_persona: boolean;          // true → la tarjeta pertenece a una persona
+  // AC11 — origen (estación | depósito en obra) + proyecto asociado si es de obra.
+  origen: 'estacion' | 'deposito_obra';
+  proyecto_id: string | null;
 }
 
 /** AA20 — precio oficial vigente por producto canónico (widget/referencia). */

@@ -28,6 +28,14 @@ export class HandoverRequeridoError extends Error {
   }
 }
 
+/** AC8 — vehículo actualmente retenido (custodia abierta) o asignado por roster. */
+export interface VehiculoAsignado {
+  vehiculo_id: string;
+  usuario_id: string;
+  nombre: string;
+  motivo: 'custodia' | 'asignacion';
+}
+
 /** A vehicle custody handoff captured from the CSD field app. */
 export interface VehiculoEntrega {
   id: string;
@@ -170,6 +178,21 @@ export class VehiculosService {
     });
     if (error) throw new Error(error.message);
     return (data ?? {}) as Record<string, unknown>;
+  }
+
+  /**
+   * AC8 — vehículos actualmente retenidos (custodia abierta) o asignados por
+   * roster, indexados por `vehiculo_id`. Se usa para deshabilitar/anotar en los
+   * selectores los vehículos que ya tiene otra persona.
+   */
+  async getVehiculosAsignados(): Promise<Map<string, VehiculoAsignado>> {
+    const { data, error } = await this.supabase.client.rpc('vehiculos_asignados');
+    if (error) throw new Error(error.message);
+    const map = new Map<string, VehiculoAsignado>();
+    for (const row of (data ?? []) as VehiculoAsignado[]) {
+      map.set(row.vehiculo_id, row);
+    }
+    return map;
   }
 
   /** Asigna un vehículo a una persona (gestión flota/admin). */

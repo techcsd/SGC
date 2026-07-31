@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
@@ -39,6 +40,7 @@ import {
   kmFaltanMantenimiento,
   unidadUso,
   labelLecturaUso,
+  tipoSinPlaca,
 } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -186,6 +188,26 @@ export class FlotaVehiculos implements OnInit {
   /** AA18.3 — unidad de un vehículo del listado (para mostrar km/h). */
   unidadDe = unidadUso;
 
+  // AC14 — la placa es opcional para maquinaria pesada sin matrícula. El validador
+  // required se agrega/quita según el tipo elegido; el asterisco sigue esta señal.
+  private tipoSig = toSignal(this.form.controls.tipo.valueChanges, {
+    initialValue: this.form.controls.tipo.value,
+  });
+  placaOpcional = computed(() => tipoSinPlaca(this.tipoSig()));
+
+  constructor() {
+    effect(() => {
+      const opcional = this.placaOpcional();
+      const ctrl = this.form.controls.placa;
+      ctrl.setValidators(
+        opcional
+          ? [Validators.maxLength(20)]
+          : [Validators.required, Validators.maxLength(20)],
+      );
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -198,7 +220,7 @@ export class FlotaVehiculos implements OnInit {
       if (v.es_prueba && !verPrueba) return false;
       if (
         q &&
-        !v.placa.toLowerCase().includes(q) &&
+        !(v.placa ?? '').toLowerCase().includes(q) &&
         !v.marca.toLowerCase().includes(q) &&
         !v.modelo.toLowerCase().includes(q)
       ) {
@@ -433,7 +455,8 @@ export class FlotaVehiculos implements OnInit {
     const { colorSel: _c, colorOtro: _co, aseguradoraSel: _a, aseguradoraOtro: _ao, ...rest } = raw;
     const payload = {
       ...rest,
-      placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' '),
+      // AC14 — placa vacía (equipo sin matrícula) → null, no ''.
+      placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' ') || null,
       vin: vin || null,
       color,
       aseguradora,

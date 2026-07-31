@@ -101,6 +101,10 @@ export class Checklists implements OnInit {
   drawerOpen = signal(false);
   /** Plantilla elegida (señal para que los ítems se rendericen reactivo). */
   selectedPlantillaId = signal<string>('');
+  /** AC14.1 — true si el usuario eligió la plantilla a mano: entonces cambiar de
+   *  vehículo ya no re-sugiere (se respeta su elección). Las preselecciones
+   *  automáticas (openCreate / por tipo de vehículo) la dejan en false. */
+  private plantillaTocadaManual = false;
   /** item.id → respuesta OK/NO/NA (default 'na'). */
   private respuestas = signal<Record<string, ChecklistRespuestaValor>>({});
   /** item.id → comentario. */
@@ -323,6 +327,7 @@ export class Checklists implements OnInit {
     this.targetFrecuencia = frecuencia;
     this.saveError.set('');
     this.selectedPlantillaId.set('');
+    this.plantillaTocadaManual = false;
     this.selectedVehiculoForm.set(null);
     this.respuestas.set({});
     this.comentarios.set({});
@@ -337,11 +342,13 @@ export class Checklists implements OnInit {
       nivel_combustible: null,
       observaciones: null,
     });
-    // U8 — preselecciona la plantilla de la frecuencia solicitada.
-    const plantilla =
-      this.plantillas().find((p) =>
-        frecuencia === 'semanal' ? p.frecuencia === 'semanal' : p.frecuencia !== 'semanal',
-      );
+    // U8 — preselecciona la plantilla de la frecuencia solicitada. AC14.1 — antes
+    // de elegir vehículo, prefiere la genérica (tipo_vehiculo null); al escoger el
+    // vehículo, onVehiculoChange puede cambiarla a la específica de su tipo.
+    const cands = this.plantillas().filter((p) =>
+      frecuencia === 'semanal' ? p.frecuencia === 'semanal' : p.frecuencia !== 'semanal',
+    );
+    const plantilla = cands.find((p) => (p.tipo_vehiculo ?? null) == null) ?? cands[0];
     if (plantilla) this.selectPlantilla(plantilla.id);
     this.drawerOpen.set(true);
   }
@@ -362,7 +369,7 @@ export class Checklists implements OnInit {
       if (asignado) this.form.controls.conductor_id.setValue(asignado.id);
     }
 
-    if (this.selectedPlantillaId()) return; // respeta una elección previa
+    if (this.plantillaTocadaManual) return; // respeta una elección manual del usuario
     const vehiculo = this.vehiculos().find((v) => v.id === vehiculoId);
     const categoria = categoriaPorTipoVehiculo(vehiculo?.tipo);
     // Z15 — al sugerir un PRE-USO, respeta el uso del vehículo: administrativo →
@@ -375,18 +382,28 @@ export class Checklists implements OnInit {
       const ua = p.uso_aplica ?? 'ambos';
       return ua === uso || ua === 'ambos';
     });
-    // Prioriza variante exacta por uso, luego categoría del vehículo, luego general.
     const pool = candidatas.length ? candidatas : this.plantillas();
+    // AC14.1 — prioridad por tipo de vehículo: si existe una plantilla específica
+    // para este tipo (p. ej. REPORTE-SEMANAL-TELEHANDLER-V1 para 'telehandler'),
+    // úsala; si no, cae a las genéricas (tipo_vehiculo null). Nunca se elige una
+    // plantilla de OTRO tipo (un camión jamás recibe la del telehandler).
+    const tipo = vehiculo?.tipo ?? null;
+    const especificas = tipo ? pool.filter((p) => (p.tipo_vehiculo ?? null) === tipo) : [];
+    const genericas = pool.filter((p) => (p.tipo_vehiculo ?? null) == null);
+    const base = especificas.length ? especificas : (genericas.length ? genericas : pool);
+    // Dentro del set elegido, prioriza variante exacta por uso, luego categoría, luego general.
     const sugerida =
-      pool.find((p) => (p.uso_aplica ?? 'ambos') === uso && p.categoria === categoria) ??
-      pool.find((p) => (p.uso_aplica ?? 'ambos') === uso) ??
-      pool.find((p) => p.categoria === categoria) ??
-      pool.find((p) => p.categoria === 'general') ??
-      pool[0];
+      base.find((p) => (p.uso_aplica ?? 'ambos') === uso && p.categoria === categoria) ??
+      base.find((p) => (p.uso_aplica ?? 'ambos') === uso) ??
+      base.find((p) => p.categoria === categoria) ??
+      base.find((p) => p.categoria === 'general') ??
+      base[0];
     if (sugerida) this.selectPlantilla(sugerida.id);
   }
 
   onPlantillaChange(plantillaId: string) {
+    // AC14.1 — elección manual: no volver a re-sugerir al cambiar de vehículo.
+    this.plantillaTocadaManual = true;
     this.selectPlantilla(plantillaId);
   }
 

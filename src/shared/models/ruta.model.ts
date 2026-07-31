@@ -1,5 +1,26 @@
 export type RutaEstado = 'planificada' | 'en_curso' | 'completada' | 'cancelada';
 
+/** AC13 — parada intermedia de una ruta (multi-stop). El orden lo fija `orden`. */
+export interface RutaParada {
+  id?: string;
+  ruta_id?: string;
+  orden: number;
+  ubicacion: string;
+  lat?: number | null;
+  lng?: number | null;
+  notas?: string | null;
+  proyecto_id?: string | null;
+}
+
+/** AC6 — foto de evidencia de una ruta (carga/vehículo/documento), bucket `vehiculos`. */
+export interface RutaFoto {
+  id: string;
+  ruta_id: string;
+  momento: string;
+  storage_path: string;
+  orden: number;
+}
+
 export interface Ruta {
   id: string;
   vehiculo_id: string;
@@ -31,6 +52,8 @@ export interface Ruta {
   finalizada_at?: string | null;
   // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
   es_prueba?: boolean;
+  // AC13 — paradas intermedias (multi-stop), cargadas bajo demanda en el detalle/edición.
+  paradas?: RutaParada[];
   created_at: string;
   updated_at: string;
 }

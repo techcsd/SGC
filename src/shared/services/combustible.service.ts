@@ -63,6 +63,10 @@ export class CombustibleService {
       p_tarjeta: payload.tarjeta,
       p_titular: payload.titular,
       p_titular_es_persona: payload.titular_es_persona,
+      // AC11 — origen (estación | depósito en obra) + proyecto asociado. El
+      // depósito de obra NO entra a conciliación de estación.
+      p_origen: payload.origen ?? 'estacion',
+      p_proyecto_id: cleanUuid(payload.proyecto_id),
     });
     if (error) throw new Error(error.message);
     const derivados = data as unknown as CombustibleDerivados;
