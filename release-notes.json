@@ -1,6 +1,15 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.53.3": {
+      "titulo": "Adopta las actualizaciones sin pantallas en blanco",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Si tenías la página abierta desde antes de una actualización, al navegar (por ejemplo a Iniciar sesión) podía fallar la carga de un módulo (\"disallowed MIME type\" / \"error loading dynamically imported module\") y quedar la pantalla rota. Ahora la app detecta ese caso y se recarga sola una vez para tomar la versión nueva."
+        }
+      ]
+    },
     "1.53.2": {
       "titulo": "Arreglo: la sesión ya no se cierra sola al refrescar la página",
       "cambios": [

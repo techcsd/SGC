@@ -1,6 +1,7 @@
 import { ErrorHandler, Injectable, Injector, inject } from '@angular/core';
 import { SupabaseService } from './services/supabase.service';
 import { APP_VERSION } from '../../environments/version';
+import { isChunkLoadError, reloadForNewVersion } from '../../shared/utils/chunk-reload.util';
 
 // "ResizeObserver loop completed with undelivered notifications" is a
 // harmless browser quirk — not an actionable app error. Filter it out.
@@ -19,6 +20,13 @@ export class AppErrorHandler implements ErrorHandler {
 
   handleError(error: unknown): void {
     if (this.isBenignResizeObserverNoise(error)) return;
+    // Chunk viejo tras un deploy: en vez de dejar la pantalla rota, recargamos
+    // una vez para adoptar la versión nueva (anti-bucle dentro del helper).
+    if (isChunkLoadError(error)) {
+      console.warn('[sgc] Módulo desactualizado tras un deploy — recargando a la versión nueva.', error);
+      reloadForNewVersion();
+      return;
+    }
     console.error(error);
     void this.report(error);
   }

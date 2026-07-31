@@ -1,9 +1,10 @@
 import { Component, ChangeDetectionStrategy, OnInit, DestroyRef, inject } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { NavigationError, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { UserService } from './core/services/user.service';
 import { ToastService } from '../shared/services/toast.service';
 import { ToastComponent } from '../shared/components/toast/toast';
+import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,31 @@ export class App implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   ngOnInit() {
+    // Recuperación ante "chunk viejo tras un deploy" (index.html apunta a chunks
+    // nuevos; una pestaña vieja intenta cargar los que ya no existen).
+    // 1) Fallo al lazy-load de una ruta → NavigationError (caso del login).
+    this.router.events.subscribe((e) => {
+      if (e instanceof NavigationError && isChunkLoadError(e.error)) {
+        reloadForNewVersion();
+      }
+    });
+    // 2) Imports dinámicos fuera del router / módulos bloqueados por MIME
+    //    (Firefox los emite como error de ventana o promesa sin manejar).
+    const onWindowError = (ev: ErrorEvent) => {
+      if (isChunkLoadError(ev.error) || isChunkLoadError(ev.message)) reloadForNewVersion();
+    };
+    const onRejection = (ev: PromiseRejectionEvent) => {
+      if (isChunkLoadError(ev.reason)) reloadForNewVersion();
+    };
+    // capture:true → los fallos de carga de <script>/módulo no burbujean; hay que
+    // escucharlos en fase de captura para verlos en window.
+    window.addEventListener('error', onWindowError, true);
+    window.addEventListener('unhandledrejection', onRejection);
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('error', onWindowError, true);
+      window.removeEventListener('unhandledrejection', onRejection);
+    });
+
     this.authService.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         // Distinguimos un cierre voluntario de uno por sesión vencida: solo en el
