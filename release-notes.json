@@ -1,6 +1,13 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.59.0": {
+      "titulo": "Medición de rendimiento de la web (Vercel Speed Insights)",
+      "cambios": [
+        { "t": "mejora", "d": "Se activó Vercel Speed Insights: la plataforma ahora mide el rendimiento real de la web (Core Web Vitals) desde el navegador de cada usuario, para detectar páginas lentas y seguir mejorando la velocidad. No cambia nada de lo que ves ni recopila datos personales." }
+      ],
+      "url": ""
+    },
     "1.58.0": {
       "titulo": "Arreglo de registro de combustible, aislamiento de proyectos de prueba y precios editables",
       "cambios": [

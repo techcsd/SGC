@@ -1,6 +1,6 @@
 {
   "name": "sgc",
-  "version": "1.58.0",
+  "version": "1.59.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
@@ -23,6 +23,7 @@
     "@angular/router": "^21.2.0",
     "@supabase/supabase-js": "^2.108.2",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^1.1.0",
     "leaflet": "^1.9.4",
     "mammoth": "^1.12.0",
     "qrcode": "^1.5.4",
