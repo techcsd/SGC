@@ -129,6 +129,13 @@ export class SalidasService {
     return data as unknown as SalidaInventario;
   }
 
+  /** AE5 — ruta/parada en la que viaja este conduce (null si no está asociado a ninguna). */
+  async getRutaInfo(salidaId: string): Promise<ConduceRutaInfo | null> {
+    const { data, error } = await this.supabase.client.rpc('conduce_ruta_info', { p_salida_id: salidaId });
+    if (error) throw new Error(error.message);
+    return (data as ConduceRutaInfo | null) ?? null;
+  }
+
   /** Atomic insert (header + items) with server-side stock validation, via RPC. */
   async create(payload: SalidaFormData, userId: string | null): Promise<SalidaInventario> {
     const { items, conductor_id, vehiculo_id, ...header } = payload;
@@ -194,4 +201,20 @@ export class SalidasService {
     this.notificaciones.refresh();
     return data as boolean;
   }
+}
+
+/** AE5 — ruta/parada asociada a un conduce (salida). Devuelto por `conduce_ruta_info`. */
+export interface ConduceRutaInfo {
+  ruta_id: string;
+  origen: string | null;
+  destino: string | null;
+  fecha: string | null;
+  estado_ruta: string | null;
+  tipo: string | null;
+  ruta_parada_id: string | null;
+  parada_ubicacion: string | null;
+  parada_orden: number | null;
+  parada_estado: string | null;
+  parada_entregada_at: string | null;
+  parada_entregado_a: string | null;
 }

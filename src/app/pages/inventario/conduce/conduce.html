@@ -155,6 +155,16 @@
           </span>
         </div>
       }
+      <!-- AE5 — traza: en qué ruta (y parada) viaja este conduce -->
+      @if (rutaInfo(); as ri) {
+        <div>
+          <span class="conduce__label">Ruta de transporte</span>
+          <span>
+            <a [routerLink]="['/flota/rutas']" [queryParams]="{ item: ri.ruta_id }">{{ ri.origen ?? '—' }} → {{ ri.destino ?? '—' }}</a>
+            @if (ri.parada_ubicacion) { <span class="text-muted"> · parada {{ ri.parada_orden }}: {{ ri.parada_ubicacion }}</span> }
+          </span>
+        </div>
+      }
       @if (s.recibido_en && !s.entregado_en) {
         <div>
           <span class="conduce__label">Recepción confirmada</span>

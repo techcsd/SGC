@@ -514,8 +514,28 @@
         <p class="ruta-detalle__sub text-muted">Sin ubicación exacta del destino — no hay pronóstico.</p>
       }
 
-      <!-- AC13 — Paradas intermedias (en orden) -->
-      @if (detailParadas().length > 0) {
+      <!-- AC13/AE5 — Paradas con estado y conduce vinculado -->
+      @if (detalleTransporte()?.paradas?.length) {
+        <h4 class="ruta-detalle__title">Paradas ({{ detalleTransporte()!.paradas.length }})</h4>
+        <ol class="ruta-paradas">
+          @for (p of detalleTransporte()!.paradas; track p.id) {
+            <li class="ruta-paradas__item">
+              <div class="ruta-paradas__row">
+                <span class="ruta-paradas__ubi">{{ p.ubicacion }}</span>
+                <span class="sgc-badge sgc-badge--{{ paradaEstadoBadge(p.estado) }}">{{ paradaEstadoLabel(p.estado) }}</span>
+              </div>
+              @if (p.obra) { <span class="ruta-paradas__notas">Obra: {{ p.obra }}</span> }
+              @if (p.notas) { <span class="ruta-paradas__notas">{{ p.notas }}</span> }
+              @if (p.conduce_id) {
+                <span class="ruta-paradas__notas">Conduce vinculado: <strong>CND-{{ p.conduce_id.slice(0, 8) }}</strong></span>
+              }
+              @if (p.entregada_at) {
+                <span class="ruta-paradas__notas text-muted">Entregada {{ formatHora(p.entregada_at) }}@if (p.entregado_a) { · recibió {{ p.entregado_a }} }</span>
+              }
+            </li>
+          }
+        </ol>
+      } @else if (detailParadas().length > 0) {
         <h4 class="ruta-detalle__title">Paradas ({{ detailParadas().length }})</h4>
         <ol class="ruta-paradas">
           @for (p of detailParadas(); track p.id ?? $index) {
@@ -561,6 +581,7 @@
                   <span class="ruta-conduces__cnd">CND-{{ c.id.slice(0, 8) }}</span>
                   <span class="sgc-badge sgc-badge--{{ c.estado === 'entregado' ? 'success' : (c.estado === 'entregado_incompleto' ? 'warning' : 'neutral') }}">{{ c.estado }}</span>
                   @if (c.destino) { <span class="text-muted">→ {{ c.destino }}</span> }
+                  @if (c.parada_ubicacion) { <span class="text-muted">· parada: {{ c.parada_ubicacion }}</span> }
                 </div>
                 <div class="ruta-conduces__items">
                   @for (it of c.items; track $index) {

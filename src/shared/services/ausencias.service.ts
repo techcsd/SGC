@@ -3,7 +3,7 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SolicitudAusencia } from '../models/ausencia.model';
 
 const AUSENCIA_SELECT =
-  '*, empleado:empleados(nombre, apellido), solicitante:usuarios!solicitudes_ausencia_solicitado_por_fkey(nombre), aprobador:usuarios!solicitudes_ausencia_aprobado_por_fkey(nombre)';
+  '*, empleado:empleados(nombre, apellido, es_prueba), solicitante:usuarios!solicitudes_ausencia_solicitado_por_fkey(nombre), aprobador:usuarios!solicitudes_ausencia_aprobado_por_fkey(nombre)';
 
 @Injectable({ providedIn: 'root' })
 export class AusenciasService {
@@ -100,10 +100,13 @@ export class AusenciasService {
   }
 
   async countPendientes(): Promise<number> {
+    // AE1 — el badge (KPI) NUNCA cuenta ausencias de empleados de prueba. `solicitudes_ausencia`
+    // no tiene columna es_prueba, así que se excluye por el padre con un inner join filtrado.
     const { count, error } = await this.supabase.client
       .from('solicitudes_ausencia')
-      .select('id', { count: 'exact', head: true })
-      .eq('estado', 'pendiente');
+      .select('id, empleado:empleados!inner(es_prueba)', { count: 'exact', head: true })
+      .eq('estado', 'pendiente')
+      .eq('empleado.es_prueba', false);
     if (error) throw new Error(error.message);
     return count ?? 0;
   }

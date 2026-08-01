@@ -10,6 +10,7 @@ import { DecimalPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { daysAgoIso, yearsSince } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 interface EmpleadoReport {
   id: string;
@@ -21,6 +22,7 @@ interface EmpleadoReport {
   salario: number;
   fecha_ingreso: string;
   activo: boolean;
+  es_prueba?: boolean | null;
 }
 
 interface AsistenciaReport {
@@ -55,30 +57,44 @@ interface DeptStat {
 })
 export class RrhhReportes implements OnInit {
   private supabase = inject(SupabaseService);
+  private datosPruebaSvc = inject(DatosPruebaViewService);
 
   empleados = signal<EmpleadoReport[]>([]);
   asistencia = signal<AsistenciaReport[]>([]);
   loading = signal(true);
   error = signal('');
 
+  // AE1 — base FILTRADA: ningún KPI/reporte de RRHH cuenta datos de prueba
+  // (salvo que el admin active "Mostrar datos de prueba"). Fuente única = visibles().
+  visiblesEmp = computed(() => this.datosPruebaSvc.visibles(this.empleados()));
+  // Ids de empleados de prueba ocultos ahora mismo → para excluir su asistencia
+  // (la tabla `asistencia` no tiene columna es_prueba: se filtra por el padre).
+  private idsOcultos = computed(() => {
+    const visibles = new Set(this.visiblesEmp().map((e) => e.id));
+    return new Set(this.empleados().filter((e) => !visibles.has(e.id)).map((e) => e.id));
+  });
+  asistenciaVisible = computed(() =>
+    this.asistencia().filter((a) => !this.idsOcultos().has(a.empleado_id)),
+  );
+
   // ── Summary ───────────────────────────────────────────────
-  totalEmpleados = computed(() => this.empleados().length);
-  empleadosActivos = computed(() => this.empleados().filter((e) => e.activo).length);
+  totalEmpleados = computed(() => this.visiblesEmp().length);
+  empleadosActivos = computed(() => this.visiblesEmp().filter((e) => e.activo).length);
 
   salarioMasaNominal = computed(() =>
-    this.empleados()
+    this.visiblesEmp()
       .filter((e) => e.activo)
       .reduce((s, e) => s + (e.salario ?? 0), 0),
   );
 
   contratosTemporales = computed(() =>
-    this.empleados().filter((e) => e.activo && e.tipo_contrato !== 'indefinido').length,
+    this.visiblesEmp().filter((e) => e.activo && e.tipo_contrato !== 'indefinido').length,
   );
 
   // ── Dept stats ────────────────────────────────────────────
   deptStats = computed((): DeptStat[] => {
     const map = new Map<string, { total: number; activos: number; salarios: number[] }>();
-    for (const e of this.empleados()) {
+    for (const e of this.visiblesEmp()) {
       const dept = e.departamento || 'Sin departamento';
       if (!map.has(dept)) map.set(dept, { total: 0, activos: 0, salarios: [] });
       const d = map.get(dept)!;
@@ -103,7 +119,7 @@ export class RrhhReportes implements OnInit {
   // ── Asistencia stats (last 30 days) ───────────────────────
   asistenciaStats = computed((): AsistenciaStat => {
     const stats: AsistenciaStat = { presente: 0, ausente: 0, tardanza: 0, permiso: 0, feriado: 0, total: 0 };
-    for (const a of this.asistencia()) {
+    for (const a of this.asistenciaVisible()) {
       stats.total++;
       if (a.estado in stats) {
         (stats as unknown as Record<string, number>)[a.estado]++;
@@ -115,7 +131,7 @@ export class RrhhReportes implements OnInit {
   // ── Contrato breakdown ────────────────────────────────────
   contratoStats = computed(() => {
     const map: Record<string, number> = {};
-    for (const e of this.empleados().filter((e) => e.activo)) {
+    for (const e of this.visiblesEmp().filter((e) => e.activo)) {
       map[e.tipo_contrato] = (map[e.tipo_contrato] ?? 0) + 1;
     }
     return [
@@ -138,7 +154,7 @@ export class RrhhReportes implements OnInit {
       const [eRes, aRes] = await Promise.all([
         this.supabase.client
           .from('empleados')
-          .select('id, nombre, apellido, cargo, departamento, tipo_contrato, salario, fecha_ingreso, activo')
+          .select('id, nombre, apellido, cargo, departamento, tipo_contrato, salario, fecha_ingreso, activo, es_prueba')
           .order('apellido'),
         this.supabase.client
           .from('asistencia')

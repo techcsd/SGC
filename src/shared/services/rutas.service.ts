@@ -134,13 +134,40 @@ export class RutasService {
     return this.cache.signed('vehiculos', path);
   }
 
-  /** Z22.2 — conduces + notas de voz asociados a una ruta (detalle de transporte). */
+  /** Z22.2 / AE5 — paradas (con estado) + conduces + notas de voz de una ruta. */
   async getDetalleTransporte(rutaId: string): Promise<RutaDetalleTransporte> {
     const { data, error } = await this.supabase.client.rpc('ruta_detalle_transporte', {
       p_ruta_id: rutaId,
     });
     if (error) throw new Error(error.message);
-    return (data as RutaDetalleTransporte) ?? { conduces: [], notas_voz: [] };
+    return (data as RutaDetalleTransporte) ?? { paradas: [], conduces: [], notas_voz: [] };
+  }
+
+  // ── AE5 — vínculo conduce ↔ parada + avance de parada ────────────────────
+  /** Ata un conduce propio a una parada concreta (y a su ruta). null = desvincular. */
+  async vincularConduceParada(salidaId: string, rutaParadaId: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('vincular_conduce_parada', {
+      p_salida_id: salidaId,
+      p_ruta_parada_id: rutaParadaId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Marca una parada en_camino/entregada/omitida con evidencia opcional (firma AC7-style). */
+  async avanzarParada(
+    paradaId: string,
+    estado: 'en_camino' | 'entregada' | 'omitida' | 'pendiente',
+    opts?: { fotoPath?: string | null; firmaPath?: string | null; entregadoA?: string | null; notas?: string | null },
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('avanzar_parada', {
+      p_parada_id: paradaId,
+      p_estado: estado,
+      p_foto_path: opts?.fotoPath ?? null,
+      p_firma_path: opts?.firmaPath ?? null,
+      p_entregado_a: opts?.entregadoA ?? null,
+      p_notas: opts?.notas ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 }
 
@@ -157,10 +184,31 @@ export interface RutaConduce {
   estado: string;
   destino: string | null;
   bodega: string | null;
+  ruta_parada_id: string | null;
+  parada_ubicacion: string | null;
   foto_path: string | null;
   entrega_foto_path: string | null;
   recepcion_foto_path: string | null;
   items: RutaConduceItem[];
+}
+export type ParadaEstado = 'pendiente' | 'en_camino' | 'entregada' | 'omitida';
+export interface RutaParadaDetalle {
+  id: string;
+  orden: number;
+  ubicacion: string;
+  lat: number | null;
+  lng: number | null;
+  notas: string | null;
+  obra: string | null;
+  proyecto_id: string | null;
+  estado: ParadaEstado;
+  llegada_at: string | null;
+  entregada_at: string | null;
+  entregado_a: string | null;
+  foto_path: string | null;
+  firma_path: string | null;
+  notas_entrega: string | null;
+  conduce_id: string | null;
 }
 export interface RutaNotaVoz {
   id: string;
@@ -170,6 +218,7 @@ export interface RutaNotaVoz {
   created_at: string;
 }
 export interface RutaDetalleTransporte {
+  paradas: RutaParadaDetalle[];
   conduces: RutaConduce[];
   notas_voz: RutaNotaVoz[];
 }

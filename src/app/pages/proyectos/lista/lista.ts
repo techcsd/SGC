@@ -241,15 +241,16 @@ export class Lista implements OnInit {
   );
 
   // ── Computed ─────────────────────────────────────────────
+  // AE1 — base FILTRADA de datos de prueba (helper central). Todo lo demás (lista + KPIs)
+  // parte de aquí, así ni la lista ni las tarjetas cuentan proyectos de prueba.
+  visiblesProy = computed(() => this.datosPruebaViewSvc.visibles(this.proyectos()));
+
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const estado = this.filterEstado();
     const tipo = this.filterTipo();
-    // Z5(d) — no-admin nunca ve prueba; admin la oculta salvo que active el toggle.
-    const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
-    return this.proyectos().filter((p) => {
-      if (p.es_prueba && !verPrueba) return false;
+    return this.visiblesProy().filter((p) => {
       if (
         q &&
         !p.nombre.toLowerCase().includes(q) &&
@@ -264,11 +265,12 @@ export class Lista implements OnInit {
     });
   });
 
-  statsTotal = computed(() => this.proyectos().length);
-  statsEnProgreso = computed(() => this.proyectos().filter((p) => p.estado === 'en_progreso').length);
-  statsCompletados = computed(() => this.proyectos().filter((p) => p.estado === 'completado').length);
+  // AE1 — los KPIs NUNCA cuentan datos de prueba (salvo toggle admin, vía visiblesProy).
+  statsTotal = computed(() => this.visiblesProy().length);
+  statsEnProgreso = computed(() => this.visiblesProy().filter((p) => p.estado === 'en_progreso').length);
+  statsCompletados = computed(() => this.visiblesProy().filter((p) => p.estado === 'completado').length);
   statsPresupuesto = computed(() =>
-    this.proyectos().reduce((sum, p) => sum + (p.presupuesto ?? 0), 0),
+    this.visiblesProy().reduce((sum, p) => sum + (p.presupuesto ?? 0), 0),
   );
 
   drawerTitle = computed(() => (this.editingId() ? 'Editar proyecto' : 'Nuevo proyecto'));

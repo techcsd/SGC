@@ -810,6 +810,24 @@ export class Rutas implements OnInit {
     return d.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit' });
   }
 
+  // AE5 — etiqueta/badge del estado de una parada.
+  paradaEstadoLabel(estado: string): string {
+    switch (estado) {
+      case 'en_camino': return 'En camino';
+      case 'entregada': return 'Entregada';
+      case 'omitida': return 'Omitida';
+      default: return 'Pendiente';
+    }
+  }
+  paradaEstadoBadge(estado: string): string {
+    switch (estado) {
+      case 'en_camino': return 'info';
+      case 'entregada': return 'success';
+      case 'omitida': return 'neutral';
+      default: return 'warning';
+    }
+  }
+
   /** Desvío % de la duración real vs. la estimada del maps (+18% = 18% más lenta). */
   desvioDuracionPct(r: Ruta): number | null {
     const real = duracionRealMin(r);

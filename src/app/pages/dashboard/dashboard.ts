@@ -483,7 +483,7 @@ export class Dashboard implements OnInit {
         checklistsHoyRes,
         erroresApp7dRes,
       ] = await Promise.all([
-        this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, categoria:categorias_inventario(nombre)'),
+        sinPrueba(this.supabase.client.from('articulos').select('id, precio_estimado, stock_minimo, activo, categoria_id, es_prueba, categoria:categorias_inventario(nombre)')),
         this.supabase.client.from('stock_por_bodega').select('articulo_id, cantidad'),
         sinPrueba(this.supabase.client
           .from('entradas_inventario')
@@ -494,9 +494,12 @@ export class Dashboard implements OnInit {
           .select('fecha, detalle_salidas(cantidad)')
           .gte('fecha', fechaDesde)),
         sinPrueba(this.supabase.client.from('ordenes_compra').select('estado, fecha, total')),
-        this.supabase.client.from('empleados').select('activo, departamento'),
-        this.supabase.client.from('asistencia').select('estado').eq('fecha', hoy),
-        this.supabase.client.from('proyectos').select('estado, presupuesto'),
+        sinPrueba(this.supabase.client.from('empleados').select('activo, departamento, es_prueba')),
+        // asistencia no tiene es_prueba: se excluye por el empleado padre (inner join filtrado).
+        soloReales
+          ? this.supabase.client.from('asistencia').select('estado, empleado:empleados!inner(es_prueba)').eq('fecha', hoy).eq('empleado.es_prueba', false)
+          : this.supabase.client.from('asistencia').select('estado').eq('fecha', hoy),
+        sinPrueba(this.supabase.client.from('proyectos').select('estado, presupuesto, es_prueba')),
         sinPrueba(this.supabase.client.from('vehiculos').select('estado, activo')),
         sinPrueba(this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa)')),
         this.supabase.client
@@ -539,10 +542,17 @@ export class Dashboard implements OnInit {
           .select('id', { count: 'exact', head: true })
           .eq('asignado_a', this.profile()?.id ?? '00000000-0000-0000-0000-000000000000')
           .in('estado', ['pendiente', 'en_progreso']),
-        this.supabase.client
-          .from('solicitudes_ausencia')
-          .select('id', { count: 'exact', head: true })
-          .eq('estado', 'pendiente'),
+        // solicitudes_ausencia no tiene es_prueba: se excluye por el empleado padre.
+        soloReales
+          ? this.supabase.client
+              .from('solicitudes_ausencia')
+              .select('id, empleado:empleados!inner(es_prueba)', { count: 'exact', head: true })
+              .eq('estado', 'pendiente')
+              .eq('empleado.es_prueba', false)
+          : this.supabase.client
+              .from('solicitudes_ausencia')
+              .select('id', { count: 'exact', head: true })
+              .eq('estado', 'pendiente'),
         // Y12 — alertas de flota activas (avisos pendientes)
         sinPrueba(this.supabase.client
           .from('avisos_flota')

@@ -3,7 +3,7 @@ export type EstadoAsistencia = 'presente' | 'ausente' | 'tardanza' | 'permiso' |
 export interface Asistencia {
   id: string;
   empleado_id: string;
-  empleado?: { nombre: string; apellido: string; cargo: string };
+  empleado?: { nombre: string; apellido: string; cargo: string; es_prueba?: boolean | null };
   fecha: string;
   hora_entrada: string | null;
   hora_salida: string | null;

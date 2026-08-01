@@ -160,9 +160,9 @@ export class Empleados implements OnInit {
     es_prueba: new FormControl<boolean>(false),
   });
 
-  // Possible supervisors: any active employee other than the one being edited.
+  // Possible supervisors: any active (non-test) employee other than the one being edited.
   jefeOptions = computed(() =>
-    this.empleados().filter((e) => e.activo && e.id !== this.editingId()),
+    this.datosPruebaViewSvc.visibles(this.empleados()).filter((e) => e.activo && e.id !== this.editingId()),
   );
 
   // ── Computed ─────────────────────────────────────────────
@@ -199,9 +199,10 @@ export class Empleados implements OnInit {
   );
 
   // ── Summary cards ─────────────────────────────────────────
-  totalActivos = computed(() => this.empleados().filter((e) => e.activo).length);
+  // AE1 — las tarjetas NUNCA cuentan datos de prueba (salvo que el admin active el toggle).
+  totalActivos = computed(() => this.datosPruebaViewSvc.visibles(this.empleados()).filter((e) => e.activo).length);
   totalPorContrato = computed(
-    () => this.empleados().filter((e) => e.tipo_contrato === 'temporal' || e.tipo_contrato === 'obra').length,
+    () => this.datosPruebaViewSvc.visibles(this.empleados()).filter((e) => e.tipo_contrato === 'temporal' || e.tipo_contrato === 'obra').length,
   );
 
   async ngOnInit() {

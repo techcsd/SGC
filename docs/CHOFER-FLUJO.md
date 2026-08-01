@@ -76,3 +76,86 @@ por parada si se quiere headcount.)*
 2. Consumir los RPCs de arriba (los 3 nuevos + reutilizar los existentes).
 3. **Coordinar el revert**: quitar `inventario` del rol chofer solo cuando estas
    hojas estén publicadas y probadas.
+
+---
+
+# AE5 — Rutas con carga: paradas ↔ conduces (31/07/2026 PM)
+
+Extiende el flujo del chofer: una ruta de **material** puede llevar carga a varias
+**paradas**, y cada parada puede tener un **conduce** (salida de material) atado. Al
+entregarse la parada, el conduce queda **trazado**: en qué ruta viajó, a qué parada,
+cuándo y quién recibió.
+
+## Flujo objetivo (research del chofer de construcción)
+
+1. **Planificar la ruta** (tipo `material`): el chofer define paradas ordenadas
+   (`ruta_paradas`, AC13) — cada una con ubicación, obra destino opcional y notas.
+2. **Asignar carga por parada**: por cada parada donde deja material, el chofer
+   **crea o elige un conduce propio** (`crear_conduce_transportista`) y lo **vincula**
+   a esa parada (`vincular_conduce_parada`). El conduce indica qué material va a esa
+   parada. Un conduce puede quedar a nivel ruta (sin parada) o a una parada concreta.
+3. **Ejecutar**: cada parada avanza `pendiente → en_camino → entregada` (`avanzar_parada`).
+   - Si la parada tiene conduce, al **confirmar la recepción del conduce**
+     (`confirmar_recepcion_salida` / `entregar_conduce`, con firma AC7 emisor+receptor
+     y foto), un **trigger** marca la parada `entregada` automáticamente y copia la
+     evidencia (foto/firma/receptor) a la parada. Traza cerrada.
+   - Si la parada **no** tiene conduce (traslado/personal), el chofer la cierra con
+     `avanzar_parada(estado='entregada', …)` (evidencia opcional).
+4. **Tiempos**: `llegada_at` al pasar a `en_camino`, `entregada_at` al entregar.
+
+## Modelo aditivo (aplicado en `sql/2026-08-01-ae5-ruta-parada-conduce.sql`)
+
+- `ruta_paradas +=` `estado` (`pendiente|en_camino|entregada|omitida`), `llegada_at`,
+  `entregada_at`, `entregado_a`, `foto_path`, `firma_path`, `notas_entrega`.
+- `salidas_inventario += ruta_parada_id` (FK → `ruta_paradas`, `on delete set null`).
+  Se conserva `ruta_id` (nivel ruta) — el vínculo a parada es adicional, no lo sustituye.
+- `set_ruta_paradas` ahora **reconcilia por `id`** (no borra-todo): al re-planificar se
+  conservan estado/evidencia de paradas ya en camino/entregadas; solo se borran paradas
+  que ya no vienen **y** siguen `pendiente`. Retrocompatible con paradas sin `id` (insert).
+
+## Matriz de visibilidad de conduces  ⚠️ (Xaviel valida)
+
+Quién ve un conduce (`salidas_inventario`) y cómo — **ya implementada por RLS** (Z22 +
+`2026-07-03-transporte-trazabilidad`); el vínculo a parada solo enriquece la traza, no
+relaja la RLS:
+
+| Actor | ¿Ve el conduce? | Cómo le aparece |
+|---|---|---|
+| **Admin** (`is_admin()`) | Todos | Inventario › Conduces/Salidas; detalle con ruta+parada. |
+| **Almacén / Inventario** (`tiene_modulo('inventario')`) | Todos | Igual que admin; confirma recepciones. |
+| **Emisor / creador** (`creado_por = auth.uid()`) | Los suyos | Sus conduces creados. |
+| **Chofer asignado** (`conductor_id.usuario_id = auth.uid()`) | Los suyos/asignados | En su ruta: "pendientes de transporte"; puede vincular a parada y cerrar. |
+| **Obra destino** (miembro de `proyecto_empleados` del `proyecto_id` del conduce) | Los dirigidos a su obra | Recepciones a su obra. |
+| **Cualquier otro** | Ninguno | — |
+
+> Nota: la visibilidad a la **obra destino** depende de `salidas_inventario.proyecto_id`.
+> En una ruta multi-parada con obras distintas por parada, cada conduce lleva su propio
+> `proyecto_id` (la obra de su parada), así que cada obra ve solo lo suyo.
+
+## Contrato para la app (PROMPT-18 · FASE 4)
+
+RPCs nuevos (SECURITY DEFINER; permiso = elevado / creador del conduce / chofer asignado
+o creador/conductor de la ruta):
+
+| RPC | Firma | Efecto |
+|---|---|---|
+| `vincular_conduce_parada` | `(p_salida_id uuid, p_ruta_parada_id uuid)` → void | Ata un conduce a una parada (y a su ruta). `p_ruta_parada_id = null` desvincula. |
+| `avanzar_parada` | `(p_parada_id uuid, p_estado text, p_foto_path text, p_firma_path text, p_entregado_a text, p_notas text)` → void | Mueve la parada de estado con evidencia opcional (firma AC7-style). Estados: `pendiente\|en_camino\|entregada\|omitida`. |
+| `conduce_ruta_info` | `(p_salida_id uuid)` → jsonb\|null | Ruta+parada de un conduce (para el detalle del conduce). |
+| `ruta_detalle_transporte` | `(p_ruta_id uuid)` → jsonb | **Ampliado**: ahora devuelve `paradas[]` (con estado, evidencia y `conduce_id` vinculado) además de `conduces[]` (con `ruta_parada_id`/`parada_ubicacion`) y `notas_voz[]`. |
+
+Reutilizar: `crear_conduce_transportista` (pasar `p_ruta_id`), `set_ruta_paradas`
+(ahora acepta `id` por parada para preservar estado), `firmar_conduce`,
+`confirmar_recepcion_salida`/`entregar_conduce` (dispara el auto-cierre de la parada).
+
+UI app sugerida:
+- **Crear ruta** (rediseño): paradas dinámicas; por parada un selector "Adjuntar conduce"
+  (solo conduces propios/asignados **despachados**, sin ruta_parada). Botones **Iniciar**
+  y **Cómo llegar** con estilo de botón real. Progreso por parada (chip de estado).
+- El conduce transportado muestra en su detalle la ruta/parada (`conduce_ruta_info`).
+
+## Estado web (padre, hecho en AE5)
+- **Flota › Rutas › detalle**: paradas con chip de estado + obra + conduce vinculado +
+  hora/receptor de entrega; cada conduce de la ruta muestra su parada.
+- **Inventario › Conduce (detalle)**: bloque "Ruta de transporte" con enlace a la ruta
+  (`?item=<ruta_id>`) y la parada donde viaja.

@@ -9,7 +9,7 @@ export class AsistenciaService {
   async getByFecha(fecha: string): Promise<Asistencia[]> {
     const { data, error } = await this.supabase.client
       .from('asistencia')
-      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .select('*, empleado:empleados(nombre, apellido, cargo, es_prueba)')
       .eq('fecha', fecha)
       .order('created_at');
 
@@ -20,7 +20,7 @@ export class AsistenciaService {
   async getByEmpleado(empleadoId: string): Promise<Asistencia[]> {
     const { data, error } = await this.supabase.client
       .from('asistencia')
-      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .select('*, empleado:empleados(nombre, apellido, cargo, es_prueba)')
       .eq('empleado_id', empleadoId)
       .order('fecha', { ascending: false })
       .limit(30);
@@ -33,7 +33,7 @@ export class AsistenciaService {
     const { data, error } = await this.supabase.client
       .from('asistencia')
       .upsert(payload, { onConflict: 'empleado_id,fecha' })
-      .select('*, empleado:empleados(nombre, apellido, cargo)')
+      .select('*, empleado:empleados(nombre, apellido, cargo, es_prueba)')
       .single();
 
     if (error) throw new Error(error.message);

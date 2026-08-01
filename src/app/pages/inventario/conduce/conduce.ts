@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal, viewChild, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { SalidasService } from '../../../../shared/services/salidas.service';
+import { SalidasService, ConduceRutaInfo } from '../../../../shared/services/salidas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { SupabaseService } from '../../../../app/core/services/supabase.service';
 import {
@@ -29,7 +29,7 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
 
 @Component({
   selector: 'app-conduce',
-  imports: [Skeleton, SignaturePad],
+  imports: [Skeleton, SignaturePad, RouterLink],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +55,8 @@ export class Conduce implements OnInit {
   mostrarTalla = computed(() => (this.salida()?.detalle_salidas ?? []).some((d) => !!d.talla));
   loading = signal(true);
   error = signal('');
+  // AE5 — ruta/parada en la que viaja este conduce (para mostrar "su ruta").
+  rutaInfo = signal<ConduceRutaInfo | null>(null);
   // Delivery evidence (photo + receiver signature) captured by the mobile app.
   entregaFotoUrl = signal<string | null>(null);
   entregaFirmaUrl = signal<string | null>(null);
@@ -104,6 +106,12 @@ export class Conduce implements OnInit {
       const s = await this.salidasService.getById(id);
       this.salida.set(s);
       await this.loadEvidencia(s);
+      // AE5 — traza de la ruta/parada (no bloqueante).
+      try {
+        this.rutaInfo.set(await this.salidasService.getRutaInfo(id));
+      } catch {
+        /* la traza de ruta es complementaria */
+      }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar la salida.');
     } finally {

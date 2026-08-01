@@ -1,6 +1,18 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.60.0": {
+      "titulo": "Datos de prueba fuera de los reportes de RRHH, paneles legibles, y trazabilidad ruta ↔ conduce",
+      "cambios": [
+        { "t": "arreglo", "d": "RRHH: los empleados marcados como \"de prueba\" ya no cuentan en los reportes ni KPIs (empleados activos, total registrados, masa salarial, contratos, asistencia y ausencias). Solo el administrador los ve si activa \"Mostrar datos de prueba\". Se auditaron TODOS los módulos y se cerró la misma fuga en el Dashboard (inventario, empleados, proyectos, asistencia y ausencias) y en los KPIs de Proyectos." },
+        { "t": "seguridad", "d": "Se centralizó el filtro de datos de prueba en un único punto para que ningún reporte o pantalla nueva pueda volver a olvidarlo (los KPIs y badges siempre cuentan solo datos reales)." },
+        { "t": "arreglo", "d": "Se corrigió la legibilidad del panel \"Exportar a Excel\" (los chips de Basado en / Categoría / Propiedad / Estado se veían oscuros sobre fondo oscuro) en todos los módulos donde aparece (Usuarios, Conductores, Empleados, Vehículos, Artículos, Mantenimientos, Tareas)." },
+        { "t": "arreglo", "d": "Se corrigió la legibilidad del panel \"Calibración del rendimiento\" de Combustible (umbrales) y del editor de Notas: ahora usan el tema claro estándar del SGC. Se eliminó de raíz el estilo copiado que causaba estos paneles oscuros." },
+        { "t": "nuevo", "d": "Rutas y conduces: una ruta puede llevar carga a varias paradas y cada parada puede tener un conduce vinculado. El detalle de la ruta muestra cada parada con su estado (pendiente / en camino / entregada) y su conduce; el detalle del conduce muestra en qué ruta y parada viaja. Al entregarse el conduce, la parada se marca entregada automáticamente." },
+        { "t": "nuevo", "d": "Pre-uso simplificado: la inspección de pre-uso pasa a ser un chequeo visual rápido (6 puntos de lo que se ve: gomas, luces, carrocería, interior, combustible y fugas) más fotos de exterior e interior. El chequeo a fondo queda en el reporte semanal del asignado; nada se pierde." }
+      ],
+      "url": ""
+    },
     "1.59.0": {
       "titulo": "Medición de rendimiento de la web (Vercel Speed Insights)",
       "cambios": [

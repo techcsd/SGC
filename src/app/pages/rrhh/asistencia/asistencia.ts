@@ -16,6 +16,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { todayIso, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 @Component({
   selector: 'app-asistencia',
@@ -27,6 +28,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 export class Asistencia implements OnInit {
   private asistenciaService = inject(AsistenciaService);
   private empleadosService = inject(EmpleadosService);
+  private datosPruebaSvc = inject(DatosPruebaViewService);
 
   // ── Data state ──────────────────────────────────────────
   registros = signal<AsistenciaModel[]>([]);
@@ -60,8 +62,11 @@ export class Asistencia implements OnInit {
   }, { validators: endTimeAfterStart('hora_entrada', 'hora_salida') });
 
   // ── Computed ─────────────────────────────────────────────
+  // AE1 — la asistencia de empleados de prueba no cuenta (filtra por el flag del empleado embebido).
+  registrosVisibles = computed(() => this.datosPruebaSvc.visibles(this.registros().map((r) => ({ ...r, es_prueba: r.empleado?.es_prueba ?? false }))));
+
   summary = computed(() => {
-    const list = this.registros();
+    const list = this.registrosVisibles();
     return {
       presentes: list.filter((r) => r.estado === 'presente').length,
       ausentes: list.filter((r) => r.estado === 'ausente').length,
@@ -78,7 +83,7 @@ export class Asistencia implements OnInit {
   filteredRegistros = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const estado = this.selectedEstado();
-    return this.registros().filter((r) => {
+    return this.registrosVisibles().filter((r) => {
       if (estado && r.estado !== estado) return false;
       if (q) {
         const nombre = r.empleado
@@ -112,7 +117,8 @@ export class Asistencia implements OnInit {
   private async loadEmpleados() {
     try {
       const all = await this.empleadosService.getAll();
-      this.empleadosActivos.set(all.filter((e) => e.activo));
+      // AE1 — el selector no ofrece empleados de prueba (salvo toggle admin).
+      this.empleadosActivos.set(this.datosPruebaSvc.visibles(all).filter((e) => e.activo));
     } catch {
       // non-blocking: empleados list fallback
     }

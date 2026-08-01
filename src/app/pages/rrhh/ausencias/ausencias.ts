@@ -12,6 +12,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 @Component({
   selector: 'app-ausencias',
@@ -26,6 +27,7 @@ export class Ausencias implements OnInit {
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
+  private datosPruebaSvc = inject(DatosPruebaViewService);
 
   readonly TIPOS = AUSENCIA_TIPOS;
   readonly ESTADOS = AUSENCIA_ESTADOS;
@@ -60,10 +62,16 @@ export class Ausencias implements OnInit {
     motivo: new FormControl<string | null>(null),
   });
 
-  pendientes = computed(() => this.solicitudes().filter((s) => s.estado === 'pendiente'));
+  // AE1 — base FILTRADA: las solicitudes de empleados de prueba no cuentan ni se listan
+  // (salvo toggle admin). `solicitudes_ausencia` no tiene es_prueba: se filtra por el padre.
+  solicitudesVisibles = computed(() =>
+    this.datosPruebaSvc.visibles(this.solicitudes().map((s) => ({ ...s, es_prueba: s.empleado?.es_prueba ?? false }))),
+  );
+
+  pendientes = computed(() => this.solicitudesVisibles().filter((s) => s.estado === 'pendiente'));
 
   visible = computed(() => {
-    const base = this.tab() === 'pendientes' ? this.pendientes() : this.solicitudes();
+    const base = this.tab() === 'pendientes' ? this.pendientes() : this.solicitudesVisibles();
     const tipo = this.selectedTipo();
     return tipo === 'all' ? base : base.filter((s) => s.tipo === tipo);
   });
@@ -95,7 +103,8 @@ export class Ausencias implements OnInit {
         this.empleadosService.getAll(),
       ]);
       this.solicitudes.set(solicitudes);
-      this.empleados.set(empleados.filter((e) => e.activo));
+      // AE1 — el selector no ofrece empleados de prueba (salvo toggle admin).
+      this.empleados.set(this.datosPruebaSvc.visibles(empleados).filter((e) => e.activo));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las solicitudes.');
     } finally {

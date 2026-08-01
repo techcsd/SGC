@@ -11,7 +11,7 @@ export type AusenciaEstado = 'pendiente' | 'aprobada' | 'rechazada';
 export interface SolicitudAusencia {
   id: string;
   empleado_id: string;
-  empleado?: { nombre: string; apellido: string } | null;
+  empleado?: { nombre: string; apellido: string; es_prueba?: boolean | null } | null;
   tipo: AusenciaTipo;
   fecha_inicio: string;
   fecha_fin: string;
