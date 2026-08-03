@@ -47,6 +47,10 @@ export interface SalidaInventario {
   entrega_receptor: string | null;
   entrega_firma_path: string | null;
   entrega_foto_path: string | null;
+  // AE — firma de RECEPTOR pendiente enrutada (móvil): a quién le toca firmar si no
+  // estuvo presente. Se limpia cuando esa persona firma (firmar_conduce).
+  firma_pendiente_usuario_id: string | null;
+  firma_pendiente_nombre: string | null;
   // T2 — dato de prueba (oculto a no-admin por RLS; admin lo marca/elimina).
   es_prueba?: boolean;
   detalle_salidas?: DetalleSalida[];

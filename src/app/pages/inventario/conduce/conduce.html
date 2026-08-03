@@ -280,6 +280,11 @@
           <img class="conduce__firma-img" [src]="url" alt="Firma de quien recibe" />
           <span class="conduce__firma-line conduce__firma-line--signed"></span>
           @if (s.entrega_receptor) { <span class="conduce__firma-name">{{ s.entrega_receptor }}</span> }
+        } @else if (s.firma_pendiente_usuario_id) {
+          <!-- AE — el receptor no estaba presente: firma pendiente enrutada (móvil) -->
+          <span class="conduce__firma-line"></span>
+          <span class="conduce__firma-name conduce__firma-name--pending">PENDIENTE</span>
+          <span class="conduce__firma-meta">Asignada a {{ s.firma_pendiente_nombre ?? '—' }}</span>
         } @else {
           <span class="conduce__firma-line"></span>
         }

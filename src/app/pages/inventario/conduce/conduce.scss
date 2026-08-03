@@ -296,3 +296,9 @@
     .sgc-field { flex: 1; min-width: 160px; }
   }
 }
+
+// AE — firma de receptor pendiente (enrutada desde el móvil).
+.conduce__firma-name--pending {
+  color: #b45309;
+  font-weight: 700;
+}
