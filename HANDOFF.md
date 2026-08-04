@@ -2,13 +2,13 @@
 
 _Last updated: 2026-08-04_
 
-## PROMPT-1 · Ronda AF (04/08/2026) — ✅ 8/8 FASES · 7 migraciones EN PROD · build verde · web **1.61.0** prep · `git` intacto (SIN commit/push) · edge `send-push` **SIN desplegar**
+## PROMPT-1 · Ronda AF (04/08/2026) — ✅ 8/8 FASES · 7 migraciones EN PROD · build verde · web **1.61.0** COMMIT `18ba268` + PUSH `main` (deploy Vercel) · edge `send-push` **DESPLEGADA** (falta solo secret FCM)
 
 ### TL;DR
 Fuente: `C:\developer\improvements\imp 03082026\CONTEXTO.md` (IDs AF). PROMPT-1 = **backend transversal** que PROMPT-2/3/4 consumen + fixes web. 7 migraciones `sql/2026-08-04-af*.sql` aplicadas a prod vía Management API. `package.json` bump a **1.61.0** + `release-notes.json` estructurado (build `verify-version-notes` verde). **NADA de git commit/push ni deploy web.**
 
 ### Pendiente de Xaviel (bloquea sólo lo push)
-1. **Desplegar edge `send-push`** (`supabase functions deploy send-push`) + cargar secret **`FCM_SERVICE_ACCOUNT_JSON`** (service account de Firebase) para push nativo Android. Sin eso, todo cae al aviso in-app (ya funciona). Cron dominical ya activo.
+1. Edge `send-push` **YA DESPLEGADA** (Management API, ACTIVE, gate 401 OK; `INFRA_SYNC_SECRET`+`SUPABASE_SERVICE_ROLE_KEY` SET). Falta SOLO el secret **`FCM_SERVICE_ACCOUNT_JSON`** (service account JSON del proyecto Firebase de Xaviel) para push nativo Android. Sin eso: no-op → aviso in-app (ya funciona). Cron dominical ya activo.
 2. **Decisión AF37 Paso Rápido** (opción A vs B) — ver `docs/AF37-paso-rapido-research.md` (recomendado B).
 3. Assumptions de la sección K del CONTEXTO tomadas por defecto (umbral km=1000, capataz vía flag `can_confirm_reception`, remoto=Raykler/Eduardo, cadencia domingo 8/11/14/17/20h RD, A no acepta traspaso). Confirmar si alguna cambia.
 
