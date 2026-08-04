@@ -8,7 +8,7 @@ _Last updated: 2026-08-04_
 Fuente: `C:\developer\improvements\imp 03082026\CONTEXTO.md` (IDs AF). PROMPT-1 = **backend transversal** que PROMPT-2/3/4 consumen + fixes web. 7 migraciones `sql/2026-08-04-af*.sql` aplicadas a prod vía Management API. `package.json` bump a **1.61.0** + `release-notes.json` estructurado (build `verify-version-notes` verde). **NADA de git commit/push ni deploy web.**
 
 ### Pendiente de Xaviel (bloquea sólo lo push)
-1. Edge `send-push` **YA DESPLEGADA** (Management API, ACTIVE, gate 401 OK; `INFRA_SYNC_SECRET`+`SUPABASE_SERVICE_ROLE_KEY` SET). Falta SOLO el secret **`FCM_SERVICE_ACCOUNT_JSON`** (service account JSON del proyecto Firebase de Xaviel) para push nativo Android. Sin eso: no-op → aviso in-app (ya funciona). Cron dominical ya activo.
+1. Push **100% OPERATIVO y verificado E2E** (04/08): Firebase proyecto **`csd-core`** creado; secret `FCM_SERVICE_ACCOUNT_JSON` cargado en Supabase; edge `send-push` desplegada; prueba real OK (OAuth Google + FCM v1 → `{ok:true,sent:0,failed:1,cleaned:1}` con token falso). Cron dominical activo. **Lo único que falta es del lado APP (PROMPT-2)**: la app csd-app debe usar `google-services.json` (ya descargado por Xaviel, va en `android/app/`) + plugin Capacitor de push para registrar tokens reales vía `sgc.registrar_device_token`.
 2. **Decisión AF37 Paso Rápido** (opción A vs B) — ver `docs/AF37-paso-rapido-research.md` (recomendado B).
 3. Assumptions de la sección K del CONTEXTO tomadas por defecto (umbral km=1000, capataz vía flag `can_confirm_reception`, remoto=Raykler/Eduardo, cadencia domingo 8/11/14/17/20h RD, A no acepta traspaso). Confirmar si alguna cambia.
 
