@@ -57,6 +57,19 @@ export class Conduce implements OnInit {
   error = signal('');
   // AE5 — ruta/parada en la que viaja este conduce (para mostrar "su ruta").
   rutaInfo = signal<ConduceRutaInfo | null>(null);
+  // AF23 — fase del ciclo de vida del conduce (Transporte v2).
+  fase = signal<string | null>(null);
+  readonly FASE_META: Record<string, { label: string; badge: string }> = {
+    emitido: { label: 'Emitido', badge: 'info' },
+    en_transito: { label: 'En tránsito', badge: 'warning' },
+    entregado: { label: 'Entregado', badge: 'success' },
+    confirmado: { label: 'Confirmado', badge: 'success' },
+    pendiente_firma: { label: 'Pendiente de firma', badge: 'warning' },
+  };
+  faseMeta = computed(() => {
+    const f = this.fase();
+    return f ? (this.FASE_META[f] ?? { label: f, badge: 'neutral' }) : null;
+  });
   // Delivery evidence (photo + receiver signature) captured by the mobile app.
   entregaFotoUrl = signal<string | null>(null);
   entregaFirmaUrl = signal<string | null>(null);
@@ -112,6 +125,8 @@ export class Conduce implements OnInit {
       } catch {
         /* la traza de ruta es complementaria */
       }
+      // AF23 — fase del ciclo de vida (no bloqueante).
+      this.salidasService.getFase(id).then((f) => this.fase.set(f));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar la salida.');
     } finally {

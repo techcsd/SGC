@@ -1,6 +1,19 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.62.0": {
+      "titulo": "Transporte v2: seguimiento en vivo, conduce que genera su ruta, rutas vivas y estados del chofer (AF)",
+      "cambios": [
+        { "t": "nuevo", "d": "Seguimiento (Flota): mapa en vivo con la última posición de cada chofer/vehículo, su estado (disponible, en ruta, almuerzo…) y las rutas activas con su progreso. Solo para jefe de flota, dirección y tecnología; se actualiza en tiempo real." },
+        { "t": "nuevo", "d": "El conduce genera su ruta: al crear un conduce con vehículo y obra destino se crea (o se usa) la ruta del chofer automáticamente, sin registrar ruta y conduce por separado. El detalle del conduce muestra su fase (emitido / en tránsito / entregado / confirmado / pendiente de firma)." },
+        { "t": "nuevo", "d": "Rutas vivas: se puede agregar una parada o cambiar el destino a mitad de ruta, con historial de los cambios (quién y cuándo). Al entregarse la última parada, la ruta se cierra sola." },
+        { "t": "nuevo", "d": "Estados de disponibilidad del chofer (disponible, en ruta, descanso, almuerzo, inactivo, otros): \"En ruta\" se pone y se quita solo al iniciar/terminar la ruta, y el almuerzo vuelve a Disponible tras una hora." },
+        { "t": "nuevo", "d": "Artículos de alto valor (entrega en mano, ej. un dron): un conduce que los lleva no puede cerrarse con auto-recepción del chofer; exige la confirmación del responsable en obra." },
+        { "t": "nuevo", "d": "Tracking de ubicación de los choferes (posición e histórico con retención de 7 días) para el seguimiento, con permisos: cada chofer solo escribe la suya; la ve el jefe de flota." },
+        { "t": "mejora", "d": "Al asignarle una ruta a un chofer (desde la web o la app), recibe un aviso dentro del sistema y una notificación push en su teléfono." }
+      ],
+      "url": ""
+    },
     "1.61.0": {
       "titulo": "Confirmación de recepción con evidencia, llaves y galería de vehículos, registro de combustible y ferreterías (AF)",
       "cambios": [

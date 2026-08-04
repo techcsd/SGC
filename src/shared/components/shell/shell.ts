@@ -160,6 +160,7 @@ export class Shell implements OnInit {
         { label: 'Mantenimientos', route: '/flota/mantenimientos', badgeKey: 'flota.mantenimientos' },
         { label: 'Conductores', route: '/flota/conductores', flotaElevado: true },
         { label: 'Estado de conductores', route: '/flota/conductores-estado', flotaElevado: true },
+        { label: 'Seguimiento', route: '/flota/seguimiento', flotaElevado: true },
         { label: 'Combustible', route: '/flota/combustible', badgeKey: 'flota.combustible' },
         { label: 'Registro de echadas', route: '/flota/combustible-log', flotaElevado: true },
         { label: 'Conciliación de combustible', route: '/flota/conciliacion-combustible', flotaElevado: true, badgeKey: 'flota.conciliacion' },

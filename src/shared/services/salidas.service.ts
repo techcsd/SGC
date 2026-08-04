@@ -130,6 +130,13 @@ export class SalidasService {
   }
 
   /** AE5 — ruta/parada en la que viaja este conduce (null si no está asociado a ninguna). */
+  /** AF23 — fase del ciclo de vida del conduce (emitido/en_transito/entregado/confirmado/pendiente_firma). */
+  async getFase(salidaId: string): Promise<string | null> {
+    const { data, error } = await this.supabase.client.rpc('conduce_fase', { p_salida_id: salidaId });
+    if (error) return null;
+    return (data as string) ?? null;
+  }
+
   async getRutaInfo(salidaId: string): Promise<ConduceRutaInfo | null> {
     const { data, error } = await this.supabase.client.rpc('conduce_ruta_info', { p_salida_id: salidaId });
     if (error) throw new Error(error.message);

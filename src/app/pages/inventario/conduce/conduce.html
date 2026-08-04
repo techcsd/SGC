@@ -145,7 +145,12 @@
       </div>
       <div>
         <span class="conduce__label">Estado</span>
-        <span>{{ ESTADO_LABELS[s.estado] }}</span>
+        <span>
+          {{ ESTADO_LABELS[s.estado] }}
+          @if (faseMeta(); as fm) {
+            <span class="sgc-badge sgc-badge--{{ fm.badge }}">{{ fm.label }}</span>
+          }
+        </span>
       </div>
       @if (s.conductor?.nombre || s.vehiculo?.placa) {
         <div>

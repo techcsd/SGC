@@ -85,6 +85,12 @@ export const flotaRoutes: Routes = [
     title: 'Rutas — Flota',
   },
   {
+    path: 'seguimiento',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () => import('./seguimiento/seguimiento').then((m) => m.Seguimiento),
+    title: 'Seguimiento — Flota',
+  },
+  {
     path: 'checklists',
     loadComponent: () => import('./checklists/checklists').then((m) => m.Checklists),
     title: 'Checklists — Flota',
