@@ -106,6 +106,9 @@
             <tr [class.row--inactive]="!p.activo">
               <td>
                 <span class="prov-name">{{ p.nombre }}</span>
+                @if (p.is_hardware_store) {
+                  <span class="sgc-badge sgc-badge--info" title="Ferretería visible para choferes">🔧 Ferretería</span>
+                }
                 @if (p.es_prueba) {
                   <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
                 }
@@ -264,6 +267,29 @@
         placeholder="Persona de contacto"
       />
     </div>
+
+    <!-- AF32 — ferretería visible para choferes + ubicación -->
+    <div class="form-toggle">
+      <label class="toggle-label" for="prov-ferreteria">
+        <input id="prov-ferreteria" type="checkbox" formControlName="is_hardware_store" class="toggle-input" />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Ferretería (visible para choferes)
+      </label>
+      <small class="sgc-field__hint">Aparece como origen de compra al crear un conduce en la app.</small>
+    </div>
+
+    @if (f.is_hardware_store.value) {
+      <div class="sgc-field-row">
+        <div class="sgc-field">
+          <label for="prov-lat">Latitud</label>
+          <input id="prov-lat" type="number" step="any" formControlName="lat" placeholder="18.4861" />
+        </div>
+        <div class="sgc-field">
+          <label for="prov-lng">Longitud</label>
+          <input id="prov-lng" type="number" step="any" formControlName="lng" placeholder="-69.9312" />
+        </div>
+      </div>
+    }
 
     <div class="form-toggle">
       <label class="toggle-label" for="activo">

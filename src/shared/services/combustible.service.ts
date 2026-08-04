@@ -11,6 +11,29 @@ import { cleanUuid } from '../utils/uuid.util';
 
 const BUCKET = 'vehiculos';
 
+/** AF17 — fila del log de echadas (RPC log_combustible). */
+export interface LogCombustibleRow {
+  id: string;
+  fecha: string;
+  vehiculo_id: string | null;
+  placa: string | null;
+  kilometraje: number | null;
+  km_anterior: number | null;
+  km_recorridos: number | null;
+  galones: number | null;
+  monto: number | null;
+  producto: string | null;
+  subtipo: string | null;
+  estado: string | null;
+  km_alerta: boolean;
+  alerta_consumo: boolean;
+  registrado_por: string | null;
+  registrado_nombre: string | null;
+  conductor_nombre: string | null;
+  es_prueba: boolean;
+  created_at: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CombustibleService {
   private supabase = inject(SupabaseService);
@@ -25,6 +48,26 @@ export class CombustibleService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as RegistroCombustible[];
+  }
+
+  /**
+   * AF17 — Log de echadas para admin / roles elevados: quién registró, delta de
+   * km vs echada anterior, saltos fuera de umbral. Vía RPC (server filtra por rol).
+   */
+  async getLog(filtros?: {
+    desde?: string | null;
+    hasta?: string | null;
+    vehiculoId?: string | null;
+    usuarioId?: string | null;
+  }): Promise<LogCombustibleRow[]> {
+    const { data, error } = await this.supabase.client.rpc('log_combustible', {
+      p_desde: filtros?.desde ?? null,
+      p_hasta: filtros?.hasta ?? null,
+      p_vehiculo_id: filtros?.vehiculoId ?? null,
+      p_usuario_id: filtros?.usuarioId ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as LogCombustibleRow[];
   }
 
   /**

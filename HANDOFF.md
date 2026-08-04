@@ -1,6 +1,22 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-07-29_
+_Last updated: 2026-08-04_
+
+## PROMPT-1 · Ronda AF (04/08/2026) — ✅ 8/8 FASES · 7 migraciones EN PROD · build verde · web **1.61.0** prep · `git` intacto (SIN commit/push) · edge `send-push` **SIN desplegar**
+
+### TL;DR
+Fuente: `C:\developer\improvements\imp 03082026\CONTEXTO.md` (IDs AF). PROMPT-1 = **backend transversal** que PROMPT-2/3/4 consumen + fixes web. 7 migraciones `sql/2026-08-04-af*.sql` aplicadas a prod vía Management API. `package.json` bump a **1.61.0** + `release-notes.json` estructurado (build `verify-version-notes` verde). **NADA de git commit/push ni deploy web.**
+
+### Pendiente de Xaviel (bloquea sólo lo push)
+1. **Desplegar edge `send-push`** (`supabase functions deploy send-push`) + cargar secret **`FCM_SERVICE_ACCOUNT_JSON`** (service account de Firebase) para push nativo Android. Sin eso, todo cae al aviso in-app (ya funciona). Cron dominical ya activo.
+2. **Decisión AF37 Paso Rápido** (opción A vs B) — ver `docs/AF37-paso-rapido-research.md` (recomendado B).
+3. Assumptions de la sección K del CONTEXTO tomadas por defecto (umbral km=1000, capataz vía flag `can_confirm_reception`, remoto=Raykler/Eduardo, cadencia domingo 8/11/14/17/20h RD, A no acepta traspaso). Confirmar si alguna cambia.
+
+Detalle completo de contratos/RPCs en la memoria `project_sgc-prompt1-AF-2026-08-04.md`.
+
+---
+
+_Prev: 2026-07-29_
 
 ## PROMPT-9 · Ronda AA (29/07/2026) — ✅ 7/7 FASES IMPLEMENTADAS · migraciones + edges EN PROD · `git` intacto · web **NO** desplegada (queda `1.53.0` listo)
 

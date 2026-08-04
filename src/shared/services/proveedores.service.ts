@@ -10,7 +10,21 @@ export interface ProveedorPayload {
   email?: string | null;
   direccion?: string | null;
   activo?: boolean;
+  is_hardware_store?: boolean;
+  lat?: number | null;
+  lng?: number | null;
   es_prueba?: boolean;
+}
+
+/** AF32 — ferretería visible para choferes (RPC ferreterias_visibles). */
+export interface FerreteriaVisible {
+  id: string;
+  nombre: string;
+  direccion: string | null;
+  lat: number | null;
+  lng: number | null;
+  telefono: string | null;
+  contacto: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,6 +40,13 @@ export class ProveedoresService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Proveedor[];
+  }
+
+  /** AF32 — ferreterías visibles para choferes (origen de conduce en la app). */
+  async getFerreterias(): Promise<FerreteriaVisible[]> {
+    const { data, error } = await this.supabase.client.rpc('ferreterias_visibles');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as FerreteriaVisible[];
   }
 
   async create(payload: ProveedorPayload): Promise<Proveedor> {

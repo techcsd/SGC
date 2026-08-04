@@ -61,6 +61,12 @@ export const flotaRoutes: Routes = [
     title: 'Combustible — Flota',
   },
   {
+    path: 'combustible-log',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () => import('./combustible-log/combustible-log').then((m) => m.CombustibleLog),
+    title: 'Registro de echadas — Flota',
+  },
+  {
     path: 'combustible-dashboard',
     loadComponent: () =>
       import('./combustible-dashboard/combustible-dashboard').then((m) => m.CombustibleDashboard),

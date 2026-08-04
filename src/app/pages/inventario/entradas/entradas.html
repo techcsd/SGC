@@ -148,9 +148,8 @@
               <td class="text-right">
                 @if (e.pendiente_confirmacion) {
                   <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
-                    (click)="$event.stopPropagation(); confirmarChofer(e)"
-                    [disabled]="confirmandoId() === e.id">
-                    {{ confirmandoId() === e.id ? 'Confirmando…' : 'Confirmar' }}
+                    (click)="$event.stopPropagation(); openConfirmar(e)">
+                    Confirmar
                   </button>
                 } @else {
                   <span class="entradas__cantidad">RD$ {{ entryTotal(e) | number:'1.0-2' }}</span>
@@ -532,6 +531,88 @@
   }
 </app-form-drawer>
 
+<!-- ── AF2 — Confirmar entrada: proceso con evidencia (3 hojas) ── -->
+<app-form-drawer [title]="confirmTitle()" [open]="confirmOpen()" (closed)="closeConfirmar()">
+  @if (confirmEntrada(); as e) {
+    <div class="conf-wizard">
+      <!-- Hoja 1: revisar QUÉ se confirma (checklist recibido vs enviado) -->
+      @if (confirmStep() === 'resumen') {
+        <p class="conf-wizard__intro">Revisa lo que recibes y ajusta la cantidad si algo llegó incompleto. Al confirmar se sumará el stock al almacén <strong>{{ e.bodega?.nombre ?? '—' }}</strong>.</p>
+        <table class="data-table">
+          <thead><tr><th>Artículo</th><th class="text-right">Enviado</th><th class="text-right">Recibido</th></tr></thead>
+          <tbody>
+            @for (it of confirmItems(); track it.articulo_id; let i = $index) {
+              <tr>
+                <td>{{ it.nombre }}</td>
+                <td class="text-right">{{ it.cantidad_enviada | number }} {{ it.unidad }}</td>
+                <td class="text-right">
+                  <input type="number" min="0" class="conf-wizard__qty" [value]="it.cantidad_recibida"
+                    (input)="updateRecibida(i, $any($event.target).value)" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (hayDiferencias()) {
+          <p class="conf-wizard__warn">⚠️ Hay diferencias entre lo enviado y lo recibido. Quedarán registradas.</p>
+        }
+      }
+
+      <!-- Hoja 2: foto(s) de evidencia -->
+      @if (confirmStep() === 'evidencia') {
+        <p class="conf-wizard__intro">Toma una o más fotos de lo que estás confirmando que recibes. Quedan como evidencia en el detalle.</p>
+        <div class="conf-wizard__fotos">
+          @for (f of confirmFotos(); track f.url; let i = $index) {
+            <div class="conf-wizard__foto">
+              <img [src]="f.url" alt="Evidencia" />
+              <button type="button" class="conf-wizard__foto-x" (click)="removeConfirmFoto(i)" aria-label="Quitar foto">✕</button>
+            </div>
+          }
+          <label class="conf-wizard__foto-add">
+            <input type="file" accept="image/*" capture="environment" multiple (change)="onConfirmFotoSelected($event)" hidden />
+            <span>＋ Foto</span>
+          </label>
+        </div>
+      }
+
+      <!-- Hoja 3: modo + confirmar -->
+      @if (confirmStep() === 'confirmar') {
+        <p class="conf-wizard__intro">Todo listo. Confirma la recepción.</p>
+        <div class="conf-wizard__resumen">
+          <div><span>Artículos</span><strong>{{ confirmItems().length }}</strong></div>
+          <div><span>Fotos</span><strong>{{ confirmFotos().length }}</strong></div>
+        </div>
+        @if (puedeRemoto()) {
+          <div class="conf-wizard__modo">
+            <span class="conf-wizard__modo-label">Tipo de confirmación</span>
+            <label><input type="radio" name="modo" [checked]="confirmModo() === 'presencial'" (change)="confirmModo.set('presencial')" /> Presencial (estoy en obra)</label>
+            <label><input type="radio" name="modo" [checked]="confirmModo() === 'remota'" (change)="confirmModo.set('remota')" /> Remota (la foto la aportó quien está en obra)</label>
+          </div>
+        }
+        <label class="conf-wizard__notas">
+          <span>Notas (opcional)</span>
+          <textarea rows="2" [value]="confirmNotas()" (input)="confirmNotas.set($any($event.target).value)" placeholder="Observaciones de la recepción…"></textarea>
+        </label>
+      }
+
+      @if (confirmError()) { <p class="form-error">{{ confirmError() }}</p> }
+
+      <div class="conf-wizard__actions">
+        @if (confirmStep() !== 'resumen') {
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="confirmVolver()">← Atrás</button>
+        }
+        @if (confirmStep() === 'confirmar') {
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="confirmSaving()" (click)="ejecutarConfirmacion()">
+            @if (confirmSaving()) { <span class="spinner" aria-hidden="true"></span> Confirmando… } @else { Confirmar recepción }
+          </button>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmAvanzar()">Continuar →</button>
+        }
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
 <!-- ── R8 — Detalle read-only de la entrada ── -->
 <app-form-drawer title="Detalle de la entrada" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailEntrada(); as e) {
@@ -544,8 +625,16 @@
         @if (e.referencia) { <div><dt>Referencia</dt><dd>{{ e.referencia }}</dd></div> }
       </dl>
 
+      <!-- AF1 — preview clickeable de la foto de evidencia (no un botón). -->
       @if (e.foto_path) {
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verFoto(e)">📷 Ver foto de evidencia</button>
+        <div class="entrada-detalle__evidencia">
+          <span class="entrada-detalle__evidencia-label">Foto de evidencia</span>
+          <button type="button" class="entradas__foto-thumb entradas__foto-thumb--lg" (click)="verFoto(e)" title="Ver en grande">
+            @if (detailFotoThumb(); as t) {
+              <img [src]="t" alt="Foto de evidencia de la entrada" loading="lazy" />
+            } @else { 📷 }
+          </button>
+        </div>
       }
 
       <h4 class="entrada-detalle__title">Artículos ({{ (e.detalle_entradas ?? []).length }})</h4>
@@ -563,6 +652,38 @@
         </tbody>
       </table>
       <p class="entrada-detalle__total">Total: <strong>RD$ {{ entryTotal(e) | number:'1.0-2' }}</strong></p>
+
+      <!-- AF2 — confirmaciones de recepción con evidencia -->
+      @if (e.pendiente_confirmacion) {
+        <div class="entrada-detalle__conf-pendiente">
+          <span class="sgc-badge sgc-badge--warning">⏳ Pendiente de confirmación</span>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="closeDetail(); openConfirmar(e)">Confirmar recepción</button>
+        </div>
+      }
+      @if (detailConfirmaciones().length) {
+        <h4 class="entrada-detalle__title">Confirmaciones de recepción</h4>
+        @for (c of detailConfirmaciones(); track c.id) {
+          <div class="conf-card">
+            <div class="conf-card__head">
+              <strong>{{ c.confirmador?.nombre ?? '—' }}</strong>
+              <span class="sgc-badge" [class.sgc-badge--info]="c.modo === 'remota'" [class.sgc-badge--success]="c.modo === 'presencial'">
+                {{ c.modo === 'remota' ? 'Remota' : 'Presencial' }}
+              </span>
+              <span class="text-muted">{{ formatFecha(c.fecha) }}</span>
+            </div>
+            @if (c.notas) { <p class="conf-card__notas">{{ c.notas }}</p> }
+            @if (c.fotos?.length) {
+              <div class="conf-card__fotos">
+                @for (p of c.fotos; track p) {
+                  <button type="button" class="entradas__foto-thumb" (click)="verFotoPath(p)" title="Ver en grande">
+                    @if (confThumb(p); as t) { <img [src]="t" alt="Evidencia de confirmación" loading="lazy" /> } @else { 📷 }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
 
       <!-- T2 — acciones de datos de prueba (solo admin) -->
       @if (esAdmin()) {

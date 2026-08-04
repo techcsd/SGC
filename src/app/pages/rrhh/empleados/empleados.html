@@ -802,6 +802,44 @@
         </ul>
       }
 
+      <!-- AF33 — Asignaciones de la empresa (equipos, uniformes, cascos…) -->
+      <div class="detail-section-title detail-section-title--action">
+        Asignaciones de la empresa
+        @if (puedeGestionarRrhh()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openAsignar()">＋ Asignar</button>
+        }
+      </div>
+      @if (asigLoading()) {
+        <app-skeleton variant="list" [rows]="2" />
+      } @else if (asignaciones().length === 0) {
+        <p class="doc-empty">Sin asignaciones registradas.</p>
+      } @else {
+        <ul class="asig-list">
+          @for (a of asignaciones(); track a.id) {
+            <li class="asig-item">
+              @if (asigFotoUrl(a.foto_path); as u) {
+                <img class="asig-item__foto" [src]="u" [alt]="a.item_nombre" />
+              }
+              <div class="asig-item__body">
+                <div class="asig-item__top">
+                  <span class="asig-item__nombre">{{ a.item_nombre }}</span>
+                  @if (a.categoria) { <span class="sgc-badge sgc-badge--neutral">{{ a.categoria }}</span> }
+                  <span class="sgc-badge sgc-badge--{{ estadoAsigMeta(a.estado).badge }}">{{ estadoAsigMeta(a.estado).label }}</span>
+                </div>
+                <div class="asig-item__meta">Asignado: {{ formatFecha(a.asignado_en) }}@if (a.devuelto_en) { · Devuelto: {{ formatFecha(a.devuelto_en) }} }</div>
+                @if (puedeGestionarRrhh() && a.estado === 'asignado') {
+                  <div class="asig-item__actions">
+                    <button type="button" class="asig-link" (click)="cambiarEstadoAsig(a, 'devuelto')">Devolver</button>
+                    <button type="button" class="asig-link asig-link--danger" (click)="cambiarEstadoAsig(a, 'perdido')">Perdido</button>
+                    <button type="button" class="asig-link asig-link--warn" (click)="cambiarEstadoAsig(a, 'dañado')">Dañado</button>
+                  </div>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
       <div class="drawer-actions">
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDetail()">Cerrar</button>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeDetail(); openEdit(emp)">Editar</button>
@@ -809,4 +847,34 @@
 
     </div>
   }
+</app-form-drawer>
+
+<!-- AF33 — Drawer: asignar item a un empleado -->
+<app-form-drawer title="Asignar item de la empresa" [open]="asigDrawer()" (closed)="closeAsignar()">
+  <form [formGroup]="asigForm" (ngSubmit)="guardarAsignacion()" class="drawer-form">
+    <div class="sgc-field">
+      <label for="asig-nombre">¿Qué se asigna?</label>
+      <input id="asig-nombre" type="text" formControlName="item_nombre" placeholder="Ej: Casco de seguridad, uniforme talla M, taladro…" />
+    </div>
+    <div class="sgc-field">
+      <label for="asig-cat">Categoría</label>
+      <select id="asig-cat" formControlName="categoria">
+        @for (c of ASIG_CATEGORIAS; track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="asig-foto">Foto (opcional)</label>
+      <input id="asig-foto" type="file" accept="image/*" (change)="onAsigFoto($event)" />
+    </div>
+    <div class="sgc-field">
+      <label for="asig-notas">Notas (opcional)</label>
+      <textarea id="asig-notas" rows="2" formControlName="notas" placeholder="Detalle de la entrega…"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeAsignar()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="asigGuardando()">
+        @if (asigGuardando()) { Guardando… } @else { Asignar }
+      </button>
+    </div>
+  </form>
 </app-form-drawer>

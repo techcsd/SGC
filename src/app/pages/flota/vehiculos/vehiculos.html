@@ -126,7 +126,7 @@
         <div class="flota-vehiculos__card" [class.inactive]="!v.activo">
           <div class="flota-vehiculos__photo">
             @if (fotoDe(v); as url) {
-              <app-img [src]="url" [alt]="'Foto de ' + v.placa" [height]="130" [rounded]="false" />
+              <app-img [src]="url" [alt]="'Foto de ' + v.placa" [height]="130" [rounded]="false" fit="contain" />
             } @else {
               <span class="flota-vehiculos__photo-ph" aria-hidden="true">🚛</span>
             }

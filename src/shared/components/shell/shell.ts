@@ -33,6 +33,9 @@ interface NavItem {
   phase?: string;
   /** AC2 — oculto para la persona "chofer" (rol chofer_transportista). */
   noChofer?: boolean;
+  /** AF32 — visible además para roles de flota elevados aunque no tengan el módulo
+   *  (el jefe de flota entra a Compras SOLO por Proveedores). */
+  flotaElevado?: boolean;
   children?: NavSubItem[];
 }
 
@@ -119,10 +122,11 @@ export class Shell implements OnInit {
       label: 'Compras',
       icon: 'purchases',
       modulo: 'compras',
+      flotaElevado: true, // AF32 — jefe de flota entra SOLO a Proveedores
       children: [
         { label: 'Proveedores', route: '/compras/proveedores' },
-        { label: 'Órdenes de Compra', route: '/compras/ordenes', badgeKey: 'compras.ordenes' },
-        { label: 'Reportes', route: '/compras/reportes' },
+        { label: 'Órdenes de Compra', route: '/compras/ordenes', modulo: 'compras', badgeKey: 'compras.ordenes' },
+        { label: 'Reportes', route: '/compras/reportes', modulo: 'compras' },
       ],
     },
     {
@@ -157,6 +161,7 @@ export class Shell implements OnInit {
         { label: 'Conductores', route: '/flota/conductores', flotaElevado: true },
         { label: 'Estado de conductores', route: '/flota/conductores-estado', flotaElevado: true },
         { label: 'Combustible', route: '/flota/combustible', badgeKey: 'flota.combustible' },
+        { label: 'Registro de echadas', route: '/flota/combustible-log', flotaElevado: true },
         { label: 'Conciliación de combustible', route: '/flota/conciliacion-combustible', flotaElevado: true, badgeKey: 'flota.conciliacion' },
         { label: 'Rutas', route: '/flota/rutas' },
         { label: 'Checklists', route: '/flota/checklists', badgeKey: 'flota.checklists' },
@@ -410,6 +415,8 @@ export class Shell implements OnInit {
     // AC2 — la persona "chofer" no ve Tecnología (salvo que sea elevado/tecnología).
     if (item.noChofer && this.userService.esChofer() && !this.userService.esTecnologia())
       return false;
+    // AF32 — acceso extra por flota elevado (p. ej. Compras solo-Proveedores).
+    if (item.flotaElevado && this.userService.esFlotaElevado()) return true;
     if (!item.modulo) return true;
     if (item.phase) return false;
     return this.userService.hasModulo(item.modulo);

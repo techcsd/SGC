@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <a class="vd-back" routerLink="/flota/combustible">← Combustible</a>
+    <h1 class="page-title">Registro de echadas</h1>
+    <p class="page-subtitle">Auditoría de combustible: quién registró, kilómetros recorridos y saltos de lectura irreales.</p>
+  </div>
+  <div class="page-header__actions">
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="!rows().length">Exportar a Excel</button>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<!-- Filtros -->
+<div class="sgc-card cl-filtros">
+  <app-date-range-filter [desde]="desde()" [hasta]="hasta()" (rangeChange)="onRango($event)" />
+  <div class="sgc-field cl-filtros__f">
+    <label for="cl-veh">Vehículo</label>
+    <select id="cl-veh" [value]="vehiculoId()" (change)="onVehiculo($any($event.target).value)">
+      <option value="">Todos</option>
+      @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ v.placa }}</option> }
+    </select>
+  </div>
+  <div class="sgc-field cl-filtros__f">
+    <label for="cl-user">Registrado por</label>
+    <select id="cl-user" [value]="usuarioId()" (change)="onUsuario($any($event.target).value)">
+      <option value="">Todos</option>
+      @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
+    </select>
+  </div>
+  @if (vehiculoId() || usuarioId() || desde() || hasta()) {
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiar()">Limpiar</button>
+  }
+</div>
+
+@if (saltos() > 0) {
+  <div class="cl-alerta" role="status">⚠️ {{ saltos() }} echada(s) con salto de kilometraje fuera de umbral.</div>
+}
+
+@if (loading()) {
+  <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
+} @else if (!rows().length) {
+  <div class="sgc-card cl-empty"><p>No hay echadas para los filtros seleccionados.</p></div>
+} @else {
+  <div class="sgc-card cl-tabla">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Vehículo</th><th class="text-right">Lectura</th>
+          <th class="text-right">Δ km</th><th class="text-right">Galones</th><th class="text-right">Monto</th>
+          <th>Combustible</th><th>Registró</th><th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (r of rows(); track r.id) {
+          <tr [class.cl-row--alerta]="r.km_alerta">
+            <td>{{ formatFecha(r.fecha) }}</td>
+            <td>{{ r.placa ?? '—' }}@if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }</td>
+            <td class="text-right">{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</td>
+            <td class="text-right" [class.cl-delta--alerta]="r.km_alerta">
+              {{ r.km_recorridos != null ? (r.km_recorridos | number) : '—' }}
+              @if (r.km_alerta) { <span title="Salto de km fuera de umbral">⚠️</span> }
+            </td>
+            <td class="text-right">{{ r.galones != null ? (r.galones | number:'1.0-2') : '—' }}</td>
+            <td class="text-right">{{ r.monto != null ? ('RD$ ' + (r.monto | number:'1.0-2')) : '—' }}</td>
+            <td>{{ productoLabel(r) }}</td>
+            <td>{{ r.registrado_nombre ?? '—' }}</td>
+            <td>
+              @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger">Consumo anormal</span> }
+              @else { <span class="text-muted">{{ r.estado ?? '—' }}</span> }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -228,3 +228,10 @@ textarea {
     border-color: var(--sgc-danger);
   }
 }
+
+// AF32 — fila de dos campos (lat/lng de ferretería)
+.sgc-field-row {
+  display: flex;
+  gap: 12px;
+  .sgc-field { flex: 1; }
+}

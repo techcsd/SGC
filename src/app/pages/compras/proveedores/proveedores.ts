@@ -64,6 +64,10 @@ export class Proveedores implements OnInit {
     telefono: new FormControl<string | null>(null, [Validators.maxLength(20)]),
     email: new FormControl<string | null>(null, [Validators.email, Validators.maxLength(150)]),
     direccion: new FormControl<string | null>(null),
+    // AF32 — ferretería visible para choferes + ubicación.
+    is_hardware_store: new FormControl<boolean>(false),
+    lat: new FormControl<number | null>(null),
+    lng: new FormControl<number | null>(null),
     activo: new FormControl<boolean>(true),
     es_prueba: new FormControl<boolean>(false),
   });
@@ -143,6 +147,9 @@ export class Proveedores implements OnInit {
       telefono: p.telefono,
       email: p.email,
       direccion: p.direccion,
+      is_hardware_store: p.is_hardware_store ?? false,
+      lat: p.lat ?? null,
+      lng: p.lng ?? null,
       activo: p.activo,
       es_prueba: p.es_prueba ?? false,
     });
@@ -228,6 +235,7 @@ export class Proveedores implements OnInit {
       Teléfono: p.telefono ? this.formatTelefono(p.telefono) : '',
       Email: p.email ?? '',
       Dirección: p.direccion ?? '',
+      Ferretería: p.is_hardware_store ? 'Sí' : '',
       Estado: p.activo ? 'Activo' : 'Inactivo',
     }));
     await exportarExcel('proveedores', rows, 'Proveedores');

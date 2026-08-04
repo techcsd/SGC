@@ -71,8 +71,9 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/documentos/documentos.routes').then((m) => m.documentosRoutes),
       },
       {
+        // AF32 — el gate se aplica por submódulo (proveedores lo abre también el
+        // jefe de flota); órdenes y reportes siguen requiriendo módulo compras.
         path: 'compras',
-        canActivate: [moduleGuard('compras')],
         loadChildren: () =>
           import('./pages/compras/compras.routes').then((m) => m.comprasRoutes),
       },

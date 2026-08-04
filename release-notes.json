@@ -1,6 +1,21 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.61.0": {
+      "titulo": "Confirmación de recepción con evidencia, llaves y galería de vehículos, registro de combustible y ferreterías (AF)",
+      "cambios": [
+        { "t": "nuevo", "d": "Inventario: confirmar una entrada ahora es un proceso con evidencia (no un botón): revisas qué recibes y ajustas cantidades, tomas fotos de lo recibido y confirmas. El detalle de la entrada muestra después quién confirmó, cuándo, si fue presencial o remota, y sus fotos. La foto de evidencia se ve como miniatura clickeable (se abre en grande)." },
+        { "t": "nuevo", "d": "Confirmación en obra: el capataz/residente puede recibir entregas (permiso configurable por usuario) y Raykler y Eduardo pueden confirmar de forma remota (la foto la aporta quien está en obra)." },
+        { "t": "nuevo", "d": "Vehículos: gestión de las 2 llaves (quién/dónde está cada una) con historial de traspasos, y galería con TODAS las fotos cargadas del vehículo (miniaturas + ver en grande + marcar portada)." },
+        { "t": "nuevo", "d": "Combustible: nuevo \"Registro de echadas\" para administración y flota, con quién registró cada echada, los kilómetros recorridos y el resaltado de saltos de kilometraje irreales. Ahora solo el usuario asignado al vehículo puede registrar su combustible (el administrador puede en cualquiera) y hay un tope de kilómetros entre echadas para evitar lecturas imposibles." },
+        { "t": "nuevo", "d": "Compras: los proveedores se pueden marcar como \"Ferretería (visible para choferes)\" con su ubicación; el jefe de flota entra a Compras solo a Proveedores para registrarlas, sin ver órdenes ni reportes." },
+        { "t": "nuevo", "d": "RRHH: asignaciones de la empresa a cada empleado (equipos, uniformes, cascos, herramientas) con estado (asignado / devuelto / perdido / dañado), foto e historial completo, dentro de la ficha del empleado." },
+        { "t": "nuevo", "d": "Notificaciones push: infraestructura para enviar avisos al dispositivo (llega junto con las notificaciones dentro del sistema) y recordatorio de los domingos para quien no ha enviado su reporte semanal." },
+        { "t": "mejora", "d": "Pre-uso: se quitó la pregunta del nivel de combustible (queda en el reporte semanal); los pre-usos anteriores se siguen viendo igual." },
+        { "t": "arreglo", "d": "Vehículos: la foto de la tarjeta en el listado ya no sale cortada (se ve completa, tanto fotos verticales como horizontales)." }
+      ],
+      "url": ""
+    },
     "1.60.0": {
       "titulo": "Datos de prueba fuera de los reportes de RRHH, paneles legibles, y trazabilidad ruta ↔ conduce",
       "cambios": [

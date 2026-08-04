@@ -6,6 +6,22 @@ import { EntradaInventario, EntradaFormData, EntradaItemFormData } from '../mode
 const SELECT_QUERY =
   '*, bodega:bodegas(nombre), proveedor:proveedores(nombre), orden_compra:ordenes_compra(numero), origen_proyecto:proyectos!entradas_inventario_origen_proyecto_id_fkey(nombre), detalle_entradas(*, articulo:articulos(nombre, codigo, unidad))';
 
+/** AF2 — registro de confirmación de recepción con evidencia (compartido web+app). */
+export interface RecepcionConfirmacion {
+  id: string;
+  entidad_tipo: 'entrada' | 'salida' | 'conduce';
+  entidad_id: string;
+  confirmado_por: string;
+  modo: 'presencial' | 'remota';
+  aportado_por: string | null;
+  fecha: string;
+  fotos: string[];
+  notas: string | null;
+  checklist: unknown;
+  created_at: string;
+  confirmador?: { nombre: string } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EntradasService {
   private supabase = inject(SupabaseService);
@@ -31,6 +47,72 @@ export class EntradasService {
       p_items: items ?? null,
     });
     if (error) throw new Error(error.message);
+  }
+
+  /**
+   * AF2 — Confirma una entrada con evidencia (proceso, no botón). Sube las fotos
+   * del confirmador al bucket `inventario` y llama al RPC unificado
+   * `confirmar_entrada_evidencia` (materializa stock si estaba pendiente +
+   * registra quién/cuándo/fotos/checklist/modo). Devuelve el id de la confirmación.
+   */
+  async confirmarConEvidencia(
+    entradaId: string,
+    opts: {
+      items?: { articulo_id: string; cantidad: number; precio_unit?: number | null }[] | null;
+      fotos?: File[];
+      notas?: string | null;
+      modo?: 'presencial' | 'remota';
+      aportadoPor?: string | null;
+    },
+  ): Promise<string> {
+    const paths: string[] = [];
+    for (const f of opts.fotos ?? []) {
+      paths.push(await this.subirFotoConfirmacion(entradaId, f));
+    }
+    const { data, error } = await this.supabase.client.rpc('confirmar_entrada_evidencia', {
+      p_entrada_id: entradaId,
+      p_items: opts.items ?? null,
+      p_fotos: paths,
+      p_notas: opts.notas ?? null,
+      p_modo: opts.modo ?? 'presencial',
+      p_aportado_por: opts.aportadoPor ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  /** Sube una foto de evidencia de confirmación al bucket `inventario`. */
+  async subirFotoConfirmacion(entradaId: string, file: File): Promise<string> {
+    const safe = (file.name || 'foto').replace(/[^a-zA-Z0-9_.-]+/g, '-').slice(0, 40);
+    const path = `confirmacion/${entradaId}/${crypto.randomUUID()}-${safe}`;
+    const { error } = await this.supabase.client.storage.from('inventario').upload(path, file);
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** AF2 — Confirmaciones (evidencia) registradas para una entidad. */
+  async getConfirmaciones(entidadTipo: 'entrada' | 'salida' | 'conduce', entidadId: string): Promise<RecepcionConfirmacion[]> {
+    const { data, error } = await this.supabase.client.rpc('confirmaciones_de', {
+      p_entidad_tipo: entidadTipo,
+      p_entidad_id: entidadId,
+    });
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as RecepcionConfirmacion[];
+    // Resolver nombre del confirmador (una consulta liviana).
+    const ids = [...new Set(rows.map((r) => r.confirmado_por).filter(Boolean))];
+    if (ids.length) {
+      const { data: us } = await this.supabase.client.from('usuarios').select('id, nombre').in('id', ids);
+      const byId = new Map((us ?? []).map((u: { id: string; nombre: string }) => [u.id, u.nombre]));
+      for (const r of rows) r.confirmador = { nombre: byId.get(r.confirmado_por) ?? '—' };
+    }
+    return rows;
+  }
+
+  /** AF15 — ¿el usuario actual puede confirmar de forma remota? */
+  async puedeConfirmarRemoto(): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('puede_confirmar_remoto');
+    if (error) return false;
+    return data === true;
   }
 
   /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la entrada.

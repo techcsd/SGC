@@ -34,6 +34,7 @@ import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
 import { TecEquipo } from '../../../../shared/models/tecnologia.model';
+import { EmpleadoAsignacionesService, EmpleadoAsignacion, AsignacionEstado } from '../../../../shared/services/empleado-asignaciones.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -49,6 +50,7 @@ export class Empleados implements OnInit {
   private empleadosService = inject(EmpleadosService);
   private userService = inject(UserService);
   private tecnologiaService = inject(TecnologiaService);
+  private asignacionesService = inject(EmpleadoAsignacionesService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
   private toast = inject(ToastService);
@@ -106,6 +108,35 @@ export class Empleados implements OnInit {
   // QA-072 — equipos TI asignados al empleado (solo lectura)
   equiposTI = signal<TecEquipo[]>([]);
   equiposTILoading = signal(false);
+
+  // ── AF33 — asignaciones de la empresa (equipos/uniformes/cascos…) ──
+  asignaciones = signal<EmpleadoAsignacion[]>([]);
+  asigLoading = signal(false);
+  asigFotos = signal<Record<string, string>>({});
+  puedeGestionarRrhh = computed(() => this.esAdmin() || this.userService.hasModulo('rrhh'));
+
+  // Drawer "Asignar item"
+  asigDrawer = signal(false);
+  asigGuardando = signal(false);
+  asigFotoFile = signal<File | null>(null);
+  asigForm = new FormGroup({
+    item_nombre: new FormControl('', [Validators.required, Validators.maxLength(120)]),
+    categoria: new FormControl<string>('equipo'),
+    notas: new FormControl<string>(''),
+  });
+  readonly ASIG_CATEGORIAS = ['equipo', 'uniforme', 'casco', 'herramienta', 'EPP', 'otro'];
+  readonly ASIG_ESTADOS: { value: AsignacionEstado; label: string; badge: string }[] = [
+    { value: 'asignado', label: 'Asignado', badge: 'success' },
+    { value: 'devuelto', label: 'Devuelto', badge: 'neutral' },
+    { value: 'perdido', label: 'Perdido', badge: 'danger' },
+    { value: 'dañado', label: 'Dañado', badge: 'warning' },
+  ];
+  estadoAsigMeta(estado: AsignacionEstado) {
+    return this.ASIG_ESTADOS.find((e) => e.value === estado) ?? { value: estado, label: estado, badge: 'neutral' };
+  }
+  asigFotoUrl(path: string | null): string | null {
+    return path ? (this.asigFotos()[path] ?? null) : null;
+  }
 
   readonly formatFecha = formatFechaDisplay;
   readonly formatTelefono = formatearTelefono;
@@ -327,6 +358,80 @@ export class Empleados implements OnInit {
     this.detailEmpleado.set(emp);
     this.detailOpen.set(true);
     void this.loadEquiposTI(emp.id);
+    void this.loadAsignaciones(emp.id);
+  }
+
+  // ── AF33 — asignaciones de la empresa al empleado ──
+  private async loadAsignaciones(empleadoId: string) {
+    this.asigLoading.set(true);
+    this.asignaciones.set([]);
+    this.asigFotos.set({});
+    try {
+      const list = await this.asignacionesService.getByEmpleado(empleadoId);
+      this.asignaciones.set(list);
+      for (const a of list) {
+        if (a.foto_path) {
+          this.asignacionesService.getFotoUrl(a.foto_path).then((u) => {
+            if (u) this.asigFotos.update((m) => ({ ...m, [a.foto_path!]: u }));
+          });
+        }
+      }
+    } catch {
+      // complementario, no bloquea la ficha
+    } finally {
+      this.asigLoading.set(false);
+    }
+  }
+
+  openAsignar() {
+    this.asigForm.reset({ item_nombre: '', categoria: 'equipo', notas: '' });
+    this.asigFotoFile.set(null);
+    this.asigDrawer.set(true);
+  }
+  closeAsignar() { this.asigDrawer.set(false); }
+  onAsigFoto(e: Event) {
+    this.asigFotoFile.set((e.target as HTMLInputElement).files?.[0] ?? null);
+  }
+
+  async guardarAsignacion() {
+    const emp = this.detailEmpleado();
+    if (!emp || this.asigGuardando()) return;
+    if (this.asigForm.invalid) { this.asigForm.markAllAsTouched(); return; }
+    this.asigGuardando.set(true);
+    try {
+      let fotoPath: string | null = null;
+      const file = this.asigFotoFile();
+      if (file) fotoPath = await this.asignacionesService.subirFoto(emp.id, file);
+      const v = this.asigForm.getRawValue();
+      await this.asignacionesService.asignar({
+        empleado_id: emp.id,
+        item_nombre: v.item_nombre!.trim(),
+        categoria: v.categoria || null,
+        foto_path: fotoPath,
+        notas: v.notas?.trim() || null,
+      });
+      await this.loadAsignaciones(emp.id);
+      this.asigDrawer.set(false);
+      this.toast.success('Item asignado', `Se asignó "${v.item_nombre}" a ${emp.nombre}.`);
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo asignar el item.');
+    } finally {
+      this.asigGuardando.set(false);
+    }
+  }
+
+  async cambiarEstadoAsig(a: EmpleadoAsignacion, estado: AsignacionEstado) {
+    const emp = this.detailEmpleado();
+    if (!emp || a.estado === estado) return;
+    const label = this.estadoAsigMeta(estado).label.toLowerCase();
+    if (!confirm(`¿Marcar "${a.item_nombre}" como ${label}?`)) return;
+    try {
+      await this.asignacionesService.cambiarEstado(a.id, estado);
+      await this.loadAsignaciones(emp.id);
+      this.toast.success('Actualizado', `"${a.item_nombre}" → ${label}.`);
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo actualizar.');
+    }
   }
 
   // QA-072 — carga los equipos TI activos asignados al empleado.

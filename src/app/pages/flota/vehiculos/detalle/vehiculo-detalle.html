@@ -41,6 +41,68 @@
       </div>
     </div>
 
+    <!-- ── AF4 · Galería de fotos del vehículo ── -->
+    @if (galeria().length) {
+      <div class="sgc-card vd-card vd-galeria">
+        <h2 class="vd-section-title">Fotos ({{ galeria().length }})</h2>
+        <div class="vd-galeria__grid">
+          @for (f of galeria(); track f.path) {
+            <div class="vd-galeria__item">
+              <button type="button" class="vd-galeria__thumb" (click)="abrirFoto(f.url)" [title]="'Ver en grande'">
+                <img [src]="f.url" [alt]="'Foto de ' + v.placa" loading="lazy" />
+                @if (esPortada(f.path)) { <span class="vd-galeria__badge">Portada</span> }
+              </button>
+              @if (esElevado() && !esPortada(f.path)) {
+                <button type="button" class="vd-galeria__portada-btn" [disabled]="guardandoPortada()" (click)="marcarPortada(f.path)">
+                  Marcar portada
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── AF3 · Llaves del vehículo ── -->
+    <div class="sgc-card vd-card vd-llaves">
+      <h2 class="vd-section-title">Llaves</h2>
+      <div class="vd-llaves__grid">
+        @for (n of [1, 2]; track n) {
+          @if (llaveSlot($any(n)); as l) {
+            <div class="vd-llaves__item">
+              <div class="vd-llaves__num">🔑 Llave #{{ n }}</div>
+              <div class="vd-llaves__ubi">{{ LLAVE_UBICACION_LABEL[l.ubicacion_tipo] }}</div>
+              <div class="vd-llaves__portador">{{ llaveDescripcion(l) }}</div>
+              @if (l.updated_at) { <div class="vd-llaves__fecha">Actualizada: {{ fecha(l.updated_at) }}</div> }
+              @if (esElevado()) {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openLlave($any(n))">Registrar traspaso</button>
+              }
+            </div>
+          }
+        }
+      </div>
+      @if (llaveTraspasos().length) {
+        <button type="button" class="vd-toggle" (click)="toggleHistorialLlaves()">
+          {{ mostrarHistorialLlaves() ? 'Ocultar' : 'Ver' }} historial de traspasos ({{ llaveTraspasos().length }})
+        </button>
+        @if (mostrarHistorialLlaves()) {
+          <table class="data-table vd-llaves__historial">
+            <thead><tr><th>Llave</th><th>Ubicación</th><th>Registró</th><th>Fecha</th></tr></thead>
+            <tbody>
+              @for (t of llaveTraspasos(); track $index) {
+                <tr>
+                  <td>#{{ t.numero }}</td>
+                  <td>{{ LLAVE_UBICACION_LABEL[t.ubicacion_tipo] }}@if (t.portador_nombre) { — {{ t.portador_nombre }} }@if (t.ubicacion_detalle) { — {{ t.ubicacion_detalle }} }</td>
+                  <td>{{ t.registrado_nombre ?? '—' }}</td>
+                  <td>{{ fecha(t.created_at) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      }
+    </div>
+
     <!-- ── S21 · Motivo No disponible por documento vencido ── -->
     @if (motivoNoDisponible(); as motivo) {
       <div class="page-error vd-nodisp" role="alert">
@@ -401,6 +463,22 @@
       <label for="notas">Notas</label>
       <textarea id="notas" rows="3" formControlName="notas" placeholder="Motivo / detalle de la asignación…"></textarea>
     </div>
+    <!-- AF3 — ¿qué pasa con la llave 1 al cambiar el asignado? -->
+    <div class="sgc-field">
+      <label for="llave1">Llave #1 del vehículo</label>
+      <select id="llave1" formControlName="llave1_accion">
+        <option value="no_cambiar">No cambiar</option>
+        <option value="chofer_asignado">La lleva el nuevo asignado</option>
+        <option value="oficina_central">Queda en oficina central</option>
+        <option value="otro">Otro…</option>
+      </select>
+    </div>
+    @if (asignarForm.controls.llave1_accion.value === 'otro') {
+      <div class="sgc-field">
+        <label for="llave1_det">¿Dónde queda la llave 1?</label>
+        <input id="llave1_det" type="text" formControlName="llave1_detalle" placeholder="Ej: taller, oficina de obra…" />
+      </div>
+    }
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">
@@ -477,3 +555,47 @@
     </div>
   </form>
 </app-form-drawer>
+
+<!-- ── AF3 · Drawer: Registrar traspaso de llave ── -->
+<app-form-drawer [title]="'Llave #' + llaveEditando()" [open]="llaveDrawer()" (closed)="closeLlave()">
+  <form class="vd-form" [formGroup]="llaveForm" (ngSubmit)="guardarLlave()">
+    <div class="sgc-field">
+      <label for="llave_ubi">¿Dónde/quién la tiene?</label>
+      <select id="llave_ubi" formControlName="ubicacion_tipo">
+        <option value="chofer_asignado">Chofer asignado</option>
+        <option value="oficina_central">Oficina central</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    @if (llaveForm.controls.ubicacion_tipo.value === 'chofer_asignado') {
+      <div class="sgc-field">
+        <label for="llave_port">Portador</label>
+        <select id="llave_port" formControlName="portador_usuario_id">
+          <option [ngValue]="null" disabled>Selecciona una persona…</option>
+          @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
+        </select>
+      </div>
+    }
+    @if (llaveForm.controls.ubicacion_tipo.value === 'otro') {
+      <div class="sgc-field">
+        <label for="llave_det">Detalle</label>
+        <input id="llave_det" type="text" formControlName="ubicacion_detalle" placeholder="Ej: taller mecánico, casa del encargado…" />
+      </div>
+    }
+    <div class="sgc-field">
+      <label for="llave_nota">Nota del traspaso (opcional)</label>
+      <textarea id="llave_nota" rows="2" formControlName="nota" placeholder="Motivo / detalle del cambio de mano…"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeLlave()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="llaveGuardando()">
+        @if (llaveGuardando()) { Guardando… } @else { Registrar traspaso }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── AF4 · Lightbox de la galería ── -->
+@if (lightboxUrl(); as url) {
+  <app-lightbox [src]="url" alt="Foto del vehículo" (closed)="lightboxUrl.set(null)" />
+}

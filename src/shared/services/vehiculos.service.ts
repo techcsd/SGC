@@ -411,4 +411,59 @@ export class VehiculosService {
       .eq('id', vehiculoId);
     if (error) throw new Error(error.message);
   }
+
+  // ── AF3 — Llaves del vehículo ──────────────────────────────────────────────
+  /** Estado actual de ambas llaves. */
+  async getLlaves(vehiculoId: string): Promise<VehiculoLlave[]> {
+    const { data, error } = await this.supabase.client.rpc('llaves_de', { p_vehiculo_id: vehiculoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as VehiculoLlave[];
+  }
+
+  /** Registra/actualiza una llave (upsert estado + append historial). */
+  async setLlave(payload: {
+    vehiculo_id: string;
+    numero: 1 | 2;
+    ubicacion_tipo: LlaveUbicacion;
+    portador_usuario_id?: string | null;
+    ubicacion_detalle?: string | null;
+    nota?: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_llave', {
+      p_vehiculo_id: payload.vehiculo_id,
+      p_numero: payload.numero,
+      p_ubicacion_tipo: payload.ubicacion_tipo,
+      p_portador_usuario_id: payload.portador_usuario_id ?? null,
+      p_ubicacion_detalle: payload.ubicacion_detalle ?? null,
+      p_nota: payload.nota ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Historial de traspasos de las llaves de un vehículo. */
+  async getLlaveTraspasos(vehiculoId: string): Promise<VehiculoLlaveTraspaso[]> {
+    const { data, error } = await this.supabase.client.rpc('llave_traspasos_de', { p_vehiculo_id: vehiculoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as VehiculoLlaveTraspaso[];
+  }
+}
+
+// ── AF3 — tipos de llaves ─────────────────────────────────────────────────────
+export type LlaveUbicacion = 'chofer_asignado' | 'oficina_central' | 'otro';
+export interface VehiculoLlave {
+  numero: 1 | 2;
+  ubicacion_tipo: LlaveUbicacion;
+  portador_usuario_id: string | null;
+  portador_nombre: string | null;
+  ubicacion_detalle: string | null;
+  updated_at: string;
+}
+export interface VehiculoLlaveTraspaso {
+  numero: 1 | 2;
+  ubicacion_tipo: LlaveUbicacion;
+  portador_nombre: string | null;
+  ubicacion_detalle: string | null;
+  nota: string | null;
+  registrado_nombre: string | null;
+  created_at: string;
 }

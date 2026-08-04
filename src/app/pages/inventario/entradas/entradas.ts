@@ -9,7 +9,7 @@ import {
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { EntradasService } from '../../../../shared/services/entradas.service';
+import { EntradasService, RecepcionConfirmacion } from '../../../../shared/services/entradas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -91,28 +91,165 @@ export class Entradas implements OnInit {
   // ── R8 — Detalle read-only de una entrada ────────────────
   detailOpen = signal(false);
   detailEntrada = signal<EntradaInventario | null>(null);
-  openDetail(e: EntradaInventario) {
+  // AF1 — thumbnail de la foto de la entrada + evidencia de confirmaciones.
+  detailFotoThumb = signal<string | null>(null);
+  detailConfirmaciones = signal<RecepcionConfirmacion[]>([]);
+  detailConfFotos = signal<Record<string, string>>({});
+  async openDetail(e: EntradaInventario) {
     this.detailEntrada.set(e);
     this.detailOpen.set(true);
+    this.detailFotoThumb.set(null);
+    this.detailConfirmaciones.set([]);
+    this.detailConfFotos.set({});
+    if (e.foto_path) {
+      this.entradasService.getFotoUrl(e.foto_path, { width: 220, quality: 75 }).then((u) => u && this.detailFotoThumb.set(u));
+    }
+    try {
+      const confs = await this.entradasService.getConfirmaciones('entrada', e.id);
+      this.detailConfirmaciones.set(confs);
+      for (const c of confs) {
+        for (const p of c.fotos ?? []) {
+          this.entradasService.getFotoUrl(p, { width: 220, quality: 75 }).then((u) => {
+            if (u) this.detailConfFotos.update((m) => ({ ...m, [p]: u }));
+          });
+        }
+      }
+    } catch { /* el detalle no debe romperse por las confirmaciones */ }
   }
   closeDetail() {
     this.detailOpen.set(false);
   }
+  confThumb(path: string): string | null {
+    return this.detailConfFotos()[path] ?? null;
+  }
+  /** Abre cualquier foto (por path) en grande dentro de la página. */
+  async verFotoPath(path: string) {
+    const url = await this.entradasService.getFotoUrl(path);
+    if (url) this.fotoLightbox.set(url);
+  }
 
-  // ── AD6 — confirmar recepción/compra registrada por un chofer ─────────────
-  confirmandoId = signal<string | null>(null);
-  async confirmarChofer(e: EntradaInventario) {
-    if (!e.pendiente_confirmacion || this.confirmandoId()) return;
-    if (!confirm('¿Confirmar esta recepción/compra? Se sumará el stock al almacén.')) return;
-    this.confirmandoId.set(e.id);
+  // ── AF2 — Confirmar entrada = proceso con evidencia (3 hojas) ─────────────
+  confirmOpen = signal(false);
+  confirmEntrada = signal<EntradaInventario | null>(null);
+  confirmStep = signal<'resumen' | 'evidencia' | 'confirmar'>('resumen');
+  confirmSaving = signal(false);
+  confirmError = signal('');
+  puedeRemoto = signal(false);
+  confirmModo = signal<'presencial' | 'remota'>('presencial');
+  confirmNotas = signal('');
+  confirmFotos = signal<{ file: File; url: string }[]>([]);
+  confirmItems = signal<{ articulo_id: string; nombre: string; unidad: string; cantidad_enviada: number; cantidad_recibida: number }[]>([]);
+
+  confirmTitle = computed(() => {
+    switch (this.confirmStep()) {
+      case 'evidencia': return 'Evidencia de lo recibido';
+      case 'confirmar': return 'Confirmar recepción';
+      default: return 'Revisa lo que recibes';
+    }
+  });
+
+  hayDiferencias = computed(() => this.confirmItems().some((i) => i.cantidad_recibida !== i.cantidad_enviada));
+
+  async openConfirmar(e: EntradaInventario) {
+    if (!e.pendiente_confirmacion) return;
+    this.confirmEntrada.set(e);
+    this.confirmStep.set('resumen');
+    this.confirmError.set('');
+    this.confirmNotas.set('');
+    this.confirmModo.set('presencial');
+    this.clearConfirmFotos();
+    const props = (e.items_propuestos ?? []) as { articulo_id: string; cantidad: number | string }[];
+    const arts = this.articulos();
+    this.confirmItems.set(
+      props.map((p) => {
+        const a = arts.find((x) => x.id === p.articulo_id);
+        const cant = Number(p.cantidad ?? 0);
+        return {
+          articulo_id: p.articulo_id,
+          nombre: a?.nombre ?? '—',
+          unidad: a?.unidad ?? '',
+          cantidad_enviada: cant,
+          cantidad_recibida: cant,
+        };
+      }),
+    );
+    this.puedeRemoto.set(await this.entradasService.puedeConfirmarRemoto());
+    this.confirmOpen.set(true);
+  }
+
+  closeConfirmar() {
+    this.confirmOpen.set(false);
+    this.clearConfirmFotos();
+  }
+
+  updateRecibida(index: number, value: number | string) {
+    const n = Math.max(0, Number(value) || 0);
+    this.confirmItems.update((list) => list.map((it, i) => (i === index ? { ...it, cantidad_recibida: n } : it)));
+  }
+
+  async onConfirmFotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    for (const f of files) {
+      const c = await comprimirImagen(f);
+      this.confirmFotos.update((list) => [...list, { file: c, url: URL.createObjectURL(c) }]);
+    }
+  }
+
+  removeConfirmFoto(index: number) {
+    const item = this.confirmFotos()[index];
+    if (item) URL.revokeObjectURL(item.url);
+    this.confirmFotos.update((list) => list.filter((_, i) => i !== index));
+  }
+
+  private clearConfirmFotos() {
+    for (const f of this.confirmFotos()) URL.revokeObjectURL(f.url);
+    this.confirmFotos.set([]);
+  }
+
+  confirmAvanzar() {
+    this.confirmError.set('');
+    if (this.confirmStep() === 'resumen') {
+      this.confirmStep.set('evidencia');
+      return;
+    }
+    if (this.confirmStep() === 'evidencia') {
+      if (this.confirmFotos().length === 0) {
+        this.confirmError.set('Agrega al menos una foto de lo que estás confirmando.');
+        return;
+      }
+      this.confirmStep.set('confirmar');
+    }
+  }
+
+  confirmVolver() {
+    this.confirmError.set('');
+    if (this.confirmStep() === 'confirmar') this.confirmStep.set('evidencia');
+    else if (this.confirmStep() === 'evidencia') this.confirmStep.set('resumen');
+  }
+
+  async ejecutarConfirmacion() {
+    const e = this.confirmEntrada();
+    if (!e || this.confirmSaving()) return;
+    this.confirmSaving.set(true);
+    this.confirmError.set('');
     try {
-      await this.entradasService.confirmarChofer(e.id);
-      this.toast.success('Recepción confirmada', 'El stock se actualizó.');
+      const items = this.confirmItems().map((i) => ({ articulo_id: i.articulo_id, cantidad: i.cantidad_recibida }));
+      await this.entradasService.confirmarConEvidencia(e.id, {
+        items,
+        fotos: this.confirmFotos().map((f) => f.file),
+        notas: this.confirmNotas().trim() || null,
+        modo: this.confirmModo(),
+      });
+      this.toast.success('Recepción confirmada', 'Se registró la evidencia y se actualizó el stock.');
+      this.confirmOpen.set(false);
+      this.clearConfirmFotos();
       await this.loadAll();
     } catch (err: unknown) {
-      this.toast.error('No se pudo confirmar', err instanceof Error ? err.message : undefined);
+      this.confirmError.set(err instanceof Error ? err.message : 'No se pudo confirmar.');
     } finally {
-      this.confirmandoId.set(null);
+      this.confirmSaving.set(false);
     }
   }
 

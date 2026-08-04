@@ -11,3 +11,7 @@ verify_jwt = false
 # AA22 — transcripción de notas de voz (cron, x-sync-secret): sin JWT.
 [functions.transcribe-audio]
 verify_jwt = false
+
+# AF7 — envío de push (server-to-server, x-sync-secret): sin JWT.
+[functions.send-push]
+verify_jwt = false

@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { VehiculosService } from '../../../../../shared/services/vehiculos.service';
+import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion } from '../../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../../shared/services/conductores.service';
 import { ChecklistsVehiculoService } from '../../../../../shared/services/checklists-vehiculo.service';
 import { MantenimientosService } from '../../../../../shared/services/mantenimientos.service';
@@ -49,13 +49,20 @@ import { RegistroCombustible } from '../../../../../shared/models/combustible.mo
 import { FormDrawer } from '../../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
+import { Lightbox } from '../../../../../shared/ui/lightbox/lightbox';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../../shared/utils/fecha.util';
+
+const LLAVE_UBICACION_LABEL: Record<LlaveUbicacion, string> = {
+  chofer_asignado: 'Chofer asignado',
+  oficina_central: 'Oficina central',
+  otro: 'Otro',
+};
 
 const HISTORIAL_LIMITE = 15;
 
 @Component({
   selector: 'app-vehiculo-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle, Lightbox],
   templateUrl: './vehiculo-detalle.html',
   styleUrl: './vehiculo-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -108,6 +115,47 @@ export class VehiculoDetalle implements OnInit {
   reactivando = signal(false);
   mostrarHistorialAsig = signal(false);
 
+  // ── AF4 — galería de todas las fotos + lightbox ──
+  galeria = signal<{ path: string; url: string }[]>([]);
+  lightboxUrl = signal<string | null>(null);
+  guardandoPortada = signal(false);
+  abrirFoto(url: string) { this.lightboxUrl.set(url); }
+
+  // ── AF3 — llaves del vehículo ──
+  llaves = signal<VehiculoLlave[]>([]);
+  llaveTraspasos = signal<VehiculoLlaveTraspaso[]>([]);
+  mostrarHistorialLlaves = signal(false);
+  llaveDrawer = signal(false);
+  llaveGuardando = signal(false);
+  llaveEditando = signal<1 | 2>(1);
+  readonly LLAVE_UBICACION_LABEL = LLAVE_UBICACION_LABEL;
+  llaveForm = this.fb.group({
+    ubicacion_tipo: ['oficina_central' as LlaveUbicacion, Validators.required],
+    portador_usuario_id: [null as string | null],
+    ubicacion_detalle: [''],
+    nota: [''],
+  });
+
+  /** Devuelve el estado de la llave n (o un default si aún no se registró). */
+  llaveSlot(n: 1 | 2): VehiculoLlave {
+    return (
+      this.llaves().find((l) => l.numero === n) ?? {
+        numero: n,
+        ubicacion_tipo: n === 1 ? 'chofer_asignado' : 'oficina_central',
+        portador_usuario_id: null,
+        portador_nombre: null,
+        ubicacion_detalle: null,
+        updated_at: '',
+      }
+    );
+  }
+
+  llaveDescripcion(l: VehiculoLlave): string {
+    if (l.ubicacion_tipo === 'chofer_asignado') return l.portador_nombre ?? 'Chofer asignado (sin definir)';
+    if (l.ubicacion_tipo === 'otro') return l.ubicacion_detalle || 'Otro';
+    return 'Oficina central';
+  }
+
   // ── Drawer "Asignar persona" ──
   drawerOpen = signal(false);
   guardando = signal(false);
@@ -115,6 +163,9 @@ export class VehiculoDetalle implements OnInit {
   asignarForm = this.fb.group({
     usuario_id: [null as string | null, Validators.required],
     notas: [''],
+    // AF3 — al cambiar el asignado, registrar qué pasa con la llave 1.
+    llave1_accion: ['no_cambiar' as 'no_cambiar' | 'chofer_asignado' | 'oficina_central' | 'otro'],
+    llave1_detalle: [''],
   });
 
   // ── Derivados ──
@@ -233,6 +284,10 @@ export class VehiculoDetalle implements OnInit {
       if (primeraFoto) {
         this.fotoUrl.set(await this.vehiculosService.getFotoUrl(primeraFoto));
       }
+      // AF4 — galería con TODAS las fotos cargadas.
+      this.cargarGaleria(vehiculo);
+      // AF3 — llaves (best-effort, no bloquea el perfil).
+      this.cargarLlaves();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el vehículo.');
     } finally {
@@ -293,7 +348,7 @@ export class VehiculoDetalle implements OnInit {
 
   // ── Asignar persona (drawer) ──
   async openAsignar() {
-    this.asignarForm.reset({ usuario_id: null, notas: '' });
+    this.asignarForm.reset({ usuario_id: null, notas: '', llave1_accion: 'no_cambiar', llave1_detalle: '' });
     this.drawerOpen.set(true);
     if (this.usuarios().length === 0) {
       try {
@@ -314,13 +369,27 @@ export class VehiculoDetalle implements OnInit {
       return;
     }
     this.guardando.set(true);
-    const { usuario_id, notas } = this.asignarForm.getRawValue();
+    const { usuario_id, notas, llave1_accion, llave1_detalle } = this.asignarForm.getRawValue();
     try {
       await this.vehiculosService.crearAsignacion({
         vehiculo_id: this.vehiculoId,
         usuario_id: usuario_id,
         notas: notas?.trim() || null,
       });
+      // AF3 — registrar el traspaso de la llave 1 si se indicó.
+      if (llave1_accion && llave1_accion !== 'no_cambiar') {
+        try {
+          await this.vehiculosService.setLlave({
+            vehiculo_id: this.vehiculoId,
+            numero: 1,
+            ubicacion_tipo: llave1_accion,
+            portador_usuario_id: llave1_accion === 'chofer_asignado' ? usuario_id : null,
+            ubicacion_detalle: llave1_accion === 'otro' ? (llave1_detalle?.trim() || null) : null,
+            nota: 'Cambio de asignado del vehículo',
+          });
+          await this.cargarLlaves();
+        } catch { /* la asignación ya se hizo; la llave es secundaria */ }
+      }
       this.asignaciones.set(await this.vehiculosService.getAsignaciones(this.vehiculoId));
       this.drawerOpen.set(false);
       this.toast.success('Persona asignada', 'La asignación se registró correctamente.');
@@ -344,6 +413,103 @@ export class VehiculoDetalle implements OnInit {
 
   toggleHistorialAsig() {
     this.mostrarHistorialAsig.update((v) => !v);
+  }
+
+  // ── AF4 — galería de fotos ───────────────────────────────────
+  private async cargarGaleria(v: Vehiculo | null) {
+    const fotos = v?.fotos ?? [];
+    if (!fotos.length) { this.galeria.set([]); return; }
+    const entries = await Promise.all(
+      fotos.map(async (p) => ({ path: p, url: (await this.vehiculosService.getFotoUrl(p, { width: 400, quality: 78 })) ?? '' })),
+    );
+    this.galeria.set(entries.filter((e) => e.url));
+  }
+
+  esPortada(path: string): boolean {
+    const v = this.vehiculo();
+    const portada = v?.foto_portada ?? v?.fotos?.[0] ?? null;
+    return portada === path;
+  }
+
+  async marcarPortada(path: string) {
+    const v = this.vehiculo();
+    if (!v || this.guardandoPortada() || this.esPortada(path)) return;
+    if (!this.esElevado()) return;
+    this.guardandoPortada.set(true);
+    try {
+      await this.vehiculosService.setFotos(v.id, v.fotos ?? [], path);
+      this.vehiculo.update((x) => (x ? { ...x, foto_portada: path } : x));
+      this.fotoUrl.set(await this.vehiculosService.getFotoUrl(path));
+      this.toast.success('Portada actualizada');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo actualizar la portada.');
+    } finally {
+      this.guardandoPortada.set(false);
+    }
+  }
+
+  // ── AF3 — llaves ─────────────────────────────────────────────
+  private async cargarLlaves() {
+    try {
+      const [llaves, traspasos] = await Promise.all([
+        this.vehiculosService.getLlaves(this.vehiculoId),
+        this.vehiculosService.getLlaveTraspasos(this.vehiculoId),
+      ]);
+      this.llaves.set(llaves);
+      this.llaveTraspasos.set(traspasos);
+    } catch { /* sin llaves aún, no bloquea */ }
+  }
+
+  toggleHistorialLlaves() { this.mostrarHistorialLlaves.update((v) => !v); }
+
+  async openLlave(numero: 1 | 2) {
+    if (!this.esElevado()) return;
+    this.llaveEditando.set(numero);
+    const actual = this.llaveSlot(numero);
+    this.llaveForm.reset({
+      ubicacion_tipo: actual.ubicacion_tipo,
+      portador_usuario_id: actual.portador_usuario_id,
+      ubicacion_detalle: actual.ubicacion_detalle ?? '',
+      nota: '',
+    });
+    this.llaveDrawer.set(true);
+    if (this.usuarios().length === 0) {
+      try { this.usuarios.set(await this.conductoresService.getUsuariosVinculables()); } catch { /* picker vacío */ }
+    }
+  }
+  closeLlave() { this.llaveDrawer.set(false); }
+
+  async guardarLlave() {
+    if (this.llaveGuardando()) return;
+    if (this.llaveForm.invalid) { this.llaveForm.markAllAsTouched(); return; }
+    const v = this.llaveForm.getRawValue();
+    const tipo = v.ubicacion_tipo as LlaveUbicacion;
+    if (tipo === 'chofer_asignado' && !v.portador_usuario_id) {
+      this.toast.error('Falta el portador', 'Elige quién lleva la llave.');
+      return;
+    }
+    if (tipo === 'otro' && !v.ubicacion_detalle?.trim()) {
+      this.toast.error('Falta el detalle', 'Describe dónde está la llave.');
+      return;
+    }
+    this.llaveGuardando.set(true);
+    try {
+      await this.vehiculosService.setLlave({
+        vehiculo_id: this.vehiculoId,
+        numero: this.llaveEditando(),
+        ubicacion_tipo: tipo,
+        portador_usuario_id: tipo === 'chofer_asignado' ? v.portador_usuario_id : null,
+        ubicacion_detalle: tipo === 'otro' ? v.ubicacion_detalle?.trim() : null,
+        nota: v.nota?.trim() || null,
+      });
+      await this.cargarLlaves();
+      this.llaveDrawer.set(false);
+      this.toast.success('Llave actualizada', `Se registró el traspaso de la llave #${this.llaveEditando()}.`);
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo registrar la llave.');
+    } finally {
+      this.llaveGuardando.set(false);
+    }
   }
 
   // ── FASE 4 — accidentes / daños ──────────────────────────────
