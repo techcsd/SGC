@@ -25,6 +25,8 @@ export interface EntradaInventario {
   created_at: string;
   // Evidence photo captured by the mobile CSD app when the entrada was created.
   foto_path: string | null;
+  // AF10 — firma de quien recibe (capturada en la app de campo).
+  firma_path: string | null;
   // P12 — origen del material (devolución de obra enlaza la obra + la salida del traspaso).
   origen_tipo: OrigenEntrada | null;
   origen_proyecto_id: string | null;

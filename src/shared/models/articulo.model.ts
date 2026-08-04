@@ -17,6 +17,8 @@ export interface Articulo {
   activo: boolean;
   /** EPP: exige indicar talla al pedir (salida/requisición). */
   requiere_talla: boolean;
+  /** AF16 — alto valor / entrega en mano: la entrega exige confirmación presencial. */
+  entrega_en_mano: boolean;
   /** Ayuda visible: atado/paquete/referencia (ej. "ATADO 120 PZA", "REF. TOTAL"). */
   nota: string | null;
   /** Subgrupo dentro de la categoría (ej. Madera/Plywood, CSD/Externo). */
@@ -41,6 +43,7 @@ export interface ArticuloFormData {
   precio_estimado: number | null;
   activo: boolean;
   requiere_talla?: boolean;
+  entrega_en_mano?: boolean; // AF16
   nota?: string | null;
   propiedad?: ArticuloPropiedad;
   imagen_url?: string | null;

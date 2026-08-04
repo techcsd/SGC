@@ -181,7 +181,19 @@
                       📷
                     }
                   </button>
-                } @else {
+                }
+                <!-- AF10 — firma de quien entrega -->
+                @if (s.firma_path) {
+                  <button type="button" class="salidas__foto-thumb" (click)="$event.stopPropagation(); verFirma(s)"
+                    title="Ver firma de quien entrega">
+                    @if (firmaThumb(s); as t) {
+                      <img [src]="t" alt="Firma de quien entrega" loading="lazy" />
+                    } @else {
+                      ✍️
+                    }
+                  </button>
+                }
+                @if (!s.foto_path && !s.firma_path) {
                   —
                 }
               </td>

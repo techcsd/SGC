@@ -128,6 +128,7 @@ export class Articulos implements OnInit {
     precio_estimado: new FormControl<number | null>(null, [Validators.min(0)]),
     activo: new FormControl<boolean>(true),
     requiere_talla: new FormControl<boolean>(false, { nonNullable: true }),
+    entrega_en_mano: new FormControl<boolean>(false, { nonNullable: true }), // AF16
     nota: new FormControl<string | null>(null),
     propiedad: new FormControl<'propio_csd' | 'alquilado'>('propio_csd', { nonNullable: true }),
     // Z5(d) — dato de prueba (solo admin lo edita).
@@ -287,7 +288,7 @@ export class Articulos implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.resetFoto(null);
-    this.form.reset({ activo: true, stock_minimo: 0, propiedad: 'propio_csd', requiere_talla: false, es_prueba: false });
+    this.form.reset({ activo: true, stock_minimo: 0, propiedad: 'propio_csd', requiere_talla: false, entrega_en_mano: false, es_prueba: false });
     this.drawerOpen.set(true);
   }
 
@@ -306,6 +307,7 @@ export class Articulos implements OnInit {
       precio_estimado: article.precio_estimado,
       activo: article.activo,
       requiere_talla: article.requiere_talla ?? false,
+      entrega_en_mano: article.entrega_en_mano ?? false, // AF16
       nota: article.nota ?? null,
       propiedad: article.propiedad ?? 'propio_csd',
       es_prueba: article.es_prueba ?? false,

@@ -93,16 +93,22 @@ export class Entradas implements OnInit {
   detailEntrada = signal<EntradaInventario | null>(null);
   // AF1 — thumbnail de la foto de la entrada + evidencia de confirmaciones.
   detailFotoThumb = signal<string | null>(null);
+  detailFirmaThumb = signal<string | null>(null); // AF10
   detailConfirmaciones = signal<RecepcionConfirmacion[]>([]);
   detailConfFotos = signal<Record<string, string>>({});
   async openDetail(e: EntradaInventario) {
     this.detailEntrada.set(e);
     this.detailOpen.set(true);
     this.detailFotoThumb.set(null);
+    this.detailFirmaThumb.set(null);
     this.detailConfirmaciones.set([]);
     this.detailConfFotos.set({});
     if (e.foto_path) {
       this.entradasService.getFotoUrl(e.foto_path, { width: 220, quality: 75 }).then((u) => u && this.detailFotoThumb.set(u));
+    }
+    // AF10 — firma de quien recibe.
+    if (e.firma_path) {
+      this.entradasService.getFotoUrl(e.firma_path, { width: 320, quality: 80 }).then((u) => u && this.detailFirmaThumb.set(u));
     }
     try {
       const confs = await this.entradasService.getConfirmaciones('entrada', e.id);
@@ -332,6 +338,17 @@ export class Entradas implements OnInit {
       if (url) this.fotoLightbox.set(url);
     } catch {
       this.fotoError.set('No se pudo abrir la foto.');
+    }
+  }
+
+  /** AF10 — abre la firma de quien recibe en grande (lightbox). */
+  async verFirma(e: EntradaInventario) {
+    if (!e.firma_path) return;
+    try {
+      const url = await this.entradasService.getFotoUrl(e.firma_path);
+      if (url) this.fotoLightbox.set(url);
+    } catch {
+      /* best-effort */
     }
   }
 

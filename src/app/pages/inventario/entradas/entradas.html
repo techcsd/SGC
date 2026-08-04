@@ -637,6 +637,18 @@
         </div>
       }
 
+      <!-- AF10 — firma de quien recibe -->
+      @if (e.firma_path) {
+        <div class="entrada-detalle__evidencia">
+          <span class="entrada-detalle__evidencia-label">Firma de quien recibe</span>
+          <button type="button" class="entradas__foto-thumb entradas__foto-thumb--lg" (click)="verFirma(e)" title="Ver firma">
+            @if (detailFirmaThumb(); as t) {
+              <img [src]="t" alt="Firma de quien recibe" loading="lazy" />
+            } @else { ✍️ }
+          </button>
+        </div>
+      }
+
       <h4 class="entrada-detalle__title">Artículos ({{ (e.detalle_entradas ?? []).length }})</h4>
       <table class="data-table">
         <thead><tr><th>Artículo</th><th class="text-right">Cantidad</th><th class="text-right">Precio unit.</th><th class="text-right">Subtotal</th></tr></thead>

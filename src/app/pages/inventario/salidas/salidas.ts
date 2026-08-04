@@ -716,19 +716,30 @@ export class Salidas implements OnInit {
 
   // W11 — thumbnails de la lista + lightbox in-page.
   fotoThumbs = signal<Record<string, string>>({});
+  firmaThumbs = signal<Record<string, string>>({}); // AF10
   fotoLightbox = signal<string | null>(null);
 
   thumb(s: SalidaInventario): string | null {
     return this.fotoThumbs()[s.id] ?? null;
   }
+  firmaThumb(s: SalidaInventario): string | null {
+    return this.firmaThumbs()[s.id] ?? null;
+  }
 
   private resolverThumbs(list: SalidaInventario[]) {
     for (const s of list) {
-      if (!s.foto_path || this.fotoThumbs()[s.id]) continue;
-      // Y6 — celda de tabla 40px → ~160px cubre DPR 2/3 con margen (antes 96, algo justo).
-      this.salidasService.getFotoUrl(s.foto_path, { width: 160, quality: 75 }).then((url) => {
-        if (url) this.fotoThumbs.update((m) => ({ ...m, [s.id]: url }));
-      });
+      if (s.foto_path && !this.fotoThumbs()[s.id]) {
+        // Y6 — celda de tabla 40px → ~160px cubre DPR 2/3 con margen (antes 96, algo justo).
+        this.salidasService.getFotoUrl(s.foto_path, { width: 160, quality: 75 }).then((url) => {
+          if (url) this.fotoThumbs.update((m) => ({ ...m, [s.id]: url }));
+        });
+      }
+      // AF10 — thumbnail de la firma de quien entrega.
+      if (s.firma_path && !this.firmaThumbs()[s.id]) {
+        this.salidasService.getFotoUrl(s.firma_path, { width: 160, quality: 75 }).then((url) => {
+          if (url) this.firmaThumbs.update((m) => ({ ...m, [s.id]: url }));
+        });
+      }
     }
   }
 
@@ -741,6 +752,17 @@ export class Salidas implements OnInit {
       if (url) this.fotoLightbox.set(url);
     } catch {
       this.fotoError.set('No se pudo abrir la foto.');
+    }
+  }
+
+  /** AF10 — abre la firma de quien entrega en grande (lightbox). */
+  async verFirma(s: SalidaInventario) {
+    if (!s.firma_path) return;
+    try {
+      const url = await this.salidasService.getFotoUrl(s.firma_path);
+      if (url) this.fotoLightbox.set(url);
+    } catch {
+      /* best-effort */
     }
   }
 
