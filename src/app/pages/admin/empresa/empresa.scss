@@ -1,0 +1,13 @@
+.empresa-card { max-width: 760px; }
+.empresa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    @media (max-width: 640px) { grid-template-columns: 1fr; }
+  }
+  &__actions { margin-top: 6px; }
+}

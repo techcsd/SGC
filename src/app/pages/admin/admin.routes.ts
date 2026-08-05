@@ -59,4 +59,14 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./notificaciones/notificaciones').then((m) => m.AdminNotificaciones),
     title: 'Notificaciones — Administración',
   },
+  {
+    path: 'empresa',
+    loadComponent: () => import('./empresa/empresa').then((m) => m.AdminEmpresa),
+    title: 'Empresa — Administración',
+  },
+  {
+    path: 'orden-modulos',
+    loadComponent: () => import('./orden-modulos/orden-modulos').then((m) => m.AdminOrdenModulos),
+    title: 'Orden de módulos — Administración',
+  },
 ];

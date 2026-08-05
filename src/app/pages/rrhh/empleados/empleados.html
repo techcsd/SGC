@@ -143,7 +143,9 @@
         </thead>
         <tbody>
           @for (emp of paginated(); track emp.id) {
-            <tr [class.row--inactive]="!emp.activo">
+            <tr class="row--link" [class.row--inactive]="!emp.activo" (click)="openDetail(emp)"
+                role="button" tabindex="0" (keydown.enter)="openDetail(emp)"
+                [attr.aria-label]="'Ver detalle de ' + emp.nombre + ' ' + emp.apellido">
               <td>
                 <div class="empleados__name-cell">
                   <span class="empleados__name">
@@ -181,7 +183,7 @@
                   <button
                     type="button"
                     class="action-btn action-btn--view"
-                    (click)="openDetail(emp)"
+                    (click)="$event.stopPropagation(); openDetail(emp)"
                     [attr.aria-label]="'Ver ' + emp.nombre + ' ' + emp.apellido"
                     title="Ver detalle"
                   >
@@ -193,7 +195,7 @@
                   <button
                     type="button"
                     class="action-btn action-btn--edit"
-                    (click)="openEdit(emp)"
+                    (click)="$event.stopPropagation(); openEdit(emp)"
                     [attr.aria-label]="'Editar ' + emp.nombre + ' ' + emp.apellido"
                     title="Editar"
                   >
@@ -207,7 +209,7 @@
                     class="action-btn"
                     [class.action-btn--deactivate]="emp.activo"
                     [class.action-btn--activate]="!emp.activo"
-                    (click)="toggleActivo(emp)"
+                    (click)="$event.stopPropagation(); toggleActivo(emp)"
                     [attr.aria-label]="(emp.activo ? 'Desactivar' : 'Activar') + ' ' + emp.nombre"
                     [title]="emp.activo ? 'Desactivar' : 'Activar'"
                   >
@@ -222,7 +224,7 @@
                     }
                   </button>
                   @if (esAdmin() && emp.es_prueba) {
-                    <button class="empleados__delete-prueba" type="button" (click)="eliminarPrueba(emp)" title="Eliminar dato de prueba" [attr.aria-label]="'Eliminar dato de prueba ' + emp.nombre">
+                    <button class="empleados__delete-prueba" type="button" (click)="$event.stopPropagation(); eliminarPrueba(emp)" title="Eliminar dato de prueba" [attr.aria-label]="'Eliminar dato de prueba ' + emp.nombre">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>

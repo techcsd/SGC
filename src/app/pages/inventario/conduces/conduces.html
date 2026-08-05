@@ -83,7 +83,7 @@
         </thead>
         <tbody>
           @for (s of paginated(); track s.id) {
-            <tr>
+            <tr class="row--link" [routerLink]="['/inventario/salidas', s.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
               <td class="conduces__numero">{{ numero(s.id) }}</td>
               <td>{{ formatFecha(s.fecha) }}</td>
               <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
@@ -98,6 +98,7 @@
                 <a
                   class="sgc-btn sgc-btn--ghost sgc-btn--sm"
                   [routerLink]="['/inventario/salidas', s.id, 'conduce']"
+                  (click)="$event.stopPropagation()"
                 >Ver conduce</a>
               </td>
             </tr>

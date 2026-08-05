@@ -1495,6 +1495,23 @@
           "d": "Tareas dinámicas (base): una tarea puede vincularse a un conduce, ruta, mantenimiento o tarea de cronograma; al completarse esa acción, la tarea se completa sola y avisa a quien la asignó."
         }
       ]
+    },
+    "1.64.0": {
+      "titulo": "Detalle al clic en toda la fila, y Administración con Empresa y Orden de módulos (AG)",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Historiales y listados: ahora abres el detalle haciendo clic en cualquier parte de la fila (no solo en el botón \"Ver\") en Empleados, Ausencias, historial de Tareas, Contratos, Conductores, Conduces, Artículos, Órdenes de compra e historial de Proyectos. Los botones de acción de cada fila siguen funcionando igual."
+        },
+        {
+          "t": "nuevo",
+          "d": "Administración › Empresa: página para los datos generales de la constructora (razón social, nombre comercial, RNC, dirección, teléfono, correo y sitio web)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Administración › Orden de módulos: reordena las secciones del menú lateral con flechas ↑/↓ y guarda; el menú respeta ese orden."
+        }
+      ]
     }
   }
 }

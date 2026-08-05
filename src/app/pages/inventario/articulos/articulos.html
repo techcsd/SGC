@@ -130,13 +130,15 @@
         </thead>
         <tbody>
           @for (art of paginated(); track art.id) {
-            <tr [class.row--inactive]="!art.activo" [appHighlightItem]="art.id">
+            <tr class="row--link" [class.row--inactive]="!art.activo" [appHighlightItem]="art.id"
+                (click)="abrirDetalle(art)" role="button" tabindex="0"
+                (keydown.enter)="abrirDetalle(art)" [attr.aria-label]="'Ver detalle de ' + art.nombre">
               <td>
                 <code class="code-tag">{{ art.codigo }}</code>
               </td>
               <td>
                 <div class="article-cell">
-                  <button type="button" class="article-thumb" (click)="abrirDetalle(art)"
+                  <button type="button" class="article-thumb" (click)="$event.stopPropagation(); abrirDetalle(art)"
                           [attr.aria-label]="'Ver detalle de ' + art.nombre" title="Ver detalle">
                     @if (thumbDe(art); as t) {
                       <img [src]="t" [alt]="art.nombre" loading="lazy" />
@@ -145,12 +147,12 @@
                     }
                   </button>
                   <div class="article-cell__info">
-                    <button type="button" class="article-name article-name--link" (click)="abrirDetalle(art)">{{ art.nombre }}</button>
+                    <button type="button" class="article-name article-name--link" (click)="$event.stopPropagation(); abrirDetalle(art)">{{ art.nombre }}</button>
                     @if (art.es_prueba) {
                       <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
                     }
                     <button type="button" class="sgc-badge sgc-badge--{{ propiedadBadge(art.propiedad) }} article-prop article-prop--btn"
-                            (click)="togglePropiedad(art)" title="Cambiar propiedad (CSD ↔ Alquilado)">{{ propiedadLabel(art.propiedad) }}</button>
+                            (click)="$event.stopPropagation(); togglePropiedad(art)" title="Cambiar propiedad (CSD ↔ Alquilado)">{{ propiedadLabel(art.propiedad) }}</button>
                     @if (art.subgrupo) {
                       <span class="article-subgrupo">{{ art.subgrupo }}</span>
                     }
@@ -195,7 +197,7 @@
                   <button
                     type="button"
                     class="action-btn action-btn--edit"
-                    (click)="openEdit(art)"
+                    (click)="$event.stopPropagation(); openEdit(art)"
                     aria-label="Editar {{ art.nombre }}"
                     title="Editar"
                   >
@@ -209,7 +211,7 @@
                     class="action-btn"
                     [class.action-btn--deactivate]="art.activo"
                     [class.action-btn--activate]="!art.activo"
-                    (click)="toggleActivo(art)"
+                    (click)="$event.stopPropagation(); toggleActivo(art)"
                     [attr.aria-label]="(art.activo ? 'Desactivar' : 'Activar') + ' ' + art.nombre"
                     [title]="art.activo ? 'Desactivar' : 'Activar'"
                   >
@@ -227,7 +229,7 @@
                     <button
                       class="articulos__delete-prueba"
                       type="button"
-                      (click)="eliminarPrueba(art)"
+                      (click)="$event.stopPropagation(); eliminarPrueba(art)"
                       title="Eliminar dato de prueba"
                       [attr.aria-label]="'Eliminar dato de prueba ' + art.nombre"
                     >

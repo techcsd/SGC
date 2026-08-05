@@ -1,0 +1,72 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Empresa</h1>
+    <p class="page-subtitle">Datos generales de la constructora (se usan en encabezados y documentos).</p>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="sgc-card"><app-skeleton variant="list" [rows]="4" /></div>
+} @else {
+  <div class="sgc-card empresa-card">
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="empresa-form">
+      <div class="empresa-form__row">
+        <div class="sgc-field">
+          <label for="razon">Razón social</label>
+          <input id="razon" type="text" formControlName="razon_social" placeholder="Ej: Scheker &amp; Domínguez SRL" />
+        </div>
+        <div class="sgc-field">
+          <label for="comercial">Nombre comercial</label>
+          <input id="comercial" type="text" formControlName="nombre_comercial" placeholder="Ej: Constructora SD" />
+        </div>
+      </div>
+
+      <div class="empresa-form__row">
+        <div class="sgc-field">
+          <label for="rnc">RNC</label>
+          <input id="rnc" type="text" formControlName="rnc" placeholder="RNC de la empresa" />
+        </div>
+        <div class="sgc-field">
+          <label for="tel">Teléfono</label>
+          <input id="tel" type="tel" formControlName="telefono" placeholder="(809) 000-0000" />
+        </div>
+      </div>
+
+      <div class="empresa-form__row">
+        <div class="sgc-field">
+          <label for="email">Correo</label>
+          <input id="email" type="email" formControlName="email" placeholder="info@empresa.com" [class.invalid]="f.email.invalid && f.email.touched" />
+          @if (f.email.invalid && f.email.touched) { <span class="field-error">Correo inválido.</span> }
+        </div>
+        <div class="sgc-field">
+          <label for="web">Sitio web</label>
+          <input id="web" type="text" formControlName="sitio_web" placeholder="www.empresa.com" />
+        </div>
+      </div>
+
+      <div class="sgc-field">
+        <label for="dir">Dirección</label>
+        <input id="dir" type="text" formControlName="direccion" placeholder="Dirección física" />
+      </div>
+
+      <div class="empresa-form__row">
+        <div class="sgc-field">
+          <label for="ciudad">Ciudad</label>
+          <input id="ciudad" type="text" formControlName="ciudad" placeholder="Santo Domingo" />
+        </div>
+        <div class="sgc-field">
+          <label for="pais">País</label>
+          <input id="pais" type="text" formControlName="pais" placeholder="República Dominicana" />
+        </div>
+      </div>
+
+      <div class="empresa-form__actions">
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+          @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar cambios }
+        </button>
+      </div>
+    </form>
+  </div>
+}

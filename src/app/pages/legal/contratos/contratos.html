@@ -84,7 +84,8 @@
         </thead>
         <tbody>
           @for (c of filtered(); track c.id) {
-            <tr>
+            <tr class="row--link" (click)="openDetail(c)" role="button" tabindex="0"
+                (keydown.enter)="openDetail(c)" aria-label="Ver detalle del contrato">
               <td><code class="code-tag">{{ c.codigo }}</code></td>
               <td><span class="con-title">{{ c.titulo }}</span></td>
               <td>{{ tipoLabel(c.tipo) }}</td>
@@ -100,12 +101,12 @@
               <td><span [class]="estadoBadgeClass(c.estado)">{{ estadoLabel(c.estado) }}</span></td>
               <td>
                 <div class="row-actions">
-                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(c)" [attr.aria-label]="'Ver ' + c.titulo" title="Ver detalle">
+                  <button type="button" class="action-btn action-btn--view" (click)="$event.stopPropagation(); openDetail(c)" [attr.aria-label]="'Ver ' + c.titulo" title="Ver detalle">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
                     </svg>
                   </button>
-                  <button type="button" class="action-btn action-btn--edit" (click)="openEdit(c)" [attr.aria-label]="'Editar ' + c.titulo" title="Editar">
+                  <button type="button" class="action-btn action-btn--edit" (click)="$event.stopPropagation(); openEdit(c)" [attr.aria-label]="'Editar ' + c.titulo" title="Editar">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>

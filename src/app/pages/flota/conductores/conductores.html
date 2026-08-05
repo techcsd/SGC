@@ -118,7 +118,7 @@
         </thead>
         <tbody>
           @for (c of paginated(); track c.id) {
-            <tr [class.row--inactive]="!c.activo">
+            <tr class="row--link" [class.row--inactive]="!c.activo" [routerLink]="['/flota/conductores', c.id]" role="button" tabindex="0" [attr.aria-label]="'Ver perfil de ' + c.nombre">
               <td>
                 <span class="conductores__nombre">{{ c.nombre }}</span>
                 @if (c.es_prueba) {
@@ -180,6 +180,7 @@
                   <a
                     class="action-btn"
                     [routerLink]="['/flota/conductores', c.id]"
+                    (click)="$event.stopPropagation()"
                     [attr.aria-label]="'Ver perfil de ' + c.nombre"
                     title="Ver perfil"
                   >
@@ -190,7 +191,7 @@
                   <button
                     type="button"
                     class="action-btn action-btn--edit"
-                    (click)="openEdit(c)"
+                    (click)="$event.stopPropagation(); openEdit(c)"
                     [attr.aria-label]="'Editar ' + c.nombre"
                     title="Editar"
                   >
@@ -204,7 +205,7 @@
                       type="button"
                       class="action-btn"
                       [class.action-btn--access]="c.usuario_id"
-                      (click)="openAcceso(c)"
+                      (click)="$event.stopPropagation(); openAcceso(c)"
                       [attr.aria-label]="(c.usuario_id ? 'Restablecer PIN de ' : 'Generar acceso para ') + c.nombre"
                       [title]="c.usuario_id ? 'Restablecer PIN' : 'Generar acceso (cédula + PIN)'"
                     >
@@ -218,7 +219,7 @@
                     class="action-btn"
                     [class.action-btn--deactivate]="c.activo"
                     [class.action-btn--activate]="!c.activo"
-                    (click)="toggleActivo(c)"
+                    (click)="$event.stopPropagation(); toggleActivo(c)"
                     [attr.aria-label]="(c.activo ? 'Desactivar' : 'Activar') + ' ' + c.nombre"
                     [title]="c.activo ? 'Desactivar' : 'Activar'"
                   >
@@ -238,7 +239,7 @@
                     <button
                       type="button"
                       class="action-btn"
-                      (click)="marcarPrueba(c, !c.es_prueba)"
+                      (click)="$event.stopPropagation(); marcarPrueba(c, !c.es_prueba)"
                       [attr.aria-label]="(c.es_prueba ? 'Quitar de prueba ' : 'Marcar como prueba ') + c.nombre"
                       [title]="c.es_prueba ? 'Quitar de datos de prueba' : 'Marcar como dato de prueba'"
                     >
@@ -250,7 +251,7 @@
                       <button
                         type="button"
                         class="action-btn action-btn--deactivate"
-                        (click)="eliminarPrueba(c)"
+                        (click)="$event.stopPropagation(); eliminarPrueba(c)"
                         [attr.aria-label]="'Eliminar dato de prueba ' + c.nombre"
                         title="Eliminar (dato de prueba)"
                       >

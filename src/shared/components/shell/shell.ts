@@ -18,6 +18,7 @@ import { NotificacionesCentroService, Notif } from '../../services/notificacione
 import { AppVersionesService } from '../../services/app-versiones.service';
 import { DatosPruebaViewService } from '../../services/datos-prueba-view.service';
 import { ActividadService } from '../../services/actividad.service';
+import { ModuloOrdenService } from '../../services/modulo-orden.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 import { formatFechaRelativa } from '../../utils/fecha.util';
@@ -74,7 +75,24 @@ export class Shell implements OnInit {
   private appVersiones = inject(AppVersionesService);
   private datosPruebaView = inject(DatosPruebaViewService);
   private actividad = inject(ActividadService);
+  private moduloOrden = inject(ModuloOrdenService);
   private destroyRef = inject(DestroyRef);
+
+  // AF38 — orden configurable del menú (vacío = orden por defecto del array).
+  private ordenMap = signal<Record<string, number>>({});
+  /** navItems ordenados según la configuración; estable (fallback a la posición original). */
+  orderedNavItems = computed(() => {
+    const map = this.ordenMap();
+    if (!Object.keys(map).length) return this.navItems;
+    return this.navItems
+      .map((item, i) => ({ item, i }))
+      .sort((a, b) => {
+        const oa = map[a.item.label] ?? (1000 + a.i);
+        const ob = map[b.item.label] ?? (1000 + b.i);
+        return oa - ob || a.i - b.i;
+      })
+      .map((x) => x.item);
+  });
 
   profile = this.userService.profile;
   avatarUrl = this.userService.avatarUrl;
@@ -286,12 +304,14 @@ export class Shell implements OnInit {
     children: [
       { label: 'Usuarios', route: '/admin/usuarios' },
       { label: 'Roles', route: '/admin/roles' },
+      { label: 'Empresa', route: '/admin/empresa' },
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
       { label: 'Parámetros', route: '/admin/parametros' },
       // Y11 — "Versiones de la app" e "Historial de versiones" movidas al módulo Tecnología.
       { label: 'Valores "Otro"', route: '/admin/otros-valores' },
       { label: 'Notificaciones', route: '/admin/notificaciones' },
+      { label: 'Orden de módulos', route: '/admin/orden-modulos' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
@@ -344,6 +364,9 @@ export class Shell implements OnInit {
     }
     this.notificaciones.refresh();
     this.realtimeNotificaciones.start();
+
+    // AF38 — carga el orden del menú (best-effort; si falla, orden por defecto).
+    this.moduloOrden.getOrdenMap().then((m) => this.ordenMap.set(m)).catch(() => {});
 
     // Notification center: load recent items + go live for this user.
     this.centro.cargar();

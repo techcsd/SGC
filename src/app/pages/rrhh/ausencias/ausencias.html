@@ -69,7 +69,8 @@
         </thead>
         <tbody>
           @for (s of paginated(); track s.id) {
-            <tr>
+            <tr class="row--link" (click)="openResolve(s)" role="button" tabindex="0"
+                (keydown.enter)="openResolve(s)" aria-label="Ver detalle de la solicitud">
               <td>{{ s.empleado?.nombre }} {{ s.empleado?.apellido }}</td>
               <td>{{ tipoLabel(s.tipo) }}</td>
               <td>{{ formatFecha(s.fecha_inicio) }}</td>
@@ -78,7 +79,7 @@
               <td><span [class]="estadoBadgeClass(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
               <td class="text-center">
                 @if (s.estado === 'pendiente') {
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openResolve(s)">Revisar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation(); openResolve(s)">Revisar</button>
                 } @else {
                   <span class="text-muted">{{ s.aprobador?.nombre ?? '—' }}</span>
                   @if (s.comentario_aprobador) {
