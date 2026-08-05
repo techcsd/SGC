@@ -39,6 +39,37 @@ export class UserService {
   }
 
   /**
+   * AG12 — permisos granulares por submódulo. Mapa "modulo.submodulo" → mejor
+   * nivel entre todos los roles del usuario. Fuente única en el front (espejo de
+   * `sgc.nivel_submodulo`). El checkbox del módulo padre implica 'operar' en todos
+   * sus submódulos (compat), de ahí que `nivelSubmodulo` consulte también modulos().
+   */
+  private permisosMerged = computed<Record<string, 'ver' | 'operar'>>(() => {
+    const acc: Record<string, 'ver' | 'operar'> = {};
+    for (const ur of this._profile()?.roles ?? []) {
+      const p = ur.rol.permisos ?? {};
+      for (const [k, v] of Object.entries(p)) {
+        if (v === 'operar' || (v === 'ver' && acc[k] !== 'operar')) acc[k] = v;
+      }
+    }
+    return acc;
+  });
+
+  /** Nivel efectivo de un submódulo: 'operar' | 'ver' | null. */
+  nivelSubmodulo(key: string): 'operar' | 'ver' | null {
+    if (this.hasRole('admin')) return 'operar';
+    const modulo = key.split('.')[0];
+    if (this.hasModulo(modulo)) return 'operar'; // compat: módulo padre = operar
+    return this.permisosMerged()[key] ?? null;
+  }
+  puedeVerSubmodulo(key: string): boolean {
+    return this.nivelSubmodulo(key) !== null;
+  }
+  puedeOperarSubmodulo(key: string): boolean {
+    return this.nivelSubmodulo(key) === 'operar';
+  }
+
+  /**
    * Y11 / AC2 — acceso a las secciones RESTRINGIDAS de "Tecnología" de plataforma
    * (versiones de la app, reportes de errores, monitoreo de infraestructura).
    * Reservado a `admin`, `tecnologia`, `gerencia` y `direccion`. Debe coincidir
@@ -81,7 +112,7 @@ export class UserService {
   async loadProfile(userId: string): Promise<void> {
     const { data, error } = await this.supabase.client
       .from('usuarios')
-      .select('*, roles:usuarios_roles!usuario_id(rol:roles(codigo, nombre, modulos))')
+      .select('*, roles:usuarios_roles!usuario_id(rol:roles(codigo, nombre, modulos, permisos))')
       .eq('id', userId)
       .single();
 

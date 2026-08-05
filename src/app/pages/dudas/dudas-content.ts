@@ -177,6 +177,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'En Administración > Roles cada rol muestra una descripción de qué hace, para quién es y cuándo asignarlo, además de los módulos a los que da acceso (pasa el cursor sobre cada módulo de la tarjeta para ver qué incluye). Al crear o editar un rol puedes escribir o ajustar esa descripción, y cada módulo trae una explicación de qué desbloquea al marcarlo; los de acceso amplio (Administración, Dirección) están señalados como tales para que los asignes con cuidado. Recuerda que un usuario puede tener varios roles y verá la suma de sus accesos.',
       },
+      {
+        pregunta: '¿Puedo dar acceso a solo una parte de un módulo (por ejemplo, Compras solo Proveedores)? (administradores)',
+        respuesta:
+          'Sí. Al editar o crear un rol, abre "Permisos por submódulo (avanzado)". Ahí puedes dar un submódulo específico en nivel "Ver" u "Operar" sin marcar el módulo completo — por ejemplo Compras → Proveedores → Ver, y el usuario verá solo Proveedores, nada más de Compras. Si marcas el módulo padre completo, todos sus submódulos quedan en "Operar" automáticamente (por eso los roles actuales no cambian su acceso). El gateo fino por submódulo se está extendiendo módulo por módulo; hoy funciona de punta a punta en Compras → Proveedores.',
+      },
     ],
   },
   {
@@ -198,6 +203,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Son notificaciones en tiempo real: aparecen cuando te asignan una tarea, recibes un mensaje, o llega una solicitud a un módulo que gestionas. Puedes hacer clic en el aviso para ir directo a lo que lo generó. No necesitas recargar la página.',
       },
+      {
+        pregunta: 'Soy administrador: ¿cómo me entero cuando alguien envía un reporte o ticket de soporte?',
+        respuesta:
+          'Cuando un usuario envía un comentario, reporte de error o sugerencia desde Soporte, el administrador recibe un aviso dentro del sistema (la campanita), una notificación push en el teléfono y un correo. Puedes elegir qué eventos avisan y por qué canal (en app / push / correo) en Administración > Notificaciones; si desactivas un evento ahí, deja de notificar. Para no llenar el correo, si llegan varios tickets seguidos se agrupa el envío por correo (el aviso en app y push sí llega por cada uno).',
+      },
     ],
   },
   {
@@ -213,6 +223,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo asigno una tarea a otra persona?',
         respuesta:
           'Necesitas el módulo "Tareas". Ve a Tareas > Gestión de tareas > Nueva tarea, elige responsable, prioridad, fecha límite y (opcional) proyecto. La persona recibe un aviso al instante.',
+      },
+      {
+        pregunta: '¿Una tarea puede completarse sola al terminar la acción que representa?',
+        respuesta:
+          'Sí. Una tarea puede vincularse a una acción real del sistema: un conduce (compra + entrega en obra), una ruta, un mantenimiento o una tarea de cronograma. Cuando esa acción se completa (por ejemplo, se entrega el conduce o se finaliza la ruta), la tarea se marca como completada automáticamente y se le avisa a quien la asignó — sin tener que cambiar el estado a mano. Las tareas normales (sin vínculo) siguen funcionando igual.',
       },
       {
         pregunta: '¿Dónde veo el historial de tareas?',
@@ -436,6 +451,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'La mayoría se generan automáticamente cuando Almacén aprueba una requisición y no hay stock suficiente: el faltante llega aquí como solicitud de compra. También pueden venir de compras tecnológicas. Aparecen en un panel arriba de la tabla en Compras > Órdenes de Compra: pulsa "Crear orden" para convertirla en una orden real (precarga los ítems y eliges proveedor), o "Rechazar" si no procede.',
       },
+      {
+        pregunta: '¿Puedo importar proveedores desde Excel en vez de crearlos uno por uno?',
+        respuesta:
+          'Sí. En Compras > Proveedores pulsa "⬆️ Importar". Primero descarga la plantilla ("Descargar plantilla") para ver las columnas exactas (Nombre obligatorio, RNC/Cédula, Contacto, Teléfono, Email, Dirección, Ferretería Sí/No, Lat, Lng). Llénala, súbela y el sistema muestra una previsualización por fila marcando cuáles son nuevas, cuáles ya existen (por nombre o RNC) y cuáles tienen error. Para los duplicados eliges si "Actualizar" o "Saltar", y al confirmar importa todo con un resumen final.',
+      },
     ],
   },
   {
@@ -595,6 +615,21 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Dónde gestiono los avisos de Flota (bloqueos, consumos, vencimientos)?',
         respuesta:
           'En Flota > Avisos hay una bandeja con todos los avisos operativos: bloqueos por checklist, hallazgos, pre-citas y mantenimiento vencido, consumo anormal de combustible, y vencimientos de licencia, matrícula y seguro (estos se generan solos al abrir la página). Filtra por estado/tipo/vehículo y pulsa "Atender" para dejar una nota y cerrarlos. El punto rojo del menú de Flota cuenta los avisos pendientes. Además llega un correo automático a quienes tienen el módulo Flota.',
+      },
+      {
+        pregunta: '¿Cómo controlo una placa provisional (PP) y su plazo con el dealer?',
+        respuesta:
+          'En el perfil del vehículo (Flota > Vehículos > abrir el vehículo) hay una sección "Placa provisional (PP)", junto a Llaves. Pulsa "Registrar placa provisional", escribe el dealer, la placa PP y los días que prometió el dealer (cada dealer promete distinto: 15/20/30/45). El sistema calcula la fecha límite y empieza el conteo. En el listado de vehículos aparece un badge "PP". Cuando falten 5 días (y al vencer) se genera un aviso persistente en Flota > Avisos y llega push/correo al admin y al jefe de flota. Desde el aviso o desde el perfil puedes: "Placa entregada" (registra la placa definitiva y el marbete DGII juntos), "Ampliar plazo" (pide los días nuevos que comunicó el dealer y re-agenda, guardando el historial de extensiones) o dejarlo pendiente.',
+      },
+      {
+        pregunta: '¿Qué es el marbete DGII y cuándo se registra?',
+        respuesta:
+          'El marbete DGII es el sticker de circulación vehicular. Se recibe junto con la placa definitiva cuando el dealer la entrega. Por eso, al marcar "Placa entregada" en la sección de placa provisional, registras la placa definitiva Y el marbete (con su número opcional) en el mismo paso.',
+      },
+      {
+        pregunta: '¿Qué significan los colores del mapa de Seguimiento?',
+        respuesta:
+          'El mapa (Flota > Seguimiento) tiene una leyenda abajo a la izquierda con el color de cada estado del chofer: Disponible (verde), En ruta (azul), Almuerzo (naranja), Descanso (gris), Inactivo (gris oscuro) y Otros (morado), con el conteo de cada uno. El pin marca la última posición reportada; si un chofer no ha reportado GPS sale "sin ubicación", y si reportó hace rato verás "hace X min". El contador "en ruta" del encabezado cuadra con la lista de choferes.',
       },
       {
         pregunta: '¿Dónde subo la cédula y licencia de un conductor, o el seguro y matrícula de un vehículo?',

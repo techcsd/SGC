@@ -235,3 +235,17 @@ textarea {
   gap: 12px;
   .sgc-field { flex: 1; }
 }
+
+// ── AG7 — importar proveedores ──
+.import-prov {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  &__intro { margin: 0; font-size: 14px; color: var(--sgc-text-muted); }
+  &__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  &__file { cursor: pointer; margin: 0; }
+  &__filename { font-size: 13px; color: var(--sgc-text-muted); }
+  &__resumen { display: flex; flex-wrap: wrap; gap: 8px; }
+  &__radio { display: flex; gap: 18px; label { display: flex; align-items: center; gap: 6px; font-weight: 500; } }
+  &__preview { max-height: 320px; overflow: auto; }
+}

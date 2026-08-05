@@ -83,4 +83,16 @@ export class ProveedoresService {
 
     if (error) throw new Error(error.message);
   }
+
+  /** AG7 — inserta un lote de proveedores nuevos (uno por fila). Devuelve los creados. */
+  async insertMany(payloads: ProveedorPayload[]): Promise<Proveedor[]> {
+    if (!payloads.length) return [];
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('proveedores')
+      .insert(payloads)
+      .select('*');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as Proveedor[];
+  }
 }

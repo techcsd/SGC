@@ -60,7 +60,45 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   rutasActivas = computed(() => this.rutas().filter((r) => r.seccion === 'activa'));
   rutasHoy = computed(() => this.rutas().filter((r) => r.seccion === 'hoy'));
 
+  // AG11 — el contador "en ruta" del encabezado usa la MISMA fuente que la lista
+  // (el estado por chofer), para que siempre cuadre con lo que se ve abajo.
+  enRutaCount = computed(() => this.choferes().filter((c) => c.estado === 'en_ruta').length);
+  conUbicacion = computed(() => this.choferes().filter((c) => c.pos?.capturado_en).length);
+
+  // AG11 — leyenda del mapa: estados (con conteo) + símbolos.
+  leyenda = computed(() => {
+    const counts = new Map<ChoferEstado, number>();
+    for (const c of this.choferes()) counts.set(c.estado as ChoferEstado, (counts.get(c.estado as ChoferEstado) ?? 0) + 1);
+    return (Object.keys(ESTADO_META) as ChoferEstado[]).map((e) => ({
+      estado: e, label: ESTADO_META[e].label, color: ESTADO_META[e].color, count: counts.get(e) ?? 0,
+    }));
+  });
+  mostrarLeyenda = signal(true);
+  toggleLeyenda() { this.mostrarLeyenda.update((v) => !v); }
+
   estadoMeta(e: ChoferEstado) { return ESTADO_META[e] ?? ESTADO_META.inactivo; }
+
+  /** AG11 — "hace X min/h" en vez de solo el timestamp; marca si la posición es vieja. */
+  haceCuanto(iso: string | null | undefined): string {
+    if (!iso) return '';
+    const t = new Date(iso).getTime();
+    if (isNaN(t)) return '';
+    const min = Math.floor((Date.now() - t) / 60000);
+    if (min < 1) return 'hace instantes';
+    if (min < 60) return `hace ${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `hace ${h} h`;
+    const d = Math.floor(h / 24);
+    return d === 1 ? 'hace 1 día' : `hace ${d} días`;
+  }
+
+  /** True si la última posición tiene más de 15 min (dato viejo, no "en vivo"). */
+  posVieja(c: { pos: UltimaPosicion | null }): boolean {
+    const iso = c.pos?.capturado_en;
+    if (!iso) return false;
+    const t = new Date(iso).getTime();
+    return !isNaN(t) && Date.now() - t > 15 * 60000;
+  }
 
   async ngOnInit() {
     try {

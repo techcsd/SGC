@@ -143,14 +143,26 @@ export class NotasService {
   async getChecklist(notaId: string): Promise<NotaChecklistItem[]> {
     // Reconciliar primero: alinea los ítems vinculados con el estado real de su tarea.
     await this.supabase.client.rpc('sync_checklist_nota', { p_nota_id: notaId });
+    // AG2: NO usar embed `tarea:tareas(...)` — `ref_id` es polimórfico (sin FK real),
+    // así que PostgREST no puede resolver la relación y devuelve PGRST200 (el error del
+    // toast "No se pudo cargar el checklist"). Resolvemos el título de la tarea aparte.
     const { data, error } = await this.supabase.client
       .from('nota_checklist_items')
-      .select('*, tarea:tareas(titulo, estado)')
+      .select('*')
       .eq('nota_id', notaId)
       .order('orden', { ascending: true });
     if (error) throw new Error(error.message);
-    const rows = (data ?? []) as unknown as (NotaChecklistItem & { tarea?: { titulo: string; estado: string } | null })[];
-    return rows.map((r) => ({ ...r, ref_label: r.tarea ? r.tarea.titulo : null }));
+    const rows = (data ?? []) as unknown as NotaChecklistItem[];
+    const tareaIds = [...new Set(rows.filter((r) => r.ref_tipo === 'tarea' && r.ref_id).map((r) => r.ref_id!))];
+    const titulos = new Map<string, string>();
+    if (tareaIds.length) {
+      const { data: tareas } = await this.supabase.client
+        .from('tareas')
+        .select('id, titulo')
+        .in('id', tareaIds);
+      for (const t of (tareas ?? []) as { id: string; titulo: string }[]) titulos.set(t.id, t.titulo);
+    }
+    return rows.map((r) => ({ ...r, ref_label: r.ref_tipo === 'tarea' && r.ref_id ? titulos.get(r.ref_id) ?? null : null }));
   }
 
   async addChecklistItem(notaId: string, texto: string, orden: number): Promise<NotaChecklistItem> {

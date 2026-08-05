@@ -1,0 +1,37 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notificaciones</h1>
+    <p class="page-subtitle">Qué eventos avisan al administrador y por qué canal. Desactivar un evento detiene sus avisos.</p>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="sgc-card"><app-skeleton variant="list" [rows]="3" /></div>
+} @else {
+  <div class="sgc-card notif-cfg">
+    <table class="data-table">
+      <thead>
+        <tr><th>Evento</th><th class="text-center">Activo</th><th class="text-center">En app</th><th class="text-center">Push</th><th class="text-center">Email</th></tr>
+      </thead>
+      <tbody>
+        @for (ev of eventos(); track ev.evento) {
+          <tr>
+            <td>
+              <strong>{{ ev.descripcion ?? ev.evento }}</strong>
+              <span class="notif-cfg__key">{{ ev.evento }}</span>
+            </td>
+            <td class="text-center"><input type="checkbox" [checked]="ev.activo" (change)="toggle(ev, 'activo')" aria-label="Activo" /></td>
+            <td class="text-center"><input type="checkbox" [checked]="ev.in_app" [disabled]="!ev.activo" (change)="toggle(ev, 'in_app')" aria-label="En app" /></td>
+            <td class="text-center"><input type="checkbox" [checked]="ev.push" [disabled]="!ev.activo" (change)="toggle(ev, 'push')" aria-label="Push" /></td>
+            <td class="text-center"><input type="checkbox" [checked]="ev.email" [disabled]="!ev.activo" (change)="toggle(ev, 'email')" aria-label="Email" /></td>
+          </tr>
+        }
+        @if (!eventos().length) {
+          <tr><td colspan="5" class="text-muted">No hay eventos configurables aún.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

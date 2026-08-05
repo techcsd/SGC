@@ -6,6 +6,8 @@ export interface ImgTransform {
   width?: number;
   height?: number;
   quality?: number;
+  /** Modo de ajuste de Supabase Storage. Por defecto 'cover' (recorta). */
+  resize?: 'cover' | 'contain' | 'fill';
 }
 
 interface Entry {
@@ -42,7 +44,7 @@ export class SignedUrlCache {
   private mem = new Map<string, Entry>();
 
   private key(bucket: string, path: string, t?: ImgTransform): string {
-    const tk = t ? `|w${t.width ?? ''}h${t.height ?? ''}q${t.quality ?? ''}` : '';
+    const tk = t ? `|w${t.width ?? ''}h${t.height ?? ''}q${t.quality ?? ''}r${t.resize ?? ''}` : '';
     return `${bucket}|${path}${tk}`;
   }
 

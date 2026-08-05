@@ -190,6 +190,17 @@ export class Avisos implements OnInit {
     }
   }
 
+  /** AG8: ¿el aviso es de placa provisional? */
+  esPP(a: AvisoFlota): boolean {
+    return a.tipo === 'pp_por_vencer' || a.tipo === 'pp_vencida';
+  }
+
+  /** AG8: abre el perfil del vehículo (sección PP) para entregar/ampliar el plazo. */
+  gestionarPP(a: AvisoFlota) {
+    if (!a.vehiculo_id) return;
+    this.router.navigate(['/flota/vehiculos', a.vehiculo_id], { queryParams: { pp: 1 } });
+  }
+
   /** R9: crea una cita de mantenimiento precargando el form del vehículo. */
   crearCita(a: AvisoFlota) {
     if (!a.vehiculo_id) return;

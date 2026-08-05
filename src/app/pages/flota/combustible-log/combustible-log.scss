@@ -23,3 +23,51 @@
 
 .cl-row--alerta { background: var(--sgc-danger-bg, #fdecec); }
 .cl-delta--alerta { color: var(--sgc-danger, #c0392b); font-weight: 600; }
+
+// ── AG6 — detalle de la echada ──
+.cl-detalle {
+  &__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px 18px;
+    margin: 0 0 14px;
+    dt { font-size: 12px; color: var(--sgc-text-muted); margin-bottom: 2px; }
+    dd { margin: 0; font-weight: 600; }
+  }
+  &__notas {
+    margin: 8px 0;
+    padding: 10px 12px;
+    background: var(--sgc-surface-2, #f4f4f5);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  &__title { margin: 16px 0 8px; font-size: 15px; }
+  &__fotos { display: flex; flex-wrap: wrap; gap: 16px; }
+  &__foto {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+    button { border: none; background: none; padding: 0; cursor: pointer; line-height: 0; }
+    img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid var(--sgc-border);
+    }
+    button:hover img { border-color: var(--sgc-primary-mid); }
+  }
+  &__foto-vacia {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: 1px dashed var(--sgc-border);
+    border-radius: 10px;
+    padding: 6px;
+  }
+}

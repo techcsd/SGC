@@ -55,7 +55,7 @@
           </thead>
           <tbody>
             @for (p of paginated(); track p.id) {
-              <tr>
+              <tr class="row--link" [routerLink]="['/proyectos', p.id]" role="button" tabindex="0" aria-label="Ver detalle del proyecto">
                 <td><code class="code-tag">{{ p.codigo }}</code></td>
                 <td>{{ p.nombre }}</td>
                 <td>{{ tipoLabel(p.tipo) }}</td>

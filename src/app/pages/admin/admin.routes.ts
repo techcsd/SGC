@@ -54,4 +54,9 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./auditoria/auditoria').then((m) => m.AdminAuditoria),
     title: 'Auditoría — Administración',
   },
+  {
+    path: 'notificaciones',
+    loadComponent: () => import('./notificaciones/notificaciones').then((m) => m.AdminNotificaciones),
+    title: 'Notificaciones — Administración',
+  },
 ];

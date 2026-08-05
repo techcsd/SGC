@@ -1,23 +1,32 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
+/** AG12 — nivel de permiso por submódulo. */
+export type NivelPermiso = 'ver' | 'operar';
+/** Mapa "modulo.submodulo" → nivel. */
+export type PermisosMap = Record<string, NivelPermiso>;
+
 export interface Rol {
   id: number;
   codigo: string;
   nombre: string;
   modulos: string[];
+  // AG12 — permisos granulares por submódulo (aditivo; null/{} = solo módulos).
+  permisos?: PermisosMap | null;
   descripcion?: string;
 }
 
 export interface RolUpdatePayload {
   nombre: string;
   modulos: string[];
+  permisos?: PermisosMap;
   descripcion?: string;
 }
 
 export interface RolCreatePayload {
   nombre: string;
   modulos: string[];
+  permisos?: PermisosMap;
   descripcion?: string;
 }
 
@@ -50,6 +59,48 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'admin', label: 'Administración', desc: 'Usuarios, roles y permisos, versiones de la app, auditoría y reportes. Acceso máximo — asignar con cuidado.', sensible: true },
 ];
 
+/**
+ * AG12 — catálogo de submódulos por módulo, para la matriz de permisos granulares.
+ * `enforced` marca los que ya se gatean end-to-end por submódulo (menú + ruta + RLS).
+ * El resto se guarda y quedará gateado a medida que se extienda el modelo; el
+ * checkbox del módulo padre sigue dando 'operar' sobre todos sus submódulos.
+ */
+export interface SubmoduloInfo {
+  key: string;
+  label: string;
+  enforced?: boolean;
+}
+export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
+  compras: [
+    { key: 'compras.proveedores', label: 'Proveedores', enforced: true },
+    { key: 'compras.ordenes', label: 'Órdenes de compra' },
+    { key: 'compras.solicitudes', label: 'Solicitudes de compra' },
+  ],
+  inventario: [
+    { key: 'inventario.entradas', label: 'Entradas' },
+    { key: 'inventario.salidas', label: 'Salidas / Conduces' },
+    { key: 'inventario.articulos', label: 'Artículos' },
+    { key: 'inventario.conteos', label: 'Conteos' },
+  ],
+  flota: [
+    { key: 'flota.vehiculos', label: 'Vehículos' },
+    { key: 'flota.conductores', label: 'Conductores' },
+    { key: 'flota.combustible', label: 'Combustible' },
+    { key: 'flota.mantenimientos', label: 'Mantenimientos' },
+    { key: 'flota.rutas', label: 'Rutas / Seguimiento' },
+  ],
+  rrhh: [
+    { key: 'rrhh.empleados', label: 'Empleados' },
+    { key: 'rrhh.asistencia', label: 'Asistencia' },
+    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones' },
+  ],
+  proyectos: [
+    { key: 'proyectos.obras', label: 'Obras' },
+    { key: 'proyectos.cronograma', label: 'Cronograma' },
+    { key: 'proyectos.ranking', label: 'Ranking de encargados' },
+  ],
+};
+
 @Injectable({ providedIn: 'root' })
 export class RolesService {
   private supabase = inject(SupabaseService);
@@ -70,6 +121,7 @@ export class RolesService {
       .update({
         nombre: payload.nombre,
         modulos: payload.modulos,
+        permisos: payload.permisos ?? {},
         descripcion: payload.descripcion ?? null,
       })
       .eq('id', id);
@@ -92,6 +144,7 @@ export class RolesService {
         codigo,
         nombre: payload.nombre,
         modulos: payload.modulos,
+        permisos: payload.permisos ?? {},
         descripcion: payload.descripcion?.trim() || null,
       })
       .select()

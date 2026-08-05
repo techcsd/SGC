@@ -105,8 +105,17 @@
                       Ver documento
                     </button>
                   }
+                  @if (esPP(a) && a.vehiculo_id) {
+                    <button class="sgc-btn sgc-btn--primary" type="button" (click)="gestionarPP(a)"
+                      title="Entregar placa definitiva o ampliar el plazo">
+                      Gestionar placa
+                    </button>
+                  }
                   @if (a.estado === 'pendiente') {
-                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Atender</button>
+                    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)"
+                      [title]="esPP(a) ? 'Marcar como aún pendiente / dejar nota' : 'Atender'">
+                      {{ esPP(a) ? 'Aún pendiente' : 'Atender' }}
+                    </button>
                   } @else {
                     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="openAtender(a)">Ver</button>
                   }

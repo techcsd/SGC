@@ -50,6 +50,17 @@ export class CombustibleService {
     return (data ?? []) as unknown as RegistroCombustible[];
   }
 
+  /** AG6 — registro completo de una echada (estación + 3 fotos) para el detalle del log. */
+  async getById(id: string): Promise<RegistroCombustible | null> {
+    const { data, error } = await this.supabase.client
+      .from('registros_combustible')
+      .select('*, vehiculo:vehiculos(placa,marca), conductor:conductores(nombre)')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as unknown as RegistroCombustible) ?? null;
+  }
+
   /**
    * AF17 — Log de echadas para admin / roles elevados: quién registró, delta de
    * km vs echada anterior, saltos fuera de umbral. Vía RPC (server filtra por rol).

@@ -96,6 +96,12 @@ export class FlotaVehiculos implements OnInit {
 
   // ── Data ─────────────────────────────────────────────────
   vehiculos = signal<Vehiculo[]>([]);
+  // AG8 — mapa vehiculo_id → estado de placa provisional activa (para el badge PP).
+  ppMap = signal<Record<string, 'pendiente' | 'entregada' | 'vencida'>>({});
+  ppEstado(v: Vehiculo): 'pendiente' | 'vencida' | null {
+    const e = this.ppMap()[v.id];
+    return e === 'pendiente' || e === 'vencida' ? e : null;
+  }
 
   // ── Export a Excel (con seccionado por tipo / estado / uso / medida) ──────
   readonly exportCols: ExportColumn[] = [
@@ -279,6 +285,10 @@ export class FlotaVehiculos implements OnInit {
       const vehiculos = await this.vehiculosService.getAll();
       this.vehiculos.set(vehiculos);
       this.resolverFotosLista(vehiculos);
+      // AG8 — badge PP (best-effort; RLS oculta a no-elevados).
+      if (this.puedeGestionar()) {
+        this.vehiculosService.getVehiculosConPPActiva().then((m) => this.ppMap.set(m)).catch(() => {});
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('permission denied')) {

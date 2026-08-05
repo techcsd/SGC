@@ -5,8 +5,11 @@ import { CombustibleService, LogCombustibleRow } from '../../../../shared/servic
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
+import { RegistroCombustible, PRODUCTO_CANONICO_LABEL, RENDIMIENTO_ESTADO_META } from '../../../../shared/models/combustible.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
@@ -17,7 +20,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [DecimalPipe, RouterLink, Skeleton, DateRangeFilter],
+  imports: [DecimalPipe, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,6 +92,45 @@ export class CombustibleLog implements OnInit {
     if (!r.producto) return '—';
     const sub = r.subtipo ? ` ${r.subtipo}` : '';
     return `${r.producto}${sub}`;
+  }
+
+  // ── AG6 — detalle clicable de la echada (con estación + 3 fotos) ──
+  detailOpen = signal(false);
+  detail = signal<RegistroCombustible | null>(null);
+  detailLoading = signal(false);
+  fotoRecibo = signal<string | null>(null);
+  fotoTablero = signal<string | null>(null);
+  fotoBomba = signal<string | null>(null);
+  lightbox = signal<string | null>(null);
+  readonly PRODUCTO_LABEL = PRODUCTO_CANONICO_LABEL;
+  readonly RENDIMIENTO_META = RENDIMIENTO_ESTADO_META;
+
+  async abrirDetalle(row: LogCombustibleRow) {
+    this.detailOpen.set(true);
+    this.detail.set(null);
+    this.fotoRecibo.set(null);
+    this.fotoTablero.set(null);
+    this.fotoBomba.set(null);
+    this.detailLoading.set(true);
+    try {
+      const r = await this.combustibleService.getById(row.id);
+      this.detail.set(r);
+      if (r?.foto_recibo_path) this.combustibleService.getFotoUrl(r.foto_recibo_path).then((u) => this.fotoRecibo.set(u));
+      if (r?.foto_tablero_path) this.combustibleService.getFotoUrl(r.foto_tablero_path).then((u) => this.fotoTablero.set(u));
+      if (r?.foto_bomba_path) this.combustibleService.getFotoUrl(r.foto_bomba_path).then((u) => this.fotoBomba.set(u));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
+      this.detailOpen.set(false);
+    } finally {
+      this.detailLoading.set(false);
+    }
+  }
+
+  cerrarDetalle() { this.detailOpen.set(false); }
+  verFoto(url: string | null) { if (url) this.lightbox.set(url); }
+
+  rendimientoMeta(r: RegistroCombustible | null) {
+    return r?.estado ? this.RENDIMIENTO_META[r.estado] : null;
   }
 
   async exportar() {

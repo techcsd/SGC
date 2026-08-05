@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Proyecto, PROYECTO_ESTADOS, PROYECTO_TIPOS } from '../../../../shared/models/proyecto.model';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
@@ -10,7 +11,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 
 @Component({
   selector: 'app-proyectos-historial',
-  imports: [DecimalPipe, DonutChart, BarChart, Skeleton, Paginator],
+  imports: [DecimalPipe, RouterLink, DonutChart, BarChart, Skeleton, Paginator],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -182,6 +182,38 @@
       </div>
     </fieldset>
 
+    <!-- AG12 — Permisos por submódulo (avanzado) -->
+    <fieldset class="roles-form__fieldset">
+      <button type="button" class="roles-matrix__toggle" (click)="mostrarAvanzado.set(!mostrarAvanzado())">
+        {{ mostrarAvanzado() ? '▾' : '▸' }} Permisos por submódulo (avanzado)
+      </button>
+      @if (mostrarAvanzado()) {
+        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo (ej.: Compras → solo Proveedores → Ver). Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar</strong> automáticamente.</p>
+        @for (mod of modulosConSubmodulos; track mod.key) {
+          <div class="roles-matrix__group">
+            <div class="roles-matrix__group-title">{{ mod.label }}</div>
+            @for (sub of submodulosDe(mod.key); track sub.key) {
+              <div class="roles-matrix__row">
+                <span class="roles-matrix__label">
+                  {{ sub.label }}
+                  @if (!sub.enforced) { <span class="roles-matrix__soon" title="El gateo por submódulo se irá extendiendo; hoy el checkbox del módulo es el control principal">próximamente</span> }
+                </span>
+                @if (submoduloImplicito(sub.key)) {
+                  <span class="roles-matrix__implicit">Operar (por módulo)</span>
+                } @else {
+                  <select class="roles-matrix__select" [value]="permisoNivel(sub.key)" (change)="setPermiso(sub.key, $any($event.target).value)">
+                    <option value="">Sin acceso</option>
+                    <option value="ver">Ver</option>
+                    <option value="operar">Operar</option>
+                  </select>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </fieldset>
+
     <!-- Save error -->
     @if (saveError()) {
       <div class="roles-form__save-error" role="alert">{{ saveError() }}</div>
@@ -280,6 +312,38 @@
           </label>
         }
       </div>
+    </fieldset>
+
+    <!-- AG12 — Permisos por submódulo (avanzado) -->
+    <fieldset class="roles-form__fieldset">
+      <button type="button" class="roles-matrix__toggle" (click)="createMostrarAvanzado.set(!createMostrarAvanzado())">
+        {{ createMostrarAvanzado() ? '▾' : '▸' }} Permisos por submódulo (avanzado)
+      </button>
+      @if (createMostrarAvanzado()) {
+        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo. Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar</strong>.</p>
+        @for (mod of modulosConSubmodulos; track mod.key) {
+          <div class="roles-matrix__group">
+            <div class="roles-matrix__group-title">{{ mod.label }}</div>
+            @for (sub of submodulosDe(mod.key); track sub.key) {
+              <div class="roles-matrix__row">
+                <span class="roles-matrix__label">
+                  {{ sub.label }}
+                  @if (!sub.enforced) { <span class="roles-matrix__soon">próximamente</span> }
+                </span>
+                @if (createSubmoduloImplicito(sub.key)) {
+                  <span class="roles-matrix__implicit">Operar (por módulo)</span>
+                } @else {
+                  <select class="roles-matrix__select" [value]="createPermisoNivel(sub.key)" (change)="setCreatePermiso(sub.key, $any($event.target).value)">
+                    <option value="">Sin acceso</option>
+                    <option value="ver">Ver</option>
+                    <option value="operar">Operar</option>
+                  </select>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
     </fieldset>
 
     @if (createError()) {

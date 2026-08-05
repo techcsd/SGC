@@ -48,7 +48,7 @@
         <div class="vd-galeria__grid">
           @for (f of galeria(); track f.path) {
             <div class="vd-galeria__item">
-              <button type="button" class="vd-galeria__thumb" (click)="abrirFoto(f.url)" [title]="'Ver en grande'">
+              <button type="button" class="vd-galeria__thumb" (click)="abrirFoto(f.path)" [title]="'Ver en grande'">
                 <img [src]="f.url" [alt]="'Foto de ' + v.placa" loading="lazy" />
                 @if (esPortada(f.path)) { <span class="vd-galeria__badge">Portada</span> }
               </button>
@@ -102,6 +102,52 @@
         }
       }
     </div>
+
+    <!-- ── AG8 · Placa provisional (PP) + marbete DGII ── -->
+    @if (esElevado()) {
+      <div class="sgc-card vd-card vd-pp">
+        <div class="vd-pp__head">
+          <h2 class="vd-section-title">Placa provisional (PP)</h2>
+          @if (placaPP()) { <span class="sgc-badge" [class]="'sgc-badge--' + ppBadge().clase">{{ ppBadge().label }}</span> }
+        </div>
+
+        @if (placaPP(); as pp) {
+          <dl class="vd-pp__meta">
+            @if (pp.dealer) { <div><dt>Dealer</dt><dd>{{ pp.dealer }}</dd></div> }
+            @if (pp.placa_pp) { <div><dt>Placa PP</dt><dd>{{ pp.placa_pp }}</dd></div> }
+            <div><dt>Registrada</dt><dd>{{ fecha(pp.fecha_registro) }}</dd></div>
+            <div><dt>Días prometidos</dt><dd>{{ pp.dias_prometidos }}</dd></div>
+            <div><dt>Plazo límite</dt><dd>{{ fecha(pp.fecha_limite) }}</dd></div>
+          </dl>
+          @if (pp.notas) { <p class="vd-pp__notas">{{ pp.notas }}</p> }
+
+          <div class="vd-pp__actions">
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirPPEntregar()">Placa entregada</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPPAmpliar()">Ampliar plazo</button>
+          </div>
+
+          @if (placaPPExt().length) {
+            <h4 class="vd-pp__subtitle">Extensiones de plazo ({{ placaPPExt().length }})</h4>
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Días</th><th>Nuevo plazo</th><th>Motivo</th></tr></thead>
+              <tbody>
+                @for (e of placaPPExt(); track e.id) {
+                  <tr>
+                    <td>{{ fecha(e.created_at) }}</td>
+                    <td>+{{ e.dias_agregados }}</td>
+                    <td>{{ fecha(e.fecha_limite_nueva) }}</td>
+                    <td class="text-muted">{{ e.motivo ?? '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        } @else {
+          <p class="vd-pp__empty">Este vehículo no tiene una placa provisional en seguimiento.</p>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="abrirPPCrear()">Registrar placa provisional</button>
+        }
+      </div>
+    }
 
     <!-- ── S21 · Motivo No disponible por documento vencido ── -->
     @if (motivoNoDisponible(); as motivo) {
@@ -590,6 +636,96 @@
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeLlave()">Cancelar</button>
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="llaveGuardando()">
         @if (llaveGuardando()) { Guardando… } @else { Registrar traspaso }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── AG8 · Drawer: registrar placa provisional ── -->
+<app-form-drawer title="Registrar placa provisional" [open]="ppDrawer() === 'crear'" (closed)="cerrarPP()">
+  <form class="vd-form" [formGroup]="crearPPForm" (ngSubmit)="guardarPPCrear()">
+    <div class="sgc-field">
+      <label for="pp_dealer">Dealer / suplidor</label>
+      <input id="pp_dealer" type="text" formControlName="dealer" placeholder="Nombre del dealer" />
+    </div>
+    <div class="sgc-field">
+      <label for="pp_placa">Placa provisional (PP)</label>
+      <input id="pp_placa" type="text" formControlName="placa_pp" placeholder="Ej: PP261353" />
+    </div>
+    <div class="vd-form__row">
+      <div class="sgc-field">
+        <label for="pp_dias">Días prometidos <span class="required">*</span></label>
+        <input id="pp_dias" type="number" min="1" max="365" formControlName="dias" placeholder="Ej: 30" />
+      </div>
+      <div class="sgc-field">
+        <label for="pp_fecha">Fecha de registro</label>
+        <input id="pp_fecha" type="date" formControlName="fecha_registro" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="pp_notas">Notas (opcional)</label>
+      <textarea id="pp_notas" rows="2" formControlName="notas" placeholder="Detalle de la promesa del dealer…"></textarea>
+    </div>
+    @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
+        @if (ppGuardando()) { Guardando… } @else { Registrar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── AG8 · Drawer: ampliar plazo ── -->
+<app-form-drawer title="Ampliar plazo" [open]="ppDrawer() === 'ampliar'" (closed)="cerrarPP()">
+  <form class="vd-form" [formGroup]="ampliarPPForm" (ngSubmit)="guardarPPAmpliar()">
+    <p class="vd-form__hint">El dealer comunicó una nueva fecha. Indica cuántos días adicionales al plazo actual.</p>
+    <div class="sgc-field">
+      <label for="pp_amp_dias">Días adicionales <span class="required">*</span></label>
+      <input id="pp_amp_dias" type="number" min="1" max="365" formControlName="dias" placeholder="Ej: 15" />
+    </div>
+    <div class="sgc-field">
+      <label for="pp_amp_motivo">Motivo / comunicación del dealer</label>
+      <textarea id="pp_amp_motivo" rows="2" formControlName="motivo" placeholder="Lo que comunicó el dealer…"></textarea>
+    </div>
+    @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
+        @if (ppGuardando()) { Guardando… } @else { Ampliar plazo }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── AG8 · Drawer: entregar placa definitiva + marbete DGII ── -->
+<app-form-drawer title="Placa definitiva entregada" [open]="ppDrawer() === 'entregar'" (closed)="cerrarPP()">
+  <form class="vd-form" [formGroup]="entregarPPForm" (ngSubmit)="guardarPPEntregar()">
+    <p class="vd-form__hint">Registra la placa definitiva y el marbete DGII (sticker de circulación) juntos.</p>
+    <div class="sgc-field">
+      <label for="pp_def">Placa definitiva <span class="required">*</span></label>
+      <input id="pp_def" type="text" formControlName="placa_definitiva" placeholder="Nueva placa oficial" />
+    </div>
+    <div class="form-toggle">
+      <label class="toggle-label" for="pp_marbete">
+        <input id="pp_marbete" type="checkbox" formControlName="marbete" class="toggle-input" />
+        <span class="toggle-switch" aria-hidden="true"></span>
+        Marbete DGII recibido
+      </label>
+    </div>
+    <div class="sgc-field">
+      <label for="pp_marbete_num">Número de marbete (opcional)</label>
+      <input id="pp_marbete_num" type="text" formControlName="marbete_numero" placeholder="Número del sticker DGII" />
+    </div>
+    <div class="sgc-field">
+      <label for="pp_entrega">Fecha de entrega</label>
+      <input id="pp_entrega" type="date" formControlName="fecha_entrega" />
+    </div>
+    @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarPP()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ppGuardando()">
+        @if (ppGuardando()) { Guardando… } @else { Registrar entrega }
       </button>
     </div>
   </form>

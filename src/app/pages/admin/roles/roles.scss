@@ -478,3 +478,41 @@
     }
   }
 }
+
+// ── AG12 — matriz de permisos por submódulo ──
+.roles-matrix__toggle {
+  border: none;
+  background: none;
+  padding: 4px 0;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--sgc-text);
+}
+.roles-matrix__group { margin: 10px 0; }
+.roles-matrix__group-title {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--sgc-text-muted);
+}
+.roles-matrix__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--sgc-border);
+}
+.roles-matrix__label { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.roles-matrix__soon {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--sgc-text-muted);
+  border: 1px solid var(--sgc-border);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+.roles-matrix__implicit { font-size: 12px; color: var(--Hub, #ffb300); font-weight: 600; }
+.roles-matrix__select { min-width: 120px; }

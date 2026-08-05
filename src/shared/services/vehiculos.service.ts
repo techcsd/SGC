@@ -446,6 +446,118 @@ export class VehiculosService {
     if (error) throw new Error(error.message);
     return (data ?? []) as VehiculoLlaveTraspaso[];
   }
+
+  // ── AG8 — Placas provisionales (PP) + marbete DGII ─────────────────────────
+  /** Proceso PP ACTIVO (no entregado) del vehículo, si existe. */
+  async getPlacaPPActiva(vehiculoId: string): Promise<VehiculoPlacaPP | null> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('vehiculo_placas_pp')
+      .select('*')
+      .eq('vehiculo_id', vehiculoId)
+      .neq('estado', 'entregada')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as unknown as VehiculoPlacaPP) ?? null;
+  }
+
+  /** Ids de vehículos con un proceso PP ACTIVO (para el badge del listado). */
+  async getVehiculosConPPActiva(): Promise<Record<string, PlacaPPEstado>> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('vehiculo_placas_pp')
+      .select('vehiculo_id, estado')
+      .neq('estado', 'entregada');
+    if (error) throw new Error(error.message);
+    const map: Record<string, PlacaPPEstado> = {};
+    for (const r of (data ?? []) as { vehiculo_id: string; estado: PlacaPPEstado }[]) map[r.vehiculo_id] = r.estado;
+    return map;
+  }
+
+  /** Todo el historial de procesos PP del vehículo (entregados incluidos). */
+  async getPlacasPP(vehiculoId: string): Promise<VehiculoPlacaPP[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('vehiculo_placas_pp')
+      .select('*')
+      .eq('vehiculo_id', vehiculoId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as VehiculoPlacaPP[];
+  }
+
+  /** Extensiones de plazo de un proceso PP. */
+  async getPlacaPPExtensiones(placaPPId: string): Promise<VehiculoPlacaPPExtension[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('vehiculo_placa_pp_extensiones')
+      .select('*')
+      .eq('placa_pp_id', placaPPId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as VehiculoPlacaPPExtension[];
+  }
+
+  async crearPlacaPP(payload: { vehiculo_id: string; dealer: string | null; placa_pp: string | null; dias: number; fecha_registro?: string | null; notas?: string | null }): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_placa_pp', {
+      p_vehiculo_id: payload.vehiculo_id,
+      p_dealer: payload.dealer,
+      p_placa_pp: payload.placa_pp,
+      p_dias: payload.dias,
+      p_fecha_registro: payload.fecha_registro ?? null,
+      p_notas: payload.notas ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  async ampliarPlacaPP(id: string, diasNuevos: number, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('ampliar_placa_pp', {
+      p_id: id, p_dias_nuevos: diasNuevos, p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async entregarPlacaPP(payload: { id: string; placa_definitiva: string; marbete: boolean; marbete_numero: string | null; fecha_entrega?: string | null }): Promise<void> {
+    const { error } = await this.supabase.client.rpc('entregar_placa_pp', {
+      p_id: payload.id,
+      p_placa_definitiva: payload.placa_definitiva,
+      p_marbete: payload.marbete,
+      p_marbete_numero: payload.marbete_numero,
+      p_fecha_entrega: payload.fecha_entrega ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+}
+
+// ── AG8 — tipos de placas provisionales ───────────────────────────────────────
+export type PlacaPPEstado = 'pendiente' | 'entregada' | 'vencida';
+export interface VehiculoPlacaPP {
+  id: string;
+  vehiculo_id: string;
+  dealer: string | null;
+  placa_pp: string | null;
+  fecha_registro: string;
+  dias_prometidos: number;
+  fecha_limite: string;
+  estado: PlacaPPEstado;
+  placa_definitiva: string | null;
+  marbete_dgii: boolean;
+  marbete_numero: string | null;
+  fecha_entrega: string | null;
+  notas: string | null;
+  created_at: string;
+}
+export interface VehiculoPlacaPPExtension {
+  id: string;
+  placa_pp_id: string;
+  dias_agregados: number;
+  fecha_limite_anterior: string | null;
+  fecha_limite_nueva: string;
+  motivo: string | null;
+  created_at: string;
 }
 
 // ── AF3 — tipos de llaves ─────────────────────────────────────────────────────

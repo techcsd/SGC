@@ -102,6 +102,7 @@
             <th>Proveedor</th>
             <th>Orden</th>
             <th>Referencia</th>
+            <th>Registrado por</th>
             <th class="text-center">Foto</th>
             <th class="text-right">Artículos</th>
             <th class="text-right">Total</th>
@@ -130,6 +131,7 @@
                 }
               </td>
               <td class="text-muted">{{ e.referencia ?? '—' }}</td>
+              <td class="text-muted">{{ e.creado?.nombre ?? '—' }}</td>
               <td class="text-center">
                 @if (e.foto_path) {
                   <button type="button" class="entradas__foto-thumb" (click)="$event.stopPropagation(); verFoto(e)"
@@ -623,6 +625,7 @@
         <div><dt>Origen</dt><dd>{{ e.origen_tipo === 'devolucion_obra' ? ('Devolución de obra' + (e.origen_proyecto?.nombre ? ': ' + e.origen_proyecto?.nombre : '')) : (e.proveedor?.nombre ?? 'Compra') }}</dd></div>
         @if (e.orden_compra?.numero) { <div><dt>Orden de compra</dt><dd>{{ e.orden_compra?.numero }}</dd></div> }
         @if (e.referencia) { <div><dt>Referencia</dt><dd>{{ e.referencia }}</dd></div> }
+        <div><dt>Registrado por</dt><dd>{{ e.creado?.nombre ?? '—' }}</dd></div>
       </dl>
 
       <!-- AF1 — preview clickeable de la foto de evidencia (no un botón). -->

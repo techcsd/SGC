@@ -22,6 +22,8 @@ export interface EntradaInventario {
   referencia: string | null;
   observaciones: string | null;
   creado_por: string | null;
+  // AG4 — nombre de quien registró la entrada (join a usuarios).
+  creado?: { nombre: string } | null;
   created_at: string;
   // Evidence photo captured by the mobile CSD app when the entrada was created.
   foto_path: string | null;

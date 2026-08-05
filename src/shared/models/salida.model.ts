@@ -28,6 +28,8 @@ export interface SalidaInventario {
   responsable: string | null;
   observaciones: string | null;
   creado_por: string | null;
+  // AG4 — nombre de quien registró la salida (join a usuarios).
+  creado?: { nombre: string } | null;
   created_at: string;
   estado: SalidaEstado;
   conductor_id: string | null;

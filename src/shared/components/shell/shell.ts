@@ -36,6 +36,9 @@ interface NavItem {
   /** AF32 — visible además para roles de flota elevados aunque no tengan el módulo
    *  (el jefe de flota entra a Compras SOLO por Proveedores). */
   flotaElevado?: boolean;
+  /** AG12 — visible si el usuario puede VER alguno de estos submódulos (permiso
+   *  granular), aunque no tenga el módulo padre. */
+  submodulos?: string[];
   children?: NavSubItem[];
 }
 
@@ -50,6 +53,8 @@ interface NavSubItem {
   flotaElevado?: boolean;
   /** Y11 — solo visible para admin | rol tecnologia (módulo Tecnología de plataforma). */
   soloTecnologia?: boolean;
+  /** AG12 — visible si el usuario puede VER este submódulo (permiso granular). */
+  submodulo?: string;
 }
 
 @Component({
@@ -123,8 +128,9 @@ export class Shell implements OnInit {
       icon: 'purchases',
       modulo: 'compras',
       flotaElevado: true, // AF32 — jefe de flota entra SOLO a Proveedores
+      submodulos: ['compras.proveedores'], // AG12 — visible con permiso granular
       children: [
-        { label: 'Proveedores', route: '/compras/proveedores' },
+        { label: 'Proveedores', route: '/compras/proveedores', submodulo: 'compras.proveedores' },
         { label: 'Órdenes de Compra', route: '/compras/ordenes', modulo: 'compras', badgeKey: 'compras.ordenes' },
         { label: 'Reportes', route: '/compras/reportes', modulo: 'compras' },
       ],
@@ -285,6 +291,7 @@ export class Shell implements OnInit {
       { label: 'Parámetros', route: '/admin/parametros' },
       // Y11 — "Versiones de la app" e "Historial de versiones" movidas al módulo Tecnología.
       { label: 'Valores "Otro"', route: '/admin/otros-valores' },
+      { label: 'Notificaciones', route: '/admin/notificaciones' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],
@@ -304,6 +311,10 @@ export class Shell implements OnInit {
     if (child.flotaElevado && !this.userService.esFlotaElevado()) return false;
     // Y11 — submódulos de plataforma solo para admin | rol tecnologia.
     if (child.soloTecnologia && !this.userService.esTecnologia()) return false;
+    // AG12 — submódulo con permiso granular (p. ej. Proveedores).
+    if (child.submodulo) {
+      return this.userService.esFlotaElevado() || this.userService.puedeVerSubmodulo(child.submodulo);
+    }
     if (!child.modulo) return true;
     return this.userService.hasModulo(child.modulo);
   }
@@ -418,6 +429,8 @@ export class Shell implements OnInit {
       return false;
     // AF32 — acceso extra por flota elevado (p. ej. Compras solo-Proveedores).
     if (item.flotaElevado && this.userService.esFlotaElevado()) return true;
+    // AG12 — acceso extra por permiso granular de submódulo (p. ej. Compras solo-Proveedores).
+    if (item.submodulos?.some((s) => this.userService.puedeVerSubmodulo(s))) return true;
     if (!item.modulo) return true;
     if (item.phase) return false;
     return this.userService.hasModulo(item.modulo);

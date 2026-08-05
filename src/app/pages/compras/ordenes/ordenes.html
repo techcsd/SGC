@@ -127,9 +127,10 @@
         </thead>
         <tbody>
           @for (orden of filtered(); track orden.id) {
-            <tr>
+            <tr class="row--link" (click)="openDetail(orden)" role="button" tabindex="0"
+                (keydown.enter)="openDetail(orden)" aria-label="Ver detalle de la orden">
               <td>
-                <button type="button" class="oc-numero-link" (click)="openDetail(orden)" title="Ver detalle">
+                <button type="button" class="oc-numero-link" (click)="$event.stopPropagation(); openDetail(orden)" title="Ver detalle">
                   <code class="code-tag">{{ orden.numero }}</code>
                 </button>
                 @if (orden.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
@@ -150,7 +151,7 @@
                   <button
                     type="button"
                     class="action-btn action-btn--view"
-                    (click)="openDetail(orden)"
+                    (click)="$event.stopPropagation(); openDetail(orden)"
                     [attr.aria-label]="'Ver orden ' + orden.numero"
                     title="Ver detalle y cambiar estado"
                   >

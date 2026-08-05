@@ -53,7 +53,8 @@
       </thead>
       <tbody>
         @for (r of rows(); track r.id) {
-          <tr [class.cl-row--alerta]="r.km_alerta">
+          <tr class="row--link" [class.cl-row--alerta]="r.km_alerta" (click)="abrirDetalle(r)"
+              role="button" tabindex="0" (keydown.enter)="abrirDetalle(r)" aria-label="Ver detalle de la echada">
             <td>{{ formatFecha(r.fecha) }}</td>
             <td>{{ r.placa ?? '—' }}@if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }</td>
             <td class="text-right">{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</td>
@@ -74,4 +75,58 @@
       </tbody>
     </table>
   </div>
+}
+
+<!-- ── AG6 — Detalle de la echada ── -->
+<app-form-drawer title="Detalle de la echada" [open]="detailOpen()" (closed)="cerrarDetalle()">
+  @if (detailLoading()) {
+    <app-skeleton variant="list" [rows]="4" />
+  } @else if (detail(); as r) {
+    <div class="cl-detalle">
+      <dl class="cl-detalle__meta">
+        <div><dt>Fecha</dt><dd>{{ formatFecha(r.fecha) }}</dd></div>
+        <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }}</dd></div>
+        <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
+        <div><dt>Lectura (km/h)</dt><dd>{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</dd></div>
+        <div><dt>Δ km vs anterior</dt><dd>{{ r.km_recorridos != null ? (r.km_recorridos | number) : '—' }}</dd></div>
+        <div><dt>Galones</dt><dd>{{ r.galones != null ? (r.galones | number:'1.0-2') : '—' }}</dd></div>
+        <div><dt>Monto</dt><dd>{{ r.monto != null ? ('RD$ ' + (r.monto | number:'1.0-2')) : '—' }}</dd></div>
+        <div><dt>Precio/galón</dt><dd>{{ r.precio_por_galon != null ? ('RD$ ' + (r.precio_por_galon | number:'1.0-2')) : '—' }}</dd></div>
+        <div><dt>Combustible</dt><dd>{{ PRODUCTO_LABEL[(r.producto || '') + (r.subtipo ? '_' + r.subtipo : '')] ?? (r.producto ?? '—') }}</dd></div>
+        <div><dt>Estación / Origen</dt><dd>{{ r.origen === 'deposito_obra' ? 'Depósito en obra' : (r.estacion ?? '—') }}</dd></div>
+        @if (r.tarjeta) { <div><dt>Tarjeta</dt><dd>{{ r.tarjeta }}{{ r.titular ? ' — ' + r.titular : '' }}</dd></div> }
+        <div><dt>Rendimiento</dt><dd>{{ r.rendimiento_km_gal != null ? (r.rendimiento_km_gal | number:'1.0-2') + ' km/gal' : '—' }}</dd></div>
+      </dl>
+
+      @if (rendimientoMeta(r); as m) {
+        <p><span class="sgc-badge" [class]="'sgc-badge--' + m.badge">{{ m.label }}</span>
+          @if (r.motivo_alerta) { <span class="text-muted">{{ r.motivo_alerta }}</span> }
+        </p>
+      }
+      @if (r.notas) { <p class="cl-detalle__notas"><strong>Notas:</strong> {{ r.notas }}</p> }
+
+      <h4 class="cl-detalle__title">Fotos</h4>
+      <div class="cl-detalle__fotos">
+        <div class="cl-detalle__foto">
+          <span>Recibo</span>
+          @if (fotoRecibo(); as u) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="Recibo" loading="lazy" /></button> }
+          @else { <span class="cl-detalle__foto-vacia">Sin foto</span> }
+        </div>
+        <div class="cl-detalle__foto">
+          <span>Tablero</span>
+          @if (fotoTablero(); as u) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="Tablero" loading="lazy" /></button> }
+          @else { <span class="cl-detalle__foto-vacia">Sin foto</span> }
+        </div>
+        <div class="cl-detalle__foto">
+          <span>Bomba en 0</span>
+          @if (fotoBomba(); as u) { <button type="button" (click)="verFoto(u)"><img [src]="u" alt="Bomba en 0" loading="lazy" /></button> }
+          @else { <span class="cl-detalle__foto-vacia">Sin foto (app móvil)</span> }
+        </div>
+      </div>
+    </div>
+  }
+</app-form-drawer>
+
+@if (lightbox(); as u) {
+  <app-lightbox [src]="u" alt="Foto de la echada" (closed)="lightbox.set(null)" />
 }

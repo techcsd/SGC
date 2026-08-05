@@ -465,4 +465,34 @@ textarea {
     border: 1px solid var(--sgc-border);
   }
   &:hover img { border-color: var(--sgc-primary-mid); }
+  &--lg img { width: 96px; height: 96px; border-radius: 10px; }
+}
+
+// ── AG5 — detalle read-only de la salida ──
+.salida-detalle {
+  &__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px 18px;
+    margin: 0 0 14px;
+    dt { font-size: 12px; color: var(--sgc-text-muted); margin-bottom: 2px; }
+    dd { margin: 0; font-weight: 600; }
+  }
+  &__obs {
+    margin: 8px 0;
+    padding: 10px 12px;
+    background: var(--sgc-surface-2, #f4f4f5);
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  &__evidencias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 14px 0;
+  }
+  &__evidencia { display: flex; flex-direction: column; gap: 4px; }
+  &__evidencia-label { font-size: 12px; color: var(--sgc-text-muted); }
+  &__title { margin: 16px 0 8px; font-size: 15px; }
+  &__foot { margin-top: 14px; }
 }

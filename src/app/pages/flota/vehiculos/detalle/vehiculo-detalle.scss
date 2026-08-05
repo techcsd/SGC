@@ -175,3 +175,28 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
   &__item button { margin-top: 6px; align-self: flex-start; }
   &__historial { margin-top: 10px; }
 }
+
+// ── AG8 — placa provisional (PP) ──
+.vd-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.vd-form__hint { margin: 0 0 4px; font-size: 13px; color: var(--sgc-text-muted); }
+.vd-pp {
+  &__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  &__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px 18px;
+    margin: 10px 0;
+    dt { font-size: 12px; color: var(--sgc-text-muted); margin-bottom: 2px; }
+    dd { margin: 0; font-weight: 600; }
+  }
+  &__notas {
+    margin: 4px 0 10px;
+    padding: 8px 10px;
+    background: var(--sgc-surface-2, #f4f4f5);
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  &__actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+  &__subtitle { margin: 12px 0 6px; font-size: 14px; }
+  &__empty { margin: 6px 0 10px; color: var(--sgc-text-muted); }
+}

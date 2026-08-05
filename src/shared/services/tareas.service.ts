@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { Tarea, TareaComentario, TareaEstado } from '../models/tarea.model';
+import { Tarea, TareaComentario, TareaEstado, TareaLinkedTipo } from '../models/tarea.model';
 
 const TAREA_SELECT =
   '*, asignado:usuarios!tareas_asignado_a_fkey(nombre), asignador:usuarios!tareas_asignado_por_fkey(nombre), proyecto:proyectos(nombre, latitud, longitud)';
@@ -53,6 +53,10 @@ export class TareasService {
     asignadoPor: string;
     proyectoId: string | null;
     fechaLimite: string | null;
+    // AG15 — vínculo dinámico opcional (retrocompatible: null = tarea normal).
+    linkedTipo?: TareaLinkedTipo | null;
+    linkedId?: string | null;
+    linkedParams?: Record<string, unknown> | null;
   }): Promise<Tarea> {
     const { data, error } = await this.supabase.client
       .from('tareas')
@@ -64,12 +68,24 @@ export class TareasService {
         asignado_por: payload.asignadoPor,
         proyecto_id: payload.proyectoId,
         fecha_limite: payload.fechaLimite,
+        linked_tipo: payload.linkedTipo ?? null,
+        linked_id: payload.linkedId ?? null,
+        linked_params: payload.linkedParams ?? {},
       })
       .select(TAREA_SELECT)
       .single();
 
     if (error) throw new Error(error.message);
     return data as unknown as Tarea;
+  }
+
+  /** AG15 — vincula una tarea a una entidad ya creada (conduce/ruta/mantenimiento/cronograma).
+   *  Si la entidad ya está "hecha", el server completa la tarea de una vez. */
+  async vincularEntidad(tareaId: string, tipo: TareaLinkedTipo, entityId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('vincular_tarea_entidad', {
+      p_tarea_id: tareaId, p_tipo: tipo, p_entity_id: entityId,
+    });
+    if (error) throw new Error(error.message);
   }
 
   async update(id: string, payload: Partial<Tarea>): Promise<Tarea> {

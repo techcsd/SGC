@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RolesService, Rol, MODULOS_DISPONIBLES } from '../../../../shared/services/roles.service';
+import { RolesService, Rol, MODULOS_DISPONIBLES, SUBMODULOS, PermisosMap, NivelPermiso, SubmoduloInfo } from '../../../../shared/services/roles.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
@@ -33,8 +33,15 @@ export class AdminRoles implements OnInit {
   drawerOpen = signal(false);
   editingRol = signal<Rol | null>(null);
   selectedModulos = signal<string[]>([]);
+  // AG12 — permisos granulares por submódulo (edición).
+  selectedPermisos = signal<PermisosMap>({});
+  mostrarAvanzado = signal(false);
 
   readonly modulos = MODULOS_DISPONIBLES;
+  readonly submodulosPorModulo = SUBMODULOS;
+  /** Módulos que tienen submódulos configurables. */
+  readonly modulosConSubmodulos = MODULOS_DISPONIBLES.filter((m) => !!SUBMODULOS[m.key]);
+  submodulosDe(moduloKey: string): SubmoduloInfo[] { return SUBMODULOS[moduloKey] ?? []; }
 
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
@@ -46,6 +53,8 @@ export class AdminRoles implements OnInit {
   creating = signal(false);
   createError = signal('');
   createSelectedModulos = signal<string[]>([]);
+  createSelectedPermisos = signal<PermisosMap>({});
+  createMostrarAvanzado = signal(false);
 
   createForm = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
@@ -92,7 +101,26 @@ export class AdminRoles implements OnInit {
     this.saveError.set('');
     this.form.reset({ nombre: rol.nombre, descripcion: rol.descripcion ?? '' });
     this.selectedModulos.set([...(rol.modulos ?? [])]);
+    this.selectedPermisos.set({ ...(rol.permisos ?? {}) });
+    this.mostrarAvanzado.set(Object.keys(rol.permisos ?? {}).length > 0);
     this.drawerOpen.set(true);
+  }
+
+  // ── AG12 — permisos granulares (edición) ─────────────────
+  permisoNivel(key: string): NivelPermiso | '' {
+    return this.selectedPermisos()[key] ?? '';
+  }
+  setPermiso(key: string, nivel: string) {
+    this.selectedPermisos.update((p) => {
+      const next = { ...p };
+      if (nivel === 'ver' || nivel === 'operar') next[key] = nivel;
+      else delete next[key];
+      return next;
+    });
+  }
+  /** Un submódulo queda implícito en 'operar' si su módulo padre está marcado. */
+  submoduloImplicito(subKey: string): boolean {
+    return this.selectedModulos().includes(subKey.split('.')[0]);
   }
 
   closeDrawer() {
@@ -113,7 +141,24 @@ export class AdminRoles implements OnInit {
     this.createError.set('');
     this.createForm.reset({ nombre: '', descripcion: '' });
     this.createSelectedModulos.set([]);
+    this.createSelectedPermisos.set({});
+    this.createMostrarAvanzado.set(false);
     this.createDrawerOpen.set(true);
+  }
+
+  createPermisoNivel(key: string): NivelPermiso | '' {
+    return this.createSelectedPermisos()[key] ?? '';
+  }
+  setCreatePermiso(key: string, nivel: string) {
+    this.createSelectedPermisos.update((p) => {
+      const next = { ...p };
+      if (nivel === 'ver' || nivel === 'operar') next[key] = nivel;
+      else delete next[key];
+      return next;
+    });
+  }
+  createSubmoduloImplicito(subKey: string): boolean {
+    return this.createSelectedModulos().includes(subKey.split('.')[0]);
   }
 
   closeCreateDrawer() {
@@ -134,8 +179,8 @@ export class AdminRoles implements OnInit {
     this.createForm.markAllAsTouched();
     if (this.createForm.invalid || this.creating()) return;
 
-    if (this.createSelectedModulos().length === 0) {
-      this.createError.set('Selecciona al menos un módulo para el rol.');
+    if (this.createSelectedModulos().length === 0 && Object.keys(this.createSelectedPermisos()).length === 0) {
+      this.createError.set('Selecciona al menos un módulo o un permiso de submódulo para el rol.');
       return;
     }
 
@@ -146,6 +191,7 @@ export class AdminRoles implements OnInit {
       await this.rolesService.create({
         nombre: this.createForm.value.nombre!,
         modulos: this.createSelectedModulos(),
+        permisos: this.createSelectedPermisos(),
         descripcion: this.createForm.value.descripcion ?? '',
       });
       const updated = await this.rolesService.getAll();
@@ -192,8 +238,8 @@ export class AdminRoles implements OnInit {
     const rol = this.editingRol();
     if (!rol) return;
 
-    if (this.selectedModulos().length === 0) {
-      this.saveError.set('El rol debe tener al menos un módulo.');
+    if (this.selectedModulos().length === 0 && Object.keys(this.selectedPermisos()).length === 0) {
+      this.saveError.set('El rol debe tener al menos un módulo o un permiso de submódulo.');
       return;
     }
 
@@ -204,6 +250,7 @@ export class AdminRoles implements OnInit {
       await this.rolesService.update(rol.id, {
         nombre: this.form.value.nombre!,
         modulos: this.selectedModulos(),
+        permisos: this.selectedPermisos(),
         descripcion: this.form.value.descripcion ?? '',
       });
 

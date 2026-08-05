@@ -3,6 +3,8 @@ export interface Rol {
   codigo: string;
   nombre: string;
   modulos: string[];
+  // AG12 — permisos granulares por submódulo ("modulo.submodulo" → 'ver'|'operar').
+  permisos?: Record<string, 'ver' | 'operar'> | null;
   descripcion?: string | null;
 }
 

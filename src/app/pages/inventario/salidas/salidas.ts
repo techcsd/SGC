@@ -8,6 +8,7 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -20,7 +21,7 @@ import { SolicitudesMaterialService } from '../../../../shared/services/solicitu
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService, TablaPrueba } from '../../../../shared/services/datos-prueba.service';
 import { UserService } from '../../../core/services/user.service';
-import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS } from '../../../../shared/models/salida.model';
+import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS, conduceNumero } from '../../../../shared/models/salida.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
@@ -40,7 +41,7 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 
 @Component({
   selector: 'app-salidas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox],
+  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -765,6 +766,48 @@ export class Salidas implements OnInit {
       /* best-effort */
     }
   }
+
+  /** Abre cualquier path del bucket inventario en el lightbox (evidencia de entrega). */
+  async verFotoPath(path: string) {
+    if (!path) return;
+    try {
+      const url = await this.salidasService.getFotoUrl(path);
+      if (url) this.fotoLightbox.set(url);
+    } catch { /* best-effort */ }
+  }
+
+  // ── AG5 — detalle clicable de la salida (mismo patrón que Entradas AF1) ──
+  detailOpen = signal(false);
+  detailSalida = signal<SalidaInventario | null>(null);
+  detailFotoThumb = signal<string | null>(null);
+  detailFirmaThumb = signal<string | null>(null);
+  detailEntregaFotoThumb = signal<string | null>(null);
+  detailEntregaFirmaThumb = signal<string | null>(null);
+
+  openDetail(s: SalidaInventario) {
+    this.detailSalida.set(s);
+    this.detailFotoThumb.set(null);
+    this.detailFirmaThumb.set(null);
+    this.detailEntregaFotoThumb.set(null);
+    this.detailEntregaFirmaThumb.set(null);
+    this.detailOpen.set(true);
+    // Cargar thumbnails de evidencia bajo demanda.
+    if (s.foto_path) this.salidasService.getFotoUrl(s.foto_path, { width: 320, quality: 78 }).then((u) => u && this.detailFotoThumb.set(u));
+    if (s.firma_path) this.salidasService.getFotoUrl(s.firma_path, { width: 320, quality: 78 }).then((u) => u && this.detailFirmaThumb.set(u));
+    if (s.entrega_foto_path) this.salidasService.getFotoUrl(s.entrega_foto_path, { width: 320, quality: 78 }).then((u) => u && this.detailEntregaFotoThumb.set(u));
+    if (s.entrega_firma_path) this.salidasService.getFotoUrl(s.entrega_firma_path, { width: 320, quality: 78 }).then((u) => u && this.detailEntregaFirmaThumb.set(u));
+  }
+
+  closeDetail() {
+    this.detailOpen.set(false);
+  }
+
+  /** Total de unidades de la salida (para el detalle). */
+  salidaTotalUnidades(s: SalidaInventario): number {
+    return (s.detalle_salidas ?? []).reduce((acc, d) => acc + (d.cantidad ?? 0), 0);
+  }
+
+  conduceNumero = conduceNumero;
 
   // ── T2 — datos de prueba (solo admin) ────────────────────
   /** Marca o desmarca la salida como dato de prueba. */

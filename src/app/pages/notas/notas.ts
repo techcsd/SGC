@@ -164,11 +164,31 @@ export class Notas implements OnInit {
   excerpt(n: Nota): string {
     const raw = (n.contenido ?? '').trim();
     if (!raw) return 'Sin contenido';
-    const clean = raw
+    // AD9: el contenido ahora se guarda como HTML (editor v2). Extraer texto plano
+    // antes de aplicar el formato de checklist legacy (AC4) para no mostrar markup crudo.
+    const plano = this.htmlAPlano(raw);
+    const clean = plano
       .split('\n')
       .map((l) => l.replace(CHECK_RE, (_m, _p1, mark, _p3, txt) => `${mark.trim() ? '☑' : '☐'} ${txt}`))
-      .join('  ');
+      .join('  ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (!clean) return 'Sin contenido';
     return clean.length > 140 ? clean.slice(0, 140) + '…' : clean;
+  }
+
+  /** Convierte HTML del editor v2 a texto plano legible (sin tags, con saltos por bloques). */
+  private htmlAPlano(html: string): string {
+    if (!/[<&]/.test(html)) return html; // contenido legacy en texto plano
+    return html
+      .replace(/<\s*(br|\/div|\/p|\/li|\/h[1-6])\s*\/?>/gi, '\n')
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'");
   }
 
   ownerNombre(n: Nota): string {

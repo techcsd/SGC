@@ -4,81 +4,198 @@
     "1.62.0": {
       "titulo": "Transporte v2: seguimiento en vivo, conduce que genera su ruta, rutas vivas y estados del chofer (AF)",
       "cambios": [
-        { "t": "nuevo", "d": "Seguimiento (Flota): mapa en vivo con la última posición de cada chofer/vehículo, su estado (disponible, en ruta, almuerzo…) y las rutas activas con su progreso. Solo para jefe de flota, dirección y tecnología; se actualiza en tiempo real." },
-        { "t": "nuevo", "d": "El conduce genera su ruta: al crear un conduce con vehículo y obra destino se crea (o se usa) la ruta del chofer automáticamente, sin registrar ruta y conduce por separado. El detalle del conduce muestra su fase (emitido / en tránsito / entregado / confirmado / pendiente de firma)." },
-        { "t": "nuevo", "d": "Rutas vivas: se puede agregar una parada o cambiar el destino a mitad de ruta, con historial de los cambios (quién y cuándo). Al entregarse la última parada, la ruta se cierra sola." },
-        { "t": "nuevo", "d": "Estados de disponibilidad del chofer (disponible, en ruta, descanso, almuerzo, inactivo, otros): \"En ruta\" se pone y se quita solo al iniciar/terminar la ruta, y el almuerzo vuelve a Disponible tras una hora." },
-        { "t": "nuevo", "d": "Artículos de alto valor (entrega en mano, ej. un dron): un conduce que los lleva no puede cerrarse con auto-recepción del chofer; exige la confirmación del responsable en obra." },
-        { "t": "nuevo", "d": "Tracking de ubicación de los choferes (posición e histórico con retención de 7 días) para el seguimiento, con permisos: cada chofer solo escribe la suya; la ve el jefe de flota." },
-        { "t": "mejora", "d": "Al asignarle una ruta a un chofer (desde la web o la app), recibe un aviso dentro del sistema y una notificación push en su teléfono." }
+        {
+          "t": "nuevo",
+          "d": "Seguimiento (Flota): mapa en vivo con la última posición de cada chofer/vehículo, su estado (disponible, en ruta, almuerzo…) y las rutas activas con su progreso. Solo para jefe de flota, dirección y tecnología; se actualiza en tiempo real."
+        },
+        {
+          "t": "nuevo",
+          "d": "El conduce genera su ruta: al crear un conduce con vehículo y obra destino se crea (o se usa) la ruta del chofer automáticamente, sin registrar ruta y conduce por separado. El detalle del conduce muestra su fase (emitido / en tránsito / entregado / confirmado / pendiente de firma)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Rutas vivas: se puede agregar una parada o cambiar el destino a mitad de ruta, con historial de los cambios (quién y cuándo). Al entregarse la última parada, la ruta se cierra sola."
+        },
+        {
+          "t": "nuevo",
+          "d": "Estados de disponibilidad del chofer (disponible, en ruta, descanso, almuerzo, inactivo, otros): \"En ruta\" se pone y se quita solo al iniciar/terminar la ruta, y el almuerzo vuelve a Disponible tras una hora."
+        },
+        {
+          "t": "nuevo",
+          "d": "Artículos de alto valor (entrega en mano, ej. un dron): un conduce que los lleva no puede cerrarse con auto-recepción del chofer; exige la confirmación del responsable en obra."
+        },
+        {
+          "t": "nuevo",
+          "d": "Tracking de ubicación de los choferes (posición e histórico con retención de 7 días) para el seguimiento, con permisos: cada chofer solo escribe la suya; la ve el jefe de flota."
+        },
+        {
+          "t": "mejora",
+          "d": "Al asignarle una ruta a un chofer (desde la web o la app), recibe un aviso dentro del sistema y una notificación push en su teléfono."
+        }
       ],
       "url": ""
     },
     "1.61.0": {
       "titulo": "Confirmación de recepción con evidencia, llaves y galería de vehículos, registro de combustible y ferreterías (AF)",
       "cambios": [
-        { "t": "nuevo", "d": "Inventario: confirmar una entrada ahora es un proceso con evidencia (no un botón): revisas qué recibes y ajustas cantidades, tomas fotos de lo recibido y confirmas. El detalle de la entrada muestra después quién confirmó, cuándo, si fue presencial o remota, y sus fotos. La foto de evidencia se ve como miniatura clickeable (se abre en grande)." },
-        { "t": "nuevo", "d": "Confirmación en obra: el capataz/residente puede recibir entregas (permiso configurable por usuario) y Raykler y Eduardo pueden confirmar de forma remota (la foto la aporta quien está en obra)." },
-        { "t": "nuevo", "d": "Vehículos: gestión de las 2 llaves (quién/dónde está cada una) con historial de traspasos, y galería con TODAS las fotos cargadas del vehículo (miniaturas + ver en grande + marcar portada)." },
-        { "t": "nuevo", "d": "Combustible: nuevo \"Registro de echadas\" para administración y flota, con quién registró cada echada, los kilómetros recorridos y el resaltado de saltos de kilometraje irreales. Ahora solo el usuario asignado al vehículo puede registrar su combustible (el administrador puede en cualquiera) y hay un tope de kilómetros entre echadas para evitar lecturas imposibles." },
-        { "t": "nuevo", "d": "Compras: los proveedores se pueden marcar como \"Ferretería (visible para choferes)\" con su ubicación; el jefe de flota entra a Compras solo a Proveedores para registrarlas, sin ver órdenes ni reportes." },
-        { "t": "nuevo", "d": "RRHH: asignaciones de la empresa a cada empleado (equipos, uniformes, cascos, herramientas) con estado (asignado / devuelto / perdido / dañado), foto e historial completo, dentro de la ficha del empleado." },
-        { "t": "nuevo", "d": "Notificaciones push: infraestructura para enviar avisos al dispositivo (llega junto con las notificaciones dentro del sistema) y recordatorio de los domingos para quien no ha enviado su reporte semanal." },
-        { "t": "mejora", "d": "Pre-uso: se quitó la pregunta del nivel de combustible (queda en el reporte semanal); los pre-usos anteriores se siguen viendo igual." },
-        { "t": "arreglo", "d": "Vehículos: la foto de la tarjeta en el listado ya no sale cortada (se ve completa, tanto fotos verticales como horizontales)." }
+        {
+          "t": "nuevo",
+          "d": "Inventario: confirmar una entrada ahora es un proceso con evidencia (no un botón): revisas qué recibes y ajustas cantidades, tomas fotos de lo recibido y confirmas. El detalle de la entrada muestra después quién confirmó, cuándo, si fue presencial o remota, y sus fotos. La foto de evidencia se ve como miniatura clickeable (se abre en grande)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Confirmación en obra: el capataz/residente puede recibir entregas (permiso configurable por usuario) y Raykler y Eduardo pueden confirmar de forma remota (la foto la aporta quien está en obra)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Vehículos: gestión de las 2 llaves (quién/dónde está cada una) con historial de traspasos, y galería con TODAS las fotos cargadas del vehículo (miniaturas + ver en grande + marcar portada)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Combustible: nuevo \"Registro de echadas\" para administración y flota, con quién registró cada echada, los kilómetros recorridos y el resaltado de saltos de kilometraje irreales. Ahora solo el usuario asignado al vehículo puede registrar su combustible (el administrador puede en cualquiera) y hay un tope de kilómetros entre echadas para evitar lecturas imposibles."
+        },
+        {
+          "t": "nuevo",
+          "d": "Compras: los proveedores se pueden marcar como \"Ferretería (visible para choferes)\" con su ubicación; el jefe de flota entra a Compras solo a Proveedores para registrarlas, sin ver órdenes ni reportes."
+        },
+        {
+          "t": "nuevo",
+          "d": "RRHH: asignaciones de la empresa a cada empleado (equipos, uniformes, cascos, herramientas) con estado (asignado / devuelto / perdido / dañado), foto e historial completo, dentro de la ficha del empleado."
+        },
+        {
+          "t": "nuevo",
+          "d": "Notificaciones push: infraestructura para enviar avisos al dispositivo (llega junto con las notificaciones dentro del sistema) y recordatorio de los domingos para quien no ha enviado su reporte semanal."
+        },
+        {
+          "t": "mejora",
+          "d": "Pre-uso: se quitó la pregunta del nivel de combustible (queda en el reporte semanal); los pre-usos anteriores se siguen viendo igual."
+        },
+        {
+          "t": "arreglo",
+          "d": "Vehículos: la foto de la tarjeta en el listado ya no sale cortada (se ve completa, tanto fotos verticales como horizontales)."
+        }
       ],
       "url": ""
     },
     "1.60.0": {
       "titulo": "Datos de prueba fuera de los reportes de RRHH, paneles legibles, y trazabilidad ruta ↔ conduce",
       "cambios": [
-        { "t": "arreglo", "d": "RRHH: los empleados marcados como \"de prueba\" ya no cuentan en los reportes ni KPIs (empleados activos, total registrados, masa salarial, contratos, asistencia y ausencias). Solo el administrador los ve si activa \"Mostrar datos de prueba\". Se auditaron TODOS los módulos y se cerró la misma fuga en el Dashboard (inventario, empleados, proyectos, asistencia y ausencias) y en los KPIs de Proyectos." },
-        { "t": "seguridad", "d": "Se centralizó el filtro de datos de prueba en un único punto para que ningún reporte o pantalla nueva pueda volver a olvidarlo (los KPIs y badges siempre cuentan solo datos reales)." },
-        { "t": "arreglo", "d": "Se corrigió la legibilidad del panel \"Exportar a Excel\" (los chips de Basado en / Categoría / Propiedad / Estado se veían oscuros sobre fondo oscuro) en todos los módulos donde aparece (Usuarios, Conductores, Empleados, Vehículos, Artículos, Mantenimientos, Tareas)." },
-        { "t": "arreglo", "d": "Se corrigió la legibilidad del panel \"Calibración del rendimiento\" de Combustible (umbrales) y del editor de Notas: ahora usan el tema claro estándar del SGC. Se eliminó de raíz el estilo copiado que causaba estos paneles oscuros." },
-        { "t": "nuevo", "d": "Rutas y conduces: una ruta puede llevar carga a varias paradas y cada parada puede tener un conduce vinculado. El detalle de la ruta muestra cada parada con su estado (pendiente / en camino / entregada) y su conduce; el detalle del conduce muestra en qué ruta y parada viaja. Al entregarse el conduce, la parada se marca entregada automáticamente." },
-        { "t": "nuevo", "d": "Pre-uso simplificado: la inspección de pre-uso pasa a ser un chequeo visual rápido (6 puntos de lo que se ve: gomas, luces, carrocería, interior, combustible y fugas) más fotos de exterior e interior. El chequeo a fondo queda en el reporte semanal del asignado; nada se pierde." }
+        {
+          "t": "arreglo",
+          "d": "RRHH: los empleados marcados como \"de prueba\" ya no cuentan en los reportes ni KPIs (empleados activos, total registrados, masa salarial, contratos, asistencia y ausencias). Solo el administrador los ve si activa \"Mostrar datos de prueba\". Se auditaron TODOS los módulos y se cerró la misma fuga en el Dashboard (inventario, empleados, proyectos, asistencia y ausencias) y en los KPIs de Proyectos."
+        },
+        {
+          "t": "seguridad",
+          "d": "Se centralizó el filtro de datos de prueba en un único punto para que ningún reporte o pantalla nueva pueda volver a olvidarlo (los KPIs y badges siempre cuentan solo datos reales)."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigió la legibilidad del panel \"Exportar a Excel\" (los chips de Basado en / Categoría / Propiedad / Estado se veían oscuros sobre fondo oscuro) en todos los módulos donde aparece (Usuarios, Conductores, Empleados, Vehículos, Artículos, Mantenimientos, Tareas)."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigió la legibilidad del panel \"Calibración del rendimiento\" de Combustible (umbrales) y del editor de Notas: ahora usan el tema claro estándar del SGC. Se eliminó de raíz el estilo copiado que causaba estos paneles oscuros."
+        },
+        {
+          "t": "nuevo",
+          "d": "Rutas y conduces: una ruta puede llevar carga a varias paradas y cada parada puede tener un conduce vinculado. El detalle de la ruta muestra cada parada con su estado (pendiente / en camino / entregada) y su conduce; el detalle del conduce muestra en qué ruta y parada viaja. Al entregarse el conduce, la parada se marca entregada automáticamente."
+        },
+        {
+          "t": "nuevo",
+          "d": "Pre-uso simplificado: la inspección de pre-uso pasa a ser un chequeo visual rápido (6 puntos de lo que se ve: gomas, luces, carrocería, interior, combustible y fugas) más fotos de exterior e interior. El chequeo a fondo queda en el reporte semanal del asignado; nada se pierde."
+        }
       ],
       "url": ""
     },
     "1.59.0": {
       "titulo": "Medición de rendimiento de la web (Vercel Speed Insights)",
       "cambios": [
-        { "t": "mejora", "d": "Se activó Vercel Speed Insights: la plataforma ahora mide el rendimiento real de la web (Core Web Vitals) desde el navegador de cada usuario, para detectar páginas lentas y seguir mejorando la velocidad. No cambia nada de lo que ves ni recopila datos personales." }
+        {
+          "t": "mejora",
+          "d": "Se activó Vercel Speed Insights: la plataforma ahora mide el rendimiento real de la web (Core Web Vitals) desde el navegador de cada usuario, para detectar páginas lentas y seguir mejorando la velocidad. No cambia nada de lo que ves ni recopila datos personales."
+        }
       ],
       "url": ""
     },
     "1.58.0": {
       "titulo": "Arreglo de registro de combustible, aislamiento de proyectos de prueba y precios editables",
       "cambios": [
-        { "t": "arreglo", "d": "Combustible: al registrar una echada en un vehículo de PRUEBA, el sistema ya recuerda la echada anterior y el kilometraje (antes decía \"primera echada del vehículo\" y no calculaba el rendimiento). Ahora la continuidad y las estadísticas se comparan dentro del mismo contexto (prueba con prueba, real con real). Se recalculó el histórico afectado. Los vehículos reales nunca se vieron afectados." },
-        { "t": "seguridad", "d": "Proyectos marcados como \"de prueba\" ya no aparecen en el dashboard (Ranking de Encargados / KPIs de proyectos) ni en las listas de proyectos de otros usuarios: solo el administrador los ve. Los KPIs siempre cuentan únicamente datos reales." },
-        { "t": "nuevo", "d": "Combustible: cuando el MICM publica los precios con rezago, un administrador puede fijar el precio vigente a mano con el botón ✎ Editar del widget de precios (queda como fuente \"Manual\" con la fecha de hoy). El descargue automático semanal del MICM sigue funcionando." },
-        { "t": "arreglo", "d": "Proyectos: se actualizó el enlace de Google Maps del proyecto NOVAL - Poseidonia (Cana Bay) con la ubicación más reciente." }
+        {
+          "t": "arreglo",
+          "d": "Combustible: al registrar una echada en un vehículo de PRUEBA, el sistema ya recuerda la echada anterior y el kilometraje (antes decía \"primera echada del vehículo\" y no calculaba el rendimiento). Ahora la continuidad y las estadísticas se comparan dentro del mismo contexto (prueba con prueba, real con real). Se recalculó el histórico afectado. Los vehículos reales nunca se vieron afectados."
+        },
+        {
+          "t": "seguridad",
+          "d": "Proyectos marcados como \"de prueba\" ya no aparecen en el dashboard (Ranking de Encargados / KPIs de proyectos) ni en las listas de proyectos de otros usuarios: solo el administrador los ve. Los KPIs siempre cuentan únicamente datos reales."
+        },
+        {
+          "t": "nuevo",
+          "d": "Combustible: cuando el MICM publica los precios con rezago, un administrador puede fijar el precio vigente a mano con el botón ✎ Editar del widget de precios (queda como fuente \"Manual\" con la fecha de hoy). El descargue automático semanal del MICM sigue funcionando."
+        },
+        {
+          "t": "arreglo",
+          "d": "Proyectos: se actualizó el enlace de Google Maps del proyecto NOVAL - Poseidonia (Cana Bay) con la ubicación más reciente."
+        }
       ],
       "url": ""
     },
     "1.57.0": {
       "titulo": "Descarga a Excel por secciones (Usuarios, Conductores y más)",
       "cambios": [
-        { "t": "nuevo", "d": "Usuarios y Conductores ahora tienen botón de descarga a Excel (antes no lo tenían)." },
-        { "t": "nuevo", "d": "Exportación a Excel \"por secciones\": junto al botón ⬇️ Excel hay un ▾ que abre opciones para armar el Excel a tu medida — elegir la base (vista actual con tus filtros, o todos), seccionar por uno o varios valores (p. ej. conductores por categoría de licencia o estado; usuarios por rol; empleados por departamento/contrato; vehículos por tipo/estado; artículos por categoría/stock; tareas por estado/prioridad) y elegir qué columnas incluir, con conteo en vivo de cuántos registros saldrán." },
-        { "t": "mejora", "d": "El seccionado está disponible en Usuarios, Conductores, Empleados, Vehículos, Artículos, Mantenimientos y Tareas. El botón ⬇️ Excel sigue descargando de una la vista filtrada actual." }
+        {
+          "t": "nuevo",
+          "d": "Usuarios y Conductores ahora tienen botón de descarga a Excel (antes no lo tenían)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Exportación a Excel \"por secciones\": junto al botón ⬇️ Excel hay un ▾ que abre opciones para armar el Excel a tu medida — elegir la base (vista actual con tus filtros, o todos), seccionar por uno o varios valores (p. ej. conductores por categoría de licencia o estado; usuarios por rol; empleados por departamento/contrato; vehículos por tipo/estado; artículos por categoría/stock; tareas por estado/prioridad) y elegir qué columnas incluir, con conteo en vivo de cuántos registros saldrán."
+        },
+        {
+          "t": "mejora",
+          "d": "El seccionado está disponible en Usuarios, Conductores, Empleados, Vehículos, Artículos, Mantenimientos y Tareas. El botón ⬇️ Excel sigue descargando de una la vista filtrada actual."
+        }
       ],
       "url": ""
     },
     "1.56.0": {
       "titulo": "Arreglos de permisos y Notas, combustible calibrado, Transporte del chofer, Notas v2 y proyectos en curso",
       "cambios": [
-        { "t": "arreglo", "d": "El Reporte semanal vuelve a abrir para Almacén (ya no aparece el error \"permission denied for table flota_reporte_dias\"). Se revisaron los permisos de todas las tablas nuevas de las últimas rondas." },
-        { "t": "arreglo", "d": "El módulo Notas vuelve a cargar: se corrigió la \"recursión infinita\" en los permisos de notas y notas compartidas (dueño, compartido-ver, compartido-editar y terceros funcionan bien)." },
-        { "t": "arreglo", "d": "En Flota › Conductores, el Tag/rol ahora se guarda aunque no presiones Enter antes de Guardar." },
-        { "t": "mejora", "d": "Los errores técnicos de base de datos ya no llegan crudos a la pantalla: se muestran mensajes claros en español y el detalle técnico se reporta a telemetría automáticamente." },
-        { "t": "mejora", "d": "Rendimiento de combustible calibrado: 4 estados (óptimo, bajo, anormal, datos insuficientes) con umbrales configurables por un administrador y un tooltip que explica el porqué de cada echada. Una echada a pocos km de la anterior ahora sale \"datos insuficientes\", nunca \"óptimo\"; un rendimiento imposiblemente alto se marca \"anormal\"." },
-        { "t": "nuevo", "d": "Homologación de Tecnología: el catálogo de categorías de herramientas ahora es administrable e incluye CAD/DWG, Mapeos/Take-off, Presupuestos, Ofimática, Email, Calendarios, Videollamadas, Mensajería, Nube, Contabilidad/ERP, Diseño, Seguridad e IA/Asistentes." },
-        { "t": "nuevo", "d": "Transporte del chofer: las rutas ahora tienen tipo (material, personal o traslado) y las compras/retiros de ferretería que registra un chofer quedan \"por confirmar\" hasta que Almacén las valida (recién ahí suman al stock)." },
-        { "t": "nuevo", "d": "Notas v2: crear/editar una nota es ahora una página completa con barra de herramientas tipo Word, checklists de verdad (clic para marcar, reordenar) que pueden vincularse a una Tarea y se marcan solas al completarse, y \"Compartir con…\" desde el inicio." },
-        { "t": "nuevo", "d": "Se cargaron los 10 proyectos en curso (con su ubicación en Maps, ingenieros, contactos y maestros encargados); los ingenieros que ya son usuarios ven sus proyectos asignados." }
+        {
+          "t": "arreglo",
+          "d": "El Reporte semanal vuelve a abrir para Almacén (ya no aparece el error \"permission denied for table flota_reporte_dias\"). Se revisaron los permisos de todas las tablas nuevas de las últimas rondas."
+        },
+        {
+          "t": "arreglo",
+          "d": "El módulo Notas vuelve a cargar: se corrigió la \"recursión infinita\" en los permisos de notas y notas compartidas (dueño, compartido-ver, compartido-editar y terceros funcionan bien)."
+        },
+        {
+          "t": "arreglo",
+          "d": "En Flota › Conductores, el Tag/rol ahora se guarda aunque no presiones Enter antes de Guardar."
+        },
+        {
+          "t": "mejora",
+          "d": "Los errores técnicos de base de datos ya no llegan crudos a la pantalla: se muestran mensajes claros en español y el detalle técnico se reporta a telemetría automáticamente."
+        },
+        {
+          "t": "mejora",
+          "d": "Rendimiento de combustible calibrado: 4 estados (óptimo, bajo, anormal, datos insuficientes) con umbrales configurables por un administrador y un tooltip que explica el porqué de cada echada. Una echada a pocos km de la anterior ahora sale \"datos insuficientes\", nunca \"óptimo\"; un rendimiento imposiblemente alto se marca \"anormal\"."
+        },
+        {
+          "t": "nuevo",
+          "d": "Homologación de Tecnología: el catálogo de categorías de herramientas ahora es administrable e incluye CAD/DWG, Mapeos/Take-off, Presupuestos, Ofimática, Email, Calendarios, Videollamadas, Mensajería, Nube, Contabilidad/ERP, Diseño, Seguridad e IA/Asistentes."
+        },
+        {
+          "t": "nuevo",
+          "d": "Transporte del chofer: las rutas ahora tienen tipo (material, personal o traslado) y las compras/retiros de ferretería que registra un chofer quedan \"por confirmar\" hasta que Almacén las valida (recién ahí suman al stock)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Notas v2: crear/editar una nota es ahora una página completa con barra de herramientas tipo Word, checklists de verdad (clic para marcar, reordenar) que pueden vincularse a una Tarea y se marcan solas al completarse, y \"Compartir con…\" desde el inicio."
+        },
+        {
+          "t": "nuevo",
+          "d": "Se cargaron los 10 proyectos en curso (con su ubicación en Maps, ingenieros, contactos y maestros encargados); los ingenieros que ya son usuarios ven sus proyectos asignados."
+        }
       ],
       "url": ""
     },
@@ -1331,6 +1448,51 @@
         {
           "t": "arreglo",
           "d": "Reportes de error de la app: corregido el rechazo que dejaba reportes atascados en la app móvil."
+        }
+      ]
+    },
+    "1.63.0": {
+      "titulo": "QA de historiales, placas provisionales, roles granulares y avisos al admin (AG)",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Notas: el resumen de la tarjeta ya no muestra código HTML crudo y las notas con checklist abren sin el error \"No se pudo cargar el checklist\"."
+        },
+        {
+          "t": "arreglo",
+          "d": "Fotos del vehículo: las miniaturas se ven parejas y al ampliarlas la foto se muestra completa a su proporción real (se acabó la franja vertical)."
+        },
+        {
+          "t": "mejora",
+          "d": "Historial de inventario: nueva columna \"Registrado por\" en entradas y salidas. Las salidas ahora abren detalle al hacer clic (artículos, fotos, firmas, quién registró)."
+        },
+        {
+          "t": "mejora",
+          "d": "Registro de echadas: al hacer clic en una fila se abre el detalle completo con las 3 fotos (recibo, tablero, bomba en 0), estación, rendimiento y flags de umbral."
+        },
+        {
+          "t": "nuevo",
+          "d": "Placas provisionales (PP) + marbete DGII: registra el plazo prometido por el dealer (días libres), el sistema cuenta y avisa 5 días antes y al vencer, con acciones para entregar la placa definitiva (con marbete), ampliar el plazo o marcar pendiente. Badge PP en el listado y sección en el perfil del vehículo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Proveedores: importar desde Excel/CSV con plantilla descargable, validación por fila y manejo de duplicados (actualizar o saltar), además del exportar existente."
+        },
+        {
+          "t": "nuevo",
+          "d": "Roles: permisos por submódulo (Sin acceso / Ver / Operar) — por ejemplo dar acceso a Compras solo a Proveedores, sin el resto. Los roles actuales conservan exactamente su acceso."
+        },
+        {
+          "t": "nuevo",
+          "d": "Avisos al administrador: cuando entra un reporte/ticket de soporte, el admin recibe aviso dentro del sistema, notificación push y correo. Configurable por evento y canal desde Administración › Notificaciones."
+        },
+        {
+          "t": "mejora",
+          "d": "Seguimiento (mapa): nueva leyenda con los colores/estados de los choferes, contador coherente con la lista y \"última posición hace X min\" en vez de \"sin ubicación\" cuando hay datos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Tareas dinámicas (base): una tarea puede vincularse a un conduce, ruta, mantenimiento o tarea de cronograma; al completarse esa acción, la tarea se completa sola y avisa a quien la asignó."
         }
       ]
     }

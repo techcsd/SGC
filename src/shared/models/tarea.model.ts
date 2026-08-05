@@ -1,5 +1,7 @@
 export type TareaEstado = 'pendiente' | 'en_progreso' | 'completada' | 'cancelada';
 export type TareaPrioridad = 'baja' | 'media' | 'alta' | 'urgente';
+// AG15 — tipos de vínculo a entidades del sistema (tareas dinámicas).
+export type TareaLinkedTipo = 'conduce' | 'ruta' | 'mantenimiento' | 'cronograma';
 
 export interface Tarea {
   id: string;
@@ -15,8 +17,20 @@ export interface Tarea {
   proyecto?: { nombre: string; latitud: number | null; longitud: number | null } | null;
   fecha_limite: string | null;
   fecha_completada: string | null;
+  // AG15 — vínculo dinámico a una entidad (conduce/ruta/mantenimiento/cronograma).
+  linked_tipo?: TareaLinkedTipo | null;
+  linked_id?: string | null;
+  linked_params?: Record<string, unknown> | null;
+  auto_completada?: boolean;
   created_at: string;
 }
+
+export const TAREA_LINKED_TIPOS: { value: TareaLinkedTipo; label: string }[] = [
+  { value: 'conduce', label: 'Conduce (compra + entrega en obra)' },
+  { value: 'ruta', label: 'Ruta de transporte' },
+  { value: 'mantenimiento', label: 'Mantenimiento de vehículo' },
+  { value: 'cronograma', label: 'Tarea de cronograma de obra' },
+];
 
 export interface TareaComentario {
   id: string;

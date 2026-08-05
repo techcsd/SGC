@@ -1,7 +1,7 @@
 <div class="page-header">
   <div class="page-header__left">
     <h1 class="page-title">Seguimiento</h1>
-    <span class="page-count">{{ choferes().length }} chofer{{ choferes().length !== 1 ? 'es' : '' }} · {{ rutasActivas().length }} en ruta</span>
+    <span class="page-count">{{ choferes().length }} chofer{{ choferes().length !== 1 ? 'es' : '' }} · {{ enRutaCount() }} en ruta · {{ rutasActivas().length }} ruta{{ rutasActivas().length !== 1 ? 's' : '' }} activa{{ rutasActivas().length !== 1 ? 's' : '' }} · {{ conUbicacion() }} con ubicación</span>
   </div>
 </div>
 
@@ -11,6 +11,25 @@
   <!-- Mapa vivo -->
   <div class="seg__map sgc-card">
     <div #map class="seg__map-el"></div>
+    <!-- AG11 — leyenda del mapa (colores/estados/símbolos) -->
+    <div class="seg-leyenda" [class.seg-leyenda--collapsed]="!mostrarLeyenda()">
+      <button type="button" class="seg-leyenda__toggle" (click)="toggleLeyenda()"
+        [attr.aria-expanded]="mostrarLeyenda()">
+        <span>Leyenda</span><span aria-hidden="true">{{ mostrarLeyenda() ? '▾' : '▸' }}</span>
+      </button>
+      @if (mostrarLeyenda()) {
+        <ul class="seg-leyenda__list">
+          @for (l of leyenda(); track l.estado) {
+            <li class="seg-leyenda__item">
+              <span class="seg-leyenda__dot" [style.background]="l.color"></span>
+              <span class="seg-leyenda__label">{{ l.label }}</span>
+              <span class="seg-leyenda__count">{{ l.count }}</span>
+            </li>
+          }
+        </ul>
+        <div class="seg-leyenda__nota">📍 El pin marca la última posición reportada. “Sin ubicación” = el chofer aún no ha reportado GPS.</div>
+      }
+    </div>
   </div>
 
   <!-- Panel lateral -->
@@ -49,8 +68,9 @@
               <span class="seg-chofer__nombre">{{ c.nombre }}</span>
               <span class="seg-chofer__estado">
                 {{ estadoMeta(c.estado).label }}@if (c.estado === 'otros' && c.otros_texto) { — {{ c.otros_texto }} }
-                @if (c.pos?.capturado_en) { · {{ fechaHora(c.pos!.capturado_en) }} }
-                @else { · sin ubicación }
+                @if (c.pos?.capturado_en) {
+                  · <span [class.seg-chofer__stale]="posVieja(c)" [title]="fechaHora(c.pos!.capturado_en)">{{ haceCuanto(c.pos!.capturado_en) }}</span>
+                } @else { · sin ubicación }
               </span>
             </span>
             @if (c.pos?.bateria != null) { <span class="seg-chofer__bat">🔋 {{ c.pos!.bateria }}%</span> }

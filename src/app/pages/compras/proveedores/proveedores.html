@@ -9,6 +9,10 @@
             [disabled]="filtered().length === 0" title="Exportar los proveedores filtrados a Excel">
       ⬇️ Excel
     </button>
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="abrirImport()"
+            title="Importar proveedores desde Excel/CSV">
+      ⬆️ Importar
+    </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -339,4 +343,78 @@
     </div>
 
   </form>
+</app-form-drawer>
+
+<!-- ── AG7 — Importar proveedores desde Excel/CSV ── -->
+<app-form-drawer title="Importar proveedores" [open]="importOpen()" (closed)="cerrarImport()">
+  <div class="import-prov">
+    <p class="import-prov__intro">
+      Sube un archivo Excel o CSV con las columnas <strong>Nombre</strong> (obligatoria), RNC / Cédula,
+      Contacto, Teléfono, Email, Dirección, Ferretería (Sí/No), Lat y Lng. Descarga la plantilla para el formato exacto.
+    </p>
+
+    <div class="import-prov__actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla()">
+        ⬇️ Descargar plantilla
+      </button>
+      <label class="sgc-btn sgc-btn--secondary sgc-btn--sm import-prov__file">
+        📄 Elegir archivo
+        <input type="file" accept=".xlsx,.xls,.csv" (change)="onImportFile($event)" hidden />
+      </label>
+      @if (importNombre()) { <span class="import-prov__filename">{{ importNombre() }}</span> }
+    </div>
+
+    @if (importError()) { <div class="save-error" role="alert">{{ importError() }}</div> }
+
+    @if (importPreview().length) {
+      <div class="import-prov__resumen">
+        <span class="sgc-badge sgc-badge--success">{{ importResumen().nuevos }} nuevo(s)</span>
+        <span class="sgc-badge sgc-badge--warning">{{ importResumen().duplicados }} duplicado(s)</span>
+        @if (importResumen().errores) { <span class="sgc-badge sgc-badge--danger">{{ importResumen().errores }} con error</span> }
+      </div>
+
+      @if (importResumen().duplicados) {
+        <div class="sgc-field">
+          <label>¿Qué hacer con los duplicados (mismo nombre o RNC)?</label>
+          <div class="import-prov__radio">
+            <label><input type="radio" name="dupmode" [checked]="importDupMode() === 'update'" (change)="importDupMode.set('update')" /> Actualizar</label>
+            <label><input type="radio" name="dupmode" [checked]="importDupMode() === 'skip'" (change)="importDupMode.set('skip')" /> Saltar</label>
+          </div>
+        </div>
+      }
+
+      <div class="table-scroll import-prov__preview">
+        <table class="data-table">
+          <thead><tr><th>#</th><th>Nombre</th><th>RNC</th><th>Estado</th><th>Detalle</th></tr></thead>
+          <tbody>
+            @for (r of importPreview(); track r.fila) {
+              <tr>
+                <td>{{ r.fila }}</td>
+                <td>{{ r.payload.nombre || '—' }}</td>
+                <td class="text-muted">{{ r.payload.rnc || '—' }}</td>
+                <td>
+                  @switch (r.estado) {
+                    @case ('nuevo') { <span class="sgc-badge sgc-badge--success">Nuevo</span> }
+                    @case ('duplicado') { <span class="sgc-badge sgc-badge--warning">Duplicado</span> }
+                    @case ('error') { <span class="sgc-badge sgc-badge--danger">Error</span> }
+                  }
+                </td>
+                <td class="text-muted">{{ r.detalle }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarImport()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary"
+              [disabled]="importing() || !importPreview().length || (!importResumen().nuevos && !(importResumen().duplicados && importDupMode() === 'update'))"
+              (click)="confirmarImport()">
+        @if (importing()) { <span class="spinner" aria-hidden="true"></span> Importando… }
+        @else { Importar }
+      </button>
+    </div>
+  </div>
 </app-form-drawer>

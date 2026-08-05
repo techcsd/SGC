@@ -4,7 +4,7 @@ import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { EntradaInventario, EntradaFormData, EntradaItemFormData } from '../models/entrada.model';
 
 const SELECT_QUERY =
-  '*, bodega:bodegas(nombre), proveedor:proveedores(nombre), orden_compra:ordenes_compra(numero), origen_proyecto:proyectos!entradas_inventario_origen_proyecto_id_fkey(nombre), detalle_entradas(*, articulo:articulos(nombre, codigo, unidad))';
+  '*, bodega:bodegas(nombre), proveedor:proveedores(nombre), orden_compra:ordenes_compra(numero), origen_proyecto:proyectos!entradas_inventario_origen_proyecto_id_fkey(nombre), creado:usuarios!entradas_inventario_creado_por_fkey(nombre), detalle_entradas(*, articulo:articulos(nombre, codigo, unidad))';
 
 /** AF2 — registro de confirmación de recepción con evidencia (compartido web+app). */
 export interface RecepcionConfirmacion {

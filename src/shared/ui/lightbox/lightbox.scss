@@ -10,8 +10,12 @@
   animation: lightbox-in 0.15s ease;
 }
 .lightbox__img {
-  max-width: 100%;
-  max-height: 100%;
+  // AG3: usar unidades de viewport (no 100%) para no resolver contra el ancho
+  // colapsado del flex-item — eso producía la "franja vertical angosta".
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - 48px);
+  width: auto;
+  height: auto;
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);

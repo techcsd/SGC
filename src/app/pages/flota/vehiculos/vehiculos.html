@@ -142,6 +142,13 @@
               }
               <!-- AA17 — badge de uso obra/oficina -->
               <span class="sgc-badge sgc-badge--info">{{ usoLabel(v.uso) }}</span>
+              <!-- AG8 — placa provisional -->
+              @if (ppEstado(v); as pp) {
+                <span class="sgc-badge" [class.sgc-badge--warning]="pp === 'pendiente'" [class.sgc-badge--danger]="pp === 'vencida'"
+                      [title]="pp === 'vencida' ? 'Placa provisional VENCIDA' : 'Placa provisional en seguimiento'">
+                  PP{{ pp === 'vencida' ? ' vencida' : '' }}
+                </span>
+              }
               <span [class]="'sgc-badge sgc-badge--' + vehiculoBadge(v)">
                 {{ vehiculoEstadoLabel(v) }}
               </span>

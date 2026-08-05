@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion } from '../../../../../shared/services/vehiculos.service';
+import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion, VehiculoPlacaPP, VehiculoPlacaPPExtension } from '../../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../../shared/services/conductores.service';
 import { ChecklistsVehiculoService } from '../../../../../shared/services/checklists-vehiculo.service';
 import { MantenimientosService } from '../../../../../shared/services/mantenimientos.service';
@@ -119,7 +119,12 @@ export class VehiculoDetalle implements OnInit {
   galeria = signal<{ path: string; url: string }[]>([]);
   lightboxUrl = signal<string | null>(null);
   guardandoPortada = signal(false);
-  abrirFoto(url: string) { this.lightboxUrl.set(url); }
+  // AG3: el lightbox abre la ORIGINAL (sin transform) a su proporción real,
+  // no el thumbnail recortado 4:3.
+  async abrirFoto(path: string) {
+    const full = (await this.vehiculosService.getFotoUrl(path)) ?? '';
+    if (full) this.lightboxUrl.set(full);
+  }
 
   // ── AF3 — llaves del vehículo ──
   llaves = signal<VehiculoLlave[]>([]);
@@ -288,6 +293,8 @@ export class VehiculoDetalle implements OnInit {
       this.cargarGaleria(vehiculo);
       // AF3 — llaves (best-effort, no bloquea el perfil).
       this.cargarLlaves();
+      // AG8 — placa provisional (best-effort).
+      this.cargarPlacaPP();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el vehículo.');
     } finally {
@@ -420,7 +427,7 @@ export class VehiculoDetalle implements OnInit {
     const fotos = v?.fotos ?? [];
     if (!fotos.length) { this.galeria.set([]); return; }
     const entries = await Promise.all(
-      fotos.map(async (p) => ({ path: p, url: (await this.vehiculosService.getFotoUrl(p, { width: 400, quality: 78 })) ?? '' })),
+      fotos.map(async (p) => ({ path: p, url: (await this.vehiculosService.getFotoUrl(p, { width: 480, height: 360, resize: 'cover', quality: 80 })) ?? '' })),
     );
     this.galeria.set(entries.filter((e) => e.url));
   }
@@ -461,6 +468,140 @@ export class VehiculoDetalle implements OnInit {
   }
 
   toggleHistorialLlaves() { this.mostrarHistorialLlaves.update((v) => !v); }
+
+  // ── AG8 — placa provisional (PP) + marbete DGII ──────────────
+  placaPP = signal<VehiculoPlacaPP | null>(null);
+  placaPPExt = signal<VehiculoPlacaPPExtension[]>([]);
+  ppDrawer = signal<'crear' | 'ampliar' | 'entregar' | null>(null);
+  ppGuardando = signal(false);
+  ppError = signal('');
+  crearPPForm = this.fb.group({
+    dealer: [''],
+    placa_pp: [''],
+    dias: [30, [Validators.required, Validators.min(1), Validators.max(365)]],
+    fecha_registro: [''],
+    notas: [''],
+  });
+  ampliarPPForm = this.fb.group({
+    dias: [15, [Validators.required, Validators.min(1), Validators.max(365)]],
+    motivo: [''],
+  });
+  entregarPPForm = this.fb.group({
+    placa_definitiva: ['', Validators.required],
+    marbete: [true],
+    marbete_numero: [''],
+    fecha_entrega: [''],
+  });
+
+  /** Días restantes hasta el plazo (negativo = vencido). */
+  ppDiasRestantes = computed(() => {
+    const pp = this.placaPP();
+    if (!pp) return null;
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const lim = new Date(pp.fecha_limite + 'T00:00:00');
+    return Math.round((lim.getTime() - hoy.getTime()) / 86400000);
+  });
+  ppBadge = computed<{ label: string; clase: string }>(() => {
+    const pp = this.placaPP();
+    const d = this.ppDiasRestantes();
+    if (!pp) return { label: '', clase: 'neutral' };
+    if (pp.estado === 'vencida' || (d != null && d < 0)) return { label: 'Vencida', clase: 'danger' };
+    if (d != null && d <= 5) return { label: `Vence en ${d} día(s)`, clase: 'warning' };
+    return { label: `Faltan ${d} día(s)`, clase: 'info' };
+  });
+
+  private async cargarPlacaPP() {
+    if (!this.esElevado()) return;
+    try {
+      const pp = await this.vehiculosService.getPlacaPPActiva(this.vehiculoId);
+      this.placaPP.set(pp);
+      this.placaPPExt.set(pp ? await this.vehiculosService.getPlacaPPExtensiones(pp.id) : []);
+    } catch { /* sin PP, no bloquea */ }
+  }
+
+  abrirPPCrear() {
+    this.ppError.set('');
+    this.crearPPForm.reset({ dealer: '', placa_pp: this.vehiculo()?.placa ?? '', dias: 30, fecha_registro: '', notas: '' });
+    this.ppDrawer.set('crear');
+  }
+  abrirPPAmpliar() {
+    if (!this.placaPP()) return;
+    this.ppError.set('');
+    this.ampliarPPForm.reset({ dias: 15, motivo: '' });
+    this.ppDrawer.set('ampliar');
+  }
+  abrirPPEntregar() {
+    if (!this.placaPP()) return;
+    this.ppError.set('');
+    this.entregarPPForm.reset({ placa_definitiva: '', marbete: true, marbete_numero: '', fecha_entrega: '' });
+    this.ppDrawer.set('entregar');
+  }
+  cerrarPP() { this.ppDrawer.set(null); }
+
+  async guardarPPCrear() {
+    this.crearPPForm.markAllAsTouched();
+    if (this.crearPPForm.invalid || this.ppGuardando()) return;
+    this.ppGuardando.set(true); this.ppError.set('');
+    try {
+      const v = this.crearPPForm.value;
+      await this.vehiculosService.crearPlacaPP({
+        vehiculo_id: this.vehiculoId,
+        dealer: v.dealer?.trim() || null,
+        placa_pp: v.placa_pp?.trim() || null,
+        dias: Number(v.dias),
+        fecha_registro: v.fecha_registro || null,
+        notas: v.notas?.trim() || null,
+      });
+      await this.cargarPlacaPP();
+      this.toast.success('Placa provisional registrada', 'Se inició el conteo del plazo.');
+      this.ppDrawer.set(null);
+    } catch (e: unknown) {
+      this.ppError.set(e instanceof Error ? e.message : 'No se pudo registrar.');
+    } finally { this.ppGuardando.set(false); }
+  }
+
+  async guardarPPAmpliar() {
+    const pp = this.placaPP();
+    this.ampliarPPForm.markAllAsTouched();
+    if (!pp || this.ampliarPPForm.invalid || this.ppGuardando()) return;
+    this.ppGuardando.set(true); this.ppError.set('');
+    try {
+      const v = this.ampliarPPForm.value;
+      await this.vehiculosService.ampliarPlacaPP(pp.id, Number(v.dias), v.motivo?.trim() || null);
+      await this.cargarPlacaPP();
+      this.toast.success('Plazo ampliado', 'Se re-agendó el vencimiento.');
+      this.ppDrawer.set(null);
+    } catch (e: unknown) {
+      this.ppError.set(e instanceof Error ? e.message : 'No se pudo ampliar.');
+    } finally { this.ppGuardando.set(false); }
+  }
+
+  async guardarPPEntregar() {
+    const pp = this.placaPP();
+    this.entregarPPForm.markAllAsTouched();
+    if (!pp || this.entregarPPForm.invalid || this.ppGuardando()) return;
+    this.ppGuardando.set(true); this.ppError.set('');
+    try {
+      const v = this.entregarPPForm.value;
+      await this.vehiculosService.entregarPlacaPP({
+        id: pp.id,
+        placa_definitiva: v.placa_definitiva!.trim(),
+        marbete: !!v.marbete,
+        marbete_numero: v.marbete_numero?.trim() || null,
+        fecha_entrega: v.fecha_entrega || null,
+      });
+      this.toast.success('Placa definitiva registrada', 'Se registró la placa y el marbete DGII.');
+      this.ppDrawer.set(null);
+      // Recargar el vehículo (la placa cambió) + PP.
+      try {
+        const veh = await this.vehiculosService.getById(this.vehiculoId);
+        if (veh) this.vehiculo.set(veh);
+      } catch { /* best-effort */ }
+      await this.cargarPlacaPP();
+    } catch (e: unknown) {
+      this.ppError.set(e instanceof Error ? e.message : 'No se pudo registrar la entrega.');
+    } finally { this.ppGuardando.set(false); }
+  }
 
   async openLlave(numero: 1 | 2) {
     if (!this.esElevado()) return;

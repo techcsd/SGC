@@ -10,6 +10,7 @@ const SELECT_QUERY =
   '*, bodega:bodegas(nombre), proyecto:proyectos(nombre), conductor:conductores(nombre), vehiculo:vehiculos(placa),' +
   ' recibido:usuarios!salidas_inventario_recibido_por_fkey(nombre),' +
   ' entregado:usuarios!salidas_inventario_entregado_por_fkey(nombre),' +
+  ' creado:usuarios!salidas_inventario_creado_por_fkey(nombre),' +
   ' detalle_salidas(*, articulo:articulos(nombre, codigo, unidad))';
 
 @Injectable({ providedIn: 'root' })
