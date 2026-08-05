@@ -113,11 +113,11 @@
 
         @if (placaPP(); as pp) {
           <dl class="vd-pp__meta">
-            @if (pp.dealer) { <div><dt>Dealer</dt><dd>{{ pp.dealer }}</dd></div> }
             @if (pp.placa_pp) { <div><dt>Placa PP</dt><dd>{{ pp.placa_pp }}</dd></div> }
+            <div><dt>Vence (regulado)</dt><dd>{{ fecha(ppVence()) }}</dd></div>
             <div><dt>Registrada</dt><dd>{{ fecha(pp.fecha_registro) }}</dd></div>
-            <div><dt>Días prometidos</dt><dd>{{ pp.dias_prometidos }}</dd></div>
-            <div><dt>Plazo límite</dt><dd>{{ fecha(pp.fecha_limite) }}</dd></div>
+            @if (pp.dealer) { <div><dt>Dealer</dt><dd>{{ pp.dealer }}</dd></div> }
+            @if (pp.fecha_entrega_prometida) { <div><dt>Entrega prometida</dt><dd>{{ fecha(pp.fecha_entrega_prometida) }}</dd></div> }
           </dl>
           @if (pp.notas) { <p class="vd-pp__notas">{{ pp.notas }}</p> }
 
@@ -645,26 +645,26 @@
 <app-form-drawer title="Registrar placa provisional" [open]="ppDrawer() === 'crear'" (closed)="cerrarPP()">
   <form class="vd-form" [formGroup]="crearPPForm" (ngSubmit)="guardarPPCrear()">
     <div class="sgc-field">
-      <label for="pp_dealer">Dealer / suplidor</label>
-      <input id="pp_dealer" type="text" formControlName="dealer" placeholder="Nombre del dealer" />
-    </div>
-    <div class="sgc-field">
       <label for="pp_placa">Placa provisional (PP)</label>
       <input id="pp_placa" type="text" formControlName="placa_pp" placeholder="Ej: PP261353" />
     </div>
-    <div class="vd-form__row">
-      <div class="sgc-field">
-        <label for="pp_dias">Días prometidos <span class="required">*</span></label>
-        <input id="pp_dias" type="number" min="1" max="365" formControlName="dias" placeholder="Ej: 30" />
-      </div>
-      <div class="sgc-field">
-        <label for="pp_fecha">Fecha de registro</label>
-        <input id="pp_fecha" type="date" formControlName="fecha_registro" />
-      </div>
+    <div class="sgc-field">
+      <label for="pp_venc">Fecha de vencimiento de la PP <span class="required">*</span></label>
+      <input id="pp_venc" type="date" formControlName="fecha_vencimiento" />
+      <small class="vd-form__hint">La que aparece impresa en la propia placa (plazo regulado, ~3 meses). Es lo que dispara el aviso.</small>
+    </div>
+    <p class="vd-form__hint">Seguimiento del dealer (opcional): el dealer varía y promete distinto.</p>
+    <div class="sgc-field">
+      <label for="pp_dealer">Dealer / suplidor</label>
+      <input id="pp_dealer" type="text" formControlName="dealer" placeholder="Nombre del dealer (varía por caso)" />
+    </div>
+    <div class="sgc-field">
+      <label for="pp_entrega">Entrega prometida de la definitiva</label>
+      <input id="pp_entrega" type="date" formControlName="fecha_entrega_prometida" />
     </div>
     <div class="sgc-field">
       <label for="pp_notas">Notas (opcional)</label>
-      <textarea id="pp_notas" rows="2" formControlName="notas" placeholder="Detalle de la promesa del dealer…"></textarea>
+      <textarea id="pp_notas" rows="2" formControlName="notas" placeholder="Indicaciones del dealer…"></textarea>
     </div>
     @if (ppError()) { <div class="save-error" role="alert">{{ ppError() }}</div> }
     <div class="drawer-actions">

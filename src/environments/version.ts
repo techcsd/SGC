@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.64.0';
-export const APP_VERSION_TITULO: string | null = "Detalle al clic en toda la fila, y Administración con Empresa y Orden de módulos (AG)";
-export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"Historiales y listados: ahora abres el detalle haciendo clic en cualquier parte de la fila (no solo en el botón \"Ver\") en Empleados, Ausencias, historial de Tareas, Contratos, Conductores, Conduces, Artículos, Órdenes de compra e historial de Proyectos. Los botones de acción de cada fila siguen funcionando igual."},{"t":"nuevo","d":"Administración › Empresa: página para los datos generales de la constructora (razón social, nombre comercial, RNC, dirección, teléfono, correo y sitio web)."},{"t":"nuevo","d":"Administración › Orden de módulos: reordena las secciones del menú lateral con flechas ↑/↓ y guarda; el menú respeta ese orden."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/9f9be88";
+export const APP_VERSION = '1.65.0';
+export const APP_VERSION_TITULO: string | null = "Placas provisionales: vencimiento regulado de la placa (AG8b)";
+export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = [{"t":"mejora","d":"Placas provisionales (PP): ahora se registra la FECHA DE VENCIMIENTO que trae impresa la propia placa (plazo regulado de ~3 meses = límite legal para circular), en vez de calcularla por \"días prometidos\". El dealer y su fecha de entrega prometida quedan como seguimiento opcional (varían por caso). El aviso se genera 15 días antes de ese vencimiento y al cumplirse."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/628c20e";

@@ -500,13 +500,24 @@ export class VehiculosService {
     return (data ?? []) as unknown as VehiculoPlacaPPExtension[];
   }
 
-  async crearPlacaPP(payload: { vehiculo_id: string; dealer: string | null; placa_pp: string | null; dias: number; fecha_registro?: string | null; notas?: string | null }): Promise<string> {
+  async crearPlacaPP(payload: {
+    vehiculo_id: string;
+    dealer: string | null;
+    placa_pp: string | null;
+    fecha_vencimiento: string | null;   // la que dice la placa (primaria)
+    dias?: number | null;               // fallback si no dan la fecha
+    fecha_registro?: string | null;
+    fecha_entrega_prometida?: string | null;
+    notas?: string | null;
+  }): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('crear_placa_pp', {
       p_vehiculo_id: payload.vehiculo_id,
       p_dealer: payload.dealer,
       p_placa_pp: payload.placa_pp,
-      p_dias: payload.dias,
+      p_fecha_vencimiento: payload.fecha_vencimiento ?? null,
+      p_dias: payload.dias ?? null,
       p_fecha_registro: payload.fecha_registro ?? null,
+      p_fecha_entrega_prometida: payload.fecha_entrega_prometida ?? null,
       p_notas: payload.notas ?? null,
     });
     if (error) throw new Error(error.message);
@@ -540,7 +551,12 @@ export interface VehiculoPlacaPP {
   dealer: string | null;
   placa_pp: string | null;
   fecha_registro: string;
-  dias_prometidos: number;
+  // Días que el dealer prometió para la definitiva (seguimiento, opcional).
+  dias_prometidos: number | null;
+  // AG8b — vencimiento REGULADO de la PP (la fecha impresa en la placa) — primario.
+  fecha_vencimiento_pp: string | null;
+  // AG8b — fecha que el dealer prometió entregar la definitiva (seguimiento).
+  fecha_entrega_prometida: string | null;
   fecha_limite: string;
   estado: PlacaPPEstado;
   placa_definitiva: string | null;

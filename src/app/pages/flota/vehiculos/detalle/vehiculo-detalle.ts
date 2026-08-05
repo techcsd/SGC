@@ -476,10 +476,12 @@ export class VehiculoDetalle implements OnInit {
   ppGuardando = signal(false);
   ppError = signal('');
   crearPPForm = this.fb.group({
-    dealer: [''],
     placa_pp: [''],
-    dias: [30, [Validators.required, Validators.min(1), Validators.max(365)]],
-    fecha_registro: [''],
+    // AG8b — primario: la fecha de vencimiento que dice la placa (plazo regulado ~3 meses).
+    fecha_vencimiento: ['', Validators.required],
+    dealer: [''],
+    // Seguimiento opcional del dealer (cuándo prometió la definitiva).
+    fecha_entrega_prometida: [''],
     notas: [''],
   });
   ampliarPPForm = this.fb.group({
@@ -493,12 +495,17 @@ export class VehiculoDetalle implements OnInit {
     fecha_entrega: [''],
   });
 
-  /** Días restantes hasta el plazo (negativo = vencido). */
-  ppDiasRestantes = computed(() => {
+  /** Fecha de vencimiento efectiva (la regulada de la placa; fallback al legacy). */
+  ppVence = computed(() => {
     const pp = this.placaPP();
-    if (!pp) return null;
+    return pp ? (pp.fecha_vencimiento_pp ?? pp.fecha_limite) : null;
+  });
+  /** Días restantes hasta el vencimiento regulado (negativo = vencido). */
+  ppDiasRestantes = computed(() => {
+    const venc = this.ppVence();
+    if (!venc) return null;
     const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-    const lim = new Date(pp.fecha_limite + 'T00:00:00');
+    const lim = new Date(venc + 'T00:00:00');
     return Math.round((lim.getTime() - hoy.getTime()) / 86400000);
   });
   ppBadge = computed<{ label: string; clase: string }>(() => {
@@ -506,7 +513,7 @@ export class VehiculoDetalle implements OnInit {
     const d = this.ppDiasRestantes();
     if (!pp) return { label: '', clase: 'neutral' };
     if (pp.estado === 'vencida' || (d != null && d < 0)) return { label: 'Vencida', clase: 'danger' };
-    if (d != null && d <= 5) return { label: `Vence en ${d} día(s)`, clase: 'warning' };
+    if (d != null && d <= 15) return { label: `Vence en ${d} día(s)`, clase: 'warning' };
     return { label: `Faltan ${d} día(s)`, clase: 'info' };
   });
 
@@ -521,7 +528,7 @@ export class VehiculoDetalle implements OnInit {
 
   abrirPPCrear() {
     this.ppError.set('');
-    this.crearPPForm.reset({ dealer: '', placa_pp: this.vehiculo()?.placa ?? '', dias: 30, fecha_registro: '', notas: '' });
+    this.crearPPForm.reset({ placa_pp: this.vehiculo()?.placa ?? '', fecha_vencimiento: '', dealer: '', fecha_entrega_prometida: '', notas: '' });
     this.ppDrawer.set('crear');
   }
   abrirPPAmpliar() {
@@ -548,8 +555,8 @@ export class VehiculoDetalle implements OnInit {
         vehiculo_id: this.vehiculoId,
         dealer: v.dealer?.trim() || null,
         placa_pp: v.placa_pp?.trim() || null,
-        dias: Number(v.dias),
-        fecha_registro: v.fecha_registro || null,
+        fecha_vencimiento: v.fecha_vencimiento || null,
+        fecha_entrega_prometida: v.fecha_entrega_prometida || null,
         notas: v.notas?.trim() || null,
       });
       await this.cargarPlacaPP();
