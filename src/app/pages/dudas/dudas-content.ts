@@ -135,7 +135,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Producción de Obra: la gestión diaria del gerente de producción en obra — plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real y costos, e informe semanal a Gerencia. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -163,6 +163,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'El rol Tecnología da acceso al módulo Tecnología —incluida la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura— sin ser administrador del sistema. Sirve para que la persona técnica atienda releases y fallos sin poder gestionar usuarios, roles ni el resto de módulos operativos (eso sigue siendo exclusivo de Administración). Un usuario puede tener el rol Tecnología junto con otros roles y verá la suma de accesos.',
       },
       {
+        pregunta: '¿Qué hacen los roles de Producción de Obra (Gerente de Producción y Capataz)?',
+        respuesta:
+          'Son los dos roles del módulo Producción de Obra. El Gerente de Producción de Obra tiene acceso completo: planifica el día y registra la charla de seguridad, levanta y cierra no conformidades, ejecuta y edita checklists de calidad, gestiona subcontratistas y aprueba cubicaciones, reporta y revisa el avance y los costos, y genera/envía el informe semanal a Gerencia (además ve Bitácora y Proyectos). El Capataz es un rol de campo con acceso acotado: ve su plan del día, levanta no conformidades y ejecuta checklists de calidad — no ve subcontratistas, avance/costos ni informes. Un administrador asigna estos roles en Administración > Usuarios.',
+      },
+      {
         pregunta: '¿Qué son los "Reportes de errores" en Tecnología?',
         respuesta:
           'Cuando la app móvil falla en un teléfono (crash, error de cámara, de sincronización o de permisos), o cuando la página web tiene un error en el navegador, se envían automáticamente los datos del error —modelo/dispositivo o navegador, versión, mensaje y contexto— a Tecnología > Reportes de errores. Ahí, admin y el rol Tecnología pueden ver los fallos agrupados por mensaje, filtrarlos por origen (App móvil / Página web), dispositivo, versión y fecha, y exportarlos a Excel, para diagnosticar problemas específicos. No incluye datos personales ni fotos.',
@@ -180,7 +185,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Puedo dar acceso a solo una parte de un módulo (por ejemplo, Compras solo Proveedores)? (administradores)',
         respuesta:
-          'Sí. Al editar o crear un rol, abre "Permisos por submódulo (avanzado)". Ahí puedes dar un submódulo específico en nivel "Ver" u "Operar" sin marcar el módulo completo — por ejemplo Compras → Proveedores → Ver, y el usuario verá solo Proveedores, nada más de Compras. Si marcas el módulo padre completo, todos sus submódulos quedan en "Operar" automáticamente (por eso los roles actuales no cambian su acceso). El gateo fino por submódulo se está extendiendo módulo por módulo; hoy funciona de punta a punta en Compras → Proveedores.',
+          'Sí. Al editar o crear un rol, abre "Permisos por submódulo (avanzado)". Ahí puedes dar un submódulo específico en nivel "Ver" u "Operar" sin marcar el módulo completo — por ejemplo Compras → Proveedores → Ver, y el usuario verá solo Proveedores, nada más de Compras. Si marcas el módulo padre completo, todos sus submódulos quedan en "Operar" automáticamente (por eso los roles actuales no cambian su acceso). El gateo fino por submódulo se está extendiendo módulo por módulo; hoy funciona de punta a punta en Compras → Proveedores y en Producción de Obra (así el Capataz opera solo Plan del día, No conformidades y Checklists).',
       },
     ],
   },
@@ -862,6 +867,48 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: 'La auditoría tiene muchas filas, ¿cómo saco algo útil?',
         respuesta:
           'En Administración > Auditoría, la pestaña "Panel" te da la lectura analítica: usuarios con más interacción, actividad por módulo, por tipo de acción, por día y por hora, y las acciones más comunes — todo filtrable por rango de fechas, usuario y módulo. Desde cualquier métrica (ranking de usuarios, acciones comunes, módulos) pulsa "Ver →" para saltar a la pestaña "Filas" ya filtrada y ver exactamente qué se hizo (quién cambió qué y cuándo).',
+      },
+    ],
+  },
+  {
+    id: 'produccion-obra',
+    titulo: 'Producción de Obra',
+    modulo: 'obra',
+    items: [
+      {
+        pregunta: '¿Qué es el módulo Producción de Obra y para quién es?',
+        respuesta:
+          'Digitaliza la rutina diaria del Gerente de Producción de Obra: el plan del día, la vigilancia de calidad y seguridad, los subcontratistas, el avance y el informe a Gerencia. Los dos roles son Gerente de Producción de Obra (acceso completo) y Capataz (campo: plan del día, no conformidades y checklists). Está en el menú lateral como "Producción de Obra" y todo se apoya en lo que ya existe (cronograma, bitácoras, requisiciones, inventario) — no duplica datos.',
+      },
+      {
+        pregunta: '¿Cómo armo el plan del día y registro la charla de seguridad?',
+        respuesta:
+          'En Producción de Obra > Plan del día eliges la obra y la fecha. Registras la charla de seguridad (tema, duración, asistentes y fotos) y asignas las tareas del día a cada capataz, agrupadas por brigada. Las tareas son las mismas del sistema (aparecen en Tareas de quien las recibe y se pueden vincular a acciones reales, como un conduce).',
+      },
+      {
+        pregunta: '¿Cómo levanto una no conformidad y le doy seguimiento?',
+        respuesta:
+          'En Producción de Obra > No conformidades pulsas "Levantar NC": eliges el tipo (calidad, orden y limpieza, EPP o seguridad), describes el hallazgo, pones ubicación, severidad, responsable y fotos. La NC nace "abierta"; le asignas una acción correctiva (responsable + fecha compromiso), quien corrige la marca "hecha", y tú la verificas para cerrarla. El responsable recibe notificación al asignársela y un recordatorio si se vence. Los incidentes y casi-accidentes se registran en la misma pantalla, con investigación.',
+      },
+      {
+        pregunta: '¿Cómo funcionan los checklists de calidad y qué pasa si algo "no cumple"?',
+        respuesta:
+          'En Producción de Obra > Checklists eliges una plantilla por actividad (replanteo, niveles, encofrado, acero, previo a hormigonado…) y marcas cada punto como Cumple / No cumple / N/A, con comentario y fotos. Al guardar, cada punto "No cumple" queda como hallazgo y puedes convertirlo en una no conformidad con un clic. Las plantillas son editables (pestaña "Plantillas"): puedes crear nuevas y agregar/quitar ítems.',
+      },
+      {
+        pregunta: '¿Cómo registro subcontratistas y apruebo cubicaciones?',
+        respuesta:
+          'En Producción de Obra > Subcontratistas registras al subcontratista, sus frentes de trabajo por obra y su avance. Las cubicaciones (valuaciones) se crean como borrador, se envían a revisión y tú las apruebas o rechazas con nota; queda todo el historial de cada cubicación.',
+      },
+      {
+        pregunta: '¿De dónde sale el % de avance real y la curva de la obra?',
+        respuesta:
+          'En Producción de Obra > Avance reportas el % real de cada tarea del cronograma; el sistema lo compara con lo planificado y muestra la desviación. Con "Congelar línea base" fijas el plan original para comparar, y cada día se guarda un punto de la curva (plan vs real). Ahí mismo ves el consumo de material por obra, el parte de mano de obra (horas-hombre), las entradas de material programadas y las pruebas de campo. Esto reemplaza el Excel de avance.',
+      },
+      {
+        pregunta: '¿Cómo se genera y envía el informe semanal a Gerencia?',
+        respuesta:
+          'En Producción de Obra > Informe semanal eliges la obra y el período y pulsas "Generar": el sistema arma solo el informe con el avance, las no conformidades, los incidentes, los pedidos pendientes, las horas-hombre y las fotos de las bitácoras de la semana. Agregas tus notas (resumen, problemas críticos, decisiones, necesidades) y pulsas "Enviar a Gerencia": Gerencia recibe la notificación y el informe en PDF. Puedes descargar/imprimir el PDF cuando quieras, y queda el historial de informes por obra.',
       },
     ],
   },

@@ -1550,6 +1550,15 @@
           "d": "Informe semanal de obra a Gerencia: se auto-compila del sistema (avance, no conformidades, incidentes, pedidos pendientes, horas-hombre y fotos de las bitácoras de la semana), el gerente agrega sus notas, y se envía a Gerencia con notificación y PDF."
         }
       ]
+    },
+    "1.66.1": {
+      "titulo": "Ayuda (Dudas) para Producción de Obra",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Dudas: nueva sección \"Producción de Obra\" con el paso a paso de plan del día, no conformidades, checklists, subcontratistas/cubicaciones, avance e informe semanal; y explicador de los roles Gerente de Producción y Capataz en \"Roles y permisos\"."
+        }
+      ]
     }
   }
 }
