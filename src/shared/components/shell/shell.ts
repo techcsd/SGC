@@ -199,6 +199,22 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // AG16 — Producción de Obra. Visible con el módulo `obra` o con cualquiera
+      // de sus submódulos granulares (el capataz entra por permiso fino).
+      label: 'Producción de Obra',
+      icon: 'obra',
+      modulo: 'obra',
+      submodulos: ['obra.plan_dia', 'obra.no_conformidades', 'obra.checklists', 'obra.subcontratistas', 'obra.avance', 'obra.informes'],
+      children: [
+        { label: 'Plan del día', route: '/obra/plan-dia', submodulo: 'obra.plan_dia' },
+        { label: 'No conformidades', route: '/obra/no-conformidades', submodulo: 'obra.no_conformidades' },
+        { label: 'Checklists de calidad', route: '/obra/checklists', submodulo: 'obra.checklists' },
+        { label: 'Subcontratistas', route: '/obra/subcontratistas', submodulo: 'obra.subcontratistas' },
+        { label: 'Avance y costos', route: '/obra/avance', submodulo: 'obra.avance' },
+        { label: 'Informe semanal', route: '/obra/informes', submodulo: 'obra.informes' },
+      ],
+    },
+    {
       label: 'Bitácora',
       icon: 'bitacora',
       modulo: 'bitacora',

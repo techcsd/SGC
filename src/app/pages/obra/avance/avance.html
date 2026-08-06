@@ -1,0 +1,256 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Avance, costos y logística</h1>
+    <span class="page-count">% real vs plan, curva, mano de obra y entradas programadas</span>
+  </div>
+</div>
+
+<!-- ── Selector obra ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__select">
+    <select [value]="proyectoId()" (change)="onProyectoChange($any($event.target).value)" aria-label="Obra">
+      @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+    </select>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar" role="tablist">
+  <button role="tab" [attr.aria-selected]="tab() === 'avance'" class="tab-btn" [class.tab-btn--active]="tab() === 'avance'" (click)="setTab('avance')">Avance</button>
+  <button role="tab" [attr.aria-selected]="tab() === 'costos'" class="tab-btn" [class.tab-btn--active]="tab() === 'costos'" (click)="setTab('costos')">Costos</button>
+  <button role="tab" [attr.aria-selected]="tab() === 'logistica'" class="tab-btn" [class.tab-btn--active]="tab() === 'logistica'" (click)="setTab('logistica')">Logística</button>
+</div>
+
+@if (loadingInit() || loading()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else {
+
+  <!-- ═══ AVANCE ═══ -->
+  @if (tab() === 'avance') {
+    <div class="kpi-row">
+      <div class="kpi-card"><span class="kpi-value">{{ avance().avance_plan_pct }}<small>%</small></span><span class="kpi-label">Avance planificado</span></div>
+      <div class="kpi-card kpi-card--success"><span class="kpi-value">{{ avance().avance_real_pct }}<small>%</small></span><span class="kpi-label">Avance real</span></div>
+      <div class="kpi-card" [class.kpi-card--danger]="desviacion() < 0" [class.kpi-card--success]="desviacion() >= 0">
+        <span class="kpi-value">{{ desviacion() > 0 ? '+' : '' }}{{ desviacion() }}<small>%</small></span><span class="kpi-label">Desviación</span>
+      </div>
+    </div>
+
+    <!-- Curva-S -->
+    <div class="sgc-card curva-card">
+      <div class="curva-card__head">
+        <h3>Curva de avance (plan vs real)</h3>
+        <div class="curva-legend">
+          <span class="lg lg--plan">Plan</span><span class="lg lg--real">Real</span>
+        </div>
+      </div>
+      @if (hayCurva()) {
+        <svg class="curva-svg" [attr.viewBox]="'0 0 ' + CHART_W + ' ' + CHART_H" preserveAspectRatio="none" role="img" aria-label="Curva de avance">
+          <line [attr.x1]="0" [attr.y1]="CHART_H" [attr.x2]="CHART_W" [attr.y2]="CHART_H" class="axis" />
+          <polyline [attr.points]="lineaPlan()" class="line line--plan" />
+          <polyline [attr.points]="lineaReal()" class="line line--real" />
+        </svg>
+      } @else {
+        <p class="text-muted curva-empty">La curva se genera diariamente (necesita ≥2 días de historial). Vuelve mañana para ver la tendencia.</p>
+      }
+    </div>
+
+    <!-- Tareas + avance editable -->
+    <div class="tareas-head">
+      <h3>Tareas del cronograma</h3>
+      @if (puedeOperar()) {
+        <button class="sgc-btn sgc-btn--secondary sgc-btn--sm" type="button" (click)="capturarBaseline()" title="Congela las fechas plan actuales como línea base">Congelar línea base</button>
+      }
+    </div>
+    <div class="table-wrapper sgc-card">
+      @if (tareas().length === 0) {
+        <div class="table-empty"><p>Esta obra no tiene cronograma. Créalo en Proyectos → Cronograma.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Tarea</th><th>Fin plan</th><th>Estado</th><th style="width:180px">Avance</th></tr></thead>
+            <tbody>
+              @for (t of tareas(); track t.id) {
+                <tr>
+                  <td>{{ t.nombre }}</td>
+                  <td>{{ t.fecha_fin_plan ? formatFecha(t.fecha_fin_plan) : '—' }}</td>
+                  <td><span [class]="estadoBadge(t.estado)">{{ t.estado }}</span></td>
+                  <td>
+                    <div class="avance-cell">
+                      <div class="avance-bar"><span [style.width.%]="t.avance_pct"></span></div>
+                      <input type="number" min="0" max="100" [value]="t.avance_pct" (change)="cambiarAvanceTarea(t, $any($event.target).value)" [disabled]="!puedeOperar() || t.estado === 'completada'" aria-label="Avance %" />
+                      <span>%</span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ COSTOS ═══ -->
+  @if (tab() === 'costos') {
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <span class="kpi-value">@if (costo(); as c) { RD$ {{ c.total | number:'1.0-0' }} } @else { — }</span>
+        <span class="kpi-label">Material consumido</span>
+      </div>
+      <div class="kpi-card kpi-card--warning"><span class="kpi-value">{{ totalHorasHombre() | number:'1.0-0' }}</span><span class="kpi-label">Horas-hombre</span></div>
+      <div class="kpi-card kpi-card--danger"><span class="kpi-value">{{ perdidas().length }}</span><span class="kpi-label">Reportes de pérdidas</span></div>
+    </div>
+
+    <!-- Material por artículo -->
+    <div class="table-wrapper sgc-card">
+      <h3 class="tbl-title">Consumo de material por obra</h3>
+      @if (costoError()) {
+        <div class="table-empty"><p>{{ costoError() }}</p></div>
+      } @else if (!costo() || costo()!.por_articulo.length === 0) {
+        <div class="table-empty"><p>Sin consumo de material registrado.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Artículo</th><th class="text-right">Cantidad</th><th class="text-right">Costo unit.</th><th class="text-right">Costo</th></tr></thead>
+            <tbody>
+              @for (a of costo()!.por_articulo; track a.articulo_id) {
+                <tr>
+                  <td>{{ a.nombre ?? '—' }}</td>
+                  <td class="text-right">{{ a.cantidad | number:'1.0-2' }} {{ a.unidad ?? '' }}</td>
+                  <td class="text-right">RD$ {{ (a.costo_unit_prom ?? 0) | number:'1.2-2' }}</td>
+                  <td class="text-right">RD$ {{ a.costo | number:'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Parte de mano de obra -->
+    <div class="tareas-head">
+      <h3>Parte de mano de obra</h3>
+      @if (puedeOperar()) { <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="openManoObra()">+ Parte</button> }
+    </div>
+    <div class="table-wrapper sgc-card">
+      @if (manoObra().length === 0) {
+        <div class="table-empty"><p>Sin partes de mano de obra.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Fecha</th><th>Actividad</th><th class="text-right">Trabajadores</th><th class="text-right">Horas</th><th class="text-right">Horas-hombre</th></tr></thead>
+            <tbody>
+              @for (m of manoObra(); track m.id) {
+                <tr>
+                  <td>{{ formatFecha(m.fecha) }}</td>
+                  <td>{{ m.actividad || '—' }}</td>
+                  <td class="text-right">{{ m.cantidad_trabajadores }}</td>
+                  <td class="text-right">{{ m.horas | number:'1.0-1' }}</td>
+                  <td class="text-right"><strong>{{ m.horas_hombre | number:'1.0-1' }}</strong></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ LOGÍSTICA ═══ -->
+  @if (tab() === 'logistica') {
+    <div class="table-wrapper sgc-card">
+      <h3 class="tbl-title">Entradas programadas (órdenes de compra)</h3>
+      @if (ocProgramadas().length === 0) {
+        <div class="table-empty"><p>No hay órdenes de compra con fecha programada para esta obra.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>OC</th><th>Fecha programada</th><th>Estado</th><th>Destino</th><th class="text-right">Total</th></tr></thead>
+            <tbody>
+              @for (o of ocProgramadas(); track o.id) {
+                <tr>
+                  <td>{{ o.numero ?? '—' }}</td>
+                  <td>{{ o.fecha_programada ? formatFecha(o.fecha_programada) : '—' }}</td>
+                  <td><span class="sgc-badge sgc-badge--neutral">{{ o.estado }}</span></td>
+                  <td>{{ o.destino ?? '—' }}</td>
+                  <td class="text-right">RD$ {{ (o.total ?? 0) | number:'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <div class="tareas-head">
+      <h3>Pruebas de campo</h3>
+      @if (puedeOperar()) { <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="openPrueba()">+ Prueba</button> }
+    </div>
+    <div class="table-wrapper sgc-card">
+      @if (pruebas().length === 0) {
+        <div class="table-empty"><p>Sin pruebas de campo registradas.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Tipo</th><th>Fecha</th><th>Resultado</th><th>Notas</th></tr></thead>
+            <tbody>
+              @for (pr of pruebas(); track pr.id) {
+                <tr>
+                  <td><span class="sgc-badge sgc-badge--neutral">{{ pr.tipo }}</span></td>
+                  <td>{{ formatFecha(pr.fecha) }}</td>
+                  <td>{{ pr.resultado || '—' }}</td>
+                  <td>{{ pr.notas || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- ── Parte de mano de obra drawer ── -->
+<app-form-drawer title="Parte de mano de obra" [open]="manoObraOpen()" (closed)="manoObraOpen.set(false)">
+  <form [formGroup]="manoObraForm" (ngSubmit)="saveManoObra()" novalidate class="drawer-form">
+    <div class="form-row">
+      <div class="sgc-field"><label for="mo-fecha">Fecha <span class="required">*</span></label><input id="mo-fecha" type="date" formControlName="fecha" /></div>
+      <div class="sgc-field"><label for="mo-act">Actividad / brigada</label><input id="mo-act" type="text" formControlName="actividad" placeholder="Ej: acero bloque B" /></div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="mo-tr">Trabajadores <span class="required">*</span></label><input id="mo-tr" type="number" min="0" formControlName="cantidad_trabajadores" /></div>
+      <div class="sgc-field"><label for="mo-h">Horas c/u <span class="required">*</span></label><input id="mo-h" type="number" min="0" step="0.5" formControlName="horas" /></div>
+    </div>
+    <div class="sgc-field"><label for="mo-notas">Notas</label><textarea id="mo-notas" rows="2" formControlName="notas"></textarea></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="manoObraOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Guardar</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Prueba de campo drawer ── -->
+<app-form-drawer title="Prueba de campo" [open]="pruebaOpen()" (closed)="pruebaOpen.set(false)">
+  <form [formGroup]="pruebaForm" (ngSubmit)="savePrueba()" novalidate class="drawer-form">
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="pr-tipo">Tipo <span class="required">*</span></label>
+        <select id="pr-tipo" formControlName="tipo">
+          <option value="slump">Slump (asentamiento)</option>
+          <option value="probeta">Probeta (resistencia)</option>
+          <option value="compactacion">Compactación</option>
+          <option value="densidad">Densidad</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="sgc-field"><label for="pr-fecha">Fecha <span class="required">*</span></label><input id="pr-fecha" type="date" formControlName="fecha" /></div>
+    </div>
+    <div class="sgc-field"><label for="pr-res">Resultado</label><input id="pr-res" type="text" formControlName="resultado" placeholder="Ej: 4 pulg / 280 kg/cm²" /></div>
+    <div class="sgc-field"><label for="pr-notas">Notas</label><textarea id="pr-notas" rows="2" formControlName="notas"></textarea></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pruebaOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Guardar</button>
+    </div>
+  </form>
+</app-form-drawer>

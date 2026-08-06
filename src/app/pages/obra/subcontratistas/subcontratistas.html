@@ -1,0 +1,258 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Subcontratistas y cubicaciones</h1>
+    <span class="page-count">Registro, frentes y valuaciones con aprobación</span>
+  </div>
+  <div class="page-header__actions">
+    @if (tab() === 'subcontratistas' && puedeOperar()) {
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="openSub()">+ Subcontratista</button>
+    }
+    @if (tab() === 'cubicaciones' && puedeOperar()) {
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCub()">+ Cubicación</button>
+    }
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar" role="tablist">
+  <button role="tab" [attr.aria-selected]="tab() === 'subcontratistas'" class="tab-btn" [class.tab-btn--active]="tab() === 'subcontratistas'" (click)="setTab('subcontratistas')">Subcontratistas</button>
+  <button role="tab" [attr.aria-selected]="tab() === 'cubicaciones'" class="tab-btn" [class.tab-btn--active]="tab() === 'cubicaciones'" (click)="setTab('cubicaciones')">Cubicaciones</button>
+</div>
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="8" />
+} @else {
+
+  <!-- ═══ Subcontratistas ═══ -->
+  @if (tab() === 'subcontratistas') {
+    <div class="table-wrapper sgc-card">
+      @if (subcontratistas().length === 0) {
+        <div class="table-empty"><p>No hay subcontratistas registrados.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Nombre</th><th>Especialidad</th><th>RNC</th><th>Contacto</th><th>Teléfono</th><th class="text-center">Frentes</th></tr></thead>
+            <tbody>
+              @for (s of subcontratistas(); track s.id) {
+                <tr>
+                  <td><span class="nc-title">{{ s.nombre }}</span></td>
+                  <td>{{ s.especialidad || '—' }}</td>
+                  <td>{{ s.rnc || '—' }}</td>
+                  <td>{{ s.contacto || '—' }}</td>
+                  <td>{{ s.telefono || '—' }}</td>
+                  <td class="text-center">
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openDetailSub(s)">Ver frentes</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ Cubicaciones ═══ -->
+  @if (tab() === 'cubicaciones') {
+    <div class="filters-bar">
+      <div class="sgc-field filters-bar__select">
+        <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)" aria-label="Filtrar por estado">
+          <option value="all">Todos los estados</option>
+          @for (e of CUB_ESTADOS; track e.value) { <option [value]="e.value">{{ e.label }}</option> }
+        </select>
+      </div>
+    </div>
+    <div class="table-wrapper sgc-card">
+      @if (cubicacionesFiltradas().length === 0) {
+        <div class="table-empty"><p>No hay cubicaciones con los filtros aplicados.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Subcontratista</th><th>Obra</th><th>Período</th><th class="text-right">Monto</th><th>Avance</th><th>Estado</th><th class="text-center">Ver</th></tr></thead>
+            <tbody>
+              @for (c of cubicacionesFiltradas(); track c.id) {
+                <tr>
+                  <td><span class="nc-title">{{ c.subcontratista?.nombre ?? '—' }}</span></td>
+                  <td>{{ c.proyecto?.nombre ?? '—' }}</td>
+                  <td>@if (c.periodo_inicio) { {{ formatFecha(c.periodo_inicio) }} @if (c.periodo_fin) { – {{ formatFecha(c.periodo_fin) }} } } @else { — }</td>
+                  <td class="text-right">RD$ {{ c.monto | number:'1.0-0' }}</td>
+                  <td>{{ c.avance_pct != null ? c.avance_pct + '%' : '—' }}</td>
+                  <td><span [class]="cubEstadoBadge(c.estado)">{{ cubEstadoLabel(c.estado) }}</span></td>
+                  <td class="text-center">
+                    <button type="button" class="action-btn action-btn--view" (click)="openDetailCub(c)" aria-label="Ver">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- ── Crear subcontratista ── -->
+<app-form-drawer title="Nuevo subcontratista" [open]="subOpen()" (closed)="subOpen.set(false)">
+  <form [formGroup]="subForm" (ngSubmit)="saveSub()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="s-nom">Nombre <span class="required">*</span></label>
+      <input id="s-nom" type="text" formControlName="nombre" [class.invalid]="fS.nombre.invalid && fS.nombre.touched" />
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="s-esp">Especialidad</label><input id="s-esp" type="text" formControlName="especialidad" placeholder="Ej: acero, encofrado" /></div>
+      <div class="sgc-field"><label for="s-rnc">RNC</label><input id="s-rnc" type="text" formControlName="rnc" /></div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="s-cont">Contacto</label><input id="s-cont" type="text" formControlName="contacto" /></div>
+      <div class="sgc-field"><label for="s-tel">Teléfono</label><input id="s-tel" type="text" formControlName="telefono" /></div>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="subOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Guardar</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detalle subcontratista (frentes) ── -->
+<app-form-drawer [title]="detailSub()?.nombre ?? 'Subcontratista'" [open]="!!detailSub()" (closed)="closeDetailSub()">
+  @if (detailSub(); as s) {
+    <div class="sub-detail">
+      <div class="sub-detail__head">
+        <h4>Frentes asignados</h4>
+        @if (puedeOperar()) { <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="openFrente()">+ Frente</button> }
+      </div>
+      @if (frentes().length === 0) {
+        <p class="text-muted">Sin frentes asignados.</p>
+      } @else {
+        <ul class="frentes-list">
+          @for (f of frentes(); track f.id) {
+            <li>
+              <div class="frente-info">
+                <span class="frente-obra">{{ f.proyecto?.nombre ?? '—' }}</span>
+                @if (f.descripcion) { <span class="frente-desc">{{ f.descripcion }}</span> }
+              </div>
+              <div class="frente-avance">
+                <input type="number" min="0" max="100" [value]="f.avance_pct" (change)="cambiarAvance(f, $any($event.target).value)" [disabled]="!puedeOperar()" aria-label="Avance %" />
+                <span>%</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</app-form-drawer>
+
+<!-- ── Crear frente ── -->
+<app-form-drawer title="Asignar frente" [open]="frenteOpen()" (closed)="frenteOpen.set(false)">
+  <form [formGroup]="frenteForm" (ngSubmit)="saveFrente()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="f-proy">Obra <span class="required">*</span></label>
+      <select id="f-proy" formControlName="proyecto_id" [class.invalid]="fF.proyecto_id.invalid && fF.proyecto_id.touched">
+        <option [value]="null">Selecciona…</option>
+        @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field"><label for="f-desc">Descripción del frente</label><input id="f-desc" type="text" formControlName="descripcion" placeholder="Ej: Acero bloque B, nivel 3" /></div>
+    <div class="sgc-field"><label for="f-av">Avance inicial (%)</label><input id="f-av" type="number" min="0" max="100" formControlName="avance_pct" /></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="frenteOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Asignar</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Crear cubicación ── -->
+<app-form-drawer title="Nueva cubicación" [open]="cubOpen()" (closed)="cubOpen.set(false)">
+  <form [formGroup]="cubForm" (ngSubmit)="saveCub()" novalidate class="drawer-form">
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="c-sub">Subcontratista <span class="required">*</span></label>
+        <select id="c-sub" formControlName="subcontratista_id" [class.invalid]="fC.subcontratista_id.invalid && fC.subcontratista_id.touched">
+          <option [value]="null">Selecciona…</option>
+          @for (s of subcontratistas(); track s.id) { <option [value]="s.id">{{ s.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="c-proy">Obra <span class="required">*</span></label>
+        <select id="c-proy" formControlName="proyecto_id" [class.invalid]="fC.proyecto_id.invalid && fC.proyecto_id.touched">
+          <option [value]="null">Selecciona…</option>
+          @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="c-pi">Período desde</label><input id="c-pi" type="date" formControlName="periodo_inicio" /></div>
+      <div class="sgc-field"><label for="c-pf">Período hasta</label><input id="c-pf" type="date" formControlName="periodo_fin" /></div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field"><label for="c-monto">Monto (RD$) <span class="required">*</span></label><input id="c-monto" type="number" min="0" formControlName="monto" /></div>
+      <div class="sgc-field"><label for="c-av">Avance (%)</label><input id="c-av" type="number" min="0" max="100" formControlName="avance_pct" /></div>
+    </div>
+    <div class="sgc-field"><label for="c-desc">Descripción</label><textarea id="c-desc" rows="2" formControlName="descripcion"></textarea></div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cubOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Crear borrador</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detalle cubicación (historial + acciones) ── -->
+<app-form-drawer title="Cubicación" [open]="!!detailCub()" (closed)="closeDetailCub()">
+  @if (detailCub(); as c) {
+    <div class="cub-detail">
+      <div class="cub-detail__head">
+        <span [class]="cubEstadoBadge(c.estado)">{{ cubEstadoLabel(c.estado) }}</span>
+      </div>
+      <dl class="nc-detail__meta">
+        <div><dt>Subcontratista</dt><dd>{{ c.subcontratista?.nombre ?? '—' }}</dd></div>
+        <div><dt>Obra</dt><dd>{{ c.proyecto?.nombre ?? '—' }}</dd></div>
+        <div><dt>Monto</dt><dd>RD$ {{ c.monto | number:'1.0-0' }}</dd></div>
+        <div><dt>Avance</dt><dd>{{ c.avance_pct != null ? c.avance_pct + '%' : '—' }}</dd></div>
+      </dl>
+      @if (c.descripcion) { <p class="cub-desc">{{ c.descripcion }}</p> }
+      @if (c.nota_revision) { <p class="cub-nota"><strong>Nota de revisión:</strong> {{ c.nota_revision }}</p> }
+
+      <h4>Historial</h4>
+      <ul class="timeline">
+        @for (ev of cubEventos(); track ev.id) {
+          <li class="timeline__item">
+            <div class="timeline__dot"></div>
+            <div class="timeline__body">
+              <p class="timeline__desc">{{ ev.evento }}@if (ev.nota) { — {{ ev.nota }} }</p>
+              <div class="timeline__meta"><span>{{ formatFecha(ev.created_at) }}</span></div>
+            </div>
+          </li>
+        }
+      </ul>
+
+      @if (puedeOperar()) {
+        <div class="drawer-actions">
+          @if (c.estado === 'borrador') {
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="enviar(c)">Enviar a revisión</button>
+          } @else if (c.estado === 'en_revision') {
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="openRechazar()">Rechazar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="aprobar(c)">Aprobar</button>
+          }
+        </div>
+      }
+    </div>
+  }
+</app-form-drawer>
+
+<!-- ── Rechazar cubicación ── -->
+<app-form-drawer title="Rechazar cubicación" [open]="rechazarOpen()" (closed)="rechazarOpen.set(false)">
+  <form [formGroup]="rechazarForm" (ngSubmit)="rechazar()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="r-nota">Motivo <span class="required">*</span></label>
+      <textarea id="r-nota" rows="3" formControlName="nota" [class.invalid]="fR.nota.invalid && fR.nota.touched"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="rechazarOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary">Rechazar</button>
+    </div>
+  </form>
+</app-form-drawer>

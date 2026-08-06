@@ -1,0 +1,157 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Plan del día</h1>
+    <span class="page-count">Charla de seguridad y asignación de tareas por obra</span>
+  </div>
+</div>
+
+<!-- ── Selector obra + fecha ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__select">
+    <label class="sr-only" for="pd-proy">Obra</label>
+    <select id="pd-proy" [value]="proyectoId()" (change)="onProyectoChange($any($event.target).value)">
+      @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+    </select>
+  </div>
+  <div class="sgc-field filters-bar__select">
+    <label class="sr-only" for="pd-fecha">Fecha</label>
+    <input id="pd-fecha" type="date" [value]="fecha()" (change)="onFechaChange($any($event.target).value)" />
+  </div>
+</div>
+
+@if (loadingInit()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else if (!puedeCargar()) {
+  <div class="table-empty sgc-card"><p>No hay obras disponibles.</p></div>
+} @else {
+  <!-- ── Charla de seguridad ── -->
+  <div class="sgc-card charla-card">
+    <div class="charla-card__head">
+      <h3>Charla de seguridad · {{ formatFecha(fecha()) }}</h3>
+      <button class="sgc-btn sgc-btn--secondary sgc-btn--sm" type="button" (click)="openCharla()">
+        {{ charla() ? 'Editar charla' : 'Registrar charla' }}
+      </button>
+    </div>
+    @if (charla(); as c) {
+      <div class="charla-card__body">
+        <p class="charla-tema">{{ c.tema }}</p>
+        <div class="charla-meta">
+          <span>⏱ {{ c.duracion_min ?? 5 }} min</span>
+          @if (c.asistentes != null) { <span>👥 {{ c.asistentes }} asistentes</span> }
+          @if (c.fotos?.length) { <span>📷 {{ c.fotos.length }} foto(s)</span> }
+        </div>
+        @if (c.notas) { <p class="charla-notas">{{ c.notas }}</p> }
+      </div>
+    } @else {
+      <p class="text-muted charla-empty">Aún no se ha registrado la charla de seguridad de este día.</p>
+    }
+  </div>
+
+  <!-- ── Tareas del día ── -->
+  <div class="tareas-head">
+    <h3>Tareas asignadas</h3>
+    <button class="sgc-btn sgc-btn--primary sgc-btn--sm" type="button" (click)="openTarea()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Asignar tarea
+    </button>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="4" />
+  } @else if (tareas().length === 0) {
+    <div class="table-empty sgc-card"><p>No hay tareas asignadas para este día.</p></div>
+  } @else {
+    @for (g of grupos(); track g.brigada) {
+      <div class="sgc-card brigada-grupo">
+        <div class="brigada-grupo__head">🛠 {{ g.brigada }} <span class="page-count">{{ g.tareas.length }}</span></div>
+        <ul class="brigada-tareas">
+          @for (t of g.tareas; track t.id) {
+            <li>
+              <div class="brigada-tarea__main">
+                <span class="brigada-tarea__title">{{ t.titulo }}</span>
+                @if (t.responsable) { <span class="brigada-tarea__resp">· {{ t.responsable }}</span> }
+                @if (t.linked_tipo) { <span class="sgc-badge sgc-badge--info">🔗 {{ t.linked_tipo }}</span> }
+              </div>
+              <span [class]="estadoBadge(t.estado)">{{ t.estado }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  }
+}
+
+<!-- ── Charla drawer ── -->
+<app-form-drawer title="Charla de seguridad" [open]="charlaOpen()" (closed)="charlaOpen.set(false)">
+  <form [formGroup]="charlaForm" (ngSubmit)="saveCharla()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="ch-tema">Tema <span class="required">*</span></label>
+      <input id="ch-tema" type="text" formControlName="tema" placeholder="Ej: Uso de EPP en altura" [class.invalid]="fC.tema.invalid && fC.tema.touched" />
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="ch-dur">Duración (min) <span class="required">*</span></label>
+        <input id="ch-dur" type="number" min="1" formControlName="duracion_min" />
+      </div>
+      <div class="sgc-field">
+        <label for="ch-asis">Asistentes</label>
+        <input id="ch-asis" type="number" min="0" formControlName="asistentes" placeholder="N° de personas" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="ch-notas">Notas</label>
+      <textarea id="ch-notas" formControlName="notas" rows="2" placeholder="Puntos tratados (opcional)"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label>Fotos</label>
+      <app-file-upload [files]="fotosCharla()" [max]="6" (add)="onFotosAdd($event)" (removeAt)="onFotosRemove($event)" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="charlaOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar charla }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Tarea drawer ── -->
+<app-form-drawer title="Asignar tarea del día" [open]="tareaOpen()" (closed)="tareaOpen.set(false)">
+  <form [formGroup]="tareaForm" (ngSubmit)="saveTarea()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="t-titulo">Tarea <span class="required">*</span></label>
+      <input id="t-titulo" type="text" formControlName="titulo" placeholder="Ej: Vaciado de columna C-3" [class.invalid]="fT.titulo.invalid && fT.titulo.touched" />
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="t-brig">Brigada / cuadrilla</label>
+        <input id="t-brig" type="text" formControlName="brigada" placeholder="Ej: Brigada acero" />
+      </div>
+      <div class="sgc-field">
+        <label for="t-prio">Prioridad</label>
+        <select id="t-prio" formControlName="prioridad">
+          <option value="baja">Baja</option><option value="media">Media</option>
+          <option value="alta">Alta</option><option value="urgente">Urgente</option>
+        </select>
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="t-resp">Responsable (capataz) <span class="required">*</span></label>
+      <select id="t-resp" formControlName="asignado_a" [class.invalid]="fT.asignado_a.invalid && fT.asignado_a.touched">
+        <option [value]="null">Selecciona…</option>
+        @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="t-desc">Descripción</label>
+      <textarea id="t-desc" formControlName="descripcion" rows="2"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="tareaOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Asignar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>

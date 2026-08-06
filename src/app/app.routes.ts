@@ -94,6 +94,12 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/legal/legal.routes').then((m) => m.legalRoutes),
       },
       {
+        // AG16 — Producción de Obra. Sin moduleGuard en el parent: cada submódulo
+        // se gatea con submoduloGuard (el capataz entra por permiso granular).
+        path: 'obra',
+        loadChildren: () => import('./pages/obra/obra.routes').then((m) => m.obraRoutes),
+      },
+      {
         // No module guard here: any authenticated user has "Mis tareas".
         // The manager-only "gestion" child guards itself with moduleGuard('tareas').
         path: 'tareas',

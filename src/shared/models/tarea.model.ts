@@ -22,6 +22,8 @@ export interface Tarea {
   linked_id?: string | null;
   linked_params?: Record<string, unknown> | null;
   auto_completada?: boolean;
+  // AG16 — plan del día: etiqueta de brigada/cuadrilla.
+  brigada?: string | null;
   created_at: string;
 }
 

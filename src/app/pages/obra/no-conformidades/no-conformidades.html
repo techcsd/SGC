@@ -1,0 +1,368 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">No conformidades e incidentes</h1>
+    <span class="page-count">Calidad y seguridad en obra</span>
+  </div>
+  <div class="page-header__actions">
+    @if (tab() === 'nc') {
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreateNC()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Levantar NC
+      </button>
+    } @else {
+      <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreateInc()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Registrar incidente
+      </button>
+    }
+  </div>
+</div>
+
+<!-- ── KPIs ── -->
+<div class="kpi-row">
+  <div class="kpi-card"><span class="kpi-value">{{ kpiAbiertas() }}</span><span class="kpi-label">NC abiertas</span></div>
+  <div class="kpi-card kpi-card--danger"><span class="kpi-value">{{ kpiVencidas() }}</span><span class="kpi-label">Vencidas</span></div>
+  <div class="kpi-card kpi-card--success"><span class="kpi-value">{{ kpiCerradas() }}</span><span class="kpi-label">Cerradas</span></div>
+  <div class="kpi-card"><span class="kpi-value">{{ kpiTiempoCierre() ?? '—' }}<small>{{ kpiTiempoCierre() != null ? ' d' : '' }}</small></span><span class="kpi-label">Tiempo medio de cierre</span></div>
+  <div class="kpi-card kpi-card--warning"><span class="kpi-value">{{ kpiIncidentesAbiertos() }}</span><span class="kpi-label">Incidentes abiertos</span></div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar" role="tablist">
+  <button role="tab" [attr.aria-selected]="tab() === 'nc'" class="tab-btn" [class.tab-btn--active]="tab() === 'nc'" (click)="setTab('nc')">No conformidades</button>
+  <button role="tab" [attr.aria-selected]="tab() === 'incidentes'" class="tab-btn" [class.tab-btn--active]="tab() === 'incidentes'" (click)="setTab('incidentes')">Incidentes / casi-accidentes</button>
+</div>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__search">
+    <input type="search" placeholder="Buscar…" [value]="search()" (input)="search.set($any($event.target).value)" aria-label="Buscar" />
+  </div>
+  <div class="sgc-field filters-bar__select">
+    <select [value]="filtroProyecto()" (change)="filtroProyecto.set($any($event.target).value)" aria-label="Filtrar por obra">
+      <option value="all">Todas las obras</option>
+      @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+    </select>
+  </div>
+  @if (tab() === 'nc') {
+    <div class="sgc-field filters-bar__select">
+      <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)" aria-label="Filtrar por estado">
+        <option value="abiertas">Abiertas</option>
+        <option value="vencidas">Vencidas</option>
+        <option value="cerradas">Cerradas</option>
+        <option value="all">Todas</option>
+      </select>
+    </div>
+    <div class="sgc-field filters-bar__select">
+      <select [value]="filtroTipo()" (change)="filtroTipo.set($any($event.target).value)" aria-label="Filtrar por tipo">
+        <option value="all">Todos los tipos</option>
+        @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+      </select>
+    </div>
+  }
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<!-- ── NC table ── -->
+@if (tab() === 'nc') {
+  <div class="table-wrapper sgc-card">
+    @if (loading()) {
+      <app-skeleton variant="table" [rows]="8" />
+    } @else if (ncsFiltradas().length === 0) {
+      <div class="table-empty"><p>No hay no conformidades con los filtros aplicados.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="No conformidades">
+          <thead><tr><th>Tipo</th><th>Descripción</th><th>Obra</th><th>Ubicación</th><th>Severidad</th><th>Responsable</th><th>Estado</th><th class="text-center">Ver</th></tr></thead>
+          <tbody>
+            @for (nc of ncsFiltradas(); track nc.id) {
+              <tr [class.row-vencida]="ncVencida(nc)">
+                <td><span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(nc.tipo) }}</span></td>
+                <td><span class="nc-title">{{ nc.titulo || nc.descripcion }}</span></td>
+                <td>{{ nc.proyecto?.nombre ?? '—' }}</td>
+                <td>{{ nc.ubicacion || '—' }}</td>
+                <td><span [class]="sevBadge(nc.severidad)">{{ nc.severidad }}</span></td>
+                <td>{{ nc.responsable?.nombre ?? '—' }}</td>
+                <td>
+                  <span [class]="estadoBadge(nc.estado)">{{ estadoLabel(nc.estado) }}</span>
+                  @if (ncVencida(nc)) { <span class="sgc-badge sgc-badge--danger">Vencida</span> }
+                </td>
+                <td class="text-center">
+                  <button type="button" class="action-btn action-btn--view" (click)="openDetail(nc)" aria-label="Ver detalle" title="Ver detalle">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">{{ ncsFiltradas().length }} no conformidad{{ ncsFiltradas().length !== 1 ? 'es' : '' }}</div>
+    }
+  </div>
+}
+
+<!-- ── Incidentes table ── -->
+@if (tab() === 'incidentes') {
+  <div class="table-wrapper sgc-card">
+    @if (loading()) {
+      <app-skeleton variant="table" [rows]="8" />
+    } @else if (incidentesFiltrados().length === 0) {
+      <div class="table-empty"><p>No hay incidentes con los filtros aplicados.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Incidentes">
+          <thead><tr><th>Tipo</th><th>Descripción</th><th>Obra</th><th>Gravedad</th><th>Lesionados</th><th>Fecha</th><th>Estado</th><th class="text-center">Acción</th></tr></thead>
+          <tbody>
+            @for (it of incidentesFiltrados(); track it.id) {
+              <tr>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ incTipoLabel(it.tipo) }}</span></td>
+                <td><span class="nc-title">{{ it.descripcion }}</span></td>
+                <td>{{ it.proyecto?.nombre ?? '—' }}</td>
+                <td><span [class]="sevBadge(it.gravedad)">{{ it.gravedad }}</span></td>
+                <td class="text-center">{{ it.lesionados }}</td>
+                <td>{{ formatFecha(it.fecha) }}</td>
+                <td><span [class]="incEstadoBadge(it.estado)">{{ incEstadoLabel(it.estado) }}</span></td>
+                <td class="text-center">
+                  @if (it.estado !== 'cerrado') {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarIncidente(it)">Cerrar</button>
+                  } @else { <span class="text-muted">—</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footer">{{ incidentesFiltrados().length }} incidente{{ incidentesFiltrados().length !== 1 ? 's' : '' }}</div>
+    }
+  </div>
+}
+
+<!-- ── Crear NC drawer ── -->
+<app-form-drawer title="Levantar no conformidad" [open]="createNCOpen()" (closed)="createNCOpen.set(false)">
+  <form [formGroup]="ncForm" (ngSubmit)="saveNC()" novalidate class="drawer-form">
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="nc-proy">Obra <span class="required">*</span></label>
+        <select id="nc-proy" formControlName="proyecto_id" [class.invalid]="fNC.proyecto_id.invalid && fNC.proyecto_id.touched">
+          <option [value]="null">Selecciona…</option>
+          @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="nc-tipo">Tipo <span class="required">*</span></label>
+        <select id="nc-tipo" formControlName="tipo">
+          @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+        </select>
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="nc-titulo">Título</label>
+      <input id="nc-titulo" type="text" formControlName="titulo" placeholder="Resumen corto (opcional)" />
+    </div>
+    <div class="sgc-field">
+      <label for="nc-desc">Descripción <span class="required">*</span></label>
+      <textarea id="nc-desc" formControlName="descripcion" rows="3" placeholder="¿Qué se detectó?" [class.invalid]="fNC.descripcion.invalid && fNC.descripcion.touched"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="nc-sev">Severidad <span class="required">*</span></label>
+        <select id="nc-sev" formControlName="severidad">
+          @for (s of SEVERIDADES; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="nc-ubic">Ubicación / frente</label>
+        <input id="nc-ubic" type="text" formControlName="ubicacion" placeholder="Ej: Bloque B, eje 3, nivel 2" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="nc-resp">Responsable (opcional)</label>
+      <select id="nc-resp" formControlName="responsable_id">
+        <option [value]="null">Sin asignar</option>
+        @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
+      </select>
+    </div>
+    <label class="check-inline">
+      <input type="checkbox" formControlName="bloquea_vaciado" />
+      Bloquea el vaciado del elemento hasta cerrarse
+    </label>
+    <div class="sgc-field">
+      <label>Fotos</label>
+      <app-file-upload [files]="fotosNC()" [max]="10" (add)="onFotosNCAdd($event)" (removeAt)="onFotosNCRemove($event)" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="createNCOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Levantar NC }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Crear incidente drawer ── -->
+<app-form-drawer title="Registrar incidente / casi-accidente" [open]="createIncOpen()" (closed)="createIncOpen.set(false)">
+  <form [formGroup]="incForm" (ngSubmit)="saveInc()" novalidate class="drawer-form">
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="inc-proy">Obra <span class="required">*</span></label>
+        <select id="inc-proy" formControlName="proyecto_id" [class.invalid]="fInc.proyecto_id.invalid && fInc.proyecto_id.touched">
+          <option [value]="null">Selecciona…</option>
+          @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="inc-tipo">Tipo <span class="required">*</span></label>
+        <select id="inc-tipo" formControlName="tipo">
+          @for (t of INC_TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+        </select>
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="inc-desc">Descripción <span class="required">*</span></label>
+      <textarea id="inc-desc" formControlName="descripcion" rows="3" placeholder="¿Qué ocurrió?" [class.invalid]="fInc.descripcion.invalid && fInc.descripcion.touched"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="inc-grav">Gravedad <span class="required">*</span></label>
+        <select id="inc-grav" formControlName="gravedad">
+          @for (s of SEVERIDADES; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="inc-les">Lesionados</label>
+        <input id="inc-les" type="number" min="0" formControlName="lesionados" />
+      </div>
+      <div class="sgc-field">
+        <label for="inc-fecha">Fecha <span class="required">*</span></label>
+        <input id="inc-fecha" type="date" formControlName="fecha" />
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="inc-ubic">Ubicación / frente</label>
+      <input id="inc-ubic" type="text" formControlName="ubicacion" placeholder="Ej: Bloque B, eje 3" />
+    </div>
+    <div class="sgc-field">
+      <label for="inc-inv">Investigación / causa raíz</label>
+      <textarea id="inc-inv" formControlName="investigacion" rows="2" placeholder="Análisis (opcional)"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label>Fotos</label>
+      <app-file-upload [files]="fotosInc()" [max]="10" (add)="onFotosIncAdd($event)" (removeAt)="onFotosIncRemove($event)" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="createIncOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Registrar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detalle NC (timeline + acciones) ── -->
+<app-form-drawer title="No conformidad" [open]="detailOpen()" [wide]="true" (closed)="closeDetail()">
+  @if (detailNC(); as nc) {
+    <div class="nc-detail">
+      <div class="nc-detail__head">
+        <span [class]="estadoBadge(nc.estado)">{{ estadoLabel(nc.estado) }}</span>
+        <span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(nc.tipo) }}</span>
+        <span [class]="sevBadge(nc.severidad)">{{ nc.severidad }}</span>
+        @if (nc.bloquea_vaciado) { <span class="sgc-badge sgc-badge--warning">Bloquea vaciado</span> }
+      </div>
+      <h3 class="nc-detail__title">{{ nc.titulo || nc.descripcion }}</h3>
+      @if (nc.titulo) { <p class="nc-detail__desc">{{ nc.descripcion }}</p> }
+      <dl class="nc-detail__meta">
+        <div><dt>Obra</dt><dd>{{ nc.proyecto?.nombre ?? '—' }}</dd></div>
+        <div><dt>Ubicación</dt><dd>{{ nc.ubicacion || '—' }}</dd></div>
+        <div><dt>Responsable</dt><dd>{{ nc.responsable?.nombre ?? '—' }}</dd></div>
+        <div><dt>Detectada</dt><dd>{{ nc.fecha_deteccion ? formatFecha(nc.fecha_deteccion) : '—' }}</dd></div>
+      </dl>
+
+      @if (nc.fotos?.length) {
+        <div class="nc-detail__fotos">
+          @for (f of nc.fotos; track f) {
+            <button type="button" class="foto-thumb" (click)="verFoto(f)" aria-label="Ver foto">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Timeline / acciones correctivas -->
+      <div class="nc-actions-head">
+        <h4>Acciones correctivas</h4>
+        @if (nc.estado !== 'cerrada') {
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="openAssign()">+ Asignar acción</button>
+        }
+      </div>
+
+      @if (detailAcciones().length === 0) {
+        <p class="text-muted nc-empty">Aún no hay acciones correctivas.</p>
+      } @else {
+        <ul class="timeline">
+          @for (a of detailAcciones(); track a.id) {
+            <li class="timeline__item" [class.timeline__item--done]="a.estado !== 'abierta'">
+              <div class="timeline__dot"></div>
+              <div class="timeline__body">
+                <p class="timeline__desc">{{ a.descripcion }}</p>
+                <div class="timeline__meta">
+                  <span>Resp.: {{ a.responsable?.nombre ?? '—' }}</span>
+                  @if (a.fecha_compromiso) { <span>Vence: {{ formatFecha(a.fecha_compromiso) }}</span> }
+                  <span class="sgc-badge sgc-badge--{{ a.estado === 'abierta' ? 'warning' : (a.estado === 'verificada' ? 'success' : 'info') }}">{{ a.estado }}</span>
+                </div>
+                @if (a.estado === 'abierta') {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarHecha(a)">Marcar hecha</button>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (nc.estado !== 'cerrada') {
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="verificarCerrar()">
+            Verificar y cerrar NC
+          </button>
+        </div>
+      } @else {
+        <p class="nc-closed">✓ Cerrada el {{ nc.cerrada_en ? formatFecha(nc.cerrada_en) : '' }}</p>
+      }
+    </div>
+  }
+</app-form-drawer>
+
+<!-- ── Asignar acción drawer ── -->
+<app-form-drawer title="Asignar acción correctiva" [open]="assignOpen()" (closed)="assignOpen.set(false)">
+  <form [formGroup]="assignForm" (ngSubmit)="saveAssign()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="ac-desc">Acción <span class="required">*</span></label>
+      <textarea id="ac-desc" formControlName="descripcion" rows="3" placeholder="¿Qué se debe corregir?" [class.invalid]="fAsg.descripcion.invalid && fAsg.descripcion.touched"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="ac-resp">Responsable</label>
+        <select id="ac-resp" formControlName="responsable_id">
+          <option [value]="null">Sin asignar</option>
+          @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="ac-fecha">Fecha compromiso</label>
+        <input id="ac-fecha" type="date" formControlName="fecha_compromiso" />
+      </div>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="assignOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Asignar }
+      </button>
+    </div>
+  </form>
+</app-form-drawer>
+
+@if (lightbox(); as url) {
+  <app-lightbox [src]="url" alt="Foto de obra" (closed)="lightbox.set(null)" />
+}

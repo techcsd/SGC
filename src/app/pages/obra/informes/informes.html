@@ -1,0 +1,132 @@
+<!-- ── Page header ── -->
+<div class="page-header no-print">
+  <div class="page-header__left">
+    <h1 class="page-title">Informe semanal de obra</h1>
+    <span class="page-count">Auto-compilado del sistema + notas del gerente</span>
+  </div>
+</div>
+
+<!-- ── Generar ── -->
+<div class="filters-bar no-print">
+  <div class="sgc-field filters-bar__select">
+    <select [value]="proyectoId()" (change)="onProyectoChange($any($event.target).value)" aria-label="Obra">
+      @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+    </select>
+  </div>
+  <div class="sgc-field"><label class="sr-only" for="in-ini">Desde</label><input id="in-ini" type="date" [value]="periodoInicio()" (change)="periodoInicio.set($any($event.target).value)" /></div>
+  <div class="sgc-field"><label class="sr-only" for="in-fin">Hasta</label><input id="in-fin" type="date" [value]="periodoFin()" (change)="periodoFin.set($any($event.target).value)" /></div>
+  <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="generando()" (click)="generar()">
+    @if (generando()) { <span class="spinner" aria-hidden="true"></span> Generando… } @else { Generar informe }
+  </button>
+</div>
+
+@if (loadingInit()) {
+  <app-skeleton variant="table" [rows]="5" />
+}
+
+<!-- ── Informe (preview imprimible) ── -->
+@if (informe(); as inf) {
+  <div class="print-area">
+    <div class="informe sgc-card">
+      <div class="informe__head">
+        <div>
+          <h2>Informe semanal · {{ inf.proyecto?.nombre ?? 'Obra' }}</h2>
+          <p class="informe__periodo">Período: {{ inf.periodo_inicio ? formatFecha(inf.periodo_inicio) : '' }} – {{ inf.periodo_fin ? formatFecha(inf.periodo_fin) : '' }}</p>
+        </div>
+        <span class="sgc-badge" [class.sgc-badge--success]="inf.estado === 'enviado'" [class.sgc-badge--neutral]="inf.estado !== 'enviado'">{{ inf.estado === 'enviado' ? 'Enviado' : 'Borrador' }}</span>
+      </div>
+
+      <!-- KPIs auto -->
+      <div class="informe__kpis">
+        <div class="ikpi"><span>{{ sec().avance_real_pct ?? 0 }}%</span><small>Avance real</small></div>
+        <div class="ikpi"><span>{{ sec().avance_plan_pct ?? 0 }}%</span><small>Avance plan</small></div>
+        <div class="ikpi"><span>{{ sec().nc_abiertas ?? 0 }}</span><small>NC abiertas</small></div>
+        <div class="ikpi"><span>{{ sec().nc_cerradas ?? 0 }}</span><small>NC cerradas</small></div>
+        <div class="ikpi"><span>{{ (sec().horas_hombre ?? 0) | number:'1.0-0' }}</span><small>Horas-hombre</small></div>
+        <div class="ikpi"><span>{{ sec().pedidos_pendientes ?? 0 }}</span><small>Pedidos pend.</small></div>
+        <div class="ikpi"><span>{{ sec().bitacoras ?? 0 }}</span><small>Bitácoras</small></div>
+        <div class="ikpi"><span>{{ sec().pruebas_campo ?? 0 }}</span><small>Pruebas campo</small></div>
+      </div>
+
+      <!-- NC críticas -->
+      @if (sec().nc_criticas?.length) {
+        <section class="informe__sec">
+          <h3>No conformidades críticas abiertas</h3>
+          <ul>@for (n of sec().nc_criticas; track $index) { <li>{{ n.titulo }} <span class="sgc-badge sgc-badge--danger">{{ n.severidad }}</span></li> }</ul>
+        </section>
+      }
+
+      <!-- Incidentes -->
+      @if (sec().incidentes?.length) {
+        <section class="informe__sec">
+          <h3>Incidentes del período</h3>
+          <ul>@for (i of sec().incidentes; track $index) { <li>{{ formatFecha(i.fecha) }} · {{ i.tipo }} ({{ i.gravedad }}) — {{ i.descripcion }}</li> }</ul>
+        </section>
+      }
+
+      <!-- Campos manuales (edición) -->
+      <form [formGroup]="manualForm" class="informe__manual no-print">
+        <div class="sgc-field"><label for="im-res">Resumen del gerente</label><textarea id="im-res" rows="3" formControlName="resumen" [readonly]="!esBorrador()"></textarea></div>
+        <div class="sgc-field"><label for="im-prob">Problemas críticos</label><textarea id="im-prob" rows="2" formControlName="problemas_criticos" [readonly]="!esBorrador()"></textarea></div>
+        <div class="form-row">
+          <div class="sgc-field"><label for="im-dec">Decisiones</label><textarea id="im-dec" rows="2" formControlName="decisiones" [readonly]="!esBorrador()"></textarea></div>
+          <div class="sgc-field"><label for="im-nec">Necesidades</label><textarea id="im-nec" rows="2" formControlName="necesidades" [readonly]="!esBorrador()"></textarea></div>
+        </div>
+      </form>
+
+      <!-- Versión imprimible de los campos manuales -->
+      <div class="informe__manual-print print-only">
+        @if (fM.resumen.value) { <section class="informe__sec"><h3>Resumen del gerente</h3><p>{{ fM.resumen.value }}</p></section> }
+        @if (fM.problemas_criticos.value) { <section class="informe__sec"><h3>Problemas críticos</h3><p>{{ fM.problemas_criticos.value }}</p></section> }
+        @if (fM.decisiones.value) { <section class="informe__sec"><h3>Decisiones</h3><p>{{ fM.decisiones.value }}</p></section> }
+        @if (fM.necesidades.value) { <section class="informe__sec"><h3>Necesidades</h3><p>{{ fM.necesidades.value }}</p></section> }
+      </div>
+
+      <!-- Fotos -->
+      @if (fotosUrls().length) {
+        <section class="informe__sec">
+          <h3>Fotos de la semana</h3>
+          <div class="informe__fotos">
+            @for (u of fotosUrls(); track u) { <img [src]="u" alt="Foto de obra" loading="lazy" /> }
+          </div>
+        </section>
+      }
+    </div>
+
+    <!-- Acciones -->
+    <div class="informe-actions no-print">
+      @if (esBorrador() && puedeOperar()) {
+        <button class="sgc-btn sgc-btn--secondary" type="button" [disabled]="saving()" (click)="guardar()">Guardar</button>
+        <button class="sgc-btn sgc-btn--primary" type="button" [disabled]="saving()" (click)="enviar()">Enviar a Gerencia</button>
+      }
+      <button class="sgc-btn sgc-btn--secondary" type="button" (click)="imprimir()">Descargar / Imprimir PDF</button>
+    </div>
+  </div>
+}
+
+<!-- ── Historial ── -->
+@if (!loadingInit()) {
+  <div class="table-wrapper sgc-card no-print historial">
+    <h3 class="tbl-title">Historial de informes</h3>
+    @if (historial().length === 0) {
+      <div class="table-empty"><p>Aún no hay informes de esta obra.</p></div>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Período</th><th>Avance</th><th>Estado</th><th>Enviado</th><th class="text-center">Abrir</th></tr></thead>
+          <tbody>
+            @for (h of historial(); track h.id) {
+              <tr>
+                <td>{{ h.periodo_inicio ? formatFecha(h.periodo_inicio) : '' }} – {{ h.periodo_fin ? formatFecha(h.periodo_fin) : '' }}</td>
+                <td>{{ h.avance_pct ?? 0 }}%</td>
+                <td><span class="sgc-badge" [class.sgc-badge--success]="h.estado === 'enviado'" [class.sgc-badge--neutral]="h.estado !== 'enviado'">{{ h.estado }}</span></td>
+                <td>{{ h.enviado_en ? formatFecha(h.enviado_en) : '—' }}</td>
+                <td class="text-center"><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirInforme(h.id)">Abrir</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

@@ -54,6 +54,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'plantillas', label: 'Plantillas (crear/editar)', desc: 'Crear y editar las plantillas de documentos, no solo usarlas.' },
   { key: 'legal', label: 'Legal', desc: 'Expedientes legales, contratos y aprobaciones (rol jurídico).' },
   { key: 'tareas', label: 'Tareas (asignar)', desc: 'Asignar y dar seguimiento a tareas de otros. Todo usuario ya tiene "Mis tareas" sin este módulo.' },
+  { key: 'obra', label: 'Producción de Obra', desc: 'Gestión de producción en obra: plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real e informe semanal. Rol gerente de producción / capataz.' },
   { key: 'tecnologia', label: 'Tecnología', desc: 'Inventario tecnológico, equipos y herramientas de TI y matriz tecnológica.' },
   { key: 'direccion', label: 'Dirección (vista ejecutiva)', desc: 'Vista ejecutiva: KPIs y dashboards consolidados de dirección.', sensible: true },
   { key: 'admin', label: 'Administración', desc: 'Usuarios, roles y permisos, versiones de la app, auditoría y reportes. Acceso máximo — asignar con cuidado.', sensible: true },
@@ -98,6 +99,16 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'proyectos.obras', label: 'Obras' },
     { key: 'proyectos.cronograma', label: 'Cronograma' },
     { key: 'proyectos.ranking', label: 'Ranking de encargados' },
+  ],
+  // AG16 — Gestión de Producción de Obra. `obra.no_conformidades` ya se gatea
+  // end-to-end (menú + ruta + RLS); el resto se irá gateando por fase.
+  obra: [
+    { key: 'obra.plan_dia', label: 'Plan del día y charla de seguridad' },
+    { key: 'obra.no_conformidades', label: 'No conformidades e incidentes', enforced: true },
+    { key: 'obra.checklists', label: 'Checklists de calidad' },
+    { key: 'obra.subcontratistas', label: 'Subcontratistas y cubicaciones' },
+    { key: 'obra.avance', label: 'Avance, costos y logística' },
+    { key: 'obra.informes', label: 'Informe semanal' },
   ],
 };
 

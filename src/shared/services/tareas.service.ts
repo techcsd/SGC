@@ -57,6 +57,8 @@ export class TareasService {
     linkedTipo?: TareaLinkedTipo | null;
     linkedId?: string | null;
     linkedParams?: Record<string, unknown> | null;
+    // AG16 — plan del día: etiqueta de brigada/cuadrilla (opcional).
+    brigada?: string | null;
   }): Promise<Tarea> {
     const { data, error } = await this.supabase.client
       .from('tareas')
@@ -71,6 +73,7 @@ export class TareasService {
         linked_tipo: payload.linkedTipo ?? null,
         linked_id: payload.linkedId ?? null,
         linked_params: payload.linkedParams ?? {},
+        brigada: payload.brigada ?? null,
       })
       .select(TAREA_SELECT)
       .single();

@@ -73,8 +73,14 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 4. **Backlog de limpieza RLS (no bloqueante)** — se observan políticas duplicadas/heredadas en varias tablas: dos capas de SELECT que mezclan `sgc.is_admin()`/`tiene_modulo()` (nuevas) con `'admin' = ANY(sgc.get_user_roles())` (viejas) en `usuarios`, `usuarios_roles`, `roles`, `salidas_inventario`, `entradas_inventario`, `detalle_*`. Funcionan (OR permisivo) pero convendría consolidar en un solo juego de políticas por tabla. Documentado para una futura ronda de higiene de RLS.
 
 ## 6. Checklist para agregar un módulo nuevo (recordatorio)
-1. `MODULOS_DISPONIBLES` en `roles.service.ts`.
-2. `moduleGuard('<mod>')` en las rutas.
-3. Entrada en `shell.ts` (nav) con gating.
+1. `MODULOS_DISPONIBLES` en `roles.service.ts` (+ `SUBMODULOS[<mod>]` si aplica AG12).
+2. `moduleGuard('<mod>')` (o `submoduloGuard('<mod>.<sub>')`) en las rutas.
+3. Entrada en `shell.ts` (nav) con gating (`modulo` y/o `submodulos`).
 4. `array_append` del módulo al rol `admin` (gotcha recurrente).
-5. Espejo del predicado en RLS si aplica.
+5. Espejo del predicado en RLS si aplica (`tiene_modulo`/`puede_ver/operar_submodulo`).
+
+## 7. AG16 — Producción de Obra (06/08/2026)
+- **Módulo nuevo `obra`** (Gestión de Producción de Obra) con submódulos AG12: `obra.plan_dia`, `obra.no_conformidades` (enforced), `obra.checklists`, `obra.subcontratistas`, `obra.avance`, `obra.informes`. Añadido a `admin`.
+- **Rol `gerente_produccion`** (Gerente de Producción de Obra) — módulos `obra`, `bitacora`, `proyectos`. Protagonista del workstream.
+- **Rol `capataz`** — SIN módulo padre; permisos granulares `obra.plan_dia`/`obra.no_conformidades`/`obra.checklists` = operar. Campo.
+- Ruta `/obra` sin `moduleGuard` en el parent; hijos con `submoduloGuard` (patrón Compras/AF32).

@@ -1,0 +1,46 @@
+// AG16 · Avance, costos y logística — estilos locales.
+.tabs-bar { display: flex; gap: 4px; border-bottom: 1px solid var(--sgc-border); margin-bottom: 14px; }
+.tab-btn {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  padding: 10px 16px; font-size: 0.9rem; font-weight: 600; color: var(--sgc-text-secondary); cursor: pointer;
+  &:hover { color: var(--sgc-text); }
+  &--active { color: var(--sgc-primary); border-bottom-color: var(--sgc-primary); }
+}
+.sgc-btn--sm { padding: 4px 10px; font-size: 0.8rem; }
+.tbl-title { margin: 0 0 10px; font-size: 0.95rem; }
+.text-right { text-align: right; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi-card {
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border); border-left: 3px solid var(--sgc-primary-mid);
+  border-radius: var(--sgc-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--sgc-shadow-sm);
+  &--danger { border-left-color: var(--sgc-danger); }
+  &--success { border-left-color: var(--sgc-success); }
+  &--warning { border-left-color: var(--sgc-warning); }
+  .kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--sgc-text); small { font-size: 0.9rem; font-weight: 500; color: var(--sgc-text-secondary); } }
+  .kpi-label { font-size: 0.8rem; color: var(--sgc-text-secondary); }
+}
+
+// Curva-S
+.curva-card { padding: 16px; margin-bottom: 16px; }
+.curva-card__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; h3 { margin: 0; font-size: 1rem; } }
+.curva-legend { display: flex; gap: 12px; font-size: 0.78rem; }
+.lg { display: inline-flex; align-items: center; gap: 5px; color: var(--sgc-text-secondary);
+  &::before { content: ''; width: 12px; height: 3px; border-radius: 2px; }
+  &--plan::before { background: var(--sgc-text-muted); }
+  &--real::before { background: var(--sgc-primary); }
+}
+.curva-svg { width: 100%; height: 180px; display: block; overflow: visible; }
+.axis { stroke: var(--sgc-border); stroke-width: 1; }
+.line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.line--plan { stroke: var(--sgc-text-muted); stroke-dasharray: 5 4; }
+.line--real { stroke: var(--sgc-primary); }
+.curva-empty { font-size: 0.88rem; margin: 8px 0; }
+
+.tareas-head { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 10px; h3 { margin: 0; font-size: 1rem; } }
+
+.avance-cell { display: flex; align-items: center; gap: 8px; input { width: 60px; } }
+.avance-bar {
+  flex: 1; height: 8px; background: var(--sgc-bg); border-radius: 4px; overflow: hidden; min-width: 50px;
+  span { display: block; height: 100%; background: var(--sgc-primary-mid); border-radius: 4px; }
+}

@@ -1,0 +1,201 @@
+<!-- ── Page header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Checklists de calidad</h1>
+    <span class="page-count">Inspecciones por actividad · replanteo, encofrado, acero, hormigonado</span>
+  </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="tabs-bar" role="tablist">
+  <button role="tab" [attr.aria-selected]="tab() === 'ejecutar'" class="tab-btn" [class.tab-btn--active]="tab() === 'ejecutar'" (click)="setTab('ejecutar')">Ejecutar</button>
+  <button role="tab" [attr.aria-selected]="tab() === 'plantillas'" class="tab-btn" [class.tab-btn--active]="tab() === 'plantillas'" (click)="setTab('plantillas')">Plantillas</button>
+</div>
+
+@if (loadingInit()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else {
+
+  <!-- ═══ Ejecutar ═══ -->
+  @if (tab() === 'ejecutar') {
+    <div class="sgc-card ejecutar-card">
+      <div class="form-row">
+        <div class="sgc-field">
+          <label for="ck-proy">Obra</label>
+          <select id="ck-proy" [value]="proyectoId()" (change)="proyectoId.set($any($event.target).value)">
+            @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+          </select>
+        </div>
+        <div class="sgc-field">
+          <label for="ck-plant">Checklist</label>
+          <select id="ck-plant" [value]="plantillaId()" (change)="onPlantillaChange($any($event.target).value)">
+            <option [value]="''">Selecciona una plantilla…</option>
+            @for (pl of plantillas(); track pl.id) { <option [value]="pl.id">{{ pl.nombre }}</option> }
+          </select>
+        </div>
+      </div>
+
+      @if (items().length > 0) {
+        <div class="checklist-items">
+          @for (it of items(); track it.id) {
+            <div class="checklist-item">
+              <div class="checklist-item__label">
+                @if (it.seccion) { <span class="checklist-item__sec">{{ it.seccion }}</span> }
+                <span>{{ it.etiqueta }}</span>
+              </div>
+              <div class="checklist-item__opts">
+                <button type="button" class="opt opt--ok" [class.opt--active]="respuestas()[it.id].cumple === 'ok'" (click)="setCumple(it.id, 'ok')">Cumple</button>
+                <button type="button" class="opt opt--no" [class.opt--active]="respuestas()[it.id].cumple === 'no'" (click)="setCumple(it.id, 'no')">No cumple</button>
+                <button type="button" class="opt opt--na" [class.opt--active]="respuestas()[it.id].cumple === 'na'" (click)="setCumple(it.id, 'na')">N/A</button>
+              </div>
+              @if (respuestas()[it.id].cumple === 'no') {
+                <input type="text" class="checklist-item__coment" placeholder="Comentario del hallazgo…" [value]="respuestas()[it.id].comentario" (input)="setComentario(it.id, $any($event.target).value)" />
+              }
+            </div>
+          }
+        </div>
+
+        <div class="sgc-field">
+          <label for="ck-obs">Observaciones generales</label>
+          <textarea id="ck-obs" rows="2" [value]="observaciones()" (input)="observaciones.set($any($event.target).value)"></textarea>
+        </div>
+        <div class="sgc-field">
+          <label>Fotos</label>
+          <app-file-upload [files]="fotos()" [max]="10" (add)="onFotosAdd($event)" (removeAt)="onFotosRemove($event)" />
+        </div>
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardarChecklist()">
+            @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Registrar checklist }
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Hallazgos → NC -->
+    @if (hallazgos().length > 0) {
+      <div class="sgc-card hallazgos-card">
+        <h3>Hallazgos detectados</h3>
+        <p class="text-muted">Puedes levantar una no conformidad por cada hallazgo.</p>
+        <ul class="hallazgos-list">
+          @for (h of hallazgos(); track h.etiqueta) {
+            <li>
+              <span class="hallazgo-txt">{{ h.etiqueta }}@if (h.comentario) { <em> — {{ h.comentario }}</em> }</span>
+              @if (h.ncCreada) {
+                <span class="sgc-badge sgc-badge--success">NC creada ✓</span>
+              } @else {
+                <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="levantarNCDeHallazgo(h, plantillaNombre(plantillaId()))">Levantar NC</button>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Ejecutados recientes -->
+    <div class="table-wrapper sgc-card">
+      <h3 class="tbl-title">Checklists recientes</h3>
+      @if (ejecutados().length === 0) {
+        <div class="table-empty"><p>Aún no hay checklists de calidad ejecutados.</p></div>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Checklist</th><th>Obra</th><th>Fecha</th><th>Estado</th></tr></thead>
+            <tbody>
+              @for (r of ejecutados(); track r.id) {
+                <tr>
+                  <td>{{ r.plantilla?.nombre ?? '—' }}</td>
+                  <td>{{ r.proyecto?.nombre ?? '—' }}</td>
+                  <td>{{ r.created_at ? formatFecha(r.created_at) : '—' }}</td>
+                  <td><span class="sgc-badge sgc-badge--success">{{ r.estado }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ Plantillas ═══ -->
+  @if (tab() === 'plantillas') {
+    <div class="plantillas-head">
+      <p class="text-muted">Plantillas editables de checklist de calidad por actividad.</p>
+      @if (puedeOperar()) {
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="openNuevaPlantilla()">+ Nueva plantilla</button>
+      }
+    </div>
+    <div class="plantillas-grid">
+      @for (p of plantillas(); track p.id) {
+        <button type="button" class="sgc-card plantilla-card" (click)="openEditor(p)">
+          <span class="plantilla-card__cod">{{ p.codigo }}</span>
+          <span class="plantilla-card__nom">{{ p.nombre }}</span>
+          @if (p.fase) { <span class="plantilla-card__fase">{{ p.fase }}</span> }
+        </button>
+      }
+    </div>
+  }
+}
+
+<!-- ── Editor de plantilla drawer ── -->
+<app-form-drawer [title]="editorPlantilla()?.nombre ?? 'Plantilla'" [open]="!!editorPlantilla()" (closed)="closeEditor()">
+  @if (editorPlantilla(); as p) {
+    <div class="editor">
+      <div class="editor__head">
+        <span class="sgc-badge sgc-badge--neutral">{{ p.codigo }}</span>
+        @if (puedeOperar()) {
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="openNuevoItem()">+ Ítem</button>
+        }
+      </div>
+      @if (editorItems().length === 0) {
+        <p class="text-muted">Sin ítems todavía.</p>
+      } @else {
+        <ul class="editor-items">
+          @for (it of editorItems(); track it.id) {
+            <li>
+              <span>@if (it.seccion) { <em>{{ it.seccion }} · </em> }{{ it.etiqueta }}</span>
+              @if (puedeOperar()) {
+                <button type="button" class="action-btn action-btn--danger" (click)="eliminarItem(it)" aria-label="Eliminar ítem" title="Eliminar">✕</button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</app-form-drawer>
+
+<!-- ── Nueva plantilla drawer ── -->
+<app-form-drawer title="Nueva plantilla de calidad" [open]="nuevaPlantillaOpen()" (closed)="nuevaPlantillaOpen.set(false)">
+  <form [formGroup]="nuevaPlantillaForm" (ngSubmit)="saveNuevaPlantilla()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="np-nom">Nombre <span class="required">*</span></label>
+      <input id="np-nom" type="text" formControlName="nombre" placeholder="Ej: Impermeabilización de losa" [class.invalid]="fP.nombre.invalid && fP.nombre.touched" />
+    </div>
+    <div class="sgc-field">
+      <label for="np-fase">Actividad / fase</label>
+      <input id="np-fase" type="text" formControlName="fase" placeholder="Ej: acabados" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="nuevaPlantillaOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Crear</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Nuevo ítem drawer ── -->
+<app-form-drawer title="Nuevo ítem" [open]="nuevoItemOpen()" (closed)="nuevoItemOpen.set(false)">
+  <form [formGroup]="nuevoItemForm" (ngSubmit)="saveNuevoItem()" novalidate class="drawer-form">
+    <div class="sgc-field">
+      <label for="ni-sec">Sección</label>
+      <input id="ni-sec" type="text" formControlName="seccion" placeholder="Ej: Encofrado" />
+    </div>
+    <div class="sgc-field">
+      <label for="ni-et">Ítem a verificar <span class="required">*</span></label>
+      <input id="ni-et" type="text" formControlName="etiqueta" placeholder="Ej: Plomo y alineación" [class.invalid]="fI.etiqueta.invalid && fI.etiqueta.touched" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="nuevoItemOpen.set(false)">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">Agregar</button>
+    </div>
+  </form>
+</app-form-drawer>
