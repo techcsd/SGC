@@ -42,7 +42,7 @@ export interface ChecklistPlantilla {
 
 /** U8 — etiqueta legible de la frecuencia de una plantilla. */
 export function frecuenciaLabel(frecuencia: string | null | undefined): string {
-  return frecuencia === 'semanal' ? 'Reporte semanal' : 'Pre-uso';
+  return frecuencia === 'semanal' ? 'Inspección vehículo' : 'Uso de vehículo';
 }
 
 export interface ChecklistRespuesta {
@@ -199,7 +199,7 @@ export function slotLabel(slot: string | null | undefined): string {
 }
 
 export const CHECKLIST_TIPOS: { value: ChecklistTipo; label: string }[] = [
-  { value: 'pre_uso', label: 'Pre-uso' },
+  { value: 'pre_uso', label: 'Uso de vehículo' },
   { value: 'inspeccion', label: 'Inspección de seguridad' },
 ];
 

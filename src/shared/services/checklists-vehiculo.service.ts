@@ -110,9 +110,9 @@ export class ChecklistsVehiculoService {
   async notificarEvento(c: ChecklistVehiculo): Promise<void> {
     const eventos: { tipo: string; titulo: string; detalle: string }[] = [];
     if (c.resultado === 'bloqueado') {
-      eventos.push({ tipo: 'bloqueo_critico', titulo: 'Vehículo bloqueado en pre-uso', detalle: 'Falló un ítem crítico del checklist. El vehículo queda fuera de servicio hasta corrección.' });
+      eventos.push({ tipo: 'bloqueo_critico', titulo: 'Vehículo bloqueado en uso de vehículo', detalle: 'Falló un ítem crítico del checklist. El vehículo queda fuera de servicio hasta corrección.' });
     } else if (c.resultado === 'con_hallazgos') {
-      eventos.push({ tipo: 'hallazgos', titulo: 'Pre-uso con hallazgos', detalle: 'El vehículo salió con hallazgos no críticos. Coordinar corrección.' });
+      eventos.push({ tipo: 'hallazgos', titulo: 'Uso de vehículo con hallazgos', detalle: 'El vehículo salió con hallazgos no críticos. Coordinar corrección.' });
     }
     if (c.alerta_mantenimiento === 'vencido') {
       eventos.push({ tipo: 'mantenimiento_vencido', titulo: 'Mantenimiento vencido', detalle: 'El vehículo superó su intervalo de mantenimiento.' });

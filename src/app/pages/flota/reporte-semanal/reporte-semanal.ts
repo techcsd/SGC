@@ -120,7 +120,7 @@ export class ReporteSemanal implements OnInit {
     try {
       this.filas.set(await this.reporteService.getCumplimiento());
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar el reporte semanal.');
+      this.error.set(e instanceof Error ? e.message : 'Error al cargar la inspección de vehículo.');
     } finally {
       this.loading.set(false);
     }
@@ -137,7 +137,7 @@ export class ReporteSemanal implements OnInit {
     try {
       const nuevos = await this.reporteService.generarAvisosFaltantes(faltantes);
       if (nuevos > 0) {
-        this.toast.info('Reporte semanal', `Se generaron ${nuevos} avisos de reporte pendiente.`);
+        this.toast.info('Inspección vehículo', `Se generaron ${nuevos} avisos de reporte pendiente.`);
       }
     } catch {
       /* nunca bloquea la página si falla la generación de avisos */

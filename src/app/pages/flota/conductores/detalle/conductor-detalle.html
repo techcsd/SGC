@@ -84,39 +84,64 @@
     <app-documentos-flota entidad="conductor" [entidadId]="conductor()!.id" [autoAbrir]="docAuto" />
   </section>
 
-  <!-- ── 3. Stats ── -->
-  @if (stats()) {
+  <!-- ── 3. Stats por periodo (AI10/AI11) — cards homologadas + filtro ── -->
+  <div class="cd-stats-head">
+    <h2 class="cd-stats-title">Actividad</h2>
+    <select class="sgc-select cd-periodo" [value]="periodo()" (change)="onPeriodo($any($event.target).value)"
+      aria-label="Periodo de actividad">
+      @for (op of PERIODO_OPCIONES; track op.value) {
+        <option [value]="op.value">{{ op.label }}</option>
+      }
+    </select>
+  </div>
+  @if (statsPeriodo(); as sp) {
     <div class="stat-grid">
-      <div class="stat-card" [class.stat-card--danger]="stats()!.checklists_bloqueos > 0">
-        <span class="stat-card__label">Checklists</span>
-        <span class="stat-card__value">{{ stats()!.checklists_total | number: '1.0-0' }}</span>
-        @if (stats()!.checklists_bloqueos > 0) {
-          <span class="stat-card__hint cd-danger">{{ stats()!.checklists_bloqueos | number: '1.0-0' }} bloqueos</span>
+      <div class="stat-card">
+        <span class="stat-card__label">Rutas completadas</span>
+        <span class="stat-card__value">{{ sp.rutas_completadas | number: '1.0-0' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Conduces realizados</span>
+        <span class="stat-card__value">{{ sp.conduces_realizados | number: '1.0-0' }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Galones consumidos</span>
+        <span class="stat-card__value">{{ sp.galones | number: '1.0-2' }}</span>
+        <span class="stat-card__hint">{{ sp.km | number: '1.0-0' }} km</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__label">Inspecciones</span>
+        <span class="stat-card__value">{{ sp.inspecciones | number: '1.0-0' }}</span>
+        @if (sp.pre_usos > 0) {
+          <span class="stat-card__hint">{{ sp.pre_usos | number: '1.0-0' }} usos de vehículo</span>
         }
       </div>
-      <div class="stat-card">
-        <span class="stat-card__label">Echadas de combustible</span>
-        <span class="stat-card__value">{{ stats()!.combustible_echadas | number: '1.0-0' }}</span>
+      <div class="stat-card" [class.stat-card--danger]="sp.multas > 0">
+        <span class="stat-card__label">Multas</span>
+        <span class="stat-card__value">{{ sp.multas | number: '1.0-0' }}</span>
       </div>
       <div class="stat-card">
-        <span class="stat-card__label">Vehículos usados</span>
-        <span class="stat-card__value">{{ stats()!.vehiculos_usados | number: '1.0-0' }}</span>
+        <span class="stat-card__label">Documentos</span>
+        <span class="stat-card__value">{{ (sp.documentos?.total ?? 0) | number: '1.0-0' }}</span>
+        @if (stats()) {
+          <span class="stat-card__hint">Última actividad: {{ formatFecha(stats()!.ultima_actividad) }}</span>
+        }
       </div>
-      <div class="stat-card">
-        <span class="stat-card__label">Última actividad</span>
-        <span class="stat-card__value cd-fecha-value">{{ formatFecha(stats()!.ultima_actividad) }}</span>
-      </div>
+    </div>
+  } @else if (statsPeriodoLoading()) {
+    <div class="stat-grid">
+      @for (i of [1,2,3,4,5,6]; track i) { <div class="stat-card stat-card--skeleton"></div> }
     </div>
   }
 
   <!-- ── 4a. Pre-usos ── -->
   <section class="sgc-card cd-section">
-    <h2 class="cd-section__title">Pre-usos</h2>
+    <h2 class="cd-section__title">Usos de vehículo</h2>
     @if (histPreuso().length === 0) {
-      <p class="cd-muted">Sin pre-usos registrados.</p>
+      <p class="cd-muted">Sin usos de vehículo registrados.</p>
     } @else {
       <div class="table-scroll">
-        <table class="data-table" aria-label="Pre-usos del conductor">
+        <table class="data-table" aria-label="Usos de vehículo del conductor">
           <thead>
             <tr><th>Fecha</th><th>Vehículo</th><th>Resultado</th><th class="text-right">Km</th></tr>
           </thead>

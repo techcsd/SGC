@@ -149,6 +149,20 @@
         </button>
       }
 
+      <!-- AI13 · Evidencia de la novedad reportada por el chofer -->
+      @if (fotoUrls().length) {
+        <div class="av-fotos">
+          <span class="av-fotos__label">Evidencia</span>
+          <div class="av-fotos__grid">
+            @for (u of fotoUrls(); track u) {
+              <button type="button" class="av-fotos__thumb" (click)="lightboxUrl.set(u)" title="Ver en grande">
+                <img [src]="u" alt="Evidencia de la novedad" loading="lazy" />
+              </button>
+            }
+          </div>
+        </div>
+      }
+
       @if (a.estado === 'pendiente') {
         <div class="sgc-field">
           <label for="nota">Nota de atención</label>
@@ -176,3 +190,8 @@
     </div>
   }
 </app-form-drawer>
+
+<!-- AI13 · Lightbox de la evidencia de novedades -->
+@if (lightboxUrl(); as url) {
+  <app-lightbox [src]="url" alt="Evidencia de la novedad" (closed)="lightboxUrl.set(null)" />
+}

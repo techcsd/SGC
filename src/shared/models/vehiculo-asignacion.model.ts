@@ -57,6 +57,31 @@ export interface ConductorStats {
   es_prueba?: boolean;
 }
 
+// AI10/AI11 — stats del conductor por periodo (RPC stats_conductor_periodo).
+export type ConductorStatsPeriodoValor = 'mes' | '3m' | '6m' | '1a' | 'total';
+
+export interface ConductorStatsPeriodo {
+  conductor_id: string;
+  periodo: ConductorStatsPeriodoValor;
+  desde: string | null;
+  rutas_completadas: number;
+  conduces_realizados: number;
+  galones: number;
+  km: number;
+  inspecciones: number;
+  pre_usos: number;
+  multas: number;
+  documentos: { tiene_cedula: boolean; tiene_licencia: boolean; total: number } | null;
+}
+
+export const CONDUCTOR_PERIODO_OPCIONES: { value: ConductorStatsPeriodoValor; label: string }[] = [
+  { value: 'total', label: 'Global' },
+  { value: 'mes', label: 'Este mes' },
+  { value: '3m', label: '3 meses' },
+  { value: '6m', label: '6 meses' },
+  { value: '1a', label: '1 año' },
+];
+
 export const ESTADO_LICENCIA_LABEL: Record<EstadoLicencia, string> = {
   vigente: 'Vigente',
   por_vencer: 'Por vencer',

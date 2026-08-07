@@ -353,6 +353,29 @@ export class VehiculoDetalle implements OnInit {
     }
   }
 
+  // ── AI13 — visibilidad del vehículo para los choferes ──
+  guardandoVisible = signal(false);
+  async toggleVisible() {
+    const v = this.vehiculo();
+    if (!v || this.guardandoVisible() || !this.esElevado()) return;
+    const nuevo = !v.visible_choferes;
+    this.guardandoVisible.set(true);
+    try {
+      await this.vehiculosService.toggleVisibleChoferes(v.id, nuevo);
+      this.vehiculo.update((x) => (x ? { ...x, visible_choferes: nuevo } : x));
+      this.toast.success(
+        nuevo ? 'Visible para choferes' : 'Oculto para choferes',
+        nuevo
+          ? 'El vehículo aparecerá en los selects de los choferes.'
+          : 'El vehículo no aparecerá en los selects de los choferes.',
+      );
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo cambiar la visibilidad.');
+    } finally {
+      this.guardandoVisible.set(false);
+    }
+  }
+
   // ── Asignar persona (drawer) ──
   async openAsignar() {
     this.asignarForm.reset({ usuario_id: null, notas: '', llave1_accion: 'no_cambiar', llave1_detalle: '' });

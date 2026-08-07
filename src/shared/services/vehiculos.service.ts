@@ -269,6 +269,16 @@ export class VehiculosService {
     if (error) throw new Error(error.message);
   }
 
+  // AI13 — visibilidad del vehículo para los choferes (admin/jefe de flota).
+  async toggleVisibleChoferes(id: string, visible: boolean): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('vehiculos')
+      .update({ visible_choferes: visible })
+      .eq('id', id);
+
+    if (error) throw new Error(error.message);
+  }
+
   /**
    * Vehicle responsibility history captured by the CSD field app
    * (`vehiculo_entregas`). RLS scopes visibility: flota staff see everything.

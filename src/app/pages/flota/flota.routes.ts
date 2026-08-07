@@ -22,7 +22,7 @@ export const flotaRoutes: Routes = [
     path: 'reporte-semanal',
     loadComponent: () =>
       import('./reporte-semanal/reporte-semanal').then((m) => m.ReporteSemanal),
-    title: 'Reporte semanal — Flota',
+    title: 'Inspección vehículo — Flota',
   },
   {
     path: 'mantenimientos',

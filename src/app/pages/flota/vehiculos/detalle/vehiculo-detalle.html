@@ -38,6 +38,18 @@
             @if (reactivando()) { Reactivando… } @else { Reactivar vehículo }
           </button>
         }
+        <!-- AI13 · Visibilidad para choferes (admin/jefe de flota) -->
+        @if (esElevado()) {
+          <div class="vd-header__visible">
+            @if (!v.visible_choferes) {
+              <span class="sgc-badge sgc-badge--warning">Oculto para choferes</span>
+            }
+            <button type="button" class="sgc-btn sgc-btn--ghost"
+              [disabled]="guardandoVisible()" (click)="toggleVisible()">
+              @if (v.visible_choferes) { Ocultar a choferes } @else { Mostrar a choferes }
+            </button>
+          </div>
+        }
       </div>
     </div>
 

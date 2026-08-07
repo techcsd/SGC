@@ -30,7 +30,7 @@ export class ReporteSemanalService {
       .map((f) => ({
         tipo: 'reporte_semanal',
         vehiculo_id: f.vehiculo_id,
-        mensaje: `Reporte semanal pendiente del vehículo ${f.placa}${
+        mensaje: `Inspección de vehículo pendiente del vehículo ${f.placa}${
           f.chofer_nombre ? ` (chofer: ${f.chofer_nombre})` : ''
         } — semana ${f.semana}/${f.anio}.`,
         severidad: 'media',

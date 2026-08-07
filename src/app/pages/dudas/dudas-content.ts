@@ -27,7 +27,7 @@ export interface GuiaVisual {
 export const GUIAS_VISUALES: GuiaVisual[] = [
   {
     id: 'preuso',
-    titulo: 'Pre-uso de vehículo',
+    titulo: 'Uso de vehículo',
     icono: 'preuso',
     modulo: 'flota',
     pasos: [
@@ -135,7 +135,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de pre-uso/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Producción de Obra: la gestión diaria del gerente de producción en obra — plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real y costos, e informe semanal a Gerencia. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de uso de vehículo/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Producción de Obra: la gestión diaria del gerente de producción en obra — plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real y costos, e informe semanal a Gerencia. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -597,24 +597,24 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Sí. Al planificar una ruta puedes elegir una obra de destino (o marcar el punto en el mapa). Con eso el formulario muestra el clima del destino y un aviso de despacho para el día del viaje (p. ej. "lluvia probable, despacha temprano"). En la lista de rutas, los viajes próximos con clima adverso muestran un aviso.',
       },
       {
-        pregunta: '¿Cómo lleno un checklist de pre-uso (v2) y qué significa el resultado?',
+        pregunta: '¿Cómo lleno un checklist de uso de vehículo (v2) y qué significa el resultado?',
         respuesta:
           'Ve a Flota > Checklists > Nuevo checklist. Elige el vehículo, el nivel de combustible y responde cada punto (agrupado por secciones: LSC "Autorizado y Apto", Seguridad y —solo para equipo pesado— Herramienta Pesado) con OK / NO / N/A. El resultado es tri-estado: APROBADO (todo bien), CON HALLAZGOS (algún NO no crítico → puede salir pero se avisa a Flota para corregir) o BLOQUEADO (algún NO en un punto crítico → el vehículo NO puede salir y se notifica de inmediato). El sistema también rechaza el registro si la licencia del conductor, la matrícula o el seguro del vehículo están vencidos, y avisa cuando el mantenimiento por kilómetros está por vencer (pre-cita ≤500 km) o vencido. Desde el detalle puedes imprimir/descargar el reporte de inspección.',
       },
       {
-        pregunta: '¿Cuál es la diferencia entre el pre-uso y el reporte semanal? Llené un checklist y el reporte semanal sigue vacío.',
+        pregunta: '¿Cuál es la diferencia entre el uso de vehículo y la inspección de vehículo? Llené un checklist y la inspección sigue vacía.',
         respuesta:
-          'Son dos cosas distintas. El PRE-USO es la inspección diaria antes de mover el vehículo (un punto crítico en NO lo bloquea). El REPORTE SEMANAL es un chequeo que cada chofer envía una vez por semana por su vehículo, y es el único que cuenta en el dashboard Flota > Reporte semanal. Si llenaste un checklist y el dashboard sigue vacío, probablemente registraste un pre-uso. Para el semanal usa el botón «Reporte semanal» en Flota > Checklists, o «Llenar reporte semanal» dentro del propio dashboard (te abre el formulario con la plantilla correcta ya elegida). En el selector de plantilla las opciones están agrupadas en «Pre-uso» y «Reporte semanal».',
+          'Son dos cosas distintas. El USO DE VEHÍCULO es la inspección diaria antes de mover el vehículo (un punto crítico en NO lo bloquea). La INSPECCIÓN DE VEHÍCULO es un chequeo que cada chofer envía una vez por semana por su vehículo, y es el único que cuenta en el dashboard Flota > Inspección vehículo. Si llenaste un checklist y el dashboard sigue vacío, probablemente registraste un uso de vehículo. Para la inspección usa el botón «Inspección vehículo» en Flota > Checklists, o «Llenar inspección de vehículo» dentro del propio dashboard (te abre el formulario con la plantilla correcta ya elegida). En el selector de plantilla las opciones están agrupadas en «Uso de vehículo» e «Inspección vehículo».',
       },
       {
         pregunta: '¿Puedo elegir cualquier vehículo? ¿Por qué ahora el selector muestra fotos?',
         respuesta:
-          'Sí: los vehículos son un pool compartido, cualquier usuario puede seleccionar cualquiera que esté disponible (no hace falta que esté "asignado a ti"). El selector de vehículo en pre-uso, combustible y rutas ahora muestra la foto del vehículo (o un ícono si no tiene) para elegir sin equivocarte.',
+          'Sí: los vehículos son un pool compartido, cualquier usuario puede seleccionar cualquiera que esté disponible (no hace falta que esté "asignado a ti"). El selector de vehículo en uso de vehículo, combustible y rutas ahora muestra la foto del vehículo (o un ícono si no tiene) para elegir sin equivocarte.',
       },
       {
         pregunta: '¿Qué es el Panel del día de Flota?',
         respuesta:
-          'En Flota > Panel del día ves, para hoy: cuántos choferes activos ya reportaron su pre-uso (y quiénes faltan), cuántas inspecciones salieron aprobadas / con hallazgos / bloqueadas, la tabla de inspecciones del día, las alertas activas y un gráfico de la última semana.',
+          'En Flota > Panel del día ves, para hoy: cuántos choferes activos ya reportaron su uso de vehículo (y quiénes faltan), cuántas inspecciones salieron aprobadas / con hallazgos / bloqueadas, la tabla de inspecciones del día, las alertas activas y un gráfico de la última semana.',
       },
       {
         pregunta: '¿Dónde gestiono los avisos de Flota (bloqueos, consumos, vencimientos)?',
@@ -679,7 +679,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué tipos de vehículo puedo elegir ahora?',
         respuesta:
-          'Se agregaron Motocicleta, Automóvil/Sedán y SUV/Jeepeta, además de los de obra (camión, pickup, excavadora, etc.). El tipo define si el vehículo es Liviano o Pesado, lo que ajusta los ítems del checklist de pre-uso.',
+          'Se agregaron Motocicleta, Automóvil/Sedán y SUV/Jeepeta, además de los de obra (camión, pickup, excavadora, etc.). El tipo define si el vehículo es Liviano o Pesado, lo que ajusta los ítems del checklist de uso de vehículo.',
       },
       {
         pregunta: '"Mi proyecto" dice que no tengo obra asignada aunque soy el responsable, ¿por qué?',
@@ -702,9 +702,9 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Sí. Todo lo que se captura en el celular también se puede hacer desde la web: en Flota > Checklists > Nuevo checklist puedes adjuntar las fotos del vehículo (delantera, tablero, etc.), una foto por cada ítem (útil para documentar un hallazgo) y la firma del conductor directamente en pantalla. En el detalle del checklist se ven todas, incluidas las fotos por ítem junto a su punto correspondiente.',
       },
       {
-        pregunta: '¿Por qué el reporte semanal dice "Ya reportado por..." si no fui yo?',
+        pregunta: '¿Por qué la inspección de vehículo dice "Ya reportado por..." si no fui yo?',
         respuesta:
-          'El reporte semanal es por VEHÍCULO, no por persona: basta con que cualquiera lo llene una vez por semana. Si un compañero ya reportó tu vehículo esta semana, verás "Ya reportado por {nombre} · {fecha}". Si necesitas corregirlo, usa "Rehacer" para enviar uno nuevo (reemplaza al anterior de esa semana).',
+          'La inspección de vehículo es por VEHÍCULO, no por persona: basta con que cualquiera lo llene una vez por semana. Si un compañero ya reportó tu vehículo esta semana, verás "Ya reportado por {nombre} · {fecha}". Si necesitas corregirlo, usa "Rehacer" para enviar uno nuevo (reemplaza al anterior de esa semana).',
       },
       {
         pregunta: '¿Solo la estación "Total Energies" aparece al registrar combustible?',
@@ -714,7 +714,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué es el "uso" del vehículo (obra vs administrativo)?',
         respuesta:
-          'Cada vehículo se marca como de Obra o Administrativo en su alta/edición (por defecto Obra). Los administrativos usan un pre-uso más corto (exterior, luces, gomas, frenos + km y combustible), mientras que los de obra usan el pre-uso completo.',
+          'Cada vehículo se marca como de Obra o Administrativo en su alta/edición (por defecto Obra). Los administrativos usan un uso de vehículo más corto (exterior, luces, gomas, frenos + km y combustible), mientras que los de obra usan el uso de vehículo completo.',
       },
       {
         pregunta: 'Un vehículo lo tiene otro conductor. ¿Puedo recibirlo igual?',
@@ -730,6 +730,21 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Cómo concilio el reporte de Total Energies contra lo registrado?',
         respuesta:
           'En Flota > Conciliación de combustible importa el reporte que envía la estación (Excel/CSV). El sistema reconoce el formato real de Total Energies (coma decimal, fechas dd/mm/aaaa y el número de transacción para no duplicar) y NO inserta nada de inmediato: primero muestra una vista previa obligatoria donde ves cada transacción, la suma de galones y la suma de montos cuadrada contra el total de la factura (te avisa si no coincide), y marca las filas ya importadas antes, las inválidas y los titulares que son personas en vez de vehículos. Solo cuando confirmas se importan las transacciones nuevas y se cruzan contra los registros de combustible de la plataforma, mostrándote qué coincide, qué tiene diferencias y qué está solo en el informe o solo en la plataforma. El kilometraje del reporte es solo referencia: nunca pisa el odómetro del vehículo.',
+      },
+      {
+        pregunta: '¿Cómo oculto un vehículo para que no le aparezca a los choferes?',
+        respuesta:
+          'Abre el perfil del vehículo en Flota > Vehículos y, si eres administrador o jefe de flota, usa el botón "Ocultar a choferes". Un vehículo oculto deja de aparecer en los selectores de los choferes (uso de vehículo, combustible, rutas y conduces) — útil para vehículos administrativos o motos que no manejan los choferes. Tú (rol elevado) lo sigues viendo con la etiqueta "Oculto para choferes" y puedes volver a mostrarlo cuando quieras.',
+      },
+      {
+        pregunta: '¿Qué es "Aviso de vehículo" y dónde llegan las novedades que reporta un chofer?',
+        respuesta:
+          'El chofer puede reportar una novedad o daño del vehículo (descripción, severidad y fotos) desde la app. Ese reporte cae en la misma bandeja de Flota > Avisos, con el tipo "Novedad de vehículo" y notificación al jefe de flota/administradores. Al abrir el aviso ves la evidencia fotográfica y puedes marcarlo como atendido con una nota. Las novedades también quedan trazadas contra el vehículo.',
+      },
+      {
+        pregunta: '¿Puedo ver la actividad de un conductor por periodo (rutas, galones, inspecciones)?',
+        respuesta:
+          'Sí. En el perfil del conductor (Flota > Conductores) la sección "Actividad" muestra tarjetas con rutas completadas, conduces realizados, galones consumidos y km, inspecciones, multas y documentos. Arriba tienes un filtro de periodo (Global por defecto, o este mes / 3 meses / 6 meses / 1 año) que recalcula todas las tarjetas.',
       },
     ],
   },

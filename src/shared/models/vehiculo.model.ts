@@ -65,6 +65,9 @@ export interface Vehiculo {
   // AA19 — path de la foto de portada (fallback: fotos[0]).
   foto_portada: string | null;
   activo: boolean;
+  // AI13 — si false, el vehículo no aparece en los selects de los choferes
+  // (admin/jefe de flota lo controla; ej. Hyundai Cantus, motos, administrativos).
+  visible_choferes: boolean;
   // T2 — fila de datos de prueba (solo visible/eliminable por admin).
   es_prueba: boolean;
   created_at: string;

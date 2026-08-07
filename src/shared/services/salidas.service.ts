@@ -181,6 +181,73 @@ export class SalidasService {
     return data as unknown as SalidaInventario;
   }
 
+  /**
+   * AI2 — Universo del select "Despachante" (quien entrega el material al chofer):
+   * usuarios + empleados activos. Si el origen es ferretería/otros, la app usa
+   * nombre libre (despachante_nombre) sin elegir de esta lista.
+   */
+  async getDespachantes(): Promise<{ tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null }[]> {
+    const { data, error } = await this.supabase.client.rpc('despachantes_disponibles');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null }[];
+  }
+
+  /**
+   * AI2 — Conduce simplificado del chofer: despachante + foto de recepción (carga)
+   * + firmas chofer (transportista) y despachante (emisor). Envuelve el flujo AF23
+   * (auto-ruta). Devuelve el id del conduce creado.
+   */
+  async crearConduceSimple(payload: {
+    id: string;
+    fecha: string;
+    bodega_id: string | null;
+    proyecto_id: string | null;
+    observaciones: string | null;
+    vehiculo_id: string | null;
+    ruta_id: string | null;
+    items: unknown[];
+    despachante_nombre?: string | null;
+    despachante_usuario_id?: string | null;
+    despachante_empleado_id?: string | null;
+    carga_foto_path?: string | null;
+    firma_chofer_path?: string | null;
+    firma_despachante_path?: string | null;
+  }): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_conduce_simple', {
+      p_id: payload.id,
+      p_fecha: payload.fecha,
+      p_bodega_id: payload.bodega_id,
+      p_proyecto_id: payload.proyecto_id,
+      p_observaciones: payload.observaciones,
+      p_vehiculo_id: payload.vehiculo_id,
+      p_ruta_id: payload.ruta_id,
+      p_items: payload.items,
+      p_despachante_nombre: payload.despachante_nombre ?? null,
+      p_despachante_usuario_id: payload.despachante_usuario_id ?? null,
+      p_despachante_empleado_id: payload.despachante_empleado_id ?? null,
+      p_carga_foto_path: payload.carga_foto_path ?? null,
+      p_firma_chofer_path: payload.firma_chofer_path ?? null,
+      p_firma_despachante_path: payload.firma_despachante_path ?? null,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+    return data as string;
+  }
+
+  /** AI2 — Conduces del chofer pendientes de entrega (badge "Pendiente entrega"). */
+  async getPendientesEntrega(): Promise<SalidaInventario[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_conduces_pendientes_entrega');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as SalidaInventario[];
+  }
+
+  /** AI2 — Conteo de conduces pendientes de entrega (para el badge del menú). */
+  async countPendientesEntrega(): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('mis_conduces_pendientes_entrega_count');
+    if (error) return 0;
+    return (data as number) ?? 0;
+  }
+
   /** Salidas awaiting confirmation for a given project (or all, for inventario/admin) — RLS scopes visibility. */
   async getDespachados(): Promise<SalidaInventario[]> {
     const { data, error } = await this.supabase.client

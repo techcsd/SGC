@@ -35,6 +35,9 @@ import {
 import { FormDrawer } from '../../../../../shared/components/form-drawer/form-drawer';
 import {
   ConductorStats,
+  ConductorStatsPeriodo,
+  ConductorStatsPeriodoValor,
+  CONDUCTOR_PERIODO_OPCIONES,
   ESTADO_LICENCIA_LABEL,
   ESTADO_LICENCIA_BADGE,
 } from '../../../../../shared/models/vehiculo-asignacion.model';
@@ -100,6 +103,29 @@ export class ConductorDetalle implements OnInit {
   stats = signal<ConductorStats | null>(null);
   checklists = signal<ChecklistVehiculo[]>([]);
   combustible = signal<RegistroCombustible[]>([]);
+
+  // ── AI10/AI11 — stats por periodo (cards homologadas + filtro; default global) ──
+  readonly PERIODO_OPCIONES = CONDUCTOR_PERIODO_OPCIONES;
+  periodo = signal<ConductorStatsPeriodoValor>('total');
+  statsPeriodo = signal<ConductorStatsPeriodo | null>(null);
+  statsPeriodoLoading = signal(false);
+
+  async cargarStatsPeriodo() {
+    if (!this.conductorId) return;
+    this.statsPeriodoLoading.set(true);
+    try {
+      this.statsPeriodo.set(await this.conductoresService.getStatsPeriodo(this.conductorId, this.periodo()));
+    } catch {
+      this.statsPeriodo.set(null);
+    } finally {
+      this.statsPeriodoLoading.set(false);
+    }
+  }
+
+  onPeriodo(v: string) {
+    this.periodo.set(v as ConductorStatsPeriodoValor);
+    void this.cargarStatsPeriodo();
+  }
 
   // S32 — pre-usos vs reportes semanales (diferenciados por plantilla).
   private esSemanal(c: ChecklistVehiculo): boolean {
@@ -197,6 +223,8 @@ export class ConductorDetalle implements OnInit {
       this.combustible.set(combustible.filter((r) => r.conductor_id === id));
       // S32 — rutas/conduces/entregas/accidentes/multas del conductor (best-effort).
       this.cargarActividad(id, conductor?.usuario_id ?? null);
+      // AI10/AI11 — stats por periodo (best-effort, no bloquea el perfil).
+      void this.cargarStatsPeriodo();
     } catch (e: unknown) {
       this.toast.error(
         'Error',

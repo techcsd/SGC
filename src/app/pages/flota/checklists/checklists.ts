@@ -286,8 +286,8 @@ export class Checklists implements OnInit {
   /** Título del drawer según la frecuencia de la plantilla elegida. */
   drawerTitle = computed(() =>
     this.selectedPlantilla()?.frecuencia === 'semanal'
-      ? 'Nuevo reporte semanal'
-      : 'Nuevo checklist de pre-uso',
+      ? 'Nueva inspección de vehículo'
+      : 'Nuevo checklist de uso de vehículo',
   );
 
   private async loadAll() {

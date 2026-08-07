@@ -23,7 +23,9 @@ export type AvisoFlotaTipo =
   | 'mantenimiento_por_revisar'
   // AG8 — placa provisional (PP): plazo del dealer por vencer / vencido
   | 'pp_por_vencer'
-  | 'pp_vencida';
+  | 'pp_vencida'
+  // AI13 — novedad/daño de vehículo reportada por el chofer
+  | 'novedad';
 
 export type AvisoFlotaEstado = 'pendiente' | 'atendido' | 'resuelto_auto';
 export type AvisoFlotaSeveridad = 'baja' | 'media' | 'alta';
@@ -45,6 +47,9 @@ export interface AvisoFlota {
   // X2 — auto-resolución
   resuelto_at?: string | null;
   resuelto_nota?: string | null;
+  // AI13 — novedad reportada por el chofer: evidencia + reportante
+  fotos?: string[] | null;
+  reportado_por?: string | null;
   vehiculo?: { placa: string; marca: string } | null;
   conductor?: { nombre: string } | null;
 }
@@ -58,7 +63,7 @@ export const AVISO_TIPO_LABEL: Record<AvisoFlotaTipo, string> = {
   licencia: 'Licencia por vencer',
   matricula: 'Matrícula por vencer',
   seguro: 'Seguro por vencer',
-  reporte_semanal: 'Reporte semanal pendiente',
+  reporte_semanal: 'Inspección de vehículo pendiente',
   conciliacion: 'Conciliación de combustible',
   licencia_por_vencer: 'Licencia por vencer',
   licencia_vencida: 'Licencia vencida',
@@ -69,6 +74,7 @@ export const AVISO_TIPO_LABEL: Record<AvisoFlotaTipo, string> = {
   mantenimiento_por_revisar: 'Mantenimiento por revisar',
   pp_por_vencer: 'Placa provisional por vencer',
   pp_vencida: 'Placa provisional vencida',
+  novedad: 'Novedad de vehículo',
 };
 
 export const AVISO_SEVERIDAD_BADGE: Record<AvisoFlotaSeveridad, string> = {

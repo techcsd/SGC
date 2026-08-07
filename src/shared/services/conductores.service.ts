@@ -7,7 +7,7 @@ import {
   LicenciaCategoria,
   LICENCIA_CATEGORIAS_FALLBACK,
 } from '../models/conductor.model';
-import { ConductorStats } from '../models/vehiculo-asignacion.model';
+import { ConductorStats, ConductorStatsPeriodo, ConductorStatsPeriodoValor } from '../models/vehiculo-asignacion.model';
 import { sanitizeUuidFields } from '../utils/uuid.util';
 import { edgeErrorMessage } from '../utils/edge.util';
 
@@ -103,6 +103,31 @@ export class ConductoresService {
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (data as unknown as ConductorStats) ?? null;
+  }
+
+  /**
+   * AI10/AI11 — Stats del conductor por periodo (server-side, una sola pasada).
+   * periodo: 'mes' | '3m' | '6m' | '1a' | 'total' (default 'total' = global).
+   */
+  async getStatsPeriodo(
+    conductorId: string,
+    periodo: ConductorStatsPeriodoValor = 'total',
+  ): Promise<ConductorStatsPeriodo> {
+    const { data, error } = await this.supabase.client.rpc('stats_conductor_periodo', {
+      p_conductor_id: conductorId,
+      p_periodo: periodo,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? {}) as ConductorStatsPeriodo;
+  }
+
+  /** AI10 — Documentos del conductor (licencia + resumen). */
+  async getDocumentos(conductorId: string): Promise<Record<string, unknown>> {
+    const { data, error } = await this.supabase.client.rpc('conductor_documentos', {
+      p_conductor_id: conductorId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? {}) as Record<string, unknown>;
   }
 
   /** Auto-registro de conductor sin aprobación (RPC, R2). */

@@ -190,7 +190,7 @@ export class Shell implements OnInit {
         { label: 'Conciliación de combustible', route: '/flota/conciliacion-combustible', flotaElevado: true, badgeKey: 'flota.conciliacion' },
         { label: 'Rutas', route: '/flota/rutas' },
         { label: 'Checklists', route: '/flota/checklists', badgeKey: 'flota.checklists' },
-        { label: 'Reporte semanal', route: '/flota/reporte-semanal', badgeKey: 'flota.reporte-semanal' },
+        { label: 'Inspección vehículo', route: '/flota/reporte-semanal', badgeKey: 'flota.reporte-semanal' },
         { label: 'Panel del día', route: '/flota/panel-dia', flotaElevado: true },
         { label: 'Avisos', route: '/flota/avisos', badgeKey: 'flota.avisos' },
         { label: 'Accidentes', route: '/flota/accidentes', flotaElevado: true },

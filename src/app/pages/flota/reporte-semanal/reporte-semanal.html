@@ -1,7 +1,7 @@
 <!-- ── Header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Reporte semanal de vehículos</h1>
+    <h1 class="page-title">Inspección de vehículo</h1>
     @if (semanaActual(); as g) {
       <span class="page-count">
         Semana {{ g.semana }} · {{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }}
@@ -13,17 +13,17 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Llenar reporte semanal
+      Llenar inspección de vehículo
     </a>
   </div>
 </div>
 
 <!-- U8 — aclara la diferencia con el pre-uso (por qué el dashboard puede salir vacío) -->
 <div class="rs-note sgc-card" role="note">
-  El <strong>reporte semanal</strong> es un chequeo que cada chofer envía <strong>una vez por semana</strong>
-  por su vehículo. Es distinto del <strong>pre-uso</strong> diario: solo los reportes semanales cuentan aquí.
-  Si llenaste un checklist y no aparece, probablemente fue un pre-uso — usa
-  «Llenar reporte semanal» para registrar el de esta semana.
+  La <strong>inspección de vehículo</strong> es un chequeo que cada chofer envía <strong>una vez por semana</strong>
+  por su vehículo. Es distinto del <strong>uso de vehículo</strong> diario: solo las inspecciones semanales cuentan aquí.
+  Si llenaste un checklist y no aparece, probablemente fue un uso de vehículo — usa
+  «Llenar inspección de vehículo» para registrar el de esta semana.
 </div>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }

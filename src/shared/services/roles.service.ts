@@ -47,7 +47,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'compras', label: 'Compras', desc: 'Solicitudes y órdenes de compra a proveedores; aprobar y recibir compras.' },
   { key: 'rrhh', label: 'RRHH', desc: 'Empleados, asistencia, ausencias/vacaciones y documentos de personal.' },
   { key: 'proyectos', label: 'Proyectos', desc: 'Obras y proyectos, partidas planeadas, avance, pagado vs trabajado y ranking de encargados.' },
-  { key: 'flota', label: 'Flota', desc: 'Vehículos, conductores, pre-uso, reporte semanal, combustible, mantenimientos, rutas y avisos de flota.' },
+  { key: 'flota', label: 'Flota', desc: 'Vehículos, conductores, uso de vehículo, inspección vehículo, combustible, mantenimientos, rutas y avisos de flota.' },
   { key: 'transporte', label: 'Transporte (chofer)', desc: 'Funciones de logística del chofer: rutas por tipo (material/personal/traslado), conduces recibidos y compras/recepciones de ferretería que Almacén confirma. Alcance limitado, sin el módulo Inventario completo.' },
   { key: 'bitacora', label: 'Bitácora', desc: 'Bitácora del día de obra, visitas e incidentes: crear y consultar bitácoras.' },
   { key: 'documentos', label: 'Documentos', desc: 'Rellenar y descargar documentos a partir de plantillas.' },

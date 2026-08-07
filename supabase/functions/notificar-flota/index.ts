@@ -46,6 +46,11 @@ const PREFIJO: Record<string, string> = {
   matricula_vencida: "🚫 Matrícula VENCIDA",
   seguro_por_vencer: "🛡️ Seguro por vencer",
   seguro_vencida: "🚫 Seguro VENCIDO",
+  // AG8 — placa provisional (PP).
+  pp_por_vencer: "🔖 Placa provisional por vencer",
+  pp_vencida: "🚫 Placa provisional VENCIDA",
+  // AI13 — novedad/daño de vehículo reportada por el chofer.
+  novedad: "🛠️ Novedad de vehículo",
 };
 
 Deno.serve(async (req: Request) => {
