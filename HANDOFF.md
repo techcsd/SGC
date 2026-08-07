@@ -2,7 +2,7 @@
 
 _Last updated: 2026-08-07_
 
-## PROMPT-9 · Ronda AH (07/08/2026) — ✅ 7/7 FASES · 7 migraciones EN PROD · build verde · **SIN commit/push/deploy**
+## PROMPT-9 · Ronda AH (07/08/2026) — ✅ 7/7 FASES · 8 migraciones EN PROD · build verde · **SHIPPED web 1.67.0** commit `98d59d4` + push `main` (deploy Vercel)
 
 ### TL;DR
 Fuente: `C:\developer\improvements\imp 03082026\CONTEXTO-ACTUALIZACION-2.md` (IDs AH). PROMPT-9 = web+BD; desbloqueo del rol CHOFER en producción + conduces (transferencia/doble-firma/evidencia) + compras/recepciones. 7 migraciones `sql/2026-08-07-*.sql` aplicadas a prod y verificadas con **choferes reales** vía simulación de rol/JWT (Management API). Build web verde. App = PROMPT-10.
