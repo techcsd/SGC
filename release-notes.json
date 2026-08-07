@@ -1559,6 +1559,48 @@
           "d": "Dudas: nueva sección \"Producción de Obra\" con el paso a paso de plan del día, no conformidades, checklists, subcontratistas/cubicaciones, avance e informe semanal; y explicador de los roles Gerente de Producción y Capataz en \"Roles y permisos\"."
         }
       ]
+    },
+    "1.67.0": {
+      "titulo": "Choferes desbloqueados + conduces con transferencia y evidencia",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Choferes: se corrigió el error \"No tienes permiso para enviar esto\" al crear una ruta con foto y el listado vacío de \"Obra de destino\". Los choferes ya pueden crear rutas, adjuntar fotos y ver las obras como destino."
+        },
+        {
+          "t": "arreglo",
+          "d": "Traspaso de vehículo: al recibir un vehículo de otra persona ahora sí queda reasignado a quien lo recibe (antes seguía apareciendo con el anterior por una custodia abierta sin cerrar). Un usuario puede tener varios vehículos asignados a la vez."
+        },
+        {
+          "t": "arreglo",
+          "d": "Notas: se corrigió el error al abrir una nota que a veces no mostraba su contenido."
+        },
+        {
+          "t": "nuevo",
+          "d": "Conduces: transferencia de responsabilidad entre choferes — el responsable ofrece el conduce a otro chofer y este lo acepta con foto y firma; la ruta vinculada se reasigna. Con historial y avisos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Proyectos: nueva sección \"Compras\" en el detalle de cada obra (órdenes de compra + ferretería), con filtros por tipo y período, total y exportación a Excel."
+        },
+        {
+          "t": "seguridad",
+          "d": "Confirmaciones de entrega/recepción de conduces: la foto de evidencia (y la firma) ahora son obligatorias a nivel de servidor — ya no es posible confirmar solo con un botón."
+        },
+        {
+          "t": "mejora",
+          "d": "Conduces: al emitir, además de quien entrega, firma el chofer que transporta."
+        },
+        {
+          "t": "mejora",
+          "d": "Recepciones de vehículos: las actas muestran marca y modelo (no solo la placa) y admiten describir cada falla del checklist con texto, foto y nota de voz."
+        },
+        {
+          "t": "seguridad",
+          "d": "Los almacenes y obras de prueba dejaron de aparecer a los choferes."
+        }
+      ],
+      "url": ""
     }
   }
 }

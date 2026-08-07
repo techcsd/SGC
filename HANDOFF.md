@@ -1,6 +1,32 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-08-04_
+_Last updated: 2026-08-07_
+
+## PROMPT-9 · Ronda AH (07/08/2026) — ✅ 7/7 FASES · 7 migraciones EN PROD · build verde · **SIN commit/push/deploy**
+
+### TL;DR
+Fuente: `C:\developer\improvements\imp 03082026\CONTEXTO-ACTUALIZACION-2.md` (IDs AH). PROMPT-9 = web+BD; desbloqueo del rol CHOFER en producción + conduces (transferencia/doble-firma/evidencia) + compras/recepciones. 7 migraciones `sql/2026-08-07-*.sql` aplicadas a prod y verificadas con **choferes reales** vía simulación de rol/JWT (Management API). Build web verde. App = PROMPT-10.
+
+### Qué se arregló (causa raíz)
+- **FASE 1 (AH1/AH2/AH11/AH3)** 🔴 emergencia: chofer no podía crear ruta ni ver obras. AH1 = ruta hereda `es_prueba` de vehículo test → policy restrictiva oculta la ruta a su dueño → `ruta_fotos` INSERT falla 42501; fix: `puede_modificar_ruta()` en policies de `ruta_fotos`/`ruta_paradas`. AH2 = `proyectos: select` sin módulo transporte/flota; añadidos. AH11 = bodegas de obras-prueba sin flag; propagadas. AH3 = servidor sano (era síntoma de AH1/AH2). **Verificado: los 9 choferes crean ruta+foto+posición y ven 11 obras reales (0 de prueba).**
+- **FASE 2 (AH12)**: `vehiculos_asignados()` mostraba al anterior por CUSTODIA ABIERTA (`vehiculo_entregas`) que el traspaso no cerraba; fix: el RPC cierra la custodia previa + dedup de asignaciones activas duplicadas. **Malibu ahora solo Xaviel.**
+- **FASE 3 (AH9)**: RPC canónico `sgc.destinos_transporte()` (obras con almacén resuelto + almacenes sueltos, es_prueba-filtrado).
+- **FASE 4 (AH4/AH5/AH6/AH7)**: rol firma `transportista`; modelo `conduce_transferencias` + RPCs ofrecer/aceptar(exige foto+firma)/rechazar (reasigna conduce+ruta); evidencia OBLIGATORIA server-side en `entregar_conduce`/`confirmar_recepcion_salida`/`registrar_confirmacion_recepcion`.
+- **FASE 5 (AH15)**: `sgc.compras_de_proyecto()` + web `/proyectos/:id/compras` (ProyectoCompras) + link en detalle.
+- **FASE 6 (AH13/AH14)**: `mis_actas_traspaso` +marca/modelo; `sgc.acta_traspaso_detalle(id)` (condiciones+fotos+audios). Web no tiene listado de recepciones (vive en app) → contrato listo.
+- **FASE 7 (AH18)**: BD de Notas 100% sana; bug era frontend (fetch-all-and-filter con perfil no cargado). Fix: `NotasService.getNota(id)` directo por id.
+
+### Pendiente de Xaviel / próximos pasos
+1. **Commit/push/deploy** (no hecho por regla). Al subir: bump `package.json` + entrada estructurada en `release-notes.json` (regla Y1/VERSIONADO.md) — el `prebuild` FALLA si falta.
+2. **PROMPT-10 (app csd-app)**: consumir `destinos_transporte`; UI 2ª firma + transferencia de conduce; forzar foto/firma; invalidar caché de vehículos tras traspaso (no reportar éxito optimista); capturar falla-de-checklist (texto/voz/foto) en actas; vista compras. Contratos en memoria `project_sgc-prompt9-AH-2026-08-07.md`.
+3. **Datos**: Felipe Scheker tiene asignado un vehículo `es_prueba` (Izuzu D-Max) — revisar si es correcto o limpiar.
+4. Opcional: página web de listado de Recepciones (hoy solo detalle-RPC).
+
+Detalle completo en memoria `project_sgc-prompt9-AH-2026-08-07.md`.
+
+---
+
+_Prev: 2026-08-04_
 
 ## PROMPT-1 · Ronda AF (04/08/2026) — ✅ 8/8 FASES · 7 migraciones EN PROD · build verde · web **1.61.0** COMMIT `18ba268` + PUSH `main` (deploy Vercel) · edge `send-push` **DESPLEGADA** (falta solo secret FCM)
 

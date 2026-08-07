@@ -42,9 +42,35 @@ export interface CostoMaterialObra {
   }[];
 }
 
+/** AH15 — una compra ligada a un proyecto (orden de compra o ferretería). */
+export interface CompraProyecto {
+  tipo: 'orden_compra' | 'ferreteria';
+  id: string;
+  fecha: string | null;
+  proveedor: string | null;
+  total: number | null;
+  estado: string | null;
+  referencia: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProyectosService {
   private supabase = inject(SupabaseService);
+
+  /** AH15 — compras de un proyecto (OC + ferretería), filtro de fechas opcional. */
+  async getComprasProyecto(
+    proyectoId: string,
+    desde?: string | null,
+    hasta?: string | null,
+  ): Promise<CompraProyecto[]> {
+    const { data, error } = await this.supabase.client.rpc('compras_de_proyecto', {
+      p_proyecto_id: proyectoId,
+      p_desde: desde ?? null,
+      p_hasta: hasta ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as CompraProyecto[];
+  }
 
   /** AA23 QW4 — costo de material real por obra (Σ cantidad × costo_unit de salidas). */
   async getCostoMaterialObra(

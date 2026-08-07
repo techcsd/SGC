@@ -40,6 +40,32 @@ export class NotasService {
     return (data ?? []) as DirectorioUsuario[];
   }
 
+  /** AH18 — Trae UNA nota por id directamente (RLS decide el acceso: dueño o
+   *  compartida). Robusto ante timing del perfil y no depende de traer "todas mis
+   *  notas" para filtrar. Devuelve null si no existe o no tengo acceso; enriquece
+   *  `mi_permiso` cuando la nota es compartida (no soy el dueño). */
+  async getNota(id: string, miId?: string | null): Promise<Nota | null> {
+    const { data, error } = await this.supabase.client
+      .from('notas')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    const nota = data as Nota;
+    // Compartida conmigo → resolver mi permiso (para el modo solo-lectura).
+    if (miId && nota.owner_id !== miId) {
+      const { data: comp } = await this.supabase.client
+        .from('nota_compartidos')
+        .select('permiso')
+        .eq('nota_id', id)
+        .eq('usuario_id', miId)
+        .maybeSingle();
+      nota.mi_permiso = (comp?.permiso as NotaPermiso) ?? 'ver';
+    }
+    return nota;
+  }
+
   /** Mis notas (owner_id = yo). La RLS también devuelve compartidas; por eso
    *  filtramos explícitamente por dueño aquí. */
   async getMisNotas(ownerId: string, includeArchivadas = false): Promise<Nota[]> {

@@ -1,0 +1,68 @@
+<div class="compras">
+  <header class="compras__head">
+    <div>
+      <a class="compras__back" routerLink="/proyectos">← Proyectos</a>
+      <h1 class="compras__title">Compras</h1>
+      <p class="compras__sub">{{ proyectoNombre() || 'Obra' }}</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
+            [disabled]="visibles().length === 0">⬇️ Excel</button>
+  </header>
+
+  <!-- Filtros -->
+  <div class="compras__filtros">
+    <div class="compras__tipos">
+      <button type="button" class="compras__chip" [class.active]="filtroTipo() === 'todos'" (click)="setTipo('todos')">Todas</button>
+      <button type="button" class="compras__chip" [class.active]="filtroTipo() === 'orden_compra'" (click)="setTipo('orden_compra')">Órdenes de compra</button>
+      <button type="button" class="compras__chip" [class.active]="filtroTipo() === 'ferreteria'" (click)="setTipo('ferreteria')">Ferretería</button>
+    </div>
+    <div class="compras__fechas">
+      <label>Desde <input #d type="date" [value]="desde() ?? ''" /></label>
+      <label>Hasta <input #h type="date" [value]="hasta() ?? ''" /></label>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="aplicarFiltro(d.value, h.value)">Aplicar</button>
+    </div>
+  </div>
+
+  @if (error()) { <p class="compras__error">{{ error() }}</p> }
+
+  @if (loading()) {
+    <p class="compras__muted">Cargando…</p>
+  } @else {
+    <div class="compras__total sgc-card">
+      <span class="compras__total-label">Total del período ({{ visibles().length }} compra(s))</span>
+      <span class="compras__total-value">RD$ {{ totalPeriodo() | number:'1.2-2' }}</span>
+    </div>
+
+    @if (visibles().length === 0) {
+      <p class="compras__muted">No hay compras registradas para esta obra en el período seleccionado.</p>
+    } @else {
+      <div class="compras__table-wrap">
+        <table class="compras__table">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th>Proveedor</th>
+              <th>Referencia</th>
+              <th>Estado</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of visibles(); track c.id) {
+              <tr>
+                <td><span class="compras__badge" [class.compras__badge--fer]="c.tipo === 'ferreteria'">{{ tipoLabel(c.tipo) }}</span></td>
+                <td>{{ c.fecha || '—' }}</td>
+                <td>{{ c.proveedor || '—' }}</td>
+                <td>{{ c.referencia || '—' }}</td>
+                <td>{{ c.estado || '—' }}</td>
+                <td class="num">{{ c.total !== null ? ('RD$ ' + (c.total | number:'1.2-2')) : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="compras__nota">Incluye órdenes de compra y compras de ferretería ligadas a esta obra. No incluye movimientos de prueba.</p>
+    }
+  }
+</div>

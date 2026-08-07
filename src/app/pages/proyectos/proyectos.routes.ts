@@ -41,6 +41,12 @@ export const proyectosRoutes: Routes = [
     title: 'Costo de material — Proyectos',
   },
   {
+    // AH15 — compras (órdenes de compra + ferretería) ligadas a la obra.
+    path: ':id/compras',
+    loadComponent: () => import('./compras/compras').then((m) => m.ProyectoCompras),
+    title: 'Compras — Proyectos',
+  },
+  {
     // Z13 — detalle del proyecto como ruta dedicada (deep-linkable, botón Atrás).
     path: ':id',
     loadComponent: () => import('./lista/lista').then((m) => m.Lista),

@@ -115,14 +115,13 @@ export class NotaEditor implements OnInit, OnDestroy {
   private async cargar(id: string) {
     this.loading.set(true);
     try {
-      const mias = await this.notasSvc.getMisNotas(this.userService.profile()?.id ?? '', true);
-      let nota: Nota | undefined = mias.find((n) => n.id === id);
-      let permiso: NotaPermiso = 'editar';
-      if (!nota) {
-        const comp = await this.notasSvc.getCompartidasConmigo(this.userService.profile()?.id ?? '');
-        nota = comp.find((n) => n.id === id);
-        permiso = nota?.mi_permiso ?? 'ver';
-      }
+      // AH18 — traer la nota DIRECTO por id (RLS decide acceso). Evita el bug de
+      // "no muestra nada / da error" que causaba traer todas-mis-notas y filtrar
+      // cuando el perfil aún no estaba cargado (carrera) o en casos borde.
+      const miId = this.userService.profile()?.id ?? null;
+      const nota = await this.notasSvc.getNota(id, miId);
+      const permiso: NotaPermiso =
+        !nota || (miId && nota.owner_id === miId) ? 'editar' : nota.mi_permiso ?? 'ver';
       if (!nota) {
         this.toast.error('Nota no encontrada', 'Puede que ya no exista o no tengas acceso.');
         this.router.navigate(['/notas']);

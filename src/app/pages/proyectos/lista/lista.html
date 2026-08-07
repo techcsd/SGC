@@ -38,6 +38,7 @@
           <div class="proyectos__detail-title-actions">
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']">💰 Costos</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']">🛒 Compras</a>
             <button type="button" class="proyectos__btn-edit" (click)="openEdit(p, $event)">Editar</button>
           </div>
         </div>
@@ -534,6 +535,7 @@
               <div class="proyectos__fases-actions">
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']">💰 Costos</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']">🛒 Compras</a>
                 <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
               </div>
             </div>
