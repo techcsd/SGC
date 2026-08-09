@@ -57,6 +57,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'obra', label: 'Producción de Obra', desc: 'Gestión de producción en obra: plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real e informe semanal. Rol gerente de producción / capataz.' },
   { key: 'tecnologia', label: 'Tecnología', desc: 'Inventario tecnológico, equipos y herramientas de TI y matriz tecnológica.' },
   { key: 'direccion', label: 'Dirección (vista ejecutiva)', desc: 'Vista ejecutiva: KPIs y dashboards consolidados de dirección.', sensible: true },
+  { key: 'plataforma', label: 'Plataforma (app)', desc: 'Personalización de la app: orden y tamaño de los módulos del launcher. Permiso delegable, no requiere ser administrador.' },
   { key: 'admin', label: 'Administración', desc: 'Usuarios, roles y permisos, versiones de la app, auditoría y reportes. Acceso máximo — asignar con cuidado.', sensible: true },
 ];
 
@@ -109,6 +110,11 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'obra.subcontratistas', label: 'Subcontratistas y cubicaciones' },
     { key: 'obra.avance', label: 'Avance, costos y logística' },
     { key: 'obra.informes', label: 'Informe semanal' },
+  ],
+  // AJ4 — permiso delegable para personalizar el layout de la app (launcher).
+  // Gateado server-side en set_module_order (is_admin OR puede_operar_submodulo).
+  plataforma: [
+    { key: 'plataforma.layout_app', label: 'Personalizar layout de la app', enforced: true },
   ],
 };
 

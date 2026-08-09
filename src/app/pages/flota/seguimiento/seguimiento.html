@@ -27,7 +27,7 @@
             </li>
           }
         </ul>
-        <div class="seg-leyenda__nota">📍 El pin marca la última posición reportada. “Sin ubicación” = el chofer aún no ha reportado GPS.</div>
+        <div class="seg-leyenda__nota">📍 El pin marca la última posición reportada. “Sin ubicación” = el chofer aún no ha reportado GPS.<br>🟦 La línea azul es el trayecto: 🟢 inicio y 🔴 último punto.</div>
       }
     </div>
   </div>
@@ -37,18 +37,48 @@
     @if (loading()) {
       <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
     } @else {
+      <!-- AJ14 — indicador del trayecto dibujado -->
+      @if (trazaInfo(); as t) {
+        <div class="sgc-card seg__traza">
+          <span>{{ t.vivo ? '🟦 Trayecto en vivo' : '🟦 Recorrido' }} · {{ t.puntos }} punto{{ t.puntos !== 1 ? 's' : '' }}@if (t.km != null) { · {{ t.km }} km }</span>
+          <button type="button" class="seg-traza__clear" (click)="trazarRuta(rutaTrazada()!, t.vivo)">Ocultar</button>
+        </div>
+      }
+
       <!-- Rutas activas -->
       @if (rutasActivas().length) {
         <div class="sgc-card seg__block">
           <h2 class="seg__block-title">Rutas activas</h2>
           @for (r of rutasActivas(); track r.id) {
-            <div class="seg-ruta">
+            <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
               <div class="seg-ruta__top">
                 <strong>{{ r.placa ?? '—' }}</strong>
                 <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
               </div>
               <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
               <div class="seg-ruta__prog">Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</div>
+              <button type="button" class="seg-ruta__traza" (click)="trazarRuta(r.id, true)" [disabled]="trazaCargando()">
+                {{ rutaTrazada() === r.id ? 'Ocultar trayecto' : 'Ver trayecto en vivo' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Rutas de hoy (replay del recorrido) -->
+      @if (rutasHoy().length) {
+        <div class="sgc-card seg__block">
+          <h2 class="seg__block-title">Rutas de hoy</h2>
+          @for (r of rutasHoy(); track r.id) {
+            <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
+              <div class="seg-ruta__top">
+                <strong>{{ r.placa ?? '—' }}</strong>
+                <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
+              </div>
+              <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
+              <button type="button" class="seg-ruta__traza" (click)="trazarRuta(r.id, r.estado === 'en_curso')" [disabled]="trazaCargando()">
+                {{ rutaTrazada() === r.id ? 'Ocultar recorrido' : 'Ver recorrido' }}
+              </button>
             </div>
           }
         </div>

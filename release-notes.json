@@ -1,6 +1,22 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.69.0": {
+      "titulo": "Transporte v3 (AJ): conduce por estados con confirmación del receptor, despachantes filtrados, trazado de rutas, mensajería y layout de la app",
+      "cambios": [
+        { "t": "arreglo", "m": "Conduces", "d": "Los conduces que crea el chofer vuelven a aparecer en \"Pendiente entrega\": el filtro de datos de prueba escondía al propio chofer sus conduces recién creados." },
+        { "t": "nuevo", "m": "Conduces", "d": "Estados del conduce que maneja el chofer: en tránsito, entregando y entregado (con foto de entrega), visibles y con hora en el detalle." },
+        { "t": "seguridad", "m": "Conduces", "d": "La recepción se confirma en el dispositivo del RECEPTOR: el chofer solo marca \"entregado\" con foto; el responsable del destino recibe el aviso y confirma (checklist, foto y firma) desde su propia sesión. El transportista ya no puede firmar la recepción por el receptor (anti-suplantación)." },
+        { "t": "nuevo", "m": "Conduces", "d": "Bandeja \"Entregas por confirmar\": cada responsable ve las entregas que le tocan confirmar." },
+        { "t": "mejora", "m": "Conduces", "d": "El selector de despachante ya no muestra a todo el mundo: solo gente de obra/almacén por su rol o vínculo; la oficina (dirección, administración, etc.) queda fuera. Igual para el selector de receptor." },
+        { "t": "nuevo", "m": "Flota", "d": "Trazado del recorrido: la ruta activa muestra su recorrido en vivo en el mapa de Seguimiento y las rutas finalizadas guardan su trayecto para verlo (replay), con inicio y último punto marcados." },
+        { "t": "mejora", "m": "Flota", "d": "Ubicación más confiable: se descartan puntos de GPS imprecisos o imposibles, se guardan 90 días de histórico y se avisa cuando una ruta activa deja de reportar ubicación (para detectar teléfonos que bloquean el GPS)." },
+        { "t": "nuevo", "m": "Mi actividad", "d": "Filtro \"1 semana\" en las estadísticas del conductor, y el chofer puede ver su propio perfil de conductor (solo lectura)." },
+        { "t": "nuevo", "m": "Mensajería", "d": "La mensajería queda lista para la app móvil (mismo chat que la web): conversaciones, mensajes y no leídos con aviso al recibir." },
+        { "t": "nuevo", "m": "Administración", "d": "Permiso delegable \"Personalizar layout de la app\": ya no es solo del administrador; se puede asignar a otros. El launcher soporta tamaños de tile (1x1, 2x1, 2x2)." },
+        { "t": "mejora", "m": "Administración", "d": "El historial de versiones agrupa los cambios por módulo para leerse más fácil." }
+      ]
+    },
     "1.62.0": {
       "titulo": "Transporte v2: seguimiento en vivo, conduce que genera su ruta, rutas vivas y estados del chofer (AF)",
       "cambios": [

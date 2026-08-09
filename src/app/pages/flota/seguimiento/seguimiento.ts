@@ -40,6 +40,12 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private map: L.Map | null = null;
   private markers = new Map<string, L.Marker>();
   private channel: RealtimeChannel | null = null;
+  private trail: L.Polyline | null = null;         // AJ14 — trazado dibujado
+  private trailMarkers: L.Marker[] = [];           // inicio/fin del trayecto
+
+  rutaTrazada = signal<string | null>(null);
+  trazaInfo = signal<{ puntos: number; km: number | null; vivo: boolean } | null>(null);
+  trazaCargando = signal(false);
 
   posiciones = signal<Record<string, UltimaPosicion>>({});
   estados = signal<ChoferEstadoRow[]>([]);
@@ -187,6 +193,58 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
       this.map.setView([p.lat, p.lng], 15, { animate: true });
       this.markers.get(usuarioId)?.openTooltip();
     }
+  }
+
+  /** AJ14 — dibuja el trayecto de una ruta: breadcrumb en vivo (activa) o
+   *  polyline consolidada (finalizada). Vuelve a llamar para limpiar. */
+  async trazarRuta(rutaId: string, activa: boolean) {
+    if (this.rutaTrazada() === rutaId) { this.limpiarTraza(); return; }
+    this.trazaCargando.set(true);
+    try {
+      let coords: [number, number][] = [];
+      let km: number | null = null;
+      if (activa) {
+        coords = await this.svc.getRutaBreadcrumb(rutaId);
+      } else {
+        const t = await this.svc.getRutaTrayecto(rutaId);
+        coords = t.coords ?? [];
+        km = t.km ?? null;
+      }
+      this.dibujarTraza(coords);
+      this.rutaTrazada.set(rutaId);
+      this.trazaInfo.set({ puntos: coords.length, km, vivo: activa });
+      if (!coords.length) this.error.set('Esta ruta todavía no tiene puntos de GPS.');
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el trayecto.');
+    } finally {
+      this.trazaCargando.set(false);
+    }
+  }
+
+  private dibujarTraza(coords: [number, number][]) {
+    this.limpiarTraza();
+    if (!this.map || !coords.length) return;
+    this.trail = L.polyline(coords, { color: '#2563eb', weight: 4, opacity: 0.85 }).addTo(this.map);
+    const start = coords[0];
+    const end = coords[coords.length - 1];
+    const dot = (c: string) => L.divIcon({
+      className: 'seg-marker',
+      html: `<div class="seg-marker__pin" style="background:${c}"></div>`,
+      iconSize: [18, 18], iconAnchor: [9, 18],
+    });
+    this.trailMarkers.push(L.marker(start, { icon: dot('#16a34a') }).bindTooltip('Inicio').addTo(this.map));
+    if (coords.length > 1) {
+      this.trailMarkers.push(L.marker(end, { icon: dot('#dc2626') }).bindTooltip('Último punto').addTo(this.map));
+    }
+    this.map.fitBounds(this.trail.getBounds().pad(0.2), { maxZoom: 16 });
+  }
+
+  private limpiarTraza() {
+    if (this.trail) { this.trail.remove(); this.trail = null; }
+    for (const m of this.trailMarkers) m.remove();
+    this.trailMarkers = [];
+    this.rutaTrazada.set(null);
+    this.trazaInfo.set(null);
   }
 
   ngOnDestroy() {

@@ -85,3 +85,24 @@
   &__estado { font-size: 12px; color: var(--sgc-text-muted); }
   &__bat { font-size: 12px; color: var(--sgc-text-muted); flex-shrink: 0; }
 }
+
+// AJ14 — trazado del recorrido
+.seg__traza {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 12px; font-size: 13px; font-weight: 600;
+}
+.seg-traza__clear {
+  background: none; border: none; color: var(--sgc-primary, #2563eb);
+  font-weight: 600; cursor: pointer; font-size: 12px;
+}
+.seg-ruta {
+  &--sel { border-color: var(--sgc-primary, #2563eb); }
+  &__traza {
+    margin-top: 6px; width: 100%; padding: 6px 8px; font-size: 12px; font-weight: 600;
+    background: var(--sgc-surface-2, #f1f5f9); color: var(--sgc-primary, #2563eb);
+    border: 1px solid var(--sgc-border, #e2e8f0); border-radius: 8px; cursor: pointer;
+    transition: all .15s ease;
+    &:hover:not(:disabled) { background: var(--sgc-primary, #2563eb); color: #fff; }
+    &:disabled { opacity: .6; cursor: default; }
+  }
+}

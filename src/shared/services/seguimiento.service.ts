@@ -42,6 +42,15 @@ export interface RutaActiva {
   paradas_entregadas: number;
 }
 
+export interface RutaTrayecto {
+  ruta_id?: string;
+  polyline?: string | null;
+  coords: [number, number][];
+  puntos: number;
+  km?: number | null;
+  consolidado_at?: string | null;
+}
+
 /** AF27 — datos para la vista de Seguimiento (posiciones en vivo, estados, rutas). */
 @Injectable({ providedIn: 'root' })
 export class SeguimientoService {
@@ -65,6 +74,20 @@ export class SeguimientoService {
     const { data, error } = await this.supabase.client.rpc('rutas_activas_y_hoy');
     if (error) throw new Error(error.message);
     return (data ?? []) as RutaActiva[];
+  }
+
+  /** AJ14 — breadcrumb en vivo de una ruta activa: [[lat,lng],...]. */
+  async getRutaBreadcrumb(rutaId: string): Promise<[number, number][]> {
+    const { data, error } = await this.supabase.client.rpc('ruta_breadcrumb_vivo', { p_ruta_id: rutaId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as [number, number][];
+  }
+
+  /** AJ14 — trayecto consolidado de una ruta finalizada (replay). */
+  async getRutaTrayecto(rutaId: string): Promise<RutaTrayecto> {
+    const { data, error } = await this.supabase.client.rpc('ruta_trayecto', { p_ruta_id: rutaId });
+    if (error) throw new Error(error.message);
+    return (data ?? { coords: [], puntos: 0 }) as RutaTrayecto;
   }
 
   /** Suscribe a cambios de última posición (realtime). Devuelve el canal para limpiar. */

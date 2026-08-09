@@ -45,7 +45,7 @@ const out =
   `// AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.\n` +
   `export const APP_VERSION = '${pkg.version}';\n` +
   `export const APP_VERSION_TITULO: string | null = ${JSON.stringify(titulo)};\n` +
-  `export const APP_VERSION_CAMBIOS: { t: string; d: string }[] = ${JSON.stringify(cambios)};\n` +
+  `export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = ${JSON.stringify(cambios)};\n` +
   `export const APP_VERSION_URL: string | null = ${JSON.stringify(url)};\n`;
 writeFileSync(join(root, 'src', 'environments', 'version.ts'), out);
 console.log(`[gen-version] version.ts → ${pkg.version} (${cambios.length} cambios)${url ? ' + link' : ''}`);

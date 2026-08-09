@@ -6,6 +6,8 @@ export type CambioTag = 'nuevo' | 'mejora' | 'arreglo' | 'seguridad';
 export interface CambioItem {
   t: CambioTag | string;
   d: string;
+  /** AJ1 — módulo al que pertenece el cambio (agrupación de bullets, opcional). */
+  m?: string;
 }
 
 export const CAMBIO_META: Record<string, { label: string; badge: string }> = {

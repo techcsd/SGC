@@ -112,14 +112,17 @@
               }
             </div>
 
-            <ul class="hv-cambios">
-              @for (c of v.cambiosVisibles; track c.d) {
-                <li class="hv-cambio">
-                  <span class="hv-tag hv-tag--{{ c.t }}">{{ tagLabel(c.t) }}</span>
-                  <span class="hv-cambio__txt">{{ c.d }}</span>
-                </li>
-              }
-            </ul>
+            @for (g of gruposCambios(v.cambiosVisibles); track g.modulo) {
+              @if (g.modulo) { <div class="hv-grupo-modulo">{{ g.modulo }}</div> }
+              <ul class="hv-cambios">
+                @for (c of g.items; track c.d) {
+                  <li class="hv-cambio">
+                    <span class="hv-tag hv-tag--{{ c.t }}">{{ tagLabel(c.t) }}</span>
+                    <span class="hv-cambio__txt">{{ c.d }}</span>
+                  </li>
+                }
+              </ul>
+            }
             <!-- W7 — versiones auto-registradas: aún sin cambios etiquetados → notas -->
             @if (v.cambiosVisibles.length === 0 && v.notas) {
               <p class="hv-notas">{{ v.notas }}</p>

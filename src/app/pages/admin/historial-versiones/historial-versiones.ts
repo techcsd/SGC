@@ -22,6 +22,11 @@ interface VersionVista extends AppVersion {
   cambiosVisibles: CambioItem[];
 }
 
+export interface GrupoCambios {
+  modulo: string | null;
+  items: CambioItem[];
+}
+
 /**
  * Historial de versiones (línea de tiempo) de la plataforma. Solo admin.
  * Por plataforma (web / app móvil): cada versión con su fecha, los cambios
@@ -151,5 +156,18 @@ export class AdminHistorialVersiones implements OnInit {
 
   tagLabel(t: string): string {
     return CAMBIO_META[t]?.label ?? t;
+  }
+
+  /** AJ1 — agrupa los bullets por módulo (campo `m`); los que no traen módulo
+   *  quedan en un grupo sin encabezado. Mantiene el orden de aparición. */
+  gruposCambios(cambios: CambioItem[]): GrupoCambios[] {
+    const orden: (string | null)[] = [];
+    const mapa = new Map<string | null, CambioItem[]>();
+    for (const c of cambios) {
+      const m = (c.m ?? '').trim() || null;
+      if (!mapa.has(m)) { mapa.set(m, []); orden.push(m); }
+      mapa.get(m)!.push(c);
+    }
+    return orden.map((m) => ({ modulo: m, items: mapa.get(m)! }));
   }
 }
