@@ -83,3 +83,12 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
     text-align: center;
   }
 }
+
+// AK16 — video de la novedad
+.av-fotos__video {
+  width: 100%;
+  max-width: 240px;
+  border-radius: 10px;
+  border: 1px solid #2d2d2d;
+  background: #000;
+}

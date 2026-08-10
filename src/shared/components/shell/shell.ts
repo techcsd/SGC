@@ -135,6 +135,7 @@ export class Shell implements OnInit {
         { label: 'Salidas', route: '/inventario/salidas', badgeKey: 'inventario.salidas' },
         { label: 'Movimientos', route: '/inventario/movimientos' },
         { label: 'Conduces', route: '/inventario/conduces' },
+        { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos' },
         { label: 'Reposición', route: '/inventario/reposicion' },
         { label: 'Almacenes', route: '/inventario/bodegas' },

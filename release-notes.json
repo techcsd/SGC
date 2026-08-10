@@ -1,6 +1,23 @@
 {
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.70.0": {
+      "titulo": "Ronda AK: entregas por confirmar bien dirigidas + historial, vehículos \"en uso/libre\", multas seguras, avisos con voz/video y alarma del reporte semanal",
+      "cambios": [
+        { "t": "arreglo", "d": "Entregas por confirmar: dejan de llegarle a todo el mundo. Ahora solo las reciben los responsables de la obra destino y los roles de supervisión (dirección, gerencia, jefe de flota, logística, ingeniería de oficina); el chofer que entrega ya no recibe \"confirma tu propia entrega\"." },
+        { "t": "nuevo", "d": "Confirmaciones de entrega: nueva vista en Inventario con historial filtrable (fecha, obra, estado) y detalle completo — quién entregó, quién confirmó, cuándo, foto y firma." },
+        { "t": "nuevo", "d": "Vehículos \"en uso / libre\": se elimina el concepto de \"asignarme vehículo\". Ahora se toma en uso, se recibe del usuario que lo tenía o se suelta, registrando el nivel de gasolina y el kilometraje." },
+        { "t": "seguridad", "d": "Multas: un chofer solo puede registrarse multas a sí mismo. La validación es en el servidor (ya no depende de la pantalla); solo administración, gerencia, jefe de flota y logística pueden multar a otros." },
+        { "t": "arreglo", "d": "Se corrigió que a algunos choferes les dijera \"no eres conductor\" en Mi actividad y que no aparecieran en los listados de conductores: era por fichas de conductor duplicadas, ahora consolidadas." },
+        { "t": "nuevo", "d": "Aviso de vehículo: ahora admite nota de voz y video además de fotos, y notifica de forma dirigida a jefe de flota, logística, administración y gerencia." },
+        { "t": "nuevo", "d": "Historial de usos e inspecciones de vehículo, filtrable por vehículo, conductor y fecha, para roles elevados; y \"mis usos/inspecciones\" para el chofer." },
+        { "t": "nuevo", "d": "Alarma del reporte semanal: aviso previo el sábado y recordatorios insistentes el domingo (tipo despertador en la app) a quien tenga el vehículo en uso." },
+        { "t": "mejora", "d": "Conduces: muestran la fecha y la hora de emisión, no solo el día." },
+        { "t": "mejora", "d": "Ordenar y redimensionar módulos: ahora también dentro de cada módulo y submódulo, no solo en el inicio." },
+        { "t": "arreglo", "d": "Rastreo GPS: se instrumentó el diagnóstico (puntos recibidos/insertados/descartados por sesión) y se corrigió el permiso del servidor que podía rechazar la ubicación del usuario de prueba." }
+      ],
+      "url": ""
+    },
     "1.69.0": {
       "titulo": "Transporte v3 (AJ): conduce por estados con confirmación del receptor, despachantes filtrados, trazado de rutas, mensajería y layout de la app",
       "cambios": [

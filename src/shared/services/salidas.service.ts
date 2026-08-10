@@ -4,6 +4,26 @@ import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { SalidaInventario, SalidaFormData, SalidaFirma } from '../models/salida.model';
 import { NotificacionesService } from './notificaciones.service';
 
+/** AK1 — fila del historial de confirmaciones de entrega (RPC confirmaciones_historial). */
+export interface ConfirmacionHistorial {
+  id: string;
+  fecha: string;
+  created_at: string;
+  proyecto_id: string | null;
+  proyecto: string | null;
+  bodega: string | null;
+  estado: string;
+  fase: string;
+  entregado_por: string | null;
+  entregado_por_nombre: string | null;
+  entregado_en: string | null;
+  recibido_por: string | null;
+  recibido_por_nombre: string | null;
+  recibido_en: string | null;
+  tiene_foto: boolean;
+  tiene_firma: boolean;
+}
+
 // usuarios is joined twice (creado_por, recibido_por) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
 const SELECT_QUERY =
@@ -27,6 +47,23 @@ export class SalidasService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as SalidaInventario[];
+  }
+
+  /** AK1 — Historial de confirmaciones de entrega (matriz de visibilidad server-side). */
+  async getConfirmacionesHistorial(filtros?: {
+    desde?: string | null;
+    hasta?: string | null;
+    proyectoId?: string | null;
+    estado?: 'completa' | 'incompleta' | null;
+  }): Promise<ConfirmacionHistorial[]> {
+    const { data, error } = await this.supabase.client.rpc('confirmaciones_historial', {
+      p_desde: filtros?.desde ?? null,
+      p_hasta: filtros?.hasta ?? null,
+      p_proyecto_id: filtros?.proyectoId ?? null,
+      p_estado: filtros?.estado ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConfirmacionHistorial[];
   }
 
   /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la salida.

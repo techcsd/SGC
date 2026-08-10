@@ -1,0 +1,117 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Confirmaciones de entrega</h1>
+    <span class="page-count">{{ filtered().length }} confirmación{{ filtered().length !== 1 ? 'es' : '' }}</span>
+  </div>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+      ⬇️ Excel
+    </button>
+    <a routerLink="/inventario/conduces" class="sgc-btn sgc-btn--ghost">Ir a Conduces</a>
+  </div>
+</div>
+
+<p class="confirmaciones__intro">
+  Registro de las entregas de material que ya fueron confirmadas por el responsable de la obra: quién entregó, quién
+  confirmó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo.
+</p>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field">
+    <label class="filters-bar__label">Desde</label>
+    <input type="date" [value]="desde()" (change)="desde.set($any($event.target).value); recargar()" aria-label="Desde" />
+  </div>
+  <div class="sgc-field">
+    <label class="filters-bar__label">Hasta</label>
+    <input type="date" [value]="hasta()" (change)="hasta.set($any($event.target).value); recargar()" aria-label="Hasta" />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="proyectoId()" (change)="proyectoId.set($any($event.target).value)" aria-label="Filtrar por obra">
+      <option value="">Todas las obras</option>
+      @for (p of proyectos(); track p.id) {
+        <option [value]="p.id">{{ p.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="estado()" (change)="estado.set($any($event.target).value)" aria-label="Filtrar por estado">
+      <option value="">Todas</option>
+      <option value="completa">Confirmada (completa)</option>
+      <option value="incompleta">Confirmada (incompleta)</option>
+    </select>
+  </div>
+
+  @if (hasActiveFilters()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (hasActiveFilters()) {
+          No se encontraron confirmaciones con los filtros aplicados.
+        } @else {
+          Aún no hay entregas confirmadas. Aparecen aquí cuando el responsable de la obra confirma la recepción.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Historial de confirmaciones de entrega">
+        <thead>
+          <tr>
+            <th>No. Conduce</th>
+            <th>Obra / Destino</th>
+            <th>Almacén</th>
+            <th>Entregó</th>
+            <th>Confirmó</th>
+            <th>Confirmado</th>
+            <th>Evidencia</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filtered(); track f.id) {
+            <tr class="row--link" [routerLink]="['/inventario/salidas', f.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
+              <td class="confirmaciones__numero">{{ numero(f.id) }}</td>
+              <td class="text-muted">{{ f.proyecto ?? '—' }}</td>
+              <td class="text-muted">{{ f.bodega ?? '—' }}</td>
+              <td class="text-muted">{{ f.entregado_por_nombre ?? '—' }}</td>
+              <td>{{ f.recibido_por_nombre ?? '—' }}</td>
+              <td class="text-muted">{{ formatFechaHora(f.recibido_en) }}</td>
+              <td>
+                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_foto" title="Foto de recepción">📷</span>
+                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_firma" title="Firma del receptor">✍️</span>
+              </td>
+              <td>
+                <span class="sgc-badge" [class]="'sgc-badge--' + estadoModifier(f)">{{ estadoLabel(f) }}</span>
+              </td>
+              <td>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                   [routerLink]="['/inventario/salidas', f.id, 'conduce']"
+                   (click)="$event.stopPropagation()">Ver conduce</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

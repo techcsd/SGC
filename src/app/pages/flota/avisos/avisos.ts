@@ -19,10 +19,11 @@ import { HighlightItemDirective } from '../../../../shared/directives/highlight-
 import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 
 @Component({
   selector: 'app-flota-avisos',
-  imports: [FormDrawer, Skeleton, HighlightItemDirective, Paginator, Lightbox],
+  imports: [FormDrawer, Skeleton, HighlightItemDirective, Paginator, Lightbox, AudioNotas],
   templateUrl: './avisos.html',
   styleUrl: './avisos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -153,6 +154,8 @@ export class Avisos implements OnInit {
 
   // AI13 — fotos de la novedad reportada por el chofer (bucket vehiculos).
   fotoUrls = signal<string[]>([]);
+  // AK16 — videos de la novedad (mismo bucket).
+  videoUrls = signal<string[]>([]);
   lightboxUrl = signal<string | null>(null);
 
   openAtender(a: AvisoFlota) {
@@ -160,11 +163,18 @@ export class Avisos implements OnInit {
     this.nota.set(a.nota_atencion ?? '');
     this.drawerOpen.set(true);
     this.fotoUrls.set([]);
+    this.videoUrls.set([]);
     const fotos = a.fotos ?? [];
     if (fotos.length) {
       Promise.all(fotos.map((p) => this.vehiculosService.getFotoUrl(p)))
         .then((urls) => this.fotoUrls.set(urls.filter((u): u is string => !!u)))
         .catch(() => this.fotoUrls.set([]));
+    }
+    const videos = a.videos ?? [];
+    if (videos.length) {
+      Promise.all(videos.map((p) => this.vehiculosService.getFotoUrl(p)))
+        .then((urls) => this.videoUrls.set(urls.filter((u): u is string => !!u)))
+        .catch(() => this.videoUrls.set([]));
     }
   }
   closeDrawer() { this.drawerOpen.set(false); }

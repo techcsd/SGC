@@ -163,6 +163,26 @@
         </div>
       }
 
+      <!-- AK16 · Videos de la novedad -->
+      @if (videoUrls().length) {
+        <div class="av-fotos">
+          <span class="av-fotos__label">Videos</span>
+          <div class="av-fotos__grid">
+            @for (u of videoUrls(); track u) {
+              <video class="av-fotos__video" [src]="u" controls preload="metadata"></video>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- AK16 · Notas de voz de la novedad -->
+      @if (a.tipo === 'novedad') {
+        <div class="av-fotos">
+          <span class="av-fotos__label">Notas de voz</span>
+          <app-audio-notas entidadTipo="aviso_flota" [entidadId]="a.id" bucket="vehiculos" [readOnly]="true" />
+        </div>
+      }
+
       @if (a.estado === 'pendiente') {
         <div class="sgc-field">
           <label for="nota">Nota de atención</label>

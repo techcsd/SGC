@@ -1,0 +1,28 @@
+.confirmaciones__intro {
+  color: var(--main-ultra-light);
+  margin: 0 0 1rem;
+  max-width: 70ch;
+  font-size: 0.9rem;
+}
+
+.confirmaciones__numero {
+  font-weight: 600;
+}
+
+.filters-bar__label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--main-ultra-light);
+  margin-bottom: 0.15rem;
+}
+
+.confirmaciones__ev {
+  opacity: 0.25;
+  filter: grayscale(1);
+  margin-right: 0.25rem;
+
+  &--on {
+    opacity: 1;
+    filter: none;
+  }
+}

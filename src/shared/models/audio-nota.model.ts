@@ -12,6 +12,8 @@ export type AudioEntidadTipo =
   | 'mantenimiento'
   | 'ruta'
   | 'checklist'
+  | 'traspaso_acta'
+  | 'aviso_flota'
   | 'otro';
 
 /** Fila devuelta por el RPC `audios_de(entidad_tipo, entidad_id)`. */

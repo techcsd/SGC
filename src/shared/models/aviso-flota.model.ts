@@ -49,6 +49,8 @@ export interface AvisoFlota {
   resuelto_nota?: string | null;
   // AI13 — novedad reportada por el chofer: evidencia + reportante
   fotos?: string[] | null;
+  // AK16 — adjuntos de video de la novedad (bucket vehiculos)
+  videos?: string[] | null;
   reportado_por?: string | null;
   vehiculo?: { placa: string; marca: string } | null;
   conductor?: { nombre: string } | null;
