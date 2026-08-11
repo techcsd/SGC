@@ -34,6 +34,8 @@ interface NavItem {
   phase?: string;
   /** AC2 — oculto para la persona "chofer" (rol chofer_transportista). */
   noChofer?: boolean;
+  /** AL1 — grupo de plataforma "Sistema": solo admin | rol tecnologia | gerencia | dirección. */
+  soloTecnologia?: boolean;
   /** AF32 — visible además para roles de flota elevados aunque no tengan el módulo
    *  (el jefe de flota entra a Compras SOLO por Proveedores). */
   flotaElevado?: boolean;
@@ -261,25 +263,32 @@ export class Shell implements OnInit {
       ],
     },
     {
-      // Sin `modulo`: la guía de homologación es informativa para todos.
-      // Las secciones de gestión se gatean con el módulo 'tecnologia'.
-      // AC2 — el módulo es público EXCEPTO para la persona "chofer".
+      // AL1 — Tecnología REAL = activos/servicios de TI. Gateado por el módulo
+      // `tecnologia` (+ admin), ya no visible para todo usuario no-chofer.
       label: 'Tecnología',
       icon: 'tecnologia',
-      noChofer: true,
+      modulo: 'tecnologia',
       children: [
-        { label: 'Guía de herramientas', route: '/tecnologia/guia' },
+        { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
+        { label: 'Guía de herramientas', route: '/tecnologia/guia', modulo: 'tecnologia' },
         { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
-        { label: 'Inventario tecnológico', route: '/tecnologia/inventario', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
-        // Y11 — plataforma/sistema: solo admin | rol tecnologia.
-        { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
+      ],
+    },
+    {
+      // AL1 — "Sistema" = consola de plataforma/DevOps (lo que ANTES vivía dentro
+      // de "Tecnología" pero no es TI de activos). Solo es_tecnologia
+      // (admin | tecnologia | gerencia | dirección).
+      label: 'Sistema',
+      icon: 'tecnologia',
+      soloTecnologia: true,
+      children: [
+        { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
+        { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
         { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
         { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', soloTecnologia: true },
-        // Z26 — Historial de versiones es público (todos lo ven).
-        { label: 'Historial de versiones', route: '/tecnologia/historial-versiones' },
-        { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
+        { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
       ],
     },
     {
@@ -467,6 +476,8 @@ export class Shell implements OnInit {
     // AC2 — la persona "chofer" no ve Tecnología (salvo que sea elevado/tecnología).
     if (item.noChofer && this.userService.esChofer() && !this.userService.esTecnologia())
       return false;
+    // AL1 — grupo "Sistema" (plataforma): solo es_tecnologia.
+    if (item.soloTecnologia && !this.userService.esTecnologia()) return false;
     // AF32 — acceso extra por flota elevado (p. ej. Compras solo-Proveedores).
     if (item.flotaElevado && this.userService.esFlotaElevado()) return true;
     // AG12 — acceso extra por permiso granular de submódulo (p. ej. Compras solo-Proveedores).

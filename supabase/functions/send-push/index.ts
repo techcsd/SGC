@@ -110,15 +110,31 @@ Deno.serve(async (req: Request) => {
   const dataStr: Record<string, string> = {};
   for (const [k, v] of Object.entries(data ?? {})) dataStr[k] = v == null ? "" : String(v);
 
+  // AL6 — canal de Android dedicado para alarmas de alta prioridad (despertador).
+  // Si el payload trae data.channel_id (p. ej. 'alarma_inspeccion') o data.alarma,
+  // se adjunta a android.notification para que suene como alarma en Android 8+.
+  const channelId = dataStr["channel_id"] || (dataStr["alarma"] === "true" ? "alarma_inspeccion" : "");
+  const esAlarma = channelId === "alarma_inspeccion" || dataStr["alarma"] === "true";
+
   let sent = 0, failed = 0;
   const dead: string[] = [];
   for (const t of tokens) {
+    const androidNotification = channelId
+      ? {
+          channel_id: channelId,
+          notification_priority: "PRIORITY_MAX",
+          ...(esAlarma ? { default_sound: true, visibility: "PUBLIC" } : {}),
+        }
+      : undefined;
     const message = {
       message: {
         token: t.token,
         notification: { title: titulo ?? "SGC", body: cuerpo ?? "" },
         data: dataStr,
-        android: { priority: "high" },
+        android: {
+          priority: "high",
+          ...(androidNotification ? { notification: androidNotification } : {}),
+        },
       },
     };
     const res = await fetch(endpoint, {

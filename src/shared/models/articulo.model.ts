@@ -1,4 +1,4 @@
-/** Z16 — propiedad del artículo: propio de CSD vs alquilado a un externo. */
+/** Z16 — propiedad del artículo: propio de CSD vs alquilado. */
 export type ArticuloPropiedad = 'propio_csd' | 'alquilado';
 
 export interface Articulo {
@@ -21,7 +21,7 @@ export interface Articulo {
   entrega_en_mano: boolean;
   /** Ayuda visible: atado/paquete/referencia (ej. "ATADO 120 PZA", "REF. TOTAL"). */
   nota: string | null;
-  /** Subgrupo dentro de la categoría (ej. Madera/Plywood, CSD/Externo). */
+  /** Subgrupo dentro de la categoría (ej. Madera/Plywood, CSD/Alquilado). */
   subgrupo: string | null;
   /** Orden oficial dentro de la categoría (según el Excel). */
   orden: number | null;
@@ -52,7 +52,7 @@ export interface ArticuloFormData {
 
 export const ARTICULO_PROPIEDADES: { value: ArticuloPropiedad; label: string; badge: string }[] = [
   { value: 'propio_csd', label: 'CSD (propio)', badge: 'success' },
-  { value: 'alquilado', label: 'Alquilado (externo)', badge: 'warning' },
+  { value: 'alquilado', label: 'Alquilado', badge: 'warning' },
 ];
 
 /** Etiqueta corta de la propiedad para badges/listados. */

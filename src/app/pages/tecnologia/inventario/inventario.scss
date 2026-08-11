@@ -217,3 +217,40 @@ textarea {
   width: 100%; max-height: 220px; object-fit: cover; border-radius: var(--sgc-radius);
   border: 1px solid var(--sgc-border); margin-bottom: 14px;
 }
+
+// ── AL1 — galería multi-foto + portada + agregar tipo ─────────────────────
+.tec-galeria {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+  &--detalle { margin-bottom: 14px; }
+}
+.tec-galeria__item {
+  position: relative; width: 84px; height: 84px; border-radius: var(--sgc-radius);
+  overflow: hidden; border: 2px solid var(--sgc-border);
+  &--portada { border-color: var(--Hub, #ffb300); }
+}
+.tec-galeria__img {
+  width: 84px; height: 84px; object-fit: cover; border-radius: var(--sgc-radius);
+  border: 1px solid var(--sgc-border); cursor: zoom-in;
+}
+.tec-galeria--detalle .tec-galeria__img { width: 96px; height: 96px; }
+.tec-galeria__badge {
+  position: absolute; left: 0; bottom: 0; right: 0; text-align: center;
+  font-size: 10px; font-weight: 700; padding: 2px 0;
+  background: var(--Hub, #ffb300); color: #1a1a1a;
+}
+.tec-galeria__actions {
+  position: absolute; top: 2px; right: 2px; display: flex; gap: 2px;
+  button {
+    width: 20px; height: 20px; border: none; border-radius: 4px; cursor: pointer;
+    background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+}
+.tec-addtipo { display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  input { flex: 1 1 140px; }
+}
+.tec-addtipo-link {
+  background: none; border: none; color: var(--sgc-primary, #ff5f00); cursor: pointer;
+  font-size: 12px; padding: 4px 0; text-align: left; align-self: flex-start;
+}
+.field-hint { display: block; font-size: 11px; color: var(--sgc-text-muted, #929090); margin-top: 4px; }

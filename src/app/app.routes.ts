@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
 import { noChoferGuard } from './core/guards/no-chofer.guard';
+import { tecnologiaContenedorGuard } from './core/guards/tecnologia.guard';
 
 export const routes: Routes = [
   {
@@ -106,11 +107,12 @@ export const routes: Routes = [
         loadChildren: () => import('./pages/tareas/tareas.routes').then((m) => m.tareasRoutes),
       },
       {
-        // No module guard on the parent: the homologación guide is informative for
-        // every authenticated user. Management children self-guard with moduleGuard('tecnologia').
-        // AC2 — pero la persona "chofer" no ve Tecnología en absoluto.
+        // AL1 — El contenedor exige módulo `tecnologia` O es_tecnologia (corrige la
+        // fuga por la que todo usuario no-chofer veía "Tecnología"). Cada hijo
+        // re-valida: activos de TI con moduleGuard('tecnologia'); consola "Sistema"
+        // (versiones/QA/monitoreo/errores) con tecnologiaGuard.
         path: 'tecnologia',
-        canActivate: [noChoferGuard],
+        canActivate: [tecnologiaContenedorGuard],
         loadChildren: () =>
           import('./pages/tecnologia/tecnologia.routes').then((m) => m.tecnologiaRoutes),
       },

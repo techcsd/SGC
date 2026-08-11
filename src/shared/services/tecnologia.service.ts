@@ -52,6 +52,37 @@ export class TecnologiaService {
     return { value: (data as { clave: string }).clave, label: (data as { label: string }).label };
   }
 
+  // ── AL1 — Catálogo administrable de TIPOS de equipo tecnológico ───────────
+  /** Tipos activos de `sgc.tec_equipo_tipos` (Walkie-talkie, Laptop, …). */
+  async getEquipoTipos(): Promise<{ value: string; label: string }[]> {
+    const { data, error } = await this.supabase.client
+      .from('tec_equipo_tipos')
+      .select('id, clave, label, orden, activo')
+      .eq('activo', true)
+      .order('orden', { ascending: true })
+      .order('label', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((t) => ({ value: (t as { id: string }).id, label: (t as { label: string }).label }));
+  }
+
+  /** AL1 — alta de un tipo nuevo (admin/tecnología). Devuelve {value:id, label}. */
+  async addEquipoTipo(label: string): Promise<{ value: string; label: string }> {
+    const clave = label
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(new RegExp('[\\u0300-\\u036f]', 'g'), '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40);
+    const { data, error } = await this.supabase.client
+      .from('tec_equipo_tipos')
+      .insert({ clave, label: label.trim(), orden: 200 })
+      .select('id, label')
+      .single();
+    if (error) throw new Error(error.message);
+    return { value: (data as { id: string }).id, label: (data as { label: string }).label };
+  }
+
   // ── Homologación de herramientas ──────────────────────────
   async getHerramientas(soloActivas = false): Promise<TecHerramienta[]> {
     let q = this.supabase.client.from('tec_herramientas').select('*').order('orden', { ascending: true });

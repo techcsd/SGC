@@ -55,7 +55,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'legal', label: 'Legal', desc: 'Expedientes legales, contratos y aprobaciones (rol jurídico).' },
   { key: 'tareas', label: 'Tareas (asignar)', desc: 'Asignar y dar seguimiento a tareas de otros. Todo usuario ya tiene "Mis tareas" sin este módulo.' },
   { key: 'obra', label: 'Producción de Obra', desc: 'Gestión de producción en obra: plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real e informe semanal. Rol gerente de producción / capataz.' },
-  { key: 'tecnologia', label: 'Tecnología', desc: 'Inventario tecnológico, equipos y herramientas de TI y matriz tecnológica.' },
+  { key: 'tecnologia', label: 'Tecnología', desc: 'Activos de TI: inventario tecnológico (equipos, tipos, ubicación, fotos), guía de herramientas, homologación, matriz puesto × herramienta y compras tecnológicas. La consola de plataforma "Sistema" (versiones, QA, monitoreo, errores) es aparte y depende del rol Tecnología.' },
   { key: 'direccion', label: 'Dirección (vista ejecutiva)', desc: 'Vista ejecutiva: KPIs y dashboards consolidados de dirección.', sensible: true },
   { key: 'plataforma', label: 'Plataforma (app)', desc: 'Personalización de la app: orden y tamaño de los módulos del launcher. Permiso delegable, no requiere ser administrador.' },
   { key: 'admin', label: 'Administración', desc: 'Usuarios, roles y permisos, versiones de la app, auditoría y reportes. Acceso máximo — asignar con cuidado.', sensible: true },

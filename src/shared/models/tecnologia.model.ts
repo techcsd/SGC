@@ -48,6 +48,12 @@ export interface TecEquipo {
   ubicacion: string | null;
   notas: string | null;
   foto_path: string | null;
+  // AL1 — inventario tecnológico completo
+  tipo_id: string | null;
+  bodega_id: string | null;
+  moneda: 'DOP' | 'USD';
+  fotos: string[];
+  foto_portada: string | null;
   // QA-071 — datos de compra/garantía
   costo: number | null;
   fecha_compra: string | null;
@@ -56,6 +62,15 @@ export interface TecEquipo {
   origen_solicitud_compra_id: string | null;
   activo: boolean;
   created_at?: string;
+}
+
+/** AL1 — tipo administrable del inventario tecnológico (catálogo tec_equipo_tipos). */
+export interface TecEquipoTipo {
+  id: string;
+  clave: string;
+  label: string;
+  orden: number;
+  activo: boolean;
 }
 
 export interface TecEquipoFormData {
@@ -70,6 +85,12 @@ export interface TecEquipoFormData {
   ubicacion: string | null;
   notas: string | null;
   foto_path?: string | null;
+  // AL1
+  tipo_id?: string | null;
+  bodega_id?: string | null;
+  moneda?: 'DOP' | 'USD';
+  fotos?: string[];
+  foto_portada?: string | null;
   // QA-071
   costo: number | null;
   fecha_compra: string | null;

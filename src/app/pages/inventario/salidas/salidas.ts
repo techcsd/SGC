@@ -129,6 +129,7 @@ export class Salidas implements OnInit {
   form = new FormGroup({
     bodega_id: new FormControl<string | null>(null, [Validators.required]),
     proyecto_id: new FormControl<string | null>(null),
+    destino_almacen_id: new FormControl<string | null>(null), // AL10
     motivo: new FormControl<string | null>(null, [Validators.required]),
     fecha: new FormControl<string>(this.today, [Validators.required]),
     responsable: new FormControl<string | null>(null),
@@ -265,6 +266,9 @@ export class Salidas implements OnInit {
     initialValue: this.form.controls.motivo.value,
   });
   showProyectoField = computed(() => this.motivoValue() === 'uso_proyecto');
+  // AL10 — destino almacén central (Bodega Central) cuando el motivo es traslado.
+  showAlmacenDestinoField = computed(() => this.motivoValue() === 'traslado_almacen');
+  almacenesDestino = signal<{ id: string; nombre: string; es_central: boolean }[]>([]);
 
   hasActiveFilters = computed(
     () =>
@@ -313,6 +317,12 @@ export class Salidas implements OnInit {
       this.articulos.set(arts);
       this.categorias.set(cats);
       this.bodegas.set(bods);
+      // AL10 — almacenes centrales (sin obra) como destino de traslado.
+      this.almacenesDestino.set(
+        (bods as { id: string; nombre: string; proyecto_id: string | null; activo?: boolean }[])
+          .filter((b) => b.proyecto_id == null && b.activo !== false)
+          .map((b) => ({ id: b.id, nombre: b.nombre, es_central: true })),
+      );
       this.proyectos.set(proyectos);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
     } catch (e: unknown) {
@@ -562,6 +572,10 @@ export class Salidas implements OnInit {
       this.saveError.set('Selecciona el proyecto para una salida por uso en proyecto.');
       return;
     }
+    if (v.motivo === 'traslado_almacen' && !v.destino_almacen_id) {
+      this.saveError.set('Selecciona el almacén destino (Bodega Central) para el traslado.');
+      return;
+    }
 
     this.saveError.set('');
     this.step.set('resumen');
@@ -588,6 +602,7 @@ export class Salidas implements OnInit {
         {
           bodega_id: v.bodega_id!,
           proyecto_id: v.motivo === 'uso_proyecto' ? (v.proyecto_id ?? null) : null,
+          destino_almacen_id: v.motivo === 'traslado_almacen' ? (v.destino_almacen_id ?? null) : null,
           motivo: v.motivo!,
           fecha: v.fecha!,
           responsable: v.responsable ?? null,

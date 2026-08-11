@@ -405,6 +405,10 @@ export class Proveedores implements OnInit {
           }
         }
       }
+      // AL3 — bitácora de importación (best-effort, no bloquea).
+      await this.proveedoresService.registrarImport(
+        { total: creados + actualizados + saltados + fallidos, creados, actualizados, saltados, fallidos },
+      );
       this.toast.success(
         'Importación completada',
         `${creados} nuevo(s), ${actualizados} actualizado(s), ${saltados} saltado(s)${fallidos ? `, ${fallidos} con error` : ''}.`,

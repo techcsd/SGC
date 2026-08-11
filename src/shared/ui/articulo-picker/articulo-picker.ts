@@ -77,7 +77,7 @@ export class ArticuloPicker {
     const alq = list.filter((a) => (a.propiedad ?? 'propio_csd') === 'alquilado');
     const subgrupos: SubGrupo[] = [];
     if (csd.length) subgrupos.push({ propiedad: 'propio_csd', label: 'CSD (propios)', badge: 'success', articulos: csd });
-    if (alq.length) subgrupos.push({ propiedad: 'alquilado', label: 'Alquilados (externos)', badge: 'warning', articulos: alq });
+    if (alq.length) subgrupos.push({ propiedad: 'alquilado', label: 'Alquilados', badge: 'warning', articulos: alq });
     return { articulos: [...csd, ...alq], subgrupos };
   }
 

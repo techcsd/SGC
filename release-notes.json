@@ -1,37 +1,159 @@
 {
-  "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }.",
   "web": {
+    "1.71.0": {
+      "titulo": "Transferencia de conduces consistente, Tecnología real con inventario, Bodega Central como destino y alarma dominical de inspección",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Transferencia de conduces: al aceptar una transferencia, el conduce desaparece al instante de \"Pendiente entrega\" del emisor (antes le seguía saliendo) y llega completo — con su código y el detalle de materiales — al nuevo chofer."
+        },
+        {
+          "t": "nuevo",
+          "d": "Un conduce ya iniciado (en ruta) también se puede transferir a otro chofer; se registra en el historial quién lo transfirió, a quién y en qué estado iba."
+        },
+        {
+          "t": "nuevo",
+          "d": "Módulo Tecnología reorganizado: los activos de TI (Inventario tecnológico, Guía, Homologación, Matriz, Compras) quedan en \"Tecnología\" (solo con el módulo asignado), y la consola de plataforma (versiones, QA, monitoreo, reportes de errores) pasa a un módulo aparte llamado \"Sistema\"."
+        },
+        {
+          "t": "nuevo",
+          "d": "Inventario tecnológico completo: tipos de equipo administrables (Walkie-talkie, GPS, Drone, etc. — se pueden agregar más), ubicación por almacén, precio en RD$ o US$ y varias fotos por equipo con portada y visor para verlas en grande."
+        },
+        {
+          "t": "nuevo",
+          "d": "Bodega Central (y almacenes centrales) ahora se pueden elegir como destino de un conduce; el material entra al almacén cuando se confirma la recepción."
+        },
+        {
+          "t": "nuevo",
+          "d": "El confirmador de una entrega tiene su historial \"Mis confirmaciones\" y puede ver el detalle del conduce (materiales, origen, destino, chofer y fotos) para comparar lo esperado con lo recibido."
+        },
+        {
+          "t": "nuevo",
+          "d": "Los choferes pueden registrar mantenimientos/reparaciones del vehículo que tienen en uso (rutina, tintado, bombillo, etc.) con costo, taller, fotos y notas; se avisa al jefe de flota y queda quién lo registró."
+        },
+        {
+          "t": "mejora",
+          "d": "Los materiales antes marcados como \"externos\" ahora se muestran como \"Alquilados\" en toda la aplicación."
+        },
+        {
+          "t": "mejora",
+          "d": "Import de proveedores: ahora queda registrada la bitácora de cada importación (quién, cuándo y cuántos)."
+        },
+        {
+          "t": "mejora",
+          "d": "Recordatorio de inspección de vehículo: los domingos insiste desde las 9:00 AM (cada 30 min) hasta que se envíe la inspección, con alarma de alta prioridad."
+        }
+      ],
+      "url": ""
+    },
     "1.70.0": {
       "titulo": "Ronda AK: entregas por confirmar bien dirigidas + historial, vehículos \"en uso/libre\", multas seguras, avisos con voz/video y alarma del reporte semanal",
       "cambios": [
-        { "t": "arreglo", "d": "Entregas por confirmar: dejan de llegarle a todo el mundo. Ahora solo las reciben los responsables de la obra destino y los roles de supervisión (dirección, gerencia, jefe de flota, logística, ingeniería de oficina); el chofer que entrega ya no recibe \"confirma tu propia entrega\"." },
-        { "t": "nuevo", "d": "Confirmaciones de entrega: nueva vista en Inventario con historial filtrable (fecha, obra, estado) y detalle completo — quién entregó, quién confirmó, cuándo, foto y firma." },
-        { "t": "nuevo", "d": "Vehículos \"en uso / libre\": se elimina el concepto de \"asignarme vehículo\". Ahora se toma en uso, se recibe del usuario que lo tenía o se suelta, registrando el nivel de gasolina y el kilometraje." },
-        { "t": "seguridad", "d": "Multas: un chofer solo puede registrarse multas a sí mismo. La validación es en el servidor (ya no depende de la pantalla); solo administración, gerencia, jefe de flota y logística pueden multar a otros." },
-        { "t": "arreglo", "d": "Se corrigió que a algunos choferes les dijera \"no eres conductor\" en Mi actividad y que no aparecieran en los listados de conductores: era por fichas de conductor duplicadas, ahora consolidadas." },
-        { "t": "nuevo", "d": "Aviso de vehículo: ahora admite nota de voz y video además de fotos, y notifica de forma dirigida a jefe de flota, logística, administración y gerencia." },
-        { "t": "nuevo", "d": "Historial de usos e inspecciones de vehículo, filtrable por vehículo, conductor y fecha, para roles elevados; y \"mis usos/inspecciones\" para el chofer." },
-        { "t": "nuevo", "d": "Alarma del reporte semanal: aviso previo el sábado y recordatorios insistentes el domingo (tipo despertador en la app) a quien tenga el vehículo en uso." },
-        { "t": "mejora", "d": "Conduces: muestran la fecha y la hora de emisión, no solo el día." },
-        { "t": "mejora", "d": "Ordenar y redimensionar módulos: ahora también dentro de cada módulo y submódulo, no solo en el inicio." },
-        { "t": "arreglo", "d": "Rastreo GPS: se instrumentó el diagnóstico (puntos recibidos/insertados/descartados por sesión) y se corrigió el permiso del servidor que podía rechazar la ubicación del usuario de prueba." }
+        {
+          "t": "arreglo",
+          "d": "Entregas por confirmar: dejan de llegarle a todo el mundo. Ahora solo las reciben los responsables de la obra destino y los roles de supervisión (dirección, gerencia, jefe de flota, logística, ingeniería de oficina); el chofer que entrega ya no recibe \"confirma tu propia entrega\"."
+        },
+        {
+          "t": "nuevo",
+          "d": "Confirmaciones de entrega: nueva vista en Inventario con historial filtrable (fecha, obra, estado) y detalle completo — quién entregó, quién confirmó, cuándo, foto y firma."
+        },
+        {
+          "t": "nuevo",
+          "d": "Vehículos \"en uso / libre\": se elimina el concepto de \"asignarme vehículo\". Ahora se toma en uso, se recibe del usuario que lo tenía o se suelta, registrando el nivel de gasolina y el kilometraje."
+        },
+        {
+          "t": "seguridad",
+          "d": "Multas: un chofer solo puede registrarse multas a sí mismo. La validación es en el servidor (ya no depende de la pantalla); solo administración, gerencia, jefe de flota y logística pueden multar a otros."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrigió que a algunos choferes les dijera \"no eres conductor\" en Mi actividad y que no aparecieran en los listados de conductores: era por fichas de conductor duplicadas, ahora consolidadas."
+        },
+        {
+          "t": "nuevo",
+          "d": "Aviso de vehículo: ahora admite nota de voz y video además de fotos, y notifica de forma dirigida a jefe de flota, logística, administración y gerencia."
+        },
+        {
+          "t": "nuevo",
+          "d": "Historial de usos e inspecciones de vehículo, filtrable por vehículo, conductor y fecha, para roles elevados; y \"mis usos/inspecciones\" para el chofer."
+        },
+        {
+          "t": "nuevo",
+          "d": "Alarma del reporte semanal: aviso previo el sábado y recordatorios insistentes el domingo (tipo despertador en la app) a quien tenga el vehículo en uso."
+        },
+        {
+          "t": "mejora",
+          "d": "Conduces: muestran la fecha y la hora de emisión, no solo el día."
+        },
+        {
+          "t": "mejora",
+          "d": "Ordenar y redimensionar módulos: ahora también dentro de cada módulo y submódulo, no solo en el inicio."
+        },
+        {
+          "t": "arreglo",
+          "d": "Rastreo GPS: se instrumentó el diagnóstico (puntos recibidos/insertados/descartados por sesión) y se corrigió el permiso del servidor que podía rechazar la ubicación del usuario de prueba."
+        }
       ],
       "url": ""
     },
     "1.69.0": {
       "titulo": "Transporte v3 (AJ): conduce por estados con confirmación del receptor, despachantes filtrados, trazado de rutas, mensajería y layout de la app",
       "cambios": [
-        { "t": "arreglo", "m": "Conduces", "d": "Los conduces que crea el chofer vuelven a aparecer en \"Pendiente entrega\": el filtro de datos de prueba escondía al propio chofer sus conduces recién creados." },
-        { "t": "nuevo", "m": "Conduces", "d": "Estados del conduce que maneja el chofer: en tránsito, entregando y entregado (con foto de entrega), visibles y con hora en el detalle." },
-        { "t": "seguridad", "m": "Conduces", "d": "La recepción se confirma en el dispositivo del RECEPTOR: el chofer solo marca \"entregado\" con foto; el responsable del destino recibe el aviso y confirma (checklist, foto y firma) desde su propia sesión. El transportista ya no puede firmar la recepción por el receptor (anti-suplantación)." },
-        { "t": "nuevo", "m": "Conduces", "d": "Bandeja \"Entregas por confirmar\": cada responsable ve las entregas que le tocan confirmar." },
-        { "t": "mejora", "m": "Conduces", "d": "El selector de despachante ya no muestra a todo el mundo: solo gente de obra/almacén por su rol o vínculo; la oficina (dirección, administración, etc.) queda fuera. Igual para el selector de receptor." },
-        { "t": "nuevo", "m": "Flota", "d": "Trazado del recorrido: la ruta activa muestra su recorrido en vivo en el mapa de Seguimiento y las rutas finalizadas guardan su trayecto para verlo (replay), con inicio y último punto marcados." },
-        { "t": "mejora", "m": "Flota", "d": "Ubicación más confiable: se descartan puntos de GPS imprecisos o imposibles, se guardan 90 días de histórico y se avisa cuando una ruta activa deja de reportar ubicación (para detectar teléfonos que bloquean el GPS)." },
-        { "t": "nuevo", "m": "Mi actividad", "d": "Filtro \"1 semana\" en las estadísticas del conductor, y el chofer puede ver su propio perfil de conductor (solo lectura)." },
-        { "t": "nuevo", "m": "Mensajería", "d": "La mensajería queda lista para la app móvil (mismo chat que la web): conversaciones, mensajes y no leídos con aviso al recibir." },
-        { "t": "nuevo", "m": "Administración", "d": "Permiso delegable \"Personalizar layout de la app\": ya no es solo del administrador; se puede asignar a otros. El launcher soporta tamaños de tile (1x1, 2x1, 2x2)." },
-        { "t": "mejora", "m": "Administración", "d": "El historial de versiones agrupa los cambios por módulo para leerse más fácil." }
+        {
+          "t": "arreglo",
+          "m": "Conduces",
+          "d": "Los conduces que crea el chofer vuelven a aparecer en \"Pendiente entrega\": el filtro de datos de prueba escondía al propio chofer sus conduces recién creados."
+        },
+        {
+          "t": "nuevo",
+          "m": "Conduces",
+          "d": "Estados del conduce que maneja el chofer: en tránsito, entregando y entregado (con foto de entrega), visibles y con hora en el detalle."
+        },
+        {
+          "t": "seguridad",
+          "m": "Conduces",
+          "d": "La recepción se confirma en el dispositivo del RECEPTOR: el chofer solo marca \"entregado\" con foto; el responsable del destino recibe el aviso y confirma (checklist, foto y firma) desde su propia sesión. El transportista ya no puede firmar la recepción por el receptor (anti-suplantación)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Conduces",
+          "d": "Bandeja \"Entregas por confirmar\": cada responsable ve las entregas que le tocan confirmar."
+        },
+        {
+          "t": "mejora",
+          "m": "Conduces",
+          "d": "El selector de despachante ya no muestra a todo el mundo: solo gente de obra/almacén por su rol o vínculo; la oficina (dirección, administración, etc.) queda fuera. Igual para el selector de receptor."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Trazado del recorrido: la ruta activa muestra su recorrido en vivo en el mapa de Seguimiento y las rutas finalizadas guardan su trayecto para verlo (replay), con inicio y último punto marcados."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Ubicación más confiable: se descartan puntos de GPS imprecisos o imposibles, se guardan 90 días de histórico y se avisa cuando una ruta activa deja de reportar ubicación (para detectar teléfonos que bloquean el GPS)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Mi actividad",
+          "d": "Filtro \"1 semana\" en las estadísticas del conductor, y el chofer puede ver su propio perfil de conductor (solo lectura)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Mensajería",
+          "d": "La mensajería queda lista para la app móvil (mismo chat que la web): conversaciones, mensajes y no leídos con aviso al recibir."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Permiso delegable \"Personalizar layout de la app\": ya no es solo del administrador; se puede asignar a otros. El launcher soporta tamaños de tile (1x1, 2x1, 2x2)."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "El historial de versiones agrupa los cambios por módulo para leerse más fácil."
+        }
       ]
     },
     "1.62.0": {
@@ -1673,5 +1795,6 @@
       ],
       "url": ""
     }
-  }
+  },
+  "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
 }

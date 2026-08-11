@@ -418,7 +418,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa que un artículo sea "CSD" o "Alquilado"?',
         respuesta:
-          'Cada artículo tiene una propiedad: CSD (propio de la empresa) o Alquilado (equipo externo rentado). Se marca en el alta/edición del artículo, o rápido desde el listado tocando la etiqueta. En la requisición y los pickers los artículos se muestran agrupados por CSD / Alquilados, con un badge que los acompaña en listados y conduces.',
+          'Cada artículo tiene una propiedad: CSD (propio de la empresa) o Alquilado (equipo rentado). Se marca en el alta/edición del artículo, o rápido desde el listado tocando la etiqueta. En la requisición y los pickers los artículos se muestran agrupados por CSD / Alquilados, con un badge que los acompaña en listados y conduces.',
       },
       {
         pregunta: '¿Cómo le pongo foto a un artículo y veo su detalle?',

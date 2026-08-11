@@ -108,7 +108,7 @@
                   <span class="equipo-nombre">{{ e.nombre }}</span>
                 </div>
               </td>
-              <td class="text-muted">{{ getTipoLabel(e.tipo) }}</td>
+              <td class="text-muted">{{ getTipoLabel(e) }}</td>
               <td class="text-muted">
                 {{ e.marca || '—' }}@if (e.modelo) { / {{ e.modelo }} }
               </td>
@@ -118,7 +118,7 @@
                 </span>
               </td>
               <td class="text-muted">{{ getEmpleadoNombre(e) }}</td>
-              <td class="text-muted">{{ formatCosto(e.costo) }}</td>
+              <td class="text-muted">{{ formatCosto(e.costo, e.moneda) }}</td>
               <td>
                 <div class="row-actions">
                   <button
@@ -187,19 +187,33 @@
 
     <div class="form-row">
       <div class="sgc-field">
-        <label for="tipo">Tipo <span class="required">*</span></label>
-        <select
-          id="tipo"
-          formControlName="tipo"
-          [class.invalid]="f.tipo.invalid && f.tipo.touched"
-        >
-          <option [value]="null">Seleccionar tipo…</option>
-          @for (t of TIPOS; track t.value) {
-            <option [value]="t.value">{{ t.label }}</option>
+        <label for="tipo_id">Tipo <span class="required">*</span></label>
+        @if (!addingTipo()) {
+          <select
+            id="tipo_id"
+            formControlName="tipo_id"
+            [class.invalid]="f.tipo_id.invalid && f.tipo_id.touched"
+          >
+            <option [value]="null">Seleccionar tipo…</option>
+            @for (t of tipos(); track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+          <button type="button" class="tec-addtipo-link" (click)="addingTipo.set(true)">+ Agregar tipo</button>
+          @if (f.tipo_id.invalid && f.tipo_id.touched) {
+            <span class="field-error">El tipo es obligatorio.</span>
           }
-        </select>
-        @if (f.tipo.invalid && f.tipo.touched) {
-          <span class="field-error">El tipo es obligatorio.</span>
+        } @else {
+          <div class="tec-addtipo">
+            <input
+              type="text"
+              placeholder="Nuevo tipo (ej: Walkie-talkie)"
+              [value]="newTipoLabel()"
+              (input)="newTipoLabel.set($any($event.target).value)"
+            />
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="guardarTipoNuevo()">Guardar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addingTipo.set(false); newTipoLabel.set('')">Cancelar</button>
+          </div>
         }
       </div>
 
@@ -249,16 +263,34 @@
       </div>
     </div>
 
-    <div class="sgc-field">
-      <label for="ubicacion">Ubicación</label>
-      <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Ej: Oficina central, piso 2" />
-    </div>
-
-    <!-- QA-071 — datos de compra / garantía -->
     <div class="form-row">
       <div class="sgc-field">
-        <label for="costo">Costo (RD$)</label>
+        <label for="bodega_id">Ubicación (almacén)</label>
+        <select id="bodega_id" formControlName="bodega_id">
+          <option [value]="null">Seleccionar almacén…</option>
+          @for (b of bodegas(); track b.id) {
+            <option [value]="b.id">{{ b.nombre }}@if (b.es_central) { · Central }</option>
+          }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="ubicacion">Detalle de ubicación</label>
+        <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Ej: piso 2, gaveta 3" />
+      </div>
+    </div>
+
+    <!-- QA-071 / AL1 — datos de compra / garantía + moneda -->
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="costo">Costo</label>
         <input id="costo" type="number" min="0" step="0.01" formControlName="costo" placeholder="Ej: 45000" />
+      </div>
+      <div class="sgc-field">
+        <label for="moneda">Moneda</label>
+        <select id="moneda" formControlName="moneda">
+          <option value="DOP">RD$ (DOP)</option>
+          <option value="USD">US$ (USD)</option>
+        </select>
       </div>
       <div class="sgc-field">
         <label for="fecha_compra">Fecha de compra</label>
@@ -288,27 +320,32 @@
       <textarea id="notas" formControlName="notas" rows="2" placeholder="Observaciones (opcional)…"></textarea>
     </div>
 
-    <!-- U17 — foto del equipo -->
+    <!-- AL1 — galería multi-foto con portada -->
     <div class="sgc-field">
-      <label>Foto del equipo</label>
-      <div class="tec-foto">
-        @if (fotoPreview(); as p) {
-          <img class="tec-foto__img" [src]="p" alt="Vista previa" />
-        } @else if (fotoActualUrl(); as u) {
-          <img class="tec-foto__img" [src]="u" alt="Foto actual" />
-        } @else {
-          <span class="tec-foto__ph" aria-hidden="true">💻</span>
-        }
-        <div class="tec-foto__actions">
-          <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
-            {{ (fotoPreview() || fotoActualUrl()) ? 'Cambiar foto' : 'Agregar foto' }}
-            <input type="file" accept="image/*" hidden (change)="onFotoPicked($event)" />
-          </label>
-          @if (fotoPreview()) {
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFotoNueva()">Quitar</button>
+      <label>Fotos del equipo</label>
+      @if (fotos().length) {
+        <div class="tec-galeria">
+          @for (foto of fotos(); track foto.key) {
+            <div class="tec-galeria__item" [class.tec-galeria__item--portada]="esPortada(foto)">
+              <img class="tec-galeria__img" [src]="foto.url" alt="Foto del equipo" (click)="abrirLightbox(foto.url)" />
+              @if (esPortada(foto)) {
+                <span class="tec-galeria__badge">Portada</span>
+              }
+              <div class="tec-galeria__actions">
+                @if (!esPortada(foto)) {
+                  <button type="button" title="Marcar como portada" (click)="marcarPortada(foto)">★</button>
+                }
+                <button type="button" title="Quitar" (click)="quitarFoto(foto)">✕</button>
+              </div>
+            </div>
           }
         </div>
-      </div>
+      }
+      <label class="sgc-btn sgc-btn--secondary sgc-btn--sm">
+        + Agregar fotos
+        <input type="file" accept="image/*" multiple hidden (change)="onFotosPicked($event)" />
+      </label>
+      <span class="field-hint">La primera es la portada; toca ★ para cambiarla. Toca una foto para verla en grande.</span>
     </div>
 
     @if (saveError()) {
@@ -339,13 +376,17 @@
 <app-form-drawer title="Detalle del equipo" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailEquipo(); as eq) {
     <div class="detail">
-      @if (detalleFotoUrl(); as u) {
-        <img class="detail__foto" [src]="u" [alt]="eq.nombre" />
+      @if (detalleFotos().length) {
+        <div class="tec-galeria tec-galeria--detalle">
+          @for (foto of detalleFotos(); track foto.key) {
+            <img class="tec-galeria__img" [src]="foto.url" [alt]="eq.nombre" (click)="abrirLightbox(foto.url)" />
+          }
+        </div>
       }
       <dl class="detail__grid">
         <div><dt>Código</dt><dd>{{ eq.codigo ?? '—' }}</dd></div>
         <div><dt>Nombre</dt><dd>{{ eq.nombre }}</dd></div>
-        <div><dt>Tipo</dt><dd>{{ getTipoLabel(eq.tipo) }}</dd></div>
+        <div><dt>Tipo</dt><dd>{{ getTipoLabel(eq) }}</dd></div>
         <div>
           <dt>Estado</dt>
           <dd>
@@ -358,9 +399,9 @@
         <div><dt>Serie</dt><dd>{{ eq.serie ?? '—' }}</dd></div>
         <div><dt>Asignado a</dt><dd>{{ getEmpleadoNombre(eq) }}</dd></div>
         <div><dt>Fecha de asignación</dt><dd>{{ formatFecha(eq.asignado_en) }}</dd></div>
-        <div><dt>Ubicación</dt><dd>{{ eq.ubicacion ?? '—' }}</dd></div>
-        <!-- QA-071 -->
-        <div><dt>Costo</dt><dd>{{ formatCosto(eq.costo) }}</dd></div>
+        <div><dt>Ubicación</dt><dd>{{ getUbicacionLabel(eq) }}@if (eq.ubicacion && eq.bodega_id) { · {{ eq.ubicacion }} }</dd></div>
+        <!-- QA-071 / AL1 -->
+        <div><dt>Costo</dt><dd>{{ formatCosto(eq.costo, eq.moneda) }}</dd></div>
         <div><dt>Fecha de compra</dt><dd>{{ formatFecha(eq.fecha_compra) }}</dd></div>
         <div><dt>Garantía hasta</dt><dd>{{ formatFecha(eq.garantia_hasta) }}</dd></div>
         <!-- QA-070 — trazabilidad compra → equipo -->
@@ -402,3 +443,8 @@
     </div>
   }
 </app-form-drawer>
+
+<!-- AL1 — lightbox para ver las fotos en grande -->
+@if (lightboxUrl(); as u) {
+  <app-lightbox [src]="u" alt="Foto del equipo" (closed)="lightboxUrl.set(null)" />
+}

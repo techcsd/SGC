@@ -426,6 +426,20 @@
           </select>
         </div>
       }
+
+      <!-- AL10 — Almacén destino (solo si motivo = traslado_almacen) -->
+      @if (showAlmacenDestinoField()) {
+        <div class="sgc-field">
+          <label for="destino_almacen_id">Almacén destino <span class="required">*</span></label>
+          <select id="destino_almacen_id" formControlName="destino_almacen_id">
+            <option [value]="null">Seleccionar almacén…</option>
+            @for (a of almacenesDestino(); track a.id) {
+              <option [value]="a.id">{{ a.nombre }} · Central</option>
+            }
+          </select>
+          <span class="field-hint">La entrada al almacén se genera al confirmarse la recepción.</span>
+        </div>
+      }
     }
 
     <!-- Responsable -->

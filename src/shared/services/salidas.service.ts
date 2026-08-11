@@ -200,10 +200,17 @@ export class SalidasService {
 
     // Transporte is optional and recorded separately — registrar_salida_inventario
     // only handles the header + items RPC signature already in use elsewhere.
+    // AL10 — destino_almacen_id (Bodega Central) también se fija aquí (post-insert).
+    const extra: Record<string, unknown> = {};
     if (conductor_id || vehiculo_id) {
+      extra['conductor_id'] = conductor_id;
+      extra['vehiculo_id'] = vehiculo_id;
+    }
+    if (header.destino_almacen_id) extra['destino_almacen_id'] = header.destino_almacen_id;
+    if (Object.keys(extra).length) {
       await this.supabase.client
         .from('salidas_inventario')
-        .update({ conductor_id, vehiculo_id })
+        .update(extra)
         .eq('id', salidaId as string);
     }
 

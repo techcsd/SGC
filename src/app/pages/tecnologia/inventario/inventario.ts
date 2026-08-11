@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
 import { EmpleadosService } from '../../../../shared/services/empleados.service';
+import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
   TecEquipo,
@@ -9,18 +10,27 @@ import {
   TecEquipoEstado,
   TecEquipoHistorial,
   TecCompraOpcion,
-  TEC_EQUIPO_TIPOS,
   TEC_EQUIPO_ESTADOS,
 } from '../../../../shared/models/tecnologia.model';
 import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
+/** AL1 — foto de la galería (existente o pendiente de subir). `key` identifica la
+ *  portada (path si es existente, o el preview blob si es nueva). */
+interface FotoItem {
+  key: string; // path (existente) | preview url (nueva)
+  url: string; // signed url (existente) | preview url (nueva)
+  path: string | null; // path si ya está en storage; null si es nueva
+  file: File | null; // archivo si es nueva
+}
+
 @Component({
   selector: 'app-tec-inventario',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Lightbox],
   templateUrl: './inventario.html',
   styleUrl: './inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,9 +38,9 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 export class TecInventario implements OnInit {
   private tecnologia = inject(TecnologiaService);
   private empleadosService = inject(EmpleadosService);
+  private bodegasService = inject(BodegasService);
   private toast = inject(ToastService);
 
-  readonly TIPOS = TEC_EQUIPO_TIPOS;
   readonly ESTADOS = TEC_EQUIPO_ESTADOS;
 
   formatFecha = formatFechaDisplay;
@@ -39,6 +49,8 @@ export class TecInventario implements OnInit {
   equipos = signal<TecEquipo[]>([]);
   empleados = signal<Empleado[]>([]);
   comprasOpciones = signal<TecCompraOpcion[]>([]); // QA-070
+  tipos = signal<{ value: string; label: string }[]>([]); // AL1 — catálogo
+  bodegas = signal<{ id: string; nombre: string; es_central: boolean }[]>([]); // AL1 — ubicación
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -52,32 +64,40 @@ export class TecInventario implements OnInit {
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
 
+  // AL1 — agregar tipo nuevo en línea
+  addingTipo = signal(false);
+  newTipoLabel = signal('');
+
   // ── Detail/history drawer ─────────────────────────────────
   detailOpen = signal(false);
   detailEquipo = signal<TecEquipo | null>(null);
   historial = signal<TecEquipoHistorial[]>([]);
   historialLoading = signal(false);
+  detalleFotos = signal<FotoItem[]>([]); // AL1 — galería del detalle (portada primero)
 
-  // ── U17 — foto del equipo ─────────────────────────────────
-  private fotoFile = signal<File | null>(null);
-  fotoPreview = signal<string | null>(null);   // preview local del archivo nuevo
-  fotoActualUrl = signal<string | null>(null);  // URL firmada de la foto ya guardada
-  listaFotos = signal<Record<string, string>>({}); // id → URL firmada (thumbnails)
-  detalleFotoUrl = signal<string | null>(null);
+  // ── AL1 — galería multi-foto del formulario ───────────────
+  fotos = signal<FotoItem[]>([]);
+  portadaKey = signal<string | null>(null);
+  listaPortadas = signal<Record<string, string>>({}); // id → url portada (thumbnails)
+
+  // ── AL1 — lightbox ────────────────────────────────────────
+  lightboxUrl = signal<string | null>(null);
 
   form = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(200)]),
-    tipo: new FormControl<string | null>(null, [Validators.required]),
+    tipo_id: new FormControl<string | null>(null, [Validators.required]),
     marca: new FormControl<string | null>(null),
     modelo: new FormControl<string | null>(null),
     serie: new FormControl<string | null>(null),
     estado: new FormControl<TecEquipoEstado>('en_stock', [Validators.required]),
     empleado_id: new FormControl<string | null>(null),
     asignado_en: new FormControl<string | null>(null),
+    bodega_id: new FormControl<string | null>(null),
     ubicacion: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
     // QA-071 — datos de compra/garantía
     costo: new FormControl<number | null>(null),
+    moneda: new FormControl<'DOP' | 'USD'>('DOP'),
     fecha_compra: new FormControl<string | null>(null),
     garantia_hasta: new FormControl<string | null>(null),
     // QA-070 — origen: compra tecnológica
@@ -113,14 +133,24 @@ export class TecInventario implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [equipos, empleados, compras] = await Promise.all([
+      const [equipos, empleados, compras, tipos, bodegas] = await Promise.all([
         this.tecnologia.getEquipos(),
         this.empleadosService.getAll(),
         this.tecnologia.getComprasTecOpciones(), // QA-070
+        this.tecnologia.getEquipoTipos(), // AL1
+        this.bodegasService.getAll(), // AL1
       ]);
       this.equipos.set(equipos);
       this.empleados.set(empleados);
       this.comprasOpciones.set(compras);
+      this.tipos.set(tipos);
+      this.bodegas.set(
+        (bodegas as { id: string; nombre: string; proyecto_id: string | null }[]).map((b) => ({
+          id: b.id,
+          nombre: b.nombre,
+          es_central: b.proyecto_id == null,
+        })),
+      );
       this.resolverFotos(equipos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el inventario.');
@@ -130,8 +160,12 @@ export class TecInventario implements OnInit {
   }
 
   // ── Helpers ───────────────────────────────────────────────
-  getTipoLabel(value: string): string {
-    return this.TIPOS.find((t) => t.value === value)?.label ?? value;
+  getTipoLabel(e: TecEquipo): string {
+    if (e.tipo_id) {
+      const t = this.tipos().find((x) => x.value === e.tipo_id);
+      if (t) return t.label;
+    }
+    return e.tipo ?? '—';
   }
 
   getEstadoLabel(value: string): string {
@@ -147,10 +181,19 @@ export class TecInventario implements OnInit {
     return '—';
   }
 
-  // QA-071 — costo formateado como RD$ (sin decimales).
-  formatCosto(n: number | null | undefined): string {
+  getUbicacionLabel(e: TecEquipo): string {
+    if (e.bodega_id) {
+      const b = this.bodegas().find((x) => x.id === e.bodega_id);
+      if (b) return b.nombre;
+    }
+    return e.ubicacion ?? '—';
+  }
+
+  // AL1 — costo formateado con su moneda (RD$ / US$).
+  formatCosto(n: number | null | undefined, moneda?: 'DOP' | 'USD' | null): string {
     if (n == null) return '—';
-    return `RD$ ${Number(n).toLocaleString('es-DO', { maximumFractionDigits: 0 })}`;
+    const simbolo = moneda === 'USD' ? 'US$' : 'RD$';
+    return `${simbolo} ${Number(n).toLocaleString('es-DO', { maximumFractionDigits: 0 })}`;
   }
 
   // QA-070 — etiqueta de la compra de origen (para el detalle).
@@ -159,24 +202,27 @@ export class TecInventario implements OnInit {
     return this.comprasOpciones().find((c) => c.id === id)?.label ?? 'Compra tecnológica';
   }
 
-  // ── U17 — fotos ───────────────────────────────────────────
+  // ── AL1 — resolución de portadas para el listado ──────────
+  private portadaPathOf(e: TecEquipo): string | null {
+    return e.foto_portada ?? (e.fotos && e.fotos.length ? e.fotos[0] : null) ?? e.foto_path ?? null;
+  }
+
   private resolverFotos(equipos: TecEquipo[]) {
     for (const e of equipos) {
-      if (!e.foto_path) continue;
-      this.tecnologia.getEquipoFotoUrl(e.foto_path).then((url) => {
-        if (url) this.listaFotos.update((m) => ({ ...m, [e.id]: url }));
+      const path = this.portadaPathOf(e);
+      if (!path) continue;
+      this.tecnologia.getEquipoFotoUrl(path).then((url) => {
+        if (url) this.listaPortadas.update((m) => ({ ...m, [e.id]: url }));
       });
     }
   }
 
   fotoDe(e: TecEquipo): string | null {
-    return this.listaFotos()[e.id] ?? null;
+    return this.listaPortadas()[e.id] ?? null;
   }
 
-  // QA-051 — si la URL firmada falla (expirada/404), descarta la miniatura para
-  // que el @else muestre el placesholder en vez de un ícono de imagen rota.
   onFotoError(equipoId: string) {
-    this.listaFotos.update((m) => {
+    this.listaPortadas.update((m) => {
       if (!(equipoId in m)) return m;
       const next = { ...m };
       delete next[equipoId];
@@ -198,27 +244,65 @@ export class TecInventario implements OnInit {
     return this.HIST_TIPO_LABELS[tipo] ?? tipo.charAt(0).toUpperCase() + tipo.slice(1).replace(/_/g, ' ');
   }
 
-  onFotoPicked(event: Event) {
+  // ── AL1 — galería multi-foto del formulario ───────────────
+  onFotosPicked(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = Array.from(input.files ?? []).find((f) => f.type.startsWith('image/'));
+    const files = Array.from(input.files ?? []).filter((f) => f.type.startsWith('image/'));
     input.value = '';
-    if (!file) return;
-    if (this.fotoPreview()) URL.revokeObjectURL(this.fotoPreview()!);
-    this.fotoFile.set(file);
-    this.fotoPreview.set(URL.createObjectURL(file));
+    if (!files.length) return;
+    const nuevas: FotoItem[] = files.map((file) => {
+      const preview = URL.createObjectURL(file);
+      return { key: preview, url: preview, path: null, file };
+    });
+    this.fotos.update((list) => [...list, ...nuevas]);
+    // primera foto = portada por defecto
+    if (!this.portadaKey() && this.fotos().length) this.portadaKey.set(this.fotos()[0].key);
   }
 
-  quitarFotoNueva() {
-    if (this.fotoPreview()) URL.revokeObjectURL(this.fotoPreview()!);
-    this.fotoFile.set(null);
-    this.fotoPreview.set(null);
+  quitarFoto(item: FotoItem) {
+    if (item.file && item.url.startsWith('blob:')) URL.revokeObjectURL(item.url);
+    this.fotos.update((list) => list.filter((f) => f.key !== item.key));
+    if (this.portadaKey() === item.key) {
+      this.portadaKey.set(this.fotos().length ? this.fotos()[0].key : null);
+    }
   }
 
-  private resetFotoState(e: TecEquipo | null) {
-    this.quitarFotoNueva();
-    this.fotoActualUrl.set(null);
-    if (e?.foto_path) {
-      this.tecnologia.getEquipoFotoUrl(e.foto_path).then((url) => this.fotoActualUrl.set(url));
+  marcarPortada(item: FotoItem) {
+    this.portadaKey.set(item.key);
+  }
+
+  esPortada(item: FotoItem): boolean {
+    return this.portadaKey() === item.key;
+  }
+
+  abrirLightbox(url: string) {
+    this.lightboxUrl.set(url);
+  }
+
+  private async cargarFotosExistentes(e: TecEquipo | null): Promise<FotoItem[]> {
+    if (!e) return [];
+    const paths = e.fotos && e.fotos.length ? e.fotos : e.foto_path ? [e.foto_path] : [];
+    const items: FotoItem[] = [];
+    for (const p of paths) {
+      const url = await this.tecnologia.getEquipoFotoUrl(p);
+      if (url) items.push({ key: p, url, path: p, file: null });
+    }
+    return items;
+  }
+
+  // AL1 — agregar un tipo nuevo desde el formulario.
+  async guardarTipoNuevo() {
+    const label = this.newTipoLabel().trim();
+    if (!label) return;
+    try {
+      const nuevo = await this.tecnologia.addEquipoTipo(label);
+      this.tipos.update((list) => [...list, nuevo].sort((a, b) => a.label.localeCompare(b.label)));
+      this.form.controls.tipo_id.setValue(nuevo.value);
+      this.newTipoLabel.set('');
+      this.addingTipo.set(false);
+      this.toast.success('Tipo agregado');
+    } catch (e: unknown) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo agregar el tipo.');
     }
   }
 
@@ -237,50 +321,69 @@ export class TecInventario implements OnInit {
   }
 
   // ── Create/Edit drawer ────────────────────────────────────
+  private limpiarFotos() {
+    for (const f of this.fotos()) if (f.file && f.url.startsWith('blob:')) URL.revokeObjectURL(f.url);
+    this.fotos.set([]);
+    this.portadaKey.set(null);
+  }
+
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
+    this.addingTipo.set(false);
+    this.newTipoLabel.set('');
     this.form.reset({
       nombre: '',
-      tipo: null,
+      tipo_id: null,
       marca: null,
       modelo: null,
       serie: null,
       estado: 'en_stock',
       empleado_id: null,
       asignado_en: null,
+      bodega_id: null,
       ubicacion: null,
       notas: null,
       costo: null,
+      moneda: 'DOP',
       fecha_compra: null,
       garantia_hasta: null,
       origen_solicitud_compra_id: null,
     });
-    this.resetFotoState(null);
+    this.limpiarFotos();
     this.drawerOpen.set(true);
   }
 
-  openEdit(e: TecEquipo) {
+  async openEdit(e: TecEquipo) {
     this.editingId.set(e.id);
     this.saveError.set('');
-    this.resetFotoState(e);
+    this.addingTipo.set(false);
+    this.newTipoLabel.set('');
     this.form.reset({
       nombre: e.nombre,
-      tipo: e.tipo,
+      tipo_id: e.tipo_id,
       marca: e.marca,
       modelo: e.modelo,
       serie: e.serie,
       estado: e.estado,
       empleado_id: e.empleado_id,
       asignado_en: e.asignado_en,
+      bodega_id: e.bodega_id,
       ubicacion: e.ubicacion,
       notas: e.notas,
       costo: e.costo,
+      moneda: e.moneda ?? 'DOP',
       fecha_compra: e.fecha_compra,
       garantia_hasta: e.garantia_hasta,
       origen_solicitud_compra_id: e.origen_solicitud_compra_id,
     });
+    this.limpiarFotos();
     this.drawerOpen.set(true);
+    const existentes = await this.cargarFotosExistentes(e);
+    this.fotos.set(existentes);
+    this.portadaKey.set(
+      e.foto_portada ?? (existentes.length ? existentes[0].key : null),
+    );
   }
 
   closeDrawer() {
@@ -294,7 +397,7 @@ export class TecInventario implements OnInit {
     this.saving.set(true);
     this.saveError.set('');
 
-    const payload = this.form.value as TecEquipoFormData;
+    const payload = this.form.value as unknown as TecEquipoFormData;
 
     try {
       const id = this.editingId();
@@ -307,15 +410,25 @@ export class TecInventario implements OnInit {
         equipoId = created.id;
       }
 
-      // U17 — subir la foto nueva (si hay) al equipo ya existente y guardar el path.
-      const file = this.fotoFile();
-      if (file) {
-        try {
-          const path = await this.tecnologia.uploadEquipoFoto(equipoId, file);
-          await this.tecnologia.updateEquipo(equipoId, { foto_path: path });
-        } catch {
-          this.toast.warning('Foto no subida', 'El equipo se guardó, pero la foto no.');
+      // AL1 — subir fotos nuevas, componer galería + portada.
+      try {
+        const finalPaths: string[] = [];
+        let portada: string | null = null;
+        for (const f of this.fotos()) {
+          let path = f.path;
+          if (!path && f.file) path = await this.tecnologia.uploadEquipoFoto(equipoId, f.file);
+          if (!path) continue;
+          finalPaths.push(path);
+          if (this.portadaKey() === f.key) portada = path;
         }
+        if (!portada) portada = finalPaths[0] ?? null;
+        await this.tecnologia.updateEquipo(equipoId, {
+          fotos: finalPaths,
+          foto_portada: portada,
+          foto_path: portada, // back-compat
+        });
+      } catch {
+        this.toast.warning('Fotos no subidas', 'El equipo se guardó, pero las fotos no.');
       }
 
       await this.loadAll();
@@ -343,10 +456,15 @@ export class TecInventario implements OnInit {
   async openDetail(e: TecEquipo) {
     this.detailEquipo.set(e);
     this.detailOpen.set(true);
-    this.detalleFotoUrl.set(this.listaFotos()[e.id] ?? null);
-    if (!this.detalleFotoUrl() && e.foto_path) {
-      this.tecnologia.getEquipoFotoUrl(e.foto_path).then((url) => this.detalleFotoUrl.set(url));
-    }
+    this.detalleFotos.set([]);
+    this.cargarFotosExistentes(e).then((items) => {
+      // portada primero
+      const portada = e.foto_portada;
+      const ordenadas = portada
+        ? [...items].sort((a, b) => (a.path === portada ? -1 : b.path === portada ? 1 : 0))
+        : items;
+      this.detalleFotos.set(ordenadas);
+    });
     this.historial.set([]);
     this.historialLoading.set(true);
     try {
@@ -368,14 +486,15 @@ export class TecInventario implements OnInit {
     const rows = this.filtered().map((e) => ({
       'Código': e.codigo ?? '',
       'Nombre': e.nombre,
-      'Tipo': this.getTipoLabel(e.tipo),
+      'Tipo': this.getTipoLabel(e),
       'Marca': e.marca ?? '',
       'Modelo': e.modelo ?? '',
       'Serie': e.serie ?? '',
       'Estado': this.getEstadoLabel(e.estado),
       'Asignado a': e.empleado ? `${e.empleado.nombre} ${e.empleado.apellido}` : '',
-      'Ubicación': e.ubicacion ?? '',
-      'Costo (RD$)': e.costo ?? '',
+      'Ubicación': this.getUbicacionLabel(e),
+      'Costo': e.costo ?? '',
+      'Moneda': e.moneda ?? 'DOP',
       'Fecha de compra': this.formatFecha(e.fecha_compra),
       'Garantía hasta': this.formatFecha(e.garantia_hasta),
     }));

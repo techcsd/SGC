@@ -13,3 +13,19 @@ export const tecnologiaGuard: CanActivateFn = () => {
   const router = inject(Router);
   return userService.esTecnologia() ? true : router.createUrlTree(['/403']);
 };
+
+/**
+ * AL1 — Guard del contenedor `/tecnologia`. El árbol de rutas mezcla dos mundos:
+ * los activos de TI (Tecnología real: gestión por módulo `tecnologia`) y la
+ * consola de plataforma "Sistema" (versiones, QA, monitoreo, errores: `es_tecnologia`).
+ * El contenedor deja pasar a quien tenga el módulo `tecnologia` O sea es_tecnologia
+ * (admin/tecnologia/gerencia/dirección); cada hijo re-valida con su propio guard.
+ * Esto corrige la fuga por la que CUALQUIER usuario no-chofer veía "Tecnología".
+ */
+export const tecnologiaContenedorGuard: CanActivateFn = () => {
+  const userService = inject(UserService);
+  const router = inject(Router);
+  return userService.hasModulo('tecnologia') || userService.esTecnologia()
+    ? true
+    : router.createUrlTree(['/403']);
+};

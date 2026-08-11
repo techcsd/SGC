@@ -86,6 +86,8 @@ export interface SalidaFormData {
   fecha: string;
   bodega_id: string;
   proyecto_id: string | null;
+  /** AL10 — destino = almacén central (Bodega Central), excluyente con proyecto_id. */
+  destino_almacen_id?: string | null;
   motivo: string;
   responsable: string | null;
   observaciones: string | null;
@@ -102,6 +104,7 @@ export function conduceNumero(salidaId: string): string {
 
 export const MOTIVOS_SALIDA: { value: string; label: string }[] = [
   { value: 'uso_proyecto', label: 'Uso en proyecto' },
+  { value: 'traslado_almacen', label: 'Traslado a almacén (Bodega Central)' },
   { value: 'venta', label: 'Venta' },
   { value: 'merma', label: 'Merma / Pérdida' },
   { value: 'devolucion', label: 'Devolución a proveedor' },
