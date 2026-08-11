@@ -44,6 +44,36 @@
     }
   }
 
+  // AM7 — fila para pegar link de Google Maps / coordenadas
+  &__link {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+
+    input {
+      flex: 1 1 200px;
+      padding: 8px 12px;
+      border: 1px solid var(--sgc-border);
+      border-radius: var(--sgc-radius);
+      font-size: 14px;
+    }
+  }
+
+  &__link-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius);
+    background: var(--sgc-surface);
+    color: var(--sgc-text);
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) { background: var(--sgc-surface-hover); }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+
   &__map {
     height: 300px;
     width: 100%;

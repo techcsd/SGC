@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import * as L from 'leaflet';
 import { GeocodingService, LugarBusqueda } from '../geocoding.service';
+import { SupabaseService } from '../../../app/core/services/supabase.service';
 
 export interface UbicacionSeleccionada {
   latitud: number;
@@ -33,6 +34,7 @@ export interface UbicacionSeleccionada {
 })
 export class LocationPicker implements AfterViewInit, OnDestroy {
   private geocoding = inject(GeocodingService);
+  private supabase = inject(SupabaseService);
 
   latitud = input<number | null>(null);
   longitud = input<number | null>(null);
@@ -50,6 +52,12 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   buscando = signal(false);
   resultados = signal<LugarBusqueda[]>([]);
   busquedaError = signal('');
+
+  // AM7 — pegar link de Google Maps (incl. cortos maps.app.goo.gl) o coordenadas.
+  // El short link se resuelve server-side (la edge sigue el redirect; el navegador
+  // no puede por CORS). Coordenadas pegadas se resuelven al instante.
+  resolviendoLink = signal(false);
+  linkError = signal('');
 
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
   private searchAbort: AbortController | null = null;
@@ -165,6 +173,34 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       this.busquedaError.set('No se pudo buscar ahora (servicio de mapas ocupado). Reintenta o marca el punto en el mapa.');
     } finally {
       if (!ac.signal.aborted) this.buscando.set(false);
+    }
+  }
+
+  /** AM7 — resolver un link de Google Maps o coordenadas pegadas a un pin. */
+  async resolverLink(texto: string) {
+    const q = (texto ?? '').trim();
+    this.linkError.set('');
+    if (!q) return;
+    this.resolviendoLink.set(true);
+    try {
+      const { data, error } = await this.supabase.client.functions.invoke('resolve-maps-link', {
+        body: { url: q },
+      });
+      const lat = data?.lat;
+      const lng = data?.lng;
+      if (error || data?.error || typeof lat !== 'number' || typeof lng !== 'number') {
+        this.linkError.set(data?.error || 'No se pudo resolver ese link. Pega el enlace de Google Maps o las coordenadas (ej. 18.56, -68.37).');
+        return;
+      }
+      const dir = data?.resolved_url ? '' : `${lat}, ${lng}`;
+      this.direccion.set(dir);
+      this.map?.setView([lat, lng], 16);
+      void this.setMarker(lat, lng, false);
+      this.ubicacionChange.emit({ latitud: lat, longitud: lng, direccion: dir });
+    } catch {
+      this.linkError.set('No se pudo resolver el link ahora. Reintenta o marca el punto en el mapa.');
+    } finally {
+      this.resolviendoLink.set(false);
     }
   }
 

@@ -22,6 +22,28 @@
     }
   </div>
 
+  <!-- AM7 — pegar link de Google Maps (incl. maps.app.goo.gl) o coordenadas -->
+  <div class="location-picker__link">
+    <input
+      #linkInput
+      type="text"
+      placeholder="Pega link de Google Maps o coordenadas (18.56, -68.37)…"
+      aria-label="Pegar link de Google Maps o coordenadas"
+      (keydown.enter)="resolverLink(linkInput.value); $event.preventDefault()"
+    />
+    <button
+      type="button"
+      class="location-picker__link-btn"
+      [disabled]="resolviendoLink()"
+      (click)="resolverLink(linkInput.value)"
+    >
+      {{ resolviendoLink() ? 'Resolviendo…' : 'Fijar pin' }}
+    </button>
+    @if (linkError()) {
+      <p class="location-picker__msg location-picker__msg--error">{{ linkError() }}</p>
+    }
+  </div>
+
   <div #map class="location-picker__map"></div>
 
   <p class="location-picker__hint">

@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.72.0": {
+      "titulo": "Conduces sin errores al enviar: origen resuelto, validaciones claras, transferencia blindada, iniciar ruta desde el conduce y ubicación de obras por link de Google Maps",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Conduces: se corrigió el error al enviar (\"la bodega ya no existe\" / bodega_id null). Ahora el almacén de origen se resuelve y valida siempre; si falta existencia, origen o materiales, el sistema lo bloquea con un mensaje claro y accionable en vez de fallar al final."
+        },
+        {
+          "t": "nuevo",
+          "d": "Devolución a suplidor (\"devolver a ferretería\"): flujo con el almacén de origen obligatorio, sin destino de obra — el error de envío no puede repetirse."
+        },
+        {
+          "t": "arreglo",
+          "d": "Transferencia de conduces: se blindó para que un conduce transferido no pueda \"volver\" al chofer anterior por una sincronización vieja; al aceptar se avisa a ambos choferes para que sus bandejas se actualicen."
+        },
+        {
+          "t": "nuevo",
+          "d": "Iniciar ruta desde el conduce: un conduce emitido ahora puede arrancar su ruta aunque no la tuviera (incluida la devolución a suplidor), y aparece en Mis rutas y Seguimiento."
+        },
+        {
+          "t": "nuevo",
+          "d": "Ubicación de obras: se puede fijar el pin pegando el link de Google Maps (incluidos los cortos maps.app.goo.gl) o las coordenadas; el sistema resuelve la ubicación automáticamente."
+        },
+        {
+          "t": "mejora",
+          "d": "Proyectos: ingeniero de obra, contacto (teléfono clicable) y maestro encargado pasan a ser datos estructurados en vez de texto en la descripción. Se completó la ubicación y estos datos de las 8 obras activas."
+        }
+      ],
+      "url": ""
+    },
     "1.71.0": {
       "titulo": "Transferencia de conduces consistente, Tecnología real con inventario, Bodega Central como destino y alarma dominical de inspección",
       "cambios": [
