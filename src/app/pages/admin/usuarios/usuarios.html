@@ -175,6 +175,7 @@
     [style.right.px]="menuPos()?.right"
   >
     <button type="button" role="menuitem" (click)="openEdit(u); closeMenu()">Editar</button>
+    <button type="button" role="menuitem" (click)="verAccesos(u); closeMenu()">Ver accesos efectivos</button>
     @if (u.pendiente) {
       <button type="button" role="menuitem" (click)="resendInvite(u); closeMenu()"
         [disabled]="resettingId() === u.id">✉️ Reenviar invitación</button>
@@ -236,6 +237,9 @@
             <span class="sgc-badge sgc-badge--neutral">Sin rol</span>
           }
         </div>
+        <button type="button" class="admin-usuarios__accesos-link" (click)="verAccesos(u)">
+          Ver accesos efectivos →
+        </button>
       </div>
 
       <!-- Última actividad -->

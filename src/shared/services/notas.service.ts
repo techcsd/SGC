@@ -124,23 +124,30 @@ export class NotasService {
     if (error) throw new Error(error.message);
   }
 
-  /** Compartidos de una nota (solo el dueño puede leer todos), con nombre del usuario. */
+  /**
+   * AN7 — compartidos de una nota con nombre/correo/rol resueltos server-side.
+   * Usa la RPC `nota_compartidos_detalle` (SECURITY DEFINER); ya no depende del
+   * embed `usuarios(nombre)` que fallaba por la RLS de usuarios.
+   */
   async getCompartidos(notaId: string): Promise<NotaCompartido[]> {
-    const { data, error } = await this.supabase.client
-      .from('nota_compartidos')
-      .select('*, usuario:usuarios(nombre)')
-      .eq('nota_id', notaId)
-      .order('created_at', { ascending: true });
-
+    const { data, error } = await this.supabase.client.rpc('nota_compartidos_detalle', {
+      p_nota_id: notaId,
+    });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as NotaCompartido[];
   }
 
-  /** Compartir con un usuario (upsert: si ya existe, actualiza el permiso). Solo dueño. */
+  /**
+   * AN7 — compartir con un usuario (upsert del permiso) + notificar al compartido
+   * (in-app + push, deep-link a la nota) la primera vez. Solo dueño (validado
+   * server-side por la RPC `compartir_nota`).
+   */
   async compartir(notaId: string, usuarioId: string, permiso: NotaPermiso): Promise<void> {
-    const { error } = await this.supabase.client
-      .from('nota_compartidos')
-      .upsert({ nota_id: notaId, usuario_id: usuarioId, permiso }, { onConflict: 'nota_id,usuario_id' });
+    const { error } = await this.supabase.client.rpc('compartir_nota', {
+      p_nota_id: notaId,
+      p_usuario_id: usuarioId,
+      p_permiso: permiso,
+    });
     if (error) throw new Error(error.message);
   }
 

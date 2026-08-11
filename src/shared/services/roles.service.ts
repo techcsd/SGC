@@ -31,6 +31,25 @@ export interface RolCreatePayload {
 }
 
 /**
+ * AN4 — accesos efectivos (unión de roles). `submodulos` solo lista los grants
+ * granulares EXPLÍCITOS más allá de los módulos completos.
+ */
+export interface AccesosEfectivos {
+  modulos: string[];
+  submodulos: PermisosMap;
+}
+
+/** AN4 — usuarios con 2+ roles (candidatos a limpieza de la auditoría). */
+export interface UsuarioMultiRol {
+  usuario_id: string;
+  nombre: string;
+  email: string;
+  n_roles: number;
+  roles: { id: number; codigo: string; nombre: string }[];
+  modulos: string[];
+}
+
+/**
  * Módulos de permiso. `desc` explica QUÉ desbloquea cada módulo para que el
  * admin sepa exactamente qué acceso concede al marcarlo. `sensible` resalta los
  * módulos de acceso amplio/administrativo que conviene asignar con cuidado.
@@ -73,23 +92,27 @@ export interface SubmoduloInfo {
   enforced?: boolean;
 }
 export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
+  // AN2 — Inventario, Flota y Compras: submódulos gateados end-to-end
+  // (menú + ruta + RLS). Ver = leer; Operar = crear/editar/eliminar.
   compras: [
     { key: 'compras.proveedores', label: 'Proveedores', enforced: true },
-    { key: 'compras.ordenes', label: 'Órdenes de compra' },
-    { key: 'compras.solicitudes', label: 'Solicitudes de compra' },
+    { key: 'compras.ordenes', label: 'Órdenes de compra', enforced: true },
+    { key: 'compras.solicitudes', label: 'Solicitudes de compra', enforced: true },
   ],
   inventario: [
-    { key: 'inventario.entradas', label: 'Entradas' },
-    { key: 'inventario.salidas', label: 'Salidas / Conduces' },
-    { key: 'inventario.articulos', label: 'Artículos' },
-    { key: 'inventario.conteos', label: 'Conteos' },
+    { key: 'inventario.entradas', label: 'Entradas', enforced: true },
+    { key: 'inventario.salidas', label: 'Salidas / Conduces', enforced: true },
+    { key: 'inventario.articulos', label: 'Artículos', enforced: true },
+    { key: 'inventario.conteos', label: 'Conteos', enforced: true },
   ],
   flota: [
-    { key: 'flota.vehiculos', label: 'Vehículos' },
-    { key: 'flota.conductores', label: 'Conductores' },
-    { key: 'flota.combustible', label: 'Combustible' },
-    { key: 'flota.mantenimientos', label: 'Mantenimientos' },
-    { key: 'flota.rutas', label: 'Rutas / Seguimiento' },
+    { key: 'flota.vehiculos', label: 'Vehículos', enforced: true },
+    // Conductores: RLS por submódulo; las PANTALLAS de gestión siguen restringidas
+    // a roles de flota elevados (no se relajan en esta tanda).
+    { key: 'flota.conductores', label: 'Conductores', enforced: true },
+    { key: 'flota.combustible', label: 'Combustible', enforced: true },
+    { key: 'flota.mantenimientos', label: 'Mantenimientos', enforced: true },
+    { key: 'flota.rutas', label: 'Rutas / Seguimiento', enforced: true },
   ],
   rrhh: [
     { key: 'rrhh.empleados', label: 'Empleados' },
@@ -180,5 +203,52 @@ export class RolesService {
   async delete(id: number): Promise<void> {
     const { error } = await this.supabase.client.rpc('eliminar_rol', { p_rol_id: id });
     if (error) throw new Error(error.message);
+  }
+
+  // ── AN4 — auditoría de accesos (todos admin-only server-side) ──────────
+
+  private normalizarAccesos(data: unknown): AccesosEfectivos {
+    const d = (data ?? {}) as { modulos?: unknown; submodulos?: unknown };
+    return {
+      modulos: Array.isArray(d.modulos) ? (d.modulos as string[]) : [],
+      submodulos: (d.submodulos && typeof d.submodulos === 'object'
+        ? (d.submodulos as PermisosMap)
+        : {}),
+    };
+  }
+
+  /** Accesos efectivos (módulos + submódulos explícitos) de un rol. */
+  async accesosEfectivosRol(rolId: number): Promise<AccesosEfectivos> {
+    const { data, error } = await this.supabase.client.rpc('accesos_efectivos_rol', {
+      p_rol_id: rolId,
+    });
+    if (error) throw new Error(error.message);
+    return this.normalizarAccesos(data);
+  }
+
+  /** Accesos efectivos de un usuario (unión de todos sus roles). */
+  async accesosEfectivosUsuario(usuarioId: string): Promise<AccesosEfectivos> {
+    const { data, error } = await this.supabase.client.rpc('accesos_efectivos_usuario', {
+      p_usuario_id: usuarioId,
+    });
+    if (error) throw new Error(error.message);
+    return this.normalizarAccesos(data);
+  }
+
+  /** Accesos efectivos de un conjunto arbitrario de roles (para diffs antes/después). */
+  async accesosEfectivosDeRoles(rolIds: number[]): Promise<AccesosEfectivos> {
+    if (rolIds.length === 0) return { modulos: [], submodulos: {} };
+    const { data, error } = await this.supabase.client.rpc('accesos_efectivos_de_roles', {
+      p_rol_ids: rolIds,
+    });
+    if (error) throw new Error(error.message);
+    return this.normalizarAccesos(data);
+  }
+
+  /** Usuarios con 2+ roles — candidatos a limpieza ("un usuario = un rol"). */
+  async usuariosMultiRol(): Promise<UsuarioMultiRol[]> {
+    const { data, error } = await this.supabase.client.rpc('usuarios_multi_rol');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as UsuarioMultiRol[];
   }
 }

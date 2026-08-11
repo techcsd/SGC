@@ -27,7 +27,12 @@ export interface ConfirmacionHistorial {
 // usuarios is joined twice (creado_por, recibido_por) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
 const SELECT_QUERY =
-  '*, bodega:bodegas(nombre), proyecto:proyectos(nombre), conductor:conductores(nombre), vehiculo:vehiculos(placa),' +
+  // AN5 — `salidas_inventario` tiene DOS FKs a bodegas (bodega_id origen +
+  // destino_almacen_id, AL10). El embed a bodegas debe fijar la relación
+  // explícita o PostgREST lo rechaza como ambiguo.
+  '*, bodega:bodegas!salidas_inventario_bodega_id_fkey(nombre),' +
+  ' destino_almacen:bodegas!salidas_inventario_destino_almacen_id_fkey(nombre),' +
+  ' proyecto:proyectos(nombre), conductor:conductores(nombre), vehiculo:vehiculos(placa),' +
   ' recibido:usuarios!salidas_inventario_recibido_por_fkey(nombre),' +
   ' entregado:usuarios!salidas_inventario_entregado_por_fkey(nombre),' +
   ' creado:usuarios!salidas_inventario_creado_por_fkey(nombre),' +

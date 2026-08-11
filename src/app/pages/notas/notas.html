@@ -306,8 +306,13 @@
           <ul class="editor__shared-list">
             @for (c of compartidos(); track c.id) {
               <li class="editor__shared-item">
-                <span class="editor__avatar">{{ iniciales(c.usuario?.nombre ?? '?') }}</span>
-                <span class="editor__share-name">{{ c.usuario?.nombre ?? 'Usuario' }}</span>
+                <span class="editor__avatar">{{ iniciales(c.nombre ?? '?') }}</span>
+                <span class="editor__shared-who">
+                  <span class="editor__share-name">{{ c.nombre ?? 'Usuario' }}</span>
+                  @if (c.rol || c.email) {
+                    <small class="editor__share-sub">{{ c.rol || c.email }}</small>
+                  }
+                </span>
                 <select
                   class="editor__perm-select"
                   [value]="c.permiso"

@@ -1,0 +1,150 @@
+<app-form-drawer title="Información del grupo" [open]="open()" (closed)="cerrar()">
+  <div class="grupo-info">
+    @if (loading()) {
+      <p class="grupo-info__loading">Cargando…</p>
+    } @else if (info(); as g) {
+      <!-- ── Cabecera: avatar + nombre + descripción ── -->
+      <div class="grupo-info__head">
+        <div class="grupo-info__avatar-wrap">
+          @if (avatarUrl(); as url) {
+            <img class="grupo-info__avatar" [src]="url" alt="Foto del grupo" />
+          } @else {
+            <span class="grupo-info__avatar grupo-info__avatar--fallback">{{ iniciales(g.nombre || '?') }}</span>
+          }
+          @if (esAdmin()) {
+            <label class="grupo-info__avatar-edit" [attr.aria-busy]="subiendoAvatar()" title="Cambiar foto del grupo">
+              @if (subiendoAvatar()) {
+                <span class="spinner" aria-hidden="true"></span>
+              } @else {
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              }
+              <input type="file" accept="image/*" class="sr-only" (change)="onAvatarSelected($event)" aria-label="Cambiar foto del grupo" />
+            </label>
+          }
+        </div>
+
+        @if (editando()) {
+          <div class="grupo-info__edit">
+            <div class="sgc-field">
+              <label for="grupo_nombre_edit">Nombre</label>
+              <input id="grupo_nombre_edit" type="text" [formControl]="nombre" maxlength="80" placeholder="Nombre del grupo" />
+            </div>
+            <div class="sgc-field">
+              <label for="grupo_desc_edit">Descripción</label>
+              <textarea id="grupo_desc_edit" [formControl]="descripcion" rows="2" maxlength="300" placeholder="Descripción (opcional)"></textarea>
+            </div>
+            <div class="grupo-info__edit-actions">
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarEdicion()">Cancelar</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardando() || !nombre.value?.trim()" (click)="guardarEdicion()">
+                @if (guardando()) { <span class="spinner" aria-hidden="true"></span> } @else { Guardar }
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="grupo-info__titles">
+            <div class="grupo-info__name-row">
+              <h3 class="grupo-info__name">{{ g.nombre || 'Grupo' }}</h3>
+              @if (esAdmin()) {
+                <button type="button" class="grupo-info__icon-btn" (click)="iniciarEdicion()" aria-label="Editar nombre y descripción">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/>
+                  </svg>
+                </button>
+              }
+            </div>
+            @if (g.descripcion) {
+              <p class="grupo-info__desc">{{ g.descripcion }}</p>
+            }
+            <span class="grupo-info__count">{{ participantes().length }} participantes</span>
+          </div>
+        }
+      </div>
+
+      <!-- ── Participantes ── -->
+      <div class="grupo-info__section">
+        <div class="grupo-info__section-head">
+          <h4 class="grupo-info__section-title">Participantes</h4>
+          @if (esAdmin()) {
+            <button type="button" class="sgc-btn sgc-btn--secondary grupo-info__add-btn" (click)="abrirAgregar()">Agregar</button>
+          }
+        </div>
+
+        <ul class="part-list">
+          @for (p of participantes(); track p.usuario_id) {
+            <li class="part-item">
+              <span class="part-item__avatar">{{ iniciales(p.nombre) }}</span>
+              <span class="part-item__body">
+                <span class="part-item__name">
+                  {{ p.nombre }}@if (esYo(p)) { <span class="part-item__you">(tú)</span> }
+                </span>
+                <span class="part-item__email">{{ p.email }}</span>
+              </span>
+              <span class="part-item__badges">
+                @if (p.es_creador) {
+                  <span class="part-badge part-badge--creador">Creador</span>
+                } @else if (p.rol === 'admin') {
+                  <span class="part-badge part-badge--admin">Admin</span>
+                }
+              </span>
+              @if (esAdmin() && !p.es_creador) {
+                <span class="part-item__actions">
+                  @if (p.rol === 'admin') {
+                    <button type="button" class="part-item__action" (click)="promover(p, false)" [attr.aria-label]="'Quitar admin a ' + p.nombre" title="Quitar admin">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+                    </button>
+                  } @else {
+                    <button type="button" class="part-item__action" (click)="promover(p, true)" [attr.aria-label]="'Hacer admin a ' + p.nombre" title="Hacer admin">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+                    </button>
+                  }
+                  <button type="button" class="part-item__action part-item__action--danger" (click)="quitar(p)" [attr.aria-label]="'Quitar a ' + p.nombre + ' del grupo'" title="Quitar del grupo">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  </button>
+                </span>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+
+      <!-- ── Salir ── -->
+      <div class="grupo-info__footer">
+        <button type="button" class="sgc-btn grupo-info__leave" (click)="salir()">Salir del grupo</button>
+      </div>
+    } @else {
+      <p class="grupo-info__loading">No se pudo cargar la información del grupo.</p>
+    }
+  </div>
+</app-form-drawer>
+
+<!-- ── Agregar participante (drawer anidado) ── -->
+<app-form-drawer title="Agregar participante" [open]="agregarOpen()" (closed)="cerrarAgregar()">
+  <div class="grupo-info__agregar">
+    <div class="sgc-field">
+      <label for="grupo_buscar_dir">Buscar persona</label>
+      <input id="grupo_buscar_dir" type="search" placeholder="Nombre o correo…" [value]="buscar()" (input)="buscar.set($any($event.target).value)" aria-label="Buscar persona" />
+    </div>
+    @if (directorioFiltrado().length === 0) {
+      <p class="grupo-info__loading">No hay personas para agregar.</p>
+    } @else {
+      <ul class="part-add-list">
+        @for (u of directorioFiltrado(); track u.id) {
+          <li>
+            <button type="button" class="part-add-item" [disabled]="accionEnCurso()" (click)="agregar(u)">
+              <span class="part-add-item__avatar">{{ iniciales(u.nombre) }}</span>
+              <span class="part-add-item__body">
+                <span class="part-add-item__name">{{ u.nombre }}</span>
+                <span class="part-add-item__email">{{ u.email }}</span>
+              </span>
+              <svg class="part-add-item__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</app-form-drawer>

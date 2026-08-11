@@ -22,6 +22,8 @@ export interface SalidaInventario {
   fecha: string;
   bodega_id: string;
   bodega?: { nombre: string };
+  // AN5 — almacén destino (AL10, Bodega Central). Embed desambiguado por FK.
+  destino_almacen?: { nombre: string } | null;
   proyecto_id: string | null;
   proyecto?: { nombre: string };
   motivo: string;

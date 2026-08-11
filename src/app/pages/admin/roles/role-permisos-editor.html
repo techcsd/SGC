@@ -1,0 +1,103 @@
+<div class="perm-editor">
+  <!-- Buscador + leyenda de niveles -->
+  <div class="perm-editor__toolbar">
+    <div class="perm-editor__search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="search"
+        class="perm-editor__search-input"
+        placeholder="Buscar submódulo..."
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+        aria-label="Buscar submódulo por nombre"
+      />
+    </div>
+    <span class="perm-editor__legend"
+      title="Sin acceso = no ve ni opera · Ver = solo lectura · Operar = crear, editar y eliminar">
+      Sin acceso · Ver · Operar
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+      </svg>
+    </span>
+  </div>
+
+  <!-- Grupos plegables por módulo -->
+  @for (g of grupos(); track g.key) {
+    <div class="perm-editor__group">
+      <button
+        type="button"
+        class="perm-editor__group-head"
+        (click)="toggleGrupo(g.key)"
+        [attr.aria-expanded]="isExpanded(g.key)"
+      >
+        <span class="perm-editor__group-caret" aria-hidden="true">{{ isExpanded(g.key) ? '▾' : '▸' }}</span>
+        <span class="perm-editor__group-title">{{ g.label }}</span>
+        @if (moduloCompleto(g.key)) {
+          <span class="perm-editor__group-flag perm-editor__group-flag--inherited">Módulo completo</span>
+        } @else if (grantsDe(g.key) > 0) {
+          <span class="perm-editor__group-flag">{{ grantsDe(g.key) }}</span>
+        }
+      </button>
+
+      @if (isExpanded(g.key)) {
+        <div class="perm-editor__rows">
+          @for (sub of g.subs; track sub.key) {
+            <div class="perm-editor__row">
+              <span class="perm-editor__row-label">
+                <span class="perm-editor__row-name" [title]="sub.label">{{ sub.label }}</span>
+                @if (!sub.enforced) {
+                  <span class="perm-editor__soon"
+                    title="Se guarda, pero el gateo por submódulo aún no está activo end-to-end.">Próximamente</span>
+                }
+              </span>
+
+              @if (heredado(sub.key)) {
+                <span class="perm-editor__inherited"
+                  title="El módulo completo está concedido, así que este submódulo queda en Operar. Desmarca el módulo para ajustarlo por separado.">
+                  Operar (heredado)
+                </span>
+              } @else {
+                <div
+                  class="perm-editor__seg"
+                  role="radiogroup"
+                  [attr.aria-label]="'Nivel de acceso para ' + sub.label"
+                >
+                  <button
+                    type="button"
+                    role="radio"
+                    class="perm-editor__seg-btn"
+                    [class.perm-editor__seg-btn--active]="nivelDe(sub.key) === ''"
+                    [attr.aria-checked]="nivelDe(sub.key) === ''"
+                    (click)="setNivel(sub.key, '')"
+                  >Sin acceso</button>
+                  <button
+                    type="button"
+                    role="radio"
+                    class="perm-editor__seg-btn"
+                    [class.perm-editor__seg-btn--active]="nivelDe(sub.key) === 'ver'"
+                    [attr.aria-checked]="nivelDe(sub.key) === 'ver'"
+                    (click)="setNivel(sub.key, 'ver')"
+                  >Ver</button>
+                  <button
+                    type="button"
+                    role="radio"
+                    class="perm-editor__seg-btn perm-editor__seg-btn--operar"
+                    [class.perm-editor__seg-btn--active]="nivelDe(sub.key) === 'operar'"
+                    [attr.aria-checked]="nivelDe(sub.key) === 'operar'"
+                    (click)="setNivel(sub.key, 'operar')"
+                  >Operar</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @empty {
+    <p class="perm-editor__empty">No hay submódulos que coincidan con la búsqueda.</p>
+  }
+</div>

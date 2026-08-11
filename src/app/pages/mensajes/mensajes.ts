@@ -22,10 +22,11 @@ import { formatFechaMedia } from '../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../shared/ui/paginator/paginator';
+import { GrupoInfoPanel } from './grupo-info/grupo-info';
 
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, GrupoInfoPanel],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,6 +55,10 @@ export class Mensajes implements OnInit, OnDestroy {
   searchQuery = signal('');
   composer = new FormControl('');
   pendingFile = signal<File | null>(null);
+
+  // Group-info drawer
+  grupoInfoOpen = signal(false);
+  selectedAvatarUrl = signal<string | null>(null);
 
   // New-conversation drawer
   nuevoOpen = signal(false);
@@ -162,6 +167,7 @@ export class Mensajes implements OnInit, OnDestroy {
     // para no enviarlos por error a la conversación equivocada.
     this.composer.reset('');
     this.pendingFile.set(null);
+    void this.loadSelectedAvatar(conv);
     this.loadingThread.set(true);
     try {
       this.mensajes.set(await this.mensajeria.getMensajes(conv.id));
@@ -193,6 +199,51 @@ export class Mensajes implements OnInit, OnDestroy {
         await this.mensajeria.marcarLeido(m.conversacion_id, this.miId);
       }
     }
+    await this.refreshConversaciones();
+    this.notificaciones.refresh();
+  }
+
+  /** Carga (o limpia) la URL firmada del avatar de un grupo para la cabecera. */
+  private async loadSelectedAvatar(conv: Conversacion) {
+    if (conv.tipo !== 'grupo' || !conv.avatar_path) {
+      this.selectedAvatarUrl.set(null);
+      return;
+    }
+    this.selectedAvatarUrl.set(await this.mensajeria.getAvatarUrl(conv.avatar_path));
+  }
+
+  // ── Group info drawer ────────────────────────────────────
+  openGrupoInfo() {
+    const conv = this.selectedConv();
+    if (conv?.tipo === 'grupo') this.grupoInfoOpen.set(true);
+  }
+
+  closeGrupoInfo() {
+    this.grupoInfoOpen.set(false);
+  }
+
+  /** El grupo cambió (nombre/avatar/participantes): refresca lista, hilo y avatar. */
+  async onGrupoChanged() {
+    const id = this.selectedId();
+    await this.refreshConversaciones();
+    if (id) {
+      try {
+        this.mensajes.set(await this.mensajeria.getMensajes(id));
+      } catch {
+        /* no romper la vista si el hilo falla al recargar */
+      }
+      const conv = this.conversaciones().find((c) => c.id === id);
+      if (conv) void this.loadSelectedAvatar(conv);
+    }
+    this.notificaciones.refresh();
+  }
+
+  /** El usuario salió del grupo: cierra el hilo y refresca la lista. */
+  async onGrupoSalio() {
+    this.grupoInfoOpen.set(false);
+    this.selectedId.set(null);
+    this.mensajes.set([]);
+    this.selectedAvatarUrl.set(null);
     await this.refreshConversaciones();
     this.notificaciones.refresh();
   }

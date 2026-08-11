@@ -70,17 +70,26 @@
         <p>Selecciona una conversación o inicia una nueva.</p>
       </div>
     } @else {
-      <div class="thread__header">
-        <span class="thread__avatar" [class.thread__avatar--group]="selectedConv()!.tipo === 'grupo'">
-          {{ iniciales(selectedConv()!.tituloMostrado ?? '?') }}
-        </span>
-        <div class="thread__titles">
-          <span class="thread__title">{{ selectedConv()!.tituloMostrado }}</span>
-          @if (selectedConv()!.tipo === 'grupo') {
-            <span class="thread__sub">{{ selectedConv()!.participantes?.length }} participantes</span>
+      @if (selectedConv()!.tipo === 'grupo') {
+        <button type="button" class="thread__header thread__header--clickable" (click)="openGrupoInfo()" [attr.aria-label]="'Ver información del grupo ' + (selectedConv()!.tituloMostrado ?? '')">
+          @if (selectedAvatarUrl(); as avatar) {
+            <img class="thread__avatar thread__avatar--img" [src]="avatar" alt="" />
+          } @else {
+            <span class="thread__avatar thread__avatar--group">{{ iniciales(selectedConv()!.tituloMostrado ?? '?') }}</span>
           }
+          <div class="thread__titles">
+            <span class="thread__title">{{ selectedConv()!.tituloMostrado }}</span>
+            <span class="thread__sub">{{ selectedConv()!.participantes?.length }} participantes · ver info</span>
+          </div>
+        </button>
+      } @else {
+        <div class="thread__header">
+          <span class="thread__avatar">{{ iniciales(selectedConv()!.tituloMostrado ?? '?') }}</span>
+          <div class="thread__titles">
+            <span class="thread__title">{{ selectedConv()!.tituloMostrado }}</span>
+          </div>
         </div>
-      </div>
+      }
 
       <div class="thread__messages">
         @if (loadingThread()) {
@@ -90,6 +99,9 @@
             @if (esNuevoDia(i)) {
               <div class="msg-daysep"><span>{{ fechaSeparador(m.created_at) }}</span></div>
             }
+            @if (m.tipo === 'sistema') {
+              <div class="msg-sistema"><span>{{ m.contenido }}</span></div>
+            } @else {
             <div class="msg" [class.msg--mine]="esMio(m)">
               @if (!esMio(m) && selectedConv()!.tipo === 'grupo') {
                 <span class="msg__autor">{{ autorNombre(m) }}</span>
@@ -109,6 +121,7 @@
                 <span class="msg__time">{{ m.created_at | date:'HH:mm' }}</span>
               </div>
             </div>
+            }
           }
           <div #threadEnd></div>
         }
@@ -201,3 +214,12 @@
     }
   </div>
 </app-form-drawer>
+
+<!-- ── Group info drawer ── -->
+<app-grupo-info
+  [conversacionId]="selectedConv()?.tipo === 'grupo' ? selectedId() : null"
+  [open]="grupoInfoOpen()"
+  (closed)="closeGrupoInfo()"
+  (changed)="onGrupoChanged()"
+  (salio)="onGrupoSalio()"
+/>

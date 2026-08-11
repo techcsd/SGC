@@ -245,7 +245,8 @@ export class Reportes implements OnInit {
           .limit(10),
         this.supabase.client
           .from('salidas_inventario')
-          .select('id, created_at, bodega:bodegas(nombre), detalle_salidas(articulo_id, cantidad, articulo:articulos(nombre,codigo))')
+          // AN5 — bodegas es ambiguo (doble FK origen/destino): fijar la relación.
+          .select('id, created_at, bodega:bodegas!salidas_inventario_bodega_id_fkey(nombre), detalle_salidas(articulo_id, cantidad, articulo:articulos(nombre,codigo))')
           .order('created_at', { ascending: false })
           .limit(10),
         this.supabase.client

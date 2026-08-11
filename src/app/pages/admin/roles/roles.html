@@ -106,15 +106,226 @@
     <app-paginator [total]="roles().length" [pageSize]="PAGE_SIZE" [(page)]="page" />
   }
 
+  <!-- ═══════ AN4 — Auditoría de roles ═══════ -->
+  @if (!loading() && !error()) {
+    <section class="roles-audit" aria-label="Auditoría de roles">
+      <div class="roles-audit__head">
+        <h2 class="roles-audit__title">Auditoría de roles</h2>
+        <p class="roles-audit__subtitle">Revisa el acceso real de cada rol o usuario y limpia asignaciones de más («un usuario = un rol»).</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="roles-audit__tabs" role="tablist" aria-label="Herramientas de auditoría">
+        <button type="button" role="tab" class="roles-audit__tab" [class.roles-audit__tab--active]="auditTab() === 'efectivos'"
+          [attr.aria-selected]="auditTab() === 'efectivos'" (click)="auditTab.set('efectivos')">Accesos efectivos</button>
+        <button type="button" role="tab" class="roles-audit__tab" [class.roles-audit__tab--active]="auditTab() === 'multirol'"
+          [attr.aria-selected]="auditTab() === 'multirol'" (click)="auditTab.set('multirol'); cargarMultiRol()">Usuarios con varios roles</button>
+        <button type="button" role="tab" class="roles-audit__tab" [class.roles-audit__tab--active]="auditTab() === 'diff'"
+          [attr.aria-selected]="auditTab() === 'diff'" (click)="auditTab.set('diff')">Simular quitar roles</button>
+      </div>
+
+      <!-- 1) Accesos efectivos -->
+      @if (auditTab() === 'efectivos') {
+        <div class="roles-audit__panel">
+          <div class="roles-audit__controls">
+            <div class="roles-audit__seg" role="radiogroup" aria-label="Fuente de accesos">
+              <button type="button" role="radio" class="roles-audit__seg-btn" [class.roles-audit__seg-btn--active]="auditFuente() === 'rol'"
+                [attr.aria-checked]="auditFuente() === 'rol'" (click)="setAuditFuente('rol')">Por rol</button>
+              <button type="button" role="radio" class="roles-audit__seg-btn" [class.roles-audit__seg-btn--active]="auditFuente() === 'usuario'"
+                [attr.aria-checked]="auditFuente() === 'usuario'" (click)="setAuditFuente('usuario')">Por usuario</button>
+            </div>
+
+            @if (auditFuente() === 'rol') {
+              <label class="sr-only" for="audit-rol">Elegir rol</label>
+              <select id="audit-rol" class="roles-audit__select" [value]="auditRolId() ?? ''" (change)="onSelectAuditRol($any($event.target).value)">
+                <option value="">Elegir rol…</option>
+                @for (r of roles(); track r.id) {
+                  <option [value]="r.id">{{ r.nombre }}</option>
+                }
+              </select>
+            } @else {
+              <label class="sr-only" for="audit-usuario">Elegir usuario</label>
+              <select id="audit-usuario" class="roles-audit__select" [value]="auditUsuarioId() ?? ''" (change)="onSelectAuditUsuario($any($event.target).value)">
+                <option value="">Elegir usuario…</option>
+                @for (u of usuarios(); track u.id) {
+                  <option [value]="u.id">{{ u.nombre }}</option>
+                }
+              </select>
+            }
+          </div>
+
+          @if (auditLoading()) {
+            <p class="roles-audit__muted">Cargando accesos…</p>
+          } @else if (auditVacio()) {
+            <p class="roles-audit__muted">Sin acceso a ningún módulo.</p>
+          } @else if (auditAccesos(); as acc) {
+            <div class="roles-audit__access-grid">
+              @for (m of acc; track m.key) {
+                <div class="roles-audit__access-card">
+                  <div class="roles-audit__access-mod">{{ m.label }}</div>
+                  @if (m.submodulos.length > 0) {
+                    <ul class="roles-audit__access-subs">
+                      @for (s of m.submodulos; track s.label) {
+                        <li>
+                          {{ s.label }}
+                          <span class="roles-audit__nivel" [class.roles-audit__nivel--operar]="s.nivel === 'operar'">{{ s.nivel === 'operar' ? 'Operar' : 'Ver' }}</span>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="roles-audit__access-full">Módulo completo</span>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="roles-audit__muted">Elige {{ auditFuente() === 'rol' ? 'un rol' : 'un usuario' }} para ver sus accesos efectivos.</p>
+          }
+        </div>
+      }
+
+      <!-- 2) Reporte multi-rol -->
+      @if (auditTab() === 'multirol') {
+        <div class="roles-audit__panel">
+          @if (multiRolLoading()) {
+            <p class="roles-audit__muted">Cargando…</p>
+          } @else if (multiRol(); as filas) {
+            @if (filas.length === 0) {
+              <p class="roles-audit__muted">🎉 Ningún usuario tiene más de un rol. Todo limpio.</p>
+            } @else {
+              <div class="roles-audit__table-wrap">
+                <table class="roles-audit__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Usuario</th>
+                      <th scope="col">Correo</th>
+                      <th scope="col">Roles</th>
+                      <th scope="col">Módulos combinados</th>
+                      <th scope="col"><span class="sr-only">Acciones</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (u of filas; track u.usuario_id) {
+                      <tr>
+                        <td>{{ u.nombre }}</td>
+                        <td class="roles-audit__email">{{ u.email }}</td>
+                        <td>
+                          <div class="roles-audit__chips">
+                            @for (r of u.roles; track r.id) {
+                              <span class="sgc-badge sgc-badge--info">{{ r.nombre }}</span>
+                            }
+                          </div>
+                        </td>
+                        <td class="roles-audit__mods">{{ modulosLabels(u.modulos) }}</td>
+                        <td class="roles-audit__row-actions">
+                          <button type="button" class="roles-audit__link" (click)="simularUsuario(u.usuario_id)">Simular</button>
+                          <a class="roles-audit__link" routerLink="/admin/usuarios">Ir a Usuarios</a>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          } @else {
+            <p class="roles-audit__muted">Cargando…</p>
+          }
+        </div>
+      }
+
+      <!-- 3) Diff al quitar roles -->
+      @if (auditTab() === 'diff') {
+        <div class="roles-audit__panel">
+          <label class="sr-only" for="diff-usuario">Elegir usuario</label>
+          <select id="diff-usuario" class="roles-audit__select" [value]="diffUsuarioId() ?? ''" (change)="onSelectDiffUsuario($any($event.target).value)">
+            <option value="">Elegir usuario…</option>
+            @for (u of usuarios(); track u.id) {
+              <option [value]="u.id">{{ u.nombre }}</option>
+            }
+          </select>
+
+          @if (diffUsuarioId()) {
+            <p class="roles-audit__hint">Desmarca los roles que quieres quitarle. Se calcula qué acceso <strong>pierde</strong> o <strong>gana</strong>.</p>
+            <div class="roles-audit__diff-roles" role="group" aria-label="Roles propuestos">
+              @for (r of roles(); track r.id) {
+                @if (diffRolesActuales().includes(r.id) || isDiffRolPropuesto(r.id)) {
+                  <label class="roles-audit__diff-role" [class.roles-audit__diff-role--off]="!isDiffRolPropuesto(r.id)">
+                    <input type="checkbox" [checked]="isDiffRolPropuesto(r.id)" (change)="toggleDiffRol(r.id)" />
+                    <span>{{ r.nombre }}</span>
+                  </label>
+                }
+              }
+            </div>
+
+            <button type="button" class="roles-audit__calc" [disabled]="diffSinCambios || diffLoading()" (click)="calcularDiff()">
+              @if (diffLoading()) { Calculando… } @else { Calcular impacto }
+            </button>
+
+            @if (diffResultado(); as d) {
+              @if (diffSinImpacto) {
+                <p class="roles-audit__muted">Sin cambios en el acceso efectivo.</p>
+              } @else {
+                <div class="roles-audit__diff-cols">
+                  <div class="roles-audit__diff-col roles-audit__diff-col--lose">
+                    <h4>Pierde</h4>
+                    @if (d.modulosPierde.length === 0 && d.subsPierde.length === 0) {
+                      <p class="roles-audit__muted">Nada.</p>
+                    } @else {
+                      <ul>
+                        @for (m of d.modulosPierde; track m) { <li><strong>{{ m }}</strong> (módulo completo)</li> }
+                        @for (s of d.subsPierde; track s.label) { <li>{{ s.label }} <span class="roles-audit__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                      </ul>
+                    }
+                  </div>
+                  <div class="roles-audit__diff-col roles-audit__diff-col--gain">
+                    <h4>Gana</h4>
+                    @if (d.modulosGana.length === 0 && d.subsGana.length === 0) {
+                      <p class="roles-audit__muted">Nada.</p>
+                    } @else {
+                      <ul>
+                        @for (m of d.modulosGana; track m) { <li><strong>{{ m }}</strong> (módulo completo)</li> }
+                        @for (s of d.subsGana; track s.label) { <li>{{ s.label }} <span class="roles-audit__nivel">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                      </ul>
+                    }
+                  </div>
+                </div>
+                @if (d.subsCambia.length > 0) {
+                  <div class="roles-audit__diff-changes">
+                    <h4>Cambia de nivel</h4>
+                    <ul>
+                      @for (s of d.subsCambia; track s.label) {
+                        <li>{{ s.label }}: <span class="roles-audit__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span> → <span class="roles-audit__nivel roles-audit__nivel--operar">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li>
+                      }
+                    </ul>
+                  </div>
+                }
+              }
+            }
+          } @else {
+            <p class="roles-audit__muted">Elige un usuario para simular quitarle roles.</p>
+          }
+        </div>
+      }
+    </section>
+  }
+
 </section>
 
 <!-- Edit Drawer -->
 <app-form-drawer
   [title]="drawerTitle()"
   [open]="drawerOpen()"
+  [dirty]="editDirty()"
   (closed)="closeDrawer()"
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" class="roles-form" novalidate>
+
+    @if (editDirty()) {
+      <div class="roles-form__dirty" role="status">
+        <span class="roles-form__dirty-dot" aria-hidden="true"></span>
+        Cambios sin guardar
+      </div>
+    }
 
     <!-- Nombre -->
     <div class="roles-form__field">
@@ -182,35 +393,20 @@
       </div>
     </fieldset>
 
-    <!-- AG12 — Permisos por submódulo (avanzado) -->
+    <!-- AN2 — Permisos por submódulo (avanzado) -->
     <fieldset class="roles-form__fieldset">
-      <button type="button" class="roles-matrix__toggle" (click)="mostrarAvanzado.set(!mostrarAvanzado())">
+      <button type="button" class="roles-matrix__toggle" (click)="mostrarAvanzado.set(!mostrarAvanzado())"
+        [attr.aria-expanded]="mostrarAvanzado()">
         {{ mostrarAvanzado() ? '▾' : '▸' }} Permisos por submódulo (avanzado)
       </button>
       @if (mostrarAvanzado()) {
-        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo (ej.: Compras → solo Proveedores → Ver). Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar</strong> automáticamente.</p>
-        @for (mod of modulosConSubmodulos; track mod.key) {
-          <div class="roles-matrix__group">
-            <div class="roles-matrix__group-title">{{ mod.label }}</div>
-            @for (sub of submodulosDe(mod.key); track sub.key) {
-              <div class="roles-matrix__row">
-                <span class="roles-matrix__label">
-                  {{ sub.label }}
-                  @if (!sub.enforced) { <span class="roles-matrix__soon" title="El gateo por submódulo se irá extendiendo; hoy el checkbox del módulo es el control principal">próximamente</span> }
-                </span>
-                @if (submoduloImplicito(sub.key)) {
-                  <span class="roles-matrix__implicit">Operar (por módulo)</span>
-                } @else {
-                  <select class="roles-matrix__select" [value]="permisoNivel(sub.key)" (change)="setPermiso(sub.key, $any($event.target).value)">
-                    <option value="">Sin acceso</option>
-                    <option value="ver">Ver</option>
-                    <option value="operar">Operar</option>
-                  </select>
-                }
-              </div>
-            }
-          </div>
-        }
+        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo (ej.: Compras → solo Proveedores → Ver). Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar (heredado)</strong> automáticamente.</p>
+        <app-role-permisos-editor
+          idPrefix="edit"
+          [selectedModulos]="selectedModulos()"
+          [permisos]="selectedPermisos()"
+          (permisoChange)="setPermiso($event.key, $event.nivel)"
+        />
       }
     </fieldset>
 
@@ -246,9 +442,17 @@
 <app-form-drawer
   title="Crear Rol"
   [open]="createDrawerOpen()"
+  [dirty]="createDirty()"
   (closed)="closeCreateDrawer()"
 >
   <form [formGroup]="createForm" (ngSubmit)="onCreateSave()" class="roles-form" novalidate>
+
+    @if (createDirty()) {
+      <div class="roles-form__dirty" role="status">
+        <span class="roles-form__dirty-dot" aria-hidden="true"></span>
+        Cambios sin guardar
+      </div>
+    }
 
     <div class="roles-form__field">
       <label class="roles-form__label" for="create-rol-nombre">Nombre del rol</label>
@@ -314,35 +518,20 @@
       </div>
     </fieldset>
 
-    <!-- AG12 — Permisos por submódulo (avanzado) -->
+    <!-- AN2 — Permisos por submódulo (avanzado) -->
     <fieldset class="roles-form__fieldset">
-      <button type="button" class="roles-matrix__toggle" (click)="createMostrarAvanzado.set(!createMostrarAvanzado())">
+      <button type="button" class="roles-matrix__toggle" (click)="createMostrarAvanzado.set(!createMostrarAvanzado())"
+        [attr.aria-expanded]="createMostrarAvanzado()">
         {{ createMostrarAvanzado() ? '▾' : '▸' }} Permisos por submódulo (avanzado)
       </button>
       @if (createMostrarAvanzado()) {
-        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo. Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar</strong>.</p>
-        @for (mod of modulosConSubmodulos; track mod.key) {
-          <div class="roles-matrix__group">
-            <div class="roles-matrix__group-title">{{ mod.label }}</div>
-            @for (sub of submodulosDe(mod.key); track sub.key) {
-              <div class="roles-matrix__row">
-                <span class="roles-matrix__label">
-                  {{ sub.label }}
-                  @if (!sub.enforced) { <span class="roles-matrix__soon">próximamente</span> }
-                </span>
-                @if (createSubmoduloImplicito(sub.key)) {
-                  <span class="roles-matrix__implicit">Operar (por módulo)</span>
-                } @else {
-                  <select class="roles-matrix__select" [value]="createPermisoNivel(sub.key)" (change)="setCreatePermiso(sub.key, $any($event.target).value)">
-                    <option value="">Sin acceso</option>
-                    <option value="ver">Ver</option>
-                    <option value="operar">Operar</option>
-                  </select>
-                }
-              </div>
-            }
-          </div>
-        }
+        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo. Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar (heredado)</strong>.</p>
+        <app-role-permisos-editor
+          idPrefix="create"
+          [selectedModulos]="createSelectedModulos()"
+          [permisos]="createSelectedPermisos()"
+          (permisoChange)="setCreatePermiso($event.key, $event.nivel)"
+        />
       }
     </fieldset>
 

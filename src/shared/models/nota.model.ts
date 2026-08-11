@@ -47,6 +47,11 @@ export interface NotaCompartido {
   usuario_id: string;
   permiso: NotaPermiso;
   created_at: string;
+  // AN7 — resueltos server-side por `nota_compartidos_detalle` (ya no por embed).
+  nombre?: string | null;
+  email?: string | null;
+  rol?: string | null;
+  /** @deprecated legacy embed; conservado por compat. Usa `nombre`. */
   usuario?: { nombre: string } | null;
 }
 

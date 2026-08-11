@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { moduleGuard } from '../../core/guards/module.guard';
 import { proveedoresGuard } from '../../core/guards/proveedores.guard';
+import { submoduloGuard } from '../../core/guards/submodulo.guard';
 
 export const comprasRoutes: Routes = [
   { path: '', redirectTo: 'proveedores', pathMatch: 'full' },
@@ -13,7 +14,7 @@ export const comprasRoutes: Routes = [
   },
   {
     path: 'ordenes',
-    canActivate: [moduleGuard('compras')],
+    canActivate: [submoduloGuard('compras.ordenes')], // AN2 — módulo o submódulo granular
     loadComponent: () => import('./ordenes/ordenes').then((m) => m.Ordenes),
     title: 'Órdenes de Compra — Compras',
   },

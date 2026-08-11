@@ -1,0 +1,217 @@
+.perm-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  // ── Toolbar: buscador + leyenda ──
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 1 1 200px;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
+
+    svg { color: var(--sgc-text-muted); flex-shrink: 0; }
+
+    &:focus-within { border-color: var(--sgc-primary-mid); }
+  }
+
+  &__search-input {
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--sgc-text);
+    font-size: 0.85rem;
+    width: 100%;
+  }
+
+  &__legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    color: var(--sgc-text-muted);
+    cursor: help;
+    white-space: nowrap;
+
+    svg { color: var(--sgc-text-muted); }
+  }
+
+  // ── Grupo plegable ──
+  &__group {
+    border: 1px solid var(--sgc-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--sgc-surface);
+  }
+
+  &__group-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    background: var(--sgc-surface-hover);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--sgc-text);
+
+    &:hover { filter: brightness(0.98); }
+    &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
+  }
+
+  &__group-caret {
+    color: var(--sgc-text-muted);
+    font-size: 0.8rem;
+    width: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  &__group-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__group-flag {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--sgc-primary-mid);
+    background: var(--sgc-primary-light);
+    border: 1px solid var(--sgc-primary-mid);
+    border-radius: 999px;
+    padding: 0.05rem 0.45rem;
+    min-width: 1.2rem;
+    text-align: center;
+
+    &--inherited {
+      color: var(--sgc-success, #1a7f37);
+      background: var(--sgc-success-light, #e7f6ec);
+      border-color: var(--sgc-success, #1a7f37);
+    }
+  }
+
+  // ── Filas de submódulo ──
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    padding: 0.25rem 0.5rem 0.5rem;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0.25rem;
+    border-bottom: 1px solid var(--sgc-border);
+
+    &:last-child { border-bottom: none; }
+
+    @media (max-width: 560px) {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.35rem;
+    }
+  }
+
+  &__row-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__row-name {
+    font-size: 0.85rem;
+    color: var(--sgc-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__soon {
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 700;
+    color: var(--sgc-text-muted);
+    border: 1px solid var(--sgc-border);
+    border-radius: 5px;
+    padding: 0.05rem 0.3rem;
+    cursor: help;
+  }
+
+  &__inherited {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--sgc-success, #1a7f37);
+    background: var(--sgc-success-light, #e7f6ec);
+    border: 1px solid var(--sgc-success, #1a7f37);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    cursor: help;
+  }
+
+  // ── Control segmentado Sin acceso / Ver / Operar ──
+  &__seg {
+    display: inline-flex;
+    flex-shrink: 0;
+    border: 1px solid var(--sgc-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--sgc-surface);
+  }
+
+  &__seg-btn {
+    border: none;
+    background: transparent;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--sgc-text-muted);
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease;
+    border-right: 1px solid var(--sgc-border);
+
+    &:last-child { border-right: none; }
+    &:hover { background: var(--sgc-surface-hover); }
+    &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
+
+    &--active {
+      background: var(--sgc-primary-mid);
+      color: #fff;
+    }
+
+    &--operar.perm-editor__seg-btn--active {
+      background: var(--sgc-success, #1a7f37);
+    }
+  }
+
+  &__empty {
+    font-size: 0.82rem;
+    color: var(--sgc-text-muted);
+    font-style: italic;
+    padding: 0.5rem 0.25rem;
+    margin: 0;
+  }
+}

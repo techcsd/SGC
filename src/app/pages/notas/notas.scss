@@ -426,11 +426,28 @@
   background: var(--sgc-surface);
 }
 
+.editor__shared-who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
 .editor__share-name {
   flex: 1;
   font-size: 13.5px;
   color: var(--sgc-text);
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// AN7 — subtítulo (rol o correo) del compartido.
+.editor__share-sub {
+  font-size: 11.5px;
+  color: var(--sgc-text-muted, #8a8a8a);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

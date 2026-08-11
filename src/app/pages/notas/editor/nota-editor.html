@@ -136,10 +136,13 @@
               <option [value]="u.id">{{ u.nombre }}</option>
             }
           </select>
-          <select [value]="compartirPermiso()" (change)="compartirPermiso.set($any($event.target).value)">
-            <option value="ver">Puede ver</option>
-            <option value="editar">Puede editar</option>
-          </select>
+          <!-- AN7 — segmented control Ver/Editar (más claro que un dropdown suelto) -->
+          <div class="nota-editor__seg" role="group" aria-label="Permiso al compartir">
+            <button type="button" [class.active]="compartirPermiso() === 'ver'"
+              (click)="compartirPermiso.set('ver')">Solo ver</button>
+            <button type="button" [class.active]="compartirPermiso() === 'editar'"
+              (click)="compartirPermiso.set('editar')">Editar</button>
+          </div>
           <button type="button" class="sgc-btn sgc-btn--primary" (click)="agregarCompartido()"
             [disabled]="!compartirUsuario()">Compartir</button>
         </div>
@@ -148,7 +151,12 @@
           <ul class="nota-editor__shares">
             @for (c of compartidos(); track c.id) {
               <li>
-                <span>{{ c.usuario?.nombre ?? 'Usuario' }}</span>
+                <span class="nota-editor__share-who">
+                  <span class="nota-editor__share-name">{{ c.nombre ?? 'Usuario' }}</span>
+                  @if (c.rol || c.email) {
+                    <small class="nota-editor__share-sub">{{ c.rol || c.email }}</small>
+                  }
+                </span>
                 <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
                   <option value="ver">Puede ver</option>
                   <option value="editar">Puede editar</option>

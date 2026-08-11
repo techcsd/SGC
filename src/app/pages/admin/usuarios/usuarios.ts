@@ -204,6 +204,12 @@ export class AdminUsuarios implements OnInit {
     void this.router.navigate(['/flota/conductores', id]);
   }
 
+  /** AN4 — abre la página de Roles enfocada en los accesos efectivos de este usuario. */
+  verAccesos(usuario: UsuarioAdmin) {
+    this.closeDetail();
+    void this.router.navigate(['/admin/roles'], { queryParams: { usuario: usuario.id } });
+  }
+
   /** Texto relativo de actividad, con guion si nunca. */
   actividad(fecha: string | null | undefined): string {
     return fecha ? this.formatRelativa(fecha) : '—';

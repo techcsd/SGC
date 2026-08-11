@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
+import { moduloOSubmoduloGuard } from './core/guards/modulo-o-submodulo.guard';
 import { noChoferGuard } from './core/guards/no-chofer.guard';
 import { tecnologiaContenedorGuard } from './core/guards/tecnologia.guard';
 
@@ -47,7 +48,8 @@ export const routes: Routes = [
       },
       {
         path: 'inventario',
-        canActivate: [moduleGuard('inventario')],
+        // AN2 — módulo completo O cualquier submódulo granular (cada hija afina).
+        canActivate: [moduloOSubmoduloGuard('inventario')],
         loadChildren: () =>
           import('./pages/inventario/inventario.routes').then((m) => m.inventarioRoutes),
       },
@@ -58,7 +60,8 @@ export const routes: Routes = [
       },
       {
         path: 'flota',
-        canActivate: [moduleGuard('flota')],
+        // AN2 — módulo completo O cualquier submódulo granular (cada hija afina).
+        canActivate: [moduloOSubmoduloGuard('flota')],
         loadChildren: () => import('./pages/flota/flota.routes').then((m) => m.flotaRoutes),
       },
       {

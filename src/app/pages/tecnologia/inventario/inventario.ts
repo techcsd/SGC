@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TecnologiaService } from '../../../../shared/services/tecnologia.service';
-import { EmpleadosService } from '../../../../shared/services/empleados.service';
+import { EmpleadosService, EmpleadoDirectorio } from '../../../../shared/services/empleados.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import {
@@ -12,7 +12,6 @@ import {
   TecCompraOpcion,
   TEC_EQUIPO_ESTADOS,
 } from '../../../../shared/models/tecnologia.model';
-import { Empleado } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
@@ -47,7 +46,7 @@ export class TecInventario implements OnInit {
   formatTimestamp = formatTimestampDisplay;
 
   equipos = signal<TecEquipo[]>([]);
-  empleados = signal<Empleado[]>([]);
+  empleados = signal<EmpleadoDirectorio[]>([]);
   comprasOpciones = signal<TecCompraOpcion[]>([]); // QA-070
   tipos = signal<{ value: string; label: string }[]>([]); // AL1 — catálogo
   bodegas = signal<{ id: string; nombre: string; es_central: boolean }[]>([]); // AL1 — ubicación
@@ -135,7 +134,7 @@ export class TecInventario implements OnInit {
     try {
       const [equipos, empleados, compras, tipos, bodegas] = await Promise.all([
         this.tecnologia.getEquipos(),
-        this.empleadosService.getAll(),
+        this.empleadosService.getDirectorio(), // AN1 — referencia (no requiere módulo RRHH)
         this.tecnologia.getComprasTecOpciones(), // QA-070
         this.tecnologia.getEquipoTipos(), // AL1
         this.bodegasService.getAll(), // AL1
@@ -177,6 +176,12 @@ export class TecInventario implements OnInit {
   }
 
   getEmpleadoNombre(e: TecEquipo): string {
+    // AN1 — el embed `empleado:empleados(...)` falla para roles sin acceso a RRHH
+    // (p.ej. Tecnología). Resolvemos primero desde el directorio de referencia.
+    if (e.empleado_id) {
+      const emp = this.empleados().find((x) => x.id === e.empleado_id);
+      if (emp) return `${emp.nombre} ${emp.apellido ?? ''}`.trim();
+    }
     if (e.empleado) return `${e.empleado.nombre} ${e.empleado.apellido}`;
     return '—';
   }

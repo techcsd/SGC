@@ -2,6 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Empleado, EmpleadoDocumento } from '../models/empleado.model';
 
+/** AN1 — subconjunto seguro de un empleado para selects de referencia. */
+export interface EmpleadoDirectorio {
+  id: string;
+  nombre: string;
+  apellido: string | null;
+  cargo: string | null;
+  activo: boolean;
+  usuario_id: string | null;
+}
+
 // No self-referential jefe embed here: PostgREST resolves the empleados→empleados
 // self-join as to-many (returns an array) which doesn't match the model, so the
 // supervisor's name is resolved client-side from the already-loaded list instead.
@@ -20,6 +30,19 @@ export class EmpleadosService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Empleado[];
+  }
+
+  /**
+   * AN1 — directorio de referencia de empleados (subconjunto seguro) para
+   * dropdowns "Asignado a" y resolución de nombres desde flujos que NO tienen el
+   * módulo RRHH (p.ej. inventario tecnológico con rol Tecnología). Usa la RPC
+   * SECURITY DEFINER `directorio_empleados`, que NO expone datos sensibles
+   * (salario, banco, cédula…) ni requiere abrir la tabla `empleados`.
+   */
+  async getDirectorio(): Promise<EmpleadoDirectorio[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_empleados');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as EmpleadoDirectorio[];
   }
 
   async create(payload: Partial<Empleado>): Promise<Empleado> {

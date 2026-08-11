@@ -1,11 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { Conversacion, Mensaje, ParticipanteInfo } from '../models/mensaje.model';
+import { Conversacion, GrupoInfo, Mensaje, ParticipanteInfo } from '../models/mensaje.model';
+import { SignedUrlCache } from './signed-url-cache.service';
 
 @Injectable({ providedIn: 'root' })
 export class MensajeriaService {
   private supabase = inject(SupabaseService);
+  private signedUrls = inject(SignedUrlCache);
 
   /** Company directory (id → nombre) — used to name participants, since the
    *  usuarios table RLS only lets a user read their own row. */
@@ -97,7 +99,7 @@ export class MensajeriaService {
   async getMensajes(conversacionId: string): Promise<Mensaje[]> {
     const { data, error } = await this.supabase.client
       .from('mensajes')
-      .select('*, autor:usuarios(nombre)')
+      .select('*, tipo, autor:usuarios(nombre)')
       .eq('conversacion_id', conversacionId)
       .order('created_at', { ascending: true });
     if (error) throw new Error(error.message);
@@ -158,6 +160,97 @@ export class MensajeriaService {
     });
     if (error) throw new Error(error.message);
     return data as string;
+  }
+
+  // ── Gestión de grupos (RPCs, permisos forzados en el servidor) ──────────
+  /** Ficha completa del grupo: datos, mi rol y participantes con su rol. */
+  async grupoInfo(conv: string): Promise<GrupoInfo> {
+    const { data, error } = await this.supabase.client.rpc('grupo_info', { p_conv: conv });
+    if (error) throw new Error(error.message);
+    return data as GrupoInfo;
+  }
+
+  /** Edita nombre y descripción del grupo (solo admin). */
+  async grupoEditar(conv: string, nombre: string, descripcion: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('grupo_editar', {
+      p_conv: conv,
+      p_nombre: nombre,
+      p_descripcion: descripcion,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Agrega un participante al grupo (solo admin). */
+  async grupoAgregar(conv: string, usuarioId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('grupo_agregar', {
+      p_conv: conv,
+      p_usuario_id: usuarioId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Quita un participante del grupo (solo admin; no puede ser el creador). */
+  async grupoQuitar(conv: string, usuarioId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('grupo_quitar', {
+      p_conv: conv,
+      p_usuario_id: usuarioId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Promueve o degrada a un participante como admin (solo admin). */
+  async grupoPromover(conv: string, usuarioId: string, admin: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('grupo_promover', {
+      p_conv: conv,
+      p_usuario_id: usuarioId,
+      p_admin: admin,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** El usuario actual abandona el grupo. */
+  async grupoSalir(conv: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('grupo_salir', { p_conv: conv });
+    if (error) throw new Error(error.message);
+  }
+
+  /**
+   * Sube una nueva foto de grupo al bucket `sgc-mensajes` (primer segmento = id
+   * de la conversación, exigido por el RLS de Storage) y la fija vía
+   * `grupo_set_avatar`. Devuelve el path guardado.
+   */
+  async subirAvatarGrupo(conv: string, file: File): Promise<string> {
+    const path = `${conv}/avatar/${crypto.randomUUID()}.jpg`;
+    const { error: upErr } = await this.supabase.client.storage
+      .from('sgc-mensajes')
+      .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
+    if (upErr) throw new Error(upErr.message);
+    const { error } = await this.supabase.client.rpc('grupo_set_avatar', { p_conv: conv, p_path: path });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** URL firmada (cacheada) para el avatar del grupo, o null si no hay path. */
+  async getAvatarUrl(path: string | null | undefined): Promise<string | null> {
+    if (!path) return null;
+    const url = await this.signedUrls.signed('sgc-mensajes', path, { width: 160, height: 160, quality: 75 });
+    return url || null;
+  }
+
+  /** Directorio de usuarios con detalle (para el selector de agregar participante). */
+  async getDirectorioDetalle(): Promise<
+    { id: string; nombre: string; email: string; avatar_path: string | null; activo: boolean; roles: string[] }[]
+  > {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios_detalle');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as {
+      id: string;
+      nombre: string;
+      email: string;
+      avatar_path: string | null;
+      activo: boolean;
+      roles: string[];
+    }[];
   }
 
   async marcarLeido(conversacionId: string, miId: string): Promise<void> {

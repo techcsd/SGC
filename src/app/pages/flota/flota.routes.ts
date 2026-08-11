@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
 import { flotaElevadoGuard } from '../../core/guards/flota-elevado.guard';
+import { submoduloGuard } from '../../core/guards/submodulo.guard';
+
+// AN2 — el parent (`app.routes`) deja pasar por módulo `flota` completo O por
+// cualquier submódulo granular; cada hija afina con `submoduloGuard`. Las rutas
+// sensibles (conductores, seguimiento, echadas, conciliación, panel, reportes,
+// accidentes, responsabilidad) conservan `flotaElevadoGuard` — no se relajan.
 
 export const flotaRoutes: Routes = [
   {
@@ -9,23 +15,27 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'vehiculos',
+    canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () => import('./vehiculos/vehiculos').then((m) => m.FlotaVehiculos),
     title: 'Vehículos — Flota',
   },
   {
     path: 'vehiculos/:id',
+    canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () =>
       import('./vehiculos/detalle/vehiculo-detalle').then((m) => m.VehiculoDetalle),
     title: 'Perfil de vehículo — Flota',
   },
   {
     path: 'reporte-semanal',
+    canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () =>
       import('./reporte-semanal/reporte-semanal').then((m) => m.ReporteSemanal),
     title: 'Inspección vehículo — Flota',
   },
   {
     path: 'mantenimientos',
+    canActivate: [submoduloGuard('flota.mantenimientos')],
     loadComponent: () => import('./mantenimientos/mantenimientos').then((m) => m.Mantenimientos),
     title: 'Mantenimientos — Flota',
   },
@@ -57,6 +67,7 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'combustible',
+    canActivate: [submoduloGuard('flota.combustible')],
     loadComponent: () => import('./combustible/combustible').then((m) => m.Combustible),
     title: 'Combustible — Flota',
   },
@@ -68,6 +79,7 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'combustible-dashboard',
+    canActivate: [submoduloGuard('flota.combustible')],
     loadComponent: () =>
       import('./combustible-dashboard/combustible-dashboard').then((m) => m.CombustibleDashboard),
     title: 'Dashboards de combustible — Flota',
@@ -81,6 +93,7 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'rutas',
+    canActivate: [submoduloGuard('flota.rutas')],
     loadComponent: () => import('./rutas/rutas').then((m) => m.Rutas),
     title: 'Rutas — Flota',
   },
@@ -92,6 +105,7 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'checklists',
+    canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () => import('./checklists/checklists').then((m) => m.Checklists),
     title: 'Checklists — Flota',
   },
@@ -103,6 +117,7 @@ export const flotaRoutes: Routes = [
   },
   {
     path: 'avisos',
+    canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () => import('./avisos/avisos').then((m) => m.Avisos),
     title: 'Avisos — Flota',
   },
