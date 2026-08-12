@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
-import { SalidaInventario, SalidaFormData, SalidaFirma } from '../models/salida.model';
+import { SalidaInventario, SalidaFormData, SalidaFirma, ConduceListadoRow } from '../models/salida.model';
 import { NotificacionesService } from './notificaciones.service';
 
 /** AK1 — fila del historial de confirmaciones de entrega (RPC confirmaciones_historial). */
@@ -52,6 +52,13 @@ export class SalidasService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as SalidaInventario[];
+  }
+
+  /** AO5 — Listado web de conduces con fase + bucket para las pestañas. */
+  async getConducesWebListado(): Promise<ConduceListadoRow[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_web_listado');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConduceListadoRow[];
   }
 
   /** AK1 — Historial de confirmaciones de entrega (matriz de visibilidad server-side). */

@@ -11,6 +11,7 @@
   <!-- Mapa vivo -->
   <div class="seg__map sgc-card">
     <div #map class="seg__map-el"></div>
+    @if (mapError()) { <div class="seg__map-error" role="alert">{{ mapError() }}</div> }
     <!-- AG11 — leyenda del mapa (colores/estados/símbolos) -->
     <div class="seg-leyenda" [class.seg-leyenda--collapsed]="!mostrarLeyenda()">
       <button type="button" class="seg-leyenda__toggle" (click)="toggleLeyenda()"

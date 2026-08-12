@@ -2,11 +2,12 @@ import {
   Component, ChangeDetectionStrategy, inject, signal, computed,
   viewChild, ElementRef, AfterViewInit, OnDestroy, OnInit,
 } from '@angular/core';
-import * as L from 'leaflet';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
   SeguimientoService, UltimaPosicion, ChoferEstadoRow, RutaActiva, ChoferEstado,
 } from '../../../../shared/services/seguimiento.service';
+import { GoogleMapsLoader } from '../../../../shared/context/google-maps-loader.service';
+import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
@@ -20,9 +21,9 @@ const ESTADO_META: Record<ChoferEstado, { label: string; color: string }> = {
 };
 
 /**
- * AF27 — Seguimiento / Control de rutas: mapa en vivo con la última posición de
- * cada chofer, su estado (AF28), rutas activas y conduces en tránsito. Solo para
- * jefe de flota / admin / tecnología (gated por ruta).
+ * AF27 — Seguimiento / Control de rutas: mapa en vivo (Google Maps) con la última
+ * posición de cada chofer, su estado (AF28), rutas activas y conduces en tránsito.
+ * Solo para jefe de flota / admin / tecnología (gated por ruta).
  */
 @Component({
   selector: 'app-seguimiento',
@@ -33,19 +34,22 @@ const ESTADO_META: Record<ChoferEstado, { label: string; color: string }> = {
 })
 export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private svc = inject(SeguimientoService);
+  private loader = inject(GoogleMapsLoader);
   readonly ESTADO_META = ESTADO_META;
   readonly fechaHora = formatTimestampDisplay;
 
   private mapEl = viewChild<ElementRef<HTMLDivElement>>('map');
-  private map: L.Map | null = null;
-  private markers = new Map<string, L.Marker>();
+  private map: google.maps.Map | null = null;
+  private markers = new Map<string, google.maps.Marker>();
+  private infoWindow: google.maps.InfoWindow | null = null;
   private channel: RealtimeChannel | null = null;
-  private trail: L.Polyline | null = null;         // AJ14 — trazado dibujado
-  private trailMarkers: L.Marker[] = [];           // inicio/fin del trayecto
+  private trail: google.maps.Polyline | null = null;   // AJ14 — trazado dibujado
+  private trailMarkers: google.maps.Marker[] = [];      // inicio/fin del trayecto
 
   rutaTrazada = signal<string | null>(null);
   trazaInfo = signal<{ puntos: number; km: number | null; vivo: boolean } | null>(null);
   trazaCargando = signal(false);
+  mapError = signal('');
 
   posiciones = signal<Record<string, UltimaPosicion>>({});
   estados = signal<ChoferEstadoRow[]>([]);
@@ -66,12 +70,9 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   rutasActivas = computed(() => this.rutas().filter((r) => r.seccion === 'activa'));
   rutasHoy = computed(() => this.rutas().filter((r) => r.seccion === 'hoy'));
 
-  // AG11 — el contador "en ruta" del encabezado usa la MISMA fuente que la lista
-  // (el estado por chofer), para que siempre cuadre con lo que se ve abajo.
   enRutaCount = computed(() => this.choferes().filter((c) => c.estado === 'en_ruta').length);
   conUbicacion = computed(() => this.choferes().filter((c) => c.pos?.capturado_en).length);
 
-  // AG11 — leyenda del mapa: estados (con conteo) + símbolos.
   leyenda = computed(() => {
     const counts = new Map<ChoferEstado, number>();
     for (const c of this.choferes()) counts.set(c.estado as ChoferEstado, (counts.get(c.estado as ChoferEstado) ?? 0) + 1);
@@ -84,7 +85,6 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
 
   estadoMeta(e: ChoferEstado) { return ESTADO_META[e] ?? ESTADO_META.inactivo; }
 
-  /** AG11 — "hace X min/h" en vez de solo el timestamp; marca si la posición es vieja. */
   haceCuanto(iso: string | null | undefined): string {
     if (!iso) return '';
     const t = new Date(iso).getTime();
@@ -98,7 +98,6 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
     return d === 1 ? 'hace 1 día' : `hace ${d} días`;
   }
 
-  /** True si la última posición tiene más de 15 min (dato viejo, no "en vivo"). */
   posVieja(c: { pos: UltimaPosicion | null }): boolean {
     const iso = c.pos?.capturado_en;
     if (!iso) return false;
@@ -125,21 +124,33 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
     const el = this.mapEl();
     if (!el) return;
-    // Centro por defecto: Santo Domingo, RD.
-    this.map = L.map(el.nativeElement, { center: [18.4861, -69.9312], zoom: 11, zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(this.map);
-    requestAnimationFrame(() => this.map?.invalidateSize());
+    try {
+      await this.loader.load();
+    } catch (e) {
+      this.mapError.set((e as Error)?.message ?? 'Mapa no disponible.');
+      return;
+    }
+    if (!this.mapEl()) return;
 
-    // Pinta los markers iniciales una vez cargados los datos.
+    // Centro por defecto: Santo Domingo, RD.
+    this.map = new google.maps.Map(el.nativeElement, {
+      center: { lat: 18.4861, lng: -69.9312 },
+      zoom: 11,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      clickableIcons: false,
+    });
+    this.infoWindow = new google.maps.InfoWindow();
+
     const paint = () => {
       if (!this.map) return;
       for (const [uid, p] of Object.entries(this.posiciones())) this.upsertMarker(uid, p);
       this.fitToMarkers();
     };
-    // Los datos pueden llegar antes o después del view init.
     if (Object.keys(this.posiciones()).length) paint();
     else setTimeout(paint, 400);
 
@@ -163,35 +174,43 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
     if (!this.map || p.lat == null || p.lng == null) return;
     const color = this.estadoMeta(this.estadoDe(uid)).color;
     const nombre = this.nombreDe(uid);
-    const icon = L.divIcon({
-      className: 'seg-marker',
-      html: `<div class="seg-marker__pin" style="background:${color}"></div>`,
-      iconSize: [22, 22], iconAnchor: [11, 22],
-    });
+    const position = { lat: p.lat, lng: p.lng };
     const existing = this.markers.get(uid);
     if (existing) {
-      existing.setLatLng([p.lat, p.lng]);
-      existing.setIcon(icon);
+      existing.setPosition(position);
+      existing.setIcon(pinIcon(color));
+      existing.setTitle(nombre);
     } else {
-      const m = L.marker([p.lat, p.lng], { icon }).addTo(this.map);
-      m.bindTooltip(nombre, { direction: 'top', offset: [0, -18] });
-      m.on('click', () => this.seleccionar(uid, false));
+      const m = new google.maps.Marker({ position, map: this.map, icon: pinIcon(color), title: nombre });
+      m.addListener('click', () => this.seleccionar(uid, false));
       this.markers.set(uid, m);
     }
   }
 
   private fitToMarkers() {
     if (!this.map || this.markers.size === 0) return;
-    const group = L.featureGroup([...this.markers.values()]);
-    this.map.fitBounds(group.getBounds().pad(0.2), { maxZoom: 15 });
+    const bounds = new google.maps.LatLngBounds();
+    for (const m of this.markers.values()) {
+      const pos = m.getPosition();
+      if (pos) bounds.extend(pos);
+    }
+    this.map.fitBounds(bounds, 60);
+    if (this.markers.size === 1) this.map.setZoom(Math.min(this.map.getZoom() ?? 15, 15));
   }
 
   seleccionar(usuarioId: string, pan = true) {
     this.seleccionado.set(usuarioId);
     const p = this.posiciones()[usuarioId];
-    if (pan && p && this.map && p.lat != null) {
-      this.map.setView([p.lat, p.lng], 15, { animate: true });
-      this.markers.get(usuarioId)?.openTooltip();
+    if (p && this.map && p.lat != null) {
+      if (pan) {
+        this.map.panTo({ lat: p.lat, lng: p.lng });
+        this.map.setZoom(15);
+      }
+      const m = this.markers.get(usuarioId);
+      if (m && this.infoWindow) {
+        this.infoWindow.setContent(this.nombreDe(usuarioId));
+        this.infoWindow.open({ map: this.map, anchor: m });
+      }
     }
   }
 
@@ -224,24 +243,28 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private dibujarTraza(coords: [number, number][]) {
     this.limpiarTraza();
     if (!this.map || !coords.length) return;
-    this.trail = L.polyline(coords, { color: '#2563eb', weight: 4, opacity: 0.85 }).addTo(this.map);
-    const start = coords[0];
-    const end = coords[coords.length - 1];
-    const dot = (c: string) => L.divIcon({
-      className: 'seg-marker',
-      html: `<div class="seg-marker__pin" style="background:${c}"></div>`,
-      iconSize: [18, 18], iconAnchor: [9, 18],
+    const path = coords.map(([lat, lng]) => ({ lat, lng }));
+    this.trail = new google.maps.Polyline({
+      path, map: this.map, strokeColor: '#2563eb', strokeWeight: 4, strokeOpacity: 0.85,
     });
-    this.trailMarkers.push(L.marker(start, { icon: dot('#16a34a') }).bindTooltip('Inicio').addTo(this.map));
-    if (coords.length > 1) {
-      this.trailMarkers.push(L.marker(end, { icon: dot('#dc2626') }).bindTooltip('Último punto').addTo(this.map));
+    const start = path[0];
+    const end = path[path.length - 1];
+    this.trailMarkers.push(
+      new google.maps.Marker({ position: start, map: this.map, icon: pinIcon('#16a34a', 26), title: 'Inicio' }),
+    );
+    if (path.length > 1) {
+      this.trailMarkers.push(
+        new google.maps.Marker({ position: end, map: this.map, icon: pinIcon('#dc2626', 26), title: 'Último punto' }),
+      );
     }
-    this.map.fitBounds(this.trail.getBounds().pad(0.2), { maxZoom: 16 });
+    const bounds = new google.maps.LatLngBounds();
+    for (const p of path) bounds.extend(p);
+    this.map.fitBounds(bounds, 60);
   }
 
   private limpiarTraza() {
-    if (this.trail) { this.trail.remove(); this.trail = null; }
-    for (const m of this.trailMarkers) m.remove();
+    if (this.trail) { this.trail.setMap(null); this.trail = null; }
+    for (const m of this.trailMarkers) m.setMap(null);
     this.trailMarkers = [];
     this.rutaTrazada.set(null);
     this.trazaInfo.set(null);
@@ -249,7 +272,9 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.channel) this.svc.removeChannel(this.channel);
-    this.map?.remove();
+    for (const m of this.markers.values()) m.setMap(null);
+    this.markers.clear();
+    this.limpiarTraza();
     this.map = null;
   }
 }

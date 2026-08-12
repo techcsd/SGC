@@ -843,3 +843,15 @@
     li { font-size: 0.82rem; }
   }
 }
+
+// AO6 — toggle "comparte ubicación"
+.roles-form__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--sgc-text);
+  cursor: pointer;
+
+  input { width: 16px; height: 16px; cursor: pointer; }
+}

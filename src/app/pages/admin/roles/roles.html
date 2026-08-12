@@ -410,6 +410,16 @@
       }
     </fieldset>
 
+    <!-- AO6 — Comparte ubicación -->
+    <fieldset class="roles-form__fieldset">
+      <legend class="roles-form__legend">Ubicación / seguimiento</legend>
+      <label class="roles-form__check">
+        <input type="checkbox" [checked]="comparteUbicacion()" (change)="comparteUbicacion.set($any($event.target).checked)" />
+        <span>Comparte ubicación (se le pide y rastrea GPS)</span>
+      </label>
+      <p class="roles-form__hint">Actívalo solo para roles que deben compartir ubicación en tiempo real (choferes/transportistas). Los demás no verán solicitudes de ubicación. Se puede sobrescribir por usuario desde Administración.</p>
+    </fieldset>
+
     <!-- Save error -->
     @if (saveError()) {
       <div class="roles-form__save-error" role="alert">{{ saveError() }}</div>
@@ -533,6 +543,15 @@
           (permisoChange)="setCreatePermiso($event.key, $event.nivel)"
         />
       }
+    </fieldset>
+
+    <!-- AO6 — Comparte ubicación -->
+    <fieldset class="roles-form__fieldset">
+      <legend class="roles-form__legend">Ubicación / seguimiento</legend>
+      <label class="roles-form__check">
+        <input type="checkbox" [checked]="createComparteUbicacion()" (change)="createComparteUbicacion.set($any($event.target).checked)" />
+        <span>Comparte ubicación (se le pide y rastrea GPS)</span>
+      </label>
     </fieldset>
 
     @if (createError()) {

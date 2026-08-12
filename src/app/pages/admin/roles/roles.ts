@@ -67,6 +67,8 @@ export class AdminRoles implements OnInit {
   selectedModulos = signal<string[]>([]);
   // AG12 — permisos granulares por submódulo (edición).
   selectedPermisos = signal<PermisosMap>({});
+  // AO6 — el rol comparte ubicación por defecto (choferes/transportistas).
+  comparteUbicacion = signal(false);
   mostrarAvanzado = signal(false);
 
   readonly modulos = MODULOS_DISPONIBLES;
@@ -86,6 +88,7 @@ export class AdminRoles implements OnInit {
   createError = signal('');
   createSelectedModulos = signal<string[]>([]);
   createSelectedPermisos = signal<PermisosMap>({});
+  createComparteUbicacion = signal(false);
   createMostrarAvanzado = signal(false);
 
   createForm = new FormGroup({
@@ -109,6 +112,7 @@ export class AdminRoles implements OnInit {
     if ((fv.nombre ?? '') !== (r.nombre ?? '')) return true;
     if ((fv.descripcion ?? '') !== (r.descripcion ?? '')) return true;
     if (!arraysIguales(this.selectedModulos(), r.modulos ?? [])) return true;
+    if (this.comparteUbicacion() !== !!r.comparte_ubicacion) return true;
     return !permisosIguales(this.selectedPermisos(), r.permisos ?? {});
   });
 
@@ -118,6 +122,7 @@ export class AdminRoles implements OnInit {
       !!(fv.nombre ?? '').trim() ||
       !!(fv.descripcion ?? '').trim() ||
       this.createSelectedModulos().length > 0 ||
+      this.createComparteUbicacion() ||
       Object.keys(this.createSelectedPermisos()).length > 0
     );
   });
@@ -178,6 +183,7 @@ export class AdminRoles implements OnInit {
     this.form.reset({ nombre: rol.nombre, descripcion: rol.descripcion ?? '' });
     this.selectedModulos.set([...(rol.modulos ?? [])]);
     this.selectedPermisos.set({ ...(rol.permisos ?? {}) });
+    this.comparteUbicacion.set(!!rol.comparte_ubicacion);
     this.mostrarAvanzado.set(Object.keys(rol.permisos ?? {}).length > 0);
     this.drawerOpen.set(true);
   }
@@ -218,6 +224,7 @@ export class AdminRoles implements OnInit {
     this.createForm.reset({ nombre: '', descripcion: '' });
     this.createSelectedModulos.set([]);
     this.createSelectedPermisos.set({});
+    this.createComparteUbicacion.set(false);
     this.createMostrarAvanzado.set(false);
     this.createDrawerOpen.set(true);
   }
@@ -269,6 +276,7 @@ export class AdminRoles implements OnInit {
         modulos: this.createSelectedModulos(),
         permisos: this.createSelectedPermisos(),
         descripcion: this.createForm.value.descripcion ?? '',
+        comparte_ubicacion: this.createComparteUbicacion(),
       });
       const updated = await this.rolesService.getAll();
       this.roles.set(updated);
@@ -535,6 +543,7 @@ export class AdminRoles implements OnInit {
         modulos: this.selectedModulos(),
         permisos: this.selectedPermisos(),
         descripcion: this.form.value.descripcion ?? '',
+        comparte_ubicacion: this.comparteUbicacion(),
       });
 
       const updated = await this.rolesService.getAll();

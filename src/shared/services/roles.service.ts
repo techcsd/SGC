@@ -14,6 +14,8 @@ export interface Rol {
   // AG12 — permisos granulares por submódulo (aditivo; null/{} = solo módulos).
   permisos?: PermisosMap | null;
   descripcion?: string;
+  // AO6 — el rol comparte ubicación por defecto (choferes/transportistas).
+  comparte_ubicacion?: boolean;
 }
 
 export interface RolUpdatePayload {
@@ -21,6 +23,7 @@ export interface RolUpdatePayload {
   modulos: string[];
   permisos?: PermisosMap;
   descripcion?: string;
+  comparte_ubicacion?: boolean;
 }
 
 export interface RolCreatePayload {
@@ -28,6 +31,7 @@ export interface RolCreatePayload {
   modulos: string[];
   permisos?: PermisosMap;
   descripcion?: string;
+  comparte_ubicacion?: boolean;
 }
 
 /**
@@ -163,6 +167,7 @@ export class RolesService {
         modulos: payload.modulos,
         permisos: payload.permisos ?? {},
         descripcion: payload.descripcion ?? null,
+        comparte_ubicacion: payload.comparte_ubicacion ?? false,
       })
       .eq('id', id);
 
@@ -186,6 +191,7 @@ export class RolesService {
         modulos: payload.modulos,
         permisos: payload.permisos ?? {},
         descripcion: payload.descripcion?.trim() || null,
+        comparte_ubicacion: payload.comparte_ubicacion ?? false,
       })
       .select()
       .single();

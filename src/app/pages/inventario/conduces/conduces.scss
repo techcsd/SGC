@@ -12,6 +12,51 @@
     letter-spacing: 0.02em;
     white-space: nowrap;
   }
+
+  // AO5 — pestañas por estado con badge de conteo
+  &__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--sgc-border);
+  }
+
+  &__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--sgc-text-muted);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover { color: var(--sgc-text); }
+
+    &--active {
+      color: var(--sgc-text);
+      border-bottom-color: var(--Hub, #ffb300);
+    }
+  }
+
+  &__tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--sgc-surface-hover, #eee);
+    color: var(--sgc-text);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
 }
 
 .page-header__actions {

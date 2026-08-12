@@ -3,16 +3,46 @@
     "1.73.0": {
       "titulo": "Permisos por submódulo de verdad, auditoría de roles, catálogos que no se rompen al restringir módulos, grupos de mensajes tipo WhatsApp y compartir notas más claro",
       "cambios": [
-        { "t": "nuevo", "d": "Permisos por submódulo funcionales: los niveles Sin acceso / Ver / Operar ya aplican de punta a punta (menú, pantallas y datos) en Inventario, Flota y Compras — se acabó el \"Próximamente\"." },
-        { "t": "nuevo", "d": "Auditoría de roles: nueva sección para ver los accesos efectivos de un rol o de un usuario, un reporte de usuarios con varios roles, y simular qué accesos pierde o gana un usuario antes de quitarle roles (con enlace desde Usuarios)." },
-        { "t": "nuevo", "d": "Grupos de Mensajes tipo WhatsApp: toca el nombre del grupo para ver su información — foto, nombre y descripción editables, lista de participantes con su rol, agregar/quitar personas, hacer admin y salir del grupo; los cambios aparecen como avisos dentro del chat." },
-        { "t": "mejora", "d": "Editar rol: el panel de permisos por submódulo se rediseñó — grupos plegables por módulo, buscador de submódulo, control Sin acceso/Ver/Operar con ayuda, estado \"heredado del módulo\" e indicador de cambios sin guardar." },
-        { "t": "arreglo", "d": "Los choferes y otros roles vuelven a ver los almacenes, materiales y obras que necesitan sus flujos aunque no tengan el módulo de Inventario: se separó el acceso al módulo de la lectura de catálogos de referencia." },
-        { "t": "arreglo", "d": "Inventario tecnológico: los selectores de Ubicación (almacén) y \"Asignado a\" (empleado) vuelven a poblarse con el rol Tecnología." },
-        { "t": "arreglo", "d": "Se corrige el error \"more than one relationship was found\" que impedía abrir Salidas, Conduces y Reportes de Inventario." },
-        { "t": "arreglo", "d": "Compartir notas: la persona con quien compartes ahora muestra su nombre real (antes salía \"Usuario\") y su rol; además recibe una notificación con enlace directo a la nota." },
-        { "t": "mejora", "d": "Compartir notas: flujo más claro para elegir entre Solo ver y Editar al agregar a alguien." },
-        { "t": "seguridad", "d": "Refuerzo de permisos: la lectura y escritura de Inventario, Flota y Compras respeta ahora el nivel exacto (Ver/Operar) del rol, validado en el servidor y no solo en la interfaz." }
+        {
+          "t": "nuevo",
+          "d": "Permisos por submódulo funcionales: los niveles Sin acceso / Ver / Operar ya aplican de punta a punta (menú, pantallas y datos) en Inventario, Flota y Compras — se acabó el \"Próximamente\"."
+        },
+        {
+          "t": "nuevo",
+          "d": "Auditoría de roles: nueva sección para ver los accesos efectivos de un rol o de un usuario, un reporte de usuarios con varios roles, y simular qué accesos pierde o gana un usuario antes de quitarle roles (con enlace desde Usuarios)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Grupos de Mensajes tipo WhatsApp: toca el nombre del grupo para ver su información — foto, nombre y descripción editables, lista de participantes con su rol, agregar/quitar personas, hacer admin y salir del grupo; los cambios aparecen como avisos dentro del chat."
+        },
+        {
+          "t": "mejora",
+          "d": "Editar rol: el panel de permisos por submódulo se rediseñó — grupos plegables por módulo, buscador de submódulo, control Sin acceso/Ver/Operar con ayuda, estado \"heredado del módulo\" e indicador de cambios sin guardar."
+        },
+        {
+          "t": "arreglo",
+          "d": "Los choferes y otros roles vuelven a ver los almacenes, materiales y obras que necesitan sus flujos aunque no tengan el módulo de Inventario: se separó el acceso al módulo de la lectura de catálogos de referencia."
+        },
+        {
+          "t": "arreglo",
+          "d": "Inventario tecnológico: los selectores de Ubicación (almacén) y \"Asignado a\" (empleado) vuelven a poblarse con el rol Tecnología."
+        },
+        {
+          "t": "arreglo",
+          "d": "Se corrige el error \"more than one relationship was found\" que impedía abrir Salidas, Conduces y Reportes de Inventario."
+        },
+        {
+          "t": "arreglo",
+          "d": "Compartir notas: la persona con quien compartes ahora muestra su nombre real (antes salía \"Usuario\") y su rol; además recibe una notificación con enlace directo a la nota."
+        },
+        {
+          "t": "mejora",
+          "d": "Compartir notas: flujo más claro para elegir entre Solo ver y Editar al agregar a alguien."
+        },
+        {
+          "t": "seguridad",
+          "d": "Refuerzo de permisos: la lectura y escritura de Inventario, Flota y Compras respeta ahora el nivel exacto (Ver/Operar) del rol, validado en el servidor y no solo en la interfaz."
+        }
       ],
       "url": ""
     },
@@ -1840,6 +1870,31 @@
         }
       ],
       "url": ""
+    },
+    "1.74.0": {
+      "titulo": "Mapas con Google Maps + búsqueda de lugares real, submódulo Conduces y permiso de ubicación por rol",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Mapas: la app web ahora usa Google Maps (Seguimiento, ubicación de obras y replay de rutas). Se retiró el mapa anterior."
+        },
+        {
+          "t": "nuevo",
+          "d": "Búsqueda de lugares con Google Places: al escribir aparecen los lugares registrados en Google (República Dominicana primero) y se fijan solos al elegirlos; marcar en el mapa queda como respaldo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Conduces: nuevo listado por pestañas Activos, Pendientes de entrega, Por confirmar e Histórico, con contadores y filtros por obra, chofer y fecha; cada conduce abre su detalle e impresión/PDF."
+        },
+        {
+          "t": "nuevo",
+          "d": "Ubicación por rol: se agregó el permiso “Comparte ubicación”. Solo a quien lo tiene (choferes y usuarios puntuales) se le pide y rastrea la ubicación; a gerencia/oficina ya no se les solicita."
+        },
+        {
+          "t": "seguridad",
+          "d": "La API key de Google Maps se maneja de forma segura: el servidor la usa oculta (Places/rutas) y el navegador usa una key restringida; nunca queda expuesta en el código."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

@@ -55,6 +55,10 @@ supabase/.temp/
 # Local secrets (SMTP app password, etc.) — never commit
 .smtp.local
 *.local
+# API keys dropped as loose *.env files (do NOT start with ".env", so ".env*" misses them)
+*.env
+*api_key*
+*.key
 qa/qa-users.local.json
 qa/report/
 test-results/

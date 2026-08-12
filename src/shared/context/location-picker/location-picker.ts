@@ -11,8 +11,10 @@ import {
   AfterViewInit,
   OnDestroy,
 } from '@angular/core';
-import * as L from 'leaflet';
-import { GeocodingService, LugarBusqueda } from '../geocoding.service';
+import { GeocodingService } from '../geocoding.service';
+import { PlacesService, PlacePrediction } from '../places.service';
+import { GoogleMapsLoader } from '../google-maps-loader.service';
+import { pinIcon } from '../google-maps-marker.util';
 import { SupabaseService } from '../../../app/core/services/supabase.service';
 
 export interface UbicacionSeleccionada {
@@ -21,10 +23,10 @@ export interface UbicacionSeleccionada {
   direccion: string;
 }
 
-// Leaflet + OpenStreetMap is intentionally isolated in THIS component. The rest
-// of the app only receives provider-independent {lat, lng, address}. Swapping to
-// Google Maps later means rewriting only this file (and adding a key) — the
-// MapsProvider boundary is the component's output contract.
+// AO1/AO2 — Selector de ubicación sobre Google Maps. La búsqueda usa Google Places
+// (edge places-search, key de servidor): cualquier lugar registrado en Google aparece
+// y al elegir se pinea solo. El pin manual (clic en el mapa) y pegar link/coordenadas
+// quedan como fallback. El resto de la app solo recibe {lat, lng, address}.
 @Component({
   selector: 'app-location-picker',
   imports: [],
@@ -34,6 +36,8 @@ export interface UbicacionSeleccionada {
 })
 export class LocationPicker implements AfterViewInit, OnDestroy {
   private geocoding = inject(GeocodingService);
+  private places = inject(PlacesService);
+  private loader = inject(GoogleMapsLoader);
   private supabase = inject(SupabaseService);
 
   latitud = input<number | null>(null);
@@ -41,21 +45,20 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   ubicacionChange = output<UbicacionSeleccionada>();
 
   private mapEl = viewChild.required<ElementRef<HTMLDivElement>>('map');
-  private map: L.Map | null = null;
-  private marker: L.Marker | null = null;
+  private map: google.maps.Map | null = null;
+  private marker: google.maps.Marker | null = null;
   private resizeObs: ResizeObserver | null = null;
 
-  // Default view: Santo Domingo, DR.
-  private readonly DEFAULT: L.LatLngTuple = [18.4861, -69.9312];
+  // Vista por defecto: Santo Domingo, RD.
+  private readonly DEFAULT = { lat: 18.4861, lng: -69.9312 };
 
   direccion = signal('');
   buscando = signal(false);
-  resultados = signal<LugarBusqueda[]>([]);
+  resultados = signal<PlacePrediction[]>([]);
   busquedaError = signal('');
+  mapError = signal('');
 
   // AM7 — pegar link de Google Maps (incl. cortos maps.app.goo.gl) o coordenadas.
-  // El short link se resuelve server-side (la edge sigue el redirect; el navegador
-  // no puede por CORS). Coordenadas pegadas se resuelven al instante.
   resolviendoLink = signal(false);
   linkError = signal('');
 
@@ -63,50 +66,58 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   private searchAbort: AbortController | null = null;
 
   constructor() {
-    // U21 — reaccionar a cambios de los inputs lat/lng DESPUÉS de init (ubicación
-    // actual, edición, selección de obra/almacén): mover el mapa y el marcador.
+    // Reaccionar a cambios de los inputs lat/lng tras init (ubicación actual, edición,
+    // selección de obra/almacén): mover el mapa y el marcador.
     effect(() => {
       const lat = this.latitud();
       const lng = this.longitud();
       if (this.map && lat != null && lng != null) {
-        this.map.setView([lat, lng], 15);
+        this.map.setCenter({ lat, lng });
+        this.map.setZoom(15);
         void this.setMarker(lat, lng, false);
       }
     });
   }
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
     const lat = this.latitud();
     const lng = this.longitud();
-    const center: L.LatLngTuple = lat != null && lng != null ? [lat, lng] : this.DEFAULT;
+    const center = lat != null && lng != null ? { lat, lng } : this.DEFAULT;
 
-    this.map = L.map(this.mapEl().nativeElement, { center, zoom: lat != null ? 15 : 11 });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap',
-    }).addTo(this.map);
-
-    if (lat != null && lng != null) {
-      this.setMarker(lat, lng, false);
+    try {
+      await this.loader.load();
+    } catch (e) {
+      this.mapError.set((e as Error)?.message ?? 'Mapa no disponible.');
+      return;
     }
+    if (!this.mapEl()) return;
 
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      this.setMarker(e.latlng.lat, e.latlng.lng, true);
+    this.map = new google.maps.Map(this.mapEl().nativeElement, {
+      center,
+      zoom: lat != null ? 15 : 11,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      clickableIcons: false,
     });
 
-    // U18 — el drawer anima ~220ms; recalcular tamaño DESPUÉS del transform (si no,
-    // los tiles salen grises/desalineados). Un ResizeObserver reacciona a CUALQUIER
-    // cambio de tamaño del contenedor (animación del drawer, apertura diferida,
-    // cambio de pestaña) — más fiable que los timers sueltos.
-    this.resizeObs = new ResizeObserver(() => this.map?.invalidateSize());
+    if (lat != null && lng != null) void this.setMarker(lat, lng, false);
+
+    this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
+      if (e.latLng) void this.setMarker(e.latLng.lat(), e.latLng.lng(), true);
+    });
+
+    // El drawer anima ~220ms; un ResizeObserver dispara un resize del mapa cuando el
+    // contenedor cambia de tamaño (evita el mapa gris/descentrado).
+    this.resizeObs = new ResizeObserver(() => {
+      if (this.map) google.maps.event.trigger(this.map, 'resize');
+    });
     this.resizeObs.observe(this.mapEl().nativeElement);
-    requestAnimationFrame(() => this.map?.invalidateSize());
-    setTimeout(() => this.map?.invalidateSize(), 320);
   }
 
   /** Fuerza recálculo del tamaño (llamar al abrir el contenedor/tab). */
   refrescar() {
-    this.map?.invalidateSize();
+    if (this.map) google.maps.event.trigger(this.map, 'resize');
   }
 
   ngOnDestroy() {
@@ -114,26 +125,18 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     this.searchAbort?.abort();
     this.resizeObs?.disconnect();
     this.resizeObs = null;
-    this.map?.remove();
+    this.marker?.setMap(null);
+    this.marker = null;
     this.map = null;
-  }
-
-  private customIcon(): L.DivIcon {
-    // DivIcon avoids Leaflet's image assets (which break under bundlers).
-    return L.divIcon({
-      className: 'lp-marker',
-      html: '<div class="lp-marker__pin"></div>',
-      iconSize: [22, 22],
-      iconAnchor: [11, 22],
-    });
   }
 
   private async setMarker(lat: number, lng: number, emitAndGeocode: boolean) {
     if (!this.map) return;
+    const position = { lat, lng };
     if (this.marker) {
-      this.marker.setLatLng([lat, lng]);
+      this.marker.setPosition(position);
     } else {
-      this.marker = L.marker([lat, lng], { icon: this.customIcon() }).addTo(this.map);
+      this.marker = new google.maps.Marker({ position, map: this.map, icon: pinIcon('#ff5f00') });
     }
     if (emitAndGeocode) {
       const dir = await this.geocoding.reverse({ latitud: lat, longitud: lng });
@@ -142,18 +145,18 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     }
   }
 
-  /** U19 — debounce por tecleo (Nominatim limita ~1 req/s) + cancelar obsoletas. */
+  /** Autocompletar con Google Places (debounce + cancelación de peticiones obsoletas). */
   onBuscar(texto: string) {
     if (this.searchTimer) clearTimeout(this.searchTimer);
     this.busquedaError.set('');
     const q = texto.trim();
-    if (!q) {
+    if (q.length < 2) {
       this.resultados.set([]);
       this.buscando.set(false);
       return;
     }
     this.buscando.set(true);
-    this.searchTimer = setTimeout(() => void this.ejecutarBusqueda(q), 400);
+    this.searchTimer = setTimeout(() => void this.ejecutarBusqueda(q), 300);
   }
 
   private async ejecutarBusqueda(q: string) {
@@ -161,7 +164,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     const ac = new AbortController();
     this.searchAbort = ac;
     try {
-      const res = await this.geocoding.buscar(q, ac.signal);
+      const res = await this.places.autocomplete(q, ac.signal);
       if (ac.signal.aborted) return;
       this.resultados.set(res);
       if (res.length === 0) {
@@ -170,7 +173,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     } catch (e) {
       if ((e as Error)?.name === 'AbortError') return;
       this.resultados.set([]);
-      this.busquedaError.set('No se pudo buscar ahora (servicio de mapas ocupado). Reintenta o marca el punto en el mapa.');
+      this.busquedaError.set('No se pudo buscar ahora. Reintenta o marca el punto en el mapa.');
     } finally {
       if (!ac.signal.aborted) this.buscando.set(false);
     }
@@ -194,7 +197,8 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       }
       const dir = data?.resolved_url ? '' : `${lat}, ${lng}`;
       this.direccion.set(dir);
-      this.map?.setView([lat, lng], 16);
+      this.map?.setCenter({ lat, lng });
+      this.map?.setZoom(16);
       void this.setMarker(lat, lng, false);
       this.ubicacionChange.emit({ latitud: lat, longitud: lng, direccion: dir });
     } catch {
@@ -204,12 +208,19 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     }
   }
 
-  seleccionarResultado(r: LugarBusqueda) {
+  async seleccionarResultado(r: PlacePrediction) {
     this.resultados.set([]);
     this.busquedaError.set('');
-    this.direccion.set(r.nombre);
-    this.map?.setView([r.latitud, r.longitud], 16);
-    void this.setMarker(r.latitud, r.longitud, false);
-    this.ubicacionChange.emit({ latitud: r.latitud, longitud: r.longitud, direccion: r.nombre });
+    const detalle = await this.places.details(r.placeId);
+    if (!detalle) {
+      this.busquedaError.set('No se pudo obtener ese lugar. Prueba otro o marca el punto en el mapa.');
+      return;
+    }
+    const dir = detalle.address || detalle.name || r.description;
+    this.direccion.set(dir);
+    this.map?.setCenter({ lat: detalle.lat, lng: detalle.lng });
+    this.map?.setZoom(16);
+    void this.setMarker(detalle.lat, detalle.lng, false);
+    this.ubicacionChange.emit({ latitud: detalle.lat, longitud: detalle.lng, direccion: dir });
   }
 }

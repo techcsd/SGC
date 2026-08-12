@@ -104,6 +104,26 @@ export function conduceNumero(salidaId: string): string {
   return 'CND-' + salidaId.slice(0, 8).toUpperCase();
 }
 
+/** AO5 — Bucket de pestaña calculado server-side (RPC conduces_web_listado). */
+export type ConduceBucket = 'pendientes_entrega' | 'por_confirmar' | 'historico';
+
+/** AO5 — Fila del listado web de conduces (RPC conduces_web_listado). */
+export interface ConduceListadoRow {
+  id: string;
+  fecha: string;
+  estado: SalidaEstado;
+  fase: string;
+  bucket: ConduceBucket;
+  proyecto_id: string | null;
+  proyecto: string | null;
+  bodega: string | null;
+  conductor: string | null;
+  responsable: string | null;
+  items: number;
+  es_prueba: boolean;
+  created_at: string;
+}
+
 export const MOTIVOS_SALIDA: { value: string; label: string }[] = [
   { value: 'uso_proyecto', label: 'Uso en proyecto' },
   { value: 'traslado_almacen', label: 'Traslado a almacén (Bodega Central)' },

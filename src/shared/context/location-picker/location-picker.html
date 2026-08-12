@@ -13,9 +13,12 @@
     }
     @if (resultados().length > 0) {
       <ul class="location-picker__results">
-        @for (r of resultados(); track r.nombre) {
+        @for (r of resultados(); track r.placeId) {
           <li>
-            <button type="button" (click)="seleccionarResultado(r)">{{ r.nombre }}</button>
+            <button type="button" (click)="seleccionarResultado(r)">
+              <strong>{{ r.primary }}</strong>
+              @if (r.secondary) { <span class="location-picker__result-sec">{{ r.secondary }}</span> }
+            </button>
           </li>
         }
       </ul>
@@ -45,6 +48,9 @@
   </div>
 
   <div #map class="location-picker__map"></div>
+  @if (mapError()) {
+    <p class="location-picker__msg location-picker__msg--error">{{ mapError() }} Puedes pegar el link/coordenadas arriba.</p>
+  }
 
   <p class="location-picker__hint">
     Haz clic en el mapa para fijar la ubicación de la obra.

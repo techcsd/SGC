@@ -14,15 +14,32 @@
 </div>
 
 <p class="conduces__intro">
-  Cada salida de inventario genera un conduce. Aquí ves el historial completo y puedes abrir o imprimir cualquiera.
+  Cada salida de inventario genera un conduce. Aquí ves todos los conduces creados por estado, y puedes abrir, imprimir o descargar cualquiera en PDF.
 </p>
+
+<!-- ── Tabs ── -->
+<div class="conduces__tabs" role="tablist" aria-label="Estado de conduces">
+  @for (t of TABS; track t.key) {
+    <button
+      type="button"
+      role="tab"
+      class="conduces__tab"
+      [class.conduces__tab--active]="tab() === t.key"
+      [attr.aria-selected]="tab() === t.key"
+      (click)="setTab(t.key)"
+    >
+      {{ t.label }}
+      <span class="conduces__tab-badge">{{ counts()[t.key] }}</span>
+    </button>
+  }
+</div>
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">
     <input
       type="search"
-      placeholder="Buscar por número, proyecto o responsable…"
+      placeholder="Buscar por número, obra, chofer o responsable…"
       [value]="searchQuery()"
       (input)="onSearch($any($event.target).value)"
       aria-label="Buscar conduces"
@@ -30,16 +47,28 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select
-      [value]="selectedEstado()"
-      (change)="onEstadoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
-    >
-      <option value="">Todos los estados</option>
-      @for (e of ESTADOS; track e.value) {
-        <option [value]="e.value">{{ e.label }}</option>
+    <select [value]="obraFilter()" (change)="onObra($any($event.target).value)" aria-label="Filtrar por obra">
+      <option value="">Todas las obras</option>
+      @for (o of obras(); track o.id) {
+        <option [value]="o.id">{{ o.nombre }}</option>
       }
     </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="choferFilter()" (change)="onChofer($any($event.target).value)" aria-label="Filtrar por chofer">
+      <option value="">Todos los choferes</option>
+      @for (c of choferes(); track c) {
+        <option [value]="c">{{ c }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field">
+    <input type="date" [value]="desde()" (change)="onDesde($any($event.target).value)" aria-label="Desde" title="Desde" />
+  </div>
+  <div class="sgc-field">
+    <input type="date" [value]="hasta()" (change)="onHasta($any($event.target).value)" aria-label="Hasta" title="Hasta" />
   </div>
 
   @if (hasActiveFilters()) {
@@ -63,41 +92,46 @@
         @if (hasActiveFilters()) {
           No se encontraron conduces con los filtros aplicados.
         } @else {
-          Aún no hay conduces. Se generan automáticamente al registrar una salida.
+          No hay conduces en esta pestaña.
         }
       </p>
     </div>
   } @else {
     <div class="table-scroll">
-      <table class="data-table" aria-label="Historial de conduces">
+      <table class="data-table" aria-label="Listado de conduces">
         <thead>
           <tr>
             <th>No. Conduce</th>
             <th>Fecha</th>
-            <th>Proyecto / Destino</th>
+            <th>Obra / Destino</th>
             <th>Almacén</th>
+            <th>Chofer</th>
             <th class="text-right">Artículos</th>
             <th>Estado</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (s of paginated(); track s.id) {
-            <tr class="row--link" [routerLink]="['/inventario/salidas', s.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
-              <td class="conduces__numero">{{ numero(s.id) }}</td>
-              <td>{{ formatFecha(s.fecha) }}</td>
-              <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
-              <td class="text-muted">{{ s.bodega?.nombre ?? '—' }}</td>
-              <td class="text-right">{{ itemsCount(s) }}</td>
+          @for (r of paginated(); track r.id) {
+            <tr class="row--link" [routerLink]="['/inventario/salidas', r.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
+              <td class="conduces__numero">
+                {{ numero(r.id) }}
+                @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
+              </td>
+              <td>{{ formatFecha(r.fecha) }}</td>
+              <td class="text-muted">{{ r.proyecto ?? '—' }}</td>
+              <td class="text-muted">{{ r.bodega ?? '—' }}</td>
+              <td class="text-muted">{{ r.conductor ?? '—' }}</td>
+              <td class="text-right">{{ r.items }}</td>
               <td>
-                <span class="sgc-badge" [class]="'sgc-badge--' + estadoModifier(s.estado)">
-                  {{ ESTADO_LABELS[s.estado] }}
+                <span class="sgc-badge" [class]="'sgc-badge--' + faseModifier(r.bucket)">
+                  {{ faseLabel(r.fase) }}
                 </span>
               </td>
               <td>
                 <a
                   class="sgc-btn sgc-btn--ghost sgc-btn--sm"
-                  [routerLink]="['/inventario/salidas', s.id, 'conduce']"
+                  [routerLink]="['/inventario/salidas', r.id, 'conduce']"
                   (click)="$event.stopPropagation()"
                 >Ver conduce</a>
               </td>
@@ -115,28 +149,11 @@
           de {{ filtered().length }}
         </span>
         <div class="pagination__controls">
-          <button
-            class="page-btn"
-            type="button"
-            (click)="goToPage(currentPage() - 1)"
-            [disabled]="currentPage() === 1"
-            aria-label="Página anterior"
-          >‹</button>
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
           @for (p of pages; track p) {
-            <button
-              class="page-btn"
-              type="button"
-              (click)="goToPage(p)"
-              [class.page-btn--active]="p === currentPage()"
-            >{{ p }}</button>
+            <button class="page-btn" type="button" (click)="goToPage(p)" [class.page-btn--active]="p === currentPage()">{{ p }}</button>
           }
-          <button
-            class="page-btn"
-            type="button"
-            (click)="goToPage(currentPage() + 1)"
-            [disabled]="currentPage() === totalPages()"
-            aria-label="Página siguiente"
-          >›</button>
+          <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
         </div>
       </div>
     }
