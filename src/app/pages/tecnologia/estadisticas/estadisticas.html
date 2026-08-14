@@ -1,0 +1,98 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Estadísticas de uso</h1>
+    <p class="page-subtitle">Actividad de la web y la app móvil, dispositivos y versiones.</p>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
+} @else if (data(); as d) {
+  <!-- Usuarios activos -->
+  <section class="est-grid">
+    <div class="sgc-card est-kpi">
+      <span class="est-kpi__label">Activos hoy</span>
+      <span class="est-kpi__value">{{ d.activos_dia | number }}</span>
+    </div>
+    <div class="sgc-card est-kpi">
+      <span class="est-kpi__label">Activos (7 días)</span>
+      <span class="est-kpi__value">{{ d.activos_semana | number }}</span>
+    </div>
+    <div class="sgc-card est-kpi">
+      <span class="est-kpi__label">Activos (30 días)</span>
+      <span class="est-kpi__value">{{ d.activos_mes | number }}</span>
+    </div>
+    <div class="sgc-card est-kpi">
+      <span class="est-kpi__label">Usuarios activos (total)</span>
+      <span class="est-kpi__value">{{ d.total_usuarios | number }}</span>
+    </div>
+  </section>
+
+  <!-- Web vs App (últimos 7 días) -->
+  <section class="sgc-card est-block">
+    <h2 class="est-block__title">Web vs. App — últimos 7 días</h2>
+    <div class="est-split">
+      <div class="est-split__item">
+        <span class="est-split__label">🖥️ Web</span>
+        <span class="est-split__value">{{ d.web_semana | number }}</span>
+      </div>
+      <div class="est-split__item">
+        <span class="est-split__label">📱 App</span>
+        <span class="est-split__value">{{ d.app_semana | number }}</span>
+      </div>
+      <div class="est-split__item">
+        <span class="est-split__label">📲 Apps Android instaladas</span>
+        <span class="est-split__value">{{ d.app_android_tokens | number }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Distribución de dispositivos -->
+  <section class="sgc-card est-block">
+    <h2 class="est-block__title">Distribución de dispositivos</h2>
+    @if (!d.dispositivos.length) {
+      <p class="text-muted">Sin datos de dispositivos.</p>
+    } @else {
+      <ul class="est-bars">
+        @for (dev of d.dispositivos; track dev.plataforma) {
+          <li class="est-bar">
+            <div class="est-bar__head">
+              <span>{{ plataformaLabel(dev.plataforma) }}</span>
+              <span class="text-muted">{{ dev.total | number }} · {{ pctDispositivo(dev.total) }}%</span>
+            </div>
+            <div class="est-bar__track"><div class="est-bar__fill" [style.width.%]="pctDispositivo(dev.total)"></div></div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <!-- Versiones -->
+  <section class="sgc-card est-block">
+    <h2 class="est-block__title">Versiones publicadas (recientes)</h2>
+    <div class="est-tabla">
+      <table class="data-table">
+        <thead><tr><th>Plataforma</th><th>Versión</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody>
+          @for (v of d.versiones; track v.plataforma + v.version) {
+            <tr>
+              <td>{{ v.plataforma === 'movil' ? 'App móvil' : 'Web' }}</td>
+              <td>{{ v.version }}</td>
+              <td>
+                @if (v.publicada) { <span class="sgc-badge sgc-badge--success">Publicada</span> }
+                @else { <span class="sgc-badge sgc-badge--neutral">Borrador</span> }
+              </td>
+              <td class="text-muted">{{ v.fecha ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="est-footer text-muted">Generado {{ formatFechaHora(d.generado_at) }}.</p>
+} @else {
+  <div class="sgc-card est-empty"><p>No hay estadísticas disponibles.</p></div>
+}

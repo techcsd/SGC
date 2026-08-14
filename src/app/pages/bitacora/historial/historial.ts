@@ -55,7 +55,12 @@ export class Historial implements OnInit {
    * El tab "Todas" y el filtro por usuario solo se muestran a estos roles; para
    * el resto, la vista queda anclada a "Mis bitácoras".
    */
-  puedeVerTodas = computed(() => this.esAdmin() || this.userService.hasModulo('proyectos'));
+  // AQ8 — gating server-side de "Todas las bitácoras": admin, módulo 'proyectos',
+  // o ingeniero responsable de alguna obra (resuelto por RPC puede_ver_otras_bitacoras).
+  private puedeVerOtrasServer = signal(false);
+  puedeVerTodas = computed(
+    () => this.esAdmin() || this.userService.hasModulo('proyectos') || this.puedeVerOtrasServer(),
+  );
   /** Conteo por alcance (respetando el resto de filtros salvo el propio alcance). */
   private baseFiltradas = computed(() => this.aplicarFiltros(this.bitacoras()));
   countMias = computed(() => {
@@ -155,6 +160,10 @@ export class Historial implements OnInit {
   });
 
   async ngOnInit() {
+    // AQ8 — resolver el gating server-side ANTES de decidir el alcance por drill-down.
+    if (!this.esAdmin() && !this.userService.hasModulo('proyectos')) {
+      try { this.puedeVerOtrasServer.set(await this.bitacoraService.puedeVerOtras()); } catch { /* queda en "mías" */ }
+    }
     // Q9/Q3 — drill-down: preaplica filtros desde la ruta (?proyecto=&tipo=).
     const qp = this.route.snapshot.queryParamMap;
     const proyecto = qp.get('proyecto');

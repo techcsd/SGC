@@ -302,3 +302,36 @@
   color: #b45309;
   font-weight: 700;
 }
+
+// AQ10 — modal de confirmación de eliminación (anular conduce)
+.cnd-anular-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.cnd-anular {
+  max-width: 440px;
+  width: 100%;
+  padding: 22px;
+  h3 { margin: 0 0 10px; font-size: 18px; }
+  &__warn {
+    background: var(--sgc-danger-bg, #fdecec);
+    color: var(--sgc-danger, #c0392b);
+    border: 1px solid var(--sgc-danger, #e6a3a3);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin: 0 0 14px;
+  }
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+  }
+}

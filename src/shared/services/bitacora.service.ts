@@ -16,6 +16,14 @@ export class BitacoraService {
   private supabase = inject(SupabaseService);
   private cache = inject(SignedUrlCache);
 
+  /** AQ8 — ¿puede ver bitácoras más allá de las suyas? (admin, módulo proyectos,
+   *  o responsable de alguna obra). Gatea el submódulo "Todas las bitácoras". */
+  async puedeVerOtras(): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('puede_ver_otras_bitacoras');
+    if (error) return false;
+    return data === true;
+  }
+
   /** RLS scopes this automatically: engineers get their own rows, staff with proyectos access get all. */
   async getAll(): Promise<Bitacora[]> {
     const { data, error } = await this.supabase.client

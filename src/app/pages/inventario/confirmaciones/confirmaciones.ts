@@ -29,11 +29,14 @@ export class Confirmaciones implements OnInit {
   proyectoId = signal<string>('');
   estado = signal<'' | 'completa' | 'incompleta'>('');
 
-  // Obras presentes en el resultado (para el filtro por obra sin RPC extra).
+  // AQ12 — destinos presentes en el resultado (obras + Bodega Central) para el
+  // filtro, sin RPC extra. Una obra = su almacén; un destino puede ser una bodega
+  // central (proyecto_id null, destino_almacen_id set).
   proyectos = computed(() => {
     const map = new Map<string, string>();
     for (const f of this.filas()) {
       if (f.proyecto_id && f.proyecto) map.set(f.proyecto_id, f.proyecto);
+      else if (f.destino_almacen_id && f.destino) map.set(f.destino_almacen_id, f.destino);
     }
     return [...map.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
   });
@@ -42,7 +45,7 @@ export class Confirmaciones implements OnInit {
     const pid = this.proyectoId();
     const est = this.estado();
     return this.filas().filter((f) => {
-      if (pid && f.proyecto_id !== pid) return false;
+      if (pid && f.proyecto_id !== pid && f.destino_almacen_id !== pid) return false;
       if (est === 'completa' && f.estado !== 'entregado') return false;
       if (est === 'incompleta' && f.estado !== 'entregado_incompleto') return false;
       return true;
@@ -95,7 +98,7 @@ export class Confirmaciones implements OnInit {
   async exportar() {
     const rows = this.filtered().map((f) => ({
       'No. Conduce': this.numero(f.id),
-      Obra: f.proyecto ?? '',
+      Destino: f.destino ?? f.proyecto ?? '',
       Almacén: f.bodega ?? '',
       Estado: this.estadoLabel(f),
       'Entregó': f.entregado_por_nombre ?? '',

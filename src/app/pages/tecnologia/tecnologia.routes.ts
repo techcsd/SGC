@@ -77,4 +77,11 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./monitoreo/monitoreo').then((m) => m.TecMonitoreo),
     title: 'Monitoreo de Infraestructura — Tecnología',
   },
+  {
+    // AQ7 — Estadísticas de uso (web/app, dispositivos, versiones).
+    path: 'estadisticas',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./estadisticas/estadisticas').then((m) => m.TecEstadisticas),
+    title: 'Estadísticas — Tecnología',
+  },
 ];

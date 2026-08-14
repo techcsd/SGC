@@ -16,7 +16,7 @@ import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
-import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService, TablaPrueba } from '../../../../shared/services/datos-prueba.service';
@@ -25,7 +25,6 @@ import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LAB
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
-import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -68,7 +67,10 @@ export class Salidas implements OnInit {
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
   bodegas = signal<Bodega[]>([]);
-  proyectos = signal<Proyecto[]>([]);
+  // AP1 — obras de referencia (directorio), desacopladas del módulo Proyectos.
+  proyectos = signal<ObraRef[]>([]);
+  /** AP1 — true si la carga de obras FALLÓ (sin acceso), != a "no hay obras". */
+  obrasSinAcceso = signal(false);
   solicitudesPendientes = signal<SolicitudMaterial[]>([]);
   loading = signal(true);
   saving = signal(false);
@@ -304,14 +306,22 @@ export class Salidas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [salidas, arts, cats, bods, proyectos, solicitudes] = await Promise.all([
+      const [salidas, arts, cats, bods, solicitudes] = await Promise.all([
         this.salidasService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),
         this.bodegasService.getAll(),
-        this.proyectosService.getAll(),
         this.solicitudesMaterialService.getAll(),
       ]);
+      // AP1 — obras por el directorio de referencia (nunca depende de la RLS de
+      // proyectos). Se carga aparte para distinguir "sin acceso" de "sin datos".
+      try {
+        this.proyectos.set(await this.proyectosService.getDirectorio());
+        this.obrasSinAcceso.set(false);
+      } catch {
+        this.proyectos.set([]);
+        this.obrasSinAcceso.set(true);
+      }
       this.salidas.set(salidas);
       this.resolverThumbs(salidas); // W11
       this.articulos.set(arts);
@@ -323,7 +333,6 @@ export class Salidas implements OnInit {
           .filter((b) => b.proyecto_id == null && b.activo !== false)
           .map((b) => ({ id: b.id, nombre: b.nombre, es_central: true })),
       );
-      this.proyectos.set(proyectos);
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');

@@ -54,7 +54,7 @@ export class CombustibleService {
   async getById(id: string): Promise<RegistroCombustible | null> {
     const { data, error } = await this.supabase.client
       .from('registros_combustible')
-      .select('*, vehiculo:vehiculos(placa,marca), conductor:conductores(nombre)')
+      .select('*, vehiculo:vehiculos(placa,marca), conductor:conductores(nombre), registrador:usuarios!registrado_por(nombre)')
       .eq('id', id)
       .maybeSingle();
     if (error) throw new Error(error.message);

@@ -626,6 +626,17 @@ export class Conductores implements OnInit {
   formatFecha = formatFechaDisplay;
   formatTelefono = formatearTelefono;
 
+  /** AP7 — etiqueta legible de la plataforma del dispositivo (automático). */
+  dispositivoLabel(plataforma: string | null | undefined): string {
+    switch (plataforma) {
+      case 'android': return 'Android';
+      case 'ios': return 'iPhone';
+      case 'ios-pwa': return 'iPhone (PWA)';
+      case 'web': return 'Web';
+      default: return plataforma ?? '—';
+    }
+  }
+
   isLicenciaExpiringSoon(vencimiento: string | null): boolean {
     if (!vencimiento) return false;
     return daysUntil(vencimiento) <= this.flotaConfig.umbralLicenciaDias();

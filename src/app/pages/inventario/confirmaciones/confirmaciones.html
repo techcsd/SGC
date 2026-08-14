@@ -30,8 +30,8 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="proyectoId()" (change)="proyectoId.set($any($event.target).value)" aria-label="Filtrar por obra">
-      <option value="">Todas las obras</option>
+    <select [value]="proyectoId()" (change)="proyectoId.set($any($event.target).value)" aria-label="Filtrar por destino">
+      <option value="">Todos los destinos</option>
       @for (p of proyectos(); track p.id) {
         <option [value]="p.id">{{ p.nombre }}</option>
       }
@@ -91,7 +91,7 @@
           @for (f of filtered(); track f.id) {
             <tr class="row--link" [routerLink]="['/inventario/salidas', f.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
               <td class="confirmaciones__numero">{{ numero(f.id) }}</td>
-              <td class="text-muted">{{ f.proyecto ?? '—' }}</td>
+              <td class="text-muted">{{ f.destino ?? f.proyecto ?? '—' }}</td>
               <td class="text-muted">{{ f.bodega ?? '—' }}</td>
               <td class="text-muted">{{ f.entregado_por_nombre ?? '—' }}</td>
               <td>{{ f.recibido_por_nombre ?? '—' }}</td>

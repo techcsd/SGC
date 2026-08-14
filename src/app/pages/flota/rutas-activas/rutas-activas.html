@@ -1,0 +1,123 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Rutas activas</h1>
+      <p class="page__sub">{{ enRutaCount() }} chofer(es) en ruta ahora</p>
+    </div>
+    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">Ver en el mapa →</a>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tabs__tab" [class.tabs__tab--active]="tab() === 'activas'" (click)="setTab('activas')" role="tab" [attr.aria-selected]="tab() === 'activas'">Activas</button>
+    <button class="tabs__tab" [class.tabs__tab--active]="tab() === 'historico'" (click)="setTab('historico')" role="tab" [attr.aria-selected]="tab() === 'historico'">Histórico</button>
+  </div>
+
+  @if (loading()) {
+    <p class="page__loading">Cargando…</p>
+  } @else if (error()) {
+    <p class="page__error">{{ error() }}</p>
+  } @else if (tab() === 'activas') {
+    <!-- ACTIVAS: por chofer -->
+    @if (choferes().length === 0) {
+      <p class="page__empty">No hay choferes registrados.</p>
+    } @else {
+      <div class="chofer-grid">
+        @for (c of choferes(); track c.usuario_id) {
+          <article class="chofer-card" [class.chofer-card--ruta]="c.ruta">
+            <div class="chofer-card__head">
+              <strong class="chofer-card__nombre">{{ c.nombre }}</strong>
+              <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">
+                {{ estadoLabel(c.estado) }}@if (c.estado === 'otros' && c.otros_texto) { : {{ c.otros_texto }} }
+              </span>
+            </div>
+
+            @if (c.ruta; as r) {
+              <div class="chofer-card__ruta">
+                <div class="chofer-card__trayecto">
+                  <span class="chofer-card__punto">{{ r.origen }}</span>
+                  <span class="chofer-card__flecha">→</span>
+                  <span class="chofer-card__punto">{{ r.destino }}</span>
+                </div>
+                <div class="chofer-card__meta">
+                  <span>Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</span>
+                  <span>Corriendo: {{ duracion(r.iniciada_at) }}</span>
+                  @if (r.placa) { <span>{{ r.placa }}</span> }
+                </div>
+              </div>
+            } @else {
+              <p class="chofer-card__sin-ruta">Sin ruta activa</p>
+            }
+
+            <div class="chofer-card__foot">
+              <span class="chofer-card__pos" [class.chofer-card__pos--off]="!c.posicion">
+                📍 {{ c.posicion ? hace(c.posicion.capturado_en) : 'sin posición' }}
+              </span>
+              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">Ver trayecto</a>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else {
+    <!-- HISTÓRICO -->
+    <div class="filters-bar">
+      <select [value]="fChofer()" (change)="fChofer.set($any($event.target).value)" aria-label="Chofer">
+        <option value="">Todos los choferes</option>
+        @for (c of choferesHist(); track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+      <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="Obra">
+        <option value="">Todas las obras</option>
+        @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+      </select>
+      <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="Estado">
+        <option value="">Todos los estados</option>
+        <option value="planificada">Planificada</option>
+        <option value="en_curso">En curso</option>
+        <option value="completada">Completada</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+      <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" title="Desde" />
+      <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" title="Hasta" />
+      @if (hasHistFilters()) {
+        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="clearHistFilters()">Limpiar</button>
+      }
+    </div>
+
+    @if (historicoFiltrado().length === 0) {
+      <p class="page__empty">No hay rutas con esos filtros.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Histórico de rutas">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Chofer</th>
+              <th>Trayecto</th>
+              <th>Obra</th>
+              <th>H. Inicio</th>
+              <th>H. Fin</th>
+              <th class="text-right">Km</th>
+              <th>Duración</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of historicoFiltrado(); track r.id) {
+              <tr>
+                <td>{{ formatFecha(r.fecha) }}</td>
+                <td>{{ r.conductor?.nombre ?? '—' }}</td>
+                <td class="text-muted">{{ r.origen }} → {{ r.destino }}</td>
+                <td class="text-muted">{{ r.destino_proyecto?.nombre ?? '—' }}</td>
+                <td>{{ r.iniciada_at ? formatFecha(r.iniciada_at) : '—' }}</td>
+                <td>{{ r.finalizada_at ? formatFecha(r.finalizada_at) : '—' }}</td>
+                <td class="text-right">{{ kmRuta(r) ?? '—' }}</td>
+                <td>{{ duracion(r.iniciada_at, r.finalizada_at) }}</td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ r.estado }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

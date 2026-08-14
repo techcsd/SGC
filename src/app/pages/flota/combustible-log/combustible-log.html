@@ -13,6 +13,13 @@
 
 <!-- Filtros -->
 <div class="sgc-card cl-filtros">
+  <!-- AQ13 — chips de periodo rápido -->
+  <div class="cl-chips" role="group" aria-label="Periodo rápido">
+    @for (c of CHIPS; track c.dias) {
+      <button type="button" class="cl-chip" [class.cl-chip--activo]="chipActivo() === c.dias"
+              (click)="aplicarChip(c)">{{ c.label }}</button>
+    }
+  </div>
   <app-date-range-filter [desde]="desde()" [hasta]="hasta()" (rangeChange)="onRango($event)" />
   <div class="sgc-field cl-filtros__f">
     <label for="cl-veh">Vehículo</label>
@@ -87,6 +94,7 @@
         <div><dt>Fecha</dt><dd>{{ formatFecha(r.fecha) }}</dd></div>
         <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }}</dd></div>
         <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
+        <div><dt>Registró</dt><dd>{{ r.registrador?.nombre ?? '—' }}</dd></div>
         <div><dt>Lectura (km/h)</dt><dd>{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</dd></div>
         <div><dt>Δ km vs anterior</dt><dd>{{ r.km_recorridos != null ? (r.km_recorridos | number) : '—' }}</dd></div>
         <div><dt>Galones</dt><dd>{{ r.galones != null ? (r.galones | number:'1.0-2') : '—' }}</dd></div>

@@ -99,6 +99,21 @@ export class Conduce implements OnInit {
 
   puedeCerrar = computed(() => this.salida()?.estado === 'despachado');
 
+  // AQ10 — Eliminar (anular) conduce: solo mientras pendiente (despachado, sin
+  // recibir) y solo el emisor o un admin (el servidor lo reimpone). El botón es
+  // solo UX; anular_conduce valida server-side.
+  puedeAnular = computed(() => {
+    const s = this.salida();
+    const p = this.userService.profile();
+    if (!s || !p) return false;
+    if (s.estado !== 'despachado' || s.recibido_por) return false;
+    return this.userService.roles().includes('admin') || s.creado_por === p.id;
+  });
+  mostrarAnular = signal(false);
+  motivoAnulacion = signal('');
+  anulando = signal(false);
+  anularError = signal('');
+
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.numeroConduce = conduceNumero(id);
@@ -159,6 +174,33 @@ export class Conduce implements OnInit {
       }
     } catch {
       // Conduces legacy sin salida_firmas: se cae al render de entrega_firma_path.
+    }
+  }
+
+  // ── AQ10 — Eliminar (anular) conduce ──
+  abrirAnular() {
+    this.motivoAnulacion.set('');
+    this.anularError.set('');
+    this.mostrarAnular.set(true);
+  }
+  cerrarAnular() {
+    if (this.anulando()) return;
+    this.mostrarAnular.set(false);
+  }
+  async confirmarAnular() {
+    const s = this.salida();
+    if (!s) return;
+    this.anulando.set(true);
+    this.anularError.set('');
+    try {
+      await this.salidasService.anularConduce(s.id, this.motivoAnulacion().trim() || null);
+      this.toast.success(`Conduce ${this.numeroConduce} eliminado.`, 'Se repuso su stock y se canceló la ruta vinculada.');
+      this.mostrarAnular.set(false);
+      this.router.navigate(['/inventario/conduces']);
+    } catch (e: unknown) {
+      this.anularError.set(e instanceof Error ? e.message : 'No se pudo eliminar el conduce.');
+    } finally {
+      this.anulando.set(false);
     }
   }
 

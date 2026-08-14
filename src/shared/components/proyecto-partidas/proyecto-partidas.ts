@@ -11,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ProyectosService } from '../../services/proyectos.service';
 import { ToastService } from '../../services/toast.service';
+import { UnidadesService } from '../../services/unidades.service';
+import { Unidad } from '../../models/unidad.model';
 import { ProyectoPartida } from '../../models/proyecto-partida.model';
 
 /**
@@ -29,9 +31,13 @@ export class ProyectoPartidas {
 
   private service = inject(ProyectosService);
   private toast = inject(ToastService);
+  private unidadesService = inject(UnidadesService);
 
   // ── Data ───────────────────────────────────────────────────
   partidas = signal<ProyectoPartida[]>([]);
+  // AQ3 — catálogo global de unidades (incluye m² para encofrado y quintal (qq)
+  // para armado de vigas/losas). Se ofrece como sugerencias del campo Unidad.
+  unidades = signal<Unidad[]>([]);
   loading = signal(true);
   error = signal('');
 
@@ -68,6 +74,7 @@ export class ProyectoPartidas {
       const id = this.proyectoId();
       if (id) this.load(id);
     });
+    this.unidadesService.getActivas().then((u) => this.unidades.set(u)).catch(() => {});
   }
 
   private async load(id: string) {

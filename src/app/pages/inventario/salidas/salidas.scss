@@ -496,3 +496,8 @@ textarea {
   &__title { margin: 16px 0 8px; font-size: 15px; }
   &__foot { margin-top: 14px; }
 }
+
+// AP1 — hint de advertencia (sin acceso a obras) distinto del hint neutro.
+.field-hint--warn {
+  color: var(--warning, #e0a800);
+}

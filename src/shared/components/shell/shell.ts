@@ -193,6 +193,7 @@ export class Shell implements OnInit {
         { label: 'Conductores', route: '/flota/conductores', flotaElevado: true },
         { label: 'Estado de conductores', route: '/flota/conductores-estado', flotaElevado: true },
         { label: 'Seguimiento', route: '/flota/seguimiento', flotaElevado: true },
+        { label: 'Rutas activas', route: '/flota/rutas-activas', flotaElevado: true },
         { label: 'Combustible', route: '/flota/combustible', badgeKey: 'flota.combustible', submodulo: 'flota.combustible' },
         { label: 'Registro de echadas', route: '/flota/combustible-log', flotaElevado: true },
         { label: 'Conciliación de combustible', route: '/flota/conciliacion-combustible', flotaElevado: true, badgeKey: 'flota.conciliacion' },
@@ -293,6 +294,7 @@ export class Shell implements OnInit {
         { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
         { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
         { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', soloTecnologia: true },
+        { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
       ],
     },
@@ -440,7 +442,9 @@ export class Shell implements OnInit {
     this.notifOpen.set(false);
     await this.centro.marcarLeida(n.id);
     if (n.ruta) {
-      this.router.navigate([n.ruta]);
+      // navigateByUrl respeta query-strings (deep-links AF6, ej. ?echada=<id>);
+      // navigate([...]) los interpretaría como un segmento de ruta.
+      this.router.navigateByUrl(n.ruta);
     }
   }
 

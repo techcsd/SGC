@@ -46,10 +46,15 @@ export class Conduces implements OnInit {
 
   tab = signal<Tab>('activos');
   searchQuery = signal('');
-  obraFilter = signal<string>('');
+  obraFilter = signal<string>('');        // AP4 — obra DESTINO
+  origenFilter = signal<string>('');      // AP4 — obra ORIGEN
   choferFilter = signal<string>('');
+  responsableFilter = signal<string>(''); // AP4 — persona (emisor/chofer/receptor)
   desde = signal<string>('');
   hasta = signal<string>('');
+
+  /** AP4 — mapa id→nombre de usuarios para resolver el responsable. */
+  private usuariosMap = signal<Record<string, string>>({});
 
   currentPage = signal(1);
   readonly PAGE_SIZE = 20;
@@ -79,10 +84,16 @@ export class Conduces implements OnInit {
     return c;
   });
 
-  /** Opciones de obra y chofer para los selects (de los datos cargados). */
+  /** Opciones de obra (destino/origen) y chofer para los selects. */
   obras = computed(() => {
     const m = new Map<string, string>();
     for (const r of this.rows()) if (r.proyecto_id && r.proyecto) m.set(r.proyecto_id, r.proyecto);
+    return [...m.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  });
+
+  obrasOrigen = computed(() => {
+    const m = new Map<string, string>();
+    for (const r of this.rows()) if (r.origen_proyecto_id && r.origen_proyecto) m.set(r.origen_proyecto_id, r.origen_proyecto);
     return [...m.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
   });
 
@@ -92,17 +103,53 @@ export class Conduces implements OnInit {
     return [...s].sort((a, b) => a.localeCompare(b));
   });
 
+  /** AP4 — personas que participan como emisor/chofer/receptor en algún conduce. */
+  responsables = computed(() => {
+    const names = this.usuariosMap();
+    const ids = new Set<string>();
+    for (const r of this.rows()) {
+      if (r.emisor_id) ids.add(r.emisor_id);
+      if (r.chofer_usuario_id) ids.add(r.chofer_usuario_id);
+      if (r.receptor_id) ids.add(r.receptor_id);
+    }
+    return [...ids]
+      .map((id) => ({ id, nombre: names[id] ?? '—' }))
+      .filter((u) => u.nombre !== '—')
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+  });
+
+  /** AP4 — en qué rol(es) matcheó el responsable seleccionado en una fila. */
+  responsableMatch(r: ConduceListadoRow): string[] {
+    const uid = this.responsableFilter();
+    if (!uid) return [];
+    const out: string[] = [];
+    if (r.emisor_id === uid) out.push('Emisor');
+    if (r.chofer_usuario_id === uid) out.push('Chofer');
+    if (r.receptor_id === uid) out.push('Receptor');
+    return out;
+  }
+
   filtered = computed(() => {
     const tab = this.tab();
     const q = this.searchQuery().toLowerCase().trim();
     const obra = this.obraFilter();
+    const origen = this.origenFilter();
     const chofer = this.choferFilter();
+    const responsable = this.responsableFilter();
     const desde = this.desde();
     const hasta = this.hasta();
     return this.rows().filter((r) => {
       if (!this.inTab(r, tab)) return false;
       if (obra && r.proyecto_id !== obra) return false;
+      if (origen && r.origen_proyecto_id !== origen) return false;
       if (chofer && r.conductor !== chofer) return false;
+      if (
+        responsable &&
+        r.emisor_id !== responsable &&
+        r.chofer_usuario_id !== responsable &&
+        r.receptor_id !== responsable
+      )
+        return false;
       // Comparación de fechas por string YYYY-MM-DD (sin round-trip por Date).
       if (desde && r.fecha < desde) return false;
       if (hasta && r.fecha > hasta) return false;
@@ -124,14 +171,26 @@ export class Conduces implements OnInit {
   totalPages = computed(() => Math.max(1, Math.ceil(this.filtered().length / this.PAGE_SIZE)));
 
   hasActiveFilters = computed(
-    () => !!this.searchQuery() || !!this.obraFilter() || !!this.choferFilter() || !!this.desde() || !!this.hasta(),
+    () =>
+      !!this.searchQuery() ||
+      !!this.obraFilter() ||
+      !!this.origenFilter() ||
+      !!this.choferFilter() ||
+      !!this.responsableFilter() ||
+      !!this.desde() ||
+      !!this.hasta(),
   );
 
   async ngOnInit() {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.rows.set(await this.salidasService.getConducesWebListado());
+      const [rows, usuarios] = await Promise.all([
+        this.salidasService.getConducesWebListado(),
+        this.salidasService.getUsuariosDirectorio().catch(() => []),
+      ]);
+      this.rows.set(rows);
+      this.usuariosMap.set(Object.fromEntries(usuarios.map((u) => [u.id, u.nombre])));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los conduces.');
     } finally {
@@ -160,8 +219,16 @@ export class Conduces implements OnInit {
     this.obraFilter.set(value);
     this.currentPage.set(1);
   }
+  onOrigen(value: string) {
+    this.origenFilter.set(value);
+    this.currentPage.set(1);
+  }
   onChofer(value: string) {
     this.choferFilter.set(value);
+    this.currentPage.set(1);
+  }
+  onResponsable(value: string) {
+    this.responsableFilter.set(value);
     this.currentPage.set(1);
   }
   onDesde(value: string) {
@@ -176,7 +243,9 @@ export class Conduces implements OnInit {
   clearFilters() {
     this.searchQuery.set('');
     this.obraFilter.set('');
+    this.origenFilter.set('');
     this.choferFilter.set('');
+    this.responsableFilter.set('');
     this.desde.set('');
     this.hasta.set('');
     this.currentPage.set(1);

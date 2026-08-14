@@ -1,0 +1,87 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/inventario/bodegas" class="page__back">← Almacenes</a>
+      <h1 class="page__title">Inventario · {{ bodegaNombre() || 'Almacén' }}</h1>
+      <p class="page__sub">{{ totalArticulos() }} artículo(s)</p>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <div class="sgc-field filters-bar__search">
+      <input type="search" [value]="search()" (input)="onSearch($any($event.target).value)"
+             placeholder="Buscar artículo por nombre o código…" aria-label="Buscar artículo" />
+    </div>
+    <div class="sgc-field filters-bar__select">
+      <select [value]="categoria()" (change)="onCategoria($any($event.target).value)" aria-label="Filtrar por categoría">
+        <option value="">Todas las categorías</option>
+        @for (c of categorias(); track c) { <option [value]="c">{{ c }}</option> }
+      </select>
+    </div>
+    <label class="filters-bar__toggle">
+      <input type="checkbox" [checked]="incluirCero()" (change)="toggleCero()" />
+      Mostrar en cero
+    </label>
+  </div>
+
+  @if (loading()) {
+    <p class="page__loading">Cargando inventario…</p>
+  } @else if (error()) {
+    <p class="page__error">{{ error() }}</p>
+  } @else if (filtrados().length === 0) {
+    <p class="page__empty">No hay artículos con existencia en este almacén.</p>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Inventario del almacén">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Artículo</th>
+            <th>Categoría</th>
+            <th>Unidad</th>
+            <th class="text-right">Existencia</th>
+            @if (esAdmin()) { <th class="text-right">Apertura</th> }
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (i of filtrados(); track i.articulo_id) {
+            <tr [class.row--cero]="i.es_cero">
+              <td class="text-muted">{{ i.codigo ?? '—' }}</td>
+              <td>
+                {{ i.nombre }}
+                @if (i.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
+              </td>
+              <td class="text-muted">{{ i.categoria ?? '—' }}</td>
+              <td class="text-muted">{{ i.unidad ?? '—' }}</td>
+              <td class="text-right" [class.text-danger]="i.es_cero">{{ i.cantidad | number:'1.0-2' }}</td>
+              @if (esAdmin()) {
+                <td class="text-right">
+                  <button class="apertura-btn" type="button" (click)="editarApertura(i)"
+                          title="Editar dato de apertura (solo admin)">
+                    {{ i.apertura | number:'1.0-2' }} ✎
+                  </button>
+                </td>
+              }
+              <td class="text-right">
+                <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="abrirKardex(i)">
+                  Histórico
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (kardexArticulo(); as k) {
+  <app-kardex-modal
+    [articuloId]="k.id"
+    [bodegaId]="bodegaId()"
+    [articuloNombre]="k.nombre"
+    [bodegaNombre]="bodegaNombre()"
+    (close)="cerrarKardex()"
+  />
+}

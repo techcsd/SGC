@@ -6,7 +6,35 @@
   @if (salida()) {
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
   }
+  @if (puedeAnular() && !mostrarCierre()) {
+    <button type="button" class="sgc-btn sgc-btn--danger" (click)="abrirAnular()">Eliminar conduce</button>
+  }
 </div>
+
+<!-- ── AQ10 — Confirmación de eliminación (anular) ── -->
+@if (mostrarAnular()) {
+  <div class="cnd-anular-overlay no-print" (click)="cerrarAnular()">
+    <div class="cnd-anular sgc-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="anular-titulo">
+      <h3 id="anular-titulo">Eliminar conduce {{ numeroConduce }}</h3>
+      <p class="cnd-anular__warn">
+        ⚠️ Esto eliminará el conduce y <strong>repondrá su stock</strong>. Si tiene una ruta vinculada, se cancelará.
+        No se puede deshacer.
+      </p>
+      <label class="sgc-field">
+        <span>Motivo (opcional)</span>
+        <textarea rows="2" [value]="motivoAnulacion()" (input)="motivoAnulacion.set($any($event.target).value)"
+                  placeholder="Ej. creado por error / duplicado"></textarea>
+      </label>
+      @if (anularError()) { <p class="page-error" role="alert">{{ anularError() }}</p> }
+      <div class="cnd-anular__actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="anulando()" (click)="cerrarAnular()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="anulando()" (click)="confirmarAnular()">
+          {{ anulando() ? 'Eliminando…' : 'Sí, eliminar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
 
 <!-- ── Cierre de conduce por el chofer (paridad app de campo) ── -->
 @if (mostrarCierre() && salida(); as s) {

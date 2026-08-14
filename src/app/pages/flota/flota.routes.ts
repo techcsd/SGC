@@ -104,6 +104,13 @@ export const flotaRoutes: Routes = [
     title: 'Seguimiento — Flota',
   },
   {
+    // AP6 — Rutas activas: estado por chofer + ruta activa + histórico. Roles elevados.
+    path: 'rutas-activas',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () => import('./rutas-activas/rutas-activas').then((m) => m.RutasActivas),
+    title: 'Rutas activas — Flota',
+  },
+  {
     path: 'checklists',
     canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () => import('./checklists/checklists').then((m) => m.Checklists),

@@ -37,7 +37,7 @@
       <div class="charla-card__body">
         <p class="charla-tema">{{ c.tema }}</p>
         <div class="charla-meta">
-          <span>⏱ {{ c.duracion_min ?? 5 }} min</span>
+          <span>⏱ {{ formatDur(c.duracion_min ?? 5) }}</span>
           @if (c.asistentes != null) { <span>👥 {{ c.asistentes }} asistentes</span> }
           @if (c.fotos?.length) { <span>📷 {{ c.fotos.length }} foto(s)</span> }
         </div>

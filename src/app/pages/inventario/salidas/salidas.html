@@ -417,13 +417,21 @@
       <!-- Proyecto (solo si motivo = uso_proyecto) -->
       @if (showProyectoField()) {
         <div class="sgc-field">
-          <label for="proyecto_id">Proyecto</label>
+          <label for="proyecto_id">Obra destino</label>
           <select id="proyecto_id" formControlName="proyecto_id">
             <option [value]="null">Sin proyecto</option>
             @for (p of activeProyectos(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}</option>
             }
           </select>
+          <!-- AP1 — distinguir "sin acceso" de "no hay obras" (nunca vacío silencioso). -->
+          @if (activeProyectos().length === 0) {
+            @if (obrasSinAcceso()) {
+              <span class="field-hint field-hint--warn">No tienes acceso al listado de obras. Pídele a un administrador el permiso.</span>
+            } @else {
+              <span class="field-hint">No hay obras activas registradas.</span>
+            }
+          }
         </div>
       }
 
@@ -510,6 +518,7 @@
               [value]="item.articulo_id || null"
               [allowOtro]="false"
               [stock]="stockMap()"
+              [ocultarSinStock]="true"
               (selectionChange)="onArticuloSelect($index, $event)"
             />
             <app-qty-stepper

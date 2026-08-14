@@ -1,0 +1,96 @@
+.page {
+  padding: 20px 24px 40px;
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  &__title { margin: 0 0 2px; font-size: 22px; }
+  &__sub { margin: 0; color: var(--main-ultra-light); font-size: 13px; }
+  &__loading, &__empty, &__error { padding: 30px; text-align: center; color: var(--main-ultra-light); }
+  &__error { color: var(--danger, #e5484d); }
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #2d2d2d;
+  margin-bottom: 16px;
+
+  &__tab {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--main-ultra-light);
+    padding: 8px 14px;
+    cursor: pointer;
+    font: inherit;
+    &--active { color: var(--Hub, #ffb300); border-bottom-color: var(--Hub, #ffb300); }
+  }
+}
+
+.chofer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.chofer-card {
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  padding: 14px 16px;
+
+  &--ruta { border-color: var(--Hub, #ffb300); }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  &__nombre { font-size: 15px; }
+
+  &__ruta { margin: 8px 0; }
+  &__trayecto {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 14px;
+  }
+  &__flecha { color: var(--Hub, #ffb300); }
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--main-ultra-light);
+  }
+  &__sin-ruta { margin: 8px 0; color: var(--main-ultra-light); font-size: 13px; }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+    border-top: 1px solid #2d2d2d;
+    padding-top: 10px;
+  }
+  &__pos { font-size: 12px; color: var(--main-ultra-light); }
+  &__pos--off { opacity: 0.7; }
+}
+
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+  select, input { min-width: 130px; }
+}

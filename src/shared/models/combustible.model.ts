@@ -22,6 +22,9 @@ export interface RegistroCombustible {
   vehiculo?: { placa: string; marca: string };
   conductor_id: string | null;
   conductor?: { nombre: string };
+  // AF17 — quién registró la echada (usuario) + nombre embebido para el detalle.
+  registrado_por?: string | null;
+  registrador?: { nombre: string } | null;
   fecha: string;
   kilometraje: number | null;
   estacion: string | null;

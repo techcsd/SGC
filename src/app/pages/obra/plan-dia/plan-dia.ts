@@ -7,7 +7,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { PlanTarea, CharlaSeguridad } from '../../../../shared/models/obra-produccion.model';
-import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay, formatearDuracion } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -32,6 +32,7 @@ export class ObraPlanDia implements OnInit {
   private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
+  formatDur = formatearDuracion; // AQ2 — duración humanizada "X h Y min" (helper único)
 
   proyectos = signal<Proyecto[]>([]);
   usuarios = signal<DirectorioUsuario[]>([]);

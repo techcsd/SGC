@@ -13,6 +13,8 @@ export class ActividadService {
   /** No re-pingear más de una vez cada ~4 min desde el cliente. */
   private readonly MIN_MS = 4 * 60 * 1000;
 
+  private plataformaReportada = false;
+
   /** Ping best-effort; nunca lanza (no debe romper la navegación ni el login). */
   ping(): void {
     const ahora = Date.now();
@@ -21,5 +23,13 @@ export class ActividadService {
     void this.supabase.client
       .rpc('ping_actividad', { p_canal: 'web' })
       .then(() => undefined, () => undefined);
+    // AQ7 — reporta la plataforma 'web' una vez por sesión para que las
+    // estadísticas de dispositivos cuenten a los usuarios de la web (AP7).
+    if (!this.plataformaReportada) {
+      this.plataformaReportada = true;
+      void this.supabase.client
+        .rpc('set_mi_plataforma', { p_plataforma: 'web' })
+        .then(() => undefined, () => undefined);
+    }
   }
 }

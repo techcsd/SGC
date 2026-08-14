@@ -29,6 +29,18 @@ import {
 
 const EXPEDIENTE_BUCKET = 'sgc-documentos';
 
+/** AP1 — obra de referencia (subconjunto seguro, sin financieros) para selectores. */
+export interface ObraRef {
+  id: string;
+  codigo: string | null;
+  nombre: string;
+  estado: string | null;
+  ubicacion: string | null;
+  activo: boolean;
+  latitud: number | null;
+  longitud: number | null;
+}
+
 /** AA23 QW4 — costo de material real consumido por una obra. */
 export interface CostoMaterialObra {
   total: number;
@@ -99,6 +111,21 @@ export class ProyectosService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Proyecto[];
+  }
+
+  /**
+   * AP1 — directorio de referencia de obras (id/código/nombre/estado/ubicación/
+   * activo/lat/lng) desacoplado del módulo Proyectos. Es el contrato único para
+   * los selectores de "obra destino" (conduce/ruta), donde un chofer no tiene
+   * el módulo Proyectos pero SÍ debe poder referenciar la obra. SECURITY DEFINER
+   * en la BD → nunca depende de la RLS (frágil) de la tabla proyectos.
+   */
+  async getDirectorio(): Promise<ObraRef[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .rpc('directorio_proyectos');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ObraRef[];
   }
 
   /** Active, in-progress projects that have geographic coordinates — used by the

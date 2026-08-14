@@ -112,6 +112,7 @@
             <th>Nº Licencia</th>
             <th>Vencimiento</th>
             <th>Vehículo asignado</th>
+            <th>Dispositivo</th>
             <th>Estado</th>
             <th class="text-center">Acciones</th>
           </tr>
@@ -166,6 +167,17 @@
                   <span class="conductores__vehiculo">{{ c.vehiculo.placa }} — {{ c.vehiculo.marca }} {{ c.vehiculo.modelo }}</span>
                 } @else {
                   <span class="text-muted">Sin asignar</span>
+                }
+              </td>
+              <td>
+                <!-- AP7 — tipo de dispositivo automático (reportado por la app). -->
+                @if (c.usuario?.plataforma; as plat) {
+                  <span class="sgc-badge sgc-badge--info" [title]="c.usuario?.plataforma_modelo || ''">{{ dispositivoLabel(plat) }}</span>
+                  @if (c.usuario?.plataforma_modelo) {
+                    <span class="text-muted conductores__device-model">{{ c.usuario?.plataforma_modelo }}</span>
+                  }
+                } @else {
+                  <span class="text-muted">—</span>
                 }
               </td>
               <td>

@@ -1,0 +1,73 @@
+-- =============================================================================
+-- PROMPT-11 FASE 4 (AP5) — SEED de apertura = 1,000.  ⚠️ EN PAUSA — NO APLICAR
+-- sin el OK explícito de Xaviel (alcance del seed).  SGC padre.
+--
+-- ⚠️ EFECTO IMPORTANTE (leer antes de correr):
+--   set_apertura(art, bodega, 1000) re-basa la apertura a 1,000 y AJUSTA el stock
+--   disponible a  1000 + Σ movimientos registrados.  Es decir: REEMPLAZA la
+--   cantidad actual del almacén por ~1,000 (la actual se considera no fiable hasta
+--   el levantamiento real).  NO genera movimiento/kardex/notificación; la curva se
+--   re-basa sin "bajón".  Es reversible re-editando la apertura (solo admin).
+--
+-- DECISIÓN DE ALCANCE PENDIENTE (Xaviel elige uno):
+--   (A) Sólo pares (artículo, almacén) que YA tienen fila de stock en almacenes de
+--       OBRA (proyecto_id no nulo).  ← menos invasivo, DEFAULT propuesto.
+--   (B) A + Bodega Central y demás almacenes centrales.
+--   (C) TODOS los artículos × TODOS los almacenes de obra (crea filas nuevas;
+--       explosión cartesiana — normalmente NO deseado).
+--   · Artículos nuevos futuros: abren en 0 (no se re-siembran).
+--
+-- Cómo correr (una vez aprobado): descomentar el bloque del alcance elegido y
+-- ejecutarlo con un contexto admin.  set_apertura valida is_admin(): al correrlo
+-- por la Management API (rol postgres) hay que fijar el claim de un admin.
+-- =============================================================================
+
+-- \set ON_ERROR_STOP on
+-- begin;
+
+-- -- Fijar contexto admin (Xaviel) para pasar el gate de set_apertura:
+-- select set_config('request.jwt.claims',
+--   json_build_object('sub','4b19cc4b-3dbe-40dc-8631-ef489cad0f45','role','authenticated')::text, true);
+
+-- ── ALCANCE (A) — pares con stock existente en almacenes de OBRA (DEFAULT) ─────
+-- do $$
+-- declare r record; n int := 0;
+-- begin
+--   for r in
+--     select s.articulo_id, s.bodega_id
+--     from sgc.stock_por_bodega s
+--     join sgc.bodegas b on b.id = s.bodega_id
+--     join sgc.articulos a on a.id = s.articulo_id
+--     where b.proyecto_id is not null              -- sólo almacenes de obra
+--       and coalesce(b.es_prueba,false) = false
+--       and coalesce(a.es_prueba,false) = false
+--   loop
+--     perform sgc.set_apertura(r.articulo_id, r.bodega_id, 1000);
+--     n := n + 1;
+--   end loop;
+--   raise notice 'Apertura=1000 fijada en % pares (alcance A).', n;
+-- end $$;
+
+-- ── ALCANCE (B) — como (A) pero incluyendo almacenes centrales ─────────────────
+-- (igual que A, quitando el filtro  b.proyecto_id is not null)
+
+-- ── ALCANCE (C) — TODOS los artículos × almacenes de obra (cartesiano) ─────────
+-- do $$
+-- declare r record; n int := 0;
+-- begin
+--   for r in
+--     select a.id as articulo_id, b.id as bodega_id
+--     from sgc.articulos a
+--     cross join sgc.bodegas b
+--     where b.proyecto_id is not null
+--       and coalesce(b.es_prueba,false) = false
+--       and coalesce(a.es_prueba,false) = false
+--       and coalesce(a.activo,true)
+--   loop
+--     perform sgc.set_apertura(r.articulo_id, r.bodega_id, 1000);
+--     n := n + 1;
+--   end loop;
+--   raise notice 'Apertura=1000 fijada en % pares (alcance C).', n;
+-- end $$;
+
+-- commit;

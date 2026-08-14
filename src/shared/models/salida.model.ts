@@ -1,9 +1,10 @@
-export type SalidaEstado = 'despachado' | 'entregado' | 'entregado_incompleto';
+export type SalidaEstado = 'despachado' | 'entregado' | 'entregado_incompleto' | 'anulado';
 
 export const SALIDA_ESTADO_LABELS: Record<SalidaEstado, string> = {
   despachado: 'Despachado',
   entregado: 'Entregado',
   entregado_incompleto: 'Entregado (incompleto)',
+  anulado: 'Eliminado',
 };
 
 export interface DetalleSalida {
@@ -116,9 +117,19 @@ export interface ConduceListadoRow {
   bucket: ConduceBucket;
   proyecto_id: string | null;
   proyecto: string | null;
+  /** AP4 — obra del almacén de salida (obra origen). */
+  origen_proyecto_id?: string | null;
+  origen_proyecto?: string | null;
   bodega: string | null;
+  destino_almacen?: string | null;
+  conductor_id?: string | null;
   conductor: string | null;
+  /** AP4 — ids para el filtro por "responsable" (emisor/chofer/receptor). */
+  emisor_id?: string | null;
+  chofer_usuario_id?: string | null;
+  receptor_id?: string | null;
   responsable: string | null;
+  responsable_match?: string[] | null;
   items: number;
   es_prueba: boolean;
   created_at: string;

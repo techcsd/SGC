@@ -67,6 +67,21 @@ export const inventarioRoutes: Routes = [
     title: 'Almacenes — Inventario',
   },
   {
+    // AP2 — inventario de un almacén específico (accesible desde el listado de
+    // almacenes y desde la vista del proyecto). Gate propio: quien pueda ver
+    // inventario del almacén (RPC valida por rol/responsable). Ruta libre de
+    // submódulo para no cerrarla a responsables de obra sin módulo Inventario.
+    path: 'almacen/:id',
+    loadComponent: () => import('./almacen-inventario/almacen-inventario').then((m) => m.AlmacenInventario),
+    title: 'Inventario del almacén',
+  },
+  {
+    // AP2/AP5 — inventario del almacén de una obra (desde la vista del proyecto).
+    path: 'almacen/obra/:proyectoId',
+    loadComponent: () => import('./almacen-inventario/almacen-inventario').then((m) => m.AlmacenInventario),
+    title: 'Inventario del almacén',
+  },
+  {
     path: 'categorias',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./categorias/categorias').then((m) => m.InventarioCategorias),

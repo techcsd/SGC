@@ -53,7 +53,7 @@ export class ConductoresService {
   async getAll(): Promise<Conductor[]> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email, plataforma, plataforma_modelo, plataforma_at)')
       .order('nombre');
 
     if (error) throw new Error(error.message);
@@ -77,7 +77,7 @@ export class ConductoresService {
   async getById(id: string): Promise<Conductor | null> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email, plataforma, plataforma_modelo, plataforma_at)')
       .eq('id', id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -165,7 +165,7 @@ export class ConductoresService {
     const { data, error } = await this.supabase.client
       .from('conductores')
       .insert(sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS))
-      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email, plataforma, plataforma_modelo, plataforma_at)')
       .single();
 
     if (error) throw this.mapCedulaError(error);
@@ -177,7 +177,7 @@ export class ConductoresService {
       .from('conductores')
       .update({ ...sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS), updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email)')
+      .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email, plataforma, plataforma_modelo, plataforma_at)')
       .single();
 
     if (error) throw this.mapCedulaError(error);

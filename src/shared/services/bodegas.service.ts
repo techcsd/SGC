@@ -16,6 +16,17 @@ export class BodegasService {
     return (data ?? []) as unknown as Bodega[];
   }
 
+  /** AP2 — un almacén por id (para la cabecera de la vista de inventario). */
+  async getById(id: string): Promise<Bodega | null> {
+    const { data, error } = await this.supabase.client
+      .from('bodegas')
+      .select('*, proyecto:proyectos(nombre)')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data ?? null) as unknown as Bodega | null;
+  }
+
   async create(formData: BodegaFormData): Promise<Bodega> {
     const { data, error } = await this.supabase.client
       .from('bodegas')

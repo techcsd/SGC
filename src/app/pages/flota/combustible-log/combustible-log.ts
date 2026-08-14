@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { CombustibleService, LogCombustibleRow } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
@@ -10,7 +10,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 /**
@@ -29,8 +29,20 @@ export class CombustibleLog implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
+  private route = inject(ActivatedRoute);
 
   formatFecha = formatFechaDisplay;
+
+  // AQ13 — chips de periodo rápido (además del rango manual). dias hacia atrás.
+  readonly CHIPS: { label: string; dias: number }[] = [
+    { label: '1D', dias: 0 },
+    { label: '1S', dias: 6 },
+    { label: '1M', dias: 29 },
+    { label: '3M', dias: 89 },
+    { label: '6M', dias: 179 },
+    { label: '1A', dias: 364 },
+  ];
+  chipActivo = signal<number | null>(null);
 
   rows = signal<LogCombustibleRow[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
@@ -56,6 +68,10 @@ export class CombustibleLog implements OnInit {
       this.usuarios.set(usuarios);
     } catch { /* filtros opcionales */ }
     await this.cargar();
+
+    // AQ6/AQ13 — deep-link desde la notificación de consumo anormal: ?echada=<id>
+    const echadaId = this.route.snapshot.queryParamMap.get('echada');
+    if (echadaId) this.abrirDetallePorId(echadaId);
   }
 
   async cargar() {
@@ -77,13 +93,22 @@ export class CombustibleLog implements OnInit {
   }
 
   onRango(r: RangoFecha) {
+    this.chipActivo.set(null); // rango manual → ningún chip activo
     this.desde.set(r.desde ?? '');
     this.hasta.set(r.hasta ?? '');
+    this.cargar();
+  }
+  // AQ13 — chip de periodo rápido: fija el rango [hoy-dias, hoy] y recarga.
+  aplicarChip(c: { label: string; dias: number }) {
+    this.chipActivo.set(c.dias);
+    this.desde.set(c.dias === 0 ? todayIso() : daysAgoIso(c.dias));
+    this.hasta.set(todayIso());
     this.cargar();
   }
   onVehiculo(v: string) { this.vehiculoId.set(v); this.cargar(); }
   onUsuario(v: string) { this.usuarioId.set(v); this.cargar(); }
   limpiar() {
+    this.chipActivo.set(null);
     this.vehiculoId.set(''); this.usuarioId.set(''); this.desde.set(''); this.hasta.set('');
     this.cargar();
   }
@@ -105,7 +130,10 @@ export class CombustibleLog implements OnInit {
   readonly PRODUCTO_LABEL = PRODUCTO_CANONICO_LABEL;
   readonly RENDIMIENTO_META = RENDIMIENTO_ESTADO_META;
 
-  async abrirDetalle(row: LogCombustibleRow) {
+  abrirDetalle(row: LogCombustibleRow) { return this.abrirDetallePorId(row.id); }
+
+  // AQ13/AQ6 — abre el detalle por id (row-click o deep-link ?echada=<id>).
+  async abrirDetallePorId(id: string) {
     this.detailOpen.set(true);
     this.detail.set(null);
     this.fotoRecibo.set(null);
@@ -113,7 +141,7 @@ export class CombustibleLog implements OnInit {
     this.fotoBomba.set(null);
     this.detailLoading.set(true);
     try {
-      const r = await this.combustibleService.getById(row.id);
+      const r = await this.combustibleService.getById(id);
       this.detail.set(r);
       if (r?.foto_recibo_path) this.combustibleService.getFotoUrl(r.foto_recibo_path).then((u) => this.fotoRecibo.set(u));
       if (r?.foto_tablero_path) this.combustibleService.getFotoUrl(r.foto_tablero_path).then((u) => this.fotoTablero.set(u));

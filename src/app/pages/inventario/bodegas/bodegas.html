@@ -146,6 +146,16 @@
                 <div class="row-actions">
                   <a
                     class="action-btn"
+                    [routerLink]="['/inventario/almacen', bodega.id]"
+                    [attr.aria-label]="'Ver inventario de ' + bodega.nombre"
+                    title="Ver inventario del almacén"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 7h18M3 12h18M3 17h18"/>
+                    </svg>
+                  </a>
+                  <a
+                    class="action-btn"
                     routerLink="/inventario/movimientos"
                     [queryParams]="{ bodega: bodega.id }"
                     [attr.aria-label]="'Ver movimientos de ' + bodega.nombre"
@@ -382,6 +392,7 @@
       </dl>
 
       <div class="bodega-detalle__acciones">
+        <a class="sgc-btn sgc-btn--primary sgc-btn--sm" [routerLink]="['/inventario/almacen', b.id]">Ver inventario</a>
         <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/entradas" [queryParams]="{ bodega: b.id }">+ Entrada</a>
         <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/salidas" [queryParams]="{ bodega: b.id }">+ Salida</a>
         <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conteos" [queryParams]="{ bodega: b.id }">Conteo</a>

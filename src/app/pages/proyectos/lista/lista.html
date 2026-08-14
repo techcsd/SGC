@@ -39,6 +39,7 @@
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']">💰 Costos</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']">🛒 Compras</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]">📦 Inventario</a>
             <button type="button" class="proyectos__btn-edit" (click)="openEdit(p, $event)">Editar</button>
           </div>
         </div>
@@ -536,6 +537,7 @@
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']">💰 Costos</a>
             <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']">🛒 Compras</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]">📦 Inventario</a>
                 <button class="proyectos__btn-add-fase" (click)="openNewFase()">+ Nueva fase</button>
               </div>
             </div>

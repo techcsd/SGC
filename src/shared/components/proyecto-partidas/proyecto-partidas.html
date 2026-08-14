@@ -51,10 +51,16 @@
             <span class="partidas__label">Unidad</span>
             <input
               type="text"
+              list="partidas-unidades"
               [ngModel]="fUnidad()"
               (ngModelChange)="fUnidad.set($event)"
-              placeholder="m³, ml, und…"
+              placeholder="m², qq, m³, ml, und…"
             />
+            <datalist id="partidas-unidades">
+              @for (u of unidades(); track u.id) {
+                <option [value]="u.codigo">{{ u.nombre }}</option>
+              }
+            </datalist>
           </label>
           <label class="sgc-field">
             <span class="partidas__label">Cant. planeada</span>

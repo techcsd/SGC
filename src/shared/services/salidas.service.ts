@@ -11,6 +11,9 @@ export interface ConfirmacionHistorial {
   created_at: string;
   proyecto_id: string | null;
   proyecto: string | null;
+  // AQ12 — destino puede ser una obra o la Bodega Central (destino_almacen_id).
+  destino_almacen_id: string | null;
+  destino: string | null;
   bodega: string | null;
   estado: string;
   fase: string;
@@ -54,11 +57,33 @@ export class SalidasService {
     return (data ?? []) as unknown as SalidaInventario[];
   }
 
-  /** AO5 — Listado web de conduces con fase + bucket para las pestañas. */
-  async getConducesWebListado(): Promise<ConduceListadoRow[]> {
-    const { data, error } = await this.supabase.client.rpc('conduces_web_listado');
+  /** AO5/AP4 — Listado web de conduces con fase + bucket + columnas de obra origen
+   *  y de responsable (emisor/chofer/receptor). Filtros opcionales server-side. */
+  async getConducesWebListado(filtros?: {
+    obraOrigen?: string | null;
+    obraDestino?: string | null;
+    responsable?: string | null;
+    desde?: string | null;
+    hasta?: string | null;
+    busqueda?: string | null;
+  }): Promise<ConduceListadoRow[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_web_listado', {
+      p_obra_origen: filtros?.obraOrigen ?? null,
+      p_obra_destino: filtros?.obraDestino ?? null,
+      p_responsable: filtros?.responsable ?? null,
+      p_desde: filtros?.desde ?? null,
+      p_hasta: filtros?.hasta ?? null,
+      p_busqueda: filtros?.busqueda ?? null,
+    });
     if (error) throw new Error(error.message);
     return (data ?? []) as ConduceListadoRow[];
+  }
+
+  /** AP4 — directorio de usuarios (id+nombre) para el filtro por responsable. */
+  async getUsuariosDirectorio(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios_detalle');
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as { id: string; nombre: string }[]).map((u) => ({ id: u.id, nombre: u.nombre }));
   }
 
   /** AK1 — Historial de confirmaciones de entrega (matriz de visibilidad server-side). */
@@ -127,6 +152,17 @@ export class SalidasService {
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
     return data as string;
+  }
+
+  /** AQ10 — Elimina (anula) un conduce pendiente: soft-delete + reversión de stock
+   *  + cancelación de ruta + auditoría (server-side). Solo emisor mientras pendiente o admin. */
+  async anularConduce(salidaId: string, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('anular_conduce', {
+      p_salida_id: salidaId,
+      p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
   }
 
   /** AC7 — registra (upsert) una firma canónica del conduce (emisor/receptor) en

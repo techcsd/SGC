@@ -1,0 +1,91 @@
+.kardex-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1000;
+}
+
+.kardex {
+  position: fixed;
+  z-index: 1001;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1000px, 94vw);
+  max-height: 90vh;
+  overflow: auto;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  padding: 18px 20px 22px;
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  &__title { margin: 0; font-size: 18px; }
+  &__sub { margin: 2px 0 0; color: var(--main-ultra-light); font-size: 13px; }
+
+  &__loading, &__error, &__empty { padding: 24px; text-align: center; color: var(--main-ultra-light); }
+  &__error { color: var(--danger, #e5484d); }
+
+  &__stats {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  &__stat {
+    flex: 1 1 120px;
+    background: #1c1c1c;
+    border: 1px solid #2d2d2d;
+    border-radius: 10px;
+    padding: 10px 12px;
+    span { display: block; font-size: 12px; color: var(--main-ultra-light); }
+    strong { font-size: 20px; }
+  }
+
+  &__timeline {
+    background: #1c1c1c;
+    border: 1px solid #2d2d2d;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+  }
+  &__timeline-cap { font-size: 12px; color: var(--main-ultra-light); }
+  &__svg {
+    width: 100%;
+    height: 110px;
+    display: block;
+    margin-top: 6px;
+  }
+  &__svg-line { fill: none; stroke: var(--Hub, #ffb300); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  &__svg-base { fill: none; stroke: #3a3a3a; stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
+  &__timeline-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--main-ultra-light);
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+    select, input { min-width: 120px; }
+  }
+
+  &__scroll { overflow-x: auto; }
+  &__table { width: 100%; min-width: 860px; }
+  &__neg { color: var(--danger, #e5484d); }
+  &__evi { margin-left: 4px; }
+}
+
+@media (max-width: 768px) {
+  .kardex { padding: 14px; }
+  .kardex__table { min-width: 760px; }
+}

@@ -56,6 +56,8 @@ export class ArticuloPicker {
   allowOtro = input<boolean>(true);
   /** Stock disponible por articulo_id en la bodega vigente (opcional). */
   stock = input<Record<string, number> | null>(null);
+  /** AP3 — oculta artículos con existencia 0 (selectores de conduce/salida). */
+  ocultarSinStock = input<boolean>(false);
   placeholder = input<string>('Selecciona un artículo…');
   disabled = input<boolean>(false);
 
@@ -83,7 +85,12 @@ export class ArticuloPicker {
 
   /** Artículos activos agrupados por categoría (destacadas primero, luego "Otros"). */
   private grupos = computed<Grupo[]>(() => {
-    const arts = this.articulos().filter((a) => a.activo);
+    const stockMap = this.stock();
+    const ocultarCero = this.ocultarSinStock() && !!stockMap;
+    // AP3 — en selectores de salida ocultamos existencias en 0 (antes se deshabilitaban).
+    const arts = this.articulos()
+      .filter((a) => a.activo)
+      .filter((a) => !ocultarCero || (stockMap?.[a.id] ?? 0) > 0);
     const cats = this.categorias();
     const byCat = new Map<number, Articulo[]>();
     for (const a of arts) {

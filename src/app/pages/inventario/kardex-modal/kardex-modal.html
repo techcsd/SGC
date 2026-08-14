@@ -1,0 +1,113 @@
+<div class="kardex-backdrop" (click)="close.emit()"></div>
+
+<div class="kardex" role="dialog" aria-modal="true" aria-label="Kardex del artículo">
+  <header class="kardex__head">
+    <div>
+      <h2 class="kardex__title">{{ articuloNombre() || 'Kardex' }}</h2>
+      <p class="kardex__sub">{{ bodegaNombre() }}</p>
+    </div>
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="close.emit()" aria-label="Cerrar">✕</button>
+  </header>
+
+  @if (loading()) {
+    <p class="kardex__loading">Cargando kardex…</p>
+  } @else if (error()) {
+    <p class="kardex__error">{{ error() }}</p>
+  } @else if (data(); as d) {
+    <!-- Resumen -->
+    <div class="kardex__stats">
+      <div class="kardex__stat"><span>Apertura</span><strong>{{ d.apertura | number:'1.0-2' }}</strong></div>
+      <div class="kardex__stat"><span>Existencia actual</span><strong>{{ d.saldo_actual | number:'1.0-2' }}</strong></div>
+      <div class="kardex__stat"><span>Movimientos</span><strong>{{ movimientos().length }}</strong></div>
+    </div>
+
+    <!-- Timeline del stock -->
+    @if (timeline(); as tl) {
+      <div class="kardex__timeline">
+        <span class="kardex__timeline-cap">Existencias en el tiempo (base = apertura {{ d.apertura | number:'1.0-2' }})</span>
+        <svg [attr.viewBox]="'0 0 ' + VW + ' ' + VH" class="kardex__svg" preserveAspectRatio="none" aria-hidden="true">
+          <polyline [attr.points]="tl.base" class="kardex__svg-base" />
+          <polyline [attr.points]="tl.points" class="kardex__svg-line" />
+        </svg>
+        <div class="kardex__timeline-scale">
+          <span>mín {{ tl.min | number:'1.0-2' }}</span>
+          <span>máx {{ tl.max | number:'1.0-2' }}</span>
+        </div>
+      </div>
+    }
+
+    <!-- Filtros -->
+    <div class="kardex__filters">
+      <select [value]="fTipo()" (change)="fTipo.set($any($event.target).value)" aria-label="Tipo de movimiento">
+        <option value="">Todos los movimientos</option>
+        <option value="entrada">Entradas</option>
+        <option value="salida">Salidas</option>
+        <option value="ajuste">Ajustes</option>
+      </select>
+      <select [value]="fTransportista()" (change)="fTransportista.set($any($event.target).value)" aria-label="Transportista">
+        <option value="">Todo transportista</option>
+        @for (t of transportistas(); track t) { <option [value]="t">{{ t }}</option> }
+      </select>
+      <select [value]="fEntrega()" (change)="fEntrega.set($any($event.target).value)" aria-label="Quien entrega">
+        <option value="">Todo el que entrega</option>
+        @for (e of entregadores(); track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+      <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" title="Desde" />
+      <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" title="Hasta" />
+      @if (hasFilters()) {
+        <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="clearFilters()">Limpiar</button>
+      }
+    </div>
+
+    <!-- Tabla del sketch -->
+    <div class="kardex__scroll">
+      <table class="data-table kardex__table" aria-label="Movimientos del artículo">
+        <thead>
+          <tr>
+            <th>Mov.</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Saldo</th>
+            <th>Origen</th>
+            <th>Destino</th>
+            <th>Fecha</th>
+            <th>Entrega</th>
+            <th>Recibe</th>
+            <th>Transporte</th>
+            <th>Conduce</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of filtrados(); track m.referencia_id) {
+            <tr>
+              <td>
+                <span class="sgc-badge" [class.sgc-badge--success]="m.mov === 'entrada'"
+                      [class.sgc-badge--danger]="m.mov === 'salida'"
+                      [class.sgc-badge--neutral]="m.mov === 'ajuste'">{{ movLabel(m) }}</span>
+              </td>
+              <td class="text-right" [class.kardex__neg]="m.delta < 0">{{ m.delta | number:'1.0-2' }}</td>
+              <td class="text-right">{{ m.saldo | number:'1.0-2' }}</td>
+              <td class="text-muted">{{ m.origen ?? '—' }}</td>
+              <td class="text-muted">{{ m.destino ?? '—' }}</td>
+              <td>{{ formatFecha(m.fecha) }}</td>
+              <td class="text-muted">{{ m.entrega_nombre ?? '—' }}</td>
+              <td class="text-muted">{{ m.recibe_nombre ?? '—' }}</td>
+              <td class="text-muted">{{ m.transporte_nombre ?? '—' }}</td>
+              <td>
+                @if (m.conduce_id) {
+                  <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                     [routerLink]="['/inventario/salidas', m.conduce_id, 'conduce']"
+                     (click)="close.emit()">
+                    {{ m.conduce_numero }}
+                    @if (m.fotos.length || m.firmas.length) { <span class="kardex__evi">📎</span> }
+                  </a>
+                } @else { <span class="text-muted">—</span> }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="10" class="kardex__empty">No hay movimientos con esos filtros.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

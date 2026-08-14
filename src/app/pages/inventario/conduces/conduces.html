@@ -47,10 +47,19 @@
   </div>
 
   <div class="sgc-field filters-bar__select">
-    <select [value]="obraFilter()" (change)="onObra($any($event.target).value)" aria-label="Filtrar por obra">
-      <option value="">Todas las obras</option>
+    <select [value]="origenFilter()" (change)="onOrigen($any($event.target).value)" aria-label="Filtrar por obra de origen">
+      <option value="">Origen: todas</option>
+      @for (o of obrasOrigen(); track o.id) {
+        <option [value]="o.id">Origen: {{ o.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="obraFilter()" (change)="onObra($any($event.target).value)" aria-label="Filtrar por obra de destino">
+      <option value="">Destino: todas</option>
       @for (o of obras(); track o.id) {
-        <option [value]="o.id">{{ o.nombre }}</option>
+        <option [value]="o.id">Destino: {{ o.nombre }}</option>
       }
     </select>
   </div>
@@ -60,6 +69,15 @@
       <option value="">Todos los choferes</option>
       @for (c of choferes(); track c) {
         <option [value]="c">{{ c }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <select [value]="responsableFilter()" (change)="onResponsable($any($event.target).value)" aria-label="Filtrar por responsable">
+      <option value="">Todos los responsables</option>
+      @for (u of responsables(); track u.id) {
+        <option [value]="u.id">{{ u.nombre }}</option>
       }
     </select>
   </div>
@@ -103,6 +121,7 @@
           <tr>
             <th>No. Conduce</th>
             <th>Fecha</th>
+            <th>Obra origen</th>
             <th>Obra / Destino</th>
             <th>Almacén</th>
             <th>Chofer</th>
@@ -119,7 +138,13 @@
                 @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
               </td>
               <td>{{ formatFecha(r.fecha) }}</td>
-              <td class="text-muted">{{ r.proyecto ?? '—' }}</td>
+              <td class="text-muted">{{ r.origen_proyecto ?? '—' }}</td>
+              <td class="text-muted">
+                {{ r.proyecto ?? r.destino_almacen ?? '—' }}
+                @for (m of responsableMatch(r); track m) {
+                  <span class="sgc-badge sgc-badge--info">{{ m }}</span>
+                }
+              </td>
               <td class="text-muted">{{ r.bodega ?? '—' }}</td>
               <td class="text-muted">{{ r.conductor ?? '—' }}</td>
               <td class="text-right">{{ r.items }}</td>

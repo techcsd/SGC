@@ -1895,6 +1895,51 @@
           "d": "La API key de Google Maps se maneja de forma segura: el servidor la usa oculta (Places/rutas) y el navegador usa una key restringida; nunca queda expuesta en el código."
         }
       ]
+    },
+    "1.75.0": {
+      "titulo": "Conduce visible al instante, notificaciones con sonido para todo, eliminar conduces, echadas clicables y Estadísticas del sistema",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Se corrigió que un conduce recién creado no apareciera en “Pendiente entrega”. Vuelve a mostrarse de inmediato (online y sin conexión), y se dejó una salvaguarda para que no se repita."
+        },
+        {
+          "t": "mejora",
+          "d": "Notificaciones: ahora todo lo que te concierne (mensajes, entregas por confirmar, rutas, transferencias, avisos, tareas, alarmas…) también te llega como notificación al teléfono cuando estás fuera de la app."
+        },
+        {
+          "t": "nuevo",
+          "d": "Aviso de nueva versión: cuando se publica una actualización de la app, quienes la usan reciben una notificación “Nueva actualización disponible”."
+        },
+        {
+          "t": "nuevo",
+          "d": "Aviso de consumo anormal de combustible: ahora incluye “Ver echada” y abre directamente el detalle de esa echada."
+        },
+        {
+          "t": "nuevo",
+          "d": "Registro de echadas: cada fila abre el detalle completo (vehículo, km, galones, monto, quién registró, fotos con zoom y motivo de la alerta) y se agregaron filtros rápidos 1D · 1S · 1M · 3M · 6M · 1A."
+        },
+        {
+          "t": "nuevo",
+          "d": "Eliminar conduces: un conduce creado por error puede eliminarse mientras esté pendiente (emisor o admin), con aviso claro; se repone el stock y se cancela la ruta vinculada. Queda registrado en auditoría."
+        },
+        {
+          "t": "mejora",
+          "d": "Confirmaciones: los filtros de destino ahora incluyen la Bodega Central junto a las obras."
+        },
+        {
+          "t": "nuevo",
+          "d": "Sistema › Estadísticas: uso de la web y la app (usuarios activos por día/semana/mes, web vs. app, dispositivos y versiones)."
+        },
+        {
+          "t": "mejora",
+          "d": "Bitácora: “Mis bitácoras” muestra solo las tuyas; el submódulo “Todas las bitácoras” lo ven los roles elevados (todas) y los ingenieros responsables (las de sus obras)."
+        },
+        {
+          "t": "mejora",
+          "d": "Partidas de obra: el campo Unidad ofrece el catálogo (m² para encofrado, quintal (qq) para armado, m³, ml…). Los tiempos estimados se muestran como “X h Y min”."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
