@@ -18,6 +18,8 @@ import {
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
+import { PersonalConteos } from '../../../../shared/models/personal-obra.model';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ProyectoEstructurasService, ProyectoEstructura } from '../../../../shared/services/proyecto-estructuras.service';
@@ -84,6 +86,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
   private estructurasService = inject(ProyectoEstructurasService);
+  private personalObraService = inject(PersonalObraService); // AR1
 
   // Z14 — estructuras (bloques/pisos) de la obra
   estructuras = signal<ProyectoEstructura[]>([]);
@@ -140,6 +143,7 @@ export class Lista implements OnInit {
   // ── Detail: real spend + team ─────────────────────────────
   gastoReal = signal<number>(0);
   equipo = signal<ProyectoEmpleado[]>([]);
+  personalConteos = signal<PersonalConteos | null>(null); // AR1 — conteos de personal de obra
   equipoLoading = signal(false);
   // A3.2 — alta de miembro del Equipo de Obra
   nuevoMiembroRol = signal<string>('');
@@ -714,6 +718,7 @@ export class Lista implements OnInit {
     this.gastoReal.set(0);
     this.equipo.set([]);
     this.responsables.set([]);
+    this.personalConteos.set(null);
     this.avance.set(null);
     this.pagadoInput.set(null);
     this.estructuras.set([]);
@@ -736,6 +741,8 @@ export class Lista implements OnInit {
     } catch {
       // keep basic data
     } finally {
+      // AR1 — conteos de personal de obra (best-effort, no bloquea el detalle).
+      this.personalObraService.conteos(p.id).then((c) => this.personalConteos.set(c), () => undefined);
       this.detailLoading.set(false);
       this.equipoLoading.set(false);
       this.responsablesLoading.set(false);

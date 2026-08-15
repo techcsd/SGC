@@ -541,7 +541,7 @@ export class Entradas implements OnInit {
       this.resolverThumbs(entries); // W11
       this.articulos.set(arts);
       this.categorias.set(cats);
-      this.bodegas.set(bods);
+      this.bodegas.set(bods.filter((b) => b.activo !== false)); // AR3 — sin almacenes inactivos
       this.proveedores.set(provs);
       this.ordenesCompra.set(ordenes);
       this.proyectos.set(proys);

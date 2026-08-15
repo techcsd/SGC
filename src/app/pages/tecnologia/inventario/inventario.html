@@ -269,7 +269,7 @@
         <select id="bodega_id" formControlName="bodega_id">
           <option [value]="null">Seleccionar almacén…</option>
           @for (b of bodegas(); track b.id) {
-            <option [value]="b.id">{{ b.nombre }}@if (b.es_central) { · Central }</option>
+            <option [value]="b.id">{{ b.nombre }}</option>
           }
         </select>
       </div>

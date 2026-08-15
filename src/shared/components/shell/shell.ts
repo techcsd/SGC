@@ -173,11 +173,15 @@ export class Shell implements OnInit {
       label: 'Proyectos',
       icon: 'projects',
       modulo: 'proyectos',
+      // AR1 — visible con el módulo completo O cualquier submódulo granular
+      // (p. ej. un capataz con sólo 'proyectos.personal').
+      submodulos: ['proyectos.obras', 'proyectos.cronograma', 'proyectos.ranking', 'proyectos.personal'],
       children: [
-        { label: 'Proyectos', route: '/proyectos' },
-        { label: 'Ranking de Encargados', route: '/proyectos/kpi' },
-        { label: 'Reportes de clima', route: '/proyectos/clima' },
-        { label: 'Historial', route: '/proyectos/historial' },
+        { label: 'Proyectos', route: '/proyectos', submodulo: 'proyectos.obras' },
+        { label: 'Personal de obra', route: '/proyectos/personal', submodulo: 'proyectos.personal' },
+        { label: 'Ranking de Encargados', route: '/proyectos/kpi', submodulo: 'proyectos.ranking' },
+        { label: 'Reportes de clima', route: '/proyectos/clima', submodulo: 'proyectos.obras' },
+        { label: 'Historial', route: '/proyectos/historial', submodulo: 'proyectos.obras' },
       ],
     },
     {

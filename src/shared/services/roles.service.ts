@@ -123,10 +123,12 @@ export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
     { key: 'rrhh.asistencia', label: 'Asistencia' },
     { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones' },
   ],
+  // AR1 — gateados end-to-end (menú + ruta + RLS por obra).
   proyectos: [
-    { key: 'proyectos.obras', label: 'Obras' },
-    { key: 'proyectos.cronograma', label: 'Cronograma' },
-    { key: 'proyectos.ranking', label: 'Ranking de encargados' },
+    { key: 'proyectos.obras', label: 'Obras', enforced: true },
+    { key: 'proyectos.cronograma', label: 'Cronograma', enforced: true },
+    { key: 'proyectos.ranking', label: 'Ranking de encargados', enforced: true },
+    { key: 'proyectos.personal', label: 'Personal de obra', enforced: true },
   ],
   // AG16 — Gestión de Producción de Obra. `obra.no_conformidades` ya se gatea
   // end-to-end (menú + ruta + RLS); el resto se irá gateando por fase.

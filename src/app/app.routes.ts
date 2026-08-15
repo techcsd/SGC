@@ -88,7 +88,9 @@ export const routes: Routes = [
       },
       {
         path: 'proyectos',
-        canActivate: [moduleGuard('proyectos')],
+        // AR1 — módulo completo O submódulo granular (p. ej. 'proyectos.personal'
+        // para capataces). Cada ruta hija afina con submoduloGuard.
+        canActivate: [moduloOSubmoduloGuard('proyectos')],
         loadChildren: () =>
           import('./pages/proyectos/proyectos.routes').then((m) => m.proyectosRoutes),
       },

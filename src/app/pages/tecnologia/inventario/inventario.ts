@@ -137,17 +137,17 @@ export class TecInventario implements OnInit {
         this.empleadosService.getDirectorio(), // AN1 — referencia (no requiere módulo RRHH)
         this.tecnologia.getComprasTecOpciones(), // QA-070
         this.tecnologia.getEquipoTipos(), // AL1
-        this.bodegasService.getAll(), // AL1
+        this.bodegasService.getSelectables(), // AR3 — fuente homologada (sin "· Central" sucios)
       ]);
       this.equipos.set(equipos);
       this.empleados.set(empleados);
       this.comprasOpciones.set(compras);
       this.tipos.set(tipos);
       this.bodegas.set(
-        (bodegas as { id: string; nombre: string; proyecto_id: string | null }[]).map((b) => ({
+        (bodegas as { id: string; nombre: string; es_central: boolean }[]).map((b) => ({
           id: b.id,
           nombre: b.nombre,
-          es_central: b.proyecto_id == null,
+          es_central: b.es_central,
         })),
       );
       this.resolverFotos(equipos);

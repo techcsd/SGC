@@ -197,7 +197,7 @@ export class Activos implements OnInit {
         proyecto: proyectos.map((p) => ({ id: p.id, label: p.nombre })),
         empleado: empleados.map((e) => ({ id: e.id, label: `${e.nombre} ${e.apellido ?? ''}`.trim() })),
         ingeniero: ingenieros.map((u) => ({ id: u.id, label: u.nombre })),
-        almacen: bodegas.map((b) => ({ id: b.id, label: b.nombre })),
+        almacen: bodegas.filter((b) => b.activo !== false).map((b) => ({ id: b.id, label: b.nombre })), // AR3
         vehiculo: vehiculos.map((v) => ({ id: v.id, label: `${v.placa} — ${v.marca}` })),
       });
     } catch (e: unknown) {

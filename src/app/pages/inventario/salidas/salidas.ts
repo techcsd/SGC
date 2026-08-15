@@ -326,7 +326,7 @@ export class Salidas implements OnInit {
       this.resolverThumbs(salidas); // W11
       this.articulos.set(arts);
       this.categorias.set(cats);
-      this.bodegas.set(bods);
+      this.bodegas.set(bods.filter((b) => b.activo !== false)); // AR3 — sin almacenes inactivos
       // AL10 — almacenes centrales (sin obra) como destino de traslado.
       this.almacenesDestino.set(
         (bods as { id: string; nombre: string; proyecto_id: string | null; activo?: boolean }[])

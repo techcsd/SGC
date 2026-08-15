@@ -1,0 +1,68 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Personal de obra</h1>
+    <p class="page-subtitle">Registro del personal que trabaja en las obras: expediente, evidencia y carnet.</p>
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<section class="sgc-card pob-filtros">
+  <input type="search" class="sgc-input" placeholder="Buscar por nombre, documento, cargo o carnet…"
+         [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar personal" />
+  <select class="sgc-input" [ngModel]="filObra()" (ngModelChange)="filObra.set($event)" aria-label="Filtrar por obra">
+    <option value="">Todas las obras</option>
+    @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+  </select>
+  <select class="sgc-input" [ngModel]="filCargo()" (ngModelChange)="filCargo.set($event)" aria-label="Filtrar por cargo">
+    <option value="">Todos los cargos</option>
+    @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+  </select>
+  <select class="sgc-input" [ngModel]="filNacionalidad()" (ngModelChange)="filNacionalidad.set($event)" aria-label="Filtrar por nacionalidad">
+    <option value="">Toda nacionalidad</option>
+    <option value="dominicano">Dominicano</option>
+    <option value="haitiano">Haitiano</option>
+    <option value="otro">Otra</option>
+  </select>
+  <select class="sgc-input" [ngModel]="filEstado()" (ngModelChange)="filEstado.set($event)" aria-label="Filtrar por estado">
+    <option value="">Todos</option>
+    <option value="activo">Activos</option>
+    <option value="inactivo">Inactivos</option>
+  </select>
+</section>
+
+@if (loading()) {
+  <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
+} @else if (!filtrados().length) {
+  <div class="sgc-card pob-empty"><p>No hay personal que coincida con el filtro.</p></div>
+} @else {
+  <div class="sgc-card">
+    <div class="pob-tabla">
+      <table class="data-table">
+        <thead>
+          <tr><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Carnet</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          @for (p of filtrados(); track p.id) {
+            <tr class="pob-fila" (click)="abrir(p)">
+              <td><strong>{{ p.nombre }} {{ p.apellido }}</strong></td>
+              <td>{{ p.cargo?.nombre ?? '—' }}</td>
+              <td>{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</td>
+              <td class="text-muted">{{ p.documento_numero ?? '—' }}</td>
+              <td class="text-muted">{{ p.proyecto?.nombre ?? '—' }}</td>
+              <td>
+                @if (p.carnet_numero) { <span class="sgc-badge sgc-badge--success">{{ p.carnet_numero }}</span> }
+                @else { <span class="text-muted">Sin carnet</span> }
+              </td>
+              <td>
+                @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
+                @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

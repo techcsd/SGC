@@ -38,3 +38,29 @@
 .est-tabla { overflow-x: auto; }
 .est-empty { padding: 32px; text-align: center; color: var(--sgc-text-muted); }
 .est-footer { margin-top: 8px; font-size: 12px; }
+
+// AR2 — dispositivos por usuario
+.est-block__sub { margin: -8px 0 14px; font-size: 13px; }
+.est-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  input[type='search'] { flex: 1 1 240px; }
+  select { flex: 0 1 200px; }
+}
+.est-fila { cursor: pointer; &:hover { background: var(--sgc-surface-2, #f6f6f6); } }
+.est-user { display: flex; flex-direction: column; gap: 2px;
+  &__name { font-weight: 600; }
+  &__rol { font-size: 12px; }
+}
+.est-cnt { margin-left: 6px; }
+.est-chevron { text-align: right; color: var(--sgc-text-muted); width: 24px; }
+.est-fila-hist > td { background: var(--sgc-surface-2, #f6f6f6); padding: 0; }
+.est-hist {
+  padding: 10px 14px;
+  &__title { display: block; font-size: 12px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+  &__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;
+    li { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+  }
+}

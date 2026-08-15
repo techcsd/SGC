@@ -1,0 +1,197 @@
+<div class="page-header">
+  <div>
+    <a routerLink="/proyectos/personal" class="pob-back">← Personal de obra</a>
+    <h1 class="page-title">{{ editando() ? 'Editar' : 'Registrar' }} personal</h1>
+  </div>
+</div>
+
+<!-- Stepper -->
+<ol class="pob-steps">
+  @for (s of ['Datos', 'Fotos', 'Firma', 'Carnet', 'Resumen']; track s; let i = $index) {
+    <li class="pob-steps__item" [class.is-active]="paso() === i + 1" [class.is-done]="paso() > i + 1"
+        (click)="irPaso(i + 1)">
+      <span class="pob-steps__n">{{ i + 1 }}</span>{{ s }}
+    </li>
+  }
+</ol>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<!-- Paso 1: Datos -->
+@if (paso() === 1) {
+  <form class="sgc-card pob-form" [formGroup]="form" (ngSubmit)="guardarDatos()">
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="obra">Obra *</label>
+        <select id="obra" formControlName="proyecto_id">
+          <option [value]="''" disabled>Seleccionar obra…</option>
+          @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="cargo">Cargo</label>
+        <select id="cargo" formControlName="cargo_id">
+          <option [value]="''">Sin cargo</option>
+          @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }} ({{ c.codigo }})</option> }
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="nombre">Nombre *</label>
+        <input id="nombre" class="sgc-input" formControlName="nombre" />
+      </div>
+      <div class="sgc-field">
+        <label for="apellido">Apellido</label>
+        <input id="apellido" class="sgc-input" formControlName="apellido" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="nac">Nacionalidad *</label>
+        <select id="nac" formControlName="nacionalidad">
+          @for (n of nacionalidades; track n.value) { <option [value]="n.value">{{ n.label }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="tdoc">Tipo de documento *</label>
+        <select id="tdoc" formControlName="tipo_documento">
+          @for (t of tiposDocumento; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="ndoc">Número de documento</label>
+        <input id="ndoc" class="sgc-input" formControlName="documento_numero" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="tel">Teléfono</label>
+        <input id="tel" class="sgc-input" formControlName="telefono" />
+      </div>
+      <div class="sgc-field sgc-field--grow">
+        <label for="notas">Notas</label>
+        <input id="notas" class="sgc-input" formControlName="notas" />
+      </div>
+    </div>
+    <div class="pob-form__foot">
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Guardar y continuar' }}
+      </button>
+    </div>
+  </form>
+}
+
+<!-- Paso 2: Fotos guiadas -->
+@if (paso() === 2) {
+  <section class="sgc-card pob-form">
+    <p class="pob-form__hint">
+      Captura las 5 fotos de evidencia.
+      @if (esAdmin) { Como administrador puedes elegir de la galería. } @else { Se toman con la cámara. }
+    </p>
+    <div class="pob-fotos">
+      @for (g of fotosGuia; track g.tipo) {
+        <div class="pob-foto" [class.is-done]="fotoPreview()[g.tipo]">
+          <div class="pob-foto__prev">
+            @if (fotoPreview()[g.tipo]; as url) { <img [src]="url" [alt]="g.label" /> }
+            @else { <span class="pob-foto__ph">📷</span> }
+          </div>
+          <div class="pob-foto__meta">
+            <strong>{{ g.label }}</strong>
+            <small>{{ g.ayuda }}</small>
+          </div>
+          <label class="sgc-btn sgc-btn--secondary pob-foto__btn">
+            {{ fotoPreview()[g.tipo] ? 'Reemplazar' : 'Tomar foto' }}
+            @if (esAdmin) {
+              <input type="file" accept="image/*" hidden (change)="onFoto(g.tipo, $event)" [disabled]="subiendo()" />
+            } @else {
+              <input type="file" accept="image/*" capture="environment" hidden (change)="onFoto(g.tipo, $event)" [disabled]="subiendo()" />
+            }
+          </label>
+        </div>
+      }
+    </div>
+    <div class="pob-form__foot pob-form__foot--split">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(1)">Atrás</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(3)" [disabled]="!fotosCompletas()">
+        Continuar
+      </button>
+    </div>
+    @if (!fotosCompletas()) { <p class="pob-form__nota text-muted">Faltan fotos por capturar.</p> }
+  </section>
+}
+
+<!-- Paso 3: Firma del documento -->
+@if (paso() === 3) {
+  <section class="sgc-card pob-form">
+    <div class="form-row">
+      <div class="sgc-field sgc-field--grow">
+        <label for="plantilla">Documento a firmar (plantilla de Legal, opcional)</label>
+        <select id="plantilla" [ngModel]="plantillaSel()" (ngModelChange)="onPlantilla($event)">
+          <option [value]="''">— Acuerdo por defecto —</option>
+          @for (pl of plantillas(); track pl.id) { <option [value]="pl.id">{{ pl.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field sgc-field--grow">
+        <label for="docnom">Nombre del documento</label>
+        <input id="docnom" class="sgc-input" [ngModel]="documentoNombre()" (ngModelChange)="documentoNombre.set($event)" />
+      </div>
+    </div>
+    @if (plantillaHtml()) {
+      <div class="pob-doc-prev" [innerHTML]="plantillaHtml()"></div>
+    }
+    <label class="pob-firma-label">Firma del personal</label>
+    <div class="pob-firma">
+      <app-signature-pad ariaLabel="Firma del personal de obra" />
+    </div>
+    <div class="pob-form__foot pob-form__foot--split">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(2)">Atrás</button>
+      <div class="pob-form__foot-right">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarFirma()">Omitir por ahora</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarFirma()" [disabled]="saving()">
+          {{ saving() ? 'Guardando…' : 'Firmar y continuar' }}
+        </button>
+      </div>
+    </div>
+  </section>
+}
+
+<!-- Paso 4: Carnet -->
+@if (paso() === 4) {
+  <section class="sgc-card pob-form pob-form--center">
+    @if (personal(); as p) {
+      @if (p.carnet_numero) {
+        <app-personal-carnet [personal]="p" [fotoDataUrl]="personaDataUrl()" [verifyUrl]="verifyUrl" />
+        <div class="pob-form__foot pob-form__foot--split">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimirCarnet()">Imprimir / PDF</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(5)">Continuar</button>
+        </div>
+      } @else {
+        <p class="pob-form__hint">Emite el carnet para asignarle un número y generar el QR de verificación.</p>
+        <div class="pob-form__foot pob-form__foot--split">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(3)">Atrás</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="emitirCarnet()" [disabled]="saving()">
+            {{ saving() ? 'Emitiendo…' : 'Emitir carnet' }}
+          </button>
+        </div>
+      }
+    }
+  </section>
+}
+
+<!-- Paso 5: Resumen -->
+@if (paso() === 5) {
+  <section class="sgc-card pob-form pob-form--center">
+    @if (personal(); as p) {
+      <div class="pob-resumen">
+        <span class="pob-resumen__check">✓</span>
+        <h2>Personal registrado</h2>
+        <p class="text-muted">{{ p.nombre }} {{ p.apellido }} — {{ p.cargo?.nombre ?? 'Sin cargo' }}</p>
+        @if (p.carnet_numero) { <p class="pob-resumen__num">Carnet {{ p.carnet_numero }}</p> }
+      </div>
+      <div class="pob-form__foot pob-form__foot--split">
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="finalizar()">Ver expediente</button>
+      </div>
+    }
+  </section>
+}

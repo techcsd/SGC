@@ -2,6 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Bodega, BodegaFormData } from '../models/bodega.model';
 
+/** AR3 — ubicación de almacén seleccionable (RPC sgc.ubicaciones_almacen). */
+export interface UbicacionAlmacen {
+  id: string;
+  nombre: string;
+  es_central: boolean;
+  proyecto_id: string | null;
+  proyecto_nombre: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BodegasService {
   private supabase = inject(SupabaseService);
@@ -14,6 +23,17 @@ export class BodegasService {
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Bodega[];
+  }
+
+  /**
+   * AR3 — fuente ÚNICA homologada de ubicaciones seleccionables (almacenes de obra
+   * + centrales reales, activos, sin es_prueba ni duplicados sueltos). Úsala en
+   * TODOS los selectores de ubicación; getAll() queda para el CRUD de bodegas.
+   */
+  async getSelectables(): Promise<UbicacionAlmacen[]> {
+    const { data, error } = await this.supabase.client.rpc('ubicaciones_almacen');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as UbicacionAlmacen[];
   }
 
   /** AP2 — un almacén por id (para la cabecera de la vista de inventario). */

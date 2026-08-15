@@ -69,6 +69,77 @@
     }
   </section>
 
+  <!-- AR2 — Dispositivos por usuario -->
+  <section class="sgc-card est-block">
+    <h2 class="est-block__title">Dispositivos por usuario</h2>
+    <p class="text-muted est-block__sub">Qué dispositivo(s) usa cada usuario, su versión de app y el último uso. Toca una fila para ver el historial (últimos 5).</p>
+
+    <div class="est-filtros">
+      <input type="search" class="sgc-input" placeholder="Buscar por nombre, correo, modelo o rol…"
+             [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar usuario" />
+      <select class="sgc-input" [ngModel]="filtroPlataforma()" (ngModelChange)="filtroPlataforma.set($event)" aria-label="Filtrar por plataforma">
+        <option value="">Todas las plataformas</option>
+        @for (p of plataformas(); track p) { <option [value]="p">{{ plataformaLabel(p) }}</option> }
+      </select>
+      <select class="sgc-input" [ngModel]="filtroRol()" (ngModelChange)="filtroRol.set($event)" aria-label="Filtrar por rol">
+        <option value="">Todos los roles</option>
+        @for (r of roles(); track r) { <option [value]="r">{{ r }}</option> }
+      </select>
+    </div>
+
+    @if (!dispositivosFiltrados().length) {
+      <p class="text-muted">Ningún usuario coincide con el filtro.</p>
+    } @else {
+      <div class="est-tabla">
+        <table class="data-table">
+          <thead>
+            <tr><th>Usuario</th><th>Dispositivo</th><th>Versión</th><th>Último uso</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (u of dispositivosFiltrados(); track u.usuario_id) {
+              <tr class="est-fila" (click)="toggleExpandido(u.usuario_id)">
+                <td>
+                  <div class="est-user">
+                    <span class="est-user__name">{{ u.nombre }}</span>
+                    @if (u.roles.length) { <span class="est-user__rol text-muted">{{ u.roles.join(' · ') }}</span> }
+                  </div>
+                </td>
+                <td>
+                  @if (u.plataforma) {
+                    {{ plataformaLabel(u.plataforma) }}@if (u.modelo) { <span class="text-muted"> · {{ u.modelo }}</span> }
+                    @if (u.dispositivos_total > 1) { <span class="sgc-badge sgc-badge--neutral est-cnt">{{ u.dispositivos_total }}</span> }
+                  } @else { <span class="text-muted">Sin reportar</span> }
+                </td>
+                <td class="text-muted">{{ u.app_version ?? '—' }}</td>
+                <td class="text-muted">{{ u.ultimo_uso ? formatFechaHora(u.ultimo_uso) : '—' }}</td>
+                <td class="est-chevron">{{ expandido() === u.usuario_id ? '▾' : '▸' }}</td>
+              </tr>
+              @if (expandido() === u.usuario_id) {
+                <tr class="est-fila-hist">
+                  <td colspan="5">
+                    <div class="est-hist">
+                      <span class="est-hist__title text-muted">Historial de dispositivos</span>
+                      <ul class="est-hist__list">
+                        @for (h of u.historial; track h.visto_at) {
+                          <li>
+                            <span>{{ plataformaLabel(h.plataforma ?? '—') }}@if (h.modelo) { · {{ h.modelo }} }</span>
+                            <span class="text-muted">
+                              @if (h.app_version) { v{{ h.app_version }} · } {{ formatFechaHora(h.visto_at) }}@if (h.usos > 1) { · {{ h.usos }} usos }
+                            </span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
   <!-- Versiones -->
   <section class="sgc-card est-block">
     <h2 class="est-block__title">Versiones publicadas (recientes)</h2>

@@ -1,0 +1,93 @@
+<div class="page-header">
+  <div>
+    <a routerLink="/proyectos/personal" class="pob-back">← Personal de obra</a>
+    <h1 class="page-title">Expediente</h1>
+  </div>
+</div>
+
+@if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+@if (loading()) {
+  <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
+} @else if (personal(); as p) {
+  <div class="pob-exp">
+    <!-- Datos + carnet -->
+    <section class="sgc-card pob-exp__datos">
+      <div class="pob-exp__head">
+        <div>
+          <h2 class="pob-exp__nom">{{ p.nombre }} {{ p.apellido }}</h2>
+          <p class="text-muted">{{ p.cargo?.nombre ?? 'Sin cargo' }}@if (p.cargo) { · {{ p.cargo.codigo }} }</p>
+        </div>
+        @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
+        @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+      </div>
+      <dl class="pob-exp__dl">
+        <div><dt>Obra</dt><dd>{{ p.proyecto?.nombre ?? '—' }}</dd></div>
+        <div><dt>Nacionalidad</dt><dd>{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</dd></div>
+        <div><dt>Documento</dt><dd>{{ p.documento_numero ?? '—' }} <span class="text-muted">({{ p.tipo_documento }})</span></dd></div>
+        <div><dt>Teléfono</dt><dd>{{ p.telefono ?? '—' }}</dd></div>
+        <div><dt>Carnet</dt><dd>{{ p.carnet_numero ?? 'Sin emitir' }}</dd></div>
+        <div><dt>Registrado</dt><dd>{{ formatFecha(p.created_at) }}</dd></div>
+      </dl>
+      @if (p.notas) { <p class="pob-exp__notas">{{ p.notas }}</p> }
+      <div class="pob-exp__acciones">
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="editar()">Editar</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="toggleEstado()" [disabled]="saving()">
+          {{ p.estado === 'activo' ? 'Marcar inactivo' : 'Reactivar' }}
+        </button>
+      </div>
+    </section>
+
+    <!-- Carnet -->
+    <section class="sgc-card pob-exp__carnet">
+      <h3 class="pob-exp__sub">Carnet</h3>
+      <app-personal-carnet [personal]="p" [fotoDataUrl]="personaDataUrl()" [verifyUrl]="verifyUrl" />
+      <div class="pob-exp__carnet-acc">
+        @if (!p.carnet_numero) {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="emitirCarnet()" [disabled]="saving()">Emitir carnet</button>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimirCarnet()">Imprimir / PDF</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="emitirCarnet()" [disabled]="saving()">Reemitir</button>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- Galería de evidencia -->
+  <section class="sgc-card pob-exp__block">
+    <h3 class="pob-exp__sub">Evidencia fotográfica</h3>
+    <div class="pob-galeria">
+      @for (g of fotosGuia; track g.tipo) {
+        <figure class="pob-galeria__item">
+          @if (fotos()[g.tipo]; as url) {
+            <img [src]="url" [alt]="g.label" (click)="lightboxUrl.set(url)" />
+          } @else {
+            <div class="pob-galeria__missing">Sin foto</div>
+          }
+          <figcaption>{{ g.label }}</figcaption>
+        </figure>
+      }
+    </div>
+  </section>
+
+  <!-- Historial de firmas -->
+  <section class="sgc-card pob-exp__block">
+    <h3 class="pob-exp__sub">Documentos firmados</h3>
+    @if (!firmas().length) {
+      <p class="text-muted">Sin documentos firmados.</p>
+    } @else {
+      <ul class="pob-firmas">
+        @for (f of firmas(); track f.id) {
+          <li>
+            <span>{{ f.documento_nombre }}</span>
+            <span class="text-muted">{{ formatFecha(f.firmado_at) }} · {{ f.metodo === 'foto' ? 'Foto' : 'Firma' }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  @if (lightboxUrl(); as url) {
+    <app-lightbox [src]="url" alt="Evidencia" (closed)="lightboxUrl.set(null)" />
+  }
+}

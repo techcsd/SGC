@@ -135,7 +135,7 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
       {
         pregunta: '¿Qué significa cada módulo (qué puedo hacer con él)?',
         respuesta:
-          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de uso de vehículo/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Producción de Obra: la gestión diaria del gerente de producción en obra — plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real y costos, e informe semanal a Gerencia. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
+          'Inventario: artículos, entradas, salidas, almacenes, conduces y checklists de almacén. · Compras: proveedores y órdenes de compra. · RRHH: empleados, asistencia, ausencias/vacaciones y documentos de personal. · Proyectos: obras, fases, equipo, el registro de personal de obra (con carnet) y el ranking de encargados. · Flota: vehículos, mantenimientos, combustible, rutas y checklists de uso de vehículo/inspección. · Bitácora: bitácora del día de obra, visitas e incidentes, y requisiciones desde la obra. · Documentos: generar documentos desde plantillas. · Plantillas: además, crear/editar las plantillas (no solo usarlas). · Legal: expedientes, contratos y aprobaciones legales. · Tareas: asignar tareas a otras personas. · Producción de Obra: la gestión diaria del gerente de producción en obra — plan del día y charla de seguridad, no conformidades e incidentes, checklists de calidad, subcontratistas y cubicaciones, avance real y costos, e informe semanal a Gerencia. · Tecnología: homologación de herramientas oficiales, matriz por puesto, inventario tecnológico y compras de tecnología; y —para admin y el rol Tecnología— la sección de plataforma: historial de versiones, versiones de la app, reportes de errores de la app y monitoreo de infraestructura. · Dirección: vista ejecutiva del negocio. · Administración: gestionar usuarios, roles y permisos.',
       },
       {
         pregunta: '¿Quién puede asignar tareas y quién solo puede verlas?',
@@ -521,6 +521,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
     modulo: 'proyectos',
     items: [
       {
+        pregunta: '¿Cómo registro al personal de una obra (obreros, jornaleros) con su carnet?',
+        respuesta:
+          'Ve a Proyectos > Personal de obra > "Registrar personal". Es un asistente por pasos: (1) Datos — obra, nombre, cargo (varillero, carpintero, capataz, personal de la casa, etc.), nacionalidad (dominicano/haitiano/otra) y documento (cédula o pasaporte); (2) Fotos — 5 tomas guiadas: la persona, su documento, foto pegado a la pared, el carnet y la persona sosteniendo carnet+cédula (se toman con la cámara; los administradores pueden elegir de la galería); (3) Firma — el personal firma un documento (puedes elegir una plantilla de Legal o el acuerdo por defecto); (4) Carnet — el sistema emite un número único y genera el carnet imprimible con QR de verificación; (5) Resumen. Luego cada persona tiene un expediente con su galería, carnet e historial. A diferencia de RRHH, este registro es para el personal de campo de cada obra (incluye jornaleros sin nómina y con pasaporte).',
+      },
+      {
+        pregunta: '¿Quién puede registrar y ver el personal de obra?',
+        respuesta:
+          'Administración, RRHH y Gerencia ven y editan todo el personal. Los ingenieros y capataces registran y ven solo el personal de SU obra (según sean responsables o parte del equipo del proyecto). El acceso se controla con el submódulo "Proyectos → Personal de obra": un administrador puede darlo en Administración > Usuarios (permisos por submódulo) sin necesidad de dar el módulo Proyectos completo. El carnet imprimible lleva foto, cargo con su ID, obra, número y un QR que abre el expediente para verificar.',
+      },
+      {
         pregunta: '¿Cómo creo un proyecto y le asigno el Equipo de Obra?',
         respuesta:
           'Ve a Proyectos > Nuevo proyecto. Una vez creado, entra al detalle: en "Equipo de Obra" asignas los roles del procedimiento (Ingeniero Responsable, Ingeniero Residente, Capataz, Maestro de Acero, Maestro de Encofrado, Encargado de Seguridad, Guarda-Almacén, Topógrafo, cuadrillas y subcontratistas). Cada miembro puede ser un empleado de RRHH o una entidad externa (topógrafo/subcontratista). Esto también determina qué ingenieros trabajan ese proyecto en Bitácora.',
@@ -752,6 +762,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
     id: 'tecnologia',
     titulo: 'Tecnología',
     items: [
+      {
+        pregunta: '¿Puedo ver qué dispositivo usa cada usuario?',
+        respuesta:
+          'Sí. En Sistema > Estadísticas, la sección "Dispositivos por usuario" muestra, por cada persona, el dispositivo que usa (plataforma y modelo), la versión de la app y su último uso, con buscador y filtros por plataforma y por rol. Al tocar una fila se despliega el historial de sus últimos dispositivos. Es visible solo para admin y el rol Tecnología.',
+      },
       {
         pregunta: '¿Qué herramienta oficial usamos para cada cosa?',
         respuesta:

@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.76.0": {
+      "titulo": "Registro de Personal de obra con carnet y QR, dispositivos por usuario en Estadísticas y limpieza del selector de almacén",
+      "cambios": [
+        { "t": "nuevo", "d": "Registro de Personal de obra (en Proyectos): registra al personal de cada obra con su cargo, nacionalidad y documento (cédula o pasaporte), captura 5 fotos de evidencia guiadas, firma de documento y emisión de un carnet imprimible con QR de verificación que abre su expediente." },
+        { "t": "nuevo", "d": "Catálogo de cargos con ID único (varillero, carpintero, capataz, personal de la casa, etc.), administrable, que se imprime en el carnet." },
+        { "t": "nuevo", "d": "En la vista de cada proyecto ahora se ve el conteo de personal: total, por cargo y por nacionalidad." },
+        { "t": "nuevo", "d": "Estadísticas del sistema: nueva tabla de dispositivos por usuario (qué dispositivo usa cada quien, versión de la app y último uso) con buscador, filtros por plataforma y rol, e historial de los últimos dispositivos." },
+        { "t": "arreglo", "d": "Se limpió el selector de ubicación (almacén) del inventario tecnológico: ya no aparecen entradas duplicadas ni el sufijo “· Central”. Ahora hay una sola lista homologada (almacenes de obra + Bodega Central) y los datos guardados con ubicación duplicada se corrigieron." }
+      ]
+    },
     "1.73.0": {
       "titulo": "Permisos por submódulo de verdad, auditoría de roles, catálogos que no se rompen al restringir módulos, grupos de mensajes tipo WhatsApp y compartir notas más claro",
       "cambios": [

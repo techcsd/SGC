@@ -85,7 +85,7 @@ export class Movimientos implements OnInit {
         this.proyectosService.getAll(),
       ]);
       this.movimientos.set(movs);
-      this.bodegas.set(bodegas);
+      this.bodegas.set(bodegas.filter((b) => b.activo !== false)); // AR3 — sin almacenes inactivos
       this.proyectos.set(proyectos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los movimientos.');

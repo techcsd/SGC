@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { APP_VERSION } from '../../environments/version';
 
 /**
  * W12 — registra la "última vez activo" del usuario en el canal web.
@@ -28,7 +29,7 @@ export class ActividadService {
     if (!this.plataformaReportada) {
       this.plataformaReportada = true;
       void this.supabase.client
-        .rpc('set_mi_plataforma', { p_plataforma: 'web' })
+        .rpc('set_mi_plataforma', { p_plataforma: 'web', p_app_version: APP_VERSION }) // AR2 — reporta la versión web
         .then(() => undefined, () => undefined);
     }
   }

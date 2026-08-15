@@ -277,6 +277,38 @@
 
         <!-- ── Tab: Equipo y responsables ── -->
         @if (detalleTab() === 'equipo') {
+          <!-- AR1 — Personal de obra (conteos por cargo y nacionalidad) -->
+          <div class="proyectos__fases">
+            <div class="proyectos__fases-header">
+              <h3 class="proyectos__fases-title">Personal de obra</h3>
+              <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+                 [routerLink]="['/proyectos/personal']" [queryParams]="{ obra: selectedProyecto()?.id }">Ver / registrar</a>
+            </div>
+            @if (personalConteos(); as pc) {
+              <div class="pob-conteos">
+                <div class="pob-conteos__total"><b>{{ pc.total }}</b><span>personas activas</span></div>
+                <div class="pob-conteos__cols">
+                  <div>
+                    <span class="pob-conteos__lbl">Por cargo</span>
+                    @if (!pc.por_cargo.length) { <p class="text-muted">—</p> }
+                    @for (c of pc.por_cargo; track c.cargo) {
+                      <div class="pob-conteos__row"><span>{{ c.cargo }}</span><b>{{ c.total }}</b></div>
+                    }
+                  </div>
+                  <div>
+                    <span class="pob-conteos__lbl">Por nacionalidad</span>
+                    @if (!pc.por_nacionalidad.length) { <p class="text-muted">—</p> }
+                    @for (n of pc.por_nacionalidad; track n.nacionalidad) {
+                      <div class="pob-conteos__row"><span>{{ n.nacionalidad }}</span><b>{{ n.total }}</b></div>
+                    }
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <p class="proyectos__fases-empty">Sin personal registrado en esta obra todavía.</p>
+            }
+          </div>
+
           <!-- Z2 — Responsables (ingenieros firmantes de liberación) -->
           <div class="proyectos__fases">
             <div class="proyectos__fases-header">

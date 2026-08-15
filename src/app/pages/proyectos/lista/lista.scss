@@ -987,3 +987,11 @@
 .toggle-input:checked ~ .toggle-switch { background: var(--sgc-warning); }
 .toggle-input:checked ~ .toggle-switch::after { transform: translateX(18px); }
 .toggle-input:focus-visible ~ .toggle-switch { outline: 2px solid var(--sgc-primary-mid); outline-offset: 2px; }
+
+// AR1 — conteos de personal de obra
+.pob-conteos { padding: 4px 0; }
+.pob-conteos__total { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;
+  b { font-size: 26px; color: var(--sgc-primary, #ff5f00); } span { color: var(--sgc-text-muted); font-size: 13px; } }
+.pob-conteos__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.pob-conteos__lbl { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--sgc-text-muted); margin-bottom: 6px; }
+.pob-conteos__row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 3px 0; border-bottom: 1px solid #0000000d; }
