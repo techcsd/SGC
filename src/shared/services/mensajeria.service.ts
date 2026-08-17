@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { Conversacion, GrupoInfo, Mensaje, ParticipanteInfo } from '../models/mensaje.model';
+import { Conversacion, GrupoInfo, Mensaje, ParticipanteInfo, StickerPack } from '../models/mensaje.model';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MensajeriaService {
@@ -276,6 +277,89 @@ export class MensajeriaService {
     const { data, error } = await this.supabase.client.rpc('contar_mensajes_no_leidos');
     if (error) throw new Error(error.message);
     return (data as number) ?? 0;
+  }
+
+  // ── Stickers (AT16) ─────────────────────────────────────
+  /**
+   * URL usable en un <img src> para una ref de sticker. Si la ref es un asset
+   * empaquetado ('assets/…') se devuelve tal cual; si no, se construye la URL
+   * pública del bucket `sgc-stickers`.
+   */
+  stickerUrl(ref: string): string {
+    return ref.startsWith('assets/')
+      ? ref
+      : `${environment.supabaseUrl}/storage/v1/object/public/sgc-stickers/${ref}`;
+  }
+
+  /** Packs de stickers del usuario (sistema + propios) con sus stickers. */
+  async getMisStickers(): Promise<StickerPack[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_stickers');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as StickerPack[];
+  }
+
+  /** Refs de los stickers usados más recientemente (más reciente primero). */
+  async getStickersRecientes(limite = 24): Promise<string[]> {
+    const { data, error } = await this.supabase.client.rpc('stickers_recientes', { p_limite: limite });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as { ref: string; used_at: string }[]).map((r) => r.ref);
+  }
+
+  /**
+   * Envía un sticker como mensaje: inserta la fila (ref en `archivo_path`,
+   * tipo 'sticker') y registra la ref como reciente. Realtime lo entrega como
+   * cualquier otro mensaje.
+   */
+  async enviarSticker(conversacionId: string, autorId: string, ref: string): Promise<void> {
+    const { error } = await this.supabase.client.from('mensajes').insert({
+      conversacion_id: conversacionId,
+      autor_id: autorId,
+      contenido: null,
+      archivo_path: ref,
+      archivo_mime: 'image/sticker',
+      tipo: 'sticker',
+    });
+    if (error) throw new Error(error.message);
+    await this.supabase.client.rpc('registrar_sticker_reciente', { p_ref: ref });
+  }
+
+  /**
+   * Sube una imagen como sticker propio del usuario al bucket público
+   * `sgc-stickers` (primer segmento = id del usuario, exigido por el RLS de
+   * Storage) y la registra vía `agregar_sticker`. Si no se indica pack, va al
+   * pack automático "Mis stickers".
+   */
+  async subirSticker(usuarioId: string, file: File, packId?: string): Promise<void> {
+    const ext = (file.name.split('.').pop() || 'webp').toLowerCase();
+    const path = `${usuarioId}/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await this.supabase.client.storage
+      .from('sgc-stickers')
+      .upload(path, file, { upsert: false, contentType: file.type });
+    if (upErr) throw new Error(upErr.message);
+    const { error } = await this.supabase.client.rpc('agregar_sticker', {
+      p_storage_path: path,
+      p_pack_id: packId ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Crea un pack de stickers propio y devuelve su id. */
+  async crearPackSticker(nombre: string): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_pack_sticker', { p_nombre: nombre });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  /** Elimina un sticker propio. */
+  async eliminarSticker(stickerId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('eliminar_sticker', { p_sticker_id: stickerId });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Elimina un pack de stickers propio. */
+  async eliminarPackSticker(packId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('eliminar_pack_sticker', { p_pack_id: packId });
+    if (error) throw new Error(error.message);
   }
 
   /** Live INSERTs across all of the caller's visible conversations (RLS-scoped). */

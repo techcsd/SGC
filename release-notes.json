@@ -1,5 +1,22 @@
 {
   "web": {
+    "1.79.0": {
+      "titulo": "Stickers en el chat (pack básico + crea los tuyos), almacenes relacionados a sus obras y ayuda actualizada",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Stickers en la mensajería (como WhatsApp): hay un pack básico y, además, cada usuario puede subir sus propias imágenes como stickers y organizarlas en packs. El botón de stickers está en la barra de escribir; también quedan tus stickers recientes."
+        },
+        {
+          "t": "mejora",
+          "d": "Almacenes: los almacenes que aparecían sin obra quedaron relacionados a su obra correspondiente."
+        },
+        {
+          "t": "mejora",
+          "d": "Ayuda (Dudas): se actualizó con Recorrido diario, Vehículos en uso, los cambios del chat (separadores, no leídos, vista previa de imágenes y stickers) y el modo de datos de prueba en Apertura."
+        }
+      ]
+    },
     "1.78.0": {
       "titulo": "Recorrido diario de cada chofer en el mapa, seguimiento solo de quien comparte ubicación, chat con separadores de fecha y vista previa de imágenes, y Vehículos en uso",
       "cambios": [

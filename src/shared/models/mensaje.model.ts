@@ -31,8 +31,27 @@ export interface Mensaje {
   archivo_nombre: string | null;
   archivo_mime: string | null;
   created_at: string;
-  /** 'sistema' → evento de grupo (alguien entró/salió, se cambió el nombre…). */
-  tipo?: 'texto' | 'sistema';
+  /** 'sistema' → evento de grupo (alguien entró/salió, se cambió el nombre…).
+   *  'sticker' → el mensaje es un sticker (ref guardado en archivo_path). */
+  tipo?: 'texto' | 'sistema' | 'sticker';
+}
+
+// ── Stickers (AT16) ────────────────────────────────────────
+export interface Sticker {
+  id: string;
+  /** Ref del sticker. Si `es_asset`, es una ruta de asset empaquetado
+   *  ('assets/stickers/…'); si no, es un path dentro del bucket público
+   *  `sgc-stickers`. Convertir a URL con `MensajeriaService.stickerUrl`. */
+  ref: string;
+  es_asset: boolean;
+}
+
+export interface StickerPack {
+  id: string;
+  nombre: string;
+  es_sistema: boolean;
+  orden: number;
+  stickers: Sticker[];
 }
 
 // ── Group management (grupo_info RPC) ──────────────────────

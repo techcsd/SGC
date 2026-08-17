@@ -17,7 +17,7 @@ import { MensajeriaService } from '../../../shared/services/mensajeria.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
 import { ToastService } from '../../../shared/services/toast.service';
-import { Conversacion, Mensaje } from '../../../shared/models/mensaje.model';
+import { Conversacion, Mensaje, StickerPack } from '../../../shared/models/mensaje.model';
 import { formatFechaMedia, timestampLocalIso, todayIso, daysAgoIso } from '../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
@@ -64,6 +64,30 @@ export class Mensajes implements OnInit, OnDestroy {
   searchQuery = signal('');
   composer = new FormControl('');
   pendingFile = signal<File | null>(null);
+
+  // ── AT16 — stickers ──────────────────────────────────────
+  stickerPickerOpen = signal(false);
+  stickerPacks = signal<StickerPack[]>([]);
+  stickerRecientes = signal<string[]>([]);
+  stickerTab = signal<string>('recientes'); // 'recientes' | id de pack
+  stickerLoading = signal(false);
+  stickerUploading = signal(false);
+  private stickersCargados = false;
+
+  /** Packs ordenados: el/los de sistema primero (p.ej. "Básico"), luego por `orden`. */
+  stickerPacksOrdenados = computed(() =>
+    [...this.stickerPacks()].sort((a, b) => {
+      if (a.es_sistema !== b.es_sistema) return a.es_sistema ? -1 : 1;
+      return a.orden - b.orden;
+    }),
+  );
+
+  /** Stickers del pack activo (vacío cuando la pestaña activa es "recientes"). */
+  stickerPackActivo = computed<StickerPack | null>(() => {
+    const tab = this.stickerTab();
+    if (tab === 'recientes') return null;
+    return this.stickerPacks().find((p) => p.id === tab) ?? null;
+  });
 
   // Group-info drawer
   grupoInfoOpen = signal(false);
@@ -407,6 +431,82 @@ export class Mensajes implements OnInit, OnDestroy {
       this.lightbox.set(url);
     } catch (e: unknown) {
       this.toast.error('No se pudo abrir la imagen', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  // ── AT16 — stickers ──────────────────────────────────────
+  /** URL de una ref de sticker (delegada al servicio). */
+  stickerUrl(ref: string): string {
+    return this.mensajeria.stickerUrl(ref);
+  }
+
+  /** Abre/cierra el selector de stickers; carga packs y recientes en la 1ª apertura. */
+  toggleStickerPicker() {
+    const abrir = !this.stickerPickerOpen();
+    this.stickerPickerOpen.set(abrir);
+    if (abrir && !this.stickersCargados) void this.loadStickers();
+  }
+
+  private async loadStickers() {
+    this.stickerLoading.set(true);
+    try {
+      const [packs, recientes] = await Promise.all([
+        this.mensajeria.getMisStickers(),
+        this.mensajeria.getStickersRecientes(),
+      ]);
+      this.stickerPacks.set(packs);
+      this.stickerRecientes.set(recientes);
+      this.stickersCargados = true;
+    } catch (e: unknown) {
+      this.toast.error('No se pudieron cargar los stickers', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.stickerLoading.set(false);
+    }
+  }
+
+  /** Envía un sticker al hilo abierto (realtime lo entrega); refresca recientes local. */
+  async enviarStickerMsg(ref: string) {
+    const conv = this.selectedConv();
+    if (!conv) return;
+    try {
+      await this.mensajeria.enviarSticker(conv.id, this.miId, ref);
+      // Sube el ref al frente de recientes (sin duplicar) para reflejarlo al instante.
+      this.stickerRecientes.update((list) => [ref, ...list.filter((r) => r !== ref)]);
+      this.stickerPickerOpen.set(false);
+      await this.refreshConversaciones();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo enviar el sticker', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  /** Sube una imagen como sticker propio y recarga los packs. */
+  async onStickerFile(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || this.stickerUploading()) return;
+    this.stickerUploading.set(true);
+    try {
+      // Si el pack activo es propio, súbelo ahí; si no, al pack automático.
+      const activo = this.stickerPackActivo();
+      const packId = activo && !activo.es_sistema ? activo.id : undefined;
+      await this.mensajeria.subirSticker(this.miId, file, packId);
+      this.stickerPacks.set(await this.mensajeria.getMisStickers());
+      this.toast.success('Sticker agregado');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo subir el sticker', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.stickerUploading.set(false);
+      input.value = ''; // permite re-subir el mismo archivo
+    }
+  }
+
+  /** Elimina un sticker propio y recarga los packs. */
+  async eliminarStickerLocal(stickerId: string) {
+    try {
+      await this.mensajeria.eliminarSticker(stickerId);
+      this.stickerPacks.set(await this.mensajeria.getMisStickers());
+    } catch (e: unknown) {
+      this.toast.error('No se pudo eliminar el sticker', e instanceof Error ? e.message : undefined);
     }
   }
 

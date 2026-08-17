@@ -187,6 +187,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         respuesta:
           'Sí. Al editar o crear un rol, abre "Permisos por submódulo (avanzado)". Ahí puedes dar un submódulo específico en nivel "Ver" u "Operar" sin marcar el módulo completo — por ejemplo Compras → Proveedores → Ver, y el usuario verá solo Proveedores, nada más de Compras. Si marcas el módulo padre completo, todos sus submódulos quedan en "Operar" automáticamente (por eso los roles actuales no cambian su acceso). El gateo fino por submódulo se está extendiendo módulo por módulo; hoy funciona de punta a punta en Compras → Proveedores y en Producción de Obra (así el Capataz opera solo Plan del día, No conformidades y Checklists).',
       },
+      {
+        pregunta: 'Un usuario tiene varios roles, ¿cómo veo la suma real de lo que puede hacer? (administradores)',
+        respuesta:
+          '"Ver accesos efectivos" (en Administración > Usuarios/Roles) muestra la suma real de accesos —módulos, submódulos y nivel Ver/Operar— de todos los roles de un usuario. Es útil para auditar exactamente a qué llega antes de cambiarle los roles.',
+      },
     ],
   },
   {
@@ -254,6 +259,21 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Los mensajes llegan en tiempo real?',
         respuesta:
           'Sí. Los mensajes aparecen al instante sin recargar, y si no estás en la pantalla de Mensajes verás un aviso emergente con el número de no leídos junto a "Mensajes" en el menú.',
+      },
+      {
+        pregunta: '¿Cómo se organizan los mensajes por fecha y dónde me deja al abrir un chat?',
+        respuesta:
+          'La conversación muestra separadores de fecha (Hoy, Ayer y las fechas anteriores) para ubicarte fácil. Al abrir un chat, te lleva directo al primer mensaje sin leer, así retomas justo donde te quedaste.',
+      },
+      {
+        pregunta: '¿Cómo se ven las imágenes que me envían?',
+        respuesta:
+          'Las imágenes se ven como vista previa dentro del propio mensaje. Al tocarlas se abren en grande para verlas con detalle.',
+      },
+      {
+        pregunta: '¿Puedo usar stickers y subir los míos?',
+        respuesta:
+          'Sí. Hay un pack básico de stickers y, además, cada usuario puede subir sus propias imágenes como stickers y organizarlas en packs (como en WhatsApp). El botón de stickers está en la barra de escribir.',
       },
     ],
   },
@@ -394,6 +414,11 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
         pregunta: '¿Qué son los "datos de prueba" y por qué a veces no los veo?',
         respuesta:
           'Para practicar sin ensuciar la información real, casi todo (proyectos, almacenes, empleados, proveedores, órdenes, artículos, activos, vehículos, conductores…) puede marcarse como "dato de prueba". Los datos de prueba quedan OCULTOS para los usuarios normales — solo un administrador puede verlos, activando "Mostrar datos de prueba". Cuando marcas algo como prueba, lo relacionado (sus bitácoras, salidas, órdenes, etc.) se marca en cascada; y al eliminar un dato de prueba se limpia todo lo que dependía de él.',
+      },
+      {
+        pregunta: 'Al dar apertura de inventario, ¿por qué no me aparecen los almacenes de prueba?',
+        respuesta:
+          'La apertura solo lista los almacenes reales. Si eres administrador y quieres incluir los almacenes de prueba al dar apertura, activa "Mostrar datos de prueba" — con eso aparecen también los almacenes marcados como prueba.',
       },
       {
         pregunta: '¿Cómo hago el chequeo semanal de un almacén?',
@@ -647,6 +672,16 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'El mapa (Flota > Seguimiento) tiene una leyenda abajo a la izquierda con el color de cada estado del chofer: Disponible (verde), En ruta (azul), Almuerzo (naranja), Descanso (gris), Inactivo (gris oscuro) y Otros (morado), con el conteo de cada uno. El pin marca la última posición reportada; si un chofer no ha reportado GPS sale "sin ubicación", y si reportó hace rato verás "hace X min". El contador "en ruta" del encabezado cuadra con la lista de choferes.',
       },
       {
+        pregunta: '¿Quiénes aparecen en el mapa de Seguimiento?',
+        respuesta:
+          'En el mapa de Seguimiento solo aparecen los choferes y el jefe de flota (quienes comparten ubicación). Los demás usuarios no aparecen en el mapa, aunque tengan la app abierta.',
+      },
+      {
+        pregunta: '¿Puedo ver el recorrido que hizo un chofer en un día?',
+        respuesta:
+          'Sí. En Flota > Recorrido diario eliges un chofer y una fecha y ves en el mapa el recorrido que hizo ese día (tipo Google Maps Timeline), aunque no haya estado en una ruta — se dibuja con las posiciones que captura su teléfono durante la jornada. Es solo para el jefe de flota y administradores.',
+      },
+      {
         pregunta: '¿Dónde subo la cédula y licencia de un conductor, o el seguro y matrícula de un vehículo?',
         respuesta:
           'En dos lugares. (1) Al CREAR/editar el conductor, el formulario ahora deja adjuntar la cédula y la licencia de forma opcional (se suben al guardar; no bloquean si faltan). (2) En el perfil: Conductores > (abre el conductor) → sección "Documentos", con espacios destacados para Cédula y Licencia (marca "Falta documento" si aún no están). Vehículos: Flota > Vehículos > (abre el vehículo) → "Documentos", con Seguro y Matrícula destacados. Al subir ves una miniatura (vista previa) del documento y puedes subir varias fotos por documento — por ejemplo la licencia por su frente y su dorso. Puedes verlos, descargarlos y (admin/Flota) eliminar cada uno.',
@@ -697,14 +732,19 @@ export const DUDAS_CATEGORIAS: DudaCategoria[] = [
           'Ya está corregido: "Mi proyecto" ahora muestra las obras donde eres el responsable del proyecto O donde estás en el equipo (tengas o no ficha de empleado). Si aún no ves una obra, pide a tu supervisor que te ponga como responsable o te agregue al equipo del proyecto.',
       },
       {
+        pregunta: '¿Qué es "Vehículos en uso" en Flota?',
+        respuesta:
+          'Flota > Vehículos en uso (antes "Responsabilidad") es un panel visual de la flota que muestra qué vehículo está en uso y por quién ahora mismo (foto, identificación, estado, gasolina y km del último uso), con acceso al mapa, al perfil y al historial de entregas.',
+      },
+      {
         pregunta: '¿La entrega/recepción de un vehículo guarda dónde se hizo (GPS)?',
         respuesta:
-          'Sí. En Flota > Responsabilidad, al abrir una entrega/recepción se muestra un mini-mapa con el punto y la hora en que se capturó, más un enlace "Ver en mapa". Si al capturarla no había permiso de ubicación, verás "Sin ubicación registrada".',
+          'Sí. En Flota > Vehículos en uso, al abrir una entrega/recepción se muestra un mini-mapa con el punto y la hora en que se capturó, más un enlace "Ver en mapa". Si al capturarla no había permiso de ubicación, verás "Sin ubicación registrada".',
       },
       {
         pregunta: '¿Puedo registrar una entrega/recepción de vehículo desde la web (no solo desde el celular)?',
         respuesta:
-          'Sí. En Flota > Responsabilidad usa "Registrar entrega/recepción". Eliges si es recepción (recibes el vehículo) o devolución (lo entregas), el vehículo, el kilometraje y el combustible, tomas o adjuntas las 6 fotos guiadas (frente, atrás, ambos lados, tablero y combustible — son obligatorias), marcas daños si los hay, y opcionalmente capturas tu ubicación (GPS del navegador) y la firma. Quedas registrado como el conductor responsable, igual que en la app de campo.',
+          'Sí. En Flota > Vehículos en uso usa "Registrar entrega/recepción". Eliges si es recepción (recibes el vehículo) o devolución (lo entregas), el vehículo, el kilometraje y el combustible, tomas o adjuntas las 6 fotos guiadas (frente, atrás, ambos lados, tablero y combustible — son obligatorias), marcas daños si los hay, y opcionalmente capturas tu ubicación (GPS del navegador) y la firma. Quedas registrado como el conductor responsable, igual que en la app de campo.',
       },
       {
         pregunta: '¿Puedo adjuntar fotos y firma a un checklist desde la computadora (no solo desde el celular)?',
