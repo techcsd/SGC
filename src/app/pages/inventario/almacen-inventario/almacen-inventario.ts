@@ -9,6 +9,12 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { KardexModal } from '../kardex-modal/kardex-modal';
+import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
+import { Articulo } from '../../../../shared/models/articulo.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 
 /**
  * AP2 — Inventario de un almacén específico: lista de artículos con existencias,
@@ -18,7 +24,7 @@ import { KardexModal } from '../kardex-modal/kardex-modal';
  */
 @Component({
   selector: 'app-almacen-inventario',
-  imports: [DecimalPipe, RouterLink, KardexModal],
+  imports: [DecimalPipe, RouterLink, KardexModal, FormDrawer, ArticuloPicker],
   templateUrl: './almacen-inventario.html',
   styleUrl: './almacen-inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,8 +35,12 @@ export class AlmacenInventario implements OnInit {
   private bodegasService = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private articulosService = inject(ArticulosService);
+  private categoriasService = inject(CategoriasService);
 
   esAdmin = computed(() => this.userService.hasRole('admin'));
+  // AS11 — quién edita stock/agrega artículos: admin o módulo inventario.
+  puedeEditar = computed(() => this.esAdmin() || this.userService.hasModulo('inventario'));
 
   bodegaId = signal<string>('');
   bodegaNombre = signal<string>('');
@@ -121,6 +131,91 @@ export class AlmacenInventario implements OnInit {
     this.kardexArticulo.set({ id: i.articulo_id, nombre: i.nombre });
   }
   cerrarKardex() { this.kardexArticulo.set(null); }
+
+  /** AS11 — ajustar stock de un artículo (conteo/ajuste, deja traza). */
+  async ajustar(i: InventarioAlmacenItem) {
+    if (!this.puedeEditar()) return;
+    const actual = i.cantidad ?? 0;
+    const entrada = window.prompt(
+      `Ajustar existencia de "${i.nombre}" en este almacén.\n` +
+        `Se registra como ajuste en "Conteos y ajustes" (con traza), a diferencia de la apertura.`,
+      String(actual),
+    );
+    if (entrada == null) return;
+    const nueva = Number(entrada);
+    if (Number.isNaN(nueva) || nueva < 0) {
+      this.toast.error('Cantidad inválida.');
+      return;
+    }
+    if (nueva === actual) return;
+    try {
+      await this.service.ajustarStock(i.articulo_id, this.bodegaId(), nueva);
+      this.toast.success('Existencia ajustada.', 'Se registró en Conteos y ajustes.');
+      await this.load(this.bodegaId());
+    } catch (e: unknown) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo ajustar la existencia.');
+    }
+  }
+
+  // ── AS11 — agregar un artículo del catálogo a este almacén ──
+  addOpen = signal(false);
+  catalogo = signal<Articulo[]>([]);
+  categoriasCatalogo = signal<Categoria[]>([]);
+  addArticuloId = signal<string | null>(null);
+  addCantidad = signal<number | null>(null);
+  addSaving = signal(false);
+  addError = signal('');
+
+  async abrirAgregar() {
+    if (!this.puedeEditar()) return;
+    this.addArticuloId.set(null);
+    this.addCantidad.set(null);
+    this.addError.set('');
+    this.addOpen.set(true);
+    if (this.catalogo().length === 0) {
+      try {
+        const [arts, cats] = await Promise.all([
+          this.articulosService.getAll(),
+          this.categoriasService.getAll(),
+        ]);
+        this.catalogo.set(arts);
+        this.categoriasCatalogo.set(cats);
+      } catch {
+        /* el catálogo se puede reintentar */
+      }
+    }
+  }
+  cerrarAgregar() {
+    if (!this.addSaving()) this.addOpen.set(false);
+  }
+  onAddArticulo(sel: ArticuloPickerSelection) {
+    this.addArticuloId.set(sel.articuloId);
+  }
+  async guardarAgregar() {
+    if (this.addSaving()) return;
+    const artId = this.addArticuloId();
+    const cant = Number(this.addCantidad());
+    if (!artId) {
+      this.addError.set('Selecciona un artículo del catálogo.');
+      return;
+    }
+    if (!Number.isFinite(cant) || cant < 0) {
+      this.addError.set('Indica una cantidad válida.');
+      return;
+    }
+    this.addSaving.set(true);
+    this.addError.set('');
+    try {
+      await this.service.ajustarStock(artId, this.bodegaId(), cant, 'Alta de artículo en el almacén');
+      this.addOpen.set(false);
+      this.toast.success('Artículo agregado al almacén.');
+      await this.load(this.bodegaId());
+    } catch (e: unknown) {
+      this.addError.set(e instanceof Error ? e.message : 'No se pudo agregar el artículo.');
+    } finally {
+      this.addSaving.set(false);
+    }
+  }
 
   /** AP5 — editar apertura (solo admin). */
   async editarApertura(i: InventarioAlmacenItem) {

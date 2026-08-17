@@ -15,6 +15,7 @@ import { UserService } from '../../../../app/core/services/user.service';
 import { formatFechaDisplay, formatTimestampDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
+import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 interface ItemCierre {
@@ -29,7 +30,7 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
 
 @Component({
   selector: 'app-conduce',
-  imports: [Skeleton, SignaturePad, RouterLink],
+  imports: [Skeleton, SignaturePad, RouterLink, Lightbox],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,6 +66,7 @@ export class Conduce implements OnInit {
     entregado: { label: 'Entregado', badge: 'success' },
     confirmado: { label: 'Confirmado', badge: 'success' },
     pendiente_firma: { label: 'Pendiente de firma', badge: 'warning' },
+    pendiente_firma_despachante: { label: 'Pendiente de firma del despachante', badge: 'warning' },
   };
   faseMeta = computed(() => {
     const f = this.fase();
@@ -78,6 +80,8 @@ export class Conduce implements OnInit {
   // AC7 — firmas canónicas del conduce (emisor entrega / receptor recibe), con su URL firmada.
   firmaEmisor = signal<FirmaConUrl | null>(null);
   firmaReceptor = signal<FirmaConUrl | null>(null);
+  // AS5 — foto de evidencia en grande (lightbox).
+  fotoLightbox = signal<string | null>(null);
 
   // ── Cierre de conduce por el chofer (paridad app de campo) ──
   mostrarCierre = signal(false);
@@ -98,6 +102,12 @@ export class Conduce implements OnInit {
   private firmaPad = viewChild<SignaturePad>('firmaPad');
 
   puedeCerrar = computed(() => this.salida()?.estado === 'despachado');
+
+  // AS3 — despachante ("Entregado por"). AS2 — pendiente de firma remota.
+  despachanteNombre = computed(() => this.salida()?.despachante_nombre?.trim() || null);
+  firmaDespachantePendiente = computed(
+    () => !!this.salida()?.despachante_usuario_id && !this.firmaEmisor(),
+  );
 
   // AQ10 — Eliminar (anular) conduce: solo mientras pendiente (despachado, sin
   // recibir) y solo el emisor o un admin (el servidor lo reimpone). El botón es

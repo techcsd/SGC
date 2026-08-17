@@ -46,6 +46,26 @@ export class AvisosFlotaService {
     if (error) throw new Error(error.message);
   }
 
+  /**
+   * AS15 — marca en lote avisos pendientes como atendidos. Respeta los filtros
+   * activos (tipo/vehículo) o una lista explícita de ids. Devuelve cuántos tocó.
+   */
+  async atenderMasivo(opts: {
+    ids?: string[] | null;
+    tipo?: string | null;
+    vehiculoId?: string | null;
+    nota?: string | null;
+  }): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('atender_avisos_flota', {
+      p_ids: opts.ids ?? null,
+      p_tipo: opts.tipo ?? null,
+      p_vehiculo_id: opts.vehiculoId ?? null,
+      p_nota: opts.nota ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
   async countPendientes(): Promise<number> {
     const { count, error } = await this.supabase.client
       .from('avisos_flota')

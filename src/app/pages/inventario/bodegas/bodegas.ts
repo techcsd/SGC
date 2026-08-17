@@ -81,6 +81,8 @@ export class Bodegas implements OnInit {
     es_principal: new FormControl<boolean>(false),
     latitud: new FormControl<number | null>(null),
     longitud: new FormControl<number | null>(null),
+    // AS12 — heredar la ubicación de la obra vinculada (se sincroniza).
+    heredar_ubicacion: new FormControl<boolean>(false),
     es_prueba: new FormControl<boolean>(false),
   });
 
@@ -210,6 +212,7 @@ export class Bodegas implements OnInit {
       es_principal: false,
       latitud: null,
       longitud: null,
+      heredar_ubicacion: false,
       es_prueba: false,
     });
     this.drawerOpen.set(true);
@@ -227,6 +230,7 @@ export class Bodegas implements OnInit {
       es_principal: bodega.es_principal ?? false,
       latitud: bodega.latitud ?? null,
       longitud: bodega.longitud ?? null,
+      heredar_ubicacion: (bodega as { ubicacion_hereda_proyecto?: boolean }).ubicacion_hereda_proyecto ?? false,
       es_prueba: bodega.es_prueba ?? false,
     });
     this.drawerOpen.set(true);
@@ -258,12 +262,32 @@ export class Bodegas implements OnInit {
 
     try {
       const id = this.editingId();
+      let bodegaId = id;
       if (id) {
         const updated = await this.bodegasService.update(id, payload);
         this.bodegas.update((list) => list.map((b) => (b.id === id ? updated : b)));
       } else {
         const created = await this.bodegasService.create(payload);
+        bodegaId = created.id;
         this.bodegas.update((list) => [created, ...list]);
+      }
+      // AS12 — fija la ubicación con semántica hereda-proyecto | propia.
+      const proyId = this.form.value.proyecto_id ?? null;
+      const heredar = this.form.value.heredar_ubicacion ?? false;
+      const lat = this.form.value.latitud ?? null;
+      const lng = this.form.value.longitud ?? null;
+      if (bodegaId) {
+        try {
+          if (proyId && heredar) {
+            await this.bodegasService.setUbicacion(bodegaId, { proyectoId: proyId });
+          } else if (lat != null && lng != null) {
+            await this.bodegasService.setUbicacion(bodegaId, {
+              lat, lng, direccion: this.form.value.ubicacion ?? null, metodo: 'coords',
+            });
+          }
+        } catch {
+          /* la ubicación es complementaria; el almacén ya se guardó */
+        }
       }
       this.drawerOpen.set(false);
     } catch (e: unknown) {

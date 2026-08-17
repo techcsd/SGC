@@ -56,6 +56,8 @@ interface NavSubItem {
   flotaElevado?: boolean;
   /** Y11 — solo visible para admin | rol tecnologia (módulo Tecnología de plataforma). */
   soloTecnologia?: boolean;
+  /** AS10 — solo visible para admin (herramientas admin como Apertura). */
+  soloAdmin?: boolean;
   /** AG12 — visible si el usuario puede VER este submódulo (permiso granular). */
   submodulo?: string;
 }
@@ -141,6 +143,7 @@ export class Shell implements OnInit {
         { label: 'Conduces', route: '/inventario/conduces', submodulo: 'inventario.salidas' },
         { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones', submodulo: 'inventario.salidas' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
+        { label: 'Apertura de inventario', route: '/inventario/apertura', soloAdmin: true },
         { label: 'Reposición', route: '/inventario/reposicion', submodulo: 'inventario.articulos' },
         { label: 'Almacenes', route: '/inventario/bodegas', submodulo: 'inventario.articulos' },
         { label: 'Reportes', route: '/inventario/reportes', submodulo: 'inventario.salidas' },
@@ -368,6 +371,8 @@ export class Shell implements OnInit {
     if (child.flotaElevado && !this.userService.esFlotaElevado()) return false;
     // Y11 — submódulos de plataforma solo para admin | rol tecnologia.
     if (child.soloTecnologia && !this.userService.esTecnologia()) return false;
+    // AS10 — herramientas admin (Apertura de inventario).
+    if (child.soloAdmin && !this.userService.hasRole('admin')) return false;
     // AG12 — submódulo con permiso granular (p. ej. Proveedores).
     if (child.submodulo) {
       return this.userService.esFlotaElevado() || this.userService.puedeVerSubmodulo(child.submodulo);

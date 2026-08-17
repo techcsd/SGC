@@ -1,0 +1,47 @@
+.cimport__drop {
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.cimport__file { cursor: pointer; }
+.cimport__filename { color: var(--main-ultra-light); }
+.cimport__hint {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--main-ultra-light);
+}
+
+.cimport__resumen {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+
+.cimport__hoja {
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.cimport__hoja-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.cimport__hoja-title { margin: 0; font-size: 1.05rem; }
+.cimport__hoja-count { color: var(--main-ultra-light); margin-right: auto; }
+
+.cimport__warn {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: var(--Hub);
+}
+
+.cimport__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}

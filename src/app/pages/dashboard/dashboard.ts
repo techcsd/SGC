@@ -58,6 +58,13 @@ export class Dashboard implements OnInit {
   // que active el toggle global. `verPrueba` gobierna las queries de KPIs.
   mostrarPrueba = this.datosPruebaViewSvc.ver;
   verPrueba = computed(() => this.userService.hasRole('admin') && this.mostrarPrueba());
+
+  // AS8 — usuario SIN rol/módulos: entra igual y usa los módulos globales (Notas,
+  // Tareas, Mensajes, Dudas, Reportar problema). Se le muestra un banner
+  // informativo (no un bloqueo). No aplica a admin.
+  sinRol = computed(
+    () => (this.userService.modulos()?.length ?? 0) === 0 && !this.userService.hasRole('admin'),
+  );
   private kpisCargados = false;
 
   constructor() {

@@ -23,6 +23,24 @@ export class CronogramaService {
     return (data ?? []).map((r) => (r as { nombre: string }).nombre);
   }
 
+  /** AS21 — importa/actualiza el cronograma de una torre/etapa (fase) desde el
+   *  parseo de un Excel. Reemplaza la fase al confirmar (default). */
+  async importar(
+    proyectoId: string,
+    faseNombre: string,
+    tareas: Record<string, unknown>[],
+    reemplazar = true,
+  ): Promise<{ fase_id: string; torre: string; reemplazadas: number; creadas: number; lote: string }> {
+    const { data, error } = await this.supabase.client.rpc('cronograma_importar', {
+      p_proyecto_id: proyectoId,
+      p_fase_nombre: faseNombre,
+      p_tareas: tareas,
+      p_reemplazar: reemplazar,
+    });
+    if (error) throw new Error(error.message);
+    return data as { fase_id: string; torre: string; reemplazadas: number; creadas: number; lote: string };
+  }
+
   async listar(proyectoId: string): Promise<CronogramaData> {
     const { data, error } = await this.supabase.client.rpc('listar_cronograma', {
       p_proyecto_id: proyectoId,

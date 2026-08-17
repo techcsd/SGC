@@ -1,0 +1,95 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/inventario/bodegas" class="page__back">← Almacenes</a>
+      <h1 class="page__title">Apertura de inventario</h1>
+      <p class="page__sub">Fija el piso inicial de existencias por almacén (solo admin).</p>
+    </div>
+  </header>
+
+  <div class="sgc-card apertura__intro">
+    <p>
+      La <strong>apertura</strong> es el punto de partida del inventario mientras se levanta el stock real.
+      No genera movimientos, no aparece en el kardex y al ajustarla la existencia se re-basa
+      <strong>sin caída</strong> en las gráficas. Úsala para poner un piso (p. ej. 1,000) y luego
+      corrígela a la cantidad real desde aquí o desde el inventario del almacén.
+    </p>
+  </div>
+
+  <div class="filters-bar">
+    <div class="sgc-field filters-bar__select">
+      <label for="almacen">Almacén</label>
+      <select id="almacen" [value]="bodegaId()" (change)="onAlmacen($any($event.target).value)">
+        <option value="">Selecciona un almacén…</option>
+        @for (a of almacenes(); track a.id) {
+          <option [value]="a.id">{{ a.nombre }}@if (a.es_central) { · Central }</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (bodegaId()) {
+    <!-- Controles de lote -->
+    <div class="sgc-card apertura__lote">
+      <div class="apertura__lote-row">
+        <div class="sgc-field">
+          <label for="cant">Cantidad de apertura</label>
+          <input id="cant" type="number" step="any" min="0" [value]="cantidadLote()"
+            (input)="cantidadLote.set($any($event.target).valueAsNumber)" />
+        </div>
+        <label class="apertura__toggle">
+          <input type="checkbox" [checked]="soloFaltantes()" (change)="soloFaltantes.set($any($event.target).checked)" />
+          Solo artículos sin apertura ({{ sinApertura() }})
+        </label>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="aplicandoLote()" (click)="aplicarLote()">
+          @if (aplicandoLote()) { Aplicando… } @else { Aplicar a todo el almacén }
+        </button>
+      </div>
+      <small class="sgc-field__hint">
+        Botón rápido de piso inicial: pon 1,000 y "Solo sin apertura" para no pisar aperturas ya fijadas.
+      </small>
+    </div>
+
+    <div class="filters-bar">
+      <div class="sgc-field filters-bar__search">
+        <input type="search" [value]="search()" (input)="search.set($any($event.target).value)"
+               placeholder="Buscar artículo…" aria-label="Buscar artículo" />
+      </div>
+    </div>
+
+    @if (loading()) {
+      <p class="page__loading">Cargando inventario…</p>
+    } @else if (filtrados().length === 0) {
+      <p class="page__empty">No hay artículos para este almacén.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Apertura por artículo">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Artículo</th>
+              <th class="text-right">Existencia</th>
+              <th class="text-right">Apertura</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of filtrados(); track i.articulo_id) {
+              <tr>
+                <td class="text-muted">{{ i.codigo ?? '—' }}</td>
+                <td>{{ i.nombre }}</td>
+                <td class="text-right">{{ i.cantidad | number:'1.0-2' }}</td>
+                <td class="text-right">{{ i.apertura | number:'1.0-2' }}</td>
+                <td class="text-right">
+                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="editar(i)">Editar</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  } @else {
+    <p class="page__empty">Selecciona un almacén para fijar su apertura.</p>
+  }
+</section>

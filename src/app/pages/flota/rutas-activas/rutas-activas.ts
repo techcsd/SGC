@@ -14,9 +14,10 @@ import {
   ChoferEstado,
   RutaActiva,
   UltimaPosicion,
+  RutaHistorialRow,
+  TrackingDiagnosticoRow,
 } from '../../../../shared/services/seguimiento.service';
-import { RutasService } from '../../../../shared/services/rutas.service';
-import { Ruta } from '../../../../shared/models/ruta.model';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 type Tab = 'activas' | 'historico';
@@ -58,7 +59,6 @@ interface ChoferRuta {
 })
 export class RutasActivas implements OnInit, OnDestroy {
   private seguimiento = inject(SeguimientoService);
-  private rutasService = inject(RutasService);
   formatFecha = formatFechaDisplay;
   readonly ESTADO_META = ESTADO_META;
 
@@ -69,7 +69,15 @@ export class RutasActivas implements OnInit, OnDestroy {
   private estados = signal<ChoferEstadoRow[]>([]);
   private rutasActivas = signal<RutaActiva[]>([]);
   private posiciones = signal<UltimaPosicion[]>([]);
-  historico = signal<Ruta[]>([]);
+  historico = signal<RutaHistorialRow[]>([]);
+
+  // AS1 — Realtime: empuja nuevas posiciones al vivo (no snapshot congelado).
+  private canal: RealtimeChannel | null = null;
+
+  // AS1 — panel de diagnóstico del pipeline de tracking (contadores AK13).
+  diagOpen = signal(false);
+  diag = signal<TrackingDiagnosticoRow[]>([]);
+  diagLoading = signal(false);
 
   // Reloj para "duración corriendo" y "hace X min" (no usar globals en template).
   private now = signal<number>(0);
@@ -86,10 +94,22 @@ export class RutasActivas implements OnInit, OnDestroy {
     this.now.set(Date.now());
     this.timer = setInterval(() => this.now.set(Date.now()), 30_000);
     this.load();
+    // AS1 — Realtime: cada nueva posición actualiza el vivo (raíz del "hace 144h").
+    this.canal = this.seguimiento.subscribePosiciones((row) => {
+      this.posiciones.update((list) => {
+        const i = list.findIndex((p) => p.usuario_id === row.usuario_id);
+        if (i === -1) return [...list, row];
+        const next = [...list];
+        next[i] = { ...next[i], ...row };
+        return next;
+      });
+      this.now.set(Date.now());
+    });
   }
 
   ngOnDestroy() {
     if (this.timer) clearInterval(this.timer);
+    if (this.canal) this.seguimiento.removeChannel(this.canal);
   }
 
   private async load() {
@@ -100,7 +120,7 @@ export class RutasActivas implements OnInit, OnDestroy {
         this.seguimiento.getChoferesEstado(),
         this.seguimiento.getRutasActivas(),
         this.seguimiento.getPosiciones().catch(() => []),
-        this.rutasService.getAll().catch(() => []),
+        this.seguimiento.getRutasHistorial().catch(() => []),
       ]);
       this.estados.set(estados);
       this.rutasActivas.set(activas);
@@ -110,6 +130,22 @@ export class RutasActivas implements OnInit, OnDestroy {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las rutas.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  // AS1 — abre/carga el panel de diagnóstico del pipeline de tracking.
+  async toggleDiag() {
+    const next = !this.diagOpen();
+    this.diagOpen.set(next);
+    if (next && this.diag().length === 0) {
+      this.diagLoading.set(true);
+      try {
+        this.diag.set(await this.seguimiento.getTrackingDiagnostico());
+      } catch {
+        /* el diagnóstico es complementario */
+      } finally {
+        this.diagLoading.set(false);
+      }
     }
   }
 
@@ -145,14 +181,14 @@ export class RutasActivas implements OnInit, OnDestroy {
   obras = computed(() => {
     const m = new Map<string, string>();
     for (const r of this.historico()) {
-      if (r.destino_proyecto_id && r.destino_proyecto?.nombre) m.set(r.destino_proyecto_id, r.destino_proyecto.nombre);
+      if (r.destino_proyecto_id && r.obra) m.set(r.destino_proyecto_id, r.obra);
     }
     return [...m.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
   });
 
   choferesHist = computed(() => {
     const s = new Set<string>();
-    for (const r of this.historico()) if (r.conductor?.nombre) s.add(r.conductor.nombre);
+    for (const r of this.historico()) if (r.conductor_nombre) s.add(r.conductor_nombre);
     return [...s].sort((a, b) => a.localeCompare(b));
   });
 
@@ -163,7 +199,7 @@ export class RutasActivas implements OnInit, OnDestroy {
     const desde = this.fDesde();
     const hasta = this.fHasta();
     return this.historico().filter((r) => {
-      if (chofer && r.conductor?.nombre !== chofer) return false;
+      if (chofer && r.conductor_nombre !== chofer) return false;
       if (estado && r.estado !== estado) return false;
       if (obra && r.destino_proyecto_id !== obra) return false;
       if (desde && r.fecha < desde) return false;
@@ -214,7 +250,7 @@ export class RutasActivas implements OnInit, OnDestroy {
     return `hace ${h} h`;
   }
 
-  kmRuta(r: Ruta): number | null {
+  kmRuta(r: RutaHistorialRow): number | null {
     return r.km_real ?? r.km_estimado ?? null;
   }
 }

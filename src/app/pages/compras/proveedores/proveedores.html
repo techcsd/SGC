@@ -262,6 +262,17 @@
       />
     </div>
 
+    <!-- AS22 — ubicación estándar (link de Maps / coordenadas / pin / Places).
+         La ubicación de ferreterías alimenta el select del chofer. -->
+    <div class="sgc-field">
+      <label>Ubicación en el mapa (opcional)</label>
+      <app-location-picker
+        [latitud]="f.lat.value"
+        [longitud]="f.lng.value"
+        (ubicacionChange)="onUbicacion($event)"
+      />
+    </div>
+
     <div class="sgc-field">
       <label for="contacto">Nombre de contacto</label>
       <input

@@ -36,6 +36,26 @@ export class BodegasService {
     return (data ?? []) as UbicacionAlmacen[];
   }
 
+  /**
+   * AS12 — fija la ubicación de un almacén: vincular a un proyecto (hereda la
+   * ubicación de la obra y se mantiene sincronizada) o ubicación propia
+   * (link/coords/pin/Places). Pasa `proyectoId` para heredar; omítelo para propia.
+   */
+  async setUbicacion(
+    bodegaId: string,
+    opts: { proyectoId?: string | null; lat?: number | null; lng?: number | null; direccion?: string | null; metodo?: string | null },
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_bodega_ubicacion', {
+      p_bodega_id: bodegaId,
+      p_proyecto_id: opts.proyectoId ?? null,
+      p_lat: opts.lat ?? null,
+      p_lng: opts.lng ?? null,
+      p_direccion: opts.direccion ?? null,
+      p_metodo: opts.metodo ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** AP2 — un almacén por id (para la cabecera de la vista de inventario). */
   async getById(id: string): Promise<Bodega | null> {
     const { data, error } = await this.supabase.client

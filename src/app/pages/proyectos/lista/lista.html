@@ -726,7 +726,21 @@
           <option [value]="t.value">{{ t.label }}</option>
         }
       </select>
-      @if (searchQuery() || filterEstado() || filterTipo()) {
+      <!-- AS23 — filtrar por zona/sector -->
+      @if (zonasDisponibles().length > 0) {
+        <select
+          class="proyectos__select"
+          [value]="filterZona()"
+          (change)="onZonaChange($any($event.target).value)"
+          aria-label="Filtrar por zona"
+        >
+          <option value="">Todas las zonas</option>
+          @for (z of zonasDisponibles(); track z) {
+            <option [value]="z">{{ z }}</option>
+          }
+        </select>
+      }
+      @if (searchQuery() || filterEstado() || filterTipo() || filterZona()) {
         <button class="proyectos__btn-clear" (click)="clearFilters()">Limpiar</button>
       }
       <!-- Z5(d) — mostrar datos de prueba (solo admin) -->
@@ -1111,6 +1125,22 @@
           type="text"
           placeholder="Ciudad, dirección..."
         />
+      </div>
+
+      <!-- AS23 — Zona/sector (para filtrar el listado) -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="zona">Zona / sector</label>
+        <input
+          id="zona"
+          class="proyectos__input"
+          formControlName="zona"
+          type="text"
+          list="zonas-list"
+          placeholder="Ej. Punta Cana, Cap Cana, Santo Domingo"
+        />
+        <datalist id="zonas-list">
+          @for (z of zonasDisponibles(); track z) { <option [value]="z"></option> }
+        </datalist>
       </div>
 
       <!-- Geolocalización (mapa) -->

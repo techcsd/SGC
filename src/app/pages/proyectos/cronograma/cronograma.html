@@ -11,6 +11,7 @@
         <button type="button" class="cron__tab" [class.cron__tab--active]="vista() === 'lista'" (click)="vista.set('lista')">📄 Lista</button>
       </div>
       @if (puedeGestionar()) {
+        <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/proyectos', proyectoId(), 'cronograma', 'importar']">⬆️ Importar Excel</a>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirNueva()">+ Nueva tarea</button>
       }
     </div>

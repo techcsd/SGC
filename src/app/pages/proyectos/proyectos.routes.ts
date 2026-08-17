@@ -64,6 +64,13 @@ export const proyectosRoutes: Routes = [
     title: 'Cronograma — Proyectos',
   },
   {
+    // AS21 — importar cronograma desde Excel (.mpp → exportar a Excel primero).
+    path: ':id/cronograma/importar',
+    canActivate: [submoduloGuard('proyectos.cronograma')],
+    loadComponent: () => import('./cronograma-import/cronograma-import').then((m) => m.CronogramaImport),
+    title: 'Importar cronograma — Proyectos',
+  },
+  {
     // AA23 QW4 — reporte de costo de material real por obra.
     path: ':id/costos',
     canActivate: [submoduloGuard('proyectos.obras')],

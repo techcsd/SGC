@@ -96,4 +96,43 @@ export class InventarioAlmacenService {
     });
     if (error) throw new Error(error.message);
   }
+
+  /** AS10 — fija la apertura en LOTE para un almacén (solo admin). Devuelve
+   *  cuántos artículos tocó. */
+  async setAperturaLote(opts: {
+    bodegaId: string;
+    cantidad: number;
+    soloFaltantes?: boolean;
+    articuloIds?: string[] | null;
+    incluirTodoCatalogo?: boolean;
+  }): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('set_apertura_lote', {
+      p_bodega_id: opts.bodegaId,
+      p_cantidad: opts.cantidad,
+      p_solo_faltantes: opts.soloFaltantes ?? true,
+      p_articulo_ids: opts.articuloIds ?? null,
+      p_incluir_todo_catalogo: opts.incluirTodoCatalogo ?? false,
+    });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
+  /** AS11/Z11 — ajusta el stock de un artículo en un almacén (conteo/ajuste, deja
+   *  traza en "Conteos y ajustes"). Sirve también para AGREGAR un artículo al
+   *  almacén (si no tenía stock, la nueva cantidad lo crea). */
+  async ajustarStock(
+    articuloId: string,
+    bodegaId: string,
+    nuevaCantidad: number,
+    motivo?: string | null,
+  ): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('ajustar_stock_articulo', {
+      p_articulo_id: articuloId,
+      p_bodega_id: bodegaId,
+      p_nueva_cantidad: nuevaCantidad,
+      p_motivo: motivo ?? 'Ajuste manual de inventario',
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
 }

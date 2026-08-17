@@ -94,6 +94,14 @@ export const inventarioRoutes: Routes = [
     title: 'Conteos y ajustes — Inventario',
   },
   {
+    // AS10 — herramienta admin de apertura de inventario (piso inicial). El gate
+    // real es server-side (set_apertura / set_apertura_lote son admin-only); el
+    // componente también valida admin y redirige.
+    path: 'apertura',
+    loadComponent: () => import('./apertura/apertura').then((m) => m.AperturaInventario),
+    title: 'Apertura de inventario — Inventario',
+  },
+  {
     path: 'reposicion',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./reposicion/reposicion').then((m) => m.Reposicion),

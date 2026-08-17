@@ -43,6 +43,12 @@ export interface SalidaInventario {
   recibido?: { nombre: string } | null;
   recibido_en: string | null;
   notas_recepcion: string | null;
+  // AI2/AS3 — despachante (quien entrega el material al chofer). Se refleja como
+  // "Entregado por" en el conduce/PDF. despachante_usuario_id ⇒ firma remota (AS2).
+  despachante_nombre?: string | null;
+  despachante_usuario_id?: string | null;
+  despachante_empleado_id?: string | null;
+  carga_foto_path?: string | null;
   // Evidence photo captured by the mobile CSD app when the salida was created.
   foto_path: string | null;
   // AF10 — firma de quien entrega (capturada en la app de campo).

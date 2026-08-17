@@ -232,6 +232,30 @@ export class Avisos implements OnInit {
     });
   }
 
+  // AS15 — marcar todos como atendidos (respeta los filtros activos).
+  atendiendoTodos = signal(false);
+  async atenderTodos() {
+    if (this.vista() !== 'activos' || this.atendiendoTodos()) return;
+    const n = this.filtered().length;
+    if (n === 0) return;
+    if (!confirm(`¿Marcar ${n} aviso(s) como atendidos?`)) return;
+    this.atendiendoTodos.set(true);
+    try {
+      const tocados = await this.avisosService.atenderMasivo({
+        tipo: this.filtroTipo() || null,
+        vehiculoId: this.filtroVehiculo() || null,
+        nota: 'Atendido en lote',
+      });
+      await this.load(false);
+      this.notificaciones.refresh();
+      this.toast.success('Avisos atendidos', `Se marcaron ${tocados} aviso(s) como atendidos.`);
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudieron atender los avisos.');
+    } finally {
+      this.atendiendoTodos.set(false);
+    }
+  }
+
   async atender() {
     const a = this.selected();
     if (!a || this.atendiendo()) return;

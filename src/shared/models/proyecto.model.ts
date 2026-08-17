@@ -17,6 +17,8 @@ export interface Proyecto {
   latitud: number | null;
   longitud: number | null;
   direccion_geo: string | null;
+  /** AS23 — zona/sector para filtrar el listado (p.ej. Punta Cana, Cap Cana). */
+  zona: string | null;
   descripcion: string | null;
   responsable_id: string | null;
   responsable?: { nombre: string };

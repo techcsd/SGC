@@ -51,10 +51,79 @@ export interface RutaTrayecto {
   consolidado_at?: string | null;
 }
 
+/** AP6 — una fila del histórico de rutas por chofer (RPC rutas_historial). */
+export interface RutaHistorialRow {
+  id: string;
+  estado: string;
+  tipo: string | null;
+  origen: string | null;
+  destino: string | null;
+  destino_proyecto_id: string | null;
+  obra: string | null;
+  placa: string | null;
+  conductor_id: string | null;
+  conductor_nombre: string | null;
+  fecha: string;
+  iniciada_at: string | null;
+  finalizada_at: string | null;
+  km_real: number | null;
+  km_estimado: number | null;
+  duracion_min: number | null;
+  paradas_total: number | null;
+  paradas_entregadas: number | null;
+}
+
+/** AS1 — diagnóstico del pipeline de tracking por chofer (RPC tracking_diagnostico). */
+export interface TrackingDiagnosticoRow {
+  usuario_id: string;
+  usuario_nombre: string | null;
+  batches: number;
+  recibidos: number;
+  insertados: number;
+  desc_precision: number;
+  desc_salto: number;
+  desc_sin_coord: number;
+  ultima_ingesta: string | null;
+  ultima_posicion: string | null;
+  minutos_desde_posicion: number | null;
+}
+
 /** AF27 — datos para la vista de Seguimiento (posiciones en vivo, estados, rutas). */
 @Injectable({ providedIn: 'root' })
 export class SeguimientoService {
   private supabase = inject(SupabaseService);
+
+  /** AP6/AS1 — histórico de rutas por chofer (RPC SECURITY DEFINER: no lo oculta
+   *  la RLS de scope como rutas.getAll()). Corrige el "histórico vacío". */
+  async getRutasHistorial(f?: {
+    conductor?: string | null;
+    desde?: string | null;
+    hasta?: string | null;
+    obra?: string | null;
+    estado?: string | null;
+    limite?: number | null;
+  }): Promise<RutaHistorialRow[]> {
+    const { data, error } = await this.supabase.client.rpc('rutas_historial', {
+      p_conductor: f?.conductor ?? null,
+      p_desde: f?.desde ?? null,
+      p_hasta: f?.hasta ?? null,
+      p_obra: f?.obra ?? null,
+      p_estado: f?.estado ?? null,
+      p_limite: f?.limite ?? 500,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RutaHistorialRow[];
+  }
+
+  /** AS1 — diagnóstico del pipeline de tracking (contadores AK13 + edad de la
+   *  última posición). Roles elevados/tecnología (gate en el RPC). */
+  async getTrackingDiagnostico(desde?: string | null): Promise<TrackingDiagnosticoRow[]> {
+    const { data, error } = await this.supabase.client.rpc('tracking_diagnostico', {
+      p_desde: desde ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as TrackingDiagnosticoRow[];
+  }
 
   async getPosiciones(): Promise<UltimaPosicion[]> {
     const { data, error } = await this.supabase.client

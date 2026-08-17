@@ -50,6 +50,13 @@
       @for (v of vehiculosConAviso(); track v.id) { <option [value]="v.id">{{ v.placa }}</option> }
     </select>
   </div>
+  <!-- AS15 — marcar todos como atendidos (respeta los filtros activos) -->
+  @if (vista() === 'activos' && filtered().length > 0) {
+    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+      [disabled]="atendiendoTodos()" (click)="atenderTodos()">
+      @if (atendiendoTodos()) { Atendiendo… } @else { Marcar todos como atendidos ({{ filtered().length }}) }
+    </button>
+  }
 </div>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }

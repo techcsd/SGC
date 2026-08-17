@@ -171,6 +171,17 @@
         <span class="conduce__label">Responsable que recibe</span>
         <span>{{ s.responsable ?? '—' }}</span>
       </div>
+      @if (despachanteNombre() || s.despachante_usuario_id) {
+        <div>
+          <span class="conduce__label">Despachado por</span>
+          <span>
+            {{ despachanteNombre() ?? '—' }}
+            @if (firmaDespachantePendiente()) {
+              <span class="sgc-badge sgc-badge--warning">Firma pendiente</span>
+            }
+          </span>
+        </div>
+      }
       <div>
         <span class="conduce__label">Estado</span>
         <span>
@@ -269,13 +280,15 @@
         <div class="conduce__evidencia-grid">
           @if (salidaFotoUrl(); as url) {
             <figure class="conduce__evidencia-item">
-              <img [src]="url" alt="Foto de la salida" />
+              <img [src]="url" alt="Foto de la salida" (click)="fotoLightbox.set(url)"
+                   style="cursor: zoom-in" />
               <figcaption>Foto al registrar la salida</figcaption>
             </figure>
           }
           @if (entregaFotoUrl(); as url) {
             <figure class="conduce__evidencia-item">
-              <img [src]="url" alt="Foto de la entrega" />
+              <img [src]="url" alt="Foto de la entrega" (click)="fotoLightbox.set(url)"
+                   style="cursor: zoom-in" />
               <figcaption>Foto de la entrega</figcaption>
             </figure>
           }
@@ -294,6 +307,13 @@
             <span class="conduce__firma-meta">{{ f.rol_desc }}@if (f.rol_desc && f.cedula) { · }@if (f.cedula) { Céd. {{ f.cedula }} }</span>
           }
           @if (f.firmado_en) { <span class="conduce__firma-meta">{{ formatTimestamp(f.firmado_en) }}</span> }
+        } @else if (despachanteNombre(); as desp) {
+          <!-- AS2/AS3 — despachante designado, firma remota pendiente -->
+          <span class="conduce__firma-line"></span>
+          <span class="conduce__firma-name">{{ desp }}</span>
+          @if (firmaDespachantePendiente()) {
+            <span class="conduce__firma-meta conduce__firma-name--pending">Firma pendiente</span>
+          }
         } @else {
           <span class="conduce__firma-line"></span>
         }
@@ -325,4 +345,9 @@
       </div>
     </section>
   </div>
+}
+
+<!-- AS5 — foto de evidencia en grande -->
+@if (fotoLightbox(); as url) {
+  <app-lightbox [src]="url" alt="Evidencia del conduce" (closed)="fotoLightbox.set(null)" />
 }

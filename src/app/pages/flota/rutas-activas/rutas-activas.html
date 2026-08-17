@@ -17,6 +17,46 @@
   } @else if (error()) {
     <p class="page__error">{{ error() }}</p>
   } @else if (tab() === 'activas') {
+    <!-- AS1 — Diagnóstico del pipeline de tracking (contadores AK13) -->
+    <div class="diag">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDiag()">
+        {{ diagOpen() ? '▾' : '▸' }} Diagnóstico de rastreo
+      </button>
+      @if (diagOpen()) {
+        @if (diagLoading()) {
+          <p class="page__loading">Cargando diagnóstico…</p>
+        } @else if (diag().length === 0) {
+          <p class="page__empty">Sin datos de ingesta recientes (últimas 48 h).</p>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table" aria-label="Diagnóstico de rastreo">
+              <thead>
+                <tr>
+                  <th>Chofer</th>
+                  <th class="text-right">Recibidos</th>
+                  <th class="text-right">Insertados</th>
+                  <th class="text-right">Descartados</th>
+                  <th>Última posición</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of diag(); track d.usuario_id) {
+                  <tr>
+                    <td>{{ d.usuario_nombre ?? '—' }}</td>
+                    <td class="text-right">{{ d.recibidos }}</td>
+                    <td class="text-right">{{ d.insertados }}</td>
+                    <td class="text-right">{{ d.desc_precision + d.desc_salto + d.desc_sin_coord }}</td>
+                    <td>{{ d.minutos_desde_posicion != null ? ('hace ' + d.minutos_desde_posicion + ' min') : 'sin señal' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="diag__hint">Recibidos vs insertados revela rechazos (precisión/salto/sin-coord). "Última posición" muy vieja = el servicio de captura no está enviando.</p>
+        }
+      }
+    </div>
+
     <!-- ACTIVAS: por chofer -->
     @if (choferes().length === 0) {
       <p class="page__empty">No hay choferes registrados.</p>
@@ -105,9 +145,9 @@
             @for (r of historicoFiltrado(); track r.id) {
               <tr>
                 <td>{{ formatFecha(r.fecha) }}</td>
-                <td>{{ r.conductor?.nombre ?? '—' }}</td>
+                <td>{{ r.conductor_nombre ?? '—' }}</td>
                 <td class="text-muted">{{ r.origen }} → {{ r.destino }}</td>
-                <td class="text-muted">{{ r.destino_proyecto?.nombre ?? '—' }}</td>
+                <td class="text-muted">{{ r.obra ?? '—' }}</td>
                 <td>{{ r.iniciada_at ? formatFecha(r.iniciada_at) : '—' }}</td>
                 <td>{{ r.finalizada_at ? formatFecha(r.finalizada_at) : '—' }}</td>
                 <td class="text-right">{{ kmRuta(r) ?? '—' }}</td>

@@ -1,0 +1,87 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a class="page__back" [routerLink]="['/proyectos', proyectoId(), 'cronograma']">← Cronograma</a>
+      <h1 class="page__title">Importar cronograma</h1>
+      <p class="page__sub">Sube el Excel de la obra: cada hoja (torre/etapa) se convierte en una fase con sus actividades.</p>
+    </div>
+  </header>
+
+  <div class="sgc-card cimport__drop">
+    <label class="cimport__file">
+      <input type="file" accept=".xlsx,.xls,.csv,.mpp" (change)="onFile($event)" hidden />
+      <span class="sgc-btn sgc-btn--primary">Seleccionar archivo…</span>
+    </label>
+    @if (fileName()) { <span class="cimport__filename">{{ fileName() }}</span> }
+    <p class="cimport__hint">
+      Formatos: <strong>.xlsx / .xls / .csv</strong>. Los <strong>.mpp</strong> de MS Project deben
+      exportarse a Excel primero (Archivo → Guardar como / Exportar → Excel).
+    </p>
+  </div>
+
+  @if (parsing()) { <p class="page__loading">Leyendo el archivo…</p> }
+  @if (error()) { <div class="page__error" role="alert">{{ error() }}</div> }
+
+  @if (hojas().length > 0) {
+    <div class="cimport__resumen sgc-card">
+      <strong>{{ hojas().length }}</strong> torre(s)/etapa(s) · <strong>{{ totalTareas() }}</strong> actividad(es) detectada(s).
+      Al confirmar, cada torre <strong>reemplaza</strong> su cronograma existente (si lo hubiera).
+    </div>
+
+    @for (h of hojas(); track h.torre) {
+      <div class="sgc-card cimport__hoja">
+        <div class="cimport__hoja-head">
+          <h2 class="cimport__hoja-title">{{ h.torre }}</h2>
+          <span class="cimport__hoja-count">{{ h.tareas.length }} actividad(es)</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarHoja(h.torre)">Quitar</button>
+        </div>
+
+        @for (w of h.warnings; track w) {
+          <p class="cimport__warn">⚠️ {{ w }}</p>
+        }
+
+        @if (h.tareas.length > 0) {
+          <div class="table-scroll">
+            <table class="data-table" aria-label="Actividades detectadas">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Actividad</th>
+                  <th>Grupo</th>
+                  <th>Responsable</th>
+                  <th>Volumetría</th>
+                  <th>Inicio</th>
+                  <th>Fin</th>
+                  <th class="text-right">Días</th>
+                  <th class="text-right">Avance</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (t of h.tareas; track t.orden) {
+                  <tr>
+                    <td>{{ t.orden }}</td>
+                    <td>{{ t.nombre }}</td>
+                    <td class="text-muted">{{ t.grupo ?? '—' }}</td>
+                    <td class="text-muted">{{ t.responsable ?? '—' }}</td>
+                    <td class="text-muted">{{ t.volumetria ?? '—' }}</td>
+                    <td>{{ t.fecha_inicio ?? '—' }}</td>
+                    <td>{{ t.fecha_fin ?? '—' }}</td>
+                    <td class="text-right">{{ t.dias ?? '—' }}</td>
+                    <td class="text-right">{{ t.avance_pct != null ? (t.avance_pct + '%') : '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="cimport__actions">
+      <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/proyectos', proyectoId(), 'cronograma']">Cancelar</a>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="importing() || totalTareas() === 0" (click)="confirmar()">
+        @if (importing()) { Importando… } @else { Importar al cronograma }
+      </button>
+    </div>
+  }
+</section>

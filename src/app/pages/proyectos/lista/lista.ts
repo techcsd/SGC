@@ -167,6 +167,7 @@ export class Lista implements OnInit {
   searchQuery = signal('');
   filterEstado = signal('');
   filterTipo = signal('');
+  filterZona = signal('');
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -222,6 +223,8 @@ export class Lista implements OnInit {
       fecha_fin_estimada: new FormControl<string | null>(null),
       presupuesto: new FormControl<number | null>(null, [Validators.min(0)]),
       ubicacion: new FormControl<string | null>(null),
+      // AS23 — zona/sector para filtrar el listado.
+      zona: new FormControl<string | null>(null),
       descripcion: new FormControl<string | null>(null),
       responsable_id: new FormControl<string | null>(null),
       // Z5(d) — dato de prueba (solo admin lo ve/edita).
@@ -253,6 +256,7 @@ export class Lista implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const estado = this.filterEstado();
     const tipo = this.filterTipo();
+    const zona = this.filterZona();
 
     return this.visiblesProy().filter((p) => {
       if (
@@ -265,8 +269,19 @@ export class Lista implements OnInit {
       }
       if (estado && p.estado !== estado) return false;
       if (tipo && p.tipo !== tipo) return false;
+      if (zona && (p.zona ?? '') !== zona) return false;
       return true;
     });
+  });
+
+  // AS23 — zonas distintas presentes en los proyectos (para el filtro).
+  zonasDisponibles = computed(() => {
+    const set = new Set<string>();
+    for (const p of this.visiblesProy()) {
+      const z = (p.zona ?? '').trim();
+      if (z) set.add(z);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
   });
 
   // AE1 — los KPIs NUNCA cuentan datos de prueba (salvo toggle admin, vía visiblesProy).
@@ -448,10 +463,15 @@ export class Lista implements OnInit {
     this.filterTipo.set(value);
   }
 
+  onZonaChange(value: string) {
+    this.filterZona.set(value);
+  }
+
   clearFilters() {
     this.searchQuery.set('');
     this.filterEstado.set('');
     this.filterTipo.set('');
+    this.filterZona.set('');
   }
 
   /**
@@ -506,6 +526,7 @@ export class Lista implements OnInit {
       fecha_fin_estimada: p.fecha_fin_estimada,
       presupuesto: p.presupuesto,
       ubicacion: p.ubicacion,
+      zona: p.zona ?? null,
       descripcion: p.descripcion,
       responsable_id: p.responsable_id,
       es_prueba: p.es_prueba ?? false,

@@ -94,3 +94,13 @@
   margin-bottom: 14px;
   select, input { min-width: 130px; }
 }
+
+// AS1 — panel de diagnóstico del pipeline de tracking
+.diag {
+  margin-bottom: 16px;
+}
+.diag__hint {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--main-ultra-light);
+}

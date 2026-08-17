@@ -54,15 +54,31 @@ export interface CostoMaterialObra {
   }[];
 }
 
-/** AH15 — una compra ligada a un proyecto (orden de compra o ferretería). */
+/** AH15/AS14 — una compra ligada a un proyecto (OC, ferretería o gasto directo). */
 export interface CompraProyecto {
-  tipo: 'orden_compra' | 'ferreteria';
+  tipo: 'orden_compra' | 'ferreteria' | 'gasto_directo';
   id: string;
   fecha: string | null;
   proveedor: string | null;
   total: number | null;
   estado: string | null;
   referencia: string | null;
+}
+
+/** AS14 — categoría de gasto directo (catálogo flexible sgc.gasto_categorias). */
+export interface GastoCategoria {
+  clave: string;
+  label: string;
+}
+
+/** AS14 — payload para registrar un gasto directo del proyecto. */
+export interface GastoDirectoPayload {
+  proyecto_id: string;
+  categoria: string;
+  concepto: string;
+  monto: number;
+  fecha?: string | null;
+  recibo_path?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -82,6 +98,32 @@ export class ProyectosService {
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as CompraProyecto[];
+  }
+
+  /** AS14 — categorías de gasto directo (catálogo flexible). */
+  async getGastoCategorias(): Promise<GastoCategoria[]> {
+    const { data, error } = await this.supabase.client
+      .from('gasto_categorias')
+      .select('clave, label')
+      .eq('activo', true)
+      .order('orden');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as GastoCategoria[];
+  }
+
+  /** AS14 — registra un gasto directo (sin requisición) del proyecto. */
+  async registrarGastoDirecto(p: GastoDirectoPayload): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('registrar_gasto_directo', {
+      p_id: crypto.randomUUID(),
+      p_proyecto_id: p.proyecto_id,
+      p_categoria: p.categoria,
+      p_concepto: p.concepto,
+      p_monto: p.monto,
+      p_fecha: p.fecha ?? null,
+      p_recibo_path: p.recibo_path ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
   }
 
   /** AA23 QW4 — costo de material real por obra (Σ cantidad × costo_unit de salidas). */

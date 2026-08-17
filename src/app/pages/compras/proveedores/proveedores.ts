@@ -18,13 +18,15 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { UserService } from '../../../core/services/user.service';
+import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
+import type { UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
 
 // RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
 const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 
 @Component({
   selector: 'app-proveedores',
-  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -423,6 +425,16 @@ export class Proveedores implements OnInit {
 
   get f() {
     return this.form.controls;
+  }
+
+  // AS22 — ubicación estándar (link/coords/pin/Places) en el form de proveedores.
+  // La ubicación de ferreterías alimenta el select del chofer (ferreterias_visibles).
+  onUbicacion(u: UbicacionSeleccionada) {
+    this.form.patchValue({
+      lat: u.latitud,
+      lng: u.longitud,
+      direccion: this.form.value.direccion?.trim() ? this.form.value.direccion : u.direccion,
+    });
   }
 }
 
