@@ -6,6 +6,7 @@ import { ConductoresService } from '../../../../shared/services/conductores.serv
 import { AvisosFlotaService } from '../../../../shared/services/avisos-flota.service';
 import { ChecklistVehiculo, ChecklistResultado, RESULTADO_META } from '../../../../shared/models/flota-checklist.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
+import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { AvisoFlota, AVISO_TIPO_LABEL, AVISO_SEVERIDAD_BADGE } from '../../../../shared/models/aviso-flota.model';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -36,6 +37,7 @@ export class PanelDia implements OnInit {
   private verPrueba = computed(() => this.esAdmin() && this.mostrarPrueba());
 
   formatFecha = formatFechaDisplay;
+  readonly idVehiculo = identificacionVehiculo;
   tipoLabel = AVISO_TIPO_LABEL;
   sevBadge = AVISO_SEVERIDAD_BADGE;
   readonly hoy = todayIso();

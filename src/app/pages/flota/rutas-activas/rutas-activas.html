@@ -81,7 +81,7 @@
                 <div class="chofer-card__meta">
                   <span>Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</span>
                   <span>Corriendo: {{ duracion(r.iniciada_at) }}</span>
-                  @if (r.placa) { <span>{{ r.placa }}</span> }
+                  @if (r.placa || r.marca) { <span>{{ idVehiculo(r) }}</span> }
                 </div>
               </div>
             } @else {

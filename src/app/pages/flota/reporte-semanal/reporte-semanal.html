@@ -95,7 +95,7 @@
               </td>
               <td>
                 @if (f.tiene_reporte) {
-                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}
+                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
                   <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
                   @if (f.reportado_fuera_de_dia) {
                     <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">Fuera de día</span>
@@ -148,7 +148,7 @@
                         </td>
                         <td>
                 @if (f.tiene_reporte) {
-                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}
+                  {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }}@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
                   <span class="rs-muted rs-small">por {{ f.reportado_por ?? f.chofer_nombre ?? '—' }}@if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }</span>
                   @if (f.reportado_fuera_de_dia) {
                     <span class="sgc-badge sgc-badge--warning" [title]="'Reportado fuera del día programado (' + diaLabel(f.dia_reporte_dow) + ')'">Fuera de día</span>
@@ -207,7 +207,7 @@
             } @else {
               <span class="rs-reportado">
                 Ya reportado por <strong>{{ f.reportado_por ?? f.chofer_nombre ?? '—' }}</strong>
-                @if (f.reporte_fecha) { · {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }} }
+                @if (f.reporte_fecha) { · {{ toDate(f.reporte_fecha) | date:'dd/MM/yyyy' }} }@if (f.reportado_at) { · {{ hora(f.reportado_at) }} }
                 @if (f.km_reporte != null) { · {{ f.km_reporte | number:'1.0-0' }} km }
               </span>
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/checklists" [queryParams]="{ frecuencia: 'semanal', vehiculo: f.vehiculo_id }">

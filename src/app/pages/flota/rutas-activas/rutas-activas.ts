@@ -19,6 +19,7 @@ import {
 } from '../../../../shared/services/seguimiento.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 
 type Tab = 'activas' | 'historico';
 
@@ -61,6 +62,7 @@ export class RutasActivas implements OnInit, OnDestroy {
   private seguimiento = inject(SeguimientoService);
   formatFecha = formatFechaDisplay;
   readonly ESTADO_META = ESTADO_META;
+  readonly idVehiculo = identificacionVehiculo;
 
   tab = signal<Tab>('activas');
   loading = signal(true);

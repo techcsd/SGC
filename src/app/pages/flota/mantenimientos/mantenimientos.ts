@@ -21,11 +21,11 @@ import {
   MANT_TIPO_BADGE,
   MANT_ESTADOS,
 } from '../../../../shared/models/mantenimiento.model';
-import { Vehiculo, kmFaltanMantenimiento } from '../../../../shared/models/vehiculo.model';
+import { Vehiculo, kmFaltanMantenimiento, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
@@ -82,6 +82,8 @@ export class Mantenimientos implements OnInit {
   }
 
   formatFecha = formatFechaDisplay;
+  readonly idVehiculo = identificacionVehiculo;
+  readonly hora = formatHoraTimestamp;
 
   // Existing supplier names → datalist so "taller" spellings stay consistent.
   proveedorNombres = signal<string[]>([]);

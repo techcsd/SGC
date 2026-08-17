@@ -25,7 +25,7 @@
     <ul class="mant-banner__list">
       @for (x of vehiculosMantenimiento(); track x.v.id) {
         <li class="mant-banner__item">
-          <span class="mant-banner__veh">{{ x.v.placa }} · {{ x.v.marca }} {{ x.v.modelo }}</span>
+          <span class="mant-banner__veh">{{ idVehiculo(x.v) }}</span>
           @if (x.faltan !== null && x.faltan <= 0) {
             <span class="sgc-badge sgc-badge--danger">Vencido · pasado con {{ -x.faltan! | number:'1.0-0' }} km</span>
           } @else {
@@ -52,7 +52,7 @@
       <strong>{{ proximosMantenimientos().length }} mantenimiento{{ proximosMantenimientos().length !== 1 ? 's' : '' }} próximo{{ proximosMantenimientos().length !== 1 ? 's' : '' }}</strong>
       <span>
         @for (m of proximosMantenimientos(); track m.id; let last = $last) {
-          {{ m.vehiculo?.placa ?? '—' }} ({{ formatFecha(m.fecha) }}){{ !last ? ', ' : '' }}
+          {{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }} ({{ formatFecha(m.fecha) }}){{ !last ? ', ' : '' }}
         }
       </span>
     </div>
@@ -167,12 +167,9 @@
                 [attr.aria-label]="'Ver detalle del mantenimiento del ' + formatFecha(m.fecha)">
               <td class="mantenimientos__fecha">{{ formatFecha(m.fecha) }}</td>
               <td>
-                <span class="mantenimientos__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
+                <span class="mantenimientos__placa">{{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }}</span>
                 @if (m.es_prueba) {
                   <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
-                }
-                @if (m.vehiculo) {
-                  <span class="mantenimientos__vehiculo-sub">{{ m.vehiculo.marca }} {{ m.vehiculo.modelo }}</span>
                 }
               </td>
               <td>
@@ -339,7 +336,7 @@
       >
         <option [value]="null">Seleccionar vehículo…</option>
         @for (v of vehiculos(); track v.id) {
-          <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }} {{ v.anio }}</option>
+          <option [value]="v.id">{{ idVehiculo(v) }}</option>
         }
       </select>
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
@@ -515,10 +512,8 @@
     <div class="detail">
       <div class="detail__header">
         <div>
-          <span class="detail__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
-          <span class="detail__sub">
-            {{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }} · {{ formatFecha(m.fecha) }}
-          </span>
+          <span class="detail__placa">{{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }}</span>
+          <span class="detail__sub">{{ formatFecha(m.fecha) }}</span>
         </div>
         <div class="detail__badges">
           <span class="sgc-badge sgc-badge--{{ tipoBadge(m.tipo) }}">{{ getTipoLabel(m.tipo) }}</span>
@@ -542,8 +537,7 @@
         <div class="detail__item">
           <span class="detail__label">Vehículo</span>
           <span class="detail__value detail__value--wrap">
-            {{ m.vehiculo?.placa ?? '—' }}<br />
-            <small>{{ m.vehiculo?.marca }} {{ m.vehiculo?.modelo }}</small>
+            {{ m.vehiculo ? idVehiculo(m.vehiculo) : '—' }}
           </span>
         </div>
         <div class="detail__item">
@@ -566,7 +560,7 @@
         </div>
         <div class="detail__item">
           <span class="detail__label">Registrado</span>
-          <span class="detail__value">{{ formatFechaHora(m.created_at) }}</span>
+          <span class="detail__value">{{ formatFechaHora(m.created_at) }}@if (m.created_at) { · {{ hora(m.created_at) }} }</span>
         </div>
         <div class="detail__item detail__item--full">
           <span class="detail__label">Registrado por</span>

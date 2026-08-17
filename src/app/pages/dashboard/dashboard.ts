@@ -8,6 +8,7 @@ import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proye
 import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { identificacionVehiculo } from '../../../shared/models/vehiculo.model';
 
 interface ModuleCard {
   label: string;
@@ -53,6 +54,8 @@ export class Dashboard implements OnInit {
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
 
   formatFecha = formatFechaDisplay;
+  // AT9 — identificación homologada "Marca Modelo · Color · Placa".
+  readonly idVehiculo = identificacionVehiculo;
 
   // Z5(c) — el admin oculta datos de prueba por defecto; los KPIs los excluyen salvo
   // que active el toggle global. `verPrueba` gobierna las queries de KPIs.
@@ -194,7 +197,7 @@ export class Dashboard implements OnInit {
   private asistenciaHoy = signal<{ estado: string }[]>([]);
   private proyectos = signal<{ estado: string; presupuesto: number | null }[]>([]);
   private vehiculos = signal<{ estado: string; activo: boolean }[]>([]);
-  private mantenimientos = signal<{ estado: string; fecha: string; vehiculo?: { placa: string } }[]>([]);
+  private mantenimientos = signal<{ estado: string; fecha: string; vehiculo?: { placa: string | null; marca?: string | null; modelo?: string | null; color?: string | null } }[]>([]);
   private solicitudesMaterialCount = signal(0);
   private solicitudesCompraCount = signal(0);
   solicitudesRecientes = signal<
@@ -508,7 +511,7 @@ export class Dashboard implements OnInit {
           : this.supabase.client.from('asistencia').select('estado').eq('fecha', hoy),
         sinPrueba(this.supabase.client.from('proyectos').select('estado, presupuesto, es_prueba')),
         sinPrueba(this.supabase.client.from('vehiculos').select('estado, activo')),
-        sinPrueba(this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa)')),
+        sinPrueba(this.supabase.client.from('mantenimientos').select('estado, fecha, vehiculo:vehiculos(placa, marca, modelo, color)')),
         this.supabase.client
           .from('solicitudes_material')
           .select('proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre), urgencia, created_at', { count: 'exact' })
@@ -603,7 +606,7 @@ export class Dashboard implements OnInit {
       this.proyectos.set((proyectosRes.data ?? []) as { estado: string; presupuesto: number | null }[]);
       this.vehiculos.set((vehiculosRes.data ?? []) as { estado: string; activo: boolean }[]);
       this.mantenimientos.set(
-        (mantenimientosRes.data ?? []) as unknown as { estado: string; fecha: string; vehiculo?: { placa: string } }[],
+        (mantenimientosRes.data ?? []) as unknown as { estado: string; fecha: string; vehiculo?: { placa: string | null; marca?: string | null; modelo?: string | null; color?: string | null } }[],
       );
 
       this.solicitudesMaterialCount.set(solicitudesMaterialRes.count ?? 0);

@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal, viewChild, OnInit } from '@angular/core';
+import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { SalidasService, ConduceRutaInfo } from '../../../../shared/services/salidas.service';
@@ -36,6 +37,7 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Conduce implements OnInit {
+  readonly idVehiculo = identificacionVehiculo;
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);

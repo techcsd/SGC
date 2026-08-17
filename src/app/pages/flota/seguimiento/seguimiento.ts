@@ -8,6 +8,7 @@ import {
 } from '../../../../shared/services/seguimiento.service';
 import { GoogleMapsLoader } from '../../../../shared/context/google-maps-loader.service';
 import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
+import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
@@ -37,6 +38,7 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private loader = inject(GoogleMapsLoader);
   readonly ESTADO_META = ESTADO_META;
   readonly fechaHora = formatTimestampDisplay;
+  readonly idVehiculo = identificacionVehiculo;
 
   private mapEl = viewChild<ElementRef<HTMLDivElement>>('map');
   private map: google.maps.Map | null = null;

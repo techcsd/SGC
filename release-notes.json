@@ -1,5 +1,18 @@
 {
   "web": {
+    "1.80.0": {
+      "titulo": "Vehículos identificados por Marca Modelo · Color · Placa en toda la web, y hora exacta en los reportes",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "En toda la web el vehículo se identifica por “Marca Modelo · Color · Placa” (no solo por la placa) — en listados, selectores, seguimiento, rutas, avisos, mantenimientos, combustible, reportes y detalles."
+        },
+        {
+          "t": "mejora",
+          "d": "Reportes y registros ahora muestran, además de la fecha, la hora exacta (12h) del momento en que se capturaron."
+        }
+      ]
+    },
     "1.79.0": {
       "titulo": "Stickers en el chat (pack básico + crea los tuyos), almacenes relacionados a sus obras y ayuda actualizada",
       "cambios": [

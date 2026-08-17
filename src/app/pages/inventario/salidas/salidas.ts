@@ -8,6 +8,7 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -46,6 +47,7 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Salidas implements OnInit {
+  readonly idVehiculo = identificacionVehiculo;
   private salidasService = inject(SalidasService);
   private articulosService = inject(ArticulosService);
   private bodegasService = inject(BodegasService);

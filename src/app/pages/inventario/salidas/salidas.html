@@ -651,7 +651,7 @@
         @if (s.proyecto?.nombre) { <div><dt>Proyecto</dt><dd>{{ s.proyecto?.nombre }}</dd></div> }
         <div><dt>Responsable</dt><dd>{{ s.responsable || '—' }}</dd></div>
         @if (s.conductor?.nombre) { <div><dt>Conductor</dt><dd>{{ s.conductor?.nombre }}</dd></div> }
-        @if (s.vehiculo?.placa) { <div><dt>Vehículo</dt><dd>{{ s.vehiculo?.placa }}</dd></div> }
+        @if (s.vehiculo?.placa) { <div><dt>Vehículo</dt><dd>{{ idVehiculo(s.vehiculo) }}</dd></div> }
         <div><dt>Estado</dt><dd>{{ ESTADO_LABELS[s.estado] }}</dd></div>
         @if (s.recibido?.nombre) { <div><dt>Recibido por</dt><dd>{{ s.recibido?.nombre }}</dd></div> }
         <div><dt>Registrado por</dt><dd>{{ s.creado?.nombre ?? '—' }}</dd></div>

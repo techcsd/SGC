@@ -25,7 +25,7 @@
     <label for="cl-veh">Vehículo</label>
     <select id="cl-veh" [value]="vehiculoId()" (change)="onVehiculo($any($event.target).value)">
       <option value="">Todos</option>
-      @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ v.placa }}</option> }
+      @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ idVehiculo(v) }}</option> }
     </select>
   </div>
   <div class="sgc-field cl-filtros__f">

@@ -4,7 +4,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { CombustibleService, LogCombustibleRow } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
-import { Vehiculo } from '../../../../shared/models/vehiculo.model';
+import { Vehiculo, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { RegistroCombustible, PRODUCTO_CANONICO_LABEL, RENDIMIENTO_ESTADO_META } from '../../../../shared/models/combustible.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
@@ -32,6 +32,7 @@ export class CombustibleLog implements OnInit {
   private route = inject(ActivatedRoute);
 
   formatFecha = formatFechaDisplay;
+  readonly idVehiculo = identificacionVehiculo;
 
   // AQ13 — chips de periodo rápido (además del rango manual). dias hacia atrás.
   readonly CHIPS: { label: string; dias: number }[] = [

@@ -53,7 +53,7 @@
           @for (r of rutasActivas(); track r.id) {
             <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
               <div class="seg-ruta__top">
-                <strong>{{ r.placa ?? '—' }}</strong>
+                <strong>{{ idVehiculo(r) }}</strong>
                 <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
               </div>
               <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
@@ -73,7 +73,7 @@
           @for (r of rutasHoy(); track r.id) {
             <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
               <div class="seg-ruta__top">
-                <strong>{{ r.placa ?? '—' }}</strong>
+                <strong>{{ idVehiculo(r) }}</strong>
                 <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
               </div>
               <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>

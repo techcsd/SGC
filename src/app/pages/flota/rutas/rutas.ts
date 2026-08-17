@@ -20,7 +20,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Ruta, RutaFormData, RutaEstado, RutaTipo, RutaParada, RutaFoto, RUTA_ESTADOS, RUTA_TIPO_META, destinoCoords, duracionRealMin } from '../../../../shared/models/ruta.model';
-import { Vehiculo } from '../../../../shared/models/vehiculo.model';
+import { Vehiculo, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -57,6 +57,7 @@ interface ParadaEdit {
 export class Rutas implements OnInit {
   formatFecha = formatFechaDisplay;
   formatDur = formatearDuracion; // U23 — duración legible ("1 h 28 min")
+  readonly idVehiculo = identificacionVehiculo;
 
   private route = inject(ActivatedRoute);
   private rutasService = inject(RutasService);

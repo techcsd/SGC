@@ -67,6 +67,9 @@ export interface RutaActiva {
   origen: string;
   destino: string;
   placa: string | null;
+  marca: string | null;
+  modelo: string | null;
+  color: string | null;
   conductor_nombre: string | null;
   fecha: string;
   iniciada_at: string | null;

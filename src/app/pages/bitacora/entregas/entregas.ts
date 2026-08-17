@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { NotificarEntregaService } from '../../../../shared/services/notificar-entrega.service';
@@ -23,6 +24,7 @@ interface RecepcionItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Entregas implements OnInit {
+  readonly idVehiculo = identificacionVehiculo;
   private salidasService = inject(SalidasService);
   private notificarEntregaService = inject(NotificarEntregaService);
 

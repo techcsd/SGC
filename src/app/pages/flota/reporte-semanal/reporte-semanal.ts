@@ -6,6 +6,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { ReporteSemanalFila } from '../../../../shared/models/vehiculo-asignacion.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
 
 /** Grupo de filas de una semana ISO (para historial + semana actual). */
 interface SemanaGrupo {
@@ -49,6 +50,7 @@ export class ReporteSemanal implements OnInit {
    * un CTA para llenar el suyo, sin KPIs de flota ni listado global de faltantes.
    */
   esElevado = this.userService.esFlotaElevado;
+  readonly hora = formatHoraTimestamp;
 
   filas = signal<ReporteSemanalFila[]>([]);
   loading = signal(true);

@@ -51,7 +51,7 @@
                 <tr>
                   <td>{{ hora(c.capturado_en) }}</td>
                   <td>{{ c.conductor?.nombre ?? '—' }}</td>
-                  <td><span class="pd-placa">{{ c.vehiculo?.placa ?? '—' }}</span></td>
+                  <td><span class="pd-placa">{{ c.vehiculo ? idVehiculo(c.vehiculo) : '—' }}</span></td>
                   <td class="text-right">{{ c.kilometraje != null ? (c.kilometraje | number:'1.0-0') : '—' }}</td>
                   <td>{{ c.nivel_combustible ?? '—' }}</td>
                   <td class="text-right">{{ c.km_faltan_mantenimiento != null ? (c.km_faltan_mantenimiento | number:'1.0-0') : '—' }}</td>
@@ -77,7 +77,7 @@
       } @else {
         <ul class="pd-list">
           @for (c of choferesVisibles(); track c.id) {
-            <li>{{ c.nombre }} @if (c.vehiculo) { <span class="pd-muted">· {{ c.vehiculo.placa }}</span> }</li>
+            <li>{{ c.nombre }} @if (c.vehiculo) { <span class="pd-muted">· {{ idVehiculo(c.vehiculo) }}</span> }</li>
           }
         </ul>
         @if (restantesChoferes() > 0) {

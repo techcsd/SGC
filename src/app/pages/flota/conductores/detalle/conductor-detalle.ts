@@ -47,6 +47,7 @@ import {
   RESULTADO_META,
 } from '../../../../../shared/models/flota-checklist.model';
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
+import { identificacionVehiculo } from '../../../../../shared/models/vehiculo.model';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { formatFechaDisplay, formatFechaHumana, daysUntil, formatearDuracion } from '../../../../../shared/utils/fecha.util';
@@ -84,6 +85,7 @@ export class ConductorDetalle implements OnInit {
   readonly conductorId = this.route.snapshot.paramMap.get('id') ?? '';
   formatFecha = formatFechaDisplay;
   formatTs = formatFechaHumana;
+  readonly idVehiculo = identificacionVehiculo;
 
   /** Y4 — duración de la ruta: real (TAP) si existe, si no el tiempo_real_min manual. */
   duracionRutaTxt(r: {

@@ -27,7 +27,7 @@
             <p class="entregas__card-transporte">
               🚚
               @if (s.conductor?.nombre) { {{ s.conductor!.nombre }} }
-              @if (s.vehiculo?.placa) { · {{ s.vehiculo!.placa }} }
+              @if (s.vehiculo?.placa) { · {{ idVehiculo(s.vehiculo) }} }
             </p>
           }
           <ul class="entregas__items-preview">
@@ -62,7 +62,7 @@
       @if (s.conductor?.nombre || s.vehiculo?.placa) {
         <span>🚚
           @if (s.conductor?.nombre) { {{ s.conductor!.nombre }} }
-          @if (s.vehiculo?.placa) { · {{ s.vehiculo!.placa }} }
+          @if (s.vehiculo?.placa) { · {{ idVehiculo(s.vehiculo) }} }
         </span>
       }
     </div>

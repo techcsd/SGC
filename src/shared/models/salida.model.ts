@@ -38,7 +38,7 @@ export interface SalidaInventario {
   conductor_id: string | null;
   conductor?: { nombre: string } | null;
   vehiculo_id: string | null;
-  vehiculo?: { placa: string } | null;
+  vehiculo?: { placa: string | null; marca?: string | null; modelo?: string | null; color?: string | null } | null;
   recibido_por: string | null;
   recibido?: { nombre: string } | null;
   recibido_en: string | null;

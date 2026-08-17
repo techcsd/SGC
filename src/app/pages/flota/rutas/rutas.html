@@ -99,7 +99,7 @@
             <tr class="rutas__row--link" (click)="openDetail(r)" role="button" tabindex="0"
                 (keydown.enter)="openDetail(r)" [attr.aria-label]="'Ver detalle de la ruta ' + r.origen + ' a ' + r.destino">
               <td class="rutas__fecha">{{ formatFecha(r.fecha) }}</td>
-              <td>{{ r.vehiculo?.placa ?? '—' }}</td>
+              <td>{{ r.vehiculo ? idVehiculo(r.vehiculo) : '—' }}</td>
               <td>{{ r.conductor?.nombre ?? '—' }}</td>
               <td>
                 <span class="rutas__trip">{{ r.origen }} <span class="rutas__arrow">→</span> {{ r.destino }}</span>
@@ -444,7 +444,7 @@
   <form [formGroup]="registrarForm" (ngSubmit)="onSaveRegistrar()" novalidate class="drawer-form">
 
     @if (registrarTarget(); as r) {
-      <p class="rutas__registrar-info">{{ r.origen }} → {{ r.destino }} · {{ r.vehiculo?.placa }}</p>
+      <p class="rutas__registrar-info">{{ r.origen }} → {{ r.destino }}@if (r.vehiculo) { · {{ idVehiculo(r.vehiculo) }} }</p>
     }
 
     <div class="form-row">
@@ -562,7 +562,7 @@
       <!-- Datos -->
       <h4 class="ruta-detalle__title">Datos</h4>
       <dl class="ruta-detalle__meta">
-        <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }} <span class="text-muted">{{ r.vehiculo?.marca }} {{ r.vehiculo?.modelo }}</span></dd></div>
+        <div><dt>Vehículo</dt><dd>{{ r.vehiculo ? idVehiculo(r.vehiculo) : '—' }}</dd></div>
         <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
         <div><dt>Km estimado</dt><dd>{{ r.km_estimado ?? '—' }}</dd></div>
         <div><dt>Km real</dt><dd>{{ r.km_real ?? '—' }}@if (kmDesvio(r) !== null) { <span class="rutas__desvio" [class.rutas__desvio--over]="kmDesvio(r)! > 0">({{ kmDesvio(r)! > 0 ? '+' : '' }}{{ kmDesvio(r) }})</span> }</dd></div>

@@ -364,7 +364,7 @@
             @for (m of proximosMantenimientos(); track m.fecha + (m.vehiculo?.placa ?? '')) {
               <li class="upcoming-list__item">
                 <span class="upcoming-list__dot"></span>
-                <span class="upcoming-list__placa">{{ m.vehiculo?.placa ?? '—' }}</span>
+                <span class="upcoming-list__placa">{{ idVehiculo(m.vehiculo) }}</span>
                 <span class="upcoming-list__fecha">{{ formatFecha(m.fecha) }}</span>
               </li>
             }

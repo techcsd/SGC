@@ -195,7 +195,7 @@
         <div>
           <span class="conduce__label">Transporte</span>
           <span>
-            {{ s.conductor?.nombre ?? 'Sin conductor' }}@if (s.vehiculo?.placa) { — {{ s.vehiculo?.placa }}}
+            {{ s.conductor?.nombre ?? 'Sin conductor' }}@if (s.vehiculo?.placa) { — {{ idVehiculo(s.vehiculo) }}}
           </span>
         </div>
       }

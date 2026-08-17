@@ -35,7 +35,7 @@ const SELECT_QUERY =
   // explícita o PostgREST lo rechaza como ambiguo.
   '*, bodega:bodegas!salidas_inventario_bodega_id_fkey(nombre),' +
   ' destino_almacen:bodegas!salidas_inventario_destino_almacen_id_fkey(nombre),' +
-  ' proyecto:proyectos(nombre), conductor:conductores(nombre), vehiculo:vehiculos(placa),' +
+  ' proyecto:proyectos(nombre), conductor:conductores(nombre), vehiculo:vehiculos(placa, marca, modelo, color),' +
   ' recibido:usuarios!salidas_inventario_recibido_por_fkey(nombre),' +
   ' entregado:usuarios!salidas_inventario_entregado_por_fkey(nombre),' +
   ' creado:usuarios!salidas_inventario_creado_por_fkey(nombre),' +

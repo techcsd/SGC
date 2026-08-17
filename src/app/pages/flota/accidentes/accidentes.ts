@@ -7,7 +7,7 @@ import { ConductoresService } from '../../../../shared/services/conductores.serv
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { VehiculoAccidente, ACCIDENTE_FASES, AccidenteFase } from '../../../../shared/models/flota-incidencias.model';
-import { Vehiculo } from '../../../../shared/models/vehiculo.model';
+import { Vehiculo, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -38,6 +38,7 @@ export class Accidentes implements OnInit {
   private toast = inject(ToastService);
   private datosPrueba = inject(DatosPruebaService);
   formatFecha = formatFechaDisplay;
+  readonly idVehiculo = identificacionVehiculo;
   readonly FASES = ACCIDENTE_FASES;
   readonly today = todayIso();
 
