@@ -147,6 +147,16 @@ export class MensajeriaService {
     return data.signedUrl;
   }
 
+  /**
+   * AT15 — URL firmada (cacheada) de un THUMBNAIL para previsualizar imágenes
+   * adjuntas inline en el hilo (estilo WhatsApp). Devuelve '' si el path es
+   * vacío o si la firma falla (nunca lanza). La original a tamaño completo se
+   * obtiene con `getArchivoUrl` al abrir el lightbox.
+   */
+  async getThumbUrl(path: string): Promise<string> {
+    return this.signedUrls.signed('sgc-mensajes', path, { width: 480, height: 480, quality: 70 });
+  }
+
   async crearDirecta(otroUsuarioId: string): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('crear_conversacion_directa', { p_otro: otroUsuarioId });
     if (error) throw new Error(error.message);

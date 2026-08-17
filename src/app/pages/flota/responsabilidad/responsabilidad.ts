@@ -1,30 +1,62 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import {
   VehiculosService,
   VehiculoEntrega,
+  VehiculoAsignado,
 } from '../../../../shared/services/vehiculos.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { MiniMapa } from '../../../../shared/components/mini-mapa/mini-mapa';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { Img } from '../../../../shared/components/img/img';
 import { RegistrarEntrega } from './registrar-entrega/registrar-entrega';
+import { UserService } from '../../../core/services/user.service';
+import { Vehiculo, identificacionVehiculo, unidadUso } from '../../../../shared/models/vehiculo.model';
+import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.model';
+
+type RespTab = 'uso' | 'historial';
+
+/** Estado de uso derivado de un vehículo (para la tarjeta del panel «En uso»). */
+interface EstadoUso {
+  clave: 'uso' | 'mantenimiento' | 'libre';
+  nombre?: string;
+  motivo?: 'custodia' | 'asignacion';
+}
 
 /**
- * Vehicle responsibility history captured by the CSD field app. Read-only
- * evidence: who had each vehicle, in what state, with photos + signature.
- * Returns flagged for review (new damage / anomalous km) are highlighted.
+ * AT10 — Panel «Vehículos en uso»: rejilla visual de la flota que muestra, de un
+ * vistazo, quién tiene cada vehículo ahora mismo (custodia abierta o asignación).
+ * El feed de entregas/devoluciones (evidencia legal de custodia) se conserva bajo
+ * la segunda pestaña «Historial», con su registro de entrega/recepción intacto.
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, DatePipe, Skeleton, MiniMapa, FormDrawer, RegistrarEntrega],
+  imports: [DecimalPipe, DatePipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Responsabilidad implements OnInit {
   private vehiculosService = inject(VehiculosService);
+  private userService = inject(UserService);
 
+  // Helpers de plantilla.
+  readonly ident = identificacionVehiculo;
+  readonly unidad = unidadUso;
+
+  tab = signal<RespTab>('uso');
+
+  // ── Datos del panel «En uso» ──
+  vehiculos = signal<Vehiculo[]>([]);
+  asignados = signal<Map<string, VehiculoAsignado>>(new Map());
+  private stats = signal<Record<string, VehiculoStats>>({});
+  private fotoGrid = signal<Record<string, string>>({});
+  usoSearch = signal('');
+
+  // ── Datos del «Historial» de entregas ──
   entregas = signal<VehiculoEntrega[]>([]);
+
   loading = signal(true);
   error = signal('');
   dbNotReady = signal(false);
@@ -36,6 +68,40 @@ export class Responsabilidad implements OnInit {
   expandedId = signal<string | null>(null);
   // entrega_id → (slot → signed url)
   private fotoUrls = signal<Record<string, Record<string, string>>>({});
+
+  private esAdmin = computed(() => this.userService.hasRole('admin'));
+
+  /** Flota mostrable en la rejilla: sin bajas y sin datos de prueba (salvo admin). */
+  private baseUso = computed(() => {
+    const admin = this.esAdmin();
+    return this.vehiculos().filter((v) => {
+      if (v.estado === 'baja') return false;
+      if (v.es_prueba && !admin) return false;
+      return true;
+    });
+  });
+
+  vehiculosUso = computed(() => {
+    const q = this.usoSearch().toLowerCase().trim();
+    const base = this.baseUso();
+    if (!q) return base;
+    return base.filter((v) => this.ident(v).toLowerCase().includes(q));
+  });
+
+  // Contadores del encabezado (sobre la flota mostrable, no sobre el buscador).
+  totalCount = computed(() => this.baseUso().length);
+  enUsoCount = computed(() => {
+    const map = this.asignados();
+    return this.baseUso().filter((v) => map.has(v.id)).length;
+  });
+  mantenimientoCount = computed(() => {
+    const map = this.asignados();
+    return this.baseUso().filter((v) => !map.has(v.id) && v.estado === 'mantenimiento').length;
+  });
+  libresCount = computed(() => {
+    const map = this.asignados();
+    return this.baseUso().filter((v) => !map.has(v.id) && v.estado !== 'mantenimiento').length;
+  });
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -60,17 +126,70 @@ export class Responsabilidad implements OnInit {
     this.error.set('');
     this.dbNotReady.set(false);
     try {
-      this.entregas.set(await this.vehiculosService.getResponsabilidad());
+      const [vehiculos, asignados, stats, entregas] = await Promise.all([
+        this.vehiculosService.getAll(),
+        this.vehiculosService.getVehiculosAsignados(),
+        this.vehiculosService.getStatsAll(),
+        this.vehiculosService.getResponsabilidad(),
+      ]);
+      this.vehiculos.set(vehiculos);
+      this.asignados.set(asignados);
+      const sm: Record<string, VehiculoStats> = {};
+      for (const s of stats) sm[s.vehiculo_id] = s;
+      this.stats.set(sm);
+      this.entregas.set(entregas);
+      this.resolverFotosGrid(vehiculos);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('permission denied')) {
         this.dbNotReady.set(true);
       } else {
-        this.error.set(msg || 'Error al cargar el historial.');
+        this.error.set(msg || 'Error al cargar la información.');
       }
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** Resuelve la foto de portada (fallback 1ª) de cada vehículo a URL firmada. */
+  private resolverFotosGrid(vehiculos: Vehiculo[]) {
+    for (const v of vehiculos) {
+      const first = v.foto_portada ?? v.fotos?.[0];
+      if (!first) continue;
+      this.vehiculosService.getFotoUrl(first, { width: 800, quality: 75 }).then((url) => {
+        if (url) this.fotoGrid.update((m) => ({ ...m, [v.id]: url }));
+      });
+    }
+  }
+
+  fotoDe(v: Vehiculo): string | null {
+    return this.fotoGrid()[v.id] ?? null;
+  }
+
+  statsDe(v: Vehiculo): VehiculoStats | null {
+    return this.stats()[v.id] ?? null;
+  }
+
+  /** Quién tiene el vehículo ahora + en qué estado está (para la píldora). */
+  estadoUso(v: Vehiculo): EstadoUso {
+    const a = this.asignados().get(v.id);
+    if (a) return { clave: 'uso', nombre: a.nombre, motivo: a.motivo };
+    if (v.estado === 'mantenimiento') return { clave: 'mantenimiento' };
+    return { clave: 'libre' };
+  }
+
+  setTab(t: RespTab) {
+    this.tab.set(t);
+  }
+
+  onUsoSearch(value: string) {
+    this.usoSearch.set(value);
+  }
+
+  /** Salta al Historial filtrado por este vehículo (por placa, la clave del buscador). */
+  verHistorial(v: Vehiculo) {
+    this.searchQuery.set(v.placa ?? '');
+    this.tab.set('historial');
   }
 
   onSearch(value: string) {

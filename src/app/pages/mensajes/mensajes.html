@@ -99,6 +99,9 @@
             @if (esNuevoDia(i)) {
               <div class="msg-daysep"><span>{{ fechaSeparador(m.created_at) }}</span></div>
             }
+            @if (m.id === primerNoLeidoId()) {
+              <div class="msg-unread-sep"><span>Mensajes no leídos</span></div>
+            }
             @if (m.tipo === 'sistema') {
               <div class="msg-sistema"><span>{{ m.contenido }}</span></div>
             } @else {
@@ -111,12 +114,18 @@
                   <span class="msg__text">{{ m.contenido }}</span>
                 }
                 @if (m.archivo_path) {
-                  <button type="button" class="msg__file" (click)="descargarArchivo(m)">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                    </svg>
-                    {{ m.archivo_nombre }}
-                  </button>
+                  @if (esImagen(m)) {
+                    <button type="button" class="msg__img" (click)="verImagen(m)" [attr.aria-label]="'Ver imagen ' + (m.archivo_nombre ?? '')">
+                      <app-img [src]="thumbUrls().get(m.id) ?? null" [alt]="m.archivo_nombre ?? 'Imagen'" [height]="180" fit="cover" />
+                    </button>
+                  } @else {
+                    <button type="button" class="msg__file" (click)="descargarArchivo(m)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                      </svg>
+                      {{ m.archivo_nombre }}
+                    </button>
+                  }
                 }
                 <span class="msg__time">{{ m.created_at | date:'HH:mm' }}</span>
               </div>
@@ -214,6 +223,11 @@
     }
   </div>
 </app-form-drawer>
+
+<!-- ── Image lightbox (AT15) ── -->
+@if (lightbox(); as url) {
+  <app-lightbox [src]="url" alt="Imagen adjunta" (closed)="lightbox.set(null)" />
+}
 
 <!-- ── Group info drawer ── -->
 <app-grupo-info

@@ -1,0 +1,89 @@
+<!-- AT1 — Recorrido diario (Timeline) -->
+<div class="page">
+  <div class="page__head">
+    <div>
+      <h1 class="page__title">Recorrido diario</h1>
+      <p class="page__sub">
+        Elige un chofer y una fecha para ver su recorrido del día — aunque no haya estado en
+        una ruta. Se dibuja a partir de las posiciones capturadas por su teléfono durante la jornada.
+      </p>
+    </div>
+    <a class="page__link" routerLink="/flota/seguimiento">Ver en vivo →</a>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else {
+    <div class="rec-layout">
+      <!-- Panel izquierdo: choferes + fechas -->
+      <aside class="rec-side">
+        <h2 class="rec-side__h">Choferes</h2>
+        @if (choferes().length === 0) {
+          <p class="rec-empty">Nadie ha compartido recorridos en los últimos 30 días.</p>
+        } @else {
+          <ul class="rec-choferes">
+            @for (c of choferes(); track c.usuario_id) {
+              <li>
+                <button
+                  type="button"
+                  class="rec-chofer"
+                  [class.rec-chofer--sel]="choferSel() === c.usuario_id"
+                  (click)="seleccionarChofer(c.usuario_id)"
+                >
+                  <span class="rec-chofer__nombre">{{ c.nombre }}</span>
+                  <span class="rec-chofer__dias">{{ c.dias }} día{{ c.dias === 1 ? '' : 's' }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (choferSel()) {
+          <h2 class="rec-side__h">Fechas con recorrido</h2>
+          <div class="rec-fechas">
+            @for (d of fechasDeChofer(); track d.fecha) {
+              <button
+                type="button"
+                class="rec-fecha"
+                [class.rec-fecha--sel]="fechaSel() === d.fecha"
+                (click)="verFecha(d.fecha)"
+              >
+                <span class="rec-fecha__d">{{ fechaMedia(d.fecha) }}</span>
+                @if (d.km != null) { <span class="rec-fecha__km">{{ d.km | number:'1.0-1' }} km</span> }
+              </button>
+            }
+          </div>
+          <label class="rec-jump">
+            Otra fecha
+            <input type="date" [ngModel]="fechaSel()" (ngModelChange)="verFecha($event)" />
+          </label>
+        }
+      </aside>
+
+      <!-- Mapa + resumen -->
+      <section class="rec-main">
+        @if (recorrido(); as rec) {
+          <div class="rec-resumen">
+            <strong>{{ rec.nombre }}</strong>
+            <span>· {{ rec.puntos }} puntos</span>
+            @if (rec.km != null) { <span>· {{ rec.km | number:'1.0-1' }} km</span> }
+            @if (rec.primer_at) { <span>· {{ hora(rec.primer_at) }} → {{ hora(rec.ultimo_at) }}</span> }
+            <span class="rec-fuente" [class.rec-fuente--vivo]="rec.fuente === 'vivo'">
+              {{ rec.fuente === 'vivo' ? 'en vivo' : 'consolidado' }}
+            </span>
+          </div>
+        }
+
+        @if (mapError()) {
+          <div class="rec-mapa rec-mapa--error">{{ mapError() }}</div>
+        } @else {
+          <div class="rec-mapa" #map></div>
+        }
+
+        @if (cargandoRec()) { <p class="rec-hint">Cargando recorrido…</p> }
+        @if (error()) { <p class="rec-hint rec-hint--err">{{ error() }}</p> }
+        @if (!choferSel()) { <p class="rec-hint">Selecciona un chofer para empezar.</p> }
+      </section>
+    </div>
+  }
+</div>

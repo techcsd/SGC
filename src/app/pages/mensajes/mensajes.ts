@@ -18,15 +18,17 @@ import { UserService } from '../../core/services/user.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { Conversacion, Mensaje } from '../../../shared/models/mensaje.model';
-import { formatFechaMedia } from '../../../shared/utils/fecha.util';
+import { formatFechaMedia, timestampLocalIso, todayIso, daysAgoIso } from '../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../shared/ui/paginator/paginator';
 import { GrupoInfoPanel } from './grupo-info/grupo-info';
+import { Img } from '../../../shared/components/img/img';
+import { Lightbox } from '../../../shared/ui/lightbox/lightbox';
 
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, GrupoInfoPanel],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +49,13 @@ export class Mensajes implements OnInit, OnDestroy {
 
   selectedId = signal<string | null>(null);
   mensajes = signal<Mensaje[]>([]);
+  // AT14 — marca de lectura previa del usuario al abrir la conversación (límite
+  // para "no leídos"). Capturada ANTES de marcar como leído.
+  lastReadAt = signal<string | null>(null);
+  // AT15 — thumbnails firmados de imágenes adjuntas, por id de mensaje.
+  thumbUrls = signal<Map<string, string>>(new Map());
+  // AT15 — imagen abierta en el lightbox (URL a tamaño completo, ya firmada).
+  lightbox = signal<string | null>(null);
   loading = signal(true);
   loadingThread = signal(false);
   sending = signal(false);
@@ -74,8 +83,22 @@ export class Mensajes implements OnInit, OnDestroy {
   // solo cuando llega/enviamos un mensaje nuevo. Campo plano (no signal) para no
   // volver reactivo el efecto de scroll.
   private nextScrollBehavior: ScrollBehavior = 'auto';
+  // AT14 — cuando se abre una conversación con mensajes no leídos, el próximo
+  // scroll va al separador "Mensajes no leídos" en vez del final del hilo.
+  private scrollToUnreadPending = false;
 
   selectedConv = computed(() => this.conversaciones().find((c) => c.id === this.selectedId()) ?? null);
+
+  /** AT14 — id del primer mensaje no leído (recibido después de `lastReadAt`),
+   *  frontera para pintar el divisor "Mensajes no leídos". null si no hay. */
+  primerNoLeidoId = computed<string | null>(() => {
+    const lr = this.lastReadAt();
+    if (!lr) return null;
+    for (const m of this.mensajes()) {
+      if (m.autor_id !== this.miId && m.tipo !== 'sistema' && m.created_at > lr) return m.id;
+    }
+    return null;
+  });
 
   conversacionesFiltradas = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -127,7 +150,21 @@ export class Mensajes implements OnInit, OnDestroy {
     effect(() => {
       this.mensajes();
       const behavior = this.nextScrollBehavior;
-      queueMicrotask(() => this.threadEnd()?.nativeElement.scrollIntoView({ behavior }));
+      const toUnread = this.scrollToUnreadPending;
+      this.scrollToUnreadPending = false;
+      queueMicrotask(() => {
+        // AT14 — al abrir una conversación con no leídos, posiciona el hilo en el
+        // separador "Mensajes no leídos". En cualquier otro caso (carga sin no
+        // leídos, o llegada/envío de un mensaje) baja al final.
+        if (toUnread) {
+          const sep = document.querySelector('.thread__messages .msg-unread-sep');
+          if (sep) {
+            sep.scrollIntoView({ behavior, block: 'start' });
+            return;
+          }
+        }
+        this.threadEnd()?.nativeElement.scrollIntoView({ behavior });
+      });
       this.nextScrollBehavior = 'auto';
     });
   }
@@ -167,14 +204,34 @@ export class Mensajes implements OnInit, OnDestroy {
     // para no enviarlos por error a la conversación equivocada.
     this.composer.reset('');
     this.pendingFile.set(null);
+    // AT14 — captura mi marca de lectura previa (frontera de "no leídos") ANTES de
+    // marcar como leído, para saber dónde pintar el divisor "Mensajes no leídos".
+    const miPart = (conv.participantes ?? []).find((p) => p.usuario_id === this.miId);
+    this.lastReadAt.set(miPart?.last_read_at ?? null);
     void this.loadSelectedAvatar(conv);
     this.loadingThread.set(true);
     try {
       this.mensajes.set(await this.mensajeria.getMensajes(conv.id));
+      // AT14 — si hay un primer no leído, el próximo scroll va a ese divisor.
+      this.scrollToUnreadPending = this.primerNoLeidoId() !== null;
+      // AT15 — precarga los thumbnails firmados de las imágenes del hilo.
+      void this.resolveThumbs(this.mensajes());
       await this.mensajeria.marcarLeido(conv.id, this.miId);
-      // Zero out the unread badge locally + globally.
+      // Zero out the unread badge locally + globally, y avanza mi marca de lectura
+      // local para que reabrir la misma conversación no reviva el divisor (AT14).
+      const ahora = new Date().toISOString();
       this.conversaciones.update((list) =>
-        list.map((c) => (c.id === conv.id ? { ...c, noLeidos: 0 } : c)),
+        list.map((c) =>
+          c.id === conv.id
+            ? {
+                ...c,
+                noLeidos: 0,
+                participantes: (c.participantes ?? []).map((p) =>
+                  p.usuario_id === this.miId ? { ...p, last_read_at: ahora } : p,
+                ),
+              }
+            : c,
+        ),
       );
       this.notificaciones.refresh();
     } catch (e: unknown) {
@@ -192,6 +249,7 @@ export class Mensajes implements OnInit, OnDestroy {
         const autorNombre = this.nombrePorId.get(m.autor_id) ?? 'Usuario';
         this.nextScrollBehavior = 'smooth';
         this.mensajes.update((list) => [...list, { ...m, autor: { nombre: autorNombre } }]);
+        void this.resolveThumbs([m]); // AT15 — thumbnail del adjunto entrante si es imagen
       }
       // QA-058 — solo marcar como leído si la pestaña está enfocada; si el usuario
       // no está mirando, el mensaje sigue contando como no leído.
@@ -269,6 +327,7 @@ export class Mensajes implements OnInit, OnDestroy {
       if (!this.mensajes().some((x) => x.id === m.id)) {
         this.nextScrollBehavior = 'smooth';
         this.mensajes.update((list) => [...list, m]);
+        void this.resolveThumbs([m]); // AT15 — thumbnail del adjunto recién enviado si es imagen
       }
       this.composer.reset('');
       this.pendingFile.set(null);
@@ -313,8 +372,42 @@ export class Mensajes implements OnInit, OnDestroy {
     return formatFechaMedia(list[i - 1].created_at) !== formatFechaMedia(list[i].created_at);
   }
 
+  /** AT14 — etiqueta del separador de día: "Hoy" / "Ayer" / fecha corta. */
   fechaSeparador(ts: string): string {
+    const dia = timestampLocalIso(ts);
+    if (dia && dia === todayIso()) return 'Hoy';
+    if (dia && dia === daysAgoIso(1)) return 'Ayer';
     return formatFechaMedia(ts);
+  }
+
+  // ── AT15 — imágenes adjuntas inline ──────────────────────
+  /** true si el adjunto del mensaje es una imagen (se muestra inline). */
+  esImagen(m: Mensaje): boolean {
+    return !!m.archivo_path && !!m.archivo_mime?.startsWith('image/');
+  }
+
+  /** Resuelve (y cachea) los thumbnails firmados de los mensajes-imagen dados. */
+  private async resolveThumbs(msgs: Mensaje[]): Promise<void> {
+    for (const m of msgs) {
+      if (!this.esImagen(m) || this.thumbUrls().has(m.id)) continue;
+      try {
+        const url = await this.mensajeria.getThumbUrl(m.archivo_path!);
+        if (url) this.thumbUrls.update((map) => new Map(map).set(m.id, url));
+      } catch {
+        /* el placeholder de app-img cubre el fallo */
+      }
+    }
+  }
+
+  /** Abre la imagen a tamaño completo en el lightbox (dentro de la página). */
+  async verImagen(m: Mensaje): Promise<void> {
+    if (!m.archivo_path) return;
+    try {
+      const url = await this.mensajeria.getArchivoUrl(m.archivo_path);
+      this.lightbox.set(url);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo abrir la imagen', e instanceof Error ? e.message : undefined);
+    }
   }
 
   // ── New conversation ─────────────────────────────────────

@@ -13,7 +13,39 @@ export interface UltimaPosicion {
   bateria: number | null;
   capturado_en: string;
   usuario?: { nombre: string } | null;
-  vehiculo?: { placa: string } | null;
+  vehiculo?: { placa: string | null; marca?: string | null; modelo?: string | null; color?: string | null } | null;
+}
+
+/** AT1 — un tramo del recorrido diario (segmento continuo entre huecos). */
+export interface RecorridoTramo {
+  inicio_at: string;
+  fin_at: string;
+  km: number;
+  coords: [number, number][];
+}
+
+/** AT1 — recorrido diario tipo Timeline (RPC recorrido_diario_de). */
+export interface RecorridoDiario {
+  usuario_id: string;
+  nombre: string | null;
+  fecha: string;
+  coords: [number, number][];
+  polyline: string | null;
+  tramos: RecorridoTramo[];
+  puntos: number;
+  km: number | null;
+  primer_at: string | null;
+  ultimo_at: string | null;
+  fuente: 'consolidado' | 'vivo';
+}
+
+/** AT1 — una fila del directorio de recorridos disponibles (RPC recorridos_disponibles). */
+export interface RecorridoDisponible {
+  usuario_id: string;
+  nombre: string;
+  fecha: string;
+  puntos: number;
+  km: number | null;
 }
 
 export interface ChoferEstadoRow {
@@ -125,12 +157,49 @@ export class SeguimientoService {
     return (data ?? []) as TrackingDiagnosticoRow[];
   }
 
+  /** AT4 — SOLO posiciones de quienes comparten ubicación (RPC blindada server-side,
+   *  reemplaza el .from directo que colaba a no-sharers como Xaviel/Eduardo). */
   async getPosiciones(): Promise<UltimaPosicion[]> {
-    const { data, error } = await this.supabase.client
-      .from('chofer_ultima_posicion')
-      .select('*, usuario:usuarios(nombre), vehiculo:vehiculos(placa)');
+    const { data, error } = await this.supabase.client.rpc('ultimas_posiciones');
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as UltimaPosicion[];
+    return ((data ?? []) as Array<Record<string, unknown>>).map((r) => ({
+      usuario_id: r['usuario_id'] as string,
+      vehiculo_id: (r['vehiculo_id'] as string) ?? null,
+      lat: r['lat'] as number,
+      lng: r['lng'] as number,
+      precision_m: (r['precision_m'] as number) ?? null,
+      bateria: (r['bateria'] as number) ?? null,
+      capturado_en: r['capturado_en'] as string,
+      usuario: { nombre: (r['nombre'] as string) ?? '' },
+      vehiculo: r['vehiculo_id']
+        ? {
+            placa: (r['placa'] as string) ?? null,
+            marca: (r['marca'] as string) ?? null,
+            modelo: (r['modelo'] as string) ?? null,
+            color: (r['color'] as string) ?? null,
+          }
+        : null,
+    }));
+  }
+
+  /** AT1 — recorrido diario de un chofer en una fecha (tipo Google Timeline). */
+  async getRecorridoDiario(usuarioId: string, fecha: string): Promise<RecorridoDiario | null> {
+    const { data, error } = await this.supabase.client.rpc('recorrido_diario_de', {
+      p_usuario_id: usuarioId,
+      p_fecha: fecha,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? null) as RecorridoDiario | null;
+  }
+
+  /** AT1 — qué choferes tienen recorrido en un rango de fechas (para el selector). */
+  async getRecorridosDisponibles(desde: string, hasta: string): Promise<RecorridoDisponible[]> {
+    const { data, error } = await this.supabase.client.rpc('recorridos_disponibles', {
+      p_desde: desde,
+      p_hasta: hasta,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RecorridoDisponible[];
   }
 
   async getChoferesEstado(): Promise<ChoferEstadoRow[]> {

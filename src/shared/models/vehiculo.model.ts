@@ -216,6 +216,29 @@ export function descripcionVehiculo(
   return [v.marca, v.modelo, v.anio].filter((p) => p !== null && p !== undefined && p !== '').join(' ').trim() || '—';
 }
 
+/** AT9 — Identificación homologada del vehículo: "Marca Modelo · Color · Placa"
+ *  (ej. "Hyundai Cantus · Gris · G675571"). En la constructora rara vez se
+ *  saben las placas, pero sí marca/modelo/color — por eso NO se identifica solo
+ *  por placa. Degrada con datos parciales: omite las partes que falten y, para
+ *  maquinaria sin placa, cae al VIN/serial si existe. Fuente única para
+ *  listados, selectores, notificaciones y reportes. */
+export function identificacionVehiculo(
+  v?: {
+    marca?: string | null;
+    modelo?: string | null;
+    color?: string | null;
+    placa?: string | null;
+    vin?: string | null;
+  } | null,
+): string {
+  if (!v) return '—';
+  const nombre = [v.marca, v.modelo].filter((p) => p !== null && p !== undefined && p !== '').join(' ').trim();
+  const partes = [nombre, v.color, v.placa || v.vin].filter(
+    (p) => p !== null && p !== undefined && p !== '',
+  );
+  return partes.join(' · ').trim() || '—';
+}
+
 export const CAPACIDAD_UNIDADES: { value: string; label: string }[] = [
   { value: 't', label: 'Toneladas (t)' },
   { value: 'kg', label: 'Kilogramos (kg)' },

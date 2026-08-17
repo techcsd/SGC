@@ -7,6 +7,21 @@
  * instead, so results always match the calendar day a person in Santo Domingo expects.
  */
 
+/**
+ * Local `YYYY-MM-DD` calendar date of a `timestamptz` (offset-aware, e.g. `created_at`).
+ * The timestamp carries an explicit UTC offset (`Z`), so `new Date()` is correct here.
+ * Ideal para comparar el día de un mensaje contra `todayIso()` / `daysAgoIso(1)`.
+ */
+export function timestampLocalIso(ts: string | null | undefined): string {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 /** Today's date as a local `YYYY-MM-DD` string. */
 export function todayIso(): string {
   const d = new Date();
@@ -81,6 +96,36 @@ export function formatAntiguedad(fecha: string | null | undefined): string {
 
 const MESES_ABREV = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const DIAS_ABREV = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+
+/**
+ * AT17 — Hora del día (12h con a.m./p.m.) a partir de un timestamptz, ej.
+ * `2026-08-17T12:04:00Z` → `8:04 a.m.` en Santo Domingo (UTC-4). Correcto usar
+ * `new Date(ts)` porque el string trae offset explícito (Z/+00). Complementa a
+ * `formatTimestampDisplay` (que da solo la fecha) para mostrar fecha + hora.
+ */
+export function formatHoraTimestamp(timestamp: string | null | undefined): string {
+  if (!timestamp) return '—';
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return '—';
+  let h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const period = h >= 12 ? 'p.m.' : 'a.m.';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${period}`;
+}
+
+/**
+ * AT17 — Fecha + hora homologada (12h), ej. `17/08/2026 8:04 p.m.`. Fuente única
+ * para checklists, inspecciones, reportes, usos, avisos y actas que hoy solo
+ * muestran la fecha.
+ */
+export function formatFechaHoraDisplay(timestamp: string | null | undefined): string {
+  if (!timestamp) return '—';
+  const fecha = formatTimestampDisplay(timestamp);
+  if (fecha === '—') return '—';
+  return `${fecha} ${formatHoraTimestamp(timestamp)}`;
+}
 
 /**
  * U9 — Etiqueta corta de día para un `YYYY-MM-DD` (date-only), ej. `lun 14`.

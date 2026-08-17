@@ -402,7 +402,7 @@
       <!-- Banda de resultado -->
       <div class="cl-band cl-band--{{ resultadoMeta(c).badge }}">
         <span class="cl-band__result">{{ resultadoMeta(c).label }}</span>
-        <span class="cl-band__sub">{{ c.vehiculo?.placa ?? '—' }} · {{ vehiculoLabel(c) }} · {{ formatFecha(c.fecha) }}</span>
+        <span class="cl-band__sub">{{ c.vehiculo?.placa ?? '—' }} · {{ vehiculoLabel(c) }} · {{ formatFecha(c.fecha) }}@if (c.capturado_en || c.created_at) { · {{ horaCaptura(c) }} }</span>
       </div>
 
       <!-- Tarjetas -->

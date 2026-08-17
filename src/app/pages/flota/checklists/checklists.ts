@@ -44,7 +44,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
-import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatHoraTimestamp, todayIso } from '../../../../shared/utils/fecha.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
@@ -757,6 +757,11 @@ export class Checklists implements OnInit {
 
   getRespuestaLabel(valor: string): string {
     return this.OPCIONES.find((o) => o.value === valor)?.label ?? valor;
+  }
+
+  /** AT17 — hora (12h) del momento de captura de un checklist. */
+  horaCaptura(c: { capturado_en?: string | null; created_at?: string | null }): string {
+    return formatHoraTimestamp(c.capturado_en ?? c.created_at ?? null);
   }
 
   formatFecha(fecha: string | null | undefined): string {

@@ -111,6 +111,13 @@ export const flotaRoutes: Routes = [
     title: 'Rutas activas — Flota',
   },
   {
+    // AT1 — Recorrido diario (Timeline) por chofer/fecha. Roles elevados.
+    path: 'recorrido-diario',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () => import('./recorrido-diario/recorrido-diario').then((m) => m.RecorridoDiarioPage),
+    title: 'Recorrido diario — Flota',
+  },
+  {
     path: 'checklists',
     canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () => import('./checklists/checklists').then((m) => m.Checklists),
@@ -133,7 +140,7 @@ export const flotaRoutes: Routes = [
     canActivate: [flotaElevadoGuard],
     loadComponent: () =>
       import('./responsabilidad/responsabilidad').then((m) => m.Responsabilidad),
-    title: 'Responsabilidad — Flota',
+    title: 'Vehículos en uso — Flota',
   },
   {
     path: 'reportes',

@@ -1,9 +1,9 @@
 <!-- ── Section header ── -->
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Responsabilidad de vehículos</h1>
+    <h1 class="page-title">Vehículos en uso</h1>
     <span class="page-count">
-      {{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}
+      {{ enUsoCount() }} en uso · {{ totalCount() }} en flota
     </span>
   </div>
   <div class="page-header__actions">
@@ -13,29 +13,27 @@
   </div>
 </div>
 
-<p class="resp-lead">
-  Entregas y devoluciones de vehículos, registradas desde la app de campo o desde aquí con
-  «Registrar entrega/recepción». Evidencia de quién tuvo cada vehículo y en qué estado.
-</p>
-
-<!-- ── Filters ── -->
-<div class="filters-bar">
-  <div class="sgc-field filters-bar__search">
-    <input
-      type="search"
-      placeholder="Buscar por placa o conductor…"
-      [value]="searchQuery()"
-      (input)="onSearch($any($event.target).value)"
-      aria-label="Buscar responsabilidad"
-    />
-  </div>
+<!-- ── Tabs ── -->
+<div class="resp-tabs" role="tablist">
   <button
     type="button"
-    class="sgc-btn"
-    [class.sgc-btn--primary]="soloRevision()"
-    (click)="toggleRevision()"
+    class="resp-tab"
+    role="tab"
+    [class.resp-tab--active]="tab() === 'uso'"
+    [attr.aria-selected]="tab() === 'uso'"
+    (click)="setTab('uso')"
   >
-    ⚠️ Requieren revisión ({{ revisionCount() }})
+    En uso
+  </button>
+  <button
+    type="button"
+    class="resp-tab"
+    role="tab"
+    [class.resp-tab--active]="tab() === 'historial'"
+    [attr.aria-selected]="tab() === 'historial'"
+    (click)="setTab('historial')"
+  >
+    Historial ({{ entregas().length }})
   </button>
 </div>
 
@@ -45,86 +43,214 @@
   <p class="resp-muted">La tabla aún no existe. Aplica la migración de la CSD App.</p>
 } @else if (error()) {
   <p class="resp-error">{{ error() }}</p>
-} @else if (filtered().length === 0) {
-  <p class="resp-muted">No hay registros todavía.</p>
 } @else {
-  <div class="resp-list">
-    @for (e of filtered(); track e.id) {
-      <div class="resp-card" [class.resp-card--revision]="e.requiere_revision">
-        <button type="button" class="resp-card__row" (click)="toggle(e)">
-          <div class="resp-card__main">
-            <span class="resp-card__placa">{{ e.vehiculo?.placa ?? '—' }}</span>
-            <span
-              class="resp-badge"
-              [class.resp-badge--in]="e.tipo === 'recepcion'"
-              [class.resp-badge--out]="e.tipo === 'devolucion'"
-            >
-              {{ e.tipo === 'recepcion' ? 'Recepción' : 'Devolución' }}
-            </span>
-            @if (e.estado === 'abierta') {
-              <span class="resp-badge resp-badge--open">A cargo</span>
-            }
-            @if (e.requiere_revision) {
-              <span class="resp-badge resp-badge--warn">⚠️ Revisar</span>
-            }
-          </div>
-          <div class="resp-card__meta">
-            <span>{{ e.conductor?.nombre ?? '—' }}</span>
-            <span>{{ e.km | number: '1.0-0' }} km · ⛽ {{ e.combustible }}</span>
-            <span>{{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-          <span class="resp-card__chev">{{ isExpanded(e.id) ? '▲' : '▼' }}</span>
-        </button>
 
-        @if (isExpanded(e.id)) {
-          <div class="resp-card__detail">
-            @if (e.observacion) {
-              <p class="resp-obs">“{{ e.observacion }}”</p>
-            }
+  <!-- ══════════════ TAB 1 — En uso ══════════════ -->
+  @if (tab() === 'uso') {
+    <p class="resp-lead">
+      Quién tiene cada vehículo ahora mismo: custodia abierta (recepción sin devolver) o
+      asignación de flota. Consulta el detalle de custodia en «Historial».
+    </p>
 
-            <!-- ── Ubicación (X2): prueba de dónde ocurrió la entrega/recepción ── -->
-            <h4 class="resp-detail-title">Ubicación</h4>
-            <app-mini-mapa [lat]="e.gps_lat" [lng]="e.gps_lng" />
-            @if (e.gps_lat != null) {
-              <p class="resp-muted resp-gps-fecha">Registrada el {{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
-            }
+    <!-- Resumen ── -->
+    <div class="uso-summary">
+      <div class="uso-stat">
+        <span class="uso-stat__num">{{ totalCount() }}</span>
+        <span class="uso-stat__lbl">En flota</span>
+      </div>
+      <div class="uso-stat uso-stat--uso">
+        <span class="uso-stat__num">{{ enUsoCount() }}</span>
+        <span class="uso-stat__lbl">En uso</span>
+      </div>
+      <div class="uso-stat uso-stat--libre">
+        <span class="uso-stat__num">{{ libresCount() }}</span>
+        <span class="uso-stat__lbl">Libres</span>
+      </div>
+      <div class="uso-stat uso-stat--mant">
+        <span class="uso-stat__num">{{ mantenimientoCount() }}</span>
+        <span class="uso-stat__lbl">En mantenimiento</span>
+      </div>
+    </div>
 
-            @if (e.danos?.length) {
-              <h4 class="resp-detail-title">Daños reportados</h4>
-              <ul class="resp-danos">
-                @for (d of e.danos; track d.id) {
-                  <li>
-                    <b>{{ d.zona }}</b>
-                    @if (d.es_nuevo) { <span class="resp-badge resp-badge--warn">Nuevo</span> }
-                    @if (d.descripcion) { — {{ d.descripcion }} }
-                  </li>
-                }
-              </ul>
-            }
-            <h4 class="resp-detail-title">Fotos y firma</h4>
-            <div class="resp-fotos">
-              @for (f of fotosDe(e.id); track f.key) {
-                <a class="resp-foto" [href]="f.url" target="_blank" rel="noopener">
-                  <img [src]="f.url" [alt]="f.key" loading="lazy" />
-                  <span class="resp-foto__cap">{{ f.key }}</span>
-                </a>
-              } @empty {
-                <span class="resp-muted">Cargando fotos…</span>
+    <!-- Buscador ── -->
+    <div class="filters-bar">
+      <div class="sgc-field filters-bar__search">
+        <input
+          type="search"
+          placeholder="Buscar por marca, modelo, color o placa…"
+          [value]="usoSearch()"
+          (input)="onUsoSearch($any($event.target).value)"
+          aria-label="Buscar vehículo"
+        />
+      </div>
+    </div>
+
+    @if (vehiculosUso().length === 0) {
+      <p class="resp-muted">No hay vehículos que coincidan.</p>
+    } @else {
+      <div class="uso-grid">
+        @for (v of vehiculosUso(); track v.id) {
+          <article class="uso-card" [class.uso-card--uso]="estadoUso(v).clave === 'uso'">
+            <!-- Foto ── -->
+            <div class="uso-card__foto">
+              @if (fotoDe(v); as url) {
+                <app-img [src]="url" [alt]="ident(v)" [height]="150" fit="cover" [rounded]="false" fallback="🚚" />
+              } @else {
+                <div class="uso-card__foto-ph" aria-hidden="true">🚚</div>
               }
             </div>
-            @if (firmaDe(e.id); as firma) {
-              <div class="resp-firma">
-                <a class="resp-foto resp-foto--firma" [href]="firma" target="_blank" rel="noopener">
-                  <img [src]="firma" alt="Firma de quien recibe" loading="lazy" />
-                  <span class="resp-foto__cap">Firma de {{ e.conductor?.nombre ?? 'quien recibe' }}</span>
-                </a>
+
+            <div class="uso-card__body">
+              <h3 class="uso-card__ident">{{ ident(v) }}</h3>
+
+              <!-- Píldora de estado ── -->
+              @switch (estadoUso(v).clave) {
+                @case ('uso') {
+                  <span class="uso-pill uso-pill--uso">
+                    En uso por {{ estadoUso(v).nombre }}
+                  </span>
+                }
+                @case ('mantenimiento') {
+                  <span class="uso-pill uso-pill--mant">En mantenimiento</span>
+                }
+                @default {
+                  <span class="uso-pill uso-pill--libre">Libre</span>
+                }
+              }
+
+              <!-- Última actividad / km ── -->
+              @if (statsDe(v); as s) {
+                <p class="uso-card__meta">
+                  {{ s.km_actual | number: '1.0-0' }} {{ unidad(v) }}
+                  @if (s.ultima_actividad) {
+                    · Últ. actividad {{ s.ultima_actividad | date: 'dd/MM/yyyy' }}
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Acciones ── -->
+            <div class="uso-card__actions">
+              <a class="sgc-btn sgc-btn--sm" routerLink="/flota/seguimiento">Ver en el mapa</a>
+              <a class="sgc-btn sgc-btn--sm" [routerLink]="['/flota/vehiculos', v.id]">Perfil</a>
+              <button type="button" class="sgc-btn sgc-btn--sm" (click)="verHistorial(v)">Historial</button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══════════════ TAB 2 — Historial ══════════════ -->
+  @if (tab() === 'historial') {
+    <p class="resp-lead">
+      Entregas y devoluciones de vehículos, registradas desde la app de campo o desde aquí con
+      «Registrar entrega/recepción». Evidencia de quién tuvo cada vehículo y en qué estado.
+    </p>
+
+    <!-- Filtros ── -->
+    <div class="filters-bar">
+      <div class="sgc-field filters-bar__search">
+        <input
+          type="search"
+          placeholder="Buscar por placa o conductor…"
+          [value]="searchQuery()"
+          (input)="onSearch($any($event.target).value)"
+          aria-label="Buscar responsabilidad"
+        />
+      </div>
+      <button
+        type="button"
+        class="sgc-btn"
+        [class.sgc-btn--primary]="soloRevision()"
+        (click)="toggleRevision()"
+      >
+        ⚠️ Requieren revisión ({{ revisionCount() }})
+      </button>
+    </div>
+
+    @if (filtered().length === 0) {
+      <p class="resp-muted">No hay registros todavía.</p>
+    } @else {
+      <div class="resp-list">
+        @for (e of filtered(); track e.id) {
+          <div class="resp-card" [class.resp-card--revision]="e.requiere_revision">
+            <button type="button" class="resp-card__row" (click)="toggle(e)">
+              <div class="resp-card__main">
+                <span class="resp-card__placa">{{ e.vehiculo?.placa ?? '—' }}</span>
+                <span
+                  class="resp-badge"
+                  [class.resp-badge--in]="e.tipo === 'recepcion'"
+                  [class.resp-badge--out]="e.tipo === 'devolucion'"
+                >
+                  {{ e.tipo === 'recepcion' ? 'Recepción' : 'Devolución' }}
+                </span>
+                @if (e.estado === 'abierta') {
+                  <span class="resp-badge resp-badge--open">A cargo</span>
+                }
+                @if (e.requiere_revision) {
+                  <span class="resp-badge resp-badge--warn">⚠️ Revisar</span>
+                }
+              </div>
+              <div class="resp-card__meta">
+                <span>{{ e.conductor?.nombre ?? '—' }}</span>
+                <span>{{ e.km | number: '1.0-0' }} km · ⛽ {{ e.combustible }}</span>
+                <span>{{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <span class="resp-card__chev">{{ isExpanded(e.id) ? '▲' : '▼' }}</span>
+            </button>
+
+            @if (isExpanded(e.id)) {
+              <div class="resp-card__detail">
+                @if (e.observacion) {
+                  <p class="resp-obs">“{{ e.observacion }}”</p>
+                }
+
+                <!-- ── Ubicación (X2): prueba de dónde ocurrió la entrega/recepción ── -->
+                <h4 class="resp-detail-title">Ubicación</h4>
+                <app-mini-mapa [lat]="e.gps_lat" [lng]="e.gps_lng" />
+                @if (e.gps_lat != null) {
+                  <p class="resp-muted resp-gps-fecha">Registrada el {{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
+                }
+
+                @if (e.danos?.length) {
+                  <h4 class="resp-detail-title">Daños reportados</h4>
+                  <ul class="resp-danos">
+                    @for (d of e.danos; track d.id) {
+                      <li>
+                        <b>{{ d.zona }}</b>
+                        @if (d.es_nuevo) { <span class="resp-badge resp-badge--warn">Nuevo</span> }
+                        @if (d.descripcion) { — {{ d.descripcion }} }
+                      </li>
+                    }
+                  </ul>
+                }
+                <h4 class="resp-detail-title">Fotos y firma</h4>
+                <div class="resp-fotos">
+                  @for (f of fotosDe(e.id); track f.key) {
+                    <a class="resp-foto" [href]="f.url" target="_blank" rel="noopener">
+                      <img [src]="f.url" [alt]="f.key" loading="lazy" />
+                      <span class="resp-foto__cap">{{ f.key }}</span>
+                    </a>
+                  } @empty {
+                    <span class="resp-muted">Cargando fotos…</span>
+                  }
+                </div>
+                @if (firmaDe(e.id); as firma) {
+                  <div class="resp-firma">
+                    <a class="resp-foto resp-foto--firma" [href]="firma" target="_blank" rel="noopener">
+                      <img [src]="firma" alt="Firma de quien recibe" loading="lazy" />
+                      <span class="resp-foto__cap">Firma de {{ e.conductor?.nombre ?? 'quien recibe' }}</span>
+                    </a>
+                  </div>
+                }
               </div>
             }
           </div>
         }
       </div>
     }
-  </div>
+  }
 }
 
 <!-- ── Registrar entrega/recepción (paridad web/móvil) ── -->

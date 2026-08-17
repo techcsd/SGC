@@ -546,6 +546,18 @@
 
   &__head { margin-bottom: 1rem; }
 
+  // AT13 — texto explicativo de "accesos efectivos"
+  &__explain {
+    margin: 0 0 0.9rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--sgc-surface-2, #f1f5f9);
+    border: 1px solid var(--sgc-border, #e2e8f0);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--main-ultra-light);
+    line-height: 1.45;
+  }
+
   &__title {
     font-size: 1.2rem;
     font-weight: 700;

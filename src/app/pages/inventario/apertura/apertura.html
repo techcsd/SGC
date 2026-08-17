@@ -22,10 +22,17 @@
       <select id="almacen" [value]="bodegaId()" (change)="onAlmacen($any($event.target).value)">
         <option value="">Selecciona un almacén…</option>
         @for (a of almacenes(); track a.id) {
-          <option [value]="a.id">{{ a.nombre }}@if (a.es_central) { · Central }</option>
+          <option [value]="a.id">{{ a.nombre }}@if (a.es_central) { · Central }@if (a.es_prueba) { · PRUEBA }</option>
         }
       </select>
     </div>
+
+    @if (esAdmin()) {
+      <label class="prueba-toggle">
+        <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
+        Mostrar datos de prueba
+      </label>
+    }
   </div>
 
   @if (bodegaId()) {

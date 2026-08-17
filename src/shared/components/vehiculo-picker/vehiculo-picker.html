@@ -53,9 +53,10 @@
             }
           </span>
           <span class="veh-picker__opt-body">
-            <span class="veh-picker__opt-placa">{{ v.placa }}</span>
+            <span class="veh-picker__opt-placa">{{ v.placa || (v.marca + ' ' + v.modelo) }}</span>
             <span class="veh-picker__opt-sub">
               {{ v.marca }} {{ v.modelo }} {{ v.anio }}
+              @if (v.color) { <span class="veh-picker__color">· {{ v.color }}</span> }
               @if (asignadoDe(v); as a) {
                 <span class="veh-picker__asignado">· Asignado a {{ a.nombre }}</span>
               }

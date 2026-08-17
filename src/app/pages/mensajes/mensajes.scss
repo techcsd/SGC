@@ -280,6 +280,36 @@
   }
 }
 
+// AT14 — separador "Mensajes no leídos": pastilla centrada con acento, marca la
+// frontera del primer mensaje sin leer al abrir la conversación.
+.msg-unread-sep {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--sgc-primary-mid);
+  }
+
+  span {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    background: var(--sgc-primary-light);
+    border: 1px solid var(--sgc-primary-mid);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--sgc-primary);
+    white-space: nowrap;
+  }
+}
+
 // Evento de sistema (alguien entró/salió, cambió el nombre…): línea centrada,
 // tenue y pequeña, sin burbuja ni autor.
 .msg-sistema {
@@ -350,6 +380,19 @@
     color: inherit;
     text-decoration: underline;
     padding: 0;
+  }
+
+  // AT15 — previsualización de imagen adjunta inline (estilo WhatsApp).
+  &__img {
+    display: block;
+    width: 220px;
+    max-width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
   }
 
   &__time {

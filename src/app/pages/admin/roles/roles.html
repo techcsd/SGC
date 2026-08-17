@@ -127,6 +127,12 @@
       <!-- 1) Accesos efectivos -->
       @if (auditTab() === 'efectivos') {
         <div class="roles-audit__panel">
+          <!-- AT13 — explica la herramienta para que se entienda sola. -->
+          <p class="roles-audit__explain">
+            Muestra la <strong>suma real</strong> de accesos (módulos, submódulos y nivel Ver/Operar)
+            que tiene un usuario o rol. Si un usuario tiene varios roles, aquí ves el acceso
+            <em>combinado</em> de todos ellos — útil para auditar antes de quitar o cambiar roles.
+          </p>
           <div class="roles-audit__controls">
             <div class="roles-audit__seg" role="radiogroup" aria-label="Fuente de accesos">
               <button type="button" role="radio" class="roles-audit__seg-btn" [class.roles-audit__seg-btn--active]="auditFuente() === 'rol'"
