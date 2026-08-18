@@ -1,6 +1,13 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-08-07_
+_Last updated: 2026-08-20_
+
+## 🟢 2026-08-20 — AV3 FASE 1.4: gate de firma del despachante en la web (1.82.1) + fix map-matching
+Paridad con la app móvil (PROMPT-24). Commit `f266d9b` (web 1.82.1) + `50b7e72` (snap-to-roads SHA-256 + migraciones AV3/AV13b/AV5).
+- **Gate web (1.82.1):** en `pages/inventario/conduce/conduce.*` — si `firmaDespachantePendiente()` (despachante del sistema + sin firma del emisor), el botón "Registrar entrega (firmar)" sale BLOQUEADO con el motivo visible + banner, ANTES del esfuerzo (antes solo el server rechazaba DR456 al intentar). Atajo "Recordarle al despachante" → `SalidasService.recordarDespachante` → RPC `conduce_recordar_despachante` (devuelve nombre, o null si ya firmó → recarga y desbloquea). Guard en `confirmarCierre`. `release-notes.json` web.1.82.1 añadido (Y1). Build verde.
+- **snap-to-roads (AV7):** la edge estaba escrita pero SIN deploy y con bug (`crypto.subtle.digest('MD5')` no existe en Deno → 500). Corregida a SHA-256 y **desplegada a prod** (`GOOGLE_MAPS_API_KEY` ya era secreto). Verificado: 6 puntos → 29 pegados a la calle, cacheados en `snap_cache`. La app móvil (1.88.1) ya la consume; la web ya la usaba en su Seguimiento/recorrido.
+- **⚠️ Móvil (csd-app) — nota de prod:** al publicar 1.88.1 el `version_minima` salió 1.88.1 (habría forzado update bloqueante); corregido a 1.70.0 (`update app_versiones set minima=false where version='1.88.1' and plataforma='movil'`).
+
 
 ## PROMPT-9 · Ronda AH (07/08/2026) — ✅ 7/7 FASES · 8 migraciones EN PROD · build verde · **SHIPPED web 1.67.0** commit `98d59d4` + push `main` (deploy Vercel)
 
