@@ -70,6 +70,10 @@ export class AperturaInventario implements OnInit {
   cantidadLote = signal<number>(1000);
   soloFaltantes = signal<boolean>(true);
   aplicandoLote = signal(false);
+  // AU6 — catálogo completo: lista/afecta TODOS los artículos del sistema, no solo
+  // los que ya se movieron en este almacén.
+  incluirCatalogo = signal<boolean>(false);
+  previewCount = signal<number | null>(null);
 
   filtrados = computed(() => {
     const q = this.search().toLowerCase().trim();
@@ -96,14 +100,41 @@ export class AperturaInventario implements OnInit {
   async onAlmacen(id: string) {
     this.bodegaId.set(id);
     this.items.set([]);
+    this.previewCount.set(null);
     if (!id) return;
     this.loading.set(true);
     try {
-      this.items.set(await this.service.getInventario(id, true));
+      this.items.set(await this.service.getInventario(id, true, null, this.incluirCatalogo()));
+      await this.actualizarPreview();
     } catch (e: unknown) {
       this.toast.error('No se pudo cargar el inventario', e instanceof Error ? e.message : '');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /** AU6 — al alternar "todo el catálogo", recarga la lista con/ sin catálogo completo. */
+  async toggleCatalogo(v: boolean) {
+    this.incluirCatalogo.set(v);
+    if (this.bodegaId()) await this.onAlmacen(this.bodegaId());
+  }
+
+  async onSoloFaltantes(v: boolean) {
+    this.soloFaltantes.set(v);
+    await this.actualizarPreview();
+  }
+
+  /** AU6 — "Se dará apertura a N artículos" según los filtros actuales del lote. */
+  async actualizarPreview() {
+    if (!this.bodegaId()) { this.previewCount.set(null); return; }
+    try {
+      this.previewCount.set(await this.service.previewAperturaLote({
+        bodegaId: this.bodegaId(),
+        incluirTodoCatalogo: this.incluirCatalogo(),
+        soloFaltantes: this.soloFaltantes(),
+      }));
+    } catch {
+      this.previewCount.set(null);
     }
   }
 
@@ -133,19 +164,23 @@ export class AperturaInventario implements OnInit {
       this.toast.error('Cantidad de apertura inválida.');
       return;
     }
-    const alcance = this.soloFaltantes() ? 'los artículos SIN apertura' : 'TODOS los artículos';
-    if (!confirm(`¿Fijar la apertura de ${alcance} de este almacén en ${cant}?\nNo genera movimientos ni afecta el kardex (re-basa sin caída).`)) {
+    const universo = this.incluirCatalogo() ? 'TODO el catálogo del sistema' : 'los artículos de este almacén';
+    const alcance = this.soloFaltantes() ? 'sin apertura' : '(incluye los que ya tienen apertura)';
+    const n = this.previewCount();
+    const cuantos = n != null ? `\nSe dará apertura a ${n} artículo(s).` : '';
+    if (!confirm(`¿Fijar la apertura en ${cant} de ${universo} ${alcance}?${cuantos}\nNo genera movimientos ni afecta el kardex (re-basa sin caída).`)) {
       return;
     }
     this.aplicandoLote.set(true);
     try {
-      const n = await this.service.setAperturaLote({
+      const tocados = await this.service.setAperturaLote({
         bodegaId: this.bodegaId(),
         cantidad: cant,
         soloFaltantes: this.soloFaltantes(),
+        incluirTodoCatalogo: this.incluirCatalogo(),
       });
       await this.onAlmacen(this.bodegaId());
-      this.toast.success('Apertura aplicada en lote', `Se actualizó la apertura de ${n} artículo(s).`);
+      this.toast.success('Apertura aplicada en lote', `Se actualizó la apertura de ${tocados} artículo(s).`);
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo aplicar la apertura en lote.');
     } finally {

@@ -1,0 +1,122 @@
+<!-- AU4 — Bandeja de material no catalogado -->
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/inventario/articulos" class="page__back">← Inventario</a>
+      <h1 class="page__title">Material no catalogado</h1>
+      <p class="page__sub">
+        Materiales que los choferes escribieron a mano en un conduce porque no existían en
+        el catálogo. Crea el artículo (queda vinculado) o vincúlalo a uno existente.
+      </p>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <label class="prueba-toggle">
+      <input type="checkbox" [checked]="incluirResueltos()" (change)="toggleResueltos($any($event.target).checked)" />
+      Mostrar ya resueltos
+    </label>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else if (filas().length === 0) {
+    <p class="page__empty">No hay material no catalogado pendiente. 👌</p>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Material no catalogado">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th class="text-right">Cantidad</th>
+            <th>Conduce</th>
+            <th>Obra</th>
+            <th>Reportó</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.id) {
+            <tr [class.mnc--resuelto]="f.articulo_vinculado_id">
+              <td>{{ f.nombre }}</td>
+              <td class="text-right">{{ f.cantidad }} {{ f.unidad || '' }}</td>
+              <td>
+                <a [routerLink]="['/inventario/salidas', f.salida_id, 'conduce']">{{ f.conduce_numero }}</a>
+              </td>
+              <td class="text-muted">{{ f.proyecto || '—' }}</td>
+              <td class="text-muted">{{ f.reportado_por || '—' }}</td>
+              <td class="text-right">
+                @if (f.articulo_vinculado_id) {
+                  <span class="mnc-tag">✓ {{ f.articulo_vinculado }}</span>
+                } @else if (puedeGestionar()) {
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirCrear(f)">Crear artículo</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular(f)">Vincular</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<!-- Modal crear / vincular -->
+@if (activo(); as fila) {
+  <div class="mnc-modal" (click)="cerrar()">
+    <div class="mnc-panel" (click)="$event.stopPropagation()">
+      <div class="mnc-panel__head">
+        <h2>{{ modo() === 'crear' ? 'Crear artículo' : 'Vincular a un artículo' }}</h2>
+        <button type="button" class="mnc-x" (click)="cerrar()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="mnc-panel__body">
+        <p class="mnc-src">Material del conduce: <strong>{{ fila.nombre }}</strong> ({{ fila.cantidad }} {{ fila.unidad || '' }})</p>
+
+        @if (modo() === 'crear') {
+          <div class="sgc-field">
+            <label for="nombre">Nombre del artículo</label>
+            <input id="nombre" type="text" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+          </div>
+          <div class="sgc-field">
+            <label for="cat">Categoría</label>
+            <select id="cat" [value]="nuevaCategoria()" (change)="nuevaCategoria.set(+$any($event.target).value)">
+              @for (c of categorias(); track c.id) {
+                <option [value]="c.id">{{ c.nombre }}</option>
+              }
+            </select>
+          </div>
+          <div class="sgc-field">
+            <label for="uni">Unidad</label>
+            <select id="uni" [value]="nuevaUnidad()" (change)="nuevaUnidad.set($any($event.target).value)">
+              @for (u of unidades; track u.value) {
+                <option [value]="u.value">{{ u.label }}</option>
+              }
+            </select>
+          </div>
+          <p class="mnc-note">Se creará con código automático y entrará al catálogo. Si ya aplicaste apertura, recibirá el piso configurado en los almacenes aperturados.</p>
+        } @else {
+          <app-articulo-picker
+            [articulos]="catalogo()"
+            [categorias]="categorias()"
+            [allowOtro]="false"
+            (selectionChange)="onVincularSel($event)"
+          />
+        }
+      </div>
+
+      <div class="mnc-panel__foot">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrar()" [disabled]="guardando()">Cancelar</button>
+        @if (modo() === 'crear') {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearYVincular()" [disabled]="guardando()">
+            {{ guardando() ? 'Creando…' : 'Crear y vincular' }}
+          </button>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="vincular()" [disabled]="guardando()">
+            {{ guardando() ? 'Vinculando…' : 'Vincular' }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

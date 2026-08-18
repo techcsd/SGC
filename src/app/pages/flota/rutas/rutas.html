@@ -506,6 +506,13 @@
         <p class="ruta-detalle__sub">Obra de destino: {{ r.destino_proyecto?.nombre }}</p>
       }
 
+      <!-- AU5 — Ver trayectoria (replay del recorrido GPS de la ruta) -->
+      @if (r.estado === 'completada' || r.estado === 'cancelada' || r.estado === 'en_curso') {
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="verTrayectoria(r.id)">
+          Ver trayectoria
+        </button>
+      }
+
       <!-- Mini-mapa del destino -->
       @if (detailDestino(); as d) {
         <app-location-picker [latitud]="d.latitud" [longitud]="d.longitud" />
@@ -651,4 +658,9 @@
 <!-- AC6 — lightbox in-page para las fotos de evidencia de la ruta -->
 @if (fotoLightbox(); as url) {
   <app-lightbox [src]="url" alt="Foto de evidencia de la ruta" (closed)="fotoLightbox.set(null)" />
+}
+
+<!-- AU5 — modal de trayectoria (replay del recorrido de la ruta) -->
+@if (trayectoriaRutaId(); as rid) {
+  <app-trayectoria-modal [rutaId]="rid" (close)="cerrarTrayectoria()" />
 }

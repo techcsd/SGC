@@ -1,0 +1,22 @@
+<!-- AU5 — Modal de trayectoria (replay de la ruta) -->
+<div class="tray-modal" (click)="cerrar()">
+  <div class="tray-panel" (click)="$event.stopPropagation()">
+    <div class="tray-panel__head">
+      <div>
+        <h2>{{ titulo() }}</h2>
+        @if (!loading() && !error()) {
+          <span class="tray-panel__meta">{{ puntos() }} puntos@if (km() != null) { · {{ km() | number:'1.0-1' }} km }</span>
+        }
+      </div>
+      <button type="button" class="tray-x" (click)="cerrar()" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="tray-panel__body">
+      @if (error()) {
+        <p class="tray-hint tray-hint--err">{{ error() }}</p>
+      }
+      <div class="tray-map" #map></div>
+      @if (loading()) { <p class="tray-hint">Cargando trayectoria…</p> }
+    </div>
+  </div>
+</div>

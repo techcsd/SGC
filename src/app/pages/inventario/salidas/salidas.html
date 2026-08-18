@@ -594,6 +594,28 @@
           </div>
         }
       </div>
+
+      <!-- AU4 — material no catalogado (item libre) -->
+      <div class="resumen-hoja__libres">
+        <div class="resumen-hoja__libres-head">
+          <span>¿Un material no está en la lista?</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addItemLibre()">+ Agregar libre</button>
+        </div>
+        @for (il of formItemsLibres(); track $index) {
+          <div class="libre-row">
+            <input type="text" placeholder="Nombre del material"
+              [value]="il.nombre" (input)="updateItemLibre($index, 'nombre', $any($event.target).value)" />
+            <input type="number" min="0" step="any" placeholder="Cant."
+              [value]="il.cantidad" (input)="updateItemLibre($index, 'cantidad', $any($event.target).value)" />
+            <input type="text" placeholder="Unidad"
+              [value]="il.unidad" (input)="updateItemLibre($index, 'unidad', $any($event.target).value)" />
+            <button type="button" class="item-row__remove" (click)="removeItemLibre($index)" aria-label="Quitar">×</button>
+          </div>
+        }
+        @if (formItemsLibres().length) {
+          <p class="libre-note">No afecta el stock. Le llegará al admin una alerta para catalogarlo.</p>
+        }
+      </div>
     }
 
     @if (saveError()) {

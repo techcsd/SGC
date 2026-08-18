@@ -267,6 +267,39 @@
       </tbody>
     </table>
 
+    <!-- AU4 — Material no catalogado (items libres) que viaja en el conduce -->
+    @if (itemsLibres().length) {
+      <div class="conduce__libres">
+        <p class="conduce__libres-title">Material no catalogado (nota del chofer)</p>
+        <table class="conduce__table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Material</th>
+              <th class="text-right">Cantidad</th>
+              <th>Unidad</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (il of itemsLibres(); track il.id; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ il.nombre }}</td>
+                <td class="text-right">{{ il.cantidad }}</td>
+                <td>{{ il.unidad || '—' }}</td>
+                <td>{{ il.articulo_vinculado_id ? 'Catalogado' : 'Pendiente de catalogar' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="conduce__libres-note no-print">
+          No afecta el stock (el artículo no existe en el sistema). El admin lo revisa en
+          <a routerLink="/inventario/material-no-catalogado">Material no catalogado</a>.
+        </p>
+      </div>
+    }
+
     @if (s.observaciones) {
       <p class="conduce__obs"><strong>Observaciones:</strong> {{ s.observaciones }}</p>
     }

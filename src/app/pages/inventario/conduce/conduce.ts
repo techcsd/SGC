@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, inject, signal, viewChild
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
-import { SalidasService, ConduceRutaInfo } from '../../../../shared/services/salidas.service';
+import { SalidasService, ConduceRutaInfo, ConduceItemLibre } from '../../../../shared/services/salidas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { SupabaseService } from '../../../../app/core/services/supabase.service';
 import {
@@ -84,6 +84,8 @@ export class Conduce implements OnInit {
   firmaReceptor = signal<FirmaConUrl | null>(null);
   // AS5 — foto de evidencia en grande (lightbox).
   fotoLightbox = signal<string | null>(null);
+  // AU4 — items libres (material no catalogado) que viajan en este conduce.
+  itemsLibres = signal<ConduceItemLibre[]>([]);
 
   // ── Cierre de conduce por el chofer (paridad app de campo) ──
   mostrarCierre = signal(false);
@@ -146,6 +148,8 @@ export class Conduce implements OnInit {
       const s = await this.salidasService.getById(id);
       this.salida.set(s);
       await this.loadEvidencia(s);
+      // AU4 — items libres (no bloqueante).
+      this.salidasService.getItemsLibres(id).then((il) => this.itemsLibres.set(il)).catch(() => {});
       // AE5 — traza de la ruta/parada (no bloqueante).
       try {
         this.rutaInfo.set(await this.salidasService.getRutaInfo(id));

@@ -83,6 +83,24 @@
         @if (cargandoRec()) { <p class="rec-hint">Cargando recorrido…</p> }
         @if (error()) { <p class="rec-hint rec-hint--err">{{ error() }}</p> }
         @if (!choferSel()) { <p class="rec-hint">Selecciona un chofer para empezar.</p> }
+
+        <!-- AU7 — Paradas / visitas detectadas (estilo Google Timeline) -->
+        @if (paradas().length) {
+          <div class="rec-paradas">
+            <h3 class="rec-paradas__h">Paradas del día ({{ paradas().length }})</h3>
+            <ol class="rec-paradas__list">
+              @for (p of paradas(); track $index) {
+                <li class="rec-parada" (click)="centrarParada(p)">
+                  <span class="rec-parada__n">{{ $index + 1 }}</span>
+                  <div class="rec-parada__info">
+                    <span class="rec-parada__lugar">{{ lugares()[$index] || 'Ubicando…' }}</span>
+                    <span class="rec-parada__t">{{ hora(p.inicio_at) }} → {{ hora(p.fin_at) }} · {{ p.minutos }} min</span>
+                  </div>
+                </li>
+              }
+            </ol>
+          </div>
+        }
       </section>
     </div>
   }

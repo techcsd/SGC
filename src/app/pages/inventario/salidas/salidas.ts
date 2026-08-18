@@ -103,6 +103,9 @@ export class Salidas implements OnInit {
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
   formItems = signal<SalidaItemFormData[]>([{ articulo_id: '', cantidad: 1 }]);
+  // AU4 — material NO catalogado (item libre): nombre + cantidad + unidad de texto.
+  // No toca stock; viaja en el conduce y alerta al admin para crear el artículo.
+  formItemsLibres = signal<{ nombre: string; cantidad: number; unidad: string }[]>([]);
   /** T13b — stock disponible por artículo en la bodega elegida (para el picker). */
   stockMap = signal<Record<string, number>>({});
   // Foto de evidencia opcional (paridad con la app de campo).
@@ -228,8 +231,26 @@ export class Salidas implements OnInit {
     );
   }
 
-  /** Hay al menos un renglón válido para confirmar. */
-  resumenValido = computed(() => this.resumenItems().length > 0);
+  /** AU4 — items libres válidos (con nombre) para el resumen y el envío. */
+  itemsLibresValidos = computed(() =>
+    this.formItemsLibres().filter((i) => i.nombre.trim() && i.cantidad > 0),
+  );
+
+  /** Hay al menos un renglón válido para confirmar (catalogado o libre). */
+  resumenValido = computed(() => this.resumenItems().length > 0 || this.itemsLibresValidos().length > 0);
+
+  // ── AU4 — gestión de items libres en el wizard ──
+  addItemLibre() {
+    this.formItemsLibres.update((l) => [...l, { nombre: '', cantidad: 1, unidad: '' }]);
+  }
+  removeItemLibre(index: number) {
+    this.formItemsLibres.update((l) => l.filter((_, i) => i !== index));
+  }
+  updateItemLibre(index: number, campo: 'nombre' | 'cantidad' | 'unidad', valor: string) {
+    this.formItemsLibres.update((l) =>
+      l.map((it, i) => (i === index ? { ...it, [campo]: campo === 'cantidad' ? Number(valor) : valor } : it)),
+    );
+  }
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -425,6 +446,7 @@ export class Salidas implements OnInit {
     this.step.set('form');
     this.form.reset({ fecha: this.today });
     this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
+    this.formItemsLibres.set([]);
     this.quitarFoto();
     this.drawerOpen.set(true);
   }
@@ -642,6 +664,18 @@ export class Salidas implements OnInit {
           await this.datosPrueba.marcarMovimiento('salidas_inventario', created.id, true);
           created.es_prueba = true;
         } catch { /* el alta ya se hizo; la marca es secundaria */ }
+      }
+      // AU4 — adjuntar material no catalogado (items libres) al conduce recién creado.
+      const libres = this.itemsLibresValidos();
+      if (libres.length) {
+        try {
+          await this.salidasService.agregarItemsLibresConduce(
+            created.id,
+            libres.map((l) => ({ nombre: l.nombre.trim(), cantidad: l.cantidad, unidad: l.unidad.trim() || null })),
+          );
+        } catch {
+          this.toast.warning('Salida registrada', 'No se pudo adjuntar el material no catalogado; reintenta desde el conduce.');
+        }
       }
       this.crearComoPrueba.set(false);
       this.salidas.update((list) => [created, ...list]);

@@ -57,19 +57,37 @@ export interface KardexFiltros {
 export class InventarioAlmacenService {
   private supabase = inject(SupabaseService);
 
-  /** AP2 — inventario de un almacén (artículos con existencias). */
+  /** AP2/AU6 — inventario de un almacén. `incluirCatalogo=true` lista el catálogo
+   *  completo (artículos aún sin fila en el almacén, con 0) para poder aperturarlos. */
   async getInventario(
     bodegaId: string,
     incluirCero = true,
     busqueda: string | null = null,
+    incluirCatalogo = false,
   ): Promise<InventarioAlmacenItem[]> {
     const { data, error } = await this.supabase.client.rpc('inventario_almacen', {
       p_bodega_id: bodegaId,
       p_incluir_cero: incluirCero,
       p_busqueda: busqueda,
+      p_incluir_catalogo: incluirCatalogo,
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as InventarioAlmacenItem[];
+  }
+
+  /** AU6 — cuántos artículos tocaría la apertura en lote (para el preview). */
+  async previewAperturaLote(opts: {
+    bodegaId: string;
+    incluirTodoCatalogo?: boolean;
+    soloFaltantes?: boolean;
+  }): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('apertura_lote_preview', {
+      p_bodega_id: opts.bodegaId,
+      p_incluir_todo_catalogo: opts.incluirTodoCatalogo ?? false,
+      p_solo_faltantes: opts.soloFaltantes ?? true,
+    });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
   }
 
   /** AP3 — kardex de un artículo en un almacén (movimientos + serie del stock). */

@@ -24,6 +24,15 @@ export interface RecorridoTramo {
   coords: [number, number][];
 }
 
+/** AU7 — una parada/visita detectada en el recorrido diario (estilo Google Timeline). */
+export interface RecorridoParada {
+  inicio_at: string;
+  fin_at: string;
+  lat: number;
+  lng: number;
+  minutos: number;
+}
+
 /** AT1 — recorrido diario tipo Timeline (RPC recorrido_diario_de). */
 export interface RecorridoDiario {
   usuario_id: string;
@@ -32,6 +41,7 @@ export interface RecorridoDiario {
   coords: [number, number][];
   polyline: string | null;
   tramos: RecorridoTramo[];
+  paradas: RecorridoParada[];
   puntos: number;
   km: number | null;
   primer_at: string | null;
@@ -229,6 +239,20 @@ export class SeguimientoService {
     const { data, error } = await this.supabase.client.rpc('ruta_trayecto', { p_ruta_id: rutaId });
     if (error) throw new Error(error.message);
     return (data ?? { coords: [], puntos: 0 }) as RutaTrayecto;
+  }
+
+  /** AU7 — geocodificación inversa (lat/lng → dirección) para nombrar una parada.
+   *  Server-side (edge function con la key de Google + caché). Best-effort. */
+  async reverseGeocode(lat: number, lng: number): Promise<string | null> {
+    try {
+      const { data, error } = await this.supabase.client.functions.invoke('reverse-geocode', {
+        body: { lat, lng },
+      });
+      if (error) return null;
+      return (data?.direccion as string) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /** Suscribe a cambios de última posición (realtime). Devuelve el canal para limpiar. */

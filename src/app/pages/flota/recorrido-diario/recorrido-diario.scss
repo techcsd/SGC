@@ -154,3 +154,37 @@
   color: var(--main-ultra-light);
   &--err { color: var(--danger, #e5484d); }
 }
+
+// AU7 — paradas / visitas detectadas
+.rec-paradas {
+  margin-top: 1rem;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+
+  &__h { margin: 0 0 0.6rem; font-size: 0.95rem; color: #f5f5f5; }
+  &__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+}
+.rec-parada {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover { background: #1f1f1f; }
+
+  &__n {
+    flex: 0 0 auto;
+    width: 24px; height: 24px;
+    display: grid; place-items: center;
+    background: #f59e0b; color: #1a1a1a;
+    border-radius: 50%; font-weight: 700; font-size: 0.8rem;
+  }
+  &__info { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  &__lugar { color: #eaeaea; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__t { color: var(--main-ultra-light); font-size: 0.8rem; }
+}

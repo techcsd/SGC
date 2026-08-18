@@ -1,12 +1,12 @@
 import {
   Component, ChangeDetectionStrategy, inject, signal, computed,
-  viewChild, ElementRef, AfterViewInit, OnDestroy, OnInit,
+  viewChild, ElementRef, OnDestroy, OnInit, effect,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
-  SeguimientoService, RecorridoDiario, RecorridoDisponible,
+  SeguimientoService, RecorridoDiario, RecorridoDisponible, RecorridoParada,
 } from '../../../../shared/services/seguimiento.service';
 import { GoogleMapsLoader } from '../../../../shared/context/google-maps-loader.service';
 import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
@@ -28,7 +28,7 @@ import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../
   styleUrl: './recorrido-diario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
+export class RecorridoDiarioPage implements OnInit, OnDestroy {
   private svc = inject(SeguimientoService);
   private loader = inject(GoogleMapsLoader);
   readonly hora = formatHoraTimestamp;
@@ -38,7 +38,49 @@ export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
   private map: google.maps.Map | null = null;
   private lines: google.maps.Polyline[] = [];
   private endMarkers: google.maps.Marker[] = [];
+  private paradaMarkers: google.maps.Marker[] = [];
   private mapReady = false;
+  private mapInitStarted = false;
+
+  // AU7 — paradas del día + su lugar (geocodificación inversa, lazy).
+  paradas = signal<RecorridoParada[]>([]);
+  lugares = signal<Record<number, string>>({});
+
+  constructor() {
+    // El <div #map> vive dentro de @if(loading()){…}@else{…}, así que NO existe
+    // cuando corre ngAfterViewInit (loading aún true) — por eso el mapa nunca se
+    // inicializaba y el recorrido no se pintaba (AU2/AU3). Inicializamos el mapa de
+    // forma reactiva en cuanto el elemento entra al DOM, sin depender del ciclo de vida.
+    effect(() => {
+      const el = this.mapEl();
+      if (el && !this.mapInitStarted && !this.mapError()) {
+        this.mapInitStarted = true;
+        void this.initMap(el.nativeElement);
+      }
+    });
+  }
+
+  private async initMap(host: HTMLDivElement) {
+    try {
+      await this.loader.load();
+    } catch (e) {
+      this.mapError.set((e as Error)?.message ?? 'Mapa no disponible.');
+      this.mapInitStarted = false;
+      return;
+    }
+    this.map = new google.maps.Map(host, {
+      center: { lat: 18.4861, lng: -69.9312 },
+      zoom: 11,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      clickableIcons: false,
+    });
+    this.mapReady = true;
+    // Si ya se eligió un recorrido antes de que el mapa cargara, dibújalo.
+    const rec = this.recorrido();
+    if (rec) this.dibujar(rec);
+  }
 
   // Rango de disponibilidad consultado (últimos 30 días por defecto).
   desde = signal<string>(daysAgoIso(30));
@@ -84,30 +126,6 @@ export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  async ngAfterViewInit() {
-    const el = this.mapEl();
-    if (!el) return;
-    try {
-      await this.loader.load();
-    } catch (e) {
-      this.mapError.set((e as Error)?.message ?? 'Mapa no disponible.');
-      return;
-    }
-    if (!this.mapEl()) return;
-    this.map = new google.maps.Map(el.nativeElement, {
-      center: { lat: 18.4861, lng: -69.9312 },
-      zoom: 11,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      clickableIcons: false,
-    });
-    this.mapReady = true;
-    // Si ya se eligió un recorrido antes de que el mapa cargara, dibújalo.
-    const rec = this.recorrido();
-    if (rec) this.dibujar(rec);
-  }
-
   seleccionarChofer(uid: string) {
     this.choferSel.set(uid);
     // Si el chofer tiene días con data, salta al más reciente.
@@ -124,7 +142,10 @@ export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
     try {
       const rec = await this.svc.getRecorridoDiario(uid, fecha);
       this.recorrido.set(rec);
+      this.paradas.set(rec?.paradas ?? []);
+      this.lugares.set({});
       this.dibujar(rec);
+      this.geocodificarParadas();
       if (!rec || rec.puntos === 0) {
         this.error.set('Este chofer no tiene recorrido registrado en esa fecha.');
       }
@@ -137,10 +158,16 @@ export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
 
   private dibujar(rec: RecorridoDiario | null) {
     this.limpiar();
-    if (!this.mapReady || !this.map || !rec || !rec.tramos?.length) return;
+    if (!this.mapReady || !this.map || !rec) return;
+    // Preferimos los tramos (cortados por huecos de tiempo). Si por alguna razón no
+    // vinieran tramos pero sí las coords crudas, dibujamos un solo trazo con ellas.
+    const segmentos: [number, number][][] = rec.tramos?.length
+      ? rec.tramos.map((t) => t.coords ?? [])
+      : (rec.coords?.length ? [rec.coords] : []);
+    if (!segmentos.length) return;
     const bounds = new google.maps.LatLngBounds();
-    for (const tramo of rec.tramos) {
-      const path = tramo.coords.map(([lat, lng]) => ({ lat, lng }));
+    for (const coords of segmentos) {
+      const path = coords.map(([lat, lng]) => ({ lat, lng }));
       if (path.length < 2) continue;
       this.lines.push(
         new google.maps.Polyline({
@@ -150,9 +177,9 @@ export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
       for (const p of path) bounds.extend(p);
     }
     // Marcadores de inicio (primer punto del día) y fin (último).
-    const first = rec.tramos[0]?.coords?.[0];
-    const lastTramo = rec.tramos[rec.tramos.length - 1];
-    const last = lastTramo?.coords?.[lastTramo.coords.length - 1];
+    const first = segmentos[0]?.[0];
+    const lastSeg = segmentos[segmentos.length - 1];
+    const last = lastSeg?.[lastSeg.length - 1];
     if (first) {
       this.endMarkers.push(new google.maps.Marker({
         position: { lat: first[0], lng: first[1] }, map: this.map,
@@ -165,14 +192,44 @@ export class RecorridoDiarioPage implements OnInit, AfterViewInit, OnDestroy {
         icon: pinIcon('#dc2626', 28), title: 'Último punto',
       }));
     }
+    // AU7 — marcadores de paradas/visitas (numerados).
+    const paradas = rec.paradas ?? [];
+    paradas.forEach((p, i) => {
+      this.paradaMarkers.push(new google.maps.Marker({
+        position: { lat: p.lat, lng: p.lng }, map: this.map,
+        label: { text: String(i + 1), color: '#fff', fontSize: '11px', fontWeight: '700' },
+        icon: pinIcon('#f59e0b', 30), title: `Parada ${i + 1} · ${p.minutos} min`,
+        zIndex: 999,
+      }));
+      bounds.extend({ lat: p.lat, lng: p.lng });
+    });
+
     if (!bounds.isEmpty()) this.map.fitBounds(bounds, 60);
+  }
+
+  /** AU7 — resuelve el lugar de cada parada (edge reverse-geocode, best-effort). */
+  private geocodificarParadas() {
+    const paradas = this.paradas();
+    paradas.forEach(async (p, i) => {
+      const dir = await this.svc.reverseGeocode(p.lat, p.lng);
+      if (dir) this.lugares.update((m) => ({ ...m, [i]: dir }));
+    });
+  }
+
+  centrarParada(p: RecorridoParada) {
+    if (this.map) {
+      this.map.panTo({ lat: p.lat, lng: p.lng });
+      this.map.setZoom(16);
+    }
   }
 
   private limpiar() {
     for (const l of this.lines) l.setMap(null);
     for (const m of this.endMarkers) m.setMap(null);
+    for (const m of this.paradaMarkers) m.setMap(null);
     this.lines = [];
     this.endMarkers = [];
+    this.paradaMarkers = [];
   }
 
   ngOnDestroy() {

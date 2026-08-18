@@ -25,6 +25,8 @@ export class NotificacionesService {
 
     if (this.userService.hasModulo('inventario') || isAdmin) {
       checks.push(this.loadCount('solicitudes_material', 'pendiente', 'inventario'));
+      // AU4 — material no catalogado pendiente de crear/vincular.
+      checks.push(this.loadMaterialNoCatalogado());
     }
     if (this.userService.hasModulo('compras') || isAdmin) {
       checks.push(this.loadCount('solicitudes_compra', 'pendiente', 'compras'));
@@ -60,6 +62,9 @@ export class NotificacionesService {
     if (userId) {
       checks.push(this.loadTareasPendientes(userId));
       checks.push(this.loadMensajesNoLeidos());
+      // AU1 — bandeja "Conduces por firmar" del despachante (per-user, sin gate de
+      // módulo: cualquier usuario puede ser elegido despachante).
+      checks.push(this.loadConducesPorFirmar());
     }
     // Z29 — reportes de soporte sin atender (RLS: admin ve todos; usuario, los suyos).
     checks.push(this.loadReportesSoporte());
@@ -176,6 +181,18 @@ export class NotificacionesService {
   private async loadMensajesNoLeidos(): Promise<void> {
     const { data } = await this.supabase.client.rpc('contar_mensajes_no_leidos');
     this._pendingByModulo.update((m) => ({ ...m, mensajes: (data as number) ?? 0 }));
+  }
+
+  /** AU1 — conduces pendientes de la firma del despachante (usuario actual). */
+  private async loadConducesPorFirmar(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('mis_conduces_por_firmar_count');
+    this._pendingByModulo.update((m) => ({ ...m, 'conduces.por_firmar': (data as number) ?? 0 }));
+  }
+
+  /** AU4 — material no catalogado pendiente de crear/vincular → badge en Inventario. */
+  private async loadMaterialNoCatalogado(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('material_no_catalogado_pendientes_count');
+    this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.material_no_catalogado': (data as number) ?? 0 }));
   }
 
   clear(): void {

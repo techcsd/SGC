@@ -1,0 +1,62 @@
+.mnc--resuelto { opacity: 0.6; }
+
+.mnc-tag {
+  color: #22c55e;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.data-table .sgc-btn--sm { margin-left: 0.35rem; }
+
+// ── Modal ──
+.mnc-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.mnc-panel {
+  background: #1a1a1a;
+  border: 1px solid #2d2d2d;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #2d2d2d;
+    h2 { margin: 0; font-size: 1.1rem; }
+  }
+  &__body { padding: 1.25rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.9rem; }
+  &__foot {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #2d2d2d;
+  }
+}
+
+.mnc-x {
+  background: none;
+  border: none;
+  color: var(--main-ultra-light);
+  font-size: 1.1rem;
+  cursor: pointer;
+  &:hover { color: #f5f5f5; }
+}
+
+.mnc-src { margin: 0; color: var(--main-ultra-light); }
+.mnc-note { margin: 0; font-size: 0.82rem; color: var(--main-ultra-light); }

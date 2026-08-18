@@ -35,6 +35,7 @@ import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../sha
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { TrayectoriaModal } from '../../../../shared/components/trayectoria-modal/trayectoria-modal';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -49,7 +50,7 @@ interface ParadaEdit {
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -152,6 +153,10 @@ export class Rutas implements OnInit {
   detailFotos = signal<(RutaFoto & { url: string })[]>([]);
   /** AC6 — foto abierta en grande (lightbox in-page). */
   fotoLightbox = signal<string | null>(null);
+  /** AU5 — ruta cuya trayectoria se está viendo (replay). */
+  trayectoriaRutaId = signal<string | null>(null);
+  verTrayectoria(id: string) { this.trayectoriaRutaId.set(id); }
+  cerrarTrayectoria() { this.trayectoriaRutaId.set(null); }
 
   openDetail(r: Ruta) {
     this.detailRuta.set(r);

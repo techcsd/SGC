@@ -49,6 +49,21 @@ export const inventarioRoutes: Routes = [
     title: 'Confirmaciones de entrega — Inventario',
   },
   {
+    // AU1 — bandeja del despachante (personal inbox, SIN gate de submódulo: cualquier
+    // usuario puede ser elegido despachante y debe poder firmar). El RPC valida que
+    // sólo el despachante designado firme.
+    path: 'por-firmar',
+    loadComponent: () => import('./por-firmar/por-firmar').then((m) => m.ConducesPorFirmar),
+    title: 'Conduces por firmar',
+  },
+  {
+    // AU4 — bandeja de material no catalogado (admin/inventario; gate real server-side).
+    path: 'material-no-catalogado',
+    loadComponent: () =>
+      import('./material-no-catalogado/material-no-catalogado').then((m) => m.MaterialNoCatalogado),
+    title: 'Material no catalogado — Inventario',
+  },
+  {
     path: 'movimientos',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./movimientos/movimientos').then((m) => m.Movimientos),

@@ -340,6 +340,93 @@ export class SalidasService {
     return (data as number) ?? 0;
   }
 
+  /** AU1/AS2 — Bandeja "Conduces por firmar" del despachante (solo los suyos, sin
+   *  firma emisor todavía). Paridad con la app: la web es padre. */
+  async getConducesPorFirmar(): Promise<ConducePorFirmarRow[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_conduces_por_firmar');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConducePorFirmarRow[];
+  }
+
+  /** AU1/AS2 — Conteo para el badge del menú "Por firmar". */
+  async countConducesPorFirmar(): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('mis_conduces_por_firmar_count');
+    if (error) return 0;
+    return (data as number) ?? 0;
+  }
+
+  /** AU1/AS2 — El despachante firma DESDE SU sesión (anti-suplantación server-side).
+   *  Devuelve 'firmado' | 'ya_firmado'. */
+  async firmarComoDespachante(salidaId: string, firmaPath: string): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('conduce_firmar_despachante', {
+      p_salida_id: salidaId,
+      p_firma_path: firmaPath,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+    return data as string;
+  }
+
+  /** AS3 — Contrato único del conduce (vista/PDF): despachante, labels, firma
+   *  pendiente, items y firmas. Usado por la bandeja para el detalle antes de firmar. */
+  async getConduceDetalleApp(salidaId: string): Promise<ConduceDetalleApp> {
+    const { data, error } = await this.supabase.client.rpc('conduce_detalle_app', { p_salida_id: salidaId });
+    if (error) throw new Error(error.message);
+    return data as ConduceDetalleApp;
+  }
+
+  /** AU4 — adjunta items libres (material no catalogado) a un conduce y alerta al
+   *  admin/inventario. Devuelve cuántos se agregaron. */
+  async agregarItemsLibresConduce(
+    salidaId: string,
+    items: { nombre: string; cantidad: number; unidad: string | null }[],
+  ): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('agregar_items_libres_conduce', {
+      p_salida_id: salidaId,
+      p_items: items,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+    return (data as number) ?? 0;
+  }
+
+  /** AU4 — bandeja de material no catalogado (pendientes de vínculo, o todos). */
+  async getMaterialNoCatalogado(incluirResueltos = false): Promise<MaterialNoCatalogadoRow[]> {
+    const { data, error } = await this.supabase.client.rpc('material_no_catalogado_pendientes', {
+      p_incluir_resueltos: incluirResueltos,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as MaterialNoCatalogadoRow[];
+  }
+
+  /** AU4 — conteo de material no catalogado pendiente (badge). */
+  async countMaterialNoCatalogado(): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('material_no_catalogado_pendientes_count');
+    if (error) return 0;
+    return (data as number) ?? 0;
+  }
+
+  /** AU4 — items libres (material no catalogado) de un conduce (para la vista/PDF). */
+  async getItemsLibres(salidaId: string): Promise<ConduceItemLibre[]> {
+    const { data, error } = await this.supabase.client
+      .from('salida_items_libres')
+      .select('id, nombre, cantidad, unidad, articulo_vinculado_id')
+      .eq('salida_id', salidaId)
+      .order('created_at', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConduceItemLibre[];
+  }
+
+  /** AU4 — vincula un item libre a un artículo (vínculo simple, sin stock retroactivo). */
+  async vincularItemLibre(itemLibreId: string, articuloId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('vincular_item_libre_articulo', {
+      p_item_libre_id: itemLibreId,
+      p_articulo_id: articuloId,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   /** Salidas awaiting confirmation for a given project (or all, for inventario/admin) — RLS scopes visibility. */
   async getDespachados(): Promise<SalidaInventario[]> {
     const { data, error } = await this.supabase.client
@@ -384,4 +471,80 @@ export interface ConduceRutaInfo {
   parada_estado: string | null;
   parada_entregada_at: string | null;
   parada_entregado_a: string | null;
+}
+
+/** AU1/AS2 — fila de la bandeja "Conduces por firmar" (RPC mis_conduces_por_firmar). */
+export interface ConducePorFirmarRow {
+  id: string;
+  fecha: string;
+  proyecto_id: string | null;
+  destino: string | null;
+  bodega: string | null;
+  estado: string;
+  fase: string;
+  created_at: string;
+}
+
+/** AS3 — item de detalle del conduce (contrato conduce_detalle_app). */
+export interface ConduceDetalleItem {
+  detalle_id: string;
+  articulo_id: string | null;
+  articulo: string | null;
+  codigo: string | null;
+  unidad: string | null;
+  propiedad: string | null;
+  cantidad: number;
+  cantidad_recibida: number | null;
+}
+
+/** AU4 — item libre (material no catalogado) que viaja en el conduce. */
+export interface ConduceItemLibre {
+  id: string;
+  nombre: string;
+  cantidad: number;
+  unidad: string | null;
+  articulo_vinculado_id: string | null;
+}
+
+/** AU4 — fila de la bandeja de material no catalogado (RPC material_no_catalogado_pendientes). */
+export interface MaterialNoCatalogadoRow {
+  id: string;
+  salida_id: string;
+  conduce_numero: string;
+  nombre: string;
+  cantidad: number;
+  unidad: string | null;
+  articulo_vinculado_id: string | null;
+  articulo_vinculado: string | null;
+  reportado_por: string | null;
+  proyecto: string | null;
+  created_at: string;
+  vinculado_at: string | null;
+}
+
+/** AS3/AU4 — contrato único del conduce (vista/PDF). Campos usados por la web. */
+export interface ConduceDetalleApp {
+  id: string;
+  numero: string;
+  fecha: string;
+  estado: string;
+  estado_label: string;
+  fase: string;
+  fase_label: string;
+  motivo: string | null;
+  motivo_label: string | null;
+  proyecto: string | null;
+  bodega: string | null;
+  destino_almacen: string | null;
+  conductor: string | null;
+  despachante: string | null;
+  despachante_usuario_id: string | null;
+  firma_despachante_pendiente: boolean;
+  creado_por_nombre: string | null;
+  entregado_por_nombre: string | null;
+  observaciones: string | null;
+  items: ConduceDetalleItem[];
+  items_libres?: ConduceItemLibre[];
+  firmas: { rol: string; nombre: string; firma_path: string | null; firmado_en: string }[];
+  es_prueba: boolean;
 }

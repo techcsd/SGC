@@ -45,15 +45,25 @@
             (input)="cantidadLote.set($any($event.target).valueAsNumber)" />
         </div>
         <label class="apertura__toggle">
-          <input type="checkbox" [checked]="soloFaltantes()" (change)="soloFaltantes.set($any($event.target).checked)" />
+          <input type="checkbox" [checked]="soloFaltantes()" (change)="onSoloFaltantes($any($event.target).checked)" />
           Solo artículos sin apertura ({{ sinApertura() }})
         </label>
+        <label class="apertura__toggle">
+          <input type="checkbox" [checked]="incluirCatalogo()" (change)="toggleCatalogo($any($event.target).checked)" />
+          Todo el catálogo del sistema
+        </label>
         <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="aplicandoLote()" (click)="aplicarLote()">
-          @if (aplicandoLote()) { Aplicando… } @else { Aplicar a todo el almacén }
+          @if (aplicandoLote()) { Aplicando… } @else { Aplicar apertura al almacén }
         </button>
       </div>
+      @if (previewCount() !== null) {
+        <small class="sgc-field__hint">
+          Se dará apertura a <strong>{{ previewCount() }}</strong> artículo(s) con los filtros actuales.
+        </small>
+      }
       <small class="sgc-field__hint">
-        Botón rápido de piso inicial: pon 1,000 y "Solo sin apertura" para no pisar aperturas ya fijadas.
+        Piso inicial: pon 1,000 con "Todo el catálogo" para que TODOS los artículos del sistema
+        queden con 1,000 en este almacén. Deja "Solo sin apertura" para no pisar aperturas ya fijadas.
       </small>
     </div>
 

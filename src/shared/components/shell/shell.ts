@@ -42,6 +42,9 @@ interface NavItem {
   /** AG12 — visible si el usuario puede VER alguno de estos submódulos (permiso
    *  granular), aunque no tenga el módulo padre. */
   submodulos?: string[];
+  /** AU1 — bandeja personal que solo aparece cuando hay algo pendiente (badge>0).
+   *  P. ej. "Conduces por firmar": cualquier usuario puede ser despachante. */
+  soloConPendiente?: boolean;
   children?: NavSubItem[];
 }
 
@@ -142,6 +145,7 @@ export class Shell implements OnInit {
         { label: 'Movimientos', route: '/inventario/movimientos', submodulo: 'inventario.articulos' },
         { label: 'Conduces', route: '/inventario/conduces', submodulo: 'inventario.salidas' },
         { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones', submodulo: 'inventario.salidas' },
+        { label: 'Material no catalogado', route: '/inventario/material-no-catalogado', modulo: 'inventario', badgeKey: 'inventario.material_no_catalogado' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
         { label: 'Apertura de inventario', route: '/inventario/apertura', soloAdmin: true },
         { label: 'Reposición', route: '/inventario/reposicion', submodulo: 'inventario.articulos' },
@@ -263,6 +267,15 @@ export class Shell implements OnInit {
         { label: 'Contratos', route: '/legal/contratos' },
         { label: 'Aprobaciones', route: '/legal/aprobaciones', badgeKey: 'legal.aprobaciones' },
       ],
+    },
+    {
+      // AU1 — bandeja del despachante: aparece SOLO cuando tienes conduces por
+      // firmar (cualquier usuario puede ser elegido despachante, sin gate de módulo).
+      label: 'Conduces por firmar',
+      icon: 'inventory',
+      route: '/inventario/por-firmar',
+      badgeKey: 'conduces.por_firmar',
+      soloConPendiente: true,
     },
     {
       // No `modulo`: visible to everyone (all users have "Mis tareas").
@@ -492,6 +505,8 @@ export class Shell implements OnInit {
   }
 
   canAccess(item: NavItem): boolean {
+    // AU1 — bandeja personal solo con pendientes (p. ej. Conduces por firmar).
+    if (item.soloConPendiente) return this.pendingBadge(item) > 0;
     // AC2 — la persona "chofer" no ve Tecnología (salvo que sea elevado/tecnología).
     if (item.noChofer && this.userService.esChofer() && !this.userService.esTecnologia())
       return false;

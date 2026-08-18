@@ -1,0 +1,96 @@
+<!-- AU1 — Bandeja del despachante: conduces por firmar -->
+<div class="page">
+  <div class="page__head">
+    <div>
+      <h1 class="page__title">Conduces por firmar</h1>
+      <p class="page__sub">
+        Eres el despachante de estos conduces. Firma cada uno desde tu sesión para que
+        el chofer pueda marcar la entrega.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else if (error()) {
+    <p class="pf-hint pf-hint--err">{{ error() }}</p>
+  } @else if (filas().length === 0) {
+    <div class="pf-empty">
+      <p>No tienes conduces pendientes de tu firma. 👌</p>
+      <a class="page__link" routerLink="/inventario/conduces">Ver todos los conduces →</a>
+    </div>
+  } @else {
+    <ul class="pf-list">
+      @for (f of filas(); track f.id) {
+        <li>
+          <button type="button" class="pf-card" (click)="abrir(f)">
+            <div class="pf-card__main">
+              <span class="pf-card__num">CND-{{ f.id.slice(0, 8) | uppercase }}</span>
+              <span class="pf-card__meta">
+                {{ fechaMedia(f.fecha) }}
+                @if (f.destino) { · Destino: {{ f.destino }} }
+                @if (f.bodega) { · Origen: {{ f.bodega }} }
+              </span>
+            </div>
+            <span class="pf-card__cta">Firmar →</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+<!-- Detalle + firma -->
+@if (seleccion(); as det) {
+  <div class="pf-modal" (click)="cerrar()">
+    <div class="pf-panel" (click)="$event.stopPropagation()">
+      <div class="pf-panel__head">
+        <h2>{{ det.numero }}</h2>
+        <button type="button" class="pf-x" (click)="cerrar()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="pf-panel__body">
+        <dl class="pf-datos">
+          <div><dt>Fecha</dt><dd>{{ fechaMedia(det.fecha) }}</dd></div>
+          @if (det.proyecto) { <div><dt>Destino / Obra</dt><dd>{{ det.proyecto }}</dd></div> }
+          @if (det.destino_almacen) { <div><dt>Almacén destino</dt><dd>{{ det.destino_almacen }}</dd></div> }
+          @if (det.bodega) { <div><dt>Almacén origen</dt><dd>{{ det.bodega }}</dd></div> }
+          @if (det.conductor) { <div><dt>Chofer</dt><dd>{{ det.conductor }}</dd></div> }
+          <div><dt>Estado</dt><dd>{{ det.fase_label || det.estado_label }}</dd></div>
+        </dl>
+
+        <h3 class="pf-h3">Materiales</h3>
+        <ul class="pf-items">
+          @for (it of det.items; track it.detalle_id) {
+            <li>
+              <span class="pf-items__n">{{ it.articulo || it.codigo || 'Artículo' }}</span>
+              <span class="pf-items__q">{{ it.cantidad }} {{ it.unidad || '' }}</span>
+            </li>
+          }
+          @for (il of det.items_libres || []; track il.id) {
+            <li class="pf-items--libre">
+              <span class="pf-items__n">{{ il.nombre }} <em>(no catalogado)</em></span>
+              <span class="pf-items__q">{{ il.cantidad }} {{ il.unidad || '' }}</span>
+            </li>
+          }
+        </ul>
+
+        @if (det.observaciones) {
+          <p class="pf-obs"><strong>Observaciones:</strong> {{ det.observaciones }}</p>
+        }
+
+        <h3 class="pf-h3">Tu firma como despachante</h3>
+        <p class="pf-note">Confirmas que entregaste este material al chofer.</p>
+        <app-signature-pad #pad ariaLabel="Firma del despachante" />
+        <button type="button" class="pf-link" (click)="limpiarFirma()">Limpiar firma</button>
+      </div>
+
+      <div class="pf-panel__foot">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrar()" [disabled]="firmando()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="firmar()" [disabled]="firmando()">
+          {{ firmando() ? 'Firmando…' : 'Firmar conduce' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
