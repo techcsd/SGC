@@ -15,9 +15,11 @@ const corsHeaders = {
 
 type LL = [number, number];
 
-// md5 hex de un string (para la clave de caché por contenido).
-async function md5(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest('MD5', new TextEncoder().encode(s));
+// Hash hex de un string (clave de caché por contenido). Se usa SHA-256 porque
+// el Web Crypto de Deno NO soporta MD5 (crypto.subtle.digest lanzaría). El valor
+// solo necesita ser un identificador estable por contenido; SHA-256 lo cumple.
+async function hashContenido(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
@@ -56,7 +58,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const key = await md5('v1|' + coords.map((c) => c[0].toFixed(6) + ',' + c[1].toFixed(6)).join(';'));
+  const key = await hashContenido('v1|' + coords.map((c) => c[0].toFixed(6) + ',' + c[1].toFixed(6)).join(';'));
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
