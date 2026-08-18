@@ -112,6 +112,8 @@ export class Conduce implements OnInit {
   firmaDespachantePendiente = computed(
     () => !!this.salida()?.despachante_usuario_id && !this.firmaEmisor(),
   );
+  // AV3 — atajo "Recordarle al despachante" (re-push manual de la firma pendiente).
+  recordando = signal(false);
 
   // AQ10 — Eliminar (anular) conduce: solo mientras pendiente (despachado, sin
   // recibir) y solo el emisor o un admin (el servidor lo reimpone). El botón es
@@ -248,6 +250,29 @@ export class Conduce implements OnInit {
     this.mostrarCierre.set(false);
   }
 
+  /** AV3 — recuerda al despachante que firme (re-push manual). */
+  async recordarDespachante() {
+    const s = this.salida();
+    if (!s || this.recordando()) return;
+    this.recordando.set(true);
+    try {
+      const nombre = await this.salidasService.recordarDespachante(s.id);
+      if (nombre === null) {
+        // Ya firmó entre medio → recarga salida + firmas para desbloquear la entrega.
+        this.toast.success('El despachante ya firmó', 'Ya puedes registrar la entrega.');
+        const fresca = await this.salidasService.getById(s.id);
+        this.salida.set(fresca);
+        await this.loadEvidencia(fresca);
+      } else {
+        this.toast.info(`Se le recordó a ${nombre}`, 'Te avisaremos cuando firme el conduce.');
+      }
+    } catch (e) {
+      this.toast.error('No se pudo enviar el recordatorio', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.recordando.set(false);
+    }
+  }
+
   updateRecibida(i: number, valor: string) {
     const n = Number(valor);
     this.itemsCierre.update((list) =>
@@ -277,6 +302,12 @@ export class Conduce implements OnInit {
   async confirmarCierre() {
     const s = this.salida();
     if (!s || this.guardandoCierre()) return;
+    // AV3 — belt-and-suspenders: no cerrar si falta la firma del despachante
+    // (el server igual lo rechaza con DR456; esto evita el intento en vano).
+    if (this.firmaDespachantePendiente()) {
+      this.cierreError.set('Falta la firma del despachante. No puedes registrar la entrega hasta que firme el conduce desde su sesión.');
+      return;
+    }
     const emisor = this.emisorNombre().trim();
     const receptor = this.receptor().trim();
     const emisorPad = this.firmaEmisorPad();

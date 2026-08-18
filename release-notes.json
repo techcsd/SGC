@@ -2196,6 +2196,15 @@
           "d": "Base para el chat nivel WhatsApp: confirmaciones de mensaje (enviado/recibido/leído), notas de voz, estados “escribiendo…” y stickers organizables en paquetes (incluye guardar el sticker de otro)."
         }
       ]
+    },
+    "1.82.1": {
+      "titulo": "Aviso claro cuando falta la firma del despachante",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Conduces: si un conduce espera la firma del despachante, ahora se te avisa ANTES de registrar la entrega (el botón sale bloqueado con el motivo, no un error después). Incluye el atajo “Recordarle al despachante” para re-enviarle el aviso. Igual que en la app móvil."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

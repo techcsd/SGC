@@ -1,7 +1,17 @@
 <div class="conduce-toolbar no-print">
   <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()">← Volver</button>
   @if (puedeCerrar() && !mostrarCierre()) {
-    <button type="button" class="sgc-btn sgc-btn--secondary" (click)="abrirCierre()">Registrar entrega (firmar)</button>
+    <!-- AV3 — gate: si falta la firma del despachante, el botón de entregar sale
+         bloqueado con el motivo ANTES del esfuerzo, + atajo para recordarle. -->
+    @if (firmaDespachantePendiente()) {
+      <button type="button" class="sgc-btn sgc-btn--secondary" disabled
+              title="Falta la firma del despachante">Falta la firma del despachante</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="recordando()" (click)="recordarDespachante()">
+        {{ recordando() ? 'Enviando…' : '🔔 Recordarle al despachante' }}
+      </button>
+    } @else {
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="abrirCierre()">Registrar entrega (firmar)</button>
+    }
   }
   @if (salida()) {
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / Guardar PDF</button>
@@ -10,6 +20,14 @@
     <button type="button" class="sgc-btn sgc-btn--danger" (click)="abrirAnular()">Eliminar conduce</button>
   }
 </div>
+
+<!-- AV3 — motivo visible del bloqueo de entrega por firma del despachante pendiente -->
+@if (puedeCerrar() && firmaDespachantePendiente()) {
+  <p class="cnd-anular__warn no-print" role="alert">
+    ⏳ Falta la firma del despachante{{ despachanteNombre() ? ' (' + despachanteNombre() + ')' : '' }}.
+    No puedes registrar la entrega hasta que firme el conduce desde su sesión. Ya se le notificó — puedes recordárselo.
+  </p>
+}
 
 <!-- ── AQ10 — Confirmación de eliminación (anular) ── -->
 @if (mostrarAnular()) {

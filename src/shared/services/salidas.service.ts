@@ -367,6 +367,17 @@ export class SalidasService {
     return data as string;
   }
 
+  /** AV3 — "Recordarle al despachante": re-avisa al despachante que un conduce
+   *  sigue esperando su firma (re-push manual). Devuelve el nombre del despachante,
+   *  o null si ya firmó (nada que recordar). */
+  async recordarDespachante(salidaId: string): Promise<string | null> {
+    const { data, error } = await this.supabase.client.rpc('conduce_recordar_despachante', {
+      p_salida_id: salidaId,
+    });
+    if (error) throw new Error(error.message);
+    return (data as string | null) ?? null;
+  }
+
   /** AS3 — Contrato único del conduce (vista/PDF): despachante, labels, firma
    *  pendiente, items y firmas. Usado por la bandeja para el detalle antes de firmar. */
   async getConduceDetalleApp(salidaId: string): Promise<ConduceDetalleApp> {
