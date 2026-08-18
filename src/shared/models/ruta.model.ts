@@ -61,6 +61,8 @@ export interface Ruta {
   // Duración real = finalizada_at − iniciada_at (ver duracionRealMin()).
   iniciada_at?: string | null;
   finalizada_at?: string | null;
+  // AV13 — última modificación relevante (cambio de destino). Null = nunca modificada.
+  modificada_at?: string | null;
   // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
   es_prueba?: boolean;
   // AC13 — paradas intermedias (multi-stop), cargadas bajo demanda en el detalle/edición.

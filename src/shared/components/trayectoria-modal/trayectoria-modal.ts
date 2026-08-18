@@ -40,6 +40,7 @@ export class TrayectoriaModal {
   puntos = signal(0);
   km = signal<number | null>(null);
   private coords: [number, number][] = [];
+  private snapped: [number, number][] = [];  // AV7 — coords pegadas a la calle
 
   constructor() {
     effect(() => {
@@ -67,6 +68,8 @@ export class TrayectoriaModal {
       if (this.coords.length < 2) {
         this.error.set('Esta ruta no tiene trayectoria registrada (sin puntos GPS suficientes).');
       }
+      // AV7 — pega el trayecto a las calles (caché server-side); cae a lo crudo si falla.
+      this.snapped = this.coords.length >= 2 ? await this.svc.snapToRoads(this.coords) : this.coords;
       this.dibujar();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo cargar la trayectoria.');
@@ -100,17 +103,20 @@ export class TrayectoriaModal {
     this.line?.setMap(null);
     for (const m of this.markers) m.setMap(null);
     this.markers = [];
-    const path = this.coords.map(([lat, lng]) => ({ lat, lng }));
+    // Línea = trayecto pegado a la calle (AV7); marcadores inicio/fin = puntos crudos reales.
+    const drawCoords = this.snapped.length >= 2 ? this.snapped : this.coords;
+    const path = drawCoords.map(([lat, lng]) => ({ lat, lng }));
     this.line = new google.maps.Polyline({
       path, map: this.map, strokeColor: '#2563eb', strokeWeight: 4, strokeOpacity: 0.85,
     });
     const bounds = new google.maps.LatLngBounds();
     for (const p of path) bounds.extend(p);
+    const raw = this.coords.map(([lat, lng]) => ({ lat, lng }));
     this.markers.push(new google.maps.Marker({
-      position: path[0], map: this.map, icon: pinIcon('#16a34a', 28), title: 'Inicio',
+      position: raw[0], map: this.map, icon: pinIcon('#16a34a', 28), title: 'Inicio',
     }));
     this.markers.push(new google.maps.Marker({
-      position: path[path.length - 1], map: this.map, icon: pinIcon('#dc2626', 28), title: 'Fin',
+      position: raw[raw.length - 1], map: this.map, icon: pinIcon('#dc2626', 28), title: 'Fin',
     }));
     this.map.fitBounds(bounds, 40);
   }

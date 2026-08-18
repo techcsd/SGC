@@ -255,6 +255,21 @@ export class SeguimientoService {
     }
   }
 
+  /** AV7 — map-matching: pega una polyline cruda a las calles (edge snap-to-roads
+   *  con caché server-side). Best-effort: si falla, devuelve las coords crudas. */
+  async snapToRoads(coords: [number, number][]): Promise<[number, number][]> {
+    if (!coords || coords.length < 2) return coords ?? [];
+    try {
+      const { data, error } = await this.supabase.client.functions.invoke('snap-to-roads', {
+        body: { coords },
+      });
+      if (error || !data?.coords) return coords;
+      return data.coords as [number, number][];
+    } catch {
+      return coords;
+    }
+  }
+
   /** Suscribe a cambios de última posición (realtime). Devuelve el canal para limpiar. */
   subscribePosiciones(onChange: (row: UltimaPosicion) => void): RealtimeChannel {
     const ch = this.supabase.client

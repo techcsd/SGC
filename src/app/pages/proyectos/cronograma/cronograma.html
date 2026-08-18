@@ -110,61 +110,89 @@
     <p class="cron__muted cron__empty">Aún no hay tareas en el cronograma.</p>
   } @else {
 
-    <!-- ── Timeline (Gantt simple) ── -->
+    <!-- ── Timeline (Gantt) — AV2: zoom, columna congelada, avance real vs esperado ── -->
     @if (vista() === 'gantt') {
       <div class="cron__gantt sgc-card">
-        <!-- Z16 — eje temporal real: marcas de fecha + líneas de rejilla -->
-        @if (ejeTicks().length) {
-          <div class="cron__axis">
-            <div class="cron__axis-spacer"></div>
-            <div class="cron__axis-track">
-              @for (tk of ejeTicks(); track $index) {
-                <span class="cron__axis-tick" [style.left.%]="tk.pct">{{ tk.label }}</span>
+        <!-- AV2 — controles de zoom -->
+        <div class="cron__gantt-tools">
+          <span class="cron__muted">Escala:</span>
+          <div class="cron__zoom">
+            <button type="button" class="cron__zoom-btn" [class.cron__zoom-btn--active]="zoom() === 'dia'" (click)="setZoom('dia')">Día</button>
+            <button type="button" class="cron__zoom-btn" [class.cron__zoom-btn--active]="zoom() === 'semana'" (click)="setZoom('semana')">Semana</button>
+            <button type="button" class="cron__zoom-btn" [class.cron__zoom-btn--active]="zoom() === 'mes'" (click)="setZoom('mes')">Mes</button>
+          </div>
+        </div>
+
+        <div class="cron__gantt-scroll">
+          <div class="cron__gantt-grid">
+            <!-- Header: columna Actividad congelada (sticky) + eje de fechas sticky -->
+            <div class="cron__ghead">
+              <div class="cron__ghead-label" [style.width.px]="LABEL_W" [style.minWidth.px]="LABEL_W">Actividad</div>
+              <div class="cron__ghead-axis" [style.width.px]="chartWidth()">
+                @for (tk of ejeTicks(); track $index) {
+                  <span class="cron__axis-tick" [class.cron__axis-tick--strong]="tk.fuerte" [style.left.px]="tk.left">{{ tk.label }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="cron__gbody">
+              <!-- Rejilla vertical + marca de hoy, alineadas a la zona de barras -->
+              <div class="cron__goverlay" aria-hidden="true" [style.left.px]="LABEL_W" [style.width.px]="chartWidth()">
+                @for (tk of ejeTicks(); track $index) {
+                  <span class="cron__grid-line" [class.cron__grid-line--strong]="tk.fuerte" [style.left.px]="tk.left"></span>
+                }
+                @if (todayPx() !== null) {
+                  <div class="cron__today" [style.left.px]="todayPx()" title="Hoy"></div>
+                }
+              </div>
+
+              @for (g of ganttGrupos(); track g.titulo) {
+                @if (g.titulo) {
+                  <div class="cron__ggroup" [style.width.px]="LABEL_W">
+                    <span class="cron__ggroup-label">📁 {{ g.titulo }}</span>
+                  </div>
+                }
+                @for (b of g.bars; track b.tarea.id) {
+                  <div class="cron__grow" [class.cron__grow--hl]="b.tarea.id === highlightTarea()">
+                    <div class="cron__grow-label" [style.width.px]="LABEL_W" [style.minWidth.px]="LABEL_W" [title]="b.tarea.nombre">
+                      <span class="cron__dot" [attr.data-tipo]="b.tarea.tipo"></span>
+                      {{ b.tarea.nombre }}
+                    </div>
+                    <div class="cron__track" [style.width.px]="chartWidth()">
+                      <!-- AA24 — conectores de dependencias REALES (una por predecesora) -->
+                      @for (dep of b.deps; track $index) {
+                        <div class="cron__dep" [class.cron__dep--warn]="!dep.forward" [attr.data-tipo]="dep.tipo"
+                             [style.left.px]="dep.left" [style.width.px]="dep.width" [title]="dep.titulo">
+                          <span class="cron__dep-arrow" aria-hidden="true"></span>
+                        </div>
+                      }
+                      <!-- Barra PLAN con relleno de avance real + marca de avance esperado -->
+                      <div class="cron__bar cron__bar--plan" [attr.data-tipo]="b.tarea.tipo" [attr.data-estado]="b.tarea.estado"
+                           [class.cron__bar--atrasada]="b.atrasada"
+                           [style.left.px]="b.planLeft" [style.width.px]="b.planWidth" [title]="b.tooltip">
+                        <span class="cron__bar-fill" [style.width.%]="b.avancePct"></span>
+                        <span class="cron__bar-esperado" [style.left.%]="b.avanceEsperadoPct" title="Avance esperado"></span>
+                        @if (b.planWidth > 42) { <span class="cron__bar-pct">{{ b.avancePct | number:'1.0-0' }}%</span> }
+                      </div>
+                      @if (b.realWidth > 0) {
+                        <div class="cron__bar cron__bar--real" [style.left.px]="b.realLeft" [style.width.px]="b.realWidth"
+                             [class.cron__bar--done]="b.tarea.estado === 'completada'"
+                             [title]="'Real: ' + formatFecha(b.tarea.fecha_inicio_real) + ' → ' + (b.tarea.fecha_fin_real ? formatFecha(b.tarea.fecha_fin_real) : 'en curso')"></div>
+                      }
+                    </div>
+                  </div>
+                }
               }
             </div>
           </div>
-        }
-        <div class="cron__gantt-body">
-          <!-- Rejilla vertical + marca de hoy, alineadas a la zona de barras -->
-          <div class="cron__overlay" aria-hidden="true">
-            @for (tk of ejeTicks(); track $index) {
-              <span class="cron__grid-line" [style.left.%]="tk.pct"></span>
-            }
-            @if (todayPct() !== null) {
-              <div class="cron__today" [style.left.%]="todayPct()" title="Hoy"></div>
-            }
-          </div>
-          @for (b of ganttBars(); track b.tarea.id) {
-            <div class="cron__grow" [class.cron__grow--hl]="b.tarea.id === highlightTarea()">
-              <div class="cron__grow-label">
-                <span class="cron__dot" [attr.data-tipo]="b.tarea.tipo"></span>
-                {{ b.tarea.nombre }}
-              </div>
-              <div class="cron__track">
-                <!-- AA24 — conectores de dependencias REALES (una por predecesora) -->
-                @for (dep of b.deps; track $index) {
-                  <div class="cron__dep" [class.cron__dep--warn]="!dep.forward" [attr.data-tipo]="dep.tipo"
-                       [style.left.%]="dep.left" [style.width.%]="dep.width" [title]="dep.titulo">
-                    <span class="cron__dep-arrow" aria-hidden="true"></span>
-                  </div>
-                }
-                <div class="cron__bar cron__bar--plan" [attr.data-tipo]="b.tarea.tipo" [class.cron__bar--atrasada]="b.atrasada"
-                     [style.left.%]="b.planLeft" [style.width.%]="b.planWidth"
-                     [title]="'Plan: ' + formatFecha(b.tarea.fecha_inicio_plan) + ' → ' + formatFecha(b.tarea.fecha_fin_plan)"></div>
-                @if (b.realWidth > 0) {
-                  <div class="cron__bar cron__bar--real" [style.left.%]="b.realLeft" [style.width.%]="b.realWidth"
-                       [class.cron__bar--done]="b.tarea.estado === 'completada'"
-                       [title]="'Real: ' + formatFecha(b.tarea.fecha_inicio_real) + ' → ' + (b.tarea.fecha_fin_real ? formatFecha(b.tarea.fecha_fin_real) : 'en curso')"></div>
-                }
-              </div>
-            </div>
-          }
         </div>
+
         <div class="cron__legend">
           <span><i class="cron__dot" data-tipo="ordinaria"></i> Ordinaria</span>
           <span><i class="cron__dot" data-tipo="importante"></i> Importante</span>
           <span><i class="cron__dot" data-tipo="critica"></i> Crítica</span>
           <span class="cron__legend-real"></span> Real
+          <span class="cron__legend-esperado"><i></i> Avance esperado</span>
           <span class="cron__legend-dep"><i></i> Dependencia</span>
         </div>
       </div>

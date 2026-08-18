@@ -143,6 +143,23 @@ export class RutasService {
     return (data as RutaDetalleTransporte) ?? { paradas: [], conduces: [], notas_voz: [] };
   }
 
+  /** AV13 — cambia el destino por la vía trackeada (sella modificada_at, registra
+   *  historial y re-notifica). Acepta las mismas opciones que crear (obra/pin/texto). */
+  async cambiarDestino(
+    rutaId: string,
+    destino: string,
+    opts?: { proyectoId?: string | null; lat?: number | null; lng?: number | null },
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cambiar_destino_ruta', {
+      p_ruta_id: rutaId,
+      p_destino: destino,
+      p_proyecto_id: opts?.proyectoId ?? null,
+      p_lat: opts?.lat ?? null,
+      p_lng: opts?.lng ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   // ── AE5 — vínculo conduce ↔ parada + avance de parada ────────────────────
   /** Ata un conduce propio a una parada concreta (y a su ruta). null = desvincular. */
   async vincularConduceParada(salidaId: string, rutaParadaId: string | null): Promise<void> {
@@ -217,7 +234,16 @@ export interface RutaNotaVoz {
   duracion_seg: number | null;
   created_at: string;
 }
+/** AV13 — un evento del historial de la ruta (cambio de destino, parada, etc.). */
+export interface RutaEvento {
+  tipo: string;
+  detalle: string | null;
+  por: string | null;
+  created_at: string;
+}
 export interface RutaDetalleTransporte {
+  ruta?: { modificada_at?: string | null } | null;
+  eventos?: RutaEvento[];
   paradas: RutaParadaDetalle[];
   conduces: RutaConduce[];
   notas_voz: RutaNotaVoz[];

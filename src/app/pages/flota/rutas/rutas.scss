@@ -385,3 +385,9 @@ textarea {
 .ruta-conduces__head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ruta-conduces__cnd { font-weight: 600; font-family: monospace; }
 .ruta-conduces__items { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; font-size: 13px; color: var(--sgc-text-secondary); }
+
+// AV13 — indicador "(modificada)" + historial de la ruta en el detalle
+.ruta-detalle__mod { margin: 8px 0 0; font-size: 13px; color: var(--sgc-text-secondary); font-style: italic; }
+.ruta-detalle__historial { list-style: none; margin: 6px 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ruta-detalle__historial li { font-size: 13px; border-left: 2px solid var(--sgc-border); padding-left: 10px; }
+.ruta-detalle__hist-det { color: var(--sgc-text-secondary); }

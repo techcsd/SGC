@@ -816,6 +816,29 @@ export class Rutas implements OnInit {
     return d.toLocaleTimeString('es-DO', { hour: 'numeric', minute: '2-digit' });
   }
 
+  /** AV13 — fecha + hora ("18/08 · 3:42 p. m.") para "(modificada)" e historial. */
+  formatFechaHora(iso: string | null | undefined): string {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('es-DO', {
+      day: '2-digit', month: '2-digit', hour: 'numeric', minute: '2-digit',
+    });
+  }
+
+  /** AV13 — etiqueta legible de un evento del historial de ruta. */
+  eventoLabel(tipo: string): string {
+    switch (tipo) {
+      case 'destino_cambiado': return 'Destino cambiado';
+      case 'parada_agregada': return 'Parada agregada';
+      case 'parada_omitida': return 'Parada omitida';
+      case 'iniciada': return 'Ruta iniciada';
+      case 'finalizada': return 'Ruta finalizada';
+      case 'documento_adjunto': return 'Documento adjunto';
+      default: return tipo;
+    }
+  }
+
   // AE5 — etiqueta/badge del estado de una parada.
   paradaEstadoLabel(estado: string): string {
     switch (estado) {

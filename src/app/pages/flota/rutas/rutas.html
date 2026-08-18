@@ -622,6 +622,23 @@
         </p>
       }
 
+      <!-- AV13 — indicador "(modificada)" + historial de cambios de la ruta -->
+      @if (detalleTransporte()?.ruta?.modificada_at; as mod) {
+        <p class="ruta-detalle__mod">✏️ (modificada) · {{ formatFechaHora(mod) }}</p>
+      }
+      @if (detalleTransporte()?.eventos?.length) {
+        <h4 class="ruta-detalle__title">Historial de la ruta</h4>
+        <ul class="ruta-detalle__historial">
+          @for (ev of detalleTransporte()!.eventos!; track $index) {
+            <li>
+              <strong>{{ eventoLabel(ev.tipo) }}</strong>
+              @if (ev.detalle) { <span class="ruta-detalle__hist-det">{{ ev.detalle }}</span> }
+              <span class="text-muted"> · {{ formatFechaHora(ev.created_at) }}@if (ev.por) { · {{ ev.por }} }</span>
+            </li>
+          }
+        </ul>
+      }
+
       @if (r.notas) {
         <h4 class="ruta-detalle__title">Notas</h4>
         <p class="ruta-detalle__notas">{{ r.notas }}</p>

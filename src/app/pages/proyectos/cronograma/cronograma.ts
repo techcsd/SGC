@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
@@ -21,8 +22,8 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 
 /** AA24 — conector real de una dependencia (predecesora → esta tarea). */
 interface DepConn {
-  left: number;
-  width: number;
+  left: number;   // px
+  width: number;  // px
   forward: boolean;
   tipo: DependenciaTipo;
   lag: number;
@@ -31,25 +32,40 @@ interface DepConn {
 
 interface GanttBar {
   tarea: CronogramaTarea;
-  planLeft: number;
-  planWidth: number;
-  realLeft: number;
-  realWidth: number;
+  planLeft: number;   // px
+  planWidth: number;  // px
+  realLeft: number;   // px
+  realWidth: number;  // px
+  avancePct: number;      // AV2 — avance real reportado (0–100) para el relleno
+  avanceEsperadoPct: number; // AV2 — avance esperado por calendario (marca en la barra)
   atrasada: boolean;
+  tooltip: string;    // AV2 — responsable/volumetría/rendimiento/fechas
   // AA24 — conectores de dependencias REALES (una por predecesora).
   deps: DepConn[];
 }
 
+/** AV2 — un grupo de barras (por fase/torre) para el Gantt agrupado. */
+interface GanttGrupo {
+  titulo: string;
+  bars: GanttBar[];
+}
+
 interface EjeTick {
-  pct: number;
+  left: number;  // px
   label: string;
+  fuerte: boolean; // marca de mes/semana destacada
 }
 
 const MS_DAY = 86400000;
 
+// AV2 — zoom del Gantt: px por día según la escala elegida.
+type GanttZoom = 'dia' | 'semana' | 'mes';
+const ZOOM_PX: Record<GanttZoom, number> = { dia: 44, semana: 16, mes: 5 };
+const GANTT_LABEL_W = 220;
+
 @Component({
   selector: 'app-proyecto-cronograma',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './cronograma.html',
   styleUrl: './cronograma.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -135,12 +151,27 @@ export class Cronograma implements OnInit {
     return { min, max, span: Math.max(1, (max - min) / MS_DAY + 1) };
   });
 
+  // AV2 — zoom del Gantt (día/semana/mes) → px por día.
+  readonly LABEL_W = GANTT_LABEL_W;
+  zoom = signal<GanttZoom>('semana');
+  pxPorDia = computed(() => ZOOM_PX[this.zoom()]);
+  setZoom(z: GanttZoom) { this.zoom.set(z); }
+
+  /** Ancho total (px) de la zona de barras según el zoom. */
+  chartWidth = computed(() => {
+    const r = this.rango();
+    if (!r) return 0;
+    return Math.max(320, Math.round(r.span * this.pxPorDia()));
+  });
+
   ganttBars = computed<GanttBar[]>(() => {
     const ts = this.tareas();
     const r = this.rango();
     if (!r) return [];
-    const { min, span } = r;
-    const pct = (ms: number) => ((ms - min) / MS_DAY / span) * 100;
+    const { min } = r;
+    const ppd = this.pxPorDia();
+    const px = (ms: number) => ((ms - min) / MS_DAY) * ppd;
+    const today = this.parse(this.hoy);
 
     // AA24 — dependencias REALES (predecesora → sucesora) indexadas por sucesora.
     const tareaById = new Map(ts.map((t) => [t.id, t] as const));
@@ -151,6 +182,13 @@ export class Cronograma implements OnInit {
       const pf = t.fecha_fin_plan ? this.parse(t.fecha_fin_plan) : pi;
       const ri = t.fecha_inicio_real ? this.parse(t.fecha_inicio_real) : null;
       const rf = t.fecha_fin_real ? this.parse(t.fecha_fin_real) : ri;
+
+      // AV2 — avance real (Excel/manual) y avance esperado por calendario.
+      const avancePct = Math.max(0, Math.min(100,
+        t.avance_pct ?? (t.estado === 'completada' ? 100 : 0)));
+      const spanDias = Math.max(1, (pf - pi) / MS_DAY + 1);
+      const avanceEsperadoPct = t.estado === 'completada' ? 100
+        : Math.max(0, Math.min(100, ((today - pi) / MS_DAY / spanDias) * 100));
 
       // Un conector por dependencia real de esta tarea (según su tipo/lag).
       const deps: DepConn[] = [];
@@ -163,9 +201,9 @@ export class Cronograma implements OnInit {
         const sIni = this.parse(t.fecha_inicio_plan);
         const sFin = this.parse(t.fecha_fin_plan) + MS_DAY;
         let fromX: number, toX: number;
-        if (d.tipo === 'SS') { fromX = pct(pIni); toX = pct(sIni); }
-        else if (d.tipo === 'FF') { fromX = pct(pFin); toX = pct(sFin); }
-        else { fromX = pct(pFin); toX = pct(sIni); } // FS
+        if (d.tipo === 'SS') { fromX = px(pIni); toX = px(sIni); }
+        else if (d.tipo === 'FF') { fromX = px(pFin); toX = px(sFin); }
+        else { fromX = px(pFin); toX = px(sIni); } // FS
         const lagTxt = d.lag_dias ? ` ${d.lag_dias > 0 ? '+' : ''}${d.lag_dias}d` : '';
         deps.push({
           left: Math.min(fromX, toX),
@@ -177,30 +215,60 @@ export class Cronograma implements OnInit {
         });
       }
 
+      // AV2 — tooltip enriquecido con la data del cronograma importado.
+      const partes = [
+        `Plan: ${this.formatFecha(t.fecha_inicio_plan)} → ${this.formatFecha(t.fecha_fin_plan)}`,
+        `Avance: ${Math.round(avancePct)}% (esperado ${Math.round(avanceEsperadoPct)}%)`,
+      ];
+      if (t.responsable) partes.push(`Responsable: ${t.responsable}`);
+      if (t.volumetria) partes.push(`Volumetría: ${t.volumetria}`);
+      if (t.rendimiento) partes.push(`Rendimiento: ${t.rendimiento}`);
+
       return {
         tarea: t,
-        planLeft: pct(pi),
-        planWidth: Math.max(2, ((pf - pi) / MS_DAY + 1) / span * 100),
-        realLeft: ri !== null ? pct(ri) : 0,
-        realWidth: ri !== null ? Math.max(2, (((rf ?? ri) - ri) / MS_DAY + 1) / span * 100) : 0,
+        planLeft: px(pi),
+        planWidth: Math.max(6, ((pf - pi) / MS_DAY + 1) * ppd),
+        realLeft: ri !== null ? px(ri) : 0,
+        realWidth: ri !== null ? Math.max(6, (((rf ?? ri) - ri) / MS_DAY + 1) * ppd) : 0,
+        avancePct,
+        avanceEsperadoPct,
         atrasada: esTareaAtrasada(t, this.hoy),
+        tooltip: partes.join('\n'),
         deps,
       };
     });
   });
 
-  /** Z16 — eje temporal: ~7 marcas equiespaciadas con su fecha. */
+  /** AV2 — agrupa las barras por fase/torre (o `grupo` importado). Una sola si no hay. */
+  ganttGrupos = computed<GanttGrupo[]>(() => {
+    const bars = this.ganttBars();
+    const map = new Map<string, GanttBar[]>();
+    for (const b of bars) {
+      const key = this.faseNombre(b.tarea.fase_id) || b.tarea.grupo || 'General';
+      (map.get(key) ?? map.set(key, []).get(key)!).push(b);
+    }
+    // Si solo hay un grupo "General", no vale la pena mostrar cabeceras.
+    if (map.size === 1 && map.has('General')) return [{ titulo: '', bars: map.get('General')! }];
+    return Array.from(map, ([titulo, gbars]) => ({ titulo, bars: gbars }));
+  });
+
+  /** AV2 — eje temporal en px: marcas según el zoom (día/semana/mes). */
   ejeTicks = computed<EjeTick[]>(() => {
     const r = this.rango();
     if (!r) return [];
     const { min, max } = r;
-    const totalDias = (max - min) / MS_DAY;
-    const n = Math.min(7, Math.max(2, Math.round(totalDias / 7) + 1));
+    const ppd = this.pxPorDia();
+    const z = this.zoom();
+    const stepDias = z === 'dia' ? 1 : z === 'semana' ? 7 : 30;
     const ticks: EjeTick[] = [];
-    for (let i = 0; i < n; i++) {
-      const frac = i / (n - 1);
-      const ms = min + (max - min) * frac;
-      ticks.push({ pct: frac * 100, label: this.tickLabel(ms) });
+    // Alinea el primer tick al inicio del rango; una marca cada stepDias.
+    for (let ms = min, i = 0; ms <= max; ms += stepDias * MS_DAY, i++) {
+      const d = new Date(ms);
+      ticks.push({
+        left: ((ms - min) / MS_DAY) * ppd,
+        label: this.tickLabel(ms),
+        fuerte: z === 'dia' ? d.getUTCDay() === 1 : d.getUTCDate() <= stepDias,
+      });
     }
     return ticks;
   });
@@ -209,16 +277,16 @@ export class Cronograma implements OnInit {
     const d = new Date(ms);
     const dia = d.getUTCDate();
     const mes = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][d.getUTCMonth()];
-    return `${dia} ${mes}`;
+    return this.zoom() === 'mes' ? `${mes} ${String(d.getUTCFullYear()).slice(2)}` : `${dia} ${mes}`;
   }
 
-  todayPct = computed(() => {
+  todayPx = computed(() => {
     const r = this.rango();
     if (!r) return null;
-    const { min, max, span } = r;
+    const { min, max } = r;
     const today = this.parse(this.hoy);
     if (today < min || today > max) return null;
-    return ((today - min) / MS_DAY / span) * 100;
+    return ((today - min) / MS_DAY) * this.pxPorDia();
   });
 
   private parse(iso: string): number {

@@ -21,6 +21,13 @@ export interface CronogramaTarea {
   foto_evidencia_path: string | null;
   iniciada_por: string | null;
   completada_por: string | null;
+  // AG16 fase4 — avance real reportado (0–100). Importado del Excel o calculado.
+  avance_pct?: number | null;
+  // AS21 — campos del cronograma importado (Excel real). Opcionales.
+  responsable?: string | null;
+  volumetria?: string | null;
+  rendimiento?: string | null;
+  grupo?: string | null;        // sub-sección dentro de la fase (ej. "ENTREPISO")
   es_prueba: boolean;
   created_at: string;
   updated_at: string;

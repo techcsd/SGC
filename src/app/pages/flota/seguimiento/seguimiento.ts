@@ -21,6 +21,16 @@ const ESTADO_META: Record<ChoferEstado, { label: string; color: string }> = {
   otros:      { label: 'Otros',      color: '#7c3aed' },
 };
 
+// AV1 — un marcador sin señal por más de estos minutos se atenúa ("sin señal").
+const STALE_MIN = 10;
+const STALE_COLOR = '#9ca3af';
+// Local del hoy en RD (para pedir el recorrido del día del chofer seleccionado).
+function hoyRD(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santo_Domingo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date());
+}
+
 /**
  * AF27 — Seguimiento / Control de rutas: mapa en vivo (Google Maps) con la última
  * posición de cada chofer, su estado (AF28), rutas activas y conduces en tránsito.
@@ -45,8 +55,13 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private markers = new Map<string, google.maps.Marker>();
   private infoWindow: google.maps.InfoWindow | null = null;
   private channel: RealtimeChannel | null = null;
-  private trail: google.maps.Polyline | null = null;   // AJ14 — trazado dibujado
+  private trail: google.maps.Polyline | null = null;   // AJ14 — trazado de ruta dibujado
   private trailMarkers: google.maps.Marker[] = [];      // inicio/fin del trayecto
+  private markerAnim = new Map<string, number>();       // AV1 — RAF por marcador (interpolación)
+  private choferTrail: google.maps.Polyline[] = [];     // AV1 — trayectoria del chofer seleccionado
+  private choferTrailMarkers: google.maps.Marker[] = [];
+  trazaChoferCargando = signal(false);
+  trazaChoferInfo = signal<{ puntos: number; km: number | null } | null>(null);
 
   rutaTrazada = signal<string | null>(null);
   trazaInfo = signal<{ puntos: number; km: number | null; vivo: boolean } | null>(null);
@@ -101,10 +116,14 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   }
 
   posVieja(c: { pos: UltimaPosicion | null }): boolean {
-    const iso = c.pos?.capturado_en;
-    if (!iso) return false;
+    return this.esStale(c.pos?.capturado_en);
+  }
+
+  /** AV1 — última señal más vieja que STALE_MIN → el marcador se atenúa. */
+  private esStale(iso: string | null | undefined): boolean {
+    if (!iso) return true;
     const t = new Date(iso).getTime();
-    return !isNaN(t) && Date.now() - t > 15 * 60000;
+    return isNaN(t) || Date.now() - t > STALE_MIN * 60000;
   }
 
   async ngOnInit() {
@@ -174,19 +193,48 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
 
   private upsertMarker(uid: string, p: UltimaPosicion) {
     if (!this.map || p.lat == null || p.lng == null) return;
-    const color = this.estadoMeta(this.estadoDe(uid)).color;
+    const stale = this.esStale(p.capturado_en);
+    const color = stale ? STALE_COLOR : this.estadoMeta(this.estadoDe(uid)).color;
     const nombre = this.nombreDe(uid);
+    const title = stale ? `${nombre} · sin señal ${this.haceCuanto(p.capturado_en)}` : nombre;
     const position = { lat: p.lat, lng: p.lng };
     const existing = this.markers.get(uid);
     if (existing) {
-      existing.setPosition(position);
+      // AV1 — punto en movimiento: interpola suave de la posición actual a la nueva.
+      this.animarMarcador(uid, existing, position);
       existing.setIcon(pinIcon(color));
-      existing.setTitle(nombre);
+      existing.setOpacity(stale ? 0.45 : 1);
+      existing.setTitle(title);
     } else {
-      const m = new google.maps.Marker({ position, map: this.map, icon: pinIcon(color), title: nombre });
+      const m = new google.maps.Marker({
+        position, map: this.map, icon: pinIcon(color), title, opacity: stale ? 0.45 : 1,
+      });
       m.addListener('click', () => this.seleccionar(uid, false));
       this.markers.set(uid, m);
     }
+  }
+
+  /** AV1 — anima el marcador entre su posición actual y la nueva (~900 ms). */
+  private animarMarcador(uid: string, m: google.maps.Marker, to: google.maps.LatLngLiteral) {
+    const from = m.getPosition();
+    const prev = this.markerAnim.get(uid);
+    if (prev) cancelAnimationFrame(prev);
+    if (!from) { m.setPosition(to); return; }
+    const fromLat = from.lat(), fromLng = from.lng();
+    const dLat = to.lat - fromLat, dLng = to.lng - fromLng;
+    // Saltos grandes (batch atrasado) → mover directo, sin animar cruzando la ciudad.
+    if (Math.abs(dLat) > 0.05 || Math.abs(dLng) > 0.05) { m.setPosition(to); return; }
+    const dur = 900;
+    let t0: number | null = null;
+    const step = (ts: number) => {
+      if (t0 === null) t0 = ts;
+      const k = Math.min(1, (ts - t0) / dur);
+      const ease = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; // easeInOutQuad
+      m.setPosition({ lat: fromLat + dLat * ease, lng: fromLng + dLng * ease });
+      if (k < 1) this.markerAnim.set(uid, requestAnimationFrame(step));
+      else this.markerAnim.delete(uid);
+    };
+    this.markerAnim.set(uid, requestAnimationFrame(step));
   }
 
   private fitToMarkers() {
@@ -201,6 +249,13 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   }
 
   seleccionar(usuarioId: string, pan = true) {
+    // AV1 — click sobre el ya seleccionado = deseleccionar (oculta su trayectoria).
+    if (this.seleccionado() === usuarioId) {
+      this.seleccionado.set(null);
+      this.limpiarChoferTraza();
+      this.infoWindow?.close();
+      return;
+    }
     this.seleccionado.set(usuarioId);
     const p = this.posiciones()[usuarioId];
     if (p && this.map && p.lat != null) {
@@ -214,6 +269,49 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
         this.infoWindow.open({ map: this.map, anchor: m });
       }
     }
+    // AV1 — dibuja SU trayectoria de hoy (solo la del seleccionado), color propio.
+    void this.trazarChofer(usuarioId);
+  }
+
+  /** AV1 — trayectoria del chofer seleccionado (recorrido de hoy), en su color. */
+  private async trazarChofer(usuarioId: string) {
+    this.limpiarChoferTraza();
+    this.trazaChoferInfo.set(null);
+    this.trazaChoferCargando.set(true);
+    try {
+      const rec = await this.svc.getRecorridoDiario(usuarioId, hoyRD());
+      // si cambió la selección mientras cargaba, no pintar.
+      if (this.seleccionado() !== usuarioId || !this.map || !rec) return;
+      const color = this.estadoMeta(this.estadoDe(usuarioId)).color;
+      const segmentos = rec.tramos?.length ? rec.tramos.map((t) => t.coords ?? []) : [rec.coords ?? []];
+      // AV7 — pega cada tramo a las calles (map-matching, con caché server-side).
+      const snapped = await Promise.all(segmentos.map((c) => this.svc.snapToRoads(c)));
+      if (this.seleccionado() !== usuarioId || !this.map) return;
+      const bounds = new google.maps.LatLngBounds();
+      let puntos = 0;
+      for (const coords of snapped) {
+        if (coords.length < 2) { puntos += coords.length; coords.forEach(([la, ln]) => bounds.extend({ lat: la, lng: ln })); continue; }
+        const path = coords.map(([lat, lng]) => ({ lat, lng }));
+        this.choferTrail.push(new google.maps.Polyline({
+          path, map: this.map, strokeColor: color, strokeWeight: 5, strokeOpacity: 0.85,
+        }));
+        path.forEach((pt) => bounds.extend(pt));
+        puntos += path.length;
+      }
+      this.trazaChoferInfo.set({ puntos, km: rec.km ?? null });
+      if (puntos > 1 && !bounds.isEmpty()) this.map.fitBounds(bounds, 80);
+    } catch {
+      // trayectoria best-effort: no romper el mapa si falla.
+    } finally {
+      this.trazaChoferCargando.set(false);
+    }
+  }
+
+  private limpiarChoferTraza() {
+    for (const l of this.choferTrail) l.setMap(null);
+    this.choferTrail = [];
+    for (const m of this.choferTrailMarkers) m.setMap(null);
+    this.choferTrailMarkers = [];
   }
 
   /** AJ14 — dibuja el trayecto de una ruta: breadcrumb en vivo (activa) o
@@ -274,9 +372,12 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.channel) this.svc.removeChannel(this.channel);
+    for (const id of this.markerAnim.values()) cancelAnimationFrame(id);
+    this.markerAnim.clear();
     for (const m of this.markers.values()) m.setMap(null);
     this.markers.clear();
     this.limpiarTraza();
+    this.limpiarChoferTraza();
     this.map = null;
   }
 }

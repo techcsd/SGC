@@ -60,48 +60,67 @@
 }
 .cron__form-actions { display: flex; gap: 10px; justify-content: flex-end; flex-basis: 100%; }
 
-// ── Gantt ──
-.cron__gantt { padding: 18px; position: relative; overflow: hidden; }
+// ── Gantt (AV2) — zoom, columna congelada, header sticky, avance real vs esperado ──
+.cron__gantt { padding: 18px; }
+.cron__gantt-tools { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+.cron__zoom { display: inline-flex; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius); overflow: hidden; }
+.cron__zoom-btn {
+  padding: 6px 12px; background: var(--sgc-surface); color: var(--sgc-text-secondary);
+  border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+  & + & { border-left: 1px solid var(--sgc-border); }
+  &--active { background: var(--sgc-primary); color: #fff; }
+}
 
-// Z16 — eje temporal alineado a la zona de barras (columna 1fr tras el label).
-.cron__axis { display: grid; grid-template-columns: 220px 1fr; gap: 12px; margin-bottom: 6px;
-  @media (max-width: 768px) { grid-template-columns: 130px 1fr; }
+// Scroll con la columna de actividades y el eje "congelados".
+.cron__gantt-scroll { overflow: auto; max-height: 70vh; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius); }
+.cron__gantt-grid { width: max-content; position: relative; }
+
+.cron__ghead { display: flex; position: sticky; top: 0; z-index: 5; background: var(--sgc-surface); border-bottom: 1px solid var(--sgc-border); }
+.cron__ghead-label {
+  position: sticky; left: 0; z-index: 6; background: var(--sgc-surface); flex: 0 0 auto;
+  font-size: 12px; font-weight: 700; color: var(--sgc-text-secondary);
+  padding: 8px 10px; border-right: 1px solid var(--sgc-border);
 }
-.cron__axis-track { position: relative; height: 16px; }
+.cron__ghead-axis { position: relative; height: 34px; flex: 0 0 auto; }
 .cron__axis-tick {
-  position: absolute; top: 0; transform: translateX(-50%);
+  position: absolute; top: 9px; transform: translateX(-50%);
   font-size: 10.5px; color: var(--sgc-text-secondary); white-space: nowrap;
-  &:first-child { transform: translateX(0); }
-  &:last-child { transform: translateX(-100%); }
+  &--strong { color: var(--sgc-text); font-weight: 700; }
 }
-.cron__gantt-body { position: relative; }
-// Overlay que cubre solo la zona de barras (offset por el ancho del label).
-.cron__overlay {
-  position: absolute; top: 0; bottom: 0; left: 232px; right: 0; pointer-events: none; z-index: 0;
-  @media (max-width: 768px) { left: 142px; }
+
+.cron__gbody { position: relative; }
+.cron__goverlay { position: absolute; top: 0; bottom: 0; pointer-events: none; z-index: 0; }
+.cron__grid-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--sgc-border); opacity: 0.4;
+  &--strong { opacity: 0.7; } }
+.cron__today { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--sgc-primary); opacity: 0.7; z-index: 2; }
+
+.cron__ggroup { position: sticky; left: 0; z-index: 3; background: var(--sgc-bg); padding: 6px 10px; flex: 0 0 auto; }
+.cron__ggroup-label { font-size: 12px; font-weight: 700; color: var(--sgc-text); }
+
+.cron__grow { position: relative; z-index: 1; display: flex; align-items: center; border-bottom: 1px solid var(--sgc-border);
+  &--hl { background: var(--sgc-primary-light); } }
+.cron__grow-label {
+  position: sticky; left: 0; z-index: 2; background: var(--sgc-surface); flex: 0 0 auto;
+  font-size: 13px; color: var(--sgc-text); display: flex; align-items: center; gap: 6px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 0 10px; height: 34px; border-right: 1px solid var(--sgc-border);
 }
-.cron__grid-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--sgc-border); opacity: 0.5; }
-.cron__today {
-  position: absolute; top: 0; bottom: 0; width: 2px;
-  background: var(--sgc-primary); opacity: 0.6; z-index: 2;
-}
-.cron__grow { position: relative; z-index: 1; display: grid; grid-template-columns: 220px 1fr; align-items: center; gap: 12px; margin-bottom: 8px;
-  &--hl { background: var(--sgc-primary-light); border-radius: var(--sgc-radius); }
-  @media (max-width: 768px) { grid-template-columns: 130px 1fr; }
-}
-.cron__grow-label { font-size: 13px; color: var(--sgc-text); display: flex; align-items: center; gap: 6px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cron__track { position: relative; height: 26px; background: var(--sgc-bg); border-radius: 6px; }
+.cron__grow--hl .cron__grow-label { background: var(--sgc-primary-light); }
+.cron__track { position: relative; height: 34px; flex: 0 0 auto; }
 .cron__bar {
-  position: absolute; height: 11px; border-radius: 6px; top: 3px;
-  &--plan { opacity: 0.55; }
-  &--real { top: 15px; height: 8px; background: var(--sgc-text-secondary); }
+  position: absolute; height: 14px; border-radius: 6px; top: 5px; overflow: hidden;
+  &--plan { opacity: 0.92; }
+  &--real { top: 23px; height: 7px; background: var(--sgc-text-secondary); opacity: 0.9; overflow: visible; }
   &--done { background: var(--sgc-success); }
   &--atrasada { outline: 2px solid var(--sgc-danger); }
   &[data-tipo='ordinaria'] { background: var(--sgc-info); }
   &[data-tipo='importante'] { background: var(--sgc-warning); }
   &[data-tipo='critica'] { background: var(--sgc-danger); }
 }
+// AV2 — relleno de avance real + marca del avance esperado + % dentro de la barra.
+.cron__bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(0, 0, 0, 0.30); }
+.cron__bar-esperado { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #0b0b0b; opacity: 0.6; }
+.cron__bar-pct { position: absolute; right: 3px; top: 0; font-size: 9px; line-height: 14px; color: #fff; font-weight: 700; }
 .cron__dot {
   display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto;
   &[data-tipo='ordinaria'] { background: var(--sgc-info); }
@@ -115,6 +134,7 @@
   span { display: flex; align-items: center; gap: 5px; }
 }
 .cron__legend-real { display: inline-block; width: 18px; height: 6px; border-radius: 3px; background: var(--sgc-text-secondary); }
+.cron__legend-esperado i { display: inline-block; width: 2px; height: 12px; background: #0b0b0b; opacity: 0.6; }
 .cron__legend-dep i { display: inline-block; width: 18px; height: 0; border-top: 2px dashed var(--sgc-primary-mid, #9aa); }
 
 // Z16 — conector de dependencia finish-to-start (línea punteada + flecha).

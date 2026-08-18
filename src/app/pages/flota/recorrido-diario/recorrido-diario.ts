@@ -79,7 +79,7 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
     this.mapReady = true;
     // Si ya se eligió un recorrido antes de que el mapa cargara, dibújalo.
     const rec = this.recorrido();
-    if (rec) this.dibujar(rec);
+    if (rec) void this.dibujar(rec);
   }
 
   // Rango de disponibilidad consultado (últimos 30 días por defecto).
@@ -144,7 +144,7 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
       this.recorrido.set(rec);
       this.paradas.set(rec?.paradas ?? []);
       this.lugares.set({});
-      this.dibujar(rec);
+      void this.dibujar(rec);
       this.geocodificarParadas();
       if (!rec || rec.puntos === 0) {
         this.error.set('Este chofer no tiene recorrido registrado en esa fecha.');
@@ -156,7 +156,7 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
     }
   }
 
-  private dibujar(rec: RecorridoDiario | null) {
+  private async dibujar(rec: RecorridoDiario | null) {
     this.limpiar();
     if (!this.mapReady || !this.map || !rec) return;
     // Preferimos los tramos (cortados por huecos de tiempo). Si por alguna razón no
@@ -165,8 +165,16 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
       ? rec.tramos.map((t) => t.coords ?? [])
       : (rec.coords?.length ? [rec.coords] : []);
     if (!segmentos.length) return;
+    // Marcadores de inicio/fin/paradas van sobre los puntos CRUDOS (posición real).
+    const first = segmentos[0]?.[0];
+    const lastSeg = segmentos[segmentos.length - 1];
+    const last = lastSeg?.[lastSeg.length - 1];
+    // AV7 — pega cada tramo a las calles (map-matching, caché server-side). Si falla
+    // o el mapa ya no existe, cae a las coords crudas sin romper el render.
+    const segToDraw = await Promise.all(segmentos.map((c) => this.svc.snapToRoads(c)));
+    if (!this.map) return;
     const bounds = new google.maps.LatLngBounds();
-    for (const coords of segmentos) {
+    for (const coords of segToDraw) {
       const path = coords.map(([lat, lng]) => ({ lat, lng }));
       if (path.length < 2) continue;
       this.lines.push(
@@ -176,10 +184,6 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
       );
       for (const p of path) bounds.extend(p);
     }
-    // Marcadores de inicio (primer punto del día) y fin (último).
-    const first = segmentos[0]?.[0];
-    const lastSeg = segmentos[segmentos.length - 1];
-    const last = lastSeg?.[lastSeg.length - 1];
     if (first) {
       this.endMarkers.push(new google.maps.Marker({
         position: { lat: first[0], lng: first[1] }, map: this.map,
