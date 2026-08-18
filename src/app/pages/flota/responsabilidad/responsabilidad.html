@@ -195,7 +195,7 @@
               <div class="resp-card__meta">
                 <span>{{ e.conductor?.nombre ?? '—' }}</span>
                 <span>{{ e.km | number: '1.0-0' }} km · ⛽ {{ e.combustible }}</span>
-                <span>{{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</span>
+                <span>{{ fechaHora(e.capturado_en) }}</span>
               </div>
               <span class="resp-card__chev">{{ isExpanded(e.id) ? '▲' : '▼' }}</span>
             </button>
@@ -210,7 +210,7 @@
                 <h4 class="resp-detail-title">Ubicación</h4>
                 <app-mini-mapa [lat]="e.gps_lat" [lng]="e.gps_lng" />
                 @if (e.gps_lat != null) {
-                  <p class="resp-muted resp-gps-fecha">Registrada el {{ e.capturado_en | date: 'dd/MM/yyyy HH:mm' }}</p>
+                  <p class="resp-muted resp-gps-fecha">Registrada el {{ fechaHora(e.capturado_en) }}</p>
                 }
 
                 @if (e.danos?.length) {

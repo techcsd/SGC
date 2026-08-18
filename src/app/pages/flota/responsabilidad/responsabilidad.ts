@@ -14,6 +14,7 @@ import { RegistrarEntrega } from './registrar-entrega/registrar-entrega';
 import { UserService } from '../../../core/services/user.service';
 import { Vehiculo, identificacionVehiculo, unidadUso } from '../../../../shared/models/vehiculo.model';
 import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.model';
+import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 
 type RespTab = 'uso' | 'historial';
 
@@ -43,6 +44,8 @@ export class Responsabilidad implements OnInit {
 
   // Helpers de plantilla.
   readonly ident = identificacionVehiculo;
+  /** AT17 — fecha + hora (12h) homologada, ej. `17/08/2026 8:04 p.m.`. */
+  readonly fechaHora = formatFechaHoraDisplay;
   readonly unidad = unidadUso;
 
   tab = signal<RespTab>('uso');

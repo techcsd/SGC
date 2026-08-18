@@ -46,16 +46,42 @@ su reemplazo canónico **activo y vinculado a su obra**:
 
 ---
 
-## AT8 — Cronograma E2E "Riviera Bay TEST" (PREPARADO — bloqueado por conversión .mpp)
+## AT8 — Cronograma E2E "Riviera Bay TEST" (✅ DESBLOQUEADO Y VALIDADO — 18/08/2026)
 
-- ✅ Proyecto **"Riviera Bay TEST"** creado (`es_prueba=true`, código `TEST-RIVIERA`, id `30549728-…`).
-- ⚠️ El importador (`/proyectos/:id/cronograma-import`, parser AS21) acepta **.xlsx / .xls / .csv**, NO el `.mpp`
-  binario de MS Project (el propio importador lo indica y guía a exportar). No puedo convertir el `.mpp` sin
-  MS Project.
-- **Pasos para cerrar (Xaviel):** abre `CRONOGRAMA RIVIERA BAY 2.mpp` en MS Project → *Guardar como / Exportar* a
-  Excel (.xlsx) → en SGC entra a **Proyectos › Riviera Bay TEST › Cronograma › Importar** → sube el .xlsx →
-  revisa el *preview* → confirma. Luego repite para validar el *re-import* (diff). Con el .xlsx me lo pasas y
-  valido actividades/fechas/responsables contra el archivo.
+### Causa raíz del bloqueo (NO era el parser)
+1. **El `.mpp` de Riviera Bay está prácticamente vacío.** Lo leí con MPXJ.Net (dotnet) — es un MPP14 real
+   (Project 2010+) pero contiene **solo 3 registros**: la raíz del proyecto + 2 encabezados
+   (`NOVAL - RIVIERA BAY`, `EDIFICIO A `). **Cero actividades**, sin fechas (todo default 2025-05-01), sin
+   responsables ni avance. La carpeta `…/RB; NOVAL-RIVIERA BAY-CANA ROCK/00-CRONOGRAMA` también está vacía.
+   → No hay cronograma real de Riviera Bay que importar; el archivo nunca se llenó en MS Project.
+2. **El importador web rechaza `.mpp` por diseño** (`cronograma-import.ts:112`), y es correcto: MPXJ es
+   Java/.NET, no corre en el navegador ni en un edge de Deno. La exportación manual a Excel (o un convertidor
+   local) es el camino previsto.
+
+### Validación E2E real (con datos reales de Monterezzo, permitido por el prompt)
+- Corrí el **parser de producción** (`parseHoja`/`parseFecha`/`parseNum`, réplica verbatim) contra
+  `CRONOFRAMA MONTEREZZO TORRE 2.xlsx` (141 KB, real): **35 actividades**, mapeo de columnas correcto
+  (`#, ACTIVIDADES, RESPONSABLE, VOLUMETRIA, FECHA INICIO/FIN, DIAS DE EJECUCION, AVANCE REAL %, RENDIMIENTO`),
+  grupo `ENTREPISO #` detectado, fechas `M/D/YYYY`→ISO, cobertura **35/35** en inicio/fin/responsable/avance/días.
+- **Import en vivo** vía el RPC de producción `sgc.cronograma_importar` (impersonando admin) dentro de
+  **Riviera Bay TEST** (`es_prueba`): **35 filas creadas** en `sgc.cronograma_tareas` (fase `TORRE 1 EP1`),
+  verificadas 1:1 contra el archivo (nombre, responsable, volumetría, fechas planificadas sin recalcular,
+  rendimiento, grupo, `import_origen='xlsx'`). Las actividades con `días=0` quedan en 1 por
+  `greatest(1, dias)` (coerción documentada del RPC). **El importador funciona de punta a punta.**
+  → Visible en **Proyectos › Riviera Bay TEST › Cronograma** (Gantt). Es data de prueba; se puede
+  reimportar (idempotente, `p_reemplazar=true`) o borrar.
+
+### Convertidor `.mpp` → `.xlsx` (entregable para futuros .mpp poblados)
+Para cuando un `.mpp` SÍ tenga actividades y no haya MS Project a mano, dejé un convertidor local probado
+(round-trip verificado: mpp → JSON → xlsx en el formato esperado → el parser de producción lo lee):
+- `scratchpad/mppread/` — proyecto dotnet (`MPXJ.Net`) que lee MPP8/9/12/14 → `tasks.json`.
+- `scratchpad/mpp-to-xlsx.cjs` — arma el `.xlsx` con los encabezados exactos del importador (tareas summary → filas de grupo).
+- **Uso:** `mppread.exe archivo.mpp tasks.json` → `node mpp-to-xlsx.cjs tasks.json salida.xlsx "TORRE X"` → subir en el importador.
+- Scripts de validación/import: `scratchpad/parse-cronograma.cjs`, `scratchpad/import-live.mjs`.
+
+**Pendiente Xaviel:** si quieres el cronograma *real* de Riviera Bay, hay que crearlo/poblarlo primero (en MS
+Project o directo en Excel con esos encabezados); el `.mpp` actual no tiene actividades. El flujo de import ya
+está probado y listo.
 
 ---
 

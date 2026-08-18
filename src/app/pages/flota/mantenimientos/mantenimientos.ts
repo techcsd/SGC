@@ -25,7 +25,7 @@ import { Vehiculo, kmFaltanMantenimiento, identificacionVehiculo } from '../../.
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
-import { formatFechaDisplay, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
@@ -83,7 +83,8 @@ export class Mantenimientos implements OnInit {
 
   formatFecha = formatFechaDisplay;
   readonly idVehiculo = identificacionVehiculo;
-  readonly hora = formatHoraTimestamp;
+  /** AT17 — fecha + hora (12h) homologada, ej. `17/08/2026 8:04 p.m.`. */
+  readonly fechaHora = formatFechaHoraDisplay;
 
   // Existing supplier names → datalist so "taller" spellings stay consistent.
   proveedorNombres = signal<string[]>([]);
@@ -464,14 +465,6 @@ export class Mantenimientos implements OnInit {
   editDesdeDetalle(m: Mantenimiento) {
     this.detailOpen.set(false);
     this.openEdit(m);
-  }
-
-  /** Formatea un timestamptz (created_at) a fecha legible; '—' si no hay. */
-  formatFechaHora(iso: string | null | undefined): string {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return '—';
-    return d.toLocaleDateString('es-DO', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   // ── Photos ───────────────────────────────────────────────

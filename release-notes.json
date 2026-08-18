@@ -1,5 +1,18 @@
 {
   "web": {
+    "1.80.1": {
+      "titulo": "Fecha y hora homologada (12 h) en mantenimientos y Vehículos en uso",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Detalle de mantenimiento: el campo “Registrado” ahora muestra la fecha con la hora exacta en formato de 12 horas (ej. 17/08/2026 8:04 p.m.)."
+        },
+        {
+          "t": "mejora",
+          "d": "Vehículos en uso › Historial: las entregas/recepciones muestran la fecha y hora en formato de 12 horas, igual que el resto de la web."
+        }
+      ]
+    },
     "1.80.0": {
       "titulo": "Vehículos identificados por Marca Modelo · Color · Placa en toda la web, y hora exacta en los reportes",
       "cambios": [
