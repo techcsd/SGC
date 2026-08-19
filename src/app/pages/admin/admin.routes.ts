@@ -69,4 +69,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./orden-modulos/orden-modulos').then((m) => m.AdminOrdenModulos),
     title: 'Orden de módulos — Administración',
   },
+  {
+    // AY5 — reporte de almacenes duplicados + fusión (admin; server-side gate).
+    path: 'almacenes-duplicados',
+    loadComponent: () => import('./almacenes-duplicados/almacenes-duplicados').then((m) => m.AdminAlmacenesDuplicados),
+    title: 'Almacenes duplicados — Administración',
+  },
 ];

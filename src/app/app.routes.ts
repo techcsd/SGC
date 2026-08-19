@@ -127,6 +127,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),
       },
       {
+        // AY11 — Solicitud de movimiento: sin gate de módulo (todo usuario autenticado
+        // puede crear/ver las suyas; la RLS + es_referente_movimiento gobiernan el resto).
+        path: 'solicitudes-movimiento',
+        title: 'Solicitud de movimiento',
+        loadComponent: () =>
+          import('./pages/solicitudes-movimiento/solicitudes-movimiento').then((m) => m.SolicitudesMovimiento),
+      },
+      {
         // Personal + shared notes — no module gate, every authenticated user.
         path: 'notas',
         loadComponent: () => import('./pages/notas/notas').then((m) => m.Notas),

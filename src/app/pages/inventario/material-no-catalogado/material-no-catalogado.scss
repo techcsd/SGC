@@ -60,3 +60,22 @@
 
 .mnc-src { margin: 0; color: var(--main-ultra-light); }
 .mnc-note { margin: 0; font-size: 0.82rem; color: var(--main-ultra-light); }
+
+// AY13 — toggle "generar movimiento"
+.mnc-mov {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  background: #161616;
+  cursor: pointer;
+
+  input { margin-top: 3px; flex-shrink: 0; }
+  span { display: flex; flex-direction: column; gap: 3px; }
+  strong { font-size: 0.9rem; }
+  small { color: var(--main-ultra-light); font-size: 0.78rem; line-height: 1.35; }
+}
+.mnc-tag svg { vertical-align: -2px; margin-right: 2px; }

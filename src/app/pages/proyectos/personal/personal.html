@@ -34,35 +34,54 @@
 
 @if (loading()) {
   <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
-} @else if (!filtrados().length) {
-  <div class="sgc-card pob-empty"><p>No hay personal que coincida con el filtro.</p></div>
 } @else {
-  <div class="sgc-card">
-    <div class="pob-tabla">
-      <table class="data-table">
-        <thead>
-          <tr><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Carnet</th><th>Estado</th></tr>
-        </thead>
-        <tbody>
-          @for (p of filtrados(); track p.id) {
-            <tr class="pob-fila" (click)="abrir(p)">
-              <td><strong>{{ p.nombre }} {{ p.apellido }}</strong></td>
-              <td>{{ p.cargo?.nombre ?? '—' }}</td>
-              <td>{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</td>
-              <td class="text-muted">{{ p.documento_numero ?? '—' }}</td>
-              <td class="text-muted">{{ p.proyecto?.nombre ?? '—' }}</td>
-              <td>
-                @if (p.carnet_numero) { <span class="sgc-badge sgc-badge--success">{{ p.carnet_numero }}</span> }
-                @else { <span class="text-muted">Sin carnet</span> }
-              </td>
-              <td>
-                @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
-                @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+  <!-- AY6 — contadores de resumen -->
+  <div class="pob-tiles">
+    <div class="pob-tile"><span class="pob-tile__num">{{ totalVisibles() }}</span><span class="pob-tile__lbl">En la vista</span></div>
+    <div class="pob-tile"><span class="pob-tile__num">{{ totalActivos() }}</span><span class="pob-tile__lbl">Activos</span></div>
+    <div class="pob-tile"><span class="pob-tile__num">{{ obrasDistintas() }}</span><span class="pob-tile__lbl">Obras</span></div>
+    <div class="pob-tile"><span class="pob-tile__num">{{ conCarnet() }}</span><span class="pob-tile__lbl">Con carnet</span></div>
   </div>
+
+  @if (!filtrados().length) {
+    <div class="sgc-card pob-empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      <p class="pob-empty__title">Aún no hay personal aquí</p>
+      <p class="pob-empty__hint">Registra al primer trabajador de la obra para llevar su expediente, evidencia y carnet.</p>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+    </div>
+  } @else {
+    <div class="sgc-card">
+      <div class="pob-tabla">
+        <table class="data-table">
+          <thead>
+            <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Carnet</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            @for (p of filtrados(); track p.id) {
+              <tr class="pob-fila" (click)="abrir(p)">
+                <td class="pob-avatar-cell"><span class="pob-avatar">{{ iniciales(p) }}</span></td>
+                <td><strong>{{ p.nombre }} {{ p.apellido }}</strong></td>
+                <td>
+                  @if (p.cargo?.nombre) { <span class="pob-chip pob-chip--cargo">{{ p.cargo?.nombre }}</span> }
+                  @else { <span class="text-muted">—</span> }
+                </td>
+                <td><span class="pob-chip pob-chip--nac pob-chip--nac-{{ p.nacionalidad }}">{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</span></td>
+                <td class="text-muted">{{ p.documento_numero ?? '—' }}</td>
+                <td class="text-muted">{{ p.proyecto?.nombre ?? '—' }}</td>
+                <td>
+                  @if (p.carnet_numero) { <span class="sgc-badge sgc-badge--success">{{ p.carnet_numero }}</span> }
+                  @else { <span class="text-muted">Sin carnet</span> }
+                </td>
+                <td>
+                  @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
+                  @else { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 }

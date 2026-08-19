@@ -5,7 +5,6 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
-import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { ObrasClimaService } from '../../../shared/context/obras-clima.service';
 import { AlertasCuadreService } from '../../../shared/services/alertas-cuadre.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
@@ -23,7 +22,7 @@ interface Alerta {
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, ObrasClima, Skeleton],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

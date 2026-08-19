@@ -55,6 +55,17 @@ export class PersonalObraLista implements OnInit {
     });
   });
 
+  // AY6 — contadores para los tiles de resumen.
+  totalVisibles = computed(() => this.filtrados().length);
+  totalActivos = computed(() => this.filtrados().filter((p) => p.estado === 'activo').length);
+  obrasDistintas = computed(() => new Set(this.filtrados().map((p) => p.proyecto_id).filter(Boolean)).size);
+  conCarnet = computed(() => this.filtrados().filter((p) => !!p.carnet_numero).length);
+
+  /** AY6 — iniciales para el avatar del listado. */
+  iniciales(p: PersonalObra): string {
+    return `${(p.nombre?.[0] ?? '')}${(p.apellido?.[0] ?? '')}`.toUpperCase() || '?';
+  }
+
   async ngOnInit() {
     this.loading.set(true);
     this.error.set('');

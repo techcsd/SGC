@@ -6,9 +6,17 @@
 </div>
 
 <p class="kpi-intro">
-  Puntaje combinado de <strong>avance de fases</strong> (30%), <strong>cumplimiento de bitácora</strong> (25%),
-  <strong>seguridad / cero incidentes</strong> (25%) y <strong>control de presupuesto</strong> (20%).
+  Puntaje combinado de <strong>cumplimiento de bitácora</strong> (30%), <strong>seguridad / cero incidentes</strong> (30%),
+  <strong>control de presupuesto</strong> (25%) y <strong>avance de fases</strong> (15%). El avance pesa poco: una obra
+  recién iniciada no se "desempeña mal" por estar temprano.
 </p>
+
+<!-- AY3 — leyenda de la escala de color (accesible: no solo color, también el valor %) -->
+<div class="kpi-legend" aria-label="Escala de desempeño">
+  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--good"></span> Buen desempeño (≥80)</span>
+  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--mid"></span> Aceptable (60–79)</span>
+  <span class="kpi-legend__item"><span class="kpi-legend__dot kpi-legend__dot--low"></span> Necesita atención (&lt;60)</span>
+</div>
 
 @if (error()) {
   <div class="page-error" role="alert">{{ error() }}</div>

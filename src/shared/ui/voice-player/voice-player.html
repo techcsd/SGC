@@ -1,0 +1,21 @@
+<div class="voice-player" [class.voice-player--mine]="mine()">
+  <button
+    type="button"
+    class="voice-player__btn"
+    [disabled]="!src()"
+    (click)="toggle()"
+    [attr.aria-label]="playing() ? 'Pausar nota de voz' : 'Reproducir nota de voz'"
+  >
+    @if (!src()) {
+      <span class="voice-player__spinner" aria-hidden="true"></span>
+    } @else if (playing()) {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    } @else {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    }
+  </button>
+  <div class="voice-player__bar" aria-hidden="true">
+    <span class="voice-player__fill" [style.width.%]="progreso() * 100"></span>
+  </div>
+  <span class="voice-player__time">{{ label() }}</span>
+</div>

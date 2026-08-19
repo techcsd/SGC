@@ -111,7 +111,7 @@
             <th>Licencia tipo</th>
             <th>Nº Licencia</th>
             <th>Vencimiento</th>
-            <th>Vehículo asignado</th>
+            <th>Vehículo en uso</th>
             <th>Dispositivo</th>
             <th>Estado</th>
             <th class="text-center">Acciones</th>
@@ -163,10 +163,13 @@
                 }
               </td>
               <td>
-                @if (c.vehiculo) {
-                  <span class="conductores__vehiculo">{{ c.vehiculo.placa }} — {{ c.vehiculo.marca }} {{ c.vehiculo.modelo }}</span>
-                } @else {
-                  <span class="text-muted">Sin asignar</span>
+                <!-- AY8 — vehículo EN USO ahora (sesión activa AK20), no la asignación estática. -->
+                @if (vehiculoEnUso(c); as veh) {
+                  @if (veh === 'Libre / —') {
+                    <span class="text-muted">Libre / —</span>
+                  } @else {
+                    <span class="conductores__vehiculo">{{ veh }}</span>
+                  }
                 }
               </td>
               <td>

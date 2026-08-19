@@ -53,16 +53,16 @@
   justify-content: space-between;
   gap: 8px;
   padding: 9px 12px;
-  border: 1px solid var(--sgc-border, #e2e8f0);
+  border: 1px solid #2d2d2d;
   border-radius: 10px;
-  background: var(--sgc-surface, #fff);
+  background: #161616;
   cursor: pointer;
   font: inherit;
   text-align: left;
   transition: all 0.15s ease;
 
-  &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.03)); }
-  &--sel { border-color: var(--sgc-primary, #2563eb); background: var(--sgc-surface-2, #f1f5f9); }
+  &:hover { background: #1f1f1f; }
+  &--sel { border-color: var(--Hub); background: #1f1f1f; }
 
   &__nombre { font-size: 14px; }
   &__dias { font-size: 12px; color: var(--main-ultra-light); }
@@ -80,14 +80,14 @@
   align-items: flex-start;
   gap: 1px;
   padding: 6px 10px;
-  border: 1px solid var(--sgc-border, #e2e8f0);
+  border: 1px solid #2d2d2d;
   border-radius: 8px;
-  background: var(--sgc-surface, #fff);
+  background: #161616;
   cursor: pointer;
   font: inherit;
 
-  &:hover { background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.03)); }
-  &--sel { border-color: var(--sgc-primary, #2563eb); background: var(--sgc-surface-2, #f1f5f9); }
+  &:hover { background: #1f1f1f; }
+  &--sel { border-color: var(--Hub); background: #1f1f1f; }
 
   &__d { font-size: 13px; }
   &__km { font-size: 11px; color: var(--main-ultra-light); }
@@ -101,9 +101,12 @@
   color: var(--main-ultra-light);
   input {
     padding: 7px 10px;
-    border: 1px solid var(--sgc-border, #e2e8f0);
+    border: 1px solid #2d2d2d;
     border-radius: 8px;
     font: inherit;
+    background: #161616;
+    color: inherit;
+    color-scheme: dark;
   }
 }
 
@@ -124,7 +127,7 @@
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--sgc-surface-2, #f1f5f9);
+  background: #212121;
   color: var(--main-ultra-light);
   &--vivo { background: #dcfce7; color: #16a34a; }
 }
@@ -134,7 +137,7 @@
   height: 62vh;
   min-height: 380px;
   border-radius: 12px;
-  border: 1px solid var(--sgc-border, #e2e8f0);
+  border: 1px solid #2d2d2d;
   overflow: hidden;
 
   &--error {
@@ -142,7 +145,7 @@
     align-items: center;
     justify-content: center;
     color: var(--danger, #e5484d);
-    background: var(--sgc-surface, #fff);
+    background: #161616;
     padding: 20px;
     text-align: center;
   }

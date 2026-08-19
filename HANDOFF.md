@@ -2,6 +2,33 @@
 
 _Last updated: 2026-08-19_
 
+## 🟡 2026-08-19 — PROMPT-29 (IDs AY): chat v3 web, conduces (es_prueba + por implementar), módulo Solicitud de movimiento, Gerencia/clima/desempeño/flota — **web 1.85.0, build verde, SIN commit/deploy**
+
+**Estado:** `npm run build` VERDE (prebuild: version-notes ✓ 10 cambios, guarda de regresión AQ5 ✓, bundle ✓). 5 migraciones nuevas **APLICADAS a prod** (Management API, objetos verificados: tabla solicitudes_movimiento, mensajes.archivo_size, 6 RPCs, cron). **Commit + push a `main`** (Vercel auto-deploy → registro de versión 1.85.0). Tests vitest = fallos pre-existentes de scaffolding (describe no definido / e2e sin creds), no relacionados con estos cambios.
+
+**Migraciones nuevas (APLICADAS a prod, fechadas 2026-08-23):**
+- `2026-08-23-ay14-ay16-chat-v3-web.sql` — `mensajes.archivo_size` + `enviar_mensaje`/`listar_mensajes` con tamaño (para cards de documento).
+- `2026-08-23-ay13-conduces-por-implementar.sql` — RPC `conduces_por_implementar(+_count)` + `vincular_item_libre_articulo` 3-arg (movimiento per-case).
+- `2026-08-23-ay11-solicitud-de-movimiento.sql` — módulo NUEVO: tabla `solicitudes_movimiento` + RLS + RPCs (crear/listar/cancelar/planificar-con-ruta/completar/choferes_cercanos/pendientes_count) + trigger auto-sync ruta→solicitud + cron recordatorio.
+- `2026-08-23-ay8-conductor-licencia-homologar.sql` — limpia `licencia_tipo` a códigos canónicos '01'..'06'.
+- `2026-08-23-ay5-almacenes-duplicados.sql` — `almacenes_duplicados_candidatos` + `almacenes_similares` + `fusionar_almacenes` (admin). ⏸ NO fusionar hasta revisar la lista.
+
+**Hecho (web):**
+- **FASE 1 (AY14/AY16):** chat v3 — recibos ✓/✓✓/azul en vivo (canal UPDATE participantes), presencia escribiendo/grabando (broadcast `chat:presencia:{conv}`), reproductor de voz propio (`shared/ui/voice-player`) con duración real al llegar, guardar sticker recibido, reconciliación al enfocar la pestaña (AY16), cards de documento + visor PDF inline (AY14).
+- **FASE 2 (AY12/AY13/AY4):** submódulo "Conduces por implementar" (`/inventario/conduces-por-implementar`) + badge; toggle per-case "generar movimiento" al vincular item libre; banner de conduce de prueba en el detalle; **checklist de paridad app→web en `docs/AY12-paridad-conduces-app-web.md`**.
+- **FASE 3 (AY11):** módulo "Solicitud de movimiento" completo (`/solicitudes-movimiento`, sin gate de módulo, RLS) — lista con prioridades de color/estado/semáforo/filtros, crear (ingeniero), planificar-con-ruta + choferes cercanos (referente), completar/cancelar, badge en nav.
+- **FASE 4:** AY2 Dirección→**Gerencia** (label; clave sigue `direccion`) + clima fuera de Dashboard/Gerencia; AY7 clima confirmado vs pronóstico (aviso + relabels en Reportes de clima); AY3 fórmula de desempeño rebalanceada (avance 0.30→0.15) + escala 80/60 + leyenda; AY8 Conductores "Vehículo en uso" (sesión AK20) + Cat. homologado.
+- **FASE 5:** AU5 (ya estaba: "Ver trayectoria" en ruta completada — verificado); AW12 emojis→SVG en páginas tocadas (material-no-catalogado, conduce 🔔, clima ⚠️); AY5 reporte + fusión de almacenes duplicados (`/admin/almacenes-duplicados`). AK8: no hay rutas web muertas que quitar (por-firmar vive; "Recibir/Devolver/Ferretería" eran de la app). AW10: las páginas nuevas usan el patrón `.data-table` estándar; componente de tabla compartido formal = deferido.
+- **FASE 6 (AY15):** research + `docs/AY15-jira-interno-propuesta-v1.md` — ⏸ valida el alcance v1 antes de construir.
+
+**Pendiente / ⏸ para Xaviel:**
+- Aplicar las 6 migraciones a prod + commit/push/deploy (bump 1.85.0 listo).
+- ⏸ AY5: revisar la lista de almacenes duplicados ANTES de fusionar.
+- ⏸ AY15: aprobar alcance v1 del Jira interno.
+- **Diferido (visual, no bloquea):** AY6 (pase visual Personal de obra), AY10 (pulido layout Recorrido diario), AY14 thumbnail server-side de PDF/Office (hoy: visor inline + card rica), AW10 componente de tabla compartido, paridad de conduces chofer-flow en web (crear-como-chofer/transferir/iniciar-ruta — ver checklist AY12).
+- App (PROMPT-30): contratos listos (chat v3 sync, conduce es_prueba, Solicitud de movimiento).
+
+
 ## 🟡 2026-08-19 — PROMPT-27: AUDITORÍA integral SGC (AK→AW) + cierre de brechas web — **web 1.84.0, build verde, SIN commit/deploy**
 
 Fuente: `C:\developer\improvements\imp 10082026\PROMPT-27-AUDITORIA-SGC.md`. Dos entregables: (1) el **reporte de auditoría** de solo lectura, (2) los **fixes** de las brechas web code-fixables.

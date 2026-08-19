@@ -64,6 +64,13 @@ export const inventarioRoutes: Routes = [
     title: 'Material no catalogado — Inventario',
   },
   {
+    // AY13 — "Conduces por implementar": conduces con ≥1 item libre sin vincular.
+    path: 'conduces-por-implementar',
+    loadComponent: () =>
+      import('./conduces-por-implementar/conduces-por-implementar').then((m) => m.ConducesPorImplementar),
+    title: 'Conduces por implementar — Inventario',
+  },
+  {
     path: 'movimientos',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./movimientos/movimientos').then((m) => m.Movimientos),

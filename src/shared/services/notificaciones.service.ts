@@ -27,6 +27,8 @@ export class NotificacionesService {
       checks.push(this.loadCount('solicitudes_material', 'pendiente', 'inventario'));
       // AU4 — material no catalogado pendiente de crear/vincular.
       checks.push(this.loadMaterialNoCatalogado());
+      // AY13 — conduces por implementar (≥1 item libre sin vincular).
+      checks.push(this.loadConducesPorImplementar());
     }
     if (this.userService.hasModulo('compras') || isAdmin) {
       checks.push(this.loadCount('solicitudes_compra', 'pendiente', 'compras'));
@@ -62,6 +64,8 @@ export class NotificacionesService {
     if (userId) {
       checks.push(this.loadTareasPendientes(userId));
       checks.push(this.loadMensajesNoLeidos());
+      // AY11 — solicitudes de movimiento pendientes (propias o, si referente, todas).
+      checks.push(this.loadSolicitudesMovimiento());
       // AU1 — bandeja "Conduces por firmar" del despachante (per-user, sin gate de
       // módulo: cualquier usuario puede ser elegido despachante).
       checks.push(this.loadConducesPorFirmar());
@@ -193,6 +197,18 @@ export class NotificacionesService {
   private async loadMaterialNoCatalogado(): Promise<void> {
     const { data } = await this.supabase.client.rpc('material_no_catalogado_pendientes_count');
     this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.material_no_catalogado': (data as number) ?? 0 }));
+  }
+
+  /** AY13 — conduces por implementar (≥1 item libre sin vincular) → badge en Inventario. */
+  private async loadConducesPorImplementar(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('conduces_por_implementar_count');
+    this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.conduces_por_implementar': (data as number) ?? 0 }));
+  }
+
+  /** AY11 — solicitudes de movimiento pendientes → badge en el nav. */
+  private async loadSolicitudesMovimiento(): Promise<void> {
+    const { data } = await this.supabase.client.rpc('solicitudes_movimiento_pendientes_count');
+    this._pendingByModulo.update((m) => ({ ...m, 'solicitudes_movimiento': (data as number) ?? 0 }));
   }
 
   clear(): void {

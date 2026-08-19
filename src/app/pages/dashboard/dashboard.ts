@@ -5,7 +5,6 @@ import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { DatosPruebaViewService } from '../../../shared/services/datos-prueba-view.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
-import { ObrasClima } from '../../../shared/context/obras-clima/obras-clima';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { identificacionVehiculo } from '../../../shared/models/vehiculo.model';
@@ -41,7 +40,7 @@ interface BarItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, ObrasClima, Skeleton],
+  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

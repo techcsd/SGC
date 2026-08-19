@@ -1,0 +1,67 @@
+.voice-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+
+  &__btn {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--Hub);
+    color: var(--main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) { filter: brightness(1.08); }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+
+  &__bar {
+    position: relative;
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--main-ultra-light);
+    opacity: 0.5;
+    overflow: hidden;
+  }
+
+  &__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--Hub);
+    border-radius: 2px;
+    transition: width 0.15s linear;
+  }
+
+  &__time {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: var(--main-ultra-light);
+    font-variant-numeric: tabular-nums;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  &__spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0, 0, 0, 0.25);
+    border-top-color: var(--main);
+    border-radius: 50%;
+    animation: voice-spin 0.7s linear infinite;
+  }
+
+  // En la burbuja propia la barra se ve sobre fondo Hub → invertir contraste.
+  &--mine &__bar { opacity: 0.35; }
+}
+
+@keyframes voice-spin {
+  to { transform: rotate(360deg); }
+}

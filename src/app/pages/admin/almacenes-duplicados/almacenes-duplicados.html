@@ -1,0 +1,54 @@
+<!-- AY5 — Reporte de almacenes duplicados -->
+<section class="page">
+  <header class="page__head">
+    <div>
+      <h1 class="page__title">Almacenes duplicados</h1>
+      <p class="page__sub">
+        Pares de almacenes de la <strong>misma obra</strong> con nombre muy parecido — posibles duplicados
+        del mismo almacén físico. Revisa cada par antes de fusionar.
+      </p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cargar()">Actualizar</button>
+  </header>
+
+  <div class="dup-aviso" role="note">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Fusionar mueve stock, aperturas y movimientos al almacén canónico y desactiva el duplicado. Es difícil de revertir: confirma con el equipo antes.
+  </div>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else if (candidatos().length === 0) {
+    <p class="page__empty">No se detectaron almacenes duplicados. 👍</p>
+  } @else {
+    @for (c of candidatos(); track c.a_id + c.b_id) {
+      <div class="dup-card">
+        <div class="dup-card__head">
+          <span class="dup-card__obra">{{ c.proyecto || 'Sin obra' }}</span>
+          <span class="dup-card__sim">{{ (c.similitud * 100) | number:'1.0-0' }}% similar</span>
+        </div>
+        <div class="dup-card__pair">
+          <div class="dup-side">
+            <span class="dup-side__nombre">{{ c.a_nombre }}</span>
+            <span class="dup-side__meta">{{ c.a_stock_items }} ítems con stock · {{ c.a_movimientos }} movimientos · {{ c.a_activa ? 'activo' : 'inactivo' }}</span>
+            <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm"
+                    [disabled]="fusionando()"
+                    (click)="fusionar(c, c.a_id, c.b_id, c.a_nombre, c.b_nombre)">
+              Conservar este · fusionar el otro
+            </button>
+          </div>
+          <div class="dup-vs">⇄</div>
+          <div class="dup-side">
+            <span class="dup-side__nombre">{{ c.b_nombre }}</span>
+            <span class="dup-side__meta">{{ c.b_stock_items }} ítems con stock · {{ c.b_movimientos }} movimientos · {{ c.b_activa ? 'activo' : 'inactivo' }}</span>
+            <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm"
+                    [disabled]="fusionando()"
+                    (click)="fusionar(c, c.b_id, c.a_id, c.b_nombre, c.a_nombre)">
+              Conservar este · fusionar el otro
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</section>

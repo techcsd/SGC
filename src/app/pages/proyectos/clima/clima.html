@@ -9,10 +9,24 @@
   <div class="page-error" role="alert">{{ error() }}</div>
 }
 
+<!-- AY7 — separar lo CONFIRMADO (reportado en obra) de la referencia automática.
+     El pronóstico es probabilidad, no un hecho: no alimenta KPIs ni restricciones. -->
+<div class="clima-aviso" role="note">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+  <span>
+    Los indicadores de abajo son <strong>lecturas automáticas de referencia</strong> (una estimación del clima por ubicación cada 3&nbsp;h), no una confirmación.
+    El <strong>clima confirmado</strong> es lo que el personal reporta en la <strong>bitácora de obra</strong> (“llovió de X a Y”) — eso es lo que cuenta como hecho para KPIs y restricciones.
+    El <strong>pronóstico</strong> es una probabilidad y se muestra aparte, nunca como algo que definitivamente pasó.
+  </span>
+</div>
+
 <!-- Active severe-weather alerts -->
 @if (alertas().length > 0) {
   <section class="alertas-vigentes sgc-card">
-    <h2 class="alertas-vigentes__title">⚠️ Alertas activas ({{ alertas().length }})</h2>
+    <h2 class="alertas-vigentes__title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Alertas activas ({{ alertas().length }})
+    </h2>
     <div class="alertas-vigentes__list">
       @for (a of alertas(); track a.id) {
         <div class="alerta-item alerta-item--{{ a.nivel }}">
@@ -46,11 +60,12 @@
       </p>
     </div>
   } @else {
-    <!-- Stat tiles -->
+    <!-- Stat tiles — AY7: referencia automática, no confirmación -->
+    <h2 class="clima-seccion">Referencia automática <span class="clima-seccion__tag">estimado</span></h2>
     <div class="clima-tiles">
       <div class="clima-tile"><span class="clima-tile__num">{{ r.obrasMonitoreadas }}</span><span class="clima-tile__lbl">Obras monitoreadas</span></div>
-      <div class="clima-tile"><span class="clima-tile__num">{{ r.diasConLluviaTotal }}</span><span class="clima-tile__lbl">Días con lluvia</span></div>
-      <div class="clima-tile clima-tile--warn"><span class="clima-tile__num">{{ r.diasAdversosTotal }}</span><span class="clima-tile__lbl">Días adversos (lluvia/viento)</span></div>
+      <div class="clima-tile"><span class="clima-tile__num">{{ r.diasConLluviaTotal }}</span><span class="clima-tile__lbl">Días con lluvia (est.)</span></div>
+      <div class="clima-tile clima-tile--warn"><span class="clima-tile__num">{{ r.diasAdversosTotal }}</span><span class="clima-tile__lbl">Días adversos (est.)</span></div>
       <div class="clima-tile"><span class="clima-tile__num">{{ r.totalSnapshots }}</span><span class="clima-tile__lbl">Lecturas registradas</span></div>
     </div>
 

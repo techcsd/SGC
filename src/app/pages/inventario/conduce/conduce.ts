@@ -3,6 +3,8 @@ import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Location } from '@angular/common';
 import { SalidasService, ConduceRutaInfo, ConduceItemLibre } from '../../../../shared/services/salidas.service';
+import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { SupabaseService } from '../../../../app/core/services/supabase.service';
 import {
@@ -130,6 +132,30 @@ export class Conduce implements OnInit {
   anulando = signal(false);
   anularError = signal('');
 
+  // ── AY12 — paridad web: iniciar ruta + transferir conduce ─────────────────
+  private vehiculosService = inject(VehiculosService);
+  puedeGestionarTransporte = computed(
+    () => this.userService.roles().includes('admin') || this.userService.hasModulo('flota') || this.userService.hasModulo('inventario'),
+  );
+  /** Iniciar ruta: cuando el conduce aún no tiene ruta y no está entregado. */
+  puedeIniciarRuta = computed(() => {
+    const s = this.salida();
+    return !!s && this.puedeGestionarTransporte() && !s.ruta_id && s.estado !== 'entregado' && s.estado !== 'anulado';
+  });
+  /** Transferir: cuando hay portador asignado y no está entregado/anulado. */
+  puedeTransferir = computed(() => {
+    const s = this.salida();
+    return !!s && this.puedeGestionarTransporte() && !!s.conductor_id && s.estado !== 'entregado' && s.estado !== 'anulado';
+  });
+  vehiculosPicker = signal<Vehiculo[]>([]);
+  conductoresPicker = signal<{ id: string; nombre: string }[]>([]);
+  iniciarRutaOpen = signal(false);
+  transferirOpen = signal(false);
+  selVehiculo = signal<string | null>(null);
+  selConductor = signal<string | null>(null);
+  transferirNotas = signal('');
+  transporteBusy = signal(false);
+
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
     this.numeroConduce = conduceNumero(id);
@@ -219,6 +245,73 @@ export class Conduce implements OnInit {
       this.anularError.set(e instanceof Error ? e.message : 'No se pudo eliminar el conduce.');
     } finally {
       this.anulando.set(false);
+    }
+  }
+
+  // ── AY12 — Iniciar ruta / Transferir conduce (paridad web) ────────────────
+  private async recargarSalida() {
+    const s = this.salida();
+    if (!s) return;
+    const fresca = await this.salidasService.getById(s.id);
+    this.salida.set(fresca);
+    await this.loadEvidencia(fresca);
+    this.salidasService.getFase(s.id).then((f) => this.fase.set(f)).catch(() => {});
+    this.salidasService.getRutaInfo(s.id).then((r) => this.rutaInfo.set(r)).catch(() => {});
+  }
+
+  async abrirIniciarRuta() {
+    this.selVehiculo.set(null);
+    this.iniciarRutaOpen.set(true);
+    if (this.vehiculosPicker().length === 0) {
+      try {
+        const vs = await this.vehiculosService.getAll();
+        this.vehiculosPicker.set(vs.filter((v) => v.activo && v.estado !== 'baja'));
+      } catch { /* opcional */ }
+    }
+  }
+
+  async confirmarIniciarRuta() {
+    const s = this.salida();
+    if (!s || this.transporteBusy()) return;
+    this.transporteBusy.set(true);
+    try {
+      await this.salidasService.iniciarRuta(s.id, this.selVehiculo());
+      this.toast.success('Ruta iniciada', 'El conduce quedó en ruta.');
+      this.iniciarRutaOpen.set(false);
+      await this.recargarSalida();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo iniciar la ruta', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.transporteBusy.set(false);
+    }
+  }
+
+  async abrirTransferir() {
+    this.selConductor.set(null);
+    this.transferirNotas.set('');
+    this.transferirOpen.set(true);
+    if (this.conductoresPicker().length === 0) {
+      try {
+        this.conductoresPicker.set(await this.salidasService.getConductoresPicker());
+      } catch { /* opcional */ }
+    }
+  }
+
+  async confirmarTransferir() {
+    const s = this.salida();
+    const cond = this.selConductor();
+    if (!s || this.transporteBusy()) return;
+    if (!cond) { this.toast.error('Elige un chofer', 'Selecciona a quién transferir el conduce.'); return; }
+    this.transporteBusy.set(true);
+    try {
+      await this.salidasService.ofrecerTransferencia(s.id, cond, this.transferirNotas().trim() || null);
+      this.toast.success('Transferencia ofrecida', 'El chofer receptor debe aceptarla en su dispositivo.');
+      this.transferirOpen.set(false);
+      await this.recargarSalida();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo transferir', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.transporteBusy.set(false);
     }
   }
 

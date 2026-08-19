@@ -58,6 +58,8 @@ export class MaterialNoCatalogado implements OnInit {
   nuevaUnidad = signal<string>('unidad');
   // Vincular a existente.
   vincularArticuloId = signal<string | null>(null);
+  // AY13 — per-case: ¿generar el movimiento de inventario retroactivo al vincular?
+  generarMovimiento = signal(false);
 
   async ngOnInit() {
     await this.cargar();
@@ -93,12 +95,14 @@ export class MaterialNoCatalogado implements OnInit {
     this.nuevoNombre.set(fila.nombre);
     this.nuevaCategoria.set(this.categorias()[0]?.id ?? null);
     this.nuevaUnidad.set(fila.unidad || 'unidad');
+    this.generarMovimiento.set(false);
   }
 
   abrirVincular(fila: MaterialNoCatalogadoRow) {
     this.activo.set(fila);
     this.modo.set('vincular');
     this.vincularArticuloId.set(null);
+    this.generarMovimiento.set(false);
   }
 
   cerrar() {
@@ -130,7 +134,7 @@ export class MaterialNoCatalogado implements OnInit {
         precio_estimado: null,
         activo: true,
       });
-      await this.svc.vincularItemLibre(fila.id, art.id);
+      await this.svc.vincularItemLibre(fila.id, art.id, this.generarMovimiento());
       this.toast.success('Artículo creado y vinculado.', 'Ya está en el catálogo para futuros conduces.');
       this.cerrar();
       await this.cargar();
@@ -148,7 +152,7 @@ export class MaterialNoCatalogado implements OnInit {
     if (!artId) { this.toast.error('Selecciona un artículo del catálogo.'); return; }
     this.guardando.set(true);
     try {
-      await this.svc.vincularItemLibre(fila.id, artId);
+      await this.svc.vincularItemLibre(fila.id, artId, this.generarMovimiento());
       this.toast.success('Item vinculado al artículo.');
       this.cerrar();
       await this.cargar();

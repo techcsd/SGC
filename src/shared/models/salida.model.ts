@@ -39,6 +39,8 @@ export interface SalidaInventario {
   conductor?: { nombre: string } | null;
   vehiculo_id: string | null;
   vehiculo?: { placa: string | null; marca?: string | null; modelo?: string | null; color?: string | null } | null;
+  /** AY12 — ruta vinculada al conduce (para gating de "Iniciar ruta"). */
+  ruta_id?: string | null;
   recibido_por: string | null;
   recibido?: { nombre: string } | null;
   recibido_en: string | null;

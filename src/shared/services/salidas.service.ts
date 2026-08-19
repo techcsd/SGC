@@ -219,6 +219,34 @@ export class SalidasService {
     this.notificaciones.refresh();
   }
 
+  /** AM5/AY12 — inicia (o adjunta) la ruta de un conduce. Paridad web con la app. */
+  async iniciarRuta(salidaId: string, vehiculoId: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('conduce_iniciar_ruta', {
+      p_salida_id: salidaId,
+      p_vehiculo_id: vehiculoId,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
+  /** AM4/AY12 — ofrece la transferencia del conduce a otro chofer (portador). */
+  async ofrecerTransferencia(salidaId: string, aConductorId: string, notas?: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('ofrecer_transferencia_conduce', {
+      p_salida_id: salidaId,
+      p_a_conductor_id: aConductorId,
+      p_notas: notas ?? null,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
+  /** Choferes elegibles para transferir/asignar (reusa el picker de conductores). */
+  async getConductoresPicker(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('conductores_para_multa');
+    if (error) return [];
+    return (data ?? []) as { id: string; nombre: string }[];
+  }
+
   /** AC7 — registra (upsert) una firma canónica del conduce (emisor/receptor) en
    *  `sgc.salida_firmas` vía RPC `firmar_conduce`. Devuelve el id de la firma. */
   async firmarConduce(
@@ -482,14 +510,29 @@ export class SalidasService {
     return (data ?? []) as ConduceItemLibre[];
   }
 
-  /** AU4 — vincula un item libre a un artículo (vínculo simple, sin stock retroactivo). */
-  async vincularItemLibre(itemLibreId: string, articuloId: string): Promise<void> {
+  /** AU4/AY13 — vincula un item libre a un artículo. `generarMovimiento` (per-case,
+   *  decisión Xaviel) genera además la salida real desde la bodega de origen. */
+  async vincularItemLibre(itemLibreId: string, articuloId: string, generarMovimiento = false): Promise<void> {
     const { error } = await this.supabase.client.rpc('vincular_item_libre_articulo', {
       p_item_libre_id: itemLibreId,
       p_articulo_id: articuloId,
+      p_generar_movimiento: generarMovimiento,
     });
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
+  }
+
+  // ── AY13 — "Conduces por implementar" (≥1 item libre sin vincular) ──────────
+  async getConducesPorImplementar(): Promise<ConducePorImplementar[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_por_implementar');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConducePorImplementar[];
+  }
+
+  async countConducesPorImplementar(): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('conduces_por_implementar_count');
+    if (error) return 0;
+    return (data as number) ?? 0;
   }
 
   /** Salidas awaiting confirmation for a given project (or all, for inventario/admin) — RLS scopes visibility. */
@@ -569,6 +612,22 @@ export interface ConduceItemLibre {
   cantidad: number;
   unidad: string | null;
   articulo_vinculado_id: string | null;
+}
+
+/** AY13 — conduce con items libres pendientes de vincular ("por implementar"). */
+export interface ConducePorImplementar {
+  salida_id: string;
+  conduce_numero: string;
+  fecha: string;
+  estado: string;
+  estado_label: string;
+  proyecto: string | null;
+  bodega: string | null;
+  creado_por: string | null;
+  pendientes: number;
+  total_libres: number;
+  es_prueba: boolean;
+  created_at: string;
 }
 
 /** AU4 — fila de la bandeja de material no catalogado (RPC material_no_catalogado_pendientes). */

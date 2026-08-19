@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
-import { Conversacion, GrupoInfo, Mensaje, ParticipanteInfo, StickerPack } from '../models/mensaje.model';
+import { Conversacion, GrupoInfo, Mensaje, ParticipanteInfo, PresenciaAccion, Recibo, StickerPack } from '../models/mensaje.model';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { environment } from '../../environments/environment';
 
@@ -41,14 +41,14 @@ export class MensajeriaService {
     // 2. All participants of those conversations (for naming + titles).
     const { data: parts, error: e2 } = await this.supabase.client
       .from('conversacion_participantes')
-      .select('conversacion_id, usuario_id, last_read_at')
+      .select('conversacion_id, usuario_id, last_read_at, last_delivered_at')
       .in('conversacion_id', convIds);
     if (e2) throw new Error(e2.message);
 
     const participantesPorConv = new Map<string, ParticipanteInfo[]>();
-    for (const p of (parts ?? []) as { conversacion_id: string; usuario_id: string; last_read_at: string }[]) {
+    for (const p of (parts ?? []) as { conversacion_id: string; usuario_id: string; last_read_at: string; last_delivered_at: string | null }[]) {
       const list = participantesPorConv.get(p.conversacion_id) ?? [];
-      list.push({ usuario_id: p.usuario_id, nombre: nombrePorId.get(p.usuario_id) ?? 'Usuario', last_read_at: p.last_read_at });
+      list.push({ usuario_id: p.usuario_id, nombre: nombrePorId.get(p.usuario_id) ?? 'Usuario', last_read_at: p.last_read_at, last_delivered_at: p.last_delivered_at });
       participantesPorConv.set(p.conversacion_id, list);
     }
 
@@ -117,6 +117,7 @@ export class MensajeriaService {
     let archivoNombre: string | null = null;
     let archivoMime: string | null = null;
 
+    let archivoSize: number | null = null;
     if (file) {
       const path = `${conversacionId}/${crypto.randomUUID()}-${file.name}`;
       const { error: upErr } = await this.supabase.client.storage.from('sgc-mensajes').upload(path, file);
@@ -124,6 +125,7 @@ export class MensajeriaService {
       archivoPath = path;
       archivoNombre = file.name;
       archivoMime = file.type || null;
+      archivoSize = file.size || null; // AY14 — tamaño para la card de documento
     }
 
     const { data, error } = await this.supabase.client
@@ -135,6 +137,7 @@ export class MensajeriaService {
         archivo_path: archivoPath,
         archivo_nombre: archivoNombre,
         archivo_mime: archivoMime,
+        archivo_size: archivoSize,
       })
       .select('*, autor:usuarios(nombre)')
       .single();
@@ -318,6 +321,79 @@ export class MensajeriaService {
     const { data, error } = await this.supabase.client.rpc('contar_mensajes_no_leidos');
     if (error) throw new Error(error.message);
     return (data as number) ?? 0;
+  }
+
+  // ── AV5 — recibos (✓ enviado / ✓✓ entregado / ✓✓ azul leído) ──────────────
+  /** Marca "recibido hasta ahora" para el usuario actual en esta conversación. */
+  async marcarEntregada(conversacionId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('marcar_conversacion_entregada', {
+      p_conversacion_id: conversacionId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Cursores (last_read_at/last_delivered_at) de los DEMÁS participantes. */
+  async getRecibos(conversacionId: string): Promise<Recibo[]> {
+    const { data, error } = await this.supabase.client.rpc('conversacion_recibos', {
+      p_conversacion_id: conversacionId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Recibo[];
+  }
+
+  /** Detalle de recibos de UN mensaje (quién lo recibió/leyó y cuándo) — AT11. */
+  async getEstadoMensaje(mensajeId: string): Promise<{
+    enviado_at: string;
+    entregado_por: { nombre: string; at: string }[];
+    leido_por: { nombre: string; at: string }[];
+    entregado_todos: boolean;
+    leido_todos: boolean;
+  } | null> {
+    const { data, error } = await this.supabase.client.rpc('estado_mensaje', { p_mensaje_id: mensajeId });
+    if (error) throw new Error(error.message);
+    return data as never;
+  }
+
+  /** Realtime: cambios de cursores de la conversación abierta (para refrescar los
+   *  ✓✓ en vivo cuando el otro recibe/lee). */
+  subscribeRecibos(conversacionId: string, onChange: () => void): RealtimeChannel {
+    return this.supabase.client
+      .channel(`recibos:${conversacionId}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'sgc', table: 'conversacion_participantes', filter: `conversacion_id=eq.${conversacionId}` },
+        () => onChange(),
+      )
+      .subscribe();
+  }
+
+  // ── AV5 — presencia / typing (canal efímero, sin BD) ──────────────────────
+  /** Abre el canal de presencia de una conversación y escucha 'escribiendo/grabando'. */
+  presenciaChannel(
+    conversacionId: string,
+    onEstado: (p: { usuario_id: string; nombre: string; accion: PresenciaAccion; at: number }) => void,
+  ): RealtimeChannel {
+    return this.supabase.client
+      .channel(`chat:presencia:${conversacionId}`, { config: { broadcast: { self: false } } })
+      .on('broadcast', { event: 'estado' }, (msg) => onEstado(msg['payload'] as never))
+      .subscribe();
+  }
+
+  /** Difunde mi acción de presencia en el canal (no toca la BD). */
+  async enviarPresencia(
+    channel: RealtimeChannel,
+    payload: { usuario_id: string; nombre: string; accion: PresenciaAccion },
+  ): Promise<void> {
+    await channel.send({ type: 'broadcast', event: 'estado', payload: { ...payload, at: Date.now() } });
+  }
+
+  /** AV4 — guarda un sticker recibido (de otro) a mis stickers. */
+  async guardarSticker(ref: string, packId?: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('guardar_sticker', {
+      p_ref: ref,
+      p_pack_id: packId ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   // ── Stickers (AT16) ─────────────────────────────────────

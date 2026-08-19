@@ -10,14 +10,15 @@ import {
   ElementRef,
   effect,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet, UpperCasePipe } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { MensajeriaService } from '../../../shared/services/mensajeria.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
 import { ToastService } from '../../../shared/services/toast.service';
-import { Conversacion, Mensaje, StickerPack } from '../../../shared/models/mensaje.model';
+import { Conversacion, EstadoMensaje, Mensaje, PresenciaAccion, Recibo, StickerPack } from '../../../shared/models/mensaje.model';
 import { formatFechaMedia, timestampLocalIso, todayIso, daysAgoIso } from '../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
@@ -25,10 +26,11 @@ import { Paginator } from '../../../shared/ui/paginator/paginator';
 import { GrupoInfoPanel } from './grupo-info/grupo-info';
 import { Img } from '../../../shared/components/img/img';
 import { Lightbox } from '../../../shared/ui/lightbox/lightbox';
+import { VoicePlayer } from '../../../shared/ui/voice-player/voice-player';
 
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -117,6 +119,23 @@ export class Mensajes implements OnInit, OnDestroy {
   creating = signal(false);
 
   private channel: RealtimeChannel | null = null;
+
+  // ── AV5 — recibos (✓/✓✓/azul) + presencia (escribiendo/grabando) ──────────
+  recibos = signal<Recibo[]>([]);
+  /** Texto de presencia del OTRO ("Ana está escribiendo…"), '' si nadie. */
+  presenciaTexto = signal<string>('');
+  private recibosCh: RealtimeChannel | null = null;
+  private presenciaCh: RealtimeChannel | null = null;
+  private presenciaTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private presenciaNombres = new Map<string, PresenciaAccion>();
+  private typingUltimo = 0;
+  private typingStopTimer: ReturnType<typeof setTimeout> | null = null;
+  private miNombre = '';
+  private reconcileHandler = () => { if (document.visibilityState === 'visible') void this.reconciliarHilo(); };
+
+  // ── AY14 — visor de PDF inline ────────────────────────────
+  pdfViewer = signal<{ url: string; safe: SafeResourceUrl; nombre: string } | null>(null);
+  private sanitizer = inject(DomSanitizer);
 
   // Auto-scroll: 'auto' (instantáneo) en la carga inicial de un hilo; 'smooth'
   // solo cuando llega/enviamos un mensaje nuevo. Campo plano (no signal) para no
@@ -209,13 +228,29 @@ export class Mensajes implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    this.miNombre = this.userService.profile()?.nombre ?? 'Alguien';
     await this.loadInitial();
     this.channel = this.mensajeria.subscribeMensajes((m) => this.onRealtimeMensaje(m));
+    // AY16 — al volver a la pestaña, reconcilia el hilo abierto (por si el realtime
+    // se perdió un mensaje mientras estaba en background → dos pantallas dispares).
+    document.addEventListener('visibilitychange', this.reconcileHandler);
   }
 
   ngOnDestroy() {
     if (this.channel) void this.mensajeria.unsubscribe(this.channel);
+    this.cerrarCanalesConv();
+    document.removeEventListener('visibilitychange', this.reconcileHandler);
     this.limpiarGrabacion(); // AW15 — libera micrófono/timer si quedó grabando
+  }
+
+  /** Cierra los canales de la conversación abierta (recibos + presencia). */
+  private cerrarCanalesConv() {
+    if (this.recibosCh) { void this.mensajeria.unsubscribe(this.recibosCh); this.recibosCh = null; }
+    if (this.presenciaCh) { void this.mensajeria.unsubscribe(this.presenciaCh); this.presenciaCh = null; }
+    for (const t of this.presenciaTimers.values()) clearTimeout(t);
+    this.presenciaTimers.clear();
+    this.presenciaNombres.clear();
+    this.presenciaTexto.set('');
   }
 
   private async loadInitial() {
@@ -258,6 +293,8 @@ export class Mensajes implements OnInit, OnDestroy {
       void this.resolveThumbs(this.mensajes());
       // AW15 — precarga las URLs firmadas de las notas de voz del hilo.
       void this.resolveAudios(this.mensajes());
+      // AV5 — recibos + presencia de esta conversación (✓✓ y "escribiendo…").
+      void this.setupCanalesConv(conv.id);
       await this.mensajeria.marcarLeido(conv.id, this.miId);
       // Zero out the unread badge locally + globally, y avanza mi marca de lectura
       // local para que reabrir la misma conversación no reviva el divisor (AT14).
@@ -295,14 +332,103 @@ export class Mensajes implements OnInit, OnDestroy {
         void this.resolveAudios([m]); // AW15 — URL de la nota de voz entrante
 
       }
+      // AV5 — recibí el mensaje en el dispositivo (aunque no esté enfocado) → ✓✓.
+      if (m.autor_id !== this.miId) {
+        void this.mensajeria.marcarEntregada(m.conversacion_id).catch(() => {});
+      }
       // QA-058 — solo marcar como leído si la pestaña está enfocada; si el usuario
       // no está mirando, el mensaje sigue contando como no leído.
       if (m.autor_id !== this.miId && document.visibilityState === 'visible') {
         await this.mensajeria.marcarLeido(m.conversacion_id, this.miId);
       }
+      // AV5 — el otro pudo abrir/leer: refresca los ✓✓ de mis mensajes.
+      void this.refreshRecibos();
     }
     await this.refreshConversaciones();
     this.notificaciones.refresh();
+  }
+
+  // ── AV5 — recibos + presencia por conversación ────────────
+  private async setupCanalesConv(convId: string) {
+    this.cerrarCanalesConv();
+    void this.refreshRecibos();
+    void this.mensajeria.marcarEntregada(convId).catch(() => {});
+    this.recibosCh = this.mensajeria.subscribeRecibos(convId, () => void this.refreshRecibos());
+    this.presenciaCh = this.mensajeria.presenciaChannel(convId, (p) => this.onPresencia(p));
+  }
+
+  private async refreshRecibos() {
+    const id = this.selectedId();
+    if (!id) return;
+    try {
+      this.recibos.set(await this.mensajeria.getRecibos(id));
+    } catch {
+      /* recibos best-effort; no rompen el hilo */
+    }
+  }
+
+  /** Recibe una acción de presencia de otro participante y arma el texto vivo. */
+  private onPresencia(p: { usuario_id: string; nombre: string; accion: PresenciaAccion; at: number }) {
+    if (p.usuario_id === this.miId) return;
+    const prev = this.presenciaTimers.get(p.usuario_id);
+    if (prev) clearTimeout(prev);
+    if (p.accion === 'nada') {
+      this.presenciaNombres.delete(p.usuario_id);
+    } else {
+      this.presenciaNombres.set(p.usuario_id, p.accion);
+      // Auto-expira a los ~5s sin refresco (el emisor reenvía mientras actúa).
+      this.presenciaTimers.set(
+        p.usuario_id,
+        setTimeout(() => {
+          this.presenciaNombres.delete(p.usuario_id);
+          this.presenciaTimers.delete(p.usuario_id);
+          this.pintarPresencia();
+        }, 5000),
+      );
+    }
+    this.pintarPresencia();
+  }
+
+  private pintarPresencia() {
+    const dir = this.nombrePorId;
+    const partes: string[] = [];
+    for (const [uid, accion] of this.presenciaNombres) {
+      const nombre = dir.get(uid) ?? 'Alguien';
+      const verbo = accion === 'grabando' ? 'grabando audio' : accion === 'sticker' ? 'eligiendo un sticker' : 'escribiendo';
+      partes.push(`${nombre} está ${verbo}…`);
+    }
+    this.presenciaTexto.set(partes.slice(0, 2).join('  ·  '));
+  }
+
+  /** Difunde mi acción de presencia (throttle para no saturar el canal). */
+  private emitirPresencia(accion: PresenciaAccion) {
+    const ch = this.presenciaCh;
+    if (!ch) return;
+    const ahora = Date.now();
+    if (accion !== 'nada' && ahora - this.typingUltimo < 2500) return;
+    this.typingUltimo = accion === 'nada' ? 0 : ahora;
+    void this.mensajeria.enviarPresencia(ch, { usuario_id: this.miId, nombre: this.miNombre, accion }).catch(() => {});
+  }
+
+  /** AY16 — reconcilia el hilo abierto con el server (merge por id, sin duplicar). */
+  private async reconciliarHilo() {
+    const id = this.selectedId();
+    if (!id) return;
+    try {
+      const frescos = await this.mensajeria.getMensajes(id);
+      const actualesIds = new Set(this.mensajes().map((m) => m.id));
+      const nuevos = frescos.filter((m) => !actualesIds.has(m.id));
+      if (nuevos.length > 0) {
+        // Reemplaza por el set del server (autoritativo) preservando el orden.
+        this.mensajes.set(frescos);
+        void this.resolveThumbs(nuevos);
+        void this.resolveAudios(nuevos);
+      }
+      void this.mensajeria.marcarEntregada(id).catch(() => {});
+      void this.refreshRecibos();
+    } catch {
+      /* reconciliación best-effort */
+    }
   }
 
   /** Carga (o limpia) la URL firmada del avatar de un grupo para la cabecera. */
@@ -375,6 +501,8 @@ export class Mensajes implements OnInit, OnDestroy {
       }
       this.composer.reset('');
       this.pendingFile.set(null);
+      if (this.typingStopTimer) { clearTimeout(this.typingStopTimer); this.typingStopTimer = null; }
+      this.emitirPresencia('nada'); // AV5 — dejé de escribir
       await this.refreshConversaciones();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al enviar el mensaje.');
@@ -387,7 +515,12 @@ export class Mensajes implements OnInit, OnDestroy {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       void this.enviar();
+      return;
     }
+    // AV5 — "escribiendo…": difunde mientras teclea; auto-para a los 3s de inactividad.
+    this.emitirPresencia('escribiendo');
+    if (this.typingStopTimer) clearTimeout(this.typingStopTimer);
+    this.typingStopTimer = setTimeout(() => this.emitirPresencia('nada'), 3000);
   }
 
   async descargarArchivo(m: Mensaje) {
@@ -502,6 +635,7 @@ export class Mensajes implements OnInit, OnDestroy {
       mr.onstop = () => void this.onGrabacionStop(mr);
       mr.start();
       this.grabando.set(true);
+      this.emitirPresencia('grabando'); // AV5 — "grabando audio…"
       this.grabSegundos.set(0);
       this.grabTimer = setInterval(() => {
         this.grabSegundos.set(Math.floor((performance.now() - this.grabInicio) / 1000));
@@ -580,6 +714,7 @@ export class Mensajes implements OnInit, OnDestroy {
   }
 
   private limpiarGrabacion() {
+    if (this.grabando()) this.emitirPresencia('nada'); // AV5 — dejé de grabar
     this.grabando.set(false);
     this.nivel.set(0);
     if (this.grabTimer) { clearInterval(this.grabTimer); this.grabTimer = null; }
@@ -666,6 +801,79 @@ export class Mensajes implements OnInit, OnDestroy {
     } catch (e: unknown) {
       this.toast.error('No se pudo eliminar el sticker', e instanceof Error ? e.message : undefined);
     }
+  }
+
+  /** AV4 — guarda un sticker recibido de otro a "Mis stickers". */
+  async guardarStickerRecibido(ref: string) {
+    try {
+      await this.mensajeria.guardarSticker(ref);
+      this.stickersCargados = false; // fuerza recarga la próxima vez que abra el picker
+      this.toast.success('Sticker guardado');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo guardar el sticker', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  // ── AV5 — estado de mis mensajes (✓ enviado / ✓✓ entregado / ✓✓ azul leído) ──
+  estadoMensaje(m: Mensaje): EstadoMensaje | null {
+    if (m.autor_id !== this.miId || m.tipo === 'sistema') return null;
+    const recibos = this.recibos();
+    if (recibos.length === 0) return 'enviado';
+    const t = m.created_at;
+    if (recibos.every((r) => r.last_read_at != null && r.last_read_at >= t)) return 'leido';
+    if (recibos.every((r) => r.last_delivered_at != null && r.last_delivered_at >= t)) return 'entregado';
+    return 'enviado';
+  }
+
+  // ── AY14 — cards de documento (Word/Excel/PPT/PDF) + visor inline ──────────
+  /** true si el adjunto NO es imagen/audio/sticker → se pinta como card de doc. */
+  esDocumento(m: Mensaje): boolean {
+    return !!m.archivo_path && m.tipo !== 'sticker' && !this.esImagen(m) && !this.esAudio(m);
+  }
+
+  esPdf(m: Mensaje): boolean {
+    return !!m.archivo_mime?.includes('pdf') || !!m.archivo_nombre?.toLowerCase().endsWith('.pdf');
+  }
+
+  /** Clave de tipo para elegir el ícono/color de la card. */
+  docTipo(m: Mensaje): 'pdf' | 'word' | 'excel' | 'ppt' | 'zip' | 'file' {
+    const n = (m.archivo_nombre ?? '').toLowerCase();
+    const mime = (m.archivo_mime ?? '').toLowerCase();
+    if (mime.includes('pdf') || n.endsWith('.pdf')) return 'pdf';
+    if (mime.includes('word') || /\.(docx?|rtf|odt)$/.test(n)) return 'word';
+    if (mime.includes('sheet') || mime.includes('excel') || /\.(xlsx?|csv|ods)$/.test(n)) return 'excel';
+    if (mime.includes('presentation') || mime.includes('powerpoint') || /\.(pptx?|odp)$/.test(n)) return 'ppt';
+    if (/\.(zip|rar|7z|tar|gz)$/.test(n)) return 'zip';
+    return 'file';
+  }
+
+  /** Tamaño legible del adjunto ('' si desconocido). */
+  formatSize(bytes: number | null | undefined): string {
+    if (!bytes || bytes <= 0) return '';
+    const u = ['B', 'KB', 'MB', 'GB'];
+    let i = 0;
+    let v = bytes;
+    while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+    return `${v >= 10 || i === 0 ? Math.round(v) : v.toFixed(1)} ${u[i]}`;
+  }
+
+  /** Abre un PDF en el visor inline; otros documentos se descargan/abren. */
+  async abrirDocumento(m: Mensaje) {
+    if (!m.archivo_path) return;
+    if (this.esPdf(m)) {
+      try {
+        const url = await this.mensajeria.getArchivoUrl(m.archivo_path);
+        this.pdfViewer.set({
+          url,
+          safe: this.sanitizer.bypassSecurityTrustResourceUrl(url),
+          nombre: m.archivo_nombre ?? 'Documento.pdf',
+        });
+      } catch (e: unknown) {
+        this.toast.error('No se pudo abrir el PDF', e instanceof Error ? e.message : undefined);
+      }
+      return;
+    }
+    void this.descargarArchivo(m);
   }
 
   // ── New conversation ─────────────────────────────────────

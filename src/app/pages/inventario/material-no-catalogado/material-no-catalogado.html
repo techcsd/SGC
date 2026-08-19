@@ -21,7 +21,7 @@
   @if (loading()) {
     <app-skeleton [rows]="4" />
   } @else if (filas().length === 0) {
-    <p class="page__empty">No hay material no catalogado pendiente. 👌</p>
+    <p class="page__empty">No hay material no catalogado pendiente.</p>
   } @else {
     <div class="table-scroll">
       <table class="data-table" aria-label="Material no catalogado">
@@ -47,7 +47,7 @@
               <td class="text-muted">{{ f.reportado_por || '—' }}</td>
               <td class="text-right">
                 @if (f.articulo_vinculado_id) {
-                  <span class="mnc-tag">✓ {{ f.articulo_vinculado }}</span>
+                  <span class="mnc-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> {{ f.articulo_vinculado }}</span>
                 } @else if (puedeGestionar()) {
                   <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirCrear(f)">Crear artículo</button>
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular(f)">Vincular</button>
@@ -67,7 +67,9 @@
     <div class="mnc-panel" (click)="$event.stopPropagation()">
       <div class="mnc-panel__head">
         <h2>{{ modo() === 'crear' ? 'Crear artículo' : 'Vincular a un artículo' }}</h2>
-        <button type="button" class="mnc-x" (click)="cerrar()" aria-label="Cerrar">✕</button>
+        <button type="button" class="mnc-x" (click)="cerrar()" aria-label="Cerrar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
 
       <div class="mnc-panel__body">
@@ -103,6 +105,15 @@
             (selectionChange)="onVincularSel($event)"
           />
         }
+
+        <!-- AY13 — decisión per-case: generar el movimiento de inventario retroactivo -->
+        <label class="mnc-mov">
+          <input type="checkbox" [checked]="generarMovimiento()" (change)="generarMovimiento.set($any($event.target).checked)" />
+          <span>
+            <strong>Generar movimiento de inventario</strong>
+            <small>Registra la salida real desde la bodega de origen del conduce ({{ fila.cantidad }} {{ fila.unidad || 'u' }}). Si lo dejas sin marcar, solo se vincula el artículo (sin mover stock).</small>
+          </span>
+        </label>
       </div>
 
       <div class="mnc-panel__foot">

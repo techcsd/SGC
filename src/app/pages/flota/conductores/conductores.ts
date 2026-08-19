@@ -13,6 +13,7 @@ import {
   ConductoresService,
   UsuarioVinculable,
   ConductorDocumentosResumen,
+  VehiculoEnUso,
 } from '../../../../shared/services/conductores.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
@@ -76,6 +77,16 @@ export class Conductores implements OnInit {
 
   // C7 — mapa conductor_id → resumen de documentos destacados.
   private docsResumen = signal<Map<string, ConductorDocumentosResumen>>(new Map());
+
+  // AY8 — mapa usuario_id → vehículo EN USO ahora (sesión activa AK20).
+  private enUsoPorUsuario = signal<Map<string, VehiculoEnUso>>(new Map());
+
+  /** AY8 — etiqueta del vehículo que el conductor tiene EN USO ahora, o 'Libre'. */
+  vehiculoEnUso(c: Conductor): string {
+    if (!c.usuario_id) return 'Libre / —';
+    const v = this.enUsoPorUsuario().get(c.usuario_id);
+    return v ? `${v.placa} — ${v.marca} ${v.modelo}` : 'Libre / —';
+  }
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -191,7 +202,7 @@ export class Conductores implements OnInit {
     { key: 'lic_venc', label: 'Vencimiento licencia', value: (r) => (r as Conductor).licencia_vencimiento ?? '' },
     { key: 'estado', label: 'Estado', value: (r) => ((r as Conductor).activo ? 'Activo' : 'Inactivo') },
     { key: 'tipo_veh', label: 'Vehículo autorizado', value: (r) => (r as Conductor).tipo_vehiculo_autorizado ?? '' },
-    { key: 'vehiculo', label: 'Vehículo asignado', value: (r) => (r as Conductor).vehiculo?.placa ?? '' },
+    { key: 'vehiculo', label: 'Vehículo en uso', value: (r) => this.vehiculoEnUso(r as Conductor) },
     { key: 'acceso', label: 'Acceso (usuario)', value: (r) => (r as Conductor).usuario?.nombre ?? 'Sin acceso' },
     { key: 'tags', label: 'Tags / rol', value: (r) => ((r as Conductor).tags ?? []).join(', ') },
     { key: 'nota', label: 'Nota', value: (r) => (r as Conductor).nota ?? '', default: false },
@@ -280,18 +291,20 @@ export class Conductores implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [conductores, vehiculos, usuarios, categorias, docsResumen] = await Promise.all([
+      const [conductores, vehiculos, usuarios, categorias, docsResumen, enUso] = await Promise.all([
         this.conductoresService.getAll(),
         this.vehiculosService.getAll(),
         this.conductoresService.getUsuariosVinculables(),
         this.conductoresService.getCategoriasLicencia(),
         this.conductoresService.getDocumentosResumen(),
+        this.conductoresService.getVehiculosEnUso(),
       ]);
       this.conductores.set(conductores);
       this.vehiculos.set(vehiculos);
       this.usuarios.set(usuarios);
       this.categorias.set(categorias);
       this.docsResumen.set(new Map(docsResumen.map((r) => [r.conductor_id, r])));
+      this.enUsoPorUsuario.set(new Map(enUso.map((v) => [v.usuario_id, v])));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {

@@ -19,7 +19,23 @@ export interface ParticipanteInfo {
   usuario_id: string;
   nombre: string;
   last_read_at: string;
+  /** AV5 — cursor "recibido en el dispositivo" (✓✓). */
+  last_delivered_at?: string | null;
 }
+
+/** AV5 — recibo de un participante distinto del autor (para pintar ✓/✓✓/azul). */
+export interface Recibo {
+  usuario_id: string;
+  nombre: string;
+  last_read_at: string | null;
+  last_delivered_at: string | null;
+}
+
+/** AV5 — estado de entrega/lectura de un mensaje propio, pintado en la burbuja. */
+export type EstadoMensaje = 'enviado' | 'entregado' | 'leido';
+
+/** AV5 — acción de presencia efímera en el canal chat:presencia:{conv}. */
+export type PresenciaAccion = 'escribiendo' | 'grabando' | 'sticker' | 'nada';
 
 export interface Mensaje {
   id: string;
@@ -30,6 +46,8 @@ export interface Mensaje {
   archivo_path: string | null;
   archivo_nombre: string | null;
   archivo_mime: string | null;
+  /** AY14 — tamaño del adjunto en bytes (para la card de documento). */
+  archivo_size?: number | null;
   created_at: string;
   /** 'sistema' → evento de grupo (alguien entró/salió, se cambió el nombre…).
    *  'sticker' → el mensaje es un sticker (ref guardado en archivo_path).

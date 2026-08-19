@@ -11,6 +11,23 @@ export interface UbicacionAlmacen {
   proyecto_nombre: string | null;
 }
 
+/** AY5 — par candidato a almacén duplicado (misma obra, nombre similar). */
+export interface AlmacenDuplicadoCandidato {
+  a_id: string;
+  a_nombre: string;
+  b_id: string;
+  b_nombre: string;
+  proyecto_id: string | null;
+  proyecto: string | null;
+  similitud: number;
+  a_stock_items: number;
+  b_stock_items: number;
+  a_movimientos: number;
+  b_movimientos: number;
+  a_activa: boolean;
+  b_activa: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BodegasService {
   private supabase = inject(SupabaseService);
@@ -121,6 +138,34 @@ export class BodegasService {
       .limit(limit);
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as { tipo: string; fecha: string; concepto: string | null; items: number }[];
+  }
+
+  // ── AY5 — almacenes duplicados ─────────────────────────────
+  /** Candidatos a duplicado (fuzzy por nombre + misma obra). Admin-only server-side. */
+  async getDuplicadosCandidatos(umbral = 0.45): Promise<AlmacenDuplicadoCandidato[]> {
+    const { data, error } = await this.supabase.client.rpc('almacenes_duplicados_candidatos', { p_umbral: umbral });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as AlmacenDuplicadoCandidato[];
+  }
+
+  /** Almacenes parecidos a un nombre en la misma obra (aviso preventivo al crear). */
+  async getSimilares(nombre: string, proyectoId: string | null): Promise<{ id: string; nombre: string; similitud: number }[]> {
+    if (!nombre?.trim()) return [];
+    const { data, error } = await this.supabase.client.rpc('almacenes_similares', {
+      p_nombre: nombre,
+      p_proyecto_id: proyectoId,
+    });
+    if (error) return [];
+    return (data ?? []) as { id: string; nombre: string; similitud: number }[];
+  }
+
+  /** AY5 — fusiona el duplicado en el canónico (admin). ⏸ tras revisar la lista. */
+  async fusionar(canonicoId: string, duplicadoId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('fusionar_almacenes', {
+      p_canonico: canonicoId,
+      p_duplicado: duplicadoId,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** Z21 — IDs de proyecto que ya tienen al menos un almacén (activo o no). */

@@ -335,3 +335,43 @@
     margin-top: 16px;
   }
 }
+
+// AY4 — banner de conduce de prueba
+.conduce-prueba-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border: 1px solid #4a3b00;
+  border-radius: 12px;
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--Hub);
+  font-size: 0.86rem;
+  svg { flex-shrink: 0; }
+}
+
+// AY12 — modales de Iniciar ruta / Transferir
+.conduce-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+
+  &__panel {
+    width: 100%;
+    max-width: 440px;
+    background: var(--secondary, #212121);
+    border: 1px solid #2d2d2d;
+    border-radius: 14px;
+    padding: 20px;
+
+    h2 { margin: 0 0 4px; font-size: 1.1rem; }
+  }
+  &__sub { margin: 0 0 16px; color: var(--main-ultra-light); font-size: 0.85rem; }
+  &__foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+}

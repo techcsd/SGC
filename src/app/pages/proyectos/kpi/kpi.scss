@@ -155,3 +155,23 @@
     justify-content: flex-start;
   }
 }
+
+// AY3 — leyenda de la escala de desempeño
+.kpi-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0 0 18px;
+  font-size: 0.82rem;
+  color: var(--main-ultra-light);
+}
+.kpi-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.kpi-legend__dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  display: inline-block;
+  &--good { background: var(--sgc-success); }
+  &--mid  { background: var(--sgc-warning); }
+  &--low  { background: var(--sgc-danger); }
+}

@@ -1,0 +1,58 @@
+<!-- AY13 — Conduces por implementar -->
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/inventario/articulos" class="page__back">← Inventario</a>
+      <h1 class="page__title">Conduces por implementar</h1>
+      <p class="page__sub">
+        Conduces que incluyen material escrito a mano (no catalogado) todavía sin vincular a
+        un artículo. Al vincular todos sus materiales, el conduce sale de esta lista.
+      </p>
+    </div>
+    <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/material-no-catalogado">
+      Ir a la bandeja de materiales
+    </a>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else if (filas().length === 0) {
+    <p class="page__empty">No hay conduces por implementar. Todo el material está catalogado.</p>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Conduces por implementar">
+        <thead>
+          <tr>
+            <th>Conduce</th>
+            <th>Fecha</th>
+            <th>Obra</th>
+            <th>Almacén</th>
+            <th>Creó</th>
+            <th class="text-right">Pendientes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.salida_id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/inventario/salidas', f.salida_id, 'conduce']">{{ f.conduce_numero }}</a>
+                @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
+              </td>
+              <td class="text-muted">{{ f.fecha | date:'dd/MM/yyyy' }}</td>
+              <td class="text-muted">{{ f.proyecto || '—' }}</td>
+              <td class="text-muted">{{ f.bodega || '—' }}</td>
+              <td class="text-muted">{{ f.creado_por || '—' }}</td>
+              <td class="text-right">
+                <span class="cpi-badge">{{ f.pendientes }} de {{ f.total_libres }}</span>
+              </td>
+              <td class="text-right">
+                <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/inventario/material-no-catalogado">Implementar</a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

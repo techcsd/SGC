@@ -1,0 +1,74 @@
+.page__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dup-aviso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 18px;
+  padding: 10px 14px;
+  border: 1px solid #4a3b00;
+  border-radius: 12px;
+  background: rgba(255, 179, 0, 0.12);
+  color: var(--Hub);
+  font-size: 0.84rem;
+  svg { flex-shrink: 0; }
+}
+
+.dup-card {
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  background: #161616;
+  padding: 14px;
+  margin-bottom: 14px;
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  &__obra { font-weight: 600; }
+  &__sim {
+    font-size: 0.76rem;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(255, 179, 0, 0.15);
+    color: var(--Hub);
+  }
+  &__pair {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+  }
+}
+
+.dup-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  background: var(--secondary, #212121);
+  &__nombre { font-weight: 600; }
+  &__meta { font-size: 0.78rem; color: var(--main-ultra-light); flex: 1; }
+}
+
+.dup-vs {
+  display: flex;
+  align-items: center;
+  color: var(--main-ultra-light);
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .dup-card__pair { flex-direction: column; }
+  .dup-vs { justify-content: center; }
+}

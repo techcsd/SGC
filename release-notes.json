@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.85.0": {
+      "titulo": "Chat nivel WhatsApp, conduces de prueba y por implementar, módulo de Solicitud de movimiento, Gerencia y desempeño repensados",
+      "cambios": [
+        { "t": "nuevo", "d": "Chat: confirmaciones de lectura (✓ enviado, ✓✓ entregado, azul leído), indicador de “escribiendo…/grabando audio…”, reproductor de voz que muestra la duración real desde que llega la nota, y guardar stickers que te envían." },
+        { "t": "nuevo", "d": "Mensajes: vista previa de documentos — los PDF se abren en un visor dentro del chat y los Word/Excel/PowerPoint se muestran como tarjeta con ícono, nombre y tamaño." },
+        { "t": "nuevo", "d": "Módulo nuevo “Solicitud de movimiento”: un ingeniero pide al departamento de transporte mover material/equipo con prioridad y fecha de requerimiento; los referentes ven todas, crean la ruta y la asignan a un chofer, con sugerencia de choferes cercanos." },
+        { "t": "nuevo", "d": "Inventario: “Conduces por implementar” — lista los conduces con material escrito a mano aún sin vincular a un artículo; al vincularlo puedes decidir si genera el movimiento de inventario." },
+        { "t": "mejora", "d": "Los conduces ahora pueden ser de prueba: se marcan solos cuando el chofer/obra es de prueba, se ven solo para administradores y no cuentan para inventario ni KPIs." },
+        { "t": "mejora", "d": "“Dirección” pasa a llamarse “Gerencia”. Se quitó el widget de clima (pronóstico) del Dashboard y de Gerencia." },
+        { "t": "mejora", "d": "Reportes de clima: se separa lo confirmado en obra (lo que cuenta) del pronóstico (probabilidad), para no dar por hecho lo que no pasó." },
+        { "t": "mejora", "d": "Desempeño por proyecto: se corrigió la fórmula (una obra recién iniciada ya no sale en rojo por estar temprano) y se agregó una leyenda de colores (verde/amarillo/rojo)." },
+        { "t": "mejora", "d": "Conductores: la columna ahora muestra el “Vehículo en uso” real (sesión activa) en vez de la asignación vieja, y la categoría de licencia quedó homologada (Cat. 02, etc.) con selección por lista." },
+        { "t": "mejora", "d": "Administración: reporte de almacenes duplicados (mismo nombre y obra) con herramienta de fusión para consolidarlos." }
+      ]
+    },
     "1.83.0": {
       "titulo": "Jefe de Ingenieros, bitácoras con autor y hora, voz en el chat web, reportes de errores con historial y búsqueda de materiales más lista",
       "cambios": [

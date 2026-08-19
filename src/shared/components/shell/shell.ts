@@ -125,7 +125,9 @@ export class Shell implements OnInit {
       route: '/dashboard',
     },
     {
-      label: 'Dirección',
+      // AY2 — "Dirección" se renombra a "Gerencia" en la UI. La clave del módulo
+      // sigue siendo 'direccion' (rutas, guards, RLS tiene_modulo('direccion')).
+      label: 'Gerencia',
       icon: 'direccion',
       modulo: 'direccion',
       route: '/direccion',
@@ -146,6 +148,7 @@ export class Shell implements OnInit {
         { label: 'Conduces', route: '/inventario/conduces', submodulo: 'inventario.salidas' },
         { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones', submodulo: 'inventario.salidas' },
         { label: 'Material no catalogado', route: '/inventario/material-no-catalogado', modulo: 'inventario', badgeKey: 'inventario.material_no_catalogado' },
+        { label: 'Conduces por implementar', route: '/inventario/conduces-por-implementar', modulo: 'inventario', badgeKey: 'inventario.conduces_por_implementar' },
         { label: 'Conteos y ajustes', route: '/inventario/conteos', submodulo: 'inventario.conteos' },
         { label: 'Apertura de inventario', route: '/inventario/apertura', soloAdmin: true },
         { label: 'Reposición', route: '/inventario/reposicion', submodulo: 'inventario.articulos' },
@@ -278,6 +281,14 @@ export class Shell implements OnInit {
       soloConPendiente: true,
     },
     {
+      // AY11 — Solicitud de movimiento: sin gate de módulo (como Tareas/Mensajes).
+      // El ingeniero crea/ve las suyas; los referentes ven y gestionan todas (RLS).
+      label: 'Solicitud de movimiento',
+      icon: 'flota',
+      route: '/solicitudes-movimiento',
+      badgeKey: 'solicitudes_movimiento',
+    },
+    {
       // No `modulo`: visible to everyone (all users have "Mis tareas").
       // The "Gestión" child is gated to the 'tareas' module (managers).
       label: 'Tareas',
@@ -370,6 +381,7 @@ export class Shell implements OnInit {
       { label: 'Valores "Otro"', route: '/admin/otros-valores' },
       { label: 'Notificaciones', route: '/admin/notificaciones' },
       { label: 'Orden de módulos', route: '/admin/orden-modulos' },
+      { label: 'Almacenes duplicados', route: '/admin/almacenes-duplicados' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],

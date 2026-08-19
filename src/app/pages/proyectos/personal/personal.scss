@@ -10,3 +10,61 @@
 .pob-tabla { overflow-x: auto; }
 .pob-fila { cursor: pointer; &:hover { background: var(--sgc-surface-2, #f6f6f6); } }
 .pob-empty { padding: 32px; text-align: center; color: var(--sgc-text-muted); }
+
+// AY6 — pase visual del listado de Personal de obra
+.pob-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.pob-tile {
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  &__num { font-size: 1.5rem; font-weight: 700; color: var(--Hub); font-variant-numeric: tabular-nums; }
+  &__lbl { font-size: 0.78rem; color: var(--main-ultra-light); }
+}
+
+.pob-avatar-cell { width: 44px; }
+.pob-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 179, 0, 0.15);
+  color: var(--Hub);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pob-chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  &--cargo { background: rgba(74, 144, 226, 0.16); color: #7fb3f0; }
+  &--nac { background: rgba(146, 144, 144, 0.16); color: var(--main-ultra-light); }
+  &--nac-dominicano { background: rgba(67, 160, 71, 0.16); color: #7bc47f; }
+  &--nac-haitiano { background: rgba(74, 144, 226, 0.16); color: #7fb3f0; }
+}
+
+.pob-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--main-ultra-light);
+  svg { color: var(--Hub); opacity: 0.7; margin-bottom: 4px; }
+  &__title { font-size: 1rem; font-weight: 600; color: #f0f0f0; margin: 0; }
+  &__hint { margin: 0 0 8px; max-width: 380px; font-size: 0.85rem; }
+}

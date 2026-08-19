@@ -23,6 +23,19 @@ export interface ConductorDocumentosResumen {
 }
 
 /** Usuario enlazable a un conductor + datos de su ficha para autollenar (B4/U3). */
+/** AY8/AK20 — fila de vehículo en uso (sesión activa). */
+export interface VehiculoEnUso {
+  vehiculo_id: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  usuario_id: string;
+  usuario_nombre: string;
+  desde: string;
+  km_inicio: number | null;
+  nivel_inicio: string | null;
+}
+
 export interface UsuarioVinculable {
   id: string;
   nombre: string;
@@ -48,6 +61,14 @@ export class ConductoresService {
       .order('orden');
     if (error || !data || data.length === 0) return LICENCIA_CATEGORIAS_FALLBACK;
     return data as unknown as LicenciaCategoria[];
+  }
+
+  /** AY8/AK20 — vehículos actualmente EN USO (sesión activa), por usuario. Para
+   *  mostrar "Vehículo en uso" en Conductores en vez de la asignación estática. */
+  async getVehiculosEnUso(): Promise<VehiculoEnUso[]> {
+    const { data, error } = await this.supabase.client.rpc('vehiculos_en_uso');
+    if (error) return [];
+    return (data ?? []) as VehiculoEnUso[];
   }
 
   async getAll(): Promise<Conductor[]> {
