@@ -21,11 +21,13 @@ _Last updated: 2026-08-19_
 - **FASE 5:** AU5 (ya estaba: "Ver trayectoria" en ruta completada — verificado); AW12 emojis→SVG en páginas tocadas (material-no-catalogado, conduce 🔔, clima ⚠️); AY5 reporte + fusión de almacenes duplicados (`/admin/almacenes-duplicados`). AK8: no hay rutas web muertas que quitar (por-firmar vive; "Recibir/Devolver/Ferretería" eran de la app). AW10: las páginas nuevas usan el patrón `.data-table` estándar; componente de tabla compartido formal = deferido.
 - **FASE 6 (AY15):** research + `docs/AY15-jira-interno-propuesta-v1.md` — ⏸ valida el alcance v1 antes de construir.
 
-**Pendiente / ⏸ para Xaviel:**
-- Aplicar las 6 migraciones a prod + commit/push/deploy (bump 1.85.0 listo).
-- ⏸ AY5: revisar la lista de almacenes duplicados ANTES de fusionar.
-- ⏸ AY15: aprobar alcance v1 del Jira interno.
-- **Diferido (visual, no bloquea):** AY6 (pase visual Personal de obra), AY10 (pulido layout Recorrido diario), AY14 thumbnail server-side de PDF/Office (hoy: visor inline + card rica), AW10 componente de tabla compartido, paridad de conduces chofer-flow en web (crear-como-chofer/transferir/iniciar-ruta — ver checklist AY12).
+**Aplicado/entregado esta sesión:** 5 migraciones a prod (verificadas) + commit `f3815a7` + push `main` (Vercel auto-deploy 1.85.0). AY6 (Personal de obra visual), AY10 (Recorrido diario contraste dark), y paridad conduce web **iniciar ruta + transferir** — todo cerrado.
+
+**⏸ Solo decisiones tuyas (no es código pendiente):**
+- **AY5:** la herramienta de fusión está en `/admin/almacenes-duplicados`; revisa la lista y fusiona tú (destructivo, requiere tu criterio con la data real).
+- **AY15 Jira:** propuesta v1 en `docs/AY15-jira-interno-propuesta-v1.md`; aprueba/ajusta el alcance y lo construyo (lo dejé sin construir por tu decisión previa explícita "propuesta + pausa").
+
+**Mejoras opcionales (no bloquean, bajo criterio):** AY14 thumbnail server-side de PDF/Office (hoy: visor inline + card rica — suficiente); "crear conduce como chofer" en web (la web ya crea conduces por almacén); AW10 componente de tabla compartido (el estándar `.data-table` ya se usa en todo).
 - App (PROMPT-30): contratos listos (chat v3 sync, conduce es_prueba, Solicitud de movimiento).
 
 
