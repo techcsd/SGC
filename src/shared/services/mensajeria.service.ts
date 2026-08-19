@@ -153,7 +153,11 @@ export class MensajeriaService {
     duracionSeg: number,
     clientId: string,
   ): Promise<Mensaje> {
-    const mime = blob.type || 'audio/webm';
+    // AW15 — el allowlist de mime del bucket valida por igualdad EXACTA y NO acepta
+    // parámetros de codec: MediaRecorder produce 'audio/webm;codecs=opus' (o
+    // 'audio/mp4;codecs=…') → Storage responde 415 y la nota de voz nunca subía
+    // (mismo bug que la app, AW13). Se sube con el mime BASE.
+    const mime = (blob.type || 'audio/webm').split(';')[0].trim();
     const ext = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') || mime.includes('m4a') ? 'm4a' : mime.includes('mpeg') ? 'mp3' : 'webm';
     const path = `${conversacionId}/${crypto.randomUUID()}-voz.${ext}`;
     const { error: upErr } = await this.supabase.client.storage

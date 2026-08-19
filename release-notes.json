@@ -3,16 +3,46 @@
     "1.83.0": {
       "titulo": "Jefe de Ingenieros, bitácoras con autor y hora, voz en el chat web, reportes de errores con historial y búsqueda de materiales más lista",
       "cambios": [
-        { "t": "nuevo", "d": "Rol nuevo “Jefe de Ingenieros”: supervisa (solo lectura) las bitácoras, incidentes, producción de obra, cronograma y personal de todos los ingenieros. Asignable desde Administración › Roles." },
-        { "t": "nuevo", "d": "Bitácoras separadas en “Mis bitácoras” y “Todas las bitácoras”. Quién puede ver las de todos es configurable por rol desde Administración (sin tocar código); el ingeniero normal solo ve las suyas, garantizado desde el servidor." },
-        { "t": "mejora", "d": "Cada bitácora muestra ahora QUIÉN la registró y a qué HORA exacta, en el listado, el detalle y el PDF." },
-        { "t": "nuevo", "d": "Bitácora: 3 actividades nuevas en “¿Qué se hizo?” (Colocación de cabezales, Fondo de viga, Encostillado de fondo de losas) y cantidad aproximada “~” para lo difícil de medir con exactitud (varillas, encofrado). Configurable desde Catálogos de bitácora." },
-        { "t": "nuevo", "d": "Notas de voz en el chat web: ya puedes grabar, enviar y reproducir mensajes de voz desde la página, con grabación estilo WhatsApp (temporizador y onda que reacciona al ruido)." },
-        { "t": "nuevo", "d": "Reportes de errores con flujo de atención: abierto → en revisión → solucionado, con Historial aparte y metadata completa por reporte (usuario, dispositivo, sistema, versión). Si un error solucionado reaparece, vuelve solo a la bandeja." },
-        { "t": "mejora", "d": "Búsqueda de materiales más amigable: tolera errores de tipeo, acentos y orden de palabras, con sugerencias “¿Quisiste decir…?” en los selectores de artículos." },
-        { "t": "nuevo", "d": "Tecnología › APIs y consumo: inventario de las APIs del sistema (Google Maps/Places/Roads, Supabase, push, Vercel, Resend) con propósito y costo estimado por mes. El Monitoreo de infraestructura pasó al módulo Tecnología." },
-        { "t": "mejora", "d": "Recorrido diario: leyenda del mapa (qué es cada pin y la línea del trayecto). Aviso “vehículo en uso de X” con traspaso que notifica también al jefe de flota. Tablas con la columna de acciones alineada (Suscripciones)." },
-        { "t": "mejora", "d": "Empresa y Catálogos de bitácora: pantallas más claras, con descripción de dónde se usa cada dato, validaciones, vista previa del encabezado de documentos y búsqueda de valores." }
+        {
+          "t": "nuevo",
+          "d": "Rol nuevo “Jefe de Ingenieros”: supervisa (solo lectura) las bitácoras, incidentes, producción de obra, cronograma y personal de todos los ingenieros. Asignable desde Administración › Roles."
+        },
+        {
+          "t": "nuevo",
+          "d": "Bitácoras separadas en “Mis bitácoras” y “Todas las bitácoras”. Quién puede ver las de todos es configurable por rol desde Administración (sin tocar código); el ingeniero normal solo ve las suyas, garantizado desde el servidor."
+        },
+        {
+          "t": "mejora",
+          "d": "Cada bitácora muestra ahora QUIÉN la registró y a qué HORA exacta, en el listado, el detalle y el PDF."
+        },
+        {
+          "t": "nuevo",
+          "d": "Bitácora: 3 actividades nuevas en “¿Qué se hizo?” (Colocación de cabezales, Fondo de viga, Encostillado de fondo de losas) y cantidad aproximada “~” para lo difícil de medir con exactitud (varillas, encofrado). Configurable desde Catálogos de bitácora."
+        },
+        {
+          "t": "nuevo",
+          "d": "Notas de voz en el chat web: ya puedes grabar, enviar y reproducir mensajes de voz desde la página, con grabación estilo WhatsApp (temporizador y onda que reacciona al ruido)."
+        },
+        {
+          "t": "nuevo",
+          "d": "Reportes de errores con flujo de atención: abierto → en revisión → solucionado, con Historial aparte y metadata completa por reporte (usuario, dispositivo, sistema, versión). Si un error solucionado reaparece, vuelve solo a la bandeja."
+        },
+        {
+          "t": "mejora",
+          "d": "Búsqueda de materiales más amigable: tolera errores de tipeo, acentos y orden de palabras, con sugerencias “¿Quisiste decir…?” en los selectores de artículos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Tecnología › APIs y consumo: inventario de las APIs del sistema (Google Maps/Places/Roads, Supabase, push, Vercel, Resend) con propósito y costo estimado por mes. El Monitoreo de infraestructura pasó al módulo Tecnología."
+        },
+        {
+          "t": "mejora",
+          "d": "Recorrido diario: leyenda del mapa (qué es cada pin y la línea del trayecto). Aviso “vehículo en uso de X” con traspaso que notifica también al jefe de flota. Tablas con la columna de acciones alineada (Suscripciones)."
+        },
+        {
+          "t": "mejora",
+          "d": "Empresa y Catálogos de bitácora: pantallas más claras, con descripción de dónde se usa cada dato, validaciones, vista previa del encabezado de documentos y búsqueda de valores."
+        }
       ]
     },
     "1.81.0": {
@@ -2218,6 +2248,15 @@
         {
           "t": "arreglo",
           "d": "Conduces: si un conduce espera la firma del despachante, ahora se te avisa ANTES de registrar la entrega (el botón sale bloqueado con el motivo, no un error después). Incluye el atajo “Recordarle al despachante” para re-enviarle el aviso. Igual que en la app móvil."
+        }
+      ]
+    },
+    "1.82.2": {
+      "titulo": "Arreglo: las notas de voz del chat ahora sí se envían",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "d": "Mensajes: las notas de voz ahora se envían y llegan correctamente. El audio no subía por un problema de formato (el navegador lo marca con un codec que el almacenamiento rechazaba). Mismo arreglo que en la app móvil."
         }
       ]
     }
