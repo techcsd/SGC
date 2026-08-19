@@ -2,6 +2,10 @@
 
 _Last updated: 2026-08-21_
 
+## 🟢 2026-08-21 (2) — AW15: fix real de las notas de voz del chat web (1.83.1)
+Commits `7ccde49` + `2c647c8`. PROMPT-25 (1.83.0) AÑADIÓ la voz al chat web pero con un bug: `mensajeria.service.enviarNotaVoz` subía con `blob.type` = `audio/webm;codecs=opus` (Safari: `audio/mp4;codecs=…`) y el allowlist de mime de `sgc-mensajes` valida por igualdad EXACTA → Storage devolvía **415** y el audio nunca subía. **Fix:** subir con el mime BASE (`.split(';')[0]`) — mismo bug/fix que la app (AW13, csd-app 1.89.0). **Ojo versión:** el primer commit bajó package.json a 1.82.2 (downgrade sobre 1.83.0); corregido a **1.83.1** en `2c647c8` + se borró la entrada 1.82.2 del historial en prod. Build verde; deploy Vercel.
+
+
 ## 🟢 2026-08-21 — PROMPT-25 (IDs AW): rol Jefe de Ingenieros, bitácoras, voz web, reportes de errores, fuzzy search, APIs/consumo, leyenda mapa — **SHIPPED web 1.83.0** (commit + push `main`, deploy Vercel)
 
 Fuente: `C:\developer\improvements\imp 10082026\CONTEXTO-ACTUALIZACION-12.md` (IDs AW). PROMPT-25 = web + BD (la app es PROMPT-26). **6 migraciones `sql/2026-08-21-*.sql` aplicadas y verificadas en prod. Build prod verde (guard Y1 ✓, version.ts → 1.83.0).** Confirmaciones de Xaviel: Jefe de Ing = ver+comentar sin editar; "Todas" = admin/dirección/gerencia/jefe_ing **+ editable por permiso**; cantidad aprox = "se trabajó"+~; resolver errores = admin+tecnología.
