@@ -7,16 +7,63 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      Excel
     </button>
     <a routerLink="/inventario/conduces" class="sgc-btn sgc-btn--ghost">Ir a Conduces</a>
   </div>
 </div>
 
 <p class="confirmaciones__intro">
-  Registro de las entregas de material que ya fueron confirmadas por el responsable de la obra: quién entregó, quién
-  confirmó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo.
+  @if (tab() === 'mias') {
+    Solo las entregas que <strong>tú</strong> confirmaste: quién entregó, cuándo, con foto y firma. Abre cualquiera para
+    ver el conduce completo.
+  } @else {
+    Registro de las entregas de material que ya fueron confirmadas por el responsable de la obra: quién entregó, quién
+    confirmó, cuándo, con foto y firma. Abre cualquiera para ver el conduce completo.
+  }
 </p>
+
+<!-- ── AL8 — segmentado: todas vs mis confirmaciones ── -->
+<div class="confirmaciones__scope" role="tablist" aria-label="Alcance de confirmaciones">
+  <button
+    type="button"
+    role="tab"
+    class="confirmaciones__scope-tab"
+    [class.confirmaciones__scope-tab--active]="tab() === 'todas'"
+    [attr.aria-selected]="tab() === 'todas'"
+    (click)="setTab('todas')"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+    Todas
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="confirmaciones__scope-tab"
+    [class.confirmaciones__scope-tab--active]="tab() === 'mias'"
+    [attr.aria-selected]="tab() === 'mias'"
+    (click)="setTab('mias')"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+    Mis confirmaciones
+  </button>
+</div>
 
 <!-- ── Filters ── -->
 <div class="filters-bar">
@@ -66,6 +113,8 @@
       <p>
         @if (hasActiveFilters()) {
           No se encontraron confirmaciones con los filtros aplicados.
+        } @else if (tab() === 'mias') {
+          Todavía no has confirmado ninguna entrega. Aparecerán aquí las recepciones que tú confirmes.
         } @else {
           Aún no hay entregas confirmadas. Aparecen aquí cuando el responsable de la obra confirma la recepción.
         }
@@ -97,8 +146,22 @@
               <td>{{ f.recibido_por_nombre ?? '—' }}</td>
               <td class="text-muted">{{ formatFechaHora(f.recibido_en) }}</td>
               <td>
-                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_foto" title="Foto de recepción">📷</span>
-                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_firma" title="Firma del receptor">✍️</span>
+                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_foto" title="Foto de recepción" aria-label="Foto de recepción">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </span>
+                <span class="confirmaciones__ev" [class.confirmaciones__ev--on]="f.tiene_firma" title="Firma del receptor" aria-label="Firma del receptor">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 19l7-7 3 3-7 7-3-3z" />
+                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+                    <path d="M2 2l7.586 7.586" />
+                    <circle cx="11" cy="11" r="2" />
+                  </svg>
+                </span>
               </td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + estadoModifier(f)">{{ estadoLabel(f) }}</span>

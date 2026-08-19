@@ -16,7 +16,7 @@
         }
         @if (!readOnly()) {
           <button type="button" class="audio-notas__del" (click)="eliminar(n)" [disabled]="busy()"
-            aria-label="Eliminar nota de voz">✕</button>
+            aria-label="Eliminar nota de voz"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
         }
         <!-- AA22 — transcripción -->
         @if (n.transcripcion) {

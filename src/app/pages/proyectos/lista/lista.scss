@@ -540,6 +540,14 @@
     }
   }
 
+  // AM10 — teléfono de contacto clicable (tel:)
+  &__detail-link {
+    color: var(--sgc-primary-mid);
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
   &__add-miembro {
     display: grid;
     grid-template-columns: 1.5fr 1fr auto;

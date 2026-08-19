@@ -2259,6 +2259,35 @@
           "d": "Mensajes: las notas de voz ahora se envían y llegan correctamente. El audio no subía por un problema de formato (el navegador lo marca con un codec que el almacenamiento rechazaba). Mismo arreglo que en la app móvil."
         }
       ]
+    },
+    "1.84.0": {
+      "titulo": "Cierre de brechas de la auditoría (PROMPT-27)",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "d": "Nueva guarda de regresión permanente que corre en cada build: bloquea el despliegue si una función sensible vuelve a filtrar datos de prueba (el bug del conduce que le desaparecía al chofer ya había vuelto dos veces). Antes solo había un chequeo que corría una única vez al aplicar la migración."
+        },
+        {
+          "t": "nuevo",
+          "d": "Confirmaciones: nueva vista 'Mis confirmaciones' junto a 'Todas' (cada quien ve las suyas), con el mismo detalle, filtros y exportación."
+        },
+        {
+          "t": "mejora",
+          "d": "Proyectos: ingeniero de obra, maestro encargado y contacto de obra ahora se ven y se editan como campos propios (antes vivían escondidos en la descripción). La ubicación se guarda validando el rango de coordenadas en el servidor."
+        },
+        {
+          "t": "mejora",
+          "d": "Cronograma: al importar desde Excel el previo ahora muestra un comparativo real contra lo existente (qué tareas son nuevas, cuáles cambian —con fechas antes/después—, cuáles quedan igual y cuáles se reemplazan) antes de confirmar."
+        },
+        {
+          "t": "mejora",
+          "d": "Mapas: el Seguimiento en vivo y el reproductor de trayectoria ahora muestran la misma leyenda que el Recorrido diario (inicio, último punto, sin señal, trayecto)."
+        },
+        {
+          "t": "mejora",
+          "d": "Interfaz: se reemplazaron varios íconos de emoji por íconos SVG en componentes compartidos (botón de exportar a Excel, botones de cerrar/eliminar, etc.) para una apariencia consistente."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

@@ -23,22 +23,37 @@ import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core
       </button>
       @if (abierto()) {
         <ul class="mlg__list">
-          <li>
-            <span class="mlg__pin" style="color:#16a34a">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
-            </span> Inicio del día
-          </li>
-          <li>
-            <span class="mlg__pin" style="color:#f59e0b">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
-            </span> Parada (numerada)
-          </li>
-          <li>
-            <span class="mlg__pin" style="color:#dc2626">
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
-            </span> Último punto / fin
-          </li>
-          <li><span class="mlg__line"></span> Trayecto recorrido</li>
+          @if (mostrarInicio()) {
+            <li>
+              <span class="mlg__pin" style="color:#16a34a">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+              </span> {{ inicioLabel() }}
+            </li>
+          }
+          @if (mostrarParada()) {
+            <li>
+              <span class="mlg__pin" style="color:#f59e0b">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+              </span> Parada (numerada)
+            </li>
+          }
+          @if (mostrarFin()) {
+            <li>
+              <span class="mlg__pin" style="color:#dc2626">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+              </span> {{ finLabel() }}
+            </li>
+          }
+          @if (mostrarSinSenal()) {
+            <li>
+              <span class="mlg__pin" style="color:#9ca3af">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+              </span> Sin señal (posición vieja)
+            </li>
+          }
+          @if (mostrarTrayecto()) {
+            <li><span class="mlg__line"></span> Trayecto recorrido</li>
+          }
           @if (mostrarVivo()) {
             <li><span class="mlg__vivo">en vivo</span> Posición actualizándose</li>
           }
@@ -92,6 +107,18 @@ import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core
   ],
 })
 export class MapLegend {
+  /** Filas configurables — el default reproduce Recorrido diario (retrocompat). */
+  mostrarInicio = input<boolean>(true);
+  /** Etiqueta del pin verde (Recorrido: "Inicio del día"; ruta: "Inicio de ruta"). */
+  inicioLabel = input<string>('Inicio del día');
+  /** Parada numerada (ámbar) — solo mapas que las dibujan (Recorrido diario). */
+  mostrarParada = input<boolean>(true);
+  mostrarFin = input<boolean>(true);
+  /** Etiqueta del pin rojo (Recorrido: "Último punto / fin"; ruta: "Fin"). */
+  finLabel = input<string>('Último punto / fin');
+  /** Pin gris — marcador atenuado por señal vieja (Seguimiento, AV1). */
+  mostrarSinSenal = input<boolean>(false);
+  mostrarTrayecto = input<boolean>(true);
   /** Muestra la fila "en vivo" (Seguimiento / recorrido del día en curso). */
   mostrarVivo = input<boolean>(false);
   /** Empieza colapsada o abierta. */

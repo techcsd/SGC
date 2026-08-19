@@ -139,6 +139,33 @@
                 <span class="proyectos__detail-val">{{ p.responsable!.nombre }}</span>
               </div>
             }
+            <!-- AM10 — datos estructurados de la obra -->
+            @if (p.ingeniero_obra) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Ingeniero de obra</span>
+                <span class="proyectos__detail-val">{{ p.ingeniero_obra }}</span>
+              </div>
+            }
+            @if (p.maestro_encargado) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Maestro encargado</span>
+                <span class="proyectos__detail-val">{{ p.maestro_encargado }}</span>
+              </div>
+            }
+            @if (p.contacto_nombre) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Contacto de obra</span>
+                <span class="proyectos__detail-val">{{ p.contacto_nombre }}</span>
+              </div>
+            }
+            @if (p.contacto_telefono) {
+              <div class="proyectos__detail-item">
+                <span class="proyectos__detail-key">Teléfono de contacto</span>
+                <span class="proyectos__detail-val">
+                  <a class="proyectos__detail-link" [href]="'tel:' + p.contacto_telefono">{{ p.contacto_telefono }}</a>
+                </span>
+              </div>
+            }
             @if (p.descripcion) {
               <div class="proyectos__detail-item proyectos__detail-item--full">
                 <span class="proyectos__detail-key">Descripción</span>
@@ -1141,6 +1168,51 @@
         <datalist id="zonas-list">
           @for (z of zonasDisponibles(); track z) { <option [value]="z"></option> }
         </datalist>
+      </div>
+
+      <!-- AM10 — Datos estructurados de la obra -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="ingeniero_obra">Ingeniero de obra</label>
+        <input
+          id="ingeniero_obra"
+          class="proyectos__input"
+          formControlName="ingeniero_obra"
+          type="text"
+          placeholder="Ing./Arq. responsable de obra"
+        />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="maestro_encargado">Maestro encargado</label>
+        <input
+          id="maestro_encargado"
+          class="proyectos__input"
+          formControlName="maestro_encargado"
+          type="text"
+          placeholder="Maestro constructor"
+        />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="contacto_nombre">Contacto de obra</label>
+        <input
+          id="contacto_nombre"
+          class="proyectos__input"
+          formControlName="contacto_nombre"
+          type="text"
+          placeholder="Nombre del contacto"
+        />
+      </div>
+
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="contacto_telefono">Teléfono de contacto</label>
+        <input
+          id="contacto_telefono"
+          class="proyectos__input"
+          formControlName="contacto_telefono"
+          type="tel"
+          placeholder="Ej. 809-000-0000"
+        />
       </div>
 
       <!-- Geolocalización (mapa) -->

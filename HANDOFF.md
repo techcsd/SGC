@@ -1,6 +1,31 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-08-21_
+_Last updated: 2026-08-19_
+
+## 🟡 2026-08-19 — PROMPT-27: AUDITORÍA integral SGC (AK→AW) + cierre de brechas web — **web 1.84.0, build verde, SIN commit/deploy**
+
+Fuente: `C:\developer\improvements\imp 10082026\PROMPT-27-AUDITORIA-SGC.md`. Dos entregables: (1) el **reporte de auditoría** de solo lectura, (2) los **fixes** de las brechas web code-fixables.
+
+### (1) Auditoría — `C:\developer\improvements\imp 10082026\REPORTE-AUDITORIA-SGC.md`
+Matriz completa AK→AW (PROMPTs 1-25) con evidencia `archivo:línea`. Resultado: **~120 ✔ / 16 ⚠️ / 0 ✘**. **Cero items fantasma.** Los **6 enforcement críticos** (firma despachante DR456, RLS bitácoras Mis/Todas + hijas, idempotencia rutas, emisión DR451-454, transferencia atómica + trigger, reversión de stock al anular) están **ENFORZADOS EN BD**, ninguno UI-only. **Secrets LIMPIO** (nada que rotar; `maps_platform_api_key.env` gitignored/untracked/nunca commiteado). Crons (4/4) y edge (9) presentes; "aplicado a prod" y deploy vivo quedan como 🔎 (sin acceso a BD desde el entorno de auditoría). AT11: 0 violaciones. AW12: ~300 emojis-icono de backlog.
+**2 hallazgos "declarado pero no al pie de la letra":** G1 AQ5 (el "test permanente" era un `DO` que corre una sola vez) y G2 AS21 (.mpp no soportado + "diff" inexistente).
+
+### (2) Fixes aplicados (bump 1.83.1 → **1.84.0**, `release-notes.json` web.1.84.0 con 6 cambios, prebuild+build verde exit 0)
+- **G1/AQ5 — guarda de regresión REAL:** `scripts/verify-regresiones.mjs` en el `prebuild` (rompe build/deploy si `mis_conduces_pendientes_entrega` u otra función sensible vuelve a filtrar `es_prueba`; escanea la definición viva en `sql/`). Sanity-test detectó y corrigió un no-op (el prefijo `_count` engañaba al matcher).
+- **G3/AM7+AM10:** campos estructurados de proyecto (ingeniero/maestro/contacto) visibles+editables en `proyectos/lista`; coords guardadas vía RPC `set_proyecto_ubicacion` (valida DR471/472), no por `update()` directo. Añadidos al `proyecto.model.ts`.
+- **G2/AS21:** diff real en el preview de import de cronograma (Nueva/Modificada con antes→después/Sin cambios/Se elimina) reusando `listar_cronograma`. `.mpp` sigue sin soporte (bloqueo físico OLE2).
+- **AL8:** toggle "Todas"/"Mis confirmaciones" → RPC `sgc.mis_confirmaciones`.
+- **AW11:** leyenda compartida `map-legend` (ahora configurable) en Seguimiento + trayectoria-modal.
+- **AW12:** 20+ íconos emoji→SVG en componentes COMPARTIDOS (export-excel, lightbox, toast, close/remove…) → cubre ~25 páginas.
+- **AV7:** doc de decisión `docs/AV7-map-matching-decision.md` (Google Roads API elegida; falta habilitarla en Cloud).
+
+### Pendiente / próximos pasos
+1. **Revisar + commitear + deploy la 1.84.0** (NO se hizo commit/push/deploy — regla madre). QA manual sugerido: "Mis confirmaciones", diff de cronograma, campos de proyecto, leyendas de mapa.
+2. **⏸ Decisiones tuyas:** ¿ubicación obligatoria al crear proyecto (AM8)? ¿borrar `maps_platform_api_key.env`? ¿habilitar Roads API en Cloud (AV7)? seed apertura 1,000 (AP5); cuál ruta KFC conservar (AV11); Billing API (AW9).
+3. **Próxima ronda (grande, no urgente):** AV4/AV5 chat v3 UI web (receipts/typing/reproductor de voz/packs de stickers — backend listo); AW10 patrón sistémico de tablas; barrido gradual AW12 (~280 emojis-icono restantes en páginas).
+4. **App (PROMPT-28):** corre en paralelo — AX1 voices + su propia auditoría.
+
+---
 
 ## 🟢 2026-08-21 (2) — AW15: fix real de las notas de voz del chat web (1.83.1)
 Commits `7ccde49` + `2c647c8`. PROMPT-25 (1.83.0) AÑADIÓ la voz al chat web pero con un bug: `mensajeria.service.enviarNotaVoz` subía con `blob.type` = `audio/webm;codecs=opus` (Safari: `audio/mp4;codecs=…`) y el allowlist de mime de `sgc-mensajes` valida por igualdad EXACTA → Storage devolvía **415** y el audio nunca subía. **Fix:** subir con el mime BASE (`.split(';')[0]`) — mismo bug/fix que la app (AW13, csd-app 1.89.0). **Ojo versión:** el primer commit bajó package.json a 1.82.2 (downgrade sobre 1.83.0); corregido a **1.83.1** en `2c647c8` + se borró la entrada 1.82.2 del historial en prod. Build verde; deploy Vercel.

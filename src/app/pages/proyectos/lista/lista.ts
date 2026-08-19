@@ -225,6 +225,11 @@ export class Lista implements OnInit {
       ubicacion: new FormControl<string | null>(null),
       // AS23 — zona/sector para filtrar el listado.
       zona: new FormControl<string | null>(null),
+      // AM10 — datos de obra estructurados (antes embutidos en la descripción).
+      ingeniero_obra: new FormControl<string | null>(null),
+      maestro_encargado: new FormControl<string | null>(null),
+      contacto_nombre: new FormControl<string | null>(null),
+      contacto_telefono: new FormControl<string | null>(null),
       descripcion: new FormControl<string | null>(null),
       responsable_id: new FormControl<string | null>(null),
       // Z5(d) — dato de prueba (solo admin lo ve/edita).
@@ -527,6 +532,10 @@ export class Lista implements OnInit {
       presupuesto: p.presupuesto,
       ubicacion: p.ubicacion,
       zona: p.zona ?? null,
+      ingeniero_obra: p.ingeniero_obra ?? null,
+      maestro_encargado: p.maestro_encargado ?? null,
+      contacto_nombre: p.contacto_nombre ?? null,
+      contacto_telefono: p.contacto_telefono ?? null,
       descripcion: p.descripcion,
       responsable_id: p.responsable_id,
       es_prueba: p.es_prueba ?? false,
@@ -614,15 +623,23 @@ export class Lista implements OnInit {
 
     this.saving.set(true);
     this.saveError.set('');
-    const payload = {
-      ...this.form.value,
-      latitud: this.formLat(),
-      longitud: this.formLng(),
-      direccion_geo: this.formDireccionGeo(),
-    } as Partial<Proyecto>;
+    // AM7 — la ubicación (lat/lng) NO viaja en el payload del update/insert: se
+    // persiste aparte con la RPC canónica set_proyecto_ubicacion, que valida el
+    // rango en el servidor (DR471/DR472). Un update() directo lo saltaría.
+    const payload = { ...this.form.value } as Partial<Proyecto>;
+    const lat = this.formLat();
+    const lng = this.formLng();
+    const dir = this.formDireccionGeo();
+    const tieneCoords = lat != null && lng != null;
 
     try {
       if (id) {
+        // Fija/valida la ubicación primero; si está fuera de rango, aborta antes
+        // de tocar los demás campos.
+        if (tieneCoords) {
+          await this.proyectosService.setUbicacion(id, lat!, lng!, dir, 'pin');
+        }
+        // update() vuelve a SELECT tras la RPC, así que trae ya la ubicación nueva.
         const updated = await this.proyectosService.update(id, payload);
         this.proyectos.update((list) => list.map((p) => (p.id === id ? { ...p, ...updated } : p)));
         // Reflejar la edición en el detalle abierto (Z13 — página de detalle).
@@ -638,6 +655,20 @@ export class Lista implements OnInit {
         this.cerrarEdicion();
       } else {
         const created = await this.proyectosService.create(payload);
+        // AM7 — ya con id, fija la ubicación vía RPC (misma validación que la app).
+        if (tieneCoords) {
+          try {
+            await this.proyectosService.setUbicacion(created.id, lat!, lng!, dir, 'pin');
+            created.latitud = lat;
+            created.longitud = lng;
+            created.direccion_geo = dir;
+          } catch (e: unknown) {
+            this.toast.error(
+              'La obra se creó, pero no se pudo guardar la ubicación',
+              e instanceof Error ? e.message : undefined,
+            );
+          }
+        }
         this.proyectos.update((list) => [created, ...list]);
         this.drawerOpen.set(false);
         this.editingId.set(null);

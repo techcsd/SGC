@@ -8,14 +8,20 @@
           <span class="tray-panel__meta">{{ puntos() }} puntos@if (km() != null) { · {{ km() | number:'1.0-1' }} km }</span>
         }
       </div>
-      <button type="button" class="tray-x" (click)="cerrar()" aria-label="Cerrar">✕</button>
+      <button type="button" class="tray-x" (click)="cerrar()" aria-label="Cerrar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
 
     <div class="tray-panel__body">
       @if (error()) {
         <p class="tray-hint tray-hint--err">{{ error() }}</p>
       }
-      <div class="tray-map" #map></div>
+      <div class="tray-map-box">
+        <div class="tray-map" #map></div>
+        @if (!loading() && !error()) {
+          <!-- AW11 — leyenda compartida (inicio/fin/trayecto); sin paradas ni "en vivo". -->
+          <app-map-legend inicioLabel="Inicio" finLabel="Fin" [mostrarParada]="false" />
+        }
+      </div>
       @if (loading()) { <p class="tray-hint">Cargando trayectoria…</p> }
     </div>
   </div>

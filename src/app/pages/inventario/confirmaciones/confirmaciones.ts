@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SalidasService, ConfirmacionHistorial } from '../../../../shared/services/salidas.service';
+import { UserService } from '../../../core/services/user.service';
 import { conduceNumero } from '../../../../shared/models/salida.model';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -16,9 +17,13 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 })
 export class Confirmaciones implements OnInit {
   private salidasService = inject(SalidasService);
+  private userService = inject(UserService);
 
   readonly formatFechaHora = formatFechaHumana;
   readonly numero = conduceNumero;
+
+  // AL8 — pestaña activa: "todas" (historial global AK1) vs "mias" (solo lo que YO confirmé).
+  tab = signal<'todas' | 'mias'>('todas');
 
   filas = signal<ConfirmacionHistorial[]>([]);
   loading = signal(true);
@@ -60,18 +65,34 @@ export class Confirmaciones implements OnInit {
     await this.recargar();
   }
 
+  setTab(tab: 'todas' | 'mias') {
+    if (this.tab() === tab) return;
+    this.tab.set(tab);
+    this.recargar();
+  }
+
   async recargar() {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.filas.set(
-        await this.salidasService.getConfirmacionesHistorial({
+      if (this.tab() === 'mias') {
+        const miNombre = this.userService.profile()?.nombre ?? 'Yo';
+        const filas = await this.salidasService.getMisConfirmaciones({
           desde: this.desde() || null,
           hasta: this.hasta() || null,
-          proyectoId: null, // se filtra en cliente con el resultado ya visible
-          estado: null,
-        }),
-      );
+        });
+        // El RPC no trae "Confirmó" (siempre soy yo): lo rellena la sesión.
+        this.filas.set(filas.map((f) => ({ ...f, recibido_por_nombre: miNombre })));
+      } else {
+        this.filas.set(
+          await this.salidasService.getConfirmacionesHistorial({
+            desde: this.desde() || null,
+            hasta: this.hasta() || null,
+            proyectoId: null, // se filtra en cliente con el resultado ya visible
+            estado: null,
+          }),
+        );
+      }
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el historial de confirmaciones.');
     } finally {

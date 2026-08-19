@@ -1,7 +1,10 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
+import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { CronogramaTarea } from '../../../../shared/models/cronograma.model';
+import { FaseProyecto } from '../../../../shared/models/proyecto.model';
 
 /** AS21 — actividad parseada de una hoja del Excel. */
 interface TareaImport {
@@ -25,13 +28,52 @@ interface HojaImport {
   warnings: string[];
 }
 
+/** G2/AS21 — estado de una fila en el diff vs lo ya guardado en el cronograma. */
+type DiffEstado = 'nueva' | 'modificada' | 'sin_cambios' | 'eliminada';
+
+/** G2/AS21 — un campo que cambió (antes → después) para una tarea modificada. */
+interface CampoCambio {
+  campo: string;
+  antes: string;
+  despues: string;
+}
+
+/** G2/AS21 — una fila del preview con su clasificación vs lo existente. */
+interface FilaDiff {
+  estado: DiffEstado;
+  orden: number;
+  nombre: string;
+  grupo: string | null;
+  responsable: string | null;
+  volumetria: string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  dias: number | null;
+  avance_pct: number | null;
+  cambios: CampoCambio[];
+}
+
+/** G2/AS21 — diff de una torre (fase) entre el Excel y lo ya guardado. */
+interface HojaDiff {
+  torre: string;
+  faseExiste: boolean;
+  nuevas: number;
+  modificadas: number;
+  sinCambios: number;
+  eliminadas: number;
+  warnings: string[];
+  filas: FilaDiff[];
+}
+
 /**
  * AS21 — Importador de cronograma por Excel. Detecta la fila de headers de forma
  * tolerante, mapea columnas (#, ACTIVIDADES, RESPONSABLE, VOLUMETRÍA, FECHA
  * INICIO/FIN, DÍAS, STATUS, AVANCE REAL %, RENDIMIENTO) y arma un preview por
- * torre (hoja) con diff vs lo existente. Al confirmar, alimenta el cronograma
- * existente (una fase por torre) vía cronograma_importar. Para .mpp guía a
- * exportar a Excel desde MS Project.
+ * torre (hoja) con diff REAL vs lo ya guardado (nuevas / modificadas / sin
+ * cambios / se eliminan), para que el usuario vea qué va a cambiar antes de
+ * confirmar el reemplazo. Al confirmar, alimenta el cronograma existente (una
+ * fase por torre) vía cronograma_importar (delete-then-insert por fase). Para
+ * .mpp guía a exportar a Excel desde MS Project.
  */
 @Component({
   selector: 'app-cronograma-import',
@@ -44,6 +86,7 @@ export class CronogramaImport implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private service = inject(CronogramaService);
+  private proyectosService = inject(ProyectosService);
   private toast = inject(ToastService);
 
   proyectoId = signal('');
@@ -54,10 +97,160 @@ export class CronogramaImport implements OnInit {
   importing = signal(false);
   esMpp = signal(false);
 
+  // G2/AS21 — snapshot de lo ya guardado, para el diff.
+  private fasesExistentes = signal<FaseProyecto[]>([]);
+  private tareasExistentes = signal<CronogramaTarea[]>([]);
+  cargandoExistente = signal(false);
+
   totalTareas = computed(() => this.hojas().reduce((s, h) => s + h.tareas.length, 0));
 
+  /** G2/AS21 — diff por torre entre el Excel parseado y lo ya guardado. */
+  diffs = computed<HojaDiff[]>(() => {
+    const fases = this.fasesExistentes();
+    const tareas = this.tareasExistentes();
+    return this.hojas().map((h) => this.diffHoja(h, fases, tareas));
+  });
+
+  // Totales globales del diff (para el resumen).
+  totalNuevas = computed(() => this.diffs().reduce((s, d) => s + d.nuevas, 0));
+  totalModificadas = computed(() => this.diffs().reduce((s, d) => s + d.modificadas, 0));
+  totalSinCambios = computed(() => this.diffs().reduce((s, d) => s + d.sinCambios, 0));
+  totalEliminadas = computed(() => this.diffs().reduce((s, d) => s + d.eliminadas, 0));
+
   ngOnInit() {
-    this.proyectoId.set(this.route.snapshot.paramMap.get('id') ?? '');
+    const id = this.route.snapshot.paramMap.get('id') ?? '';
+    this.proyectoId.set(id);
+    if (id) void this.cargarExistente(id);
+  }
+
+  /** G2/AS21 — carga fases + tareas ya guardadas para comparar contra el Excel. */
+  private async cargarExistente(id: string) {
+    this.cargandoExistente.set(true);
+    try {
+      const [proy, data] = await Promise.all([
+        this.proyectosService.getById(id),
+        this.service.listar(id),
+      ]);
+      this.fasesExistentes.set(proy?.fases ?? []);
+      this.tareasExistentes.set(data.tareas ?? []);
+    } catch {
+      // El diff es informativo: si no se pudo cargar, el preview cae a "todo nuevo".
+    } finally {
+      this.cargandoExistente.set(false);
+    }
+  }
+
+  /** Clave estable de una actividad dentro de su torre: nombre + grupo/sección. */
+  private claveTarea(nombre: string, grupo: string | null): string {
+    return `${this.norm(nombre)}||${this.norm(grupo ?? '')}`;
+  }
+
+  private fechaIso(v: string | null): string | null {
+    return v ? v.slice(0, 10) : null;
+  }
+
+  /** Duración efectiva que guardará el RPC (greatest(1, dias ?? 1)). */
+  private diasEfectivos(dias: number | null): number {
+    return Math.max(1, dias ?? 1);
+  }
+
+  private diffHoja(h: HojaImport, fases: FaseProyecto[], tareas: CronogramaTarea[]): HojaDiff {
+    const faseId = fases.find((f) => this.norm(f.nombre) === this.norm(h.torre))?.id ?? null;
+    const existentes = faseId ? tareas.filter((t) => t.fase_id === faseId) : [];
+    const faseExiste = faseId != null;
+
+    // Índice de lo existente por clave (para emparejar).
+    const idxExistente = new Map<string, CronogramaTarea>();
+    for (const t of existentes) idxExistente.set(this.claveTarea(t.nombre, t.grupo ?? null), t);
+
+    const usadas = new Set<string>();
+    const filas: FilaDiff[] = [];
+    let nuevas = 0;
+    let modificadas = 0;
+    let sinCambios = 0;
+
+    for (const t of h.tareas) {
+      const clave = this.claveTarea(t.nombre, t.grupo);
+      const prev = idxExistente.get(clave);
+      const base: FilaDiff = {
+        estado: 'nueva',
+        orden: t.orden,
+        nombre: t.nombre,
+        grupo: t.grupo,
+        responsable: t.responsable,
+        volumetria: t.volumetria,
+        fecha_inicio: t.fecha_inicio,
+        fecha_fin: t.fecha_fin,
+        dias: t.dias,
+        avance_pct: t.avance_pct,
+        cambios: [],
+      };
+      if (!prev) {
+        nuevas++;
+        filas.push(base);
+        continue;
+      }
+      usadas.add(clave);
+      const cambios = this.compararTarea(prev, t);
+      if (cambios.length === 0) {
+        sinCambios++;
+        filas.push({ ...base, estado: 'sin_cambios' });
+      } else {
+        modificadas++;
+        filas.push({ ...base, estado: 'modificada', cambios });
+      }
+    }
+
+    // Existentes no emparejadas → se eliminan (el confirmar reemplaza la fase).
+    const eliminadasFilas = existentes
+      .filter((t) => !usadas.has(this.claveTarea(t.nombre, t.grupo ?? null)))
+      .map<FilaDiff>((t) => ({
+        estado: 'eliminada',
+        orden: t.orden,
+        nombre: t.nombre,
+        grupo: t.grupo ?? null,
+        responsable: t.responsable ?? null,
+        volumetria: t.volumetria ?? null,
+        fecha_inicio: this.fechaIso(t.fecha_inicio_plan),
+        fecha_fin: this.fechaIso(t.fecha_fin_plan),
+        dias: t.duracion_dias_plan,
+        avance_pct: t.avance_pct ?? null,
+        cambios: [],
+      }));
+    filas.push(...eliminadasFilas);
+
+    return {
+      torre: h.torre,
+      faseExiste,
+      nuevas,
+      modificadas,
+      sinCambios,
+      eliminadas: eliminadasFilas.length,
+      warnings: h.warnings,
+      filas,
+    };
+  }
+
+  /** Compara una tarea existente con la parseada y devuelve los campos cambiados. */
+  private compararTarea(prev: CronogramaTarea, t: TareaImport): CampoCambio[] {
+    const cambios: CampoCambio[] = [];
+    const push = (campo: string, antes: unknown, despues: unknown) => {
+      const a = antes == null || antes === '' ? '—' : String(antes);
+      const d = despues == null || despues === '' ? '—' : String(despues);
+      if (a !== d) cambios.push({ campo, antes: a, despues: d });
+    };
+    push('Inicio', this.fechaIso(prev.fecha_inicio_plan), t.fecha_inicio);
+    push('Fin', this.fechaIso(prev.fecha_fin_plan), t.fecha_fin);
+    push('Días', prev.duracion_dias_plan, this.diasEfectivos(t.dias));
+    push('Responsable', prev.responsable ?? null, t.responsable);
+    push('Volumetría', prev.volumetria ?? null, t.volumetria);
+    push('Rendimiento', prev.rendimiento ?? null, t.rendimiento);
+    push(
+      'Avance',
+      prev.avance_pct != null ? `${prev.avance_pct}%` : null,
+      t.avance_pct != null ? `${Math.min(100, Math.max(0, t.avance_pct))}%` : null,
+    );
+    return cambios;
   }
 
   private norm(s: unknown): string {

@@ -248,6 +248,32 @@ export class ProyectosService {
     return data as unknown as Proyecto;
   }
 
+  /**
+   * AM7 — fija/valida la ubicación estructurada de la obra vía la RPC canónica
+   * `set_proyecto_ubicacion`. Valida en el servidor coords faltantes (DR471) y
+   * fuera de rango (DR472), y redondea a 6 decimales. Web y app usan esta misma
+   * RPC — NUNCA un update() directo de latitud/longitud, que saltaría la
+   * validación de rango del servidor.
+   */
+  async setUbicacion(
+    proyectoId: string,
+    lat: number,
+    lng: number,
+    direccion?: string | null,
+    metodo?: string | null,
+  ): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .rpc('set_proyecto_ubicacion', {
+        p_proyecto_id: proyectoId,
+        p_lat: lat,
+        p_lng: lng,
+        p_direccion: direccion ?? null,
+        p_metodo: metodo ?? null,
+      });
+    if (error) throw new Error(error.message);
+  }
+
   async updateEstado(id: string, estado: ProyectoEstado): Promise<void> {
     const { error } = await this.supabase.client
       .schema('sgc')

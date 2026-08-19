@@ -6,6 +6,7 @@ import { DecimalPipe } from '@angular/common';
 import { SeguimientoService } from '../../services/seguimiento.service';
 import { GoogleMapsLoader } from '../../context/google-maps-loader.service';
 import { pinIcon } from '../../context/google-maps-marker.util';
+import { MapLegend } from '../../ui/map-legend/map-legend';
 
 /**
  * AU5 — Modal reutilizable "Ver trayectoria": replay del recorrido consolidado de
@@ -15,7 +16,7 @@ import { pinIcon } from '../../context/google-maps-marker.util';
  */
 @Component({
   selector: 'app-trayectoria-modal',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, MapLegend],
   templateUrl: './trayectoria-modal.html',
   styleUrl: './trayectoria-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

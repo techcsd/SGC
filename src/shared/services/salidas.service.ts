@@ -27,6 +27,25 @@ export interface ConfirmacionHistorial {
   tiene_firma: boolean;
 }
 
+/** AL8 — fila cruda del RPC `mis_confirmaciones` (subconjunto de AK1). */
+interface MiConfirmacionRow {
+  id: string;
+  fecha: string;
+  created_at: string;
+  proyecto_id: string | null;
+  destino: string | null;
+  bodega: string | null;
+  estado: string;
+  fase: string;
+  entregado_por: string | null;
+  entregado_por_nombre: string | null;
+  entregado_en: string | null;
+  recibido_en: string | null;
+  tiene_foto: boolean;
+  tiene_firma: boolean;
+  incompleta: boolean;
+}
+
 // usuarios is joined twice (creado_por, recibido_por) — must be disambiguated
 // with !fkey_name or PostgREST rejects the embed as ambiguous.
 const SELECT_QUERY =
@@ -101,6 +120,41 @@ export class SalidasService {
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as ConfirmacionHistorial[];
+  }
+
+  /** AL8 — "Mis confirmaciones": solo lo que el usuario actual confirmó (RPC
+   *  `mis_confirmaciones`, subconjunto de AK1). Se mapea a `ConfirmacionHistorial`
+   *  para reutilizar el mismo layout de tabla. El RPC no devuelve `recibido_por_nombre`
+   *  (siempre soy yo); la página lo rellena con el nombre del usuario en sesión. */
+  async getMisConfirmaciones(filtros?: {
+    desde?: string | null;
+    hasta?: string | null;
+  }): Promise<ConfirmacionHistorial[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_confirmaciones', {
+      p_desde: filtros?.desde ?? null,
+      p_hasta: filtros?.hasta ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as MiConfirmacionRow[]).map((r) => ({
+      id: r.id,
+      fecha: r.fecha,
+      created_at: r.created_at,
+      proyecto_id: r.proyecto_id,
+      proyecto: r.destino,
+      destino_almacen_id: null,
+      destino: r.destino,
+      bodega: r.bodega,
+      estado: r.estado,
+      fase: r.fase,
+      entregado_por: r.entregado_por,
+      entregado_por_nombre: r.entregado_por_nombre,
+      entregado_en: r.entregado_en,
+      recibido_por: null,
+      recibido_por_nombre: null,
+      recibido_en: r.recibido_en,
+      tiene_foto: r.tiene_foto,
+      tiene_firma: r.tiene_firma,
+    }));
   }
 
   /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la salida.

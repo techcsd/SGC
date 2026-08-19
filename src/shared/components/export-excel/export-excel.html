@@ -3,11 +3,12 @@
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarRapido()"
       [disabled]="exportando() || rows().length === 0"
       [title]="'Descargar la vista actual (' + rows().length + ') a Excel'">
-      ⬇️ Excel
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/></svg>
+      Excel
     </button>
     <button type="button" class="sgc-btn sgc-btn--ghost export-excel__more" (click)="abrir()"
       [disabled]="exportando()" title="Opciones de exportación (seccionar / columnas)"
-      aria-label="Opciones de exportación">▾</button>
+      aria-label="Opciones de exportación"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
 
   @if (dialogOpen()) {

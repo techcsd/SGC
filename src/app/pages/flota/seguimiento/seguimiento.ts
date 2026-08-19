@@ -10,6 +10,7 @@ import { GoogleMapsLoader } from '../../../../shared/context/google-maps-loader.
 import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { MapLegend } from '../../../../shared/ui/map-legend/map-legend';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
 const ESTADO_META: Record<ChoferEstado, { label: string; color: string }> = {
@@ -38,7 +39,7 @@ function hoyRD(): string {
  */
 @Component({
   selector: 'app-seguimiento',
-  imports: [Skeleton],
+  imports: [Skeleton, MapLegend],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

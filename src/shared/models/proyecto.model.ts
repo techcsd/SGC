@@ -19,6 +19,17 @@ export interface Proyecto {
   direccion_geo: string | null;
   /** AS23 — zona/sector para filtrar el listado (p.ej. Punta Cana, Cap Cana). */
   zona: string | null;
+  // AM10 — datos de obra promovidos de la descripción a campos estructurados.
+  /** AM10 — ingeniero(s)/arq. de obra (texto libre; el vínculo formal va en responsables). */
+  ingeniero_obra: string | null;
+  /** AM10 — maestro(s) encargado(s) de la obra. */
+  maestro_encargado: string | null;
+  /** AM10 — nombre del contacto de obra (opcional). */
+  contacto_nombre: string | null;
+  /** AM10 — teléfono(s) de contacto de obra (clicable tel: en la UI). */
+  contacto_telefono: string | null;
+  /** AM7 — cómo se fijó la ubicación: maps_link | coords | pin | backfill. */
+  ubicacion_metodo: string | null;
   descripcion: string | null;
   responsable_id: string | null;
   responsable?: { nombre: string };

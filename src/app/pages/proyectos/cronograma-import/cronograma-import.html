@@ -24,27 +24,58 @@
 
   @if (hojas().length > 0) {
     <div class="cimport__resumen sgc-card">
-      <strong>{{ hojas().length }}</strong> torre(s)/etapa(s) · <strong>{{ totalTareas() }}</strong> actividad(es) detectada(s).
-      Al confirmar, cada torre <strong>reemplaza</strong> su cronograma existente (si lo hubiera).
+      <p class="cimport__resumen-line">
+        <strong>{{ hojas().length }}</strong> torre(s)/etapa(s) · <strong>{{ totalTareas() }}</strong> actividad(es) detectada(s).
+        Al confirmar, cada torre <strong>reemplaza</strong> su cronograma existente (delete-then-insert).
+      </p>
+      @if (cargandoExistente()) {
+        <p class="cimport__resumen-line text-muted">Comparando con lo ya guardado…</p>
+      } @else {
+        <div class="cimport__chips" role="group" aria-label="Resumen de cambios">
+          <span class="cimport__chip cimport__chip--nueva">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            {{ totalNuevas() }} nueva(s)
+          </span>
+          <span class="cimport__chip cimport__chip--modificada">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            {{ totalModificadas() }} modificada(s)
+          </span>
+          <span class="cimport__chip cimport__chip--sin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            {{ totalSinCambios() }} sin cambios
+          </span>
+          <span class="cimport__chip cimport__chip--elim">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+            {{ totalEliminadas() }} se elimina(n)
+          </span>
+        </div>
+      }
     </div>
 
-    @for (h of hojas(); track h.torre) {
+    @for (d of diffs(); track d.torre) {
       <div class="sgc-card cimport__hoja">
         <div class="cimport__hoja-head">
-          <h2 class="cimport__hoja-title">{{ h.torre }}</h2>
-          <span class="cimport__hoja-count">{{ h.tareas.length }} actividad(es)</span>
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarHoja(h.torre)">Quitar</button>
+          <h2 class="cimport__hoja-title">{{ d.torre }}</h2>
+          <span class="cimport__hoja-count">
+            {{ d.nuevas }} nueva(s) · {{ d.modificadas }} modificada(s) · {{ d.sinCambios }} sin cambios · {{ d.eliminadas }} se elimina(n)
+            @if (!d.faseExiste) { <em>· fase nueva</em> }
+          </span>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarHoja(d.torre)">Quitar</button>
         </div>
 
-        @for (w of h.warnings; track w) {
-          <p class="cimport__warn">⚠️ {{ w }}</p>
+        @for (w of d.warnings; track w) {
+          <p class="cimport__warn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+            {{ w }}
+          </p>
         }
 
-        @if (h.tareas.length > 0) {
+        @if (d.filas.length > 0) {
           <div class="table-scroll">
-            <table class="data-table" aria-label="Actividades detectadas">
+            <table class="data-table" aria-label="Diff de actividades">
               <thead>
                 <tr>
+                  <th>Estado</th>
                   <th>#</th>
                   <th>Actividad</th>
                   <th>Grupo</th>
@@ -57,17 +88,50 @@
                 </tr>
               </thead>
               <tbody>
-                @for (t of h.tareas; track t.orden) {
-                  <tr>
-                    <td>{{ t.orden }}</td>
-                    <td>{{ t.nombre }}</td>
-                    <td class="text-muted">{{ t.grupo ?? '—' }}</td>
-                    <td class="text-muted">{{ t.responsable ?? '—' }}</td>
-                    <td class="text-muted">{{ t.volumetria ?? '—' }}</td>
-                    <td>{{ t.fecha_inicio ?? '—' }}</td>
-                    <td>{{ t.fecha_fin ?? '—' }}</td>
-                    <td class="text-right">{{ t.dias ?? '—' }}</td>
-                    <td class="text-right">{{ t.avance_pct != null ? (t.avance_pct + '%') : '—' }}</td>
+                @for (f of d.filas; track $index) {
+                  <tr [class.cimport__row--elim]="f.estado === 'eliminada'">
+                    <td>
+                      <span
+                        class="cimport__chip"
+                        [class.cimport__chip--nueva]="f.estado === 'nueva'"
+                        [class.cimport__chip--modificada]="f.estado === 'modificada'"
+                        [class.cimport__chip--sin]="f.estado === 'sin_cambios'"
+                        [class.cimport__chip--elim]="f.estado === 'eliminada'"
+                      >
+                        @switch (f.estado) {
+                          @case ('nueva') {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Nueva
+                          }
+                          @case ('modificada') {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Modificada
+                          }
+                          @case ('sin_cambios') {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Sin cambios
+                          }
+                          @case ('eliminada') {
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg> Se elimina
+                          }
+                        }
+                      </span>
+                    </td>
+                    <td>{{ f.orden }}</td>
+                    <td>
+                      {{ f.nombre }}
+                      @if (f.estado === 'modificada' && f.cambios.length > 0) {
+                        <span class="cimport__cambios">
+                          @for (c of f.cambios; track c.campo) {
+                            <span class="cimport__cambio">{{ c.campo }}: {{ c.antes }} → {{ c.despues }}</span>
+                          }
+                        </span>
+                      }
+                    </td>
+                    <td class="text-muted">{{ f.grupo ?? '—' }}</td>
+                    <td class="text-muted">{{ f.responsable ?? '—' }}</td>
+                    <td class="text-muted">{{ f.volumetria ?? '—' }}</td>
+                    <td>{{ f.fecha_inicio ?? '—' }}</td>
+                    <td>{{ f.fecha_fin ?? '—' }}</td>
+                    <td class="text-right">{{ f.dias ?? '—' }}</td>
+                    <td class="text-right">{{ f.avance_pct != null ? (f.avance_pct + '%') : '—' }}</td>
                   </tr>
                 }
               </tbody>

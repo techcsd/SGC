@@ -16,13 +16,46 @@
   margin-bottom: 0.15rem;
 }
 
+// AL8 — segmented control: todas vs mis confirmaciones
+.confirmaciones__scope {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--sgc-surface-alt, #f0f0f0);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.confirmaciones__scope-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--sgc-text-secondary);
+  transition: var(--sgc-transition-fast);
+
+  &--active {
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+}
+
 .confirmaciones__ev {
+  display: inline-flex;
+  vertical-align: middle;
   opacity: 0.25;
-  filter: grayscale(1);
-  margin-right: 0.25rem;
+  margin-right: 0.35rem;
 
   &--on {
     opacity: 1;
-    filter: none;
+    color: var(--sgc-primary, #ff5f00);
   }
 }
