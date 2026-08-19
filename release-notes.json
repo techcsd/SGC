@@ -2288,6 +2288,15 @@
           "d": "Interfaz: se reemplazaron varios íconos de emoji por íconos SVG en componentes compartidos (botón de exportar a Excel, botones de cerrar/eliminar, etc.) para una apariencia consistente."
         }
       ]
+    },
+    "1.84.1": {
+      "titulo": "Enlaces clickeables en el chat",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Mensajes: los enlaces (links) en el chat ahora son clickeables y abren en el navegador (en paridad con la app)."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

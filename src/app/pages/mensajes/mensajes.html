@@ -139,7 +139,8 @@
               }
               <div class="msg__bubble">
                 @if (m.contenido) {
-                  <span class="msg__text">{{ m.contenido }}</span>
+                  <!-- AX3 — texto con links http/https clickeables (linkify seguro) -->
+                  <span class="msg__text">@for (s of segmentos(m.contenido); track $index) {@if (s.link) {<a class="msg__link" [href]="s.v" target="_blank" rel="noopener noreferrer" (click)="$event.preventDefault(); abrirLink(s.v)">{{ s.v }}</a>} @else {{{ s.v }}}}</span>
                 }
                 @if (m.archivo_path) {
                   @if (esImagen(m)) {

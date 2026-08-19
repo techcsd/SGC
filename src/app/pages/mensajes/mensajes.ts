@@ -733,6 +733,33 @@ export class Mensajes implements OnInit, OnDestroy {
     return m.autor_id === this.miId;
   }
 
+  // ── AX3 — links clickeables en los mensajes de texto (paridad con la app) ────
+  /** Parte el texto en tramos: texto plano + URLs http/https clickeables. Solo
+   *  reconoce esquemas seguros (http/https) → no ejecuta ni abre nada raro. */
+  segmentos(texto: string | null): Array<{ link: boolean; v: string }> {
+    if (!texto) return [];
+    const re = /(https?:\/\/[^\s<>"']+)/gi;
+    const out: Array<{ link: boolean; v: string }> = [];
+    let last = 0;
+    let mm: RegExpExecArray | null;
+    while ((mm = re.exec(texto)) !== null) {
+      if (mm.index > last) out.push({ link: false, v: texto.slice(last, mm.index) });
+      let url = mm[0];
+      const trailing = url.match(/[)\].,;:!?»"']+$/);
+      if (trailing) url = url.slice(0, url.length - trailing[0].length);
+      out.push({ link: true, v: url });
+      last = mm.index + url.length;
+    }
+    if (last < texto.length) out.push({ link: false, v: texto.slice(last) });
+    return out;
+  }
+
+  /** Abre un link en una pestaña nueva con noopener (solo http/https válidos). */
+  abrirLink(url: string): void {
+    if (!/^https?:\/\//i.test(url)) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
   iniciales(nombre: string): string {
     return nombre.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
   }
