@@ -4,7 +4,7 @@ import { SignedUrlCache } from './signed-url-cache.service';
 import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
 
 const SELECT_QUERY =
-  '*, proyecto:proyectos(nombre, codigo), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*), equipos:bitacora_equipos_alquilados(*), cronograma_tareas:cronograma_tarea_bitacoras(tarea:cronograma_tareas(id, nombre))';
+  '*, proyecto:proyectos(nombre, codigo), autor:usuarios!bitacoras_usuario_id_fkey(id, nombre), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*), equipos:bitacora_equipos_alquilados(*), cronograma_tareas:cronograma_tarea_bitacoras(tarea:cronograma_tareas(id, nombre))';
 
 // W1: tope técnico ALTO (el modelo soporta N fotos; una fila por archivo). Espejo
 // del parámetro sgc.parametros.bitacora_max_fotos = 40.

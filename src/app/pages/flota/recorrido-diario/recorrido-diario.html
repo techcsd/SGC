@@ -77,7 +77,11 @@
         @if (mapError()) {
           <div class="rec-mapa rec-mapa--error">{{ mapError() }}</div>
         } @else {
-          <div class="rec-mapa" #map></div>
+          <!-- AW11 — mapa con leyenda colapsable (pin verde=inicio, ámbar=parada, rojo=fin, línea=trayecto) -->
+          <div class="rec-mapa-box">
+            <div class="rec-mapa" #map></div>
+            <app-map-legend [mostrarVivo]="recorrido()?.fuente === 'vivo'" />
+          </div>
         }
 
         @if (cargandoRec()) { <p class="rec-hint">Cargando recorrido…</p> }

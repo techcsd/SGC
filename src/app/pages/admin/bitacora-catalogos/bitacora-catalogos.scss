@@ -70,3 +70,38 @@
   padding: 5px 12px;
   font-size: 13px;
 }
+
+// AW1 — checkbox "permite sin cantidad exacta" en actividades
+.bc-item__aprox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--main-ultra-light, #929090);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bc-item__aprox input { accent-color: var(--Hub, #ffb300); }
+
+// AW8 — búsqueda, descripción y contador por catálogo
+.bc-search {
+  margin: 0 0 16px;
+  input { width: 100%; max-width: 420px; box-sizing: border-box; }
+}
+.bc-col__count {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sgc-text-muted, #929090);
+  background: #222;
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: middle;
+}
+.bc-col__desc {
+  margin: 2px 0 10px;
+  font-size: 0.76rem;
+  color: var(--sgc-text-muted, #929090);
+  line-height: 1.4;
+}

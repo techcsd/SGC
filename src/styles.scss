@@ -508,6 +508,36 @@ tr.row--link {
   tr:hover td {
     background: var(--sgc-surface-hover);
   }
+
+  // AW10 — patrón estándar para la columna de acciones (Editar/Eliminar…). Evita
+  // que los botones se desborden/desalineen: fila derecha, sin wrap, gap uniforme.
+  // Uso: <th class="data-table__actions-h"></th> + <td class="data-table__actions">…botones…</td>
+  &__actions {
+    white-space: nowrap;
+    text-align: right;
+    width: 1%; // se encoge al contenido, deja el resto a las demás columnas
+
+    > div,
+    .actions-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: nowrap;
+    }
+  }
+  &__actions-h { text-align: right; }
+}
+
+// AW10 — celda de acciones que no vive dentro de .data-table (mismo patrón).
+.table-actions {
+  white-space: nowrap;
+  text-align: right;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .text-right { text-align: right !important; }

@@ -1,7 +1,11 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Empresa</h1>
-    <p class="page-subtitle">Datos generales de la constructora (se usan en encabezados y documentos).</p>
+    <p class="page-subtitle">
+      Datos de identidad de la constructora. Se usan como <strong>encabezado en los PDF</strong>
+      (documentos, informes de obra), en los <strong>conduces</strong> y en los <strong>carnets</strong>
+      del personal de obra. Manténlos completos y correctos: lo que pongas aquí sale impreso.
+    </p>
   </div>
 </div>
 
@@ -10,63 +14,98 @@
 @if (loading()) {
   <div class="sgc-card"><app-skeleton variant="list" [rows]="4" /></div>
 } @else {
-  <div class="sgc-card empresa-card">
-    <form [formGroup]="form" (ngSubmit)="guardar()" class="empresa-form">
-      <div class="empresa-form__row">
-        <div class="sgc-field">
-          <label for="razon">Razón social</label>
-          <input id="razon" type="text" formControlName="razon_social" placeholder="Ej: Scheker &amp; Domínguez SRL" />
-        </div>
-        <div class="sgc-field">
-          <label for="comercial">Nombre comercial</label>
-          <input id="comercial" type="text" formControlName="nombre_comercial" placeholder="Ej: Constructora SD" />
-        </div>
-      </div>
+  <div class="empresa-layout">
+    <div class="sgc-card empresa-card">
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="empresa-form">
+        <!-- Identidad -->
+        <section class="empresa-sec">
+          <h2 class="empresa-sec__h">Identidad</h2>
+          <p class="empresa-sec__desc">Nombre legal y comercial + RNC. Encabeza los PDF y conduces.</p>
+          <div class="empresa-form__row">
+            <div class="sgc-field">
+              <label for="razon">Razón social</label>
+              <input id="razon" type="text" formControlName="razon_social" placeholder="Ej: Scheker &amp; Domínguez SRL" />
+              <span class="field-hint">Nombre legal completo (sale en documentos oficiales).</span>
+            </div>
+            <div class="sgc-field">
+              <label for="comercial">Nombre comercial</label>
+              <input id="comercial" type="text" formControlName="nombre_comercial" placeholder="Ej: Constructora SD" />
+              <span class="field-hint">Nombre de marca (encabezados y carnets).</span>
+            </div>
+          </div>
+          <div class="sgc-field">
+            <label for="rnc">RNC</label>
+            <input id="rnc" type="text" formControlName="rnc" placeholder="Ej: 1-30-12345-6" [class.invalid]="f.rnc.invalid && f.rnc.touched" />
+            @if (f.rnc.invalid && f.rnc.touched) {
+              <span class="field-error">RNC inválido — usa 9 u 11 dígitos (con o sin guiones).</span>
+            } @else {
+              <span class="field-hint">Registro Nacional del Contribuyente (aparece en facturas/conduces).</span>
+            }
+          </div>
+        </section>
 
-      <div class="empresa-form__row">
-        <div class="sgc-field">
-          <label for="rnc">RNC</label>
-          <input id="rnc" type="text" formControlName="rnc" placeholder="RNC de la empresa" />
-        </div>
-        <div class="sgc-field">
-          <label for="tel">Teléfono</label>
-          <input id="tel" type="tel" formControlName="telefono" placeholder="(809) 000-0000" />
-        </div>
-      </div>
+        <!-- Contacto -->
+        <section class="empresa-sec">
+          <h2 class="empresa-sec__h">Contacto</h2>
+          <p class="empresa-sec__desc">Teléfono, correo y web. Pie de página de documentos y comunicaciones.</p>
+          <div class="empresa-form__row">
+            <div class="sgc-field">
+              <label for="tel">Teléfono</label>
+              <input id="tel" type="tel" formControlName="telefono" placeholder="(809) 000-0000" />
+            </div>
+            <div class="sgc-field">
+              <label for="email">Correo</label>
+              <input id="email" type="email" formControlName="email" placeholder="info@empresa.com" [class.invalid]="f.email.invalid && f.email.touched" />
+              @if (f.email.invalid && f.email.touched) { <span class="field-error">Correo inválido.</span> }
+            </div>
+          </div>
+          <div class="sgc-field">
+            <label for="web">Sitio web</label>
+            <input id="web" type="text" formControlName="sitio_web" placeholder="www.empresa.com" />
+          </div>
+        </section>
 
-      <div class="empresa-form__row">
-        <div class="sgc-field">
-          <label for="email">Correo</label>
-          <input id="email" type="email" formControlName="email" placeholder="info@empresa.com" [class.invalid]="f.email.invalid && f.email.touched" />
-          @if (f.email.invalid && f.email.touched) { <span class="field-error">Correo inválido.</span> }
-        </div>
-        <div class="sgc-field">
-          <label for="web">Sitio web</label>
-          <input id="web" type="text" formControlName="sitio_web" placeholder="www.empresa.com" />
-        </div>
-      </div>
+        <!-- Dirección -->
+        <section class="empresa-sec">
+          <h2 class="empresa-sec__h">Dirección</h2>
+          <p class="empresa-sec__desc">Ubicación física. Encabezado de documentos y datos de contacto.</p>
+          <div class="sgc-field">
+            <label for="dir">Dirección</label>
+            <input id="dir" type="text" formControlName="direccion" placeholder="Calle, número, sector" />
+          </div>
+          <div class="empresa-form__row">
+            <div class="sgc-field">
+              <label for="ciudad">Ciudad</label>
+              <input id="ciudad" type="text" formControlName="ciudad" placeholder="Santo Domingo" />
+            </div>
+            <div class="sgc-field">
+              <label for="pais">País</label>
+              <input id="pais" type="text" formControlName="pais" placeholder="República Dominicana" />
+            </div>
+          </div>
+        </section>
 
-      <div class="sgc-field">
-        <label for="dir">Dirección</label>
-        <input id="dir" type="text" formControlName="direccion" placeholder="Dirección física" />
-      </div>
-
-      <div class="empresa-form__row">
-        <div class="sgc-field">
-          <label for="ciudad">Ciudad</label>
-          <input id="ciudad" type="text" formControlName="ciudad" placeholder="Santo Domingo" />
+        <div class="empresa-form__actions">
+          <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+            @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar cambios }
+          </button>
         </div>
-        <div class="sgc-field">
-          <label for="pais">País</label>
-          <input id="pais" type="text" formControlName="pais" placeholder="República Dominicana" />
+      </form>
+    </div>
+
+    <!-- AW8 — preview de cómo sale en el encabezado de un documento -->
+    <aside class="empresa-preview">
+      <h2 class="empresa-preview__h">Vista previa (encabezado de documento)</h2>
+      <div class="doc-head">
+        <div class="doc-head__logo">LOGO</div>
+        <div class="doc-head__data">
+          <div class="doc-head__title">{{ preview().titulo }}</div>
+          @if (preview().rnc) { <div class="doc-head__line">RNC: {{ preview().rnc }}</div> }
+          @if (preview().direccion) { <div class="doc-head__line">{{ preview().direccion }}</div> }
+          @if (preview().contacto) { <div class="doc-head__line">{{ preview().contacto }}</div> }
         </div>
       </div>
-
-      <div class="empresa-form__actions">
-        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
-          @if (saving()) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Guardar cambios }
-        </button>
-      </div>
-    </form>
+      <p class="empresa-preview__note">Así se verá el bloque de identidad en los PDF, conduces y carnets.</p>
+    </aside>
   </div>
 }

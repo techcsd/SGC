@@ -6,6 +6,8 @@ import {
   AppErrorGrupo,
   AppErrorType,
   AppErrorFiltros,
+  AppErrorEstado,
+  AppErrorOcurrencia,
   APP_ERROR_TYPES,
 } from '../../../../shared/models/app-error-report.model';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
@@ -27,6 +29,15 @@ export class TecReportesErrores implements OnInit {
 
   // ── Vista: agrupado (por mensaje) / detalle (filas) ──
   vista = signal<'agrupado' | 'detalle'>('agrupado');
+
+  // AW14 — bandeja (abiertos + en revisión) vs Historial (solucionados).
+  estadoVista = signal<'abiertos' | 'solucionado'>('abiertos');
+
+  // AW14 — drill-down de ocurrencias por firma (usuario + metadata).
+  firmaExpandida = signal<string | null>(null);
+  ocurrencias = signal<AppErrorOcurrencia[]>([]);
+  cargandoOcurrencias = signal(false);
+  marcando = signal<string | null>(null);
 
   // ── Filtros ──
   fTipo = signal<AppErrorType | ''>('');
@@ -81,7 +92,60 @@ export class TecReportesErrores implements OnInit {
       appVersion: this.fVersion().trim() || null,
       desde: this.fDesde() ? `${this.fDesde()}T00:00:00` : null,
       hasta: this.fHasta() ? `${this.fHasta()}T23:59:59.999` : null,
+      // AW14 — solo en vista agrupada gatea por estado (bandeja/Historial).
+      estado: this.vista() === 'agrupado' ? this.estadoVista() : null,
     };
+  }
+
+  /** AW14 — cambia entre bandeja de abiertos y Historial de solucionados. */
+  cambiarEstadoVista(v: 'abiertos' | 'solucionado') {
+    if (this.estadoVista() === v) return;
+    this.estadoVista.set(v);
+    this.firmaExpandida.set(null);
+    void this.load();
+  }
+
+  /** AW14 — abre/cierra las ocurrencias de una firma (usuario + dispositivo + versión). */
+  async verOcurrencias(g: AppErrorGrupo) {
+    if (this.firmaExpandida() === g.firma) {
+      this.firmaExpandida.set(null);
+      return;
+    }
+    this.firmaExpandida.set(g.firma);
+    this.cargandoOcurrencias.set(true);
+    this.ocurrencias.set([]);
+    try {
+      this.ocurrencias.set(await this.service.getOcurrencias(g.firma));
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : 'Error al cargar ocurrencias.');
+    } finally {
+      this.cargandoOcurrencias.set(false);
+    }
+  }
+
+  /** AW14 — marca el estado de atención de una firma (en revisión / solucionado / reabrir). */
+  async marcar(g: AppErrorGrupo, estado: AppErrorEstado) {
+    if (this.marcando()) return;
+    this.marcando.set(g.firma);
+    this.error.set('');
+    try {
+      await this.service.marcarEstado(g.firma, estado);
+      await this.load();
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo actualizar el estado.');
+    } finally {
+      this.marcando.set(null);
+    }
+  }
+
+  estadoLabel(e: string): string {
+    return e === 'en_revision' ? 'En revisión' : e === 'solucionado' ? 'Solucionado' : 'Abierto';
+  }
+  estadoBadgeClass(e: string): string {
+    const base = 'sgc-badge ';
+    if (e === 'solucionado') return base + 'sgc-badge--success';
+    if (e === 'en_revision') return base + 'sgc-badge--info';
+    return base + 'sgc-badge--warning';
   }
 
   async load() {

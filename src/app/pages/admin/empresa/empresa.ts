@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EmpresaService } from '../../../../shared/services/empresa.service';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -27,13 +28,27 @@ export class AdminEmpresa implements OnInit {
   form = this.fb.group({
     razon_social: ['', [Validators.maxLength(200)]],
     nombre_comercial: ['', [Validators.maxLength(200)]],
-    rnc: ['', [Validators.maxLength(20)]],
+    // AW8 — RNC de RD: 9 u 11 dígitos (con o sin guiones). Soft — no bloquea si vacío.
+    rnc: ['', [Validators.maxLength(20), Validators.pattern(/^[\d-]{9,13}$/)]],
     direccion: ['', [Validators.maxLength(300)]],
     ciudad: ['', [Validators.maxLength(100)]],
     pais: ['', [Validators.maxLength(100)]],
     telefono: ['', [Validators.maxLength(30)]],
     email: ['', [Validators.email, Validators.maxLength(150)]],
     sitio_web: ['', [Validators.maxLength(150)]],
+  });
+
+  // AW8 — preview reactivo del encabezado del documento. Se puentea por
+  // valueChanges (FormControl.value no es reactivo con OnPush).
+  private valores = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+  preview = computed(() => {
+    const v = this.valores();
+    return {
+      titulo: (v.razon_social || v.nombre_comercial || 'Nombre de la empresa').trim(),
+      rnc: (v.rnc || '').trim(),
+      direccion: [v.direccion, v.ciudad, v.pais].map((x) => (x || '').trim()).filter(Boolean).join(', '),
+      contacto: [v.telefono, v.email, v.sitio_web].map((x) => (x || '').trim()).filter(Boolean).join('  ·  '),
+    };
   });
 
   async ngOnInit() {

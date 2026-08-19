@@ -301,6 +301,11 @@ export class Shell implements OnInit {
         { label: 'Homologación', route: '/tecnologia/homologacion', modulo: 'tecnologia' },
         { label: 'Matriz puesto × herramienta', route: '/tecnologia/matriz', modulo: 'tecnologia' },
         { label: 'Compras tecnológicas', route: '/tecnologia/compras', modulo: 'tecnologia' },
+        // AW9 — Monitoreo de infraestructura pasa a Tecnología (antes vivía en
+        // "Sistema"). Gateado por el módulo tecnologia, alineado con su RLS
+        // (es_tecnologia = admin OR módulo tecnologia).
+        { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', modulo: 'tecnologia' },
+        { label: 'APIs y consumo', route: '/tecnologia/apis-consumo', modulo: 'tecnologia' },
       ],
     },
     {
@@ -314,7 +319,6 @@ export class Shell implements OnInit {
         { label: 'Historial de versiones', route: '/tecnologia/historial-versiones', soloTecnologia: true },
         { label: 'Versiones de la app', route: '/tecnologia/app-versiones', soloTecnologia: true },
         { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
-        { label: 'Monitoreo de infraestructura', route: '/tecnologia/monitoreo', soloTecnologia: true },
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
       ],

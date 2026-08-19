@@ -377,3 +377,21 @@
   border-top: 1px solid var(--sgc-border);
   &__label { font-size: 13.5px; }
 }
+
+// AW1 — cantidad aproximada (~) / "se trabajó" sin cantidad exacta
+.bitacora-matriz__aprox-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+  font-size: 0.85rem;
+  color: var(--main-ultra-light, #929090);
+  cursor: pointer;
+}
+.bitacora-matriz__aprox-toggle input { accent-color: var(--Hub, #ffb300); }
+.bitacora-matriz__aprox-hint {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--main-ultra-light, #929090);
+  line-height: 1.35;
+}

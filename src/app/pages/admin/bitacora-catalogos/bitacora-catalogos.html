@@ -6,9 +6,9 @@
 </div>
 
 <p class="bc-lead">
-  Estructuras, actividades, restricciones y sucesos probables (incidente / accidente / equipo) que
-  aparecen al llenar una bitácora o un incidente (en la web y en la app de campo). Agrega, reordena o
-  desactiva valores; los cambios se reflejan en ambos lados.
+  Estos catálogos alimentan los desplegables al llenar una <strong>bitácora / incidente</strong>
+  (web y app de campo). Cada columna abajo dice qué alimenta y dónde aparece. Agrega, reordena o
+  desactiva valores; los cambios se reflejan en ambos lados al instante.
 </p>
 
 <div class="bc-add">
@@ -29,6 +29,17 @@
   </button>
 </div>
 
+<!-- AW8 — búsqueda de valores en todos los catálogos -->
+<div class="bc-search">
+  <input
+    type="search"
+    [ngModel]="busqueda()"
+    (ngModelChange)="busqueda.set($event)"
+    placeholder="Buscar un valor en todos los catálogos…"
+    aria-label="Buscar valor"
+  />
+</div>
+
 @if (error()) {
   <p class="bc-error">{{ error() }}</p>
 }
@@ -39,8 +50,9 @@
   <div class="bc-grid">
     @for (g of grupos; track g.tipo) {
       <section class="bc-col">
-        <h2 class="bc-col__title">{{ g.label }}</h2>
-        @for (c of porTipo()[g.tipo]; track c.id; let i = $index; let count = $count) {
+        <h2 class="bc-col__title">{{ g.label }} <span class="bc-col__count">{{ conteoPorTipo()[g.tipo] ?? 0 }}</span></h2>
+        <p class="bc-col__desc">{{ g.desc }}</p>
+        @for (c of porTipoFiltrado()[g.tipo]; track c.id; let i = $index; let count = $count) {
           <div class="bc-item" [class.bc-item--off]="!c.activo">
             <span class="bc-item__ord">
               <button
@@ -59,6 +71,13 @@
               >↓</button>
             </span>
             <span class="bc-item__val">{{ c.valor }}</span>
+            <!-- AW1 — solo actividades: permitir "se trabajó" sin cantidad exacta (~). -->
+            @if (g.tipo === 'actividad') {
+              <label class="bc-item__aprox" title="Permite registrar «se trabajó» sin cantidad exacta, con cantidad aproximada opcional (~)">
+                <input type="checkbox" [checked]="c.permite_sin_cantidad" (change)="togglePermiteSinCantidad(c)" />
+                <span>~ aprox.</span>
+              </label>
+            }
             <button class="sgc-btn sgc-btn--sm sgc-btn--ghost" type="button" (click)="toggle(c)">
               {{ c.activo ? 'Desactivar' : 'Activar' }}
             </button>

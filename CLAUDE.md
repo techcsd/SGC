@@ -24,6 +24,8 @@ inventario · compras · rrhh · proyectos · flota · bitacora · documentos ·
 5. **URLs**: auth/email redirect links must point to the production domain — never localhost.
 6. Real workflows first: model features on how the company actually works (reference docs below), ERP patterns (Odoo/Oracle style) where they add real value.
 7. **Architect mindset**: think like a Senior Software Architect building an ERP that will be maintained for many years, not like a developer completing a single feature. You are encouraged to challenge existing architectural decisions when a better long-term design exists — propose it (or apply it, per the working agreement) instead of silently following the current pattern.
+8. **⭐ AW12 — SVG/imágenes en vez de emojis para iconos** (regla permanente, junto a AT11): la iconografía de la UI va por SVG (inline, `stroke="currentColor"`), no por emojis. Los emojis solo como CONTENIDO (chat, stickers), nunca como icono de botón/estado/tab. Al tocar una pantalla, migra sus emojis-icono a SVG (sweep gradual). Regla espejo en `.claude/CLAUDE.md`.
+9. **⭐ AT11 — toda data enviada es visualizable**: cualquier dato que la app/web capture o envíe DEBE poder verse en algún lado del sistema. Si algo se envía y no se puede ver, es un bug.
 
 ## Versionado — REGLA permanente (Y1)
 Toda actualización que sube a `main` (web o app) DEBE registrarse en el historial de versiones (`sgc.app_versiones`), automáticamente y SIEMPRE con el mismo formato estructurado: `titulo` + `cambios: [{ t: nuevo|mejora|arreglo|seguridad, d: texto }]` + `url` (link a esa versión). La UI (`admin/historial-versiones`) pinta chips por tipo para ambas plataformas; el texto plano legacy es solo fallback. **Regla completa + checklist en [`VERSIONADO.md`](./VERSIONADO.md).**

@@ -65,6 +65,21 @@ export class Mensajes implements OnInit, OnDestroy {
   composer = new FormControl('');
   pendingFile = signal<File | null>(null);
 
+  // ── AW15 — notas de voz (grabar/enviar/reproducir en la web) ──────────────
+  grabando = signal(false);
+  grabSegundos = signal(0);
+  nivel = signal(0); // 0..1 amplitud del micrófono (UI reactiva al ruido)
+  audioUrls = signal<Map<string, string>>(new Map()); // URL firmada por id de mensaje-audio
+  private mediaRecorder: MediaRecorder | null = null;
+  private grabChunks: Blob[] = [];
+  private grabStream: MediaStream | null = null;
+  private grabInicio = 0;
+  private grabTimer: ReturnType<typeof setInterval> | null = null;
+  private audioCtx: AudioContext | null = null;
+  private analyser: AnalyserNode | null = null;
+  private nivelRaf = 0;
+  private cancelarEnvio = false;
+
   // ── AT16 — stickers ──────────────────────────────────────
   stickerPickerOpen = signal(false);
   stickerPacks = signal<StickerPack[]>([]);
@@ -200,6 +215,7 @@ export class Mensajes implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.channel) void this.mensajeria.unsubscribe(this.channel);
+    this.limpiarGrabacion(); // AW15 — libera micrófono/timer si quedó grabando
   }
 
   private async loadInitial() {
@@ -240,6 +256,8 @@ export class Mensajes implements OnInit, OnDestroy {
       this.scrollToUnreadPending = this.primerNoLeidoId() !== null;
       // AT15 — precarga los thumbnails firmados de las imágenes del hilo.
       void this.resolveThumbs(this.mensajes());
+      // AW15 — precarga las URLs firmadas de las notas de voz del hilo.
+      void this.resolveAudios(this.mensajes());
       await this.mensajeria.marcarLeido(conv.id, this.miId);
       // Zero out the unread badge locally + globally, y avanza mi marca de lectura
       // local para que reabrir la misma conversación no reviva el divisor (AT14).
@@ -274,6 +292,8 @@ export class Mensajes implements OnInit, OnDestroy {
         this.nextScrollBehavior = 'smooth';
         this.mensajes.update((list) => [...list, { ...m, autor: { nombre: autorNombre } }]);
         void this.resolveThumbs([m]); // AT15 — thumbnail del adjunto entrante si es imagen
+        void this.resolveAudios([m]); // AW15 — URL de la nota de voz entrante
+
       }
       // QA-058 — solo marcar como leído si la pestaña está enfocada; si el usuario
       // no está mirando, el mensaje sigue contando como no leído.
@@ -432,6 +452,144 @@ export class Mensajes implements OnInit, OnDestroy {
     } catch (e: unknown) {
       this.toast.error('No se pudo abrir la imagen', e instanceof Error ? e.message : undefined);
     }
+  }
+
+  // ── AW15 — notas de voz ───────────────────────────────────
+  /** true si el mensaje es una nota de voz (tipo 'audio'). */
+  esAudio(m: Mensaje): boolean {
+    return m.tipo === 'audio' || (!!m.archivo_mime?.startsWith('audio/') && !m.contenido);
+  }
+
+  /** Resuelve (y cachea) las URLs firmadas de los mensajes-audio para reproducir. */
+  private async resolveAudios(msgs: Mensaje[]): Promise<void> {
+    for (const m of msgs) {
+      if (!this.esAudio(m) || !m.archivo_path || this.audioUrls().has(m.id)) continue;
+      try {
+        const url = await this.mensajeria.getArchivoUrl(m.archivo_path);
+        if (url) this.audioUrls.update((map) => new Map(map).set(m.id, url));
+      } catch {
+        /* si falla la firma, el reproductor queda vacío */
+      }
+    }
+  }
+
+  audioUrlOf(m: Mensaje): string | null {
+    return this.audioUrls().get(m.id) ?? null;
+  }
+
+  /** mm:ss para el timer de grabación y la duración de una nota de voz. */
+  formatDur(seg: number | null | undefined): string {
+    const s = Math.max(0, Math.round(seg ?? 0));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  /** Empieza a grabar del micrófono (estilo WhatsApp: timer + nivel reactivo). */
+  async iniciarGrabacion() {
+    if (this.grabando() || this.sending()) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      this.toast.error('Grabación no disponible', 'Tu navegador no permite grabar audio; adjunta un archivo.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.grabStream = stream;
+      this.grabChunks = [];
+      this.cancelarEnvio = false;
+      const mr = new MediaRecorder(stream);
+      this.mediaRecorder = mr;
+      this.grabInicio = performance.now();
+      mr.ondataavailable = (e) => { if (e.data.size > 0) this.grabChunks.push(e.data); };
+      mr.onstop = () => void this.onGrabacionStop(mr);
+      mr.start();
+      this.grabando.set(true);
+      this.grabSegundos.set(0);
+      this.grabTimer = setInterval(() => {
+        this.grabSegundos.set(Math.floor((performance.now() - this.grabInicio) / 1000));
+        // Corte de seguridad a 5 min.
+        if (this.grabSegundos() >= 300) void this.detenerYEnviar();
+      }, 250);
+      this.iniciarMedidor(stream);
+    } catch {
+      this.limpiarGrabacion();
+      this.toast.error('No se pudo acceder al micrófono', 'Revisa los permisos del navegador.');
+    }
+  }
+
+  /** Detiene la grabación y envía la nota de voz. */
+  async detenerYEnviar() {
+    if (!this.grabando()) return;
+    this.cancelarEnvio = false;
+    this.mediaRecorder?.stop();
+  }
+
+  /** Cancela la grabación (descarta el audio, no envía). */
+  cancelarGrabacion() {
+    if (!this.grabando()) return;
+    this.cancelarEnvio = true;
+    this.mediaRecorder?.stop();
+  }
+
+  private async onGrabacionStop(mr: MediaRecorder) {
+    const dur = Math.round((performance.now() - this.grabInicio) / 1000);
+    const blob = new Blob(this.grabChunks, { type: mr.mimeType || 'audio/webm' });
+    this.limpiarGrabacion();
+    if (this.cancelarEnvio || blob.size === 0 || dur < 1) return;
+
+    const conv = this.selectedConv();
+    if (!conv) return;
+    this.sending.set(true);
+    try {
+      const clientId = crypto.randomUUID();
+      const m = await this.mensajeria.enviarNotaVoz(conv.id, blob, dur, clientId);
+      if (!this.mensajes().some((x) => x.id === m.id)) {
+        this.nextScrollBehavior = 'smooth';
+        this.mensajes.update((list) => [...list, m]);
+        void this.resolveAudios([m]);
+      }
+      await this.refreshConversaciones();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo enviar la nota de voz', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.sending.set(false);
+    }
+  }
+
+  private iniciarMedidor(stream: MediaStream) {
+    try {
+      const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      this.audioCtx = ctx;
+      const src = ctx.createMediaStreamSource(stream);
+      const an = ctx.createAnalyser();
+      an.fftSize = 256;
+      src.connect(an);
+      this.analyser = an;
+      const buf = new Uint8Array(an.frequencyBinCount);
+      const tick = () => {
+        if (!this.analyser) return;
+        this.analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+        this.nivel.set(Math.min(1, Math.sqrt(sum / buf.length) * 3));
+        this.nivelRaf = requestAnimationFrame(tick);
+      };
+      this.nivelRaf = requestAnimationFrame(tick);
+    } catch {
+      /* medidor best-effort; la grabación sigue sin él */
+    }
+  }
+
+  private limpiarGrabacion() {
+    this.grabando.set(false);
+    this.nivel.set(0);
+    if (this.grabTimer) { clearInterval(this.grabTimer); this.grabTimer = null; }
+    if (this.nivelRaf) { cancelAnimationFrame(this.nivelRaf); this.nivelRaf = 0; }
+    this.analyser = null;
+    if (this.audioCtx) { void this.audioCtx.close().catch(() => {}); this.audioCtx = null; }
+    this.grabStream?.getTracks().forEach((t) => t.stop());
+    this.grabStream = null;
+    this.mediaRecorder = null;
+    this.grabChunks = [];
   }
 
   // ── AT16 — stickers ──────────────────────────────────────

@@ -212,3 +212,17 @@
   color: var(--sgc-text-secondary);
   font-variant-numeric: tabular-nums;
 }
+
+// AW14 — workflow de atención (bandeja/Historial), acciones y ocurrencias
+.rep__tabs--estado { margin-bottom: 12px; }
+.rep__acciones-col { text-align: right; }
+.rep__acciones {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.rep__resuelto { margin: 0 0 10px; font-size: 0.85rem; color: var(--main-ultra-light, #929090); }
+.rep__ocurr-wrap { overflow-x: auto; }
+.rep__ocurr { width: 100%; font-size: 0.85rem; }

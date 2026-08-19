@@ -1,0 +1,139 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">APIs y consumo</h1>
+    <span class="page-count">{{ servicios().length }} servicios</span>
+  </div>
+  <div class="page-header__actions">
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="nuevo()">+ Nuevo servicio</button>
+  </div>
+</div>
+
+<p class="ac-lead">
+  Inventario de las APIs y servicios externos que usa el sistema (Google Maps/Places/Roads, Supabase,
+  push, Vercel, Resend…), su propósito, dónde se usan y un <strong>costo estimado por mes</strong>. Las
+  llaves viven solo en el servidor (edge functions) — aquí nunca se guardan.
+</p>
+
+<!-- AW9 — la extracción automática de usage/facturación (Google Cloud Billing API) queda
+     pendiente de un paso manual en la consola de Google. Mientras tanto, el costo es manual. -->
+<div class="ac-note">
+  <strong>Facturación automática (pendiente):</strong> para traer el consumo y costo real por API desde
+  Google Cloud hace falta habilitar la <em>Billing API</em> y crear una cuenta de servicio de solo-lectura
+  en la consola. Mientras tanto, registra aquí el monto estimado/mes de forma manual.
+</div>
+
+@if (error()) { <p class="ac-error">{{ error() }}</p> }
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else {
+  <div class="kpi-grid">
+    @for (t of totales(); track t.moneda) {
+      <div class="kpi-card kpi-card--primary">
+        <span class="kpi-label">Estimado/mes ({{ t.moneda }})</span>
+        <span class="kpi-value">{{ t.total | number:'1.0-2' }}</span>
+      </div>
+    }
+    <div class="kpi-card">
+      <span class="kpi-label">Con costo cargado</span>
+      <span class="kpi-value">{{ conCosto() }} / {{ servicios().length }}</span>
+    </div>
+  </div>
+
+  <div class="ac-table-wrap">
+    <table class="data-table" aria-label="APIs y servicios">
+      <thead>
+        <tr>
+          <th>Servicio</th>
+          <th>Proveedor</th>
+          <th>Propósito</th>
+          <th>Dónde se usa</th>
+          <th class="text-right">Costo/mes</th>
+          <th class="data-table__actions-h">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of servicios(); track s.id) {
+          <tr>
+            <td>
+              <strong>{{ s.nombre }}</strong>
+              @if (s.panel_url) {
+                <a class="ac-ext" [href]="s.panel_url" target="_blank" rel="noopener" title="Abrir panel del proveedor">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                  </svg>
+                </a>
+              }
+            </td>
+            <td>{{ s.proveedor ?? '—' }}</td>
+            <td class="ac-muted">{{ s.proposito ?? '—' }}</td>
+            <td class="ac-muted">{{ s.donde_se_usa ?? '—' }}</td>
+            <td class="text-right">
+              @if (s.costo_estimado_mes != null) {
+                {{ s.moneda }} {{ s.costo_estimado_mes | number:'1.0-2' }}
+              } @else {
+                <span class="ac-muted">sin cargar</span>
+              }
+            </td>
+            <td class="data-table__actions">
+              <div>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editar(s)">Editar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar(s)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="ac-muted ac-empty">Sin servicios registrados.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (editorOpen()) {
+  <div class="ac-backdrop" (click)="cerrarEditor()"></div>
+  <div class="ac-editor" role="dialog" aria-label="Editar servicio">
+    <h2 class="ac-editor__title">{{ editId() ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
+    <label class="ac-field">
+      <span>Nombre *</span>
+      <input type="text" [ngModel]="form().nombre ?? ''" (ngModelChange)="setField('nombre', $event)" placeholder="Ej: Google Maps JavaScript API" />
+    </label>
+    <label class="ac-field">
+      <span>Proveedor</span>
+      <input type="text" [ngModel]="form().proveedor ?? ''" (ngModelChange)="setField('proveedor', $event)" placeholder="Google Cloud, Supabase, Vercel…" />
+    </label>
+    <label class="ac-field">
+      <span>Propósito</span>
+      <textarea rows="2" [ngModel]="form().proposito ?? ''" (ngModelChange)="setField('proposito', $event)" placeholder="Para qué se usa"></textarea>
+    </label>
+    <label class="ac-field">
+      <span>Dónde se usa</span>
+      <textarea rows="2" [ngModel]="form().donde_se_usa ?? ''" (ngModelChange)="setField('donde_se_usa', $event)" placeholder="Edge functions / módulos"></textarea>
+    </label>
+    <div class="ac-field-row">
+      <label class="ac-field">
+        <span>Costo estimado/mes</span>
+        <input type="number" min="0" step="0.01" [ngModel]="form().costo_estimado_mes ?? null" (ngModelChange)="setField('costo_estimado_mes', $event)" placeholder="0.00" />
+      </label>
+      <label class="ac-field ac-field--sm">
+        <span>Moneda</span>
+        <input type="text" [ngModel]="form().moneda ?? 'USD'" (ngModelChange)="setField('moneda', $event)" />
+      </label>
+    </div>
+    <label class="ac-field">
+      <span>Panel / dashboard (URL)</span>
+      <input type="url" [ngModel]="form().panel_url ?? ''" (ngModelChange)="setField('panel_url', $event)" placeholder="https://…" />
+    </label>
+    <label class="ac-field">
+      <span>Notas</span>
+      <textarea rows="2" [ngModel]="form().notas ?? ''" (ngModelChange)="setField('notas', $event)"></textarea>
+    </label>
+    <div class="ac-editor__actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarEditor()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
+        {{ saving() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+}

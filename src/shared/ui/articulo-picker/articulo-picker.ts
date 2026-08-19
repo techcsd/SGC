@@ -5,9 +5,11 @@ import {
   output,
   signal,
   computed,
+  inject,
   ElementRef,
   viewChild,
 } from '@angular/core';
+import { SupabaseService } from '../../../app/core/services/supabase.service';
 import { Articulo, propiedadLabel, propiedadBadge } from '../../models/articulo.model';
 import { Categoria } from '../../models/categoria.model';
 
@@ -63,11 +65,17 @@ export class ArticuloPicker {
 
   selectionChange = output<ArticuloPickerSelection>();
 
+  private supabase = inject(SupabaseService);
   private searchInput = viewChild<ElementRef<HTMLInputElement>>('search');
 
   open = signal(false);
   query = signal('');
   highlighted = signal(0);
+  // AW6 — sugerencias fuzzy del servidor ("¿Quisiste decir…?") cuando el filtro
+  // local no encuentra nada (tolera errores de tipeo). Se mapean a la lista real.
+  sugerencias = signal<Articulo[]>([]);
+  buscandoSug = signal(false);
+  private debTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly propiedadLabel = propiedadLabel;
   readonly propiedadBadge = propiedadBadge;
@@ -116,18 +124,28 @@ export class ArticuloPicker {
     return grupos;
   });
 
-  /** Grupos filtrados por la búsqueda (nombre/código/subgrupo). */
+  /** AW6 — normaliza (minúsculas + sin acentos) para búsqueda amigable. */
+  private norm(s: string | null | undefined): string {
+    return (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+
+  /**
+   * AW6 — grupos filtrados por búsqueda amigable: insensible a acentos e
+   * independiente del orden de palabras (cada token debe aparecer en
+   * nombre/código/subgrupo/categoría). La tolerancia a errores de tipeo la
+   * cubre la sugerencia server-side ("¿Quisiste decir…?").
+   */
   gruposFiltrados = computed<Grupo[]>(() => {
-    const q = this.query().toLowerCase().trim();
-    if (!q) return this.grupos();
+    const raw = this.query().trim();
+    if (!raw) return this.grupos();
+    const tokens = this.norm(raw).split(/\s+/).filter(Boolean);
     return this.grupos()
       .map((g) => {
-        const filtrados = g.articulos.filter(
-          (a) =>
-            a.nombre.toLowerCase().includes(q) ||
-            (a.codigo ?? '').toLowerCase().includes(q) ||
-            (a.subgrupo ?? '').toLowerCase().includes(q),
-        );
+        const catN = this.norm(g.categoria);
+        const filtrados = g.articulos.filter((a) => {
+          const text = `${this.norm(a.nombre)} ${this.norm(a.codigo)} ${this.norm(a.subgrupo)} ${catN}`;
+          return tokens.every((t) => text.includes(t));
+        });
         const { articulos, subgrupos } = this.dividirPorPropiedad(filtrados);
         return { ...g, articulos, subgrupos };
       })
@@ -174,6 +192,36 @@ export class ArticuloPicker {
   onQuery(value: string) {
     this.query.set(value);
     this.highlighted.set(0);
+    this.sugerencias.set([]);
+    if (this.debTimer) clearTimeout(this.debTimer);
+    const q = value.trim();
+    if (q.length < 3) return;
+    // AW6 — debounce + solo consulta el servidor si el filtro local no dio nada.
+    this.debTimer = setTimeout(() => void this.buscarSugerencias(q), 280);
+  }
+
+  /** AW6 — pide sugerencias fuzzy al servidor y las mapea a la lista precargada. */
+  private async buscarSugerencias(q: string) {
+    if (this.planos().length > 0) {
+      this.sugerencias.set([]);
+      return;
+    }
+    this.buscandoSug.set(true);
+    try {
+      const { data } = await this.supabase.client.rpc('buscar_articulos', { p_query: q, p_limit: 8 });
+      const ids = ((data ?? []) as { id: string }[]).map((r) => r.id);
+      const byId = new Map(this.articulos().map((a) => [a.id, a]));
+      const visibles = new Set(this.grupos().flatMap((g) => g.articulos.map((a) => a.id)));
+      const arts = ids
+        .map((id) => byId.get(id))
+        .filter((a): a is Articulo => !!a && visibles.has(a.id));
+      // Ignora respuestas obsoletas (la query cambió mientras tanto).
+      if (this.query().trim() === q) this.sugerencias.set(arts);
+    } catch {
+      this.sugerencias.set([]);
+    } finally {
+      this.buscandoSug.set(false);
+    }
   }
 
   elegir(a: Articulo) {

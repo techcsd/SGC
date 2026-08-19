@@ -142,6 +142,43 @@ export class MensajeriaService {
     return data as unknown as Mensaje;
   }
 
+  /**
+   * AW15 — envía una nota de voz: sube el audio al bucket sgc-mensajes y crea el
+   * mensaje tipo 'audio' vía RPC `enviar_nota_voz` (idempotente por client_msg_id).
+   * Devuelve el mensaje insertado para pintarlo optimista en el hilo.
+   */
+  async enviarNotaVoz(
+    conversacionId: string,
+    blob: Blob,
+    duracionSeg: number,
+    clientId: string,
+  ): Promise<Mensaje> {
+    const mime = blob.type || 'audio/webm';
+    const ext = mime.includes('ogg') ? 'ogg' : mime.includes('mp4') || mime.includes('m4a') ? 'm4a' : mime.includes('mpeg') ? 'mp3' : 'webm';
+    const path = `${conversacionId}/${crypto.randomUUID()}-voz.${ext}`;
+    const { error: upErr } = await this.supabase.client.storage
+      .from('sgc-mensajes')
+      .upload(path, blob, { contentType: mime });
+    if (upErr) throw new Error(upErr.message);
+
+    const { data: id, error } = await this.supabase.client.rpc('enviar_nota_voz', {
+      p_conversacion_id: conversacionId,
+      p_archivo_path: path,
+      p_duracion_seg: Math.max(0, Math.round(duracionSeg)),
+      p_archivo_mime: mime,
+      p_client_id: clientId,
+    });
+    if (error) throw new Error(error.message);
+
+    const { data: row, error: selErr } = await this.supabase.client
+      .from('mensajes')
+      .select('*, autor:usuarios(nombre)')
+      .eq('id', id as string)
+      .single();
+    if (selErr) throw new Error(selErr.message);
+    return row as unknown as Mensaje;
+  }
+
   async getArchivoUrl(path: string): Promise<string> {
     const { data, error } = await this.supabase.client.storage.from('sgc-mensajes').createSignedUrl(path, 3600);
     if (error) throw new Error(error.message);

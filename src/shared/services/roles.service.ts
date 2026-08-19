@@ -96,6 +96,12 @@ export interface SubmoduloInfo {
   enforced?: boolean;
 }
 export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
+  // AW5 — Bitácora. `ver_todas` es una CAPACIDAD de supervisión (no una pantalla):
+  // concede ver las bitácoras de TODOS los ingenieros (no solo las propias).
+  // Gateado end-to-end (RLS + RPC). Lista de roles EDITABLE desde aquí sin deploy.
+  bitacora: [
+    { key: 'bitacora.ver_todas', label: 'Ver todas las bitácoras (supervisión)', enforced: true },
+  ],
   // AN2 — Inventario, Flota y Compras: submódulos gateados end-to-end
   // (menú + ruta + RLS). Ver = leer; Operar = crear/editar/eliminar.
   compras: [

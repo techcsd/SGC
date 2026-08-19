@@ -586,8 +586,23 @@
                       <span>{{ actividad }}</span>
                     </label>
                     @if (isActividadChecked(estructura, actividad)) {
+                      <!-- AW1 — actividades difíciles de medir (varillas, encofrado…):
+                           se pueden registrar "se trabajó" sin cantidad exacta, con
+                           una cantidad aproximada opcional marcada "~". -->
+                      @if (permiteSinCantidad(actividad)) {
+                        <label class="bitacora-matriz__aprox-toggle">
+                          <input
+                            type="checkbox"
+                            [checked]="isAproximada(estructura, actividad)"
+                            (change)="toggleAproximada(estructura, actividad)"
+                          />
+                          <span>Cantidad difícil de medir — registrar como aproximada (~)</span>
+                        </label>
+                      }
                       <div class="bitacora-matriz__qty">
-                        <span class="bitacora-matriz__qty-label">Cantidad</span>
+                        <span class="bitacora-matriz__qty-label">
+                          @if (isAproximada(estructura, actividad)) { ~ Cantidad aproximada } @else { Cantidad }
+                        </span>
                         <app-qty-stepper
                           [value]="getCantidad(estructura, actividad)"
                           [min]="0"
@@ -611,6 +626,11 @@
                         <!-- X13 — el bloque ahora se elige con los chips de arriba
                              (multi-bloque real); ya no hay input por actividad. -->
                       </div>
+                      @if (isAproximada(estructura, actividad)) {
+                        <p class="bitacora-matriz__aprox-hint">
+                          Puedes dejar la cantidad vacía: se registrará solo como «se trabajó». Si pones un número, quedará marcado como aproximado (~).
+                        </p>
+                      }
                     }
                   </div>
                 }

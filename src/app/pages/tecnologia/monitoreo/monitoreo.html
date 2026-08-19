@@ -52,7 +52,7 @@
     <div class="mon__table-wrap">
       <table class="data-table">
         <thead>
-          <tr><th>Servicio</th><th>Proveedor</th><th>Renovación</th><th>Auto</th><th>Pago</th><th>Monto</th><th>Responsable</th><th></th></tr>
+          <tr><th>Servicio</th><th>Proveedor</th><th>Renovación</th><th>Auto</th><th>Pago</th><th>Monto</th><th>Responsable</th><th class="data-table__actions-h">Acciones</th></tr>
         </thead>
         <tbody>
           @for (s of subscriptions(); track s.id) {
@@ -77,9 +77,11 @@
               <td>{{ s.payment_ok ? '✓' : '⚠️' }}</td>
               <td class="mon__ts">{{ s.amount ? (s.currency + ' ' + s.amount) : '—' }}</td>
               <td>{{ s.internal_responsible ?? '—' }}</td>
-              <td class="mon__acciones">
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarSub(s)">Editar</button>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminarSub(s)">Eliminar</button>
+              <td class="data-table__actions">
+                <div>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarSub(s)">Editar</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminarSub(s)">Eliminar</button>
+                </div>
               </td>
             </tr>
           } @empty { <tr><td colspan="8" class="mon__muted mon__empty">Sin suscripciones registradas.</td></tr> }

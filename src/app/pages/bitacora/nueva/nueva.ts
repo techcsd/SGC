@@ -146,6 +146,10 @@ export class Nueva implements OnInit {
   actividadesSeleccionadas = signal<Set<string>>(new Set());
   cantidadesActividad = signal<Record<string, number | null>>({});
   unidadesActividad = signal<Record<string, string | null>>({});
+  // AW1 — actividades que permiten "se trabajó" sin cantidad exacta (por catálogo),
+  // y estado por-línea de "cantidad aproximada (~)".
+  actividadesSinCantidad = signal<ReadonlySet<string>>(new Set());
+  aproximadaActividad = signal<Record<string, boolean>>({});
   // Bloques/entrepisos/sujetos capturados en este parte + el que se edita ahora.
   bloquesLista = signal<string[]>(['General']);
   bloqueActivo = signal<string>('General');
@@ -450,6 +454,7 @@ export class Nueva implements OnInit {
       if (cat.estructuras.length) this.estructuras.set(cat.estructuras);
       if (cat.actividades.length) this.actividades.set(cat.actividades);
       if (cat.restricciones.length) this.restricciones.set(cat.restricciones);
+      this.actividadesSinCantidad.set(new Set(cat.actividadesSinCantidad));
     } catch {
       /* keep the built-in lists */
     }
@@ -485,6 +490,7 @@ export class Nueva implements OnInit {
       const cat = await this.catalogosService.getCatalogosOrdenados(proyectoId);
       if (cat.estructuras.length) this.estructuras.set(cat.estructuras);
       if (cat.actividades.length) this.actividades.set(cat.actividades);
+      this.actividadesSinCantidad.set(new Set(cat.actividadesSinCantidad));
     } catch {
       /* mantiene el orden actual */
     }
@@ -600,7 +606,7 @@ export class Nueva implements OnInit {
       else next.add(k);
       return next;
     });
-    // Al desmarcar la actividad, olvida su cantidad y unidad.
+    // Al desmarcar la actividad, olvida su cantidad, unidad y marca de aproximada.
     if (!this.actividadesSeleccionadas().has(k)) {
       this.cantidadesActividad.update((m) => {
         const next = { ...m };
@@ -612,7 +618,29 @@ export class Nueva implements OnInit {
         delete next[k];
         return next;
       });
+      this.aproximadaActividad.update((m) => {
+        const next = { ...m };
+        delete next[k];
+        return next;
+      });
     }
+    this.saveDraft();
+  }
+
+  // ── AW1 — cantidad aproximada / "se trabajó" sin cantidad exacta ────────────
+  /** ¿El catálogo marca esta actividad como difícil de medir (varillas, encofrado…)? */
+  permiteSinCantidad(actividad: string): boolean {
+    return this.actividadesSinCantidad().has(actividad);
+  }
+
+  isAproximada(estructura: string, actividad: string): boolean {
+    return this.aproximadaActividad()[this.key(estructura, actividad)] === true;
+  }
+
+  /** Alterna el modo "cantidad aproximada (~)" de una línea. */
+  toggleAproximada(estructura: string, actividad: string) {
+    const k = this.key(estructura, actividad);
+    this.aproximadaActividad.update((m) => ({ ...m, [k]: !m[k] }));
     this.saveDraft();
   }
 
@@ -825,6 +853,8 @@ export class Nueva implements OnInit {
             unidad: this.unidadesActividad()[k] ?? null,
             // 'General' sin bloque de cabecera ⇒ hereda el de cabecera (o queda null).
             bloque: bloque === 'General' ? bloqueParte : bloque,
+            // AW1 — cantidad marcada como aproximada (~) por el usuario.
+            es_aproximada: this.aproximadaActividad()[k] === true,
           };
         })
       : [];

@@ -188,3 +188,8 @@
   &__lugar { color: #eaeaea; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   &__t { color: var(--main-ultra-light); font-size: 0.8rem; }
 }
+
+// AW11 — contenedor del mapa con leyenda superpuesta (posicionamiento)
+.rec-mapa-box {
+  position: relative;
+}

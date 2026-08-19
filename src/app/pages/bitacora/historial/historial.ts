@@ -55,11 +55,17 @@ export class Historial implements OnInit {
    * El tab "Todas" y el filtro por usuario solo se muestran a estos roles; para
    * el resto, la vista queda anclada a "Mis bitácoras".
    */
-  // AQ8 — gating server-side de "Todas las bitácoras": admin, módulo 'proyectos',
-  // o ingeniero responsable de alguna obra (resuelto por RPC puede_ver_otras_bitacoras).
+  // AQ8/AW5 — gating server-side de "Todas las bitácoras": admin, permiso de
+  // submódulo configurable 'bitacora.ver_todas' (editable por rol desde
+  // Administración), módulo 'proyectos', o responsable de alguna obra
+  // (resuelto por RPC puede_ver_otras_bitacoras). Espejo del RLS.
   private puedeVerOtrasServer = signal(false);
   puedeVerTodas = computed(
-    () => this.esAdmin() || this.userService.hasModulo('proyectos') || this.puedeVerOtrasServer(),
+    () =>
+      this.esAdmin() ||
+      this.userService.puedeVerSubmodulo('bitacora.ver_todas') ||
+      this.userService.hasModulo('proyectos') ||
+      this.puedeVerOtrasServer(),
   );
   /** Conteo por alcance (respetando el resto de filtros salvo el propio alcance). */
   private baseFiltradas = computed(() => this.aplicarFiltros(this.bitacoras()));
@@ -160,8 +166,8 @@ export class Historial implements OnInit {
   });
 
   async ngOnInit() {
-    // AQ8 — resolver el gating server-side ANTES de decidir el alcance por drill-down.
-    if (!this.esAdmin() && !this.userService.hasModulo('proyectos')) {
+    // AQ8/AW5 — resolver el gating server-side ANTES de decidir el alcance por drill-down.
+    if (!this.esAdmin() && !this.userService.hasModulo('proyectos') && !this.userService.puedeVerSubmodulo('bitacora.ver_todas')) {
       try { this.puedeVerOtrasServer.set(await this.bitacoraService.puedeVerOtras()); } catch { /* queda en "mías" */ }
     }
     // Q9/Q3 — drill-down: preaplica filtros desde la ruta (?proyecto=&tipo=).

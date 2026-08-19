@@ -15,11 +15,15 @@ export interface BitacoraCatalogo {
   valor: string;
   activo: boolean;
   orden: number;
+  // AW1 — la actividad admite "se trabajó" sin cantidad exacta (+ cantidad aprox ~).
+  permite_sin_cantidad?: boolean;
 }
 
 export interface CatalogosBitacora {
   estructuras: string[];
   actividades: string[];
+  // AW1 — nombres de actividad que permiten registrarse sin cantidad exacta.
+  actividadesSinCantidad: string[];
   restricciones: { value: string; label: string }[];
 }
 
@@ -31,6 +35,7 @@ interface CatalogoOrdenadoRow {
   orden: number;
   usos: number;
   destacado: boolean;
+  permite_sin_cantidad?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -44,6 +49,9 @@ export class BitacoraCatalogosService {
     return {
       estructuras: by('estructura'),
       actividades: by('actividad'),
+      actividadesSinCantidad: rows
+        .filter((r) => r.tipo === 'actividad' && r.permite_sin_cantidad)
+        .map((r) => r.valor),
       restricciones: by('restriccion').map((v) => ({ value: v, label: this.titleCase(v) })),
     };
   }
@@ -64,6 +72,9 @@ export class BitacoraCatalogosService {
     return {
       estructuras: by('estructura'),
       actividades: by('actividad'),
+      actividadesSinCantidad: rows
+        .filter((r) => r.tipo === 'actividad' && r.permite_sin_cantidad)
+        .map((r) => r.valor),
       restricciones: by('restriccion').map((v) => ({ value: v, label: this.titleCase(v) })),
     };
   }
@@ -133,6 +144,18 @@ export class BitacoraCatalogosService {
     const { error } = await this.supabase.client
       .from('bitacora_catalogos')
       .update({ orden })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  /**
+   * AW1 — admin marks whether an activity can be logged without an exact quantity
+   * ("se trabajó" + optional approximate quantity ~). Only meaningful for tipo 'actividad'.
+   */
+  async updatePermiteSinCantidad(id: number, permite: boolean): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('bitacora_catalogos')
+      .update({ permite_sin_cantidad: permite })
       .eq('id', id);
     if (error) throw new Error(error.message);
   }

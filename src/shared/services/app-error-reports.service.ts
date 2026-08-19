@@ -4,6 +4,8 @@ import {
   AppErrorReport,
   AppErrorGrupo,
   AppErrorFiltros,
+  AppErrorEstado,
+  AppErrorOcurrencia,
 } from '../models/app-error-report.model';
 
 const PAGE_SIZE = 50;
@@ -44,7 +46,7 @@ export class AppErrorReportsService {
     return { rows: (data ?? []) as AppErrorReport[], total: count ?? 0 };
   }
 
-  /** Agrupación por firma de mensaje (contador de ocurrencias) vía RPC. */
+  /** Agrupación por firma de mensaje (contador de ocurrencias + estado) vía RPC. */
   async getGrupos(filtros: AppErrorFiltros): Promise<AppErrorGrupo[]> {
     const { data, error } = await this.supabase.client.rpc('app_error_reports_grupos', {
       p_desde: filtros.desde ?? null,
@@ -52,9 +54,30 @@ export class AppErrorReportsService {
       p_error_type: filtros.errorType ?? null,
       p_limit: 200,
       p_source: filtros.source ?? null,
+      p_estado: filtros.estado ?? null,
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as AppErrorGrupo[];
+  }
+
+  /** AW14 — ocurrencias individuales de una firma (con usuario + metadata). */
+  async getOcurrencias(firma: string, limit = 100): Promise<AppErrorOcurrencia[]> {
+    const { data, error } = await this.supabase.client.rpc('app_error_reports_por_firma', {
+      p_firma: firma,
+      p_limit: limit,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as AppErrorOcurrencia[];
+  }
+
+  /** AW14 — marca el estado de atención de una firma (solo tecnología/admin). */
+  async marcarEstado(firma: string, estado: AppErrorEstado, nota?: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('marcar_error_estado', {
+      p_firma: firma,
+      p_estado: estado,
+      p_nota: nota ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** Distintos modelos de dispositivo vistos (para el filtro). */

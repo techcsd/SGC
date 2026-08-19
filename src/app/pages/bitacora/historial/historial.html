@@ -109,6 +109,7 @@
       <thead>
         <tr>
           <th>Fecha</th>
+          <th>Registró</th>
           <th>Tipo</th>
           <th>Obra</th>
           <th>Detalle</th>
@@ -123,6 +124,13 @@
         @for (b of paginated(); track b.id) {
           <tr class="clickable-row" (click)="openDetail(b)">
             <td>{{ formatFecha(b.fecha) }}</td>
+            <!-- AW2 — autor + hora exacta de registro -->
+            <td>
+              <div class="historial__autor">{{ b.autor?.nombre ?? '—' }}</div>
+              @if (b.created_at) {
+                <div class="text-muted historial__hora">{{ formatFechaHora(b.created_at) }}</div>
+              }
+            </td>
             <td>
               <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
               @if (b.sin_actividad) {
@@ -417,7 +425,8 @@
             }
             <ul class="bitacora-detail__list">
               @for (a of grupo.items; track a.id) {
-                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× {{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} } }</li>
+                <!-- AW1 — cantidad aproximada (~) vs exacta; "se trabajó" cuando no hay cantidad. -->
+                <li>{{ a.estructura }} — {{ a.actividad }}@if (a.cantidad != null) { &nbsp;× @if (a.es_aproximada) { ~ }{{ a.cantidad }}@if (a.unidad) { &nbsp;{{ a.unidad }} }@if (a.es_aproximada) { &nbsp;<span class="sgc-badge sgc-badge--neutral">aprox.</span> } } @else if (a.es_aproximada) { &nbsp;<span class="text-muted">(se trabajó)</span> }</li>
               }
             </ul>
           }
@@ -486,11 +495,13 @@
         </div>
       }
 
-      <!-- U13 — quién/cuándo: fecha de registro (distinta de la fecha operativa) -->
-      @if (b.created_at) {
+      <!-- U13/AW2 — quién/cuándo: autor + fecha de registro (distinta de la operativa) -->
+      @if (b.created_at || b.autor) {
         <div class="bitacora-detail__row bitacora-detail__row--foot">
-          <span class="bitacora-detail__label">Registrada</span>
-          <span class="text-muted">{{ formatFechaHora(b.created_at) }}</span>
+          <span class="bitacora-detail__label">Registró</span>
+          <span class="text-muted">
+            {{ b.autor?.nombre ?? '—' }}@if (b.created_at) { · {{ formatFechaHora(b.created_at) }}}
+          </span>
         </div>
       }
 

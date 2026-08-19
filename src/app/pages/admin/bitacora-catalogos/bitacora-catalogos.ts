@@ -26,14 +26,15 @@ type Tipo =
 export class AdminBitacoraCatalogos implements OnInit {
   private service = inject(BitacoraCatalogosService);
 
-  readonly grupos: { tipo: Tipo; label: string }[] = [
-    { tipo: 'estructura', label: 'Estructuras' },
-    { tipo: 'actividad', label: 'Actividades' },
-    { tipo: 'restriccion', label: 'Restricciones' },
-    { tipo: 'suceso_incidente', label: 'Sucesos de incidente' },
-    { tipo: 'suceso_accidente', label: 'Sucesos de accidente' },
-    { tipo: 'suceso_equipo', label: 'Sucesos de equipo' },
-    { tipo: 'equipo', label: 'Equipos (alquilados / en obra)' }, // AA10
+  // AW8 — cada catálogo con una descripción de QUÉ alimenta y DÓNDE aparece.
+  readonly grupos: { tipo: Tipo; label: string; desc: string }[] = [
+    { tipo: 'estructura', label: 'Estructuras', desc: 'Elementos de obra (columnas, vigas, losas…) del parte diario, paso "¿Qué se hizo?".' },
+    { tipo: 'actividad', label: 'Actividades', desc: 'Trabajos del parte diario (encofrado, armado, vaciado…). Marca "~ aprox." los difíciles de medir.' },
+    { tipo: 'restriccion', label: 'Restricciones', desc: 'Motivos que frenaron el trabajo (falta de material, clima…) en el parte diario.' },
+    { tipo: 'suceso_incidente', label: 'Sucesos de incidente', desc: 'Sucesos probables al registrar un incidente en la bitácora.' },
+    { tipo: 'suceso_accidente', label: 'Sucesos de accidente', desc: 'Sucesos probables al registrar un accidente en la bitácora.' },
+    { tipo: 'suceso_equipo', label: 'Sucesos de equipo', desc: 'Sucesos probables al registrar un incidente de equipo/máquina.' },
+    { tipo: 'equipo', label: 'Equipos (alquilados / en obra)', desc: 'Nombres de equipos alquilados/en obra sugeridos al reportarlos (AA10).' }, // AA10
   ];
 
   catalogos = signal<BitacoraCatalogo[]>([]);
@@ -42,6 +43,28 @@ export class AdminBitacoraCatalogos implements OnInit {
   nuevoTipo = signal<Tipo>('estructura');
   nuevoValor = signal('');
   saving = signal(false);
+  busqueda = signal(''); // AW8 — filtro de valores
+
+  /** AW8 — total de valores por tipo (contador por catálogo). */
+  conteoPorTipo = computed(() => {
+    const acc: Record<string, number> = {};
+    for (const c of this.catalogos()) acc[c.tipo] = (acc[c.tipo] ?? 0) + 1;
+    return acc;
+  });
+
+  /** AW8 — valores filtrados por la búsqueda, agrupados por tipo. */
+  porTipoFiltrado = computed(() => {
+    const q = this.busqueda().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+    const base = this.porTipo();
+    if (!q) return base;
+    const out = {} as Record<Tipo, BitacoraCatalogo[]>;
+    for (const g of this.grupos) {
+      out[g.tipo] = (base[g.tipo] ?? []).filter((c) =>
+        c.valor.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q),
+      );
+    }
+    return out;
+  });
 
   porTipo = computed(() => {
     // Tolerant bucketing: initialize a bucket for every known grupo and lazily
@@ -96,6 +119,20 @@ export class AdminBitacoraCatalogos implements OnInit {
       await this.service.toggleActivo(c.id, next);
     } catch {
       this.catalogos.update((l) => l.map((x) => (x.id === c.id ? { ...x, activo: !next } : x)));
+    }
+  }
+
+  /**
+   * AW1 — toggle whether an activity can be logged without an exact quantity
+   * ("se trabajó" + optional approximate ~). Only shown for tipo 'actividad'.
+   */
+  async togglePermiteSinCantidad(c: BitacoraCatalogo) {
+    const next = !c.permite_sin_cantidad;
+    this.catalogos.update((l) => l.map((x) => (x.id === c.id ? { ...x, permite_sin_cantidad: next } : x)));
+    try {
+      await this.service.updatePermiteSinCantidad(c.id, next);
+    } catch {
+      this.catalogos.update((l) => l.map((x) => (x.id === c.id ? { ...x, permite_sin_cantidad: !next } : x)));
     }
   }
 

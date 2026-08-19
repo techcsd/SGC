@@ -1,6 +1,27 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-08-20_
+_Last updated: 2026-08-21_
+
+## 🟢 2026-08-21 — PROMPT-25 (IDs AW): rol Jefe de Ingenieros, bitácoras, voz web, reportes de errores, fuzzy search, APIs/consumo, leyenda mapa — **SHIPPED web 1.83.0** (commit + push `main`, deploy Vercel)
+
+Fuente: `C:\developer\improvements\imp 10082026\CONTEXTO-ACTUALIZACION-12.md` (IDs AW). PROMPT-25 = web + BD (la app es PROMPT-26). **6 migraciones `sql/2026-08-21-*.sql` aplicadas y verificadas en prod. Build prod verde (guard Y1 ✓, version.ts → 1.83.0).** Confirmaciones de Xaviel: Jefe de Ing = ver+comentar sin editar; "Todas" = admin/dirección/gerencia/jefe_ing **+ editable por permiso**; cantidad aprox = "se trabajó"+~; resolver errores = admin+tecnología.
+
+### Qué se hizo (por fase)
+- **FASE 1 — Bitácoras + rol** (`aw3-aw5-…sql`, `aw4-aw1-…sql`): rol `jefe_ingenieros` (solo lectura, reusa módulos → sin array_append). **AW5 gate configurable**: permiso de submódulo `bitacora.ver_todas` en la matriz AG12 (RLS + RPC `puede_ver_otras_bitacoras` + espejo `puede_ver_bitacora`), sembrado a admin/dirección/gerencia/jefe_ing, editable desde Roles. AW2 autor+hora en listado/detalle/PDF (`bitacora.service` SELECT join `autor:usuarios!bitacoras_usuario_id_fkey`). AW4 3 actividades nuevas. AW1 `bitacora_catalogos.permite_sin_cantidad` + `bitacora_actividades.es_aproximada`; `catalogo_ordenado` y ambos `crear_*_bitacora` recreados con `es_aproximada`; UI en `nueva` (toggle "~") + admin toggle en Catálogos.
+- **FASE 2 — Reportes de errores + voz web** (`aw14-…sql`): tabla `app_error_estados` (workflow por FIRMA, no por fila) + RPCs `app_error_reports_grupos` (con estado/usuarios/filtro p_estado), `app_error_reports_por_firma` (ocurrencias+usuario+metadata), `marcar_error_estado` (gate es_tecnologia), auto-reapertura dentro de `report_app_error`. UI: Bandeja/Historial, acciones, drill-down. **AW15 voz web**: raíz = el composer nunca tuvo grabación; construido mic SVG + MediaRecorder + onda reactiva + `MensajeriaService.enviarNotaVoz` (bucket sgc-mensajes + RPC `enviar_nota_voz`) + reproductor + modelo `tipo:'audio'`/`duracion_seg`. **Triage:** top volumen = ruido por diseño (rechazo outliers GPS AV8, watchdog gama baja); `nota_voz check-constraint` ya resuelto por AV5.
+- **FASE 3 — Fuzzy** (`aw6-…sql`): `pg_trgm`+`unaccent` (+`f_unaccent` inmutable + índice GIN) + RPC `buscar_articulos` (nombre/código/categoría/subgrupo, ranking). Picker: matching local sin acentos/orden + "¿Quisiste decir…?" server. RPC listo para app.
+- **FASE 4 — Monitoreo+APIs+tablas** (`aw9-…sql`): Monitoreo movido al grupo/menú Tecnología (gate módulo). Nueva página `/tecnologia/apis-consumo` (tabla `api_servicios` + service + seed 7 APIs + costo manual/mes). Billing API ⏸ → `docs/AW9-billing-api-checklist.md`. AW10 patrón `.data-table__actions` en `styles.scss` + fix Suscripciones.
+- **FASE 5 — Recorrido + vehículo + AW12** (`aw16-…sql`): componente `shared/ui/map-legend` (SVG, colapsable) en Recorrido diario. AW16-server: `vehiculos_en_uso`/`estado_uso_vehiculo` +color (AT9); `iniciar_uso_vehiculo` notifica al jefe de flota en el traspaso (rastro `recibido_de` ya estaba). AW12 regla SVG>emojis en `CLAUDE.md` (#8) + migrados emojis-icono de lo tocado.
+- **FASE 6 — Empresa + Catálogos** (solo web): Empresa con secciones/descripciones/validación RNC+correo/preview de encabezado. Catálogos de bitácora con descripción por catálogo + búsqueda + contador.
+
+### Pendiente / próximos pasos
+1. **Asignar rol `jefe_ingenieros`** a un usuario de prueba y validar "Todas las bitácoras" + autor/hora en prod.
+2. **⏸ Google Cloud Billing API**: seguir `docs/AW9-billing-api-checklist.md` (habilitar Billing API + cuenta de servicio solo-lectura) para activar el consumo automático; luego edge `apis-usage`.
+3. **PROMPT-26 (app csd-app)**: fix envío de voces + UI grabación WhatsApp + permisos al abrir/persistentes; editor de foto de perfil (usuario/grupo); Mis/Todas bitácoras + autor/hora + cantidad aprox paso 5/10; búsqueda con sugerencias (usa `buscar_articulos`); aviso "en uso de X" en el wizard (usa `estado_uso_vehiculo`/`vehiculos_en_uso` con color); emojis→SVG en lo tocado.
+4. **Nota AW3**: se concedió "ver" (supervisión). "Comentar" requeriría un hilo de comentarios en bitácora (feature nueva) — proponer si se quiere.
+5. **Tests vitest rotos por config** (globals no habilitados en los 4 spec boilerplate) — preexistente, no bloquea; QA manual.
+
+---
 
 ## 🟢 2026-08-20 — AV3 FASE 1.4: gate de firma del despachante en la web (1.82.1) + fix map-matching
 Paridad con la app móvil (PROMPT-24). Commit `f266d9b` (web 1.82.1) + `50b7e72` (snap-to-roads SHA-256 + migraciones AV3/AV13b/AV5).

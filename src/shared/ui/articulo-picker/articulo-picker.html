@@ -67,7 +67,30 @@
             }
           }
         } @empty {
-          <p class="apk__empty">Sin resultados para «{{ query() }}».</p>
+          <!-- AW6 — sugerencias fuzzy del servidor cuando el filtro local no encuentra nada -->
+          @if (buscandoSug()) {
+            <p class="apk__empty">Buscando sugerencias…</p>
+          } @else if (sugerencias().length > 0) {
+            <div class="apk__group-label apk__group-label--sug">¿Quisiste decir…?</div>
+            @for (a of sugerencias(); track a.id) {
+              <button type="button" class="apk__opt" role="option" (click)="elegir(a)">
+                <span class="apk__opt-main">
+                  <span class="apk__opt-name">
+                    {{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}
+                    <span class="sgc-badge sgc-badge--{{ propiedadBadge(a.propiedad) }} apk__opt-prop">{{ propiedadLabel(a.propiedad) }}</span>
+                  </span>
+                  <span class="apk__opt-code">{{ a.codigo }}</span>
+                </span>
+                @if (stockDe(a.id) !== null) {
+                  <span class="apk__opt-stock" [class.apk__opt-stock--zero]="stockDe(a.id) === 0">
+                    {{ stockDe(a.id) }} {{ a.unidad }}
+                  </span>
+                }
+              </button>
+            }
+          } @else {
+            <p class="apk__empty">Sin resultados para «{{ query() }}».</p>
+          }
         }
 
         @if (allowOtro()) {

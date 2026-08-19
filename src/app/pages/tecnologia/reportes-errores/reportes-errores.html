@@ -9,8 +9,14 @@
   <!-- Z28 — origen del error -->
   <div class="rep__tabs">
     <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === ''" (click)="fSource.set(''); applyFilters()">Todos</button>
-    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'app'" (click)="fSource.set('app'); applyFilters()">📱 App móvil</button>
-    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'web'" (click)="fSource.set('web'); applyFilters()">💻 Página web</button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'app'" (click)="fSource.set('app'); applyFilters()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+      App móvil
+    </button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="fSource() === 'web'" (click)="fSource.set('web'); applyFilters()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Página web
+    </button>
   </div>
 
   <!-- Filtros -->
@@ -42,14 +48,23 @@
     }
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="exportando()"
             title="Exportar a Excel lo que coincide con el filtro actual">
-      @if (exportando()) { Exportando… } @else { ⬇️ Excel }
+      @if (exportando()) { Exportando… } @else {
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Excel
+      }
     </button>
   </div>
 
   <!-- Vistas -->
   <div class="rep__tabs">
-    <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'agrupado'" (click)="cambiarVista('agrupado')">📊 Agrupado</button>
-    <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'detalle'" (click)="cambiarVista('detalle')">📄 Detalle</button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'agrupado'" (click)="cambiarVista('agrupado')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Agrupado
+    </button>
+    <button type="button" class="rep__tab" [class.rep__tab--active]="vista() === 'detalle'" (click)="cambiarVista('detalle')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Detalle
+    </button>
   </div>
 
   @if (error()) {
@@ -61,6 +76,12 @@
   } @else {
     <!-- ── Agrupado por mensaje ── -->
     @if (vista() === 'agrupado') {
+      <!-- AW14 — bandeja de abiertos vs Historial de solucionados -->
+      <div class="rep__tabs rep__tabs--estado">
+        <button type="button" class="rep__tab" [class.rep__tab--active]="estadoVista() === 'abiertos'" (click)="cambiarEstadoVista('abiertos')">Bandeja (abiertos / en revisión)</button>
+        <button type="button" class="rep__tab" [class.rep__tab--active]="estadoVista() === 'solucionado'" (click)="cambiarEstadoVista('solucionado')">Historial (solucionados)</button>
+      </div>
+
       <div class="kpi-grid">
         <div class="kpi-card kpi-card--primary">
           <span class="kpi-label">Ocurrencias</span>
@@ -84,26 +105,79 @@
         <table class="data-table rep__table" aria-label="Errores agrupados">
           <thead>
             <tr>
+              <th>Estado</th>
               <th>Tipo</th>
               <th>Mensaje</th>
-              <th class="rep__num">Ocurrencias</th>
-              <th class="rep__num">Dispositivos</th>
+              <th class="rep__num">Ocurr.</th>
+              <th class="rep__num">Disp.</th>
+              <th class="rep__num">Usuarios</th>
               <th>Última vez</th>
-              <th></th>
+              <th class="rep__acciones-col">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @for (g of grupos(); track g.firma) {
               <tr>
+                <td>
+                  <span [class]="estadoBadgeClass(g.estado)">{{ estadoLabel(g.estado) }}</span>
+                  @if (g.reabierto_at) {
+                    <span class="sgc-badge sgc-badge--warning" title="Reapareció tras marcarse como solucionado">Reabierto</span>
+                  }
+                </td>
                 <td><span class="rep__badge" [attr.data-tipo]="g.error_type">{{ tipoLabel(g.error_type) }}</span></td>
                 <td class="rep__msg"><code>{{ g.firma }}</code></td>
                 <td class="rep__num">{{ g.ocurrencias | number }}</td>
                 <td class="rep__num">{{ g.dispositivos | number }}</td>
+                <td class="rep__num">{{ g.usuarios | number }}</td>
                 <td class="rep__ts">{{ formatTs(g.ultima_vez) }}</td>
-                <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verGrupo(g)">Ver →</button></td>
+                <td class="rep__acciones">
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verOcurrencias(g)">
+                    {{ firmaExpandida() === g.firma ? 'Ocultar' : 'Ocurrencias' }}
+                  </button>
+                  @if (g.estado !== 'solucionado') {
+                    @if (g.estado !== 'en_revision') {
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'en_revision')">En revisión</button>
+                    }
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'solucionado')">Solucionado</button>
+                  } @else {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'abierto')">Reabrir</button>
+                  }
+                </td>
               </tr>
+              @if (firmaExpandida() === g.firma) {
+                <tr class="rep__detail-row">
+                  <td colspan="8">
+                    @if (g.resuelto_por_nombre) {
+                      <p class="rep__resuelto">Marcado solucionado por <strong>{{ g.resuelto_por_nombre }}</strong>@if (g.resuelto_at) { · {{ formatTs(g.resuelto_at) }} }.</p>
+                    }
+                    @if (cargandoOcurrencias()) {
+                      <app-skeleton variant="table" [rows]="3" />
+                    } @else {
+                      <div class="rep__ocurr-wrap">
+                        <table class="data-table rep__ocurr">
+                          <thead>
+                            <tr><th>Fecha y hora</th><th>Usuario</th><th>Plataforma</th><th>Dispositivo</th><th>SO</th><th>Versión</th></tr>
+                          </thead>
+                          <tbody>
+                            @for (o of ocurrencias(); track o.id) {
+                              <tr>
+                                <td class="rep__ts">{{ formatTs(o.created_at) }}</td>
+                                <td>{{ o.usuario_nombre || '—' }}</td>
+                                <td>{{ o.platform || '—' }}</td>
+                                <td>{{ o.device_brand }} {{ o.device_model }}</td>
+                                <td>{{ o.os_version || '—' }}</td>
+                                <td>{{ o.app_version || '—' }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
             } @empty {
-              <tr><td colspan="6" class="rep__muted rep__empty">Sin reportes que coincidan con el filtro.</td></tr>
+              <tr><td colspan="8" class="rep__muted rep__empty">Sin reportes que coincidan con el filtro.</td></tr>
             }
           </tbody>
         </table>

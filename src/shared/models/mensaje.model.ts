@@ -32,8 +32,11 @@ export interface Mensaje {
   archivo_mime: string | null;
   created_at: string;
   /** 'sistema' → evento de grupo (alguien entró/salió, se cambió el nombre…).
-   *  'sticker' → el mensaje es un sticker (ref guardado en archivo_path). */
-  tipo?: 'texto' | 'sistema' | 'sticker';
+   *  'sticker' → el mensaje es un sticker (ref guardado en archivo_path).
+   *  'audio' → nota de voz (AV5/AW15): audio en archivo_path + duracion_seg. */
+  tipo?: 'texto' | 'sistema' | 'sticker' | 'audio';
+  /** AV5/AW15 — duración (segundos) de la nota de voz (tipo='audio'). */
+  duracion_seg?: number | null;
 }
 
 // ── Stickers (AT16) ────────────────────────────────────────

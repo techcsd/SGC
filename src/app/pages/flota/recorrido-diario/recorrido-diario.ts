@@ -11,6 +11,7 @@ import {
 import { GoogleMapsLoader } from '../../../../shared/context/google-maps-loader.service';
 import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { MapLegend } from '../../../../shared/ui/map-legend/map-legend';
 import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../../../../shared/utils/fecha.util';
 
 /**
@@ -23,7 +24,7 @@ import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../
  */
 @Component({
   selector: 'app-recorrido-diario',
-  imports: [FormsModule, DecimalPipe, RouterLink, Skeleton],
+  imports: [FormsModule, DecimalPipe, RouterLink, Skeleton, MapLegend],
   templateUrl: './recorrido-diario.html',
   styleUrl: './recorrido-diario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

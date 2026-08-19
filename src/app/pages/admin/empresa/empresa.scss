@@ -11,3 +11,53 @@
   }
   &__actions { margin-top: 6px; }
 }
+
+// AW8 — layout de dos columnas (form + preview), secciones y encabezado de doc
+.empresa-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  gap: 20px;
+  align-items: start;
+}
+.empresa-sec {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--sgc-border, #2d2d2d);
+  &:last-of-type { border-bottom: none; }
+  &__h { margin: 0 0 2px; font-size: 0.95rem; }
+  &__desc { margin: 0 0 12px; font-size: 0.8rem; color: var(--sgc-text-muted, #929090); }
+}
+.field-hint { display: block; margin-top: 3px; font-size: 0.75rem; color: var(--sgc-text-muted, #929090); }
+.empresa-preview {
+  position: sticky;
+  top: 16px;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  padding: 16px;
+  &__h { margin: 0 0 12px; font-size: 0.85rem; color: var(--sgc-text-muted, #929090); text-transform: uppercase; letter-spacing: 0.04em; }
+  &__note { margin: 12px 0 0; font-size: 0.75rem; color: var(--sgc-text-muted, #929090); }
+}
+.doc-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  background: #fff;
+  color: #1a1a1a;
+  border-radius: 8px;
+  padding: 14px;
+}
+.doc-head__logo {
+  flex: 0 0 auto;
+  width: 54px; height: 54px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px dashed #b0b0b0; border-radius: 6px;
+  font-size: 0.7rem; color: #909090; font-weight: 700;
+}
+.doc-head__title { font-weight: 800; font-size: 1rem; }
+.doc-head__line { font-size: 0.78rem; color: #444; margin-top: 2px; }
+
+@media (max-width: 900px) {
+  .empresa-layout { grid-template-columns: 1fr; }
+  .empresa-preview { position: static; }
+}

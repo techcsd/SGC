@@ -43,6 +43,7 @@ export interface BitacoraActividad {
   cantidad: number | null; // R24 — cuántas se hicieron
   unidad: string | null; // Q6 — unidad de medida del trabajo (código de sgc.unidades)
   bloque: string | null; // S4 — bloque/piso/edificio de esta actividad (multi-bloque)
+  es_aproximada?: boolean; // AW1 — la cantidad es aproximada (~), no exacta
 }
 
 export interface BitacoraRestriccion {
@@ -137,6 +138,8 @@ export const INCIDENTE_GRAVEDADES: { value: string; label: string }[] = [
 export interface Bitacora {
   id: string;
   usuario_id: string;
+  // AW2 — autor de la bitácora (nombre) para el listado/detalle/PDF.
+  autor?: { id: string; nombre: string } | null;
   proyecto_id: string;
   proyecto?: { nombre: string; codigo: string };
   fecha: string;
@@ -206,7 +209,7 @@ export interface BitacoraFormData {
   personal_acero: number;
   trabajadores_casa: number;
   otro_personal: string | null;
-  actividades: { estructura: string; actividad: string; cantidad?: number | null; unidad?: string | null; bloque?: string | null }[];
+  actividades: { estructura: string; actividad: string; cantidad?: number | null; unidad?: string | null; bloque?: string | null; es_aproximada?: boolean }[];
   restricciones: { tipo_restriccion: string; descripcion_otro: string | null }[];
   // Visita
   visita_tipo_visitante: string | null;

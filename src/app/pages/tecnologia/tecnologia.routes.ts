@@ -84,4 +84,11 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./estadisticas/estadisticas').then((m) => m.TecEstadisticas),
     title: 'Estadísticas — Tecnología',
   },
+  {
+    // AW9 — APIs y consumo: inventario de APIs/servicios + costo estimado/mes.
+    path: 'apis-consumo',
+    canActivate: [moduleGuard('tecnologia')],
+    loadComponent: () => import('./apis-consumo/apis-consumo').then((m) => m.TecApisConsumo),
+    title: 'APIs y consumo — Tecnología',
+  },
 ];
