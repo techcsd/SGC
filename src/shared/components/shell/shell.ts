@@ -332,6 +332,7 @@ export class Shell implements OnInit {
         { label: 'QA (pruebas)', route: '/tecnologia/qa', soloTecnologia: true },
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
+        { label: 'Issues (Jira interno)', route: '/tecnologia/issues', soloTecnologia: true },
       ],
     },
     {

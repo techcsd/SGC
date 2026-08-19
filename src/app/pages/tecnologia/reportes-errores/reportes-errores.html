@@ -228,6 +228,12 @@
                         <h4 class="rep__detail-h">Contexto</h4>
                         <pre class="rep__pre">{{ contextStr(r.context) }}</pre>
                       }
+                      <!-- AW14 — crear un issue (bug) desde este reporte -->
+                      <div class="rep__detail-actions">
+                        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="creandoIssue() === r.id" (click)="crearIssue(r.id)">
+                          {{ creandoIssue() === r.id ? 'Creando…' : 'Crear issue (bug)' }}
+                        </button>
+                      </div>
                     </div>
                   </td>
                 </tr>

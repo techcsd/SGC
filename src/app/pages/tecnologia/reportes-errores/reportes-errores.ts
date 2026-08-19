@@ -14,6 +14,9 @@ import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { JiraService } from '../../../../shared/services/jira.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tec-reportes-errores',
@@ -24,8 +27,27 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 })
 export class TecReportesErrores implements OnInit {
   private service = inject(AppErrorReportsService);
+  private jira = inject(JiraService);
+  private toast = inject(ToastService);
+  private router = inject(Router);
 
   readonly tipos = APP_ERROR_TYPES;
+
+  // AW14 — crear un issue de Jira desde un reporte de error.
+  creandoIssue = signal<string | null>(null);
+  async crearIssue(reporteId: string) {
+    if (this.creandoIssue()) return;
+    this.creandoIssue.set(reporteId);
+    try {
+      await this.jira.crearDesdeReporte(reporteId);
+      this.toast.success('Issue creado', 'Se creó un bug en el board de Issues.');
+      void this.router.navigate(['/tecnologia/issues']);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear el issue', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.creandoIssue.set(null);
+    }
+  }
 
   // ── Vista: agrupado (por mensaje) / detalle (filas) ──
   vista = signal<'agrupado' | 'detalle'>('agrupado');

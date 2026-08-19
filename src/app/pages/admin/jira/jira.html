@@ -1,0 +1,210 @@
+<!-- AY15 — Jira interno (board Kanban) -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Issues (Jira interno)</h1>
+    <span class="page-count">Gestión de tareas, bugs y mejoras del sistema — solo Tecnología</span>
+  </div>
+  <div class="jira-head-actions">
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="epicaOpen.set(true)">+ Épica</button>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo issue
+    </button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-bar">
+  <input type="search" class="sgc-input jira-search" placeholder="Buscar por título o label…" [value]="fQ()" (input)="fQ.set($any($event.target).value)" aria-label="Buscar" />
+  <select class="sgc-input" [value]="fTipo()" (change)="fTipo.set($any($event.target).value)" aria-label="Tipo">
+    <option value="">Todo tipo</option>
+    <option value="tarea">Tarea</option><option value="bug">Bug</option><option value="mejora">Mejora</option><option value="epica">Épica</option>
+  </select>
+  <select class="sgc-input" [value]="fPrioridad()" (change)="fPrioridad.set($any($event.target).value)" aria-label="Prioridad">
+    <option value="">Toda prioridad</option>
+    <option value="urgente">Urgente</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option>
+  </select>
+  <select class="sgc-input" [value]="fEpica()" (change)="fEpica.set($any($event.target).value)" aria-label="Épica">
+    <option value="">Todas las épicas</option>
+    @for (e of epicas(); track e.id) { <option [value]="e.id">{{ e.titulo }} ({{ e.hechos }}/{{ e.issues }})</option> }
+  </select>
+</div>
+
+@if (loading()) {
+  <app-skeleton [rows]="4" />
+} @else {
+  <div class="jira-board">
+    @for (col of columnas; track col.estado) {
+      <div class="jira-col" [class.jira-col--over]="dragOverCol() === col.estado"
+           (dragover)="onDragOver($event, col.estado)" (dragleave)="onDragLeave(col.estado)" (drop)="onDrop($event, col.estado)">
+        <div class="jira-col__head">
+          <span class="jira-col__title">{{ col.label }}</span>
+          <span class="jira-col__count">{{ conteo(col.estado) }}</span>
+        </div>
+        <div class="jira-col__body">
+          @for (i of porColumna(col.estado); track i.id) {
+            <article class="jira-card" draggable="true" (dragstart)="onDragStart(i.id)" (click)="abrirDetalle(i)">
+              <div class="jira-card__top">
+                <span [class]="tipoClase(i.tipo)">{{ tipoLabel(i.tipo) }}</span>
+                <span [class]="prioClase(i.prioridad)">{{ i.prioridad }}</span>
+              </div>
+              <p class="jira-card__titulo">{{ i.titulo }}</p>
+              @if (i.labels?.length) {
+                <div class="jira-card__labels">
+                  @for (l of i.labels; track l) { <span class="jira-label">{{ l }}</span> }
+                </div>
+              }
+              <div class="jira-card__foot">
+                @if (i.epica) { <span class="jira-card__epica">{{ i.epica }}</span> }
+                <span class="jira-card__spacer"></span>
+                @if (i.comentarios > 0) {
+                  <span class="jira-card__meta" title="Comentarios">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> {{ i.comentarios }}
+                  </span>
+                }
+                @if (i.asignado) { <span class="jira-card__avatar" [title]="i.asignado">{{ i.asignado.charAt(0) }}</span> }
+              </div>
+            </article>
+          }
+          <button type="button" class="jira-col__add" (click)="abrirCrear(col.estado)">+ Añadir</button>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Crear / editar issue -->
+<app-form-drawer [title]="editId() ? 'Editar issue' : 'Nuevo issue'" [open]="drawerOpen()" (closed)="drawerOpen.set(false)">
+  <form [formGroup]="form" class="jira-form" (ngSubmit)="guardar()">
+    <div class="sgc-field">
+      <label for="j-tit">Título *</label>
+      <input id="j-tit" type="text" formControlName="titulo" placeholder="Resumen corto del issue" />
+    </div>
+    <div class="jira-form__row">
+      <div class="sgc-field">
+        <label for="j-tipo">Tipo</label>
+        <select id="j-tipo" formControlName="tipo">
+          <option value="tarea">Tarea</option><option value="bug">Bug</option><option value="mejora">Mejora</option><option value="epica">Épica</option>
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="j-prio">Prioridad</label>
+        <select id="j-prio" formControlName="prioridad">
+          <option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option><option value="urgente">Urgente</option>
+        </select>
+      </div>
+    </div>
+    <div class="jira-form__row">
+      <div class="sgc-field">
+        <label for="j-estado">Estado</label>
+        <select id="j-estado" formControlName="estado">
+          @for (c of columnas; track c.estado) { <option [value]="c.estado">{{ c.label }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="j-asig">Asignado a</label>
+        <select id="j-asig" formControlName="asignado_a">
+          <option [ngValue]="null">— Sin asignar —</option>
+          @for (u of usuarios(); track u.id) { <option [ngValue]="u.id">{{ u.nombre }}</option> }
+        </select>
+      </div>
+    </div>
+    <div class="sgc-field">
+      <label for="j-epica">Épica</label>
+      <select id="j-epica" formControlName="epica_id">
+        <option [ngValue]="null">— Ninguna —</option>
+        @for (e of epicas(); track e.id) { <option [ngValue]="e.id">{{ e.titulo }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label for="j-labels">Labels (separados por coma)</label>
+      <input id="j-labels" type="text" formControlName="labels" placeholder="web, db, deuda-técnica" />
+    </div>
+    <div class="sgc-field">
+      <label for="j-desc">Descripción</label>
+      <textarea id="j-desc" formControlName="descripcion" rows="5" placeholder="Detalle, pasos, contexto…"></textarea>
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="drawerOpen.set(false)" [disabled]="saving()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar' }}</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- Detalle -->
+<app-form-drawer title="Detalle del issue" [open]="detalleOpen()" (closed)="detalleOpen.set(false)">
+  @if (detalle(); as d) {
+    <div class="jira-det">
+      <div class="jira-det__top">
+        <span [class]="tipoClase(d.issue.tipo)">{{ tipoLabel(d.issue.tipo) }}</span>
+        <span [class]="prioClase(d.issue.prioridad)">{{ d.issue.prioridad }}</span>
+        @if (d.issue.origen_reporte_id) { <span class="jira-label">desde reporte</span> }
+      </div>
+      <h2 class="jira-det__titulo">{{ d.issue.titulo }}</h2>
+      <p class="jira-det__meta">
+        {{ d.issue.epica ? 'Épica: ' + d.issue.epica + ' · ' : '' }}
+        {{ d.issue.asignado ? 'Asignado: ' + d.issue.asignado : 'Sin asignar' }}
+      </p>
+      @if (d.issue.labels?.length) {
+        <div class="jira-card__labels">@for (l of d.issue.labels; track l) { <span class="jira-label">{{ l }}</span> }</div>
+      }
+      @if (d.issue.descripcion) { <pre class="jira-det__desc">{{ d.issue.descripcion }}</pre> }
+
+      <div class="jira-det__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditarDesdeDetalle()">Editar</button>
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm">
+          Adjuntar<input type="file" class="sr-only" (change)="adjuntar($event)" [disabled]="detalleBusy()" />
+        </label>
+        <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="eliminar()">Eliminar</button>
+      </div>
+
+      @if (d.adjuntos.length) {
+        <h3 class="jira-det__h">Adjuntos</h3>
+        <ul class="jira-det__adj">
+          @for (a of d.adjuntos; track a.id) {
+            <li><button type="button" class="jira-link" (click)="abrirAdjunto(a.path)">{{ a.nombre || 'archivo' }}</button> <span class="text-muted">{{ formatSize(a.size) }}</span></li>
+          }
+        </ul>
+      }
+
+      <h3 class="jira-det__h">Comentarios</h3>
+      @for (c of d.comentarios; track c.id) {
+        <div class="jira-com">
+          <div class="jira-com__head"><strong>{{ c.autor || 'Usuario' }}</strong> <span class="text-muted">{{ c.at | date:'dd/MM HH:mm' }}</span></div>
+          <p class="jira-com__txt">{{ c.texto }}</p>
+        </div>
+      } @empty {
+        <p class="text-muted jira-det__empty">Sin comentarios aún.</p>
+      }
+      <div class="jira-com-new">
+        <textarea rows="2" placeholder="Escribe un comentario…" [value]="nuevoComentario()" (input)="nuevoComentario.set($any($event.target).value)"></textarea>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="comentar()" [disabled]="detalleBusy() || !nuevoComentario().trim()">Comentar</button>
+      </div>
+
+      @if (d.historial.length) {
+        <h3 class="jira-det__h">Historial</h3>
+        <ul class="jira-hist">
+          @for (h of d.historial; track $index) {
+            <li><span class="text-muted">{{ h.at | date:'dd/MM HH:mm' }}</span> — {{ h.actor || 'Alguien' }} cambió <strong>{{ h.campo }}</strong>: {{ h.antes || '—' }} → {{ h.despues || '—' }}</li>
+          }
+        </ul>
+      }
+    </div>
+  } @else {
+    <app-skeleton [rows]="4" />
+  }
+</app-form-drawer>
+
+<!-- Crear épica -->
+<app-form-drawer title="Nueva épica" [open]="epicaOpen()" (closed)="epicaOpen.set(false)">
+  <div class="jira-form">
+    <div class="sgc-field">
+      <label for="ep-tit">Título de la épica</label>
+      <input id="ep-tit" type="text" [formControl]="epicaTitulo" placeholder="Ej: Migración de mapas" />
+    </div>
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="epicaOpen.set(false)">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearEpica()" [disabled]="!epicaTitulo.value?.trim()">Crear épica</button>
+    </div>
+  </div>
+</app-form-drawer>

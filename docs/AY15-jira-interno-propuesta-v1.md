@@ -1,8 +1,13 @@
 # AY15 — Submódulo tipo Jira interno (propuesta v1)
 
-> Para el trabajo de desarrollo de Xaviel/Tecnología. Solo-admin (`es_tecnologia`).
-> **⏸ PAUSA:** valida el alcance v1 ANTES de construir. Si apruebas en la misma
-> sesión, se construye el board Kanban + CRUD de issues como v1.
+> Para el trabajo de desarrollo de Xaviel/Tecnología. Solo `es_tecnologia`.
+> **✅ CONSTRUIDO (2026-08-23, aprobado por Xaviel).** v1 en producción:
+> `Sistema › Issues (Jira interno)` (`/tecnologia/issues`). Migración
+> `sql/2026-08-23-ay15-jira-interno.sql`, servicio `jira.service.ts`, board
+> `pages/admin/jira/*`. Board Kanban con drag&drop (5 columnas), issues tipados
+> (tarea/bug/mejora/épica) con prioridad/labels/asignado/épica/comentarios/
+> historial/adjuntos, filtros, y "crear issue desde reporte de error" (AW14).
+> Este doc queda como referencia de alcance; v2 = sprints/burndown/sub-tareas.
 
 ## Cómo funciona Jira (resumen del research)
 

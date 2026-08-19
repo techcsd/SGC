@@ -48,6 +48,13 @@ export const tecnologiaRoutes: Routes = [
     title: 'Reportes de errores — Tecnología',
   },
   {
+    // AY15 — Jira interno (board Kanban de issues). Gate: es_tecnologia (server + guard).
+    path: 'issues',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('../admin/jira/jira').then((m) => m.AdminJira),
+    title: 'Issues (Jira interno) — Tecnología',
+  },
+  {
     // AC3 — QA (gestión de pruebas): casos, corridas y checklist por versión.
     path: 'qa',
     canActivate: [tecnologiaGuard],

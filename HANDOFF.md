@@ -23,9 +23,10 @@ _Last updated: 2026-08-19_
 
 **Aplicado/entregado esta sesión:** 5 migraciones a prod (verificadas) + commit `f3815a7` + push `main` (Vercel auto-deploy 1.85.0). AY6 (Personal de obra visual), AY10 (Recorrido diario contraste dark), y paridad conduce web **iniciar ruta + transferir** — todo cerrado.
 
-**⏸ Solo decisiones tuyas (no es código pendiente):**
+**AY15 Jira interno — ✅ CONSTRUIDO Y EN PROD (aprobado por Xaviel).** web 1.86.0: board Kanban `Sistema › Issues` (`/tecnologia/issues`), drag&drop nativo, issues tipados/prioridad/labels/asignado/épica/comentarios/historial/adjuntos, filtros, "crear issue desde reporte de error" (AW14 en `/tecnologia/reportes-errores`). Migración `2026-08-23-ay15-jira-interno.sql` aplicada a prod (5 tablas + 11 RPCs + bucket `sgc-jira`).
+
+**⏸ Única decisión tuya restante (no es código pendiente):**
 - **AY5:** la herramienta de fusión está en `/admin/almacenes-duplicados`; revisa la lista y fusiona tú (destructivo, requiere tu criterio con la data real).
-- **AY15 Jira:** propuesta v1 en `docs/AY15-jira-interno-propuesta-v1.md`; aprueba/ajusta el alcance y lo construyo (lo dejé sin construir por tu decisión previa explícita "propuesta + pausa").
 
 **Mejoras opcionales (no bloquean, bajo criterio):** AY14 thumbnail server-side de PDF/Office (hoy: visor inline + card rica — suficiente); "crear conduce como chofer" en web (la web ya crea conduces por almacén); AW10 componente de tabla compartido (el estándar `.data-table` ya se usa en todo).
 - App (PROMPT-30): contratos listos (chat v3 sync, conduce es_prueba, Solicitud de movimiento).

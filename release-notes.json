@@ -1,5 +1,12 @@
 {
   "web": {
+    "1.86.0": {
+      "titulo": "Gestor de Issues interno (tipo Jira) para Tecnología",
+      "cambios": [
+        { "t": "nuevo", "d": "Nuevo “Issues (Jira interno)” en Sistema (solo Tecnología): board Kanban con arrastrar-y-soltar (Backlog · Por hacer · En progreso · En revisión · Hecho), issues tipados (tarea/bug/mejora/épica) con prioridad, labels, asignado, épica, comentarios, historial de cambios y adjuntos." },
+        { "t": "nuevo", "d": "Desde “Reportes de errores” se puede crear un issue (bug) con un clic, ya prellenado con el detalle del reporte (dispositivo, versión, mensaje y stack)." }
+      ]
+    },
     "1.85.0": {
       "titulo": "Chat nivel WhatsApp, conduces de prueba y por implementar, módulo de Solicitud de movimiento, Gerencia y desempeño repensados",
       "cambios": [

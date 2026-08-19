@@ -1,0 +1,140 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.jira-head-actions { display: flex; gap: 8px; }
+
+.filters-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.jira-search { min-width: 220px; flex: 1; }
+
+// ── Board ──────────────────────────────────────────────────────────────────
+.jira-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(240px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.jira-col {
+  background: #141414;
+  border: 1px solid #2d2d2d;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &--over { border-color: var(--Hub); background: #191712; }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px 8px;
+  }
+  &__title { font-weight: 600; font-size: 0.9rem; }
+  &__count {
+    font-size: 0.72rem;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--main-ultra-light);
+  }
+  &__body { display: flex; flex-direction: column; gap: 8px; padding: 0 10px 10px; }
+  &__add {
+    border: 1px dashed #2d2d2d;
+    background: transparent;
+    color: var(--main-ultra-light);
+    border-radius: 10px;
+    padding: 7px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    &:hover { border-color: var(--Hub); color: var(--Hub); }
+  }
+}
+
+.jira-card {
+  background: #1c1c1c;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover { border-color: var(--Hub); transform: translateY(-1px); }
+  &:active { cursor: grabbing; }
+
+  &__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  &__titulo { margin: 0; font-size: 0.86rem; line-height: 1.35; }
+  &__labels { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  &__foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  &__spacer { flex: 1; }
+  &__epica { font-size: 0.7rem; color: #7fb3f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+  &__meta { display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--main-ultra-light); }
+  &__avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255, 179, 0, 0.18); color: var(--Hub);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700;
+  }
+}
+
+// ── Chips de tipo / prioridad / label ──────────────────────────────────────
+.jira-tipo, .jira-prio {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+.jira-tipo--tarea  { background: rgba(74,144,226,0.16); color: #7fb3f0; }
+.jira-tipo--bug    { background: rgba(239,83,80,0.18);  color: #ef8a87; }
+.jira-tipo--mejora { background: rgba(67,160,71,0.16);  color: #7bc47f; }
+.jira-tipo--epica  { background: rgba(155,89,182,0.18); color: #c39bd3; }
+.jira-prio--baja    { background: rgba(146,144,144,0.16); color: var(--main-ultra-light); }
+.jira-prio--media   { background: rgba(74,144,226,0.16);  color: #7fb3f0; }
+.jira-prio--alta    { background: rgba(255,179,0,0.16);   color: var(--Hub); }
+.jira-prio--urgente { background: rgba(239,83,80,0.2);    color: #ef8a87; }
+
+.jira-label {
+  font-size: 0.68rem;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  color: var(--main-ultra-light);
+}
+
+// ── Formularios / detalle ──────────────────────────────────────────────────
+.jira-form__row { display: flex; gap: 12px; flex-wrap: wrap; }
+.jira-form__row .sgc-field { flex: 1; min-width: 130px; }
+
+.jira-det__top { display: flex; gap: 6px; margin-bottom: 6px; }
+.jira-det__titulo { margin: 0 0 4px; font-size: 1.1rem; }
+.jira-det__meta { margin: 0 0 10px; color: var(--main-ultra-light); font-size: 0.82rem; }
+.jira-det__desc {
+  white-space: pre-wrap;
+  font-family: inherit;
+  background: #161616;
+  border: 1px solid #2d2d2d;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.84rem;
+  margin: 8px 0;
+}
+.jira-det__actions { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.jira-det__h { font-size: 0.9rem; margin: 16px 0 8px; }
+.jira-det__empty { font-size: 0.84rem; }
+.jira-det__adj { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.jira-link { background: none; border: none; color: var(--Hub); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+
+.jira-com { border-bottom: 1px solid #222; padding: 8px 0; }
+.jira-com__head { display: flex; gap: 8px; font-size: 0.8rem; }
+.jira-com__txt { margin: 3px 0 0; font-size: 0.86rem; white-space: pre-wrap; }
+.jira-com-new { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.jira-com-new textarea { width: 100%; }
+
+.jira-hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: #ccc; }
