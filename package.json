@@ -10,7 +10,9 @@
     "build": "ng build",
     "postbuild": "node scripts/registrar-version-web.mjs",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:unit": "ng test --no-watch",
+    "test:e2e": "playwright test"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
