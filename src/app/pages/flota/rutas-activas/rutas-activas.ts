@@ -18,7 +18,7 @@ import {
   TrackingDiagnosticoRow,
 } from '../../../../shared/services/seguimiento.service';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 
 type Tab = 'activas' | 'historico';
@@ -61,6 +61,7 @@ interface ChoferRuta {
 export class RutasActivas implements OnInit, OnDestroy {
   private seguimiento = inject(SeguimientoService);
   formatFecha = formatFechaDisplay;
+  formatFechaHora = formatFechaHoraDisplay; // AT22
   readonly ESTADO_META = ESTADO_META;
   readonly idVehiculo = identificacionVehiculo;
 

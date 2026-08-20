@@ -129,6 +129,20 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),
       },
       {
+        // AT1-AT3 — Incentivos (gestión): informe semanal, aprobar/declinar, export.
+        // Lo ven quienes tienen el módulo `incentivos` (Logística, Gerencia, Admin).
+        path: 'incentivos',
+        canActivate: [moduleGuard('incentivos')],
+        loadComponent: () => import('./pages/incentivos/incentivos').then((m) => m.Incentivos),
+      },
+      {
+        // AT2 — "Mi rendimiento": el chofer ve SOLO su propio puntaje e histórico.
+        // Sin gate de módulo (no ve el módulo Incentivos); la RLS lo limita a lo suyo.
+        path: 'mi-rendimiento',
+        title: 'Mi rendimiento',
+        loadComponent: () => import('./pages/mi-rendimiento/mi-rendimiento').then((m) => m.MiRendimiento),
+      },
+      {
         // AY11 — Solicitud de movimiento: sin gate de módulo (todo usuario autenticado
         // puede crear/ver las suyas; la RLS + es_referente_movimiento gobiernan el resto).
         path: 'solicitudes-movimiento',

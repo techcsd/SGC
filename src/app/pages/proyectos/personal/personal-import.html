@@ -1,0 +1,123 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/proyectos/personal" class="page__back">← Personal de obra</a>
+      <h1 class="page__title">Importar personal desde Excel</h1>
+      <p class="page__sub">Sube el listado (formato de Sonia). Se detecta la obra, se mapean los cargos y verás una vista previa antes de confirmar. Las fotos se toman luego en obra con la app.</p>
+    </div>
+  </header>
+
+  @if (error()) { <div class="save-error" role="alert">{{ error() }}</div> }
+
+  <!-- Paso 1 — subir -->
+  @if (paso() === 'subir') {
+    <div class="pi-upload">
+      <label class="pi-drop">
+        <input type="file" accept=".xlsx,.xls" hidden (change)="onFile($event)" />
+        <span class="pi-drop__icon">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </span>
+        <span class="pi-drop__title">Elegir archivo Excel</span>
+        <span class="pi-drop__hint">.xlsx con columnas Nombre · Ocupación · # Documento · Nacionalidad · Técnico</span>
+      </label>
+    </div>
+  }
+
+  <!-- Paso 2 — previsualizar -->
+  @if (paso() === 'previsualizar') {
+    <div class="pi-meta">
+      <div class="pi-meta__file">📄 {{ archivoNombre() }}</div>
+      <div class="pi-meta__grid">
+        <div><span>Proyecto (archivo)</span><strong>{{ proyectoDetectado() || '—' }}</strong></div>
+        <div><span>Ubicación</span><strong>{{ ubicacionDetectada() || '—' }}</strong></div>
+        <div><span>Enc. de obra</span><strong>{{ encObra() || '—' }}</strong></div>
+      </div>
+    </div>
+
+    <div class="pi-controls">
+      <label class="pi-field">
+        <span>Importar a la obra <b>*</b></span>
+        <select [value]="obraSeleccionada() ?? ''" (change)="onObraChange($any($event.target).value)">
+          <option value="">Selecciona la obra…</option>
+          @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+        </select>
+      </label>
+      <label class="pi-field">
+        <span>Si el documento ya existe</span>
+        <select [value]="modo()" (change)="modo.set($any($event.target).value)">
+          <option value="actualizar">Actualizar sus datos</option>
+          <option value="saltar">Saltar (no tocar)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="pi-summary">
+      <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
+      @if (errCount()) { <span class="pi-chip pi-chip--err">{{ errCount() }} con error</span> }
+      @if (dupCount()) { <span class="pi-chip pi-chip--dup">{{ dupCount() }} ya existen</span> }
+    </div>
+
+    <div class="table-scroll">
+      <table class="data-table pi-table">
+        <thead>
+          <tr><th></th><th>Nombre</th><th>Documento</th><th>Nacionalidad</th><th>Cargo</th><th>Observación</th></tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track $index) {
+            <tr [class.pi-row--err]="f.estado === 'error'" [class.pi-row--warn]="f.estado === 'warning'">
+              <td class="pi-status">
+                @switch (f.estado) {
+                  @case ('ok') { <span class="pi-dot pi-dot--ok" title="Lista">●</span> }
+                  @case ('warning') { <span class="pi-dot pi-dot--warn" [title]="f.motivo">▲</span> }
+                  @case ('error') { <span class="pi-dot pi-dot--err" [title]="f.motivo">✕</span> }
+                }
+                @if (f.yaExiste) { <span class="pi-dup" title="Ya existe en la obra">⟳</span> }
+              </td>
+              <td>{{ f.nombre }}</td>
+              <td class="text-muted">{{ f.documento || '—' }} <small>{{ f.tipo_documento }}</small></td>
+              <td class="text-muted">{{ f.nacionalidad }}</td>
+              <td>
+                <select class="pi-cargo" [value]="f.cargo_id ?? ''" (change)="setCargo($index, $any($event.target).value)">
+                  <option value="">Sin cargo</option>
+                  @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+                </select>
+                @if (!f.cargo_id) { <small class="pi-cargo-src">del archivo: {{ f.cargo_origen }}</small> }
+              </td>
+              <td class="text-muted">{{ f.notas || '' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pi-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">Cambiar archivo</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="confirmar()">
+        {{ procesando() ? 'Importando…' : 'Importar ' + okCount() + ' personas' }}
+      </button>
+    </div>
+  }
+
+  <!-- Paso 3 — resultado -->
+  @if (paso() === 'resultado' && resultado(); as r) {
+    <div class="pi-result">
+      <h2 class="pi-result__title">Importación completada</h2>
+      <div class="pi-result__nums">
+        <div class="pi-num pi-num--ok"><span>{{ r.creados }}</span>creados</div>
+        <div class="pi-num"><span>{{ r.actualizados }}</span>actualizados</div>
+        <div class="pi-num"><span>{{ r.saltados }}</span>saltados</div>
+        <div class="pi-num pi-num--err"><span>{{ r.errores.length }}</span>con error</div>
+      </div>
+      @if (r.errores.length) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarErrores()">Descargar reporte de errores</button>
+      }
+      <div class="pi-result__actions">
+        @if (ultimoLote()) {
+          <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="procesando()" (click)="deshacer()">Deshacer este lote</button>
+        }
+        <a routerLink="/proyectos/personal" class="sgc-btn sgc-btn--secondary">Ver personal</a>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">Importar otro archivo</button>
+      </div>
+    </div>
+  }
+</section>

@@ -47,10 +47,21 @@ export class MaterialNoCatalogado implements OnInit {
   catalogo = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
 
-  // Item en edición (crear o vincular).
+  // Item en edición (crear, vincular o declinar).
   activo = signal<MaterialNoCatalogadoRow | null>(null);
-  modo = signal<'crear' | 'vincular' | null>(null);
+  modo = signal<'crear' | 'vincular' | 'declinar' | null>(null);
   guardando = signal(false);
+
+  // AT11 — declinar (→ historial). Motivos rápidos; "ya existe" apunta al correcto.
+  readonly MOTIVOS_DECLINAR = [
+    { value: 'no_necesario', label: 'No es necesario crear el artículo' },
+    { value: 'ya_existe', label: 'Ya existe en el catálogo' },
+    { value: 'duplicado', label: 'Duplicado' },
+    { value: 'otro', label: 'Otro' },
+  ];
+  declinarMotivo = signal<string>('no_necesario');
+  declinarNota = signal('');
+  declinarArticuloId = signal<string | null>(null);
 
   // Form crear artículo.
   nuevoNombre = signal('');
@@ -105,6 +116,14 @@ export class MaterialNoCatalogado implements OnInit {
     this.generarMovimiento.set(false);
   }
 
+  abrirDeclinar(fila: MaterialNoCatalogadoRow) {
+    this.activo.set(fila);
+    this.modo.set('declinar');
+    this.declinarMotivo.set('no_necesario');
+    this.declinarNota.set('');
+    this.declinarArticuloId.set(null);
+  }
+
   cerrar() {
     if (this.guardando()) return;
     this.activo.set(null);
@@ -113,6 +132,54 @@ export class MaterialNoCatalogado implements OnInit {
 
   onVincularSel(sel: ArticuloPickerSelection) {
     this.vincularArticuloId.set(sel.articuloId);
+  }
+
+  onDeclinarSel(sel: ArticuloPickerSelection) {
+    this.declinarArticuloId.set(sel.articuloId);
+  }
+
+  async confirmarDeclinar() {
+    const fila = this.activo();
+    if (!fila || this.guardando()) return;
+    const motivoVal = this.declinarMotivo();
+    const label = this.MOTIVOS_DECLINAR.find((m) => m.value === motivoVal)?.label ?? motivoVal;
+    let motivo = label;
+    let sugerido: string | null = null;
+    if (motivoVal === 'ya_existe') {
+      sugerido = this.declinarArticuloId();
+      if (!sugerido) { this.toast.error('Indica cuál artículo del catálogo ya existe.'); return; }
+      const art = this.catalogo().find((a) => a.id === sugerido);
+      if (art) motivo = `Ya existe en el catálogo: ${art.nombre}`;
+    } else if (motivoVal === 'otro') {
+      const nota = this.declinarNota().trim();
+      if (!nota) { this.toast.error('Escribe el motivo.'); return; }
+      motivo = nota;
+    }
+    this.guardando.set(true);
+    try {
+      await this.svc.declinarItemLibre(fila.id, motivo, sugerido);
+      this.toast.success('Material declinado.', 'Pasó a historial y se notificó a quien lo reportó.');
+      this.cerrar();
+      await this.cargar();
+    } catch (e: unknown) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo declinar.');
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  async revertirDeclinacion(fila: MaterialNoCatalogadoRow) {
+    if (this.guardando()) return;
+    this.guardando.set(true);
+    try {
+      await this.svc.revertirDeclinacionItemLibre(fila.id);
+      this.toast.success('Se revirtió el rechazo.', 'El material vuelve a la bandeja como pendiente.');
+      await this.cargar();
+    } catch (e: unknown) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo revertir.');
+    } finally {
+      this.guardando.set(false);
+    }
   }
 
   async crearYVincular() {

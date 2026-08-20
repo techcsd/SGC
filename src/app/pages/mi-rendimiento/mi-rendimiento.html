@@ -1,0 +1,71 @@
+<div class="mirend">
+  <header class="mirend__head">
+    <h1 class="mirend__title">Mi rendimiento</h1>
+    <p class="mirend__sub">Tu actividad semanal en la app y el puntaje del incentivo. Solo tú ves esta información.</p>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else if (error()) {
+    <div class="save-error" role="alert">{{ error() }}</div>
+  } @else if (semanas().length === 0) {
+    <div class="mirend__empty">
+      <p>Aún no tienes un informe de rendimiento. Se generan cada lunes con la actividad de la semana anterior (rutas, conduces, echadas, inspecciones y tu reporte semanal).</p>
+    </div>
+  } @else {
+
+    <!-- Semana actual, destacada -->
+    @if (actual(); as a) {
+      <section class="mirend-actual" [class.mirend-actual--ok]="a.cumplio">
+        <div class="mirend-actual__top">
+          <span class="mirend-actual__week">Semana {{ a.semana }}/{{ a.anio }} · {{ formatFecha(a.inicio) }}–{{ formatFecha(a.fin) }}</span>
+          @if (a.cumplio) {
+            <span class="inc-badge inc-badge--ok">Cumpliste 🎯</span>
+          } @else {
+            <span class="inc-badge inc-badge--bad">Aún no llegas al mínimo</span>
+          }
+        </div>
+        <div class="mirend-actual__score">
+          <span class="mirend-actual__pts">{{ a.puntaje }}</span>
+          <span class="mirend-actual__min">de {{ a.minimo }} para el incentivo</span>
+        </div>
+        <div class="mirend-bar"><div class="mirend-bar__fill" [style.width.%]="progreso(a)" [class.mirend-bar__fill--ok]="a.cumplio"></div></div>
+        @if (a.decision === 'aprobado') {
+          <p class="mirend-actual__decision mirend-actual__decision--ok">✓ Tu incentivo de esta semana fue aprobado.</p>
+        } @else if (a.decision === 'declinado') {
+          <p class="mirend-actual__decision mirend-actual__decision--bad">Tu incentivo de esta semana no fue aprobado.</p>
+        }
+      </section>
+    }
+
+    <!-- Histórico de semanas -->
+    <h2 class="mirend__hsub">Historial</h2>
+    <div class="mirend-list">
+      @for (s of semanas(); track s.informe_id) {
+        <div class="mirend-item" [class.mirend-item--open]="expandido() === s.informe_id">
+          <button type="button" class="mirend-item__main" (click)="toggle(s.informe_id)">
+            <span class="mirend-item__week">Sem. {{ s.semana }}/{{ s.anio }}</span>
+            <span class="mirend-item__dates">{{ formatFecha(s.inicio) }}–{{ formatFecha(s.fin) }}</span>
+            <span class="mirend-item__pts">{{ s.puntaje }}/{{ s.minimo }}</span>
+            @if (s.cumplio) { <span class="inc-badge inc-badge--ok">Cumplió</span> } @else { <span class="inc-badge inc-badge--bad">Bajo</span> }
+            @if (s.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
+            @else if (s.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
+            <span class="mirend-item__chev">{{ expandido() === s.informe_id ? '▲' : '▼' }}</span>
+          </button>
+          @if (expandido() === s.informe_id) {
+            <div class="mirend-detail">
+              @for (r of renglones; track r) {
+                @if (conteoDe(s, r); as c) {
+                  <div class="mirend-renglon">
+                    <span>{{ RENGLON_LABELS[r] }}</span>
+                    <span class="mirend-renglon__count">{{ c.propio }}@if (c.ayudante) { <em>+{{ c.ayudante }} ayud.</em> } · {{ c.puntos }} pts</span>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

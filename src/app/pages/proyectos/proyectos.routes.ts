@@ -51,6 +51,13 @@ export const proyectosRoutes: Routes = [
     title: 'Registrar personal',
   },
   {
+    // AT5 — Import de personal desde Excel. Antes del ':id'.
+    path: 'personal/importar',
+    canActivate: [submoduloGuard('proyectos.personal')],
+    loadComponent: () => import('./personal/personal-import').then((m) => m.PersonalImport),
+    title: 'Importar personal',
+  },
+  {
     path: 'personal/:id',
     canActivate: [submoduloGuard('proyectos.personal')],
     loadComponent: () => import('./personal/personal-expediente').then((m) => m.PersonalExpediente),

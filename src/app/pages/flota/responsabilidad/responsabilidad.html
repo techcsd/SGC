@@ -123,7 +123,7 @@
                 <p class="uso-card__meta">
                   {{ s.km_actual | number: '1.0-0' }} {{ unidad(v) }}
                   @if (s.ultima_actividad) {
-                    · Últ. actividad {{ s.ultima_actividad | date: 'dd/MM/yyyy' }}
+                    · Últ. actividad {{ fechaHora(s.ultima_actividad) }}
                   }
                 </p>
               }

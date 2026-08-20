@@ -142,7 +142,7 @@
         <span class="stat-card__label">Documentos</span>
         <span class="stat-card__value">{{ (sp.documentos?.total ?? 0) | number: '1.0-0' }}</span>
         @if (stats()) {
-          <span class="stat-card__hint">Última actividad: {{ formatFecha(stats()!.ultima_actividad) }}</span>
+          <span class="stat-card__hint">Última actividad: {{ formatTs(stats()!.ultima_actividad) }}</span>
         }
       </div>
     </div>

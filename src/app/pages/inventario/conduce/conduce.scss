@@ -231,6 +231,17 @@
 }
 
 // ── Cierre de conduce (paridad app de campo) ──
+.conduce-prueba-banner {
+  margin: 0 auto 12px;
+  max-width: 640px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #fff8ec;
+  border: 1px solid #f2d9a8;
+  color: #92600a;
+  font-size: 12.5px;
+}
+
 .conduce-cierre {
   max-width: 640px;
   margin: 0 auto 20px;
@@ -267,6 +278,23 @@
   &__foto-pick { display: inline-flex; align-items: center; cursor: pointer; width: fit-content; }
 
   &__actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+  // AT8 — emisor ya resuelto / sin firma (solo-lectura, el confirmador no re-firma)
+  &__emisor-ok, &__emisor-nota {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 10px 12px; border-radius: 10px;
+    background: var(--sgc-surface-2, rgba(0, 0, 0, 0.02));
+    border: 1px solid var(--sgc-border);
+  }
+  &__emisor-name { margin: 0; font-size: 14px; font-weight: 600; color: var(--sgc-text); }
+  &__emisor-rol { font-weight: 400; color: var(--sgc-text-muted); }
+  &__emisor-meta { margin: 0; font-size: 12px; color: var(--sgc-text-muted); }
+  &__emisor-firma {
+    max-width: 220px; max-height: 90px; object-fit: contain;
+    background: #fff; border: 1px solid var(--sgc-border); border-radius: 8px; padding: 4px;
+  }
+  &__emisor-hint { margin: 2px 0 0; font-size: 12px; color: var(--sgc-success, #16a34a); }
+  &__emisor-nota &__emisor-hint { color: var(--sgc-text-muted); }
 
   // AC7 — bloques de firma emisor / receptor
   &__party {

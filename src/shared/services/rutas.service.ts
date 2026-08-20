@@ -20,7 +20,10 @@ export class RutasService {
     const { data, error } = await this.supabase.client
       .from('rutas')
       .select(SELECT_QUERY)
-      .order('fecha', { ascending: false });
+      // AT24 — más reciente primero: dentro del mismo día se desempata por hora de
+      // creación (sin este 2.º criterio las rutas del día salían en orden de inserción).
+      .order('fecha', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Ruta[];

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
   VehiculosService,
@@ -12,6 +12,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Img } from '../../../../shared/components/img/img';
 import { RegistrarEntrega } from './registrar-entrega/registrar-entrega';
 import { UserService } from '../../../core/services/user.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Vehiculo, identificacionVehiculo, unidadUso } from '../../../../shared/models/vehiculo.model';
 import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.model';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
@@ -33,7 +34,7 @@ interface EstadoUso {
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, DatePipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega],
+  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,13 +74,19 @@ export class Responsabilidad implements OnInit {
   private fotoUrls = signal<Record<string, Record<string, string>>>({});
 
   private esAdmin = computed(() => this.userService.hasRole('admin'));
+  // AT14/W7 — datos de prueba: por defecto OCULTOS; solo el admin los ve, y SOLO
+  // cuando el toggle global «mostrar datos de prueba» está activo (mismo control
+  // homologado del shell que ya usan Salidas/Conteos). Antes el admin los veía
+  // siempre, por eso el Amarok de prueba aparecía "en uso por Misael".
+  private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  mostrarPrueba = this.datosPruebaViewSvc.ver;
 
-  /** Flota mostrable en la rejilla: sin bajas y sin datos de prueba (salvo admin). */
+  /** Flota mostrable en la rejilla: sin bajas y sin datos de prueba (salvo admin con el toggle). */
   private baseUso = computed(() => {
-    const admin = this.esAdmin();
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
     return this.vehiculos().filter((v) => {
       if (v.estado === 'baja') return false;
-      if (v.es_prueba && !admin) return false;
+      if (v.es_prueba && !verPrueba) return false;
       return true;
     });
   });

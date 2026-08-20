@@ -706,6 +706,7 @@ export class Lista implements OnInit {
   /** Proyecto recién creado pendiente de decidir su almacén (dispara el diálogo). */
   almacenPrompt = signal<Proyecto | null>(null);
   creandoAlmacen = signal(false);
+  cerrandoObra = signal(false); // AT19
   /** IDs de proyecto que ya tienen almacén (Z21 faltantes). */
   proyectosConAlmacen = signal<Set<string>>(new Set());
   /** Banner admin de obras sin almacén: expandido/colapsado. */
@@ -761,6 +762,28 @@ export class Lista implements OnInit {
 
   descartarAlmacenPrompt() {
     this.almacenPrompt.set(null);
+  }
+
+  /** AT19 — cerrar (terminada) o reabrir una obra. Reversible, solo admin. Cerrar la
+   *  saca de los selectores y KPIs de obras activas; su historial queda consultable. */
+  async toggleCerrarObra(p: Proyecto) {
+    if (this.cerrandoObra()) return;
+    const cerrar = p.estado !== 'terminada';
+    const msg = cerrar
+      ? `¿Cerrar «${p.nombre}»? Saldrá de los selectores de obra y dejará de contar como activa. Su historial queda intacto y puedes reabrirla luego.`
+      : `¿Reabrir «${p.nombre}»? Volverá a los selectores como obra en progreso.`;
+    if (!confirm(msg)) return;
+    this.cerrandoObra.set(true);
+    try {
+      await this.proyectosService.cerrarProyecto(p.id, cerrar);
+      this.selectedProyecto.update((s) => (s ? { ...s, estado: cerrar ? 'terminada' : 'en_progreso', activo: !cerrar } : s));
+      await this.loadProyectos();
+      this.toast.success(cerrar ? 'Obra cerrada' : 'Obra reabierta', p.nombre);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cambiar el estado de la obra', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.cerrandoObra.set(false);
+    }
   }
 
   // ── Detail Drawer ────────────────────────────────────────

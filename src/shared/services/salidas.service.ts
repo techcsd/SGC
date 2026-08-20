@@ -522,6 +522,27 @@ export class SalidasService {
     this.notificaciones.refresh();
   }
 
+  /** AT11 — declina un item libre (no se creará el artículo) → historial + notifica al
+   *  reportante. `sugeridoArticuloId` cuando el motivo es "ya existe" (apunta al correcto). */
+  async declinarItemLibre(itemLibreId: string, motivo: string, sugeridoArticuloId: string | null = null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('declinar_item_libre', {
+      p_item_libre_id: itemLibreId,
+      p_motivo: motivo,
+      p_sugerido_articulo_id: sugeridoArticuloId,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
+  /** AT11 — revierte un declinado hecho por error (vuelve a la bandeja como pendiente). */
+  async revertirDeclinacionItemLibre(itemLibreId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('revertir_declinacion_item_libre', {
+      p_item_libre_id: itemLibreId,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   // ── AY13 — "Conduces por implementar" (≥1 item libre sin vincular) ──────────
   async getConducesPorImplementar(): Promise<ConducePorImplementar[]> {
     const { data, error } = await this.supabase.client.rpc('conduces_por_implementar');
@@ -644,6 +665,11 @@ export interface MaterialNoCatalogadoRow {
   proyecto: string | null;
   created_at: string;
   vinculado_at: string | null;
+  // AT11 — declinado (→ historial): quién, cuándo, motivo y artículo sugerido si "ya existe".
+  declinado_at: string | null;
+  declinado_por: string | null;
+  declinar_motivo: string | null;
+  sugerido_articulo: string | null;
 }
 
 /** AS3/AU4 — contrato único del conduce (vista/PDF). Campos usados por la web. */

@@ -170,6 +170,14 @@ export class ProyectosService {
     return (data ?? []) as ObraRef[];
   }
 
+  /** AT19 — cerrar (terminada + inactiva) o reabrir una obra. Solo admin (server-side).
+   *  Cerrar la saca de los selectores y de KPIs de obras activas, pero su historial
+   *  queda consultable. Reversible. */
+  async cerrarProyecto(id: string, cerrar = true): Promise<void> {
+    const { error } = await this.supabase.client.rpc('cerrar_proyecto', { p_id: id, p_cerrar: cerrar });
+    if (error) throw new Error(error.message);
+  }
+
   /** Active, in-progress projects that have geographic coordinates — used by the
    *  Intelligent Context System to show weather across all live obras without
    *  loading heavy joins (fases/responsable). */

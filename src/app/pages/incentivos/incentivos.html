@@ -1,0 +1,162 @@
+<div class="incentivos">
+  <header class="incentivos__head">
+    <div>
+      <h1 class="incentivos__title">Incentivos — Choferes</h1>
+      <p class="incentivos__sub">Informe semanal de desempeño. Aprobar o declinar es una decisión humana que queda registrada — el informe no paga solo.</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleConfig()">⚙ Configurar puntaje</button>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton [rows]="6" />
+  } @else if (error()) {
+    <div class="save-error" role="alert">{{ error() }}</div>
+  } @else {
+
+    <!-- Configuración de puntaje (versionada) -->
+    @if (mostrarConfig()) {
+      <section class="inc-config">
+        <h2 class="inc-config__title">Configuración de puntaje (versión {{ config()?.version }})</h2>
+        <p class="inc-config__hint">Al guardar se crea una nueva versión. Los informes ya generados conservan los pesos con que se calcularon.</p>
+        <div class="inc-config__grid">
+          <label class="inc-config__field">
+            <span>Mínimo semanal para cumplir</span>
+            <input type="number" min="0" [ngModel]="cfgMinimo()" (ngModelChange)="cfgMinimo.set($event)" />
+          </label>
+          <label class="inc-config__field">
+            <span>Factor del ayudante</span>
+            <input type="number" min="0" step="0.5" [ngModel]="cfgFactor()" (ngModelChange)="cfgFactor.set($event)" />
+          </label>
+          @for (r of renglones; track r) {
+            <label class="inc-config__field">
+              <span>Peso · {{ RENGLON_LABELS[r] }}</span>
+              <input type="number" min="0" step="0.5" [value]="cfgPesos()[r] ?? 0" (input)="setPeso(r, $any($event.target).value)" />
+            </label>
+          }
+        </div>
+        <div class="inc-config__actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleConfig()">Cerrar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="guardarConfig()">Guardar nueva versión</button>
+        </div>
+      </section>
+    }
+
+    <!-- Selector de semana + acciones -->
+    <div class="inc-toolbar">
+      <label class="inc-toolbar__week">
+        <span>Semana</span>
+        <select [value]="selAnio() + '-' + selSemana()" (change)="onSemanaChange($any($event.target).value)">
+          @for (s of semanas(); track s.anio + '-' + s.semana) {
+            <option [value]="s.anio + '-' + s.semana">
+              Semana {{ s.semana }}/{{ s.anio }} · {{ formatFecha(s.inicio) }}–{{ formatFecha(s.fin) }} ({{ s.cumplieron }}/{{ s.choferes }} cumplieron)
+            </option>
+          }
+        </select>
+      </label>
+      <div class="inc-toolbar__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="regenerar()">↻ Recalcular</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="reenviar()">✉ Reenviar correo</button>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">Exportar (nómina)</button>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes()" (click)="aprobarTodos()">
+          Aprobar los que cumplieron ({{ pendientes() }})
+        </button>
+      </div>
+    </div>
+
+    @if (semanas().length === 0) {
+      <div class="inc-empty">
+        <p>Aún no hay informes de incentivo generados. Se generan automáticamente los lunes 10:00 AM, o puedes recalcular una semana con el botón «Recalcular».</p>
+      </div>
+    } @else if (loadingFilas()) {
+      <app-skeleton [rows]="5" />
+    } @else {
+      <!-- KPIs -->
+      <div class="inc-kpis">
+        <div class="inc-kpi"><span class="inc-kpi__value">{{ filas().length }}</span><span class="inc-kpi__label">Choferes</span></div>
+        <div class="inc-kpi inc-kpi--ok"><span class="inc-kpi__value">{{ totalCumplieron() }}</span><span class="inc-kpi__label">Cumplieron</span></div>
+        <div class="inc-kpi inc-kpi--warn"><span class="inc-kpi__value">{{ pendientes() }}</span><span class="inc-kpi__label">Pendientes de aprobar</span></div>
+      </div>
+
+      <!-- Tabla por chofer -->
+      <div class="inc-table">
+        @for (f of filas(); track f.informe_id) {
+          <div class="inc-row" [class.inc-row--open]="expandido() === f.informe_id">
+            <button type="button" class="inc-row__main" (click)="toggleDetalle(f)">
+              <span class="inc-row__name">{{ f.nombre }}</span>
+              <span class="inc-row__score">{{ f.puntaje }} <small>/ {{ f.minimo }}</small></span>
+              @if (f.cumplio) {
+                <span class="inc-badge inc-badge--ok">Cumplió</span>
+              } @else {
+                <span class="inc-badge inc-badge--bad">Rendimiento bajo</span>
+              }
+              @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
+              @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
+              @else { <span class="inc-badge inc-badge--pending">Pendiente</span> }
+              @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión (anti-inflado)">⚠ {{ f.flags.length }}</span> }
+              <span class="inc-row__chev">{{ expandido() === f.informe_id ? '▲' : '▼' }}</span>
+            </button>
+
+            @if (expandido() === f.informe_id) {
+              <div class="inc-detail">
+                <!-- Desglose por renglón (clickable a los registros) -->
+                <div class="inc-detail__renglones">
+                  @for (r of renglones; track r) {
+                    @if (conteoDe(f, r); as c) {
+                      <div class="inc-renglon">
+                        <div class="inc-renglon__head">
+                          <span class="inc-renglon__label">{{ RENGLON_LABELS[r] }}</span>
+                          <span class="inc-renglon__count">{{ c.propio }}@if (c.ayudante) { <em>+{{ c.ayudante }} ayud.</em> } · {{ c.puntos }} pts</span>
+                        </div>
+                        <div class="inc-renglon__refs">
+                          @for (ref of c.refs; track ref.id) {
+                            <a class="inc-ref" [routerLink]="refRuta(ref.tipo, ref.id)" [class.inc-ref--ayud]="ref.ayudante" [title]="ref.ayudante ? 'Como ayudante' : 'Actividad propia'">
+                              {{ formatFecha(ref.fecha) }}@if (ref.ayudante) { · ayud. }
+                            </a>
+                          }
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+
+                @if (f.flags?.length) {
+                  <div class="inc-flags">
+                    <strong>Para revisar:</strong>
+                    <ul>@for (fl of f.flags; track fl.ref_id) { <li>{{ fl.msg }}</li> }</ul>
+                  </div>
+                }
+
+                <!-- Acciones de decisión -->
+                <div class="inc-decide">
+                  @if (declinandoId() === f.informe_id) {
+                    <input type="text" class="inc-decide__motivo" placeholder="Motivo del rechazo (obligatorio)…"
+                      [ngModel]="motivoDeclina()" (ngModelChange)="motivoDeclina.set($event)" />
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="declinandoId.set(null)">Cancelar</button>
+                    <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="busy()" (click)="confirmarDeclinar(f)">Confirmar rechazo</button>
+                  } @else {
+                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="abrirDeclinar(f)">Declinar</button>
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="aprobar(f)">Aprobar incentivo</button>
+                  }
+                </div>
+
+                <!-- Historial append-only -->
+                @if (historial()[f.informe_id]?.length) {
+                  <div class="inc-hist">
+                    <span class="inc-hist__title">Historial de decisiones</span>
+                    @for (h of historial()[f.informe_id]; track h.decidido_en) {
+                      <div class="inc-hist__item">
+                        <span class="inc-hist__badge inc-hist__badge--{{ h.decision }}">{{ h.decision }}</span>
+                        {{ h.decidido_por_nombre ?? '—' }} · {{ formatFechaHora(h.decidido_en) }} · {{ h.puntaje }} pts (v{{ h.config_version }})
+                        @if (h.motivo) { — {{ h.motivo }} }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

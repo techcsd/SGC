@@ -3,37 +3,100 @@
     "1.87.0": {
       "titulo": "Requisiciones, permisos rediseñados y arreglos visuales",
       "cambios": [
-        { "t": "nuevo", "d": "Nueva bandeja de Requisiciones de material en Inventario: filtros por obra, solicitante, estado, urgencia, fecha y artículo, con detalle y trazabilidad, y aprobar/rechazar según tu rol. Acceso directo desde cada obra." },
-        { "t": "mejora", "d": "Editor de permisos rediseñado: matriz Rol × Módulo/Submódulo con tres niveles (Sin acceso · Ver · Operar), descripciones claras, búsqueda, plantillas (presets), copiar permisos de otro rol, vista previa de cambios antes de guardar e historial de cambios." },
-        { "t": "mejora", "d": "Estadísticas de uso rediseñadas: KPIs, gráfico por versión, tabla filtrable/ordenable con exportación y avisos de versiones obsoletas o sin datos." },
-        { "t": "mejora", "d": "Mapa de seguimiento: ventana de información enriquecida (chofer, vehículo, frescura de la señal, ruta y enlace a “Ver recorrido”), ajuste a calles, aviso de tramos sin señal, indicador “en vivo” y leyenda única." },
-        { "t": "mejora", "d": "Notificación de requisición por correo con diseño enriquecido y PDF adjunto, enviada a los destinatarios correctos." },
-        { "t": "arreglo", "d": "Corregida la regresión visual que oscurecía textos y colores en varias pantallas (perfil, seguimiento, roles, estadísticas, conductores y más)." },
-        { "t": "arreglo", "d": "El perfil de usuario ya vuelve a mostrar toda la información (antes podía aparecer en blanco) e incluye avatar." },
-        { "t": "arreglo", "d": "Corregidos el menú lateral que se encimaba y el desbordamiento del modal de requisición en pantallas angostas." },
-        { "t": "seguridad", "d": "La foto del tablero es ahora obligatoria al registrar combustible (se valida en el servidor por todos los caminos)." }
+        {
+          "t": "nuevo",
+          "d": "Nueva bandeja de Requisiciones de material en Inventario: filtros por obra, solicitante, estado, urgencia, fecha y artículo, con detalle y trazabilidad, y aprobar/rechazar según tu rol. Acceso directo desde cada obra."
+        },
+        {
+          "t": "mejora",
+          "d": "Editor de permisos rediseñado: matriz Rol × Módulo/Submódulo con tres niveles (Sin acceso · Ver · Operar), descripciones claras, búsqueda, plantillas (presets), copiar permisos de otro rol, vista previa de cambios antes de guardar e historial de cambios."
+        },
+        {
+          "t": "mejora",
+          "d": "Estadísticas de uso rediseñadas: KPIs, gráfico por versión, tabla filtrable/ordenable con exportación y avisos de versiones obsoletas o sin datos."
+        },
+        {
+          "t": "mejora",
+          "d": "Mapa de seguimiento: ventana de información enriquecida (chofer, vehículo, frescura de la señal, ruta y enlace a “Ver recorrido”), ajuste a calles, aviso de tramos sin señal, indicador “en vivo” y leyenda única."
+        },
+        {
+          "t": "mejora",
+          "d": "Notificación de requisición por correo con diseño enriquecido y PDF adjunto, enviada a los destinatarios correctos."
+        },
+        {
+          "t": "arreglo",
+          "d": "Corregida la regresión visual que oscurecía textos y colores en varias pantallas (perfil, seguimiento, roles, estadísticas, conductores y más)."
+        },
+        {
+          "t": "arreglo",
+          "d": "El perfil de usuario ya vuelve a mostrar toda la información (antes podía aparecer en blanco) e incluye avatar."
+        },
+        {
+          "t": "arreglo",
+          "d": "Corregidos el menú lateral que se encimaba y el desbordamiento del modal de requisición en pantallas angostas."
+        },
+        {
+          "t": "seguridad",
+          "d": "La foto del tablero es ahora obligatoria al registrar combustible (se valida en el servidor por todos los caminos)."
+        }
       ]
     },
     "1.86.0": {
       "titulo": "Gestor de Issues interno (tipo Jira) para Tecnología",
       "cambios": [
-        { "t": "nuevo", "d": "Nuevo “Issues (Jira interno)” en Sistema (solo Tecnología): board Kanban con arrastrar-y-soltar (Backlog · Por hacer · En progreso · En revisión · Hecho), issues tipados (tarea/bug/mejora/épica) con prioridad, labels, asignado, épica, comentarios, historial de cambios y adjuntos." },
-        { "t": "nuevo", "d": "Desde “Reportes de errores” se puede crear un issue (bug) con un clic, ya prellenado con el detalle del reporte (dispositivo, versión, mensaje y stack)." }
+        {
+          "t": "nuevo",
+          "d": "Nuevo “Issues (Jira interno)” en Sistema (solo Tecnología): board Kanban con arrastrar-y-soltar (Backlog · Por hacer · En progreso · En revisión · Hecho), issues tipados (tarea/bug/mejora/épica) con prioridad, labels, asignado, épica, comentarios, historial de cambios y adjuntos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Desde “Reportes de errores” se puede crear un issue (bug) con un clic, ya prellenado con el detalle del reporte (dispositivo, versión, mensaje y stack)."
+        }
       ]
     },
     "1.85.0": {
       "titulo": "Chat nivel WhatsApp, conduces de prueba y por implementar, módulo de Solicitud de movimiento, Gerencia y desempeño repensados",
       "cambios": [
-        { "t": "nuevo", "d": "Chat: confirmaciones de lectura (✓ enviado, ✓✓ entregado, azul leído), indicador de “escribiendo…/grabando audio…”, reproductor de voz que muestra la duración real desde que llega la nota, y guardar stickers que te envían." },
-        { "t": "nuevo", "d": "Mensajes: vista previa de documentos — los PDF se abren en un visor dentro del chat y los Word/Excel/PowerPoint se muestran como tarjeta con ícono, nombre y tamaño." },
-        { "t": "nuevo", "d": "Módulo nuevo “Solicitud de movimiento”: un ingeniero pide al departamento de transporte mover material/equipo con prioridad y fecha de requerimiento; los referentes ven todas, crean la ruta y la asignan a un chofer, con sugerencia de choferes cercanos." },
-        { "t": "nuevo", "d": "Inventario: “Conduces por implementar” — lista los conduces con material escrito a mano aún sin vincular a un artículo; al vincularlo puedes decidir si genera el movimiento de inventario." },
-        { "t": "mejora", "d": "Los conduces ahora pueden ser de prueba: se marcan solos cuando el chofer/obra es de prueba, se ven solo para administradores y no cuentan para inventario ni KPIs." },
-        { "t": "mejora", "d": "“Dirección” pasa a llamarse “Gerencia”. Se quitó el widget de clima (pronóstico) del Dashboard y de Gerencia." },
-        { "t": "mejora", "d": "Reportes de clima: se separa lo confirmado en obra (lo que cuenta) del pronóstico (probabilidad), para no dar por hecho lo que no pasó." },
-        { "t": "mejora", "d": "Desempeño por proyecto: se corrigió la fórmula (una obra recién iniciada ya no sale en rojo por estar temprano) y se agregó una leyenda de colores (verde/amarillo/rojo)." },
-        { "t": "mejora", "d": "Conductores: la columna ahora muestra el “Vehículo en uso” real (sesión activa) en vez de la asignación vieja, y la categoría de licencia quedó homologada (Cat. 02, etc.) con selección por lista." },
-        { "t": "mejora", "d": "Administración: reporte de almacenes duplicados (mismo nombre y obra) con herramienta de fusión para consolidarlos." }
+        {
+          "t": "nuevo",
+          "d": "Chat: confirmaciones de lectura (✓ enviado, ✓✓ entregado, azul leído), indicador de “escribiendo…/grabando audio…”, reproductor de voz que muestra la duración real desde que llega la nota, y guardar stickers que te envían."
+        },
+        {
+          "t": "nuevo",
+          "d": "Mensajes: vista previa de documentos — los PDF se abren en un visor dentro del chat y los Word/Excel/PowerPoint se muestran como tarjeta con ícono, nombre y tamaño."
+        },
+        {
+          "t": "nuevo",
+          "d": "Módulo nuevo “Solicitud de movimiento”: un ingeniero pide al departamento de transporte mover material/equipo con prioridad y fecha de requerimiento; los referentes ven todas, crean la ruta y la asignan a un chofer, con sugerencia de choferes cercanos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Inventario: “Conduces por implementar” — lista los conduces con material escrito a mano aún sin vincular a un artículo; al vincularlo puedes decidir si genera el movimiento de inventario."
+        },
+        {
+          "t": "mejora",
+          "d": "Los conduces ahora pueden ser de prueba: se marcan solos cuando el chofer/obra es de prueba, se ven solo para administradores y no cuentan para inventario ni KPIs."
+        },
+        {
+          "t": "mejora",
+          "d": "“Dirección” pasa a llamarse “Gerencia”. Se quitó el widget de clima (pronóstico) del Dashboard y de Gerencia."
+        },
+        {
+          "t": "mejora",
+          "d": "Reportes de clima: se separa lo confirmado en obra (lo que cuenta) del pronóstico (probabilidad), para no dar por hecho lo que no pasó."
+        },
+        {
+          "t": "mejora",
+          "d": "Desempeño por proyecto: se corrigió la fórmula (una obra recién iniciada ya no sale en rojo por estar temprano) y se agregó una leyenda de colores (verde/amarillo/rojo)."
+        },
+        {
+          "t": "mejora",
+          "d": "Conductores: la columna ahora muestra el “Vehículo en uso” real (sesión activa) en vez de la asignación vieja, y la categoría de licencia quedó homologada (Cat. 02, etc.) con selección por lista."
+        },
+        {
+          "t": "mejora",
+          "d": "Administración: reporte de almacenes duplicados (mismo nombre y obra) con herramienta de fusión para consolidarlos."
+        }
       ]
     },
     "1.83.0": {
@@ -2331,6 +2394,63 @@
         {
           "t": "nuevo",
           "d": "Mensajes: los enlaces (links) en el chat ahora son clickeables y abren en el navegador (en paridad con la app)."
+        }
+      ]
+    },
+    "1.88.0": {
+      "titulo": "Incentivo a choferes, import de personal, Ingeniería y arreglos de flujo",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Incentivo por uso de la app: informe semanal de desempeño por chofer con puntaje y badge de cumplimiento, figura del ayudante, aprobar/declinar con historial y export para nómina, y correo automático los lunes a Logística y Gerencia."
+        },
+        {
+          "t": "nuevo",
+          "d": "“Mi rendimiento”: cada chofer ve solo su propio puntaje semanal, su desglose y su histórico."
+        },
+        {
+          "t": "nuevo",
+          "d": "Import de personal de obra desde Excel: vista previa, mapeo de cargos, normalización, deduplicación por documento y opción de deshacer el lote."
+        },
+        {
+          "t": "nuevo",
+          "d": "Módulo Ingeniería en la web (Solicitud de movimiento) con su icono y lugar propio en el menú."
+        },
+        {
+          "t": "nuevo",
+          "d": "Material no catalogado: ahora se puede Declinar con motivo (notifica a quien lo reportó y es reversible), además de crear o vincular el artículo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Cerrar y reabrir obras: una obra terminada sale de los selectores y KPIs de obras activas pero conserva todo su historial."
+        },
+        {
+          "t": "mejora",
+          "d": "Aprobar requisición: el sistema preselecciona el artículo del catálogo (o sugiere el más parecido con su confianza), muestra el stock, permite agregar renglones y evita compras innecesarias."
+        },
+        {
+          "t": "mejora",
+          "d": "Confirmar entrega de conduce: si el chofer ya entregó y firmó, quien confirma ya no tiene que firmar por él — solo completa lo suyo."
+        },
+        {
+          "t": "mejora",
+          "d": "Fecha + hora exacta (12h a. m./p. m.) en los detalles e históricos de Inventario y Flota."
+        },
+        {
+          "t": "mejora",
+          "d": "Las rutas se listan de la más reciente primero."
+        },
+        {
+          "t": "mejora",
+          "d": "Búsqueda de lugares: ahora encuentra negocios por su nombre (por ejemplo “Ferretería MC”), no solo direcciones."
+        },
+        {
+          "t": "arreglo",
+          "d": "Los avisos de “conduce por confirmar” y el contador del campanario (“9+”) ya no le llegan a todo el mundo: solo a quien corresponde por obra o rol."
+        },
+        {
+          "t": "arreglo",
+          "d": "Los datos de prueba (vehículos y conduces) ya no se mezclan con la operación real; el administrador los ve solo al activar el toggle."
         }
       ]
     }

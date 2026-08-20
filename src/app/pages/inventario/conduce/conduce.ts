@@ -15,7 +15,8 @@ import {
   conduceNumero,
 } from '../../../../shared/models/salida.model';
 import { UserService } from '../../../../app/core/services/user.service';
-import { formatFechaDisplay, formatTimestampDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
@@ -47,9 +48,15 @@ export class Conduce implements OnInit {
   private supabase = inject(SupabaseService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
+  private datosPrueba = inject(DatosPruebaService);
+  // AT10 — solo admin puede marcar/desmarcar un conduce como dato de prueba.
+  esAdmin = computed(() => this.userService.roles().includes('admin'));
+  marcandoPrueba = signal(false);
 
   formatFecha = formatFechaDisplay;
-  formatTimestamp = formatTimestampDisplay;
+  // AT22 — los hitos del conduce (recepción/entrega/firmas) son timestamptz: se
+  // muestran con fecha + hora exacta (12h a.m./p.m.), no solo la fecha.
+  formatTimestamp = formatFechaHoraDisplay;
   readonly hoy = todayIso();
   readonly numeroConduce: string;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -114,6 +121,19 @@ export class Conduce implements OnInit {
   firmaDespachantePendiente = computed(
     () => !!this.salida()?.despachante_usuario_id && !this.firmaEmisor(),
   );
+
+  // ── AT8 — quién ya entregó/firmó, para que el CONFIRMADOR no re-firme por el emisor ──
+  // El chofer ya entregó y firmó en su dispositivo (o el despachante firmó en remoto):
+  // el emisor está resuelto y se muestra en solo-lectura; el confirmador solo llena lo suyo.
+  emisorResuelto = computed(() => !!this.firmaEmisor());
+  // Hay un despachante en registro pero SIN firma digital (AS1 libre / entrega sin firma):
+  // se explica por qué falta la firma, no se le pide al confirmador que la haga.
+  emisorSinFirma = computed(
+    () => !this.firmaEmisor() && !!this.despachanteNombre() && !this.firmaDespachantePendiente(),
+  );
+  // Entrega en mostrador: nadie firmó como emisor y no hay despachante en registro →
+  // quien entrega en persona firma aquí, en el mismo dispositivo (escenario legítimo (i)).
+  emisorEnMostrador = computed(() => !this.firmaEmisor() && !this.despachanteNombre());
   // AV3 — atajo "Recordarle al despachante" (re-push manual de la firma pendiente).
   recordando = signal(false);
 
@@ -405,13 +425,19 @@ export class Conduce implements OnInit {
     const receptor = this.receptor().trim();
     const emisorPad = this.firmaEmisorPad();
     const receptorPad = this.firmaPad();
-    if (!emisor) {
-      this.cierreError.set('Indica quién entrega el material.');
-      return;
-    }
-    if (!emisorPad || emisorPad.isEmpty()) {
-      this.cierreError.set('Falta la firma de quien entrega.');
-      return;
+    // AT8 — el confirmador SOLO firma como emisor en la entrega en mostrador (nadie
+    // firmó antes). Si el chofer/despachante ya firmó, ese bloque va en solo-lectura
+    // y no se le pide nada más que su parte (receptor).
+    const necesitaFirmaEmisor = this.emisorEnMostrador();
+    if (necesitaFirmaEmisor) {
+      if (!emisor) {
+        this.cierreError.set('Indica quién entrega el material.');
+        return;
+      }
+      if (!emisorPad || emisorPad.isEmpty()) {
+        this.cierreError.set('Falta la firma de quien entrega.');
+        return;
+      }
     }
     if (!receptor) {
       this.cierreError.set('Indica quién recibe el material.');
@@ -424,15 +450,18 @@ export class Conduce implements OnInit {
     this.guardandoCierre.set(true);
     this.cierreError.set('');
     try {
-      // AC7 — firma del EMISOR (quien entrega): sube a `conduces` y registra en salida_firmas.
-      const emisorBlob = await emisorPad.toBlob();
-      if (emisorBlob) {
-        const emisorPath = await this.salidasService.subirEvidenciaConduce(s.id, 'firma-emisor', emisorBlob, 'png');
-        await this.salidasService.firmarConduce(s.id, 'emisor', emisor, emisorPath, {
-          cedula: this.emisorCedula().trim() || null,
-          rolDesc: this.emisorRolDesc().trim() || null,
-          usuarioId: this.userService.profile()?.id ?? null,
-        });
+      // AC7/AT8 — firma del EMISOR SOLO en entrega en mostrador (si ya firmó antes,
+      // no se re-firma: se conserva la firma original del chofer/despachante).
+      if (necesitaFirmaEmisor && emisorPad) {
+        const emisorBlob = await emisorPad.toBlob();
+        if (emisorBlob) {
+          const emisorPath = await this.salidasService.subirEvidenciaConduce(s.id, 'firma-emisor', emisorBlob, 'png');
+          await this.salidasService.firmarConduce(s.id, 'emisor', emisor, emisorPath, {
+            cedula: this.emisorCedula().trim() || null,
+            rolDesc: this.emisorRolDesc().trim() || null,
+            usuarioId: this.userService.profile()?.id ?? null,
+          });
+        }
       }
 
       // AC7 — firma del RECEPTOR (quien recibe). Se reutiliza también como firma
@@ -478,6 +507,25 @@ export class Conduce implements OnInit {
 
   imprimir() {
     window.print();
+  }
+
+  /** AT10 — marca/desmarca este conduce como dato de prueba (solo admin). Usa el
+   *  marcado de MOVIMIENTO para que el stock se revierta al marcar test y se
+   *  re-aplique al volver a real; deja de notificar, puntuar y salir en KPIs. */
+  async marcarPrueba(valor: boolean) {
+    const s = this.salida();
+    if (!s || this.marcandoPrueba()) return;
+    if (valor && !confirm('¿Marcar este conduce como dato de prueba? Se revertirá su movimiento de stock y dejará de aparecer en listados, KPIs y notificaciones (salvo con el toggle de datos de prueba).')) return;
+    this.marcandoPrueba.set(true);
+    try {
+      await this.datosPrueba.marcarMovimiento('salidas_inventario', s.id, valor);
+      this.salida.set({ ...s, es_prueba: valor });
+      this.toast.success(valor ? 'Conduce marcado como prueba' : 'Conduce vuelto a real', valor ? 'Se revirtió su movimiento de stock.' : 'Se re-aplicó su movimiento de stock.');
+    } catch (e) {
+      this.toast.error('No se pudo cambiar el estado de prueba', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.marcandoPrueba.set(false);
+    }
   }
 
   /** Go back to wherever the user came from (Salidas, the Conduces list, or the

@@ -83,7 +83,7 @@
 
 .req-map-row {
   display: grid;
-  grid-template-columns: 1fr 1.2fr 72px 40px;
+  grid-template-columns: 1fr 1.2fr 72px 40px 28px;
   gap: 8px;
   align-items: center;
   padding: 6px 0;
@@ -108,11 +108,53 @@
     font-size: 10.5px;
     font-weight: 600;
     color: var(--sgc-primary, #ff5f00);
+
+    &--ok { color: var(--sgc-success, #16a34a); }
+    &--sug { color: var(--sgc-warning, #d97706); }
+    &--add { color: var(--sgc-info, #2563eb); }
   }
+  &__stock {
+    font-size: 10.5px;
+    color: var(--sgc-text-muted, #888);
+  }
+  // El <select> es un grid item: min-width:0 evita que su contenido largo lo desborde.
+  &__articulo { min-width: 0; }
   &__unidad {
     font-size: 11.5px;
     color: var(--sgc-text-muted, #888);
   }
+  &__remove {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--sgc-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--sgc-text-muted, #888);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { color: var(--sgc-danger, #dc2626); border-color: var(--sgc-danger, #dc2626); }
+  }
+}
+
+.req-add-row {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sgc-primary, #ff5f00);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover { background: var(--sgc-surface-2, rgba(0, 0, 0, 0.03)); }
 }
 
 .solicitudes-panel {

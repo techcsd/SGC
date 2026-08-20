@@ -8,7 +8,7 @@ import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_BADGE: Record<string, string> = {
@@ -52,7 +52,8 @@ export class Requisiciones implements OnInit {
   private route = inject(ActivatedRoute);
 
   readonly formatFecha = formatFechaDisplay;
-  readonly formatTimestamp = formatTimestampDisplay;
+  // AT22 — created_at es timestamptz: fecha + hora exacta en lista y detalle.
+  readonly formatTimestamp = formatFechaHoraDisplay;
   estadoBadge = (e: string) => ESTADO_BADGE[e] ?? 'neutral';
   estadoLabel = (e: string) => ESTADO_LABEL[e] ?? e;
 

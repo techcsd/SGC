@@ -8,7 +8,7 @@ import {
   ESTADO_LICENCIA_BADGE,
 } from '../../../../shared/models/vehiculo-asignacion.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
@@ -34,6 +34,7 @@ export class ConductoresEstado implements OnInit {
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
   readonly estadoBadge = ESTADO_LICENCIA_BADGE;
   formatFecha = formatFechaDisplay;
+  formatFechaHora = formatFechaHoraDisplay; // AT22
 
   loading = signal(true);
   error = signal('');

@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConteosService, Conteo, StockBodegaRow } from '../../../../shared/services/conteos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -12,6 +11,7 @@ import { UserService } from '../../../core/services/user.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
@@ -20,7 +20,7 @@ interface ChequeoRow extends StockBodegaRow {
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [DatePipe, FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator],
+  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +36,8 @@ export class Conteos implements OnInit {
   // Z5(d) — datos de prueba (solo admin).
   esAdmin = computed(() => this.userService.hasRole('admin'));
   mostrarPrueba = this.datosPruebaViewSvc.ver;
+  // AT22 — created_at con fecha + hora exacta (12h a.m./p.m.) homologado.
+  readonly formatFechaHora = formatFechaHoraDisplay;
 
   conteos = signal<Conteo[]>([]);
   bodegas = signal<Bodega[]>([]);

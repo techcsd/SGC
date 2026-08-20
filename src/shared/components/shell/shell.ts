@@ -226,6 +226,23 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // AT1-AT3 — Incentivos (gestión): informe semanal de choferes, aprobar/declinar.
+      // Gateado por el módulo `incentivos` (Logística y Transportación, Gerencia, Admin).
+      label: 'Incentivos',
+      icon: 'incentivos',
+      modulo: 'incentivos',
+      children: [
+        { label: 'Informe semanal', route: '/incentivos', modulo: 'incentivos' },
+      ],
+    },
+    {
+      // AT2 — "Mi rendimiento": todo usuario ve SOLO su propio puntaje e histórico
+      // (el chofer no ve el módulo Incentivos). Sin gate de módulo, como "Mis tareas".
+      label: 'Mi rendimiento',
+      icon: 'incentivos',
+      route: '/mi-rendimiento',
+    },
+    {
       // AG16 — Producción de Obra. Visible con el módulo `obra` o con cualquiera
       // de sus submódulos granulares (el capataz entra por permiso fino).
       label: 'Producción de Obra',
@@ -284,12 +301,15 @@ export class Shell implements OnInit {
       soloConPendiente: true,
     },
     {
-      // AY11 — Solicitud de movimiento: sin gate de módulo (como Tareas/Mensajes).
-      // El ingeniero crea/ve las suyas; los referentes ven y gestionan todas (RLS).
-      label: 'Solicitud de movimiento',
-      icon: 'flota',
-      route: '/solicitudes-movimiento',
-      badgeKey: 'solicitudes_movimiento',
+      // AT6 — módulo Ingeniería (espejo de la app): agrupa "Solicitud de movimiento"
+      // bajo su módulo en vez de dejarla suelta y sin icono. Visible por módulo
+      // `ingenieria` (ingenieros, gerencia, logística…); la RLS scoping se mantiene.
+      label: 'Ingeniería',
+      icon: 'ingenieria',
+      modulo: 'ingenieria',
+      children: [
+        { label: 'Solicitud de movimiento', route: '/solicitudes-movimiento', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
+      ],
     },
     {
       // No `modulo`: visible to everyone (all users have "Mis tareas").

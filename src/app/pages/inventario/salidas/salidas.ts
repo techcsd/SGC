@@ -35,6 +35,7 @@ import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/a
 import { StockService } from '../../../../shared/services/stock.service';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { mejorCoincidenciaArticulo } from '../../../../shared/utils/articulo-match.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
@@ -125,7 +126,21 @@ export class Salidas implements OnInit {
   // A2 — al aprobar una requisición, el aprobador MAPEA cada renglón (texto libre del
   // ingeniero) a un artículo del catálogo. Mapeado -> puede despacharse de stock; sin
   // mapear -> va 100% a la solicitud de compra automática.
-  reqItems = signal<{ descripcion: string; unidad: string | null; articulo_id: string | null; cantidad: number; talla: string | null }[]>([]);
+  // AT7 — match_source indica CÓMO se resolvió el artículo: 'origen' (venía del catálogo
+  // desde la app), 'sugerido' (coincidencia difusa — el aprobador debe verificar),
+  // 'manual' (lo cambió el aprobador), 'agregado' (renglón añadido por el aprobador),
+  // null (sin artículo → compra). El score es la confianza de la sugerencia.
+  reqItems = signal<
+    {
+      descripcion: string;
+      unidad: string | null;
+      articulo_id: string | null;
+      cantidad: number;
+      talla: string | null;
+      match_source: 'origen' | 'sugerido' | 'manual' | 'agregado' | null;
+      score: number;
+    }[]
+  >([]);
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -480,14 +495,24 @@ export class Salidas implements OnInit {
     this.creado.set(null);
     this.step.set('form');
     this.solicitudEnAtencion.set(s);
-    const arts = this.articulos();
-    const norm = (t: string) => t.toLowerCase().trim();
+    const arts = this.articulos().filter((a) => a.activo);
+    const byId = new Map(arts.map((a) => [a.id, a] as const));
     this.reqItems.set(
       (s.items ?? []).map((i) => {
-        const d = norm(i.descripcion);
-        // auto-match por nombre o código exacto; si no, queda sin mapear (irá a compra).
-        const match = arts.find((a) => norm(a.nombre) === d || norm(a.codigo) === d);
-        return { descripcion: i.descripcion, unidad: i.unidad, articulo_id: match?.id ?? null, cantidad: i.cantidad, talla: i.talla ?? null };
+        const base = { descripcion: i.descripcion, unidad: i.unidad, cantidad: i.cantidad, talla: i.talla ?? null };
+        // AT7.1 — el renglón ya trae el artículo del catálogo desde el origen (lo eligió
+        // quien creó la requisición en la app). Es el camino ideal: se preselecciona tal cual.
+        if (i.articulo_id && byId.has(i.articulo_id)) {
+          return { ...base, articulo_id: i.articulo_id, match_source: 'origen' as const, score: 1 };
+        }
+        // AT7.2 — texto libre: coincidencia difusa contra el catálogo (normaliza
+        // mayúsculas, acentos, comillas de pulgada y medidas). "Sin artículo (comprar)"
+        // es la ÚLTIMA opción, nunca el default cuando hay una sugerencia razonable.
+        const best = mejorCoincidenciaArticulo(i.descripcion, arts, 0.5);
+        if (best) {
+          return { ...base, articulo_id: best.articulo.id, match_source: 'sugerido' as const, score: best.score };
+        }
+        return { ...base, articulo_id: null, match_source: null, score: 0 };
       }),
     );
     this.form.reset({
@@ -500,8 +525,21 @@ export class Salidas implements OnInit {
   }
 
   updateReqItemArticulo(index: number, value: string) {
+    const art = value ? this.articulos().find((a) => a.id === value) : null;
     this.reqItems.update((items) =>
-      items.map((it, i) => (i === index ? { ...it, articulo_id: value || null } : it)),
+      items.map((it, i) => {
+        if (i !== index) return it;
+        // En un renglón AGREGADO por el aprobador, la descripción es solo una etiqueta:
+        // al elegir el artículo, se refleja su nombre real.
+        const descripcion = it.match_source === 'agregado' && art ? art.nombre : it.descripcion;
+        return {
+          ...it,
+          descripcion,
+          articulo_id: value || null,
+          match_source: (value ? (it.match_source === 'agregado' ? 'agregado' : 'manual') : it.match_source === 'agregado' ? 'agregado' : null) as typeof it.match_source,
+          score: value ? 1 : 0,
+        };
+      }),
     );
   }
 
@@ -510,6 +548,26 @@ export class Salidas implements OnInit {
     this.reqItems.update((items) =>
       items.map((it, i) => (i === index ? { ...it, cantidad } : it)),
     );
+  }
+
+  /** AT7 — el aprobador agrega un renglón que la obra no pidió pero hace falta. */
+  addReqItem() {
+    this.reqItems.update((items) => [
+      ...items,
+      { descripcion: 'Renglón agregado por el aprobador', unidad: null, articulo_id: null, cantidad: 1, talla: null, match_source: 'agregado' as const, score: 0 },
+    ]);
+  }
+
+  /** AT7 — el aprobador quita un renglón (p.ej. ya no se necesita). */
+  removeReqItem(index: number) {
+    this.reqItems.update((items) => items.filter((_, i) => i !== index));
+  }
+
+  /** AT7 — stock disponible del artículo mapeado en el almacén elegido (para decidir). */
+  reqItemStock(articuloId: string | null): number | null {
+    if (!articuloId) return null;
+    const m = this.stockMap();
+    return articuloId in m ? m[articuloId] : null;
   }
 
   async rechazarSolicitud(s: SolicitudMaterial) {

@@ -52,6 +52,12 @@
               </a>
             }
             <button type="button" class="proyectos__btn-edit" (click)="openEdit(p, $event)">Editar</button>
+            <!-- AT19 — cerrar/reabrir obra (solo admin, reversible). Cerrada = sale de selectores, historial intacto. -->
+            @if (esAdmin()) {
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="cerrandoObra()" (click)="toggleCerrarObra(p)">
+                {{ p.estado === 'terminada' ? 'Reabrir obra' : 'Cerrar obra' }}
+              </button>
+            }
           </div>
         </div>
       </div>

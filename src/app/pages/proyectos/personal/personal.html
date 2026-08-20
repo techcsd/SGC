@@ -3,7 +3,10 @@
     <h1 class="page-title">Personal de obra</h1>
     <p class="page-subtitle">Registro del personal que trabaja en las obras: expediente, evidencia y carnet.</p>
   </div>
-  <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+  <div class="page-header__actions">
+    <a class="sgc-btn sgc-btn--secondary" routerLink="/proyectos/personal/importar">Importar Excel</a>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+  </div>
 </div>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }

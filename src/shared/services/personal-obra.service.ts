@@ -12,6 +12,24 @@ import {
 
 const BUCKET = 'personal-obra';
 
+/** AT5 — fila normalizada lista para importar (contrato del RPC importar_personal_obra). */
+export interface ImportPersonalRow {
+  nombre: string;
+  apellido: string | null;
+  nacionalidad: string;
+  tipo_documento: string;
+  documento_numero: string | null;
+  cargo_id: string | null;
+  notas: string | null;
+}
+
+export interface ImportPersonalResultado {
+  creados: number;
+  actualizados: number;
+  saltados: number;
+  errores: { fila: number; documento: string | null; msg: string }[];
+}
+
 /** AR1 — Registro de Personal de obra (CRUD + evidencia fotográfica + firma + carnet). */
 @Injectable({ providedIn: 'root' })
 export class PersonalObraService {
@@ -53,6 +71,28 @@ export class PersonalObraService {
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (data ?? null) as unknown as PersonalObra | null;
+  }
+
+  // ── AT5 — Import desde Excel (atómico, dedupe por documento, con deshacer) ──
+  /** Importa filas de personal a una obra. Devuelve el resumen del lote. */
+  async importar(
+    proyectoId: string,
+    rows: ImportPersonalRow[],
+    lote: string,
+    modo: 'actualizar' | 'saltar',
+  ): Promise<ImportPersonalResultado> {
+    const { data, error } = await this.client.rpc('importar_personal_obra', {
+      p_proyecto_id: proyectoId, p_rows: rows, p_lote: lote, p_modo: modo,
+    });
+    if (error) throw new Error(error.message);
+    return data as ImportPersonalResultado;
+  }
+
+  /** Deshace un lote de import (elimina las filas creadas por ese lote). */
+  async deshacerLote(lote: string): Promise<number> {
+    const { data, error } = await this.client.rpc('deshacer_lote_personal', { p_lote: lote });
+    if (error) throw new Error(error.message);
+    return (data ?? 0) as number;
   }
 
   async crear(payload: Partial<PersonalObra>): Promise<PersonalObra> {

@@ -65,6 +65,38 @@ Deno.serve(async (req: Request) => {
           secondary: p.structuredFormat?.secondaryText?.text ?? '',
           description: p.text?.text ?? '',
         }));
+
+      // AT25 — Autocomplete sesga por prefijo/dirección y sub-representa negocios
+      // locales por nombre (p.ej. "Ferretería MC"). Si no hay sugerencias, se cae
+      // a Text Search (searchText), que sí encuentra POIs por nombre (insensible a
+      // acentos/mayúsculas). Se mapea a la MISMA forma `prediction` (comparten placeId),
+      // así el contrato del cliente no cambia y `details` sigue funcionando igual.
+      if (predictions.length === 0) {
+        try {
+          const tRes = await fetch('https://places.googleapis.com/v1/places:searchText', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': key,
+              'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress',
+            },
+            body: JSON.stringify({ textQuery: input, regionCode: REGION, languageCode: LANG }),
+          });
+          const tData = await tRes.json();
+          if (tRes.ok) {
+            const fallback = (tData?.places ?? [])
+              .filter((p: any) => p?.id)
+              .slice(0, 8)
+              .map((p: any) => ({
+                placeId: p.id,
+                primary: p.displayName?.text ?? '',
+                secondary: p.formattedAddress ?? '',
+                description: [p.displayName?.text, p.formattedAddress].filter(Boolean).join(', '),
+              }));
+            return json({ predictions: fallback, source: 'text' });
+          }
+        } catch (_) { /* si el fallback falla, se devuelve la lista vacía original */ }
+      }
       return json({ predictions });
     }
 

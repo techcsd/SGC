@@ -326,9 +326,16 @@
           @for (item of reqItems(); track $index) {
             <div class="req-map-row">
               <div class="req-map-row__desc">
-                <span class="req-map-row__text">{{ item.descripcion }}@if (item.talla) { · Talla: {{ item.talla }} }</span>
-                @if (!item.articulo_id) {
-                  <span class="req-map-row__tag">→ compra</span>
+                <span class="req-map-row__text" [title]="item.descripcion">{{ item.descripcion }}@if (item.talla) { · Talla: {{ item.talla }} }</span>
+                <!-- AT7 — cómo se resolvió el artículo, para que el aprobador confíe/verifique -->
+                @switch (item.match_source) {
+                  @case ('origen') { <span class="req-map-row__tag req-map-row__tag--ok">✓ Del catálogo</span> }
+                  @case ('sugerido') { <span class="req-map-row__tag req-map-row__tag--sug">Sugerido · {{ item.score * 100 | number:'1.0-0' }}% — verifica</span> }
+                  @case ('agregado') { <span class="req-map-row__tag req-map-row__tag--add">Agregado por ti</span> }
+                  @case (null) { <span class="req-map-row__tag">→ compra</span> }
+                }
+                @if (reqItemStock(item.articulo_id) !== null) {
+                  <span class="req-map-row__stock">Stock: {{ reqItemStock(item.articulo_id) | number:'1.0-2' }}{{ item.unidad ? ' ' + item.unidad : '' }}</span>
                 }
               </div>
               <select
@@ -355,8 +362,16 @@
                 (valueChange)="updateReqItemCantidad($index, $event)"
               />
               <span class="req-map-row__unidad">{{ item.unidad || '' }}</span>
+              <button
+                type="button"
+                class="req-map-row__remove"
+                (click)="removeReqItem($index)"
+                aria-label="Quitar renglón"
+                title="Quitar renglón"
+              >×</button>
             </div>
           }
+          <button type="button" class="req-add-row" (click)="addReqItem()">+ Agregar renglón</button>
         </div>
       </div>
     }

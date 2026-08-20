@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
@@ -10,7 +10,7 @@ import { Cargo, PersonalObra, NACIONALIDAD_LABEL } from '../../../../shared/mode
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
   selector: 'app-personal-obra',
-  imports: [FormsModule, Skeleton],
+  imports: [FormsModule, Skeleton, RouterLink],
   templateUrl: './personal.html',
   styleUrl: './personal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

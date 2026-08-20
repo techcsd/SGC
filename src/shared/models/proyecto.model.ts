@@ -1,4 +1,4 @@
-export type ProyectoEstado = 'planificacion' | 'en_progreso' | 'pausado' | 'completado' | 'cancelado';
+export type ProyectoEstado = 'planificacion' | 'en_progreso' | 'pausado' | 'completado' | 'terminada' | 'cancelado';
 export type ProyectoTipo = 'residencial' | 'comercial' | 'industrial' | 'infraestructura' | 'otro';
 
 export interface Proyecto {
@@ -176,6 +176,7 @@ export const PROYECTO_ESTADOS = [
   { value: 'en_progreso', label: 'En progreso', badge: 'info' },
   { value: 'pausado', label: 'Pausado', badge: 'warning' },
   { value: 'completado', label: 'Completado', badge: 'success' },
+  { value: 'terminada', label: 'Terminada', badge: 'success' }, // AT19 — obra cerrada
   { value: 'cancelado', label: 'Cancelado', badge: 'danger' },
 ];
 

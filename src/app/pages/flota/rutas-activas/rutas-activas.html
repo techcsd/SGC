@@ -148,8 +148,8 @@
                 <td>{{ r.conductor_nombre ?? '—' }}</td>
                 <td class="text-muted">{{ r.origen }} → {{ r.destino }}</td>
                 <td class="text-muted">{{ r.obra ?? '—' }}</td>
-                <td>{{ r.iniciada_at ? formatFecha(r.iniciada_at) : '—' }}</td>
-                <td>{{ r.finalizada_at ? formatFecha(r.finalizada_at) : '—' }}</td>
+                <td>{{ r.iniciada_at ? formatFechaHora(r.iniciada_at) : '—' }}</td>
+                <td>{{ r.finalizada_at ? formatFechaHora(r.finalizada_at) : '—' }}</td>
                 <td class="text-right">{{ kmRuta(r) ?? '—' }}</td>
                 <td>{{ duracion(r.iniciada_at, r.finalizada_at) }}</td>
                 <td><span class="sgc-badge sgc-badge--neutral">{{ r.estado }}</span></td>
