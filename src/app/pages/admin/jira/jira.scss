@@ -20,15 +20,15 @@
   padding-bottom: 8px;
 }
 .jira-col {
-  background: #141414;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   min-height: 200px;
   transition: background 0.15s ease, border-color 0.15s ease;
 
-  &--over { border-color: var(--Hub); background: #191712; }
+  &--over { border-color: var(--Hub); background: var(--sgc-surface-hover); }
 
   &__head {
     display: flex;
@@ -46,7 +46,7 @@
   }
   &__body { display: flex; flex-direction: column; gap: 8px; padding: 0 10px 10px; }
   &__add {
-    border: 1px dashed #2d2d2d;
+    border: 1px dashed var(--sgc-border);
     background: transparent;
     color: var(--main-ultra-light);
     border-radius: 10px;
@@ -58,8 +58,8 @@
 }
 
 .jira-card {
-  background: #1c1c1c;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 12px;
   padding: 10px 12px;
   cursor: pointer;
@@ -118,8 +118,8 @@
 .jira-det__desc {
   white-space: pre-wrap;
   font-family: inherit;
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 0.84rem;
@@ -131,7 +131,7 @@
 .jira-det__adj { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .jira-link { background: none; border: none; color: var(--Hub); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
 
-.jira-com { border-bottom: 1px solid #222; padding: 8px 0; }
+.jira-com { border-bottom: 1px solid var(--sgc-border); padding: 8px 0; }
 .jira-com__head { display: flex; gap: 8px; font-size: 0.8rem; }
 .jira-com__txt { margin: 3px 0 0; font-size: 0.86rem; white-space: pre-wrap; }
 .jira-com-new { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }

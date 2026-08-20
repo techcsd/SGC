@@ -64,6 +64,33 @@
   // Transitions
   --sgc-transition: all 0.2s ease;
   --sgc-transition-fast: all 0.15s ease;
+
+  // ── AS18 — Compatibility shim for the legacy X-Dev dark-theme tokens ──────
+  // Recurring bug (also seen in round AE): components get authored copying the
+  // X-Dev *dark* design vocabulary (`--main` #121212, `--secondary` #212121,
+  // `--main-ultra-light` #929090, `--Hub` amber, `--danger`, `--primary`) from
+  // the global CLAUDE.md idiom. SGC is a LIGHT ERP and never defined these, so
+  // ~208 `var(--main*/--Hub*/…)` references across ~42 files resolved to
+  // *invalid* → the property fell back to the inherited dark body text, which
+  // is why cards rendered dark-on-dark and illegible.
+  // Rather than rewrite every file, we DEFINE the legacy names once here, mapped
+  // to the light `--sgc-*` tokens, so every existing (and future) reference
+  // resolves to a correct, AA-legible light value. Literal dark HEX backgrounds
+  // (#161616 etc.) can't be reached by this and are fixed per-file.
+  // NOTE: `--main` is used both as dark TEXT color and as an intentionally dark
+  // surface (the printed carnet band); `var(--sgc-text)` (#1e293b) is dark enough
+  // to satisfy both. Do NOT re-map it to a light value.
+  --main: var(--sgc-text);
+  --main-light: var(--sgc-surface-hover);
+  --secondary: var(--sgc-surface-hover);
+  --main-ultra-light: var(--sgc-text-secondary);
+  --Hub: #ffb300;
+  --Hub-translucid: rgba(255, 179, 0, 0.18);
+  --primary: var(--sgc-primary);
+  --danger: var(--sgc-danger);
+  --success: var(--sgc-success);
+  --warning: var(--sgc-warning);
+  --info: var(--sgc-info);
 }
 
 html,

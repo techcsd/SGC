@@ -89,6 +89,6 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
   width: 100%;
   max-width: 240px;
   border-radius: 10px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   background: #000;
 }

@@ -31,6 +31,8 @@ export interface Conductor {
   usuario?: {
     nombre: string;
     email: string | null;
+    // AS2 — foto de perfil del usuario vinculado (bucket público sgc-avatars).
+    avatar_path?: string | null;
     // AP7 — plataforma del dispositivo reportada por la app (automático).
     plataforma?: string | null;
     plataforma_modelo?: string | null;

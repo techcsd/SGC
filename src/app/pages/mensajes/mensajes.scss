@@ -783,9 +783,9 @@
   min-width: 210px;
   max-width: 280px;
   padding: 8px 10px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 12px;
-  background: #161616;
+  background: var(--sgc-surface);
   color: inherit;
   cursor: pointer;
   text-align: left;
@@ -892,7 +892,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    border-bottom: 1px solid #2d2d2d;
+    border-bottom: 1px solid var(--sgc-border);
   }
   &__name {
     flex: 1;

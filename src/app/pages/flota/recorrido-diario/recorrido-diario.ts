@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import {
   SeguimientoService, RecorridoDiario, RecorridoDisponible, RecorridoParada,
 } from '../../../../shared/services/seguimiento.service';
@@ -32,6 +32,7 @@ import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../
 export class RecorridoDiarioPage implements OnInit, OnDestroy {
   private svc = inject(SeguimientoService);
   private loader = inject(GoogleMapsLoader);
+  private route = inject(ActivatedRoute);
   readonly hora = formatHoraTimestamp;
   readonly fechaMedia = formatFechaMedia;
 
@@ -124,6 +125,15 @@ export class RecorridoDiarioPage implements OnInit, OnDestroy {
       this.error.set(e instanceof Error ? e.message : 'No se pudo cargar la disponibilidad.');
     } finally {
       this.loading.set(false);
+    }
+    // AS14 — deep-link desde Seguimiento ("Ver recorrido"): ?chofer=<uid>&fecha=<iso>.
+    const qp = this.route.snapshot.queryParamMap;
+    const chofer = qp.get('chofer');
+    const fecha = qp.get('fecha');
+    if (chofer) {
+      this.choferSel.set(chofer);
+      if (fecha) void this.verFecha(fecha);
+      else this.seleccionarChofer(chofer);
     }
   }
 

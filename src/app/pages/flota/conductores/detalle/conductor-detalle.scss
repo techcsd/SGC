@@ -30,6 +30,11 @@
   padding: 18px 20px;
   margin-bottom: 18px;
 
+  &__main {
+    flex: 1 1 240px;
+    min-width: 0;
+  }
+
   &__nombre {
     font-size: 22px;
     font-weight: 700;
@@ -53,6 +58,31 @@
     align-items: flex-end;
     gap: 6px;
   }
+}
+
+// ── AS2 — avatar del conductor (reutiliza el patrón .user-avatar del shell) ──
+.cd-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--sgc-primary-light);
+  color: var(--sgc-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  &--img { object-fit: cover; }
+}
+
+// Icono inline (SVG) — AW12: emojis-icono migrados a SVG.
+.cd-ico {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
 }
 
 .cd-chip {
@@ -94,13 +124,21 @@
   font-weight: 600;
 }
 .cd-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
   margin-top: 8px;
   font-size: 13px;
   color: var(--sgc-text-secondary);
+
+  .cd-ico { margin-top: 2px; }
 }
 
 // ── C6 — aviso ámbar (licencia por vencer) ───────────────
 .cd-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin-bottom: 18px;
   padding: 10px 14px;
   border-radius: var(--sgc-radius);
@@ -109,6 +147,8 @@
   color: var(--sgc-warning);
   font-size: 13.5px;
   font-weight: 600;
+
+  .cd-ico { margin-top: 1px; }
 }
 
 // ── Aviso rojo (licencia vencida) ────────────────────────

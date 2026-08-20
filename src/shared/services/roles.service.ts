@@ -94,64 +94,181 @@ export interface SubmoduloInfo {
   key: string;
   label: string;
   enforced?: boolean;
+  /** AS4 — descripción en lenguaje humano de una línea (qué desbloquea el submódulo). */
+  descripcion?: string;
 }
 export const SUBMODULOS: Record<string, SubmoduloInfo[]> = {
   // AW5 — Bitácora. `ver_todas` es una CAPACIDAD de supervisión (no una pantalla):
   // concede ver las bitácoras de TODOS los ingenieros (no solo las propias).
   // Gateado end-to-end (RLS + RPC). Lista de roles EDITABLE desde aquí sin deploy.
   bitacora: [
-    { key: 'bitacora.ver_todas', label: 'Ver todas las bitácoras (supervisión)', enforced: true },
+    { key: 'bitacora.ver_todas', label: 'Ver todas las bitácoras (supervisión)', enforced: true,
+      descripcion: 'Ver las bitácoras de todos los ingenieros, no solo las propias (supervisión).' },
   ],
   // AN2 — Inventario, Flota y Compras: submódulos gateados end-to-end
   // (menú + ruta + RLS). Ver = leer; Operar = crear/editar/eliminar.
   compras: [
-    { key: 'compras.proveedores', label: 'Proveedores', enforced: true },
-    { key: 'compras.ordenes', label: 'Órdenes de compra', enforced: true },
-    { key: 'compras.solicitudes', label: 'Solicitudes de compra', enforced: true },
+    { key: 'compras.proveedores', label: 'Proveedores', enforced: true,
+      descripcion: 'Catálogo de proveedores: crear, editar y consultar.' },
+    { key: 'compras.ordenes', label: 'Órdenes de compra', enforced: true,
+      descripcion: 'Órdenes de compra a proveedores: emitir, aprobar y recibir.' },
+    { key: 'compras.solicitudes', label: 'Solicitudes de compra', enforced: true,
+      descripcion: 'Pedir materiales o servicios y darles seguimiento hasta la orden.' },
   ],
   inventario: [
-    { key: 'inventario.entradas', label: 'Entradas', enforced: true },
-    { key: 'inventario.salidas', label: 'Salidas / Conduces', enforced: true },
-    { key: 'inventario.articulos', label: 'Artículos', enforced: true },
-    { key: 'inventario.conteos', label: 'Conteos', enforced: true },
+    { key: 'inventario.entradas', label: 'Entradas', enforced: true,
+      descripcion: 'Recibir mercancía y registrar entradas al almacén.' },
+    { key: 'inventario.salidas', label: 'Salidas / Conduces', enforced: true,
+      descripcion: 'Despachar material y crear conduces de transporte de sus almacenes.' },
+    { key: 'inventario.articulos', label: 'Artículos', enforced: true,
+      descripcion: 'Catálogo de artículos: alta, edición, precios y consulta.' },
+    { key: 'inventario.conteos', label: 'Conteos', enforced: true,
+      descripcion: 'Conteos físicos y ajustes de inventario.' },
   ],
   flota: [
-    { key: 'flota.vehiculos', label: 'Vehículos', enforced: true },
+    { key: 'flota.vehiculos', label: 'Vehículos', enforced: true,
+      descripcion: 'Ficha de cada vehículo: datos, documentos, estado y galería.' },
     // Conductores: RLS por submódulo; las PANTALLAS de gestión siguen restringidas
     // a roles de flota elevados (no se relajan en esta tanda).
-    { key: 'flota.conductores', label: 'Conductores', enforced: true },
-    { key: 'flota.combustible', label: 'Combustible', enforced: true },
-    { key: 'flota.mantenimientos', label: 'Mantenimientos', enforced: true },
-    { key: 'flota.rutas', label: 'Rutas / Seguimiento', enforced: true },
+    { key: 'flota.conductores', label: 'Conductores', enforced: true,
+      descripcion: 'Conductores, licencias y su vínculo con vehículos.' },
+    { key: 'flota.combustible', label: 'Combustible', enforced: true,
+      descripcion: 'Registrar echadas y controlar el consumo por vehículo.' },
+    { key: 'flota.mantenimientos', label: 'Mantenimientos', enforced: true,
+      descripcion: 'Programar y registrar mantenimientos y reparaciones.' },
+    { key: 'flota.rutas', label: 'Rutas / Seguimiento', enforced: true,
+      descripcion: 'Rutas de transporte y seguimiento GPS en tiempo real.' },
   ],
   rrhh: [
-    { key: 'rrhh.empleados', label: 'Empleados' },
-    { key: 'rrhh.asistencia', label: 'Asistencia' },
-    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones' },
+    { key: 'rrhh.empleados', label: 'Empleados',
+      descripcion: 'Expediente del personal: datos y documentos del empleado.' },
+    { key: 'rrhh.asistencia', label: 'Asistencia',
+      descripcion: 'Marcaje y control de asistencia diaria.' },
+    { key: 'rrhh.ausencias', label: 'Ausencias / Vacaciones',
+      descripcion: 'Solicitar y aprobar permisos, ausencias y vacaciones.' },
   ],
   // AR1 — gateados end-to-end (menú + ruta + RLS por obra).
   proyectos: [
-    { key: 'proyectos.obras', label: 'Obras', enforced: true },
-    { key: 'proyectos.cronograma', label: 'Cronograma', enforced: true },
-    { key: 'proyectos.ranking', label: 'Ranking de encargados', enforced: true },
-    { key: 'proyectos.personal', label: 'Personal de obra', enforced: true },
+    { key: 'proyectos.obras', label: 'Obras', enforced: true,
+      descripcion: 'Obras y proyectos: ficha, partidas planeadas y avance.' },
+    { key: 'proyectos.cronograma', label: 'Cronograma', enforced: true,
+      descripcion: 'Cronograma de obra (Gantt) y seguimiento de tareas.' },
+    { key: 'proyectos.ranking', label: 'Ranking de encargados', enforced: true,
+      descripcion: 'KPI comparativo del desempeño de los encargados de obra.' },
+    { key: 'proyectos.personal', label: 'Personal de obra', enforced: true,
+      descripcion: 'Registro de personal por obra, carnets con QR y fotos.' },
   ],
   // AG16 — Gestión de Producción de Obra. `obra.no_conformidades` ya se gatea
   // end-to-end (menú + ruta + RLS); el resto se irá gateando por fase.
   obra: [
-    { key: 'obra.plan_dia', label: 'Plan del día y charla de seguridad' },
-    { key: 'obra.no_conformidades', label: 'No conformidades e incidentes', enforced: true },
-    { key: 'obra.checklists', label: 'Checklists de calidad' },
-    { key: 'obra.subcontratistas', label: 'Subcontratistas y cubicaciones' },
-    { key: 'obra.avance', label: 'Avance, costos y logística' },
-    { key: 'obra.informes', label: 'Informe semanal' },
+    { key: 'obra.plan_dia', label: 'Plan del día y charla de seguridad',
+      descripcion: 'Plan diario de producción y charla de seguridad (toolbox talk).' },
+    { key: 'obra.no_conformidades', label: 'No conformidades e incidentes', enforced: true,
+      descripcion: 'Registrar no conformidades, incidentes y accidentes en obra.' },
+    { key: 'obra.checklists', label: 'Checklists de calidad',
+      descripcion: 'Listas de verificación de calidad en obra.' },
+    { key: 'obra.subcontratistas', label: 'Subcontratistas y cubicaciones',
+      descripcion: 'Subcontratos y cubicaciones de avance de subcontratistas.' },
+    { key: 'obra.avance', label: 'Avance, costos y logística',
+      descripcion: 'Avance real, curva S, costos y mano de obra de la producción.' },
+    { key: 'obra.informes', label: 'Informe semanal',
+      descripcion: 'Informe semanal de obra autocompilado.' },
   ],
   // AJ4 — permiso delegable para personalizar el layout de la app (launcher).
   // Gateado server-side en set_module_order (is_admin OR puede_operar_submodulo).
   plataforma: [
-    { key: 'plataforma.layout_app', label: 'Personalizar layout de la app', enforced: true },
+    { key: 'plataforma.layout_app', label: 'Personalizar layout de la app', enforced: true,
+      descripcion: 'Cambiar el orden y el tamaño de los módulos del launcher de la app.' },
   ],
 };
+
+/**
+ * AS4 — Presets por cargo. Plantillas de arranque para roles típicos de la empresa.
+ * Aplicarlas REEMPLAZA los módulos + permisos del editor (en memoria, no guarda).
+ * `modulos` = módulos completos; `permisos` = grants granulares "modulo.submodulo".
+ * Son solo puntos de partida: el admin ajusta y guarda con el diff de confirmación.
+ */
+export interface PresetCargo {
+  key: string;
+  label: string;
+  descripcion: string;
+  modulos: string[];
+  permisos: PermisosMap;
+  comparte_ubicacion?: boolean;
+}
+export const PRESETS_CARGO: PresetCargo[] = [
+  {
+    key: 'chofer',
+    label: 'Chofer',
+    descripcion: 'Logística del chofer: rutas, combustible y conduces recibidos. Comparte ubicación.',
+    modulos: ['transporte'],
+    permisos: {
+      'flota.rutas': 'operar',
+      'flota.combustible': 'operar',
+      'inventario.salidas': 'ver',
+    },
+    comparte_ubicacion: true,
+  },
+  {
+    key: 'ingeniero_campo',
+    label: 'Ingeniero de campo',
+    descripcion: 'Bitácora de obra, cronograma, requisiciones y solicitudes de compra de sus obras.',
+    modulos: ['bitacora'],
+    permisos: {
+      'proyectos.obras': 'ver',
+      'proyectos.cronograma': 'operar',
+      'proyectos.personal': 'operar',
+      'inventario.salidas': 'operar',
+      'inventario.articulos': 'ver',
+      'compras.solicitudes': 'operar',
+    },
+  },
+  {
+    key: 'almacenista',
+    label: 'Almacenista',
+    descripcion: 'Maneja un almacén: entradas, salidas/conduces, artículos y conteos; pide compras.',
+    modulos: ['inventario'],
+    permisos: {
+      'compras.solicitudes': 'operar',
+      'compras.ordenes': 'ver',
+    },
+  },
+  {
+    key: 'logistica',
+    label: 'Logística',
+    descripcion: 'Coordina transporte: crea y asigna rutas, mueve inventario y ve órdenes de compra.',
+    modulos: ['flota'],
+    permisos: {
+      'inventario.entradas': 'operar',
+      'inventario.salidas': 'operar',
+      'inventario.articulos': 'ver',
+      'compras.ordenes': 'ver',
+    },
+  },
+  {
+    key: 'gerente',
+    label: 'Gerente',
+    descripcion: 'Vista ejecutiva y de proyectos, con lectura amplia de la operación y supervisión de bitácoras.',
+    modulos: ['direccion', 'proyectos'],
+    permisos: {
+      'bitacora.ver_todas': 'operar',
+      'inventario.articulos': 'ver',
+      'compras.ordenes': 'ver',
+      'flota.vehiculos': 'ver',
+    },
+  },
+];
+
+/** AS4 — una entrada del historial de cambios de permisos (RPC historial_cambios_permisos). */
+export interface CambioPermisosLog {
+  id: number;
+  rol_id: number;
+  rol_nombre: string;
+  actor_id: string;
+  actor_nombre: string;
+  cambio: Record<string, unknown>;
+  at: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class RolesService {
@@ -264,5 +381,25 @@ export class RolesService {
     const { data, error } = await this.supabase.client.rpc('usuarios_multi_rol');
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as UsuarioMultiRol[];
+  }
+
+  // ── AS4 — auditoría de cambios de permisos ────────────────────────────
+
+  /** Registra en la bitácora el diff de un guardado de permisos (admin-only). */
+  async registrarCambioPermisos(rolId: number, cambio: Record<string, unknown>): Promise<void> {
+    const { error } = await this.supabase.client.rpc('registrar_cambio_permisos', {
+      p_rol_id: rolId,
+      p_cambio: cambio,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Últimas N entradas de la bitácora de cambios de permisos (admin-only). */
+  async historialCambiosPermisos(limit = 20): Promise<CambioPermisosLog[]> {
+    const { data, error } = await this.supabase.client.rpc('historial_cambios_permisos', {
+      p_limit: limit,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as CambioPermisosLog[];
   }
 }

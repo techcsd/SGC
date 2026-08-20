@@ -49,6 +49,15 @@ export const inventarioRoutes: Routes = [
     title: 'Confirmaciones de entrega — Inventario',
   },
   {
+    // AS7 — bandeja global de requisiciones (todas las obras). SIN gate de
+    // submódulo: la RLS de `solicitudes_material` es el filtro real (privilegiados
+    // ven todas; ingeniero solo las suyas). El parent ya deja pasar a los roles de
+    // proyecto vía `puedeVerTodasRequisiciones`.
+    path: 'requisiciones',
+    loadComponent: () => import('./requisiciones/requisiciones').then((m) => m.Requisiciones),
+    title: 'Requisiciones — Inventario',
+  },
+  {
     // AU1 — bandeja del despachante (personal inbox, SIN gate de submódulo: cualquier
     // usuario puede ser elegido despachante y debe poder firmar). El RPC valida que
     // sólo el despachante designado firme.

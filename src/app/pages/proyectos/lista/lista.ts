@@ -109,6 +109,9 @@ export class Lista implements OnInit {
   /** Cuadre + antifraude solo para roles financieros/dirección (no obra). */
   verCuadre = this.userService.verCuadre;
 
+  /** AS7 — enlace a la bandeja global de requisiciones (solo quien puede verlas todas). */
+  verRequisiciones = this.userService.puedeVerTodasRequisiciones;
+
   // ── R25: Pagado vs Trabajado ─────────────────────────────
   avance = signal<ProyectoAvance | null>(null);
   pagadoInput = signal<number | null>(null);

@@ -51,14 +51,19 @@ textarea {
 
 .item-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  // AS8 — `minmax(0, 1fr)` (not `1fr`) so the article column can shrink below its
+  // content min-width; otherwise a long article name pushes the stepper + remove
+  // button out of the modal and forces horizontal scroll.
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: center;
   margin-bottom: 8px;
 
   &--material {
-    grid-template-columns: 1fr 80px 90px auto;
+    grid-template-columns: minmax(0, 1fr) 80px 90px auto;
   }
+
+  &__articulo { min-width: 0; }
 
   select,
   input {

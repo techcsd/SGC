@@ -1,0 +1,321 @@
+<!-- ── Section header ── -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Requisiciones</h1>
+    <span class="page-count">
+      {{ filtered().length }} requisici{{ filtered().length !== 1 ? 'ones' : 'ón' }}
+      @if (pendientesCount() > 0) {
+        · <strong>{{ pendientesCount() }}</strong> pendiente{{ pendientesCount() !== 1 ? 's' : '' }}
+      }
+    </span>
+  </div>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
+            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      Excel
+    </button>
+  </div>
+</div>
+
+<p class="requisiciones__intro">
+  Bandeja global de requisiciones de material de todas las obras. Abre cualquiera para ver el detalle
+  y, si puedes gestionarla, aprobarla (genera despacho y compra automática del faltante) o rechazarla.
+</p>
+
+<!-- ── Filters ── -->
+<div class="filters-bar">
+  <div class="sgc-field">
+    <label class="filters-bar__label">Buscar</label>
+    <input type="search" [value]="search()" (input)="search.set($any($event.target).value)"
+           placeholder="Obra, solicitante, artículo, nota…" aria-label="Buscar requisiciones" />
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <label class="filters-bar__label">Obra</label>
+    <select [value]="fObra()" (change)="fObra.set($any($event.target).value)" aria-label="Filtrar por obra">
+      <option value="">Todas las obras</option>
+      @for (o of obrasDisponibles(); track o.id) {
+        <option [value]="o.id">{{ o.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <label class="filters-bar__label">Solicitante</label>
+    <select [value]="fSolicitante()" (change)="fSolicitante.set($any($event.target).value)"
+            aria-label="Filtrar por solicitante">
+      <option value="">Todos</option>
+      @for (s of solicitantesDisponibles(); track s.id) {
+        <option [value]="s.id">{{ s.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <label class="filters-bar__label">Estado</label>
+    <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="Filtrar por estado">
+      <option value="">Todos</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="aprobada">Aprobada (en compra)</option>
+      <option value="entregada">Entregada</option>
+      <option value="cerrada">Cerrada</option>
+      <option value="rechazada">Rechazada</option>
+    </select>
+  </div>
+
+  <div class="sgc-field filters-bar__select">
+    <label class="filters-bar__label">Urgencia</label>
+    <select [value]="fUrgencia()" (change)="fUrgencia.set($any($event.target).value)" aria-label="Filtrar por urgencia">
+      <option value="">Todas</option>
+      <option value="normal">Normal</option>
+      <option value="urgente">Urgente</option>
+    </select>
+  </div>
+
+  <div class="sgc-field">
+    <label class="filters-bar__label">Desde</label>
+    <input type="date" [value]="fDesde()" (change)="fDesde.set($any($event.target).value)" aria-label="Desde" />
+  </div>
+  <div class="sgc-field">
+    <label class="filters-bar__label">Hasta</label>
+    <input type="date" [value]="fHasta()" (change)="fHasta.set($any($event.target).value)" aria-label="Hasta" />
+  </div>
+
+  <div class="sgc-field">
+    <label class="filters-bar__label">Artículo</label>
+    <input type="search" [value]="fArticulo()" (input)="fArticulo.set($any($event.target).value)"
+           placeholder="Nombre del artículo" aria-label="Filtrar por artículo" />
+  </div>
+
+  @if (hasActiveFilters()) {
+    <button class="sgc-btn sgc-btn--ghost filters-bar__clear" type="button" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- ── Table ── -->
+<div class="table-wrapper sgc-card">
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (filtered().length === 0) {
+    <div class="table-empty">
+      <p>
+        @if (hasActiveFilters()) {
+          No se encontraron requisiciones con los filtros aplicados.
+        } @else {
+          Aún no hay requisiciones. Aparecen aquí las que crea el personal de obra.
+        }
+      </p>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="data-table" aria-label="Requisiciones de material">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Obra</th>
+            <th>Solicitante</th>
+            <th>Urgencia</th>
+            <th>Artículos</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of filtered(); track r.id) {
+            <tr class="row--link" (click)="abrir(r)" role="button" tabindex="0"
+                (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()"
+                aria-label="Ver requisición">
+              <td class="text-muted">{{ formatFecha(r.created_at) }}</td>
+              <td>{{ r.proyecto?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ r.solicitante?.nombre ?? '—' }}</td>
+              <td>
+                @if (r.urgencia === 'urgente') {
+                  <span class="sgc-badge sgc-badge--danger">Urgente</span>
+                } @else {
+                  <span class="text-muted">Normal</span>
+                }
+              </td>
+              <td class="text-muted">{{ itemsCount(r) }}</td>
+              <td>
+                <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">
+                  {{ estadoLabel(r.estado) }}
+                </span>
+              </td>
+              <td>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                        (click)="abrir(r); $event.stopPropagation()">Ver</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- ── Detalle / gestión ── -->
+<app-form-drawer [open]="drawerOpen()" [title]="'Requisición'" (closed)="cerrar()">
+  @if (selected(); as s) {
+    <div class="req-detail">
+      <!-- Cabecera -->
+      <div class="req-detail__head">
+        <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span>
+        @if (s.urgencia === 'urgente') {
+          <span class="sgc-badge sgc-badge--danger">Urgente</span>
+        }
+      </div>
+
+      <dl class="req-detail__meta">
+        <div><dt>Obra</dt><dd>{{ s.proyecto?.nombre ?? '—' }}</dd></div>
+        <div><dt>Solicitante</dt><dd>{{ s.solicitante?.nombre ?? '—' }}</dd></div>
+        <div><dt>Creada</dt><dd>{{ formatTimestamp(s.created_at) }}</dd></div>
+        @if (s.atendido_en) {
+          <div>
+            <dt>Atendida</dt>
+            <dd>{{ s.atendido?.nombre ? s.atendido?.nombre + ' · ' : '' }}{{ formatTimestamp(s.atendido_en) }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (s.notas) {
+        <div class="req-detail__notas">
+          <span class="req-detail__label">Notas</span>
+          <p>{{ s.notas }}</p>
+        </div>
+      }
+
+      <!-- Renglones -->
+      <div class="req-detail__items">
+        <span class="req-detail__label">Artículos ({{ itemsCount(s) }})</span>
+        <table class="data-table" aria-label="Artículos de la requisición">
+          <thead>
+            <tr>
+              <th>Artículo</th>
+              <th>Cantidad</th>
+              <th>Unidad</th>
+              <th>Talla</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (i of s.items ?? []; track i.id) {
+              <tr>
+                <td>
+                  {{ i.descripcion }}
+                  @if (!i.articulo_id) { <span class="req-detail__free">libre</span> }
+                </td>
+                <td>{{ i.cantidad }}</td>
+                <td class="text-muted">{{ i.unidad ?? '—' }}</td>
+                <td class="text-muted">{{ i.talla ?? '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4" class="text-muted">Sin renglones.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Vínculos (despacho / compra) -->
+      @if (s.salida_id || s.solicitud_compra_id) {
+        <div class="req-detail__links">
+          <span class="req-detail__label">Trazabilidad</span>
+          @if (s.salida_id) {
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+               [routerLink]="['/inventario/salidas', s.salida_id, 'conduce']">Ver conduce / despacho</a>
+          }
+          @if (s.solicitud_compra_id) {
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/compras/ordenes">Ver compra del faltante</a>
+          }
+        </div>
+      }
+
+      <!-- Acciones de gestión -->
+      @if (puedeGestionar() && s.estado === 'pendiente') {
+        @if (actionError()) {
+          <div class="page-error" role="alert">{{ actionError() }}</div>
+        }
+
+        @switch (mode()) {
+          @case ('ver') {
+            <div class="req-detail__actions">
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="iniciarAprobar()">Aprobar</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="iniciarRechazar()">Rechazar</button>
+            </div>
+          }
+
+          @case ('aprobar') {
+            <div class="req-detail__form">
+              <p class="req-detail__hint">
+                Al aprobar se despacha la parte en stock del almacén y se crea una solicitud de compra
+                automática por el faltante.
+              </p>
+              <div class="sgc-field">
+                <label class="filters-bar__label" for="req-bodega">Almacén de despacho</label>
+                <select id="req-bodega" [value]="bodegaId()" (change)="bodegaId.set($any($event.target).value)">
+                  <option [value]="''" disabled>Elige un almacén…</option>
+                  @for (b of bodegasDeObra(); track b.id) {
+                    <option [value]="b.id">{{ b.nombre }}</option>
+                  }
+                </select>
+              </div>
+              <div class="sgc-field">
+                <label class="filters-bar__label" for="req-fecha">Fecha</label>
+                <input id="req-fecha" type="date" [value]="fecha()" (change)="fecha.set($any($event.target).value)" />
+              </div>
+              <div class="sgc-field">
+                <label class="filters-bar__label" for="req-resp">Responsable (opcional)</label>
+                <input id="req-resp" type="text" [value]="responsable()"
+                       (input)="responsable.set($any($event.target).value)" placeholder="Quién recibe / entrega" />
+              </div>
+              <div class="sgc-field">
+                <label class="filters-bar__label" for="req-obs">Observaciones (opcional)</label>
+                <input id="req-obs" type="text" [value]="observaciones()"
+                       (input)="observaciones.set($any($event.target).value)" />
+              </div>
+              <div class="req-detail__actions">
+                <button type="button" class="sgc-btn sgc-btn--primary"
+                        [disabled]="saving()" (click)="confirmarAprobar()">
+                  {{ saving() ? 'Aprobando…' : 'Confirmar aprobación' }}
+                </button>
+                <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="volverVer()">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+
+          @case ('rechazar') {
+            <div class="req-detail__form">
+              <div class="sgc-field">
+                <label class="filters-bar__label" for="req-nota">Motivo del rechazo (opcional)</label>
+                <textarea id="req-nota" rows="3" [value]="rechazoNota()"
+                          (input)="rechazoNota.set($any($event.target).value)"
+                          placeholder="Explica por qué se rechaza…"></textarea>
+              </div>
+              <div class="req-detail__actions">
+                <button type="button" class="sgc-btn sgc-btn--danger"
+                        [disabled]="saving()" (click)="confirmarRechazar()">
+                  {{ saving() ? 'Rechazando…' : 'Confirmar rechazo' }}
+                </button>
+                <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="volverVer()">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+        }
+      }
+    </div>
+  }
+</app-form-drawer>

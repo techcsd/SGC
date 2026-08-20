@@ -114,6 +114,15 @@
         <p class="roles-audit__subtitle">Revisa el acceso real de cada rol o usuario y limpia asignaciones de más («un usuario = un rol»).</p>
       </div>
 
+      <!-- AS4 — recordatorio de que los roles se suman -->
+      <aside class="roles-audit__banner" role="note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <span>Cuando un usuario tiene varios roles, sus permisos se <strong>suman</strong>: siempre se aplica el acceso <strong>efectivo</strong> (el más alto entre todos sus roles).</span>
+      </aside>
+
       <!-- Tabs -->
       <div class="roles-audit__tabs" role="tablist" aria-label="Herramientas de auditoría">
         <button type="button" role="tab" class="roles-audit__tab" [class.roles-audit__tab--active]="auditTab() === 'efectivos'"
@@ -122,6 +131,8 @@
           [attr.aria-selected]="auditTab() === 'multirol'" (click)="auditTab.set('multirol'); cargarMultiRol()">Usuarios con varios roles</button>
         <button type="button" role="tab" class="roles-audit__tab" [class.roles-audit__tab--active]="auditTab() === 'diff'"
           [attr.aria-selected]="auditTab() === 'diff'" (click)="auditTab.set('diff')">Simular quitar roles</button>
+        <button type="button" role="tab" class="roles-audit__tab" [class.roles-audit__tab--active]="auditTab() === 'historial'"
+          [attr.aria-selected]="auditTab() === 'historial'" (click)="auditTab.set('historial'); cargarHistorial()">Historial de cambios</button>
       </div>
 
       <!-- 1) Accesos efectivos -->
@@ -312,6 +323,46 @@
           }
         </div>
       }
+
+      <!-- 4) AS4 — Historial de cambios de permisos -->
+      @if (auditTab() === 'historial') {
+        <div class="roles-audit__panel">
+          <p class="roles-audit__explain">
+            Bitácora de <strong>quién</strong> cambió los permisos de un rol, <strong>qué</strong> ganó/perdió y <strong>cuándo</strong>. Se registra automáticamente al guardar.
+          </p>
+          @if (historialLoading()) {
+            <p class="roles-audit__muted">Cargando historial…</p>
+          } @else if (historial(); as filas) {
+            @if (filas.length === 0) {
+              <p class="roles-audit__muted">Aún no hay cambios de permisos registrados.</p>
+            } @else {
+              <ul class="roles-hist">
+                @for (h of filas; track h.id) {
+                  <li class="roles-hist__item">
+                    <div class="roles-hist__head">
+                      <span class="roles-hist__rol">{{ h.rol_nombre }}</span>
+                      <span class="roles-hist__meta">{{ h.actor_nombre }} · {{ h.at | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="roles-hist__body">
+                      @for (g of histLista(h.cambio, 'gana'); track g) {
+                        <span class="roles-hist__chip roles-hist__chip--gain">+ {{ g }}</span>
+                      }
+                      @for (p of histLista(h.cambio, 'pierde'); track p) {
+                        <span class="roles-hist__chip roles-hist__chip--lose">− {{ p }}</span>
+                      }
+                      @for (c of histLista(h.cambio, 'cambia'); track c) {
+                        <span class="roles-hist__chip roles-hist__chip--change">~ {{ c }}</span>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          } @else {
+            <p class="roles-audit__muted">Cargando historial…</p>
+          }
+        </div>
+      }
     </section>
   }
 
@@ -369,51 +420,43 @@
       }
     </div>
 
-    <!-- Módulos -->
+    <!-- AS4 — Permisos (matriz módulo × submódulo) -->
     <fieldset class="roles-form__fieldset">
-      <legend class="roles-form__legend">Módulos accesibles</legend>
-      <p class="roles-form__hint">Marca lo que este rol podrá ver y usar. Cada módulo indica a qué da acceso.</p>
-      <div class="roles-form__modulos">
-        @for (mod of modulos; track mod.key) {
-          <label
-            class="roles-form__checkbox-label"
-            [class.roles-form__checkbox-label--sensible]="mod.sensible"
-            [for]="'mod-' + mod.key"
-          >
-            <input
-              [id]="'mod-' + mod.key"
-              class="roles-form__checkbox"
-              type="checkbox"
-              [checked]="isModuloSelected(mod.key)"
-              (change)="toggleModulo(mod.key)"
-            />
-            <span class="roles-form__checkbox-body">
-              <span class="roles-form__checkbox-text">
-                {{ mod.label }}
-                @if (mod.sensible) { <span class="roles-form__sensible-tag">acceso amplio</span> }
-              </span>
-              <span class="roles-form__checkbox-desc">{{ mod.desc }}</span>
-            </span>
-          </label>
-        }
-      </div>
-    </fieldset>
+      <legend class="roles-form__legend">Permisos de acceso</legend>
+      <p class="roles-form__hint">Define qué puede ver y operar este rol. Cada módulo tiene un control <strong>Nada / Parcial / Todo</strong>; expándelo para ajustar por submódulo (Sin acceso / Ver / Operar).</p>
 
-    <!-- AN2 — Permisos por submódulo (avanzado) -->
-    <fieldset class="roles-form__fieldset">
-      <button type="button" class="roles-matrix__toggle" (click)="mostrarAvanzado.set(!mostrarAvanzado())"
-        [attr.aria-expanded]="mostrarAvanzado()">
-        {{ mostrarAvanzado() ? '▾' : '▸' }} Permisos por submódulo (avanzado)
-      </button>
-      @if (mostrarAvanzado()) {
-        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo (ej.: Compras → solo Proveedores → Ver). Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar (heredado)</strong> automáticamente.</p>
-        <app-role-permisos-editor
-          idPrefix="edit"
-          [selectedModulos]="selectedModulos()"
-          [permisos]="selectedPermisos()"
-          (permisoChange)="setPermiso($event.key, $event.nivel)"
-        />
-      }
+      <!-- Presets por cargo + copiar de otro rol -->
+      <div class="roles-preset">
+        <div class="roles-preset__control">
+          <label class="roles-preset__label" for="edit-preset">Aplicar preset por cargo</label>
+          <select id="edit-preset" #editPresetSel class="roles-preset__select"
+            (change)="onAplicarPreset(editPresetSel.value); editPresetSel.value=''">
+            <option value="" disabled selected>Elegir preset…</option>
+            @for (p of presets; track p.key) {
+              <option [value]="p.key" [title]="p.descripcion">{{ p.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="roles-preset__control">
+          <label class="roles-preset__label" for="edit-copiar">Copiar permisos de otro rol</label>
+          <select id="edit-copiar" #editCopiarSel class="roles-preset__select"
+            (change)="onCopiarRol(editCopiarSel.value); editCopiarSel.value=''">
+            <option value="" disabled selected>Elegir rol…</option>
+            @for (r of rolesParaCopiar(); track r.id) {
+              <option [value]="r.id">{{ r.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <p class="roles-form__hint">Un preset o copia <strong>reemplaza</strong> lo marcado abajo (no lo suma). Es un punto de partida: ajústalo antes de guardar.</p>
+
+      <app-role-permisos-editor
+        idPrefix="edit"
+        [selectedModulos]="selectedModulos()"
+        [permisos]="selectedPermisos()"
+        (modulosChange)="selectedModulos.set($event)"
+        (permisosChange)="selectedPermisos.set($event)"
+      />
     </fieldset>
 
     <!-- AO6 — Comparte ubicación -->
@@ -505,50 +548,42 @@
       }
     </div>
 
+    <!-- AS4 — Permisos (matriz módulo × submódulo) -->
     <fieldset class="roles-form__fieldset">
-      <legend class="roles-form__legend">Módulos accesibles</legend>
-      <p class="roles-form__hint">Marca lo que este rol podrá ver y usar. Cada módulo indica a qué da acceso.</p>
-      <div class="roles-form__modulos">
-        @for (mod of modulos; track mod.key) {
-          <label
-            class="roles-form__checkbox-label"
-            [class.roles-form__checkbox-label--sensible]="mod.sensible"
-            [for]="'create-mod-' + mod.key"
-          >
-            <input
-              [id]="'create-mod-' + mod.key"
-              class="roles-form__checkbox"
-              type="checkbox"
-              [checked]="isCreateModuloSelected(mod.key)"
-              (change)="toggleCreateModulo(mod.key)"
-            />
-            <span class="roles-form__checkbox-body">
-              <span class="roles-form__checkbox-text">
-                {{ mod.label }}
-                @if (mod.sensible) { <span class="roles-form__sensible-tag">acceso amplio</span> }
-              </span>
-              <span class="roles-form__checkbox-desc">{{ mod.desc }}</span>
-            </span>
-          </label>
-        }
-      </div>
-    </fieldset>
+      <legend class="roles-form__legend">Permisos de acceso</legend>
+      <p class="roles-form__hint">Define qué puede ver y operar este rol. Cada módulo tiene un control <strong>Nada / Parcial / Todo</strong>; expándelo para ajustar por submódulo (Sin acceso / Ver / Operar).</p>
 
-    <!-- AN2 — Permisos por submódulo (avanzado) -->
-    <fieldset class="roles-form__fieldset">
-      <button type="button" class="roles-matrix__toggle" (click)="createMostrarAvanzado.set(!createMostrarAvanzado())"
-        [attr.aria-expanded]="createMostrarAvanzado()">
-        {{ createMostrarAvanzado() ? '▾' : '▸' }} Permisos por submódulo (avanzado)
-      </button>
-      @if (createMostrarAvanzado()) {
-        <p class="roles-form__hint">Da acceso a un submódulo específico sin marcar el módulo completo. Si el módulo padre está marcado, sus submódulos quedan en <strong>Operar (heredado)</strong>.</p>
-        <app-role-permisos-editor
-          idPrefix="create"
-          [selectedModulos]="createSelectedModulos()"
-          [permisos]="createSelectedPermisos()"
-          (permisoChange)="setCreatePermiso($event.key, $event.nivel)"
-        />
-      }
+      <div class="roles-preset">
+        <div class="roles-preset__control">
+          <label class="roles-preset__label" for="create-preset">Aplicar preset por cargo</label>
+          <select id="create-preset" #createPresetSel class="roles-preset__select"
+            (change)="onAplicarPresetCreate(createPresetSel.value); createPresetSel.value=''">
+            <option value="" disabled selected>Elegir preset…</option>
+            @for (p of presets; track p.key) {
+              <option [value]="p.key" [title]="p.descripcion">{{ p.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="roles-preset__control">
+          <label class="roles-preset__label" for="create-copiar">Copiar permisos de otro rol</label>
+          <select id="create-copiar" #createCopiarSel class="roles-preset__select"
+            (change)="onCopiarRolCreate(createCopiarSel.value); createCopiarSel.value=''">
+            <option value="" disabled selected>Elegir rol…</option>
+            @for (r of roles(); track r.id) {
+              <option [value]="r.id">{{ r.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <p class="roles-form__hint">Un preset o copia <strong>reemplaza</strong> lo marcado abajo (no lo suma).</p>
+
+      <app-role-permisos-editor
+        idPrefix="create"
+        [selectedModulos]="createSelectedModulos()"
+        [permisos]="createSelectedPermisos()"
+        (modulosChange)="createSelectedModulos.set($event)"
+        (permisosChange)="createSelectedPermisos.set($event)"
+      />
     </fieldset>
 
     <!-- AO6 — Comparte ubicación -->
@@ -575,3 +610,73 @@
 
   </form>
 </app-form-drawer>
+
+<!-- AS4 — Confirmación de guardado con diff (Gana / Pierde) -->
+@if (confirmOpen()) {
+  <div class="perm-confirm-backdrop" (click)="cancelarGuardar()">
+    <div class="perm-confirm" role="alertdialog" aria-modal="true" aria-labelledby="perm-confirm-title"
+      (click)="$event.stopPropagation()">
+      <h2 class="perm-confirm__title" id="perm-confirm-title">Confirmar cambios de permisos</h2>
+      <p class="perm-confirm__sub">Revisa cómo cambia el acceso de <strong>{{ editingRol()?.nombre }}</strong> antes de guardar.</p>
+
+      @if (pendingDiff(); as d) {
+        @if (d.sinImpacto) {
+          <p class="perm-confirm__none">No cambia el acceso a módulos ni submódulos. (Solo se actualizan nombre o descripción, si los editaste.)</p>
+        } @else {
+          <div class="perm-confirm__cols">
+            <div class="perm-confirm__col perm-confirm__col--gain">
+              <h3>Gana</h3>
+              @if (d.modulosGana.length === 0 && d.subsGana.length === 0) {
+                <p class="perm-confirm__muted">Nada.</p>
+              } @else {
+                <ul>
+                  @for (m of d.modulosGana; track m) { <li><strong>{{ m }}</strong> (módulo completo)</li> }
+                  @for (s of d.subsGana; track s.label) { <li>{{ s.label }} <span class="perm-confirm__nivel perm-confirm__nivel--op">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                </ul>
+              }
+            </div>
+            <div class="perm-confirm__col perm-confirm__col--lose">
+              <h3>Pierde</h3>
+              @if (d.modulosPierde.length === 0 && d.subsPierde.length === 0) {
+                <p class="perm-confirm__muted">Nada.</p>
+              } @else {
+                <ul>
+                  @for (m of d.modulosPierde; track m) { <li><strong>{{ m }}</strong> (módulo completo)</li> }
+                  @for (s of d.subsPierde; track s.label) { <li>{{ s.label }} <span class="perm-confirm__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span></li> }
+                </ul>
+              }
+            </div>
+          </div>
+          @if (d.subsCambia.length > 0) {
+            <div class="perm-confirm__changes">
+              <h3>Cambia de nivel</h3>
+              <ul>
+                @for (s of d.subsCambia; track s.label) {
+                  <li>{{ s.label }}: <span class="perm-confirm__nivel">{{ s.antes === 'operar' ? 'Operar' : 'Ver' }}</span> → <span class="perm-confirm__nivel perm-confirm__nivel--op">{{ s.despues === 'operar' ? 'Operar' : 'Ver' }}</span></li>
+                }
+              </ul>
+            </div>
+          }
+        }
+      }
+
+      @if (saveError()) {
+        <div class="roles-form__save-error" role="alert">{{ saveError() }}</div>
+      }
+
+      <div class="perm-confirm__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="verAccesosActuales()">
+          Ver accesos actuales de este rol
+        </button>
+        <div class="perm-confirm__actions-right">
+          <button type="button" class="roles-form__cancel" (click)="cancelarGuardar()" [disabled]="saving()">
+            Cancelar
+          </button>
+          <button type="button" class="roles-form__submit" (click)="confirmarGuardar()" [disabled]="saving()" [attr.aria-busy]="saving()">
+            @if (saving()) { Guardando… } @else { Confirmar y guardar }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

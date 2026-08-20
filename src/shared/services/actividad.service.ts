@@ -18,19 +18,22 @@ export class ActividadService {
 
   /** Ping best-effort; nunca lanza (no debe romper la navegación ni el login). */
   ping(): void {
+    // AQ7/AS3 — reporta la plataforma 'web' y su versión (APP_VERSION, SIEMPRE no-nula)
+    // una vez por carga. Se hace ANTES del throttle para garantizar que la versión web
+    // quede fresca aunque el primer ping caiga dentro de la ventana de throttle.
+    // (La versión desfasada venía de reportes con null desde la app; la web nunca manda null.)
+    if (!this.plataformaReportada) {
+      this.plataformaReportada = true;
+      void this.supabase.client
+        .rpc('set_mi_plataforma', { p_plataforma: 'web', p_app_version: APP_VERSION })
+        .then(() => undefined, () => undefined);
+    }
+
     const ahora = Date.now();
     if (ahora - this.ultimoPing < this.MIN_MS) return;
     this.ultimoPing = ahora;
     void this.supabase.client
       .rpc('ping_actividad', { p_canal: 'web' })
       .then(() => undefined, () => undefined);
-    // AQ7 — reporta la plataforma 'web' una vez por sesión para que las
-    // estadísticas de dispositivos cuenten a los usuarios de la web (AP7).
-    if (!this.plataformaReportada) {
-      this.plataformaReportada = true;
-      void this.supabase.client
-        .rpc('set_mi_plataforma', { p_plataforma: 'web', p_app_version: APP_VERSION }) // AR2 — reporta la versión web
-        .then(() => undefined, () => undefined);
-    }
   }
 }

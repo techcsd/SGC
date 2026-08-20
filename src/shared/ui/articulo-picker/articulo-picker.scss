@@ -4,6 +4,7 @@
 
   &__trigger {
     width: 100%;
+    min-width: 0; // AS8 — allow the trigger to shrink inside a tight grid/flex track
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -21,7 +22,12 @@
     &:disabled { opacity: 0.6; cursor: not-allowed; }
     &--placeholder { color: var(--sgc-text-muted); }
   }
-  &__trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  // AS8 — `min-width: 0` is what actually lets the ellipsis engage: a flex child
+  // defaults to `min-width: auto` and refuses to shrink below its text, so a long
+  // article name (e.g. `[CSD] PANEL FILLER 24"X8' …`) blew the row past the
+  // viewport and pushed the stepper + remove button off-screen. Fixes every use
+  // of the picker (requisición, crear conduce, salidas, kardex…).
+  &__trigger-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   &__caret { flex-shrink: 0; color: var(--sgc-text-muted); }
 
   &__backdrop {

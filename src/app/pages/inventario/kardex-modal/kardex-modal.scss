@@ -14,8 +14,8 @@
   width: min(1000px, 94vw);
   max-height: 90vh;
   overflow: auto;
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
   padding: 18px 20px 22px;
 
@@ -40,8 +40,8 @@
   }
   &__stat {
     flex: 1 1 120px;
-    background: #1c1c1c;
-    border: 1px solid #2d2d2d;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
     border-radius: 10px;
     padding: 10px 12px;
     span { display: block; font-size: 12px; color: var(--main-ultra-light); }
@@ -49,8 +49,8 @@
   }
 
   &__timeline {
-    background: #1c1c1c;
-    border: 1px solid #2d2d2d;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
     border-radius: 10px;
     padding: 10px 12px;
     margin-bottom: 14px;

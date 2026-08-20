@@ -1,5 +1,19 @@
 {
   "web": {
+    "1.87.0": {
+      "titulo": "Requisiciones, permisos rediseñados y arreglos visuales",
+      "cambios": [
+        { "t": "nuevo", "d": "Nueva bandeja de Requisiciones de material en Inventario: filtros por obra, solicitante, estado, urgencia, fecha y artículo, con detalle y trazabilidad, y aprobar/rechazar según tu rol. Acceso directo desde cada obra." },
+        { "t": "mejora", "d": "Editor de permisos rediseñado: matriz Rol × Módulo/Submódulo con tres niveles (Sin acceso · Ver · Operar), descripciones claras, búsqueda, plantillas (presets), copiar permisos de otro rol, vista previa de cambios antes de guardar e historial de cambios." },
+        { "t": "mejora", "d": "Estadísticas de uso rediseñadas: KPIs, gráfico por versión, tabla filtrable/ordenable con exportación y avisos de versiones obsoletas o sin datos." },
+        { "t": "mejora", "d": "Mapa de seguimiento: ventana de información enriquecida (chofer, vehículo, frescura de la señal, ruta y enlace a “Ver recorrido”), ajuste a calles, aviso de tramos sin señal, indicador “en vivo” y leyenda única." },
+        { "t": "mejora", "d": "Notificación de requisición por correo con diseño enriquecido y PDF adjunto, enviada a los destinatarios correctos." },
+        { "t": "arreglo", "d": "Corregida la regresión visual que oscurecía textos y colores en varias pantallas (perfil, seguimiento, roles, estadísticas, conductores y más)." },
+        { "t": "arreglo", "d": "El perfil de usuario ya vuelve a mostrar toda la información (antes podía aparecer en blanco) e incluye avatar." },
+        { "t": "arreglo", "d": "Corregidos el menú lateral que se encimaba y el desbordamiento del modal de requisición en pantallas angostas." },
+        { "t": "seguridad", "d": "La foto del tablero es ahora obligatoria al registrar combustible (se valida en el servidor por todos los caminos)." }
+      ]
+    },
     "1.86.0": {
       "titulo": "Gestor de Issues interno (tipo Jira) para Tecnología",
       "cambios": [

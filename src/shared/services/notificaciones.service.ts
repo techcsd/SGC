@@ -70,6 +70,11 @@ export class NotificacionesService {
       // módulo: cualquier usuario puede ser elegido despachante).
       checks.push(this.loadConducesPorFirmar());
     }
+    // AS7 — bandeja global de requisiciones: pendientes visibles por RLS (privilegiados
+    // ven todas las obras; los roles de proyecto también, sin tener módulo inventario).
+    if (this.userService.puedeVerTodasRequisiciones()) {
+      checks.push(this.loadRequisicionesPendientes());
+    }
     // Z29 — reportes de soporte sin atender (RLS: admin ve todos; usuario, los suyos).
     checks.push(this.loadReportesSoporte());
 
@@ -203,6 +208,15 @@ export class NotificacionesService {
   private async loadConducesPorImplementar(): Promise<void> {
     const { data } = await this.supabase.client.rpc('conduces_por_implementar_count');
     this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.conduces_por_implementar': (data as number) ?? 0 }));
+  }
+
+  /** AS7 — requisiciones pendientes visibles (RLS) → badge en la bandeja global. */
+  private async loadRequisicionesPendientes(): Promise<void> {
+    const { count } = await this.supabase.client
+      .from('solicitudes_material')
+      .select('id', { count: 'exact', head: true })
+      .eq('estado', 'pendiente');
+    this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.requisiciones': count ?? 0 }));
   }
 
   /** AY11 — solicitudes de movimiento pendientes → badge en el nav. */

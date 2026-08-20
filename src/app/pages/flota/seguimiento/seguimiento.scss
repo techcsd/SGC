@@ -49,13 +49,31 @@
     font-weight: 700; font-size: 12px; color: var(--sgc-text);
   }
   &__list { list-style: none; margin: 8px 0 4px; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+  &__list--sim { margin-top: 4px; }
   &__item { display: flex; align-items: center; gap: 7px; }
   &__dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }
   &__label { flex: 1; }
   &__count { font-weight: 700; color: var(--sgc-text-muted); }
   &__nota { margin-top: 6px; font-size: 11px; color: var(--sgc-text-muted); line-height: 1.35; }
+  // AS14 — símbolos del mapa dentro de la MISMA leyenda (antes eran un overlay aparte)
+  &__sep { height: 1px; margin: 8px 0 2px; background: var(--sgc-border); }
+  &__pin { display: inline-flex; flex: 0 0 auto; width: 13px; height: 13px; }
+  &__pin svg { width: 13px; height: 13px; }
+  &__line { flex: 0 0 auto; width: 18px; height: 3px; border-radius: 2px; background: #2563eb; }
+  &__dash {
+    flex: 0 0 auto; width: 18px; height: 0;
+    border-top: 2px dashed #9ca3af;
+  }
+  &__vivo {
+    flex: 0 0 auto; font-size: 10px; font-weight: 700; padding: 1px 6px;
+    border-radius: 999px; background: #16a34a; color: #fff;
+  }
 }
 .seg-chofer__stale { color: #b45309; font-style: italic; }
+.seg-chofer__vivo {
+  font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+  background: #16a34a; color: #fff;
+}
 
 .seg__panel {
   display: flex;
@@ -76,6 +94,12 @@
   &__top { display: flex; gap: 8px; align-items: baseline; }
   &__dest { font-size: 13px; }
   &__prog { font-size: 12px; color: var(--sgc-text-muted); }
+  // AS14 — meta de la ruta de hoy: hora de inicio + nota "N tramos" (agrupación AV13)
+  &__meta { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--sgc-text-muted); margin-top: 2px; }
+  &__tramos {
+    font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+    background: var(--sgc-surface-2, #f1f5f9); color: var(--sgc-primary, #2563eb);
+  }
 }
 
 .seg-chofer {

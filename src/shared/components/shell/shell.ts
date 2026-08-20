@@ -63,6 +63,8 @@ interface NavSubItem {
   soloAdmin?: boolean;
   /** AG12 — visible si el usuario puede VER este submódulo (permiso granular). */
   submodulo?: string;
+  /** AS7 — bandeja global de requisiciones: módulo inventario o roles de proyecto. */
+  verTodasRequisiciones?: boolean;
 }
 
 @Component({
@@ -144,6 +146,7 @@ export class Shell implements OnInit {
         { label: 'Activos Fijos', route: '/inventario/activos', submodulo: 'inventario.articulos' },
         { label: 'Entradas', route: '/inventario/entradas', submodulo: 'inventario.entradas' },
         { label: 'Salidas', route: '/inventario/salidas', badgeKey: 'inventario.salidas', submodulo: 'inventario.salidas' },
+        { label: 'Requisiciones', route: '/inventario/requisiciones', verTodasRequisiciones: true, badgeKey: 'inventario.requisiciones' },
         { label: 'Movimientos', route: '/inventario/movimientos', submodulo: 'inventario.articulos' },
         { label: 'Conduces', route: '/inventario/conduces', submodulo: 'inventario.salidas' },
         { label: 'Confirmaciones de entrega', route: '/inventario/confirmaciones', submodulo: 'inventario.salidas' },
@@ -404,6 +407,8 @@ export class Shell implements OnInit {
     if (child.soloTecnologia && !this.userService.esTecnologia()) return false;
     // AS10 — herramientas admin (Apertura de inventario).
     if (child.soloAdmin && !this.userService.hasRole('admin')) return false;
+    // AS7 — bandeja global de requisiciones (inventario o roles de proyecto).
+    if (child.verTodasRequisiciones) return this.userService.puedeVerTodasRequisiciones();
     // AG12 — submódulo con permiso granular (p. ej. Proveedores).
     if (child.submodulo) {
       return this.userService.esFlotaElevado() || this.userService.puedeVerSubmodulo(child.submodulo);

@@ -11,7 +11,7 @@ import { NotificacionesService } from './notificaciones.service';
 // usuarios is joined twice (solicitante_id, atendido_por) — the relationship must be
 // disambiguated with !fkey_name or PostgREST rejects the embed as ambiguous.
 const SELECT_QUERY =
-  '*, proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre), items:solicitud_material_items(*)';
+  '*, proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre), atendido:usuarios!solicitudes_material_atendido_por_fkey(nombre), items:solicitud_material_items(*)';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudesMaterialService {

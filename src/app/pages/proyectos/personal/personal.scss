@@ -19,8 +19,8 @@
   margin-bottom: 16px;
 }
 .pob-tile {
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
   padding: 14px 16px;
   display: flex;

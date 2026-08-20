@@ -1,6 +1,39 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-08-19_
+_Last updated: 2026-08-20_
+
+## 🟢 2026-08-20 — PROMPT-1 (IDs AS): regresión de tema, sidebar, modal requisición + rol logística, requisiciones RLS, foto de combustible obligatoria
+
+**Estado:** ✅ **SHIPPED web 1.87.0** (20/08/2026, push a `main`). `npm run build` VERDE. Migraciones backend **APLICADAS a prod** (Management API, verificadas). Edge `notificar-solicitud` (AS6) **DESPLEGADA a prod**. Front SCSS + `UserService` + módulo Requisiciones + editor de permisos + estadísticas commiteados. Pendiente solo de Xaviel: enable **Google Roads API** en Cloud + confirmar `NOTIFICATIONS_FROM_EMAIL` en dominio Resend verificado.
+
+### FASE 1 — shipped-ready (frontend, sin backend)
+- **AS18 (regresión de tema, raíz única):** NO es dark-mode. Componentes copiaron el idiom **dark de X-Dev** (`--main`/`--Hub`/`--main-ultra-light`/`--secondary`/`--danger`/`--primary`) que **SGC nunca definió** (208 refs / 42 files → color inválido → heredaba texto oscuro) + hex oscuros hardcoded (#161616…) en 17 files. Fix en origen: **shim de compatibilidad en `:root` de `src/styles.scss`** (mapea legacy → `--sgc-*`) + barrido de 56 hex + 8 flips de texto claro→oscuro. Resolvió AS9/AS13/AS16/AS17 visual.
+- **AS19 (sidebar encimado):** hijos de `.sidebar-nav` sin `flex-shrink:0` → se comprimían. Fix `shell.scss` (`min-height:0` + `flex-shrink:0`).
+- **AS8 (modal requisición overflow):** grid `1fr` + `articulo-picker.__trigger-text` sin `min-width:0`. Fix en el picker compartido (aplica a conduce/salidas/kardex) + `minmax(0,1fr)` en `solicitudes-material.scss`.
+
+### Backend APLICADO a prod — `sql/2026-08-19-as5-as7-as15-roles-requisiciones-combustible.sql`
+- **AS5:** rol `logistica` (id=3, "Logística y Transporte") YA existía pero sin migración/flota-elevado. Formalizado idempotente + `flota` a modulos + agregado a `sgc.es_flota_elevado()` (+ espejo `UserService.esFlotaElevado`). Decisión Xaviel: mantener nombre. ⏳ follow-up: gate fino "salvo admin de vehículos".
+- **AS7 (backend):** helper `sgc.puede_ver_todas_requisiciones()` (inventario module + gerente_produccion/gerente_proyectos/jefe_ingenieros) → SELECT RLS de `solicitudes_material`; ingeniero solo las suyas. + `'cerrada'` al CHECK de estado (alinea con TS model).
+- **AS15:** trigger `combustible_requiere_tablero` BEFORE INSERT en `registros_combustible` → rechaza foto de tablero null/'' (cubre todos los caminos). Verificado que rechaza. Histórico: **1 sola echada real sin tablero** (id `92e30fd9`, 18/08) — decidir marcar incompleta/pedir evidencia; 3 son es_prueba.
+
+### Batch 2 — CONSTRUIDO + build verde + migraciones APLICADAS (6 features en paralelo)
+Xaviel: "do everything, do the best, don't leave nothing pending". Todo web-side construido y verificado. **SIN commit/push/deploy** aún.
+- **AS7 UI — CONSTRUIDO:** bandeja `/inventario/requisiciones` (filtros obra/solicitante/estado/urgencia/fecha/artículo + búsqueda, badge pendientes, detalle drawer con trazabilidad, Aprobar/Rechazar reusando RPCs) + link obra→requisiciones en `proyectos/lista` + nav + guard (`extraAllow` en `modulo-o-submodulo.guard`) + mirror `UserService.puedeVerTodasRequisiciones`. Embed `atendido`/`solicitante` desambiguado por FK (verificado: FKs existen, sin AN5).
+- **AS2 — CONSTRUIDO:** raíz "no muestra nada" = `ngOnInit` con TODO en un `Promise.all` (una llamada secundaria que fallaba blanqueaba el perfil). Ahora `getById` es la única crítica; el resto falla aparte. Avatar via `sgc.usuarios.avatar_path` (bucket público `sgc-avatars`) + fallback iniciales. Sin migración.
+- **AS4 — CONSTRUIDO + migración aplicada:** editor de permisos reescrito a matriz Rol×Módulo/Submódulo (tri-estado, 3-way Sin/Ver/Operar, descripciones humanas en `SUBMODULOS`, búsqueda, 5 presets + copiar-de-otro-rol, **diff antes de guardar**, tab Historial). Tabla `sgc.roles_permisos_auditoria` + RPCs `registrar_cambio_permisos`/`historial_cambios_permisos` (APLICADO). Editor pasó a controlado (outputs `modulosChange`/`permisosChange`).
+- **AS3 — CONSTRUIDO + migración aplicada:** raíz confirmada (`set_mi_plataforma coalesce`); web ya reporta no-null (endurecido en `ActividadService.ping`). Rediseño (KPIs + bar-chart por versión + tabla filtrable/ordenable/export + badges Obsoleta/Sin dato). SQL: `usuario_dispositivos.build_number`, helper `semver_key`, `dispositivos_por_usuario` (+last_seen_at/obsoleta/build_number) y `estadisticas_uso` (+versiones_ultimas) recreadas (APLICADO, verificadas ejecutan).
+- **AS14 — CONSTRUIDO:** InfoWindow enriquecido (chofer/vehículo/frescura/ruta/"Ver recorrido" deep-link a recorrido-diario), snap en `dibujarTraza`, regla anti-recta 2km (dashed "sin señal"), "en vivo"<2min, "Rutas de hoy" agrupadas, leyenda única colapsable. ⏳ falta en RPC `ultimas_posiciones`: `velocidad`; y `conductor_id` en `rutas_activas_y_hoy` (hoy match por nombre). Google Roads API enable = Xaviel.
+- **AS6 — CONSTRUIDO (edge NO desplegada):** `notificar-solicitud` con HTML enriquecido + PDF adjunto (`pdf-lib@1.17.1`, sanitizado a WinAnsi) + RPC `usuarios_destinatarios_requisicion()` (APLICADO, devuelve 12) + deep-link prod `sgcconstructorasd.com/bitacora/solicitudes-material`. **Falta: desplegar edge + confirmar `NOTIFICATIONS_FROM_EMAIL` en dominio Resend verificado.**
+
+**Migraciones aplicadas esta sesión (batch 1+2):** `2026-08-19-as5-as7-as15-…`, `-as3-estadisticas`, `-as4-permisos-auditoria`, `-as6-destinatarios`. Todas verificadas en prod.
+
+### Pendiente real (PROMPT-2 app o acción de Xaviel)
+- **Deploy/commit** de todo lo anterior (esperando OK de Xaviel) + **desplegar edge `notificar-solicitud`**.
+- **Google Roads API** enable en Cloud (Xaviel) para que el snap-to-roads (ya cableado) deje de degradar a crudo.
+- **AS1** (wizard firma en sitio), **AS3 contrato** (reportar versión en cada arranque), **AS9-12 chat** (voz seekable, PDF inline, stickers favoritos+packs v1), **AS20 articulos**, **AS14 captura GPS** = **PROMPT-2 (csd-app)**.
+- Follow-ups menores: gate fino "logística salvo admin de vehículos"; `velocidad`+`conductor_id` en RPCs de tracking; 1 echada histórica sin tablero (id `92e30fd9`) se deja como está.
+
+---
 
 ## 🟡 2026-08-19 — PROMPT-29 (IDs AY): chat v3 web, conduces (es_prueba + por implementar), módulo Solicitud de movimiento, Gerencia/clima/desempeño/flota — **web 1.85.0, build verde, SIN commit/deploy**
 

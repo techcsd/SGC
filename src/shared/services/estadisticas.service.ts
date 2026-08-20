@@ -13,6 +13,8 @@ export interface EstadisticasUso {
   dispositivos: { plataforma: string; total: number }[];
   app_android_tokens: number;
   versiones: { plataforma: string; version: string; publicada: boolean; fecha: string | null }[];
+  /** AS3 — versión publicada más alta por plataforma del catálogo ('web' | 'movil'). */
+  versiones_ultimas?: Record<string, string> | null;
 }
 
 /** AR2 — un dispositivo del historial de un usuario. */
@@ -20,11 +22,12 @@ export interface DispositivoHist {
   plataforma: string | null;
   modelo: string | null;
   app_version: string | null;
+  build_number?: number | null;
   visto_at: string;
   usos: number;
 }
 
-/** AR2 — fila por usuario (RPC sgc.dispositivos_por_usuario). */
+/** AR2/AS3 — fila por usuario (RPC sgc.dispositivos_por_usuario). */
 export interface DispositivoUsuario {
   usuario_id: string;
   nombre: string;
@@ -33,7 +36,13 @@ export interface DispositivoUsuario {
   plataforma: string | null;
   modelo: string | null;
   app_version: string | null;
+  /** AS3 — build del cliente (opcional, lo poblará la app en PROMPT-2). */
+  build_number?: number | null;
   ultimo_uso: string | null;
+  /** AS3 — máximo entre actividad web/app y el visto_at más reciente del dispositivo. */
+  last_seen_at?: string | null;
+  /** AS3 — la versión reportada es < a la publicada de su plataforma. null app_version = "sin dato". */
+  obsoleta?: boolean;
   dispositivos_total: number;
   historial: DispositivoHist[];
 }

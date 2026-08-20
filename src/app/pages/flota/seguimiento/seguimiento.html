@@ -12,14 +12,8 @@
   <div class="seg__map sgc-card">
     <div #map class="seg__map-el"></div>
     @if (mapError()) { <div class="seg__map-error" role="alert">{{ mapError() }}</div> }
-    <!-- AW11 — leyenda compartida de símbolos del mapa (SVG, misma que Recorrido diario).
-         Sin "parada numerada" (aquí no se dibujan) y con "sin señal" (marcador atenuado AV1). -->
-    <app-map-legend
-      inicioLabel="Inicio de ruta"
-      [mostrarParada]="false"
-      [mostrarSinSenal]="true"
-      [mostrarVivo]="true" />
-    <!-- AG11 — leyenda de estados del chofer (colores/conteos) -->
+    <!-- AS14 — UNA sola leyenda colapsable (antes eran dos overlays superpuestos):
+         estados del chofer (AG11) + símbolos del mapa (AW11). Iconos por SVG (AW12). -->
     <div class="seg-leyenda" [class.seg-leyenda--collapsed]="!mostrarLeyenda()">
       <button type="button" class="seg-leyenda__toggle" (click)="toggleLeyenda()"
         [attr.aria-expanded]="mostrarLeyenda()">
@@ -34,6 +28,39 @@
               <span class="seg-leyenda__count">{{ l.count }}</span>
             </li>
           }
+        </ul>
+        <div class="seg-leyenda__sep"></div>
+        <ul class="seg-leyenda__list seg-leyenda__list--sim">
+          <li class="seg-leyenda__item">
+            <span class="seg-leyenda__pin" style="color:#16a34a">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+            </span>
+            <span class="seg-leyenda__label">Inicio de ruta</span>
+          </li>
+          <li class="seg-leyenda__item">
+            <span class="seg-leyenda__pin" style="color:#dc2626">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+            </span>
+            <span class="seg-leyenda__label">Último punto / fin</span>
+          </li>
+          <li class="seg-leyenda__item">
+            <span class="seg-leyenda__pin" style="color:#9ca3af">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="#fff"/></svg>
+            </span>
+            <span class="seg-leyenda__label">Sin señal (posición vieja)</span>
+          </li>
+          <li class="seg-leyenda__item">
+            <span class="seg-leyenda__line"></span>
+            <span class="seg-leyenda__label">Trayecto recorrido</span>
+          </li>
+          <li class="seg-leyenda__item">
+            <span class="seg-leyenda__dash"></span>
+            <span class="seg-leyenda__label">Sin señal (hueco en el GPS)</span>
+          </li>
+          <li class="seg-leyenda__item">
+            <span class="seg-leyenda__vivo">en vivo</span>
+            <span class="seg-leyenda__label">Posición &lt; 2 min</span>
+          </li>
         </ul>
         <div class="seg-leyenda__nota">El punto marca la última posición reportada. “Sin ubicación” = el chofer aún no ha reportado GPS.</div>
       }
@@ -73,19 +100,23 @@
         </div>
       }
 
-      <!-- Rutas de hoy (replay del recorrido) -->
-      @if (rutasHoy().length) {
+      <!-- Rutas de hoy (replay del recorrido) — AS14: agrupadas por trayecto -->
+      @if (rutasHoyAgrupadas().length) {
         <div class="sgc-card seg__block">
           <h2 class="seg__block-title">Rutas de hoy</h2>
-          @for (r of rutasHoy(); track r.id) {
-            <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
+          @for (g of rutasHoyAgrupadas(); track g.key) {
+            <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === g.rep.id">
               <div class="seg-ruta__top">
-                <strong>{{ idVehiculo(r) }}</strong>
-                <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
+                <strong>{{ idVehiculo(g.rep) }}</strong>
+                <span class="text-muted">{{ g.rep.conductor_nombre ?? '' }}</span>
               </div>
-              <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
-              <button type="button" class="seg-ruta__traza" (click)="trazarRuta(r.id, r.estado === 'en_curso')" [disabled]="trazaCargando()">
-                {{ rutaTrazada() === r.id ? 'Ocultar recorrido' : 'Ver recorrido' }}
+              <div class="seg-ruta__dest">{{ g.rep.origen }} → {{ g.rep.destino }}</div>
+              <div class="seg-ruta__meta">
+                @if (g.inicio) { <span>Inicio {{ hora(g.inicio) }}</span> }
+                @if (g.count > 1) { <span class="seg-ruta__tramos">{{ g.count }} tramos</span> }
+              </div>
+              <button type="button" class="seg-ruta__traza" (click)="trazarRuta(g.rep.id, g.rep.estado === 'en_curso')" [disabled]="trazaCargando()">
+                {{ rutaTrazada() === g.rep.id ? 'Ocultar recorrido' : 'Ver recorrido' }}
               </button>
             </div>
           }
@@ -107,7 +138,11 @@
               <span class="seg-chofer__estado">
                 {{ estadoMeta(c.estado).label }}@if (c.estado === 'otros' && c.otros_texto) { — {{ c.otros_texto }} }
                 @if (c.pos?.capturado_en) {
-                  · <span [class.seg-chofer__stale]="posVieja(c)" [title]="fechaHora(c.pos!.capturado_en)">{{ haceCuanto(c.pos!.capturado_en) }}</span>
+                  · @if (posVivo(c)) {
+                      <span class="seg-chofer__vivo" [title]="fechaHora(c.pos!.capturado_en)">en vivo</span>
+                    } @else {
+                      <span [class.seg-chofer__stale]="posVieja(c)" [title]="fechaHora(c.pos!.capturado_en)">{{ haceCuanto(c.pos!.capturado_en) }}</span>
+                    }
                 } @else { · sin ubicación }
               </span>
             </span>

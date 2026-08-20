@@ -69,9 +69,9 @@
 .sm-plan__src {
   margin: 0 0 14px;
   padding: 10px 12px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 10px;
-  background: #161616;
+  background: var(--sgc-surface);
   font-size: 0.86rem;
   line-height: 1.4;
 }
@@ -80,9 +80,9 @@
 .sm-cerca {
   margin-top: 8px;
   padding: 12px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 12px;
-  background: #161616;
+  background: var(--sgc-surface);
 
   &__title {
     display: flex;

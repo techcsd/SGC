@@ -53,18 +53,18 @@
   justify-content: space-between;
   gap: 8px;
   padding: 9px 12px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 10px;
-  background: #161616;
+  background: var(--sgc-surface);
   cursor: pointer;
   font: inherit;
   text-align: left;
   transition: all 0.15s ease;
 
-  &:hover { background: #1f1f1f; }
-  &--sel { border-color: var(--Hub); background: #1f1f1f; }
+  &:hover { background: var(--sgc-surface-hover); }
+  &--sel { border-color: var(--sgc-primary-mid); background: var(--sgc-primary-light); }
 
-  &__nombre { font-size: 14px; }
+  &__nombre { font-size: 14px; color: var(--sgc-text); }
   &__dias { font-size: 12px; color: var(--main-ultra-light); }
 }
 
@@ -80,16 +80,16 @@
   align-items: flex-start;
   gap: 1px;
   padding: 6px 10px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 8px;
-  background: #161616;
+  background: var(--sgc-surface);
   cursor: pointer;
   font: inherit;
 
-  &:hover { background: #1f1f1f; }
-  &--sel { border-color: var(--Hub); background: #1f1f1f; }
+  &:hover { background: var(--sgc-surface-hover); }
+  &--sel { border-color: var(--sgc-primary-mid); background: var(--sgc-primary-light); }
 
-  &__d { font-size: 13px; }
+  &__d { font-size: 13px; color: var(--sgc-text); }
   &__km { font-size: 11px; color: var(--main-ultra-light); }
 }
 
@@ -101,12 +101,11 @@
   color: var(--main-ultra-light);
   input {
     padding: 7px 10px;
-    border: 1px solid #2d2d2d;
+    border: 1px solid var(--sgc-border);
     border-radius: 8px;
     font: inherit;
-    background: #161616;
-    color: inherit;
-    color-scheme: dark;
+    background: var(--sgc-surface);
+    color: var(--sgc-text);
   }
 }
 
@@ -127,7 +126,7 @@
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #212121;
+  background: var(--sgc-surface-hover);
   color: var(--main-ultra-light);
   &--vivo { background: #dcfce7; color: #16a34a; }
 }
@@ -137,7 +136,7 @@
   height: 62vh;
   min-height: 380px;
   border-radius: 12px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   overflow: hidden;
 
   &--error {
@@ -145,7 +144,7 @@
     align-items: center;
     justify-content: center;
     color: var(--danger, #e5484d);
-    background: #161616;
+    background: var(--sgc-surface);
     padding: 20px;
     text-align: center;
   }
@@ -161,12 +160,12 @@
 // AU7 — paradas / visitas detectadas
 .rec-paradas {
   margin-top: 1rem;
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
   padding: 1rem 1.1rem;
 
-  &__h { margin: 0 0 0.6rem; font-size: 0.95rem; color: #f5f5f5; }
+  &__h { margin: 0 0 0.6rem; font-size: 0.95rem; color: var(--sgc-text); }
   &__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 }
 .rec-parada {
@@ -178,7 +177,7 @@
   cursor: pointer;
   transition: background 0.15s ease;
 
-  &:hover { background: #1f1f1f; }
+  &:hover { background: var(--sgc-surface-hover); }
 
   &__n {
     flex: 0 0 auto;
@@ -188,7 +187,7 @@
     border-radius: 50%; font-weight: 700; font-size: 0.8rem;
   }
   &__info { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-  &__lugar { color: #eaeaea; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__lugar { color: var(--sgc-text); font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   &__t { color: var(--main-ultra-light); font-size: 0.8rem; }
 }
 

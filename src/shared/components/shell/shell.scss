@@ -81,12 +81,24 @@
 // ── Nav ──────────────────────────────────────────────────
 .sidebar-nav {
   flex: 1;
+  min-height: 0; // AS19 — allow the flex column to actually scroll instead of the whole sidebar growing
   overflow-y: auto;
   overflow-x: hidden;
   padding: 10px 0;
   display: flex;
   flex-direction: column;
   gap: 1px;
+
+  // AS19 — the direct children of a flex column default to `flex-shrink: 1`, so
+  // when the menu is longer than the viewport flexbox COMPRESSES each row below
+  // its content height (icon + label) before `overflow-y: auto` can scroll —
+  // that's what made "Dashboard" and "Gerencia" overlap on scroll. Locking the
+  // rows to their natural height makes the container scroll as intended.
+  > .nav-item,
+  > .nav-section,
+  > .nav-divider {
+    flex-shrink: 0;
+  }
 
   &::-webkit-scrollbar {
     width: 3px;

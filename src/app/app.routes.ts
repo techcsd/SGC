@@ -49,7 +49,9 @@ export const routes: Routes = [
       {
         path: 'inventario',
         // AN2 — módulo completo O cualquier submódulo granular (cada hija afina).
-        canActivate: [moduloOSubmoduloGuard('inventario')],
+        // AS7 — + roles de proyecto para alcanzar /inventario/requisiciones (las
+        // demás hijas siguen gateadas por su submoduloGuard).
+        canActivate: [moduloOSubmoduloGuard('inventario', (u) => u.puedeVerTodasRequisiciones())],
         loadChildren: () =>
           import('./pages/inventario/inventario.routes').then((m) => m.inventarioRoutes),
       },

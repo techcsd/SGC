@@ -31,7 +31,9 @@ export class UserService {
    * la función SQL `sgc.es_flota_elevado()` (fuente de verdad en RLS).
    */
   esFlotaElevado = computed(() =>
-    ['admin', 'direccion', 'gerencia', 'jefe_flota'].some((r) => this.roles().includes(r)),
+    // AS5 — + logistica (Raykler/Misael): logística de transporte necesita
+    // seguimiento, rutas, conductores, conduces, combustible y mantenimientos.
+    ['admin', 'direccion', 'gerencia', 'jefe_flota', 'logistica'].some((r) => this.roles().includes(r)),
   );
 
   hasModulo(modulo: string): boolean {
@@ -91,6 +93,22 @@ export class UserService {
    * Tecnología, de ahí el `&& !esTecnologia()` en los gates.
    */
   esChofer = computed(() => this.hasRole('chofer_transportista'));
+
+  /**
+   * AS7 — quién ve TODAS las requisiciones (bandeja global), no solo las propias.
+   * Espejo exacto de la función SQL `sgc.puede_ver_todas_requisiciones()` (fuente
+   * de verdad en la RLS de `solicitudes_material`): admin, módulo inventario, o los
+   * roles de proyecto. El ingeniero de campo NO entra aquí (ve solo las suyas en
+   * "Mis requisiciones"); el chofer, ninguna.
+   */
+  puedeVerTodasRequisiciones = computed(
+    () =>
+      this.hasRole('admin') ||
+      this.hasModulo('inventario') ||
+      ['gerente_produccion', 'gerente_proyectos', 'jefe_ingenieros'].some((r) =>
+        this.roles().includes(r),
+      ),
+  );
 
   /**
    * Quién puede ver el cuadre de materiales + señales antifraude (límites por

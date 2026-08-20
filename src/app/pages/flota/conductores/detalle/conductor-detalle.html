@@ -12,6 +12,13 @@
 } @else {
   <!-- ── 1. Header ── -->
   <section class="sgc-card cd-header">
+    <!-- AS2 — avatar del conductor (foto del usuario vinculado o iniciales) -->
+    @if (avatarUrl()) {
+      <img class="cd-avatar cd-avatar--img" [src]="avatarUrl()!"
+           [alt]="'Foto de ' + conductor()!.nombre" width="60" height="60" />
+    } @else {
+      <div class="cd-avatar" aria-hidden="true">{{ iniciales() }}</div>
+    }
     <div class="cd-header__main">
       <h1 class="cd-header__nombre">{{ conductor()!.nombre }}</h1>
       <div class="cd-header__meta">
@@ -29,7 +36,13 @@
         </div>
       }
       @if (conductor()!.nota) {
-        <p class="cd-nota">📝 {{ conductor()!.nota }}</p>
+        <p class="cd-nota">
+          <svg class="cd-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+          {{ conductor()!.nota }}
+        </p>
       }
     </div>
 
@@ -49,7 +62,12 @@
     <div class="page-error" role="alert">Licencia vencida — contacta a RRHH.</div>
   } @else if (licenciaPorVencer()) {
     <div class="cd-warn" role="status">
-      ⚠ La licencia vence en {{ diasParaVencer() }} día(s) — gestiona la renovación.
+      <svg class="cd-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+        <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      <span>La licencia vence en {{ diasParaVencer() }} día(s) — gestiona la renovación.</span>
     </div>
   }
 

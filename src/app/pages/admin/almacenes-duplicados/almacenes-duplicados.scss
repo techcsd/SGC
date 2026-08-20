@@ -21,9 +21,9 @@
 }
 
 .dup-card {
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
-  background: #161616;
+  background: var(--sgc-surface);
   padding: 14px;
   margin-bottom: 14px;
 
@@ -54,7 +54,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 12px;
   background: var(--secondary, #212121);
   &__nombre { font-weight: 600; }

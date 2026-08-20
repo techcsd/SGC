@@ -23,6 +23,7 @@ import { FlotaIncidenciasService } from '../../../../../shared/services/flota-in
 import { MotivosMultaService, MotivoMulta } from '../../../../../shared/services/motivos-multa.service';
 import { MultaDetalle } from '../../../../../shared/components/multa-detalle/multa-detalle';
 import { UserService } from '../../../../core/services/user.service';
+import { SupabaseService } from '../../../../core/services/supabase.service';
 import { Conductor, LicenciaCategoria } from '../../../../../shared/models/conductor.model';
 import { Ruta } from '../../../../../shared/models/ruta.model';
 import { SalidaInventario, conduceNumero } from '../../../../../shared/models/salida.model';
@@ -76,6 +77,7 @@ export class ConductorDetalle implements OnInit {
   private incidencias = inject(FlotaIncidenciasService);
   private motivosMultaService = inject(MotivosMultaService);
   private userService = inject(UserService);
+  private supabase = inject(SupabaseService);
 
   readonly estadoLabel = ESTADO_LICENCIA_LABEL;
   readonly estadoBadge = ESTADO_LICENCIA_BADGE;
@@ -103,6 +105,29 @@ export class ConductorDetalle implements OnInit {
   loading = signal(true);
   conductor = signal<Conductor | null>(null);
   stats = signal<ConductorStats | null>(null);
+
+  // ── AS2 — avatar del conductor ────────────────────────────────
+  // La foto vive en el usuario vinculado (bucket PÚBLICO sgc-avatars); se
+  // resuelve con getPublicUrl (mismo patrón que el shell / UserService.avatarUrl).
+  // Si no hay usuario vinculado o sin foto → null y se pinta el círculo de
+  // iniciales (fallback obligatorio, nunca un <img> roto).
+  avatarUrl = computed(() => {
+    const path = this.conductor()?.usuario?.avatar_path;
+    if (!path) return null;
+    return this.supabase.client.storage.from('sgc-avatars').getPublicUrl(path).data.publicUrl;
+  });
+  iniciales = computed(() => {
+    const nombre = this.conductor()?.nombre ?? '';
+    return (
+      nombre
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase() || '?'
+    );
+  });
   checklists = signal<ChecklistVehiculo[]>([]);
   combustible = signal<RegistroCombustible[]>([]);
 
@@ -209,32 +234,49 @@ export class ConductorDetalle implements OnInit {
       return;
     }
 
+    // AS2 — el perfil se ANCLA solo en getById. Antes las 5 cargas iban en un
+    // Promise.all: si CUALQUIERA fallaba (p. ej. un error de RLS/permiso en
+    // v_conductor_stats, checklists o combustible para un caller no elevado), el
+    // await se rechazaba, saltaba al catch y `conductor.set()` nunca corría → el
+    // template caía al empty-state ("No se encontró el conductor") y la página
+    // quedaba EN BLANCO aunque el conductor sí existía. Ahora getById es la única
+    // carga crítica y el resto son best-effort e independientes: cada sección
+    // muestra su estado vacío honesto sin blanquear el perfil completo.
     this.loading.set(true);
+    let conductor: Conductor | null = null;
     try {
-      const [conductor, stats, checklists, combustible, categorias] = await Promise.all([
-        this.conductoresService.getById(id),
-        this.conductoresService.getStats(id),
-        this.checklistsService.getChecklists(),
-        this.combustibleService.getAll(),
-        this.conductoresService.getCategoriasLicencia(),
-      ]);
-      this.conductor.set(conductor);
-      this.stats.set(stats);
-      this.categorias.set(categorias);
-      this.checklists.set(checklists.filter((c) => c.conductor_id === id));
-      this.combustible.set(combustible.filter((r) => r.conductor_id === id));
-      // S32 — rutas/conduces/entregas/accidentes/multas del conductor (best-effort).
-      this.cargarActividad(id, conductor?.usuario_id ?? null);
-      // AI10/AI11 — stats por periodo (best-effort, no bloquea el perfil).
-      void this.cargarStatsPeriodo();
+      conductor = await this.conductoresService.getById(id);
     } catch (e: unknown) {
       this.toast.error(
         'Error',
         e instanceof Error ? e.message : 'No se pudo cargar el perfil del conductor.',
       );
-    } finally {
-      this.loading.set(false);
     }
+    this.conductor.set(conductor);
+    this.loading.set(false);
+    if (!conductor) return;
+
+    // Secciones secundarias — cada una tolera su propio fallo.
+    this.conductoresService
+      .getStats(id)
+      .then((s) => this.stats.set(s))
+      .catch(() => this.stats.set(null));
+    this.conductoresService
+      .getCategoriasLicencia()
+      .then((c) => this.categorias.set(c))
+      .catch(() => {});
+    this.checklistsService
+      .getChecklists()
+      .then((cl) => this.checklists.set(cl.filter((c) => c.conductor_id === id)))
+      .catch(() => {});
+    this.combustibleService
+      .getAll()
+      .then((cb) => this.combustible.set(cb.filter((r) => r.conductor_id === id)))
+      .catch(() => {});
+    // S32 — rutas/conduces/entregas/accidentes/multas del conductor (best-effort).
+    this.cargarActividad(id, conductor.usuario_id ?? null);
+    // AI10/AI11 — stats por periodo (best-effort, no bloquea el perfil).
+    void this.cargarStatsPeriodo();
   }
 
   // ── S32 — actividad completa del conductor ───────────────────

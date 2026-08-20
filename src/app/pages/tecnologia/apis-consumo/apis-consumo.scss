@@ -5,8 +5,8 @@
   line-height: 1.5;
 }
 .ac-note {
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-left: 3px solid var(--Hub, #ffb300);
   border-radius: 10px;
   padding: 12px 14px;
@@ -42,7 +42,7 @@
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   background: var(--sgc-surface, #161616);
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
   padding: 20px;
   z-index: 41;

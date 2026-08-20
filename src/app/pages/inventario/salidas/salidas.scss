@@ -506,7 +506,7 @@ textarea {
 .resumen-hoja__libres {
   margin-top: 1rem;
   padding-top: 0.85rem;
-  border-top: 1px dashed #2d2d2d;
+  border-top: 1px dashed var(--sgc-border);
 }
 .resumen-hoja__libres-head {
   display: flex;
@@ -527,10 +527,10 @@ textarea {
   input {
     width: 100%;
     padding: 0.45rem 0.6rem;
-    background: #161616;
-    border: 1px solid #2d2d2d;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
     border-radius: 8px;
-    color: #f5f5f5;
+    color: var(--sgc-text);
   }
 }
 .libre-note {
