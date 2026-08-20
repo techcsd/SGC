@@ -2466,6 +2466,19 @@
           "d": "Los ingenieros de campo ahora pueden crear requisiciones de material desde la web (módulo Compras)."
         }
       ]
+    },
+    "1.88.2": {
+      "titulo": "Ajuste real por artículo y matriz de notificaciones editable",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Matriz de notificaciones (Administración): ajusta desde la app quién recibe cada aviso con matriz (confirmar conduces por obra/globales/almacén, avisos de vehículo), por rol y sin tocar código."
+        },
+        {
+          "t": "nuevo",
+          "d": "“Ajuste real” por artículo directo en el inventario del almacén (además de la carga masiva por archivo): fija el stock al valor real sin movimiento ni escalón en la gráfica."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

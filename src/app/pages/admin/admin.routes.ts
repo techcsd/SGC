@@ -60,6 +60,12 @@ export const adminRoutes: Routes = [
     title: 'Notificaciones — Administración',
   },
   {
+    // AT23 — matriz de notificaciones: quién recibe cada evento (por rol), editable.
+    path: 'matriz-notificaciones',
+    loadComponent: () => import('./matriz-notificaciones/matriz-notificaciones').then((m) => m.AdminMatrizNotificaciones),
+    title: 'Matriz de notificaciones — Administración',
+  },
+  {
     path: 'empresa',
     loadComponent: () => import('./empresa/empresa').then((m) => m.AdminEmpresa),
     title: 'Empresa — Administración',

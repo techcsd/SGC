@@ -73,6 +73,12 @@
                     Ajustar
                   </button>
                 }
+                @if (esAdmin()) {
+                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="ajusteReal(i)"
+                          title="Ajuste real: fija el stock al valor real sin movimiento ni escalón (solo admin)">
+                    Ajuste real
+                  </button>
+                }
                 <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="abrirKardex(i)">
                   Histórico
                 </button>

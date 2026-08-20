@@ -404,6 +404,7 @@ export class Shell implements OnInit {
       // Y11 — "Versiones de la app" e "Historial de versiones" movidas al módulo Tecnología.
       { label: 'Valores "Otro"', route: '/admin/otros-valores' },
       { label: 'Notificaciones', route: '/admin/notificaciones' },
+      { label: 'Matriz de notificaciones', route: '/admin/matriz-notificaciones' },
       { label: 'Orden de módulos', route: '/admin/orden-modulos' },
       { label: 'Almacenes duplicados', route: '/admin/almacenes-duplicados' },
       { label: 'Auditoría', route: '/admin/auditoria' },

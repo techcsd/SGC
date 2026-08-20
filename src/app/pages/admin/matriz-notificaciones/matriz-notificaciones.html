@@ -1,0 +1,50 @@
+<section class="mn">
+  <header class="mn__head">
+    <h1 class="mn__title">Matriz de notificaciones</h1>
+    <p class="mn__sub">Ajusta <strong>quién recibe</strong> cada notificación con matriz, por rol, sin tocar código. Cambiar un grupo afecta a la vez quién recibe el aviso y quién puede confirmar.</p>
+  </header>
+
+  @if (loading()) {
+    <app-skeleton [rows]="4" />
+  } @else if (error()) {
+    <div class="save-error" role="alert">{{ error() }}</div>
+  } @else {
+
+    <!-- Grupos editables (parámetros de rol) -->
+    @for (p of params(); track p.clave) {
+      <section class="mn-card">
+        <div class="mn-card__head">
+          <h2 class="mn-card__title">{{ p.etiqueta }}</h2>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando() === p.clave" (click)="guardar(p)">
+            {{ guardando() === p.clave ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+        <p class="mn-card__desc">{{ p.descripcion }}</p>
+        <div class="mn-roles">
+          @for (r of roles(); track r.id) {
+            <label class="mn-role" [class.mn-role--on]="tiene(p, r.codigo)">
+              <input type="checkbox" [checked]="tiene(p, r.codigo)" (change)="toggle(p.clave, r.codigo)" />
+              <span>{{ r.nombre }}</span>
+            </label>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Referencia (solo lectura) -->
+    <section class="mn-card mn-card--ref">
+      <h2 class="mn-card__title">Otros eventos (referencia)</h2>
+      <p class="mn-card__desc">Estos eventos no se editan aquí; su destino está fijado por su módulo o por diseño. Documentación completa en el repositorio (NOTIFICACIONES-MATRIZ.md).</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Evento</th><th>A quién le llega</th></tr></thead>
+          <tbody>
+            @for (e of eventos; track e.evento) {
+              <tr><td>{{ e.evento }}</td><td class="text-muted">{{ e.quien }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</section>

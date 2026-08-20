@@ -241,4 +241,31 @@ export class AlmacenInventario implements OnInit {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo actualizar la apertura.');
     }
   }
+
+  /** AT12 — Ajuste real de UN artículo: fija la existencia al valor real informado
+   *  SIN movimiento en el kardex ni escalón en la gráfica (rebasa la línea base). */
+  async ajusteReal(i: InventarioAlmacenItem) {
+    if (!this.esAdmin()) return;
+    const actual = i.cantidad ?? 0;
+    const entrada = window.prompt(
+      `Ajuste real de "${i.nombre}" en este almacén.\n` +
+        `Escribe la EXISTENCIA REAL contada. Se fijará el stock a ese valor sin generar ` +
+        `movimiento en el kardex ni escalón en la gráfica.`,
+      String(actual),
+    );
+    if (entrada == null) return;
+    const nueva = Number(entrada);
+    if (Number.isNaN(nueva) || nueva < 0) {
+      this.toast.error('Cantidad inválida.');
+      return;
+    }
+    if (nueva === actual) return;
+    try {
+      await this.service.ajusteRealStock(i.articulo_id, this.bodegaId(), nueva);
+      this.toast.success('Ajuste real aplicado.', 'El stock quedó en el valor real, sin escalón en la gráfica.');
+      await this.load(this.bodegaId());
+    } catch (e: unknown) {
+      this.toast.error(e instanceof Error ? e.message : 'No se pudo aplicar el ajuste real.');
+    }
+  }
 }
