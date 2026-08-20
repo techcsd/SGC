@@ -135,6 +135,27 @@ export class InventarioAlmacenService {
     return (data as number) ?? 0;
   }
 
+  /** AT12 — "Ajuste real": fija el stock al valor real informado SIN movimiento en
+   *  kardex ni escalón en la gráfica (rebasa la línea base). Solo admin. */
+  async ajusteRealStock(articuloId: string, bodegaId: string, cantidadReal: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('ajuste_real_stock', {
+      p_articulo_id: articuloId, p_bodega_id: bodegaId, p_cantidad_real: cantidadReal,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** AT12 — ajuste real en LOTE (carga por archivo). p_rows: [{articulo_id, cantidad}]. */
+  async ajusteRealLote(
+    bodegaId: string,
+    rows: { articulo_id: string; cantidad: number }[],
+  ): Promise<{ ok: number; errores: { fila: number; articulo_id?: string; msg: string }[] }> {
+    const { data, error } = await this.supabase.client.rpc('ajuste_real_lote', {
+      p_bodega_id: bodegaId, p_rows: rows,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? { ok: 0, errores: [] }) as { ok: number; errores: { fila: number; articulo_id?: string; msg: string }[] };
+  }
+
   /** AS11/Z11 — ajusta el stock de un artículo en un almacén (conteo/ajuste, deja
    *  traza en "Conteos y ajustes"). Sirve también para AGREGAR un artículo al
    *  almacén (si no tenía stock, la nueva cantidad lo crea). */

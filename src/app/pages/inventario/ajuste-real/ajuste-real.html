@@ -1,0 +1,72 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/inventario/articulos" class="page__back">← Inventario</a>
+      <h1 class="page__title">Ajuste real de almacén</h1>
+      <p class="page__sub">Fija el stock al valor real de tu listado, <strong>sin generar movimiento en el kardex ni escalón en la gráfica</strong> (rebasa la línea base). Solo administrador.</p>
+    </div>
+  </header>
+
+  @if (!esAdmin()) {
+    <div class="save-error">Esta herramienta es solo para administradores.</div>
+  } @else {
+    @if (error()) { <div class="save-error" role="alert">{{ error() }}</div> }
+
+    <div class="ar-controls">
+      <label class="ar-field">
+        <span>Almacén <b>*</b></span>
+        <select [value]="selBodega() ?? ''" (change)="onBodega($any($event.target).value)">
+          <option value="">Selecciona el almacén…</option>
+          @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
+        </select>
+      </label>
+      @if (selBodega() && paso() === 'inicio') {
+        <label class="sgc-btn sgc-btn--secondary ar-file">
+          Subir listado (Excel)
+          <input type="file" accept=".xlsx,.xls" hidden (change)="onFile($event)" />
+        </label>
+      }
+    </div>
+
+    @if (paso() === 'preview') {
+      <div class="ar-meta">📄 {{ archivoNombre() }}</div>
+      <div class="ar-summary">
+        <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
+        <span class="pi-chip pi-chip--dup">{{ conCambio() }} con cambio</span>
+        @if (sinMatch()) { <span class="pi-chip pi-chip--err">{{ sinMatch() }} sin match</span> }
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th></th><th>Código</th><th>Artículo</th><th class="text-right">Stock actual</th><th class="text-right">Stock real</th><th class="text-right">Δ</th></tr></thead>
+          <tbody>
+            @for (f of filas(); track $index) {
+              <tr [class.pi-row--warn]="f.estado === 'warning'">
+                <td>@if (f.estado === 'ok') { <span class="pi-dot pi-dot--ok" title="Lista">●</span> } @else { <span class="pi-dot pi-dot--warn" [title]="f.motivo">▲</span> }</td>
+                <td class="text-muted">{{ f.codigo }}</td>
+                <td>{{ f.nombre }}</td>
+                <td class="text-right text-muted">{{ f.actual }}</td>
+                <td class="text-right"><strong>{{ f.real }}</strong></td>
+                <td class="text-right" [class.ar-up]="f.real > f.actual" [class.ar-down]="f.real < f.actual">{{ f.real - f.actual }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="ar-actions">
+        @if (sinMatch()) { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarSinMatch()">Descargar sin match</button> }
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">Cambiar archivo</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !okCount()" (click)="aplicar()">
+          {{ procesando() ? 'Aplicando…' : 'Aplicar ajuste real (' + okCount() + ')' }}
+        </button>
+      </div>
+    }
+
+    @if (paso() === 'hecho' && resultado(); as r) {
+      <div class="ar-result">
+        <h2>Ajuste real aplicado</h2>
+        <p><strong>{{ r.ok }}</strong> artículos ajustados sin escalón en la gráfica ni movimiento en el kardex. @if (r.errores.length) { {{ r.errores.length }} con error. }</p>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">Hacer otro ajuste</button>
+      </div>
+    }
+  }
+</section>

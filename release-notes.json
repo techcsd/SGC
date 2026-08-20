@@ -2453,6 +2453,19 @@
           "d": "Los datos de prueba (vehículos y conduces) ya no se mezclan con la operación real; el administrador los ve solo al activar el toggle."
         }
       ]
+    },
+    "1.88.1": {
+      "titulo": "Ajuste real de almacenes",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "“Ajuste real” de almacenes: fija el stock al valor real de tu listado (carga por archivo Excel) sin generar movimiento en el kardex ni escalón en la gráfica. Solo administrador."
+        },
+        {
+          "t": "mejora",
+          "d": "Los ingenieros de campo ahora pueden crear requisiciones de material desde la web (módulo Compras)."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

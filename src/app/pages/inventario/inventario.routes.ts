@@ -133,6 +133,13 @@ export const inventarioRoutes: Routes = [
     title: 'Apertura de inventario — Inventario',
   },
   {
+    // AT12 — "Ajuste real": fija el stock al listado real sin movimiento ni escalón.
+    // Gate server-side (ajuste_real_stock/_lote son admin-only); el componente valida admin.
+    path: 'ajuste-real',
+    loadComponent: () => import('./ajuste-real/ajuste-real').then((m) => m.AjusteReal),
+    title: 'Ajuste real — Inventario',
+  },
+  {
     path: 'reposicion',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./reposicion/reposicion').then((m) => m.Reposicion),
