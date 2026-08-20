@@ -308,7 +308,10 @@ Deno.serve(async (req: Request) => {
         const items = ((itemsData ?? []) as RequisicionItem[]);
 
         const fechaHora = formatFechaHora(solicitud.created_at ?? null);
-        const detalleUrl = `${WEB_BASE_URL}${REQUISICION_WEB_PATH}`;
+        // AS6 — deep-link POR ID a la bandeja global de requisiciones: el gestor
+        // abre directamente ESA requisición (drawer) para verla y aprobar/rechazar,
+        // en vez de aterrizar en la bandeja genérica. Login enforced por la app.
+        const detalleUrl = `${WEB_BASE_URL}/inventario/requisiciones?req=${solicitudId}`;
 
         // Enriched HTML body: metadata + items table + notas + "Ver detalle".
         const filas = items.length

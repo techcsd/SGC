@@ -171,6 +171,12 @@ export class Requisiciones implements OnInit {
     const obra = this.route.snapshot.queryParamMap.get('obra');
     if (obra) this.fObra.set(obra);
     await this.loadAll();
+    // AS6 — deep-link desde el email (?req=<id>): abre directamente esa requisición.
+    const reqId = this.route.snapshot.queryParamMap.get('req');
+    if (reqId) {
+      const it = this.requisiciones().find((r) => r.id === reqId);
+      if (it) this.abrir(it);
+    }
   }
 
   private async loadAll() {
