@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { UserService } from '../../../core/services/user.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
@@ -38,6 +39,7 @@ const ESTADO_LABEL: Record<string, string> = {
 export class SolicitudesCompra implements OnInit {
   private solicitudesService = inject(SolicitudesCompraService);
   private proyectosService = inject(ProyectosService);
+  private datosPruebaView = inject(DatosPruebaViewService);
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
 
@@ -80,7 +82,9 @@ export class SolicitudesCompra implements OnInit {
     notas: new FormControl<string | null>(null),
   });
 
-  activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+  activeProyectos = computed(() =>
+    this.datosPruebaView.visibles(this.proyectos()).filter((p) => p.activo),
+  );
 
   async ngOnInit() {
     await this.loadAll();

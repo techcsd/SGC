@@ -11,6 +11,7 @@ import { AvisoFlota, AVISO_TIPO_LABEL, AVISO_SEVERIDAD_BADGE } from '../../../..
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 type Vista = 'vehiculo' | 'flotilla';
 type EstadoVeh = 'NORMAL' | 'REVISAR' | 'ALERTA';
@@ -41,6 +42,7 @@ export class CombustibleDashboard implements OnInit {
   private avisosService = inject(AvisosFlotaService);
   private flotaConfig = inject(FlotaConfigService);
   private router = inject(Router);
+  private datosPruebaView = inject(DatosPruebaViewService);
 
   // Regla del jefe: toda tarjeta/fila abre su origen.
   irAVehiculo(vehiculoId: string | null | undefined) {
@@ -55,6 +57,8 @@ export class CombustibleDashboard implements OnInit {
 
   registros = signal<RegistroCombustible[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector de filtro para no-admin.
+  vehiculosVisibles = computed(() => this.datosPruebaView.visibles(this.vehiculos()));
   avisos = signal<AvisoFlota[]>([]);
   loading = signal(true);
   error = signal('');

@@ -275,7 +275,7 @@ export class Conductores implements OnInit {
   // U1 — pool compartido: los vehículos son seleccionables por todos; NO se
   // excluyen los "ya asignados". Solo se listan los que pueden operar.
   availableVehiculos = computed(() =>
-    this.vehiculos().filter((v) => v.activo && v.estado !== 'baja'),
+    this.datosPruebaViewSvc.visibles(this.vehiculos()).filter((v) => v.activo && v.estado !== 'baja'),
   );
 
   // U2 — asignaciones activas del usuario vinculado (fuente de verdad:

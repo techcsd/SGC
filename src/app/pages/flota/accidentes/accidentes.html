@@ -76,7 +76,7 @@
       <label for="ac-veh">Vehículo <span class="required">*</span></label>
       <select id="ac-veh" formControlName="vehiculo_id" [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched">
         <option [value]="''">Seleccionar vehículo…</option>
-        @for (v of vehiculos(); track v.id) {
+        @for (v of vehiculosVisibles(); track v.id) {
           <option [value]="v.id">{{ idVehiculo(v) }}</option>
         }
       </select>
@@ -85,7 +85,7 @@
       <label for="ac-cond">Conductor</label>
       <select id="ac-cond" formControlName="conductor_id">
         <option [value]="null">— Sin conductor —</option>
-        @for (c of conductores(); track c.id) {
+        @for (c of conductoresVisibles(); track c.id) {
           <option [value]="c.id">{{ c.nombre }}</option>
         }
       </select>

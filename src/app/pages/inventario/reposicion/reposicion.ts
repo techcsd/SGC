@@ -7,6 +7,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 /**
  * A3.1 / Z8 — Reposición por almacén: artículos en o bajo el stock mínimo.
@@ -27,8 +28,11 @@ export class Reposicion implements OnInit {
   private solicitudesService = inject(SolicitudesCompraService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private datosPruebaView = inject(DatosPruebaViewService);
 
   bodegas = signal<Bodega[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector de almacén para no-admin.
+  bodegasVisibles = computed(() => this.datosPruebaView.visibles(this.bodegas()));
   selectedBodega = signal<string>('');
   rows = signal<ReposicionRow[]>([]);
   private snoozeIds = signal<Set<string>>(new Set());

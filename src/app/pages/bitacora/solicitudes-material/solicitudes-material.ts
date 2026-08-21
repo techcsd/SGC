@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -70,6 +71,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 export class SolicitudesMaterial implements OnInit {
   private solicitudesService = inject(SolicitudesMaterialService);
   private proyectosService = inject(ProyectosService);
+  private datosPruebaView = inject(DatosPruebaViewService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
   private bodegasService = inject(BodegasService);
@@ -103,7 +105,9 @@ export class SolicitudesMaterial implements OnInit {
     notas: new FormControl<string | null>(null),
   });
 
-  activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+  activeProyectos = computed(() =>
+    this.datosPruebaView.visibles(this.proyectos()).filter((p) => p.activo),
+  );
 
   // FormControl.value no es señal — se puentea valueChanges para que el aviso
   // de "obra sin almacén" reaccione al elegir la obra.

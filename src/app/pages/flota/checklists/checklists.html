@@ -174,7 +174,7 @@
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
       <app-vehiculo-picker
         formControlName="vehiculo_id"
-        [vehiculos]="vehiculos()"
+        [vehiculos]="vehiculosVisibles()"
         (valueChange)="onVehiculoChange($event)"
       />
       @if (f.vehiculo_id.invalid && f.vehiculo_id.touched) {
@@ -187,7 +187,7 @@
         <label for="conductor_id">Conductor</label>
         <select id="conductor_id" formControlName="conductor_id">
           <option [value]="null">Sin conductor…</option>
-          @for (c of conductores(); track c.id) {
+          @for (c of conductoresVisibles(); track c.id) {
             <option [value]="c.id">{{ c.nombre }}</option>
           }
         </select>

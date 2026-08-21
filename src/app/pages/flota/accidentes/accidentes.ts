@@ -53,6 +53,9 @@ export class Accidentes implements OnInit {
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
+  // AT14/AT26 — datos de prueba fuera de los selectores para no-admin.
+  vehiculosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.vehiculos()));
+  conductoresVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.conductores()));
   /** Lista visible: no-admin nunca ve prueba (RLS); admin las oculta salvo toggle. */
   visibles = computed(() => {
     const verPrueba = this.esAdmin() && this.mostrarPrueba();

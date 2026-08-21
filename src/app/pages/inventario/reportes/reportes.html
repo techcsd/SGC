@@ -175,7 +175,7 @@
               <tbody>
                 @for (e of entradasList(); track e.id) {
                   <tr>
-                    <td class="inv-reportes__date">{{ e.created_at | date:'dd/MM/yy' }}</td>
+                    <td class="inv-reportes__date">{{ e.created_at | date:'dd/MM/yy h:mm a' }}</td>
                     <td>
                       @if (e.articulo) {
                         <span class="inv-reportes__code inv-reportes__code--sm">{{ e.articulo.codigo }}</span>
@@ -218,7 +218,7 @@
               <tbody>
                 @for (s of salidasList(); track s.id) {
                   <tr>
-                    <td class="inv-reportes__date">{{ s.created_at | date:'dd/MM/yy' }}</td>
+                    <td class="inv-reportes__date">{{ s.created_at | date:'dd/MM/yy h:mm a' }}</td>
                     <td>
                       @if (s.articulo) {
                         <span class="inv-reportes__code inv-reportes__code--sm">{{ s.articulo.codigo }}</span>

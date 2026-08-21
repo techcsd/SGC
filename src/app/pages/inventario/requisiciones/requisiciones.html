@@ -137,7 +137,7 @@
             <tr class="row--link" (click)="abrir(r)" role="button" tabindex="0"
                 (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()"
                 aria-label="Ver requisición">
-              <td class="text-muted">{{ formatFecha(r.created_at) }}</td>
+              <td class="text-muted">{{ formatTimestamp(r.created_at) }}</td>
               <td>{{ r.proyecto?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ r.solicitante?.nombre ?? '—' }}</td>
               <td>
@@ -257,18 +257,32 @@
           @case ('aprobar') {
             <div class="req-detail__form">
               <p class="req-detail__hint">
-                Al aprobar se despacha la parte en stock del almacén y se crea una solicitud de compra
-                automática por el faltante.
+                Confirma a qué artículo del catálogo corresponde cada renglón. Se despacha lo que haya
+                en stock del almacén (con su conduce) y se genera una solicitud de compra automática por
+                el faltante y por los renglones sin artículo del catálogo.
               </p>
               <div class="sgc-field">
                 <label class="filters-bar__label" for="req-bodega">Almacén de despacho</label>
-                <select id="req-bodega" [value]="bodegaId()" (change)="bodegaId.set($any($event.target).value)">
+                <select id="req-bodega" [value]="bodegaId()" (change)="onBodegaAprob($any($event.target).value)">
                   <option [value]="''" disabled>Elige un almacén…</option>
                   @for (b of bodegasDeObra(); track b.id) {
                     <option [value]="b.id">{{ b.nombre }}</option>
                   }
                 </select>
               </div>
+
+              <!-- AT7 — mapeo de cada renglón al catálogo (componente compartido) -->
+              <div class="sgc-field">
+                <label class="filters-bar__label">Renglones ({{ mappedItems().length }})</label>
+                <app-requisicion-items-mapper
+                  [solicitud]="s"
+                  [articulos]="articulos()"
+                  [categorias]="categorias()"
+                  [stock]="stockMap()"
+                  (itemsChange)="onItemsChange($event)"
+                />
+              </div>
+
               <div class="sgc-field">
                 <label class="filters-bar__label" for="req-fecha">Fecha</label>
                 <input id="req-fecha" type="date" [value]="fecha()" (change)="fecha.set($any($event.target).value)" />

@@ -31,9 +31,57 @@ export class NotificacionesCentroService {
 
   private channel: RealtimeChannel | null = null;
 
+  // AT23 — tipos de aviso que el usuario silenció: se ocultan de la bandeja Y del
+  // badge, SOLO para él (no cambia a quién le llega el evento). Cache en memoria.
+  private _silenciados = signal<Set<string>>(new Set());
+  private prefsCargadas = false;
+
+  /** AT23 — carga (una vez) los tipos silenciados del usuario. Best-effort. */
+  private async asegurarPrefs(): Promise<Set<string>> {
+    if (this.prefsCargadas) return this._silenciados();
+    try {
+      const { data } = await this.supabase.client.rpc('mis_notif_prefs');
+      const s = new Set<string>();
+      for (const r of (data as { tipo: string; silenciado: boolean }[]) ?? []) {
+        if (r.silenciado) s.add(r.tipo);
+      }
+      this._silenciados.set(s);
+    } catch {
+      /* best-effort: sin prefs, no se silencia nada */
+    }
+    this.prefsCargadas = true;
+    return this._silenciados();
+  }
+
+  /** AT23 — todas las preferencias del usuario (para la pantalla de Ajustes). */
+  async misNotifPrefs(): Promise<{ tipo: string; silenciado: boolean }[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_notif_prefs');
+    if (error) throw new Error(error.message);
+    return (data as { tipo: string; silenciado: boolean }[]) ?? [];
+  }
+
+  /** AT23 — silencia/reactiva un tipo; actualiza la cache y re-filtra la bandeja. */
+  async setNotifPref(tipo: string, silenciado: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_notif_pref', {
+      p_tipo: tipo,
+      p_silenciado: silenciado,
+    });
+    if (error) throw new Error(error.message);
+    this._silenciados.update((s) => {
+      const next = new Set(s);
+      if (silenciado) next.add(tipo);
+      else next.delete(tipo);
+      return next;
+    });
+    this.prefsCargadas = true;
+    await this.cargar(); // re-filtra la bandeja + badge con la nueva preferencia
+  }
+
   /** Loads the 30 most recent notifications for the current user. RLS scopes
-   *  the result to usuario_id = auth.uid(), so no explicit filter is needed. */
+   *  the result to usuario_id = auth.uid(), so no explicit filter is needed.
+   *  AT23 — oculta los tipos que el usuario silenció. */
   async cargar(): Promise<void> {
+    const silenciados = await this.asegurarPrefs();
     const { data, error } = await this.supabase.client
       .from('notificaciones')
       .select('id, tipo, titulo, mensaje, ruta, leida, created_at')
@@ -44,7 +92,7 @@ export class NotificacionesCentroService {
       console.error('NotificacionesCentroService.cargar error:', error.message);
       return;
     }
-    this._items.set((data as Notif[]) ?? []);
+    this._items.set(((data as Notif[]) ?? []).filter((n) => !silenciados.has(n.tipo)));
   }
 
   /** Marks one notification as read (optimistic local update + DB write). */
@@ -97,6 +145,8 @@ export class NotificacionesCentroService {
         { event: 'INSERT', schema: 'sgc', table: 'notificaciones', filter: `usuario_id=eq.${userId}` },
         (p) => {
           const n = p.new as Notif;
+          // AT23 — un tipo silenciado no entra a la bandeja ni dispara toast.
+          if (this._silenciados().has(n.tipo)) return;
           this._items.update((list) => [n, ...list].slice(0, 30));
           this.toast.info(n.titulo, n.mensaje ?? undefined, n.ruta ?? undefined);
         },

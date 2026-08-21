@@ -47,6 +47,15 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
       },
       {
+        // AT23 — Ajustes › Notificaciones: cada usuario silencia tipos de aviso.
+        // Sin gate de módulo: es preferencia personal (como Mensajería/Notas).
+        path: 'ajustes/notificaciones',
+        loadComponent: () =>
+          import('./pages/ajustes-notificaciones/ajustes-notificaciones').then(
+            (m) => m.AjustesNotificaciones,
+          ),
+      },
+      {
         path: 'inventario',
         // AN2 — módulo completo O cualquier submódulo granular (cada hija afina).
         // AS7 — + roles de proyecto para alcanzar /inventario/requisiciones (las

@@ -47,7 +47,7 @@
   <div class="sgc-field filters-bar__select">
     <select [value]="selectedProyecto()" (change)="onProyectoChange($any($event.target).value)" aria-label="Filtrar por obra">
       <option value="">Todas las obras</option>
-      @for (p of proyectos(); track p.id) {
+      @for (p of proyectosVisibles(); track p.id) {
         <option [value]="p.id">{{ p.nombre }}</option>
       }
     </select>

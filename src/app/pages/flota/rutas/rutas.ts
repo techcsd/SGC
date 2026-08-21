@@ -300,11 +300,13 @@ export class Rutas implements OnInit {
 
   // QA-001 — un vehículo dado de baja o no disponible no puede asignarse a una ruta.
   activeVehiculos = computed(() =>
-    this.vehiculos().filter(
+    this.datosPruebaViewSvc.visibles(this.vehiculos()).filter(
       (v) => v.activo && v.estado !== 'no_disponible' && v.estado !== 'baja',
     ),
   );
-  activeConductores = computed(() => this.conductores().filter((c) => c.activo));
+  activeConductores = computed(() =>
+    this.datosPruebaViewSvc.visibles(this.conductores()).filter((c) => c.activo),
+  );
 
   private obrasMap = computed(() => new Map(this.obrasDestino().map((o) => [o.id, o])));
 
@@ -357,7 +359,11 @@ export class Rutas implements OnInit {
       this.vehiculos.set(vehiculos);
       this.conductores.set(conductores);
       this.obrasDestino.set(obras as ObraDestino[]);
-      this.almacenes.set(bodegas.filter((b) => b.latitud != null && b.longitud != null && b.activo));
+      this.almacenes.set(
+        this.datosPruebaViewSvc
+          .visibles(bodegas)
+          .filter((b) => b.latitud != null && b.longitud != null && b.activo),
+      );
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {

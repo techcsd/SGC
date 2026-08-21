@@ -14,6 +14,7 @@ import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
 import { ProyectoEstructurasService } from '../../../../shared/services/proyecto-estructuras.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { BitacoraCatalogosService } from '../../../../shared/services/bitacora-catalogos.service';
 import { UnidadesService } from '../../../../shared/services/unidades.service';
 import { Unidad } from '../../../../shared/models/unidad.model';
@@ -85,6 +86,7 @@ export class Nueva implements OnInit {
   // Z14 — estructuras (bloques/pisos) definidas por la obra elegida.
   estructurasObra = signal<string[]>([]);
   private proyectosService = inject(ProyectosService);
+  private datosPruebaView = inject(DatosPruebaViewService);
   private userService = inject(UserService);
   private borradores = inject(BorradoresWebService);
   // X13 — borradores web multi-instancia.
@@ -227,7 +229,9 @@ export class Nueva implements OnInit {
     incidente_suceso_otro: new FormControl<string | null>(null, [Validators.maxLength(200)]),
   });
 
-  activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+  activeProyectos = computed(() =>
+    this.datosPruebaView.visibles(this.proyectos()).filter((p) => p.activo),
+  );
   showOtroRestriccion = computed(() => this.restriccionesSeleccionadas().has('OTRO'));
 
   // U12 — descripción breve OBLIGATORIA por cada restricción seleccionada

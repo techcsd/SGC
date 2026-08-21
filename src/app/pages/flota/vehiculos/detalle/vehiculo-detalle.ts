@@ -50,7 +50,7 @@ import { FormDrawer } from '../../../../../shared/components/form-drawer/form-dr
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { Lightbox } from '../../../../../shared/ui/lightbox/lightbox';
-import { formatFechaDisplay, formatTimestampDisplay } from '../../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatTimestampDisplay, formatFechaHoraDisplay } from '../../../../../shared/utils/fecha.util';
 
 const LLAVE_UBICACION_LABEL: Record<LlaveUbicacion, string> = {
   chofer_asignado: 'Chofer asignado',
@@ -330,6 +330,13 @@ export class VehiculoDetalle implements OnInit {
   fecha(v: string | null | undefined): string {
     if (!v) return '—';
     return v.length <= 10 ? formatFechaDisplay(v) : formatTimestampDisplay(v);
+  }
+
+  /** AT22 — fecha + hora 12h para campos que llevan hora del día (created_at,
+   *  updated_at, última actividad). Un YYYY-MM-DD puro cae a fecha sola. */
+  fechaHora(v: string | null | undefined): string {
+    if (!v) return '—';
+    return v.length <= 10 ? formatFechaDisplay(v) : formatFechaHoraDisplay(v);
   }
 
   asigNombre(a: VehiculoAsignacion): string {

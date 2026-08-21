@@ -64,6 +64,8 @@ export class Entradas implements OnInit {
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
   bodegas = signal<Bodega[]>([]);
+  // AT14/AT26 — datos de prueba fuera de los selectores de almacén para no-admin.
+  bodegasVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.bodegas()));
   proveedores = signal<Proveedor[]>([]);
   ordenesCompra = signal<OrdenCompra[]>([]);
   proyectos = signal<Proyecto[]>([]);
@@ -389,7 +391,9 @@ export class Entradas implements OnInit {
   private origenProyectoId = signal<string | null>(null);
 
   /** Obras activas para el selector de origen. */
-  obrasActivas = computed(() => this.proyectos().filter((p) => p.activo !== false));
+  obrasActivas = computed(() =>
+    this.datosPruebaViewSvc.visibles(this.proyectos()).filter((p) => p.activo !== false),
+  );
 
   onOrigenChange(value: string) {
     const tipo = (value || 'compra') as OrigenEntrada;

@@ -35,14 +35,14 @@ import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/a
 import { StockService } from '../../../../shared/services/stock.service';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
-import { mejorCoincidenciaArticulo } from '../../../../shared/utils/articulo-match.util';
+import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 
 @Component({
   selector: 'app-salidas',
-  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox],
+  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -130,17 +130,7 @@ export class Salidas implements OnInit {
   // desde la app), 'sugerido' (coincidencia difusa — el aprobador debe verificar),
   // 'manual' (lo cambió el aprobador), 'agregado' (renglón añadido por el aprobador),
   // null (sin artículo → compra). El score es la confianza de la sugerencia.
-  reqItems = signal<
-    {
-      descripcion: string;
-      unidad: string | null;
-      articulo_id: string | null;
-      cantidad: number;
-      talla: string | null;
-      match_source: 'origen' | 'sugerido' | 'manual' | 'agregado' | null;
-      score: number;
-    }[]
-  >([]);
+  reqItems = signal<ReqItemMap[]>([]);
 
   readonly MOTIVOS_SALIDA = MOTIVOS_SALIDA;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -156,10 +146,16 @@ export class Salidas implements OnInit {
     fecha: new FormControl<string>(this.today, [Validators.required]),
     responsable: new FormControl<string | null>(null),
     observaciones: new FormControl<string | null>(null),
+    receptor_usuario_id: new FormControl<string | null>(null), // AT16 — quién confirma en la obra
   });
+
+  // AT16 — receptores elegibles para confirmar la entrega en la obra destino.
+  receptores = signal<{ id: string; nombre: string; detalle: string | null; vinculado: boolean }[]>([]);
 
   // ── Computed ─────────────────────────────────────────────
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
+  // AT14 — el almacén de origen no debe ofrecer bodegas de prueba a no-admins.
+  bodegasVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.bodegas()));
 
   /**
    * Artículos agrupados por categoría para los <select> (R16). Se itera categorias()
@@ -324,7 +320,36 @@ export class Salidas implements OnInit {
     // T13b — refresca el stock del picker al cambiar de almacén.
     this.form.controls.bodega_id.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((id) => this.loadStockForBodega(id));
+      .subscribe((id) => {
+        this.loadStockForBodega(id);
+        this.loadReceptores(); // AT16 — el vínculo receptor↔almacén influye en la lista
+      });
+    // AT16 — refresca los receptores elegibles al cambiar la obra destino.
+    this.form.controls.proyecto_id.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadReceptores());
+  }
+
+  /** AT16 — carga los receptores elegibles para confirmar la entrega en la obra. */
+  private async loadReceptores() {
+    const proyectoId = this.form.controls.proyecto_id.value;
+    const bodegaId = this.form.controls.bodega_id.value;
+    if (!proyectoId) {
+      this.receptores.set([]);
+      this.form.controls.receptor_usuario_id.setValue(null, { emitEvent: false });
+      return;
+    }
+    try {
+      const lista = await this.salidasService.getReceptoresDisponibles(proyectoId, bodegaId);
+      this.receptores.set(lista);
+      // Si el receptor elegido ya no está en la lista, se limpia.
+      const sel = this.form.controls.receptor_usuario_id.value;
+      if (sel && !lista.some((r) => r.id === sel)) {
+        this.form.controls.receptor_usuario_id.setValue(null, { emitEvent: false });
+      }
+    } catch {
+      this.receptores.set([]);
+    }
   }
 
   /** Carga el mapa de stock por artículo de la bodega seleccionada (para el picker). */
@@ -489,32 +514,14 @@ export class Salidas implements OnInit {
     this.openCreate();
   }
 
-  /** Opens the approval drawer for a pending requisición, auto-matching each line to the catalog. */
+  /** Opens the approval drawer for a pending requisición. El mapeo de renglones al
+   *  catálogo (preselección + fuzzy + editar) lo hace el componente compartido
+   *  app-requisicion-items-mapper, sembrado desde `solicitudEnAtencion`. */
   atenderSolicitud(s: SolicitudMaterial) {
     this.saveError.set('');
     this.creado.set(null);
     this.step.set('form');
     this.solicitudEnAtencion.set(s);
-    const arts = this.articulos().filter((a) => a.activo);
-    const byId = new Map(arts.map((a) => [a.id, a] as const));
-    this.reqItems.set(
-      (s.items ?? []).map((i) => {
-        const base = { descripcion: i.descripcion, unidad: i.unidad, cantidad: i.cantidad, talla: i.talla ?? null };
-        // AT7.1 — el renglón ya trae el artículo del catálogo desde el origen (lo eligió
-        // quien creó la requisición en la app). Es el camino ideal: se preselecciona tal cual.
-        if (i.articulo_id && byId.has(i.articulo_id)) {
-          return { ...base, articulo_id: i.articulo_id, match_source: 'origen' as const, score: 1 };
-        }
-        // AT7.2 — texto libre: coincidencia difusa contra el catálogo (normaliza
-        // mayúsculas, acentos, comillas de pulgada y medidas). "Sin artículo (comprar)"
-        // es la ÚLTIMA opción, nunca el default cuando hay una sugerencia razonable.
-        const best = mejorCoincidenciaArticulo(i.descripcion, arts, 0.5);
-        if (best) {
-          return { ...base, articulo_id: best.articulo.id, match_source: 'sugerido' as const, score: best.score };
-        }
-        return { ...base, articulo_id: null, match_source: null, score: 0 };
-      }),
-    );
     this.form.reset({
       fecha: this.today,
       motivo: 'uso_proyecto',
@@ -524,50 +531,9 @@ export class Salidas implements OnInit {
     this.drawerOpen.set(true);
   }
 
-  updateReqItemArticulo(index: number, value: string) {
-    const art = value ? this.articulos().find((a) => a.id === value) : null;
-    this.reqItems.update((items) =>
-      items.map((it, i) => {
-        if (i !== index) return it;
-        // En un renglón AGREGADO por el aprobador, la descripción es solo una etiqueta:
-        // al elegir el artículo, se refleja su nombre real.
-        const descripcion = it.match_source === 'agregado' && art ? art.nombre : it.descripcion;
-        return {
-          ...it,
-          descripcion,
-          articulo_id: value || null,
-          match_source: (value ? (it.match_source === 'agregado' ? 'agregado' : 'manual') : it.match_source === 'agregado' ? 'agregado' : null) as typeof it.match_source,
-          score: value ? 1 : 0,
-        };
-      }),
-    );
-  }
-
-  updateReqItemCantidad(index: number, value: number | string) {
-    const cantidad = Number(value);
-    this.reqItems.update((items) =>
-      items.map((it, i) => (i === index ? { ...it, cantidad } : it)),
-    );
-  }
-
-  /** AT7 — el aprobador agrega un renglón que la obra no pidió pero hace falta. */
-  addReqItem() {
-    this.reqItems.update((items) => [
-      ...items,
-      { descripcion: 'Renglón agregado por el aprobador', unidad: null, articulo_id: null, cantidad: 1, talla: null, match_source: 'agregado' as const, score: 0 },
-    ]);
-  }
-
-  /** AT7 — el aprobador quita un renglón (p.ej. ya no se necesita). */
-  removeReqItem(index: number) {
-    this.reqItems.update((items) => items.filter((_, i) => i !== index));
-  }
-
-  /** AT7 — stock disponible del artículo mapeado en el almacén elegido (para decidir). */
-  reqItemStock(articuloId: string | null): number | null {
-    if (!articuloId) return null;
-    const m = this.stockMap();
-    return articuloId in m ? m[articuloId] : null;
+  /** AT7 — el mapeador compartido emite los renglones ya resueltos al catálogo. */
+  onReqItemsChange(items: ReqItemMap[]) {
+    this.reqItems.set(items);
   }
 
   async rechazarSolicitud(s: SolicitudMaterial) {
@@ -735,7 +701,19 @@ export class Salidas implements OnInit {
           this.toast.warning('Salida registrada', 'No se pudo adjuntar el material no catalogado; reintenta desde el conduce.');
         }
       }
+      // AT16 — designa al receptor que confirmará la entrega en la obra (firma
+      // pendiente). Solo aplica a salidas por uso de proyecto; no bloquea el alta.
+      const receptorId = v.receptor_usuario_id ?? null;
+      if (receptorId && v.motivo === 'uso_proyecto') {
+        const receptor = this.receptores().find((r) => r.id === receptorId);
+        try {
+          await this.salidasService.asignarFirmaPendiente(created.id, receptorId, receptor?.nombre ?? '');
+        } catch {
+          this.toast.warning('Conduce registrado', 'No se pudo designar el receptor; puedes hacerlo desde el conduce.');
+        }
+      }
       this.crearComoPrueba.set(false);
+      this.form.controls.receptor_usuario_id.setValue(null, { emitEvent: false });
       this.salidas.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');

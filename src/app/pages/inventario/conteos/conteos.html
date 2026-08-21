@@ -29,7 +29,7 @@
   <div class="sgc-field filters-bar__select">
     <select [value]="filtroBodega()" (change)="onFiltroBodega($any($event.target).value)" aria-label="Filtrar por almacén">
       <option value="">Todos los almacenes</option>
-      @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
+      @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
     </select>
   </div>
   <app-date-range-filter [desde]="desde()" [hasta]="hasta()" (rangeChange)="onRango($event)" />
@@ -147,7 +147,7 @@
       <label for="chq-bodega">Almacén <span class="required">*</span></label>
       <select id="chq-bodega" [value]="chequeoBodegaId()" (change)="onChequeoBodegaChange($any($event.target).value)">
         <option [value]="''">Seleccionar almacén…</option>
-        @for (b of bodegas(); track b.id) {
+        @for (b of bodegasVisibles(); track b.id) {
           <option [value]="b.id">{{ b.nombre }}</option>
         }
       </select>

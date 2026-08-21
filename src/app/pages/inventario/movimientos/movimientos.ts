@@ -10,6 +10,7 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
@@ -25,11 +26,14 @@ export class Movimientos implements OnInit {
   private proyectosService = inject(ProyectosService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private datosPruebaView = inject(DatosPruebaViewService);
 
   formatFecha = formatFechaDisplay;
 
   private movimientos = signal<MovimientoInventario[]>([]);
   bodegas = signal<Bodega[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector de almacén para no-admin.
+  bodegasVisibles = computed(() => this.datosPruebaView.visibles(this.bodegas()));
   proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   error = signal('');

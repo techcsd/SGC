@@ -41,6 +41,8 @@ export class Conteos implements OnInit {
 
   conteos = signal<Conteo[]>([]);
   bodegas = signal<Bodega[]>([]);
+  // AT14/AT26 — datos de prueba fuera de los selectores de almacén para no-admin.
+  bodegasVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.bodegas()));
   loading = signal(true);
   error = signal('');
   search = signal('');

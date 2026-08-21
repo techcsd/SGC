@@ -261,7 +261,7 @@
       <label for="conductor_id">Conductor</label>
       <select id="conductor_id" formControlName="conductor_id">
         <option [value]="null">Sin conductor asignado</option>
-        @for (c of conductores(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+        @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
       </select>
     </div>
 
@@ -284,7 +284,7 @@
         <label for="proyecto_id">Obra <span class="required">*</span></label>
         <select id="proyecto_id" formControlName="proyecto_id" [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
           <option [value]="null">Selecciona la obra…</option>
-          @for (p of proyectos(); track p.id) {
+          @for (p of proyectosVisibles(); track p.id) {
             <option [value]="p.id">{{ p.codigo ? p.codigo + ' · ' + p.nombre : p.nombre }}</option>
           }
         </select>

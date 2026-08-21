@@ -66,7 +66,7 @@
       aria-label="Filtrar por almacén"
     >
       <option value="">Todos los almacenes</option>
-      @for (b of bodegas(); track b.id) {
+      @for (b of bodegasVisibles(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
     </select>
@@ -323,55 +323,13 @@
 
         <div class="sgc-field">
           <label>Renglones de la requisición</label>
-          @for (item of reqItems(); track $index) {
-            <div class="req-map-row">
-              <div class="req-map-row__desc">
-                <span class="req-map-row__text" [title]="item.descripcion">{{ item.descripcion }}@if (item.talla) { · Talla: {{ item.talla }} }</span>
-                <!-- AT7 — cómo se resolvió el artículo, para que el aprobador confíe/verifique -->
-                @switch (item.match_source) {
-                  @case ('origen') { <span class="req-map-row__tag req-map-row__tag--ok">✓ Del catálogo</span> }
-                  @case ('sugerido') { <span class="req-map-row__tag req-map-row__tag--sug">Sugerido · {{ item.score * 100 | number:'1.0-0' }}% — verifica</span> }
-                  @case ('agregado') { <span class="req-map-row__tag req-map-row__tag--add">Agregado por ti</span> }
-                  @case (null) { <span class="req-map-row__tag">→ compra</span> }
-                }
-                @if (reqItemStock(item.articulo_id) !== null) {
-                  <span class="req-map-row__stock">Stock: {{ reqItemStock(item.articulo_id) | number:'1.0-2' }}{{ item.unidad ? ' ' + item.unidad : '' }}</span>
-                }
-              </div>
-              <select
-                class="req-map-row__articulo"
-                [value]="item.articulo_id ?? ''"
-                (change)="updateReqItemArticulo($index, $any($event.target).value)"
-                aria-label="Artículo del catálogo"
-              >
-                <option value="">Sin artículo (comprar)</option>
-                @for (g of articulosAgrupados(); track g.categoria) {
-                  <optgroup [label]="g.categoria">
-                    @for (a of g.articulos; track a.id) {
-                      <option [value]="a.id">{{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }} ({{ a.codigo }})</option>
-                    }
-                  </optgroup>
-                }
-              </select>
-              <app-qty-stepper
-                class="req-map-row__cantidad"
-                [value]="item.cantidad"
-                [min]="0"
-                [step]="1"
-                ariaLabel="Cantidad"
-                (valueChange)="updateReqItemCantidad($index, $event)"
-              />
-              <span class="req-map-row__unidad">{{ item.unidad || '' }}</span>
-              <button
-                type="button"
-                class="req-map-row__remove"
-                (click)="removeReqItem($index)"
-                aria-label="Quitar renglón"
-                title="Quitar renglón"
-              >×</button>
-            </div>
-          }
-          <button type="button" class="req-add-row" (click)="addReqItem()">+ Agregar renglón</button>
+          <app-requisicion-items-mapper
+            [solicitud]="solicitudEnAtencion()"
+            [articulos]="articulos()"
+            [categorias]="categorias()"
+            [stock]="stockMap()"
+            (itemsChange)="onReqItemsChange($event)"
+          />
         </div>
       </div>
     }
@@ -386,7 +344,7 @@
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
           <option [value]="null">Seleccionar almacén…</option>
-          @for (b of bodegas(); track b.id) {
+          @for (b of bodegasVisibles(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
         </select>
@@ -448,6 +406,26 @@
             }
           }
         </div>
+
+        <!-- AT16 — Receptor: quién confirmará la entrega en la obra (firma pendiente) -->
+        @if (f.proyecto_id.value) {
+          <div class="sgc-field">
+            <label for="receptor_usuario_id">Receptor en la obra (opcional)</label>
+            <select id="receptor_usuario_id" formControlName="receptor_usuario_id">
+              <option [value]="null">Sin designar (se confirma en la entrega)</option>
+              @for (r of receptores(); track r.id) {
+                <option [value]="r.id">{{ r.nombre }}{{ r.detalle ? ' · ' + r.detalle : '' }}</option>
+              }
+            </select>
+            <span class="field-hint">
+              @if (receptores().length === 0) {
+                No hay receptores vinculados a esta obra; se firmará al momento de entregar.
+              } @else {
+                Se le avisará para que confirme la recepción desde su dispositivo.
+              }
+            </span>
+          </div>
+        }
       }
 
       <!-- AL10 — Almacén destino (solo si motivo = traslado_almacen) -->

@@ -42,6 +42,8 @@ export class Historial implements OnInit {
 
   bitacoras = signal<Bitacora[]>([]);
   proyectos = signal<Proyecto[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector de filtro para no-admin.
+  proyectosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.proyectos()));
   loading = signal(true);
   error = signal('');
 

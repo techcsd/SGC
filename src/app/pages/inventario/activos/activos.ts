@@ -194,11 +194,11 @@ export class Activos implements OnInit {
       this.activos.set(activos);
       // Y8 — construir las listas relacionables (id + etiqueta legible).
       this.asignables.set({
-        proyecto: proyectos.map((p) => ({ id: p.id, label: p.nombre })),
-        empleado: empleados.map((e) => ({ id: e.id, label: `${e.nombre} ${e.apellido ?? ''}`.trim() })),
+        proyecto: this.datosPruebaViewSvc.visibles(proyectos).map((p) => ({ id: p.id, label: p.nombre })),
+        empleado: this.datosPruebaViewSvc.visibles(empleados).map((e) => ({ id: e.id, label: `${e.nombre} ${e.apellido ?? ''}`.trim() })),
         ingeniero: ingenieros.map((u) => ({ id: u.id, label: u.nombre })),
-        almacen: bodegas.filter((b) => b.activo !== false).map((b) => ({ id: b.id, label: b.nombre })), // AR3
-        vehiculo: vehiculos.map((v) => ({ id: v.id, label: `${v.placa} — ${v.marca}` })),
+        almacen: this.datosPruebaViewSvc.visibles(bodegas).filter((b) => b.activo !== false).map((b) => ({ id: b.id, label: b.nombre })), // AR3
+        vehiculo: this.datosPruebaViewSvc.visibles(vehiculos).map((v) => ({ id: v.id, label: `${v.placa} — ${v.marca}` })),
       });
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');

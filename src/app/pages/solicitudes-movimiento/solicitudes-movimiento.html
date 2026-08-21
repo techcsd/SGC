@@ -32,7 +32,7 @@
   @if (esReferente()) {
     <select class="sgc-select" [value]="fProyecto()" (change)="fProyecto.set($any($event.target).value)" aria-label="Filtrar por obra">
       <option value="">Todas las obras</option>
-      @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+      @for (p of proyectosVisibles(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
     </select>
   }
 </div>
@@ -129,7 +129,7 @@
       <label for="obra">Obra (destino)</label>
       <select id="obra" formControlName="proyecto_id">
         <option [ngValue]="null">— Selecciona la obra —</option>
-        @for (p of proyectos(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
+        @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
       </select>
     </div>
     <div class="sm-form__row">
@@ -187,14 +187,14 @@
         <label for="pl-veh">Vehículo</label>
         <select id="pl-veh" [value]="planVehiculo()" (change)="planVehiculo.set($any($event.target).value || null)">
           <option value="">— Selecciona vehículo —</option>
-          @for (v of vehiculos(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
+          @for (v of vehiculosVisibles(); track v.id) { <option [value]="v.id">{{ v.placa }} — {{ v.marca }} {{ v.modelo }}</option> }
         </select>
       </div>
       <div class="sgc-field">
         <label for="pl-cond">Chofer</label>
         <select id="pl-cond" [value]="planConductor()" (change)="planConductor.set($any($event.target).value || null)">
           <option value="">— Selecciona chofer —</option>
-          @for (c of conductores(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+          @for (c of conductoresVisibles(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
         </select>
       </div>
       <div class="sgc-field">

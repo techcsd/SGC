@@ -85,6 +85,9 @@ export class Checklists implements OnInit {
   vehiculos = signal<Vehiculo[]>([]);
   conductores = signal<Conductor[]>([]);
   plantillas = signal<ChecklistPlantilla[]>([]);
+  // AT14/AT26 — datos de prueba fuera de los selectores para no-admin.
+  vehiculosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.vehiculos()));
+  conductoresVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.conductores()));
 
   loading = signal(true);
   saving = signal(false);

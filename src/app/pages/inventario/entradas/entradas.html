@@ -37,7 +37,7 @@
       aria-label="Filtrar por almacén"
     >
       <option value="">Todos los almacenes</option>
-      @for (b of bodegas(); track b.id) {
+      @for (b of bodegasVisibles(); track b.id) {
         <option [value]="b.id">{{ b.nombre }}</option>
       }
     </select>
@@ -248,7 +248,7 @@
           [class.invalid]="f.bodega_id.invalid && f.bodega_id.touched"
         >
           <option [value]="null">Seleccionar almacén…</option>
-          @for (b of bodegas(); track b.id) {
+          @for (b of bodegasVisibles(); track b.id) {
             <option [value]="b.id">{{ b.nombre }}</option>
           }
         </select>

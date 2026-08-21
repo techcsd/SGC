@@ -524,6 +524,12 @@
   color: var(--sgc-text);
 }
 
+.notif-panel-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .notif-mark-all {
   background: none;
   border: none;
@@ -535,6 +541,18 @@
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+// AT23 — enlace a preferencias de notificación (engranaje).
+.notif-prefs-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--sgc-text-muted);
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--sgc-primary);
   }
 }
 

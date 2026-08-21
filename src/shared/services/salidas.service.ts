@@ -247,6 +247,32 @@ export class SalidasService {
     return (data ?? []) as { id: string; nombre: string }[];
   }
 
+  /** AT16 — receptores elegibles para confirmar la entrega en una obra (rol/vínculo).
+   *  Paridad con la app: al emitir el conduce se puede designar quién lo recibirá. */
+  async getReceptoresDisponibles(
+    proyectoId: string | null,
+    bodegaId: string | null,
+  ): Promise<{ id: string; nombre: string; detalle: string | null; vinculado: boolean }[]> {
+    const { data, error } = await this.supabase.client.rpc('receptores_disponibles', {
+      p_proyecto_id: proyectoId,
+      p_bodega_id: bodegaId,
+    });
+    if (error) return [];
+    return (data ?? []) as { id: string; nombre: string; detalle: string | null; vinculado: boolean }[];
+  }
+
+  /** AT16 — designa al receptor que confirmará la entrega (firma pendiente). Se le
+   *  notifica para que confirme en su dispositivo. No bloquea el alta del conduce. */
+  async asignarFirmaPendiente(salidaId: string, usuarioId: string, nombre: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('asignar_firma_pendiente', {
+      p_salida_id: salidaId,
+      p_usuario_id: usuarioId,
+      p_nombre: nombre,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   /** AC7 — registra (upsert) una firma canónica del conduce (emisor/receptor) en
    *  `sgc.salida_firmas` vía RPC `firmar_conduce`. Devuelve el id de la firma. */
   async firmarConduce(

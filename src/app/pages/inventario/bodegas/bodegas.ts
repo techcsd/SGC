@@ -46,6 +46,8 @@ export class Bodegas implements OnInit {
   // ── Data state ──────────────────────────────────────────
   bodegas = signal<Bodega[]>([]);
   proyectos = signal<Proyecto[]>([]);
+  // AT14/AT26 — datos de prueba fuera de los selectores de obra para no-admin.
+  proyectosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.proyectos()));
   loading = signal(true);
   saving = signal(false);
   error = signal('');

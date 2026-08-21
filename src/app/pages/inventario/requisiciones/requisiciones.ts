@@ -2,12 +2,18 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
+import { StockService } from '../../../../shared/services/stock.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
+import { Articulo } from '../../../../shared/models/articulo.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
@@ -39,7 +45,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +53,9 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 export class Requisiciones implements OnInit {
   private service = inject(SolicitudesMaterialService);
   private bodegasService = inject(BodegasService);
+  private articulosService = inject(ArticulosService);
+  private categoriasService = inject(CategoriasService);
+  private stockService = inject(StockService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
@@ -61,6 +70,13 @@ export class Requisiciones implements OnInit {
   bodegas = signal<Bodega[]>([]);
   loading = signal(true);
   error = signal('');
+
+  // AT7 — catálogo para el mapeador de renglones (preselección + fuzzy + stock).
+  articulos = signal<Articulo[]>([]);
+  categorias = signal<Categoria[]>([]);
+  stockMap = signal<Record<string, number>>({});
+  /** Renglones ya mapeados al catálogo (emitidos por app-requisicion-items-mapper). */
+  mappedItems = signal<ReqItemMap[]>([]);
 
   // ── Filtros ──────────────────────────────────────────────
   fObra = signal('');
@@ -184,17 +200,37 @@ export class Requisiciones implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [reqs, bodegas] = await Promise.all([
+      const [reqs, bodegas, articulos, categorias] = await Promise.all([
         this.service.getAll(),
         this.bodegasService.getAll(),
+        this.articulosService.getAll(),
+        this.categoriasService.getAll(),
       ]);
       this.requisiciones.set(reqs);
       this.bodegas.set(bodegas.filter((b) => b.activo !== false));
+      this.articulos.set(articulos.filter((a) => a.activo));
+      this.categorias.set(categorias);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las requisiciones.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** AT7 — carga el stock del almacén elegido (para decidir despacho vs compra). */
+  private async loadStock(bodegaId: string): Promise<void> {
+    if (!bodegaId) { this.stockMap.set({}); return; }
+    try {
+      this.stockMap.set(await this.stockService.getMapByBodega(bodegaId));
+    } catch {
+      this.stockMap.set({});
+    }
+  }
+
+  /** Cambia el almacén de despacho y refresca el stock por renglón. */
+  onBodegaAprob(id: string) {
+    this.bodegaId.set(id);
+    void this.loadStock(id);
   }
 
   itemsCount(r: SolicitudMaterial): number {
@@ -223,7 +259,13 @@ export class Requisiciones implements OnInit {
 
   iniciarAprobar() {
     this.actionError.set('');
+    void this.loadStock(this.bodegaId());
     this.mode.set('aprobar');
+  }
+
+  /** AT7 — el mapeador emite los renglones ya resueltos al catálogo. */
+  onItemsChange(items: ReqItemMap[]) {
+    this.mappedItems.set(items);
   }
   iniciarRechazar() {
     this.actionError.set('');
@@ -245,15 +287,33 @@ export class Requisiciones implements OnInit {
       this.actionError.set('Indica la fecha del despacho.');
       return;
     }
+    const items = this.mappedItems();
+    if (!items.length) {
+      this.actionError.set('La requisición no tiene renglones que aprobar.');
+      return;
+    }
+    if (items.some((i) => !(i.cantidad > 0))) {
+      this.actionError.set('Cada renglón debe tener una cantidad mayor que cero.');
+      return;
+    }
+    // Un mismo artículo mapeado no puede repetirse (el despacho fallaría al sumar stock).
+    const mapped = items.map((i) => i.articulo_id).filter((x): x is string => !!x);
+    if (new Set(mapped).size !== mapped.length) {
+      this.actionError.set('Un mismo artículo está mapeado en más de un renglón. Combínalos en uno solo.');
+      return;
+    }
     this.saving.set(true);
     this.actionError.set('');
     try {
+      // AT7 — se envían los renglones YA mapeados al catálogo (preselección + fuzzy +
+      // agregados por el aprobador). El servidor despacha lo que hay en stock y crea la
+      // compra por el faltante y por los renglones que quedaron sin artículo.
       const res = await this.service.aprobarRequisicion(s.id, {
         bodega_id: this.bodegaId(),
         fecha: this.fecha(),
         responsable: this.responsable().trim() || null,
         observaciones: this.observaciones().trim() || null,
-        items: (s.items ?? []).map((i) => ({
+        items: items.map((i) => ({
           articulo_id: i.articulo_id,
           descripcion: i.descripcion,
           unidad: i.unidad,

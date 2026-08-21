@@ -6,6 +6,7 @@ import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 interface FilaAjuste {
   articulo_id: string | null;
@@ -33,9 +34,12 @@ export class AjusteReal implements OnInit {
   private bodegasSvc = inject(BodegasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private datosPruebaView = inject(DatosPruebaViewService);
 
   esAdmin = computed(() => this.userService.hasRole('admin'));
   bodegas = signal<Bodega[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector de almacén para no-admin.
+  bodegasVisibles = computed(() => this.datosPruebaView.visibles(this.bodegas()));
   selBodega = signal<string | null>(null);
   private inventario = signal<InventarioAlmacenItem[]>([]);
   filas = signal<FilaAjuste[]>([]);

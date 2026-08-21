@@ -42,6 +42,10 @@ interface NavItem {
   /** AG12 — visible si el usuario puede VER alguno de estos submódulos (permiso
    *  granular), aunque no tenga el módulo padre. */
   submodulos?: string[];
+  /** AT (PROMPT-4) — módulo EXTRA que también hace visible el grupo aunque no
+   *  tenga el módulo padre (p. ej. Flota visible para quien tiene `incentivos`,
+   *  para llegar a "Desempeño de choferes"). Cada hija sigue con su propio gate. */
+  extraModulo?: string;
   /** AU1 — bandeja personal que solo aparece cuando hay algo pendiente (badge>0).
    *  P. ej. "Conduces por firmar": cualquier usuario puede ser despachante. */
   soloConPendiente?: boolean;
@@ -204,6 +208,9 @@ export class Shell implements OnInit {
       // AN2 — visible con el módulo completo O cualquier submódulo granular.
       // (Los ítems `flotaElevado` no se relajan: siguen sólo para roles elevados.)
       submodulos: ['flota.vehiculos', 'flota.mantenimientos', 'flota.combustible', 'flota.rutas'],
+      // AT (PROMPT-4) — quien tiene el módulo `incentivos` (Logística, Gerencia,
+      // Admin) ve Flota para llegar a "Desempeño de choferes", aunque no tenga flota.
+      extraModulo: 'incentivos',
       children: [
         { label: 'Vehículos', route: '/flota/vehiculos', submodulo: 'flota.vehiculos' },
         { label: 'Mantenimientos', route: '/flota/mantenimientos', badgeKey: 'flota.mantenimientos', submodulo: 'flota.mantenimientos' },
@@ -223,16 +230,9 @@ export class Shell implements OnInit {
         { label: 'Accidentes', route: '/flota/accidentes', flotaElevado: true },
         { label: 'Vehículos en uso', route: '/flota/responsabilidad', flotaElevado: true },
         { label: 'Reportes', route: '/flota/reportes', flotaElevado: true },
-      ],
-    },
-    {
-      // AT1-AT3 — Incentivos (gestión): informe semanal de choferes, aprobar/declinar.
-      // Gateado por el módulo `incentivos` (Logística y Transportación, Gerencia, Admin).
-      label: 'Incentivos',
-      icon: 'incentivos',
-      modulo: 'incentivos',
-      children: [
-        { label: 'Informe semanal', route: '/incentivos', modulo: 'incentivos' },
+        // AT1-AT3 (PROMPT-4) — Incentivos (gestión) movido DENTRO de Flota › Desempeño.
+        // Gateado por el módulo `incentivos` (Logística y Transportación, Gerencia, Admin).
+        { label: 'Desempeño de choferes', route: '/incentivos', modulo: 'incentivos' },
       ],
     },
     {
@@ -559,6 +559,8 @@ export class Shell implements OnInit {
     if (item.flotaElevado && this.userService.esFlotaElevado()) return true;
     // AG12 — acceso extra por permiso granular de submódulo (p. ej. Compras solo-Proveedores).
     if (item.submodulos?.some((s) => this.userService.puedeVerSubmodulo(s))) return true;
+    // AT (PROMPT-4) — acceso extra por módulo (p. ej. Flota visible para `incentivos`).
+    if (item.extraModulo && this.userService.hasModulo(item.extraModulo)) return true;
     if (!item.modulo) return true;
     if (item.phase) return false;
     return this.userService.hasModulo(item.modulo);

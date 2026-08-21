@@ -16,6 +16,7 @@ import {
 } from '../../../../shared/models/salida.model';
 import { UserService } from '../../../../app/core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
@@ -49,6 +50,7 @@ export class Conduce implements OnInit {
   private toast = inject(ToastService);
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
+  private datosPruebaView = inject(DatosPruebaViewService);
   // AT10 — solo admin puede marcar/desmarcar un conduce como dato de prueba.
   esAdmin = computed(() => this.userService.roles().includes('admin'));
   marcandoPrueba = signal(false);
@@ -285,7 +287,9 @@ export class Conduce implements OnInit {
     if (this.vehiculosPicker().length === 0) {
       try {
         const vs = await this.vehiculosService.getAll();
-        this.vehiculosPicker.set(vs.filter((v) => v.activo && v.estado !== 'baja'));
+        this.vehiculosPicker.set(
+          this.datosPruebaView.visibles(vs).filter((v) => v.activo && v.estado !== 'baja'),
+        );
       } catch { /* opcional */ }
     }
   }

@@ -335,7 +335,7 @@
         [class.invalid]="f.vehiculo_id.invalid && f.vehiculo_id.touched"
       >
         <option [value]="null">Seleccionar vehículo…</option>
-        @for (v of vehiculos(); track v.id) {
+        @for (v of vehiculosVisibles(); track v.id) {
           <option [value]="v.id">{{ idVehiculo(v) }}</option>
         }
       </select>

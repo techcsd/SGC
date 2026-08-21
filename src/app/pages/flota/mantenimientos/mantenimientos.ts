@@ -116,6 +116,8 @@ export class Mantenimientos implements OnInit {
     { key: 'vehiculo', label: 'Vehículo', values: (r) => { const v = this.vehiculoLabel(r as Mantenimiento); return v ? [v] : []; } },
   ];
   vehiculos = signal<Vehiculo[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector para no-admin.
+  vehiculosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.vehiculos()));
   loading = signal(true);
   saving = signal(false);
   error = signal('');

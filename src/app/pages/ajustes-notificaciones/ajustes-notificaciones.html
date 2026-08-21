@@ -1,0 +1,40 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Notificaciones</h1>
+    <p class="page-subtitle">Elige qué avisos quieres recibir. Silenciar un tipo solo afecta tu bandeja; no cambia a quién más le llega.</p>
+  </div>
+</div>
+
+<div class="ajustes-notif sgc-card">
+  @if (loading()) {
+    <app-skeleton [rows]="6" />
+  } @else {
+    <ul class="notif-prefs">
+      @for (c of categorias; track c.tipo) {
+        <li class="notif-pref">
+          <div class="notif-pref__info">
+            <span class="notif-pref__label">{{ c.label }}</span>
+            <span class="notif-pref__desc">{{ c.desc }}</span>
+          </div>
+          <button
+            type="button"
+            class="notif-switch"
+            [class.notif-switch--on]="recibe(c.tipo)"
+            [attr.aria-pressed]="recibe(c.tipo)"
+            [attr.aria-label]="(recibe(c.tipo) ? 'Silenciar' : 'Activar') + ': ' + c.label"
+            [disabled]="guardando() === c.tipo"
+            (click)="toggle(c.tipo)"
+          >
+            <span class="notif-switch__track"><span class="notif-switch__thumb"></span></span>
+            <span class="notif-switch__text">{{ recibe(c.tipo) ? 'Recibir' : 'Silenciado' }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <p class="notif-prefs__foot">
+      Los avisos que exigen tu acción (firmas pendientes, alertas críticas) no se pueden silenciar.
+      Puedes revisar tus preferencias en cualquier momento desde <a routerLink="/perfil">Mi perfil</a>.
+    </p>
+  }
+</div>

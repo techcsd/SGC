@@ -85,7 +85,7 @@
               <div class="vd-llaves__num">🔑 Llave #{{ n }}</div>
               <div class="vd-llaves__ubi">{{ LLAVE_UBICACION_LABEL[l.ubicacion_tipo] }}</div>
               <div class="vd-llaves__portador">{{ llaveDescripcion(l) }}</div>
-              @if (l.updated_at) { <div class="vd-llaves__fecha">Actualizada: {{ fecha(l.updated_at) }}</div> }
+              @if (l.updated_at) { <div class="vd-llaves__fecha">Actualizada: {{ fechaHora(l.updated_at) }}</div> }
               @if (esElevado()) {
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="openLlave($any(n))">Registrar traspaso</button>
               }
@@ -106,7 +106,7 @@
                   <td>#{{ t.numero }}</td>
                   <td>{{ LLAVE_UBICACION_LABEL[t.ubicacion_tipo] }}@if (t.portador_nombre) { — {{ t.portador_nombre }} }@if (t.ubicacion_detalle) { — {{ t.ubicacion_detalle }} }</td>
                   <td>{{ t.registrado_nombre ?? '—' }}</td>
-                  <td>{{ fecha(t.created_at) }}</td>
+                  <td>{{ fechaHora(t.created_at) }}</td>
                 </tr>
               }
             </tbody>
@@ -145,7 +145,7 @@
               <tbody>
                 @for (e of placaPPExt(); track e.id) {
                   <tr>
-                    <td>{{ fecha(e.created_at) }}</td>
+                    <td>{{ fechaHora(e.created_at) }}</td>
                     <td>+{{ e.dias_agregados }}</td>
                     <td>{{ fecha(e.fecha_limite_nueva) }}</td>
                     <td class="text-muted">{{ e.motivo ?? '—' }}</td>
@@ -256,7 +256,7 @@
       </div>
       <div class="stat-card">
         <span class="stat-card__label">Última actividad</span>
-        <span class="stat-card__value vd-fecha-val">{{ fecha(stats()?.ultima_actividad) }}</span>
+        <span class="stat-card__value vd-fecha-val">{{ fechaHora(stats()?.ultima_actividad) }}</span>
       </div>
     </div>
 
@@ -468,7 +468,7 @@
               <div class="vd-asig__info">
                 <span class="vd-asig__nombre">{{ d.zona ?? 'Zona no indicada' }}</span>
                 <span class="sgc-badge sgc-badge--neutral">{{ origenLabel(d.origen) }}</span>
-                <span class="vd-muted">{{ fecha(d.created_at) }}</span>
+                <span class="vd-muted">{{ fechaHora(d.created_at) }}</span>
                 @if (d.descripcion) { <span class="vd-asig__notas">“{{ d.descripcion }}”</span> }
               </div>
               @if (incUrl(d.foto_path); as url) {

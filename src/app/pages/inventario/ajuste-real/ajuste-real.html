@@ -17,7 +17,7 @@
         <span>Almacén <b>*</b></span>
         <select [value]="selBodega() ?? ''" (change)="onBodega($any($event.target).value)">
           <option value="">Selecciona el almacén…</option>
-          @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
+          @for (b of bodegasVisibles(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
         </select>
       </label>
       @if (selBodega() && paso() === 'inicio') {

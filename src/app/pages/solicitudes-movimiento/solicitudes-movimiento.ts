@@ -9,6 +9,7 @@ import {
 import { ProyectosService } from '../../../shared/services/proyectos.service';
 import { VehiculosService } from '../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../shared/services/conductores.service';
+import { DatosPruebaViewService } from '../../../shared/services/datos-prueba-view.service';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { Proyecto } from '../../../shared/models/proyecto.model';
@@ -39,6 +40,7 @@ export class SolicitudesMovimiento implements OnInit {
   private conductoresSvc = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private datosPruebaView = inject(DatosPruebaViewService);
 
   esReferente = computed(() => ROLES_REFERENTE.some((r) => this.userService.hasRole(r)));
 
@@ -47,6 +49,11 @@ export class SolicitudesMovimiento implements OnInit {
   vehiculos = signal<Vehiculo[]>([]);
   conductores = signal<Conductor[]>([]);
   loading = signal(true);
+
+  // AT14 — los selectores no ofrecen datos de prueba a no-admins.
+  proyectosVisibles = computed(() => this.datosPruebaView.visibles(this.proyectos()));
+  vehiculosVisibles = computed(() => this.datosPruebaView.visibles(this.vehiculos()));
+  conductoresVisibles = computed(() => this.datosPruebaView.visibles(this.conductores()));
 
   // Filtros
   fEstado = signal<string>('');

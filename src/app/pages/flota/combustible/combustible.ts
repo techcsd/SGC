@@ -432,10 +432,13 @@ export class Combustible implements OnInit {
 
   // QA-001 — solo vehículos usables pueden echar combustible (no baja / no_disponible).
   vehiculosDisponibles = computed(() =>
-    this.vehiculos().filter(
+    this.datosPruebaViewSvc.visibles(this.vehiculos()).filter(
       (v) => v.activo && v.estado !== 'no_disponible' && v.estado !== 'baja',
     ),
   );
+  // AT14/AT26 — datos de prueba fuera de los selectores para no-admin.
+  conductoresVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.conductores()));
+  proyectosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.proyectos()));
 
   async ngOnInit() {
     await this.loadAll();

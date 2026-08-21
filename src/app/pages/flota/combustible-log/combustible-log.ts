@@ -12,6 +12,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { formatFechaDisplay, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
 /**
  * AF17 — Registro/log de echadas para admin y roles elevados. Sirve para detectar
@@ -30,6 +31,7 @@ export class CombustibleLog implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private conductoresService = inject(ConductoresService);
   private route = inject(ActivatedRoute);
+  private datosPruebaView = inject(DatosPruebaViewService);
 
   formatFecha = formatFechaDisplay;
   readonly idVehiculo = identificacionVehiculo;
@@ -47,6 +49,8 @@ export class CombustibleLog implements OnInit {
 
   rows = signal<LogCombustibleRow[]>([]);
   vehiculos = signal<Vehiculo[]>([]);
+  // AT14/AT26 — datos de prueba fuera del selector de filtro para no-admin.
+  vehiculosVisibles = computed(() => this.datosPruebaView.visibles(this.vehiculos()));
   usuarios = signal<{ id: string; nombre: string }[]>([]);
   loading = signal(true);
   error = signal('');
