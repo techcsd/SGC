@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { Router } from '@angular/router';
 import { AvisosFlotaService } from '../../../../shared/services/avisos-flota.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
@@ -23,7 +24,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
 
 @Component({
   selector: 'app-flota-avisos',
-  imports: [FormDrawer, Skeleton, HighlightItemDirective, Paginator, Lightbox, AudioNotas],
+  imports: [HumanizarEnumPipe, FormDrawer, Skeleton, HighlightItemDirective, Paginator, Lightbox, AudioNotas],
   templateUrl: './avisos.html',
   styleUrl: './avisos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

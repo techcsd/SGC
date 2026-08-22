@@ -6,6 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../../shared/pipes/humanizar-enum.pipe';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
@@ -58,7 +59,7 @@ const MAX_HIST = 15;
 
 @Component({
   selector: 'app-conductor-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle],
+  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle],
   templateUrl: './conductor-detalle.html',
   styleUrl: './conductor-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

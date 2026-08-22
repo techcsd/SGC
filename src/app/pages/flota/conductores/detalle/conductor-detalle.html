@@ -249,7 +249,7 @@
               <tr>
                 <td>{{ formatFecha(r.fecha) }}</td>
                 <td>{{ r.origen }} → {{ r.destino }}</td>
-                <td><span class="sgc-badge sgc-badge--neutral">{{ r.estado }}</span></td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ r.estado | humanizarEnum }}</span></td>
                 <td>{{ duracionRutaTxt(r) }}</td>
                 <td><a class="cd-link" [routerLink]="['/flota/rutas']" [queryParams]="{ item: r.id }">Ver</a></td>
               </tr>
@@ -274,7 +274,7 @@
               <tr>
                 <td><span class="cd-placa">{{ conduceNumero(s.id) }}</span></td>
                 <td>{{ formatFecha(s.fecha) }}</td>
-                <td><span class="sgc-badge sgc-badge--neutral">{{ s.estado }}</span></td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ s.estado | humanizarEnum }}</span></td>
               </tr>
             }
           </tbody>
@@ -299,7 +299,7 @@
                 <td>{{ entregaTipoLabel(e.tipo) }}</td>
                 <td><span class="cd-placa">{{ e.vehiculo?.placa ?? '—' }}</span></td>
                 <td class="text-right">{{ e.km | number: '1.0-0' }}</td>
-                <td><span class="sgc-badge sgc-badge--neutral">{{ e.estado }}</span></td>
+                <td><span class="sgc-badge sgc-badge--neutral">{{ e.estado | humanizarEnum }}</span></td>
               </tr>
             }
           </tbody>

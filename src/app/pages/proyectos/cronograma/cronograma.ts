@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -65,7 +66,7 @@ const GANTT_LABEL_W = 220;
 
 @Component({
   selector: 'app-proyecto-cronograma',
-  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './cronograma.html',
   styleUrl: './cronograma.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

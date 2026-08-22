@@ -225,7 +225,7 @@
                 </td>
                 <td>
                   @if (atrasada(t)) { <span class="cron__estado cron__estado--atrasada">Atrasada</span> }
-                  @else { <span class="cron__estado" [attr.data-estado]="t.estado">{{ t.estado }}</span> }
+                  @else { <span class="cron__estado" [attr.data-estado]="t.estado">{{ t.estado | humanizarEnum }}</span> }
                 </td>
                 <td class="cron__acciones">
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleBitacoras(t)" title="Bitácoras enlazadas">🔗</button>

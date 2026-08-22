@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ObraProduccionService, DirectorioUsuario } from '../../../../shared/services/obra-produccion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -19,7 +20,7 @@ interface BrigadaGrupo {
 
 @Component({
   selector: 'app-obra-plan-dia',
-  imports: [ReactiveFormsModule, FormDrawer, FileUpload, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton],
   templateUrl: './plan-dia.html',
   styleUrl: './plan-dia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

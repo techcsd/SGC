@@ -147,7 +147,7 @@
         <div><dt>Vehículo</dt><dd>{{ a.vehiculo?.placa ?? '—' }}</dd></div>
         <div><dt>Conductor</dt><dd>{{ a.conductor?.nombre ?? '—' }}</dd></div>
         <div><dt>Creado</dt><dd>{{ formatFecha(a.created_at) }}</dd></div>
-        <div><dt>Estado</dt><dd>{{ a.estado }}</dd></div>
+        <div><dt>Estado</dt><dd>{{ a.estado | humanizarEnum }}</dd></div>
       </dl>
 
       @if (tieneDocumento(a)) {

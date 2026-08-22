@@ -74,7 +74,7 @@
                 <tr>
                   <td>{{ t.nombre }}</td>
                   <td>{{ t.fecha_fin_plan ? formatFecha(t.fecha_fin_plan) : '—' }}</td>
-                  <td><span [class]="estadoBadge(t.estado)">{{ t.estado }}</span></td>
+                  <td><span [class]="estadoBadge(t.estado)">{{ t.estado | humanizarEnum }}</span></td>
                   <td>
                     <div class="avance-cell">
                       <div class="avance-bar"><span [style.width.%]="t.avance_pct"></span></div>
@@ -172,7 +172,7 @@
                 <tr>
                   <td>{{ o.numero ?? '—' }}</td>
                   <td>{{ o.fecha_programada ? formatFecha(o.fecha_programada) : '—' }}</td>
-                  <td><span class="sgc-badge sgc-badge--neutral">{{ o.estado }}</span></td>
+                  <td><span class="sgc-badge sgc-badge--neutral">{{ o.estado | humanizarEnum }}</span></td>
                   <td>{{ o.destino ?? '—' }}</td>
                   <td class="text-right">RD$ {{ (o.total ?? 0) | number:'1.0-0' }}</td>
                 </tr>

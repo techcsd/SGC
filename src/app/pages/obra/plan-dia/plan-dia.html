@@ -73,7 +73,7 @@
                 @if (t.responsable) { <span class="brigada-tarea__resp">· {{ t.responsable }}</span> }
                 @if (t.linked_tipo) { <span class="sgc-badge sgc-badge--info">🔗 {{ t.linked_tipo }}</span> }
               </div>
-              <span [class]="estadoBadge(t.estado)">{{ t.estado }}</span>
+              <span [class]="estadoBadge(t.estado)">{{ t.estado | humanizarEnum }}</span>
             </li>
           }
         </ul>

@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ObraProduccionService } from '../../../../shared/services/obra-produccion.service';
@@ -20,7 +21,7 @@ function isoDaysAgo(days: number): string {
 
 @Component({
   selector: 'app-obra-informes',
-  imports: [ReactiveFormsModule, DecimalPipe, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, DecimalPipe, Skeleton],
   templateUrl: './informes.html',
   styleUrl: './informes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -106,7 +106,7 @@
                   <td>{{ r.plantilla?.nombre ?? '—' }}</td>
                   <td>{{ r.proyecto?.nombre ?? '—' }}</td>
                   <td>{{ r.created_at ? formatFecha(r.created_at) : '—' }}</td>
-                  <td><span class="sgc-badge sgc-badge--success">{{ r.estado }}</span></td>
+                  <td><span class="sgc-badge sgc-badge--success">{{ r.estado | humanizarEnum }}</span></td>
                 </tr>
               }
             </tbody>

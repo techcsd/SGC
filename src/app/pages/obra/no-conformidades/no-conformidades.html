@@ -310,7 +310,7 @@
                 <div class="timeline__meta">
                   <span>Resp.: {{ a.responsable?.nombre ?? '—' }}</span>
                   @if (a.fecha_compromiso) { <span>Vence: {{ formatFecha(a.fecha_compromiso) }}</span> }
-                  <span class="sgc-badge sgc-badge--{{ a.estado === 'abierta' ? 'warning' : (a.estado === 'verificada' ? 'success' : 'info') }}">{{ a.estado }}</span>
+                  <span class="sgc-badge sgc-badge--{{ a.estado === 'abierta' ? 'warning' : (a.estado === 'verificada' ? 'success' : 'info') }}">{{ a.estado | humanizarEnum }}</span>
                 </div>
                 @if (a.estado === 'abierta') {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarHecha(a)">Marcar hecha</button>

@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ObraProduccionService } from '../../../../shared/services/obra-produccion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -19,7 +20,7 @@ interface Hallazgo { etiqueta: string; comentario: string; ncCreada: boolean; }
 
 @Component({
   selector: 'app-obra-checklists',
-  imports: [ReactiveFormsModule, FormDrawer, FileUpload, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

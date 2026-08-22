@@ -1,5 +1,11 @@
 {
   "web": {
+    "1.90.1": {
+      "titulo": "Etiquetas legibles en toda la app",
+      "cambios": [
+        { "t": "mejora", "d": "Los estados que aún se mostraban en formato técnico (en obra, cronograma, avisos, combustible y conductores) ahora se leen en español legible; ninguna pantalla muestra valores crudos." }
+      ]
+    },
     "1.90.0": {
       "titulo": "Consolidación de la auditoría — Requisiciones y Flota",
       "cambios": [

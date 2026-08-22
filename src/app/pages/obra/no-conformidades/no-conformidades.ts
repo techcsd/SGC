@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ObraProduccionService, DirectorioUsuario } from '../../../../shared/services/obra-produccion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -19,7 +20,7 @@ type Tab = 'nc' | 'incidentes';
 
 @Component({
   selector: 'app-obra-no-conformidades',
-  imports: [ReactiveFormsModule, FormDrawer, FileUpload, Lightbox, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Lightbox, Skeleton],
   templateUrl: './no-conformidades.html',
   styleUrl: './no-conformidades.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

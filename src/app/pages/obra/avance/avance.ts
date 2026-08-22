@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { HumanizarEnumPipe } from '../../../../shared/pipes/humanizar-enum.pipe';
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ObraProduccionService } from '../../../../shared/services/obra-produccion.service';
@@ -18,7 +19,7 @@ type Tab = 'avance' | 'costos' | 'logistica';
 
 @Component({
   selector: 'app-obra-avance',
-  imports: [ReactiveFormsModule, DecimalPipe, FormDrawer, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, DecimalPipe, FormDrawer, Skeleton],
   templateUrl: './avance.html',
   styleUrl: './avance.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

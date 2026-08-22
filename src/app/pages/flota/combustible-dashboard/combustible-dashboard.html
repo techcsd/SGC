@@ -136,7 +136,7 @@
               </td>
               <td class="text-right text-muted">{{ r.vehiculo.rendimiento_esperado_km_gal !== null ? (r.vehiculo.rendimiento_esperado_km_gal | number:'1.1-2') : '—' }}</td>
               <td class="text-right">{{ r.costoKm !== null ? (r.costoKm | number:'1.2-2') : '—' }}</td>
-              <td><span class="sgc-badge sgc-badge--{{ estadoBadge(r.estado) }}">{{ r.estado }}</span></td>
+              <td><span class="sgc-badge sgc-badge--{{ estadoBadge(r.estado) }}">{{ r.estado | humanizarEnum }}</span></td>
             </tr>
           }
           @if (resumenPorVehiculo().length === 0) {
