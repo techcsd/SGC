@@ -119,6 +119,48 @@
   color: var(--sgc-text);
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+
+  // AU17 — variante para textos (placa del vehículo) que no son un número grande.
+  &--sm { font-size: 15px; }
+}
+
+// AU17 — sublínea del dashboard del chofer (contexto bajo el valor).
+.kpi-sub {
+  font-size: 12px;
+  color: var(--sgc-text-muted);
+  margin-top: 2px;
+}
+
+// AU17 — accesos rápidos del chofer.
+.chofer-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+
+  &__btn {
+    padding: 10px 16px;
+    border-radius: var(--sgc-radius);
+    border: 1px solid var(--sgc-border);
+    background: var(--sgc-surface);
+    color: var(--sgc-text);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: var(--sgc-primary-mid);
+      background: var(--sgc-surface-hover, rgba(0, 0, 0, 0.04));
+    }
+  }
+}
+
+// AU17 — nota discreta de módulos sin acceso (reemplaza la pared de tarjetas grises).
+.module-noaccess-note {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--sgc-text-muted);
 }
 
 // ── Charts ────────────────────────────────────────────────

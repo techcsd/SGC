@@ -56,6 +56,34 @@ export const routes: Routes = [
           ),
       },
       {
+        // AU8 — "Conduces por firmar" (bandeja del despachante) es un inbox PERSONAL:
+        // vivía en /inventario/por-firmar y heredaba el guard del módulo Inventario,
+        // así que un chofer (que no debe firmar) veía el item y caía en 403, y un
+        // ingeniero de obra SÍ autorizado a firmar pero sin el módulo inventario
+        // también habría caído en 403. Se hoista a ruta propia gateada SOLO por
+        // noChoferGuard (la RLS del RPC ya limita a los conduces del firmante).
+        // El redirect mantiene vivos los deep-links viejos (pushes/correos, lección AK8).
+        path: 'inventario/por-firmar',
+        redirectTo: 'por-firmar',
+        pathMatch: 'full',
+      },
+      {
+        // AU9 — deep-links viejos de notificaciones/correos (RPC asignar_firma_pendiente,
+        // recordar_conduces_por_firmar, crear_conduce_simple, chofer_registrar_devolucion)
+        // apuntan a /transporte/por-firmar (módulo Transporte retirado en AK8). Redirect
+        // para que esos pushes/correos ya enviados no caigan en 404.
+        path: 'transporte/por-firmar',
+        redirectTo: 'por-firmar',
+        pathMatch: 'full',
+      },
+      {
+        path: 'por-firmar',
+        title: 'Conduces por firmar',
+        canActivate: [noChoferGuard],
+        loadComponent: () =>
+          import('./pages/inventario/por-firmar/por-firmar').then((m) => m.ConducesPorFirmar),
+      },
+      {
         path: 'inventario',
         // AN2 — módulo completo O cualquier submódulo granular (cada hija afina).
         // AS7 — + roles de proyecto para alcanzar /inventario/requisiciones (las

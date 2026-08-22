@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, inject, signal, computed,
+  Component, ChangeDetectionStrategy, inject, signal, computed, effect,
   viewChild, ElementRef, AfterViewInit, OnDestroy, OnInit,
 } from '@angular/core';
 import { Router } from '@angular/router';
@@ -72,6 +72,8 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
 
   private mapEl = viewChild<ElementRef<HTMLDivElement>>('map');
   private map: google.maps.Map | null = null;
+  private mapReady = signal(false);   // AU2 — el mapa ya está creado y puede pintar
+  private hasFitted = false;          // AU2 — el fitBounds inicial solo corre una vez
   private markers = new Map<string, google.maps.Marker>();
   private infoWindow: google.maps.InfoWindow | null = null;
   private channel: RealtimeChannel | null = null;
@@ -142,6 +144,32 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   });
   mostrarLeyenda = signal(true);
   toggleLeyenda() { this.mostrarLeyenda.update((v) => !v); }
+
+  constructor() {
+    // AU2 — pintar los marcadores de forma REACTIVA a `posiciones()`. Antes había
+    // un `paint()` de una sola vez (con setTimeout de 400 ms) que competía con la
+    // carga de datos: si las posiciones llegaban tarde, el paint corría en vacío y
+    // NUNCA se repetía, así que solo los choferes que emitían en tiempo real (los
+    // frescos, p. ej. Joan) obtenían marcador vía la suscripción realtime; los de
+    // posición vieja nunca se pintaban, aunque el mapa sí navegaba hasta ellos al
+    // seleccionarlos (usa `posiciones()[uid]`, que sí estaba poblado). Con el effect,
+    // cada cambio de `posiciones()` repinta TODO, incluidos los marcadores "sin señal".
+    effect(() => {
+      const pos = this.posiciones();
+      if (!this.mapReady() || !this.map) return;
+      const vistos = new Set<string>();
+      for (const [uid, p] of Object.entries(pos)) {
+        this.upsertMarker(uid, p);
+        vistos.add(uid);
+      }
+      // Quitar marcadores de choferes que ya no vienen en posiciones.
+      for (const [uid, m] of this.markers) {
+        if (!vistos.has(uid)) { m.setMap(null); this.markers.delete(uid); }
+      }
+      // El encuadre inicial solo una vez (no reencuadrar tras cada tick/selección).
+      if (!this.hasFitted && this.markers.size) { this.fitToMarkers(); this.hasFitted = true; }
+    });
+  }
 
   estadoMeta(e: ChoferEstado) { return ESTADO_META[e] ?? ESTADO_META.inactivo; }
 
@@ -222,18 +250,14 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
     });
     this.infoWindow = new google.maps.InfoWindow();
 
-    const paint = () => {
-      if (!this.map) return;
-      for (const [uid, p] of Object.entries(this.posiciones())) this.upsertMarker(uid, p);
-      this.fitToMarkers();
-    };
-    if (Object.keys(this.posiciones()).length) paint();
-    else setTimeout(paint, 400);
+    // AU2 — el mapa ya existe: el effect() del constructor pinta todos los
+    // marcadores en cuanto haya posiciones (sin carreras de timing).
+    this.mapReady.set(true);
 
-    // Realtime: mueve/crea markers al llegar posiciones nuevas.
+    // Realtime: al llegar una posición nueva, actualizar el signal; el effect
+    // repinta/mueve el marcador correspondiente.
     this.channel = this.svc.subscribePosiciones((row) => {
       this.posiciones.update((m) => ({ ...m, [row.usuario_id]: { ...m[row.usuario_id], ...row } }));
-      this.upsertMarker(row.usuario_id, row);
     });
   }
 

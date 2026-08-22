@@ -77,7 +77,51 @@
         <div class="inc-kpi inc-kpi--warn"><span class="inc-kpi__value">{{ pendientes() }}</span><span class="inc-kpi__label">Pendientes de aprobar</span></div>
       </div>
 
+      <!-- AU7 — selector de vista: matriz comparativa vs. detalle por chofer -->
+      <div class="inc-vista">
+        <button type="button" class="inc-vista__btn" [class.inc-vista__btn--active]="vista() === 'matriz'" (click)="vista.set('matriz')">Matriz comparativa</button>
+        <button type="button" class="inc-vista__btn" [class.inc-vista__btn--active]="vista() === 'detalle'" (click)="vista.set('detalle')">Detalle por chofer</button>
+      </div>
+
+      <!-- AU7 — Matriz: choferes (filas) × categorías (columnas), cada número clickable -->
+      @if (vista() === 'matriz') {
+        <div class="inc-matriz-scroll">
+          <table class="inc-matriz">
+            <thead>
+              <tr>
+                <th class="inc-matriz__chofer">Chofer</th>
+                @for (r of renglones; track r) { <th>{{ RENGLON_LABELS[r] }}</th> }
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of filas(); track f.informe_id) {
+                <tr class="inc-matriz__row" (click)="abrirDesglose(f)" [title]="'Ver desglose de ' + f.nombre">
+                  <td class="inc-matriz__chofer">{{ f.nombre }}</td>
+                  @for (r of renglones; track r) {
+                    <td class="inc-matriz__cell" [class.inc-matriz__cell--zero]="puntosDe(f, r) === 0">{{ puntosDe(f, r) }}</td>
+                  }
+                  <td class="inc-matriz__total">
+                    <strong>{{ f.puntaje }}</strong><small> / {{ f.minimo }}</small>
+                  </td>
+                  <td>
+                    @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
+                    @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
+                    @else if (f.cumplio) { <span class="inc-badge inc-badge--ok">Cumplió</span> }
+                    @else { <span class="inc-badge inc-badge--bad">Bajo</span> }
+                    @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión">⚠ {{ f.flags.length }}</span> }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="inc-matriz__hint">Toca una fila para ver el desglose de ese chofer y aprobar/declinar.</p>
+      }
+
       <!-- Tabla por chofer -->
+      @if (vista() === 'detalle') {
       <div class="inc-table">
         @for (f of filas(); track f.informe_id) {
           <div class="inc-row" [class.inc-row--open]="expandido() === f.informe_id">
@@ -157,6 +201,7 @@
           </div>
         }
       </div>
+      }
     }
   }
 </div>

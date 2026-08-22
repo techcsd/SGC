@@ -20,6 +20,7 @@ import {
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
+import { traducir } from '../../../../shared/utils/dominio-labels.util';
 
 type Tab = 'activas' | 'historico';
 
@@ -64,6 +65,8 @@ export class RutasActivas implements OnInit, OnDestroy {
   formatFechaHora = formatFechaHoraDisplay; // AT22
   readonly ESTADO_META = ESTADO_META;
   readonly idVehiculo = identificacionVehiculo;
+  // AU15 — etiqueta legible del estado de ruta (diccionario central).
+  readonly estadoRuta = (v: string | null | undefined) => traducir('ruta_estado', v);
 
   tab = signal<Tab>('activas');
   loading = signal(true);

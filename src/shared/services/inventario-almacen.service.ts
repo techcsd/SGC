@@ -105,12 +105,13 @@ export class InventarioAlmacenService {
     return (data ?? { apertura: 0, saldo_actual: 0, serie: [], movimientos: [] }) as Kardex;
   }
 
-  /** AP5 — fija el dato de apertura (solo admin; sin movimiento). */
-  async setApertura(articuloId: string, bodegaId: string, cantidad: number): Promise<void> {
+  /** AP5 — fija el dato de apertura (solo admin; sin movimiento). AU1/P1: motivo auditado. */
+  async setApertura(articuloId: string, bodegaId: string, cantidad: number, motivo?: string | null): Promise<void> {
     const { error } = await this.supabase.client.rpc('set_apertura', {
       p_articulo_id: articuloId,
       p_bodega_id: bodegaId,
       p_cantidad: cantidad,
+      p_motivo: motivo ?? null,
     });
     if (error) throw new Error(error.message);
   }
@@ -137,9 +138,9 @@ export class InventarioAlmacenService {
 
   /** AT12 — "Ajuste real": fija el stock al valor real informado SIN movimiento en
    *  kardex ni escalón en la gráfica (rebasa la línea base). Solo admin. */
-  async ajusteRealStock(articuloId: string, bodegaId: string, cantidadReal: number): Promise<void> {
+  async ajusteRealStock(articuloId: string, bodegaId: string, cantidadReal: number, motivo?: string | null): Promise<void> {
     const { error } = await this.supabase.client.rpc('ajuste_real_stock', {
-      p_articulo_id: articuloId, p_bodega_id: bodegaId, p_cantidad_real: cantidadReal,
+      p_articulo_id: articuloId, p_bodega_id: bodegaId, p_cantidad_real: cantidadReal, p_motivo: motivo ?? null,
     });
     if (error) throw new Error(error.message);
   }

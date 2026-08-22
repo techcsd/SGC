@@ -586,7 +586,7 @@
               <li class="ruta-conduces__item">
                 <div class="ruta-conduces__head">
                   <span class="ruta-conduces__cnd">CND-{{ c.id.slice(0, 8) }}</span>
-                  <span class="sgc-badge sgc-badge--{{ c.estado === 'entregado' ? 'success' : (c.estado === 'entregado_incompleto' ? 'warning' : 'neutral') }}">{{ c.estado }}</span>
+                  <span class="sgc-badge sgc-badge--{{ c.estado === 'entregado' ? 'success' : (c.estado === 'entregado_incompleto' ? 'warning' : 'neutral') }}">{{ estadoConduce(c.estado) }}</span>
                   @if (c.destino) { <span class="text-muted">→ {{ c.destino }}</span> }
                   @if (c.parada_ubicacion) { <span class="text-muted">· parada: {{ c.parada_ubicacion }}</span> }
                 </div>

@@ -56,6 +56,9 @@
                     {{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}
                     <span class="sgc-badge sgc-badge--{{ propiedadBadge(a.propiedad) }} apk__opt-prop">{{ propiedadLabel(a.propiedad) }}</span>
                   </span>
+                  @if (apodoDe(a.id); as ap) {
+                    <span class="apk__opt-apodo">coincide con el apodo «{{ ap }}»</span>
+                  }
                   <span class="apk__opt-code">{{ a.codigo }}</span>
                 </span>
                 @if (stockDe(a.id) !== null) {
@@ -79,6 +82,9 @@
                     {{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}
                     <span class="sgc-badge sgc-badge--{{ propiedadBadge(a.propiedad) }} apk__opt-prop">{{ propiedadLabel(a.propiedad) }}</span>
                   </span>
+                  @if (apodoDe(a.id); as ap) {
+                    <span class="apk__opt-apodo">coincide con el apodo «{{ ap }}»</span>
+                  }
                   <span class="apk__opt-code">{{ a.codigo }}</span>
                 </span>
                 @if (stockDe(a.id) !== null) {

@@ -32,6 +32,7 @@ import { RoutingService } from '../../../../shared/context/routing.service';
 import { GeocodingService } from '../../../../shared/context/geocoding.service';
 import { RutasClimaService, RutaClima } from '../../../../shared/context/rutas-clima.service';
 import { formatFechaDisplay, formatearDuracion, todayIso } from '../../../../shared/utils/fecha.util';
+import { traducir } from '../../../../shared/utils/dominio-labels.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
@@ -59,6 +60,8 @@ export class Rutas implements OnInit {
   formatFecha = formatFechaDisplay;
   formatDur = formatearDuracion; // U23 — duración legible ("1 h 28 min")
   readonly idVehiculo = identificacionVehiculo;
+  // AU15 — etiqueta legible del estado del conduce (diccionario central).
+  readonly estadoConduce = (v: string | null | undefined) => traducir('conduce_estado', v);
 
   private route = inject(ActivatedRoute);
   private rutasService = inject(RutasService);

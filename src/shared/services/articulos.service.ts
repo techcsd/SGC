@@ -6,6 +6,15 @@ import { Articulo, ArticuloFormData } from '../models/articulo.model';
 /** Z17 — bucket compartido de inventario; las fotos de artículo van bajo articulo/{id}/. */
 const ARTICULOS_BUCKET = 'inventario';
 
+/** AU12 — apodo/alias de un artículo (con traza de quién lo agregó). */
+export interface ArticuloAlias {
+  id: string;
+  alias: string;
+  creado_por: string | null;
+  creador: string | null;
+  created_at: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ArticulosService {
   private supabase = inject(SupabaseService);
@@ -91,6 +100,27 @@ export class ArticulosService {
       p_nueva_cantidad: nuevaCantidad,
       p_motivo: motivo ?? 'Ajuste manual desde edición de artículo',
     });
+    if (error) throw new Error(error.message);
+  }
+
+  // ── AU12 — apodos / alias de artículos ──────────────────────────────────────
+  async listarApodos(articuloId: string): Promise<ArticuloAlias[]> {
+    const { data, error } = await this.supabase.client.rpc('articulo_alias_listar', { p_articulo_id: articuloId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ArticuloAlias[];
+  }
+
+  async agregarApodo(articuloId: string, alias: string): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('articulo_alias_agregar', {
+      p_articulo_id: articuloId,
+      p_alias: alias,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  async eliminarApodo(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('articulo_alias_eliminar', { p_id: id });
     if (error) throw new Error(error.message);
   }
 

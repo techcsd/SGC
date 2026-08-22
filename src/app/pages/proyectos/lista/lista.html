@@ -795,7 +795,21 @@
           }
         </select>
       }
-      @if (searchQuery() || filterEstado() || filterTipo() || filterZona()) {
+      <!-- AU4 — filtrar por sector estructurado -->
+      @if (sectoresDisponibles().length > 0) {
+        <select
+          class="proyectos__select"
+          [value]="filterSector()"
+          (change)="filterSector.set($any($event.target).value ? +$any($event.target).value : null)"
+          aria-label="Filtrar por sector"
+        >
+          <option [value]="null">Todos los sectores</option>
+          @for (s of sectoresDisponibles(); track s.id) {
+            <option [value]="s.id">{{ s.nombre }}</option>
+          }
+        </select>
+      }
+      @if (searchQuery() || filterEstado() || filterTipo() || filterZona() || filterSector() != null) {
         <button class="proyectos__btn-clear" (click)="clearFilters()">Limpiar</button>
       }
       <!-- Z5(d) — mostrar datos de prueba (solo admin) -->
@@ -1196,6 +1210,36 @@
         <datalist id="zonas-list">
           @for (z of zonasDisponibles(); track z) { <option [value]="z"></option> }
         </datalist>
+      </div>
+
+      <!-- AU4 — Locación estructurada: provincia → municipio → sector (para segmentar). -->
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="provincia_id">Provincia</label>
+        <select id="provincia_id" class="proyectos__input" formControlName="provincia_id">
+          <option [ngValue]="null">— Seleccionar —</option>
+          @for (pr of provincias(); track pr.id) { <option [ngValue]="pr.id">{{ pr.nombre }}</option> }
+        </select>
+      </div>
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="municipio_id">Municipio</label>
+        <select id="municipio_id" class="proyectos__input" formControlName="municipio_id"
+                [attr.disabled]="form.get('provincia_id')?.value ? null : true">
+          <option [ngValue]="null">— Seleccionar —</option>
+          @for (mu of municipios(); track mu.id) { <option [ngValue]="mu.id">{{ mu.nombre }}</option> }
+        </select>
+      </div>
+      <div class="proyectos__field">
+        <label class="proyectos__label" for="sector_id">Sector</label>
+        <div class="proyectos__sector-row">
+          <select id="sector_id" class="proyectos__input" formControlName="sector_id"
+                  [attr.disabled]="form.get('municipio_id')?.value ? null : true">
+            <option [ngValue]="null">— Seleccionar —</option>
+            @for (se of sectores(); track se.id) { <option [ngValue]="se.id">{{ se.nombre }}</option> }
+          </select>
+          @if (puedeEditarLocacion() && form.get('municipio_id')?.value) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarSectorInline()">+ Sector</button>
+          }
+        </div>
       </div>
 
       <!-- AM10 — Datos estructurados de la obra -->

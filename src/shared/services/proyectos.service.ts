@@ -146,7 +146,8 @@ export class ProyectosService {
       .schema('sgc')
       .from('proyectos')
       .select(
-        '*, responsable:usuarios(nombre), fases:fases_proyecto(*), ' +
+        '*, responsable:usuarios!responsable_id(nombre), fases:fases_proyecto(*), ' +
+          'provincia:provincias(nombre), municipio:municipios(nombre), sector:sectores(nombre), ' +
           'responsables:proyecto_responsables(id, tipo_responsabilidad, activo, usuario:usuarios!usuario_id(nombre))',
       )
       .order('created_at', { ascending: false });
@@ -205,7 +206,7 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyectos')
-      .select('*, responsable:usuarios(nombre), fases:fases_proyecto(*)')
+      .select('*, responsable:usuarios!responsable_id(nombre), fases:fases_proyecto(*)')
       .eq('id', id)
       .order('orden', { referencedTable: 'fases_proyecto', ascending: true })
       .single();
@@ -236,7 +237,7 @@ export class ProyectosService {
       .schema('sgc')
       .from('proyectos')
       .insert({ ...payload, codigo })
-      .select('*, responsable:usuarios(nombre)')
+      .select('*, responsable:usuarios!responsable_id(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
@@ -249,7 +250,7 @@ export class ProyectosService {
       .from('proyectos')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select('*, responsable:usuarios(nombre)')
+      .select('*, responsable:usuarios!responsable_id(nombre)')
       .single();
 
     if (error) throw new Error(error.message);

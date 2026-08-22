@@ -209,19 +209,34 @@ export class ArticuloPicker {
     this.buscandoSug.set(true);
     try {
       const { data } = await this.supabase.client.rpc('buscar_articulos', { p_query: q, p_limit: 8 });
-      const ids = ((data ?? []) as { id: string }[]).map((r) => r.id);
+      const rows = (data ?? []) as { id: string; match_por?: string; match_alias?: string }[];
+      const ids = rows.map((r) => r.id);
+      // AU12 — recordar el apodo que hizo coincidir cada artículo (para explicar el match).
+      const apodoMap: Record<string, string> = {};
+      for (const r of rows) {
+        if (r.match_por === 'apodo' && r.match_alias) apodoMap[r.id] = r.match_alias;
+      }
       const byId = new Map(this.articulos().map((a) => [a.id, a]));
       const visibles = new Set(this.grupos().flatMap((g) => g.articulos.map((a) => a.id)));
       const arts = ids
         .map((id) => byId.get(id))
         .filter((a): a is Articulo => !!a && visibles.has(a.id));
       // Ignora respuestas obsoletas (la query cambió mientras tanto).
-      if (this.query().trim() === q) this.sugerencias.set(arts);
+      if (this.query().trim() === q) {
+        this.sugApodo.set(apodoMap);
+        this.sugerencias.set(arts);
+      }
     } catch {
       this.sugerencias.set([]);
     } finally {
       this.buscandoSug.set(false);
     }
+  }
+
+  /** AU12 — apodo por el que coincidió una sugerencia (para "coincide con el apodo…"). */
+  sugApodo = signal<Record<string, string>>({});
+  apodoDe(id: string): string | null {
+    return this.sugApodo()[id] ?? null;
   }
 
   elegir(a: Articulo) {

@@ -19,6 +19,13 @@ export interface Proyecto {
   direccion_geo: string | null;
   /** AS23 — zona/sector para filtrar el listado (p.ej. Punta Cana, Cap Cana). */
   zona: string | null;
+  // AU4 — locación estructurada en cascada (reemplaza el texto libre de zona/ubicación).
+  provincia_id: number | null;
+  municipio_id: number | null;
+  sector_id: number | null;
+  provincia?: { nombre: string } | null;
+  municipio?: { nombre: string } | null;
+  sector?: { nombre: string } | null;
   // AM10 — datos de obra promovidos de la descripción a campos estructurados.
   /** AM10 — ingeniero(s)/arq. de obra (texto libre; el vínculo formal va en responsables). */
   ingeniero_obra: string | null;

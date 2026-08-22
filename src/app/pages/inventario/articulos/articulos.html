@@ -573,21 +573,44 @@
               <span>{{ s.bodega?.nombre ?? 'Almacén' }}</span>
               <strong>{{ s.cantidad | number:'1.0-2' }}</strong>
               @if (esInventario()) {
-                <button type="button" class="art-ajuste-btn" (click)="abrirAjuste(s.bodega_id, s.cantidad)">Ajustar</button>
+                <!-- AU1 · P1 — el ajuste de existencia vive en UN solo sitio: la vista del
+                     almacén (modal "Ajustar existencia" con mecanismo + motivo). -->
+                <a class="art-ajuste-btn" [routerLink]="['/inventario/almacen', s.bodega_id]">Ajustar en almacén →</a>
               }
             </li>
-            @if (ajustandoBodega() === s.bodega_id) {
-              <li class="art-ajuste">
-                <input type="number" min="0" step="0.01" [value]="ajusteCantidad()"
-                       (input)="ajusteCantidad.set($any($event.target).valueAsNumber)" placeholder="Nueva cantidad" />
-                <input type="text" [value]="ajusteMotivo()" (input)="ajusteMotivo.set($any($event.target).value)" placeholder="Motivo del ajuste" />
-                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardandoAjuste()" (click)="guardarAjuste(d.id, s.bodega_id)">Guardar</button>
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="ajustandoBodega.set(null)">Cancelar</button>
-              </li>
-            }
           }
         </ul>
-        <p class="text-muted art-ajuste-hint">El ajuste queda registrado en "Conteos y ajustes" (motivo, quién y cuándo).</p>
+        <p class="text-muted art-ajuste-hint">Los ajustes de existencia (conteo, apertura o ajuste real) se hacen desde el almacén, con motivo auditado.</p>
+      }
+
+      <!-- AU12 — apodos / alias: nombres no oficiales para encontrar el artículo -->
+      <h3 class="art-modal__section">Apodos</h3>
+      <p class="text-muted art-apodo-hint">
+        Nombres no oficiales con los que la gente busca este artículo (ej: "panel de 24").
+        El buscador y el matching de requisiciones los usan.
+      </p>
+      @if (apodos().length === 0) {
+        <p class="text-muted">Sin apodos todavía.</p>
+      } @else {
+        <div class="art-apodos">
+          @for (ap of apodos(); track ap.id) {
+            <span class="art-apodo-chip">
+              {{ ap.alias }}
+              @if (esInventario()) {
+                <button type="button" class="art-apodo-chip__x" (click)="eliminarApodo(ap.id)"
+                        [attr.aria-label]="'Quitar apodo ' + ap.alias" title="Quitar">×</button>
+              }
+            </span>
+          }
+        </div>
+      }
+      @if (esInventario()) {
+        <div class="art-apodo-add">
+          <input type="text" [value]="apodoNuevo()" (input)="apodoNuevo.set($any($event.target).value)"
+                 (keydown.enter)="agregarApodo()" placeholder="Agregar apodo…" maxlength="80" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="apodoSaving() || !apodoNuevo().trim()"
+                  (click)="agregarApodo()">Agregar</button>
+        </div>
       }
 
       <h3 class="art-modal__section">Últimos movimientos</h3>

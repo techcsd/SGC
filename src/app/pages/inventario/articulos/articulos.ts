@@ -7,11 +7,11 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { maxGteMin } from '../../../../shared/utils/form-validators.util';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { DecimalPipe } from '@angular/common';
-import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { ArticulosService, ArticuloAlias } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { StockService } from '../../../../shared/services/stock.service';
 import { UnidadesService } from '../../../../shared/services/unidades.service';
@@ -36,7 +36,7 @@ import { DatosPruebaService } from '../../../../shared/services/datos-prueba.ser
 
 @Component({
   selector: 'app-articulos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,12 +56,9 @@ export class Articulos implements OnInit {
   esAdmin = computed(() => this.userService.hasRole('admin'));
   mostrarPrueba = this.datosPruebaViewSvc.ver;
 
-  // Z11 — quién puede ajustar stock + estado del mini-form de ajuste.
+  // Z11/AU1 — quién puede ajustar stock. El ajuste en sí vive ahora en la vista del
+  // almacén (modal unificado "Ajustar existencia"); aquí solo se enlaza.
   esInventario = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('inventario'));
-  ajustandoBodega = signal<string | null>(null);
-  ajusteCantidad = signal<number | null>(null);
-  ajusteMotivo = signal('');
-  guardandoAjuste = signal(false);
 
   // ── Data state ──────────────────────────────────────────
   articles = signal<Articulo[]>([]);
@@ -425,14 +422,18 @@ export class Articulos implements OnInit {
     this.detalleFotoUrl.set(null);
     this.detalleStock.set([]);
     this.detalleMovs.set([]);
+    this.apodos.set([]);
+    this.apodoNuevo.set('');
     this.detalleLoading.set(true);
     try {
-      const [stock, movs] = await Promise.all([
+      const [stock, movs, apodos] = await Promise.all([
         this.stockService.getByArticulo(a.id),
         this.articulosService.getUltimosMovimientos(a.id, 10),
+        this.articulosService.listarApodos(a.id).catch(() => []),
       ]);
       this.detalleStock.set(stock);
       this.detalleMovs.set(movs);
+      this.apodos.set(apodos);
       if (a.imagen_url) {
         this.detalleFotoUrl.set(await this.articulosService.getFotoUrl(a.imagen_url, { width: 640, quality: 85 }));
       }
@@ -445,38 +446,37 @@ export class Articulos implements OnInit {
 
   cerrarDetalle() {
     this.detalle.set(null);
-    this.ajustandoBodega.set(null);
   }
 
-  // ── Z11 — ajuste de stock trazable desde el detalle ──────────
-  abrirAjuste(bodegaId: string, actual: number) {
-    this.ajustandoBodega.set(bodegaId);
-    this.ajusteCantidad.set(actual);
-    this.ajusteMotivo.set('');
-  }
+  // ── AU12 — apodos del artículo (agregar/quitar desde el detalle) ─────────────
+  apodos = signal<ArticuloAlias[]>([]);
+  apodoNuevo = signal('');
+  apodoSaving = signal(false);
 
-  async guardarAjuste(articuloId: string, bodegaId: string) {
-    const nueva = this.ajusteCantidad();
-    if (nueva == null || nueva < 0 || Number.isNaN(nueva)) {
-      this.toast.error('Ingresa una cantidad válida.');
-      return;
-    }
-    this.guardandoAjuste.set(true);
+  async agregarApodo() {
+    const d = this.detalle();
+    const alias = this.apodoNuevo().trim();
+    if (!d || !alias || this.apodoSaving()) return;
+    this.apodoSaving.set(true);
     try {
-      await this.articulosService.ajustarStock(articuloId, bodegaId, nueva, this.ajusteMotivo().trim() || undefined);
-      this.ajustandoBodega.set(null);
-      // Recargar stock del detalle + mapa de la lista.
-      const [stock, all] = await Promise.all([
-        this.stockService.getByArticulo(articuloId),
-        this.stockService.getAll(),
-      ]);
-      this.detalleStock.set(stock);
-      this.stockMap.set(this.stockService.buildTotalMap(all));
-      this.toast.success('Stock ajustado', 'Queda registrado en Conteos y ajustes.');
+      await this.articulosService.agregarApodo(d.id, alias);
+      this.apodos.set(await this.articulosService.listarApodos(d.id));
+      this.apodoNuevo.set('');
     } catch (e: unknown) {
-      this.toast.error('No se pudo ajustar', e instanceof Error ? e.message : undefined);
+      this.toast.error('No se pudo agregar el apodo', e instanceof Error ? e.message : undefined);
     } finally {
-      this.guardandoAjuste.set(false);
+      this.apodoSaving.set(false);
+    }
+  }
+
+  async eliminarApodo(id: string) {
+    const d = this.detalle();
+    if (!d) return;
+    try {
+      await this.articulosService.eliminarApodo(id);
+      this.apodos.update((list) => list.filter((x) => x.id !== id));
+    } catch (e: unknown) {
+      this.toast.error('No se pudo eliminar el apodo', e instanceof Error ? e.message : undefined);
     }
   }
 

@@ -1003,3 +1003,11 @@
 .pob-conteos__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .pob-conteos__lbl { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--sgc-text-muted); margin-bottom: 6px; }
 .pob-conteos__row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 3px 0; border-bottom: 1px solid #0000000d; }
+
+// AU4 — fila del selector de sector + botón "agregar sector".
+.proyectos__sector-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  .proyectos__input { flex: 1; min-width: 0; }
+}

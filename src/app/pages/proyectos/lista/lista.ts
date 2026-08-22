@@ -18,6 +18,7 @@ import {
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { UbicacionRdService, Provincia, Municipio, Sector } from '../../../../shared/services/ubicacion-rd.service';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
 import { PersonalConteos } from '../../../../shared/models/personal-obra.model';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
@@ -85,6 +86,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 })
 export class Lista implements OnInit {
   private proyectosService = inject(ProyectosService);
+  private ubicacionRd = inject(UbicacionRdService); // AU4
   private estructurasService = inject(ProyectoEstructurasService);
   private personalObraService = inject(PersonalObraService); // AR1
 
@@ -171,6 +173,12 @@ export class Lista implements OnInit {
   filterEstado = signal('');
   filterTipo = signal('');
   filterZona = signal('');
+  // AU4 — cascada de locación + filtro por sector.
+  filterSector = signal<number | null>(null);
+  provincias = signal<Provincia[]>([]);
+  municipios = signal<Municipio[]>([]);
+  sectores = signal<Sector[]>([]);
+  puedeEditarLocacion = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('proyectos'));
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -226,8 +234,12 @@ export class Lista implements OnInit {
       fecha_fin_estimada: new FormControl<string | null>(null),
       presupuesto: new FormControl<number | null>(null, [Validators.min(0)]),
       ubicacion: new FormControl<string | null>(null),
-      // AS23 — zona/sector para filtrar el listado.
+      // AS23 — zona/sector para filtrar el listado (legacy texto libre; se conserva).
       zona: new FormControl<string | null>(null),
+      // AU4 — locación estructurada en cascada.
+      provincia_id: new FormControl<number | null>(null),
+      municipio_id: new FormControl<number | null>(null),
+      sector_id: new FormControl<number | null>(null),
       // AM10 — datos de obra estructurados (antes embutidos en la descripción).
       ingeniero_obra: new FormControl<string | null>(null),
       maestro_encargado: new FormControl<string | null>(null),
@@ -265,8 +277,10 @@ export class Lista implements OnInit {
     const estado = this.filterEstado();
     const tipo = this.filterTipo();
     const zona = this.filterZona();
+    const sector = this.filterSector();
 
     return this.visiblesProy().filter((p) => {
+      if (sector != null && p.sector_id !== sector) return false;
       if (
         q &&
         !p.nombre.toLowerCase().includes(q) &&
@@ -290,6 +304,15 @@ export class Lista implements OnInit {
       if (z) set.add(z);
     }
     return [...set].sort((a, b) => a.localeCompare(b));
+  });
+
+  // AU4 — sectores presentes en los proyectos (para el filtro estructurado).
+  sectoresDisponibles = computed(() => {
+    const map = new Map<number, string>();
+    for (const p of this.visiblesProy()) {
+      if (p.sector_id != null && p.sector?.nombre) map.set(p.sector_id, p.sector.nombre);
+    }
+    return [...map.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
   });
 
   // AE1 — los KPIs NUNCA cuentan datos de prueba (salvo toggle admin, vía visiblesProy).
@@ -324,6 +347,7 @@ export class Lista implements OnInit {
   tabsVisibles = computed(() => this.DETALLE_TABS.filter((t) => !t.soloCuadre || this.verCuadre()));
 
   async ngOnInit() {
+    this.wireCascada(); // AU4 — cascada provincia→municipio→sector del form
     await Promise.all([
       this.loadProyectos(),
       this.loadUsuarios(),
@@ -480,6 +504,7 @@ export class Lista implements OnInit {
     this.filterEstado.set('');
     this.filterTipo.set('');
     this.filterZona.set('');
+    this.filterSector.set(null);
   }
 
   /**
@@ -510,7 +535,17 @@ export class Lista implements OnInit {
     this.formLat.set(null);
     this.formLng.set(null);
     this.formDireccionGeo.set(null);
+    this.municipios.set([]);
+    this.sectores.set([]);
+    void this.ensureProvincias();
     this.drawerOpen.set(true);
+  }
+
+  /** AU4 — carga el catálogo de provincias la primera vez que se abre el form. */
+  private async ensureProvincias() {
+    if (this.provincias().length === 0) {
+      try { this.provincias.set(await this.ubicacionRd.getProvincias()); } catch { /* reintentable */ }
+    }
   }
 
   onUbicacionChange(u: { latitud: number; longitud: number; direccion: string }) {
@@ -519,11 +554,48 @@ export class Lista implements OnInit {
     this.formDireccionGeo.set(u.direccion);
   }
 
+  // ── AU4 — cascada provincia → municipio → sector ─────────────────────────────
+  // `suppressCascade` evita que el reset programático de openEdit borre municipio/sector.
+  private suppressCascade = false;
+
+  private wireCascada() {
+    this.form.controls.provincia_id.valueChanges.subscribe(async (pid) => {
+      if (this.suppressCascade) return;
+      this.form.patchValue({ municipio_id: null, sector_id: null }, { emitEvent: false });
+      this.municipios.set([]);
+      this.sectores.set([]);
+      if (pid) this.municipios.set(await this.ubicacionRd.getMunicipios(pid));
+    });
+    this.form.controls.municipio_id.valueChanges.subscribe(async (mid) => {
+      if (this.suppressCascade) return;
+      this.form.patchValue({ sector_id: null }, { emitEvent: false });
+      this.sectores.set([]);
+      if (mid) this.sectores.set(await this.ubicacionRd.getSectores(mid));
+    });
+  }
+
+  /** Crea un sector nuevo en el municipio elegido y lo selecciona. */
+  async agregarSectorInline() {
+    const municipioId = this.form.get('municipio_id')?.value;
+    if (!municipioId || !this.puedeEditarLocacion()) return;
+    const nombre = window.prompt('Nombre del nuevo sector:');
+    if (!nombre?.trim()) return;
+    try {
+      const id = await this.ubicacionRd.agregarSector(municipioId, nombre.trim());
+      this.sectores.set(await this.ubicacionRd.getSectores(municipioId));
+      this.form.patchValue({ sector_id: id });
+    } catch (e: unknown) {
+      this.toast.error('No se pudo agregar el sector', e instanceof Error ? e.message : undefined);
+    }
+  }
+
   openEdit(p: Proyecto, event: Event) {
     event.stopPropagation();
     this.editingId.set(p.id);
     this.editingEstadoOriginal.set(p.estado);
     this.saveError.set('');
+    // AU4 — no dejar que el reset dispare la cascada (borraría municipio/sector).
+    this.suppressCascade = true;
     this.form.reset({
       codigo: p.codigo,
       nombre: p.nombre,
@@ -542,11 +614,21 @@ export class Lista implements OnInit {
       descripcion: p.descripcion,
       responsable_id: p.responsable_id,
       es_prueba: p.es_prueba ?? false,
+      provincia_id: p.provincia_id ?? null,
+      municipio_id: p.municipio_id ?? null,
+      sector_id: p.sector_id ?? null,
     });
+    this.suppressCascade = false;
     this.formLat.set(p.latitud);
     this.formLng.set(p.longitud);
     this.formDireccionGeo.set(p.direccion_geo);
     this.drawerOpen.set(true);
+    // AU4 — poblar las listas dependientes para que los selects muestren lo actual.
+    void this.ensureProvincias();
+    this.municipios.set([]);
+    this.sectores.set([]);
+    if (p.provincia_id) this.ubicacionRd.getMunicipios(p.provincia_id).then((m) => this.municipios.set(m));
+    if (p.municipio_id) this.ubicacionRd.getSectores(p.municipio_id).then((s) => this.sectores.set(s));
   }
 
   /** Z13 — el drawer de EDICIÓN solo cierra (no navega); el detalle/listado

@@ -23,6 +23,51 @@
 
   @if (loading()) {
     <app-skeleton variant="cards" />
+  } @else if (esChofer() && !isAdmin()) {
+
+    <!-- AU17 — Dashboard del chofer: "Mi día" (su vehículo, su puntaje, sus pendientes),
+         en vez de la pared de KPIs de gestión que no le aplican. -->
+    <div class="kpi-grid">
+      <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/mi-rendimiento">
+        <span class="kpi-label">Mi rendimiento (esta semana)</span>
+        @if (miPuntaje()) {
+          <span class="kpi-value">{{ miPuntaje()!.puntaje }} / {{ miPuntaje()!.minimo }}</span>
+          <span class="kpi-sub">{{ miPuntajePct() }}% del mínimo · {{ miPuntaje()!.cumplio ? 'cumples ✓' : 'aún no llegas al mínimo' }}</span>
+        } @else {
+          <span class="kpi-value">—</span>
+          <span class="kpi-sub">Sin informe de esta semana todavía</span>
+        }
+      </a>
+
+      <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/vehiculos">
+        <span class="kpi-label">Mi vehículo</span>
+        @if (miVehiculo()) {
+          <span class="kpi-value kpi-value--sm">{{ idVehiculo(miVehiculo()) }}</span>
+        } @else {
+          <span class="kpi-value kpi-value--sm">Sin vehículo asignado</span>
+        }
+      </a>
+
+      <div class="kpi-card kpi-card--warning">
+        <span class="kpi-label">Conduces pendientes de entrega</span>
+        <span class="kpi-value">{{ misConducesPendientes() }}</span>
+        <span class="kpi-sub">Entrégalos desde la app CSD</span>
+      </div>
+
+      <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
+        <span class="kpi-label">Mis tareas pendientes</span>
+        <span class="kpi-value">{{ misTareasPendientes() }}</span>
+      </a>
+    </div>
+
+    <!-- Accesos rápidos del chofer -->
+    <div class="chofer-quick">
+      <a class="chofer-quick__btn" routerLink="/flota">Flota</a>
+      <a class="chofer-quick__btn" routerLink="/mi-rendimiento">Mi rendimiento</a>
+      <a class="chofer-quick__btn" routerLink="/mensajes">Mensajes</a>
+      <a class="chofer-quick__btn" routerLink="/app-movil">CSD App (móvil)</a>
+    </div>
+
   } @else {
 
     <!-- KPI cards — Q3: cada número abre su listado (drill-down filtrado) -->
@@ -378,36 +423,23 @@
     <h2 class="section-title" id="modulos-heading">Módulos del sistema</h2>
 
     <div class="module-grid">
-      @for (mod of allModules; track mod.modulo) {
-        @if (canAccess(mod.modulo)) {
-          <!-- Accessible module -->
-          <a class="module-card module-card--active" [routerLink]="mod.route" [attr.style]="'--card-color: ' + mod.color">
-            <div class="module-card-icon">
-              <ng-container [ngTemplateOutlet]="moduleIcon" [ngTemplateOutletContext]="{ icon: mod.icon }" />
-            </div>
-            <div class="module-card-body">
-              <span class="module-card-title">{{ mod.label }}</span>
-              <span class="module-card-desc">{{ mod.description }}</span>
-            </div>
-            <span class="module-card-arrow" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </span>
-          </a>
-        } @else {
-          <!-- No access -->
-          <div class="module-card module-card--noaccess" [attr.style]="'--card-color: ' + mod.color">
-            <div class="module-card-icon">
-              <ng-container [ngTemplateOutlet]="moduleIcon" [ngTemplateOutletContext]="{ icon: mod.icon }" />
-            </div>
-            <div class="module-card-body">
-              <span class="module-card-title">{{ mod.label }}</span>
-              <span class="module-card-desc">Sin acceso asignado</span>
-            </div>
+      <!-- AU17 — solo módulos accesibles (antes se pintaba la pared de tarjetas grises). -->
+      @for (mod of modulosAccesibles(); track mod.modulo) {
+        <a class="module-card module-card--active" [routerLink]="mod.route" [attr.style]="'--card-color: ' + mod.color">
+          <div class="module-card-icon">
+            <ng-container [ngTemplateOutlet]="moduleIcon" [ngTemplateOutletContext]="{ icon: mod.icon }" />
           </div>
-        }
+          <div class="module-card-body">
+            <span class="module-card-title">{{ mod.label }}</span>
+            <span class="module-card-desc">{{ mod.description }}</span>
+          </div>
+          <span class="module-card-arrow" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
+        </a>
       }
 
       <!-- Admin card (admin role only) -->
@@ -433,6 +465,13 @@
         </a>
       }
     </div>
+
+    <!-- AU17 — resumen discreto de módulos sin acceso (en vez de la pared de tarjetas grises) -->
+    @if (!isAdmin() && modulosSinAcceso() > 0) {
+      <p class="module-noaccess-note">
+        {{ modulosSinAcceso() }} módulo(s) sin acceso asignado. Si necesitas alguno, habla con Administración.
+      </p>
+    }
   </section>
 
 </div>

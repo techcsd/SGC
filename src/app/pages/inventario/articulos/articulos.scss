@@ -331,3 +331,50 @@ textarea {
     border-color: var(--sgc-danger);
   }
 }
+
+// AU12 — apodos / alias del artículo (detalle).
+.art-apodo-hint { font-size: 12px; margin: 0 0 8px; }
+.art-apodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.art-apodo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.08));
+  border: 1px solid var(--sgc-border, #2d2d2d);
+  font-size: 13px;
+  color: var(--sgc-text, inherit);
+
+  &__x {
+    border: none;
+    background: none;
+    color: var(--sgc-text-muted, #929090);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+    &:hover { color: var(--sgc-danger, #c0392b); }
+  }
+}
+.art-apodo-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--sgc-border, #2d2d2d);
+    background: var(--sgc-surface, #161616);
+    color: var(--sgc-text, inherit);
+    font: inherit;
+  }
+}

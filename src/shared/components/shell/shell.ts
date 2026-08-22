@@ -49,6 +49,10 @@ interface NavItem {
   /** AU1 — bandeja personal que solo aparece cuando hay algo pendiente (badge>0).
    *  P. ej. "Conduces por firmar": cualquier usuario puede ser despachante. */
   soloConPendiente?: boolean;
+  /** AU6 — el grupo se muestra si el usuario puede ver AL MENOS un hijo (en vez de
+   *  gatear por un módulo padre). Para paraguas como "Ingeniería" que agrupan hijos
+   *  con permisos distintos, sin que nadie pierda acceso ni se muestre un grupo vacío. */
+  showIfAnyChild?: boolean;
   children?: NavSubItem[];
 }
 
@@ -242,35 +246,10 @@ export class Shell implements OnInit {
       icon: 'incentivos',
       route: '/mi-rendimiento',
     },
-    {
-      // AG16 — Producción de Obra. Visible con el módulo `obra` o con cualquiera
-      // de sus submódulos granulares (el capataz entra por permiso fino).
-      label: 'Producción de Obra',
-      icon: 'obra',
-      modulo: 'obra',
-      submodulos: ['obra.plan_dia', 'obra.no_conformidades', 'obra.checklists', 'obra.subcontratistas', 'obra.avance', 'obra.informes'],
-      children: [
-        { label: 'Plan del día', route: '/obra/plan-dia', submodulo: 'obra.plan_dia' },
-        { label: 'No conformidades', route: '/obra/no-conformidades', submodulo: 'obra.no_conformidades' },
-        { label: 'Checklists de calidad', route: '/obra/checklists', submodulo: 'obra.checklists' },
-        { label: 'Subcontratistas', route: '/obra/subcontratistas', submodulo: 'obra.subcontratistas' },
-        { label: 'Avance y costos', route: '/obra/avance', submodulo: 'obra.avance' },
-        { label: 'Informe semanal', route: '/obra/informes', submodulo: 'obra.informes' },
-      ],
-    },
-    {
-      label: 'Bitácora',
-      icon: 'bitacora',
-      modulo: 'bitacora',
-      children: [
-        { label: 'Nueva bitácora', route: '/bitacora/nueva' },
-        { label: 'Mis bitácoras', route: '/bitacora/historial' },
-        { label: 'Dashboard', route: '/bitacora/dashboard' },
-        { label: 'Mi proyecto', route: '/bitacora/mi-proyecto' },
-        { label: 'Requisición', route: '/bitacora/solicitudes-material' },
-        { label: 'Confirmar entregas', route: '/bitacora/entregas' },
-      ],
-    },
+    // AU6 — "Producción de Obra" y "Bitácora" ya NO son grupos top-level: se movieron
+    // dentro del módulo "Ingeniería" (ver el grupo Ingeniería más abajo). Las rutas y
+    // los permisos (`obra.*`, `bitacora`) se conservan intactos — solo cambia dónde
+    // aparecen en el menú. Cada hijo mantiene su gate granular (visibilidad por submódulo).
     {
       label: 'Documentos',
       icon: 'documentos',
@@ -292,23 +271,43 @@ export class Shell implements OnInit {
       ],
     },
     {
-      // AU1 — bandeja del despachante: aparece SOLO cuando tienes conduces por
-      // firmar (cualquier usuario puede ser elegido despachante, sin gate de módulo).
+      // AU1 — bandeja del despachante: aparece SOLO cuando tienes conduces por firmar.
+      // AU8 — pero NUNCA para un chofer: un chofer no firma/confirma entregas; solo
+      // el ingeniero de obra / rol elevado que aprueba la entrega tiene acceso. El
+      // chofer registra la entrega y un rol elevado la confirma y firma.
       label: 'Conduces por firmar',
       icon: 'inventory',
-      route: '/inventario/por-firmar',
+      route: '/por-firmar',
       badgeKey: 'conduces.por_firmar',
       soloConPendiente: true,
+      noChofer: true,
     },
     {
-      // AT6 — módulo Ingeniería (espejo de la app): agrupa "Solicitud de movimiento"
-      // bajo su módulo en vez de dejarla suelta y sin icono. Visible por módulo
-      // `ingenieria` (ingenieros, gerencia, logística…); la RLS scoping se mantiene.
+      // AT6/AU6 — módulo "Ingeniería" como paraguas de las herramientas del ingeniero:
+      // Solicitud de movimiento + Bitácora + Producción de Obra. `showIfAnyChild` hace
+      // que el grupo aparezca si el usuario puede ver AL MENOS un hijo (así nadie con
+      // `bitacora`/`obra.*` pierde acceso aunque no tenga el módulo `ingenieria`). Cada
+      // hijo conserva su gate granular → NO todos los submódulos se ven con solo tener
+      // acceso a Ingeniería (regla de Xaviel). Rutas y permisos intactos (RLS-safe).
       label: 'Ingeniería',
       icon: 'ingenieria',
-      modulo: 'ingenieria',
+      showIfAnyChild: true,
       children: [
         { label: 'Solicitud de movimiento', route: '/solicitudes-movimiento', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
+        // Bitácora (módulo `bitacora`)
+        { label: 'Nueva bitácora', route: '/bitacora/nueva', modulo: 'bitacora' },
+        { label: 'Mis bitácoras', route: '/bitacora/historial', modulo: 'bitacora' },
+        { label: 'Dashboard de bitácora', route: '/bitacora/dashboard', modulo: 'bitacora' },
+        { label: 'Mi proyecto', route: '/bitacora/mi-proyecto', modulo: 'bitacora' },
+        { label: 'Requisición', route: '/bitacora/solicitudes-material', modulo: 'bitacora' },
+        { label: 'Confirmar entregas', route: '/bitacora/entregas', modulo: 'bitacora' },
+        // Producción de Obra (submódulos granulares `obra.*`)
+        { label: 'Plan del día', route: '/obra/plan-dia', submodulo: 'obra.plan_dia' },
+        { label: 'No conformidades', route: '/obra/no-conformidades', submodulo: 'obra.no_conformidades' },
+        { label: 'Checklists de calidad', route: '/obra/checklists', submodulo: 'obra.checklists' },
+        { label: 'Subcontratistas', route: '/obra/subcontratistas', submodulo: 'obra.subcontratistas' },
+        { label: 'Avance y costos', route: '/obra/avance', submodulo: 'obra.avance' },
+        { label: 'Informe semanal de obra', route: '/obra/informes', submodulo: 'obra.informes' },
       ],
     },
     {
@@ -548,11 +547,16 @@ export class Shell implements OnInit {
   }
 
   canAccess(item: NavItem): boolean {
-    // AU1 — bandeja personal solo con pendientes (p. ej. Conduces por firmar).
-    if (item.soloConPendiente) return this.pendingBadge(item) > 0;
-    // AC2 — la persona "chofer" no ve Tecnología (salvo que sea elevado/tecnología).
+    // AC2/AU8 — la persona "chofer" no ve items noChofer (Tecnología, "Conduces por
+    // firmar"). Va ANTES que soloConPendiente: un chofer no firma/confirma entregas
+    // (ni las suyas ni las de otro), así que aunque tenga un pendiente NO debe ver la
+    // bandeja del despachante (evita el item que terminaba en 403).
     if (item.noChofer && this.userService.esChofer() && !this.userService.esTecnologia())
       return false;
+    // AU1 — bandeja personal solo con pendientes (p. ej. Conduces por firmar).
+    if (item.soloConPendiente) return this.pendingBadge(item) > 0;
+    // AU6 — grupo paraguas (Ingeniería): visible si hay al menos un hijo accesible.
+    if (item.showIfAnyChild) return (item.children ?? []).some((c) => this.canAccessChild(c));
     // AL1 — grupo "Sistema" (plataforma): solo es_tecnologia.
     if (item.soloTecnologia && !this.userService.esTecnologia()) return false;
     // AF32 — acceso extra por flota elevado (p. ej. Compras solo-Proveedores).

@@ -120,3 +120,11 @@
   letter-spacing: 0.03em; color: var(--sgc-text-secondary);
 }
 .apk__opt-prop { margin-left: 6px; font-size: 10px; vertical-align: middle; }
+
+// AU12 — por qué coincidió la sugerencia (apodo).
+.apk__opt-apodo {
+  display: block;
+  font-size: 11px;
+  color: var(--Hub, #ffb300);
+  font-style: italic;
+}

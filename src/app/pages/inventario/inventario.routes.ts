@@ -57,14 +57,9 @@ export const inventarioRoutes: Routes = [
     loadComponent: () => import('./requisiciones/requisiciones').then((m) => m.Requisiciones),
     title: 'Requisiciones — Inventario',
   },
-  {
-    // AU1 — bandeja del despachante (personal inbox, SIN gate de submódulo: cualquier
-    // usuario puede ser elegido despachante y debe poder firmar). El RPC valida que
-    // sólo el despachante designado firme.
-    path: 'por-firmar',
-    loadComponent: () => import('./por-firmar/por-firmar').then((m) => m.ConducesPorFirmar),
-    title: 'Conduces por firmar',
-  },
+  // AU8 — 'por-firmar' se movió a ruta top-level (/por-firmar, gateada por
+  // noChoferGuard) porque es un inbox personal que no debe heredar el guard del
+  // módulo Inventario. Ver app.routes.ts. /inventario/por-firmar redirige allí.
   {
     // AU4 — bandeja de material no catalogado (admin/inventario; gate real server-side).
     path: 'material-no-catalogado',

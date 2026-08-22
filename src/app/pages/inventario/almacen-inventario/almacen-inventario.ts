@@ -16,6 +16,9 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 
+/** AU1 · P1 — los tres mecanismos que fijan/mueven stock, unificados en un solo modal. */
+type AjusteMecanismo = 'conteo' | 'apertura' | 'ajuste_real';
+
 /**
  * AP2 — Inventario de un almacén específico: lista de artículos con existencias,
  * buscador y filtro por categoría. Cada artículo tiene botón "Histórico" (kardex,
@@ -132,28 +135,82 @@ export class AlmacenInventario implements OnInit {
   }
   cerrarKardex() { this.kardexArticulo.set(null); }
 
-  /** AS11 — ajustar stock de un artículo (conteo/ajuste, deja traza). */
-  async ajustar(i: InventarioAlmacenItem) {
+  // ── AU1 · P1 — "Ajustar existencia": UN solo punto de entrada con selector de
+  //    mecanismo (conteo/ajuste · apertura · ajuste real) + motivo auditado, en vez
+  //    de tres prompts sueltos que exponían tres semánticas sobre el mismo stock.
+  ajusteItem = signal<InventarioAlmacenItem | null>(null);
+  ajusteMecanismo = signal<AjusteMecanismo>('conteo');
+  ajusteValor = signal<number | null>(null);
+  ajusteMotivo = signal('');
+  ajusteSaving = signal(false);
+  ajusteError = signal('');
+
+  /** Mecanismos disponibles según el rol (apertura/ajuste real son solo-admin). */
+  mecanismosDisponibles = computed<AjusteMecanismo[]>(() =>
+    this.esAdmin() ? ['conteo', 'apertura', 'ajuste_real'] : ['conteo'],
+  );
+
+  abrirAjusteExistencia(i: InventarioAlmacenItem) {
     if (!this.puedeEditar()) return;
-    const actual = i.cantidad ?? 0;
-    const entrada = window.prompt(
-      `Ajustar existencia de "${i.nombre}" en este almacén.\n` +
-        `Se registra como ajuste en "Conteos y ajustes" (con traza), a diferencia de la apertura.`,
-      String(actual),
-    );
-    if (entrada == null) return;
-    const nueva = Number(entrada);
-    if (Number.isNaN(nueva) || nueva < 0) {
-      this.toast.error('Cantidad inválida.');
+    this.ajusteItem.set(i);
+    this.ajusteMecanismo.set('conteo');
+    this.ajusteValor.set(i.cantidad ?? 0);
+    this.ajusteMotivo.set('');
+    this.ajusteError.set('');
+  }
+
+  cerrarAjusteExistencia() {
+    if (!this.ajusteSaving()) this.ajusteItem.set(null);
+  }
+
+  /** Al cambiar de mecanismo, precargar el valor de referencia (apertura vs existencia). */
+  onMecanismoChange(m: AjusteMecanismo) {
+    const i = this.ajusteItem();
+    if (!i) return;
+    this.ajusteMecanismo.set(m);
+    this.ajusteValor.set(m === 'apertura' ? (i.apertura ?? 0) : (i.cantidad ?? 0));
+  }
+
+  async guardarAjusteExistencia() {
+    if (this.ajusteSaving()) return;
+    const i = this.ajusteItem();
+    if (!i) return;
+    const mecanismo = this.ajusteMecanismo();
+    const valor = Number(this.ajusteValor());
+    const motivo = this.ajusteMotivo().trim();
+    if (!Number.isFinite(valor) || valor < 0) {
+      this.ajusteError.set('Indica un valor válido (mayor o igual a 0).');
       return;
     }
-    if (nueva === actual) return;
+    if (!motivo) {
+      this.ajusteError.set('El motivo es obligatorio (queda en la auditoría).');
+      return;
+    }
+    if ((mecanismo === 'apertura' || mecanismo === 'ajuste_real') && !this.esAdmin()) {
+      this.ajusteError.set('Ese mecanismo es solo para administradores.');
+      return;
+    }
+    this.ajusteSaving.set(true);
+    this.ajusteError.set('');
     try {
-      await this.service.ajustarStock(i.articulo_id, this.bodegaId(), nueva);
-      this.toast.success('Existencia ajustada.', 'Se registró en Conteos y ajustes.');
-      await this.load(this.bodegaId());
+      const art = i.articulo_id;
+      const bod = this.bodegaId();
+      if (mecanismo === 'conteo') {
+        await this.service.ajustarStock(art, bod, valor, motivo);
+        this.toast.success('Existencia ajustada.', 'Se registró en Conteos y ajustes.');
+      } else if (mecanismo === 'apertura') {
+        await this.service.setApertura(art, bod, valor, motivo);
+        this.toast.success('Apertura actualizada.', 'Sin movimiento en el kardex.');
+      } else {
+        await this.service.ajusteRealStock(art, bod, valor, motivo);
+        this.toast.success('Ajuste real aplicado.', 'El stock quedó en el valor real, sin escalón en la gráfica.');
+      }
+      this.ajusteItem.set(null);
+      await this.load(bod);
     } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo ajustar la existencia.');
+      this.ajusteError.set(e instanceof Error ? e.message : 'No se pudo aplicar el ajuste.');
+    } finally {
+      this.ajusteSaving.set(false);
     }
   }
 
@@ -217,55 +274,6 @@ export class AlmacenInventario implements OnInit {
     }
   }
 
-  /** AP5 — editar apertura (solo admin). */
-  async editarApertura(i: InventarioAlmacenItem) {
-    if (!this.esAdmin()) return;
-    const actual = i.apertura ?? 0;
-    const entrada = window.prompt(
-      `Dato de apertura de "${i.nombre}" en este almacén.\n` +
-        `Al cambiarlo, la existencia se re-basa a (apertura + movimientos) SIN generar movimiento ni afectar el kardex.`,
-      String(actual),
-    );
-    if (entrada == null) return;
-    const nueva = Number(entrada);
-    if (Number.isNaN(nueva) || nueva < 0) {
-      this.toast.error('Cantidad inválida.');
-      return;
-    }
-    if (nueva === actual) return;
-    try {
-      await this.service.setApertura(i.articulo_id, this.bodegaId(), nueva);
-      this.toast.success('Apertura actualizada.');
-      await this.load(this.bodegaId());
-    } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo actualizar la apertura.');
-    }
-  }
-
-  /** AT12 — Ajuste real de UN artículo: fija la existencia al valor real informado
-   *  SIN movimiento en el kardex ni escalón en la gráfica (rebasa la línea base). */
-  async ajusteReal(i: InventarioAlmacenItem) {
-    if (!this.esAdmin()) return;
-    const actual = i.cantidad ?? 0;
-    const entrada = window.prompt(
-      `Ajuste real de "${i.nombre}" en este almacén.\n` +
-        `Escribe la EXISTENCIA REAL contada. Se fijará el stock a ese valor sin generar ` +
-        `movimiento en el kardex ni escalón en la gráfica.`,
-      String(actual),
-    );
-    if (entrada == null) return;
-    const nueva = Number(entrada);
-    if (Number.isNaN(nueva) || nueva < 0) {
-      this.toast.error('Cantidad inválida.');
-      return;
-    }
-    if (nueva === actual) return;
-    try {
-      await this.service.ajusteRealStock(i.articulo_id, this.bodegaId(), nueva);
-      this.toast.success('Ajuste real aplicado.', 'El stock quedó en el valor real, sin escalón en la gráfica.');
-      await this.load(this.bodegaId());
-    } catch (e: unknown) {
-      this.toast.error(e instanceof Error ? e.message : 'No se pudo aplicar el ajuste real.');
-    }
-  }
+  // AP5/AT12 — la edición de apertura y el ajuste real ahora viven dentro del modal
+  // unificado "Ajustar existencia" (ver guardarAjusteExistencia). Ya no hay prompts sueltos.
 }

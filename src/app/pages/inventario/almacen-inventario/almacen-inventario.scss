@@ -41,3 +41,41 @@
   font: inherit;
   &:hover { border-color: var(--Hub, #ffb300); }
 }
+
+// AU1 · P1 — selector de mecanismo del modal "Ajustar existencia".
+.ajuste-mecanismos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ajuste-mecanismo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 10px 34px;
+  position: relative;
+  border: 1px solid var(--sgc-border, #2d2d2d);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  input[type='radio'] {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+  }
+  &--active {
+    border-color: var(--Hub, #ffb300);
+    background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.06));
+  }
+  &__title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--sgc-text, inherit);
+  }
+  &__desc {
+    font-size: 12px;
+    color: var(--sgc-text-muted, #929090);
+    line-height: 1.35;
+  }
+}

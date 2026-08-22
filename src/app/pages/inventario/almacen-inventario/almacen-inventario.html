@@ -59,24 +59,13 @@
               <td class="text-muted">{{ i.unidad ?? '—' }}</td>
               <td class="text-right" [class.text-danger]="i.es_cero">{{ i.cantidad | number:'1.0-2' }}</td>
               @if (esAdmin()) {
-                <td class="text-right">
-                  <button class="apertura-btn" type="button" (click)="editarApertura(i)"
-                          title="Editar dato de apertura (solo admin)">
-                    {{ i.apertura | number:'1.0-2' }} ✎
-                  </button>
-                </td>
+                <td class="text-right text-muted">{{ i.apertura | number:'1.0-2' }}</td>
               }
               <td class="text-right">
                 @if (puedeEditar()) {
-                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="ajustar(i)"
-                          title="Ajustar existencia (queda en Conteos y ajustes)">
-                    Ajustar
-                  </button>
-                }
-                @if (esAdmin()) {
-                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="ajusteReal(i)"
-                          title="Ajuste real: fija el stock al valor real sin movimiento ni escalón (solo admin)">
-                    Ajuste real
+                  <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="abrirAjusteExistencia(i)"
+                          title="Ajustar existencia: conteo/ajuste, apertura o ajuste real (con motivo)">
+                    Ajustar existencia
                   </button>
                 }
                 <button class="sgc-btn sgc-btn--ghost sgc-btn--sm" type="button" (click)="abrirKardex(i)">
@@ -137,3 +126,67 @@
     </div>
   </form>
 </app-form-drawer>
+
+<!-- AU1 · P1 — Ajustar existencia: un solo modal con selector de mecanismo + motivo -->
+@if (ajusteItem(); as item) {
+  <app-form-drawer title="Ajustar existencia" [open]="true" (closed)="cerrarAjusteExistencia()">
+    <form class="drawer-form" (ngSubmit)="guardarAjusteExistencia()" novalidate>
+      <p class="sgc-field__hint">
+        <strong>{{ item.nombre }}</strong> · existencia actual: {{ item.cantidad | number:'1.0-2' }}
+        @if (esAdmin()) { · apertura: {{ item.apertura | number:'1.0-2' }} }
+      </p>
+
+      <div class="sgc-field">
+        <label>¿Qué tipo de ajuste? <span class="required">*</span></label>
+        <div class="ajuste-mecanismos">
+          @for (m of mecanismosDisponibles(); track m) {
+            <label class="ajuste-mecanismo" [class.ajuste-mecanismo--active]="ajusteMecanismo() === m">
+              <input type="radio" name="mecanismo" [value]="m" [checked]="ajusteMecanismo() === m"
+                     (change)="onMecanismoChange(m)" />
+              @switch (m) {
+                @case ('conteo') {
+                  <span class="ajuste-mecanismo__title">Conteo / ajuste</span>
+                  <span class="ajuste-mecanismo__desc">Corrige la existencia y deja un movimiento en el kardex y en "Conteos y ajustes".</span>
+                }
+                @case ('apertura') {
+                  <span class="ajuste-mecanismo__title">Apertura (línea base)</span>
+                  <span class="ajuste-mecanismo__desc">Fija el dato de apertura y re-basa la existencia SIN generar movimiento ni afectar el kardex.</span>
+                }
+                @case ('ajuste_real') {
+                  <span class="ajuste-mecanismo__title">Ajuste real (conteo físico)</span>
+                  <span class="ajuste-mecanismo__desc">Fija el stock al valor real contado SIN movimiento ni escalón en la gráfica.</span>
+                }
+              }
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="sgc-field">
+        <label for="ajuste-valor">
+          @if (ajusteMecanismo() === 'apertura') { Dato de apertura } @else { Existencia real }
+          <span class="required">*</span>
+        </label>
+        <input id="ajuste-valor" type="number" step="any" min="0" [value]="ajusteValor()"
+               (input)="ajusteValor.set($any($event.target).valueAsNumber)" placeholder="0" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="ajuste-motivo">Motivo <span class="required">*</span></label>
+        <input id="ajuste-motivo" type="text" [value]="ajusteMotivo()"
+               (input)="ajusteMotivo.set($any($event.target).value)"
+               placeholder="Ej: conteo físico del 21/08, corrección de despacho…" maxlength="200" />
+        <span class="sgc-field__hint">Queda registrado en la auditoría.</span>
+      </div>
+
+      @if (ajusteError()) { <p class="page__error">{{ ajusteError() }}</p> }
+
+      <div class="drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarAjusteExistencia()">Cancelar</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="ajusteSaving()">
+          @if (ajusteSaving()) { Guardando… } @else { Aplicar ajuste }
+        </button>
+      </div>
+    </form>
+  </app-form-drawer>
+}

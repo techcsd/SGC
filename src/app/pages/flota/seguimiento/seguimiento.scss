@@ -75,17 +75,61 @@
   background: #16a34a; color: #fff;
 }
 
+// AU3 — el panel lateral se acota al alto del viewport (igual que el mapa) y NO
+// crece con las filas: cada bloque tiene su propio scroll interno. Así el mapa y
+// los paneles se reparten el alto de la pantalla y la página no se estira.
 .seg__panel {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: calc(100vh - 180px);
-  overflow-y: auto;
-  @media (max-width: 900px) { max-height: none; }
+  height: calc(100vh - 180px); // mismo alto que el mapa (align-items:start en .seg)
+  overflow: hidden;            // sin scroll externo: cada bloque scrollea lo suyo
+  min-height: 0;
+  @media (max-width: 900px) {
+    height: auto;
+    overflow: visible;
+  }
 }
 
-.seg__block { padding: 14px 16px; }
-.seg__block-title { margin: 0 0 10px; font-size: 15px; }
+// AU3 — bloque = contenedor de scroll propio con encabezado sticky.
+.seg__block {
+  padding: 0;                  // el padding lo llevan head/body (para el sticky flush)
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;               // permite encoger dentro del flex del panel
+}
+// Rutas activas / Rutas de hoy: toman lo que necesitan hasta un tope y luego scrollean.
+.seg__block--rutas { flex: 0 1 auto; max-height: 32vh; }
+// Choferes: ocupa el alto restante del panel.
+.seg__block--choferes { flex: 1 1 auto; min-height: 120px; }
+@media (max-width: 900px) {
+  .seg__block--rutas { max-height: 40vh; }
+  .seg__block--choferes { flex: none; max-height: 60vh; }
+}
+
+// AU3 — encabezado del bloque: sticky arriba con contador (ej: "Choferes · 7").
+.seg__block-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 10px;
+  background: var(--sgc-surface);
+  border-bottom: 1px solid var(--sgc-border);
+}
+.seg__block-body { padding: 4px 16px 12px; }
+.seg__block-title { margin: 0; font-size: 15px; }
+.seg__block-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sgc-text-muted);
+  background: var(--sgc-surface-hover);
+  padding: 1px 9px;
+  border-radius: 999px;
+}
 
 .seg-ruta {
   border-bottom: 1px solid var(--sgc-border);

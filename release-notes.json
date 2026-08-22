@@ -1,5 +1,24 @@
 {
   "web": {
+    "1.89.0": {
+      "titulo": "Ronda AU — auditoría, Seguimiento, stock unificado, apodos, locación e Ingeniería",
+      "cambios": [
+        { "t": "arreglo", "d": "Módulo Proyectos: se corrige el error de relación ambigua (más de una FK a usuarios) que dejaba la lista y el detalle de obras — y todo lo que embebe proyectos — en blanco desde el cierre de la ronda anterior." },
+        { "t": "arreglo", "d": "Seguimiento: los choferes con última posición vieja ahora SÍ se pintan en el mapa (antes solo aparecía el que transmitía en vivo); las posiciones viejas se muestran con el estilo \"sin señal\"." },
+        { "t": "mejora", "d": "Seguimiento: los paneles laterales (Rutas de hoy, Rutas activas, Choferes) tienen scroll interno con encabezado fijo y contador — la página ya no se estira con muchas filas." },
+        { "t": "arreglo", "d": "Seguimiento: los conductores de prueba dejan de aparecer en la lista de choferes y de inflar el conteo." },
+        { "t": "arreglo", "d": "\"Conduces por firmar\": ya no aparece para los choferes (un chofer no firma/confirma entregas) y deja de terminar en \"Acceso restringido\"; la bandeja es accesible para el ingeniero de obra o rol elevado que confirma. Deep-links viejos redirigen bien." },
+        { "t": "mejora", "d": "Dashboard del chofer rediseñado (\"Mi día\"): su rendimiento de la semana, su vehículo, conduces pendientes y tareas — en vez de la pared de módulos sin acceso. Los módulos no accesibles se resumen en una línea discreta para todos los roles." },
+        { "t": "nuevo", "d": "Apodos de artículos: cada artículo puede tener nombres no oficiales (ej. \"panel de 24\") que la búsqueda y el matching de requisiciones reconocen; el buscador dice con qué apodo coincidió." },
+        { "t": "mejora", "d": "Inventario: un solo punto \"Ajustar existencia\" por artículo con selector de mecanismo (conteo/ajuste, apertura o ajuste real) y motivo obligatorio auditado — se elimina el riesgo de mover el mismo stock por caminos distintos sin razón." },
+        { "t": "nuevo", "d": "Proyectos: locación estructurada en cascada provincia → municipio → sector (al crear y editar), con el sector como filtro del listado. Reutiliza el mismo resolvedor de enlaces de Google Maps." },
+        { "t": "arreglo", "d": "Los enlaces cortos de Google Maps (maps.app.goo.gl) que apuntan a un lugar sin coordenadas ahora se resuelven por nombre vía Places, con mensajes de error útiles." },
+        { "t": "mejora", "d": "Unidades: se homologaron las variantes escritas a mano (UND, PZA, CAJA…) al catálogo, y se agregaron Paquete, Resma y Juego." },
+        { "t": "nuevo", "d": "Incentivos: nueva vista de matriz comparativa (choferes × categorías de puntaje) además del detalle por chofer; cada fila abre su desglose." },
+        { "t": "mejora", "d": "Bitácora y Producción de Obra ahora viven dentro del módulo Ingeniería en el menú, con visibilidad por submódulo (cada quien ve solo lo que tiene permitido)." },
+        { "t": "mejora", "d": "Diccionario central de etiquetas: los estados y motivos se leen igual en todo el sistema (sin valores técnicos crudos)." }
+      ]
+    },
     "1.88.3": {
       "titulo": "Cierre web ronda AT — paridad con la app",
       "cambios": [

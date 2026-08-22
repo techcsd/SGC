@@ -80,75 +80,90 @@
         </div>
       }
 
-      <!-- Rutas activas -->
+      <!-- Rutas activas — AU3: encabezado sticky + scroll interno (no estira la página) -->
       @if (rutasActivas().length) {
-        <div class="sgc-card seg__block">
-          <h2 class="seg__block-title">Rutas activas</h2>
-          @for (r of rutasActivas(); track r.id) {
-            <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
-              <div class="seg-ruta__top">
-                <strong>{{ idVehiculo(r) }}</strong>
-                <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
+        <div class="sgc-card seg__block seg__block--rutas">
+          <div class="seg__block-head">
+            <h2 class="seg__block-title">Rutas activas</h2>
+            <span class="seg__block-count">{{ rutasActivas().length }}</span>
+          </div>
+          <div class="seg__block-body">
+            @for (r of rutasActivas(); track r.id) {
+              <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === r.id">
+                <div class="seg-ruta__top">
+                  <strong>{{ idVehiculo(r) }}</strong>
+                  <span class="text-muted">{{ r.conductor_nombre ?? '' }}</span>
+                </div>
+                <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
+                <div class="seg-ruta__prog">Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</div>
+                <button type="button" class="seg-ruta__traza" (click)="trazarRuta(r.id, true)" [disabled]="trazaCargando()">
+                  {{ rutaTrazada() === r.id ? 'Ocultar trayecto' : 'Ver trayecto en vivo' }}
+                </button>
               </div>
-              <div class="seg-ruta__dest">{{ r.origen }} → {{ r.destino }}</div>
-              <div class="seg-ruta__prog">Paradas: {{ r.paradas_entregadas }}/{{ r.paradas_total }}</div>
-              <button type="button" class="seg-ruta__traza" (click)="trazarRuta(r.id, true)" [disabled]="trazaCargando()">
-                {{ rutaTrazada() === r.id ? 'Ocultar trayecto' : 'Ver trayecto en vivo' }}
-              </button>
-            </div>
-          }
+            }
+          </div>
         </div>
       }
 
-      <!-- Rutas de hoy (replay del recorrido) — AS14: agrupadas por trayecto -->
+      <!-- Rutas de hoy (replay del recorrido) — AS14: agrupadas por trayecto · AU3: sticky + scroll interno -->
       @if (rutasHoyAgrupadas().length) {
-        <div class="sgc-card seg__block">
-          <h2 class="seg__block-title">Rutas de hoy</h2>
-          @for (g of rutasHoyAgrupadas(); track g.key) {
-            <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === g.rep.id">
-              <div class="seg-ruta__top">
-                <strong>{{ idVehiculo(g.rep) }}</strong>
-                <span class="text-muted">{{ g.rep.conductor_nombre ?? '' }}</span>
+        <div class="sgc-card seg__block seg__block--rutas">
+          <div class="seg__block-head">
+            <h2 class="seg__block-title">Rutas de hoy</h2>
+            <span class="seg__block-count">{{ rutasHoyAgrupadas().length }}</span>
+          </div>
+          <div class="seg__block-body">
+            @for (g of rutasHoyAgrupadas(); track g.key) {
+              <div class="seg-ruta" [class.seg-ruta--sel]="rutaTrazada() === g.rep.id">
+                <div class="seg-ruta__top">
+                  <strong>{{ idVehiculo(g.rep) }}</strong>
+                  <span class="text-muted">{{ g.rep.conductor_nombre ?? '' }}</span>
+                </div>
+                <div class="seg-ruta__dest">{{ g.rep.origen }} → {{ g.rep.destino }}</div>
+                <div class="seg-ruta__meta">
+                  @if (g.inicio) { <span>Inicio {{ hora(g.inicio) }}</span> }
+                  @if (g.count > 1) { <span class="seg-ruta__tramos">{{ g.count }} tramos</span> }
+                </div>
+                <button type="button" class="seg-ruta__traza" (click)="trazarRuta(g.rep.id, g.rep.estado === 'en_curso')" [disabled]="trazaCargando()">
+                  {{ rutaTrazada() === g.rep.id ? 'Ocultar recorrido' : 'Ver recorrido' }}
+                </button>
               </div>
-              <div class="seg-ruta__dest">{{ g.rep.origen }} → {{ g.rep.destino }}</div>
-              <div class="seg-ruta__meta">
-                @if (g.inicio) { <span>Inicio {{ hora(g.inicio) }}</span> }
-                @if (g.count > 1) { <span class="seg-ruta__tramos">{{ g.count }} tramos</span> }
-              </div>
-              <button type="button" class="seg-ruta__traza" (click)="trazarRuta(g.rep.id, g.rep.estado === 'en_curso')" [disabled]="trazaCargando()">
-                {{ rutaTrazada() === g.rep.id ? 'Ocultar recorrido' : 'Ver recorrido' }}
-              </button>
-            </div>
-          }
+            }
+          </div>
         </div>
       }
 
-      <!-- Choferes con estado -->
-      <div class="sgc-card seg__block">
-        <h2 class="seg__block-title">Choferes</h2>
-        @if (!choferes().length) {
-          <p class="text-muted">Sin choferes registrados.</p>
-        }
-        @for (c of choferes(); track c.usuario_id) {
-          <button type="button" class="seg-chofer" [class.seg-chofer--sel]="seleccionado() === c.usuario_id"
-            (click)="seleccionar(c.usuario_id)">
-            <span class="seg-chofer__dot" [style.background]="estadoMeta(c.estado).color"></span>
-            <span class="seg-chofer__body">
-              <span class="seg-chofer__nombre">{{ c.nombre }}</span>
-              <span class="seg-chofer__estado">
-                {{ estadoMeta(c.estado).label }}@if (c.estado === 'otros' && c.otros_texto) { — {{ c.otros_texto }} }
-                @if (c.pos?.capturado_en) {
-                  · @if (posVivo(c)) {
-                      <span class="seg-chofer__vivo" [title]="fechaHora(c.pos!.capturado_en)">en vivo</span>
-                    } @else {
-                      <span [class.seg-chofer__stale]="posVieja(c)" [title]="fechaHora(c.pos!.capturado_en)">{{ haceCuanto(c.pos!.capturado_en) }}</span>
-                    }
-                } @else { · sin ubicación }
+      <!-- Choferes con estado — AU3: sticky + scroll interno, ocupa el alto restante -->
+      <div class="sgc-card seg__block seg__block--choferes">
+        <div class="seg__block-head">
+          <h2 class="seg__block-title">Choferes</h2>
+          <span class="seg__block-count">{{ choferes().length }}</span>
+        </div>
+        <div class="seg__block-body">
+          @if (!choferes().length) {
+            <p class="text-muted">Sin choferes registrados.</p>
+          }
+          @for (c of choferes(); track c.usuario_id) {
+            <button type="button" class="seg-chofer" [class.seg-chofer--sel]="seleccionado() === c.usuario_id"
+              (click)="seleccionar(c.usuario_id)">
+              <span class="seg-chofer__dot" [style.background]="estadoMeta(c.estado).color"></span>
+              <span class="seg-chofer__body">
+                <span class="seg-chofer__nombre">{{ c.nombre }}</span>
+                <span class="seg-chofer__estado">
+                  {{ estadoMeta(c.estado).label }}@if (c.estado === 'otros' && c.otros_texto) { — {{ c.otros_texto }} }
+                  @if (c.pos?.capturado_en) {
+                    · @if (posVivo(c)) {
+                        <span class="seg-chofer__vivo" [title]="fechaHora(c.pos!.capturado_en)">en vivo</span>
+                      } @else {
+                        <span [class.seg-chofer__stale]="posVieja(c)" [title]="fechaHora(c.pos!.capturado_en)">{{ haceCuanto(c.pos!.capturado_en) }}</span>
+                      }
+                  } @else { · sin ubicación }
+                </span>
               </span>
-            </span>
-            @if (c.pos?.bateria != null) { <span class="seg-chofer__bat">🔋 {{ c.pos!.bateria }}%</span> }
-          </button>
-        }
+              @if (c.pos?.bateria != null) { <span class="seg-chofer__bat">🔋 {{ c.pos!.bateria }}%</span> }
+            </button>
+          }
+        </div>
       </div>
     }
   </aside>

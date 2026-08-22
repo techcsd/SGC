@@ -5,6 +5,9 @@ import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { DatosPruebaViewService } from '../../../shared/services/datos-prueba-view.service';
 import { ProyectosService, KpiProyectoRaw } from '../../../shared/services/proyectos.service';
+import { IncentivosService, MiRendimientoSemana } from '../../../shared/services/incentivos.service';
+import { VehiculosService } from '../../../shared/services/vehiculos.service';
+import { SalidasService } from '../../../shared/services/salidas.service';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { identificacionVehiculo } from '../../../shared/models/vehiculo.model';
@@ -49,6 +52,9 @@ export class Dashboard implements OnInit {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private proyectosService = inject(ProyectosService);
+  private incentivosService = inject(IncentivosService);
+  private vehiculosService = inject(VehiculosService);
+  private salidasService = inject(SalidasService);
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
 
@@ -68,6 +74,19 @@ export class Dashboard implements OnInit {
     () => (this.userService.modulos()?.length ?? 0) === 0 && !this.userService.hasRole('admin'),
   );
   private kpisCargados = false;
+
+  // AU17 — Dashboard del chofer: en vez de la pared de KPIs de gestión (que no le
+  // aplican y disparaban 23 queries sin permiso), el chofer ve SU día. `esChofer`
+  // gobierna qué mitad del dashboard se pinta y qué se carga.
+  esChofer = this.userService.esChofer;
+  miVehiculo = signal<{ placa: string; marca: string; modelo: string } | null>(null);
+  miPuntaje = signal<MiRendimientoSemana | null>(null);
+  misConducesPendientes = signal(0);
+  miPuntajePct = computed(() => {
+    const s = this.miPuntaje();
+    if (!s || !s.minimo) return 0;
+    return Math.min(100, Math.round((s.puntaje / s.minimo) * 100));
+  });
 
   constructor() {
     // Al cambiar el toggle global de datos de prueba, recargar los KPIs (la primera
@@ -176,6 +195,12 @@ export class Dashboard implements OnInit {
   ];
 
   isAdmin = computed(() => this.userService.hasRole('admin'));
+
+  // AU17 — solo se pintan las tarjetas de módulo accesibles (antes se mostraba una
+  // pared de tarjetas grises "Sin acceso asignado"). Las inaccesibles se resumen en
+  // una línea discreta con el conteo.
+  modulosAccesibles = computed(() => this.allModules.filter((m) => this.canAccess(m.modulo)));
+  modulosSinAcceso = computed(() => this.allModules.filter((m) => !this.canAccess(m.modulo)).length);
 
   canSeeSolicitudes = computed(
     () => this.isAdmin() || this.canAccess('inventario') || this.canAccess('compras'),
@@ -448,8 +473,38 @@ export class Dashboard implements OnInit {
   }
 
   async ngOnInit() {
-    await this.loadAll();
-    this.kpisCargados = true;
+    // AU17 — el chofer no carga los KPIs de gestión (no le aplican y varias queries
+    // fallaban por RLS, dejando los skeletons colgados). Carga solo SU día.
+    if (this.esChofer() && !this.isAdmin()) {
+      await this.cargarChofer();
+    } else {
+      await this.loadAll();
+      this.kpisCargados = true;
+    }
+  }
+
+  /** AU17 — datos propios del chofer para el dashboard "Mi día". Todo best-effort:
+   *  un fallo puntual no rompe el resto. */
+  private async cargarChofer() {
+    this.loading.set(true);
+    const uid = this.profile()?.id ?? '00000000-0000-0000-0000-000000000000';
+    const [asig, rend, conducesCount, tareasRes] = await Promise.allSettled([
+      this.vehiculosService.getMisAsignaciones(),
+      this.incentivosService.miRendimiento(),
+      this.salidasService.countPendientesEntrega(),
+      this.supabase.client
+        .from('tareas')
+        .select('id', { count: 'exact', head: true })
+        .eq('asignado_a', uid)
+        .in('estado', ['pendiente', 'en_progreso']),
+    ]);
+    if (asig.status === 'fulfilled') {
+      this.miVehiculo.set(asig.value?.[0]?.vehiculo ?? null);
+    }
+    if (rend.status === 'fulfilled') this.miPuntaje.set(rend.value?.[0] ?? null);
+    if (conducesCount.status === 'fulfilled') this.misConducesPendientes.set(conducesCount.value ?? 0);
+    if (tareasRes.status === 'fulfilled') this.misTareasPendientes.set(tareasRes.value.count ?? 0);
+    this.loading.set(false);
   }
 
   private async loadAll() {

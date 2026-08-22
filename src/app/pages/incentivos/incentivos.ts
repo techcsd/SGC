@@ -36,6 +36,8 @@ export class Incentivos implements OnInit {
   selSemana = signal<number | null>(null);
   expandido = signal<string | null>(null);
   historial = signal<Record<string, IncentivoDecision[]>>({});
+  // AU7 — vista comparativa (matriz choferes × categorías, el dibujo de Xaviel) vs. detalle.
+  vista = signal<'matriz' | 'detalle'>('matriz');
 
   // Declinar
   declinandoId = signal<string | null>(null);
@@ -108,6 +110,23 @@ export class Incentivos implements OnInit {
 
   conteoDe(f: IncentivoFila, renglon: string) {
     return f.conteos?.[renglon] ?? null;
+  }
+
+  /** AU7 — puntos de una celda de la matriz (chofer × categoría). */
+  puntosDe(f: IncentivoFila, renglon: string): number {
+    return f.conteos?.[renglon]?.puntos ?? 0;
+  }
+
+  /** AU7 — desde la matriz, abrir el desglose del chofer (cada número es clickable). */
+  async abrirDesglose(f: IncentivoFila) {
+    this.vista.set('detalle');
+    this.expandido.set(f.informe_id);
+    if (!this.historial()[f.informe_id]) {
+      try {
+        const h = await this.service.historial(f.informe_id);
+        this.historial.update((m) => ({ ...m, [f.informe_id]: h }));
+      } catch { /* noop */ }
+    }
   }
 
   /** Ruta clickable para un registro que compone el puntaje (trazabilidad AT1.e). */
