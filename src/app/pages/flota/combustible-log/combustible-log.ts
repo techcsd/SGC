@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { CombustibleService, LogCombustibleRow } from '../../../../shared/services/combustible.service';
@@ -21,7 +22,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [DecimalPipe, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox],
+  imports: [FlotaSubnav, DecimalPipe, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

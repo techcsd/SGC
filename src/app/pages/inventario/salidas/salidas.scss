@@ -580,3 +580,20 @@ textarea {
   font-size: 0.8rem;
   color: var(--Hub);
 }
+
+// P2 — banner de acceso a la bandeja Requisiciones (Salidas ya no aprueba requisiciones).
+.solicitudes-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-decoration: none;
+  color: var(--sgc-text, inherit);
+  border-left: 4px solid var(--Hub, #ffb300);
+  transition: background 0.15s ease;
+
+  &:hover { background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.06)); }
+  &__cta { color: var(--Hub, #ffb300); font-weight: 600; white-space: nowrap; }
+}

@@ -1,5 +1,12 @@
 {
   "web": {
+    "1.90.0": {
+      "titulo": "Consolidación de la auditoría — Requisiciones y Flota",
+      "cambios": [
+        { "t": "mejora", "d": "Requisiciones: se aprueban en UN solo lugar (la bandeja Requisiciones). Salidas ya no las aprueba (se eliminó el camino duplicado); muestra un acceso directo a la bandeja. El contador de pendientes deja de duplicarse." },
+        { "t": "mejora", "d": "Flota más ordenada: Seguimiento agrupa Mapa en vivo, Rutas activas y Recorrido diario en pestañas; Combustible agrupa Registro, Echadas, Dashboards y Conciliación; Conductores incluye la pestaña Estado. Menos ítems sueltos en el menú, sin perder ninguna vista." }
+      ]
+    },
     "1.89.0": {
       "titulo": "Ronda AU — auditoría, Seguimiento, stock unificado, apodos, locación e Ingeniería",
       "cambios": [

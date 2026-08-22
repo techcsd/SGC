@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { Router } from '@angular/router';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import {
@@ -20,7 +21,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
  */
 @Component({
   selector: 'app-conductores-estado',
-  imports: [Skeleton],
+  imports: [FlotaSubnav, Skeleton],
   templateUrl: './conductores-estado.html',
   styleUrl: './conductores-estado.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

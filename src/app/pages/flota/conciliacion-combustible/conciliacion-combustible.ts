@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DecimalPipe } from '@angular/common';
 import {
   CombustibleConciliacionService,
@@ -52,7 +53,7 @@ const MONTO_TOLERANCIA = 50;
  */
 @Component({
   selector: 'app-conciliacion-combustible',
-  imports: [DecimalPipe, Skeleton, DateRangeFilter],
+  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter],
   templateUrl: './conciliacion-combustible.html',
   styleUrl: './conciliacion-combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

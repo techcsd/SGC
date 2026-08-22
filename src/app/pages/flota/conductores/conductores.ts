@@ -6,6 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -40,7 +41,7 @@ import { cleanUuid } from '../../../../shared/utils/uuid.util';
 
 @Component({
   selector: 'app-conductores',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

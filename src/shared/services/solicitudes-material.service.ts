@@ -52,34 +52,10 @@ export class SolicitudesMaterialService {
     return data as unknown as SolicitudMaterial;
   }
 
-  /**
-   * @deprecated Usa aprobarRequisicion (A2). Se conserva por retro-compatibilidad.
-   * Atomic: creates the real salida (full-stock only) and marks the solicitud entregada.
-   */
-  async aprobar(
-    id: string,
-    payload: {
-      bodega_id: string;
-      fecha: string;
-      responsable: string | null;
-      observaciones: string | null;
-      items: { articulo_id: string; cantidad: number }[];
-    },
-  ): Promise<string> {
-    const { data: salidaId, error } = await this.supabase.client.rpc('aprobar_solicitud_material', {
-      p_solicitud_id: id,
-      p_bodega_id: payload.bodega_id,
-      p_fecha: payload.fecha,
-      p_responsable: payload.responsable,
-      p_observaciones: payload.observaciones,
-      p_items: payload.items,
-    });
-
-    if (error) throw new Error(error.message);
-    notificarSolicitud(this.supabase.client, 'material', id, 'aprobada');
-    this.notificaciones.refresh();
-    return salidaId as string;
-  }
+  // P2 — se eliminó el método deprecado `aprobar()` (RPC aprobar_solicitud_material):
+  // la aprobación de requisiciones es SIEMPRE `aprobarRequisicion` (auto-división), en un
+  // solo hogar (la bandeja Requisiciones). El RPC legacy queda huérfano en la BD (se puede
+  // dropear en una limpieza posterior; no lo llama nadie).
 
   /**
    * A2 — Aprobación unificada de la Requisición con auto-división:

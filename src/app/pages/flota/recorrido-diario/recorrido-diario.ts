@@ -2,6 +2,7 @@ import {
   Component, ChangeDetectionStrategy, inject, signal, computed,
   viewChild, ElementRef, OnDestroy, OnInit, effect,
 } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
@@ -24,7 +25,7 @@ import { todayIso, daysAgoIso, formatHoraTimestamp, formatFechaMedia } from '../
  */
 @Component({
   selector: 'app-recorrido-diario',
-  imports: [FormsModule, DecimalPipe, RouterLink, Skeleton, MapLegend],
+  imports: [FlotaSubnav, FormsModule, DecimalPipe, RouterLink, Skeleton, MapLegend],
   templateUrl: './recorrido-diario.html',
   styleUrl: './recorrido-diario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

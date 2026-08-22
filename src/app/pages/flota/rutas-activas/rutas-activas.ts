@@ -7,6 +7,7 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { RouterLink } from '@angular/router';
 import {
   SeguimientoService,
@@ -54,7 +55,7 @@ interface ChoferRuta {
  */
 @Component({
   selector: 'app-rutas-activas',
-  imports: [RouterLink],
+  imports: [FlotaSubnav, RouterLink],
   templateUrl: './rutas-activas.html',
   styleUrl: './rutas-activas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

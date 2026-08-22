@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { CombustibleService } from '../../../../shared/services/combustible.service';
@@ -31,7 +32,7 @@ const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'o
 
 @Component({
   selector: 'app-combustible-dashboard',
-  imports: [DecimalPipe, RouterLink, BarChart, Skeleton],
+  imports: [FlotaSubnav, DecimalPipe, RouterLink, BarChart, Skeleton],
   templateUrl: './combustible-dashboard.html',
   styleUrl: './combustible-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

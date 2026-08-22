@@ -87,10 +87,9 @@ export class NotificacionesService {
       .select('id', { count: 'exact', head: true })
       .eq('estado', estado);
     this._pendingByModulo.update((m) => ({ ...m, [modulo]: count ?? 0 }));
-    // R5 — las requisiciones de material pendientes se atienden en Salidas.
-    if (table === 'solicitudes_material') {
-      this._pendingBySubmodulo.update((m) => ({ ...m, 'inventario.salidas': count ?? 0 }));
-    }
+    // P2 — las requisiciones pendientes viven bajo UNA sola clave (inventario.requisiciones,
+    // ver loadRequisicionesPendientes). Se eliminó el badge duplicado en inventario.salidas:
+    // Salidas ya no aprueba requisiciones (su hogar es la bandeja Requisiciones).
     // X12 — las aprobaciones legales pendientes se atienden en el submódulo Aprobaciones.
     if (table === 'aprobaciones_legales') {
       this._pendingBySubmodulo.update((m) => ({ ...m, 'legal.aprobaciones': count ?? 0 }));

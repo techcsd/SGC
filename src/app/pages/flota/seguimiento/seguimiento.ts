@@ -2,6 +2,7 @@ import {
   Component, ChangeDetectionStrategy, inject, signal, computed, effect,
   viewChild, ElementRef, AfterViewInit, OnDestroy, OnInit,
 } from '@angular/core';
+import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { Router } from '@angular/router';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
@@ -56,7 +57,7 @@ function hoyRD(): string {
  */
 @Component({
   selector: 'app-seguimiento',
-  imports: [Skeleton],
+  imports: [FlotaSubnav, Skeleton],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

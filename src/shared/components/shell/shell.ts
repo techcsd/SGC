@@ -153,7 +153,7 @@ export class Shell implements OnInit {
         { label: 'Categorías', route: '/inventario/categorias', submodulo: 'inventario.articulos' },
         { label: 'Activos Fijos', route: '/inventario/activos', submodulo: 'inventario.articulos' },
         { label: 'Entradas', route: '/inventario/entradas', submodulo: 'inventario.entradas' },
-        { label: 'Salidas', route: '/inventario/salidas', badgeKey: 'inventario.salidas', submodulo: 'inventario.salidas' },
+        { label: 'Salidas', route: '/inventario/salidas', submodulo: 'inventario.salidas' },
         { label: 'Requisiciones', route: '/inventario/requisiciones', verTodasRequisiciones: true, badgeKey: 'inventario.requisiciones' },
         { label: 'Movimientos', route: '/inventario/movimientos', submodulo: 'inventario.articulos' },
         { label: 'Conduces', route: '/inventario/conduces', submodulo: 'inventario.salidas' },
@@ -218,13 +218,13 @@ export class Shell implements OnInit {
       children: [
         { label: 'Vehículos', route: '/flota/vehiculos', submodulo: 'flota.vehiculos' },
         { label: 'Mantenimientos', route: '/flota/mantenimientos', badgeKey: 'flota.mantenimientos', submodulo: 'flota.mantenimientos' },
+        // P3 — "Estado de conductores" es ahora una pestaña dentro de Conductores.
         { label: 'Conductores', route: '/flota/conductores', flotaElevado: true },
-        { label: 'Estado de conductores', route: '/flota/conductores-estado', flotaElevado: true },
+        // P3 — Seguimiento agrupa Mapa/Rutas activas/Recorrido diario en pestañas (app-flota-subnav).
         { label: 'Seguimiento', route: '/flota/seguimiento', flotaElevado: true },
-        { label: 'Rutas activas', route: '/flota/rutas-activas', flotaElevado: true },
-        { label: 'Recorrido diario', route: '/flota/recorrido-diario', flotaElevado: true },
+        // P3 — Combustible agrupa Registro/Echadas/Dashboards/Conciliación en pestañas.
         { label: 'Combustible', route: '/flota/combustible', badgeKey: 'flota.combustible', submodulo: 'flota.combustible' },
-        { label: 'Registro de echadas', route: '/flota/combustible-log', flotaElevado: true },
+        // Conciliación queda también como ítem propio por su badge de pendientes (auditoría).
         { label: 'Conciliación de combustible', route: '/flota/conciliacion-combustible', flotaElevado: true, badgeKey: 'flota.conciliacion' },
         { label: 'Rutas', route: '/flota/rutas', submodulo: 'flota.rutas' },
         { label: 'Checklists', route: '/flota/checklists', badgeKey: 'flota.checklists', submodulo: 'flota.vehiculos' },
