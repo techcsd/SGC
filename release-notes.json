@@ -2666,6 +2666,19 @@
           "d": "El cronograma de los proyectos de prueba ya no aparece vacío, y si la carga falla se muestra un error claro con opción de reintentar, en lugar de un engañoso \"sin tareas\"."
         }
       ]
+    },
+    "1.94.0": {
+      "titulo": "Tato: tu asistente de IA dentro de SGC (v1 solo-lectura)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Llegó Tato, un asistente conversacional dentro del sistema. Pregúntale con lenguaje normal (\"¿qué tareas tengo?\", \"¿tengo conduces por firmar?\", \"busca el artículo cemento\", \"¿en qué obras estoy?\") y te responde con datos reales de SGC. Muy importante: Tato solo ve lo que TÚ puedes ver — hereda tus permisos, así que no expone nada fuera de tu alcance."
+        },
+        {
+          "t": "nuevo",
+          "d": "Por ahora Tato solo consulta información (no crea ni modifica nada todavía); las acciones con confirmación llegan en una próxima versión. Cada consulta queda auditada."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

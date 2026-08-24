@@ -364,6 +364,12 @@ export class Shell implements OnInit {
       ],
     },
     {
+      // AW4 — Tato, asistente de IA. Sin gate de módulo (hereda permisos del usuario).
+      label: 'Tato (asistente)',
+      icon: 'tato',
+      route: '/asistente',
+    },
+    {
       // Internal chat — no module gate, everyone can message.
       label: 'Mensajes',
       icon: 'mensajes',

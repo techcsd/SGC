@@ -167,6 +167,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/mensajes/mensajes').then((m) => m.Mensajes),
       },
       {
+        // AW4 — Tato, el asistente de IA. Sin gate de módulo: hereda los permisos
+        // del usuario (la edge function ejecuta las herramientas con su JWT).
+        path: 'asistente',
+        loadComponent: () => import('./pages/asistente/asistente').then((m) => m.Asistente),
+      },
+      {
         // AT1-AT3 — Incentivos (gestión): informe semanal, aprobar/declinar, export.
         // Lo ven quienes tienen el módulo `incentivos` (Logística, Gerencia, Admin).
         path: 'incentivos',
