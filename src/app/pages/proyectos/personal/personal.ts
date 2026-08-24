@@ -33,7 +33,14 @@ export class PersonalObraLista implements OnInit {
   filCargo = signal('');
   filNacionalidad = signal('');
   filEstado = signal('activo');
+  filAsegurado = signal('');   // AV4
+  filCuadrilla = signal('');   // AV4
   busqueda = signal('');
+
+  // AV4 — cuadrillas presentes (para el filtro de la vista de control).
+  cuadrillas = computed(() =>
+    [...new Set(this.personal().map((p) => (p.cuadrilla ?? '').trim()).filter(Boolean))].sort(),
+  );
 
   filtrados = computed(() => {
     const visibles = this.datosPrueba.visibles(this.personal());
@@ -41,12 +48,16 @@ export class PersonalObraLista implements OnInit {
     const nac = this.filNacionalidad();
     const est = this.filEstado();
     const obra = this.filObra();
+    const aseg = this.filAsegurado();
+    const cuad = this.filCuadrilla();
     const q = this.busqueda().trim().toLowerCase();
     return visibles.filter((p) => {
       if (obra && p.proyecto_id !== obra) return false;
       if (cargo && p.cargo_id !== cargo) return false;
       if (nac && p.nacionalidad !== nac) return false;
       if (est && p.estado !== est) return false;
+      if (aseg && (p.aseguramiento_estado ?? 'desconocido') !== aseg) return false;
+      if (cuad && (p.cuadrilla ?? '') !== cuad) return false;
       if (q) {
         const hay = `${p.nombre} ${p.apellido ?? ''} ${p.documento_numero ?? ''} ${p.cargo?.nombre ?? ''} ${p.carnet_numero ?? ''}`.toLowerCase();
         if (!hay.includes(q)) return false;

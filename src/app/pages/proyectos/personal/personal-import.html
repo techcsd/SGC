@@ -92,9 +92,72 @@
 
     <div class="pi-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">Cambiar archivo</button>
-      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="confirmar()">
-        {{ procesando() ? 'Importando…' : 'Importar ' + okCount() + ' personas' }}
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando() || !obraSeleccionada()" (click)="verDiff()">
+        {{ procesando() ? 'Calculando…' : 'Revisar cambios (' + okCount() + ')' }}
       </button>
+    </div>
+  }
+
+  <!-- Paso 2b (AV4) — diff del ciclo: altas / actualizaciones / bajas -->
+  @if (paso() === 'diff' && preview(); as pv) {
+    <div class="pi-diff">
+      <p class="pi-diff__intro">
+        Comparación del listado con el personal actual de la obra. Confirma qué personas
+        que ya no aparecen se dan de baja (no se inactivan solas).
+      </p>
+      <div class="pi-diff__nums">
+        <div class="pi-num pi-num--ok"><span>{{ pv.altas.length }}</span>altas</div>
+        <div class="pi-num"><span>{{ pv.actualizaciones.length }}</span>actualizaciones</div>
+        <div class="pi-num pi-num--warn"><span>{{ pv.bajas.length }}</span>ya no vienen</div>
+      </div>
+
+      @if (pv.altas.length) {
+        <h3 class="pi-diff__h">Altas ({{ pv.altas.length }})</h3>
+        <ul class="pi-diff__list">
+          @for (a of pv.altas; track a.documento_numero || a.nombre) {
+            <li><span class="pi-diff__nom">{{ a.nombre }}</span>
+              <span class="pi-diff__meta">{{ a.documento_numero || 'sin documento' }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
+          }
+        </ul>
+      }
+
+      @if (pv.actualizaciones.length) {
+        <h3 class="pi-diff__h">Actualizaciones ({{ pv.actualizaciones.length }})</h3>
+        <ul class="pi-diff__list">
+          @for (u of pv.actualizaciones; track u.id) {
+            <li><span class="pi-diff__nom">{{ u.despues.nombre }}</span>
+              <span class="pi-diff__meta">
+                {{ u.documento_numero }}
+                @if (u.antes.nombre !== u.despues.nombre) { · nombre: {{ u.antes.nombre }} → {{ u.despues.nombre }} }
+                @if (u.despues.cuadrilla && u.antes.cuadrilla !== u.despues.cuadrilla) { · cuadrilla: {{ u.antes.cuadrilla || '—' }} → {{ u.despues.cuadrilla }} }
+                @if (!u.antes.activo_en_obra) { · reactiva (volvió al listado) }
+              </span></li>
+          }
+        </ul>
+      }
+
+      @if (pv.bajas.length) {
+        <h3 class="pi-diff__h">Ya no vienen en el listado ({{ pv.bajas.length }})</h3>
+        <ul class="pi-diff__list pi-diff__list--bajas">
+          @for (b of pv.bajas; track b.id) {
+            <li>
+              <label class="pi-diff__baja">
+                <input type="checkbox" [checked]="esBaja(b.id)" (change)="toggleBaja(b.id)" />
+                <span class="pi-diff__nom">{{ b.nombre }}</span>
+                <span class="pi-diff__meta">{{ b.documento_numero || 'sin documento' }}{{ b.cuadrilla ? ' · ' + b.cuadrilla : '' }}</span>
+              </label>
+            </li>
+          }
+        </ul>
+        <p class="pi-diff__hint">Marca las que quieras dar de baja en esta obra. Las que dejes sin marcar quedan activas.</p>
+      }
+
+      <div class="pi-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverAPrevisualizar()">Volver</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando()" (click)="confirmarImport()">
+          {{ procesando() ? 'Importando…' : 'Confirmar import' }}
+        </button>
+      </div>
     </div>
   }
 
@@ -103,9 +166,9 @@
     <div class="pi-result">
       <h2 class="pi-result__title">Importación completada</h2>
       <div class="pi-result__nums">
-        <div class="pi-num pi-num--ok"><span>{{ r.creados }}</span>creados</div>
+        <div class="pi-num pi-num--ok"><span>{{ r.creados }}</span>altas</div>
         <div class="pi-num"><span>{{ r.actualizados }}</span>actualizados</div>
-        <div class="pi-num"><span>{{ r.saltados }}</span>saltados</div>
+        <div class="pi-num pi-num--warn"><span>{{ r.bajas ?? 0 }}</span>bajas</div>
         <div class="pi-num pi-num--err"><span>{{ r.errores.length }}</span>con error</div>
       </div>
       @if (r.errores.length) {

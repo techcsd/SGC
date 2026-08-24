@@ -30,17 +30,22 @@ _Last updated: 2026-08-24_
 ### FASE 6 (AV6) — Árbol de Ingeniería — WEB YA CORRECTO (paridad = trabajo de app)
 - El árbol **web** ya está bien (13 items bajo Ingeniería, AU6 aplicado). El descuadre es que la **app** tiene solo 2 items → es paridad app-side (**PROMPT-8**). **Web no requiere cambios.** Propuesta de árbol canónico + resoluciones (Crear ruta→Flota; Requisición/Confirmar entregas=accesos; "Solicitud de material" app ≡ "Requisición" web ≠ "Solicitud de movimiento") en `docs/AV5-AV6-paridad-conduces-e-ingenieria.md`.
 
-### FASE 4 (AV4) — Ficha de personal + import periódico — SPEC BUILD-READY (no aplicado)
-- `docs/AV4-personal-obra-ficha-import.md` afinado sobre el esquema REAL: `personal_obra` YA tiene base + `lote_import` + `personal_obra_fotos/firmas` + `es_prueba`. Falta acotado (aditivo): `aseguramiento_*`, `cuadrilla`, `tipo` en fotos, tablas `personal_obra_listados(_items)`. **Defaults elegidos** ("do the best"): asegurado=flag+fecha+doc; tipos doc Cédula/ID/Pasaporte; bajas se señalan (RRHH confirma); dos fotos (cara+doc); acceso RRHH/admin/ingenieros, números ocultos en exports. **No se aplicó migración** (dato migratorio sensible → un OK de RRHH antes). Análisis Excel real (34 personas, 2 ingenieros → alimenta AV3).
+### FASE 4 (AV4) — Ficha de personal + import como CICLO — ✅ CONSTRUIDO (web 1.92.0)
+- **OK de Xaviel a los defaults** → construido y aplicado. `sql/2026-08-24-av4-personal-ficha-import-ciclo.sql` (aplicado): + columnas `cuadrilla, aseguramiento_estado/fecha/doc_path, activo_en_obra` en `personal_obra`; tabla `personal_obra_listados` (historial, RLS por obra); RPC `personal_obra_import_preview` (diff altas/actualizaciones/bajas) + `importar_listado_personal_obra` (cabecera + upsert con cuadrilla + bajas confirmadas). Fotos: se reusa `personal_obra_fotos.tipo` existente ('persona'=cara, 'documento') — sin cambio de esquema.
+- **Web:** import (`personal-import.*`) con paso de **diff** (altas/actualizaciones/bajas con checkbox de confirmación de baja) + cuadrilla del TECNICO; expediente (`personal-expediente.*`) con bloque de **aseguramiento** editable (estado+fecha) + cuadrilla; listado (`personal.*`) con **columna Asegurado** + filtros por aseguramiento y cuadrilla. Tipos de doc: +`id_permiso_trabajo`.
+- **Prueba de aceptación PASÓ** (JWT admin simulado sobre obra de prueba): julio (3) → agosto (J2 update, A4 alta, J1 baja confirmada→inactivo, J3 sin confirmar→sigue activo). Datos de prueba limpiados (personal_obra vuelve a 0). `personal_obra` estaba vacía en prod → riesgo nulo.
 
 ### Confirmado por Xaviel (24/08) — los 4 supuestos OK
 1. Roles despachante ✅ (mantener `logistica`/Logística y Transportación). 2. Destinatarios informe ✅. 3. Mi rendimiento chofer+jefe_flota ✅. 4. Ingenieros principal+adjuntos mismos permisos ✅. **Sonia Castillo SÍ debe tener rol `gerencia`** → los destinatarios del informe ya son correctos, sin cambios de datos.
 
+### Envío de esta sesión (2)
+- **SHIPPED 1.91.0** (commit `88e1bc2`, push `main` → Vercel) + **edge `incentivo-semanal` desplegada** a prod.
+- **SHIPPED 1.92.0** (AV4, commit + push `main`): ficha personal + import ciclo. 5 migraciones AV aplicadas a prod en total.
+
 ### Pendiente / próximos pasos
-1. **Commit/push/deploy 1.91.0** (regla madre: no hecho) + **desplegar edge `incentivo-semanal`** (AV7).
-2. **AV4:** OK de RRHH a los 5 defaults (§E del doc) → aplicar migración aditiva + build de la vista de control por obra + ciclo de import con diff. Es el mayor trabajo restante de esta ronda.
-3. **AV5:** cuando AU1 ubique el hogar de Inventario, poner `conduce_wizard_web_habilitado=true` y validar en prod.
-4. **App (PROMPT-8):** selector de despachante filtrado por la matriz AV1; "Crear ruta"→Flota; unificar nombre requisición ("Requisición"); captura foto cara+documento (AV4); "Mi rendimiento" gating espejo; árbol de Ingeniería (AV6).
+1. **AV5:** cuando AU1 ubique el hogar de Inventario, poner `conduce_wizard_web_habilitado=true` (Admin › Parámetros) y validar el wizard de conduce en prod.
+2. **AV4 (opcional):** captura de foto cara+documento se hace por la app (PROMPT-8); en la web las fotos se suben desde el registro (wizard AR1 existente). Vista de galería visual (además de la tabla con columna Asegurado) = mejora opcional futura.
+3. **App (PROMPT-8):** selector de despachante filtrado por la matriz AV1; "Crear ruta"→Flota; unificar nombre requisición ("Requisición"); captura foto cara+documento (AV4); "Mi rendimiento" gating espejo; árbol de Ingeniería (AV6).
 
 Detalle completo en la memoria `project_sgc-prompt7-AV-2026-08-24.md`.
 

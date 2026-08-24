@@ -48,3 +48,19 @@
   list-style: none; margin: 0; padding: 0;
   li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #0000000d; font-size: 14px; }
 }
+
+// AV4 — bloque de aseguramiento
+.pob-exp__aseg {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pob-exp__aseg-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pob-exp__aseg-lbl { font-weight: 700; color: var(--sgc-text); font-size: 13px; }
+.pob-exp__aseg-edit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  select, input { padding: 6px 8px; border: 1px solid var(--sgc-border); border-radius: 8px; background: var(--sgc-surface); color: var(--sgc-text); }
+}

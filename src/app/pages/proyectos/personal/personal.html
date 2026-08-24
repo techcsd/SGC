@@ -33,6 +33,19 @@
     <option value="activo">Activos</option>
     <option value="inactivo">Inactivos</option>
   </select>
+  <!-- AV4 — vista de control: filtros por aseguramiento y cuadrilla -->
+  <select class="sgc-input" [ngModel]="filAsegurado()" (ngModelChange)="filAsegurado.set($event)" aria-label="Filtrar por aseguramiento">
+    <option value="">Todo aseguramiento</option>
+    <option value="asegurado">Asegurados</option>
+    <option value="no_asegurado">No asegurados</option>
+    <option value="desconocido">Sin dato</option>
+  </select>
+  @if (cuadrillas().length) {
+    <select class="sgc-input" [ngModel]="filCuadrilla()" (ngModelChange)="filCuadrilla.set($event)" aria-label="Filtrar por cuadrilla">
+      <option value="">Toda cuadrilla</option>
+      @for (c of cuadrillas(); track c) { <option [value]="c">{{ c }}</option> }
+    </select>
+  }
 </section>
 
 @if (loading()) {
@@ -58,7 +71,7 @@
       <div class="pob-tabla">
         <table class="data-table">
           <thead>
-            <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Carnet</th><th>Estado</th></tr>
+            <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Asegurado</th><th>Carnet</th><th>Estado</th></tr>
           </thead>
           <tbody>
             @for (p of filtrados(); track p.id) {
@@ -72,6 +85,13 @@
                 <td><span class="pob-chip pob-chip--nac pob-chip--nac-{{ p.nacionalidad }}">{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</span></td>
                 <td class="text-muted">{{ p.documento_numero ?? '—' }}</td>
                 <td class="text-muted">{{ p.proyecto?.nombre ?? '—' }}</td>
+                <td>
+                  @switch (p.aseguramiento_estado) {
+                    @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Asegurado</span> }
+                    @case ('no_asegurado') { <span class="sgc-badge sgc-badge--danger">No</span> }
+                    @default { <span class="text-muted">—</span> }
+                  }
+                </td>
                 <td>
                   @if (p.carnet_numero) { <span class="sgc-badge sgc-badge--success">{{ p.carnet_numero }}</span> }
                   @else { <span class="text-muted">Sin carnet</span> }

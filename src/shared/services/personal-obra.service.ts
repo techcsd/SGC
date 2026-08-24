@@ -20,14 +20,40 @@ export interface ImportPersonalRow {
   tipo_documento: string;
   documento_numero: string | null;
   cargo_id: string | null;
+  cuadrilla?: string | null; // AV4 — eje TECNICO
   notas: string | null;
 }
 
 export interface ImportPersonalResultado {
   creados: number;
   actualizados: number;
-  saltados: number;
+  saltados?: number;
+  bajas?: number;
   errores: { fila: number; documento: string | null; msg: string }[];
+}
+
+/** AV4 — diff del import contra el estado actual de la obra. */
+export interface ImportPreview {
+  altas: { nombre: string; documento_numero: string | null; nacionalidad: string | null; cuadrilla: string | null }[];
+  actualizaciones: {
+    id: string; documento_numero: string | null;
+    antes: { nombre: string; nacionalidad: string | null; cuadrilla: string | null; activo_en_obra: boolean };
+    despues: { nombre: string; nacionalidad: string | null; cuadrilla: string | null };
+  }[];
+  bajas: { id: string; nombre: string; documento_numero: string | null; cuadrilla: string | null }[];
+}
+
+/** AV4 — cabecera de un listado importado (historial). */
+export interface PersonalListado {
+  id: string;
+  proyecto_id: string;
+  fecha_listado: string | null;
+  enc_obra: string | null;
+  archivo_nombre: string | null;
+  total_altas: number;
+  total_actualizados: number;
+  total_bajas: number;
+  created_at: string;
 }
 
 /** AR1 — Registro de Personal de obra (CRUD + evidencia fotográfica + firma + carnet). */
@@ -93,6 +119,46 @@ export class PersonalObraService {
     const { data, error } = await this.client.rpc('deshacer_lote_personal', { p_lote: lote });
     if (error) throw new Error(error.message);
     return (data ?? 0) as number;
+  }
+
+  // ── AV4 — Import como CICLO periódico (diff + bajas + historial) ────────────
+  /** Previsualiza el diff del listado contra el estado actual (altas/actualizaciones/bajas). */
+  async importPreview(proyectoId: string, rows: ImportPersonalRow[]): Promise<ImportPreview> {
+    const { data, error } = await this.client.rpc('personal_obra_import_preview', {
+      p_proyecto_id: proyectoId, p_rows: rows,
+    });
+    if (error) throw new Error(error.message);
+    return data as ImportPreview;
+  }
+
+  /** Importa el listado como ciclo: cabecera + upsert (con cuadrilla) + bajas confirmadas. */
+  async importarListado(
+    proyectoId: string,
+    rows: ImportPersonalRow[],
+    lote: string,
+    meta: { fecha_listado?: string | null; enc_obra?: string | null; archivo?: string | null },
+    bajas: string[],
+  ): Promise<ImportPersonalResultado> {
+    const { data, error } = await this.client.rpc('importar_listado_personal_obra', {
+      p_proyecto_id: proyectoId, p_rows: rows, p_lote: lote,
+      p_fecha_listado: meta.fecha_listado ?? null,
+      p_enc_obra: meta.enc_obra ?? null,
+      p_archivo: meta.archivo ?? null,
+      p_bajas: bajas.length ? bajas : null,
+    });
+    if (error) throw new Error(error.message);
+    return data as ImportPersonalResultado;
+  }
+
+  /** Historial de listados importados de una obra (trazabilidad). */
+  async getListados(proyectoId: string): Promise<PersonalListado[]> {
+    const { data, error } = await this.client
+      .from('personal_obra_listados')
+      .select('*')
+      .eq('proyecto_id', proyectoId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as PersonalListado[];
   }
 
   async crear(payload: Partial<PersonalObra>): Promise<PersonalObra> {

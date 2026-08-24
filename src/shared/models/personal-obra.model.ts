@@ -1,8 +1,11 @@
 // AR1 — Registro de Personal de obra.
 
 export type Nacionalidad = 'dominicano' | 'haitiano' | 'otro';
-export type TipoDocumento = 'cedula' | 'pasaporte' | 'carnet_electoral' | 'ninguno';
+// AV4 — id_permiso_trabajo = el "ID" que RRHH describe como permiso de trabajo (haitianos).
+export type TipoDocumento = 'cedula' | 'id_permiso_trabajo' | 'pasaporte' | 'carnet_electoral' | 'ninguno';
 export type EstadoPersonal = 'activo' | 'inactivo';
+// AV4 — estado de aseguramiento (flag manual + fecha + documento de respaldo opcional).
+export type AseguramientoEstado = 'asegurado' | 'no_asegurado' | 'desconocido';
 
 /** Los 5 tipos de foto de evidencia (en orden del wizard). */
 export type FotoTipo = 'persona' | 'documento' | 'pared' | 'carnet' | 'persona_carnet_cedula';
@@ -48,6 +51,12 @@ export interface PersonalObra {
   empleado_id?: string | null;
   telefono?: string | null;
   notas?: string | null;
+  // AV4 — eje TECNICO (cuadrilla) + aseguramiento + activo en la obra (ciclo de import).
+  cuadrilla?: string | null;
+  aseguramiento_estado?: AseguramientoEstado;
+  aseguramiento_fecha?: string | null;
+  aseguramiento_doc_path?: string | null;
+  activo_en_obra?: boolean;
   carnet_numero?: string | null;
   carnet_emitido_at?: string | null;
   carnet_emitido_por?: string | null;
@@ -75,9 +84,17 @@ export const NACIONALIDADES: { value: Nacionalidad; label: string }[] = [
 
 export const TIPOS_DOCUMENTO: { value: TipoDocumento; label: string }[] = [
   { value: 'cedula', label: 'Cédula' },
+  { value: 'id_permiso_trabajo', label: 'ID / permiso de trabajo' },
   { value: 'pasaporte', label: 'Pasaporte' },
   { value: 'carnet_electoral', label: 'Carnet electoral' },
   { value: 'ninguno', label: 'Sin documento' },
+];
+
+// AV4 — estados de aseguramiento para el semáforo de la vista de control.
+export const ASEGURAMIENTO_ESTADOS: { value: AseguramientoEstado; label: string }[] = [
+  { value: 'asegurado', label: 'Asegurado' },
+  { value: 'no_asegurado', label: 'No asegurado' },
+  { value: 'desconocido', label: 'Sin dato' },
 ];
 
 /** Guía de las 5 fotos del expediente (orden + instrucción). */

@@ -1,4 +1,7 @@
-# AV4 — Ficha del personal de obra + import periódico (propuesta, ⚠️ RRHH/Xaviel deciden)
+# AV4 — Ficha del personal de obra + import periódico — ✅ CONSTRUIDO (web 1.92.0)
+
+> **Estado 24/08:** Xaviel dio OK a los defaults → **construido y aplicado a prod.** Migración `sql/2026-08-24-av4-personal-ficha-import-ciclo.sql`. Prueba de aceptación julio→agosto (JWT admin simulado, obra de prueba) **PASÓ**: alta, actualización, baja confirmada e inactivación selectiva (una baja no confirmada quedó activa); datos de prueba limpiados. Lo que sigue abajo es el diseño de referencia.
+
 
 > Ronda AV · 24/08/2026 · Extiende AR1 (Registro de Personal de obra) y AT5 (importador de listados).
 > **Novedad clave:** ya hay DOS listados reales del mismo formato en un mes (Sonia 16-jul = 28 personas; Alpha 14-ago = 34 personas) → **los listados son periódicos**. El import de AT5 no es un cargue único: es un **ciclo** (cada listado actualiza el anterior).

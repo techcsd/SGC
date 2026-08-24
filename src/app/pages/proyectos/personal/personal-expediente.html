@@ -25,10 +25,38 @@
         <div><dt>Obra</dt><dd>{{ p.proyecto?.nombre ?? '—' }}</dd></div>
         <div><dt>Nacionalidad</dt><dd>{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</dd></div>
         <div><dt>Documento</dt><dd>{{ p.documento_numero ?? '—' }} <span class="text-muted">({{ p.tipo_documento }})</span></dd></div>
+        @if (p.cuadrilla) { <div><dt>Cuadrilla</dt><dd>{{ p.cuadrilla }}</dd></div> }
         <div><dt>Teléfono</dt><dd>{{ p.telefono ?? '—' }}</dd></div>
         <div><dt>Carnet</dt><dd>{{ p.carnet_numero ?? 'Sin emitir' }}</dd></div>
         <div><dt>Registrado</dt><dd>{{ formatFecha(p.created_at) }}</dd></div>
       </dl>
+
+      <!-- AV4 — Aseguramiento (flag manual + fecha) -->
+      <div class="pob-exp__aseg">
+        <div class="pob-exp__aseg-head">
+          <span class="pob-exp__aseg-lbl">Aseguramiento</span>
+          @switch (p.aseguramiento_estado) {
+            @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Asegurado</span> }
+            @case ('no_asegurado') { <span class="sgc-badge sgc-badge--danger">No asegurado</span> }
+            @default { <span class="sgc-badge sgc-badge--neutral">Sin dato</span> }
+          }
+          @if (p.aseguramiento_fecha) { <span class="text-muted">· {{ formatFecha(p.aseguramiento_fecha) }}</span> }
+          @if (!editandoAseg()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(true)">Editar</button>
+          }
+        </div>
+        @if (editandoAseg()) {
+          <div class="pob-exp__aseg-edit">
+            <select #asegSel [value]="p.aseguramiento_estado ?? 'desconocido'">
+              @for (a of aseguramientoEstados; track a.value) { <option [value]="a.value">{{ a.label }}</option> }
+            </select>
+            <input #asegFecha type="date" [value]="p.aseguramiento_fecha ?? ''" aria-label="Fecha de aseguramiento" />
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarAseguramiento(asegSel.value, asegFecha.value)">Guardar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoAseg.set(false)">Cancelar</button>
+          </div>
+        }
+      </div>
+
       @if (p.notas) { <p class="pob-exp__notas">{{ p.notas }}</p> }
       <div class="pob-exp__acciones">
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="editar()">Editar</button>

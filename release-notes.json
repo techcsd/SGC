@@ -2624,6 +2624,23 @@
           "d": "Wizard de creación de conduce en la web con selector de despachante (crear y despachar desde escritorio). Detrás de un interruptor en Administración › Parámetros (conduce_wizard_web_habilitado), apagado por defecto."
         }
       ]
+    },
+    "1.92.0": {
+      "titulo": "Personal de obra: ficha con aseguramiento e importación como ciclo",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Ficha del personal de obra con estado de aseguramiento (asegurado / no asegurado / sin dato + fecha) y cuadrilla, editable desde el expediente."
+        },
+        {
+          "t": "nuevo",
+          "d": "Importación de listados de personal como ciclo: la previsualización ahora muestra el diff contra el estado actual (altas, actualizaciones y quiénes ya no vienen), con confirmación manual de bajas y guardando el historial de listados de cada obra."
+        },
+        {
+          "t": "mejora",
+          "d": "Vista de control del personal por obra con columna de aseguramiento y filtros por aseguramiento y cuadrilla, para ver de un vistazo quién está asegurado."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

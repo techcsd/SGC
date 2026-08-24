@@ -10,6 +10,8 @@ import {
   FOTOS_GUIA,
   FotoTipo,
   NACIONALIDAD_LABEL,
+  ASEGURAMIENTO_ESTADOS,
+  AseguramientoEstado,
 } from '../../../../shared/models/personal-obra.model';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 
@@ -28,7 +30,11 @@ export class PersonalExpediente implements OnInit {
 
   readonly fotosGuia = FOTOS_GUIA;
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
+  readonly aseguramientoEstados = ASEGURAMIENTO_ESTADOS;
   readonly formatFecha = formatFechaHumana;
+
+  // AV4 — edición del aseguramiento.
+  editandoAseg = signal(false);
 
   carnet = viewChild(PersonalCarnet);
 
@@ -120,6 +126,24 @@ export class PersonalExpediente implements OnInit {
 
   imprimirCarnet() {
     void this.carnet()?.imprimir();
+  }
+
+  /** AV4 — guarda el estado de aseguramiento (flag manual + fecha). */
+  async guardarAseguramiento(estado: string, fecha: string) {
+    const p = this.personal();
+    if (!p) return;
+    const est = estado as AseguramientoEstado;
+    const f = fecha || null;
+    this.saving.set(true);
+    try {
+      await this.service.actualizar(p.id, { aseguramiento_estado: est, aseguramiento_fecha: f });
+      this.personal.set({ ...p, aseguramiento_estado: est, aseguramiento_fecha: f });
+      this.editandoAseg.set(false);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo guardar el aseguramiento.');
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   editar() {

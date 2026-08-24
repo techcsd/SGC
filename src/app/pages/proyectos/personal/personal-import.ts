@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PersonalObraService, ImportPersonalRow, ImportPersonalResultado } from '../../../../shared/services/personal-obra.service';
+import { PersonalObraService, ImportPersonalRow, ImportPersonalResultado, ImportPreview } from '../../../../shared/services/personal-obra.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { Cargo } from '../../../../shared/models/personal-obra.model';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -14,6 +14,7 @@ interface FilaPrev {
   tipo_documento: string;
   cargo_id: string | null;
   cargo_origen: string;     // texto crudo del Excel (OCUPACION / TECNICO)
+  cuadrilla: string | null; // AV4 — eje TECNICO (cuadrilla) crudo, título
   notas: string | null;
   estado: 'ok' | 'warning' | 'error';
   motivo: string;           // por qué warning/error
@@ -51,7 +52,7 @@ export class PersonalImport implements OnInit {
   private proyectosSvc = inject(ProyectosService);
   private toast = inject(ToastService);
 
-  paso = signal<'subir' | 'previsualizar' | 'resultado'>('subir');
+  paso = signal<'subir' | 'previsualizar' | 'diff' | 'resultado'>('subir');
   cargos = signal<Cargo[]>([]);
   obras = signal<ObraRef[]>([]);
   cargoById = computed(() => new Map(this.cargos().map((c) => [c.id, c] as const)));
@@ -70,6 +71,10 @@ export class PersonalImport implements OnInit {
 
   resultado = signal<ImportPersonalResultado | null>(null);
   ultimoLote = signal<string | null>(null);
+
+  // AV4 — diff del ciclo (altas/actualizaciones/bajas) + bajas confirmadas por RRHH.
+  preview = signal<ImportPreview | null>(null);
+  bajasChecked = signal<Set<string>>(new Set());
 
   okCount = computed(() => this.filas().filter((f) => f.estado !== 'error').length);
   errCount = computed(() => this.filas().filter((f) => f.estado === 'error').length);
@@ -172,6 +177,7 @@ export class PersonalImport implements OnInit {
         tipo_documento: tipoDoc,
         cargo_id: cargoId,
         cargo_origen: String(r[iTec] ?? r[iOcup] ?? '').trim() || '—',
+        cuadrilla: (r[iTec] != null && String(r[iTec]).trim()) ? titleCase(String(r[iTec])) : null,
         notas: obs,
         estado,
         motivo: motivos.join(' · '),
@@ -222,29 +228,73 @@ export class PersonalImport implements OnInit {
     return id ? (this.cargoById().get(id)?.nombre ?? '—') : '—';
   }
 
-  async confirmar() {
+  /** Filas importables (sin error) → contrato del RPC. */
+  private buildRows(): ImportPersonalRow[] {
+    return this.filas().filter((f) => f.estado !== 'error').map((f) => ({
+      nombre: f.nombre,
+      apellido: null,
+      nacionalidad: f.nacionalidad,
+      tipo_documento: f.tipo_documento,
+      documento_numero: f.documento,
+      cargo_id: f.cargo_id,
+      cuadrilla: f.cuadrilla,
+      notas: f.notas,
+    }));
+  }
+
+  /** AV4 — paso 1: calcula el diff contra el estado actual y muestra altas/actualizaciones/bajas. */
+  async verDiff() {
     const obraId = this.obraSeleccionada();
     if (!obraId) { this.toast.warning('Elige la obra', 'Confirma a qué obra se importa el personal.'); return; }
     const importables = this.filas().filter((f) => f.estado !== 'error');
     if (!importables.length) { this.toast.warning('Nada que importar', 'Todas las filas tienen error.'); return; }
     this.procesando.set(true);
     this.error.set('');
+    try {
+      const pv = await this.svc.importPreview(obraId, this.buildRows());
+      this.preview.set(pv);
+      this.bajasChecked.set(new Set()); // las bajas se señalan; RRHH marca las que confirma
+      this.paso.set('diff');
+    } catch (e) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo calcular el diff.');
+    } finally {
+      this.procesando.set(false);
+    }
+  }
+
+  toggleBaja(id: string) {
+    this.bajasChecked.update((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }
+
+  esBaja(id: string): boolean {
+    return this.bajasChecked().has(id);
+  }
+
+  volverAPrevisualizar() {
+    this.paso.set('previsualizar');
+  }
+
+  /** AV4 — paso 2: importa como ciclo (cabecera de listado + upsert + bajas confirmadas). */
+  async confirmarImport() {
+    const obraId = this.obraSeleccionada();
+    if (!obraId) return;
+    this.procesando.set(true);
+    this.error.set('');
     const lote = crypto.randomUUID();
     try {
-      const rows: ImportPersonalRow[] = importables.map((f) => ({
-        nombre: f.nombre,
-        apellido: null,
-        nacionalidad: f.nacionalidad,
-        tipo_documento: f.tipo_documento,
-        documento_numero: f.documento,
-        cargo_id: f.cargo_id,
-        notas: f.notas,
-      }));
-      const res = await this.svc.importar(obraId, rows, lote, this.modo());
+      const res = await this.svc.importarListado(
+        obraId, this.buildRows(), lote,
+        { enc_obra: this.encObra() || null, archivo: this.archivoNombre() || null },
+        Array.from(this.bajasChecked()),
+      );
       this.resultado.set(res);
       this.ultimoLote.set(lote);
       this.paso.set('resultado');
-      this.toast.success('Import completado', `${res.creados} creados, ${res.actualizados} actualizados, ${res.saltados} saltados.`);
+      this.toast.success('Import completado', `${res.creados} altas, ${res.actualizados} actualizados, ${res.bajas ?? 0} bajas.`);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo importar.');
     } finally {
@@ -280,6 +330,8 @@ export class PersonalImport implements OnInit {
     this.paso.set('subir');
     this.filas.set([]);
     this.resultado.set(null);
+    this.preview.set(null);
+    this.bajasChecked.set(new Set());
     this.error.set('');
     this.proyectoDetectado.set('');
   }
