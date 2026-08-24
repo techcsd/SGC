@@ -365,8 +365,8 @@ export class Shell implements OnInit {
     },
     {
       // AW4 — Tato, asistente de IA. Sin gate de módulo (hereda permisos del usuario).
-      label: 'Tato (asistente)',
-      icon: 'tato',
+      label: 'Compa (asistente)',
+      icon: 'compa',
       route: '/asistente',
     },
     {

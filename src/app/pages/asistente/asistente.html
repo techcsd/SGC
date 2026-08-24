@@ -1,58 +1,58 @@
-<div class="tato">
+<div class="compa">
   <!-- ── Historial de conversaciones ── -->
-  <aside class="tato__side">
-    <button type="button" class="sgc-btn sgc-btn--primary tato__new" (click)="nueva()">
+  <aside class="compa__side">
+    <button type="button" class="sgc-btn sgc-btn--primary compa__new" (click)="nueva()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Nueva conversación
     </button>
-    <div class="tato__conv-list">
+    <div class="compa__conv-list">
       @for (c of conversaciones(); track c.id) {
-        <button type="button" class="tato__conv" [class.tato__conv--active]="c.id === conversacionId()" (click)="abrir(c)">
+        <button type="button" class="compa__conv" [class.compa__conv--active]="c.id === conversacionId()" (click)="abrir(c)">
           {{ c.titulo || 'Conversación' }}
         </button>
       } @empty {
-        <p class="tato__side-empty">Tus conversaciones aparecerán aquí.</p>
+        <p class="compa__side-empty">Tus conversaciones aparecerán aquí.</p>
       }
     </div>
   </aside>
 
   <!-- ── Chat ── -->
-  <section class="tato__chat">
-    <header class="tato__header">
-      <span class="tato__avatar" aria-hidden="true">
+  <section class="compa__chat">
+    <header class="compa__header">
+      <span class="compa__avatar" aria-hidden="true">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 4h8"/>
           <circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/>
         </svg>
       </span>
       <div>
-        <h1 class="tato__title">Tato</h1>
-        <p class="tato__subtitle">Tu asistente de SGC — responde con datos reales, según lo que tú puedes ver.</p>
+        <h1 class="compa__title">Compa</h1>
+        <p class="compa__subtitle">Tu asistente de SGC — responde con datos reales, según lo que tú puedes ver.</p>
       </div>
     </header>
 
-    <div class="tato__messages">
+    <div class="compa__messages">
       @if (vacio()) {
-        <div class="tato__welcome">
-          <p class="tato__welcome-hi">¡Hola! Soy <strong>Tato</strong> 👋</p>
-          <p class="tato__welcome-sub">Pregúntame lo que necesites del sistema. Por ahora solo consulto información (todavía no hago cambios).</p>
-          <div class="tato__chips">
+        <div class="compa__welcome">
+          <p class="compa__welcome-hi">¡Hola! Soy <strong>Compa</strong> 👋</p>
+          <p class="compa__welcome-sub">Pregúntame lo que necesites del sistema. También puedo prepararte una tarea, requisición o conduce — siempre te muestro un resumen para que confirmes antes de crear nada.</p>
+          <div class="compa__chips">
             @for (s of sugerencias; track s) {
-              <button type="button" class="tato__chip" (click)="usarSugerencia(s)">{{ s }}</button>
+              <button type="button" class="compa__chip" (click)="usarSugerencia(s)">{{ s }}</button>
             }
           </div>
         </div>
       }
 
       @for (m of mensajes(); track $index) {
-        <div class="tato__msg tato__msg--{{ m.rol }}">
-          <div class="tato__bubble">{{ m.contenido }}</div>
+        <div class="compa__msg compa__msg--{{ m.rol }}">
+          <div class="compa__bubble">{{ m.contenido }}</div>
           @if (m.rol === 'assistant' && m.herramientas && m.herramientas.length) {
-            <div class="tato__tools" title="Herramientas que consultó Tato para responder">
+            <div class="compa__tools" title="Herramientas que consultó Compa para responder">
               @for (t of m.herramientas; track $index) {
-                <span class="tato__tool-chip" [class.tato__tool-chip--fail]="!t.ok">{{ t.tool }}</span>
+                <span class="compa__tool-chip" [class.compa__tool-chip--fail]="!t.ok">{{ t.tool }}</span>
               }
             </div>
           }
@@ -60,25 +60,47 @@
       }
 
       @if (enviando()) {
-        <div class="tato__msg tato__msg--assistant">
-          <div class="tato__bubble tato__bubble--typing"><span></span><span></span><span></span></div>
+        <div class="compa__msg compa__msg--assistant">
+          <div class="compa__bubble compa__bubble--typing"><span></span><span></span><span></span></div>
+        </div>
+      }
+
+      <!-- AW4 v2 — tarjeta de confirmación de acción preparada -->
+      @if (propuesta(); as p) {
+        <div class="compa__propuesta">
+          <div class="compa__propuesta-head">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            <strong>{{ p.titulo }}</strong>
+          </div>
+          <ul class="compa__propuesta-lineas">
+            @for (l of p.lineas; track $index) { <li>{{ l }}</li> }
+          </ul>
+          <p class="compa__propuesta-nota">Revisa y confirma. Se creará por el flujo normal, con sus validaciones.</p>
+          <div class="compa__propuesta-actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cancelarPropuesta()" [disabled]="ejecutando()">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarPropuesta()" [disabled]="ejecutando()">
+              {{ ejecutando() ? 'Creando…' : 'Confirmar' }}
+            </button>
+          </div>
         </div>
       }
 
       @if (error()) {
-        <div class="tato__error" role="alert">{{ error() }}</div>
+        <div class="compa__error" role="alert">{{ error() }}</div>
       }
       <div #anchor></div>
     </div>
 
-    <form class="tato__composer" (ngSubmit)="enviar()">
+    <form class="compa__composer" (ngSubmit)="enviar()">
       <textarea
-        class="tato__input"
+        class="compa__input"
         [ngModel]="input()" (ngModelChange)="input.set($event)"
-        name="mensaje" rows="1" placeholder="Escríbele a Tato…"
+        name="mensaje" rows="1" placeholder="Escríbele a Compa…"
         (keydown.enter)="$event.preventDefault(); enviar()"
         [disabled]="enviando()"></textarea>
-      <button type="submit" class="sgc-btn sgc-btn--primary tato__send" [disabled]="enviando() || !input().trim()">
+      <button type="submit" class="sgc-btn sgc-btn--primary compa__send" [disabled]="enviando() || !input().trim()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
         </svg>

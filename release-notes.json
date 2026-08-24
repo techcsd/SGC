@@ -2668,15 +2668,32 @@
       ]
     },
     "1.94.0": {
-      "titulo": "Tato: tu asistente de IA dentro de SGC (v1 solo-lectura)",
+      "titulo": "Compa: tu asistente de IA dentro de SGC (v1 solo-lectura)",
       "cambios": [
         {
           "t": "nuevo",
-          "d": "Llegó Tato, un asistente conversacional dentro del sistema. Pregúntale con lenguaje normal (\"¿qué tareas tengo?\", \"¿tengo conduces por firmar?\", \"busca el artículo cemento\", \"¿en qué obras estoy?\") y te responde con datos reales de SGC. Muy importante: Tato solo ve lo que TÚ puedes ver — hereda tus permisos, así que no expone nada fuera de tu alcance."
+          "d": "Llegó Compa, un asistente conversacional dentro del sistema. Pregúntale con lenguaje normal (\"¿qué tareas tengo?\", \"¿tengo conduces por firmar?\", \"busca el artículo cemento\", \"¿en qué obras estoy?\") y te responde con datos reales de SGC. Muy importante: Compa solo ve lo que TÚ puedes ver — hereda tus permisos, así que no expone nada fuera de tu alcance."
         },
         {
           "t": "nuevo",
-          "d": "Por ahora Tato solo consulta información (no crea ni modifica nada todavía); las acciones con confirmación llegan en una próxima versión. Cada consulta queda auditada."
+          "d": "Por ahora Compa solo consulta información (no crea ni modifica nada todavía); las acciones con confirmación llegan en una próxima versión. Cada consulta queda auditada."
+        }
+      ]
+    },
+    "1.95.0": {
+      "titulo": "Compa v2: ahora también prepara acciones (con tu confirmación)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "d": "Compa ya no solo consulta: puede PREPARARTE acciones a partir de lo que le pidas en lenguaje normal — crear una tarea, una requisición de material o un conduce (salida de material). Ejemplo: \"hazme un conduce del almacén central a la obra X con 10 sacos de cemento\"."
+        },
+        {
+          "t": "nuevo",
+          "d": "Siempre confirmas antes de crear: Compa arma un borrador y te muestra una tarjeta con el resumen (obra, artículos, cantidades, despachante…); nada se crea hasta que le das a Confirmar. Si le falta un dato, te lo pregunta en vez de inventarlo."
+        },
+        {
+          "t": "mejora",
+          "d": "Todo se crea por el mismo flujo y las mismas validaciones de siempre (existencia en almacén, elegibilidad del despachante, permisos): Compa no abre ningún atajo. Cada acción queda auditada."
         }
       ]
     }
