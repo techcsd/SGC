@@ -126,14 +126,23 @@ Deno.serve(async (req: Request) => {
           ...(esAlarma ? { default_sound: true, visibility: "PUBLIC" } : {}),
         }
       : undefined;
+    // AL6-fix — la ALARMA dominical va DATA-ONLY (sin `notification`): así la app
+    // (CsdMessagingService) la recibe en background y dispara la alarma full-screen
+    // NATIVA (despertador) aunque esté cerrada. Con `notification` el sistema la
+    // pintaría él mismo y NO llamaría al servicio en background. El título/cuerpo
+    // viajan en `data` para que la alarma nativa muestre la placa. El resto de
+    // pushes conservan `notification` (las pinta el sistema, sin abrir la app).
+    const dataPayload = esAlarma
+      ? { ...dataStr, titulo: titulo ?? "", cuerpo: cuerpo ?? "" }
+      : dataStr;
     const message = {
       message: {
         token: t.token,
-        notification: { title: titulo ?? "SGC", body: cuerpo ?? "" },
-        data: dataStr,
+        ...(esAlarma ? {} : { notification: { title: titulo ?? "SGC", body: cuerpo ?? "" } }),
+        data: dataPayload,
         android: {
           priority: "high",
-          ...(androidNotification ? { notification: androidNotification } : {}),
+          ...(!esAlarma && androidNotification ? { notification: androidNotification } : {}),
         },
       },
     };
