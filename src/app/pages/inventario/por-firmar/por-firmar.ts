@@ -39,6 +39,7 @@ export class ConducesPorFirmar implements OnInit {
   error = signal('');
 
   seleccion = signal<ConduceDetalleApp | null>(null);
+  seleccionElegible = signal(true);
   cargandoDetalle = signal(false);
   firmando = signal(false);
 
@@ -59,6 +60,7 @@ export class ConducesPorFirmar implements OnInit {
 
   async abrir(fila: ConducePorFirmarRow) {
     this.seleccion.set(null);
+    this.seleccionElegible.set(fila.despachante_elegible !== false);
     this.cargandoDetalle.set(true);
     try {
       this.seleccion.set(await this.svc.getConduceDetalleApp(fila.id));

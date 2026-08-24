@@ -491,6 +491,16 @@ export class ProyectosService {
     if (error) throw new Error(error.message);
   }
 
+  /** AV3 — designa el ingeniero PRINCIPAL de la obra (encabezados/reportes). El
+   *  trigger espeja a proyectos.responsable_id y desmarca a los demás. */
+  async setResponsablePrincipal(proyectoId: string, usuarioId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_responsable_principal', {
+      p_proyecto_id: proyectoId,
+      p_usuario_id: usuarioId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** Directorio de usuarios activos (para el selector de responsables). */
   async getDirectorioUsuarios(): Promise<{ id: string; nombre: string }[]> {
     const { data, error } = await this.supabase.client.rpc('directorio_usuarios');

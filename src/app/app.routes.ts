@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
 import { moduloOSubmoduloGuard } from './core/guards/modulo-o-submodulo.guard';
 import { noChoferGuard } from './core/guards/no-chofer.guard';
+import { rolesGuard } from './core/guards/roles.guard';
 import { tecnologiaContenedorGuard } from './core/guards/tecnologia.guard';
 
 export const routes: Routes = [
@@ -173,10 +174,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/incentivos/incentivos').then((m) => m.Incentivos),
       },
       {
-        // AT2 — "Mi rendimiento": el chofer ve SOLO su propio puntaje e histórico.
-        // Sin gate de módulo (no ve el módulo Incentivos); la RLS lo limita a lo suyo.
+        // AT2/AV2 — "Mi rendimiento": vista personal del incentivo. SOLO Chofer y Jefe
+        // de flota (los roles del incentivo). El guard impide el acceso por URL directa
+        // a otros roles (el admin usa /incentivos). La RLS lo limita a su propio puntaje.
         path: 'mi-rendimiento',
         title: 'Mi rendimiento',
+        canActivate: [rolesGuard('chofer_transportista', 'jefe_flota')],
         loadComponent: () => import('./pages/mi-rendimiento/mi-rendimiento').then((m) => m.MiRendimiento),
       },
       {

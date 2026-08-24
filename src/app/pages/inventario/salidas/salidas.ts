@@ -147,10 +147,15 @@ export class Salidas implements OnInit {
     responsable: new FormControl<string | null>(null),
     observaciones: new FormControl<string | null>(null),
     receptor_usuario_id: new FormControl<string | null>(null), // AT16 — quién confirma en la obra
+    despachante_usuario_id: new FormControl<string | null>(null), // AV5 — quién firma como despachante (feature flag)
   });
 
   // AT16 — receptores elegibles para confirmar la entrega en la obra destino.
   receptores = signal<{ id: string; nombre: string; detalle: string | null; vinculado: boolean }[]>([]);
+
+  // AV5 — wizard de conduce web (detrás de feature flag): selector de despachante.
+  wizardConduceOn = signal(false);
+  despachantes = signal<{ tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null; vinculado?: boolean }[]>([]);
 
   // ── Computed ─────────────────────────────────────────────
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
@@ -317,17 +322,43 @@ export class Salidas implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+    // AV5 — feature flag del wizard de conduce web (selector de despachante).
+    this.salidasService.wizardConduceHabilitado().then((on) => {
+      this.wizardConduceOn.set(on);
+      if (on) this.loadDespachantes();
+    });
     // T13b — refresca el stock del picker al cambiar de almacén.
     this.form.controls.bodega_id.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((id) => {
         this.loadStockForBodega(id);
         this.loadReceptores(); // AT16 — el vínculo receptor↔almacén influye en la lista
+        if (this.wizardConduceOn()) this.loadDespachantes(); // AV5 — vinculados primero
       });
     // AT16 — refresca los receptores elegibles al cambiar la obra destino.
     this.form.controls.proyecto_id.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.loadReceptores());
+      .subscribe(() => {
+        this.loadReceptores();
+        if (this.wizardConduceOn()) this.loadDespachantes();
+      });
+  }
+
+  /** AV5 — carga los despachantes elegibles (filtrados por la matriz AV1). */
+  private async loadDespachantes() {
+    try {
+      const lista = await this.salidasService.getDespachantes(
+        this.form.controls.bodega_id.value,
+        this.form.controls.proyecto_id.value,
+      );
+      this.despachantes.set(lista);
+      const sel = this.form.controls.despachante_usuario_id.value;
+      if (sel && !lista.some((d) => d.tipo === 'usuario' && d.id === sel)) {
+        this.form.controls.despachante_usuario_id.setValue(null, { emitEvent: false });
+      }
+    } catch {
+      this.despachantes.set([]);
+    }
   }
 
   /** AT16 — carga los receptores elegibles para confirmar la entrega en la obra. */
@@ -712,8 +743,18 @@ export class Salidas implements OnInit {
           this.toast.warning('Conduce registrado', 'No se pudo designar el receptor; puedes hacerlo desde el conduce.');
         }
       }
+      // AV5 — designa el despachante (firma remota desde su bandeja "Por firmar").
+      const despachanteId = v.despachante_usuario_id ?? null;
+      if (this.wizardConduceOn() && despachanteId) {
+        try {
+          await this.salidasService.asignarDespachante(created.id, despachanteId);
+        } catch (e) {
+          this.toast.warning('Conduce registrado', e instanceof Error ? e.message : 'No se pudo designar el despachante; puedes hacerlo desde el conduce.');
+        }
+      }
       this.crearComoPrueba.set(false);
       this.form.controls.receptor_usuario_id.setValue(null, { emitEvent: false });
+      this.form.controls.despachante_usuario_id.setValue(null, { emitEvent: false });
       this.salidas.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');

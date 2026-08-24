@@ -410,6 +410,26 @@
         }
       }
 
+      <!-- AV5 — Despachante: quién firma la entrega al chofer (feature flag). Solo
+           usuarios del sistema (firman remoto desde "Conduces por firmar"). -->
+      @if (wizardConduceOn()) {
+        <div class="sgc-field">
+          <label for="despachante_usuario_id">Despachante (opcional)</label>
+          <select id="despachante_usuario_id" formControlName="despachante_usuario_id">
+            <option [value]="null">Sin designar (firma en mostrador al despachar)</option>
+            @for (d of despachantes(); track d.id) {
+              @if (d.tipo === 'usuario') {
+                <option [value]="d.id">{{ d.nombre }}{{ d.detalle ? ' · ' + d.detalle : '' }}</option>
+              }
+            }
+          </select>
+          <span class="field-hint">
+            Si eliges un despachante, se le avisará para que firme desde su bandeja
+            "Conduces por firmar"; el chofer podrá entregar recién después de esa firma.
+          </span>
+        </div>
+      }
+
       <!-- AL10 — Almacén destino (solo si motivo = traslado_almacen) -->
       @if (showAlmacenDestinoField()) {
         <div class="sgc-field">

@@ -48,6 +48,7 @@
   &__num { font-weight: 700; color: var(--sgc-text); }
   &__meta { font-size: 0.85rem; color: var(--main-ultra-light); }
   &__cta { color: var(--Hub); font-weight: 600; white-space: nowrap; }
+  &__cta--warn { color: #f59e0b; }
 }
 
 // ── Modal detalle + firma ──
@@ -100,9 +101,27 @@
   background: none;
   border: none;
   color: var(--main-ultra-light);
-  font-size: 1.1rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem;
   &:hover { color: var(--sgc-text); }
+}
+
+// AV1 — estado "corrección pendiente" (despachante inelegible)
+.pf-warn {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  padding: 1rem;
+  color: var(--sgc-text);
+
+  svg { color: #f59e0b; flex-shrink: 0; margin-top: 0.1rem; }
+  strong { display: block; margin-bottom: 0.25rem; color: #f59e0b; }
+  p { margin: 0; font-size: 0.9rem; color: var(--main-ultra-light); }
 }
 
 .pf-datos {

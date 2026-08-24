@@ -130,6 +130,13 @@ export class IncentivosService {
     return (data ?? '') as string;
   }
 
+  /** AV7 — quién recibe el informe semanal (por rol elevado, parametrizable). */
+  async destinatariosInforme(): Promise<{ email: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('destinatarios_informe_incentivo');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { email: string; nombre: string }[];
+  }
+
   async configActual(): Promise<IncentivoConfig | null> {
     const { data, error } = await this.supabase.client.rpc('incentivo_config_actual');
     if (error) throw new Error(error.message);

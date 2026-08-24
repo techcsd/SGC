@@ -1092,6 +1092,19 @@ export class Lista implements OnInit {
     return TIPOS_RESPONSABILIDAD.find((t) => t.value === tipo)?.label ?? tipo;
   }
 
+  /** AV3 — designa el ingeniero PRINCIPAL de la obra (uno solo). */
+  async hacerPrincipal(usuarioId: string) {
+    const proyecto = this.selectedProyecto();
+    if (!proyecto) return;
+    this.responsableError.set('');
+    try {
+      await this.proyectosService.setResponsablePrincipal(proyecto.id, usuarioId);
+      this.responsables.set(await this.proyectosService.getResponsables(proyecto.id));
+    } catch (e: unknown) {
+      this.responsableError.set(e instanceof Error ? e.message : 'No se pudo designar el ingeniero principal.');
+    }
+  }
+
   /** Z2 — responsables activos embebidos, para mostrarlos en la tarjeta del listado. */
   responsablesActivos(p: Proyecto) {
     return (p.responsables ?? []).filter((r) => r.activo);

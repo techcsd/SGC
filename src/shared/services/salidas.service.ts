@@ -386,10 +386,39 @@ export class SalidasService {
    * usuarios + empleados activos. Si el origen es ferretería/otros, la app usa
    * nombre libre (despachante_nombre) sin elegir de esta lista.
    */
-  async getDespachantes(): Promise<{ tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null }[]> {
-    const { data, error } = await this.supabase.client.rpc('despachantes_disponibles');
+  async getDespachantes(
+    bodegaId?: string | null,
+    proyectoId?: string | null,
+  ): Promise<{ tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null; vinculado?: boolean }[]> {
+    const { data, error } = await this.supabase.client.rpc('despachantes_disponibles', {
+      p_bodega_id: bodegaId ?? null,
+      p_proyecto_id: proyectoId ?? null,
+    });
     if (error) throw new Error(error.message);
-    return (data ?? []) as { tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null }[];
+    return (data ?? []) as { tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null; vinculado?: boolean }[];
+  }
+
+  /** AV5 — designa (server-side, con elegibilidad AV1) el despachante de un conduce
+   *  recién creado en la web, para que firme remoto desde su bandeja "Por firmar". */
+  async asignarDespachante(salidaId: string, usuarioId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('asignar_despachante_conduce', {
+      p_salida_id: salidaId,
+      p_usuario_id: usuarioId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** AV5 — feature flag del wizard de conduce en la web (toggle sin deploy desde
+   *  Administración › Parámetros). Default false. */
+  async wizardConduceHabilitado(): Promise<boolean> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('parametros')
+      .select('valor')
+      .eq('clave', 'conduce_wizard_web_habilitado')
+      .maybeSingle();
+    if (error) return false;
+    return String((data as { valor?: string } | null)?.valor ?? '').toLowerCase() === 'true';
   }
 
   /**
@@ -638,6 +667,9 @@ export interface ConducePorFirmarRow {
   estado: string;
   fase: string;
   created_at: string;
+  /** AV1 — si el despachante actual (auth.uid) es elegible para firmar. Si es false,
+   *  el conduce necesita corrección (reasignar despachante) y NO se ofrece el pad. */
+  despachante_elegible: boolean;
 }
 
 /** AS3 — item de detalle del conduce (contrato conduce_detalle_app). */

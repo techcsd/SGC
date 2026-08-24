@@ -131,8 +131,10 @@ Deno.serve(async (req: Request) => {
 
     const pdfBytes = await buildPdf(anio, semana, inicio, fin, filas);
 
-    // Destinatarios por ROL (módulo incentivos) — nunca hardcodeado.
-    const { data: dest } = await supabase.rpc("usuarios_con_modulo", { p_modulo: "incentivos" });
+    // AV7 — Destinatarios por ROL ELEVADO (parametrizable: incentivo_informe_roles),
+    // nunca por correo quemado ni por "módulo admin". El informe compara choferes con
+    // montos (sensible): solo roles elevados + admin.
+    const { data: dest } = await supabase.rpc("destinatarios_informe_incentivo");
     const to = ((dest ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
 
     const { data: resendApiKey } = await supabase.rpc("get_resend_api_key");

@@ -194,3 +194,33 @@
   &__total { font-variant-numeric: tabular-nums; }
   &__hint { font-size: 12px; color: var(--sgc-text-muted, #929090); margin-top: 8px; }
 }
+
+// AV7 — acciones del encabezado + lista de destinatarios del informe
+.incentivos__head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  .sgc-btn { display: inline-flex; align-items: center; gap: 0.4rem; }
+}
+
+.inc-dest {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0.7rem;
+    background: var(--sgc-surface);
+    border: 1px solid var(--sgc-border);
+    border-radius: 8px;
+  }
+  &__nombre { color: var(--sgc-text); font-weight: 600; }
+  &__mail { color: var(--sgc-text-muted, #929090); font-size: 0.85rem; }
+}

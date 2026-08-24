@@ -98,6 +98,8 @@ export interface ProyectoResponsableLite {
   nombre: string;
   email: string | null;
   tipo_responsabilidad: TipoResponsabilidad;
+  /** AV3 — ingeniero PRINCIPAL de la obra (encabezados/reportes). Uno por obra. */
+  es_principal: boolean;
   activo: boolean;
   desde: string | null;
   hasta: string | null;

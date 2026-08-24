@@ -52,6 +52,10 @@ export class Incentivos implements OnInit {
 
   busy = signal(false);
 
+  // AV7 — "Quién recibe este informe" (destinatarios por rol elevado).
+  destinatarios = signal<{ email: string; nombre: string }[]>([]);
+  mostrarDestinatarios = signal(false);
+
   semanaActual = computed(() =>
     this.semanas().find((s) => s.anio === this.selAnio() && s.semana === this.selSemana()) ?? null,
   );
@@ -232,6 +236,19 @@ export class Incentivos implements OnInit {
       })),
       'Incentivo',
     );
+  }
+
+  // ── AV7 — Destinatarios del informe ──
+  async toggleDestinatarios() {
+    const abrir = !this.mostrarDestinatarios();
+    this.mostrarDestinatarios.set(abrir);
+    if (abrir && this.destinatarios().length === 0) {
+      try {
+        this.destinatarios.set(await this.service.destinatariosInforme());
+      } catch (e) {
+        this.toast.error('No se pudo cargar la lista de destinatarios', e instanceof Error ? e.message : undefined);
+      }
+    }
   }
 
   // ── Config ──

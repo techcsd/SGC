@@ -4,8 +4,42 @@
       <h1 class="incentivos__title">Incentivos — Choferes</h1>
       <p class="incentivos__sub">Informe semanal de desempeño. Aprobar o declinar es una decisión humana que queda registrada — el informe no paga solo.</p>
     </div>
-    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleConfig()">⚙ Configurar puntaje</button>
+    <div class="incentivos__head-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDestinatarios()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Quién recibe
+      </button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleConfig()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configurar puntaje
+      </button>
+    </div>
   </header>
+
+  <!-- AV7 — Quién recibe este informe (destinatarios por rol elevado, parametrizable) -->
+  @if (mostrarDestinatarios()) {
+    <section class="inc-config">
+      <h2 class="inc-config__title">Quién recibe este informe</h2>
+      <p class="inc-config__hint">
+        El "Incentivo semanal de choferes" es información sensible (comparativa con montos):
+        se envía y se ve <strong>solo</strong> por rol elevado — Administración, Dirección, Gerencia,
+        Logística y Jefe de flota. La lista se ajusta sin código desde el parámetro
+        <code>incentivo_informe_roles</code>.
+      </p>
+      @if (destinatarios().length === 0) {
+        <p class="inc-config__hint">Sin destinatarios configurados.</p>
+      } @else {
+        <ul class="inc-dest">
+          @for (d of destinatarios(); track d.email) {
+            <li><span class="inc-dest__nombre">{{ d.nombre }}</span><span class="inc-dest__mail">{{ d.email }}</span></li>
+          }
+        </ul>
+      }
+      <div class="inc-config__actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDestinatarios()">Cerrar</button>
+      </div>
+    </section>
+  }
 
   @if (loading()) {
     <app-skeleton [rows]="6" />
@@ -54,8 +88,14 @@
         </select>
       </label>
       <div class="inc-toolbar__actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="regenerar()">↻ Recalcular</button>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="reenviar()">✉ Reenviar correo</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="regenerar()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
+          Recalcular
+        </button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="reenviar()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          Reenviar correo
+        </button>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">Exportar (nómina)</button>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes()" (click)="aprobarTodos()">
           Aprobar los que cumplieron ({{ pendientes() }})

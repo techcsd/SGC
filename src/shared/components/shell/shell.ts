@@ -53,6 +53,10 @@ interface NavItem {
    *  gatear por un módulo padre). Para paraguas como "Ingeniería" que agrupan hijos
    *  con permisos distintos, sin que nadie pierda acceso ni se muestre un grupo vacío. */
   showIfAnyChild?: boolean;
+  /** AV2 — visible SOLO para estos roles (por roles.codigo). Para vistas que aplican
+   *  a un rol específico y a nadie más (p. ej. "Mi rendimiento" = Chofer + Jefe de flota),
+   *  aunque el admin no lo vea. Se evalúa con la misma matriz de roles del UserService. */
+  soloRoles?: string[];
   children?: NavSubItem[];
 }
 
@@ -240,11 +244,13 @@ export class Shell implements OnInit {
       ],
     },
     {
-      // AT2 — "Mi rendimiento": todo usuario ve SOLO su propio puntaje e histórico
-      // (el chofer no ve el módulo Incentivos). Sin gate de módulo, como "Mis tareas".
+      // AT2/AV2 — "Mi rendimiento": vista personal del incentivo. SOLO Chofer y Jefe
+      // de flota (los roles del incentivo); el admin usa las vistas administrativas
+      // en /incentivos (Desempeño de choferes), no esta. La RLS ya limita a lo suyo.
       label: 'Mi rendimiento',
       icon: 'incentivos',
       route: '/mi-rendimiento',
+      soloRoles: ['chofer_transportista', 'jefe_flota'],
     },
     // AU6 — "Producción de Obra" y "Bitácora" ya NO son grupos top-level: se movieron
     // dentro del módulo "Ingeniería" (ver el grupo Ingeniería más abajo). Las rutas y
@@ -553,6 +559,8 @@ export class Shell implements OnInit {
     // bandeja del despachante (evita el item que terminaba en 403).
     if (item.noChofer && this.userService.esChofer() && !this.userService.esTecnologia())
       return false;
+    // AV2 — visible solo para roles específicos (p. ej. Mi rendimiento = Chofer + Jefe de flota).
+    if (item.soloRoles) return item.soloRoles.some((r) => this.userService.hasRole(r));
     // AU1 — bandeja personal solo con pendientes (p. ej. Conduces por firmar).
     if (item.soloConPendiente) return this.pendingBadge(item) > 0;
     // AU6 — grupo paraguas (Ingeniería): visible si hay al menos un hijo accesible.

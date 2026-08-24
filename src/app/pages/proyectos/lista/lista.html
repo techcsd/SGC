@@ -364,7 +364,9 @@
             } @else {
               @if (responsables().length === 0) {
                 <p class="proyectos__fases-empty">
-                  Sin ingenieros responsables vinculados. Se usan para preseleccionar los firmantes de la liberación (CL).
+                  Sin ingenieros responsables vinculados. Una obra puede tener varios ingenieros;
+                  marca uno como <strong>principal</strong> (aparece como "ENC. OBRA" en encabezados y reportes).
+                  Todos comparten la visibilidad y los permisos de la obra.
                 </p>
               } @else {
                 @for (r of responsables(); track r.id) {
@@ -372,6 +374,9 @@
                     <div class="proyectos__fase-info">
                       <div>
                         <p class="proyectos__fase-nombre">
+                          @if (r.es_principal) {
+                            <span class="sgc-badge sgc-badge--hub">Principal</span>
+                          }
                           <span class="sgc-badge sgc-badge--info">{{ tipoRespLabel(r.tipo_responsabilidad) }}</span>
                           {{ r.nombre }}
                         </p>
@@ -381,12 +386,23 @@
                       </div>
                     </div>
                     @if (puedeGestionarResponsables()) {
-                      <button
-                        type="button"
-                        class="proyectos__btn-icon proyectos__btn-icon--danger"
-                        (click)="removeResponsable(r.id)"
-                        aria-label="Quitar responsable"
-                      >✕</button>
+                      <div class="proyectos__fase-actions">
+                        @if (!r.es_principal) {
+                          <button
+                            type="button"
+                            class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                            (click)="hacerPrincipal(r.usuario_id)"
+                          >Hacer principal</button>
+                        }
+                        <button
+                          type="button"
+                          class="proyectos__btn-icon proyectos__btn-icon--danger"
+                          (click)="removeResponsable(r.id)"
+                          aria-label="Quitar responsable"
+                        >
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        </button>
+                      </div>
                     }
                   </div>
                 }
@@ -1138,15 +1154,16 @@
         </select>
       </div>
 
-      <!-- Responsable -->
+      <!-- Ingeniero principal (AV3) — el resto del equipo se gestiona en el detalle -->
       <div class="proyectos__field">
-        <label class="proyectos__label" for="responsable_id">Responsable</label>
+        <label class="proyectos__label" for="responsable_id">Ingeniero principal</label>
         <select id="responsable_id" class="proyectos__select proyectos__input" formControlName="responsable_id">
           <option [value]="null">Sin responsable</option>
           @for (u of usuarios(); track u.id) {
             <option [value]="u.id">{{ u.nombre }}</option>
           }
         </select>
+        <p class="proyectos__hint">Puedes agregar más ingenieros al equipo desde el detalle de la obra (Responsables).</p>
       </div>
 
       <!-- Fecha inicio -->

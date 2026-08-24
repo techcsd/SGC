@@ -1,6 +1,51 @@
 # SGC — Session Handoff
 
-_Last updated: 2026-08-20_
+_Last updated: 2026-08-24_
+
+## 🟢 2026-08-24 — PROMPT-7 (IDs AV): elegibilidad del despachante, gating de incentivos, varios ingenieros por obra + propuestas conduces/Ingeniería/personal — **web 1.91.0, build VERDE, SIN commit/deploy**
+
+**Estado:** `npm run build` VERDE (bump 1.90.1→**1.91.0** + `release-notes.json` web.1.91.0 con 5 cambios). **3 migraciones APLICADAS y verificadas en prod** (Management API). Edge `incentivo-semanal` **editada (NO desplegada)**. Xaviel estaba away → decisiones de las ⚠️ pausa tomadas con las opciones recomendadas y **parametrizadas** (se ajustan sin código); marcadas abajo como supuestos a confirmar.
+
+### FASE 1 (AV1+AV8) — Elegibilidad del despachante — 🔴 urgente, RESUELTO
+- **Causa raíz doble:** (a) el param `despachante_roles_elegibles` incluía `chofer_transportista` y NO `gerente_proyectos`; (b) BUG real: `conduce_firmar_despachante` delegaba en `firmar_conduce`, cuya whitelist NO contemplaba al despachante → rechazaba a CUALQUIER despachante sin módulo inventario. Por eso 4 conduces REALES estaban atascados con despachantes **elegibles** (Emmanuel=ingeniero_campo, Sócrates y Jonathan y Wagner=gerente_proyectos): no era inelegibilidad, era el bug.
+- **Fix (`sql/2026-08-24-av1-av8-despachante-elegibilidad.sql`, aplicado):** matriz ÚNICA `sgc.es_despachante_elegible(uuid)` (lee param, quita chofer, agrega gerente_proyectos/jefe_flota/admin). La consumen selector (`despachantes_disponibles`), servidor (`firmar_conduce` acepta al despachante designado ELEGIBLE + `conduce_firmar_despachante` rechaza al inelegible con `DESP_INELEGIBLE:`) y pantalla (`mis_conduces_por_firmar` expone `despachante_elegible`). Los 5 conduces reales atascados se **destraban solos** al firmar; el único inelegible restante es un `es_prueba` de Papo (chofer) → verá "corrección pendiente".
+- **CND-747ED8AB ya estaba `anulado`** (Xaviel lo resolvió a mano) — no requiere acción.
+- **Web:** `por-firmar` muestra estado "Corrección pendiente" (banner + sin pad) si el despachante es inelegible; ✕ close → SVG (AW12).
+- ⚠️ **Supuesto:** lista de roles elegibles = `capataz,ingeniero_campo,guarda_almacen,logistica,gerente_produccion,gerente_proyectos,jefe_flota,admin`. Ajustable en `sgc.parametros.despachante_roles_elegibles`.
+
+### FASE 2 (AV2+AV7) — Gating de incentivos
+- **AV2 "Mi rendimiento":** nueva bandera `soloRoles` en NavItem (`shell.ts`) + `rolesGuard` (`core/guards/roles.guard.ts`) en la ruta → visible SOLO para `chofer_transportista` + `jefe_flota`. El admin conserva `/incentivos` (Desempeño de choferes). Sin migración.
+- **AV7 informe semanal:** `sql/2026-08-24-av7-destinatarios-informe-incentivo.sql` (aplicado) — RPC `destinatarios_informe_incentivo()` por rol elevado parametrizable (`incentivo_informe_roles = admin,direccion,gerencia,logistica,jefe_flota`), reemplaza `usuarios_con_modulo('incentivos')` (que tenía el catch-all `OR módulo admin`). Edge `incentivo-semanal/index.ts` editado para usarlo (**falta desplegar**). Nueva vista "Quién recibe este informe" en la página Incentivos (+ AW12: ⚙/↻/✉ → SVG).
+- **Hallazgo (dato, no código):** Sonia Castillo (Legal/abogado) recibe el informe porque **también tiene el rol `gerencia`**; Felipe Scheker por `direccion` (legítimo). Si Sonia no debe estar en Gerencia = **ajuste de asignación de rol** (no toqué datos).
+
+### FASE 3 (AV3) — Varios ingenieros por obra
+- La N:M `sgc.proyecto_responsables` YA existía (Z2). `sql/2026-08-24-av3-obra-varios-ingenieros.sql` (aplicado) agrega `es_principal` + índice único parcial (un principal/obra) + **trigger que espeja el principal a `proyectos.responsable_id`** (KPI/headers/RLS que leen el campo legacy siguen igual, cero cambios) + backfill (todas las obras con responsable_id → principal; verificado 0 sin-principal, 0 multi-principal) + RPC `set_responsable_principal` + `responsables_de_proyecto` devuelve `es_principal` + `mis_proyectos` incluye la N:M (adjuntos ven su obra).
+- ⚠️ **Supuesto:** principal + adjuntos con **mismos permisos** (matriz de confirmación AK4/AT17 y RLS de bitácora AW3/AW5 ya usan la N:M completa).
+- **Web:** sección "Responsables" del detalle de obra: badge "Principal" + botón "Hacer principal"; dropdown de alta relabel a "Ingeniero principal". Nueva variante `sgc-badge--hub`.
+
+### FASE 5 (AV5) — Wizard de creación de conduce en la web — CONSTRUIDO (feature flag OFF)
+- `sql/2026-08-24-av5-conduce-despachante-web.sql` (aplicado): feature flag `conduce_wizard_web_habilitado` (default `false`, toggle desde Administración › Parámetros) + RPC `asignar_despachante_conduce(salida, usuario)` (valida elegibilidad AV1 + no-firmado + avisa al despachante).
+- Web `salidas.*`: cuando el flag está ON, el wizard muestra un **selector de despachante** (solo usuarios, filtrado por la matriz AV1, vinculados primero); al crear, designa al despachante → va a su bandeja "Por firmar" → firma remoto → chofer entrega. Cierra el ciclo crear→firmar→entregar sin la app. Flag OFF = cero cambio en el flujo actual. `getDespachantes()` ahora acepta bodega/proyecto; `SalidasService.asignarDespachante` + `wizardConduceHabilitado`.
+
+### FASE 6 (AV6) — Árbol de Ingeniería — WEB YA CORRECTO (paridad = trabajo de app)
+- El árbol **web** ya está bien (13 items bajo Ingeniería, AU6 aplicado). El descuadre es que la **app** tiene solo 2 items → es paridad app-side (**PROMPT-8**). **Web no requiere cambios.** Propuesta de árbol canónico + resoluciones (Crear ruta→Flota; Requisición/Confirmar entregas=accesos; "Solicitud de material" app ≡ "Requisición" web ≠ "Solicitud de movimiento") en `docs/AV5-AV6-paridad-conduces-e-ingenieria.md`.
+
+### FASE 4 (AV4) — Ficha de personal + import periódico — SPEC BUILD-READY (no aplicado)
+- `docs/AV4-personal-obra-ficha-import.md` afinado sobre el esquema REAL: `personal_obra` YA tiene base + `lote_import` + `personal_obra_fotos/firmas` + `es_prueba`. Falta acotado (aditivo): `aseguramiento_*`, `cuadrilla`, `tipo` en fotos, tablas `personal_obra_listados(_items)`. **Defaults elegidos** ("do the best"): asegurado=flag+fecha+doc; tipos doc Cédula/ID/Pasaporte; bajas se señalan (RRHH confirma); dos fotos (cara+doc); acceso RRHH/admin/ingenieros, números ocultos en exports. **No se aplicó migración** (dato migratorio sensible → un OK de RRHH antes). Análisis Excel real (34 personas, 2 ingenieros → alimenta AV3).
+
+### Confirmado por Xaviel (24/08) — los 4 supuestos OK
+1. Roles despachante ✅ (mantener `logistica`/Logística y Transportación). 2. Destinatarios informe ✅. 3. Mi rendimiento chofer+jefe_flota ✅. 4. Ingenieros principal+adjuntos mismos permisos ✅. **Sonia Castillo SÍ debe tener rol `gerencia`** → los destinatarios del informe ya son correctos, sin cambios de datos.
+
+### Pendiente / próximos pasos
+1. **Commit/push/deploy 1.91.0** (regla madre: no hecho) + **desplegar edge `incentivo-semanal`** (AV7).
+2. **AV4:** OK de RRHH a los 5 defaults (§E del doc) → aplicar migración aditiva + build de la vista de control por obra + ciclo de import con diff. Es el mayor trabajo restante de esta ronda.
+3. **AV5:** cuando AU1 ubique el hogar de Inventario, poner `conduce_wizard_web_habilitado=true` y validar en prod.
+4. **App (PROMPT-8):** selector de despachante filtrado por la matriz AV1; "Crear ruta"→Flota; unificar nombre requisición ("Requisición"); captura foto cara+documento (AV4); "Mi rendimiento" gating espejo; árbol de Ingeniería (AV6).
+
+Detalle completo en la memoria `project_sgc-prompt7-AV-2026-08-24.md`.
+
+---
+
 
 ## 🟢 2026-08-20 — PROMPT-1 (IDs AS): regresión de tema, sidebar, modal requisición + rol logística, requisiciones RLS, foto de combustible obligatoria
 

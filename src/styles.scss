@@ -181,6 +181,11 @@ textarea {
     background: var(--sgc-border);
     color: var(--sgc-text-secondary);
   }
+
+  &--hub {
+    background: var(--Hub-translucid, rgba(255, 179, 0, 0.15));
+    color: var(--Hub);
+  }
 }
 
 .sgc-btn {
