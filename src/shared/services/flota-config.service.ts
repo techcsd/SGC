@@ -23,6 +23,19 @@ export class FlotaConfigService {
   rendimientoMaximoKmGal = signal(35); // techo absoluto (arriba = error/echada saltada)
   umbralAnormalPct = signal(40); // desviación ± del baseline que marca "anormal"
   minRegistrosBaseline = signal(3); // echadas plausibles mínimas para confiar el promedio propio
+  // AW3 — topes de capacidad de tanque por clase (galones, aproximados con holgura).
+  capMotocicleta = signal(6);
+  capAutomovil = signal(25);
+  capSuv = signal(45);
+  capPickup = signal(45);
+  capCamion = signal(120);
+  capPesado = signal(250);
+  capDefault = signal(80);
+  capNoVehiculo = signal(500); // echada a depósito/planta/bidones (no vehículo)
+  margenBloqueo = signal(1.15); // bloqueo duro: galones > cap × este factor
+  margenAlerta = signal(0.85);  // confirmación: galones > cap × este factor
+  precioGalMin = signal(100);   // banda de precio RD$/galón
+  precioGalMax = signal(600);
 
   private loaded = false;
 
@@ -75,6 +88,19 @@ export class FlotaConfigService {
           case 'min_registros_baseline':
             this.minRegistrosBaseline.set(n);
             break;
+          // AW3 — topes de tanque + banda de precio.
+          case 'tanque_cap_motocicleta': this.capMotocicleta.set(n); break;
+          case 'tanque_cap_automovil':   this.capAutomovil.set(n); break;
+          case 'tanque_cap_suv':         this.capSuv.set(n); break;
+          case 'tanque_cap_pickup':      this.capPickup.set(n); break;
+          case 'tanque_cap_camion':      this.capCamion.set(n); break;
+          case 'tanque_cap_pesado':      this.capPesado.set(n); break;
+          case 'tanque_cap_default':     this.capDefault.set(n); break;
+          case 'tanque_cap_no_vehiculo': this.capNoVehiculo.set(n); break;
+          case 'tanque_margen_bloqueo':  this.margenBloqueo.set(n); break;
+          case 'tanque_margen_alerta':   this.margenAlerta.set(n); break;
+          case 'precio_gal_min':         this.precioGalMin.set(n); break;
+          case 'precio_gal_max':         this.precioGalMax.set(n); break;
         }
       }
     } catch {

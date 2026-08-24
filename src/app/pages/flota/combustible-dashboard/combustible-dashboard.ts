@@ -42,7 +42,7 @@ export class CombustibleDashboard implements OnInit {
   private combustibleService = inject(CombustibleService);
   private vehiculosService = inject(VehiculosService);
   private avisosService = inject(AvisosFlotaService);
-  private flotaConfig = inject(FlotaConfigService);
+  protected flotaConfig = inject(FlotaConfigService);
   private router = inject(Router);
   private datosPruebaView = inject(DatosPruebaViewService);
 
@@ -74,10 +74,15 @@ export class CombustibleDashboard implements OnInit {
     () => this.vehiculos().find((v) => v.id === this.selectedVehiculoId())?.rendimiento_esperado_km_gal ?? null,
   );
 
-  /** Registros v2 (con galones) dentro del rango de meses seleccionado. */
+  /**
+   * Registros v2 (con galones) dentro del rango de meses. AW3 — fuera las
+   * echadas invalidadas y las de prueba: no envenenan los KPIs de la flota.
+   */
   private enRango = computed(() => {
     const desde = this.desdeIso();
-    return this.registros().filter((r) => r.galones != null && r.fecha >= desde);
+    return this.registros().filter(
+      (r) => r.galones != null && r.fecha >= desde && !r.invalidada && !r.es_prueba,
+    );
   });
 
   private desdeIso = computed(() => {
@@ -127,6 +132,30 @@ export class CombustibleDashboard implements OnInit {
   );
 
   gastoMensualVehiculoChart = computed<BarDatum[]>(() => this.gastoMensual(this.echadasVehiculo()));
+
+  // AW2 — costo por km en el tiempo (tendencia, no solo el número del momento).
+  costoKmChart = computed<BarDatum[]>(() =>
+    this.echadasVehiculo()
+      .filter((r) => r.costo_por_km != null)
+      .map((r) => ({
+        label: this.fechaCorta(r.fecha),
+        value: Math.round((r.costo_por_km as number) * 100) / 100,
+        color: 'var(--sgc-primary)',
+      })),
+  );
+
+  // AW2 — precio pagado promedio del vehículo vs. banda de precio configurada.
+  precioPromedioVehiculo = computed<number | null>(() => {
+    const precios = this.echadasVehiculo()
+      .filter((r) => r.precio_por_galon != null)
+      .map((r) => r.precio_por_galon as number);
+    return precios.length ? precios.reduce((a, b) => a + b, 0) / precios.length : null;
+  });
+  /** ¿El precio promedio del vehículo cae fuera de la banda plausible? */
+  precioFueraDeBanda = computed<boolean>(() => {
+    const p = this.precioPromedioVehiculo();
+    return p != null && (p < this.flotaConfig.precioGalMin() || p > this.flotaConfig.precioGalMax());
+  });
 
   // ── Flotilla ─────────────────────────────────────────────
   flotaStats = computed(() => {

@@ -33,6 +33,7 @@ import {
   productoCanonico,
   RendimientoEstado,
   RENDIMIENTO_ESTADO_META,
+  EchadaSospechosa,
 } from '../../../../shared/models/combustible.model';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
@@ -230,6 +231,15 @@ export class Combustible implements OnInit {
     rendimiento_maximo_km_gal: new FormControl(35, [Validators.required, Validators.min(1)]),
     umbral_consumo_pct: new FormControl(20, [Validators.required, Validators.min(1), Validators.max(99)]),
     umbral_anormal_pct: new FormControl(40, [Validators.required, Validators.min(1), Validators.max(99)]),
+    // AW3 — topes de capacidad de tanque por clase (galones) + banda de precio.
+    tanque_cap_automovil: new FormControl(25, [Validators.required, Validators.min(1)]),
+    tanque_cap_suv: new FormControl(45, [Validators.required, Validators.min(1)]),
+    tanque_cap_pickup: new FormControl(45, [Validators.required, Validators.min(1)]),
+    tanque_cap_camion: new FormControl(120, [Validators.required, Validators.min(1)]),
+    tanque_cap_pesado: new FormControl(250, [Validators.required, Validators.min(1)]),
+    tanque_cap_no_vehiculo: new FormControl(500, [Validators.required, Validators.min(1)]),
+    precio_gal_min: new FormControl(100, [Validators.required, Validators.min(1)]),
+    precio_gal_max: new FormControl(600, [Validators.required, Validators.min(1)]),
   });
 
   toggleConfig() {
@@ -242,6 +252,14 @@ export class Combustible implements OnInit {
         rendimiento_maximo_km_gal: this.flotaConfig.rendimientoMaximoKmGal(),
         umbral_consumo_pct: this.flotaConfig.umbralConsumoPct(),
         umbral_anormal_pct: this.flotaConfig.umbralAnormalPct(),
+        tanque_cap_automovil: this.flotaConfig.capAutomovil(),
+        tanque_cap_suv: this.flotaConfig.capSuv(),
+        tanque_cap_pickup: this.flotaConfig.capPickup(),
+        tanque_cap_camion: this.flotaConfig.capCamion(),
+        tanque_cap_pesado: this.flotaConfig.capPesado(),
+        tanque_cap_no_vehiculo: this.flotaConfig.capNoVehiculo(),
+        precio_gal_min: this.flotaConfig.precioGalMin(),
+        precio_gal_max: this.flotaConfig.precioGalMax(),
       });
     }
   }
@@ -257,6 +275,14 @@ export class Combustible implements OnInit {
         ['rendimiento_maximo_km_gal', v.rendimiento_maximo_km_gal!],
         ['umbral_consumo_pct', v.umbral_consumo_pct!],
         ['umbral_anormal_pct', v.umbral_anormal_pct!],
+        ['tanque_cap_automovil', v.tanque_cap_automovil!],
+        ['tanque_cap_suv', v.tanque_cap_suv!],
+        ['tanque_cap_pickup', v.tanque_cap_pickup!],
+        ['tanque_cap_camion', v.tanque_cap_camion!],
+        ['tanque_cap_pesado', v.tanque_cap_pesado!],
+        ['tanque_cap_no_vehiculo', v.tanque_cap_no_vehiculo!],
+        ['precio_gal_min', v.precio_gal_min!],
+        ['precio_gal_max', v.precio_gal_max!],
       ];
       for (const [k, val] of entries) await this.flotaConfig.setConfig(k, val);
       // Refleja en los signals + recalcula el histórico con los nuevos umbrales.
@@ -265,6 +291,14 @@ export class Combustible implements OnInit {
       this.flotaConfig.rendimientoMaximoKmGal.set(v.rendimiento_maximo_km_gal!);
       this.flotaConfig.umbralConsumoPct.set(v.umbral_consumo_pct!);
       this.flotaConfig.umbralAnormalPct.set(v.umbral_anormal_pct!);
+      this.flotaConfig.capAutomovil.set(v.tanque_cap_automovil!);
+      this.flotaConfig.capSuv.set(v.tanque_cap_suv!);
+      this.flotaConfig.capPickup.set(v.tanque_cap_pickup!);
+      this.flotaConfig.capCamion.set(v.tanque_cap_camion!);
+      this.flotaConfig.capPesado.set(v.tanque_cap_pesado!);
+      this.flotaConfig.capNoVehiculo.set(v.tanque_cap_no_vehiculo!);
+      this.flotaConfig.precioGalMin.set(v.precio_gal_min!);
+      this.flotaConfig.precioGalMax.set(v.precio_gal_max!);
       const n = await this.flotaConfig.recalcularEstados();
       this.toast.success('Umbrales guardados', `Se recalcularon ${n} registros con las reglas nuevas.`);
       this.configPanelOpen.set(false);
@@ -328,7 +362,10 @@ export class Combustible implements OnInit {
   private mesActual = computed(() => {
     const ym = todayIso().slice(0, 7);
     const verPrueba = this.esAdmin() && this.mostrarPrueba();
-    return this.registros().filter((r) => r.fecha.startsWith(ym) && !(r.es_prueba && !verPrueba));
+    // AW3 — las echadas invalidadas quedan fuera de los KPIs del mes.
+    return this.registros().filter(
+      (r) => r.fecha.startsWith(ym) && !r.invalidada && !(r.es_prueba && !verPrueba),
+    );
   });
   totalGalonesMes = computed(() =>
     this.mesActual().reduce((s, r) => s + (r.galones ?? r.litros ?? 0), 0),
@@ -377,14 +414,59 @@ export class Combustible implements OnInit {
     return kms.length ? Math.max(...kms) : null;
   });
 
-  /** Promedio de rendimiento histórico del vehículo (para la alerta preview). */
+  /**
+   * AW3 — rendimientos "sanos" del propio vehículo, con el MISMO criterio que el
+   * servidor: excluye invalidadas y datos fuera del rango físico (piso..techo) o
+   * con muy poca distancia. Ya no arrastra echadas basura al promedio (fin del
+   * "Promedio: 7.21" envenenado).
+   */
+  private rendimientosSanos(vehiculoId: string): number[] {
+    const piso = this.flotaConfig.rendimientoMinimoKmGal();
+    const techo = this.flotaConfig.rendimientoMaximoKmGal();
+    const distMin = this.flotaConfig.distMinKm();
+    return this.registros()
+      .filter((r) =>
+        r.vehiculo_id === vehiculoId &&
+        !r.invalidada &&
+        r.rendimiento_km_gal != null &&
+        (r.km_recorridos ?? 0) >= distMin &&
+        (r.rendimiento_km_gal as number) >= piso &&
+        (r.rendimiento_km_gal as number) <= techo,
+      )
+      .map((r) => r.rendimiento_km_gal as number);
+  }
+
+  /** AW3 — capacidad de tanque estimada del vehículo (override → clase). */
+  capVehiculo(v: Vehiculo | undefined | null): number {
+    if (!v) return this.flotaConfig.capDefault();
+    if (v.capacidad_tanque_gal && v.capacidad_tanque_gal > 0) return v.capacidad_tanque_gal;
+    switch (v.tipo) {
+      case 'motocicleta': return this.flotaConfig.capMotocicleta();
+      case 'automovil': return this.flotaConfig.capAutomovil();
+      case 'suv': return this.flotaConfig.capSuv();
+      case 'pickup': return this.flotaConfig.capPickup();
+      case 'camion': return this.flotaConfig.capCamion();
+      case 'excavadora': case 'retroexcavadora': case 'bulldozer': case 'grua':
+      case 'mixer': case 'compactadora': case 'montacargas': case 'telehandler':
+        return this.flotaConfig.capPesado();
+      default: return this.flotaConfig.capDefault();
+    }
+  }
+
+  /** Capacidad del vehículo seleccionado en el formulario (para el preview). */
+  capVehiculoSel = computed<number>(() => {
+    const vId = this.vehiculoVal();
+    return this.capVehiculo(this.vehiculos().find((v) => v.id === vId));
+  });
+
+  /** Promedio de rendimiento histórico SANO del vehículo (para la alerta preview). */
   private promedioRendimientoVeh = computed<number | null>(() => {
     const vId = this.vehiculoVal();
     if (!vId) return null;
-    const rends = this.registros()
-      .filter((r) => r.vehiculo_id === vId && r.rendimiento_km_gal != null)
-      .map((r) => r.rendimiento_km_gal as number);
-    return rends.length >= 3 ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
+    const rends = this.rendimientosSanos(vId);
+    return rends.length >= this.flotaConfig.minRegistrosBaseline()
+      ? rends.reduce((a, b) => a + b, 0) / rends.length
+      : null;
   });
 
   /** Rendimiento esperado del vehículo seleccionado (S20), para el preview de la alerta. */
@@ -566,6 +648,28 @@ export class Combustible implements OnInit {
       return;
     }
 
+    // AW3 — validación de UX (el servidor la vuelve a hacer por integridad):
+    // tope de galones por capacidad de tanque + banda de precio.
+    const gal = raw.galones ?? 0;
+    const esPersona = !!raw.titular_es_persona;
+    const cap = esPersona ? this.flotaConfig.capNoVehiculo() : this.capVehiculoSel();
+    if (cap > 0 && gal > cap * this.flotaConfig.margenBloqueo()) {
+      this.saveError.set(
+        `La cantidad de galones (${gal}) supera la capacidad estimada del ${esPersona ? 'depósito' : 'tanque'} (~${cap} gal). Verifica el valor — ¿sobró un punto o coma?`,
+      );
+      return;
+    }
+    const montoNum = raw.monto ?? 0;
+    if (montoNum > 0 && gal > 0) {
+      const precio = montoNum / gal;
+      if (precio < this.flotaConfig.precioGalMin() || precio > this.flotaConfig.precioGalMax()) {
+        this.saveError.set(
+          `El precio por galón resultante (RD$${precio.toFixed(2)}) está fuera de la banda plausible (RD$${this.flotaConfig.precioGalMin()}–RD$${this.flotaConfig.precioGalMax()}). Revisa galones y monto.`,
+        );
+        return;
+      }
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 
@@ -595,17 +699,40 @@ export class Combustible implements OnInit {
     };
 
     try {
-      const { registro, derivados } = await this.combustibleService.registrar(payload, recibo, tablero);
+      let res = await this.combustibleService.registrar(payload, recibo, tablero);
+
+      // AW3 — el servidor pidió confirmar un valor inusual (alto pero no imposible).
+      if (res.needsConfirm) {
+        this.saving.set(false);
+        if (!confirm(res.message)) return; // el usuario canceló → no se registra
+        this.saving.set(true);
+        res = await this.combustibleService.registrar(payload, recibo, tablero, {
+          confirmado: true,
+          clientUuid: res.clientUuid,
+        });
+        if (res.needsConfirm) return; // no debería repetir; corte de seguridad
+      }
+
+      const { registro, derivados } = res;
       this.registros.update((list) => [registro, ...list]);
       this.drawerOpen.set(false);
       this.clearFiles();
 
       if (derivados.alerta_consumo) {
-        this.combustibleService.notificarConsumoAnormal(registro); // email no bloqueante
-        this.toast.warning(
-          'Consumo anormal detectado',
-          `${derivados.motivo_alerta ?? `${derivados.rendimiento_km_gal} km/gal, por debajo de lo normal.`} Se notificó a Flota.`,
-        );
+        // AW2 — anomalía con dirección: alto = error de dato (revisar lectura),
+        // bajo = posible falla mecánica (aviso a mantenimiento).
+        if (derivados.direccion_alerta === 'alto') {
+          this.toast.warning(
+            'Revisa la lectura',
+            `${derivados.motivo_alerta ?? `${derivados.rendimiento_km_gal} km/gal, inusualmente alto.`} Se pidió revisar la lectura (no es ticket de mantenimiento).`,
+          );
+        } else {
+          this.combustibleService.notificarConsumoAnormal(registro); // email no bloqueante
+          this.toast.warning(
+            'Consumo anormal detectado',
+            `${derivados.motivo_alerta ?? `${derivados.rendimiento_km_gal} km/gal, por debajo de lo normal.`} Se notificó a Flota.`,
+          );
+        }
       } else {
         const rendTxt = derivados.rendimiento_km_gal != null
           ? `${derivados.rendimiento_km_gal} km/gal` : 'primera echada del vehículo';
@@ -674,14 +801,18 @@ export class Combustible implements OnInit {
     return this.vehiculos().find((v) => v.id === vehiculoId)?.rendimiento_esperado_km_gal ?? null;
   }
   promedioVehiculo(vehiculoId: string): number | null {
-    const rends = this.registros()
-      .filter((r) => r.vehiculo_id === vehiculoId && r.rendimiento_km_gal != null)
-      .map((r) => r.rendimiento_km_gal as number);
+    // AW3 — mismo criterio "sano" que el servidor (excluye invalidadas/outliers).
+    const rends = this.rendimientosSanos(vehiculoId);
     return rends.length ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
   }
   promedioFlota(): number | null {
+    const piso = this.flotaConfig.rendimientoMinimoKmGal();
+    const techo = this.flotaConfig.rendimientoMaximoKmGal();
+    const distMin = this.flotaConfig.distMinKm();
     const rends = this.registros()
-      .filter((r) => r.rendimiento_km_gal != null)
+      .filter((r) => !r.invalidada && r.rendimiento_km_gal != null &&
+        (r.km_recorridos ?? 0) >= distMin &&
+        (r.rendimiento_km_gal as number) >= piso && (r.rendimiento_km_gal as number) <= techo)
       .map((r) => r.rendimiento_km_gal as number);
     return rends.length ? rends.reduce((a, b) => a + b, 0) / rends.length : null;
   }
@@ -705,6 +836,65 @@ export class Combustible implements OnInit {
   /** AC11 — etiqueta legible del origen de la echada. */
   origenLabel(r: RegistroCombustible): string {
     return r.origen === 'deposito_obra' ? 'Depósito en obra' : 'Estación';
+  }
+
+  // ── AW3 — Panel de saneamiento de echadas (solo admin) ────
+  saneamientoOpen = signal(false);
+  loadingSospechosas = signal(false);
+  sospechosas = signal<EchadaSospechosa[]>([]);
+
+  async toggleSaneamiento() {
+    const open = !this.saneamientoOpen();
+    this.saneamientoOpen.set(open);
+    if (open) await this.cargarSospechosas();
+  }
+
+  private async cargarSospechosas() {
+    if (!this.esAdmin()) return;
+    this.loadingSospechosas.set(true);
+    try {
+      this.sospechosas.set(await this.combustibleService.echadasSospechosas());
+    } catch (e: unknown) {
+      this.toast.error('No se pudieron cargar las echadas sospechosas', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.loadingSospechosas.set(false);
+    }
+  }
+
+  /** Invalida (excluye de promedios/KPIs/incentivo) una echada, con traza. */
+  async invalidarEchada(e: EchadaSospechosa) {
+    if (!this.esAdmin()) return;
+    const motivo = prompt('Motivo para excluir esta echada (queda en la traza):', 'Dato inválido');
+    if (motivo === null) return;
+    try {
+      await this.combustibleService.sanearEchada(e.id, 'invalidar', { motivo });
+      this.toast.success('Echada excluida', 'Fuera de promedios, KPIs e incentivo. Se conserva el registro.');
+      await Promise.all([this.loadAll(), this.cargarSospechosas()]);
+    } catch (err: unknown) {
+      this.toast.error('No se pudo excluir', err instanceof Error ? err.message : undefined);
+    }
+  }
+
+  /** Corrige los galones de una echada (caso decimal perdido), con traza. */
+  async corregirEchada(e: EchadaSospechosa) {
+    if (!this.esAdmin()) return;
+    const txt = prompt(
+      `Galones correctos para esta echada (actual: ${e.galones}).\nEj.: si se registró 34118 y era 34.118, escribe 34.118`,
+      String(e.galones ?? ''),
+    );
+    if (txt === null) return;
+    const galones = Number(txt.replace(',', '.'));
+    if (!Number.isFinite(galones) || galones <= 0) {
+      this.toast.error('Valor inválido', 'Escribe una cantidad de galones válida.');
+      return;
+    }
+    try {
+      await this.combustibleService.sanearEchada(e.id, 'corregir', { galones, motivo: 'Corrección de galones (AW3)' });
+      this.toast.success('Echada corregida', 'Se recalcularon rendimiento y promedios.');
+      await Promise.all([this.loadAll(), this.cargarSospechosas()]);
+    } catch (err: unknown) {
+      this.toast.error('No se pudo corregir', err instanceof Error ? err.message : undefined);
+    }
   }
 
   get f() { return this.form.controls; }

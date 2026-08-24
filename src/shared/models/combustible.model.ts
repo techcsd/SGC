@@ -70,6 +70,12 @@ export interface RegistroCombustible {
   // T2 — dato de prueba (solo admin lo ve/gestiona; oculto por RLS a no-admin).
   es_prueba?: boolean;
 
+  // AW3 — saneamiento: echada excluida (invalidada) o corregida, con traza.
+  invalidada?: boolean;
+  saneada?: boolean;
+  saneamiento_motivo?: string | null;
+  saneada_at?: string | null;
+
   created_at: string;
 }
 
@@ -135,6 +141,34 @@ export interface CombustibleDerivados {
   referencia_alerta?: 'esperado' | 'propio' | 'piso' | null;
   /** U10 — motivo legible del disparo (mostrado en el análisis). */
   motivo_alerta?: string | null;
+  /** AW2 — dirección de la anomalía: 'bajo' (mantenimiento) | 'alto' (revisar lectura). */
+  direccion_alerta?: 'bajo' | 'alto' | null;
+  // AW3 — cuando el servidor pide confirmar un valor inusual (no insertó todavía).
+  needs_confirm?: boolean;
+  confirm_message?: string;
+  cap?: number;
+  galones?: number;
+}
+
+/** AW3 — fila del panel de saneamiento (RPC echadas_sospechosas). */
+export interface EchadaSospechosa {
+  id: string;
+  fecha: string;
+  vehiculo_id: string | null;
+  placa: string | null;
+  marca: string | null;
+  tipo: string | null;
+  galones: number | null;
+  monto: number | null;
+  precio_por_galon: number | null;
+  kilometraje: number | null;
+  km_recorridos: number | null;
+  rendimiento_km_gal: number | null;
+  estado: string | null;
+  es_prueba: boolean;
+  invalidada: boolean;
+  cap: number | null;
+  motivos: string[] | null;
 }
 
 /** Un registro es v2 si tiene galones (aunque falten los derivados). */

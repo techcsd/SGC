@@ -49,6 +49,9 @@ export interface Vehiculo {
   capacidad_carga: string | null;
   capacidad_valor: number | null;
   capacidad_unidad: string | null;
+  // AW3 — capacidad aproximada del tanque de combustible (galones). Si está llena,
+  // manda sobre el tope por clase al validar/alertar echadas. Puede quedar vacía.
+  capacidad_tanque_gal: number | null;
   responsable_id: string | null;
   responsable?: { nombre: string };
   notas: string | null;

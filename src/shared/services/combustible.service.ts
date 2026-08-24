@@ -6,6 +6,7 @@ import {
   RegistroCombustibleFormData,
   CombustibleDerivados,
   PrecioCombustibleVigente,
+  EchadaSospechosa,
 } from '../models/combustible.model';
 import { cleanUuid } from '../utils/uuid.util';
 
@@ -90,10 +91,16 @@ export class CombustibleService {
     payload: RegistroCombustibleFormData,
     recibo: File,
     tablero: File,
-  ): Promise<{ registro: RegistroCombustible; derivados: CombustibleDerivados }> {
-    const clientUuid = crypto.randomUUID();
+    opts?: { confirmado?: boolean; clientUuid?: string },
+  ): Promise<
+    | { needsConfirm: true; message: string; clientUuid: string }
+    | { needsConfirm?: false; registro: RegistroCombustible; derivados: CombustibleDerivados; clientUuid: string }
+  > {
+    // AW3 — el mismo client_uuid se reusa al confirmar (idempotente + reusa fotos).
+    const clientUuid = opts?.clientUuid ?? crypto.randomUUID();
 
     // 1) Fotos primero: si fallan, no dejamos un registro sin evidencia.
+    //    upsert por path del client_uuid → re-subir al confirmar es idempotente.
     const [reciboPath, tableroPath] = await Promise.all([
       this.uploadFoto(clientUuid, 'recibo', recibo),
       this.uploadFoto(clientUuid, 'tablero', tablero),
@@ -121,9 +128,20 @@ export class CombustibleService {
       // depósito de obra NO entra a conciliación de estación.
       p_origen: payload.origen ?? 'estacion',
       p_proyecto_id: cleanUuid(payload.proyecto_id),
+      // AW3 — confirmación de valores inusuales (2º request tras el OK del usuario).
+      p_confirmado: opts?.confirmado ?? false,
     });
     if (error) throw new Error(error.message);
     const derivados = data as unknown as CombustibleDerivados;
+
+    // AW3 — el servidor pide confirmar un valor inusual: aún no insertó nada.
+    if (derivados?.needs_confirm) {
+      return {
+        needsConfirm: true,
+        message: derivados.confirm_message ?? '¿Confirmas la cantidad de galones?',
+        clientUuid,
+      };
+    }
 
     // AA20 — subtipo (regular|premium) vía helper (no rompe la firma del RPC
     // compartido con la app). No bloquea el guardado si falla.
@@ -144,7 +162,34 @@ export class CombustibleService {
       .single();
     if (rowErr) throw new Error(rowErr.message);
 
-    return { registro: row as unknown as RegistroCombustible, derivados };
+    return { registro: row as unknown as RegistroCombustible, derivados, clientUuid };
+  }
+
+  /** AW3 — echadas sospechosas para el panel de saneamiento (solo admin). */
+  async echadasSospechosas(): Promise<EchadaSospechosa[]> {
+    const { data, error } = await this.supabase.client.rpc('echadas_sospechosas');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as EchadaSospechosa[];
+  }
+
+  /**
+   * AW3 — sanea una echada (corregir | invalidar | revalidar), con traza. El
+   * servidor conserva el valor original y recalcula promedios/estados (admin).
+   */
+  async sanearEchada(
+    id: string,
+    accion: 'corregir' | 'invalidar' | 'revalidar',
+    campos?: { galones?: number | null; monto?: number | null; kilometraje?: number | null; motivo?: string | null },
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('sanear_echada', {
+      p_id: id,
+      p_accion: accion,
+      p_galones: campos?.galones ?? null,
+      p_monto: campos?.monto ?? null,
+      p_kilometraje: campos?.kilometraje ?? null,
+      p_motivo: campos?.motivo ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** AA20 — precios oficiales vigentes (RD$/galón) por producto canónico. */

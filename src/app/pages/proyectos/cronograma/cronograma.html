@@ -17,8 +17,6 @@
     </div>
   </header>
 
-  @if (error()) { <p class="cron__error">{{ error() }}</p> }
-
   <!-- Panel nueva/editar tarea -->
   @if (panelTareaAbierto()) {
     <div class="cron__panel sgc-card">
@@ -106,6 +104,16 @@
 
   @if (loading()) {
     <p class="cron__muted">Cargando…</p>
+  } @else if (error()) {
+    <!-- AW1 — vacío ≠ error: si la carga falló, NUNCA mostramos "sin tareas". -->
+    <div class="cron__empty-state cron__empty-state--error">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p><strong>No se pudo cargar el cronograma.</strong></p>
+      <p class="cron__muted">{{ error() }}</p>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cargar()">Reintentar</button>
+    </div>
   } @else if (tareas().length === 0) {
     <p class="cron__muted cron__empty">Aún no hay tareas en el cronograma.</p>
   } @else {

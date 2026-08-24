@@ -64,10 +64,22 @@
           }
         </div>
       }
+      <!-- AW2 — precio pagado promedio vs banda plausible (RD$/gal) -->
+      @if (precioPromedioVehiculo() !== null) {
+        <div class="stat-card" [class.stat-card--alerta]="precioFueraDeBanda()">
+          <span class="stat-card__label">Precio prom. / gal</span>
+          <span class="stat-card__value">RD$ {{ precioPromedioVehiculo() | number:'1.2-2' }}</span>
+          <span class="stat-card__hint">
+            @if (precioFueraDeBanda()) { ⚠ fuera de banda }
+            @else { dentro de RD${{ flotaConfig.precioGalMin() }}–{{ flotaConfig.precioGalMax() }} }
+          </span>
+        </div>
+      }
     </div>
 
     <div class="dash-charts">
       <div class="sgc-card dash-chart"><app-bar-chart titulo="Rendimiento por echada (km/gal)" [data]="rendimientoChart()" sufijo=" km/gal" /></div>
+      <div class="sgc-card dash-chart"><app-bar-chart titulo="Costo por km (RD$)" [data]="costoKmChart()" /></div>
       <div class="sgc-card dash-chart"><app-bar-chart titulo="Gasto mensual (RD$)" [data]="gastoMensualVehiculoChart()" /></div>
     </div>
 
