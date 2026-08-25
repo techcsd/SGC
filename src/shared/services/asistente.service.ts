@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
 /** AW4 — un turno de conversación con Tato (rol + texto + herramientas usadas). */
@@ -6,6 +6,7 @@ export interface AsistenteMensaje {
   rol: 'user' | 'assistant';
   contenido: string;
   herramientas?: { tool: string; ok: boolean }[] | null;
+  created_at?: string; // AY11a — para mostrar hora/fecha del mensaje
 }
 
 export interface AsistenteConversacion {
@@ -29,6 +30,8 @@ export interface AsistenteRespuesta {
   herramientas: { tool: string; ok: boolean }[];
   propuesta?: AsistentePropuesta | null;
   ejecutado?: boolean;
+  /** AY11/C2 — archivo generado (PDF) listo para descargar. */
+  archivo?: { nombre: string; url: string } | null;
 }
 
 /**
@@ -39,6 +42,37 @@ export interface AsistenteRespuesta {
 @Injectable({ providedIn: 'root' })
 export class AsistenteService {
   private supabase = inject(SupabaseService);
+
+  // ── AY10 — estado del panel que sobrevive la navegación ───────────────────
+  // El servicio es singleton (providedIn: root), así que estos signals viven
+  // aunque el componente se destruya al navegar. localStorage es el respaldo
+  // ligero para sobrevivir un refresh (patrón AE9 mini). El borrador se guarda
+  // POR conversación ('nueva' = conversación aún sin id).
+  private readonly KEY_OPEN = 'compa.openConv';
+  private readonly KEY_DRAFTS = 'compa.drafts';
+  readonly openConversacionId = signal<string | null>(this.leerOpen());
+  private drafts = signal<Record<string, string>>(this.leerDrafts());
+
+  private leerOpen(): string | null {
+    try { return localStorage.getItem(this.KEY_OPEN) || null; } catch { return null; }
+  }
+  private leerDrafts(): Record<string, string> {
+    try { return JSON.parse(localStorage.getItem(this.KEY_DRAFTS) || '{}'); } catch { return {}; }
+  }
+  setOpen(id: string | null) {
+    this.openConversacionId.set(id);
+    try { id ? localStorage.setItem(this.KEY_OPEN, id) : localStorage.removeItem(this.KEY_OPEN); } catch { /* ignore */ }
+  }
+  getDraft(convKey: string | null): string {
+    return this.drafts()[convKey ?? 'nueva'] ?? '';
+  }
+  setDraft(convKey: string | null, texto: string) {
+    const key = convKey ?? 'nueva';
+    const next = { ...this.drafts() };
+    if (texto) next[key] = texto; else delete next[key];
+    this.drafts.set(next);
+    try { localStorage.setItem(this.KEY_DRAFTS, JSON.stringify(next)); } catch { /* ignore */ }
+  }
 
   /** Envía un mensaje y devuelve la respuesta del asistente (+ conversación + propuesta). */
   async enviar(mensaje: string, conversacionId: string | null): Promise<AsistenteRespuesta> {
@@ -87,6 +121,7 @@ export class AsistenteService {
       rol: (m as { rol: string }).rol === 'assistant' ? 'assistant' : 'user',
       contenido: (m as { contenido: string }).contenido,
       herramientas: (m as { herramientas: { tool: string; ok: boolean }[] | null }).herramientas,
+      created_at: (m as { created_at: string }).created_at,
     }));
   }
 }

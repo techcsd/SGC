@@ -1,0 +1,44 @@
+.ut {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 8px;
+}
+.ut__header h1 { margin: 0 0 4px; }
+.ut__card {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: 14px;
+  padding: 18px;
+  h2 { margin: 0 0 14px; font-size: 16px; }
+}
+.ut__form { display: flex; flex-direction: column; gap: 14px; max-width: 640px; }
+.ut__field { display: flex; flex-direction: column; gap: 6px; }
+.ut__field > span { font-size: 13px; color: var(--sgc-text-muted); }
+.ut__roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.ut__role-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-bg);
+  color: var(--sgc-text);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+  &--on { background: var(--sgc-primary, var(--Hub)); border-color: var(--sgc-primary, var(--Hub)); color: #fff; }
+}
+.ut__cred {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px dashed var(--sgc-border);
+  border-radius: 10px;
+  background: var(--sgc-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ut__cred-row { display: flex; align-items: center; gap: 10px; code { flex: 1; } }
+.ut__table-wrap { overflow-x: auto; }
+.ut__email { font-size: 12px; }
+.ut__actions { display: flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
+.ut__del { color: var(--sgc-danger); }

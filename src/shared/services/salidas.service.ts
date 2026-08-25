@@ -628,16 +628,28 @@ export class SalidasService {
     salidaId: string,
     items: { detalle_id: string; cantidad_recibida: number }[],
     notas: string | null,
+    fotoPath?: string | null,
   ): Promise<boolean> {
     const { data, error } = await this.supabase.client.rpc('confirmar_recepcion_salida', {
       p_salida_id: salidaId,
       p_items: items,
       p_notas: notas,
+      p_foto_path: fotoPath ?? null,
     });
 
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
     return data as boolean;
+  }
+
+  /** AY1 — sube la foto de evidencia de RECEPCIÓN (bucket privado `inventario`) y
+   *  devuelve su path para pasarlo a confirmarRecepcion (no la enlaza aún). */
+  async subirFotoRecepcion(salidaId: string, file: File): Promise<string> {
+    const safe = (file.name || 'foto').replace(/[^a-zA-Z0-9_.-]+/g, '-').slice(0, 40);
+    const path = `recepcion/${salidaId}/${crypto.randomUUID()}-${safe}`;
+    const { error } = await this.supabase.client.storage.from('inventario').upload(path, file);
+    if (error) throw new Error(error.message);
+    return path;
   }
 }
 

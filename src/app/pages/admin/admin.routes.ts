@@ -17,6 +17,12 @@ export const adminRoutes: Routes = [
     title: 'Roles — Administración',
   },
   {
+    // AY7 — usuarios de prueba con roles, sin correo real (solo admin).
+    path: 'usuarios-test',
+    loadComponent: () => import('./usuarios-test/usuarios-test').then((m) => m.AdminUsuariosTest),
+    title: 'Usuarios de prueba — Administración',
+  },
+  {
     path: 'reportes',
     loadComponent: () => import('./reportes/reportes').then((m) => m.AdminReportes),
     title: 'Comentarios y Reportes — Administración',

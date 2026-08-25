@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { submoduloGuard } from '../../core/guards/submodulo.guard';
+import { submoduloOperarGuard } from '../../core/guards/submodulo-operar.guard';
 
 // AR1 — El parent (/proyectos) pasa a moduloOSubmoduloGuard, así que cada hija se
 // afina con su submódulo. Quien tenga el MÓDULO completo pasa por compat; un rol
@@ -79,15 +80,18 @@ export const proyectosRoutes: Routes = [
   },
   {
     // AA23 QW4 — reporte de costo de material real por obra.
+    // AY4 — costos es OPERAR: un ingeniero con `proyectos.obras=ver` ve la ficha
+    // pero NO los costos (decisión Xaviel: costos quedan para oficina/gerencia).
     path: ':id/costos',
-    canActivate: [submoduloGuard('proyectos.obras')],
+    canActivate: [submoduloOperarGuard('proyectos.obras')],
     loadComponent: () => import('./costos/costos').then((m) => m.ProyectoCostos),
     title: 'Costo de material — Proyectos',
   },
   {
     // AH15 — compras (órdenes de compra + ferretería) ligadas a la obra.
+    // AY4 — vista financiera de compras de la obra = OPERAR (ver arriba).
     path: ':id/compras',
-    canActivate: [submoduloGuard('proyectos.obras')],
+    canActivate: [submoduloOperarGuard('proyectos.obras')],
     loadComponent: () => import('./compras/compras').then((m) => m.ProyectoCompras),
     title: 'Compras — Proyectos',
   },

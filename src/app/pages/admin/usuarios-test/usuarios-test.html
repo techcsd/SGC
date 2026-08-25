@@ -1,0 +1,82 @@
+<div class="ut">
+  <header class="ut__header">
+    <div>
+      <h1>Usuarios de prueba</h1>
+      <p class="text-muted">Crea usuarios con rol(es) reales y sin correo, para probar accesos y flujos. Nacen marcados como prueba (excluidos de KPIs, correos e incentivos reales).</p>
+    </div>
+  </header>
+
+  @if (error()) { <div class="sgc-alert sgc-alert--danger" role="alert">{{ error() }}</div> }
+
+  <!-- Crear -->
+  <section class="ut__card">
+    <h2>Nuevo usuario de prueba</h2>
+    <div class="ut__form">
+      <label class="ut__field">
+        <span>Nombre</span>
+        <input type="text" class="sgc-input" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" placeholder="p. ej. Ingeniero de prueba" />
+      </label>
+      <div class="ut__field">
+        <span>Rol(es)</span>
+        <div class="ut__roles">
+          @for (r of roles(); track r.id) {
+            <button type="button" class="ut__role-chip" [class.ut__role-chip--on]="rolesSel().includes(r.id)" (click)="toggleRol(r.id)">
+              {{ r.nombre }}
+            </button>
+          }
+        </div>
+      </div>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="creando() || !nombre().trim()" (click)="crear()">
+        {{ creando() ? 'Creando…' : 'Crear usuario de prueba' }}
+      </button>
+    </div>
+
+    @if (credenciales(); as c) {
+      <div class="ut__cred">
+        <strong>Credenciales creadas</strong> — guárdalas o usa "Entrar como".
+        <div class="ut__cred-row"><span>Email</span><code>{{ c.email }}</code><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(c.email)">Copiar</button></div>
+        <div class="ut__cred-row"><span>Password</span><code>{{ c.password }}</code><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="copiar(c.password)">Copiar</button></div>
+        <p class="text-muted">El password no se guarda; para reingresar usa "Entrar como" (genera uno nuevo).</p>
+      </div>
+    }
+  </section>
+
+  <!-- Lista -->
+  <section class="ut__card">
+    <h2>Usuarios de prueba existentes</h2>
+    @if (loading()) {
+      <p class="text-muted">Cargando…</p>
+    } @else if (!usuarios().length) {
+      <p class="text-muted">Aún no hay usuarios de prueba.</p>
+    } @else {
+      <div class="ut__table-wrap">
+        <table class="sgc-table">
+          <thead>
+            <tr><th>Nombre</th><th>Email</th><th>Rol(es)</th><th>Último uso</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (u of usuarios(); track u.id) {
+              <tr>
+                <td>{{ u.nombre }}</td>
+                <td><code class="ut__email">{{ u.email }}</code></td>
+                <td>
+                  @for (r of u.roles; track r.id) { <span class="sgc-badge sgc-badge--neutral">{{ r.nombre }}</span> }
+                  @if (!u.roles.length) { <span class="text-muted">sin rol</span> }
+                </td>
+                <td>{{ u.ultimo_uso ? formatTimestamp(u.ultimo_uso) : '—' }}</td>
+                <td class="ut__actions">
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="entrando() === u.id" (click)="entrarComo(u)">
+                    {{ entrando() === u.id ? 'Entrando…' : 'Entrar como' }}
+                  </button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm ut__del" [disabled]="eliminando() === u.id" (click)="eliminar(u)">
+                    {{ eliminando() === u.id ? 'Eliminando…' : 'Eliminar' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

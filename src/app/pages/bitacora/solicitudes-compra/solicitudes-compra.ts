@@ -29,6 +29,22 @@ const ESTADO_LABEL: Record<string, string> = {
   rechazada: 'Rechazada',
 };
 
+// AY3 — estado REAL de la orden de compra que nació de la requisición.
+const ORDEN_ESTADO_LABEL: Record<string, string> = {
+  borrador: 'Orden en borrador',
+  aprobada: 'Orden aprobada',
+  recibida_parcial: 'Orden recibida (parcial)',
+  recibida: 'Orden recibida',
+  cancelada: 'Orden cancelada',
+};
+const ORDEN_ESTADO_BADGE: Record<string, string> = {
+  borrador: 'neutral',
+  aprobada: 'info',
+  recibida_parcial: 'warning',
+  recibida: 'success',
+  cancelada: 'danger',
+};
+
 @Component({
   selector: 'app-bitacora-solicitudes-compra',
   imports: [ReactiveFormsModule, FormDrawer, Skeleton],
@@ -47,9 +63,14 @@ export class SolicitudesCompra implements OnInit {
   formatTimestamp = formatTimestampDisplay;
   estadoBadge = (estado: string) => ESTADO_BADGE[estado] ?? 'neutral';
   estadoLabel = (estado: string) => ESTADO_LABEL[estado] ?? estado;
+  ordenEstadoLabel = (estado: string) => ORDEN_ESTADO_LABEL[estado] ?? estado;
+  ordenEstadoBadge = (estado: string) => ORDEN_ESTADO_BADGE[estado] ?? 'neutral';
+  ordenDe = (solicitudId: string) => this.ordenesMap()[solicitudId] ?? null;
 
   solicitudes = signal<SolicitudCompra[]>([]);
   proyectos = signal<Proyecto[]>([]);
+  // AY3 — solicitud_id → estado real de su orden de compra (para el ingeniero).
+  ordenesMap = signal<Record<string, { orden_estado: string; numero: string | null }>>({});
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -94,12 +115,14 @@ export class SolicitudesCompra implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [solicitudes, proyectos] = await Promise.all([
+      const [solicitudes, proyectos, ordenes] = await Promise.all([
         this.solicitudesService.getAll(),
         this.proyectosService.getAll(),
+        this.solicitudesService.misOrdenes(),
       ]);
       this.solicitudes.set(solicitudes);
       this.proyectos.set(proyectos);
+      this.ordenesMap.set(ordenes);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las solicitudes.');
     } finally {

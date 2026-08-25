@@ -3,6 +3,7 @@ import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model
 import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { NotificarEntregaService } from '../../../../shared/services/notificar-entrega.service';
+import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario } from '../../../../shared/models/salida.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -27,8 +28,11 @@ export class Entregas implements OnInit {
   readonly idVehiculo = identificacionVehiculo;
   private salidasService = inject(SalidasService);
   private notificarEntregaService = inject(NotificarEntregaService);
+  private userService = inject(UserService);
 
   formatFecha = formatFechaDisplay;
+  // AY1 — la foto es obligatoria para confirmar, salvo admin (bypass AS15).
+  esAdmin = () => this.userService.hasRole('admin');
 
   entregas = signal<SalidaInventario[]>([]);
   loading = signal(true);
@@ -40,6 +44,13 @@ export class Entregas implements OnInit {
   selected = signal<SalidaInventario | null>(null);
   recepcionItems = signal<RecepcionItem[]>([]);
   notas = signal('');
+  // AY1 — foto de evidencia de la recepción.
+  foto = signal<File | null>(null);
+
+  onFotoChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.foto.set(input.files && input.files.length ? input.files[0] : null);
+  }
 
   async ngOnInit() {
     await this.load();
@@ -61,6 +72,7 @@ export class Entregas implements OnInit {
     this.selected.set(salida);
     this.saveError.set('');
     this.notas.set('');
+    this.foto.set(null);
     this.recepcionItems.set(
       (salida.detalle_salidas ?? []).map((d) => ({
         detalle_id: d.id,
@@ -107,14 +119,25 @@ export class Entregas implements OnInit {
       return;
     }
 
+    // AY1 — foto obligatoria para confirmar, salvo admin (bypass AS15).
+    if (!this.foto() && !this.esAdmin()) {
+      this.saveError.set('Adjunta una foto de la recepción para confirmar.');
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 
     try {
+      let fotoPath: string | null = null;
+      if (this.foto()) {
+        fotoPath = await this.salidasService.subirFotoRecepcion(salida.id, this.foto()!);
+      }
       const incompleto = await this.salidasService.confirmarRecepcion(
         salida.id,
         this.recepcionItems().map((i) => ({ detalle_id: i.detalle_id, cantidad_recibida: i.cantidad_recibida })),
         this.notas().trim() || null,
+        fotoPath,
       );
 
       if (incompleto) {

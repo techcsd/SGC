@@ -1,5 +1,50 @@
 {
   "web": {
+    "1.97.0": {
+      "titulo": "Compa más completo y seguro, permisos afinados y usuarios de prueba (ronda AY)",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "d": "Compa: se corrigió que '¿qué tareas tengo?' pudiera mostrar tareas de otras personas. Ahora cada herramienta responde estrictamente con lo tuyo, según tus permisos."
+        },
+        {
+          "t": "nuevo",
+          "d": "Compa ahora sabe más: cuántos vehículos hay y cuáles están en uso, resumen de flota, mantenimientos pendientes, stock por almacén, artículos bajo mínimo, desempeño de la semana, cronograma y personal de una obra, y '¿a qué tengo acceso?'."
+        },
+        {
+          "t": "nuevo",
+          "d": "Compa puede generarte un PDF descargable (listado de usuarios, stock por almacén, desempeño de la semana, conduces del día). El archivo respeta tus permisos: si no puedes ver un dato, no sale en el PDF."
+        },
+        {
+          "t": "mejora",
+          "d": "Compa muestra la hora de cada mensaje y la fecha en la lista; lo que escribes ya no se borra al cambiar de módulo (se guarda el borrador y la conversación abierta)."
+        },
+        {
+          "t": "arreglo",
+          "d": "Compa: se arreglaron los títulos de conversaciones que salían con caracteres raros ('Â¿CuÃ¡ntos…')."
+        },
+        {
+          "t": "arreglo",
+          "d": "Logística ya no ve en el menú submódulos de Ingeniería que no puede abrir (antes salían y daban 'sin acceso'). El menú y el permiso ahora coinciden exactamente."
+        },
+        {
+          "t": "arreglo",
+          "d": "'Desempeño de choferes' vuelve a cargar para el rol Logística (antes daba un error rojo al abrir la semana)."
+        },
+        {
+          "t": "mejora",
+          "d": "Ingenieros: ven sus obras en los desplegables (orden de compra, requisición, conduce, bitácora) y, en sus requisiciones, el estado real de la orden de compra que generaron. Los costos de obra quedan para oficina/gerencia."
+        },
+        {
+          "t": "nuevo",
+          "d": "Recepción de conduces: al confirmar una entrega ahora puedes (y debes, salvo admin) adjuntar una foto del material recibido."
+        },
+        {
+          "t": "nuevo",
+          "d": "Administración › Usuarios de prueba: crea usuarios con rol(es) y sin correo real para probar accesos; puedes 'entrar como' ellos (y volver a tu cuenta) o copiar sus credenciales. Quedan aislados de KPIs, correos e incentivos reales."
+        }
+      ]
+    },
     "1.90.1": {
       "titulo": "Etiquetas legibles en toda la app",
       "cambios": [

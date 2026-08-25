@@ -10,7 +10,8 @@
     <div class="compa__conv-list">
       @for (c of conversaciones(); track c.id) {
         <button type="button" class="compa__conv" [class.compa__conv--active]="c.id === conversacionId()" (click)="abrir(c)">
-          {{ c.titulo || 'Conversación' }}
+          <span class="compa__conv-title">{{ c.titulo || 'Conversación' }}</span>
+          <span class="compa__conv-date">{{ fecha(c.updated_at) }}</span>
         </button>
       } @empty {
         <p class="compa__side-empty">Tus conversaciones aparecerán aquí.</p>
@@ -47,6 +48,9 @@
       }
 
       @for (m of mensajes(); track $index) {
+        @if (separadorDia($index); as dia) {
+          <div class="compa__day-sep"><span>{{ dia }}</span></div>
+        }
         <div class="compa__msg compa__msg--{{ m.rol }}">
           <div class="compa__bubble">{{ m.contenido }}</div>
           @if (m.rol === 'assistant' && m.herramientas && m.herramientas.length) {
@@ -55,6 +59,9 @@
                 <span class="compa__tool-chip" [class.compa__tool-chip--fail]="!t.ok">{{ t.tool }}</span>
               }
             </div>
+          }
+          @if (hora(m.created_at); as h) {
+            <span class="compa__msg-time">{{ h }}</span>
           }
         </div>
       }
@@ -87,6 +94,16 @@
         </div>
       }
 
+      <!-- AY11 — tarjeta de archivo (PDF) descargable -->
+      @if (archivo(); as a) {
+        <a class="compa__archivo" [href]="a.url" target="_blank" rel="noopener" download>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+          </svg>
+          <span class="compa__archivo-txt"><strong>{{ a.nombre }}</strong><small>Toca para descargar</small></span>
+        </a>
+      }
+
       @if (error()) {
         <div class="compa__error" role="alert">{{ error() }}</div>
       }
@@ -96,7 +113,7 @@
     <form class="compa__composer" (ngSubmit)="enviar()">
       <textarea
         class="compa__input"
-        [ngModel]="input()" (ngModelChange)="input.set($event)"
+        [ngModel]="input()" (ngModelChange)="onInput($event)"
         name="mensaje" rows="1" placeholder="Escríbele a Compa…"
         (keydown.enter)="$event.preventDefault(); enviar()"
         [disabled]="enviando()"></textarea>

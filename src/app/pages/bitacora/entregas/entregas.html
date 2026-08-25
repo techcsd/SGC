@@ -109,6 +109,22 @@
     }
 
     <div class="sgc-field">
+      <label for="foto-recepcion">Foto de la recepción{{ esAdmin() ? ' (opcional)' : '' }}</label>
+      <input
+        id="foto-recepcion"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        (change)="onFotoChange($event)"
+      />
+      @if (foto(); as f) {
+        <p class="entregas__foto-ok">Adjunta: {{ f.name }}</p>
+      } @else if (!esAdmin()) {
+        <p class="sgc-hint">Toma una foto del material recibido para confirmar.</p>
+      }
+    </div>
+
+    <div class="sgc-field">
       <label for="notas-recepcion">Notas (opcional)</label>
       <textarea
         id="notas-recepcion"

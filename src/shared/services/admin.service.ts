@@ -144,4 +144,46 @@ export class AdminService {
 
     if (error) throw new Error(error.message);
   }
+
+  // ── AY7 — Usuarios de prueba ───────────────────────────────────────────────
+  async listarUsuariosTest(): Promise<UsuarioTest[]> {
+    const { data, error } = await this.supabase.client.rpc('listar_usuarios_test');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as UsuarioTest[];
+  }
+
+  /** Crea un usuario de prueba (email sintético, es_prueba=true) y devuelve sus credenciales. */
+  async crearUsuarioTest(nombre: string, roleIds: number[]): Promise<TestCredenciales> {
+    const { data, error } = await this.supabase.client.functions.invoke('admin-crear-usuario-test', {
+      body: { nombre, roleIds },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as TestCredenciales;
+  }
+
+  /** Prepara credenciales frescas para "entrar como" un usuario de prueba (admin-only, auditado). */
+  async credencialesEntrarComo(userId: string): Promise<{ email: string; password: string }> {
+    const { data, error } = await this.supabase.client.functions.invoke('admin-usuario-test-login', {
+      body: { userId },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { email: string; password: string };
+  }
+}
+
+export interface UsuarioTest {
+  id: string;
+  nombre: string;
+  email: string;
+  activo: boolean;
+  roles: { id: number; nombre: string }[];
+  ultimo_uso: string | null;
+  created_at: string;
+}
+export interface TestCredenciales {
+  userId: string;
+  email: string;
+  password: string;
 }

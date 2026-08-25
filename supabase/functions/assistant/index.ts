@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 
 // ============================================================================
 // AW4 — Asistente de IA "Compa".
@@ -36,11 +37,38 @@ function json(body: unknown, status = 200) {
 type Any = any;
 interface Cap { usuario_id: string; nombre: string; es_admin: boolean; modulos: string[] }
 
+// AY-F1 (hallazgo 4) — Repara UTF-8 doble-codificado ("Â¿CuÃ¡ntos" → "¿Cuántos").
+// El texto del usuario llegaba doble-codificado (Claude lo toleraba, pero se
+// guardaba mojibake en título y mensajes). Se sanea EN LA ENTRADA, así el texto
+// que ve Claude y el que se guarda quedan limpios. Solo actúa si (a) hay patrón
+// de mojibake y (b) todos los chars caben en un byte (o sea, parece Latin-1
+// mal-decodificado); si el redecode no es UTF-8 válido, se deja el original.
+function fixMojibake(s: string): string {
+  if (!s) return s;
+  let suspicious = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c > 0xFF) return s;                 // hay multibyte real -> no tocar
+    if ((c === 0xC2 || c === 0xC3) && i + 1 < s.length) {
+      const n = s.charCodeAt(i + 1);
+      if (n >= 0x80 && n <= 0xBF) suspicious = true;  // C2/C3 + continuacion
+    }
+  }
+  if (!suspicious) return s;
+  try {
+    const bytes = Uint8Array.from([...s].map((c) => c.charCodeAt(0)));
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch { return s; }
+}
+
 interface ToolDef {
   name: string;
   description: string;
   modulos: string[] | null;
   input_schema: Record<string, unknown>;
+  // AY11/C2 — genera un archivo PDF (se compone server-side y se entrega como
+  // tarjeta descargable; hereda permisos: los datos salen de una consulta con RLS).
+  pdf?: boolean;
   // Lectura:
   rpc?: string;
   map?: (i: Any) => Record<string, unknown>;
@@ -75,11 +103,14 @@ const TOOLS: ToolDef[] = [
     rpc: "mis_conduces_pendientes_entrega", map: () => ({}),
   },
   {
+    // AY-F1 🔴 seguridad: usa `mis_tareas_asistente` (filtro estricto por
+    // identidad), NO `mis_tareas_app` (ese tiene escape de módulo/admin para el
+    // tablero → devolvía tareas ajenas a cualquiera con el módulo `tareas`).
     name: "mis_tareas",
-    description: "Tareas asignadas al usuario.",
+    description: "SOLO las tareas del propio usuario (asignadas a él o creadas por él). No es el tablero de tareas del equipo.",
     modulos: null,
     input_schema: { type: "object", properties: { incluir_completadas: { type: "boolean" } } },
-    rpc: "mis_tareas_app", map: (i) => ({ p_incluir_completadas: !!i.incluir_completadas }),
+    rpc: "mis_tareas_asistente", map: (i) => ({ p_incluir_completadas: !!i.incluir_completadas }),
   },
   {
     name: "mis_proyectos",
@@ -99,6 +130,25 @@ const TOOLS: ToolDef[] = [
     modulos: null,
     input_schema: { type: "object", properties: { term: { type: "string" } }, required: ["term"] },
     rpc: "buscar_usuarios", map: (i) => ({ p_term: String(i.term ?? "") }),
+  },
+  {
+    // AY9/C1 — identidad: qué accede el PROPIO usuario (módulos + submódulos +
+    // roles). Para "¿tengo acceso a X?" con datos reales, no deducido del perfil.
+    name: "mis_permisos",
+    description: "Los accesos del propio usuario: módulos, submódulos (con nivel ver/operar) y roles. Úsalo cuando pregunte '¿tengo acceso a X?' o 'qué puedo hacer'. Solo lo suyo; no ves permisos de otros.",
+    modulos: null, input_schema: { type: "object", properties: {} },
+    rpc: "mis_permisos", map: () => ({}),
+  },
+  {
+    // AY11/C2 — genera un PDF descargable. Los datos salen de una consulta con
+    // los permisos del usuario (hereda RLS): si no puede ver el dato, no hay PDF.
+    name: "generar_reporte_pdf",
+    description: "Genera un PDF descargable. Tipos: 'usuarios' (listado de usuarios del sistema, solo admin), 'stock_almacen' (existencias de un almacén — pide bodega_id con 'listar_almacenes'), 'desempeno_semana' (desempeño de choferes de la semana), 'conduces_dia' (conduces emitidos hoy). El archivo hereda tus permisos. Tras generarlo, dile al usuario que su descarga está lista abajo.",
+    modulos: null, pdf: true,
+    input_schema: { type: "object", properties: {
+      tipo: { type: "string", description: "usuarios | stock_almacen | desempeno_semana | conduces_dia" },
+      bodega_id: { type: "string" }, anio: { type: "integer" }, semana: { type: "integer" },
+    }, required: ["tipo"] },
   },
   {
     name: "listar_almacenes",
@@ -133,6 +183,78 @@ const TOOLS: ToolDef[] = [
     modulos: ["flota"],
     input_schema: { type: "object", properties: { desde: { type: "string" }, hasta: { type: "string" } } },
     rpc: "log_combustible", map: (i) => ({ p_desde: i.desde ?? null, p_hasta: i.hasta ?? null, p_vehiculo_id: null, p_usuario_id: null }),
+  },
+
+  // ── AY9/C1 — cobertura de lectura módulo por módulo ────────────────────────
+  // Flota
+  {
+    name: "listar_vehiculos",
+    description: "Lista los vehículos de la flota (placa, marca, modelo, año, activo). Para \"¿cuántos vehículos tenemos?\". Requiere flota.",
+    modulos: ["flota"], input_schema: { type: "object", properties: {} },
+    rpc: "flota_placas", map: () => ({}),
+  },
+  {
+    name: "vehiculos_en_uso",
+    description: "Vehículos actualmente EN USO (con quién, desde cuándo). Requiere flota.",
+    modulos: ["flota"], input_schema: { type: "object", properties: {} },
+    rpc: "vehiculos_en_uso", map: () => ({}),
+  },
+  {
+    name: "resumen_flota",
+    description: "Resumen/conteos de la flota (total, activos, en mantenimiento, en uso, mantenimientos pendientes). Requiere flota.",
+    modulos: ["flota"], input_schema: { type: "object", properties: {} },
+    rpc: "resumen_flota", map: () => ({}),
+  },
+  {
+    name: "mantenimientos_pendientes",
+    description: "Mantenimientos pendientes o en proceso de la flota. Requiere flota.",
+    modulos: ["flota"], input_schema: { type: "object", properties: {} },
+    rpc: "mantenimientos_pendientes", map: () => ({}),
+  },
+  // Inventario
+  {
+    name: "stock_por_almacen",
+    description: "Existencias de un almacén/bodega (obtén el bodega_id con 'listar_almacenes'). Opcional: búsqueda por texto. Requiere inventario.",
+    modulos: ["inventario"],
+    input_schema: { type: "object", properties: { bodega_id: { type: "string" }, busqueda: { type: "string" } }, required: ["bodega_id"] },
+    rpc: "inventario_almacen", map: (i) => ({ p_bodega_id: i.bodega_id, p_incluir_cero: false, p_busqueda: i.busqueda ?? null, p_incluir_catalogo: false }),
+  },
+  {
+    name: "articulos_bajo_minimo",
+    description: "Artículos por debajo de su stock mínimo en un almacén (obtén el bodega_id con 'listar_almacenes'). Requiere inventario.",
+    modulos: ["inventario"],
+    input_schema: { type: "object", properties: { bodega_id: { type: "string" } }, required: ["bodega_id"] },
+    rpc: "articulos_bajo_minimo", map: (i) => ({ p_bodega_id: i.bodega_id }),
+  },
+  {
+    name: "movimientos_recientes",
+    description: "Últimos movimientos (entradas/salidas) de un artículo (obtén el articulo_id con 'buscar_articulos'). Requiere inventario.",
+    modulos: ["inventario"],
+    input_schema: { type: "object", properties: { articulo_id: { type: "string" }, limit: { type: "integer" } }, required: ["articulo_id"] },
+    rpc: "ultimos_movimientos_articulo", map: (i) => ({ p_articulo_id: i.articulo_id, p_limit: Math.min(Number(i.limit ?? 10), 50) }),
+  },
+  // Incentivo (roles autorizados — puede_gestionar_incentivos)
+  {
+    name: "desempeno_semana",
+    description: "Desempeño/incentivo de choferes de una semana ISO (por defecto la semana actual). Solo roles autorizados. Requiere módulo incentivos.",
+    modulos: ["incentivos"],
+    input_schema: { type: "object", properties: { anio: { type: "integer" }, semana: { type: "integer" } } },
+    rpc: "desempeno_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  // Proyectos (ficha = resumen_proyectos, ya existe arriba)
+  {
+    name: "cronograma_de_obra",
+    description: "Cronograma (Gantt) de una obra: tareas, avance, dependencias (obtén el proyecto_id con 'mis_proyectos'). Requiere proyectos o dirección.",
+    modulos: ["proyectos", "direccion"],
+    input_schema: { type: "object", properties: { proyecto_id: { type: "string" } }, required: ["proyecto_id"] },
+    rpc: "listar_cronograma", map: (i) => ({ p_proyecto_id: i.proyecto_id }),
+  },
+  {
+    name: "personal_de_obra",
+    description: "Conteo del personal de una obra (total, por cargo, por nacionalidad) (obtén el proyecto_id con 'mis_proyectos'). Requiere proyectos o dirección.",
+    modulos: ["proyectos", "direccion"],
+    input_schema: { type: "object", properties: { proyecto_id: { type: "string" } }, required: ["proyecto_id"] },
+    rpc: "personal_obra_conteos", map: (i) => ({ p_proyecto_id: i.proyecto_id }),
   },
 
   // ── ESCRITURA (v2: preparar → confirmar → ejecutar) ────────────────────────
@@ -211,8 +333,14 @@ function systemPrompt(cap: Cap): string {
     "4. Resume los resultados en lenguaje claro; no vuelques JSON. Si no hay resultados, dilo.",
     "5. Nunca digas que una acción \"ya está hecha\" solo por prepararla: queda pendiente hasta que el usuario confirme en la tarjeta.",
     "",
-    `Estás hablando con: ${cap.nombre}${cap.es_admin ? " (administrador)" : ""}.`,
-    `Módulos con acceso: ${cap.modulos.length ? cap.modulos.join(", ") : "ninguno especial"}.`,
+    "HONESTIDAD SOBRE LO QUE SABES (importante):",
+    "6. Distingue SIEMPRE dos fuentes: (a) tu PERFIL — el nombre, si eres admin y los módulos de más abajo; es un dato que te dieron al iniciar, NO lo consultaste; (b) una CONSULTA — lo que acabas de leer llamando una herramienta EN ESTE TURNO. Al hablar de datos, deja claro cuál es cuál (\"según tu perfil…\" vs \"acabo de consultar y…\").",
+    "7. PROHIBIDO decir que \"verificaste\", \"confirmé con el sistema\" o \"ya lo revisé\" si NO llamaste una herramienta en este mismo turno. Si no la llamaste, no lo afirmes. Si de verdad quieres confirmar algo, llama la herramienta y recién entonces dilo.",
+    "8. Si no tienes una herramienta para algo, dilo con claridad (\"eso no lo puedo consultar todavía, no tengo herramienta\") en vez de deducirlo del perfil y hacerlo pasar por consulta. Para \"¿tengo acceso a X?\" responde con lo que sabes del perfil, aclarando que es tu perfil.",
+    "",
+    "PERFIL (dato inicial, NO es una consulta que hiciste):",
+    `- Hablas con: ${cap.nombre}${cap.es_admin ? " (administrador)" : ""}.`,
+    `- Módulos con acceso: ${cap.modulos.length ? cap.modulos.join(", ") : "ninguno especial"}.`,
     "Cuando diga \"mis\", \"mi obra\", \"mi vehículo\", usa las herramientas 'mis_*'.",
   ].join("\n");
 }
@@ -284,6 +412,73 @@ async function construirPropuesta(supabase: Any, cfg: ToolDef, input: Any) {
   return { tipo, tool: cfg.name, params: input, titulo, lineas };
 }
 
+// ── AY11/C2 — Reportes PDF ──────────────────────────────────────────────────
+// Cada reporte trae sus datos de una consulta con el JWT del usuario (RLS aplica
+// → hereda permisos). Devuelve { titulo, cols, rows } o null si no hay/no puede.
+async function datosReporte(supabase: Any, tipo: string, input: Any):
+  Promise<{ titulo: string; cols: string[]; rows: string[][] } | null> {
+  const s = (v: Any) => (v === null || v === undefined ? "" : String(v));
+  if (tipo === "usuarios") {
+    const { data } = await supabase.from("usuarios").select("nombre, email, activo").order("nombre");
+    if (!data?.length) return null;
+    return { titulo: "Listado de usuarios", cols: ["Nombre", "Email", "Activo"],
+      rows: data.map((u: Any) => [s(u.nombre), s(u.email), u.activo ? "Sí" : "No"]) };
+  }
+  if (tipo === "stock_almacen") {
+    if (!input.bodega_id) return null;
+    const { data, error } = await supabase.rpc("inventario_almacen",
+      { p_bodega_id: input.bodega_id, p_incluir_cero: false, p_busqueda: null, p_incluir_catalogo: false });
+    if (error || !data?.length) return null;
+    return { titulo: "Stock por almacén", cols: ["Código", "Artículo", "Unidad", "Cantidad"],
+      rows: data.map((r: Any) => [s(r.codigo), s(r.nombre), s(r.unidad), s(r.cantidad)]) };
+  }
+  if (tipo === "desempeno_semana") {
+    const { data, error } = await supabase.rpc("desempeno_semana",
+      { p_anio: input.anio ?? null, p_semana: input.semana ?? null });
+    const arr: Any[] = Array.isArray(data) ? data : [];
+    if (error || !arr.length) return null;
+    return { titulo: "Desempeño de choferes (semana)", cols: ["Chofer", "Puntaje", "Mínimo", "Cumplió", "Decisión"],
+      rows: arr.map((r: Any) => [s(r.nombre), s(r.puntaje), s(r.minimo), r.cumplio ? "Sí" : "No", s(r.decision ?? "—")]) };
+  }
+  if (tipo === "conduces_dia") {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const { data } = await supabase.from("salidas_inventario")
+      .select("id, estado, created_at, proyecto:proyectos(nombre)")
+      .gte("created_at", hoy + "T00:00:00").order("created_at", { ascending: false });
+    if (!data?.length) return null;
+    return { titulo: "Conduces emitidos hoy", cols: ["Obra", "Estado", "Hora"],
+      rows: data.map((r: Any) => [s(r.proyecto?.nombre), s(r.estado), s(r.created_at).slice(11, 16)]) };
+  }
+  return null;
+}
+
+// Compone un PDF tabular sencillo (multipágina) con pdf-lib.
+async function componerPdf(titulo: string, subtitulo: string, cols: string[], rows: string[][]): Promise<Uint8Array> {
+  const doc = await PDFDocument.create();
+  const font = await doc.embedFont(StandardFonts.Helvetica);
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const W = 595.28, H = 841.89, M = 40; // A4 portrait
+  const gray = rgb(0.4, 0.4, 0.4), black = rgb(0.1, 0.1, 0.1);
+  const colW = (W - 2 * M) / cols.length;
+  const clip = (t: string, max: number) => (t.length > max ? t.slice(0, max - 1) + "…" : t);
+  const maxChars = Math.max(6, Math.floor(colW / 5.2));
+  let page = doc.addPage([W, H]);
+  let y = H - M;
+  page.drawText(clip(titulo, 70), { x: M, y, size: 16, font: bold, color: black }); y -= 20;
+  page.drawText(clip(subtitulo, 110), { x: M, y, size: 9, font, color: gray }); y -= 22;
+  const header = () => {
+    cols.forEach((c, i) => page.drawText(clip(c, maxChars), { x: M + i * colW, y, size: 9, font: bold, color: black }));
+    y -= 14;
+  };
+  header();
+  for (const row of rows) {
+    if (y < M + 20) { page = doc.addPage([W, H]); y = H - M; header(); }
+    row.forEach((cell, i) => page.drawText(clip(cell ?? "", maxChars), { x: M + i * colW, y, size: 8.5, font, color: black }));
+    y -= 12;
+  }
+  return await doc.save();
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -337,7 +532,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Branch CHAT ────────────────────────────────────────────────────────────
-  const mensaje = (payload.mensaje ?? "").toString().trim();
+  const mensaje = fixMojibake((payload.mensaje ?? "").toString().trim());
   if (!mensaje) return json({ error: "Mensaje vacío" }, 400);
   if (mensaje.length > 4000) return json({ error: "Mensaje demasiado largo" }, 400);
 
@@ -363,6 +558,7 @@ Deno.serve(async (req: Request) => {
 
   const herramientasUsadas: { tool: string; ok: boolean }[] = [];
   let propuesta: Any = null;
+  let archivo: { nombre: string; url: string } | null = null;
   let respuestaFinal = "";
   try {
     for (let loop = 0; loop < MAX_TOOL_LOOPS; loop++) {
@@ -375,6 +571,29 @@ Deno.serve(async (req: Request) => {
           let out: unknown; let ok = false; let resumen = "";
           if (!cfg) {
             out = { error: "Herramienta no disponible." };
+          } else if (cfg.pdf) {
+            // AY11/C2 — genera un PDF con datos consultados con el JWT del usuario.
+            try {
+              const inp = block.input ?? {};
+              const datos = await datosReporte(supabase, String(inp.tipo ?? ""), inp);
+              if (!datos) {
+                out = { error: "No hay datos para ese reporte o no tienes acceso." };
+                resumen = "reporte sin datos/permiso";
+              } else {
+                const fecha = new Date().toISOString().slice(0, 16).replace("T", " ");
+                const bytes = await componerPdf(datos.titulo, `Generado por ${capObj.nombre} · ${fecha}`, datos.cols, datos.rows);
+                const path = `${capObj.usuario_id}/${crypto.randomUUID()}.pdf`;
+                const { error: upErr } = await supabase.storage.from("reportes").upload(path, bytes, { contentType: "application/pdf" });
+                if (upErr) { out = { error: "No se pudo guardar el PDF." }; resumen = upErr.message.slice(0, 200); }
+                else {
+                  const { data: signed } = await supabase.storage.from("reportes").createSignedUrl(path, 3600);
+                  const nombre = `${datos.titulo}.pdf`;
+                  archivo = { nombre, url: signed?.signedUrl ?? "" };
+                  out = { generado: true, nombre, filas: datos.rows.length, instruccion: "Dile al usuario que su PDF está listo para descargar en la tarjeta de abajo." };
+                  ok = true; resumen = `pdf ${datos.rows.length} filas`;
+                }
+              }
+            } catch (e) { out = { error: "No se pudo generar el PDF." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
           } else if (cfg.write) {
             // Acción de ESCRITURA: se PREPARA, no se ejecuta. Devuelve borrador.
             try {
@@ -407,7 +626,7 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     return json({ error: `El asistente tuvo un problema: ${e instanceof Error ? e.message : "desconocido"}` }, 502);
   }
-  if (!respuestaFinal) respuestaFinal = propuesta ? "Preparé la acción; revísala y confírmala abajo." : "No pude completar la consulta. Intenta reformular.";
+  if (!respuestaFinal) respuestaFinal = propuesta ? "Preparé la acción; revísala y confírmala abajo." : archivo ? "Tu PDF está listo para descargar abajo." : "No pude completar la consulta. Intenta reformular.";
 
   await supabase.from("assistant_mensajes").insert([
     { conversacion_id: convId, rol: "user", contenido: mensaje },
@@ -415,5 +634,5 @@ Deno.serve(async (req: Request) => {
   ]).then(() => {}, () => {});
   await supabase.from("assistant_conversaciones").update({ updated_at: new Date().toISOString() }).eq("id", convId).then(() => {}, () => {});
 
-  return json({ conversacion_id: convId, respuesta: respuestaFinal, herramientas: herramientasUsadas, propuesta });
+  return json({ conversacion_id: convId, respuesta: respuestaFinal, herramientas: herramientasUsadas, propuesta, archivo });
 });

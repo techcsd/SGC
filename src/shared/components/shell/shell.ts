@@ -122,6 +122,14 @@ export class Shell implements OnInit {
   esAdmin = computed(() => this.userService.hasRole('admin'));
   verPrueba = this.datosPruebaView.ver;
   ocultarPrueba = () => this.datosPruebaView.set(false);
+
+  // AY7 — sesión de usuario de prueba (banner + volver de impersonación).
+  esUsuarioPrueba = computed(() => !!this.profile()?.es_prueba);
+  hayImpersonacion = () => this.authService.hayImpersonacion();
+  async volverDeImpersonacion() {
+    await this.authService.volverDeImpersonacion();
+    window.location.assign('/admin/usuarios-test');
+  }
   collapsed = signal(false);
   /** Mobile off-canvas drawer (≤768px); independent of the desktop `collapsed`. */
   mobileNavOpen = signal(false);
@@ -408,6 +416,7 @@ export class Shell implements OnInit {
     children: [
       { label: 'Usuarios', route: '/admin/usuarios' },
       { label: 'Roles', route: '/admin/roles' },
+      { label: 'Usuarios de prueba', route: '/admin/usuarios-test' },
       { label: 'Empresa', route: '/admin/empresa' },
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
@@ -441,9 +450,14 @@ export class Shell implements OnInit {
     if (child.soloAdmin && !this.userService.hasRole('admin')) return false;
     // AS7 — bandeja global de requisiciones (inventario o roles de proyecto).
     if (child.verTodasRequisiciones) return this.userService.puedeVerTodasRequisiciones();
-    // AG12 — submódulo con permiso granular (p. ej. Proveedores).
+    // AG12 / AY5 — submódulo con permiso granular. El menú DEBE leer la MISMA
+    // matriz que el guard (submoduloGuard usa solo puedeVerSubmodulo). El atajo
+    // de "flota elevado" se limita a submódulos de FLOTA; si se aplicaba a todos
+    // (p. ej. obra.*), un rol como Logística (flota-elevado) veía submódulos de
+    // Ingeniería que el guard después negaba con 403.
     if (child.submodulo) {
-      return this.userService.esFlotaElevado() || this.userService.puedeVerSubmodulo(child.submodulo);
+      if (child.submodulo.startsWith('flota.') && this.userService.esFlotaElevado()) return true;
+      return this.userService.puedeVerSubmodulo(child.submodulo);
     }
     if (!child.modulo) return true;
     return this.userService.hasModulo(child.modulo);

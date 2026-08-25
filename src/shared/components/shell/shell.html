@@ -293,6 +293,18 @@
 
     <!-- Content -->
     <main class="shell-content" id="main-content">
+      <!-- AY7 — banner de sesión de USUARIO DE PRUEBA (con opción de volver si el admin impersona) -->
+      @if (esUsuarioPrueba()) {
+        <div class="prueba-banner prueba-banner--usuario" role="status">
+          <span class="prueba-banner__dot" aria-hidden="true"></span>
+          <span class="prueba-banner__txt">
+            Sesión de <strong>USUARIO DE PRUEBA</strong>. Nada de lo que hagas aquí afecta datos reales.
+          </span>
+          @if (hayImpersonacion()) {
+            <button type="button" class="prueba-banner__btn" (click)="volverDeImpersonacion()">Volver a mi cuenta</button>
+          }
+        </div>
+      }
       <!-- W7 — banner persistente mientras el admin ve datos de prueba (patrón Stripe) -->
       @if (esAdmin() && verPrueba()) {
         <div class="prueba-banner" role="status">

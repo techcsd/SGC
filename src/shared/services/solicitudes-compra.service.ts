@@ -25,6 +25,22 @@ export class SolicitudesCompraService {
     return (data ?? []) as unknown as SolicitudCompra[];
   }
 
+  /**
+   * AY3 — estado REAL de las órdenes nacidas de MIS requisiciones (scoped a
+   * solicitante = auth.uid() en el RPC). Sirve para que el ingeniero vea si su
+   * requisición ya generó orden y en qué estado va (aprobada/recibida), sin
+   * darle acceso al módulo Compras completo (que mostraría TODAS las órdenes).
+   */
+  async misOrdenes(): Promise<Record<string, { orden_estado: string; numero: string | null }>> {
+    const { data, error } = await this.supabase.client.rpc('mis_ordenes_de_compra');
+    if (error) return {};
+    const map: Record<string, { orden_estado: string; numero: string | null }> = {};
+    for (const r of (data ?? []) as { solicitud_id: string; orden_estado: string; numero: string | null }[]) {
+      map[r.solicitud_id] = { orden_estado: r.orden_estado, numero: r.numero };
+    }
+    return map;
+  }
+
   async create(payload: SolicitudCompraFormData): Promise<SolicitudCompra> {
     const { data: id, error } = await this.supabase.client.rpc('crear_solicitud_compra', {
       p_proyecto_id: payload.proyecto_id,

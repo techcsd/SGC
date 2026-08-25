@@ -87,6 +87,42 @@ export class AuthService {
     return { user: sess.user, error: null };
   }
 
+  // ── AY7 — "Entrar como" un usuario de prueba, conservando la sesión admin ──
+  private readonly IMP_KEY = 'sgc-impersonacion';
+
+  /** Guarda la sesión actual (admin) y entra con las credenciales del usuario test. */
+  async impersonarUsuarioTest(email: string, password: string): Promise<{ error: string | null }> {
+    const actual = await this.getSession();
+    if (actual?.refresh_token) {
+      try {
+        localStorage.setItem(this.IMP_KEY, JSON.stringify({
+          access_token: actual.access_token, refresh_token: actual.refresh_token,
+        }));
+      } catch { /* ignore */ }
+    }
+    const { error } = await this.supabase.client.auth.signInWithPassword({ email, password });
+    if (error) {
+      try { localStorage.removeItem(this.IMP_KEY); } catch { /* ignore */ }
+      return { error: error.message };
+    }
+    return { error: null };
+  }
+
+  /** ¿Hay una sesión admin guardada a la que volver? */
+  hayImpersonacion(): boolean {
+    try { return !!localStorage.getItem(this.IMP_KEY); } catch { return false; }
+  }
+
+  /** Restaura la sesión admin guardada (fin de "entrar como"). */
+  async volverDeImpersonacion(): Promise<{ error: string | null }> {
+    let saved: { access_token: string; refresh_token: string } | null = null;
+    try { saved = JSON.parse(localStorage.getItem(this.IMP_KEY) || 'null'); } catch { saved = null; }
+    if (!saved?.refresh_token) return { error: 'No hay sesión a la que volver.' };
+    const { error } = await this.supabase.client.auth.setSession(saved);
+    try { localStorage.removeItem(this.IMP_KEY); } catch { /* ignore */ }
+    return { error: error?.message ?? null };
+  }
+
   async signOut(): Promise<{ error: AuthError | null }> {
     this.manualSignOut = true;
     try {
