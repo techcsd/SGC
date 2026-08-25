@@ -629,12 +629,14 @@ export class SalidasService {
     items: { detalle_id: string; cantidad_recibida: number }[],
     notas: string | null,
     fotoPath?: string | null,
+    firmaPath?: string | null,
   ): Promise<boolean> {
     const { data, error } = await this.supabase.client.rpc('confirmar_recepcion_salida', {
       p_salida_id: salidaId,
       p_items: items,
       p_notas: notas,
       p_foto_path: fotoPath ?? null,
+      p_firma_path: firmaPath ?? null,
     });
 
     if (error) throw new Error(error.message);

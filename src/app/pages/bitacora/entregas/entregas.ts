@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, viewChild, OnInit } from '@angular/core';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { RouterLink } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
@@ -7,6 +7,7 @@ import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario } from '../../../../shared/models/salida.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 interface RecepcionItem {
@@ -19,7 +20,7 @@ interface RecepcionItem {
 
 @Component({
   selector: 'app-bitacora-entregas',
-  imports: [FormDrawer, RouterLink, Skeleton],
+  imports: [FormDrawer, RouterLink, Skeleton, SignaturePad],
   templateUrl: './entregas.html',
   styleUrl: './entregas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +47,8 @@ export class Entregas implements OnInit {
   notas = signal('');
   // AY1 — foto de evidencia de la recepción.
   foto = signal<File | null>(null);
+  // AY2 — firma del receptor (pad reutilizable).
+  private firmaPad = viewChild<SignaturePad>('firmaPad');
 
   onFotoChange(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -119,10 +122,17 @@ export class Entregas implements OnInit {
       return;
     }
 
-    // AY1 — foto obligatoria para confirmar, salvo admin (bypass AS15).
-    if (!this.foto() && !this.esAdmin()) {
-      this.saveError.set('Adjunta una foto de la recepción para confirmar.');
-      return;
+    // AY1/AY2 — foto y firma obligatorias para confirmar, salvo admin (bypass AS15).
+    const pad = this.firmaPad();
+    if (!this.esAdmin()) {
+      if (!this.foto()) {
+        this.saveError.set('Adjunta una foto de la recepción para confirmar.');
+        return;
+      }
+      if (!pad || pad.isEmpty()) {
+        this.saveError.set('Falta la firma del receptor.');
+        return;
+      }
     }
 
     this.saving.set(true);
@@ -133,11 +143,17 @@ export class Entregas implements OnInit {
       if (this.foto()) {
         fotoPath = await this.salidasService.subirFotoRecepcion(salida.id, this.foto()!);
       }
+      let firmaPath: string | null = null;
+      if (pad && !pad.isEmpty()) {
+        const blob = await pad.toBlob();
+        if (blob) firmaPath = await this.salidasService.subirEvidenciaConduce(salida.id, 'firma-receptor', blob, 'png');
+      }
       const incompleto = await this.salidasService.confirmarRecepcion(
         salida.id,
         this.recepcionItems().map((i) => ({ detalle_id: i.detalle_id, cantidad_recibida: i.cantidad_recibida })),
         this.notas().trim() || null,
         fotoPath,
+        firmaPath,
       );
 
       if (incompleto) {

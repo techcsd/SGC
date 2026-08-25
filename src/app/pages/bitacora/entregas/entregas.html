@@ -125,6 +125,11 @@
     </div>
 
     <div class="sgc-field">
+      <label>Firma del receptor{{ esAdmin() ? ' (opcional)' : '' }}</label>
+      <app-signature-pad #firmaPad ariaLabel="Firma del receptor"></app-signature-pad>
+    </div>
+
+    <div class="sgc-field">
       <label for="notas-recepcion">Notas (opcional)</label>
       <textarea
         id="notas-recepcion"

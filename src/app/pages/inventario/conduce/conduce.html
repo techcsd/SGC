@@ -434,7 +434,7 @@
       <p class="conduce__obs"><strong>Notas de recepción:</strong> {{ s.notas_recepcion }}</p>
     }
 
-    @if (entregaFotoUrl() || salidaFotoUrl()) {
+    @if (entregaFotoUrl() || salidaFotoUrl() || recepcionFotoUrl()) {
       <section class="conduce__evidencia">
         <h2 class="conduce__evidencia-title">Evidencia (app de campo)</h2>
         <div class="conduce__evidencia-grid">
@@ -450,6 +450,13 @@
               <img [src]="url" alt="Foto de la entrega" (click)="fotoLightbox.set(url)"
                    style="cursor: zoom-in" />
               <figcaption>Foto de la entrega</figcaption>
+            </figure>
+          }
+          @if (recepcionFotoUrl(); as url) {
+            <figure class="conduce__evidencia-item">
+              <img [src]="url" alt="Foto de la recepción" (click)="fotoLightbox.set(url)"
+                   style="cursor: zoom-in" />
+              <figcaption>Foto de la recepción</figcaption>
             </figure>
           }
         </div>

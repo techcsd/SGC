@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
+import * as XLSX from "npm:xlsx@0.18.5";
 
 // ============================================================================
 // AW4 — Asistente de IA "Compa".
@@ -69,6 +70,8 @@ interface ToolDef {
   // AY11/C2 — genera un archivo PDF (se compone server-side y se entrega como
   // tarjeta descargable; hereda permisos: los datos salen de una consulta con RLS).
   pdf?: boolean;
+  // AY C4 — memoria: guarda una preferencia del propio usuario (recordar_memoria).
+  memoria?: boolean;
   // Lectura:
   rpc?: string;
   map?: (i: Any) => Record<string, unknown>;
@@ -140,13 +143,29 @@ const TOOLS: ToolDef[] = [
     rpc: "mis_permisos", map: () => ({}),
   },
   {
+    // AY C3 — conocimiento: cómo funciona el sistema (corpus del módulo Dudas).
+    name: "buscar_ayuda",
+    description: "Busca en la ayuda/Dudas del sistema cómo hacer algo o qué significa un estado (p. ej. '¿cómo hago un conduce?', '¿qué es una requisición?'). Úsalo para preguntas de USO del sistema, no de datos.",
+    modulos: null,
+    input_schema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] },
+    rpc: "buscar_ayuda", map: (i) => ({ p_query: String(i.query ?? "") }),
+  },
+  {
+    // AY C4 — memoria: recuerda una preferencia del usuario entre conversaciones.
+    name: "recordar",
+    description: "Guarda una preferencia o dato operativo del usuario para recordarlo en futuras conversaciones (p. ej. su obra por defecto, formato preferido, a quién suele asignar). Es SOLO del propio usuario. Úsalo cuando el usuario diga 'recuerda que…' o exprese una preferencia estable.",
+    modulos: null, memoria: true,
+    input_schema: { type: "object", properties: { clave: { type: "string" }, valor: { type: "string" } }, required: ["clave", "valor"] },
+  },
+  {
     // AY11/C2 — genera un PDF descargable. Los datos salen de una consulta con
     // los permisos del usuario (hereda RLS): si no puede ver el dato, no hay PDF.
     name: "generar_reporte_pdf",
-    description: "Genera un PDF descargable. Tipos: 'usuarios' (listado de usuarios del sistema, solo admin), 'stock_almacen' (existencias de un almacén — pide bodega_id con 'listar_almacenes'), 'desempeno_semana' (desempeño de choferes de la semana), 'conduces_dia' (conduces emitidos hoy). El archivo hereda tus permisos. Tras generarlo, dile al usuario que su descarga está lista abajo.",
+    description: "Genera un reporte descargable en PDF o Excel. Tipos: 'usuarios' (listado de usuarios, solo admin), 'stock_almacen' (existencias de un almacén — pide bodega_id con 'listar_almacenes'), 'desempeno_semana' (desempeño de choferes de la semana), 'conduces_dia' (conduces emitidos hoy). Usa formato 'excel' si el usuario pide Excel/hoja de cálculo; si no, PDF. El archivo hereda tus permisos. Tras generarlo, dile al usuario que su descarga está lista abajo.",
     modulos: null, pdf: true,
     input_schema: { type: "object", properties: {
       tipo: { type: "string", description: "usuarios | stock_almacen | desempeno_semana | conduces_dia" },
+      formato: { type: "string", description: "pdf | excel (por defecto pdf)" },
       bodega_id: { type: "string" }, anio: { type: "integer" }, semana: { type: "integer" },
     }, required: ["tipo"] },
   },
@@ -325,6 +344,9 @@ function systemPrompt(cap: Cap): string {
     "QUÉ PUEDES HACER:",
     "- CONSULTAR información (herramientas de lectura). Todo dato/número que des DEBE salir de una herramienta; si no tienes una, dilo (\"eso todavía no lo puedo consultar\"). NUNCA inventes datos ni IDs.",
     "- PREPARAR acciones con las herramientas 'proponer_*' (crear tarea, requisición, conduce). NUNCA ejecutas directo: al llamar una 'proponer_*' el sistema le muestra al usuario una tarjeta para CONFIRMAR. Tú solo dile en una frase corta qué preparaste y pídele que confirme.",
+    "- GENERAR archivos (PDF/Excel) con 'generar_reporte_pdf' — aparecen como tarjeta descargable.",
+    "- Explicar CÓMO funciona el sistema con 'buscar_ayuda' (usa esto para preguntas de uso, no de datos).",
+    "- RECORDAR preferencias del usuario con 'recordar' (obra por defecto, formato, etc.).",
     "",
     "REGLAS DURAS:",
     "1. Para preparar una acción primero RESUELVE los IDs con las herramientas de lectura (mis_proyectos para la obra, buscar_articulos para cada ítem, listar_almacenes para el almacén, despachantes_disponibles, buscar_usuarios). Jamás inventes un ID.",
@@ -479,6 +501,14 @@ async function componerPdf(titulo: string, subtitulo: string, cols: string[], ro
   return await doc.save();
 }
 
+// Compone un Excel (.xlsx) con encabezados + filas.
+function componerExcel(titulo: string, cols: string[], rows: string[][]): Uint8Array {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([cols, ...rows]);
+  XLSX.utils.book_append_sheet(wb, ws, titulo.slice(0, 28) || "Reporte");
+  return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as Uint8Array;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
@@ -554,7 +584,17 @@ Deno.serve(async (req: Request) => {
 
   const disponibles = toolsParaUsuario(capObj);
   const tools = disponibles.map((t, idx) => ({ name: t.name, description: t.description, input_schema: t.input_schema, ...(idx === disponibles.length - 1 ? { cache_control: { type: "ephemeral" } } : {}) }));
-  const system = [{ type: "text", text: systemPrompt(capObj), cache_control: { type: "ephemeral" } }];
+
+  // AY C4 — inyecta la memoria del usuario (lo que Compa recuerda de él).
+  let memText = "";
+  try {
+    const { data: mems } = await supabase.from("assistant_memory").select("clave, valor").limit(30);
+    if (mems?.length) {
+      memText = "\n\nLO QUE RECUERDAS DE ESTE USUARIO (memoria; puede estar desactualizada — verifica con una herramienta si vas a actuar sobre un dato):\n"
+        + mems.map((m: Any) => `- ${m.clave}: ${m.valor}`).join("\n");
+    }
+  } catch { /* memoria opcional */ }
+  const system = [{ type: "text", text: systemPrompt(capObj) + memText, cache_control: { type: "ephemeral" } }];
 
   const herramientasUsadas: { tool: string; ok: boolean }[] = [];
   let propuesta: Any = null;
@@ -571,6 +611,14 @@ Deno.serve(async (req: Request) => {
           let out: unknown; let ok = false; let resumen = "";
           if (!cfg) {
             out = { error: "Herramienta no disponible." };
+          } else if (cfg.memoria) {
+            // AY C4 — guarda una preferencia del propio usuario (escritura benigna, sin tarjeta).
+            try {
+              const inp = block.input ?? {};
+              const { error } = await supabase.rpc("recordar_memoria", { p_clave: String(inp.clave ?? ""), p_valor: String(inp.valor ?? "") });
+              if (error) { out = { error: "No pude guardar eso." }; resumen = error.message.slice(0, 200); }
+              else { out = { guardado: true }; ok = true; resumen = `memoria: ${String(inp.clave ?? "").slice(0, 60)}`; }
+            } catch (e) { out = { error: "No pude guardar eso." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
           } else if (cfg.pdf) {
             // AY11/C2 — genera un PDF con datos consultados con el JWT del usuario.
             try {
@@ -580,17 +628,22 @@ Deno.serve(async (req: Request) => {
                 out = { error: "No hay datos para ese reporte o no tienes acceso." };
                 resumen = "reporte sin datos/permiso";
               } else {
+                const esExcel = String(inp.formato ?? "pdf").toLowerCase() === "excel";
                 const fecha = new Date().toISOString().slice(0, 16).replace("T", " ");
-                const bytes = await componerPdf(datos.titulo, `Generado por ${capObj.nombre} · ${fecha}`, datos.cols, datos.rows);
-                const path = `${capObj.usuario_id}/${crypto.randomUUID()}.pdf`;
-                const { error: upErr } = await supabase.storage.from("reportes").upload(path, bytes, { contentType: "application/pdf" });
-                if (upErr) { out = { error: "No se pudo guardar el PDF." }; resumen = upErr.message.slice(0, 200); }
+                const bytes = esExcel
+                  ? componerExcel(datos.titulo, datos.cols, datos.rows)
+                  : await componerPdf(datos.titulo, `Generado por ${capObj.nombre} · ${fecha}`, datos.cols, datos.rows);
+                const ext = esExcel ? "xlsx" : "pdf";
+                const ctype = esExcel ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf";
+                const path = `${capObj.usuario_id}/${crypto.randomUUID()}.${ext}`;
+                const { error: upErr } = await supabase.storage.from("reportes").upload(path, bytes, { contentType: ctype });
+                if (upErr) { out = { error: "No se pudo guardar el archivo." }; resumen = upErr.message.slice(0, 200); }
                 else {
                   const { data: signed } = await supabase.storage.from("reportes").createSignedUrl(path, 3600);
-                  const nombre = `${datos.titulo}.pdf`;
+                  const nombre = `${datos.titulo}.${ext}`;
                   archivo = { nombre, url: signed?.signedUrl ?? "" };
-                  out = { generado: true, nombre, filas: datos.rows.length, instruccion: "Dile al usuario que su PDF está listo para descargar en la tarjeta de abajo." };
-                  ok = true; resumen = `pdf ${datos.rows.length} filas`;
+                  out = { generado: true, nombre, filas: datos.rows.length, instruccion: "Dile al usuario que su archivo está listo para descargar en la tarjeta de abajo." };
+                  ok = true; resumen = `${ext} ${datos.rows.length} filas`;
                 }
               }
             } catch (e) { out = { error: "No se pudo generar el PDF." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }

@@ -1,5 +1,34 @@
 {
   "web": {
+    "1.98.0": {
+      "titulo": "Rol Ingenieros unificado, firma en recepción y Compa con Excel, ayuda y memoria (ronda AY, cierre)",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "Se unificaron 'Ingeniero de Campo' y 'Ingeniero de Oficina' en un solo rol 'Ingenieros' (hacían lo mismo). Los usuarios existentes se migraron automáticamente; el Jefe de Ingenieros sigue aparte."
+        },
+        {
+          "t": "nuevo",
+          "d": "Recepción de conduces: al confirmar una entrega ahora también firmas en pantalla (además de la foto). La foto y la firma del receptor quedan en el detalle del conduce y en su PDF."
+        },
+        {
+          "t": "mejora",
+          "d": "La confirmación de recepción por la web ahora deja el mismo registro completo que la app (firma del receptor y confirmación), sin importar por dónde se confirme."
+        },
+        {
+          "t": "nuevo",
+          "d": "Compa puede generar reportes en Excel, no solo PDF: pídele 'en Excel' y te da la hoja de cálculo."
+        },
+        {
+          "t": "nuevo",
+          "d": "Compa ahora explica cómo funciona el sistema: pregúntale '¿cómo hago un conduce?' o '¿qué es una requisición?' y busca en la ayuda/Dudas."
+        },
+        {
+          "t": "nuevo",
+          "d": "Compa recuerda tus preferencias entre conversaciones: dile 'recuerda que mi obra es X' y lo tendrá presente la próxima vez (es solo tuyo)."
+        }
+      ]
+    },
     "1.97.0": {
       "titulo": "Compa más completo y seguro, permisos afinados y usuarios de prueba (ronda AY)",
       "cambios": [

@@ -90,6 +90,8 @@ export class Conduce implements OnInit {
   entregaFirmaUrl = signal<string | null>(null);
   // Evidence photo taken when the salida itself was captured in the field.
   salidaFotoUrl = signal<string | null>(null);
+  // AY1 — foto capturada por el receptor al confirmar la recepción.
+  recepcionFotoUrl = signal<string | null>(null);
   // AC7 — firmas canónicas del conduce (emisor entrega / receptor recibe), con su URL firmada.
   firmaEmisor = signal<FirmaConUrl | null>(null);
   firmaReceptor = signal<FirmaConUrl | null>(null);
@@ -227,6 +229,8 @@ export class Conduce implements OnInit {
     this.entregaFotoUrl.set(await sign('conduces', s.entrega_foto_path));
     this.entregaFirmaUrl.set(await sign('conduces', s.entrega_firma_path));
     this.salidaFotoUrl.set(await sign('inventario', s.foto_path));
+    // AY1 — foto capturada por el receptor al confirmar (bucket inventario).
+    this.recepcionFotoUrl.set(await sign('inventario', s.recepcion_foto_path ?? null));
 
     // AC7 — firmas canónicas (emisor/receptor) desde salida_firmas.
     this.firmaEmisor.set(null);

@@ -62,6 +62,8 @@ export interface SalidaInventario {
   entrega_receptor: string | null;
   entrega_firma_path: string | null;
   entrega_foto_path: string | null;
+  // AY1 — foto que capturó el RECEPTOR al confirmar la recepción (bucket inventario).
+  recepcion_foto_path?: string | null;
   // AE — firma de RECEPTOR pendiente enrutada (móvil): a quién le toca firmar si no
   // estuvo presente. Se limpia cuando esa persona firma (firmar_conduce).
   firma_pendiente_usuario_id: string | null;

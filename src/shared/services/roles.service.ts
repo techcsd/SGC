@@ -212,16 +212,16 @@ export const PRESETS_CARGO: PresetCargo[] = [
     comparte_ubicacion: true,
   },
   {
+    // AY4 — rol unificado "Ingenieros" (campo + oficina). Código `ingeniero_campo`
+    // conservado (whitelists lo referencian); nombre/label = "Ingenieros".
     key: 'ingeniero_campo',
-    label: 'Ingeniero de campo',
-    descripcion: 'Bitácora de obra, cronograma, requisiciones y solicitudes de compra de sus obras.',
-    modulos: ['bitacora'],
+    label: 'Ingenieros',
+    descripcion: 'Bitácora, solicitud de movimiento, producción de obra, documentos y tareas; ficha/cronograma/personal y requisiciones de sus obras (sin costos).',
+    modulos: ['bitacora', 'ingenieria', 'obra', 'documentos', 'tareas'],
     permisos: {
       'proyectos.obras': 'ver',
-      'proyectos.cronograma': 'operar',
+      'proyectos.cronograma': 'ver',
       'proyectos.personal': 'operar',
-      'inventario.salidas': 'operar',
-      'inventario.articulos': 'ver',
       'compras.solicitudes': 'operar',
     },
   },
