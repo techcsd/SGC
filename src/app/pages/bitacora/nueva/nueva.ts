@@ -68,7 +68,7 @@ interface Draft {
   bloqueActivo?: string;
   descripciones?: Record<string, string>;
   equipos?: EquipoRow[];
-  otros?: Record<string, string>;
+  estructurasOtras?: string[];
 }
 
 @Component({
@@ -153,10 +153,20 @@ export class Nueva implements OnInit {
   // y estado por-línea de "cantidad aproximada (~)".
   actividadesSinCantidad = signal<ReadonlySet<string>>(new Set());
   aproximadaActividad = signal<Record<string, boolean>>({});
-  // AX6 — "Otros": elementos trabajados que no están en el catálogo. Texto libre
-  // por BLOQUE (uno por línea). Se guardan como actividades con estructura 'OTROS'
-  // → salen en los reportes (AT11) y alimentan el catálogo (promover los repetidos).
-  otrosPorBloque = signal<Record<string, string>>({});
+  // AX6 — "Otros": elementos trabajados que no están en el catálogo. PARIDAD CON LA
+  // APP MÓVIL: el usuario agrega el elemento como una estructura MÁS de la matriz y
+  // elige sus actividades igual que en cualquiera; se guarda con `estructura` = el
+  // texto TAL CUAL (no un 'OTROS' mudo) → sale verbatim en los reportes y alimenta
+  // el catálogo (promover los repetidos, ciclo AT11). Se mantiene aparte para que el
+  // re-ranking del catálogo (que reemplaza `estructuras`) no borre lo agregado.
+  estructurasOtras = signal<string[]>([]);
+  otroNombre = signal('');
+  /** Estructuras del catálogo + las "Otros" agregadas por el usuario (dedup). */
+  estructurasVista = computed(() => {
+    const base = this.estructuras();
+    const lower = new Set(base.map((e) => e.toLowerCase()));
+    return [...base, ...this.estructurasOtras().filter((e) => !lower.has(e.toLowerCase()))];
+  });
   // Bloques/entrepisos/sujetos capturados en este parte + el que se edita ahora.
   bloquesLista = signal<string[]>(['General']);
   bloqueActivo = signal<string>('General');
@@ -513,7 +523,7 @@ export class Nueva implements OnInit {
   /** ¿El borrador actual tiene contenido que valga la pena guardar? */
   private tieneContenido(): boolean {
     const v = this.form.getRawValue();
-    const hayOtros = Object.values(this.otrosPorBloque()).some((t) => (t || '').trim());
+    const hayOtros = this.estructurasOtras().length > 0;
     return !!(v.proyecto_id || this.actividadesSeleccionadas().size || this.restriccionesSeleccionadas().size
       || v.comentarios || v.incidente_descripcion || this.equiposAlquilados().length || hayOtros);
   }
@@ -537,7 +547,7 @@ export class Nueva implements OnInit {
       bloqueActivo: this.bloqueActivo(),
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
-      otros: this.otrosPorBloque(),
+      estructurasOtras: this.estructurasOtras(),
     };
     this.borradores.save(this.MODULO_BORRADOR, this.draftId, this.draftLabel(), draft);
     this.refrescarEnProceso();
@@ -557,7 +567,15 @@ export class Nueva implements OnInit {
     this.bloqueActivo.set(draft.bloqueActivo ?? this.bloquesLista()[0] ?? 'General');
     this.restriccionDescripciones.set(draft.descripciones ?? {});
     this.equiposAlquilados.set(draft.equipos ?? []);
-    this.otrosPorBloque.set(draft.otros ?? {});
+    // AX6 — restaura las estructuras "Otros"; deriva las que falten de las llaves
+    // `bloque|estructura|actividad` para que la matriz pinte sus grupos.
+    const otras = new Set(draft.estructurasOtras ?? []);
+    const enCatalogo = new Set(this.estructuras().map((e) => e.toLowerCase()));
+    for (const k of draft.actividades ?? []) {
+      const est = k.split('|')[1];
+      if (est && !enCatalogo.has(est.toLowerCase())) otras.add(est);
+    }
+    this.estructurasOtras.set([...otras]);
   }
 
   descartar(id: string) {
@@ -678,14 +696,17 @@ export class Nueva implements OnInit {
     return this.unidadesActividad()[this.key(estructura, actividad)] ?? '';
   }
 
-  // AX6 — "Otros" por bloque (texto libre, un elemento por línea).
-  getOtros(): string {
-    return this.otrosPorBloque()[this.bloqueActivo()] ?? '';
-  }
-
-  setOtros(v: string) {
-    const b = this.bloqueActivo();
-    this.otrosPorBloque.update((m) => ({ ...m, [b]: v }));
+  // AX6 — agrega un elemento "Otros" (texto libre) como una estructura MÁS de la
+  // matriz. Paridad con la app: el usuario luego elige sus actividades y las filas
+  // se guardan con `estructura` = el texto tal cual. Dedup contra catálogo + otras.
+  agregarEstructuraOtro() {
+    const nombre = this.otroNombre().trim();
+    if (!nombre) { this.saveError.set('Escribe qué se trabajó ("Otros").'); return; }
+    const yaExiste = this.estructurasVista().some((e) => e.toLowerCase() === nombre.toLowerCase());
+    if (!yaExiste) this.estructurasOtras.update((l) => [...l, nombre]);
+    this.expandedEstructura.set(nombre); // abre el grupo nuevo para elegir actividades
+    this.otroNombre.set('');
+    this.saveError.set('');
     this.saveDraft();
   }
 
@@ -881,23 +902,9 @@ export class Nueva implements OnInit {
           };
         })
       : [];
-    // AX6 — anexar los "Otros" (texto libre por bloque) como actividades con
-    // estructura 'OTROS'. Salen en los reportes/dashboards igual que el resto y
-    // se pueden promover al catálogo (buscar estructura='OTROS').
-    if (esParte && !sinAct) {
-      for (const [bloque, texto] of Object.entries(this.otrosPorBloque())) {
-        for (const linea of (texto || '').split('\n').map((s) => s.trim()).filter(Boolean)) {
-          actividades.push({
-            estructura: 'OTROS',
-            actividad: linea,
-            cantidad: null,
-            unidad: null,
-            bloque: bloque === 'General' ? bloqueParte : bloque,
-            es_aproximada: false,
-          });
-        }
-      }
-    }
+    // AX6 — los "Otros" ya NO se anexan aparte: son estructuras de la matriz
+    // (estructurasOtras) y sus filas salen del bucle de arriba con `estructura` =
+    // el texto libre tal cual (paridad con la app; feed del catálogo).
     const restricciones = esParte && !sinAct
       ? [...this.restriccionesSeleccionadas()].map((r) => ({
           tipo_restriccion: r,

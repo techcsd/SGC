@@ -395,3 +395,12 @@
   color: var(--main-ultra-light, #929090);
   line-height: 1.35;
 }
+// AX6 — fila para agregar un elemento "Otros" (input + botón).
+.bitacora-otros__add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .sgc-input { flex: 1 1 220px; }
+}
