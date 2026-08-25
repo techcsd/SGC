@@ -292,7 +292,7 @@ Deno.serve(async (req: Request) => {
   if (!authHeader) return json({ error: "No autorizado" }, 401);
   if (!ANTHROPIC_API_KEY) return json({ error: "El asistente no está configurado todavía (falta la API key). Avísale a Tecnología." }, 503);
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } });
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: "sgc" }, global: { headers: { Authorization: authHeader } } });
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) return json({ error: "Sesión inválida" }, 401);
 
