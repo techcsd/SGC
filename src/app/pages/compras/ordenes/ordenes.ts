@@ -13,13 +13,12 @@ import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/ser
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
-import { ProyectosService } from '../../../../shared/services/proyectos.service';
+import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { SolicitudesCompraService } from '../../../../shared/services/solicitudes-compra.service';
 import { EntradasService } from '../../../../shared/services/entradas.service';
 import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../../../../shared/models/orden-compra.model';
 import { EntradaInventario } from '../../../../shared/models/entrada.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
-import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
@@ -111,7 +110,9 @@ export class Ordenes implements OnInit {
   articuloNombres = signal<string[]>([]);
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
-  proyectos = signal<Proyecto[]>([]);
+  // AX3 — el dropdown de obras se llena desde el directorio (SECURITY DEFINER),
+  // no desde .from('proyectos') (RLS lo dejaba vacío para el ingeniero de campo).
+  proyectos = signal<ObraRef[]>([]);
   solicitudesPendientes = signal<SolicitudCompra[]>([]);
   loading = signal(true);
   saving = signal(false);
@@ -251,7 +252,7 @@ export class Ordenes implements OnInit {
       const [ordenes, proveedores, proyectos, solicitudes, articulos, categorias] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
-        this.proyectosService.getAll(),
+        this.proyectosService.getDirectorio(),
         this.solicitudesCompraService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),

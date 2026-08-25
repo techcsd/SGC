@@ -68,6 +68,29 @@
             </label>
           }
         </div>
+
+        <!-- AX4 — Penalización por estancamiento (renglón negativo). No premia
+             cambiar de estado: RESTA por días laborables sin señal. -->
+        <h3 class="inc-config__title" style="font-size:15px;margin-top:18px;">Penalización por estancamiento</h3>
+        <p class="inc-config__hint">Resta puntos por cada día laborable (lun–sáb) sin ninguna señal del chofer (ni cambio de estado ni actividad). Deja <strong>Puntos por día = 0</strong> para dejarla apagada. No se dan puntos por cambiar de estado.</p>
+        <div class="inc-config__grid">
+          <label class="inc-config__field">
+            <span>Días de gracia</span>
+            <input type="number" min="0" [ngModel]="cfgPenalGracia()" (ngModelChange)="cfgPenalGracia.set($event)" />
+          </label>
+          <label class="inc-config__field">
+            <span>Puntos por día (0 = apagada)</span>
+            <input type="number" min="0" step="0.5" [ngModel]="cfgPenalPts()" (ngModelChange)="cfgPenalPts.set($event)" />
+          </label>
+          <label class="inc-config__field">
+            <span>Tope semanal de penalización</span>
+            <input type="number" min="0" step="0.5" [ngModel]="cfgPenalTope()" (ngModelChange)="cfgPenalTope.set($event)" />
+          </label>
+        </div>
+        <div class="inc-config__actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="guardarPenalizacion()">Guardar penalización</button>
+        </div>
+
         <div class="inc-config__actions">
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleConfig()">Cerrar</button>
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="guardarConfig()">Guardar nueva versión</button>
@@ -196,6 +219,22 @@
                             <a class="inc-ref" [routerLink]="refRuta(ref.tipo, ref.id)" [class.inc-ref--ayud]="ref.ayudante" [title]="ref.ayudante ? 'Como ayudante' : 'Actividad propia'">
                               {{ formatFecha(ref.fecha) }}@if (ref.ayudante) { · ayud. }
                             </a>
+                          }
+                        </div>
+                      </div>
+                    }
+                  }
+                  <!-- AX4 — renglón negativo: penalización por estancamiento -->
+                  @if (penalDe(f); as pen) {
+                    @if (pen.puntos !== 0) {
+                      <div class="inc-renglon inc-renglon--penal">
+                        <div class="inc-renglon__head">
+                          <span class="inc-renglon__label">{{ labelRenglon('estancamiento') }}</span>
+                          <span class="inc-renglon__count" style="color:var(--sgc-danger);">{{ pen.puntos }} pts</span>
+                        </div>
+                        <div class="inc-renglon__refs">
+                          @for (ref of pen.refs; track ref.id) {
+                            <span class="inc-ref" title="Día laborable sin señal del chofer">{{ formatFecha(ref.fecha) }}</span>
                           }
                         </div>
                       </div>

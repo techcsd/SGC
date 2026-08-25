@@ -1,7 +1,21 @@
 # HANDOFF — SGC
 
 ## TL;DR
-Ronda AW (19–24 ago 2026) cerrada y **shipped a `main`** hasta **v1.95.0** (Vercel deploya solo). Se validó/limpió el combustible (AW3), se arregló el cronograma vacío (AW1), y se construyó **Compa** — el asistente de IA (AW4) con **v1 lectura + v2 acciones con confirmación**. **Lo único que falta para encender Compa: que Xavier ponga el secret `ANTHROPIC_API_KEY`** (sin él responde 503 amable, no rompe nada).
+**Ronda AX (PROMPT-11, 25 ago 2026) — EN CURSO, web verde SIN commit/push.** **Compa ya está ENCENDIDO en prod** (secrets `ANTHROPIC_API_KEY` + `ASSISTANT_MODEL=claude-sonnet-5` puestos vía Management API; 503 fuera; probado end-to-end con permisos por rol). Hecho además: AX8 (UI de Compa legible en tema claro), AX7 (input de cantidad ya no borra al vaciar), AX3 (dropdown de obras en OC), y **AX1 aplicado a prod** (el ingeniero de campo responsable ya ve y firma su conduce — migración RLS). Falta: AX6 "Otros" en bitácora (feature), y AX4/AX2/AX5/AX10 que dependen de decisiones de Xaviel. **Xaviel:** poner el budget alert US$50/mes en console.anthropic.com.
+
+Ronda AW (19–24 ago 2026) cerrada y **shipped a `main`** hasta **v1.95.0** (Vercel deploya solo). Se validó/limpió el combustible (AW3), se arregló el cronograma vacío (AW1), y se construyó **Compa** — el asistente de IA (AW4) con **v1 lectura + v2 acciones con confirmación**.
+
+## Ronda AX (25 ago 2026) — detalle
+- **AX9 Compa ON (prod):** secrets vía `POST /v1/projects/jeeqhgccqefbqilntcpu/secrets` (Mgmt API, key nunca impresa). Modelo Sonnet 5 (`claude-sonnet-5`, alias verificado vs `/v1/models`). Probado con sesiones minteadas por admin `generate_link`→`verify` (sin tocar passwords): 4 chips, agregados, permisos admin≠chofer (vedados → "no tengo acceso", sin fuga), auditoría llena, es_prueba OK. ~US$0.005–0.012/pregunta. Rate limit 60/h ya existía.
+- **AX8 (web):** `asistente.scss` — reemplazados hex oscuros quemados por tokens `--sgc-*` → legible en claro, sigue tema oscuro.
+- **AX7 (web):** `shared/ui/qty-stepper` — vacío-editable + normaliza en blur + select en focus. Cubre todos los inputs de cantidad.
+- **AX3 (web):** `compras/ordenes` — dropdown de obras vacío por RLS; cambiado `getAll()`→`getDirectorio()` (RPC SECURITY DEFINER) + empty-state. Lista todas las obras activas (one-liner a `misProyectos()` si se quiere scoped).
+- **AX1 (RLS APLICADA prod):** `sql/2026-08-25_AX1_conduce_read_confirm_responsable.sql` — 4 policies SELECT (salidas_inventario/detalle_salidas/salida_firmas/salida_items_libres) + rama en `confirmar_recepcion_salida`, usando `es_responsable_de_proyecto`. El ingeniero responsable ve+firma su conduce (antes RLS/RPC solo miraban proyecto_empleados; ingenieros son proyecto_responsables). Verificado con Wagner. Arregla web y app.
+- **AX5 (APLICADA prod + edge v5):** correo del incentivo con la matriz detallada del módulo (Reporte/Inspección/Combustible/Rutas/Conduces/Total/Estado+⚠N) + fallback texto. Fix de población: el motor derivaba por actividad → colaban no-choferes (Eduardo NG, Test User 3, Misael, hasta Xaviel). Gate por rol `chofer_transportista` en `incentivo_generar_semana` + `incentivo_listado` (`sql/2026-08-25_AX5_...`) + RPC `incentivo_matriz_email` (`...AX5b...`). NO disparé envío real (evita spam); datos = 4 choferes, mismo orden que pantalla. **7 filas intrusas históricas quedan ocultas — varias con decisión/posible pago: reportadas para que Xaviel decida si revierte.** ⚠N = incidencias (rutas sin métrica / echadas dup).
+- **AX6 (web hecho, build verde):** "Otros" en bitácora — textarea por bloque; guarda `{estructura:'OTROS', actividad:<texto>}` (sin enum en la tabla) → visible en reportes (AT11). App = PROMPT-12.
+- **AX2 (APLICADA prod + edge, verificado):** acceso Capataz por cédula. `personal_obra.usuario_id` + capataz.modulos=['bitacora'] + edge genérica `acceso-cedula` (tipo conductor|capataz, email `cap-<cedula>@personal…`, rol capataz) + botón "Crear acceso" en la ficha (`personal-expediente`, solo cargo CAP) + AX2b (capataz VE/FIRMA conduces de su obra, mirror AX1). Verificado: capataz de prueba creado → login cédula+PIN HTTP 200. **App login UI = PROMPT-12.**
+- **AX4 (APLICADA prod, DEFAULT APAGADA, verificado):** penalización por estancamiento = renglón negativo del motor AT1. Función aislada `_incentivo_penalizacion` (idempotente) + hook en `incentivo_generar_semana` + RPC `incentivo_set_penalizacion` + config en `pesos._penal_*` (**pts_dia=0 = apagada, sin efecto en pago** hasta que Xaviel ponga números) + panel "Penalización por estancamiento" en Incentivos. Verificado off=no-op y on=computa (JOAN 32→29, EDWARD 1→−3 tope). NO premia cambios de estado. Aviso push preventivo = app (PROMPT-12).
+- **Ronda AX WEB = COMPLETA (8/8).** Hallazgo AX5: **Eduardo NG es ingeniero_campo** → por eso salía en la matriz de choferes.
 
 ## Estado de versiones (todo en prod / main)
 - **1.93.0** (`763150e`) — AW1/AW2/AW3 combustible + cronograma + groundwork IA.
@@ -24,13 +38,11 @@ Ronda AW (19–24 ago 2026) cerrada y **shipped a `main`** hasta **v1.95.0** (Ve
 4. **RPC `resumen_combustible` saneada** (galones/gasto/rendimiento excluyendo prueba+invalidadas) como tool — hoy el dashboard lo calcula en el cliente.
 5. Excluir (o no) la echada borderline **37.38 km/gal del KIA** — decisión de Xavier vía panel de Saneamiento.
 
-## Pending — Xavier only (BLOQUEA Compa)
-1. **Crear cuenta de Claude Platform (API)** en console.anthropic.com — **es aparte del Team plan** (el Team plan NO incluye API). Generar API key. Recomendado: budget alert ~US$50, aviso al 80%.
-2. **Setear el secret `ANTHROPIC_API_KEY`** para las edge functions (Compa lee el secret en caliente, sin redeploy):
-   - Dashboard: Supabase → proyecto → **Edge Functions → Manage secrets** → `ANTHROPIC_API_KEY`.
-   - O CLI: `npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-... --project-ref jeeqhgccqefbqilntcpu`
-   - Opcional: `ASSISTANT_MODEL` para cambiar el modelo (default `claude-haiku-4-5-20251001`).
-3. (Ya hecho por Xavier) Confía en Vercel para el deploy web automático al push de `main`.
+## Pending — Xavier only
+1. **Budget alert de Compa:** en console.anthropic.com → Billing/Limits → tope mensual **US$50** + aviso al 80%. (Único pendiente para el piloto; Claude no tiene acceso a esa cuenta.)
+2. (Hecho por Claude) Secrets `ANTHROPIC_API_KEY` + `ASSISTANT_MODEL=claude-sonnet-5` ya puestos en prod vía Mgmt API. `ANTHROPIC_API_KEY.env` sigue ignorado/sin trackear; se puede mover fuera del repo (la fuente de verdad ya es el secret).
+3. **Decisiones para AX4/AX2/AX5** (ver Ronda AX arriba) para desbloquear esas fases.
+4. (Ya hecho) Vercel deploya web automático al push de `main`.
 
 ## Gotchas descubiertos
 - **Management API ≠ admin:** al correr SQL vía la Management API (`POST https://api.supabase.com/v1/projects/jeeqhgccqefbqilntcpu/database/query` con `SUPABASE_ACCESS_TOKEN`), `auth.uid()` es null y `sgc.is_admin()` = **false**. Los RPCs con guard `is_admin` fallan; para data-fixes usa **SQL directo** (rol de servicio, salta el guard).

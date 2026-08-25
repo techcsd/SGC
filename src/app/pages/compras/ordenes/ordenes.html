@@ -245,6 +245,9 @@
             <option [value]="proy.id">{{ proy.codigo }} — {{ proy.nombre }}</option>
           }
         </select>
+        @if (!proyectos().length) {
+          <p class="sgc-field__hint text-muted">No hay obras activas disponibles. Si esperabas ver alguna, pide que te asignen a la obra.</p>
+        }
       </div>
     }
 

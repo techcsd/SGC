@@ -22,6 +22,8 @@
     [disabled]="disabled()"
     [attr.aria-label]="ariaLabel()"
     (input)="onInput($any($event.target).value)"
+    (focus)="onFocus($any($event.target))"
+    (blur)="onBlur($any($event.target))"
   />
 
   <button

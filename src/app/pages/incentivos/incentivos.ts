@@ -49,6 +49,10 @@ export class Incentivos implements OnInit {
   cfgMinimo = signal(10);
   cfgFactor = signal(1);
   cfgPesos = signal<Record<string, number>>({});
+  // AX4 — penalización por estancamiento (renglón negativo). pts/día = 0 = apagada.
+  cfgPenalGracia = signal(2);
+  cfgPenalPts = signal(0);
+  cfgPenalTope = signal(4);
 
   busy = signal(false);
 
@@ -67,7 +71,12 @@ export class Incentivos implements OnInit {
       const [semanas, cfg] = await Promise.all([this.service.semanas(), this.service.configActual()]);
       this.semanas.set(semanas);
       this.config.set(cfg);
-      if (cfg) { this.cfgMinimo.set(cfg.minimo_semanal); this.cfgFactor.set(cfg.ayudante_factor); this.cfgPesos.set({ ...cfg.pesos }); }
+      if (cfg) {
+        this.cfgMinimo.set(cfg.minimo_semanal); this.cfgFactor.set(cfg.ayudante_factor); this.cfgPesos.set({ ...cfg.pesos });
+        this.cfgPenalGracia.set(Number(cfg.pesos['_penal_gracia_dias'] ?? 2));
+        this.cfgPenalPts.set(Number(cfg.pesos['_penal_pts_dia'] ?? 0));
+        this.cfgPenalTope.set(Number(cfg.pesos['_penal_tope'] ?? 4));
+      }
 
       // Deep-link desde el email: /incentivos?anio=&semana=
       const qa = Number(this.route.snapshot.queryParamMap.get('anio'));
@@ -269,5 +278,30 @@ export class Incentivos implements OnInit {
     } finally {
       this.busy.set(false);
     }
+  }
+
+  // AX4 — guarda la penalización por estancamiento (sobre la config activa).
+  async guardarPenalizacion() {
+    if (this.busy()) return;
+    this.busy.set(true);
+    try {
+      await this.service.setPenalizacion(this.cfgPenalGracia(), this.cfgPenalPts(), this.cfgPenalTope());
+      this.config.set(await this.service.configActual());
+      const estado = this.cfgPenalPts() > 0 ? 'activada' : 'apagada';
+      this.toast.success(`Penalización ${estado}`, 'Aplica al recalcular la semana. Recalcula para verla reflejada.');
+    } catch (e) {
+      this.toast.error('No se pudo guardar la penalización', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** AX4 — etiqueta de un renglón (incluye el negativo 'estancamiento'). */
+  labelRenglon(r: string): string {
+    return this.RENGLON_LABELS[r] ?? (r === 'estancamiento' ? 'Penalización por estancamiento' : r);
+  }
+  /** AX4 — renglón de penalización de un chofer (si tiene). */
+  penalDe(f: IncentivoFila) {
+    return f.conteos?.['estancamiento'] ?? null;
   }
 }

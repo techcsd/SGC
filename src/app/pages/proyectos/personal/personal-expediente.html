@@ -66,6 +66,28 @@
       </div>
     </section>
 
+    <!-- AX2 — Acceso a la app por cédula (solo capataces) -->
+    @if (esCapataz()) {
+      <section class="sgc-card pob-exp__acceso">
+        <h3 class="pob-exp__sub">Acceso a la app</h3>
+        @if (tieneAcceso()) {
+          <p class="text-muted">Ya tiene acceso: inicia sesión en la app con su cédula ({{ p.documento_numero }}) y su PIN. Puedes restablecer el PIN abajo.</p>
+        } @else {
+          <p class="text-muted">Crea el acceso para que el capataz entre a la app con su cédula ({{ p.documento_numero || '— sin cédula' }}) y un PIN de 6 dígitos, igual que los choferes.</p>
+        }
+        <div class="pob-exp__acceso-row">
+          <input type="text" inputmode="numeric" maxlength="6" class="sgc-input"
+            placeholder="PIN (6 dígitos)" [value]="accesoPin()"
+            (input)="accesoPin.set($any($event.target).value)" [disabled]="accesoBusy()" />
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="crearAccesoCapataz()" [disabled]="accesoBusy()">
+            {{ accesoBusy() ? 'Guardando…' : (tieneAcceso() ? 'Restablecer PIN' : 'Crear acceso') }}
+          </button>
+        </div>
+        @if (accesoMsg()) { <p class="pob-exp__acceso-ok">{{ accesoMsg() }}</p> }
+        @if (accesoError()) { <p class="page-error" role="alert">{{ accesoError() }}</p> }
+      </section>
+    }
+
     <!-- Carnet -->
     <section class="sgc-card pob-exp__carnet">
       <h3 class="pob-exp__sub">Carnet</h3>

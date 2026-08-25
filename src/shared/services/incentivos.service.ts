@@ -151,6 +151,16 @@ export class IncentivosService {
     return (data ?? 0) as number;
   }
 
+  /** AX4 — configura la penalización por estancamiento sobre la config activa
+   *  (no crea versión nueva). pts/día = 0 la deja apagada. */
+  async setPenalizacion(graciaDias: number, ptsDia: number, tope: number): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_set_penalizacion', {
+      p_gracia_dias: graciaDias, p_pts_dia: ptsDia, p_tope: tope,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? 0) as number;
+  }
+
   async miRendimiento(): Promise<MiRendimientoSemana[]> {
     const { data, error } = await this.supabase.client.rpc('incentivo_mi_rendimiento');
     if (error) throw new Error(error.message);

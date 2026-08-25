@@ -28,8 +28,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   transition: background 0.15s ease;
-  &:hover { background: var(--sgc-surface-2, #1a1a1a); }
-  &--active { background: var(--sgc-surface-2, #1a1a1a); font-weight: 600; }
+  &:hover { background: var(--sgc-surface-hover); }
+  &--active { background: var(--sgc-surface-hover); font-weight: 600; }
 }
 .compa__side-empty { color: var(--sgc-text-muted); font-size: 13px; padding: 8px; }
 
@@ -39,8 +39,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -49,7 +49,7 @@
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid #2d2d2d;
+  border-bottom: 1px solid var(--sgc-border);
 }
 .compa__avatar {
   display: grid;
@@ -79,8 +79,8 @@
 .compa__chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .compa__chip {
   padding: 8px 14px;
-  border: 1px solid #2d2d2d;
-  background: #1a1a1a;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-bg);
   color: var(--sgc-text);
   border-radius: 999px;
   cursor: pointer;
@@ -107,7 +107,8 @@
   border-bottom-right-radius: 4px;
 }
 .compa__msg--assistant .compa__bubble {
-  background: #212121;
+  background: var(--sgc-bg);
+  border: 1px solid var(--sgc-border);
   color: var(--sgc-text);
   border-bottom-left-radius: 4px;
 }
@@ -115,8 +116,8 @@
 .compa__tool-chip {
   font-size: 10.5px;
   color: var(--sgc-text-muted);
-  background: #1a1a1a;
-  border: 1px solid #2d2d2d;
+  background: var(--sgc-bg);
+  border: 1px solid var(--sgc-border);
   border-radius: 6px;
   padding: 1px 6px;
   &--fail { color: var(--sgc-danger); border-color: var(--sgc-danger); }
@@ -137,7 +138,7 @@
 .compa__propuesta {
   align-self: flex-start;
   max-width: 88%;
-  background: #1c1c1c;
+  background: var(--sgc-surface);
   border: 1px solid var(--Hub, #ffb300);
   border-radius: 14px;
   padding: 14px 16px;
@@ -172,7 +173,7 @@
   display: flex;
   gap: 8px;
   padding: 12px 14px;
-  border-top: 1px solid #2d2d2d;
+  border-top: 1px solid var(--sgc-border);
   align-items: flex-end;
 }
 .compa__input {
@@ -180,8 +181,8 @@
   resize: none;
   max-height: 120px;
   padding: 10px 14px;
-  border: 1px solid #2d2d2d;
-  background: #1a1a1a;
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-surface);
   color: var(--sgc-text);
   border-radius: 12px;
   font-size: 14px;

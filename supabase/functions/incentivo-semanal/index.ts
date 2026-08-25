@@ -42,12 +42,28 @@ function fmtDate(s: string | null): string {
   return d && m && y ? `${d}/${m}/${y}` : s;
 }
 
+interface Renglon { propio: number; ayudante: number; puntos: number }
 interface Fila {
   nombre: string;
   puntaje: number;
   minimo: number;
   cumplio: boolean;
+  conteos: Record<string, Renglon>;
+  warns: number;
   decision: string | null;
+}
+
+// AX5 — mismas columnas y orden que el módulo "Desempeño de choferes".
+const RENGLONES: { key: string; label: string }[] = [
+  { key: "reporte_semanal", label: "Reporte semanal" },
+  { key: "inspeccion", label: "Inspección de vehículo" },
+  { key: "echada", label: "Registro de combustible" },
+  { key: "ruta", label: "Rutas completadas" },
+  { key: "conduce", label: "Conduces confirmados" },
+];
+function celda(f: Fila, key: string): number {
+  const r = f.conteos?.[key];
+  return r ? Number(r.propio ?? 0) + Number(r.ayudante ?? 0) : 0;
 }
 
 async function buildPdf(anio: number, semana: number, inicio: string, fin: string, filas: Fila[]): Promise<Uint8Array> {
@@ -111,23 +127,28 @@ Deno.serve(async (req: Request) => {
     anio = Number(body.anio); semana = Number(body.semana);
     if (!anio || !semana) return json({ error: "Falta anio/semana." }, 400);
 
+    // AX5 — misma fuente que el módulo "Desempeño de choferes" (RPC detallado,
+    // solo choferes, sin datos de prueba en el correo real).
     const { data: rows, error } = await supabase
-      .from("incentivo_semana")
-      .select("inicio, fin, puntaje, minimo, cumplio, usuario:usuarios(nombre)")
-      .eq("anio", anio).eq("semana", semana)
-      .order("cumplio", { ascending: false })
-      .order("puntaje", { ascending: false });
+      .rpc("incentivo_matriz_email", { p_anio: anio, p_semana: semana });
     if (error) throw new Error(error.message);
 
     const filas: Fila[] = ((rows ?? []) as any[]).map((r) => ({
-      nombre: r.usuario?.nombre ?? "—",
+      nombre: r.nombre ?? "—",
       puntaje: Number(r.puntaje ?? 0),
       minimo: Number(r.minimo ?? 0),
       cumplio: !!r.cumplio,
-      decision: null,
+      conteos: (r.conteos ?? {}) as Record<string, Renglon>,
+      warns: Array.isArray(r.flags) ? r.flags.length : 0,
+      decision: r.decision ?? null,
     }));
-    const inicio = (rows?.[0] as any)?.inicio ?? null;
-    const fin = (rows?.[0] as any)?.fin ?? null;
+
+    // inicio/fin de la semana para el encabezado.
+    const { data: sem } = await supabase
+      .from("incentivo_semana").select("inicio, fin")
+      .eq("anio", anio).eq("semana", semana).limit(1).maybeSingle();
+    const inicio = (sem as any)?.inicio ?? null;
+    const fin = (sem as any)?.fin ?? null;
 
     const pdfBytes = await buildPdf(anio, semana, inicio, fin, filas);
 
@@ -142,28 +163,54 @@ Deno.serve(async (req: Request) => {
 
     let ok = true, errMsg: string | null = null;
     if (resendApiKey && to.length) {
+      const appUrl = Deno.env.get("APP_URL") ?? "https://sgcconstructorasd.com";
+      const cumplieron = filas.filter((f) => f.cumplio).length;
+      const td = "padding:6px 10px;border-bottom:1px solid #eee;";
+      const th = "padding:6px 10px;border-bottom:2px solid #ddd;color:#555;";
+
+      // AX5 — matriz detallada idéntica al módulo: fila por chofer, celda por
+      // renglón (cantidad hecha), Total x/mínimo y Estado con ⚠N (incidencias).
       const rowsHtml = filas.map((f) => {
         const badge = f.cumplio
           ? '<span style="background:#e7f6ec;color:#16a34a;padding:2px 8px;border-radius:10px;font-weight:600;">Cumplió</span>'
           : '<span style="background:#fdeaea;color:#dc2626;padding:2px 8px;border-radius:10px;font-weight:600;">Rendimiento bajo</span>';
-        return `<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;">${esc(f.nombre)}</td>` +
-          `<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;">${f.puntaje}</td>` +
-          `<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;color:#888;">${f.minimo}</td>` +
-          `<td style="padding:6px 10px;border-bottom:1px solid #eee;">${badge}</td></tr>`;
+        const warn = f.warns > 0
+          ? ` <span title="Incidencias por revisar" style="background:#fef3c7;color:#b45309;padding:1px 7px;border-radius:10px;font-weight:700;font-size:12px;">⚠${f.warns}</span>`
+          : "";
+        const celdas = RENGLONES.map((r) =>
+          `<td style="${td}text-align:center;">${celda(f, r.key)}</td>`).join("");
+        return `<tr><td style="${td}font-weight:600;">${esc(f.nombre)}</td>${celdas}` +
+          `<td style="${td}text-align:center;font-weight:700;">${f.puntaje} / ${f.minimo}</td>` +
+          `<td style="${td}white-space:nowrap;">${badge}${warn}</td></tr>`;
       }).join("");
-      const appUrl = Deno.env.get("APP_URL") ?? "https://sgcconstructorasd.com";
+      const colHead = RENGLONES.map((r) =>
+        `<th style="${th}text-align:center;">${esc(r.label)}</th>`).join("");
       const html =
         `<div style="font-family:Arial,sans-serif;color:#222;">` +
         `<h2 style="color:#ff5f00;margin:0 0 4px;">Incentivo semanal — Choferes</h2>` +
-        `<p style="color:#666;margin:0 0 16px;">Semana ${semana} / ${anio} · ${esc(fmtDate(inicio))} – ${esc(fmtDate(fin))}</p>` +
-        `<table style="border-collapse:collapse;width:100%;font-size:14px;">` +
-        `<thead><tr style="text-align:left;color:#555;">` +
-        `<th style="padding:6px 10px;">Chofer</th><th style="padding:6px 10px;text-align:right;">Puntaje</th>` +
-        `<th style="padding:6px 10px;text-align:right;">Mínimo</th><th style="padding:6px 10px;">Estado</th></tr></thead>` +
-        `<tbody>${rowsHtml || '<tr><td colspan="4" style="padding:10px;color:#888;">Sin actividad esta semana.</td></tr>'}</tbody></table>` +
+        `<p style="color:#666;margin:0 0 16px;">Semana ${semana} / ${anio} · ${esc(fmtDate(inicio))} – ${esc(fmtDate(fin))} · ${cumplieron}/${filas.length} cumplieron</p>` +
+        `<div style="overflow-x:auto;"><table style="border-collapse:collapse;width:100%;font-size:13px;">` +
+        `<thead><tr style="text-align:left;">` +
+        `<th style="${th}">Chofer</th>${colHead}` +
+        `<th style="${th}text-align:center;">Total</th><th style="${th}">Estado</th></tr></thead>` +
+        `<tbody>${rowsHtml || `<tr><td colspan="${RENGLONES.length + 3}" style="padding:10px;color:#888;">Sin choferes con actividad esta semana.</td></tr>`}</tbody></table></div>` +
+        `<p style="color:#888;font-size:12px;margin:10px 0 0;">⚠N = incidencias por revisar (rutas sin métrica / echadas duplicadas). El Total es puntos vs. el mínimo semanal.</p>` +
         `<p style="margin:18px 0;"><a href="${appUrl}/incentivos?anio=${anio}&semana=${semana}" ` +
-        `style="background:#ff5f00;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Ver informe</a></p>` +
+        `style="background:#ff5f00;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600;">Ver en SGC / aprobar</a></p>` +
         `<p style="color:#888;font-size:12px;">El informe no paga solo: aprobar o declinar el incentivo es una decisión que registras en el sistema.</p></div>`;
+
+      // Fallback de texto plano (clientes sin HTML).
+      const texto = [
+        `Incentivo semanal — Choferes`,
+        `Semana ${semana}/${anio} · ${fmtDate(inicio)} – ${fmtDate(fin)} · ${cumplieron}/${filas.length} cumplieron`,
+        ``,
+        ...filas.map((f) =>
+          `- ${f.nombre}: ` +
+          RENGLONES.map((r) => `${r.label.split(" ")[0]} ${celda(f, r.key)}`).join(", ") +
+          ` · Total ${f.puntaje}/${f.minimo} · ${f.cumplio ? "Cumplió" : "Bajo"}${f.warns ? ` (⚠${f.warns})` : ""}`),
+        ``,
+        `Ver/aprobar: ${appUrl}/incentivos?anio=${anio}&semana=${semana}`,
+      ].join("\n");
 
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -171,7 +218,7 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           from: fromEmail, to,
           subject: `Incentivo semanal de choferes — Semana ${semana}/${anio}`,
-          html,
+          html, text: texto,
           attachments: [{ filename: `incentivo-semana-${anio}-${semana}.pdf`, content: toBase64(pdfBytes) }],
         }),
       });

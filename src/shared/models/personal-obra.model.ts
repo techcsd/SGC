@@ -63,6 +63,8 @@ export interface PersonalObra {
   estado: EstadoPersonal;
   es_prueba?: boolean;
   registrado_por?: string | null;
+  // AX2 — usuario del sistema enlazado (acceso por cédula del capataz).
+  usuario_id?: string | null;
   created_at: string;
   updated_at: string;
   // joins

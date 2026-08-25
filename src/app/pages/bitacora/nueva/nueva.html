@@ -639,6 +639,20 @@
           </div>
         }
       </div>
+
+      <!-- AX6 — "Otros": elemento trabajado que no está en el catálogo. -->
+      <div class="bitacora-otros sgc-field">
+        <label for="bitacora-otros">Otros — ¿qué se trabajó que no está en la lista?</label>
+        <textarea
+          id="bitacora-otros"
+          class="sgc-input"
+          rows="2"
+          placeholder="Un elemento por línea (ej.: Rampa vehicular, Muro de contención…)"
+          [value]="getOtros()"
+          (input)="setOtros($any($event.target).value)"
+        ></textarea>
+        <p class="bitacora-section__hint">Se registra en el bloque «{{ bloqueActivo() }}» y aparece en los reportes. Si algo se repite, pídele a Tecnología que lo agregue al catálogo.</p>
+      </div>
     </section>
 
     <!-- Sección 3: Personal -->

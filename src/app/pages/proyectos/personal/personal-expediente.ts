@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -46,6 +46,33 @@ export class PersonalExpediente implements OnInit {
   error = signal('');
   saving = signal(false);
   lightboxUrl = signal<string | null>(null);
+
+  // AX2 — acceso al sistema por cédula del capataz.
+  accesoPin = signal('');
+  accesoBusy = signal(false);
+  accesoMsg = signal('');
+  accesoError = signal('');
+  esCapataz = computed(() => this.personal()?.cargo?.codigo === 'CAP');
+  tieneAcceso = computed(() => !!this.personal()?.usuario_id);
+
+  async crearAccesoCapataz() {
+    const p = this.personal();
+    if (!p || this.accesoBusy()) return;
+    const pin = this.accesoPin().trim();
+    if (!/^\d{6}$/.test(pin)) { this.accesoError.set('El PIN debe tener exactamente 6 dígitos.'); return; }
+    if (!p.documento_numero) { this.accesoError.set('La ficha no tiene cédula/documento para el acceso.'); return; }
+    this.accesoBusy.set(true); this.accesoError.set(''); this.accesoMsg.set('');
+    try {
+      const { email } = await this.service.generarAccesoCapataz(p.id, pin);
+      this.accesoMsg.set(`Acceso listo — inicia sesión en la app con la cédula ${p.documento_numero} y el PIN. (${email})`);
+      this.accesoPin.set('');
+      await this.load(p.id); // refresca usuario_id
+    } catch (e: unknown) {
+      this.accesoError.set(e instanceof Error ? e.message : 'No se pudo crear el acceso.');
+    } finally {
+      this.accesoBusy.set(false);
+    }
+  }
 
   get verifyUrl(): string {
     const p = this.personal();

@@ -68,6 +68,7 @@ interface Draft {
   bloqueActivo?: string;
   descripciones?: Record<string, string>;
   equipos?: EquipoRow[];
+  otros?: Record<string, string>;
 }
 
 @Component({
@@ -152,6 +153,10 @@ export class Nueva implements OnInit {
   // y estado por-línea de "cantidad aproximada (~)".
   actividadesSinCantidad = signal<ReadonlySet<string>>(new Set());
   aproximadaActividad = signal<Record<string, boolean>>({});
+  // AX6 — "Otros": elementos trabajados que no están en el catálogo. Texto libre
+  // por BLOQUE (uno por línea). Se guardan como actividades con estructura 'OTROS'
+  // → salen en los reportes (AT11) y alimentan el catálogo (promover los repetidos).
+  otrosPorBloque = signal<Record<string, string>>({});
   // Bloques/entrepisos/sujetos capturados en este parte + el que se edita ahora.
   bloquesLista = signal<string[]>(['General']);
   bloqueActivo = signal<string>('General');
@@ -508,8 +513,9 @@ export class Nueva implements OnInit {
   /** ¿El borrador actual tiene contenido que valga la pena guardar? */
   private tieneContenido(): boolean {
     const v = this.form.getRawValue();
+    const hayOtros = Object.values(this.otrosPorBloque()).some((t) => (t || '').trim());
     return !!(v.proyecto_id || this.actividadesSeleccionadas().size || this.restriccionesSeleccionadas().size
-      || v.comentarios || v.incidente_descripcion || this.equiposAlquilados().length);
+      || v.comentarios || v.incidente_descripcion || this.equiposAlquilados().length || hayOtros);
   }
 
   private draftLabel(): string {
@@ -531,6 +537,7 @@ export class Nueva implements OnInit {
       bloqueActivo: this.bloqueActivo(),
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
+      otros: this.otrosPorBloque(),
     };
     this.borradores.save(this.MODULO_BORRADOR, this.draftId, this.draftLabel(), draft);
     this.refrescarEnProceso();
@@ -550,6 +557,7 @@ export class Nueva implements OnInit {
     this.bloqueActivo.set(draft.bloqueActivo ?? this.bloquesLista()[0] ?? 'General');
     this.restriccionDescripciones.set(draft.descripciones ?? {});
     this.equiposAlquilados.set(draft.equipos ?? []);
+    this.otrosPorBloque.set(draft.otros ?? {});
   }
 
   descartar(id: string) {
@@ -668,6 +676,17 @@ export class Nueva implements OnInit {
 
   getUnidad(estructura: string, actividad: string): string {
     return this.unidadesActividad()[this.key(estructura, actividad)] ?? '';
+  }
+
+  // AX6 — "Otros" por bloque (texto libre, un elemento por línea).
+  getOtros(): string {
+    return this.otrosPorBloque()[this.bloqueActivo()] ?? '';
+  }
+
+  setOtros(v: string) {
+    const b = this.bloqueActivo();
+    this.otrosPorBloque.update((m) => ({ ...m, [b]: v }));
+    this.saveDraft();
   }
 
   toggleEstructura(estructura: string) {
@@ -862,6 +881,23 @@ export class Nueva implements OnInit {
           };
         })
       : [];
+    // AX6 — anexar los "Otros" (texto libre por bloque) como actividades con
+    // estructura 'OTROS'. Salen en los reportes/dashboards igual que el resto y
+    // se pueden promover al catálogo (buscar estructura='OTROS').
+    if (esParte && !sinAct) {
+      for (const [bloque, texto] of Object.entries(this.otrosPorBloque())) {
+        for (const linea of (texto || '').split('\n').map((s) => s.trim()).filter(Boolean)) {
+          actividades.push({
+            estructura: 'OTROS',
+            actividad: linea,
+            cantidad: null,
+            unidad: null,
+            bloque: bloque === 'General' ? bloqueParte : bloque,
+            es_aproximada: false,
+          });
+        }
+      }
+    }
     const restricciones = esParte && !sinAct
       ? [...this.restriccionesSeleccionadas()].map((r) => ({
           tipo_restriccion: r,

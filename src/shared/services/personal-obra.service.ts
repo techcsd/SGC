@@ -161,6 +161,21 @@ export class PersonalObraService {
     return (data ?? []) as PersonalListado[];
   }
 
+  /** AX2 — genera/rota el acceso por cédula + PIN de un capataz (edge acceso-cedula).
+   *  Devuelve el email sintético con el que inicia sesión en la app. */
+  async generarAccesoCapataz(personalId: string, pin: string): Promise<{ email: string }> {
+    const { data, error } = await this.supabase.client.functions.invoke('acceso-cedula', {
+      body: { tipo: 'capataz', entityId: personalId, pin },
+    });
+    if (error) {
+      // La edge devuelve { error } en el body con status !=2xx.
+      const msg = (data as { error?: string } | null)?.error ?? error.message;
+      throw new Error(msg);
+    }
+    if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+    return data as { email: string };
+  }
+
   async crear(payload: Partial<PersonalObra>): Promise<PersonalObra> {
     const { data, error } = await this.client
       .from('personal_obra')
