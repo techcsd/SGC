@@ -1,10 +1,15 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-// P5 — Login de conductor por cédula + PIN (público, pre-auth: verify_jwt=false).
-// Mapea la cédula a su email sintético y hace signInWithPassword. Aplica bloqueo
-// temporal por intentos fallidos (tabla sgc.conductor_login_intentos, service
-// role). Devuelve la sesión (tokens) para que el front haga setSession.
+// P5 — Login por cédula + PIN (público, pre-auth: verify_jwt=false).
+// AX2 — GENERALIZADO por rol: la misma cédula puede pertenecer a un CHOFER
+// (email sintético `c-<digits>@conductores…`) o a un CAPATAZ
+// (`cap-<digits>@personal…`, creado por la edge `acceso-cedula`). El login es
+// ROL-AGNÓSTICO: prueba los dominios en orden y autentica el que exista — el
+// front (app) no necesita saber el rol, lo resuelve el backend. Retrocompatible:
+// el dominio de chofer va primero, así el flujo existente no cambia.
+// Aplica bloqueo temporal por intentos fallidos (tabla sgc.conductor_login_intentos,
+// service role, keyed por cédula). Devuelve la sesión (tokens) para setSession.
 
 const MAX_INTENTOS = 5;
 const BLOQUEO_MIN = 15;
@@ -22,9 +27,17 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function syntheticEmail(cedula: string): string {
+// AX2 — dominios de email sintético por rol, en orden de intento. El de chofer
+// va primero (retrocompatibilidad). Añadir un rol nuevo = una línea aquí + su
+// creación de acceso en `acceso-cedula` (misma llave: la cédula en dígitos).
+const EMAIL_DOMINIOS: ReadonlyArray<(digits: string) => string> = [
+  (d) => `c-${d}@conductores.constructorasd.local`, // chofer (P5)
+  (d) => `cap-${d}@personal.constructorasd.local`, // capataz (acceso-cedula)
+];
+
+function emailsCandidatos(cedula: string): string[] {
   const digits = (cedula || "").replace(/\D/g, "");
-  return `c-${digits}@conductores.constructorasd.local`;
+  return EMAIL_DOMINIOS.map((f) => f(digits));
 }
 
 Deno.serve(async (req: Request) => {
@@ -64,15 +77,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // 2) Intentar login
-    const email = syntheticEmail(cedula);
+    // 2) Intentar login — AX2: prueba cada dominio de rol; gana el que exista.
     const anon = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
-    const { data: signIn, error: signInError } = await anon.auth.signInWithPassword({
-      email,
-      password: pin,
-    });
+    let sesion: { access_token: string; refresh_token: string; expires_in: number; expires_at?: number } | null = null;
+    for (const email of emailsCandidatos(cedula)) {
+      const { data: signIn } = await anon.auth.signInWithPassword({ email, password: pin });
+      if (signIn?.session) {
+        sesion = signIn.session;
+        break;
+      }
+    }
 
-    if (signInError || !signIn.session) {
+    if (!sesion) {
       // Contar fallo (si el bloqueo anterior ya pasó, empezar de cero).
       const base = bloqueadoHasta && bloqueadoHasta <= now ? 0 : (intento?.intentos ?? 0);
       const intentos = base + 1;
@@ -100,10 +116,10 @@ Deno.serve(async (req: Request) => {
     // 3) Éxito → limpiar intentos y devolver la sesión.
     await admin.from("conductor_login_intentos").delete().eq("cedula", cedulaKey);
     return json({
-      access_token: signIn.session.access_token,
-      refresh_token: signIn.session.refresh_token,
-      expires_in: signIn.session.expires_in,
-      expires_at: signIn.session.expires_at,
+      access_token: sesion.access_token,
+      refresh_token: sesion.refresh_token,
+      expires_in: sesion.expires_in,
+      expires_at: sesion.expires_at,
     });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);
