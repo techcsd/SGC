@@ -45,6 +45,8 @@ export interface Conductor {
   created_at: string;
   // T2 — dato de prueba (oculto a no-admin vía RLS; solo admin lo marca/elimina).
   es_prueba?: boolean;
+  // BA2 — participa del incentivo de choferes (población explícita). Default true.
+  participa_incentivo?: boolean;
 }
 
 export interface ConductorFormData {

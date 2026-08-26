@@ -107,6 +107,12 @@ export class ConductorDetalle implements OnInit {
   conductor = signal<Conductor | null>(null);
   stats = signal<ConductorStats | null>(null);
 
+  // ── BA2 — participación en el incentivo (población explícita) ──────────────
+  savingIncentivo = signal(false);
+  puedeGestionarIncentivo = computed(
+    () => this.userService.hasRole('admin') || this.userService.hasModulo('incentivos'),
+  );
+
   // ── AS2 — avatar del conductor ────────────────────────────────
   // La foto vive en el usuario vinculado (bucket PÚBLICO sgc-avatars); se
   // resuelve con getPublicUrl (mismo patrón que el shell / UserService.avatarUrl).
@@ -326,6 +332,22 @@ export class ConductorDetalle implements OnInit {
   }
 
   // ── FASE 4 — registrar multa (elevados) ──────────────────────
+  /** BA2 — enciende/apaga la participación de este chofer en el incentivo. */
+  async toggleParticipaIncentivo(participa: boolean) {
+    const c = this.conductor();
+    if (!c || this.savingIncentivo()) return;
+    this.savingIncentivo.set(true);
+    try {
+      await this.conductoresService.setParticipaIncentivo(c.id, participa);
+      this.conductor.set({ ...c, participa_incentivo: participa });
+      this.toast.success(participa ? 'Chofer incluido en el incentivo' : 'Chofer excluido del incentivo');
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo actualizar la participación');
+    } finally {
+      this.savingIncentivo.set(false);
+    }
+  }
+
   async openMulta() {
     this.multaForm.reset({ fecha: new Date().toISOString().slice(0, 10), motivo: '', motivoOtro: '', monto: null, estado: 'pendiente' });
     this.multaFile = null;

@@ -270,3 +270,52 @@
   &:hover { background: var(--sgc-surface-hover, rgba(0,0,0,0.03)); }
   &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: -2px; }
 }
+
+// BA2 — toggle de participación en el incentivo.
+.cd-incentivo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.cd-incentivo__txt { display: flex; flex-direction: column; gap: 2px; max-width: 480px; }
+.cd-incentivo__label { font-weight: 600; }
+.cd-incentivo__hint { font-size: 0.8rem; color: var(--main-ultra-light, #929090); }
+
+.cd-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+
+  input { position: absolute; opacity: 0; width: 0; height: 0; }
+}
+.cd-switch__track {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: #3a3a3a;
+  transition: background 0.2s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.2s ease;
+  }
+}
+.cd-switch--on .cd-switch__track {
+  background: var(--Hub, #ffb300);
+  &::after { transform: translateX(18px); }
+}
+.cd-switch__label { font-size: 0.85rem; color: var(--main-ultra-light, #929090); min-width: 22px; }

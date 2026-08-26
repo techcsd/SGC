@@ -2938,6 +2938,11 @@
           "t": "mejora",
           "m": "Flota",
           "d": "El rol de Logística y Transportación tiene acceso completo a Flota a nivel de submódulos."
+        },
+        {
+          "t": "nuevo",
+          "m": "Desempeño",
+          "d": "En la ficha del chofer, un interruptor «Participa del incentivo» permite incluir o excluir a un chofer del incentivo (admin/gestor de incentivos), con efecto inmediato en la matriz, el correo y Compa. El histórico ya pagado no cambia."
         }
       ]
     }

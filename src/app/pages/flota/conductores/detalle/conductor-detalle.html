@@ -58,6 +58,23 @@
     }
   </section>
 
+  <!-- BA2 — participación en el incentivo (solo admin/gestor de incentivos) -->
+  @if (puedeGestionarIncentivo()) {
+    <section class="sgc-card cd-incentivo">
+      <div class="cd-incentivo__txt">
+        <span class="cd-incentivo__label">Participa del incentivo</span>
+        <span class="cd-incentivo__hint">Si se apaga, este chofer no aparece en el desempeño, el correo semanal ni Compa. El histórico ya pagado no cambia.</span>
+      </div>
+      <label class="cd-switch" [class.cd-switch--on]="conductor()!.participa_incentivo !== false">
+        <input type="checkbox" [checked]="conductor()!.participa_incentivo !== false"
+               [disabled]="savingIncentivo()"
+               (change)="toggleParticipaIncentivo($any($event.target).checked)" />
+        <span class="cd-switch__track" aria-hidden="true"></span>
+        <span class="cd-switch__label">{{ conductor()!.participa_incentivo !== false ? 'Sí' : 'No' }}</span>
+      </label>
+    </section>
+  }
+
   @if (licenciaExpirada()) {
     <div class="page-error" role="alert">Licencia vencida — contacta a RRHH.</div>
   } @else if (licenciaPorVencer()) {
