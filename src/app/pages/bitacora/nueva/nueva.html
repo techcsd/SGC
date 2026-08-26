@@ -575,7 +575,7 @@
 
             @if (isEstructuraExpanded(estructura)) {
               <div class="bitacora-matriz__checks">
-                @for (actividad of actividades(); track actividad) {
+                @for (actividad of actividadesVista(estructura); track actividad) {
                   <div class="bitacora-matriz__row">
                     <label class="bitacora-matriz__check">
                       <input
@@ -634,6 +634,20 @@
                     }
                   </div>
                 }
+                <!-- AZ6 — "Otros" en actividades (segundo nivel): salida cuando la
+                     actividad no está en el catálogo. Se marca sola al agregarla. -->
+                <div class="bitacora-matriz__otro">
+                  <input
+                    type="text"
+                    class="sgc-input sgc-input--sm"
+                    placeholder="+ Otros: ¿qué se hizo? (ej: Curado, Limpieza…)"
+                    [value]="otroActividadNombre()"
+                    (input)="otroActividadNombre.set($any($event.target).value)"
+                    (keydown.enter)="$event.preventDefault(); agregarActividadOtro(estructura)"
+                    aria-label="Agregar actividad no listada"
+                  />
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarActividadOtro(estructura)">Agregar</button>
+                </div>
               </div>
             }
           </div>

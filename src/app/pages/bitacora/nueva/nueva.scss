@@ -404,3 +404,16 @@
 
   .sgc-input { flex: 1 1 220px; }
 }
+
+// AZ6 — fila "Otros" dentro de la matriz de actividades (segundo nivel).
+.bitacora-matriz__otro {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border, #d4d4d4);
+
+  .sgc-input { flex: 1 1 220px; }
+}

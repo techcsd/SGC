@@ -69,6 +69,7 @@ interface Draft {
   descripciones?: Record<string, string>;
   equipos?: EquipoRow[];
   estructurasOtras?: string[];
+  actividadesOtras?: Record<string, string[]>; // AZ6 — actividades libres por estructura
 }
 
 @Component({
@@ -167,6 +168,19 @@ export class Nueva implements OnInit {
     const lower = new Set(base.map((e) => e.toLowerCase()));
     return [...base, ...this.estructurasOtras().filter((e) => !lower.has(e.toLowerCase()))];
   });
+  // AZ6 — actividades "Otros" (SEGUNDO nivel): actividades libres por estructura,
+  // espejo de estructurasOtras. Clave = estructura → sus actividades libres. Se
+  // guardan con `actividad` = el texto tal cual (sale verbatim en reportes y
+  // alimenta el repositorio "Valores 'Otro'" vía trigger de BD por membresía).
+  actividadesOtras = signal<Record<string, string[]>>({});
+  otroActividadNombre = signal('');
+  /** Actividades del catálogo + las "Otros" agregadas a ESTA estructura (dedup). */
+  actividadesVista(estructura: string): string[] {
+    const base = this.actividades();
+    const lower = new Set(base.map((a) => a.toLowerCase()));
+    const extra = this.actividadesOtras()[estructura] ?? [];
+    return [...base, ...extra.filter((a) => !lower.has(a.toLowerCase()))];
+  }
   // Bloques/entrepisos/sujetos capturados en este parte + el que se edita ahora.
   bloquesLista = signal<string[]>(['General']);
   bloqueActivo = signal<string>('General');
@@ -548,6 +562,7 @@ export class Nueva implements OnInit {
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
       estructurasOtras: this.estructurasOtras(),
+      actividadesOtras: this.actividadesOtras(),
     };
     this.borradores.save(this.MODULO_BORRADOR, this.draftId, this.draftLabel(), draft);
     this.refrescarEnProceso();
@@ -576,6 +591,18 @@ export class Nueva implements OnInit {
       if (est && !enCatalogo.has(est.toLowerCase())) otras.add(est);
     }
     this.estructurasOtras.set([...otras]);
+    // AZ6 — restaura las actividades "Otros" por estructura; deriva las que falten
+    // de las llaves `bloque|estructura|actividad` (actividad fuera del catálogo).
+    const actOtras: Record<string, string[]> = { ...(draft.actividadesOtras ?? {}) };
+    const actCatalogo = new Set(this.actividades().map((a) => a.toLowerCase()));
+    for (const k of draft.actividades ?? []) {
+      const [, est, act] = k.split('|');
+      if (est && act && !actCatalogo.has(act.toLowerCase())) {
+        const lista = actOtras[est] ?? [];
+        if (!lista.some((a) => a.toLowerCase() === act.toLowerCase())) actOtras[est] = [...lista, act];
+      }
+    }
+    this.actividadesOtras.set(actOtras);
   }
 
   descartar(id: string) {
@@ -706,6 +733,25 @@ export class Nueva implements OnInit {
     if (!yaExiste) this.estructurasOtras.update((l) => [...l, nombre]);
     this.expandedEstructura.set(nombre); // abre el grupo nuevo para elegir actividades
     this.otroNombre.set('');
+    this.saveError.set('');
+    this.saveDraft();
+  }
+
+  // AZ6 — agrega una actividad "Otros" (texto libre) a la estructura y la marca
+  // (aparece con su cantidad/unidad, igual que una del catálogo). Paridad con la
+  // app; el texto libre alimenta el repositorio "Valores 'Otro'" (trigger de BD).
+  agregarActividadOtro(estructura: string) {
+    const nombre = this.otroActividadNombre().trim();
+    if (!nombre) { this.saveError.set('Escribe qué se hizo ("Otros").'); return; }
+    const yaExiste = this.actividadesVista(estructura).some((a) => a.toLowerCase() === nombre.toLowerCase());
+    if (!yaExiste) {
+      this.actividadesOtras.update((m) => ({ ...m, [estructura]: [...(m[estructura] ?? []), nombre] }));
+    }
+    // Marca la actividad (si no lo estaba) para que salga con cantidad/unidad.
+    if (!this.actividadesSeleccionadas().has(this.key(estructura, nombre))) {
+      this.toggleActividad(estructura, nombre);
+    }
+    this.otroActividadNombre.set('');
     this.saveError.set('');
     this.saveDraft();
   }
