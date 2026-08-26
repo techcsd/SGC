@@ -41,6 +41,20 @@ export class UserService {
   }
 
   /**
+   * AY4c — ¿puede GESTIONAR proyectos (crear/editar/borrar la obra)? Tener el módulo
+   * `proyectos` por un rol que NO sea `ingeniero_oficina` (oficina lo lleva SOLO para
+   * VER todas las obras + costos/presupuesto — cubicaciones — y es solo-lectura sobre
+   * la ficha). Espejo de `sgc.puede_gestionar_proyectos()` (la RLS lo fuerza igual).
+   */
+  puedeGestionarProyectos = computed(
+    () =>
+      this.hasRole('admin') ||
+      (this._profile()?.roles ?? []).some(
+        (ur) => ur.rol.codigo !== 'ingeniero_oficina' && (ur.rol.modulos ?? []).includes('proyectos'),
+      ),
+  );
+
+  /**
    * AG12 — permisos granulares por submódulo. Mapa "modulo.submodulo" → mejor
    * nivel entre todos los roles del usuario. Fuente única en el front (espejo de
    * `sgc.nivel_submodulo`). El checkbox del módulo padre implica 'operar' en todos

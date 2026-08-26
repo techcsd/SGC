@@ -106,6 +106,9 @@ export class Lista implements OnInit {
   /** Solo un admin puede marcar/ver/eliminar datos de prueba. */
   esAdmin = computed(() => this.userService.hasRole('admin'));
 
+  /** AY4c — crear/editar proyectos: no el Ingeniero de Oficina (solo-lectura de la ficha). */
+  puedeGestionarProyectos = this.userService.puedeGestionarProyectos;
+
   formatFecha = formatFechaDisplay;
 
   /** Cuadre + antifraude solo para roles financieros/dirección (no obra). */

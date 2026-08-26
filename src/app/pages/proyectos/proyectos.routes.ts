@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { submoduloGuard } from '../../core/guards/submodulo.guard';
 import { submoduloOperarGuard } from '../../core/guards/submodulo-operar.guard';
+import { proyectosGestionGuard } from '../../core/guards/proyectos-gestion.guard';
 
 // AR1 — El parent (/proyectos) pasa a moduloOSubmoduloGuard, así que cada hija se
 // afina con su submódulo. Quien tenga el MÓDULO completo pasa por compat; un rol
@@ -14,8 +15,9 @@ export const proyectosRoutes: Routes = [
   },
   {
     // Z13 — crear proyecto como ruta dedicada (deep-linkable, botón Atrás).
+    // AY4c — solo quien GESTIONA proyectos (el Ingeniero de Oficina no).
     path: 'nuevo',
-    canActivate: [submoduloGuard('proyectos.obras')],
+    canActivate: [proyectosGestionGuard],
     loadComponent: () => import('./lista/lista').then((m) => m.Lista),
     data: { modo: 'crear' },
     title: 'Nuevo proyecto',
