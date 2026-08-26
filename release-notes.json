@@ -2820,6 +2820,21 @@
           "d": "Desempeño de choferes: penalización configurable por estado estancado (resta puntos por días sin actividad ni señal). Viene apagada; se activa en 'Configurar puntaje'."
         }
       ]
+    },
+    "1.98.2": {
+      "titulo": "Perfil Ingeniero de Oficina (solo-lectura de proyectos)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Proyectos",
+          "d": "Nuevo perfil “Ingeniero de Oficina” (cubicaciones/presupuesto): ve todas las obras con sus costos y presupuesto, pero es solo-lectura sobre el proyecto — no puede crear ni editar proyectos, ni gestionar el cronograma."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "El “Ingeniero de Campo” (encargado de obra) ve y trabaja únicamente sus obras; los costos/presupuesto quedan para oficina/gerencia."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
