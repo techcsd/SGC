@@ -96,6 +96,9 @@
                 </div>
               }
               <span>{{ usuario.nombre }}</span>
+              @if (usuario.es_prueba) {
+                <span class="sgc-badge sgc-badge--neutral" title="Usuario de prueba (fuera de KPIs/correos/incentivos)">PRUEBA</span>
+              }
             </td>
             <td class="admin-usuarios__email">{{ usuario.email }}</td>
             <td>
@@ -187,6 +190,18 @@
       [disabled]="isSelf(u)"
       [attr.title]="isSelf(u) ? 'No puedes desactivar tu propia cuenta' : null">
       {{ u.activo ? 'Desactivar' : 'Activar' }}
+    </button>
+    <!-- AZ7 — marcar/desmarcar como prueba -->
+    <button type="button" role="menuitem" (click)="togglePrueba(u)"
+      [disabled]="isSelf(u) || marcandoId() === u.id"
+      [attr.title]="isSelf(u) ? 'No puedes marcarte a ti mismo' : null">
+      {{ u.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+    </button>
+    <!-- AZ10 — entrar como (impersonación de soporte, auditada) -->
+    <button type="button" role="menuitem" (click)="entrarComo(u)"
+      [disabled]="isSelf(u) || esUsuarioAdmin(u) || entrandoComoId() === u.id"
+      [attr.title]="esUsuarioAdmin(u) ? 'No se puede entrar como otro administrador' : (isSelf(u) ? 'Ya eres tú' : 'Entra como este usuario para dar soporte (queda auditado)')">
+      {{ entrandoComoId() === u.id ? 'Entrando…' : 'Entrar como' }}
     </button>
     <button type="button" role="menuitem" class="admin-usuarios__menu-item--danger"
       (click)="deleteUsuario(u); closeMenu()"
@@ -380,62 +395,88 @@
 >
   <form [formGroup]="createForm" (ngSubmit)="onCreateSave()" novalidate>
 
-    <p class="admin-usuarios__create-hint">
-      Se enviará una invitación por correo para que el usuario elija su propia contraseña — nunca la verás ni la definirás tú.
-    </p>
-
-    <div class="sgc-field">
-      <label for="create-email">Correo electrónico <span class="required" aria-hidden="true">*</span></label>
-      <input
-        id="create-email"
-        type="email"
-        formControlName="email"
-        [class.invalid]="cf.email.invalid && cf.email.touched"
-        autocomplete="off"
-        aria-required="true"
-      />
-      @if (cf.email.invalid && cf.email.touched) {
-        <span class="field-error" role="alert">Ingresa un correo válido.</span>
-      }
+    <!-- AZ7 — un solo lugar para crear ambos tipos -->
+    <div class="admin-usuarios__tipo-toggle" role="tablist" aria-label="Tipo de usuario">
+      <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'invitacion'"
+        [class.active]="createTipo() === 'invitacion'" (click)="createTipo.set('invitacion')">
+        Invitación por correo
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'prueba'"
+        [class.active]="createTipo() === 'prueba'" (click)="createTipo.set('prueba')">
+        Usuario de prueba (sin correo)
+      </button>
     </div>
 
-    <div class="sgc-field">
-      <label for="create-fullname">Nombre completo <span class="required" aria-hidden="true">*</span></label>
-      <input
-        id="create-fullname"
-        type="text"
-        formControlName="fullName"
-        [class.invalid]="cf.fullName.invalid && cf.fullName.touched"
-        autocomplete="off"
-        aria-required="true"
-      />
-      @if (cf.fullName.invalid && cf.fullName.touched) {
-        <span class="field-error" role="alert">El nombre es requerido.</span>
+    @if (createResult(); as res) {
+      <!-- Credenciales del usuario de prueba recién creado (se muestran una sola vez) -->
+      <div class="admin-usuarios__test-cred">
+        <p><strong>Usuario de prueba creado.</strong> Guarda estas credenciales (no se vuelven a mostrar):</p>
+        <p>Correo: <code>{{ res.email }}</code></p>
+        <p>Contraseña: <code>{{ res.password }}</code></p>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeCreateDrawer()">Listo</button>
+      </div>
+    } @else {
+      @if (createTipo() === 'invitacion') {
+        <p class="admin-usuarios__create-hint">
+          Se enviará una invitación por correo para que el usuario elija su propia contraseña — nunca la verás ni la definirás tú.
+        </p>
+        <div class="sgc-field">
+          <label for="create-email">Correo electrónico <span class="required" aria-hidden="true">*</span></label>
+          <input id="create-email" type="email" formControlName="email"
+            [class.invalid]="cf.email.invalid && cf.email.touched" autocomplete="off" aria-required="true" />
+          @if (cf.email.invalid && cf.email.touched) {
+            <span class="field-error" role="alert">Ingresa un correo válido.</span>
+          }
+        </div>
+      } @else {
+        <p class="admin-usuarios__create-hint">
+          Se crea un usuario de prueba sin correo (login sintético). Queda fuera de KPIs, correos e incentivos y puedes "Entrar como" él para probar.
+        </p>
       }
-    </div>
 
-    <div class="sgc-field">
-      <label for="create-role">Rol inicial</label>
-      <select id="create-role" formControlName="roleId">
-        <option [ngValue]="null">Sin rol (asignar después)</option>
-        @for (rol of roles(); track rol.id) {
-          <option [ngValue]="rol.id">{{ rol.nombre }}</option>
+      <div class="sgc-field">
+        <label for="create-fullname">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+        <input id="create-fullname" type="text" formControlName="fullName"
+          [class.invalid]="cf.fullName.invalid && cf.fullName.touched" autocomplete="off" aria-required="true" />
+        @if (cf.fullName.invalid && cf.fullName.touched) {
+          <span class="field-error" role="alert">El nombre es requerido.</span>
         }
-      </select>
-    </div>
+      </div>
 
-    @if (createError()) {
-      <p class="admin-usuarios__save-error" role="alert">{{ createError() }}</p>
+      @if (createTipo() === 'invitacion') {
+        <div class="sgc-field">
+          <label for="create-role">Rol inicial</label>
+          <select id="create-role" formControlName="roleId">
+            <option [ngValue]="null">Sin rol (asignar después)</option>
+            @for (rol of roles(); track rol.id) { <option [ngValue]="rol.id">{{ rol.nombre }}</option> }
+          </select>
+        </div>
+      } @else {
+        <div class="sgc-field">
+          <label>Roles (uno o varios)</label>
+          <div class="admin-usuarios__rol-checks">
+            @for (rol of roles(); track rol.id) {
+              <label class="admin-usuarios__rol-check">
+                <input type="checkbox" [checked]="createRolIds().includes(rol.id)"
+                  (change)="toggleCreateRol(rol.id, $any($event.target).checked)" />
+                {{ rol.nombre }}
+              </label>
+            }
+          </div>
+        </div>
+      }
+
+      @if (createError()) {
+        <p class="admin-usuarios__save-error" role="alert">{{ createError() }}</p>
+      }
+
+      <div class="admin-usuarios__drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">Cancelar</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
+          @if (creating()) { Creando... } @else if (createTipo() === 'prueba') { Crear usuario de prueba } @else { Enviar invitación }
+        </button>
+      </div>
     }
-
-    <div class="admin-usuarios__drawer-actions">
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">
-        Cancelar
-      </button>
-      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
-        @if (creating()) { Creando... } @else { Enviar invitación }
-      </button>
-    </div>
 
   </form>
 </app-form-drawer>

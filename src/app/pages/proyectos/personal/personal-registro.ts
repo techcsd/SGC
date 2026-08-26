@@ -4,7 +4,9 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
-import { PlantillaDocumento } from '../../../../shared/models/plantilla-documento.model';
+import { PlantillaDocumento, CampoPlantilla } from '../../../../shared/models/plantilla-documento.model';
+import { EmpresaService, Empresa } from '../../../../shared/services/empresa.service';
+import { construirValoresAuto } from '../../../../shared/utils/plantilla-merge.util';
 import { UserService } from '../../../../app/core/services/user.service';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { PersonalCarnet } from './personal-carnet';
@@ -25,6 +27,7 @@ export class PersonalRegistro implements OnInit {
   private service = inject(PersonalObraService);
   private proyectos = inject(ProyectosService);
   private plantillasSvc = inject(PlantillasDocumentoService);
+  private empresaSvc = inject(EmpresaService);
   private user = inject(UserService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
@@ -44,8 +47,12 @@ export class PersonalRegistro implements OnInit {
   obras = signal<ObraRef[]>([]);
   cargos = signal<Cargo[]>([]);
   plantillas = signal<PlantillaDocumento[]>([]);
+  empresa = signal<Empresa | null>(null);
   personal = signal<PersonalObra | null>(null);
   editando = signal(false);
+
+  // AZ1 — valores que el usuario completa en el paso Firma (los que el sistema no resuelve solo).
+  valoresManual = signal<Record<string, string>>({});
 
   // fotos: tipo → preview url (blob local o firmado)
   fotoPreview = signal<Record<string, string>>({});
@@ -85,14 +92,16 @@ export class PersonalRegistro implements OnInit {
 
   async ngOnInit() {
     try {
-      const [obras, cargos, plantillas] = await Promise.all([
+      const [obras, cargos, plantillas, empresa] = await Promise.all([
         this.proyectos.getDirectorio(),
         this.service.getCargos(),
         this.plantillasSvc.getAll().catch(() => []),
+        this.empresaSvc.get().catch(() => null),
       ]);
       this.obras.set(obras);
       this.cargos.set(cargos);
       this.plantillas.set(plantillas);
+      this.empresa.set(empresa);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar los datos.');
     }
@@ -168,21 +177,67 @@ export class PersonalRegistro implements OnInit {
     }
   }
 
-  // ── Paso 3: firma del documento ────────────────────────────────────────────
+  // ── Paso 3: firma del documento (AZ1 — merge de variables) ──────────────────
   onPlantilla(id: string) {
     this.plantillaSel.set(id);
+    this.valoresManual.set({}); // reinicia los campos pedidos al cambiar de plantilla
     const pl = this.plantillas().find((x) => x.id === id);
     if (pl) this.documentoNombre.set(pl.nombre);
   }
 
-  plantillaHtml = computed(() => {
-    const id = this.plantillaSel();
-    return this.plantillas().find((x) => x.id === id)?.contenido_html ?? '';
+  /** Plantilla seleccionada (o null para el acuerdo por defecto). */
+  plantillaActual = computed(() => this.plantillas().find((x) => x.id === this.plantillaSel()) ?? null);
+
+  /** AZ1 — valores que el sistema resuelve solo (empresa, empleado, obra, fecha). */
+  valoresAuto = computed<Record<string, string>>(() => {
+    const p = this.personal();
+    if (!p) return {};
+    const cargo = this.cargos().find((c) => c.id === p.cargo_id)?.nombre ?? null;
+    const obra = this.obras().find((o) => o.id === p.proyecto_id)?.nombre ?? p.proyecto?.nombre ?? null;
+    return construirValoresAuto({
+      empresa: this.empresa(),
+      persona: { nombre: p.nombre, apellido: p.apellido, documento_numero: p.documento_numero, cargo, telefono: p.telefono },
+      obra: { nombre: obra },
+      hoyIso: new Date().toISOString().slice(0, 10),
+    });
   });
+
+  /** Todos los valores (auto + los pedidos manualmente). */
+  valores = computed<Record<string, string>>(() => ({ ...this.valoresAuto(), ...this.valoresManual() }));
+
+  /** Campos de la plantilla que el sistema NO resolvió solo → se piden en el paso Firma. */
+  camposPendientes = computed<CampoPlantilla[]>(() => {
+    const pl = this.plantillaActual();
+    if (!pl) return [];
+    const auto = this.valoresAuto();
+    return (pl.campos ?? []).filter((c) => !(auto[c.key] ?? '').trim());
+  });
+
+  /** ¿Quedan campos requeridos sin completar? (bloquea la firma — AZ1 d) */
+  faltanCampos = computed(() => {
+    const vals = this.valores();
+    return this.camposPendientes().some((c) => !(vals[c.key] ?? '').trim());
+  });
+
+  /** Vista previa con las variables YA resueltas (nada de {{placeholders}} crudos). */
+  plantillaHtml = computed(() => {
+    const pl = this.plantillaActual();
+    if (!pl) return '';
+    return this.plantillasSvc.renderizar(pl.contenido_html, this.valores(), pl.campos ?? []);
+  });
+
+  setCampo(key: string, value: string) {
+    this.valoresManual.update((m) => ({ ...m, [key]: value }));
+  }
 
   async guardarFirma() {
     const p = this.personal();
     if (!p) return;
+    // AZ1 (d) — nadie firma un contrato con variables sin resolver.
+    if (this.plantillaActual() && this.faltanCampos()) {
+      this.error.set('Completa los campos pendientes del documento antes de firmar.');
+      return;
+    }
     const pad = this.pad();
     if (!pad || pad.isEmpty()) { this.error.set('Dibuja la firma antes de continuar.'); return; }
     const blob = await pad.toBlob();
@@ -190,8 +245,13 @@ export class PersonalRegistro implements OnInit {
     this.saving.set(true);
     this.error.set('');
     try {
+      const pl = this.plantillaActual();
       await this.service.registrarFirma(p, this.documentoNombre().trim() || 'Documento', blob, {
-        plantillaId: this.plantillaSel() || null, metodo: 'pad',
+        plantillaId: this.plantillaSel() || null,
+        metodo: 'pad',
+        // AZ1 (c) — snapshot: congela valores + HTML final resuelto al momento de firmar.
+        valores: pl ? this.valores() : undefined,
+        documentoHtml: pl ? this.plantillaHtml() : undefined,
       });
       this.firmaGuardada.set(true);
       this.paso.set(4);

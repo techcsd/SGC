@@ -293,6 +293,16 @@
 
     <!-- Content -->
     <main class="shell-content" id="main-content">
+      <!-- AZ10 — banner de impersonación de un usuario REAL (soporte) -->
+      @if (impersonandoReal()) {
+        <div class="prueba-banner prueba-banner--imp" role="status">
+          <span class="prueba-banner__dot" aria-hidden="true"></span>
+          <span class="prueba-banner__txt">
+            Estás viendo como <strong>{{ impersonacionInfo()?.target_nombre || 'otro usuario' }}</strong>. Todo lo que hagas queda registrado a tu nombre en la auditoría.
+          </span>
+          <button type="button" class="prueba-banner__btn" (click)="volverDeImpersonacion()">Salir</button>
+        </div>
+      }
       <!-- AY7 — banner de sesión de USUARIO DE PRUEBA (con opción de volver si el admin impersona) -->
       @if (esUsuarioPrueba()) {
         <div class="prueba-banner prueba-banner--usuario" role="status">

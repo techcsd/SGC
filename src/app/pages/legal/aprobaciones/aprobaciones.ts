@@ -2,6 +2,8 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
+import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
+import { DocumentoGenerado } from '../../../../shared/models/plantilla-documento.model';
 import { UserService } from '../../../core/services/user.service';
 import { AprobacionLegal, APROBACION_MODULOS } from '../../../../shared/models/legal.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -18,6 +20,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 })
 export class Aprobaciones implements OnInit {
   private legalService = inject(LegalService);
+  private plantillasSvc = inject(PlantillasDocumentoService);
   private userService = inject(UserService);
 
   readonly MODULOS = APROBACION_MODULOS;
@@ -32,6 +35,11 @@ export class Aprobaciones implements OnInit {
   comentario = new FormControl('');
   resolving = signal(false);
   resolveError = signal('');
+
+  // AZ4 — vista previa del documento a aprobar (no se aprueba lo que no se ve).
+  docPreview = signal<DocumentoGenerado | null>(null);
+  docLoading = signal(false);
+  docError = signal('');
 
   pendientes = computed(() => this.aprobaciones().filter((a) => a.estado === 'pendiente'));
 
@@ -71,6 +79,23 @@ export class Aprobaciones implements OnInit {
     this.comentario.reset('');
     this.resolveError.set('');
     this.drawerOpen.set(true);
+    void this.cargarDocumento(a);
+  }
+
+  /** AZ4 — carga la vista previa del documento referenciado, si lo hay. */
+  private async cargarDocumento(a: AprobacionLegal) {
+    this.docPreview.set(null);
+    this.docError.set('');
+    if (a.referencia_tipo !== 'documento_generado' || !a.referencia_id) return;
+    this.docLoading.set(true);
+    try {
+      const doc = await this.plantillasSvc.getGeneradoById(a.referencia_id);
+      this.docPreview.set(doc);
+    } catch (e: unknown) {
+      this.docError.set(e instanceof Error ? e.message : 'No se pudo cargar el documento.');
+    } finally {
+      this.docLoading.set(false);
+    }
   }
 
   closeDrawer() {

@@ -30,6 +30,7 @@ export class AdminEmpresa implements OnInit {
     nombre_comercial: ['', [Validators.maxLength(200)]],
     // AW8 — RNC de RD: 9 u 11 dígitos (con o sin guiones). Soft — no bloquea si vacío.
     rnc: ['', [Validators.maxLength(20), Validators.pattern(/^[\d-]{9,13}$/)]],
+    representante: ['', [Validators.maxLength(200)]], // AZ1 — representante legal para contratos
     direccion: ['', [Validators.maxLength(300)]],
     ciudad: ['', [Validators.maxLength(100)]],
     pais: ['', [Validators.maxLength(100)]],
@@ -59,6 +60,7 @@ export class AdminEmpresa implements OnInit {
           razon_social: e.razon_social ?? '',
           nombre_comercial: e.nombre_comercial ?? '',
           rnc: e.rnc ?? '',
+          representante: e.representante ?? '',
           direccion: e.direccion ?? '',
           ciudad: e.ciudad ?? '',
           pais: e.pais ?? '',
@@ -85,6 +87,7 @@ export class AdminEmpresa implements OnInit {
         razon_social: v.razon_social?.trim() || null,
         nombre_comercial: v.nombre_comercial?.trim() || null,
         rnc: v.rnc?.trim() || null,
+        representante: v.representante?.trim() || null,
         direccion: v.direccion?.trim() || null,
         ciudad: v.ciudad?.trim() || null,
         pais: v.pais?.trim() || null,

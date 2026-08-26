@@ -551,3 +551,22 @@
   &:hover { text-decoration: underline; }
   &:focus-visible { outline: 2px solid var(--sgc-primary-mid); outline-offset: 2px; }
 }
+
+/* AZ7 — toggle de tipo de usuario + creación de test */
+.admin-usuarios__tipo-toggle {
+  display: flex; gap: 6px; margin-bottom: 16px; background: var(--sgc-surface-2, rgba(127,127,127,.08));
+  padding: 4px; border-radius: 10px;
+  button {
+    flex: 1; padding: 8px 10px; border: 0; background: transparent; color: var(--sgc-text-muted);
+    border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600;
+    &.active { background: var(--sgc-surface); color: var(--sgc-text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  }
+}
+.admin-usuarios__rol-checks { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto;
+  border: 1px solid var(--sgc-border); border-radius: 8px; padding: 10px; }
+.admin-usuarios__rol-check { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.admin-usuarios__test-cred {
+  border: 1px solid var(--sgc-border); border-radius: 10px; padding: 14px; background: var(--sgc-surface-2, transparent);
+  p { margin: 0 0 8px; font-size: 13px; }
+  code { background: var(--sgc-border); padding: 2px 6px; border-radius: 6px; user-select: all; }
+}

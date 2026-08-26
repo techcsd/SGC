@@ -7,6 +7,7 @@ export interface Empresa {
   razon_social: string | null;
   nombre_comercial: string | null;
   rnc: string | null;
+  representante: string | null; // AZ1 — representante legal (fuente de {{representante_empresa}})
   direccion: string | null;
   ciudad: string | null;
   pais: string | null;

@@ -115,6 +115,27 @@
         }
       </div>
 
+      <!-- AZ4 — vista previa del documento: no se aprueba lo que no se ve -->
+      <div class="apro-doc">
+        <div class="apro-doc__head">
+          <span class="detail-field__label">Documento</span>
+          @if (docPreview(); as doc) {
+            <span class="text-muted">{{ doc.nombre }} · v. {{ doc.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+          }
+        </div>
+        @if (docLoading()) {
+          <p class="text-muted">Cargando documento…</p>
+        } @else if (docError()) {
+          <div class="save-error" role="alert">{{ docError() }}</div>
+        } @else if (docPreview(); as doc) {
+          <div class="apro-doc__body" [innerHTML]="doc.contenido_html_final"></div>
+        } @else if (a.referencia_tipo === 'documento_generado') {
+          <p class="text-muted">No se encontró el documento referenciado.</p>
+        } @else {
+          <p class="text-muted">Esta solicitud no tiene un documento adjunto para previsualizar.</p>
+        }
+      </div>
+
       @if (a.estado === 'pendiente') {
         <!-- Solicitud pendiente: capturar comentario y resolver -->
         <div class="sgc-field">

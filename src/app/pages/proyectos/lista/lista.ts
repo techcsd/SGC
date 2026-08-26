@@ -18,7 +18,7 @@ import {
 import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
-import { UbicacionRdService, Provincia, Municipio, Sector } from '../../../../shared/services/ubicacion-rd.service';
+import { UbicacionRdService, Provincia, Municipio, Sector, UbicacionMatch, ZONAS_RD } from '../../../../shared/services/ubicacion-rd.service';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
 import { PersonalConteos } from '../../../../shared/models/personal-obra.model';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
@@ -181,6 +181,16 @@ export class Lista implements OnInit {
   provincias = signal<Provincia[]>([]);
   municipios = signal<Municipio[]>([]);
   sectores = signal<Sector[]>([]);
+  readonly zonasRd = ZONAS_RD;
+
+  // AZ8 — buscador de ubicación con autocompletado ("punta cana" rellena la cascada).
+  ubicBusqueda = signal('');
+  ubicResultados = signal<UbicacionMatch[]>([]);
+  ubicBuscando = signal(false);
+
+  // AZ9 — catálogos para los selectores del equipo de obra (identidad real).
+  ingenierosDisp = signal<{ id: string; nombre: string; roles: string }[]>([]);
+  personalMaestros = signal<{ id: string; nombre: string; obra: string | null }[]>([]);
   puedeEditarLocacion = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('proyectos'));
 
   private route = inject(ActivatedRoute);
@@ -246,6 +256,9 @@ export class Lista implements OnInit {
       // AM10 — datos de obra estructurados (antes embutidos en la descripción).
       ingeniero_obra: new FormControl<string | null>(null),
       maestro_encargado: new FormControl<string | null>(null),
+      // AZ9 — identidad real del equipo de obra (reemplaza el texto libre).
+      ingeniero_obra_id: new FormControl<string | null>(null),
+      maestro_ref: new FormControl<string | null>(null), // codificado "u:<id>" | "p:<id>"
       contacto_nombre: new FormControl<string | null>(null),
       contacto_telefono: new FormControl<string | null>(null),
       descripcion: new FormControl<string | null>(null),
@@ -541,6 +554,7 @@ export class Lista implements OnInit {
     this.municipios.set([]);
     this.sectores.set([]);
     void this.ensureProvincias();
+    void this.ensureEquipoCatalogos();
     this.drawerOpen.set(true);
   }
 
@@ -548,6 +562,23 @@ export class Lista implements OnInit {
   private async ensureProvincias() {
     if (this.provincias().length === 0) {
       try { this.provincias.set(await this.ubicacionRd.getProvincias()); } catch { /* reintentable */ }
+    }
+  }
+
+  /** AZ9 — carga los catálogos del equipo de obra (ingenieros + personal para maestro). */
+  private async ensureEquipoCatalogos() {
+    if (this.ingenierosDisp().length === 0) {
+      try { this.ingenierosDisp.set(await this.proyectosService.getIngenierosDisponibles()); } catch { /* reintentable */ }
+    }
+    if (this.personalMaestros().length === 0) {
+      try {
+        const personal = await this.personalObraService.listar();
+        this.personalMaestros.set(
+          personal
+            .filter((p) => p.estado === 'activo')
+            .map((p) => ({ id: p.id, nombre: `${p.nombre} ${p.apellido ?? ''}`.trim(), obra: p.proyecto?.nombre ?? null })),
+        );
+      } catch { /* reintentable */ }
     }
   }
 
@@ -567,7 +598,13 @@ export class Lista implements OnInit {
       this.form.patchValue({ municipio_id: null, sector_id: null }, { emitEvent: false });
       this.municipios.set([]);
       this.sectores.set([]);
-      if (pid) this.municipios.set(await this.ubicacionRd.getMunicipios(pid));
+      if (pid) {
+        this.municipios.set(await this.ubicacionRd.getMunicipios(pid));
+        // AZ8 — deriva la zona de la provincia (sin pisar un override ya escrito).
+        const prov = this.provincias().find((x) => x.id === pid);
+        const zc = this.form.get('zona');
+        if (prov?.zona && !((zc?.value ?? '') as string).trim()) zc?.setValue(prov.zona, { emitEvent: false });
+      }
     });
     this.form.controls.municipio_id.valueChanges.subscribe(async (mid) => {
       if (this.suppressCascade) return;
@@ -575,6 +612,36 @@ export class Lista implements OnInit {
       this.sectores.set([]);
       if (mid) this.sectores.set(await this.ubicacionRd.getSectores(mid));
     });
+  }
+
+  // ── AZ8 — buscador de ubicación con autocompletado ───────────────────────────
+  async buscarUbicacion(q: string) {
+    this.ubicBusqueda.set(q);
+    if (q.trim().length < 2) { this.ubicResultados.set([]); return; }
+    this.ubicBuscando.set(true);
+    try {
+      this.ubicResultados.set(await this.ubicacionRd.buscar(q));
+    } catch { this.ubicResultados.set([]); }
+    finally { this.ubicBuscando.set(false); }
+  }
+
+  /** Aplica un resultado del buscador: rellena provincia/municipio/sector y la zona. */
+  async seleccionarUbicacion(m: UbicacionMatch) {
+    this.suppressCascade = true;
+    this.municipios.set(m.provincia_id ? await this.ubicacionRd.getMunicipios(m.provincia_id) : []);
+    this.sectores.set(m.municipio_id ? await this.ubicacionRd.getSectores(m.municipio_id) : []);
+    this.form.patchValue(
+      {
+        provincia_id: m.provincia_id,
+        municipio_id: m.municipio_id,
+        sector_id: m.sector_id,
+        zona: m.zona ?? this.form.get('zona')?.value ?? null,
+      },
+      { emitEvent: false },
+    );
+    this.suppressCascade = false;
+    this.ubicResultados.set([]);
+    this.ubicBusqueda.set(m.label);
   }
 
   /** Crea un sector nuevo en el municipio elegido y lo selecciona. */
@@ -612,6 +679,9 @@ export class Lista implements OnInit {
       zona: p.zona ?? null,
       ingeniero_obra: p.ingeniero_obra ?? null,
       maestro_encargado: p.maestro_encargado ?? null,
+      // AZ9 — identidad real del equipo de obra
+      ingeniero_obra_id: p.ingeniero_obra_id ?? null,
+      maestro_ref: p.maestro_usuario_id ? `u:${p.maestro_usuario_id}` : (p.maestro_personal_id ? `p:${p.maestro_personal_id}` : null),
       contacto_nombre: p.contacto_nombre ?? null,
       contacto_telefono: p.contacto_telefono ?? null,
       descripcion: p.descripcion,
@@ -628,6 +698,7 @@ export class Lista implements OnInit {
     this.drawerOpen.set(true);
     // AU4 — poblar las listas dependientes para que los selects muestren lo actual.
     void this.ensureProvincias();
+    void this.ensureEquipoCatalogos();
     this.municipios.set([]);
     this.sectores.set([]);
     if (p.provincia_id) this.ubicacionRd.getMunicipios(p.provincia_id).then((m) => this.municipios.set(m));
@@ -714,7 +785,30 @@ export class Lista implements OnInit {
     // AM7 — la ubicación (lat/lng) NO viaja en el payload del update/insert: se
     // persiste aparte con la RPC canónica set_proyecto_ubicacion, que valida el
     // rango en el servidor (DR471/DR472). Un update() directo lo saltaría.
-    const payload = { ...this.form.value } as Partial<Proyecto>;
+    const payload = { ...this.form.value } as Partial<Proyecto> & { maestro_ref?: string | null };
+
+    // AZ9 — traduce los selectores del equipo a vínculos reales + sincroniza el texto de display.
+    const ingId = payload.ingeniero_obra_id ?? null;
+    if (ingId) {
+      const ing = this.ingenierosDisp().find((i) => i.id === ingId);
+      if (ing) payload.ingeniero_obra = ing.nombre; // mantiene el texto legado en sync para tarjetas/reportes
+    }
+    const mref = payload.maestro_ref ?? null;
+    payload.maestro_usuario_id = null;
+    payload.maestro_personal_id = null;
+    if (mref?.startsWith('u:')) {
+      const uid = mref.slice(2);
+      payload.maestro_usuario_id = uid;
+      const u = this.ingenierosDisp().find((i) => i.id === uid);
+      if (u) payload.maestro_encargado = u.nombre;
+    } else if (mref?.startsWith('p:')) {
+      const pid = mref.slice(2);
+      payload.maestro_personal_id = pid;
+      const per = this.personalMaestros().find((x) => x.id === pid);
+      if (per) payload.maestro_encargado = per.nombre;
+    }
+    delete payload.maestro_ref; // campo de UI, no columna
+
     const lat = this.formLat();
     const lng = this.formLng();
     const dir = this.formDireccionGeo();
@@ -729,6 +823,8 @@ export class Lista implements OnInit {
         }
         // update() vuelve a SELECT tras la RPC, así que trae ya la ubicación nueva.
         const updated = await this.proyectosService.update(id, payload);
+        // AZ9 — el ingeniero de obra elegido queda como responsable real (alimenta AY4).
+        if (ingId) { try { await this.proyectosService.ensureResponsable(id, ingId); } catch { /* best-effort */ } }
         this.proyectos.update((list) => list.map((p) => (p.id === id ? { ...p, ...updated } : p)));
         // Reflejar la edición en el detalle abierto (Z13 — página de detalle).
         this.selectedProyecto.update((sp) => (sp && sp.id === id ? { ...sp, ...updated } : sp));
@@ -743,6 +839,8 @@ export class Lista implements OnInit {
         this.cerrarEdicion();
       } else {
         const created = await this.proyectosService.create(payload);
+        // AZ9 — el ingeniero de obra elegido queda como responsable real (alimenta AY4).
+        if (ingId) { try { await this.proyectosService.ensureResponsable(created.id, ingId); } catch { /* best-effort */ } }
         // AM7 — ya con id, fija la ubicación vía RPC (misma validación que la app).
         if (tieneCoords) {
           try {
@@ -1108,9 +1206,25 @@ export class Lista implements OnInit {
     }
   }
 
-  /** Z2 — responsables activos embebidos, para mostrarlos en la tarjeta del listado. */
-  responsablesActivos(p: Proyecto) {
-    return (p.responsables ?? []).filter((r) => r.activo);
+  /** Z2 — responsables activos embebidos, para mostrarlos en la tarjeta del listado.
+   *  AZ9 — deduplica por persona: una misma persona con dos roles (responsable + residente)
+   *  aparece UNA vez con sus dos roles, en vez de dos chips (bug de Torre Alpha). */
+  responsablesActivos(p: Proyecto): { key: string; nombre: string; tipos: TipoResponsabilidad[] }[] {
+    const porPersona = new Map<string, { key: string; nombre: string; tipos: TipoResponsabilidad[] }>();
+    for (const r of p.responsables ?? []) {
+      if (!r.activo) continue;
+      const key = r.usuario_id ?? r.id;
+      const nombre = r.usuario?.nombre ?? '—';
+      const entry = porPersona.get(key) ?? { key, nombre, tipos: [] };
+      if (!entry.tipos.includes(r.tipo_responsabilidad)) entry.tipos.push(r.tipo_responsabilidad);
+      porPersona.set(key, entry);
+    }
+    return [...porPersona.values()];
+  }
+
+  /** AZ9 — etiqueta combinada de roles de una persona ("Ing. Responsable · Ing. Residente"). */
+  rolesRespLabel(tipos: TipoResponsabilidad[]): string {
+    return tipos.map((t) => this.tipoRespLabel(t)).join(' · ');
   }
 
   // ── Fase Drawer ──────────────────────────────────────────

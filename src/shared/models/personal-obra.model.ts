@@ -36,6 +36,9 @@ export interface PersonalFirma {
   firma_path: string;
   documento_path?: string | null;
   metodo: 'pad' | 'foto';
+  // AZ1 — snapshot congelado del documento firmado (valores resueltos + HTML final).
+  valores?: Record<string, string> | null;
+  documento_html?: string | null;
   firmado_at: string;
 }
 

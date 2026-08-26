@@ -148,7 +148,7 @@ export class ProyectosService {
       .select(
         '*, responsable:usuarios!responsable_id(nombre), fases:fases_proyecto(*), ' +
           'provincia:provincias(nombre), municipio:municipios(nombre), sector:sectores(nombre), ' +
-          'responsables:proyecto_responsables(id, tipo_responsabilidad, activo, usuario:usuarios!usuario_id(nombre))',
+          'responsables:proyecto_responsables(id, usuario_id, tipo_responsabilidad, activo, usuario:usuarios!usuario_id(nombre))',
       )
       .order('created_at', { ascending: false });
 
@@ -481,6 +481,30 @@ export class ProyectosService {
     if (error) throw new Error(error.message);
   }
 
+  /** AZ9 — asegura (idempotente) que un usuario sea responsable activo de la obra.
+   *  Usado por el selector "ingeniero de obra" para que alimente la visibilidad de AY4
+   *  sin duplicar si ya está vinculado. No lanza si ya existe. */
+  async ensureResponsable(
+    proyectoId: string,
+    usuarioId: string,
+    tipo: TipoResponsabilidad = 'responsable',
+  ): Promise<void> {
+    const { data } = await this.supabase.client
+      .schema('sgc')
+      .from('proyecto_responsables')
+      .select('id')
+      .eq('proyecto_id', proyectoId)
+      .eq('usuario_id', usuarioId)
+      .eq('activo', true)
+      .limit(1);
+    if (data && data.length) return; // ya vinculado (en cualquier tipo)
+    try {
+      await this.addResponsable(proyectoId, usuarioId, tipo);
+    } catch {
+      /* carrera contra el índice único: alguien más lo vinculó — está bien */
+    }
+  }
+
   /** Desvincula un responsable (soft: activo=false, libera el índice único). */
   async removeResponsable(id: string): Promise<void> {
     const { error } = await this.supabase.client
@@ -506,6 +530,13 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
     if (error) throw new Error(error.message);
     return (data ?? []) as { id: string; nombre: string }[];
+  }
+
+  /** AZ9 — usuarios elegibles como ingenieros del equipo de obra (rol Ingenieros). */
+  async getIngenierosDisponibles(): Promise<{ id: string; nombre: string; roles: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('ingenieros_disponibles');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string; roles: string }[];
   }
 
   /** Raw per-project KPI metrics for the Encargados leaderboard (SECURITY DEFINER RPC). */

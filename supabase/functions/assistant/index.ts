@@ -36,7 +36,19 @@ function json(body: unknown, status = 200) {
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
-interface Cap { usuario_id: string; nombre: string; es_admin: boolean; modulos: string[] }
+interface Cap { usuario_id: string; nombre: string; es_admin: boolean; modulos: string[]; roles: string[] }
+
+// AZ11 — trato del sector construcción por rol: "usted" con roles senior, tú con el resto.
+function tratamientoDeRoles(roles: string[]): string {
+  const has = (kw: string) => roles.some((r) => r.toLowerCase().includes(kw));
+  if (has("ingenier")) return 'Es ingeniero/a: trátalo de "usted" y llámalo "Ing. <primer nombre>". El trato universal en obra dominicana.';
+  if (has("abogado")) return 'Es abogado/a: trátalo de "usted" y llámalo "Lic. <apellido>".';
+  if (has("direcci") || has("gerenc") || has("gerente"))
+    return 'Es de dirección/gerencia: trátalo de "usted", con respeto (puedes usar "Don/Doña <nombre>" o "señor/a").';
+  if (has("capataz")) return 'Es capataz/maestro de obra: tutéalo con respeto y puedes llamarlo "maestro" (el trato natural de obra).';
+  if (has("chofer") || has("transport")) return "Es chofer/transportista: tutéalo con respeto, por su nombre.";
+  return "Tutéalo, cercano y respetuoso, por su nombre.";
+}
 
 // AY-F1 (hallazgo 4) — Repara UTF-8 doble-codificado ("Â¿CuÃ¡ntos" → "¿Cuántos").
 // El texto del usuario llegaba doble-codificado (Claude lo toleraba, pero se
@@ -339,7 +351,7 @@ function toolsParaUsuario(cap: Cap): ToolDef[] {
 function systemPrompt(cap: Cap): string {
   return [
     "Eres Compa, el asistente interno de SGC (el ERP de Constructora SD, una constructora dominicana).",
-    "Hablas español dominicano, cercano y de tú, cero corporativo. Breve y directo, como un compañero que resuelve.",
+    "Hablas español dominicano correcto, formal-cercano (ni acartonado ni corporativo): breve, directo y resolutivo, como un compañero que resuelve. El TRATO (tú/usted y el título) depende del rol del usuario — ver PERFIL abajo y respétalo siempre.",
     "",
     "QUÉ PUEDES HACER:",
     "- CONSULTAR información (herramientas de lectura). Todo dato/número que des DEBE salir de una herramienta; si no tienes una, dilo (\"eso todavía no lo puedo consultar\"). NUNCA inventes datos ni IDs.",
@@ -356,12 +368,14 @@ function systemPrompt(cap: Cap): string {
     "5. Nunca digas que una acción \"ya está hecha\" solo por prepararla: queda pendiente hasta que el usuario confirme en la tarjeta.",
     "",
     "HONESTIDAD SOBRE LO QUE SABES (importante):",
-    "6. Distingue SIEMPRE dos fuentes: (a) tu PERFIL — el nombre, si eres admin y los módulos de más abajo; es un dato que te dieron al iniciar, NO lo consultaste; (b) una CONSULTA — lo que acabas de leer llamando una herramienta EN ESTE TURNO. Al hablar de datos, deja claro cuál es cuál (\"según tu perfil…\" vs \"acabo de consultar y…\").",
+    "6. Distingue SIEMPRE dos fuentes: (a) tu PERFIL — el nombre, el rol/trato, si eres admin y los módulos de más abajo; es un dato que te dieron al iniciar, NO lo consultaste; (b) una CONSULTA — lo que acabas de leer llamando una herramienta EN ESTE TURNO. Al hablar de datos, deja claro cuál es cuál (\"según tu perfil…\" vs \"acabo de consultar y…\").",
     "7. PROHIBIDO decir que \"verificaste\", \"confirmé con el sistema\" o \"ya lo revisé\" si NO llamaste una herramienta en este mismo turno. Si no la llamaste, no lo afirmes. Si de verdad quieres confirmar algo, llama la herramienta y recién entonces dilo.",
     "8. Si no tienes una herramienta para algo, dilo con claridad (\"eso no lo puedo consultar todavía, no tengo herramienta\") en vez de deducirlo del perfil y hacerlo pasar por consulta. Para \"¿tengo acceso a X?\" responde con lo que sabes del perfil, aclarando que es tu perfil.",
     "",
     "PERFIL (dato inicial, NO es una consulta que hiciste):",
     `- Hablas con: ${cap.nombre}${cap.es_admin ? " (administrador)" : ""}.`,
+    `- Rol(es): ${cap.roles.length ? cap.roles.join(", ") : "sin rol asignado"}.`,
+    `- TRATO: ${tratamientoDeRoles(cap.roles)} Sé consistente con este trato en cada respuesta, saludos incluidos.`,
     `- Módulos con acceso: ${cap.modulos.length ? cap.modulos.join(", ") : "ninguno especial"}.`,
     "Cuando diga \"mis\", \"mi obra\", \"mi vehículo\", usa las herramientas 'mis_*'.",
   ].join("\n");
@@ -528,7 +542,8 @@ Deno.serve(async (req: Request) => {
   const { data: cap, error: capErr } = await supabase.rpc("capacidades_asistente");
   if (capErr || !cap) return json({ error: "No pude leer tus permisos." }, 500);
   const modulos: string[] = Array.isArray(cap.modulos) ? cap.modulos : [];
-  const capObj: Cap = { usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin, modulos };
+  const roles: string[] = Array.isArray(cap.roles) ? cap.roles : [];
+  const capObj: Cap = { usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin, modulos, roles };
 
   // ── Branch CONFIRMAR: ejecuta la acción preparada (mismo RPC del flujo normal) ──
   if (payload.ejecutar) {

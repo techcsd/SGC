@@ -46,6 +46,8 @@ export class PersonalExpediente implements OnInit {
   error = signal('');
   saving = signal(false);
   lightboxUrl = signal<string | null>(null);
+  // AZ1 — documento firmado (snapshot congelado) que se está viendo.
+  docVer = signal<PersonalFirma | null>(null);
 
   // AX2 — acceso al sistema por cédula del capataz.
   accesoPin = signal('');
@@ -176,5 +178,21 @@ export class PersonalExpediente implements OnInit {
   editar() {
     const p = this.personal();
     if (p) this.router.navigate(['/proyectos/personal/registrar'], { queryParams: { id: p.id } });
+  }
+
+  // AZ1 — abre el documento firmado con los valores congelados al momento de la firma.
+  verDoc(f: PersonalFirma) {
+    if (f.documento_html) this.docVer.set(f);
+  }
+
+  imprimirDoc() {
+    const f = this.docVer();
+    if (!f?.documento_html) return;
+    const w = window.open('', '_blank', 'width=800,height=1000');
+    if (!w) return;
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${f.documento_nombre}</title></head><body>${f.documento_html}</body></html>`);
+    w.document.close();
+    w.focus();
+    w.print();
   }
 }

@@ -108,18 +108,79 @@ export class AuthService {
     return { error: null };
   }
 
+  // ── AZ10 — "Entrar como" CUALQUIER usuario (soporte), conservando la sesión admin ──
+  /** Límite duro de la sesión impersonada (1 h — decisión de Xaviel). */
+  private readonly IMP_MAX_MS = 60 * 60 * 1000;
+
+  /**
+   * Entra como un usuario real vía edge (sin tocar su contraseña): guarda la sesión admin,
+   * consume el token_hash del enlace mágico y establece la sesión del objetivo.
+   */
+  async entrarComoUsuario(targetId: string): Promise<{ error: string | null }> {
+    const actual = await this.getSession();
+    const { data, error } = await this.supabase.client.functions.invoke('admin-entrar-como', {
+      body: { userId: targetId },
+    });
+    if (error) {
+      const msg = (data as { error?: string } | null)?.error ?? error.message;
+      return { error: msg };
+    }
+    const res = data as { email: string; nombre?: string; token_hash: string; started_at: string; error?: string };
+    if (res?.error) return { error: res.error };
+    // Guarda la sesión admin + metadatos para el banner, el límite de 1 h y el cierre.
+    if (actual?.refresh_token) {
+      try {
+        localStorage.setItem(this.IMP_KEY, JSON.stringify({
+          access_token: actual.access_token,
+          refresh_token: actual.refresh_token,
+          target_id: targetId,
+          target_nombre: res.nombre ?? null,
+          started_at: res.started_at ?? new Date().toISOString(),
+        }));
+      } catch { /* ignore */ }
+    }
+    const { error: otpErr } = await this.supabase.client.auth.verifyOtp({
+      token_hash: res.token_hash,
+      type: 'magiclink',
+    });
+    if (otpErr) {
+      try { localStorage.removeItem(this.IMP_KEY); } catch { /* ignore */ }
+      return { error: otpErr.message };
+    }
+    return { error: null };
+  }
+
   /** ¿Hay una sesión admin guardada a la que volver? */
   hayImpersonacion(): boolean {
     try { return !!localStorage.getItem(this.IMP_KEY); } catch { return false; }
   }
 
-  /** Restaura la sesión admin guardada (fin de "entrar como"). */
+  /** Metadatos de la impersonación en curso (para el banner y el límite de 1 h). */
+  impersonacionInfo(): { target_id?: string; target_nombre?: string | null; started_at?: string } | null {
+    try { return JSON.parse(localStorage.getItem(this.IMP_KEY) || 'null'); } catch { return null; }
+  }
+
+  /** ¿La sesión impersonada superó el límite de 1 h? */
+  impersonacionExpirada(): boolean {
+    const info = this.impersonacionInfo();
+    if (!info?.started_at) return false;
+    const start = Date.parse(info.started_at);
+    return Number.isFinite(start) && Date.now() - start > this.IMP_MAX_MS;
+  }
+
+  /** Restaura la sesión admin guardada (fin de "entrar como") y cierra la traza. */
   async volverDeImpersonacion(): Promise<{ error: string | null }> {
-    let saved: { access_token: string; refresh_token: string } | null = null;
+    let saved: { access_token: string; refresh_token: string; target_id?: string } | null = null;
     try { saved = JSON.parse(localStorage.getItem(this.IMP_KEY) || 'null'); } catch { saved = null; }
     if (!saved?.refresh_token) return { error: 'No hay sesión a la que volver.' };
     const { error } = await this.supabase.client.auth.setSession(saved);
     try { localStorage.removeItem(this.IMP_KEY); } catch { /* ignore */ }
+    // Ya como admin de nuevo: cierra la marca/auditoría del objetivo (best-effort).
+    if (!error && saved.target_id) {
+      try {
+        await this.supabase.client.functions.invoke('admin-fin-impersonacion', { body: { userId: saved.target_id } });
+      } catch { /* best-effort */ }
+    }
     return { error: error?.message ?? null };
   }
 

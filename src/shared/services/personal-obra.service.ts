@@ -248,7 +248,14 @@ export class PersonalObraService {
     personal: PersonalObra,
     documentoNombre: string,
     firma: Blob,
-    opts: { plantillaId?: string | null; metodo?: 'pad' | 'foto'; ext?: string } = {},
+    opts: {
+      plantillaId?: string | null;
+      metodo?: 'pad' | 'foto';
+      ext?: string;
+      // AZ1 — snapshot congelado del documento al firmar.
+      valores?: Record<string, string>;
+      documentoHtml?: string;
+    } = {},
   ): Promise<PersonalFirma> {
     const ext = opts.ext ?? 'png';
     const path = `${personal.proyecto_id}/${personal.id}/firma-${Date.now()}.${ext}`;
@@ -264,6 +271,8 @@ export class PersonalObraService {
         firma_path: path,
         plantilla_id: opts.plantillaId ?? null,
         metodo: opts.metodo ?? 'pad',
+        valores: opts.valores ?? null,
+        documento_html: opts.documentoHtml ?? null,
       })
       .select('*')
       .single();

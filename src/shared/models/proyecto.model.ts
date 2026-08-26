@@ -31,6 +31,10 @@ export interface Proyecto {
   ingeniero_obra: string | null;
   /** AM10 — maestro(s) encargado(s) de la obra. */
   maestro_encargado: string | null;
+  // AZ9 — identidad real del equipo de obra (reemplaza el texto libre).
+  ingeniero_obra_id?: string | null;
+  maestro_usuario_id?: string | null;
+  maestro_personal_id?: string | null;
   /** AM10 — nombre del contacto de obra (opcional). */
   contacto_nombre: string | null;
   /** AM10 — teléfono(s) de contacto de obra (clicable tel: en la UI). */
@@ -48,6 +52,7 @@ export interface Proyecto {
   // Z2 — responsables vinculados (embebidos en el listado; el detalle usa el RPC).
   responsables?: {
     id: string;
+    usuario_id: string;
     tipo_responsabilidad: TipoResponsabilidad;
     activo: boolean;
     usuario?: { nombre: string };

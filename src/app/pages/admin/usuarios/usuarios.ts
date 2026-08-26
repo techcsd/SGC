@@ -11,6 +11,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { AdminService, UsuarioAdmin } from '../../../../shared/services/admin.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { UserService } from '../../../core/services/user.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaMedia, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
@@ -31,7 +32,31 @@ export class AdminUsuarios implements OnInit {
   private adminService = inject(AdminService);
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
+  private auth = inject(AuthService);
   private router = inject(Router);
+
+  // AZ10 — "Entrar como" (impersonación de soporte).
+  entrandoComoId = signal<string | null>(null);
+
+  /** ¿El usuario objetivo es admin? (no se puede impersonar a otro admin). */
+  esUsuarioAdmin(u: UsuarioAdmin): boolean {
+    return (u.roles ?? []).some((r) => r.rol?.codigo === 'admin');
+  }
+
+  async entrarComo(u: UsuarioAdmin) {
+    this.closeMenu();
+    if (this.isSelf(u) || this.esUsuarioAdmin(u) || this.entrandoComoId()) return;
+    if (!confirm(`¿Entrar como "${u.nombre}"? Verás el sistema como este usuario. Todo queda registrado en la auditoría; sal con el banner superior.`)) return;
+    this.entrandoComoId.set(u.id);
+    try {
+      const { error } = await this.auth.entrarComoUsuario(u.id);
+      if (error) { this.error.set(error); this.entrandoComoId.set(null); return; }
+      window.location.assign('/'); // recarga completa para cargar el perfil del objetivo
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo entrar como el usuario.');
+      this.entrandoComoId.set(null);
+    }
+  }
 
   formatFecha = formatFechaMedia; // U9
   formatRelativa = formatFechaRelativa; // W12
@@ -74,12 +99,22 @@ export class AdminUsuarios implements OnInit {
   createDrawerOpen = signal(false);
   creating = signal(false);
   createError = signal('');
+  // AZ7 — un solo lugar para crear ambos tipos: invitación por correo o usuario de prueba (sin correo).
+  createTipo = signal<'invitacion' | 'prueba'>('invitacion');
+  createRolIds = signal<number[]>([]);
+  createResult = signal<{ email: string; password: string } | null>(null);
+  // AZ7 — marcar/desmarcar como prueba
+  marcandoId = signal<string | null>(null);
 
   createForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     fullName: new FormControl('', [Validators.required, Validators.maxLength(150)]),
     roleId: new FormControl<number | null>(null),
   });
+
+  toggleCreateRol(id: number, checked: boolean) {
+    this.createRolIds.update((ids) => (checked ? [...new Set([...ids, id])] : ids.filter((x) => x !== id)));
+  }
 
   // ── Password reset ───────────────────────────────────────
   resettingId = signal<string | null>(null);
@@ -270,6 +305,9 @@ export class AdminUsuarios implements OnInit {
 
   openCreate() {
     this.createError.set('');
+    this.createTipo.set('invitacion');
+    this.createRolIds.set([]);
+    this.createResult.set(null);
     this.createForm.reset({ email: '', fullName: '', roleId: null });
     this.createDrawerOpen.set(true);
   }
@@ -279,12 +317,31 @@ export class AdminUsuarios implements OnInit {
   }
 
   async onCreateSave() {
-    this.createForm.markAllAsTouched();
-    if (this.createForm.invalid || this.creating()) return;
+    if (this.creating()) return;
 
+    // AZ7 — usuario de prueba (sin correo): reusa el flujo de "Usuarios de prueba".
+    if (this.createTipo() === 'prueba') {
+      const nombre = this.createForm.value.fullName?.trim();
+      if (!nombre) { this.createForm.controls.fullName.markAsTouched(); return; }
+      this.creating.set(true);
+      this.createError.set('');
+      try {
+        const cred = await this.adminService.crearUsuarioTest(nombre, this.createRolIds());
+        this.createResult.set({ email: cred.email, password: cred.password });
+        this.usuarios.set(await this.adminService.getAllUsuarios());
+      } catch (e: unknown) {
+        this.createError.set(e instanceof Error ? e.message : 'Error al crear el usuario de prueba.');
+      } finally {
+        this.creating.set(false);
+      }
+      return;
+    }
+
+    // Invitación por correo (flujo existente).
+    this.createForm.markAllAsTouched();
+    if (this.createForm.invalid) return;
     this.creating.set(true);
     this.createError.set('');
-
     try {
       await this.adminService.createUsuario({
         email: this.createForm.value.email!.trim(),
@@ -298,6 +355,26 @@ export class AdminUsuarios implements OnInit {
       this.createError.set(e instanceof Error ? e.message : 'Error al crear el usuario.');
     } finally {
       this.creating.set(false);
+    }
+  }
+
+  /** AZ7 — marca/desmarca un usuario como de prueba (con aviso de consecuencias). */
+  async togglePrueba(usuario: UsuarioAdmin) {
+    this.closeMenu();
+    if (this.isSelf(usuario)) return;
+    const marcar = !usuario.es_prueba;
+    const msg = marcar
+      ? `¿Marcar a "${usuario.nombre}" como usuario de PRUEBA? Quedará fuera de KPIs, correos e incentivos, y oculto de los listados salvo el toggle de datos de prueba.`
+      : `¿Quitar la marca de prueba a "${usuario.nombre}"? Volverá a contar como usuario real (KPIs, correos, incentivos).`;
+    if (!confirm(msg)) return;
+    this.marcandoId.set(usuario.id);
+    try {
+      await this.adminService.marcarUsuarioPrueba(usuario.id, marcar);
+      this.usuarios.update((list) => list.map((u) => (u.id === usuario.id ? { ...u, es_prueba: marcar } : u)));
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo cambiar la marca de prueba.');
+    } finally {
+      this.marcandoId.set(null);
     }
   }
 

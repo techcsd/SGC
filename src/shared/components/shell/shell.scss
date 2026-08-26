@@ -787,6 +787,13 @@
   .prueba-banner__dot { background: var(--sgc-danger); }
   .prueba-banner__btn { border-color: var(--sgc-danger); &:hover { background: var(--sgc-danger); color: #fff; } }
 }
+// AZ10 — banner de impersonación de usuario real (naranja, distinto del test)
+.prueba-banner--imp {
+  background: var(--sgc-warning-light, rgba(255, 153, 0, 0.14));
+  border-color: var(--sgc-warning, #ff9900);
+  .prueba-banner__dot { background: var(--sgc-warning, #ff9900); }
+  .prueba-banner__btn { border-color: var(--sgc-warning, #ff9900); &:hover { background: var(--sgc-warning, #ff9900); color: #111; } }
+}
 @keyframes prueba-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }

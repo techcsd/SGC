@@ -153,6 +153,12 @@ export class AdminService {
   }
 
   /** Crea un usuario de prueba (email sintético, es_prueba=true) y devuelve sus credenciales. */
+  /** AZ7 — marca/desmarca un usuario existente como de prueba (solo admin). */
+  async marcarUsuarioPrueba(id: string, valor: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('marcar_usuario_prueba', { p_id: id, p_valor: valor });
+    if (error) throw new Error(error.message);
+  }
+
   async crearUsuarioTest(nombre: string, roleIds: number[]): Promise<TestCredenciales> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-crear-usuario-test', {
       body: { nombre, roleIds },

@@ -126,9 +126,13 @@ export class Shell implements OnInit {
   // AY7 — sesión de usuario de prueba (banner + volver de impersonación).
   esUsuarioPrueba = computed(() => !!this.profile()?.es_prueba);
   hayImpersonacion = () => this.authService.hayImpersonacion();
+  // AZ10 — impersonación de un usuario REAL (soporte): banner propio con el nombre + salida.
+  impersonacionInfo = () => this.authService.impersonacionInfo();
+  impersonandoReal = () => this.authService.hayImpersonacion() && !this.esUsuarioPrueba();
   async volverDeImpersonacion() {
+    const eraReal = this.impersonandoReal();
     await this.authService.volverDeImpersonacion();
-    window.location.assign('/admin/usuarios-test');
+    window.location.assign(eraReal ? '/admin/usuarios' : '/admin/usuarios-test');
   }
   collapsed = signal(false);
   /** Mobile off-canvas drawer (≤768px); independent of the desktop `collapsed`. */
@@ -477,6 +481,16 @@ export class Shell implements OnInit {
   }
 
   ngOnInit() {
+    // AZ10 — límite duro de 1 h de la sesión impersonada: si ya venció, salir; si no, vigilar.
+    if (this.authService.hayImpersonacion()) {
+      if (this.authService.impersonacionExpirada()) {
+        void this.volverDeImpersonacion();
+      } else {
+        setInterval(() => {
+          if (this.authService.impersonacionExpirada()) void this.volverDeImpersonacion();
+        }, 60_000);
+      }
+    }
     const saved = localStorage.getItem('sgc-sidebar-collapsed');
     if (saved !== null) {
       this.collapsed.set(saved === 'true');

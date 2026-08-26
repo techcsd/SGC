@@ -38,6 +38,13 @@ export class DatosPruebaViewService {
   readonly verPrueba = computed(() => this.userService.hasRole('admin') && this.ver());
 
   /**
+   * ¿Este usuario PUEDE ver datos de prueba (independiente del interruptor)? Úsalo para
+   * decidir si mostrar el aviso "N de prueba ocultos — mostrar" en estados vacíos (AZ3):
+   * a un no-admin ni le ofrecemos el toggle (RLS ya no le manda esas filas).
+   */
+  readonly puedeVerPrueba = computed(() => this.userService.hasRole('admin'));
+
+  /**
    * Filtro CENTRAL de datos de prueba para KPIs/listas en memoria. Devuelve solo los
    * elementos visibles según `verPrueba()`. Reactivo: llamarlo dentro de un `computed`
    * lo re-evalúa cuando cambia el interruptor. Cualquier entidad con `es_prueba` (los

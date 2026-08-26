@@ -72,6 +72,36 @@ export class PersonalObraLista implements OnInit {
   obrasDistintas = computed(() => new Set(this.filtrados().map((p) => p.proyecto_id).filter(Boolean)).size);
   conCarnet = computed(() => this.filtrados().filter((p) => !!p.carnet_numero).length);
 
+  // AZ3 — vacío ≠ oculto ≠ error: el estado vacío debe decir la verdad.
+  // Cuántos registros existen pero están ocultos SOLO por el filtro de datos de prueba.
+  ocultosPrueba = computed(() =>
+    this.datosPrueba.verPrueba() ? 0 : this.personal().filter((p) => p.es_prueba).length,
+  );
+  puedeVerPrueba = computed(() => this.datosPrueba.puedeVerPrueba());
+  /** Motivo por el que la lista sale vacía, para pintar el mensaje correcto. */
+  motivoVacio = computed<'ninguno' | 'todos_prueba' | 'filtros' | 'sin_datos'>(() => {
+    if (this.filtrados().length) return 'ninguno';
+    // hay registros no-prueba visibles pero los filtros los excluyen
+    if (this.datosPrueba.visibles(this.personal()).length > 0) return 'filtros';
+    // todo lo que existe es de prueba y está oculto
+    if (this.ocultosPrueba() > 0) return 'todos_prueba';
+    return 'sin_datos';
+  });
+
+  mostrarPrueba() {
+    this.datosPrueba.set(true);
+  }
+
+  limpiarFiltros() {
+    this.filObra.set('');
+    this.filCargo.set('');
+    this.filNacionalidad.set('');
+    this.filEstado.set('');
+    this.filAsegurado.set('');
+    this.filCuadrilla.set('');
+    this.busqueda.set('');
+  }
+
   /** AY6 — iniciales para el avatar del listado. */
   iniciales(p: PersonalObra): string {
     return `${(p.nombre?.[0] ?? '')}${(p.apellido?.[0] ?? '')}`.toUpperCase() || '?';

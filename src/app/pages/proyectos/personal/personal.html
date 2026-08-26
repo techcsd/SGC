@@ -62,9 +62,29 @@
   @if (!filtrados().length) {
     <div class="sgc-card pob-empty">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-      <p class="pob-empty__title">Aún no hay personal aquí</p>
-      <p class="pob-empty__hint">Registra al primer trabajador de la obra para llevar su expediente, evidencia y carnet.</p>
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+      @switch (motivoVacio()) {
+        <!-- AZ3 — todo lo que existe es de prueba y está oculto: no mentir con "no hay personal" -->
+        @case ('todos_prueba') {
+          <p class="pob-empty__title">Hay {{ ocultosPrueba() }} de prueba oculto{{ ocultosPrueba() === 1 ? '' : 's' }}</p>
+          <p class="pob-empty__hint">No hay personal real registrado con estos filtros. El personal de prueba está oculto por la preferencia "Ver datos de prueba".</p>
+          @if (puedeVerPrueba()) {
+            <button type="button" class="sgc-btn sgc-btn--secondary" (click)="mostrarPrueba()">Mostrar {{ ocultosPrueba() }} de prueba</button>
+          }
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+        }
+        <!-- AZ3 — hay registros visibles pero los filtros actuales los excluyen -->
+        @case ('filtros') {
+          <p class="pob-empty__title">Ningún trabajador coincide con los filtros</p>
+          <p class="pob-empty__hint">Ajusta la búsqueda o los filtros para ver el personal registrado.</p>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
+        }
+        <!-- AZ3 — genuinamente vacío -->
+        @default {
+          <p class="pob-empty__title">Aún no hay personal aquí</p>
+          <p class="pob-empty__hint">Registra al primer trabajador de la obra para llevar su expediente, evidencia y carnet.</p>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
+        }
+      }
     </div>
   } @else {
     <div class="sgc-card">

@@ -137,8 +137,44 @@
         <input id="docnom" class="sgc-input" [ngModel]="documentoNombre()" (ngModelChange)="documentoNombre.set($event)" />
       </div>
     </div>
+    <!-- AZ1 — campos que el sistema no resuelve solo: se piden aquí antes de firmar -->
+    @if (camposPendientes().length) {
+      <div class="pob-doc-pend">
+        <p class="pob-doc-pend__title">Completa los datos del documento</p>
+        <p class="pob-doc-pend__hint">El resto (empresa, nombre, cédula, cargo, obra y fecha) se llena solo. Faltan estos:</p>
+        <div class="form-grid">
+          @for (c of camposPendientes(); track c.key) {
+            <div class="sgc-field">
+              <label [for]="'campo-' + c.key">{{ c.label }}</label>
+              @switch (c.tipo) {
+                @case ('textarea') {
+                  <textarea [id]="'campo-' + c.key" class="sgc-input" rows="2"
+                    [ngModel]="valores()[c.key] ?? ''" (ngModelChange)="setCampo(c.key, $event)"></textarea>
+                }
+                @case ('fecha') {
+                  <input [id]="'campo-' + c.key" type="date" class="sgc-input"
+                    [ngModel]="valores()[c.key] ?? ''" (ngModelChange)="setCampo(c.key, $event)" />
+                }
+                @case ('numero') {
+                  <input [id]="'campo-' + c.key" type="number" class="sgc-input"
+                    [ngModel]="valores()[c.key] ?? ''" (ngModelChange)="setCampo(c.key, $event)" />
+                }
+                @default {
+                  <input [id]="'campo-' + c.key" type="text" class="sgc-input"
+                    [ngModel]="valores()[c.key] ?? ''" (ngModelChange)="setCampo(c.key, $event)" />
+                }
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
     @if (plantillaHtml()) {
+      <label class="pob-firma-label">Vista previa del documento</label>
       <div class="pob-doc-prev" [innerHTML]="plantillaHtml()"></div>
+      @if (faltanCampos()) {
+        <p class="pob-doc-warn" role="alert">Faltan campos por completar — no se puede firmar hasta llenarlos.</p>
+      }
     }
     <label class="pob-firma-label">Firma del personal</label>
     <div class="pob-firma">
@@ -148,7 +184,7 @@
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(2)">Atrás</button>
       <div class="pob-form__foot-right">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="saltarFirma()">Omitir por ahora</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarFirma()" [disabled]="saving()">
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="guardarFirma()" [disabled]="saving() || faltanCampos()">
           {{ saving() ? 'Guardando…' : 'Firmar y continuar' }}
         </button>
       </div>

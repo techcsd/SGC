@@ -127,3 +127,13 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* AZ4 — vista previa del documento en el panel de revisión */
+.apro-doc {
+  margin: 16px 0;
+  &__head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  &__body {
+    max-height: 320px; overflow-y: auto; border: 1px solid var(--sgc-border);
+    border-radius: 10px; padding: 18px; background: #fff; color: #111; font-size: 13px;
+  }
+}

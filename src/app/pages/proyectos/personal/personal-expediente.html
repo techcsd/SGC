@@ -57,7 +57,12 @@
         }
       </div>
 
-      @if (p.notas) { <p class="pob-exp__notas">{{ p.notas }}</p> }
+      @if (p.notas) {
+        <div class="pob-exp__obs">
+          <span class="pob-exp__obs-lbl">Observaciones</span>
+          <p class="pob-exp__notas">{{ p.notas }}</p>
+        </div>
+      }
       <div class="pob-exp__acciones">
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="editar()">Editar</button>
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="toggleEstado()" [disabled]="saving()">
@@ -130,7 +135,12 @@
         @for (f of firmas(); track f.id) {
           <li>
             <span>{{ f.documento_nombre }}</span>
-            <span class="text-muted">{{ formatFecha(f.firmado_at) }} · {{ f.metodo === 'foto' ? 'Foto' : 'Firma' }}</span>
+            <span class="pob-firmas__meta">
+              <span class="text-muted">{{ formatFecha(f.firmado_at) }} · {{ f.metodo === 'foto' ? 'Foto' : 'Firma' }}</span>
+              @if (f.documento_html) {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verDoc(f)">Ver documento</button>
+              }
+            </span>
           </li>
         }
       </ul>
@@ -139,5 +149,22 @@
 
   @if (lightboxUrl(); as url) {
     <app-lightbox [src]="url" alt="Evidencia" (closed)="lightboxUrl.set(null)" />
+  }
+
+  <!-- AZ1 — documento firmado (snapshot congelado) -->
+  @if (docVer(); as f) {
+    <div class="pob-docmodal" (click)="docVer.set(null)">
+      <div class="pob-docmodal__box" (click)="$event.stopPropagation()">
+        <div class="pob-docmodal__head">
+          <h3>{{ f.documento_nombre }}</h3>
+          <span class="text-muted">Firmado {{ formatFecha(f.firmado_at) }}</span>
+          <div class="pob-docmodal__actions">
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="imprimirDoc()">Imprimir / PDF</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="docVer.set(null)">Cerrar</button>
+          </div>
+        </div>
+        <div class="pob-docmodal__body" [innerHTML]="f.documento_html"></div>
+      </div>
+    </div>
   }
 }
