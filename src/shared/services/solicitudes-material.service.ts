@@ -122,4 +122,44 @@ export class SolicitudesMaterialService {
     notificarSolicitud(this.supabase.client, 'material', id, 'rechazada');
     this.notificaciones.refresh();
   }
+
+  // ── BA / Transporte v3 — despachos ─────────────────────────────────────────
+  /** Avance por renglón (solicitado vs despachado) de una requisición. */
+  async avance(id: string): Promise<RequisicionAvanceItem[]> {
+    const { data, error } = await this.supabase.client.rpc('requisicion_avance', { p_solicitud_id: id });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RequisicionAvanceItem[];
+  }
+
+  /** Cierre manual (por rol/autor/responsable — gate server-side). */
+  async cerrar(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('requisicion_cerrar', { p_solicitud_id: id });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
+  /** Cancelación con motivo obligatorio. */
+  async cancelar(id: string, motivo: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('requisicion_cancelar', { p_solicitud_id: id, p_motivo: motivo });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
+  /** Vincular un conduce suelto (salida) a esta requisición (rectificación). */
+  async vincularConduce(id: string, salidaId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('requisicion_vincular_conduce', { p_solicitud_id: id, p_salida_id: salidaId });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+}
+
+/** BA — un renglón del avance de despacho de una requisición. */
+export interface RequisicionAvanceItem {
+  articulo_id: string | null;
+  descripcion: string;
+  unidad: string | null;
+  talla: string | null;
+  solicitado: number;
+  despachado: number;
+  pendiente: number;
 }

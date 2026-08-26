@@ -2890,6 +2890,56 @@
           "d": "La pantalla de Auditoría suma la pestaña “Acciones de admin”: impersonaciones (entrar/salir de soporte), cambios de rol, creación/marcado de usuarios de prueba y más — quién, cuándo y sobre quién."
         }
       ]
+    },
+    "1.100.0": {
+      "titulo": "Transporte v3: conduce externo, proveedores y despachos",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Transporte",
+          "d": "Conduce externo: cuando un proveedor mueve material con su camión, quien lo recibe emite un conduce corto — foto de placa y carga, quién transporta (catálogo de proveedores o «Otro» a mano) y de dónde a dónde. Al emitirlo se registra el viaje automáticamente."
+        },
+        {
+          "t": "nuevo",
+          "m": "Transporte",
+          "d": "Proveedores de transportación: catálogo con alta al vuelo (nace «sin ratificar» y ya se puede usar), bandeja de ratificación de Logística y perfil con los viajes del proveedor y su estado de pago (solo Logística marca pagado)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Despachos: la requisición aprobada muestra su avance renglón por renglón (solicitado vs despachado) y se puede cerrar o cancelar por rol, con motivo obligatorio e histórico intacto."
+        },
+        {
+          "t": "nuevo",
+          "m": "Transporte",
+          "d": "Opción «Otros» en lugares: si el buscador o el link de Google Maps no dan con el sitio, se escribe en texto libre y el flujo nunca se tranca. Cada «Otros» cae en la bandeja «Lugares por registrar» de Logística para promoverlo y que el buscador lo encuentre la próxima vez."
+        },
+        {
+          "t": "mejora",
+          "m": "Transporte",
+          "d": "Buscador de lugares mejorado: ahora incluye las obras, los almacenes y los lugares ya registrados en el sistema — no solo resultados de Google."
+        },
+        {
+          "t": "arreglo",
+          "m": "Proyectos",
+          "d": "Los ingenieros ven correctamente las obras de las que son responsables o partícipes, en el listado y en todos los selectores de obra. Se corrigió la causa de fondo (la verificación con usuarios de prueba mentía)."
+        },
+        {
+          "t": "mejora",
+          "m": "Desempeño",
+          "d": "La participación en el incentivo de choferes ahora es explícita (un flag por chofer): la matriz, el correo y Compa usan una sola población. Los choferes de prueba quedan fuera."
+        },
+        {
+          "t": "mejora",
+          "m": "Compa",
+          "d": "Las sugerencias y el saludo de Compa se adaptan al rol de quien le habla: al chofer le ofrece su ruta, conduces y puntaje; al ingeniero, sus entregas y requisiciones; a Logística, despachos y viajes de proveedores."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "El rol de Logística y Transportación tiene acceso completo a Flota a nivel de submódulos."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

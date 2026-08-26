@@ -1,0 +1,26 @@
+.page-sub { color: var(--main-ultra-light, #929090); margin: -6px 0 14px; font-size: 0.9rem; }
+
+.lpr-list { display: flex; flex-direction: column; gap: 10px; }
+.lpr-item { padding: 14px; }
+
+.lpr-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.lpr-texto { font-weight: 600; }
+.lpr-meta { font-size: 0.8rem; color: var(--main-ultra-light, #929090); margin-top: 4px; }
+.lpr-actions { display: flex; gap: 8px; }
+
+.lpr-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #2d2d2d;
+}
+.lpr-coord { max-width: 140px; }

@@ -1,0 +1,89 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">Proveedores de transporte</h1>
+      <span class="page-count">{{ filtrados().length }}</span>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="tab() === 'todos'" [class.sgc-btn--ghost]="tab() !== 'todos'" (click)="tab.set('todos')">Todos</button>
+    <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="tab() === 'por_ratificar'" [class.sgc-btn--ghost]="tab() !== 'por_ratificar'" (click)="tab.set('por_ratificar')">Por ratificar</button>
+  </div>
+
+  <!-- Alta rápida -->
+  <div class="sgc-card pt-alta">
+    <input class="sgc-field" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+    <input class="sgc-field" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
+    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="crear()">Agregar</button>
+  </div>
+
+  @if (loading()) {
+    <app-skeleton variant="list" [rows]="5" />
+  } @else if (filtrados().length === 0) {
+    <div class="sgc-card table-empty">No hay proveedores.</div>
+  } @else {
+    <div class="pt-list">
+      @for (p of filtrados(); track p.id) {
+        <div class="sgc-card pt-item">
+          <div class="pt-row" (click)="abrirPerfil(p)" role="button" tabindex="0">
+            <div class="pt-main">
+              <span class="pt-name">{{ p.nombre }}</span>
+              @if (p.estado === 'sin_ratificar') {
+                <span class="sgc-badge sgc-badge--warning">Sin ratificar</span>
+              } @else {
+                <span class="sgc-badge sgc-badge--success">Ratificado</span>
+              }
+              @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+            </div>
+            <div class="pt-meta">
+              <span>{{ p.viajes_total }} viajes</span>
+              @if (p.viajes_pendientes_pago > 0) { <span class="pt-pend">{{ p.viajes_pendientes_pago }} por pagar</span> }
+            </div>
+          </div>
+
+          <div class="pt-actions">
+            @if (esLogistica() && p.estado === 'sin_ratificar') {
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="ratificar(p)">Ratificar</button>
+            }
+          </div>
+
+          @if (abierto() === p.id) {
+            <div class="pt-perfil">
+              @if (cargandoViajes()) {
+                <p class="pt-loading">Cargando viajes…</p>
+              } @else if (viajes().length === 0) {
+                <p class="pt-loading">Sin viajes registrados.</p>
+              } @else {
+                <table class="data-table">
+                  <thead><tr><th>Fecha</th><th>Origen → Destino</th><th>Material</th><th>Pago</th></tr></thead>
+                  <tbody>
+                    @for (v of viajes(); track v.viaje_id) {
+                      <tr>
+                        <td>{{ v.fecha | date: 'dd/MM/yyyy' }}</td>
+                        <td>{{ v.origen || '—' }} → {{ v.destino || '—' }}</td>
+                        <td>{{ v.material || '—' }}</td>
+                        <td>
+                          @if (v.estado_pago === 'pagado') {
+                            <span class="sgc-badge sgc-badge--success">Pagado</span>
+                          } @else {
+                            <span class="sgc-badge sgc-badge--warning">Pendiente</span>
+                          }
+                          @if (esLogistica()) {
+                            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="togglePago(v)">
+                              {{ v.estado_pago === 'pagado' ? 'Marcar pendiente' : 'Marcar pagado' }}
+                            </button>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

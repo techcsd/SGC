@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
+import { SolicitudesMaterialService, RequisicionAvanceItem } from '../../../../shared/services/solicitudes-material.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -23,6 +23,11 @@ const ESTADO_BADGE: Record<string, string> = {
   entregada: 'success',
   cerrada: 'success',
   rechazada: 'danger',
+  // BA / Transporte v3 — despachos
+  por_despachar: 'warning',
+  parcial: 'info',
+  completada: 'success',
+  cancelada: 'danger',
 };
 
 // A2: "aprobada" = despachada en parte y con compra pendiente por el faltante.
@@ -32,6 +37,11 @@ const ESTADO_LABEL: Record<string, string> = {
   entregada: 'Entregada',
   cerrada: 'Cerrada',
   rechazada: 'Rechazada',
+  // BA / Transporte v3 — despachos
+  por_despachar: 'Por despachar',
+  parcial: 'Despacho parcial',
+  completada: 'Completada',
+  cancelada: 'Cancelada',
 };
 
 const hoy = () => new Date().toISOString().slice(0, 10);
@@ -99,6 +109,18 @@ export class Requisiciones implements OnInit {
   rechazoNota = signal<string>('');
   saving = signal(false);
   actionError = signal('');
+
+  // ── BA / Transporte v3 — despachos (avance + cierre/cancelación) ──────────
+  avanceItems = signal<RequisicionAvanceItem[]>([]);
+  cargandoAvance = signal(false);
+  mostrarCancelar = signal(false);
+  cancelarMotivo = signal('');
+  // Mirror (parcial) de sgc.puede_gestionar_requisicion: roles del set aprobado.
+  // El autor/responsable también pueden (lo valida el servidor); el ingeniero de
+  // campo común no ve estos botones.
+  puedeGestionarReq = computed(() =>
+    ['admin', 'logistica', 'coord_compras', 'jefe_ingenieros', 'tecnologia'].some((r) => this.userService.hasRole(r)),
+  );
 
   /** Quién puede gestionar (mirror del gate del servidor). El ingeniero no llega aquí. */
   puedeGestionar = computed(() => this.userService.puedeVerTodasRequisiciones());
@@ -250,11 +272,63 @@ export class Requisiciones implements OnInit {
     const pid = r.proyecto_id;
     const propia = this.bodegas().find((b) => b.proyecto_id === pid);
     this.bodegaId.set(propia?.id ?? this.bodegas()[0]?.id ?? '');
+    this.mostrarCancelar.set(false);
+    this.cancelarMotivo.set('');
     this.drawerOpen.set(true);
+    void this.cargarAvance(r.id);
   }
 
   cerrar() {
     this.drawerOpen.set(false);
+  }
+
+  // ── BA / Transporte v3 — despachos ─────────────────────────────────────────
+  async cargarAvance(id: string) {
+    this.avanceItems.set([]);
+    this.cargandoAvance.set(true);
+    try {
+      this.avanceItems.set(await this.service.avance(id));
+    } catch {
+      /* avance vacío no es error */
+    } finally {
+      this.cargandoAvance.set(false);
+    }
+  }
+
+  async cerrarRequisicion() {
+    const s = this.selected();
+    if (!s || this.saving()) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      await this.service.cerrar(s.id);
+      this.toast.success('Requisición cerrada');
+      this.drawerOpen.set(false);
+      await this.loadAll();
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudo cerrar.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  async confirmarCancelar() {
+    const s = this.selected();
+    if (!s || this.saving()) return;
+    const motivo = this.cancelarMotivo().trim();
+    if (!motivo) { this.actionError.set('El motivo de cancelación es obligatorio.'); return; }
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      await this.service.cancelar(s.id, motivo);
+      this.toast.success('Requisición cancelada');
+      this.drawerOpen.set(false);
+      await this.loadAll();
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudo cancelar.');
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   iniciarAprobar() {

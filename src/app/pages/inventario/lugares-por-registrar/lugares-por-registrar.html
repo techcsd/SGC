@@ -1,0 +1,50 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">Lugares por registrar</h1>
+      <span class="page-count">{{ filas().length }}</span>
+    </div>
+  </header>
+  <p class="page-sub">Lugares escritos como «Otros» en conduces y rutas. Promuévelos para que el buscador los encuentre.</p>
+
+  @if (loading()) {
+    <app-skeleton variant="list" [rows]="5" />
+  } @else if (filas().length === 0) {
+    <div class="sgc-card table-empty">No hay lugares pendientes. 🎉</div>
+  } @else {
+    <div class="lpr-list">
+      @for (l of filas(); track l.id) {
+        <div class="sgc-card lpr-item">
+          <div class="lpr-head">
+            <div>
+              <span class="lpr-texto">{{ l.texto }}</span>
+              @if (l.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+              <div class="lpr-meta">
+                {{ l.contexto || '—' }} · {{ l.documento_tipo || 'documento' }} ·
+                por {{ l.usado_por_nombre || '—' }} · {{ l.created_at | date: 'dd/MM/yyyy' }}
+              </div>
+            </div>
+            @if (esLogistica()) {
+              <div class="lpr-actions">
+                @if (promoviendo() !== l.id) {
+                  <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirPromover(l)">Promover</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartar(l)">Descartar</button>
+                }
+              </div>
+            }
+          </div>
+
+          @if (promoviendo() === l.id) {
+            <div class="lpr-form">
+              <input class="sgc-field" placeholder="Nombre del lugar" [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
+              <input class="sgc-field lpr-coord" placeholder="Lat (opcional)" [value]="lat()" (input)="lat.set($any($event.target).value)" />
+              <input class="sgc-field lpr-coord" placeholder="Lng (opcional)" [value]="lng()" (input)="lng.set($any($event.target).value)" />
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="promover(l)">Guardar</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="promoviendo.set(null)">Cancelar</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

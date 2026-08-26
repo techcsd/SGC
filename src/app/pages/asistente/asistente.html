@@ -30,17 +30,17 @@
       </span>
       <div>
         <h1 class="compa__title">Compa</h1>
-        <p class="compa__subtitle">Tu asistente de SGC — responde con datos reales, según lo que tú puedes ver.</p>
+        <p class="compa__subtitle">{{ subtitulo() }}</p>
       </div>
     </header>
 
     <div class="compa__messages">
       @if (vacio()) {
         <div class="compa__welcome">
-          <p class="compa__welcome-hi">¡Hola! Soy <strong>Compa</strong> 👋</p>
+          <p class="compa__welcome-hi">{{ saludo() }}</p>
           <p class="compa__welcome-sub">Pregúntame lo que necesites del sistema. También puedo prepararte una tarea, requisición o conduce — siempre te muestro un resumen para que confirmes antes de crear nada.</p>
           <div class="compa__chips">
-            @for (s of sugerencias; track s) {
+            @for (s of sugerencias(); track s) {
               <button type="button" class="compa__chip" (click)="usarSugerencia(s)">{{ s }}</button>
             }
           </div>

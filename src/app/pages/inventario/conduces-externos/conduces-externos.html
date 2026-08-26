@@ -1,0 +1,59 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">Conduces externos</h1>
+      <span class="page-count">{{ filtradas().length }}</span>
+    </div>
+    <div class="page-header__actions">
+      <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/inventario/conduce-externo/nuevo">+ Nuevo conduce externo</a>
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    @for (f of ['todos','emitido','recibido','anulado']; track f) {
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="filtroEstado() === f" [class.sgc-btn--ghost]="filtroEstado() !== f"
+              (click)="filtroEstado.set($any(f))">{{ f === 'todos' ? 'Todos' : estadoLabel(f) }}</button>
+    }
+  </div>
+
+  @if (loading()) {
+    <app-skeleton variant="table" [rows]="8" />
+  } @else if (error()) {
+    <div class="page-error" role="alert">{{ error() }}</div>
+  } @else if (filtradas().length === 0) {
+    <div class="sgc-card table-empty">No hay conduces externos todavía.</div>
+  } @else {
+    <div class="sgc-card table-wrapper">
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Transporta</th>
+              <th>Origen → Destino</th>
+              <th>Material</th>
+              <th>Emisor</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of filtradas(); track c.id) {
+              <tr>
+                <td>
+                  {{ c.transporta || '—' }}
+                  @if (!c.es_proveedor_formal && c.transporta) { <span class="ce-otro">«Otro»</span> }
+                  @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                </td>
+                <td>{{ c.origen || '—' }} → {{ c.destino || '—' }}</td>
+                <td>{{ c.material || (c.afecta_inventario ? 'Material de catálogo' : '—') }}</td>
+                <td>{{ c.emisor_nombre || '—' }}</td>
+                <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">{{ estadoLabel(c.estado) }}</span></td>
+                <td>{{ c.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

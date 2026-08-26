@@ -240,6 +240,47 @@
         </div>
       }
 
+      <!-- BA / Transporte v3 — avance de despacho (solicitado vs despachado) -->
+      @if (s.estado !== 'pendiente' && s.estado !== 'rechazada' && avanceItems().length) {
+        <div class="req-detail__despachos">
+          <h3 class="req-detail__subtitle">Avance de despacho</h3>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Renglón</th><th>Solicitado</th><th>Despachado</th><th>Pendiente</th></tr></thead>
+              <tbody>
+                @for (a of avanceItems(); track a.descripcion) {
+                  <tr>
+                    <td>{{ a.descripcion }}</td>
+                    <td>{{ a.solicitado }}</td>
+                    <td>{{ a.despachado }}</td>
+                    <td [class.req-pend]="a.pendiente > 0">{{ a.pendiente }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (puedeGestionarReq() && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
+            @if (actionError()) { <div class="page-error" role="alert">{{ actionError() }}</div> }
+            @if (!mostrarCancelar()) {
+              <div class="req-detail__actions">
+                <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="cerrarRequisicion()">Cerrar requisición</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">Cancelar…</button>
+              </div>
+            } @else {
+              <div class="req-detail__cancelar">
+                <input class="sgc-field" placeholder="Motivo de cancelación (obligatorio)"
+                       [value]="cancelarMotivo()" (input)="cancelarMotivo.set($any($event.target).value)" />
+                <div class="req-detail__actions">
+                  <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="saving()" (click)="confirmarCancelar()">Confirmar cancelación</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(false)">Volver</button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+
       <!-- Acciones de gestión -->
       @if (puedeGestionar() && s.estado === 'pendiente') {
         @if (actionError()) {

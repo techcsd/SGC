@@ -1,0 +1,110 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-header__left">
+      <h1 class="page-title">Nuevo conduce externo</h1>
+      <p class="page-sub">Un proveedor mueve material con su camión. Se registra el viaje automáticamente.</p>
+    </div>
+    <div class="page-header__actions">
+      <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conduces-externos">Ver historial</a>
+    </div>
+  </header>
+
+  @if (formError()) {
+    <div class="page-error" role="alert">{{ formError() }}</div>
+  }
+
+  <div class="sgc-card cef-card">
+    <!-- Quién transporta -->
+    <section class="cef-section">
+      <h2 class="cef-h">¿Quién transporta?</h2>
+      @if (!usarTexto()) {
+        <div class="cef-field">
+          <label class="cef-label">Proveedor de transporte</label>
+          <select class="sgc-field" [value]="proveedorId() ?? ''" (change)="proveedorId.set($any($event.target).value || null)">
+            <option value="">— Selecciona —</option>
+            @for (p of proveedores(); track p.id) {
+              <option [value]="p.id">{{ p.nombre }}@if (p.estado === 'sin_ratificar') { (sin ratificar) }</option>
+            }
+          </select>
+        </div>
+        <div class="cef-row">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="nuevoAbierto.set(!nuevoAbierto())">+ Nuevo proveedor</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">Escribir «Otro» a mano</button>
+        </div>
+        @if (nuevoAbierto()) {
+          <div class="cef-inline">
+            <input class="sgc-field" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+            <input class="sgc-field" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="crearProveedorRapido()">Crear</button>
+          </div>
+        }
+      } @else {
+        <div class="cef-field">
+          <label class="cef-label">Transporta (texto «Otro»)</label>
+          <input class="sgc-field" placeholder="Nombre del transportista" [value]="transportaTexto()" (input)="transportaTexto.set($any($event.target).value)" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">Elegir del catálogo</button>
+        </div>
+      }
+    </section>
+
+    <!-- Fotos -->
+    <section class="cef-section">
+      <h2 class="cef-h">Fotos del camión</h2>
+      <div class="cef-fotos">
+        <div class="cef-foto">
+          <input type="file" accept="image/*" capture="environment" (change)="onFoto('placa', $event)" hidden #placaInput />
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="placaInput.click()">Foto de la placa *</button>
+          @if (placaPreview()) { <img [src]="placaPreview()" class="cef-preview" alt="Placa" /> }
+        </div>
+        <div class="cef-foto">
+          <input type="file" accept="image/*" capture="environment" (change)="onFoto('carga', $event)" hidden #cargaInput />
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cargaInput.click()">Foto de la carga</button>
+          @if (cargaPreview()) { <img [src]="cargaPreview()" class="cef-preview" alt="Carga" /> }
+        </div>
+      </div>
+    </section>
+
+    <!-- Material -->
+    <section class="cef-section">
+      <h2 class="cef-h">¿Qué mueve?</h2>
+      <input class="sgc-field" placeholder="Descripción del material (ej. una nevera, 20 sacos de cemento…)"
+             [value]="material()" (input)="material.set($any($event.target).value)" />
+    </section>
+
+    <!-- Origen / destino -->
+    <section class="cef-section">
+      <h2 class="cef-h">Origen → destino</h2>
+      <div class="cef-field cef-lugar">
+        <label class="cef-label">Origen</label>
+        <input class="sgc-field" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
+               [value]="origenQuery()" (input)="buscarOrigen($any($event.target).value)" />
+        @if (origenResultados().length) {
+          <ul class="cef-results">
+            @for (l of origenResultados(); track l.id) {
+              <li (click)="elegirOrigen(l)"><span class="cef-tag">{{ l.tipo }}</span> {{ l.nombre }}</li>
+            }
+          </ul>
+        }
+      </div>
+      <div class="cef-field cef-lugar">
+        <label class="cef-label">Destino</label>
+        <input class="sgc-field" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
+               [value]="destinoQuery()" (input)="buscarDestino($any($event.target).value)" />
+        @if (destinoResultados().length) {
+          <ul class="cef-results">
+            @for (l of destinoResultados(); track l.id) {
+              <li (click)="elegirDestino(l)"><span class="cef-tag">{{ l.tipo }}</span> {{ l.nombre }}</li>
+            }
+          </ul>
+        }
+      </div>
+      <p class="cef-hint">Si el lugar no aparece, escríbelo igual: se registra como «Otros» y cae en la bandeja de Logística para agregarlo al sistema.</p>
+    </section>
+
+    <div class="cef-actions">
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardando()" (click)="guardar()">
+        {{ guardando() ? 'Emitiendo…' : 'Emitir conduce externo' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -34,6 +34,14 @@ export interface AsistenteRespuesta {
   archivo?: { nombre: string; url: string } | null;
 }
 
+/** BA3 — chips + saludo de Compa por rol (fuente única en BD: sgc.compa_chips). */
+export interface CompaSugerencias {
+  chips: string[];
+  saludo: string | null;
+  subtitulo: string | null;
+  persona: string;
+}
+
 /**
  * AW4 — cliente del asistente "Tato". Toda la inteligencia vive en la edge
  * function `assistant` (Claude + tool use), que ejecuta las herramientas con
@@ -108,6 +116,18 @@ export class AsistenteService {
       .order('updated_at', { ascending: false })
       .limit(20);
     return (data ?? []) as AsistenteConversacion[];
+  }
+
+  /** BA3 — chips + saludo/subtítulo de Compa según el rol del usuario (fuente única BD). */
+  async sugerenciasPorRol(): Promise<CompaSugerencias> {
+    const { data, error } = await this.supabase.client.rpc('compa_sugerencias');
+    const rows = (error ? [] : (data ?? [])) as { texto: string; saludo: string | null; subtitulo: string | null; persona: string }[];
+    return {
+      chips: rows.map((r) => r.texto),
+      saludo: rows[0]?.saludo ?? null,
+      subtitulo: rows[0]?.subtitulo ?? null,
+      persona: rows[0]?.persona ?? 'default',
+    };
   }
 
   /** Mensajes de una conversación (para retomarla). */

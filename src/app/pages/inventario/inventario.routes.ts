@@ -75,6 +75,32 @@ export const inventarioRoutes: Routes = [
     title: 'Conduces por implementar — Inventario',
   },
   {
+    // BA/Transporte v3 — historial de conduces externos (proveedor de transporte).
+    path: 'conduces-externos',
+    canActivate: [submoduloGuard('inventario.salidas')],
+    loadComponent: () => import('./conduces-externos/conduces-externos').then((m) => m.ConducesExternos),
+    title: 'Conduces externos — Inventario',
+  },
+  {
+    // BA/Transporte v3 — alta/emisión de conduce externo (gate real server-side: puede_crear_conduce).
+    path: 'conduce-externo/nuevo',
+    canActivate: [submoduloGuard('inventario.salidas')],
+    loadComponent: () => import('./conduce-externo-form/conduce-externo-form').then((m) => m.ConduceExternoForm),
+    title: 'Nuevo conduce externo — Inventario',
+  },
+  {
+    // BA/Transporte v3 — catálogo + bandeja de ratificación (Raykler; gate server-side es_logistica).
+    path: 'proveedores-transporte',
+    loadComponent: () => import('./proveedores-transporte/proveedores-transporte').then((m) => m.ProveedoresTransporte),
+    title: 'Proveedores de transporte — Inventario',
+  },
+  {
+    // BA/Transporte v3 — bandeja "Lugares por registrar" (Raykler; gate server-side es_logistica).
+    path: 'lugares-por-registrar',
+    loadComponent: () => import('./lugares-por-registrar/lugares-por-registrar').then((m) => m.LugaresPorRegistrar),
+    title: 'Lugares por registrar — Inventario',
+  },
+  {
     path: 'movimientos',
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./movimientos/movimientos').then((m) => m.Movimientos),

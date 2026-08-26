@@ -1,4 +1,14 @@
-export type SolicitudMaterialEstado = 'pendiente' | 'aprobada' | 'rechazada' | 'entregada' | 'cerrada';
+export type SolicitudMaterialEstado =
+  | 'pendiente'
+  | 'aprobada'
+  | 'rechazada'
+  | 'entregada'
+  | 'cerrada'
+  // BA / Transporte v3 — despachos
+  | 'por_despachar'
+  | 'parcial'
+  | 'completada'
+  | 'cancelada';
 export type SolicitudCompraEstado = 'pendiente' | 'convertida' | 'rechazada';
 
 export interface SolicitudMaterialItem {

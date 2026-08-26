@@ -33,15 +33,23 @@ export class Asistente implements OnInit {
 
   vacio = computed(() => this.mensajes().length === 0);
 
-  readonly sugerencias = [
+  // BA3 — chips y saludo por rol (fuente única en BD). Fallback si el RPC no responde.
+  sugerencias = signal<string[]>([
     '¿Qué tareas tengo pendientes?',
     '¿Tengo conduces por firmar?',
     '¿En qué obras estoy?',
     '¿A qué tengo acceso en el sistema?',
-    'Crea una tarea en mi obra',
-  ];
+  ]);
+  saludo = signal('¡Hola! Soy Compa 👋');
+  subtitulo = signal('Tu asistente de SGC — responde con datos reales, según lo que tú puedes ver.');
 
   async ngOnInit() {
+    // BA3 — carga los chips/saludo del rol; no bloquea el resto si falla.
+    void this.service.sugerenciasPorRol().then((s) => {
+      if (s.chips.length) this.sugerencias.set(s.chips);
+      if (s.saludo) this.saludo.set(s.saludo);
+      if (s.subtitulo) this.subtitulo.set(s.subtitulo);
+    });
     this.conversaciones.set(await this.service.conversacionesRecientes());
     // AY10 — retomar donde quedó: si había una conversación abierta, se recarga
     // (sus mensajes vienen del servidor, así que una respuesta que terminó
