@@ -53,6 +53,14 @@ export class ObraAvance implements OnInit {
   pruebas = signal<PruebaCampo[]>([]);
 
   puedeOperar = computed(() => this.userService.puedeOperarSubmodulo('obra.avance'));
+  // AY4 — los Ingenieros ven el avance físico pero NO los costos de producción
+  // (decisión Xaviel). Gerencia/dirección/proyectos y demás roles de producción
+  // (capataz/gerente de producción) sí ven la pestaña Costos.
+  puedeVerCostos = computed(() => {
+    const u = this.userService;
+    if (u.hasRole('admin') || u.hasRole('gerencia') || u.hasModulo('proyectos') || u.hasModulo('direccion')) return true;
+    return !u.hasRole('ingeniero_campo');
+  });
 
   totalHorasHombre = computed(() => this.manoObra().reduce((a, m) => a + (m.horas_hombre ?? 0), 0));
   desviacion = computed(() => Math.round((this.avance().avance_real_pct - this.avance().avance_plan_pct) * 10) / 10);
@@ -145,7 +153,7 @@ export class ObraAvance implements OnInit {
     }
   }
 
-  setTab(t: Tab) { this.tab.set(t); }
+  setTab(t: Tab) { if (t === 'costos' && !this.puedeVerCostos()) return; this.tab.set(t); }
 
   async capturarBaseline() {
     if (!this.puedeOperar()) return;

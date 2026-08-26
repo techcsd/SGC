@@ -1,5 +1,14 @@
 {
   "web": {
+    "1.98.1": {
+      "titulo": "Costos de producción ocultos para Ingenieros",
+      "cambios": [
+        {
+          "t": "mejora",
+          "d": "En Producción de obra › Avance, la pestaña de Costos ya no se muestra a los Ingenieros: ven el avance físico y la logística, pero los costos quedan para gerencia/dirección y los encargados de producción (capataz/gerente de producción). Aplicado también en el backend."
+        }
+      ]
+    },
     "1.98.0": {
       "titulo": "Rol Ingenieros unificado, firma en recepción y Compa con Excel, ayuda y memoria (ronda AY, cierre)",
       "cambios": [

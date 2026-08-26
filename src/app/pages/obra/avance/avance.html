@@ -18,7 +18,9 @@
 <!-- ── Tabs ── -->
 <div class="tabs-bar" role="tablist">
   <button role="tab" [attr.aria-selected]="tab() === 'avance'" class="tab-btn" [class.tab-btn--active]="tab() === 'avance'" (click)="setTab('avance')">Avance</button>
-  <button role="tab" [attr.aria-selected]="tab() === 'costos'" class="tab-btn" [class.tab-btn--active]="tab() === 'costos'" (click)="setTab('costos')">Costos</button>
+  @if (puedeVerCostos()) {
+    <button role="tab" [attr.aria-selected]="tab() === 'costos'" class="tab-btn" [class.tab-btn--active]="tab() === 'costos'" (click)="setTab('costos')">Costos</button>
+  }
   <button role="tab" [attr.aria-selected]="tab() === 'logistica'" class="tab-btn" [class.tab-btn--active]="tab() === 'logistica'" (click)="setTab('logistica')">Logística</button>
 </div>
 
@@ -92,7 +94,7 @@
   }
 
   <!-- ═══ COSTOS ═══ -->
-  @if (tab() === 'costos') {
+  @if (tab() === 'costos' && puedeVerCostos()) {
     <div class="kpi-row">
       <div class="kpi-card">
         <span class="kpi-value">@if (costo(); as c) { RD$ {{ c.total | number:'1.0-0' }} } @else { — }</span>
