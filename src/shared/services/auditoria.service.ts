@@ -28,6 +28,20 @@ export interface AuditoriaActor {
   nombre: string;
 }
 
+/** AZ10 — fila del log de acciones de administración (audit_log): impersonación,
+ *  cambios de rol, usuarios de prueba, etc. Distinto del change-log de tablas. */
+export interface AdminAccionRow {
+  id: string;
+  action: string;
+  actor_id: string | null;
+  actor_nombre: string | null;
+  target_user_id: string | null;
+  target_nombre: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+  total: number;
+}
+
 /** W6 — agregados analíticos del módulo de auditoría (RPC auditoria_resumen). */
 export interface AuditoriaResumen {
   total: number;
@@ -87,6 +101,18 @@ export class AuditoriaService {
       .limit(1000);
     if (error) throw new Error(error.message);
     return [...new Set((data ?? []).map((r: { tabla: string }) => r.tabla))];
+  }
+
+  /** AZ10 — lista el log de acciones de administración (audit_log), paginado. */
+  async listAdmin(page: number, action?: string): Promise<{ rows: AdminAccionRow[]; total: number }> {
+    const { data, error } = await this.supabase.client.rpc('audit_log_listado', {
+      p_limit: this.pageSize,
+      p_offset: page * this.pageSize,
+      p_action: action || null,
+    });
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as AdminAccionRow[];
+    return { rows, total: rows[0]?.total ?? 0 };
   }
 
   async actores(): Promise<AuditoriaActor[]> {

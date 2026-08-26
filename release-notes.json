@@ -2880,6 +2880,16 @@
           "d": "Compa trata a cada quien según su rol del sector: “Ing.” y usted a ingenieros y dirección, trato cercano y respetuoso al resto."
         }
       ]
+    },
+    "1.99.1": {
+      "titulo": "Auditoría de acciones de administración",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "La pantalla de Auditoría suma la pestaña “Acciones de admin”: impersonaciones (entrar/salir de soporte), cambios de rol, creación/marcado de usuarios de prueba y más — quién, cuándo y sobre quién."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

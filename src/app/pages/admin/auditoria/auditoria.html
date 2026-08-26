@@ -49,6 +49,7 @@
   <div class="aud__tabs">
     <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'panel'" (click)="cambiarVista('panel')">📊 Panel</button>
     <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'filas'" (click)="cambiarVista('filas')">📄 Filas</button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'admin'" (click)="cambiarVista('admin')">Acciones de admin</button>
   </div>
 
   @if (error()) {
@@ -237,5 +238,55 @@
       </div>
     }
   }
+  }
+
+  <!-- ── AZ10 — Acciones de administración (audit_log) ── -->
+  @if (vista() === 'admin') {
+    <div class="aud__filters">
+      <select [value]="fAdminAccion()" (change)="fAdminAccion.set($any($event.target).value); adminApplyFilter()" aria-label="Filtrar por acción">
+        <option value="">Todas las acciones</option>
+        <option value="impersonacion_inicio">Entró como usuario (soporte)</option>
+        <option value="impersonacion_fin">Salió de soporte</option>
+        <option value="usuario_test_login">Entró como usuario de prueba</option>
+        <option value="usuario_test_creado">Creó usuario de prueba</option>
+        <option value="usuario_marcado_prueba">Marcó como prueba</option>
+        <option value="roles_actualizados">Actualizó roles</option>
+        <option value="usuario_eliminado">Eliminó usuario</option>
+      </select>
+    </div>
+
+    @if (adminLoading()) {
+      <div class="aud__skeleton">
+        @for (i of [1,2,3,4,5,6]; track i) { <div class="aud__skel-row"></div> }
+      </div>
+    } @else {
+      <div class="aud__table-wrap">
+        <table class="aud__table">
+          <thead>
+            <tr><th>Fecha y hora</th><th>Quién</th><th>Acción</th><th>Detalle</th></tr>
+          </thead>
+          <tbody>
+            @for (r of adminRows(); track r.id) {
+              <tr>
+                <td>{{ formatTs(r.created_at) }}</td>
+                <td>{{ r.actor_nombre ?? 'Sistema' }}</td>
+                <td>{{ adminAccionLabel(r.action) }}</td>
+                <td class="aud__muted">{{ adminDetalle(r) || '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4" class="aud__muted aud__empty">No hay acciones de administración registradas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (adminTotal() > 0) {
+        <div class="aud__pager">
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="adminPage() === 0" (click)="adminGoToPage(adminPage() - 1)">← Anterior</button>
+          <span class="aud__pager-info">{{ adminTotal() }} registro(s)</span>
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="adminPage() >= adminTotalPages() - 1" (click)="adminGoToPage(adminPage() + 1)">Siguiente →</button>
+        </div>
+      }
+    }
   }
 </div>

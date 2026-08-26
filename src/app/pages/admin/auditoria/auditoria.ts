@@ -5,6 +5,7 @@ import {
   AuditoriaRow,
   AuditoriaActor,
   AuditoriaResumen,
+  AdminAccionRow,
 } from '../../../../shared/services/auditoria.service';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -69,6 +70,26 @@ const ACCION_LABELS: Record<string, string> = {
   DELETE: 'Eliminó',
 };
 
+// AZ10 — etiquetas legibles de las acciones de administración (audit_log).
+const ADMIN_ACCION_LABELS: Record<string, string> = {
+  impersonacion_inicio: 'Entró como usuario (soporte)',
+  impersonacion_fin: 'Salió de la sesión de soporte',
+  usuario_test_login: 'Entró como usuario de prueba',
+  usuario_test_creado: 'Creó usuario de prueba',
+  usuario_marcado_prueba: 'Marcó usuario como prueba',
+  usuario_desmarcado_prueba: 'Quitó marca de prueba',
+  roles_actualizados: 'Actualizó roles',
+  rol_eliminado: 'Eliminó rol',
+  usuario_creado: 'Creó usuario',
+  usuario_actualizado: 'Actualizó usuario',
+  usuario_desactivado: 'Desactivó usuario',
+  usuario_reactivado: 'Reactivó usuario',
+  usuario_eliminado: 'Eliminó usuario',
+  invitacion_reenviada: 'Reenvió invitación',
+  password_reset_solicitado: 'Solicitó restablecer contraseña',
+  mi_perfil_actualizado: 'Actualizó su perfil',
+};
+
 /** Admin → Auditoría: browse the full change trail (who changed what, when).
  *  Reads sgc.auditoria (populated by DB triggers from BOTH web and app). */
 @Component({
@@ -83,8 +104,17 @@ export class AdminAuditoria implements OnInit {
 
   formatTs = formatTimestampDisplay;
 
-  /** W6 — vista activa: panel analítico o filas crudas (drill-down). */
-  vista = signal<'panel' | 'filas'>('panel');
+  /** W6 — vista activa: panel analítico, filas crudas (drill-down) o acciones de admin (AZ10). */
+  vista = signal<'panel' | 'filas' | 'admin'>('panel');
+
+  // AZ10 — acciones de administración (audit_log): impersonación, roles, usuarios test.
+  adminRows = signal<AdminAccionRow[]>([]);
+  adminTotal = signal(0);
+  adminPage = signal(0);
+  adminLoading = signal(false);
+  fAdminAccion = signal('');
+  private adminCargado = false;
+  adminTotalPages = computed(() => Math.max(1, Math.ceil(this.adminTotal() / this.pageSize)));
   resumen = signal<AuditoriaResumen | null>(null);
   resumenLoading = signal(false);
 
@@ -124,12 +154,55 @@ export class AdminAuditoria implements OnInit {
   }
 
   // ── W6 — Panel analítico ─────────────────────────────────────
-  cambiarVista(v: 'panel' | 'filas') {
+  cambiarVista(v: 'panel' | 'filas' | 'admin') {
     this.vista.set(v);
     // Panel: siempre refresca los agregados para que reflejen el filtro actual.
     if (v === 'panel') void this.loadResumen();
     // Filas: carga perezosa la primera vez.
     if (v === 'filas' && !this.filasCargadas) void this.load();
+    // Acciones de admin: carga perezosa la primera vez.
+    if (v === 'admin' && !this.adminCargado) void this.loadAdmin();
+  }
+
+  // ── AZ10 — Acciones de administración ─────────────────────────
+  async loadAdmin() {
+    this.adminCargado = true;
+    this.adminLoading.set(true);
+    this.error.set('');
+    try {
+      const { rows, total } = await this.service.listAdmin(this.adminPage(), this.fAdminAccion() || undefined);
+      this.adminRows.set(rows);
+      this.adminTotal.set(total);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'Error al cargar las acciones de administración.');
+    } finally {
+      this.adminLoading.set(false);
+    }
+  }
+
+  adminApplyFilter() {
+    this.adminPage.set(0);
+    void this.loadAdmin();
+  }
+
+  adminGoToPage(p: number) {
+    if (p < 0 || p >= this.adminTotalPages()) return;
+    this.adminPage.set(p);
+    void this.loadAdmin();
+  }
+
+  adminAccionLabel(a: string): string {
+    return ADMIN_ACCION_LABELS[a] ?? a;
+  }
+
+  /** Texto de detalle de una acción de admin (metadata → frase corta). */
+  adminDetalle(r: AdminAccionRow): string {
+    const m = r.metadata ?? {};
+    const parts: string[] = [];
+    if (r.target_nombre) parts.push(`sobre ${r.target_nombre}`);
+    else if (m['nombre']) parts.push(`sobre ${m['nombre']}`);
+    if (m['email']) parts.push(String(m['email']));
+    return parts.join(' · ');
   }
 
   async loadResumen() {
