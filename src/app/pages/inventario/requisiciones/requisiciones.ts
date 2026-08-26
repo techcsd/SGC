@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { SolicitudesMaterialService, RequisicionAvanceItem } from '../../../../shared/services/solicitudes-material.service';
+import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto } from '../../../../shared/services/solicitudes-material.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -115,6 +115,10 @@ export class Requisiciones implements OnInit {
   cargandoAvance = signal(false);
   mostrarCancelar = signal(false);
   cancelarMotivo = signal('');
+  // Vincular conduce suelto (rectificación)
+  mostrarVincular = signal(false);
+  conducesSueltos = signal<ConduceSuelto[]>([]);
+  cargandoSueltos = signal(false);
   // Mirror (parcial) de sgc.puede_gestionar_requisicion: roles del set aprobado.
   // El autor/responsable también pueden (lo valida el servidor); el ingeniero de
   // campo común no ve estos botones.
@@ -274,6 +278,7 @@ export class Requisiciones implements OnInit {
     this.bodegaId.set(propia?.id ?? this.bodegas()[0]?.id ?? '');
     this.mostrarCancelar.set(false);
     this.cancelarMotivo.set('');
+    this.mostrarVincular.set(false);
     this.drawerOpen.set(true);
     void this.cargarAvance(r.id);
   }
@@ -326,6 +331,42 @@ export class Requisiciones implements OnInit {
       await this.loadAll();
     } catch (e) {
       this.actionError.set(e instanceof Error ? e.message : 'No se pudo cancelar.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  async abrirVincular() {
+    const s = this.selected();
+    if (!s) return;
+    this.mostrarVincular.set(true);
+    this.cargandoSueltos.set(true);
+    this.conducesSueltos.set([]);
+    try {
+      // Candidatos de la misma obra primero; si no hay, cualquiera sin vincular.
+      let sueltos = await this.service.conducesSinVincular(s.proyecto_id);
+      if (!sueltos.length) sueltos = await this.service.conducesSinVincular(null);
+      this.conducesSueltos.set(sueltos);
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudieron cargar los conduces.');
+    } finally {
+      this.cargandoSueltos.set(false);
+    }
+  }
+
+  async vincular(salidaId: string) {
+    const s = this.selected();
+    if (!s || this.saving()) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      await this.service.vincularConduce(s.id, salidaId);
+      this.toast.success('Conduce vinculado', 'El avance ya cuenta este despacho.');
+      this.mostrarVincular.set(false);
+      await this.cargarAvance(s.id);
+      await this.loadAll();
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudo vincular.');
     } finally {
       this.saving.set(false);
     }

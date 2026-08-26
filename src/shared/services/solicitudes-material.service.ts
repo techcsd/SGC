@@ -151,6 +151,24 @@ export class SolicitudesMaterialService {
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
   }
+
+  /** Conduces (salidas) sin vincular — candidatos para vincular a una requisición. */
+  async conducesSinVincular(proyectoId?: string | null): Promise<ConduceSuelto[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_sin_vincular', { p_proyecto_id: proyectoId ?? null });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConduceSuelto[];
+  }
+}
+
+/** BA — un conduce (salida) sin vincular a ninguna requisición. */
+export interface ConduceSuelto {
+  id: string;
+  fecha: string;
+  motivo: string | null;
+  proyecto_id: string | null;
+  estado: string | null;
+  despachante_nombre: string | null;
+  creado_en: string;
 }
 
 /** BA — un renglón del avance de despacho de una requisición. */

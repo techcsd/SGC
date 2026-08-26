@@ -2943,6 +2943,11 @@
           "t": "nuevo",
           "m": "Desempeño",
           "d": "En la ficha del chofer, un interruptor «Participa del incentivo» permite incluir o excluir a un chofer del incentivo (admin/gestor de incentivos), con efecto inmediato en la matriz, el correo y Compa. El histórico ya pagado no cambia."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Desde el detalle de una requisición se puede «Vincular conduce suelto»: un conduce ya emitido se asocia a la requisición para que su despacho cuente en el avance (un solo movimiento, sin contar doble)."
         }
       ]
     }

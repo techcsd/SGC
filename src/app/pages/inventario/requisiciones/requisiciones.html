@@ -265,8 +265,33 @@
             @if (!mostrarCancelar()) {
               <div class="req-detail__actions">
                 <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="cerrarRequisicion()">Cerrar requisición</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular()">Vincular conduce suelto…</button>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">Cancelar…</button>
               </div>
+
+              @if (mostrarVincular()) {
+                <div class="req-detail__vincular">
+                  <p class="req-detail__hint">Vincula un conduce ya emitido a esta requisición para que su despacho cuente aquí (sin contar doble).</p>
+                  @if (cargandoSueltos()) {
+                    <p class="req-detail__hint">Cargando conduces…</p>
+                  } @else if (conducesSueltos().length === 0) {
+                    <p class="req-detail__hint">No hay conduces sueltos para vincular.</p>
+                  } @else {
+                    <ul class="req-sueltos">
+                      @for (c of conducesSueltos(); track c.id) {
+                        <li>
+                          <span class="req-sueltos__info">
+                            {{ formatFecha(c.fecha) }} · {{ c.motivo || 'conduce' }}
+                            @if (c.despachante_nombre) { · {{ c.despachante_nombre }} }
+                          </span>
+                          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="vincular(c.id)">Vincular</button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarVincular.set(false)">Cerrar</button>
+                </div>
+              }
             } @else {
               <div class="req-detail__cancelar">
                 <input class="sgc-field" placeholder="Motivo de cancelación (obligatorio)"
