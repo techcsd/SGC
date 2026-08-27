@@ -103,9 +103,13 @@
       <label class="inc-toolbar__week">
         <span>Semana</span>
         <select [value]="selAnio() + '-' + selSemana()" (change)="onSemanaChange($any($event.target).value)">
-          @for (s of semanas(); track s.anio + '-' + s.semana) {
+          @for (s of opcionesSemana(); track s.anio + '-' + s.semana) {
             <option [value]="s.anio + '-' + s.semana">
-              Semana {{ s.semana }}/{{ s.anio }} · {{ formatFecha(s.inicio) }}–{{ formatFecha(s.fin) }} ({{ s.cumplieron }}/{{ s.choferes }} cumplieron)
+              @if (s.enCurso) {
+                Semana {{ s.semana }}/{{ s.anio }} · en curso (avance)
+              } @else {
+                Semana {{ s.semana }}/{{ s.anio }} · {{ formatFecha(s.inicio) }}–{{ formatFecha(s.fin) }} ({{ s.cumplieron }}/{{ s.choferes }} cumplieron)
+              }
             </option>
           }
         </select>
@@ -120,11 +124,18 @@
           Reenviar correo
         </button>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">Exportar (nómina)</button>
-        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes()" (click)="aprobarTodos()">
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes() || esSemanaEnCurso()" (click)="aprobarTodos()">
           Aprobar los que cumplieron ({{ pendientes() }})
         </button>
       </div>
     </div>
+
+    <!-- BB8c — la semana en curso es solo avance: no se aprueba hasta cerrar el corte -->
+    @if (esSemanaEnCurso()) {
+      <div class="inc-encurso" role="note">
+        <strong>Semana en curso (avance).</strong> Es una vista de cómo van hoy; el corte se cierra el lunes. Aún no se aprueba.
+      </div>
+    }
 
     @if (semanas().length === 0) {
       <div class="inc-empty">
@@ -242,10 +253,41 @@
                   }
                 </div>
 
+                <!-- BB8a — "Para revisar" AGRUPADO y accionable: una línea por tipo,
+                     expandible a cada incidencia con link y acciones (cuarentena). -->
                 @if (f.flags?.length) {
                   <div class="inc-flags">
-                    <strong>Para revisar:</strong>
-                    <ul>@for (fl of f.flags; track fl.ref_id) { <li>{{ fl.msg }}</li> }</ul>
+                    <div class="inc-flags__title">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                      Para revisar — en cuarentena no puntúan hasta que las aceptes
+                    </div>
+                    @for (g of incidenciasDe(f); track g.tipo) {
+                      <div class="inc-inci-group">
+                        <div class="inc-inci-group__head">
+                          {{ g.items.length }} · {{ g.label }}
+                          @if (g.pendientes) { <span class="inc-inci-pend">{{ g.pendientes }} en cuarentena</span> }
+                        </div>
+                        <ul class="inc-inci-list">
+                          @for (fl of g.items; track fl.ref_id) {
+                            <li class="inc-inci" [class.inc-inci--resuelta]="(fl.decision ?? 'cuarentena') !== 'cuarentena'">
+                              <a class="inc-inci__link" [routerLink]="refIncidencia(fl).link" [queryParams]="refIncidencia(fl).query">
+                                {{ fl.fecha ? formatFecha(fl.fecha) : '—' }} · {{ limpiarTexto(fl.msg) }}
+                              </a>
+                              @switch (fl.decision ?? 'cuarentena') {
+                                @case ('aceptada') { <span class="inc-badge inc-badge--approved">Aceptada (cuenta)</span> }
+                                @case ('excluida') { <span class="inc-badge inc-badge--declined">Excluida (no cuenta)</span> }
+                                @default {
+                                  <span class="inc-inci__actions">
+                                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">Excluir</button>
+                                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">Aceptar</button>
+                                  </span>
+                                }
+                              }
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
                   </div>
                 }
 

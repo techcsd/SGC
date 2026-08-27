@@ -46,6 +46,11 @@ const REGLAS: { re: RegExp; mensaje: string }[] = [
     mensaje: 'Alguno de los datos no es válido.' },
   { re: /infinite recursion|stack depth|deadlock|too many/i,
     mensaje: 'Ocurrió un problema procesando la solicitud. Ya lo estamos revisando.' },
+  // BB5 — embed ambiguo de PostgREST (más de una relación entre dos tablas). El
+  // check `check-ambiguous-embeds.mjs` lo previene en build; esta regla es la red
+  // de seguridad en runtime para que nunca llegue el texto en inglés al usuario.
+  { re: /could not embed|more than one relationship|pgrst2\d{2}|embedding/i,
+    mensaje: 'No pudimos cargar esta información. Ya fue reportado y lo estamos revisando.' },
   { re: /does not exist|undefined (column|table|function)|42\d{3}|relation .* does not exist/i,
     mensaje: 'Ocurrió un error inesperado. Ya lo estamos revisando.' },
 ];

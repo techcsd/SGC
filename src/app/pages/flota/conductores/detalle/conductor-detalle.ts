@@ -180,9 +180,24 @@ export class ConductorDetalle implements OnInit {
   multaDocUrls = signal<Record<string, string>>({});
   multaDetalle = signal<ConductorMulta | null>(null); // W5-web
 
-  histRutas = computed(() => this.rutas().slice(0, MAX_HIST));
-  histConduces = computed(() => this.conduces().slice(0, MAX_HIST));
-  histEntregas = computed(() => this.entregas().slice(0, MAX_HIST));
+  // BB11 — paginación por lotes (no toda la data de golpe): se muestran LOTE filas
+  // y "Cargar más" agrega otro lote. Orden descendente (ya viene ordenado por fecha).
+  private readonly LOTE = 20;
+  limRutas = signal(this.LOTE);
+  limConduces = signal(this.LOTE);
+  limEntregas = signal(this.LOTE);
+
+  histRutas = computed(() => this.rutas().slice(0, this.limRutas()));
+  histConduces = computed(() => this.conduces().slice(0, this.limConduces()));
+  histEntregas = computed(() => this.entregas().slice(0, this.limEntregas()));
+
+  hayMasRutas = computed(() => this.rutas().length > this.limRutas());
+  hayMasConduces = computed(() => this.conduces().length > this.limConduces());
+  hayMasEntregas = computed(() => this.entregas().length > this.limEntregas());
+
+  cargarMasRutas() { this.limRutas.update((n) => n + this.LOTE); }
+  cargarMasConduces() { this.limConduces.update((n) => n + this.LOTE); }
+  cargarMasEntregas() { this.limEntregas.update((n) => n + this.LOTE); }
 
   // Multas — drawer de registro (elevados).
   multaDrawer = signal(false);

@@ -52,8 +52,10 @@
         <span class="stat-card__label">Σ Monto vs factura</span>
         <span class="stat-card__value">{{ previewStats().sumaMonto | number:'1.0-2' }} / {{ facturaTotal() === null ? '—' : (facturaTotal() | number:'1.0-2') }}</span>
       </div>
+      <div class="stat-card stat-card--ok"><span class="stat-card__label">A importar</span><span class="stat-card__value">{{ previewStats().validas }}</span></div>
       @if (previewStats().duplicadas > 0) { <div class="stat-card stat-card--warn"><span class="stat-card__label">Duplicadas (ya importadas)</span><span class="stat-card__value">{{ previewStats().duplicadas }}</span></div> }
       @if (previewStats().invalidas > 0) { <div class="stat-card stat-card--danger"><span class="stat-card__label">Inválidas</span><span class="stat-card__value">{{ previewStats().invalidas }}</span></div> }
+      @if (previewStats().excluidas > 0) { <div class="stat-card stat-card--warn"><span class="stat-card__label">Excluidas a mano</span><span class="stat-card__value">{{ previewStats().excluidas }}</span></div> }
       @if (previewStats().personas > 0) { <div class="stat-card"><span class="stat-card__label">Titular = persona</span><span class="stat-card__value">{{ previewStats().personas }}</span></div> }
     </div>
     @if (cuadraFactura() === false) {
@@ -64,21 +66,30 @@
       <div class="table-scroll">
         <table class="data-table" aria-label="Vista previa del reporte">
           <thead>
-            <tr><th>Transacción</th><th>Fecha</th><th>Vehículo / Titular</th><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th><th>Estado</th></tr>
+            <tr><th>Transacción</th><th>Fecha y hora</th><th>Vehículo / Titular</th><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th><th>Estado</th></tr>
           </thead>
           <tbody>
             @for (r of rows; track $index) {
-              <tr [class.cc-dup]="r.duplicada" [class.cc-neg]="r.invalida">
+              <tr [class.cc-dup]="r.duplicada" [class.cc-neg]="r.invalida" [class.cc-excluida]="r.excluida">
                 <td><code class="code-tag">{{ r.transaccion_num || '—' }}</code></td>
-                <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }} {{ r.hora }}</td>
+                <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }}{{ r.hora ? ' · ' + r.hora : '' }}</td>
                 <td>{{ r.identificador }} @if (r.titular_es_persona) { <span class="sgc-badge sgc-badge--neutral">persona</span> }</td>
                 <td>{{ r.producto || '—' }}</td>
                 <td class="text-right">{{ r.galones === null ? '—' : (r.galones | number:'1.0-2') }}</td>
                 <td class="text-right">{{ r.monto === null ? '—' : (r.monto | number:'1.0-2') }}</td>
                 <td>
-                  @if (r.invalida) { <span class="sgc-badge sgc-badge--danger">inválida</span> }
+                  @if (r.excluida) { <span class="sgc-badge sgc-badge--neutral">excluida</span> }
+                  @else if (r.invalida) { <span class="sgc-badge sgc-badge--danger">inválida</span> }
                   @else if (r.duplicada) { <span class="sgc-badge sgc-badge--warning">ya importada</span> }
                   @else { <span class="sgc-badge sgc-badge--success">nueva</span> }
+                  <!-- BB7 — el porqué (nunca un badge mudo) -->
+                  @if (motivoTexto(r); as m) { <small class="cc-motivo" [title]="m">{{ m }}</small> }
+                  <!-- BB7 — accionable: excluir/incluir a conciencia (no un callejón) -->
+                  @if (!r.invalida && !r.duplicada) {
+                    <button type="button" class="cc-excluir" (click)="toggleExcluir(r)">
+                      {{ r.excluida ? 'Incluir' : 'Excluir' }}
+                    </button>
+                  }
                 </td>
               </tr>
             }

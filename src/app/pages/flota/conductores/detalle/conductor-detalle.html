@@ -274,6 +274,9 @@
           </tbody>
         </table>
       </div>
+      @if (hayMasRutas()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm cd-mas" (click)="cargarMasRutas()">Cargar más</button>
+      }
     }
   </section>
 
@@ -297,6 +300,9 @@
           </tbody>
         </table>
       </div>
+      @if (hayMasConduces()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm cd-mas" (click)="cargarMasConduces()">Cargar más</button>
+      }
     }
   </section>
 
@@ -322,6 +328,9 @@
           </tbody>
         </table>
       </div>
+      @if (hayMasEntregas()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm cd-mas" (click)="cargarMasEntregas()">Cargar más</button>
+      }
     }
   </section>
 

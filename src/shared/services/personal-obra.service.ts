@@ -79,9 +79,12 @@ export class PersonalObraService {
 
   // ── Listado por obra (RLS filtra la visibilidad por obra) ───────────────────
   async listar(proyectoId?: string): Promise<PersonalObra[]> {
+    // BB5 — desambiguar el embed: `proyectos` tiene una FK inversa hacia `personal_obra`
+    // (proyectos.maestro_personal_id, AZ9), así que hay que nombrar la FK de origen
+    // (personal_obra.proyecto_id) o PostgREST no sabe cuál relación usar.
     let q = this.client
       .from('personal_obra')
-      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos(nombre, codigo)')
+      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo)')
       .order('created_at', { ascending: false });
     if (proyectoId) q = q.eq('proyecto_id', proyectoId);
     const { data, error } = await q;
@@ -92,7 +95,7 @@ export class PersonalObraService {
   async getById(id: string): Promise<PersonalObra | null> {
     const { data, error } = await this.client
       .from('personal_obra')
-      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos(nombre, codigo)')
+      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo)')
       .eq('id', id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -180,7 +183,7 @@ export class PersonalObraService {
     const { data, error } = await this.client
       .from('personal_obra')
       .insert(payload)
-      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos(nombre, codigo)')
+      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo)')
       .single();
     if (error) throw new Error(error.message);
     return data as unknown as PersonalObra;
@@ -191,7 +194,7 @@ export class PersonalObraService {
       .from('personal_obra')
       .update(payload)
       .eq('id', id)
-      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos(nombre, codigo)')
+      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo)')
       .single();
     if (error) throw new Error(error.message);
     return data as unknown as PersonalObra;

@@ -9,6 +9,30 @@
 .cc-muted { color: var(--sgc-text-muted); }
 .cc-error { color: var(--sgc-danger, #c62828); font-size: 13px; margin: 8px 0 0; }
 
+// BB7 — resumen del preview legible (antes los números salían pegados a la etiqueta).
+.stat-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.stat-card {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 9px 13px; min-width: 130px;
+  border: 1px solid var(--sgc-border, #2d2d2d); border-radius: 12px;
+  background: var(--sgc-surface, #161616);
+  &--ok { border-color: var(--sgc-success, #2e7d32); }
+  &--danger { border-color: var(--sgc-danger, #c62828); }
+  &--warn { border-color: var(--sgc-warning, #ed8936); }
+  &__label { font-size: 11.5px; color: var(--sgc-text-muted, #929090); line-height: 1.2; }
+  &__value { font-size: 18px; font-weight: 600; color: var(--sgc-text, inherit); line-height: 1.2; }
+}
+
+// BB7 — motivo de fila inválida/duplicada + acción de excluir.
+.cc-motivo { display: block; margin-top: 3px; font-size: 11.5px; color: var(--sgc-text-muted, #929090); }
+.cc-excluir {
+  margin-top: 4px; font-size: 11.5px; padding: 2px 8px; cursor: pointer;
+  border: 1px solid var(--sgc-border, #2d2d2d); border-radius: 999px;
+  background: transparent; color: var(--sgc-text-secondary, inherit);
+  &:hover { border-color: var(--sgc-warning, #ed8936); }
+}
+tr.cc-excluida { opacity: 0.5; }
+
 .cc-actions {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; margin: 16px 0 12px; flex-wrap: wrap;

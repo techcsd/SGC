@@ -38,6 +38,11 @@ interface InformeRow {
   fecha_factura: string | null;
   duplicada?: boolean; // Transacción_num ya importado
   invalida?: boolean; // sin datos mínimos
+  // BB7 — por qué la fila es inválida/dudosa (visible en tooltip + columna). El parser
+  // ya sabe el porqué; que lo diga en vez de un badge mudo.
+  motivos?: string[];
+  // BB7 — el usuario puede excluir conscientemente una fila del import.
+  excluida?: boolean;
 }
 
 // Tolerancias de matching.
@@ -82,17 +87,32 @@ export class ConciliacionCombustible implements OnInit {
   importando = signal(false);
   previewStats = computed(() => {
     const rows = this.preview() ?? [];
-    const validas = rows.filter((r) => !r.invalida);
+    // BB7 — una fila cuenta como "válida a importar" si no es inválida, ni duplicada,
+    // ni fue excluida a mano por el usuario.
+    const validas = rows.filter((r) => !r.invalida && !r.duplicada && !r.excluida);
     return {
       total: rows.length,
       validas: validas.length,
       duplicadas: rows.filter((r) => r.duplicada).length,
       invalidas: rows.filter((r) => r.invalida).length,
+      excluidas: rows.filter((r) => r.excluida && !r.invalida && !r.duplicada).length,
       personas: rows.filter((r) => r.titular_es_persona).length,
       sumaGalones: validas.reduce((s, r) => s + (r.galones ?? 0), 0),
       sumaMonto: validas.reduce((s, r) => s + (r.monto ?? 0), 0),
     };
   });
+
+  /** BB7 — texto legible del motivo de una fila inválida/duplicada (tooltip/columna). */
+  motivoTexto(r: InformeRow): string {
+    return (r.motivos ?? []).join(' · ');
+  }
+
+  /** BB7 — excluir/incluir conscientemente una fila del import (nunca un callejón). */
+  toggleExcluir(r: InformeRow) {
+    const rows = this.preview();
+    if (!rows) return;
+    this.preview.set(rows.map((x) => (x === r ? { ...x, excluida: !x.excluida } : x)));
+  }
   /** ¿La suma de montos cuadra con el total de la factura (±1)? */
   cuadraFactura = computed(() => {
     const t = this.facturaTotal();
@@ -219,7 +239,10 @@ export class ConciliacionCombustible implements OnInit {
       const nums = filas.map((f) => f.transaccion_num).filter(Boolean);
       const existentes = new Set(await this.service.transaccionesExistentes(nums));
       for (const f of filas) {
-        if (f.transaccion_num && existentes.has(f.transaccion_num)) f.duplicada = true;
+        if (f.transaccion_num && existentes.has(f.transaccion_num)) {
+          f.duplicada = true;
+          (f.motivos ??= []).push(`ya importada (transacción ${f.transaccion_num})`);
+        }
       }
       this.facturaNum.set(filas.find((f) => f.numero_factura)?.numero_factura ?? '');
       this.facturaTotal.set(filas.find((f) => f.total_factura != null)?.total_factura ?? null);
@@ -239,7 +262,7 @@ export class ConciliacionCombustible implements OnInit {
 
   /** Z23 — Confirma: inserta transacciones (dedupe) y concilia contra la plataforma. */
   async confirmarImport() {
-    const filas = (this.preview() ?? []).filter((f) => !f.invalida && !f.duplicada);
+    const filas = (this.preview() ?? []).filter((f) => !f.invalida && !f.duplicada && !f.excluida);
     if (filas.length === 0) {
       this.toast.error('No hay transacciones nuevas que importar.');
       return;
@@ -329,8 +352,17 @@ export class ConciliacionCombustible implements OnInit {
       const monto = this.toNum(kMonto ? r[kMonto] : null);
       const fecha = this.toIso(kFecha ? r[kFecha] : null);
       const transaccion_num = String(r[kTrans ?? ''] ?? '').trim();
+      const producto = String(r[kProducto ?? ''] ?? '').trim();
       const invalida = !transaccion_num || (galones == null && monto == null);
       if (invalida && !identificador && !fecha) continue;
+      // BB7 — motivo(s) legibles del rechazo/duda (el parser sabe por qué).
+      const motivos: string[] = [];
+      if (!transaccion_num) motivos.push('sin número de transacción');
+      if (galones == null && monto == null) motivos.push('sin galones ni monto');
+      else if (galones == null) motivos.push('sin galones');
+      else if (monto == null) motivos.push('sin monto');
+      if (!producto) motivos.push('producto vacío');
+      if (!identificador) motivos.push('sin identificador de vehículo/tarjeta');
       out.push({
         identificador,
         fecha,
@@ -342,7 +374,8 @@ export class ConciliacionCombustible implements OnInit {
         titular_es_persona: !registroValido && titular !== '',
         numero_tarjeta: String(r[kTarjeta ?? ''] ?? '').trim(),
         numero_registro: registro,
-        producto: String(r[kProducto ?? ''] ?? '').trim(),
+        producto,
+        motivos,
         kilometraje: this.toNum(kKm ? r[kKm] : null),
         hora: String(r[kHora ?? ''] ?? '').trim(),
         estacion_codigo: String(r[kEstCod ?? ''] ?? '').trim(),

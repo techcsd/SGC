@@ -22,12 +22,24 @@ export interface IncentivoFila {
   minimo: number;
   cumplio: boolean;
   conteos: Record<string, ConteoRenglon>;
-  flags: { tipo: string; ref_id: string; msg: string }[];
+  // BB8 — cada flag trae su ref_tipo (ruta|echada), fecha y estado de decisión
+  // (cuarentena|aceptada|excluida). Los flags legacy pueden no traerlos.
+  flags: IncentivoFlag[];
   decision: 'aprobado' | 'declinado' | null;
   motivo: string | null;
   decidido_por: string | null;
   decidido_por_nombre: string | null;
   decidido_en: string | null;
+}
+
+/** BB8 — una incidencia (ruta 0km / echada duplicada) con su estado de cuarentena. */
+export interface IncentivoFlag {
+  tipo: string;                       // 'ruta_sin_metrica' | 'echada_duplicada'
+  ref_id: string;
+  ref_tipo?: 'ruta' | 'echada';       // legacy puede no traerlo
+  fecha?: string | null;
+  msg: string;
+  decision?: 'cuarentena' | 'aceptada' | 'excluida';
 }
 
 export interface ConteoRenglon {
@@ -68,6 +80,17 @@ export interface MiRendimientoSemana {
   conteos: Record<string, ConteoRenglon>;
   decision: 'aprobado' | 'declinado' | null;
   decidido_en: string | null;
+}
+
+/** BB8c — semana ISO actual (año + número), para mostrar el corte "en curso". */
+export function isoSemanaActual(base: Date = new Date()): { anio: number; semana: number } {
+  const d = new Date(Date.UTC(base.getFullYear(), base.getMonth(), base.getDate()));
+  const dayNum = (d.getUTCDay() + 6) % 7; // lunes=0
+  d.setUTCDate(d.getUTCDate() - dayNum + 3); // jueves de esta semana ISO
+  const anio = d.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(anio, 0, 4));
+  const week = 1 + Math.round(((d.getTime() - jan4.getTime()) / 86400000 - 3 + ((jan4.getUTCDay() + 6) % 7)) / 7);
+  return { anio, semana: week };
 }
 
 /** Etiquetas legibles de los renglones (homologadas web/app). */
@@ -112,6 +135,18 @@ export class IncentivosService {
     const { data, error } = await this.supabase.client.rpc('incentivo_aprobar_cumplieron', { p_anio: anio, p_semana: semana });
     if (error) throw new Error(error.message);
     return (data ?? 0) as number;
+  }
+
+  /** BB8b — acepta (cuenta) o excluye (no cuenta) una incidencia; recalcula la semana. */
+  async decidirIncidencia(
+    anio: number, semana: number, refTipo: 'ruta' | 'echada', refId: string,
+    decision: 'aceptada' | 'excluida', motivo: string | null = null,
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('incentivo_decidir_incidencia', {
+      p_anio: anio, p_semana: semana, p_ref_tipo: refTipo, p_ref_id: refId,
+      p_decision: decision, p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** Recalcula el informe de la semana (idempotente) — para generar/refrescar a mano. */

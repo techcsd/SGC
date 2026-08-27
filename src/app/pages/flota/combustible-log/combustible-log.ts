@@ -11,7 +11,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
-import { formatFechaDisplay, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatHoraTimestamp, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 
@@ -36,6 +36,14 @@ export class CombustibleLog implements OnInit {
 
   formatFecha = formatFechaDisplay;
   readonly idVehiculo = identificacionVehiculo;
+
+  // BB6 — la echada muestra fecha Y hora. El día viene de `fecha` (lo que el usuario
+  // eligió); la hora, del `created_at` (timestamptz del registro). Formato: dd/mm hh:mm.
+  fechaHora(r: { fecha?: string | null; created_at?: string | null }): string {
+    const dia = this.formatFecha(r.fecha);
+    const hora = r.created_at ? formatHoraTimestamp(r.created_at) : '';
+    return hora && hora !== '—' ? `${dia} · ${hora}` : dia;
+  }
 
   // AQ13 — chips de periodo rápido (además del rango manual). dias hacia atrás.
   readonly CHIPS: { label: string; dias: number }[] = [
@@ -170,6 +178,7 @@ export class CombustibleLog implements OnInit {
   async exportar() {
     const rows = this.rows().map((r) => ({
       Fecha: this.formatFecha(r.fecha),
+      Hora: r.created_at ? formatHoraTimestamp(r.created_at) : '',
       Vehículo: r.placa ?? '',
       Lectura: r.kilometraje ?? '',
       'Δ km': r.km_recorridos ?? '',

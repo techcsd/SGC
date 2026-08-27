@@ -52,6 +52,30 @@ export class SolicitudesMaterialService {
     return data as unknown as SolicitudMaterial;
   }
 
+  /** BB10 — edita la requisición propia mientras esté pendiente (renglones/urgencia/notas). */
+  async editar(
+    solicitudId: string,
+    payload: { urgencia?: string | null; notas?: string | null; items?: unknown[] | null },
+  ): Promise<void> {
+    const { error } = await this.supabase.client.rpc('editar_requisicion', {
+      p_solicitud_id: solicitudId,
+      p_urgencia: payload.urgencia ?? null,
+      p_notas: payload.notas ?? null,
+      p_items: payload.items ?? null,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
+  /** BB10 — historial de ediciones de una requisición (qué cambió y cuándo). */
+  async ediciones(solicitudId: string): Promise<
+    { editado_por: string | null; editado_por_nombre: string | null; editado_at: string; cambios: unknown }[]
+  > {
+    const { data, error } = await this.supabase.client.rpc('requisicion_ediciones', { p_solicitud_id: solicitudId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { editado_por: string | null; editado_por_nombre: string | null; editado_at: string; cambios: unknown }[];
+  }
+
   // P2 — se eliminó el método deprecado `aprobar()` (RPC aprobar_solicitud_material):
   // la aprobación de requisiciones es SIEMPRE `aprobarRequisicion` (auto-división), en un
   // solo hogar (la bandeja Requisiciones). El RPC legacy queda huérfano en la BD (se puede

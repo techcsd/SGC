@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   IncentivosService, IncentivoFila, IncentivoSemanaRef, IncentivoDecision,
-  IncentivoConfig, RENGLON_LABELS,
+  IncentivoConfig, IncentivoFlag, RENGLON_LABELS, isoSemanaActual,
 } from '../../../shared/services/incentivos.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
@@ -66,6 +66,86 @@ export class Incentivos implements OnInit {
   totalCumplieron = computed(() => this.filas().filter((f) => f.cumplio).length);
   pendientes = computed(() => this.filas().filter((f) => f.cumplio && f.decision !== 'aprobado').length);
 
+  // BB8c — la semana ISO en curso (aún sin cerrar). Se ofrece en el selector en
+  // modo avance/solo-lectura (no se aprueba hasta cerrar el corte).
+  readonly semanaEnCurso = isoSemanaActual();
+  /** Opciones del selector = semanas generadas + la semana en curso (si no está). */
+  opcionesSemana = computed<(IncentivoSemanaRef & { enCurso?: boolean })[]>(() => {
+    const gen = this.semanas();
+    const yaEsta = gen.some((s) => s.anio === this.semanaEnCurso.anio && s.semana === this.semanaEnCurso.semana);
+    if (yaEsta) return gen;
+    return [
+      { anio: this.semanaEnCurso.anio, semana: this.semanaEnCurso.semana, inicio: '', fin: '', choferes: 0, cumplieron: 0, enCurso: true },
+      ...gen,
+    ];
+  });
+  esSemanaEnCurso = computed(() =>
+    this.selAnio() === this.semanaEnCurso.anio && this.selSemana() === this.semanaEnCurso.semana,
+  );
+
+  // BB8a — incidencias del chofer, AGRUPADAS por tipo y accionables. En cuarentena
+  // (no puntúan) hasta que alguien las acepte/excluya.
+  incidenciasDe(f: IncentivoFila): { tipo: string; label: string; items: IncentivoFlag[]; pendientes: number }[] {
+    const flags = f.flags ?? [];
+    const grupos = new Map<string, IncentivoFlag[]>();
+    for (const fl of flags) {
+      const k = fl.tipo || 'otro';
+      (grupos.get(k) ?? grupos.set(k, []).get(k)!).push(fl);
+    }
+    return [...grupos.entries()].map(([tipo, items]) => ({
+      tipo,
+      label: this.labelIncidencia(tipo),
+      items,
+      pendientes: items.filter((i) => (i.decision ?? 'cuarentena') === 'cuarentena').length,
+    }));
+  }
+  private labelIncidencia(tipo: string): string {
+    if (tipo === 'ruta_sin_metrica') return 'Rutas completadas con 0 km o 0 min';
+    if (tipo === 'echada_duplicada') return 'Echadas en el mismo minuto que otra';
+    return 'Incidencias';
+  }
+
+  /** BB8d — red de seguridad: limpia mojibake heredado ("â€"") al mostrar el texto. */
+  limpiarTexto(s: string | null | undefined): string {
+    if (!s) return '';
+    return s
+      .replace(/â€"/g, '—').replace(/â€“/g, '–')
+      .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
+      .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã±/g, 'ñ');
+  }
+
+  /** BB8a — link al registro concreto de la incidencia (ruta/echada). */
+  refIncidencia(fl: IncentivoFlag): { link: string[]; query?: Record<string, string> } {
+    if (fl.ref_tipo === 'echada' || fl.tipo === 'echada_duplicada')
+      return { link: ['/flota/combustible-log'], query: { echada: fl.ref_id } };
+    return { link: ['/flota/rutas'], query: { ruta: fl.ref_id } };
+  }
+
+  /** BB8b — acepta una incidencia (pasa a puntuar) y recalcula. */
+  async aceptarIncidencia(f: IncentivoFila, fl: IncentivoFlag) {
+    await this.decidirIncidencia(fl, 'aceptada');
+  }
+  /** BB8b — excluye una incidencia (no puntúa, resuelta) y recalcula. */
+  async excluirIncidencia(f: IncentivoFila, fl: IncentivoFlag) {
+    await this.decidirIncidencia(fl, 'excluida');
+  }
+  private async decidirIncidencia(fl: IncentivoFlag, decision: 'aceptada' | 'excluida') {
+    const anio = this.selAnio(), semana = this.selSemana();
+    if (!anio || !semana || this.busy()) return;
+    const refTipo: 'ruta' | 'echada' = fl.ref_tipo ?? (fl.tipo === 'echada_duplicada' ? 'echada' : 'ruta');
+    this.busy.set(true);
+    try {
+      await this.service.decidirIncidencia(anio, semana, refTipo, fl.ref_id, decision);
+      this.toast.success(decision === 'aceptada' ? 'Incidencia aceptada' : 'Incidencia excluida',
+        decision === 'aceptada' ? 'Ahora cuenta para el puntaje.' : 'No cuenta para el puntaje.');
+      await this.cargarFilas();
+    } catch (e) {
+      this.toast.error('No se pudo registrar la decisión', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   async ngOnInit() {
     try {
       const [semanas, cfg] = await Promise.all([this.service.semanas(), this.service.configActual()]);
@@ -102,6 +182,11 @@ export class Incentivos implements OnInit {
     if (!anio || !semana) return;
     this.loadingFilas.set(true);
     try {
+      // BB8c — la semana en curso se genera al vuelo (avance/solo-lectura): así el
+      // chofer/Raykler ven cómo van HOY sin esperar el cierre del lunes.
+      if (this.esSemanaEnCurso()) {
+        try { await this.service.generar(anio, semana); } catch { /* si no puede generar, muestra lo que haya */ }
+      }
       this.filas.set(await this.service.listado(anio, semana));
     } catch (e) {
       this.toast.error('No se pudo cargar la semana', e instanceof Error ? e.message : undefined);
@@ -231,18 +316,26 @@ export class Incentivos implements OnInit {
   exportar() {
     const filas = this.filas();
     if (!filas.length) return;
+    // BB9 — misma matriz detallada que el correo/PDF: una columna por renglón +
+    // total + incidencias, además de la decisión (para nómina).
     exportarExcel(
       `incentivo-semana-${this.selAnio()}-${this.selSemana()}`,
-      filas.map((f) => ({
-        Chofer: f.nombre,
-        Puntaje: f.puntaje,
-        Mínimo: f.minimo,
-        Estado: f.cumplio ? 'Cumplió' : 'Rendimiento bajo',
-        Decisión: f.decision ?? 'Pendiente',
-        Motivo: f.motivo ?? '',
-        'Decidido por': f.decidido_por_nombre ?? '',
-        Fecha: f.decidido_en ? this.formatFechaHora(f.decidido_en) : '',
-      })),
+      filas.map((f) => {
+        const desglose: Record<string, string | number> = { Chofer: f.nombre };
+        for (const r of this.renglones) {
+          const c = this.conteoDe(f, r);
+          desglose[RENGLON_LABELS[r]] = c ? c.propio + c.ayudante : 0;
+        }
+        desglose['Puntaje'] = f.puntaje;
+        desglose['Mínimo'] = f.minimo;
+        desglose['Incidencias'] = f.flags?.length ?? 0;
+        desglose['Estado'] = f.cumplio ? 'Cumplió' : 'Rendimiento bajo';
+        desglose['Decisión'] = f.decision ?? 'Pendiente';
+        desglose['Motivo'] = f.motivo ?? '';
+        desglose['Decidido por'] = f.decidido_por_nombre ?? '';
+        desglose['Fecha'] = f.decidido_en ? this.formatFechaHora(f.decidido_en) : '';
+        return desglose;
+      }),
       'Incentivo',
     );
   }

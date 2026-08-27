@@ -66,46 +66,65 @@ function celda(f: Fila, key: string): number {
   return r ? Number(r.propio ?? 0) + Number(r.ayudante ?? 0) : 0;
 }
 
+// BB9 — el PDF adjunto reproduce la MISMA matriz detallada del correo/módulo
+// (Chofer · renglones · Total · Estado ⚠N), misma fuente de datos. Apaisado para
+// que quepan las columnas. Un solo generador para el adjunto y el desglose de nómina.
 async function buildPdf(anio: number, semana: number, inicio: string, fin: string, filas: Fila[]): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  let page = doc.addPage([595, 842]);
-  const margin = 48;
-  let y = 800;
+  const W = 842, H = 595; // A4 apaisado
+  let page = doc.addPage([W, H]);
+  const margin = 40;
+  let y = H - margin;
 
   const primary = rgb(1, 0.37, 0);      // --primary #ff5f00
   const dark = rgb(0.12, 0.15, 0.18);
+  const muted = rgb(0.4, 0.45, 0.5);
   const green = rgb(0.09, 0.6, 0.31);
   const red = rgb(0.86, 0.15, 0.15);
 
-  page.drawText("Incentivo semanal — Choferes", { x: margin, y, size: 18, font: bold, color: primary });
-  y -= 24;
-  page.drawText(`Semana ${semana} / ${anio}  ·  ${fmtDate(inicio)} – ${fmtDate(fin)}`, { x: margin, y, size: 11, font, color: rgb(0.4, 0.45, 0.5) });
-  y -= 28;
+  // Columnas: Chofer + 5 renglones + Total + Estado.
+  const xNombre = margin;
+  const xReng0 = 250;                    // primera columna de renglón
+  const renglonW = 78;
+  const xTotal = xReng0 + RENGLONES.length * renglonW + 6;
+  const xEstado = xTotal + 70;
 
-  // Cabecera de tabla
-  const colX = { nombre: margin, puntaje: 320, minimo: 400, estado: 470 };
-  page.drawText("Chofer", { x: colX.nombre, y, size: 10, font: bold, color: dark });
-  page.drawText("Puntaje", { x: colX.puntaje, y, size: 10, font: bold, color: dark });
-  page.drawText("Mínimo", { x: colX.minimo, y, size: 10, font: bold, color: dark });
-  page.drawText("Estado", { x: colX.estado, y, size: 10, font: bold, color: dark });
-  y -= 6;
-  page.drawLine({ start: { x: margin, y }, end: { x: 547, y }, thickness: 0.8, color: rgb(0.8, 0.8, 0.8) });
-  y -= 16;
+  const header = () => {
+    page.drawText("Incentivo semanal — Choferes", { x: margin, y, size: 16, font: bold, color: primary });
+    y -= 20;
+    page.drawText(`Semana ${semana} / ${anio}  ·  ${fmtDate(inicio)} – ${fmtDate(fin)}`, { x: margin, y, size: 10, font, color: muted });
+    y -= 22;
+    page.drawText("Chofer", { x: xNombre, y, size: 9, font: bold, color: dark });
+    RENGLONES.forEach((r, i) =>
+      page.drawText(r.label.slice(0, 13), { x: xReng0 + i * renglonW, y, size: 8, font: bold, color: dark }));
+    page.drawText("Total", { x: xTotal, y, size: 9, font: bold, color: dark });
+    page.drawText("Estado", { x: xEstado, y, size: 9, font: bold, color: dark });
+    y -= 6;
+    page.drawLine({ start: { x: margin, y }, end: { x: W - margin, y }, thickness: 0.8, color: rgb(0.8, 0.8, 0.8) });
+    y -= 15;
+  };
+  header();
 
   for (const f of filas) {
-    if (y < margin + 30) { page = doc.addPage([595, 842]); y = 800; }
-    page.drawText(f.nombre.slice(0, 46), { x: colX.nombre, y, size: 10, font, color: dark });
-    page.drawText(String(f.puntaje), { x: colX.puntaje, y, size: 10, font, color: dark });
-    page.drawText(String(f.minimo), { x: colX.minimo, y, size: 10, font, color: dark });
-    page.drawText(f.cumplio ? "Cumplió" : "Rendimiento bajo", { x: colX.estado, y, size: 10, font: bold, color: f.cumplio ? green : red });
-    y -= 18;
+    if (y < margin + 24) { page = doc.addPage([W, H]); y = H - margin; header(); }
+    page.drawText(f.nombre.slice(0, 38), { x: xNombre, y, size: 9.5, font, color: dark });
+    RENGLONES.forEach((r, i) =>
+      page.drawText(String(celda(f, r.key)), { x: xReng0 + i * renglonW + 10, y, size: 9.5, font, color: dark }));
+    page.drawText(`${f.puntaje} / ${f.minimo}`, { x: xTotal, y, size: 9.5, font: bold, color: dark });
+    const estado = f.cumplio ? "Cumplió" : "Bajo";
+    page.drawText(estado + (f.warns > 0 ? `  !${f.warns}` : ""), { x: xEstado, y, size: 9.5, font: bold, color: f.cumplio ? green : red });
+    y -= 16;
   }
 
   y -= 10;
   const cumplieron = filas.filter((f) => f.cumplio).length;
   page.drawText(`Cumplieron: ${cumplieron} de ${filas.length}`, { x: margin, y, size: 10, font: bold, color: dark });
+  if (filas.some((f) => f.warns > 0)) {
+    y -= 14;
+    page.drawText("! = incidencias por revisar (rutas 0 km / echadas duplicadas). En cuarentena no puntúan.", { x: margin, y, size: 8.5, font, color: muted });
+  }
 
   return await doc.save();
 }

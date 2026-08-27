@@ -99,9 +99,9 @@ const TOOLS: ToolDef[] = [
   // ── LECTURA ──────────────────────────────────────────────────────────────
   {
     name: "buscar_articulos",
-    description: "Busca artículos del catálogo por nombre o código (tolerante a errores). Devuelve su id, necesario para preparar requisiciones o conduces.",
+    description: "Busca artículos del catálogo por nombre o código, tolerante a errores de tecleo (fuzzy). Úsala para resolver el articulo_id que necesitan las requisiciones y los conduces. Devuelve una lista de candidatos ORDENADA por relevancia, cada uno con un 'score' (0-1) además de id, nombre, código y unidad. Regla de desambiguación: si un calificativo del usuario distingue claramente a un candidato (p. ej. la palabra que dio coincide con su nombre), asúmelo y anúncialo; solo pregunta si hay empate real de relevancia. Ejemplo: query='cemento gris'.",
     modulos: null,
-    input_schema: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"] },
+    input_schema: { type: "object", properties: { query: { type: "string" }, limit: { type: "integer" } }, required: ["query"], additionalProperties: false },
     rpc: "buscar_articulos",
     map: (i) => ({ p_query: String(i.query ?? ""), p_limit: Math.min(Number(i.limit ?? 15), 50) }),
   },
@@ -150,9 +150,16 @@ const TOOLS: ToolDef[] = [
     // AY9/C1 — identidad: qué accede el PROPIO usuario (módulos + submódulos +
     // roles). Para "¿tengo acceso a X?" con datos reales, no deducido del perfil.
     name: "mis_permisos",
-    description: "Los accesos del propio usuario: módulos, submódulos (con nivel ver/operar) y roles. Úsalo cuando pregunte '¿tengo acceso a X?' o 'qué puedo hacer'. Solo lo suyo; no ves permisos de otros.",
-    modulos: null, input_schema: { type: "object", properties: {} },
+    description: "Devuelve los accesos del PROPIO usuario: módulos, submódulos (con su nivel ver/operar) y roles. Úsala cuando el usuario pregunte '¿tengo acceso a X?', 'qué puedo hacer', o para verificar en vivo qué le permite el sistema en vez de deducirlo de su perfil. Devuelve solo lo suyo; nunca los permisos de otra persona. No incluye datos de negocio, solo el mapa de permisos.",
+    modulos: null, input_schema: { type: "object", properties: {}, additionalProperties: false },
     rpc: "mis_permisos", map: () => ({}),
+  },
+  {
+    // BB4(5) — identidad EN VIVO: re-verifica con quién habla y qué día/hora es AHORA.
+    name: "quien_soy",
+    description: "Devuelve EN VIVO la identidad de la persona con la que hablas: su nombre, id de usuario, si es administrador, sus roles y módulos, y la fecha/hora actual en zona República Dominicana. Úsala cuando el usuario pregunte '¿quién soy?', '¿sabes con quién hablas?', '¿qué hora/día es?', o cuando necesites CONFIRMAR la identidad real antes de una acción (no la deduzcas del historial de la conversación, que puede venir de otra sesión). Es la fuente de verdad de identidad; solo la del usuario actual.",
+    modulos: null, input_schema: { type: "object", properties: {}, additionalProperties: false },
+    rpc: "quien_soy", map: () => ({}),
   },
   {
     // AY C3 — conocimiento: cómo funciona el sistema (corpus del módulo Dudas).
@@ -183,8 +190,8 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: "listar_almacenes",
-    description: "Lista los almacenes/bodegas para obtener su id (origen de un conduce). Requiere inventario.",
-    modulos: ["inventario"], input_schema: { type: "object", properties: {} },
+    description: "Lista los almacenes/bodegas con su id y nombre, para usarlos como origen de un conduce o para consultar stock. Devuelve todos los almacenes visibles para el usuario. Regla de desambiguación (BB1): si el usuario nombró un calificativo que distingue a UN almacén (p. ej. dijo 'central' y existe 'Bodega Central'), asume ese y anúncialo ('Asumo Bodega Central — dime si era otro'); pregunta solo si dos o más almacenes encajan igual de bien con lo que dijo. Requiere el módulo inventario.",
+    modulos: ["inventario"], input_schema: { type: "object", properties: {}, additionalProperties: false },
     rpc: "ubicaciones_almacen", map: () => ({ p_incluir_prueba: false }),
   },
   {
@@ -291,7 +298,7 @@ const TOOLS: ToolDef[] = [
   // ── ESCRITURA (v2: preparar → confirmar → ejecutar) ────────────────────────
   {
     name: "proponer_tarea",
-    description: "PREPARA una tarea para asignar (borrador; NO la crea hasta que el usuario confirme). Obtén el proyecto_id con 'mis_proyectos' y, si aplica, el asignado con 'buscar_usuarios'. Requiere módulo tareas.",
+    description: "PREPARA (borrador, NO crea) una tarea para asignar a alguien en una obra. Resuelve el proyecto_id con 'mis_proyectos' y, si se asigna a otra persona, su usuario_id con 'buscar_usuarios'. Si falta el título o la obra, pregúntalos. Al llamarla el sistema muestra una tarjeta para CONFIRMAR; hasta entonces la tarea NO existe. Requiere módulo tareas.",
     modulos: ["tareas"],
     input_schema: {
       type: "object",
@@ -309,7 +316,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: "proponer_requisicion",
-    description: "PREPARA una requisición de material (borrador). Obtén el proyecto_id con 'mis_proyectos' y el articulo_id de cada ítem con 'buscar_articulos'. Pregunta los ítems y cantidades si faltan. Requiere inventario o compras.",
+    description: "PREPARA (borrador, NO crea) una requisición de material para una obra. Resuelve el proyecto_id con 'mis_proyectos' y el articulo_id de cada ítem con 'buscar_articulos'. Si el usuario no dio los ítems o cantidades, PREGÚNTALOS antes de proponer. Al llamarla el sistema muestra una tarjeta para CONFIRMAR; hasta entonces la requisición NO existe y NO está enviada a aprobación. Requiere módulo inventario o compras.",
     modulos: ["inventario", "compras"],
     input_schema: {
       type: "object",
@@ -325,21 +332,44 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: "proponer_conduce",
-    description: "PREPARA un conduce/salida de material (borrador). Necesitas el almacén de origen ('listar_almacenes'), la obra de destino ('mis_proyectos') y los ítems con su articulo_id ('buscar_articulos'). Opcional: vehículo y despachante ('despachantes_disponibles'). Pregunta los ítems si el usuario no los dio. Requiere módulo inventario.",
+    description: "PREPARA (borrador, NO crea) un conduce/salida de material desde un almacén hacia una obra. Resuelve primero: el almacén de origen con 'listar_almacenes', la obra de destino con 'mis_proyectos', y el articulo_id de cada ítem con 'buscar_articulos'. Opcionales: vehículo y despachante elegible ('despachantes_disponibles'). Si el usuario no dio los ítems o cantidades, PREGÚNTALOS antes de proponer. Al llamarla, el sistema muestra una tarjeta para que el usuario CONFIRME; hasta entonces el conduce NO existe. No la llames dos veces para el mismo movimiento: un borrador idéntico se reutiliza y confirmar produce UN solo conduce. Requiere módulo inventario. Ejemplo de items: [{articulo_id:'…', cantidad:10}].",
     modulos: ["inventario"],
     input_schema: {
       type: "object",
       properties: {
-        bodega_id: { type: "string", description: "almacén de origen" },
-        proyecto_id: { type: "string", description: "obra de destino" },
+        bodega_id: { type: "string", description: "almacén de origen (de listar_almacenes)" },
+        proyecto_id: { type: "string", description: "obra de destino (de mis_proyectos)" },
         vehiculo_id: { type: "string" }, observaciones: { type: "string" },
         despachante_usuario_id: { type: "string" },
-        items: { type: "array", items: { type: "object", properties: { articulo_id: { type: "string" }, cantidad: { type: "number" } }, required: ["articulo_id", "cantidad"] } },
-      }, required: ["bodega_id", "proyecto_id", "items"],
+        items: { type: "array", items: { type: "object", properties: { articulo_id: { type: "string" }, cantidad: { type: "number" } }, required: ["articulo_id", "cantidad"], additionalProperties: false } },
+      }, required: ["bodega_id", "proyecto_id", "items"], additionalProperties: false,
     },
     write: {
       tipo: "conduce", execRpc: "crear_conduce_simple",
-      execMap: (p) => ({ p_id: crypto.randomUUID(), p_fecha: new Date().toISOString().slice(0, 10), p_bodega_id: p.bodega_id, p_proyecto_id: p.proyecto_id, p_observaciones: p.observaciones ?? null, p_vehiculo_id: p.vehiculo_id ?? null, p_ruta_id: null, p_items: (p.items ?? []).map((it: Any) => ({ articulo_id: it.articulo_id, cantidad: it.cantidad })), p_despachante_nombre: null, p_despachante_usuario_id: p.despachante_usuario_id ?? null, p_despachante_empleado_id: null, p_carga_foto_path: null, p_firma_chofer_path: null, p_firma_despachante_path: null }),
+      execMap: (p) => ({ p_id: p.__idem_id ?? crypto.randomUUID(), p_fecha: new Date().toISOString().slice(0, 10), p_bodega_id: p.bodega_id, p_proyecto_id: p.proyecto_id, p_observaciones: p.observaciones ?? null, p_vehiculo_id: p.vehiculo_id ?? null, p_ruta_id: null, p_items: (p.items ?? []).map((it: Any) => ({ articulo_id: it.articulo_id, cantidad: it.cantidad })), p_despachante_nombre: null, p_despachante_usuario_id: p.despachante_usuario_id ?? null, p_despachante_empleado_id: null, p_carga_foto_path: null, p_firma_chofer_path: null, p_firma_despachante_path: null }),
+    },
+  },
+  {
+    // BB3(d) — "asígnaselo a Papo": crea la ruta de Flota (chofer + vehículo), como
+    // borrador+confirmación. Puede vincular un conduce ya creado (Transporte v3 / BA6).
+    name: "proponer_ruta",
+    description: "PREPARA (borrador, NO crea) una ruta de Flota: asigna un chofer y un vehículo para mover material/equipo, opcionalmente vinculada a un conduce ya existente. Úsala cuando el usuario diga 'asígnaselo a <chofer>', 'que <chofer> lleve esto', o pida crear una ruta. Resuelve el chofer con 'buscar_usuarios' (necesitas su usuario_id; debe ser un chofer activo) y el vehículo/obra con las herramientas correspondientes. El conduce NO tiene campo de chofer — el chofer vive en la ruta, por eso esta herramienta lo completa. Al llamarla el sistema muestra una tarjeta para CONFIRMAR; hasta entonces la ruta NO existe. Requiere módulo flota. Ejemplo: conductor_usuario_id='…', vehiculo_id='…', conduce_id='…'.",
+    modulos: ["flota"],
+    input_schema: {
+      type: "object",
+      properties: {
+        conductor_usuario_id: { type: "string", description: "usuario_id del chofer (de buscar_usuarios); debe ser chofer activo" },
+        vehiculo_id: { type: "string", description: "vehículo de la ruta (obligatorio)" },
+        conduce_id: { type: "string", description: "id del conduce a vincular (opcional)" },
+        proyecto_id: { type: "string", description: "obra de destino (opcional)" },
+        tipo: { type: "string", description: "material | personal | otro (por defecto material)" },
+        origen: { type: "string" }, destino: { type: "string" },
+        fecha: { type: "string", description: "YYYY-MM-DD (por defecto hoy)" },
+      }, required: ["conductor_usuario_id", "vehiculo_id"], additionalProperties: false,
+    },
+    write: {
+      tipo: "ruta", execRpc: "asistente_crear_ruta",
+      execMap: (p) => ({ p_id: p.__idem_id ?? crypto.randomUUID(), p_conductor_usuario_id: p.conductor_usuario_id, p_vehiculo_id: p.vehiculo_id, p_tipo: p.tipo ?? "material", p_conduce_id: p.conduce_id ?? null, p_proyecto_id: p.proyecto_id ?? null, p_origen: p.origen ?? null, p_destino: p.destino ?? null, p_fecha: p.fecha ?? null }),
     },
   },
 ];
@@ -348,64 +378,158 @@ function toolsParaUsuario(cap: Cap): ToolDef[] {
   return TOOLS.filter((t) => t.modulos === null || cap.es_admin || t.modulos.some((m) => cap.modulos.includes(m)));
 }
 
-function systemPrompt(cap: Cap): string {
+// BB4 — El prompt se parte en DOS bloques:
+//  (A) INSTRUCCIONES_ESTATICAS: idéntico para todos → se cachea (prompt caching) y
+//      da alto cache-hit sin mezclar identidades.
+//  (B) bloqueIdentidad(): armado por request desde el JWT (nombre/rol/módulos) + la
+//      fecha/hora actual. NUNCA se cachea → la identidad siempre es la del usuario real,
+//      jamás heredada de otra sesión ni de un bloque compartido.
+const INSTRUCCIONES_ESTATICAS = [
+  "Eres Compa, el asistente interno de SGC (el ERP de Constructora SD, una constructora dominicana).",
+  "Hablas español dominicano correcto, formal-cercano (ni acartonado ni corporativo): breve, directo y resolutivo, como un compañero que resuelve. El TRATO (tú/usted y el título) depende del rol del usuario — ver PERFIL en el bloque de identidad y respétalo siempre.",
+  "",
+  "QUÉ PUEDES HACER:",
+  "- CONSULTAR información (herramientas de lectura). Todo dato/número que des DEBE salir de una herramienta; si no tienes una, dilo (\"eso todavía no lo puedo consultar\"). NUNCA inventes datos ni IDs.",
+  "- PREPARAR acciones con las herramientas 'proponer_*' (tarea, requisición, conduce, ruta). NUNCA ejecutas directo: al llamar una 'proponer_*' el sistema le muestra al usuario una tarjeta para CONFIRMAR. Tú solo dile en una frase corta qué preparaste y pídele que confirme.",
+  "- GENERAR archivos (PDF/Excel) con 'generar_reporte_pdf' — aparecen como tarjeta descargable.",
+  "- Explicar CÓMO funciona el sistema con 'buscar_ayuda' (usa esto para preguntas de uso, no de datos).",
+  "- RECORDAR preferencias del usuario con 'recordar' (obra por defecto, formato, etc.).",
+  "",
+  "REGLAS DURAS:",
+  "1. Para preparar una acción primero RESUELVE los IDs con las herramientas de lectura (mis_proyectos para la obra, buscar_articulos para cada ítem, listar_almacenes para el almacén, despachantes_disponibles, buscar_usuarios). Jamás inventes un ID.",
+  "2. Si te falta un dato para la acción (obra, ítems, cantidades), PREGUNTA antes de preparar. No asumas.",
+  "3. Heredas los permisos del usuario. Si una herramienta falla por permisos, di \"no tengo acceso a eso\" sin tecnicismos.",
+  "4. Resume los resultados en lenguaje claro; no vuelques JSON. Si no hay resultados, dilo.",
+  "5. Nunca digas que una acción \"ya está hecha\" solo por prepararla: el mensaje correcto es \"Borrador preparado — confírmalo en la tarjeta\", NO \"ya lo creé\". Solo tras la confirmación existe el documento.",
+  "",
+  "DESAMBIGUACIÓN (BB1) — no marees al usuario preguntando de más:",
+  "9. Las herramientas de búsqueda devuelven candidatos ordenados por relevancia (con 'score'). Si el usuario dio un calificativo que distingue claramente a UNO (p. ej. dijo 'central' y hay 'Bodega Central'), ASÚMELO y anúncialo (\"Asumo Bodega Central — dime si era otro\"). Pregunta SOLO cuando dos o más candidatos encajan igual de bien; ahí sí, ofrece las opciones.",
+  "",
+  "IDEMPOTENCIA (BB3) — un pedido, un documento:",
+  "10. No prepares dos veces la misma acción. Si ya preparaste un movimiento y el usuario insiste o repite, es el MISMO borrador (el sistema lo deduplica): dile \"ya hay un borrador de este movimiento, confírmalo en la tarjeta\", no generes otro. Confirmar dos veces produce UN solo documento.",
+  "",
+  "DATOS DE PRUEBA (BB3) — transparencia antes de confirmar:",
+  "11. Si la obra, el almacén o el usuario involucrado es de PRUEBA, el documento saldrá marcado como de prueba. Avísalo ANTES de que confirme (\"ojo: esa obra es de prueba, este conduce saldrá de prueba; para uno real usa una obra real\"). No lo escondas.",
+  "",
+  "HONESTIDAD SOBRE LO QUE SABES (crítico):",
+  "6. Distingue SIEMPRE dos fuentes: (a) tu PERFIL — el nombre, el rol/trato, si eres admin y los módulos del bloque de identidad; es un dato que te dieron al iniciar, NO lo consultaste; (b) una CONSULTA — lo que acabas de leer llamando una herramienta EN ESTE TURNO. Al hablar de datos, deja claro cuál es cuál (\"según tu perfil…\" vs \"acabo de consultar y…\").",
+  "7. PROHIBIDO decir que \"verificaste\", \"consulté\", \"confirmé con el sistema\", \"en vivo\" o \"ya lo revisé\" si NO llamaste una herramienta en este mismo turno. Si no la llamaste, no lo afirmes. Si de verdad quieres confirmar algo, llama la herramienta (usa 'quien_soy' para la identidad) y recién entonces dilo.",
+  "8. Si no tienes una herramienta para algo, dilo con claridad (\"eso no lo puedo consultar todavía, no tengo herramienta\") en vez de deducirlo del perfil y hacerlo pasar por consulta.",
+].join("\n");
+
+function bloqueIdentidad(cap: Cap, ahoraRD: string): string {
   return [
-    "Eres Compa, el asistente interno de SGC (el ERP de Constructora SD, una constructora dominicana).",
-    "Hablas español dominicano correcto, formal-cercano (ni acartonado ni corporativo): breve, directo y resolutivo, como un compañero que resuelve. El TRATO (tú/usted y el título) depende del rol del usuario — ver PERFIL abajo y respétalo siempre.",
-    "",
-    "QUÉ PUEDES HACER:",
-    "- CONSULTAR información (herramientas de lectura). Todo dato/número que des DEBE salir de una herramienta; si no tienes una, dilo (\"eso todavía no lo puedo consultar\"). NUNCA inventes datos ni IDs.",
-    "- PREPARAR acciones con las herramientas 'proponer_*' (crear tarea, requisición, conduce). NUNCA ejecutas directo: al llamar una 'proponer_*' el sistema le muestra al usuario una tarjeta para CONFIRMAR. Tú solo dile en una frase corta qué preparaste y pídele que confirme.",
-    "- GENERAR archivos (PDF/Excel) con 'generar_reporte_pdf' — aparecen como tarjeta descargable.",
-    "- Explicar CÓMO funciona el sistema con 'buscar_ayuda' (usa esto para preguntas de uso, no de datos).",
-    "- RECORDAR preferencias del usuario con 'recordar' (obra por defecto, formato, etc.).",
-    "",
-    "REGLAS DURAS:",
-    "1. Para preparar una acción primero RESUELVE los IDs con las herramientas de lectura (mis_proyectos para la obra, buscar_articulos para cada ítem, listar_almacenes para el almacén, despachantes_disponibles, buscar_usuarios). Jamás inventes un ID.",
-    "2. Si te falta un dato para la acción (obra, ítems, cantidades), PREGUNTA antes de preparar. No asumas.",
-    "3. Heredas los permisos del usuario. Si una herramienta falla por permisos, di \"no tengo acceso a eso\" sin tecnicismos.",
-    "4. Resume los resultados en lenguaje claro; no vuelques JSON. Si no hay resultados, dilo.",
-    "5. Nunca digas que una acción \"ya está hecha\" solo por prepararla: queda pendiente hasta que el usuario confirme en la tarjeta.",
-    "",
-    "HONESTIDAD SOBRE LO QUE SABES (importante):",
-    "6. Distingue SIEMPRE dos fuentes: (a) tu PERFIL — el nombre, el rol/trato, si eres admin y los módulos de más abajo; es un dato que te dieron al iniciar, NO lo consultaste; (b) una CONSULTA — lo que acabas de leer llamando una herramienta EN ESTE TURNO. Al hablar de datos, deja claro cuál es cuál (\"según tu perfil…\" vs \"acabo de consultar y…\").",
-    "7. PROHIBIDO decir que \"verificaste\", \"confirmé con el sistema\" o \"ya lo revisé\" si NO llamaste una herramienta en este mismo turno. Si no la llamaste, no lo afirmes. Si de verdad quieres confirmar algo, llama la herramienta y recién entonces dilo.",
-    "8. Si no tienes una herramienta para algo, dilo con claridad (\"eso no lo puedo consultar todavía, no tengo herramienta\") en vez de deducirlo del perfil y hacerlo pasar por consulta. Para \"¿tengo acceso a X?\" responde con lo que sabes del perfil, aclarando que es tu perfil.",
-    "",
-    "PERFIL (dato inicial, NO es una consulta que hiciste):",
+    "PERFIL (dato inicial de ESTA persona, NO es una consulta que hiciste):",
     `- Hablas con: ${cap.nombre}${cap.es_admin ? " (administrador)" : ""}.`,
     `- Rol(es): ${cap.roles.length ? cap.roles.join(", ") : "sin rol asignado"}.`,
     `- TRATO: ${tratamientoDeRoles(cap.roles)} Sé consistente con este trato en cada respuesta, saludos incluidos.`,
     `- Módulos con acceso: ${cap.modulos.length ? cap.modulos.join(", ") : "ninguno especial"}.`,
-    "Cuando diga \"mis\", \"mi obra\", \"mi vehículo\", usa las herramientas 'mis_*'.",
+    `- Fecha y hora actual (República Dominicana): ${ahoraRD}.`,
+    "Si dudas de con quién hablas o del día/hora, usa 'quien_soy' (no lo deduzcas del historial: puede venir de otra sesión).",
+    "Cuando el usuario diga \"mis\", \"mi obra\", \"mi vehículo\", usa las herramientas 'mis_*'.",
   ].join("\n");
 }
 
-async function callClaude(system: Any, tools: Any, messages: Any) {
+// Fecha/hora actual en zona RD (para el bloque de identidad).
+function ahoraRD(): string {
+  try {
+    return new Intl.DateTimeFormat("es-DO", {
+      timeZone: "America/Santo_Domingo", dateStyle: "full", timeStyle: "short",
+    }).format(new Date());
+  } catch {
+    return new Date().toISOString().slice(0, 16).replace("T", " ") + " (UTC)";
+  }
+}
+
+async function callClaude(system: Any, tools: Any, messages: Any, toolChoice?: Any) {
+  const body: Any = { model: MODEL, max_tokens: 1400, system, tools, messages };
+  if (toolChoice) body.tool_choice = toolChoice;
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 1400, system, tools, messages }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 300)}`);
   return await res.json();
 }
 
+// BB4(2) — Router de intención: si el mensaje pide DATOS del sistema o VERIFICAR algo,
+// forzamos una tool en la primera llamada (tool_choice:any). El prefill forzado hace
+// estructuralmente imposible responder "acabo de consultarlo" sin haber consultado.
+const INTENCION_DATOS =
+  /\b(mi rol|mis? roles?|mis? permisos?|tengo acceso|puedo (ver|entrar|acceder)|qui[eé]n soy|con qui[eé]n hablas|qu[eé] hora|qu[eé] d[ií]a|cu[aá]nto|cu[aá]ntos|cu[aá]ntas|mira|verifica|consulta|revisa|checa|chequea|mu[eé]strame|ens[eé][ñn]ame|lista|list[aá]me|dame|cu[aá]les son|mis? (obras?|proyectos?|conduces?|rutas?|tareas?|veh[ií]culos?)|stock|existencias?|inventario de|desempe[ñn]o|combustible|mantenimiento|s[aá]came|saca|saques|quiero|necesito|crea|cr[eé]ame|asigna|as[ií]gna|prepara|prep[aá]rame|mueve|env[ií]a|solicita|requisici[oó]n|conduce|taladro)\b/i;
+function fuerzaHerramienta(mensaje: string): boolean {
+  return INTENCION_DATOS.test(mensaje);
+}
+
+// BB4(4) — El validador post-respuesta busca AFIRMACIONES DE VERIFICACIÓN ("consulté",
+// "en vivo", "acabo de", "confirmé con el sistema", "ya lo revisé"…). Si aparecen y el
+// turno NO tuvo ninguna tool call → es una mentira; se regenera o se antepone aviso.
+const AFIRMA_VERIFICACION =
+  /\b(acabo de (consultar|revisar|verificar|mirar|chequear)|consult[eé]|verifiqu[eé]|confirm[eé] con el sistema|en vivo|ya lo (revis[eé]|verifiqu[eé]|consult[eé])|reci[eé]n (consult|revis|verifi)|lo revis[eé] (ahora|en el sistema)|seg[uú]n (el sistema|la consulta que hice))\b/i;
+function afirmaVerificacionSinTool(texto: string, huboTool: boolean): boolean {
+  return !huboTool && AFIRMA_VERIFICACION.test(texto);
+}
+
+// BB3 — Clave de idempotencia determinística por INTENCIÓN de acción: dos propuestas
+// idénticas (mismo tipo + mismos parámetros esenciales) producen la MISMA clave → el
+// branch CONFIRMAR deduplica y sale UN solo documento. Estable entre preparar y confirmar.
+function claveIdem(usuarioId: string, tipo: string, params: Any): string {
+  const esenciales: Any = { tipo, u: usuarioId };
+  if (tipo === "conduce") {
+    esenciales.b = params.bodega_id; esenciales.p = params.proyecto_id;
+    esenciales.i = (params.items ?? []).map((it: Any) => `${it.articulo_id}:${it.cantidad}`).sort();
+  } else if (tipo === "requisicion") {
+    esenciales.p = params.proyecto_id;
+    esenciales.i = (params.items ?? []).map((it: Any) => `${it.articulo_id}:${it.cantidad}`).sort();
+  } else if (tipo === "tarea") {
+    esenciales.p = params.proyecto_id; esenciales.t = (params.titulo ?? "").trim().toLowerCase(); esenciales.a = params.asignado_a ?? null;
+  } else if (tipo === "ruta") {
+    esenciales.c = params.conductor_usuario_id; esenciales.v = params.vehiculo_id; esenciales.cd = params.conduce_id ?? null; esenciales.p = params.proyecto_id ?? null;
+  }
+  // Hash corto y estable (djb2) → hex, prefijado por tipo para legibilidad.
+  const s = JSON.stringify(esenciales);
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+  return `${tipo}_${h.toString(16)}`;
+}
+
+// UUID determinístico a partir de la clave idem (para reusar el mismo p_id entre
+// confirmaciones de la misma propuesta → la RPC ya es idempotente por id).
+function idemUuid(clave: string): string {
+  let h = 2166136261 >>> 0;
+  const bytes: number[] = [];
+  for (let k = 0; k < 16; k++) {
+    for (let i = 0; i < clave.length; i++) { h ^= clave.charCodeAt(i) + k; h = Math.imul(h, 16777619) >>> 0; }
+    bytes.push(h & 0xff);
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x40; // versión 4
+  bytes[8] = (bytes[8] & 0x3f) | 0x80; // variante
+  const hex = bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 // Construye un resumen legible de la propuesta (para la tarjeta de confirmación),
-// resolviendo nombres con el JWT del usuario (RLS aplica).
-async function construirPropuesta(supabase: Any, cfg: ToolDef, input: Any) {
+// resolviendo nombres con el JWT del usuario (RLS aplica). Sella la clave de
+// idempotencia y avisa si la acción saldrá marcada de prueba (BB3).
+async function construirPropuesta(supabase: Any, cfg: ToolDef, input: Any, cap: Cap) {
   const tipo = cfg.write!.tipo;
   const lineas: string[] = [];
+  const avisosPrueba: string[] = [];
   let titulo = "Confirmar acción";
 
+  const clave = claveIdem(cap.usuario_id, tipo, input);
+  const idemId = idemUuid(clave);
+  input.__idem_id = idemId; // se usa como p_id en el execMap (idempotencia de la RPC)
+
   const nombreObra = async (id: string) => {
-    const { data } = await supabase.from("proyectos").select("nombre, codigo").eq("id", id).maybeSingle();
+    const { data } = await supabase.from("proyectos").select("nombre, codigo, es_prueba").eq("id", id).maybeSingle();
+    if (data?.es_prueba) avisosPrueba.push(`la obra "${data.nombre}" es de PRUEBA`);
     return data ? (data.codigo ? `${data.codigo} · ${data.nombre}` : data.nombre) : "obra";
   };
   const nombresArticulos = async (ids: string[]) => {
     const { data } = await supabase.from("articulos").select("id, nombre").in("id", ids);
-    const map = new Map((data ?? []).map((a: Any) => [a.id, a.nombre]));
-    return map;
+    return new Map((data ?? []).map((a: Any) => [a.id, a.nombre]));
   };
 
   if (tipo === "tarea") {
@@ -419,17 +543,30 @@ async function construirPropuesta(supabase: Any, cfg: ToolDef, input: Any) {
     lineas.push(`Prioridad: ${input.prioridad ?? "media"}`);
     if (input.fecha_limite) lineas.push(`Fecha límite: ${input.fecha_limite}`);
     if (input.descripcion) lineas.push(`Descripción: ${input.descripcion}`);
+  } else if (tipo === "ruta") {
+    titulo = "Asignar ruta de transporte";
+    const { data: ch } = await supabase.from("usuarios").select("nombre").eq("id", input.conductor_usuario_id).maybeSingle();
+    lineas.push(`Chofer: ${ch?.nombre ?? input.conductor_usuario_id}`);
+    if (input.vehiculo_id) {
+      const { data: v } = await supabase.from("vehiculos").select("placa, marca").eq("id", input.vehiculo_id).maybeSingle();
+      if (v) lineas.push(`Vehículo: ${`${v.placa ?? ""} ${v.marca ?? ""}`.trim()}`);
+    }
+    if (input.proyecto_id) lineas.push(`Destino (obra): ${await nombreObra(input.proyecto_id)}`);
+    if (input.destino) lineas.push(`Destino: ${input.destino}`);
+    if (input.conduce_id) lineas.push(`Vinculada al conduce indicado`);
+    lineas.push(`Tipo: ${input.tipo ?? "material"}`);
   } else if (tipo === "requisicion" || tipo === "conduce") {
     const items: Any[] = input.items ?? [];
     const map = await nombresArticulos(items.map((i) => i.articulo_id));
     if (tipo === "conduce") {
       titulo = "Crear conduce (salida de material)";
-      const { data: b } = await supabase.from("bodegas").select("nombre").eq("id", input.bodega_id).maybeSingle();
+      const { data: b } = await supabase.from("bodegas").select("nombre, es_prueba").eq("id", input.bodega_id).maybeSingle();
+      if (b?.es_prueba) avisosPrueba.push(`el almacén "${b.nombre}" es de PRUEBA`);
       lineas.push(`Origen (almacén): ${b?.nombre ?? input.bodega_id}`);
       lineas.push(`Destino (obra): ${await nombreObra(input.proyecto_id)}`);
       if (input.vehiculo_id) {
         const { data: v } = await supabase.from("vehiculos").select("placa, marca").eq("id", input.vehiculo_id).maybeSingle();
-        if (v) lineas.push(`Vehículo: ${v.placa ?? ""} ${v.marca ?? ""}`.trim());
+        if (v) lineas.push(`Vehículo: ${`${v.placa ?? ""} ${v.marca ?? ""}`.trim()}`);
       }
       if (input.despachante_usuario_id) {
         const { data: d } = await supabase.from("usuarios").select("nombre").eq("id", input.despachante_usuario_id).maybeSingle();
@@ -445,7 +582,14 @@ async function construirPropuesta(supabase: Any, cfg: ToolDef, input: Any) {
     if (input.observaciones) lineas.push(`Obs.: ${input.observaciones}`);
     if (input.notas) lineas.push(`Notas: ${input.notas}`);
   }
-  return { tipo, tool: cfg.name, params: input, titulo, lineas };
+
+  // BB3 — si el propio usuario es de prueba, también se propaga.
+  const esPrueba = avisosPrueba.length > 0;
+  const avisoPrueba = esPrueba
+    ? `⚠️ Prueba: ${avisosPrueba.join(" y ")} — este ${tipo} saldrá marcado como de PRUEBA (no es real).`
+    : null;
+
+  return { tipo, tool: cfg.name, params: input, titulo, lineas, idem: clave, es_prueba: esPrueba, aviso_prueba: avisoPrueba };
 }
 
 // ── AY11/C2 — Reportes PDF ──────────────────────────────────────────────────
@@ -554,6 +698,30 @@ Deno.serve(async (req: Request) => {
     if (!(cfg.modulos === null || capObj.es_admin || cfg.modulos!.some((m) => modulos.includes(m)))) {
       return json({ error: "No tienes permiso para esa acción." }, 403);
     }
+
+    const mensajeExito = (tipo: string) =>
+      tipo === "conduce" ? "✅ Conduce creado. Queda pendiente de firma por el flujo normal."
+        : tipo === "requisicion" ? "✅ Requisición creada y enviada a aprobación."
+        : tipo === "ruta" ? "✅ Ruta asignada. Queda planificada para el chofer."
+        : "✅ Tarea creada y asignada.";
+
+    // BB3 — idempotencia: la clave viene del preparar (params.__idem) o se recalcula.
+    const clave = prop.idem ?? claveIdem(capObj.usuario_id, cfg.write!.tipo, prop.params ?? {});
+
+    // "Claim" atómico: la PK de assistant_idempotencia evita doble ejecución concurrente.
+    const { error: claimErr } = await supabase.from("assistant_idempotencia")
+      .insert({ clave, conversacion_id: convId, tool: prop.tool, estado: "ejecutando" });
+    if (claimErr) {
+      // Solo tratamos como duplicado si EXISTE una fila previa con esa clave. Si el claim
+      // falló por otra razón (p. ej. la tabla aún no está desplegada), NO bloqueamos la
+      // acción: seguimos y ejecutamos (fail-open) para no dejar al usuario trancado.
+      const { data: prev } = await supabase.from("assistant_idempotencia").select("resultado").eq("clave", clave).maybeSingle();
+      if (prev) {
+        const respuesta = prev?.resultado?.mensaje ?? "Esta acción ya la habías confirmado — no la repetí para no duplicarla.";
+        return json({ conversacion_id: convId, respuesta, ejecutado: true, duplicado: true });
+      }
+    }
+
     let respuesta = "";
     let ok = false;
     try {
@@ -562,12 +730,18 @@ Deno.serve(async (req: Request) => {
         respuesta = `No se pudo completar: ${error.message}`;
       } else {
         ok = true;
-        respuesta = cfg.write!.tipo === "conduce" ? "✅ Conduce creado. Queda pendiente de firma por el flujo normal."
-          : cfg.write!.tipo === "requisicion" ? "✅ Requisición creada y enviada a aprobación."
-          : "✅ Tarea creada y asignada.";
+        respuesta = mensajeExito(cfg.write!.tipo);
       }
     } catch (e) {
       respuesta = `No se pudo completar: ${e instanceof Error ? e.message : "error"}`;
+    }
+    // Cierra la clave de idempotencia con el resultado (o la marca en error para permitir reintento).
+    await supabase.from("assistant_idempotencia")
+      .update({ estado: ok ? "hecho" : "error", resultado: { ok, mensaje: respuesta }, updated_at: new Date().toISOString() })
+      .eq("clave", clave).then(() => {}, () => {});
+    if (!ok) {
+      // Si falló, borra el claim para que un reintento legítimo pueda re-ejecutar.
+      await supabase.from("assistant_idempotencia").delete().eq("clave", clave).then(() => {}, () => {});
     }
     if (convId) {
       await supabase.from("assistant_acciones").insert({ conversacion_id: convId, tool: prop.tool, params: prop.params, ok, resumen: respuesta.slice(0, 200) }).then(() => {}, () => {});
@@ -598,7 +772,14 @@ Deno.serve(async (req: Request) => {
   messages.push({ role: "user", content: mensaje });
 
   const disponibles = toolsParaUsuario(capObj);
-  const tools = disponibles.map((t, idx) => ({ name: t.name, description: t.description, input_schema: t.input_schema, ...(idx === disponibles.length - 1 ? { cache_control: { type: "ephemeral" } } : {}) }));
+  // BB4(3) — schemas estrictos: additionalProperties:false en cada tool (Anthropic no
+  // tiene flag `strict`, pero esto fuerza la forma exacta y evita parámetros basura).
+  const tools = disponibles.map((t, idx) => ({
+    name: t.name,
+    description: t.description,
+    input_schema: { additionalProperties: false, ...t.input_schema },
+    ...(idx === disponibles.length - 1 ? { cache_control: { type: "ephemeral" } } : {}),
+  }));
 
   // AY C4 — inyecta la memoria del usuario (lo que Compa recuerda de él).
   let memText = "";
@@ -609,15 +790,29 @@ Deno.serve(async (req: Request) => {
         + mems.map((m: Any) => `- ${m.clave}: ${m.valor}`).join("\n");
     }
   } catch { /* memoria opcional */ }
-  const system = [{ type: "text", text: systemPrompt(capObj) + memText, cache_control: { type: "ephemeral" } }];
+
+  // BB4(5) — system en dos bloques: instrucciones ESTÁTICAS cacheadas (compartidas,
+  // alto cache-hit) + identidad DINÁMICA por request (nunca cacheada → jamás se cruza
+  // la identidad de un usuario con la de otro).
+  const system = [
+    { type: "text", text: INSTRUCCIONES_ESTATICAS, cache_control: { type: "ephemeral" } },
+    { type: "text", text: bloqueIdentidad(capObj, ahoraRD()) + memText },
+  ];
+  const debeForzarTool = fuerzaHerramienta(mensaje);
 
   const herramientasUsadas: { tool: string; ok: boolean }[] = [];
   let propuesta: Any = null;
   let archivo: { nombre: string; url: string } | null = null;
   let respuestaFinal = "";
-  try {
+
+  // Corre el ciclo de tool-use hasta que Claude produzca texto. `forzarPrimera`
+  // aplica tool_choice:any en la 1ª vuelta (router de intención / validador).
+  async function correrLoop(forzarPrimera: boolean): Promise<string> {
     for (let loop = 0; loop < MAX_TOOL_LOOPS; loop++) {
-      const resp = await callClaude(system, tools, messages);
+      // BB4(2) — en la 1ª vuelta, si la intención pide datos/verificación, forzamos
+      // una tool (tool_choice:any). Estructuralmente impide "acabo de consultarlo" sin consulta.
+      const forceThis = loop === 0 && forzarPrimera ? { type: "any" } : undefined;
+      const resp = await callClaude(system, tools, messages, forceThis);
       const content: Any[] = resp.content ?? [];
       if (resp.stop_reason === "tool_use") {
         const results: Any[] = [];
@@ -665,8 +860,15 @@ Deno.serve(async (req: Request) => {
           } else if (cfg.write) {
             // Acción de ESCRITURA: se PREPARA, no se ejecuta. Devuelve borrador.
             try {
-              propuesta = await construirPropuesta(supabase, cfg, block.input ?? {});
-              out = { preparado: true, resumen: propuesta.lineas.join("\n"), instruccion: "Dile al usuario en una frase qué preparaste y que confirme en la tarjeta. No digas que ya está hecho." };
+              propuesta = await construirPropuesta(supabase, cfg, block.input ?? {}, capObj);
+              out = {
+                preparado: true,
+                resumen: propuesta.lineas.join("\n"),
+                aviso_prueba: propuesta.aviso_prueba ?? undefined,
+                instruccion: propuesta.es_prueba
+                  ? "Dile en una frase qué preparaste, ADVIERTE que saldrá marcado de prueba (usa el texto de aviso_prueba) y pídele que confirme en la tarjeta. No digas que ya está hecho."
+                  : "Dile al usuario en una frase qué preparaste y que confirme en la tarjeta. No digas que ya está hecho.",
+              };
               ok = true; resumen = `propuesta ${cfg.write.tipo}`;
             } catch (e) {
               out = { error: "No pude preparar la acción." };
@@ -688,8 +890,31 @@ Deno.serve(async (req: Request) => {
         messages.push({ role: "user", content: results });
         continue;
       }
-      respuestaFinal = content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
-      break;
+      return content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
+    }
+    return "";
+  }
+
+  try {
+    respuestaFinal = await correrLoop(debeForzarTool);
+
+    // BB4(4) — Validador post-respuesta: si el texto AFIRMA verificación y el turno NO
+    // tuvo tool calls, es una mentira ("acabo de consultarlo"). Se regenera forzando una
+    // herramienta; si aún así insiste sin consultar, se antepone un aviso honesto.
+    if (afirmaVerificacionSinTool(respuestaFinal, herramientasUsadas.length > 0)) {
+      await supabase.from("assistant_acciones").insert({
+        conversacion_id: convId, tool: "validador_honestidad",
+        params: { texto: respuestaFinal.slice(0, 200) }, ok: false,
+        resumen: "afirmó verificación sin llamar herramienta → regenerado",
+      }).then(() => {}, () => {});
+      messages.push({ role: "assistant", content: respuestaFinal });
+      messages.push({ role: "user", content: "Afirmaste que consultaste/verificaste algo, pero en ese turno NO llamaste ninguna herramienta. Corrige AHORA: llama la herramienta correcta y responde con el dato real; si no existe herramienta para eso, dilo con claridad y NO afirmes que lo verificaste." });
+      const segundo = await correrLoop(true);
+      if (segundo) {
+        respuestaFinal = afirmaVerificacionSinTool(segundo, herramientasUsadas.length > 0)
+          ? "Nota: no pude verificarlo en vivo esta vez, así que tómalo como referencia, no como dato confirmado.\n\n" + segundo
+          : segundo;
+      }
     }
   } catch (e) {
     return json({ error: `El asistente tuvo un problema: ${e instanceof Error ? e.message : "desconocido"}` }, 502);

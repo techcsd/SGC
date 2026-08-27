@@ -17,11 +17,17 @@ export interface AsistenteConversacion {
 
 /** AW4 v2 — borrador de acción que el usuario debe confirmar antes de ejecutar. */
 export interface AsistentePropuesta {
-  tipo: 'tarea' | 'requisicion' | 'conduce';
+  tipo: 'tarea' | 'requisicion' | 'conduce' | 'ruta';
   tool: string;
   params: Record<string, unknown>;
   titulo: string;
   lineas: string[];
+  /** BB3 — clave de idempotencia de la acción (para no duplicar al confirmar). */
+  idem?: string;
+  /** BB3 — la acción saldrá marcada de prueba por propagación (obra/almacén test). */
+  es_prueba?: boolean;
+  /** BB3 — texto del aviso de prueba, para mostrarlo antes de confirmar. */
+  aviso_prueba?: string | null;
 }
 
 export interface AsistenteRespuesta {

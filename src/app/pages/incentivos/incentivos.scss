@@ -120,6 +120,31 @@
   font-size: 12.5px; color: var(--sgc-text);
   background: #fff8ec; border: 1px solid #f2d9a8; border-radius: 8px; padding: 8px 12px;
   ul { margin: 4px 0 0; padding-left: 18px; }
+  &__title { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #92610a; }
+}
+
+// BB8a — incidencias agrupadas y accionables (cuarentena).
+.inc-inci-group {
+  margin-top: 8px;
+  &__head { font-weight: 600; font-size: 12.5px; }
+}
+.inc-inci-pend {
+  margin-left: 6px; font-size: 11px; font-weight: 600;
+  padding: 1px 7px; border-radius: 999px; background: #fde4c6; color: #92610a;
+}
+.inc-inci-list { list-style: none; margin: 4px 0 0; padding: 0; }
+.inc-inci {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 4px 0; border-top: 1px dashed #f0dcb8;
+  &--resuelta { opacity: 0.65; }
+  &__link { flex: 1 1 220px; min-width: 0; color: var(--sgc-text); text-decoration: none; &:hover { text-decoration: underline; } }
+  &__actions { display: flex; gap: 6px; }
+}
+
+// BB8c — banner de semana en curso (solo avance).
+.inc-encurso {
+  margin: 10px 0; padding: 9px 13px; border-radius: 10px; font-size: 13px;
+  background: var(--sgc-info-light, #e8f1fb); border: 1px solid var(--sgc-info, #3b82f6); color: var(--sgc-text);
 }
 
 .inc-decide {

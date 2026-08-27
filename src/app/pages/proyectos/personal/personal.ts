@@ -6,6 +6,8 @@ import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Cargo, PersonalObra, NACIONALIDAD_LABEL } from '../../../../shared/models/personal-obra.model';
+import { humanizeError } from '../../../../shared/utils/friendly-error.util';
+import { TelemetryService } from '../../../../shared/services/telemetry.service';
 
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
@@ -19,6 +21,7 @@ export class PersonalObraLista implements OnInit {
   private service = inject(PersonalObraService);
   private proyectos = inject(ProyectosService);
   private datosPrueba = inject(DatosPruebaViewService);
+  private telemetry = inject(TelemetryService);
   private router = inject(Router);
 
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
@@ -120,7 +123,11 @@ export class PersonalObraLista implements OnInit {
       this.obras.set(obras);
       this.cargos.set(cargos);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo cargar el personal.');
+      // BB5/AU5(d)/AW1 — nunca el texto técnico crudo al usuario: mensaje humano
+      // en pantalla, detalle crudo a telemetría.
+      const f = humanizeError(e);
+      if (f.technical) this.telemetry.reportCaught(f.raw, { titulo: 'Cargar personal de obra' });
+      this.error.set(f.mensaje || 'No pudimos cargar el personal — ya fue reportado.');
     } finally {
       this.loading.set(false);
     }

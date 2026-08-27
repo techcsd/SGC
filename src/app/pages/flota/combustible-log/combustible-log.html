@@ -54,7 +54,7 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Fecha</th><th>Vehículo</th><th class="text-right">Lectura</th>
+          <th>Fecha y hora</th><th>Vehículo</th><th class="text-right">Lectura</th>
           <th class="text-right">Δ km</th><th class="text-right">Galones</th><th class="text-right">Monto</th>
           <th>Combustible</th><th>Registró</th><th>Estado</th>
         </tr>
@@ -63,7 +63,7 @@
         @for (r of rows(); track r.id) {
           <tr class="row--link" [class.cl-row--alerta]="r.km_alerta" (click)="abrirDetalle(r)"
               role="button" tabindex="0" (keydown.enter)="abrirDetalle(r)" aria-label="Ver detalle de la echada">
-            <td>{{ formatFecha(r.fecha) }}</td>
+            <td>{{ fechaHora(r) }}</td>
             <td>{{ r.placa ?? '—' }}@if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }</td>
             <td class="text-right">{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</td>
             <td class="text-right" [class.cl-delta--alerta]="r.km_alerta">
@@ -92,7 +92,7 @@
   } @else if (detail(); as r) {
     <div class="cl-detalle">
       <dl class="cl-detalle__meta">
-        <div><dt>Fecha</dt><dd>{{ formatFecha(r.fecha) }}</dd></div>
+        <div><dt>Fecha y hora</dt><dd>{{ fechaHora(r) }}</dd></div>
         <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }}</dd></div>
         <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
         <div><dt>Registró</dt><dd>{{ r.registrador?.nombre ?? '—' }}</dd></div>

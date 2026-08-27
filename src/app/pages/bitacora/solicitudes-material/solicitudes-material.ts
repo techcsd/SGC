@@ -93,6 +93,8 @@ export class SolicitudesMaterial implements OnInit {
   saveError = signal('');
 
   drawerOpen = signal(false);
+  /** BB10 — id de la requisición en edición (null = creando una nueva). */
+  editandoId = signal<string | null>(null);
   /** Z25 — filas expandibles: ids de requisiciones con sus renglones visibles. */
   expandidas = signal<Set<string>>(new Set());
   /** Paso del wizard (patrón hojas): 'form' → 'resumen'. */
@@ -144,7 +146,18 @@ export class SolicitudesMaterial implements OnInit {
     return grupos;
   });
 
-  drawerTitle = computed(() => (this.step() === 'resumen' ? 'Revisar requisición' : 'Nueva requisición'));
+  drawerTitle = computed(() =>
+    this.step() === 'resumen' ? 'Revisar requisición'
+      : this.editandoId() ? 'Editar requisición' : 'Nueva requisición',
+  );
+
+  /** BB10 — el autor puede editar SU requisición mientras siga pendiente. */
+  esAutor(s: SolicitudMaterial): boolean {
+    return s.solicitante_id === this.userService.profile()?.id;
+  }
+  puedeEditar(s: SolicitudMaterial): boolean {
+    return s.estado === 'pendiente' && this.esAutor(s);
+  }
 
   proyectoNombre = computed(() => {
     const id = this.form.controls.proyecto_id.value;
@@ -228,9 +241,33 @@ export class SolicitudesMaterial implements OnInit {
 
   openCreate() {
     this.saveError.set('');
+    this.editandoId.set(null);
     this.step.set('form');
     this.form.reset({ urgencia: 'normal' });
     this.formItems.set([NUEVO_ITEM()]);
+    this.drawerOpen.set(true);
+  }
+
+  /** BB10 — abre el drawer en modo edición, prellenando la requisición existente. */
+  openEdit(s: SolicitudMaterial) {
+    if (!this.puedeEditar(s)) return;
+    this.saveError.set('');
+    this.editandoId.set(s.id);
+    this.step.set('form');
+    this.form.reset({
+      proyecto_id: s.proyecto_id,
+      urgencia: s.urgencia === 'urgente' ? 'urgente' : 'normal',
+      notas: s.notas ?? null,
+    });
+    const items = (s.items ?? []).map((it) => ({
+      articulo_id: it.articulo_id ?? '',
+      esOtro: !it.articulo_id,
+      descripcion: it.descripcion ?? '',
+      cantidad: Number(it.cantidad) || 1,
+      unidad: it.unidad ?? '',
+      talla: it.talla ?? null,
+    }));
+    this.formItems.set(items.length ? items : [NUEVO_ITEM()]);
     this.drawerOpen.set(true);
   }
 
@@ -331,6 +368,35 @@ export class SolicitudesMaterial implements OnInit {
       if (!solicitanteId) throw new Error('Sesión inválida.');
 
       const v = this.form.value;
+      const itemsPayload = items.map((i) => {
+        const a = i.articulo_id ? this.articuloById(i.articulo_id) : undefined;
+        return {
+          articulo_id: i.articulo_id || null,
+          descripcion: a?.nombre ?? i.descripcion,
+          cantidad: i.cantidad,
+          unidad: (a?.unidad ?? i.unidad) || null,
+          talla: (i.talla ?? '').trim() || null,
+        };
+      });
+
+      // BB10 — modo edición: actualiza la requisición existente (solo si es del autor
+      // y sigue pendiente; el server lo re-valida) y recarga la lista.
+      const editId = this.editandoId();
+      if (editId) {
+        await this.solicitudesService.editar(editId, {
+          urgencia: v.urgencia!,
+          notas: v.notas ?? null,
+          items: itemsPayload,
+        });
+        for (const i of items) {
+          if (i.esOtro && i.descripcion.trim()) this.solicitudesService.registrarOtro(i.descripcion, editId);
+        }
+        await this.loadAll();
+        this.drawerOpen.set(false);
+        this.editandoId.set(null);
+        return;
+      }
+
       const created = await this.solicitudesService.create({
         proyecto_id: v.proyecto_id!,
         solicitante_id: solicitanteId,

@@ -18,6 +18,7 @@ export class Asistente implements OnInit {
   private service = inject(AsistenteService);
 
   private scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('anchor');
+  private composer = viewChild<ElementRef<HTMLTextAreaElement>>('composer');
 
   mensajes = signal<AsistenteMensaje[]>([]);
   conversaciones = signal<AsistenteConversacion[]>([]);
@@ -62,6 +63,23 @@ export class Asistente implements OnInit {
       this.service.setOpen(null);
       this.input.set(this.service.getDraft(null));
     }
+    // BB2 — autofocus al entrar al módulo (solo en dispositivos con puntero).
+    this.enfocarInput();
+  }
+
+  /** BB2 — enfoca el input, pero NO en móvil (abrir el teclado de golpe molesta).
+   *  Solo en dispositivos con puntero fino (desktop/web). */
+  private enfocarInput() {
+    if (typeof window === 'undefined' || !window.matchMedia?.('(pointer: fine)').matches) return;
+    setTimeout(() => this.composer()?.nativeElement.focus(), 30);
+  }
+
+  /** BB2 — Enter envía; Shift+Enter inserta salto de línea. */
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      void this.enviar();
+    }
   }
 
   /** AY10 — el input se persiste por conversación al escribir. */
@@ -79,6 +97,7 @@ export class Asistente implements OnInit {
     this.mensajes.set(await this.service.mensajes(c.id));
     this.input.set(this.service.getDraft(c.id));
     this.scrollAlFinal();
+    this.enfocarInput();
   }
 
   nueva() {
@@ -89,6 +108,7 @@ export class Asistente implements OnInit {
     this.propuesta.set(null);
     this.archivo.set(null);
     this.input.set(this.service.getDraft(null));
+    this.enfocarInput();
   }
 
   usarSugerencia(s: string) {
@@ -122,6 +142,8 @@ export class Asistente implements OnInit {
     } finally {
       this.enviando.set(false);
       this.scrollAlFinal();
+      // BB2 — re-enfocar tras enviar para seguir escribiendo sin volver a hacer click.
+      this.enfocarInput();
     }
   }
 
