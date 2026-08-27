@@ -22,6 +22,22 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    align-items: center;
+  }
+
+  // BC4 — código citable de la requisición (REQ-XXXXXX).
+  &__codigo {
+    font-family: var(--font-btns, inherit);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--Hub, #ffb300);
+    margin-right: auto;
+  }
+
+  // BC4 — rol del solicitante junto al nombre.
+  &__rol {
+    color: var(--sgc-text-secondary);
+    font-size: 0.85rem;
   }
 
   &__meta {
@@ -105,6 +121,14 @@
   .req-detail__meta {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+// BC4 — código de requisición en la lista.
+.req-codigo {
+  font-size: 0.8rem;
+  color: var(--Hub, #ffb300);
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 // BA / Transporte v3 — avance de despacho en el detalle de la requisición.

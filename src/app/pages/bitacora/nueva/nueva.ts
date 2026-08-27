@@ -36,6 +36,8 @@ import {
   MOTIVOS_SIN_ACTIVIDAD,
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { humanizeError } from '../../../../shared/utils/friendly-error.util';
+import { ReportesUsuarioService } from '../../../../shared/services/reportes-usuario.service';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
@@ -101,6 +103,7 @@ export class Nueva implements OnInit {
   private weatherService = inject(WeatherService);
   private catalogosService = inject(BitacoraCatalogosService);
   private unidadesService = inject(UnidadesService);
+  private reportes = inject(ReportesUsuarioService);
 
   // Default to the built-in lists, then override with the admin-managed catalog.
   estructuras = signal<readonly string[]>(ESTRUCTURAS);
@@ -1091,10 +1094,35 @@ export class Nueva implements OnInit {
       this.borradores.remove(this.MODULO_BORRADOR, this.draftId);
       this.router.navigate(['/bitacora/historial']);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar la bitácora.');
+      // BC7/AU5(d) — nunca mostrar el error crudo de Postgres. El borrador (texto
+      // + fotos en las señales del formulario) sobrevive: NO se limpia ni se navega.
+      const friendly = humanizeError(e);
+      if (friendly.technical) {
+        // "ya fue reportado": deja traza para Tecnología (best-effort).
+        this.reportarFalloGuardado(friendly.raw);
+        this.saveError.set('No pudimos guardar la bitácora. Ya fue reportado y lo estamos revisando — tus datos y fotos siguen aquí, puedes reintentar.');
+      } else {
+        this.saveError.set(friendly.mensaje);
+      }
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** BC7 — reporta a Tecnología un fallo técnico al guardar la bitácora (best-effort). */
+  private reportarFalloGuardado(raw: string): void {
+    const usuarioId = this.userService.profile()?.id;
+    if (!usuarioId) return;
+    this.reportes
+      .crear({
+        usuario_id: usuarioId,
+        tipo: 'bug',
+        asunto: 'No se pudo guardar una bitácora',
+        descripcion: `Error técnico al guardar bitácora (crear_entrada_bitacora): ${raw}`.slice(0, 1000),
+      })
+      .catch(() => {
+        /* el reporte es best-effort; no debe tapar el mensaje al usuario */
+      });
   }
 
   /** Y15 — carga las tareas no completadas del cronograma del proyecto elegido. */

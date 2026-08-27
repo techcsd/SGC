@@ -206,3 +206,11 @@ textarea {
 .req-item__otro { color: var(--sgc-text-secondary); }
 .req-item__qty { color: var(--sgc-text-secondary); font-size: 0.88rem; }
 .req-item__talla { color: var(--sgc-text-muted); font-size: 0.82rem; }
+
+// BC4 — código citable de la requisición (REQ-XXXXXX).
+.req-codigo {
+  font-size: 0.8rem;
+  color: var(--Hub, #ffb300);
+  font-weight: 600;
+  white-space: nowrap;
+}

@@ -10,7 +10,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
-import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
+import { SolicitudMaterial, requisicionCodigo } from '../../../../shared/models/solicitud.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
@@ -154,6 +154,10 @@ export class SolicitudesMaterial implements OnInit {
   /** BB10 — el autor puede editar SU requisición mientras siga pendiente. */
   esAutor(s: SolicitudMaterial): boolean {
     return s.solicitante_id === this.userService.profile()?.id;
+  }
+  // BC4 — código citable (REQ-XXXXXX).
+  codigo(s: SolicitudMaterial): string {
+    return requisicionCodigo(s);
   }
   puedeEditar(s: SolicitudMaterial): boolean {
     return s.estado === 'pendiente' && this.esAutor(s);

@@ -24,10 +24,13 @@ export interface SolicitudMaterialItem {
 
 export interface SolicitudMaterial {
   id: string;
+  /** BC4 — folio secuencial legible; se muestra como código REQ-XXXXXX. */
+  folio?: number | null;
   proyecto_id: string;
   proyecto?: { nombre: string };
   solicitante_id: string;
-  solicitante?: { nombre: string };
+  // BC4 — el solicitante trae sus roles para mostrar "Nombre · Rol".
+  solicitante?: { nombre: string; roles?: { rol: { codigo: string; nombre: string } | null }[] };
   estado: SolicitudMaterialEstado;
   urgencia: 'normal' | 'urgente';
   notas: string | null;
@@ -42,6 +45,19 @@ export interface SolicitudMaterial {
   atendido_en: string | null;
   created_at: string;
   items?: SolicitudMaterialItem[];
+}
+
+/** BC4 — código citable de la requisición (REQ-XXXXXX) a partir del folio. */
+export function requisicionCodigo(s: Pick<SolicitudMaterial, 'folio'>): string {
+  return s.folio != null ? 'REQ-' + String(s.folio).padStart(6, '0') : '—';
+}
+
+/** BC4 — etiqueta de rol(es) del solicitante ("Ingeniero de campo") o '' si no hay. */
+export function solicitanteRolLabel(s: Pick<SolicitudMaterial, 'solicitante'>): string {
+  return (s.solicitante?.roles ?? [])
+    .map((r) => r.rol?.nombre)
+    .filter((n): n is string => !!n)
+    .join(', ');
 }
 
 /** A2: resultado de aprobar_requisicion (auto-división despacho + compra). */

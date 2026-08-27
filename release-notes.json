@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.102.0": {
+      "titulo": "Bitácora arreglada para ingenieros, impersonación auditada, requisiciones con código y outbox que señala el campo",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Bitácora",
+          "d": "Se arregló el bloqueo que impedía a ingenieros de campo/oficina y capataces GUARDAR una bitácora («permiso denegado» en crudo). Ahora cualquier rol con el módulo Bitácora la guarda; si algo falla, verás un mensaje claro en español y tus datos y fotos siguen ahí para reintentar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "El «Enlace de tarea» que quedaba atascado por «dato con formato inválido» ahora dice EXACTAMENTE qué campo falló y por qué, en vez de un mensaje genérico."
+        },
+        {
+          "t": "nuevo",
+          "m": "Requisiciones",
+          "d": "Cada requisición tiene ahora un código citable (REQ-XXXXXX) visible en los listados y el detalle. El detalle muestra la Obra (con enlace a su ficha), el solicitante con su rol, urgencia y notas etiquetadas."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "«Entrar como» un usuario real para dar soporte queda auditado por escritura: cada acción hecha durante la sesión de soporte muestra «por <admin> (soporte)» en Auditoría, además del inicio/fin de la sesión (límite de 1 hora)."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Nueva convención permanente: toda tabla nueva nace con sus permisos por rol, con una guarda automática que rompe el build si el guardado de bitácora vuelve a quedar sin permisos, y un smoke que verifica que cada rol de campo puede enviar una bitácora completa."
+        }
+      ]
+    },
     "1.101.0": {
       "titulo": "Compa más confiable, Desempeño con cuarentena y arreglos de combustible/requisiciones",
       "cambios": [

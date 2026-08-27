@@ -27,6 +27,7 @@
     <table class="data-table" aria-label="Requisiciones">
       <thead>
         <tr>
+          <th>Código</th>
           <th>Fecha</th>
           <th>Obra</th>
           <th>Solicitante</th>
@@ -39,6 +40,7 @@
       <tbody>
         @for (s of solicitudes(); track s.id) {
           <tr [appHighlightItem]="s.id" [class.req-row--open]="estaExpandida(s.id)">
+            <td><code class="req-codigo">{{ codigo(s) }}</code></td>
             <td>{{ formatTimestamp(s.created_at) }}</td>
             <td>{{ s.proyecto?.nombre ?? '—' }}</td>
             <td>{{ s.solicitante?.nombre ?? '—' }}</td>
@@ -84,7 +86,7 @@
           </tr>
           @if (estaExpandida(s.id)) {
             <tr class="req-detail-row">
-              <td colspan="7">
+              <td colspan="8">
                 <ul class="req-items">
                   @for (it of s.items ?? []; track it.id) {
                     <li class="req-item">

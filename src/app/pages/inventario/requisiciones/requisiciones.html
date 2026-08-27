@@ -123,6 +123,7 @@
       <table class="data-table" aria-label="Requisiciones de material">
         <thead>
           <tr>
+            <th>Código</th>
             <th>Fecha</th>
             <th>Obra</th>
             <th>Solicitante</th>
@@ -137,6 +138,7 @@
             <tr class="row--link" (click)="abrir(r)" role="button" tabindex="0"
                 (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()"
                 aria-label="Ver requisición">
+              <td><code class="req-codigo">{{ codigo(r) }}</code></td>
               <td class="text-muted">{{ formatTimestamp(r.created_at) }}</td>
               <td>{{ r.proyecto?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ r.solicitante?.nombre ?? '—' }}</td>
@@ -171,6 +173,7 @@
     <div class="req-detail">
       <!-- Cabecera -->
       <div class="req-detail__head">
+        <span class="req-detail__codigo">{{ codigo(s) }}</span>
         <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span>
         @if (s.urgencia === 'urgente') {
           <span class="sgc-badge sgc-badge--danger">Urgente</span>
@@ -178,8 +181,22 @@
       </div>
 
       <dl class="req-detail__meta">
-        <div><dt>Obra</dt><dd>{{ s.proyecto?.nombre ?? '—' }}</dd></div>
-        <div><dt>Solicitante</dt><dd>{{ s.solicitante?.nombre ?? '—' }}</dd></div>
+        <div>
+          <dt>Obra</dt>
+          <dd>
+            @if (s.proyecto_id) {
+              <a [routerLink]="['/proyectos', s.proyecto_id]">{{ s.proyecto?.nombre ?? 'Ver obra' }}</a>
+            } @else { {{ s.proyecto?.nombre ?? '—' }} }
+          </dd>
+        </div>
+        <div>
+          <dt>Solicitante</dt>
+          <dd>
+            {{ s.solicitante?.nombre ?? '—' }}
+            @if (rolSolicitante(s); as rol) { <span class="req-detail__rol">· {{ rol }}</span> }
+          </dd>
+        </div>
+        <div><dt>Urgencia</dt><dd>{{ s.urgencia === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
         <div><dt>Creada</dt><dd>{{ formatTimestamp(s.created_at) }}</dd></div>
         @if (s.atendido_en) {
           <div>

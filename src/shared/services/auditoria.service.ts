@@ -17,6 +17,10 @@ export interface AuditoriaRow {
   accion: 'INSERT' | 'UPDATE' | 'DELETE';
   actor_id: string | null;
   actor?: { nombre: string } | null;
+  // BC6/AZ10 — doble identidad: admin real que actuó "como" el actor durante una
+  // sesión de impersonación (NULL en operación normal).
+  impersonado_por?: string | null;
+  impersonador?: { nombre: string } | null;
   cambios: Record<string, { antes: unknown; despues: unknown }> | null;
   datos_despues: Record<string, unknown> | null;
   datos_antes: Record<string, unknown> | null;
@@ -56,7 +60,7 @@ export interface AuditoriaResumen {
 }
 
 const SELECT_QUERY =
-  '*, actor:usuarios!auditoria_actor_id_fkey(nombre)';
+  '*, actor:usuarios!auditoria_actor_id_fkey(nombre), impersonador:usuarios!auditoria_impersonado_por_fkey(nombre)';
 
 /** Reads the comprehensive change-audit log (sgc.auditoria). Server-side
  *  filtered + paginated (the log grows unbounded, unlike other SGC lists). */

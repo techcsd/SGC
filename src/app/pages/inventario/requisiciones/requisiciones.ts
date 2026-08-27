@@ -7,7 +7,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { StockService } from '../../../../shared/services/stock.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { SolicitudMaterial } from '../../../../shared/models/solicitud.model';
+import { SolicitudMaterial, requisicionCodigo, solicitanteRolLabel } from '../../../../shared/models/solicitud.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
@@ -263,6 +263,14 @@ export class Requisiciones implements OnInit {
     return (r.items ?? []).length;
   }
 
+  // BC4 — código citable (REQ-XXXXXX) y rol del solicitante para el contexto.
+  codigo(r: SolicitudMaterial): string {
+    return requisicionCodigo(r);
+  }
+  rolSolicitante(r: SolicitudMaterial): string {
+    return solicitanteRolLabel(r);
+  }
+
   // ── Detalle ───────────────────────────────────────────────
   abrir(r: SolicitudMaterial) {
     this.selected.set(r);
@@ -487,9 +495,11 @@ export class Requisiciones implements OnInit {
 
   async exportar() {
     const rows = this.filtered().map((r) => ({
+      Código: this.codigo(r),
       Fecha: this.formatFecha(r.created_at),
       Obra: r.proyecto?.nombre ?? '',
       Solicitante: r.solicitante?.nombre ?? '',
+      Rol: this.rolSolicitante(r),
       Urgencia: r.urgencia === 'urgente' ? 'Urgente' : 'Normal',
       Artículos: this.itemsCount(r),
       Estado: this.estadoLabel(r.estado),
