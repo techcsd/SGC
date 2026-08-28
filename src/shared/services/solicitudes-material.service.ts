@@ -15,7 +15,9 @@ import { NotificacionesService } from './notificaciones.service';
 const SELECT_QUERY =
   '*, proyecto:proyectos(nombre), ' +
   'solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre, roles:usuarios_roles!usuarios_roles_usuario_id_fkey(rol:roles(codigo,nombre))), ' +
-  'atendido:usuarios!solicitudes_material_atendido_por_fkey(nombre), items:solicitud_material_items(*)';
+  'atendido:usuarios!solicitudes_material_atendido_por_fkey(nombre), ' +
+  // BA6 — quién canceló/cerró (para "Cancelada: motivo · por X").
+  'cerrada:usuarios!solicitudes_material_cerrada_por_fkey(nombre), items:solicitud_material_items(*)';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudesMaterialService {

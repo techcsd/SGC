@@ -44,6 +44,14 @@ export interface SolicitudMaterial {
   atendido?: { nombre: string } | null;
   atendido_en: string | null;
   created_at: string;
+  // BB10 — versión: sube en cada edición del autor mientras está pendiente.
+  version?: number | null;
+  // BA6 — cancelación/cierre: motivo + quién + cuándo.
+  cancelada_motivo?: string | null;
+  cerrada_por?: string | null;
+  cerrada_en?: string | null;
+  /** Nombre de quien canceló/cerró — solo si el SELECT hace el join (opcional). */
+  cerrada?: { nombre: string } | null;
   items?: SolicitudMaterialItem[];
 }
 

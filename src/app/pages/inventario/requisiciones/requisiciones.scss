@@ -178,3 +178,17 @@
   }
 }
 .req-sueltos__info { font-size: 0.85rem; }
+
+/* BA6 — banner de cancelación en el detalle (motivo · quién · cuándo). */
+.req-detail__cancelada {
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border-radius: var(--sgc-radius-sm, 8px);
+  background: var(--sgc-danger-light, #fee2e2);
+  color: var(--sgc-danger, #b91c1c);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.req-detail__cancelada-meta {
+  color: var(--sgc-text-secondary);
+}

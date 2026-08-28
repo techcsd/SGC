@@ -178,7 +178,23 @@
         @if (s.urgencia === 'urgente') {
           <span class="sgc-badge sgc-badge--danger">Urgente</span>
         }
+        <!-- BB10 — versión (sube en cada edición del autor). -->
+        @if ((s.version ?? 1) > 1) {
+          <span class="sgc-badge sgc-badge--neutral">v{{ s.version }}</span>
+        }
       </div>
+
+      <!-- BA6 — motivo de cancelación (quién / cuándo). -->
+      @if (s.estado === 'cancelada' && s.cancelada_motivo) {
+        <div class="req-detail__cancelada" role="note">
+          <strong>Cancelada:</strong> {{ s.cancelada_motivo }}
+          @if (s.cerrada?.nombre || s.cerrada_en) {
+            <span class="req-detail__cancelada-meta">
+              · {{ s.cerrada?.nombre ? s.cerrada?.nombre : '' }}{{ s.cerrada?.nombre && s.cerrada_en ? ' · ' : '' }}{{ s.cerrada_en ? formatTimestamp(s.cerrada_en) : '' }}
+            </span>
+          }
+        </div>
+      }
 
       <dl class="req-detail__meta">
         <div>

@@ -1,0 +1,423 @@
+<title>Transporte v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F4F6F8; --surface:#FFFFFF; --ink:#16202B; --muted:#5C6B7A;
+    --line:#DCE3EA; --line-strong:#B9C4CF; --edge:#7A8A99;
+    --accent:#D9530B; --accent-ink:#B84508; --accent-soft:#FBEBDD;
+    --good:#2F8F44; --good-soft:#E7F4EA; --bad:#C42B2B; --bad-soft:#FBEAEA;
+    --chip:#EBEFF3; --code:#EDF1F5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0F151C; --surface:#171F29; --ink:#E9EEF3; --muted:#97A7B7;
+      --line:#28343F; --line-strong:#3B4A58; --edge:#8296A9;
+      --accent:#FF8A42; --accent-ink:#FF9C5F; --accent-soft:#38220F;
+      --good:#5BC66F; --good-soft:#152C1A; --bad:#FF7373; --bad-soft:#361414;
+      --chip:#222D38; --code:#1E2933;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0F151C; --surface:#171F29; --ink:#E9EEF3; --muted:#97A7B7;
+    --line:#28343F; --line-strong:#3B4A58; --edge:#8296A9;
+    --accent:#FF8A42; --accent-ink:#FF9C5F; --accent-soft:#38220F;
+    --good:#5BC66F; --good-soft:#152C1A; --bad:#FF7373; --bad-soft:#361414;
+    --chip:#222D38; --code:#1E2933;
+  }
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink); margin:0;
+    font:400 16px/1.65 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:48px 24px 80px; display:flex; flex-direction:column; gap:56px}
+  header.top{display:flex; flex-direction:column; gap:14px; border-bottom:1px solid var(--line); padding-bottom:32px}
+  .eyebrow{font:600 12px/1 "IBM Plex Mono", monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  h1{font:800 clamp(34px,5vw,46px)/1.08 "Archivo", "IBM Plex Sans", sans-serif; margin:0; text-wrap:balance; letter-spacing:-.01em}
+  h1 .v{color:var(--accent)}
+  .lede{max-width:64ch; color:var(--muted); margin:0; font-size:17px}
+  .chips{display:flex; flex-wrap:wrap; gap:8px}
+  .chip{font:500 12px/1 "IBM Plex Mono", monospace; background:var(--chip); border:1px solid var(--line);
+        border-radius:999px; padding:7px 12px; color:var(--muted)}
+  .chip.hot{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink)}
+
+  nav.idx{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px}
+  nav.idx a{
+    display:flex; flex-direction:column; gap:6px; text-decoration:none; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 16px 14px;
+    transition:border-color .15s ease;
+  }
+  nav.idx a:hover, nav.idx a:focus-visible{border-color:var(--accent)}
+  nav.idx a:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .idx-n{font:600 12px/1 "IBM Plex Mono", monospace; color:var(--accent)}
+  .idx-t{font:700 15px/1.3 "Archivo", sans-serif}
+  .idx-d{font-size:13px; color:var(--muted); line-height:1.45}
+
+  section.flow{display:flex; flex-direction:column; gap:18px; scroll-margin-top:24px}
+  .sec-head{display:flex; align-items:baseline; gap:14px}
+  .sec-num{font:700 13px/1 "IBM Plex Mono", monospace; color:var(--accent); white-space:nowrap}
+  h2{font:700 clamp(22px,3vw,28px)/1.2 "Archivo", sans-serif; margin:0; text-wrap:balance}
+  section.flow > p{margin:0; max-width:70ch}
+  section.flow > p .hoy{color:var(--bad); font-weight:600}
+  em.term{font-style:normal; font-weight:600; color:var(--accent-ink)}
+
+  figure.fig{
+    margin:6px 0 0; background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:26px 18px 14px; overflow-x:auto;
+  }
+  figure.fig svg{display:block; margin:0 auto; max-width:100%; height:auto; min-width:640px}
+  figcaption{font-size:13px; color:var(--muted); text-align:center; padding:14px 12px 4px; line-height:1.5}
+
+  /* SVG vocabulary */
+  .nd{fill:var(--surface); stroke:var(--line-strong); stroke-width:1.4}
+  .nd-start{fill:var(--chip); stroke:var(--line-strong); stroke-width:1.4}
+  .nd-acc{fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5}
+  .nd-bad{fill:var(--bad-soft); stroke:var(--bad); stroke-width:1.5}
+  .nd-good{fill:var(--good-soft); stroke:var(--good); stroke-width:1.5}
+  .tx{fill:var(--ink); font:500 12.5px "IBM Plex Sans", sans-serif; text-anchor:middle}
+  .tx-b{font-weight:600}
+  .tx-mut{fill:var(--muted); font-size:11.5px}
+  .tx-acc{fill:var(--accent-ink); font-weight:600}
+  .tx-bad{fill:var(--bad); font-weight:600}
+  .tx-good{fill:var(--good); font-weight:600}
+  .col-lbl{font:600 12px "IBM Plex Mono", monospace; text-anchor:middle; letter-spacing:.08em}
+  .ed{stroke:var(--edge); stroke-width:1.5; fill:none}
+  .ed-dash{stroke:var(--edge); stroke-width:1.3; fill:none; stroke-dasharray:4 4}
+  .ed-lbl{fill:var(--muted); font:600 11px "IBM Plex Mono", monospace; text-anchor:middle}
+  .ah{fill:var(--edge)}
+  .divline{stroke:var(--line); stroke-width:1; stroke-dasharray:2 6}
+
+  ul.check{list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:8px}
+  ul.check li{
+    position:relative; padding:10px 14px 10px 38px; background:var(--surface);
+    border:1px solid var(--line); border-radius:10px; font-size:14.5px; line-height:1.5;
+  }
+  ul.check li::before{
+    content:"?"; position:absolute; left:13px; top:9px;
+    font:600 12px/18px "IBM Plex Mono", monospace; color:var(--accent);
+    width:18px; height:18px; text-align:center; border:1.5px solid var(--accent); border-radius:50%;
+  }
+  .check-title{font:600 12px/1 "IBM Plex Mono", monospace; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:8px}
+
+  .impact{overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:14px}
+  table{border-collapse:collapse; width:100%; min-width:640px; font-size:14px}
+  th{font:600 11.5px "IBM Plex Mono", monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
+     text-align:left; padding:14px 16px 10px; border-bottom:1px solid var(--line)}
+  td{padding:12px 16px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.5}
+  tr:last-child td{border-bottom:none}
+  td.what{font-weight:600; white-space:nowrap}
+  .tag{display:inline-block; font:500 11px/1 "IBM Plex Mono", monospace; background:var(--chip);
+       border:1px solid var(--line); border-radius:6px; padding:4px 7px; margin:1px 3px 1px 0; color:var(--muted)}
+  .tag.new{background:var(--accent-soft); border-color:var(--accent); color:var(--accent-ink)}
+
+  footer{border-top:1px solid var(--line); padding-top:20px; font-size:13px; color:var(--muted); line-height:1.6}
+  code{font:500 13px "IBM Plex Mono", monospace; background:var(--code); border-radius:5px; padding:2px 6px}
+  @media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto !important; transition:none !important} }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">Constructora SD · SGC (web) + CSD-App · Propuesta para validación</div>
+  <h1>Transporte <span class="v">v3</span> — flujos de la próxima actualización</h1>
+  <p class="lede">Cuatro cambios sobre el modelo de conduces actual (Transporte v2). Esto es lo que entendí de lo que se me comunicó — el objetivo de esta página es confirmar que es exactamente lo que hay que construir, revisar cada flujo y ajustar lo que haga falta <strong>antes</strong> de implementar.</p>
+  <div class="chips">
+    <span class="chip">26 · agosto · 2026</span>
+    <span class="chip hot">NADA IMPLEMENTADO AÚN</span>
+    <span class="chip">repos: dev\SGC · dev2\csd-app</span>
+  </div>
+</header>
+
+<nav class="idx" aria-label="Índice de flujos">
+  <a href="#f1"><span class="idx-n">01</span><span class="idx-t">Conduce externo</span><span class="idx-d">Submódulo nuevo, separado de «Crear conduce», para camiones de proveedores.</span></a>
+  <a href="#f2"><span class="idx-n">02</span><span class="idx-t">Proveedores trackeables</span><span class="idx-d">Cada conduce externo genera un viaje al proveedor: viajes del mes, pendientes o pagados.</span></a>
+  <a href="#f3"><span class="idx-n">03</span><span class="idx-t">Opción «Otros»</span><span class="idx-d">Salida de emergencia en texto libre cuando el mapa o el buscador fallan.</span></a>
+  <a href="#f4"><span class="idx-n">04</span><span class="idx-t">Despachos + rectificación</span><span class="idx-d">Una requisición se completa en varios viajes y se acaban los conduces duplicados.</span></a>
+</nav>
+
+<!-- ═══════════════ 01 · CONDUCE EXTERNO ═══════════════ -->
+<section class="flow" id="f1">
+  <div class="sec-head"><span class="sec-num">01</span><h2>Conduce externo — cuando transporta un proveedor</h2></div>
+  <p>Hoy todo conduce asume que el material lo mueve un chofer nuestro. Cuando el que transporta es un <em class="term">proveedor externo</em> (ej.: un suplidor manda su camión), Raykler —o quien reciba el camión— debe poder crearle un conduce. Va en un <em class="term">submódulo aparte</em> para no complicar «Crear conduce»: un formulario corto, con datos básicos, rápido de llenar.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 780 684" role="img" aria-label="Flujo del conduce externo: llega un camión externo, logística abre el submódulo Conduce externo, elige el proveedor de la lista o escribe Otro, llena datos básicos con foto del camión, emite, y el sistema registra automáticamente un viaje a ese proveedor.">
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect class="nd-start" x="110" y="14" width="380" height="46" rx="23"/>
+      <text class="tx tx-b" x="300" y="42">Llega un camión de un proveedor externo</text>
+      <line class="ed" x1="300" y1="60" x2="300" y2="86" marker-end="url(#a1)"/>
+      <rect class="nd" x="110" y="88" width="380" height="64" rx="10"/>
+      <text class="tx" x="300" y="115">Logística abre el submódulo <tspan class="tx-b">«Conduce externo»</tspan></text>
+      <text class="tx tx-mut" x="300" y="134">(nuevo — separado del «Crear conduce» normal)</text>
+      <line class="ed" x1="300" y1="152" x2="300" y2="178" marker-end="url(#a1)"/>
+      <polygon class="nd" points="300,180 490,236 300,292 110,236"/>
+      <text class="tx" x="300" y="231">¿El transportista está en la</text>
+      <text class="tx" x="300" y="249">lista de proveedores?</text>
+      <line class="ed" x1="490" y1="236" x2="538" y2="236" marker-end="url(#a1)"/>
+      <text class="ed-lbl" x="512" y="226">No</text>
+      <rect class="nd-acc" x="540" y="204" width="220" height="64" rx="10"/>
+      <text class="tx tx-acc" x="650" y="230">Opción «Otro»:</text>
+      <text class="tx" x="650" y="248">escribir el nombre a mano</text>
+      <polyline class="ed" points="650,268 650,352 496,352" marker-end="url(#a1)"/>
+      <line class="ed" x1="300" y1="292" x2="300" y2="318" marker-end="url(#a1)"/>
+      <text class="ed-lbl" x="316" y="310">Sí</text>
+      <rect class="nd" x="110" y="320" width="380" height="88" rx="10"/>
+      <text class="tx tx-b" x="300" y="346">Llenar datos básicos (rápido y simple):</text>
+      <text class="tx" x="300" y="364">· quién transporta</text>
+      <text class="tx" x="300" y="382">· foto del camión — placa y material visibles</text>
+      <text class="tx" x="300" y="400">· de dónde a dónde mueve el material</text>
+      <line class="ed" x1="300" y1="408" x2="300" y2="434" marker-end="url(#a1)"/>
+      <rect class="nd-acc" x="180" y="436" width="240" height="46" rx="10"/>
+      <text class="tx tx-b" x="300" y="464">Emitir conduce externo</text>
+      <line class="ed" x1="300" y1="482" x2="300" y2="514" marker-end="url(#a1)"/>
+      <text class="ed-lbl" x="352" y="502">automático</text>
+      <rect class="nd" x="110" y="516" width="380" height="64" rx="10"/>
+      <text class="tx" x="300" y="542">El sistema registra <tspan class="tx-b">un viaje</tspan> a ese proveedor</text>
+      <text class="tx tx-mut" x="300" y="560">(dato interno — el proveedor NO accede al sistema)</text>
+      <line class="ed" x1="300" y1="580" x2="300" y2="606" marker-end="url(#a1)"/>
+      <rect class="nd-good" x="90" y="608" width="420" height="62" rx="31"/>
+      <text class="tx tx-good" x="300" y="633">Viaje visible en el perfil del proveedor</text>
+      <text class="tx" x="300" y="651">viajes del mes · pendientes de pago · pagados</text>
+    </svg>
+    <figcaption>El conduce externo pide lo mínimo para no frenar la operación; el viaje al proveedor se genera solo, sin paso extra.</figcaption>
+  </figure>
+  <div class="check-title">Para validar en la reunión</div>
+  <ul class="check">
+    <li>¿Quién puede crear conduces externos: solo logística (Raykler) o cualquier usuario con el módulo de flota/inventario?</li>
+    <li>¿La foto del camión es obligatoria para poder emitir? ¿Basta una o pueden ser varias?</li>
+    <li>Origen y destino: ¿se eligen igual que hoy (mapa/obras) con la opción «Otros» en texto libre incluida?</li>
+    <li>¿El conduce externo descuenta inventario como un conduce normal, o es solo trazabilidad del movimiento?</li>
+  </ul>
+</section>
+
+<!-- ═══════════════ 02 · PROVEEDORES ═══════════════ -->
+<section class="flow" id="f2">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Proveedores de transportación — catálogo y tracking</h2></div>
+  <p>Para que el flujo anterior funcione, se crea un <em class="term">catálogo de proveedores de transportación</em>. Cada conduce externo emitido le suma un viaje al proveedor elegido, y eso permite responder en cualquier momento: ¿cuántos viajes hizo X proveedor este mes, cuáles están pendientes de pago y cuáles ya se pagaron? El proveedor nunca entra al sistema — la data es para nosotros.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 920 190" role="img" aria-label="Cada conduce externo emitido genera un viaje que cae en el perfil del proveedor; el perfil acumula viajes por mes con estado pendiente de pago o pagado, y quien paga los marca como pagados.">
+      <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect class="nd" x="16" y="56" width="230" height="78" rx="10"/>
+      <text class="tx tx-b" x="131" y="88">Conduce externo</text>
+      <text class="tx tx-mut" x="131" y="106">emitido (flujo 01)</text>
+      <line class="ed" x1="246" y1="95" x2="306" y2="95" marker-end="url(#a2)"/>
+      <text class="ed-lbl" x="276" y="86">+1 viaje</text>
+      <rect class="nd-acc" x="308" y="42" width="290" height="106" rx="10"/>
+      <text class="tx tx-acc" x="453" y="70">Perfil del proveedor</text>
+      <text class="tx" x="453" y="92">viajes acumulados por mes</text>
+      <text class="tx" x="453" y="110">cada viaje: pendiente de pago</text>
+      <text class="tx" x="453" y="128">o pagado</text>
+      <line class="ed" x1="598" y1="95" x2="658" y2="95" marker-end="url(#a2)"/>
+      <text class="ed-lbl" x="628" y="86">consulta</text>
+      <rect class="nd-good" x="660" y="56" width="244" height="78" rx="12"/>
+      <text class="tx tx-good" x="782" y="84">«¿Cuántos viajes hizo X</text>
+      <text class="tx tx-good" x="782" y="102">proveedor este mes?»</text>
+      <text class="tx tx-mut" x="782" y="120">respuesta inmediata, con estados</text>
+    </svg>
+    <figcaption>El viaje nace del conduce, no de un registro manual: si el conduce existe, el viaje existe (regla AT11 — toda data enviada es visualizable).</figcaption>
+  </figure>
+  <div class="check-title">Para validar en la reunión</div>
+  <ul class="check">
+    <li>¿Quién administra el catálogo (alta/edición de proveedores) y quién marca un viaje como pagado?</li>
+    <li>Cuando se usó «Otro» (proveedor escrito a mano), ¿ese viaje queda suelto o luego se puede convertir en proveedor formal y absorber sus viajes?</li>
+    <li>¿El pago es por viaje individual o se marcan varios viajes juntos (corte mensual)?</li>
+    <li>¿Dónde vive la vista: Flota, Inventario/Conduces, o un submódulo propio «Proveedores de transporte»?</li>
+  </ul>
+</section>
+
+<!-- ═══════════════ 03 · OPCIÓN OTROS ═══════════════ -->
+<section class="flow" id="f3">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Opción «Otros» — que el usuario nunca se tranque</h2></div>
+  <p>Caso real: un usuario buscó un lugar por nombre y el buscador no lo dio (aunque estaba registrado); pegó el link de Google Maps y dio error. Ahí <span class="hoy">el juego se tranca</span>: marcar el punto a mano en el mapa les resulta complicado y lento, a veces imposible. La solución tiene dos partes: <em class="term">mejorar el buscador</em> (más resultados, que incluya los lugares ya registrados) y agregar la opción <em class="term">«Otros»</em> — un input de texto plano como último recurso, para que el flujo siga siempre. Este patrón se aplicará en todos los puntos del sistema donde una falla pueda dejar al usuario sin salida.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 780 672" role="img" aria-label="Flujo de selección de lugar: buscar por nombre con el buscador mejorado; si no aparece, pegar link de Google Maps; si el link tampoco resuelve, la opción Otros abre un input de texto libre y el flujo continúa sin trancarse.">
+      <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect class="nd-start" x="80" y="14" width="360" height="46" rx="23"/>
+      <text class="tx tx-b" x="260" y="42">El usuario debe indicar un lugar</text>
+      <line class="ed" x1="260" y1="60" x2="260" y2="86" marker-end="url(#a3)"/>
+      <rect class="nd" x="80" y="88" width="360" height="80" rx="10"/>
+      <text class="tx" x="260" y="113">Buscar el lugar por nombre en el mapa</text>
+      <text class="tx tx-acc" x="260" y="132">buscador mejorado: más resultados</text>
+      <text class="tx tx-acc" x="260" y="150">e incluye los lugares ya registrados</text>
+      <line class="ed" x1="260" y1="168" x2="260" y2="194" marker-end="url(#a3)"/>
+      <polygon class="nd" points="260,196 410,240 260,284 110,240"/>
+      <text class="tx" x="260" y="245">¿Aparece el lugar?</text>
+      <line class="ed" x1="410" y1="240" x2="518" y2="240" marker-end="url(#a3)"/>
+      <text class="ed-lbl" x="462" y="230">Sí</text>
+      <rect class="nd-good" x="520" y="214" width="240" height="52" rx="26"/>
+      <text class="tx tx-good" x="640" y="236">Ubicación seleccionada</text>
+      <text class="tx" x="640" y="253">el flujo continúa</text>
+      <line class="ed" x1="260" y1="284" x2="260" y2="310" marker-end="url(#a3)"/>
+      <text class="ed-lbl" x="276" y="302">No</text>
+      <rect class="nd" x="80" y="312" width="360" height="46" rx="10"/>
+      <text class="tx" x="260" y="340">Pegar el link de Google Maps</text>
+      <line class="ed" x1="260" y1="358" x2="260" y2="384" marker-end="url(#a3)"/>
+      <polygon class="nd" points="260,386 410,430 260,474 110,430"/>
+      <text class="tx" x="260" y="426">¿El link resuelve</text>
+      <text class="tx" x="260" y="443">la ubicación?</text>
+      <polyline class="ed" points="410,430 640,430 640,270" marker-end="url(#a3)"/>
+      <text class="ed-lbl" x="470" y="422">Sí</text>
+      <line class="ed" x1="260" y1="474" x2="260" y2="500" marker-end="url(#a3)"/>
+      <text class="ed-lbl" x="276" y="492">No</text>
+      <rect class="nd-acc" x="80" y="502" width="360" height="64" rx="10"/>
+      <text class="tx tx-acc" x="260" y="528">Opción «Otros» (nueva): texto libre</text>
+      <text class="tx" x="260" y="546">escribe el lugar tal cual — ej. «Bellón»</text>
+      <line class="ed" x1="260" y1="566" x2="260" y2="592" marker-end="url(#a3)"/>
+      <rect class="nd-good" x="60" y="594" width="400" height="62" rx="31"/>
+      <text class="tx tx-good" x="260" y="619">El usuario nunca se queda trancado</text>
+      <text class="tx" x="260" y="637">el lugar queda guardado como texto</text>
+    </svg>
+    <figcaption>«Otros» reemplaza al camino actual de marcar el pin a mano como último recurso — ese camino sigue existiendo, pero deja de ser la única salida cuando algo falla.</figcaption>
+  </figure>
+  <div class="check-title">Para validar en la reunión</div>
+  <ul class="check">
+    <li>¿En qué pantallas exactas va «Otros»: destino/origen de conduce, crear ruta, solicitud de movimiento… todas las que usan el selector de lugar?</li>
+    <li>Un lugar en texto libre no tiene coordenadas: ¿la ruta se crea igual pero sin mapa, ETA ni clima para esa parada? ¿Es aceptable?</li>
+    <li>¿Alguien (logística/tecnología) revisa después los «Otros» para convertirlos en lugares registrados y que el buscador sí los dé la próxima vez?</li>
+    <li>¿Qué otros puntos del sistema (fuera del mapa) necesitan ya su opción «Otros»? Levantar la lista completa en la reunión.</li>
+  </ul>
+</section>
+
+<!-- ═══════════════ 04 · DESPACHOS ═══════════════ -->
+<section class="flow" id="f4">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Despachos — una requisición, varios viajes, cero duplicados</h2></div>
+  <p><span class="hoy">El problema de hoy:</span> el ingeniero crea la requisición, Raykler la aprueba y la aprobación genera un conduce automático; después el chofer crea <strong>otro</strong> conduce sobre la misma requisición para mover el material — dos conduces para lo mismo. Además, un solo viaje puede no llevar todo lo pedido. <em class="term">La propuesta:</em> la aprobación deja de generar conduce; en su lugar la requisición se completa en uno o varios <em class="term">despachos</em> (nombre por definir), un documento por viaje, cada uno vinculado a la requisición con lo que realmente lleva.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 980 536" role="img" aria-label="Comparación hoy contra propuesta: hoy la aprobación genera un conduce automático y el chofer crea otro, quedando dos conduces duplicados; en la propuesta la aprobación no genera conduce y el chofer crea un despacho por viaje hasta completar la requisición.">
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <line class="divline" x1="490" y1="24" x2="490" y2="516"/>
+      <text class="col-lbl tx-bad" x="240" y="32">HOY — EL PROBLEMA</text>
+      <text class="col-lbl tx-acc" x="720" y="32">PROPUESTA — DESPACHOS</text>
+
+      <rect class="nd" x="70" y="52" width="340" height="46" rx="10"/>
+      <text class="tx" x="240" y="80">El ingeniero crea la requisición</text>
+      <line class="ed" x1="240" y1="98" x2="240" y2="124" marker-end="url(#a4)"/>
+      <rect class="nd" x="70" y="126" width="340" height="46" rx="10"/>
+      <text class="tx" x="240" y="154">Logística aprueba la requisición</text>
+      <polyline class="ed" points="240,172 150,198 150,214" marker-end="url(#a4)"/>
+      <polyline class="ed" points="240,172 330,198 330,214" marker-end="url(#a4)"/>
+      <text class="ed-lbl" x="96" y="200">auto</text>
+      <rect class="nd" x="62" y="216" width="176" height="78" rx="10"/>
+      <text class="tx tx-b" x="150" y="242">Conduce ①</text>
+      <text class="tx tx-mut" x="150" y="260">se genera solo</text>
+      <text class="tx tx-mut" x="150" y="277">al aprobar</text>
+      <rect class="nd" x="242" y="216" width="176" height="78" rx="10"/>
+      <text class="tx tx-b" x="330" y="242">Conduce ②</text>
+      <text class="tx tx-mut" x="330" y="260">lo crea el chofer</text>
+      <text class="tx tx-mut" x="330" y="277">para el mismo material</text>
+      <line class="ed" x1="150" y1="294" x2="150" y2="320" marker-end="url(#a4)"/>
+      <line class="ed" x1="330" y1="294" x2="330" y2="320" marker-end="url(#a4)"/>
+      <rect class="nd-bad" x="70" y="322" width="340" height="96" rx="10"/>
+      <text class="tx tx-bad" x="240" y="350">✗ 2 conduces duplicados</text>
+      <text class="tx tx-bad" x="240" y="368">del mismo material</text>
+      <text class="tx" x="240" y="388">✗ y un viaje puede no llevar todo lo pedido</text>
+      <text class="tx tx-mut" x="240" y="406">— hoy no hay forma de registrar parciales</text>
+
+      <rect class="nd" x="550" y="52" width="340" height="46" rx="10"/>
+      <text class="tx" x="720" y="80">El ingeniero crea la requisición</text>
+      <line class="ed" x1="720" y1="98" x2="720" y2="124" marker-end="url(#a4)"/>
+      <rect class="nd-acc" x="550" y="126" width="340" height="62" rx="10"/>
+      <text class="tx" x="720" y="151">Logística aprueba la requisición</text>
+      <text class="tx tx-acc" x="720" y="170">ya NO se genera conduce automático</text>
+      <line class="ed" x1="720" y1="188" x2="720" y2="214" marker-end="url(#a4)"/>
+      <rect class="nd" x="550" y="216" width="340" height="78" rx="10"/>
+      <text class="tx tx-b" x="720" y="242">El chofer crea un despacho* por viaje</text>
+      <text class="tx" x="720" y="260">vinculado a la requisición:</text>
+      <text class="tx" x="720" y="278">lleva todo o solo una parte del material</text>
+      <line class="ed" x1="720" y1="294" x2="720" y2="320" marker-end="url(#a4)"/>
+      <polygon class="nd" points="720,322 880,370 720,418 560,370"/>
+      <text class="tx" x="720" y="365">¿Queda material</text>
+      <text class="tx" x="720" y="382">pendiente?</text>
+      <polyline class="ed" points="880,370 936,370 936,255 894,255" marker-end="url(#a4)"/>
+      <text class="ed-lbl" x="912" y="360">Sí</text>
+      <text class="ed-lbl" x="936" y="240">otro viaje</text>
+      <line class="ed" x1="720" y1="418" x2="720" y2="444" marker-end="url(#a4)"/>
+      <text class="ed-lbl" x="736" y="436">No</text>
+      <rect class="nd-good" x="540" y="446" width="360" height="62" rx="31"/>
+      <text class="tx tx-good" x="720" y="471">✓ Requisición completada en N despachos</text>
+      <text class="tx" x="720" y="489">un documento por viaje, sin duplicados</text>
+    </svg>
+    <figcaption>*«Despacho» es nombre provisional — decidirlo en la reunión. La diferencia clave está en la aprobación: deja de fabricar el conduce y pasa a habilitar los viajes.</figcaption>
+  </figure>
+
+  <p>Y como red de seguridad, si aun así aparecen dos conduces para el mismo movimiento, el sistema debe reconocerlos y vincularlos en vez de dejar el historial sucio:</p>
+  <figure class="fig">
+    <svg viewBox="0 0 920 192" role="img" aria-label="Red de seguridad: al detectar dos conduces de la misma requisición, el sistema marca uno como principal y el otro como rectificación de conduce vinculada, dejando un solo movimiento real en el historial.">
+      <defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker></defs>
+      <rect class="nd" x="16" y="52" width="260" height="84" rx="10"/>
+      <text class="tx tx-b" x="146" y="80">El sistema detecta 2 conduces</text>
+      <text class="tx" x="146" y="98">para la misma requisición</text>
+      <text class="tx" x="146" y="116">o el mismo movimiento</text>
+      <polyline class="ed" points="276,94 300,94 300,54 322,54" marker-end="url(#a5)"/>
+      <polyline class="ed" points="276,94 300,94 300,132 322,132" marker-end="url(#a5)"/>
+      <rect class="nd" x="326" y="30" width="250" height="48" rx="10"/>
+      <text class="tx tx-b" x="451" y="58">Conduce ① — principal</text>
+      <rect class="nd-acc" x="326" y="108" width="250" height="48" rx="10"/>
+      <text class="tx tx-acc" x="451" y="127">Conduce ② — «Rectificación</text>
+      <text class="tx tx-acc" x="451" y="144">de conduce» (vinculado a ①)</text>
+      <line class="ed-dash" x1="451" y1="78" x2="451" y2="108"/>
+      <polyline class="ed" points="576,54 604,54 604,84 622,84" marker-end="url(#a5)"/>
+      <polyline class="ed" points="576,132 604,132 604,104 622,104" marker-end="url(#a5)"/>
+      <rect class="nd-good" x="626" y="58" width="272" height="72" rx="14"/>
+      <text class="tx tx-good" x="762" y="86">✓ Un solo movimiento real</text>
+      <text class="tx" x="762" y="104">en el historial y en los KPIs</text>
+    </svg>
+    <figcaption>«Rectificación de conduce» es también nombre provisional; lo importante es que el duplicado no cuente dos veces.</figcaption>
+  </figure>
+  <div class="check-title">Para validar en la reunión</div>
+  <ul class="check">
+    <li>Nombre definitivo: ¿«despacho», «entrega», «viaje de requisición»…? Y ¿«rectificación de conduce» o algo más claro?</li>
+    <li>Al aprobar, ¿queda algo visible para el chofer (una lista de «requisiciones por despachar») o el chofer inicia el despacho por su cuenta?</li>
+    <li>¿Quién y cómo se decide que la requisición quedó completada si al final sobró o faltó material (cierre manual vs. automático al cubrir cantidades)?</li>
+    <li>Ante un duplicado, ¿el sistema bloquea la creación, avisa y deja continuar, o vincula automáticamente como rectificación?</li>
+    <li>¿Un despacho puede hacerlo también un proveedor externo? (uniría este flujo con el 01: despacho con conduce externo).</li>
+  </ul>
+</section>
+
+<!-- ═══════════════ IMPACTO ═══════════════ -->
+<section class="flow" id="impacto">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Dónde cae cada cambio</h2></div>
+  <div class="impact">
+    <table>
+      <thead><tr><th>Cambio</th><th>csd-app (móvil)</th><th>SGC (web)</th><th>Base de datos</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="what">Conduce externo</td>
+          <td><span class="tag new">nuevo</span> submódulo en Transporte, junto al hub de conduces</td>
+          <td>aparece en el historial de conduces con tipo «externo»</td>
+          <td><span class="tag new">nuevo</span> tipo de conduce + foto de placa</td>
+        </tr>
+        <tr>
+          <td class="what">Proveedores de transporte</td>
+          <td>selector con opción «Otro» al crear conduce externo</td>
+          <td><span class="tag new">nuevo</span> catálogo + perfil con viajes y estado de pago</td>
+          <td><span class="tag new">nuevas</span> tablas: proveedores y viajes</td>
+        </tr>
+        <tr>
+          <td class="what">Opción «Otros» (lugares)</td>
+          <td>en el selector de destino/mapa + <span class="tag">mejora</span> del buscador</td>
+          <td>los destinos en texto libre se ven en rutas y conduces</td>
+          <td>destino como texto plano, sin coordenadas</td>
+        </tr>
+        <tr>
+          <td class="what">Despachos</td>
+          <td>crear despacho desde la requisición aprobada</td>
+          <td>la aprobación deja de generar conduce; requisición muestra su avance por despachos</td>
+          <td>vínculo requisición↔despachos + cantidades parciales</td>
+        </tr>
+        <tr>
+          <td class="what">Rectificación de conduce</td>
+          <td>aviso al chofer si ya existe un conduce del movimiento</td>
+          <td>duplicados vinculados en el historial, sin contar doble</td>
+          <td>detección + vínculo entre conduces</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>
+  Propuesta basada en las notas del 25–26/08 y en el modelo vigente de Transporte v2 (conduce-céntrico: el conduce genera su ruta). Nada de esta página está implementado; primero se valida aquí, se corrigen los flujos que haga falta, y de ahí sale el documento de diseño para construir. — Xaviel · Tecnología · Constructora SD
+</footer>
+
+</div>
