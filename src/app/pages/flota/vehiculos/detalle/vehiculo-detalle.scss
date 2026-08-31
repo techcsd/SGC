@@ -141,7 +141,7 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
   }
   &__badge {
     position: absolute; top: 6px; left: 6px;
-    background: var(--sgc-primary, #ff5f00); color: #fff;
+    background: var(--sgc-primary); color: #fff;
     font-size: 11px; padding: 2px 8px; border-radius: 999px;
   }
   &__portada-btn {

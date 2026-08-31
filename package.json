@@ -1,6 +1,6 @@
 {
   "name": "sgc",
-  "version": "1.104.3",
+  "version": "1.104.4",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",

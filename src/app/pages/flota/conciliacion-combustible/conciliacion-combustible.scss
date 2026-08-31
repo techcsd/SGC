@@ -14,20 +14,20 @@
 .stat-card {
   display: flex; flex-direction: column; gap: 3px;
   padding: 9px 13px; min-width: 130px;
-  border: 1px solid var(--sgc-border, #2d2d2d); border-radius: 12px;
-  background: var(--sgc-surface, #161616);
+  border: 1px solid var(--sgc-border); border-radius: 12px;
+  background: var(--sgc-surface);
   &--ok { border-color: var(--sgc-success, #2e7d32); }
   &--danger { border-color: var(--sgc-danger, #c62828); }
   &--warn { border-color: var(--sgc-warning, #ed8936); }
-  &__label { font-size: 11.5px; color: var(--sgc-text-muted, #929090); line-height: 1.2; }
+  &__label { font-size: 11.5px; color: var(--sgc-text-muted); line-height: 1.2; }
   &__value { font-size: 18px; font-weight: 600; color: var(--sgc-text, inherit); line-height: 1.2; }
 }
 
 // BB7 — motivo de fila inválida/duplicada + acción de excluir.
-.cc-motivo { display: block; margin-top: 3px; font-size: 11.5px; color: var(--sgc-text-muted, #929090); }
+.cc-motivo { display: block; margin-top: 3px; font-size: 11.5px; color: var(--sgc-text-muted); }
 .cc-excluir {
   margin-top: 4px; font-size: 11.5px; padding: 2px 8px; cursor: pointer;
-  border: 1px solid var(--sgc-border, #2d2d2d); border-radius: 999px;
+  border: 1px solid var(--sgc-border); border-radius: 999px;
   background: transparent; color: var(--sgc-text-secondary, inherit);
   &:hover { border-color: var(--sgc-warning, #ed8936); }
 }

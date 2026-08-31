@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.104.4": {
+      "titulo": "Rediseño (BD3): módulo de Flota migrado al sistema de diseño",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Recorrido diario, rutas activas, conciliación de combustible, vehículos, detalle de conductor y logs migrados al sistema de tokens: grises y acentos centralizados, y un naranja suelto del marcador de paradas unificado al ámbar de marca. El look en claro se mantiene y las pantallas quedan listas para el tema oscuro."
+        }
+      ]
+    },
     "1.104.3": {
       "titulo": "Rediseño (BD3): Bitácora y conduces migrados al sistema de diseño",
       "cambios": [

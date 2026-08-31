@@ -22,8 +22,8 @@
   transition: all 0.15s ease;
   &:hover { border-color: var(--sgc-primary-mid); }
   &--activo {
-    background: var(--sgc-primary, #ff5f00);
-    border-color: var(--sgc-primary, #ff5f00);
+    background: var(--sgc-primary);
+    border-color: var(--sgc-primary);
     color: #fff;
   }
 }
