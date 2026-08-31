@@ -1,0 +1,176 @@
+// BD3 — Galería de componentes. Uses ONLY semantic tokens (dogfooding the system).
+// The `.ds[data-theme="dark"]` wrapper paints its own dark canvas so the preview
+// doesn't depend on the shell being themed.
+.ds {
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  min-height: 100%;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    font-size: var(--fs-2xl);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  &__lead {
+    margin-top: var(--space-2);
+    max-width: 70ch;
+    font-size: var(--fs-sm);
+    line-height: var(--lh-normal);
+    color: var(--text-2);
+  }
+
+  &__theme { flex-shrink: 0; }
+
+  &__section {
+    padding: var(--space-6) 0;
+    border-top: 1px solid var(--border);
+
+    &--split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+      @media (max-width: 720px) { grid-template-columns: 1fr; }
+    }
+  }
+
+  &__h2 {
+    font-size: var(--fs-lg);
+    font-weight: var(--fw-semibold);
+    color: var(--text);
+    margin-bottom: var(--space-4);
+  }
+
+  &__h3 {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-3);
+    margin: var(--space-4) 0 var(--space-2);
+  }
+
+  &__code {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-2);
+    background: var(--surface-3);
+    padding: 1px 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  // Color swatches
+  &__swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+
+  &__swatch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__chip {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  // Typography
+  &__type { display: flex; flex-direction: column; gap: var(--space-3); }
+
+  &__type-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    border-bottom: 1px dashed var(--border);
+    padding-bottom: var(--space-2);
+  }
+
+  &__type-sample {
+    color: var(--text);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-tight);
+  }
+
+  // Spacing
+  &__space { display: flex; flex-direction: column; gap: var(--space-2); }
+
+  &__space-row { display: flex; align-items: center; gap: var(--space-3); }
+
+  &__space-bar {
+    height: 16px;
+    background: var(--brand);
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+
+  // Radius / shadow tiles
+  &__tiles { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+
+  &__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 110px;
+    height: 80px;
+    background: var(--brand-soft);
+    border: 1px solid var(--border-strong);
+
+    &--shadow {
+      background: var(--surface);
+      border: none;
+      border-radius: var(--radius);
+    }
+  }
+
+  // Rows of demo components
+  &__row {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  &__form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+    max-width: 760px;
+  }
+
+  &__card { padding: var(--space-4); max-width: 460px; }
+
+  &__card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+  }
+
+  &__card-title { font-size: var(--fs-md); font-weight: var(--fw-semibold); color: var(--text); }
+
+  &__card-body {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    line-height: var(--lh-normal);
+    margin-bottom: var(--space-3);
+  }
+}

@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.104.0": {
+      "titulo": "Arranca el rediseño visual: sistema de diseño con tema claro y oscuro (interno)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nueva página interna «Sistema de diseño»: la galería de tokens y componentes base del rediseño, para verlos vivos en tema claro y oscuro. Solo para el equipo de Tecnología."
+        },
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "Arranca el sistema de design tokens del rediseño (BD3): color, tipografía, espaciado, radios y sombras centralizados y listos para tema oscuro. Sin cambios visibles todavía — la apariencia actual se mantiene idéntica; el rollout será módulo por módulo con mock aprobado."
+        },
+        {
+          "t": "arreglo",
+          "m": "General",
+          "d": "Corregidas dos variables de tipografía que se referenciaban sin estar definidas, lo que podía provocar una fuente incorrecta en algunos botones y títulos."
+        }
+      ]
+    },
     "1.103.0": {
       "titulo": "Confirmar recepción: la foto es obligatoria pero ya no te bloquea, y ves el conduce antes de firmar",
       "cambios": [

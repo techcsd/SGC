@@ -1,3 +1,7 @@
+// BD3 — design tokens (primitives + semantic light/dark). Must come first so the
+// legacy `--sgc-*` names and the AS18 shim below can resolve onto the semantics.
+@use './styles/tokens';
+
 *,
 *::before,
 *::after {
@@ -7,32 +11,37 @@
 }
 
 :root {
-  // SGC brand colors
-  --sgc-primary: #1f4e79;
-  --sgc-primary-mid: #2e75b6;
-  --sgc-primary-light: #d6e4f0;
-  --sgc-success: #2d7d46;
-  --sgc-success-light: #d4edda;
-  --sgc-danger: #c0392b;
-  --sgc-danger-light: #fde8e6;
-  --sgc-warning: #b45309;
-  --sgc-warning-light: #fef3c7;
-  --sgc-info: #0284c7;
-  --sgc-info-light: #e0f2fe;
+  // ── Legacy `--sgc-*` API — now re-pointed onto the BD3 semantic tokens ──────
+  // (defined in styles/_tokens.scss). The LIGHT values these resolve to are
+  // byte-identical to the previous literals, so nothing changes visually today;
+  // the win is that every `--sgc-*` reference across the app now themes for free
+  // when `[data-theme="dark"]` is set. New/migrated code should use the SEMANTIC
+  // names (--brand, --surface, --text, …) directly, not these aliases.
+  --sgc-primary: var(--brand);
+  --sgc-primary-mid: var(--brand-hover);
+  --sgc-primary-light: var(--brand-soft);
+  --sgc-success: var(--success);
+  --sgc-success-light: var(--success-bg);
+  --sgc-danger: var(--danger);
+  --sgc-danger-light: var(--danger-bg);
+  --sgc-warning: var(--warning);
+  --sgc-warning-light: var(--warning-bg);
+  --sgc-info: var(--info);
+  --sgc-info-light: var(--info-bg);
 
   // Surface & backgrounds
-  --sgc-bg: #f0f4f8;
-  --sgc-surface: #ffffff;
-  --sgc-surface-hover: #f8fafc;
-  --sgc-border: #e2e8f0;
-  --sgc-border-active: var(--sgc-primary-mid);
+  --sgc-bg: var(--bg);
+  --sgc-surface: var(--surface);
+  --sgc-surface-hover: var(--surface-2);
+  --sgc-border: var(--border);
+  --sgc-border-active: var(--brand-hover);
 
   // Sidebar
-  --sgc-sidebar-bg: #1a2e44;
-  --sgc-sidebar-hover: #243d58;
-  --sgc-sidebar-active: #1f4e79;
-  --sgc-sidebar-text: #ffffff;
-  --sgc-sidebar-text-muted: #94b4cc;
+  --sgc-sidebar-bg: var(--nav-bg);
+  --sgc-sidebar-hover: var(--nav-hover);
+  --sgc-sidebar-active: var(--nav-active);
+  --sgc-sidebar-text: var(--nav-text);
+  --sgc-sidebar-text-muted: var(--nav-text-muted);
   --sgc-sidebar-width: 240px;
   --sgc-sidebar-collapsed-width: 60px;
 
@@ -40,57 +49,63 @@
   --sgc-header-height: 60px;
 
   // Text
-  --sgc-text: #1e293b;
-  --sgc-text-secondary: #64748b;
-  --sgc-text-muted: #94a3b8;
+  --sgc-text: var(--text);
+  --sgc-text-secondary: var(--text-2);
+  --sgc-text-muted: var(--text-3);
 
   // Typography — using system fonts until custom fonts are added
   --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-heading: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono: 'Consolas', 'Courier New', monospace;
 
-  // Shadows
-  --sgc-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --sgc-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --sgc-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --sgc-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  // Shadows (re-pointed → darker automatically in dark theme)
+  --sgc-shadow-sm: var(--shadow-sm);
+  --sgc-shadow: var(--shadow);
+  --sgc-shadow-md: var(--shadow-md);
+  --sgc-shadow-lg: var(--shadow-lg);
 
-  // Radius
+  // Radius — theme-invariant, kept at the legacy values so migrating a module to
+  // the new (--radius* = 6/10/14) ladder is a deliberate, per-module choice, not
+  // a silent global reflow.
   --sgc-radius-sm: 4px;
   --sgc-radius: 8px;
   --sgc-radius-md: 10px;
   --sgc-radius-lg: 14px;
 
   // Transitions
-  --sgc-transition: all 0.2s ease;
-  --sgc-transition-fast: all 0.15s ease;
+  --sgc-transition: var(--transition);
+  --sgc-transition-fast: var(--transition-fast);
 
   // ── AS18 — Compatibility shim for the legacy X-Dev dark-theme tokens ──────
   // Recurring bug (also seen in round AE): components get authored copying the
   // X-Dev *dark* design vocabulary (`--main` #121212, `--secondary` #212121,
   // `--main-ultra-light` #929090, `--Hub` amber, `--danger`, `--primary`) from
   // the global CLAUDE.md idiom. SGC is a LIGHT ERP and never defined these, so
-  // ~208 `var(--main*/--Hub*/…)` references across ~42 files resolved to
+  // ~253 `var(--main*/--Hub*/…)` references across ~54 files resolved to
   // *invalid* → the property fell back to the inherited dark body text, which
   // is why cards rendered dark-on-dark and illegible.
-  // Rather than rewrite every file, we DEFINE the legacy names once here, mapped
-  // to the light `--sgc-*` tokens, so every existing (and future) reference
-  // resolves to a correct, AA-legible light value. Literal dark HEX backgrounds
-  // (#161616 etc.) can't be reached by this and are fixed per-file.
+  // Now mapped onto the BD3 semantics, so every existing (and future) reference
+  // resolves to a correct, AA-legible value that ALSO themes. Literal dark HEX
+  // backgrounds (#161616 etc.) can't be reached by this and are fixed per-file.
   // NOTE: `--main` is used both as dark TEXT color and as an intentionally dark
-  // surface (the printed carnet band); `var(--sgc-text)` (#1e293b) is dark enough
-  // to satisfy both. Do NOT re-map it to a light value.
-  --main: var(--sgc-text);
-  --main-light: var(--sgc-surface-hover);
-  --secondary: var(--sgc-surface-hover);
-  --main-ultra-light: var(--sgc-text-secondary);
-  --Hub: #ffb300;
-  --Hub-translucid: rgba(255, 179, 0, 0.18);
-  --primary: var(--sgc-primary);
-  --danger: var(--sgc-danger);
-  --success: var(--sgc-success);
-  --warning: var(--sgc-warning);
-  --info: var(--sgc-info);
+  // surface (the printed carnet band); `var(--text)` is dark enough for both in
+  // light theme. Do NOT re-map it to a light-only value.
+  --main: var(--text);
+  --main-light: var(--surface-2);
+  --secondary: var(--surface-2);
+  --main-ultra-light: var(--text-2);
+  --Hub: var(--accent);
+  --Hub-translucid: var(--accent-soft);
+  --primary: var(--brand);
+  // NOTE: `--danger`, `--success`, `--warning`, `--info` are NOT aliased here —
+  // those names are the BD3 SEMANTIC tokens themselves (styles/_tokens.scss),
+  // already defined with the correct, theme-aware values. The legacy references
+  // to `var(--danger)` etc. resolve straight to them (self-alias would be circular).
+
+  // AS18 addendum — these two were REFERENCED across the app but never DEFINED
+  // (invalid var → silent fallback). Defining them here closes that live bug.
+  --font-btns: var(--font-body);
+  --font-brand: var(--font-heading);
 }
 
 html,

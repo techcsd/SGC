@@ -98,4 +98,12 @@ export const tecnologiaRoutes: Routes = [
     loadComponent: () => import('./apis-consumo/apis-consumo').then((m) => m.TecApisConsumo),
     title: 'APIs y consumo — Tecnología',
   },
+  {
+    // BD3 — Galería de componentes / design system (tokens + componentes base en
+    // ambos temas). Interna: es_tecnologia. Contrato visual del rollout.
+    path: 'design-system',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./design-system/design-system').then((m) => m.TecDesignSystem),
+    title: 'Sistema de diseño — Tecnología',
+  },
 ];
