@@ -254,7 +254,7 @@
     align-items: center;
     gap: 8px;
     font-size: 0.9rem;
-    em { color: var(--main-ultra-light, #929090); font-style: normal; }
+    em { color: var(--text-2); font-style: normal; }
   }
 }
 .cron__dep-badge {
@@ -275,7 +275,7 @@
   margin-left: auto;
   border: none;
   background: transparent;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
   cursor: pointer;
   font-size: 0.9rem;
   &:hover { color: var(--sgc-danger, #e53935); }

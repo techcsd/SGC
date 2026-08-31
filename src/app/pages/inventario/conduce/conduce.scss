@@ -374,7 +374,7 @@
   border: 1px solid #4a3b00;
   border-radius: 12px;
   background: rgba(255, 179, 0, 0.12);
-  color: var(--Hub);
+  color: var(--accent);
   font-size: 0.86rem;
   svg { flex-shrink: 0; }
 }
@@ -393,13 +393,13 @@
   &__panel {
     width: 100%;
     max-width: 440px;
-    background: var(--secondary, #212121);
+    background: var(--surface-2);
     border: 1px solid var(--sgc-border);
     border-radius: 14px;
     padding: 20px;
 
     h2 { margin: 0 0 4px; font-size: 1.1rem; }
   }
-  &__sub { margin: 0 0 16px; color: var(--main-ultra-light); font-size: 0.85rem; }
+  &__sub { margin: 0 0 16px; color: var(--text-2); font-size: 0.85rem; }
   &__foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 }

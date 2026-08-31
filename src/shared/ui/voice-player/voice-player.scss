@@ -10,7 +10,7 @@
     height: 34px;
     border-radius: 50%;
     border: none;
-    background: var(--Hub);
+    background: var(--accent);
     color: var(--main);
     display: flex;
     align-items: center;
@@ -27,7 +27,7 @@
     flex: 1;
     height: 4px;
     border-radius: 2px;
-    background: var(--main-ultra-light);
+    background: var(--text-2);
     opacity: 0.5;
     overflow: hidden;
   }
@@ -35,7 +35,7 @@
   &__fill {
     position: absolute;
     inset: 0 auto 0 0;
-    background: var(--Hub);
+    background: var(--accent);
     border-radius: 2px;
     transition: width 0.15s linear;
   }
@@ -43,7 +43,7 @@
   &__time {
     flex-shrink: 0;
     font-size: 0.72rem;
-    color: var(--main-ultra-light);
+    color: var(--text-2);
     font-variant-numeric: tabular-nums;
     min-width: 32px;
     text-align: right;

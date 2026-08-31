@@ -4,7 +4,7 @@
   gap: 14px;
 
   &__error {
-    color: var(--primary, #ff5f00);
+    color: var(--brand);
     font-size: 0.9rem;
   }
 
@@ -65,7 +65,7 @@
   &__item-group-title {
     font-size: 0.85rem;
     font-weight: 700;
-    color: var(--primary, #ff5f00);
+    color: var(--brand);
     margin: 0 0 6px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -154,7 +154,7 @@
     gap: 8px;
 
     strong {
-      color: var(--primary, #ff5f00);
+      color: var(--brand);
     }
     span {
       font-size: 0.9rem;
@@ -181,7 +181,7 @@
     padding: 3px 8px;
     border-radius: 999px;
     background: #f2f2f2;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
 
     &--done {
       background: #e6f5ec;
@@ -194,7 +194,7 @@
   &__firma-regla {
     margin: 4px 0 0;
     font-size: 0.74rem;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
 
     &--ok { color: #1f7a44; font-weight: 600; }
   }
@@ -219,11 +219,11 @@
     font-size: 0.8rem;
     border: none;
     background: #fff;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
     cursor: pointer;
 
     & + & { border-left: 1px solid #e0e0e0; }
-    &--active { background: var(--Hub, #ffb300); color: var(--main, #121212); font-weight: 600; }
+    &--active { background: var(--accent); color: var(--main, #121212); font-weight: 600; }
   }
 
   // Q5 — etiqueta "foto" en la firma
@@ -231,7 +231,7 @@
     display: inline-block;
     margin-left: 4px;
     font-size: 0.68rem;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
   }
 
   // Q5 — panel de solicitar firma
@@ -316,7 +316,7 @@
     }
     figcaption {
       font-size: 0.72rem;
-      color: var(--main-ultra-light, #929090);
+      color: var(--text-2);
       margin-top: 2px;
     }
     &--no img {

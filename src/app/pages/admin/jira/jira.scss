@@ -28,7 +28,7 @@
   min-height: 200px;
   transition: background 0.15s ease, border-color 0.15s ease;
 
-  &--over { border-color: var(--Hub); background: var(--sgc-surface-hover); }
+  &--over { border-color: var(--accent); background: var(--sgc-surface-hover); }
 
   &__head {
     display: flex;
@@ -42,18 +42,18 @@
     padding: 1px 8px;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.06);
-    color: var(--main-ultra-light);
+    color: var(--text-2);
   }
   &__body { display: flex; flex-direction: column; gap: 8px; padding: 0 10px 10px; }
   &__add {
     border: 1px dashed var(--sgc-border);
     background: transparent;
-    color: var(--main-ultra-light);
+    color: var(--text-2);
     border-radius: 10px;
     padding: 7px;
     cursor: pointer;
     font-size: 0.8rem;
-    &:hover { border-color: var(--Hub); color: var(--Hub); }
+    &:hover { border-color: var(--accent); color: var(--accent); }
   }
 }
 
@@ -65,7 +65,7 @@
   cursor: pointer;
   transition: all 0.15s ease;
 
-  &:hover { border-color: var(--Hub); transform: translateY(-1px); }
+  &:hover { border-color: var(--accent); transform: translateY(-1px); }
   &:active { cursor: grabbing; }
 
   &__top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
@@ -74,10 +74,10 @@
   &__foot { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
   &__spacer { flex: 1; }
   &__epica { font-size: 0.7rem; color: #7fb3f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
-  &__meta { display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--main-ultra-light); }
+  &__meta { display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--text-2); }
   &__avatar {
     width: 22px; height: 22px; border-radius: 50%;
-    background: rgba(255, 179, 0, 0.18); color: var(--Hub);
+    background: rgba(255, 179, 0, 0.18); color: var(--accent);
     display: inline-flex; align-items: center; justify-content: center;
     font-size: 0.72rem; font-weight: 700;
   }
@@ -95,9 +95,9 @@
 .jira-tipo--bug    { background: rgba(239,83,80,0.18);  color: #ef8a87; }
 .jira-tipo--mejora { background: rgba(67,160,71,0.16);  color: #7bc47f; }
 .jira-tipo--epica  { background: rgba(155,89,182,0.18); color: #c39bd3; }
-.jira-prio--baja    { background: rgba(146,144,144,0.16); color: var(--main-ultra-light); }
+.jira-prio--baja    { background: rgba(146,144,144,0.16); color: var(--text-2); }
 .jira-prio--media   { background: rgba(74,144,226,0.16);  color: #7fb3f0; }
-.jira-prio--alta    { background: rgba(255,179,0,0.16);   color: var(--Hub); }
+.jira-prio--alta    { background: rgba(255,179,0,0.16);   color: var(--accent); }
 .jira-prio--urgente { background: rgba(239,83,80,0.2);    color: #ef8a87; }
 
 .jira-label {
@@ -105,7 +105,7 @@
   padding: 1px 7px;
   border-radius: 6px;
   background: rgba(255,255,255,0.06);
-  color: var(--main-ultra-light);
+  color: var(--text-2);
 }
 
 // ── Formularios / detalle ──────────────────────────────────────────────────
@@ -114,7 +114,7 @@
 
 .jira-det__top { display: flex; gap: 6px; margin-bottom: 6px; }
 .jira-det__titulo { margin: 0 0 4px; font-size: 1.1rem; }
-.jira-det__meta { margin: 0 0 10px; color: var(--main-ultra-light); font-size: 0.82rem; }
+.jira-det__meta { margin: 0 0 10px; color: var(--text-2); font-size: 0.82rem; }
 .jira-det__desc {
   white-space: pre-wrap;
   font-family: inherit;
@@ -129,7 +129,7 @@
 .jira-det__h { font-size: 0.9rem; margin: 16px 0 8px; }
 .jira-det__empty { font-size: 0.84rem; }
 .jira-det__adj { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.jira-link { background: none; border: none; color: var(--Hub); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
+.jira-link { background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font: inherit; text-decoration: underline; }
 
 .jira-com { border-bottom: 1px solid var(--sgc-border); padding: 8px 0; }
 .jira-com__head { display: flex; gap: 8px; font-size: 0.8rem; }

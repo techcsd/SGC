@@ -7,7 +7,7 @@
 .ac-note {
   background: var(--sgc-surface);
   border: 1px solid var(--sgc-border);
-  border-left: 3px solid var(--Hub, #ffb300);
+  border-left: 3px solid var(--accent);
   border-radius: 10px;
   padding: 12px 14px;
   margin: 0 0 16px;
@@ -15,7 +15,7 @@
   color: var(--sgc-text-muted);
   line-height: 1.5;
 }
-.ac-error { color: var(--primary, #ff5f00); }
+.ac-error { color: var(--brand); }
 .ac-muted { color: var(--sgc-text-muted); }
 .ac-empty { text-align: center; padding: 20px; }
 .ac-table-wrap { overflow-x: auto; }
@@ -23,7 +23,7 @@
   margin-left: 6px;
   color: var(--sgc-text-muted);
   vertical-align: middle;
-  &:hover { color: var(--Hub, #ffb300); }
+  &:hover { color: var(--accent); }
 }
 
 // Editor modal

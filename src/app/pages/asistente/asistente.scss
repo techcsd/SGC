@@ -65,8 +65,8 @@
   color: var(--sgc-text);
   text-decoration: none;
   transition: all 0.15s ease;
-  &:hover { border-color: var(--Hub); transform: translateY(-1px); }
-  svg { color: var(--Hub); flex: 0 0 auto; }
+  &:hover { border-color: var(--accent); transform: translateY(-1px); }
+  svg { color: var(--accent); flex: 0 0 auto; }
 }
 .compa__archivo-txt { display: flex; flex-direction: column; strong { font-size: 13.5px; } small { color: var(--sgc-text-muted); font-size: 11.5px; } }
 
@@ -93,7 +93,7 @@
   place-items: center;
   width: 40px; height: 40px;
   border-radius: 12px;
-  background: var(--Hub, #ffb300);
+  background: var(--accent);
   color: #121212;
   flex-shrink: 0;
 }
@@ -123,7 +123,7 @@
   cursor: pointer;
   font-size: 13px;
   transition: all 0.15s ease;
-  &:hover { border-color: var(--Hub, #ffb300); }
+  &:hover { border-color: var(--accent); }
 }
 
 // ── Mensajes ──
@@ -139,7 +139,7 @@
   word-break: break-word;
 }
 .compa__msg--user .compa__bubble {
-  background: var(--Hub, #ffb300);
+  background: var(--accent);
   color: #121212;
   border-bottom-right-radius: 4px;
 }
@@ -176,13 +176,13 @@
   align-self: flex-start;
   max-width: 88%;
   background: var(--sgc-surface);
-  border: 1px solid var(--Hub, #ffb300);
+  border: 1px solid var(--accent);
   border-radius: 14px;
   padding: 14px 16px;
 }
 .compa__propuesta-head {
   display: flex; align-items: center; gap: 8px;
-  color: var(--Hub, #ffb300);
+  color: var(--accent);
   font-size: 14px;
   margin-bottom: 8px;
 }
@@ -234,7 +234,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-family: inherit;
-  &:focus { outline: none; border-color: var(--Hub, #ffb300); }
+  &:focus { outline: none; border-color: var(--accent); }
 }
 .compa__send {
   flex-shrink: 0;

@@ -17,8 +17,8 @@
     color: var(--sgc-text-muted);
     font-size: 13px;
     cursor: pointer;
-    &.is-active { background: var(--primary, #ff5f00); color: #fff; }
-    &.is-done { color: var(--primary, #ff5f00); }
+    &.is-active { background: var(--brand); color: #fff; }
+    &.is-done { color: var(--brand); }
   }
   &__n {
     display: inline-flex; align-items: center; justify-content: center;
@@ -46,7 +46,7 @@
 .pob-foto {
   display: flex; flex-direction: column; gap: 8px;
   border: 1px solid #2d2d2d22; border-radius: 12px; padding: 12px;
-  &.is-done { border-color: var(--Hub, #ffb300); }
+  &.is-done { border-color: var(--accent); }
   &__prev {
     height: 150px; border-radius: 8px; overflow: hidden; background: #f0f0f0;
     display: flex; align-items: center; justify-content: center;
@@ -83,5 +83,5 @@
     background: #2e7d32; color: #fff; font-size: 28px; margin-bottom: 10px;
   }
   h2 { margin: 0 0 4px; }
-  &__num { font-weight: 700; color: var(--primary, #ff5f00); margin-top: 8px; }
+  &__num { font-weight: 700; color: var(--brand); margin-top: 8px; }
 }

@@ -514,7 +514,7 @@
   border-radius: 6px;
   padding: 1px 5px;
 }
-.roles-matrix__implicit { font-size: 12px; color: var(--Hub, #ffb300); font-weight: 600; }
+.roles-matrix__implicit { font-size: 12px; color: var(--accent); font-weight: 600; }
 .roles-matrix__select { min-width: 120px; }
 
 // ── AN2 — indicador "cambios sin guardar" ──
@@ -554,7 +554,7 @@
     border: 1px solid var(--sgc-border, #e2e8f0);
     border-radius: 8px;
     font-size: 0.85rem;
-    color: var(--main-ultra-light);
+    color: var(--text-2);
     line-height: 1.45;
   }
 

@@ -729,9 +729,9 @@
 }
 
 // AW15 — nota de voz (composer + burbuja)
-.composer__mic { color: var(--main-ultra-light, #929090); }
-.composer__mic:hover { color: var(--Hub, #ffb300); }
-.composer__cancel { color: var(--primary, #ff5f00); }
+.composer__mic { color: var(--text-2); }
+.composer__mic:hover { color: var(--accent); }
+.composer__cancel { color: var(--brand); }
 .composer__recording {
   flex: 1;
   display: flex;
@@ -742,7 +742,7 @@
 }
 .composer__rec-dot {
   width: 12px; height: 12px; border-radius: 50%;
-  background: var(--primary, #ff5f00);
+  background: var(--brand);
   animation: rec-pulse 1s ease-in-out infinite;
   flex: 0 0 auto;
 }
@@ -751,11 +751,11 @@
 .composer__rec-wave {
   flex: 0 0 auto;
   width: 4px; height: 24px; border-radius: 2px;
-  background: var(--Hub, #ffb300);
+  background: var(--accent);
   transform-origin: center;
   transition: transform 0.08s linear;
 }
-.composer__rec-hint { color: var(--main-ultra-light, #929090); font-size: 0.85rem; }
+.composer__rec-hint { color: var(--text-2); font-size: 0.85rem; }
 .msg__bubble--audio { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 // ── AV5 — meta (hora + ticks) alineada al final de la burbuja ──────────────
@@ -769,7 +769,7 @@
 .msg__ticks {
   display: inline-flex;
   align-items: center;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
   opacity: 0.85;
   &--leido { color: #34b7f1; opacity: 1; } // azul WhatsApp
 }
@@ -791,7 +791,7 @@
   text-align: left;
   transition: all 0.15s ease;
 
-  &:hover { border-color: var(--Hub); }
+  &:hover { border-color: var(--accent); }
 
   &__icon {
     flex-shrink: 0;
@@ -802,7 +802,7 @@
     justify-content: center;
     border-radius: 9px;
     background: rgba(255, 255, 255, 0.05);
-    color: var(--main-ultra-light);
+    color: var(--text-2);
   }
   &[data-tipo='pdf'] &__icon { color: #ef5350; }
   &[data-tipo='word'] &__icon { color: #4a90e2; }
@@ -817,7 +817,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  &__meta { font-size: 0.72rem; color: var(--main-ultra-light); }
+  &__meta { font-size: 0.72rem; color: var(--text-2); }
 }
 
 // ── AV5 — presencia (escribiendo/grabando…) ────────────────────────────────
@@ -827,7 +827,7 @@
   gap: 8px;
   padding: 4px 16px 6px;
   font-size: 0.8rem;
-  color: var(--Hub);
+  color: var(--accent);
   font-style: italic;
 }
 .thread__typing-dots {
@@ -837,7 +837,7 @@
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: var(--Hub);
+    background: var(--accent);
     animation: typing-bounce 1.2s infinite ease-in-out;
     &:nth-child(2) { animation-delay: 0.15s; }
     &:nth-child(3) { animation-delay: 0.3s; }
@@ -883,7 +883,7 @@
     height: min(90vh, 100%);
     display: flex;
     flex-direction: column;
-    background: var(--secondary, #212121);
+    background: var(--surface-2);
     border-radius: 14px;
     overflow: hidden;
   }

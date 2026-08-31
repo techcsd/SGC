@@ -184,7 +184,7 @@
     font-size: 13px;
     cursor: pointer;
     &--active {
-      border-color: var(--Hub, #ffb300);
+      border-color: var(--accent);
       color: var(--sgc-text, inherit);
       background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.08));
     }

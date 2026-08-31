@@ -15,7 +15,7 @@
   border: 1px solid #4a3b00;
   border-radius: 12px;
   background: rgba(255, 179, 0, 0.12);
-  color: var(--Hub);
+  color: var(--accent);
   font-size: 0.84rem;
   svg { flex-shrink: 0; }
 }
@@ -39,7 +39,7 @@
     padding: 2px 10px;
     border-radius: 999px;
     background: rgba(255, 179, 0, 0.15);
-    color: var(--Hub);
+    color: var(--accent);
   }
   &__pair {
     display: flex;
@@ -56,15 +56,15 @@
   padding: 12px;
   border: 1px solid var(--sgc-border);
   border-radius: 12px;
-  background: var(--secondary, #212121);
+  background: var(--surface-2);
   &__nombre { font-weight: 600; }
-  &__meta { font-size: 0.78rem; color: var(--main-ultra-light); flex: 1; }
+  &__meta { font-size: 0.78rem; color: var(--text-2); flex: 1; }
 }
 
 .dup-vs {
   display: flex;
   align-items: center;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   font-size: 1.2rem;
 }
 

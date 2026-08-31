@@ -2,11 +2,11 @@
   padding: 20px 24px 40px;
 
   &__head { margin-bottom: 16px; }
-  &__back { color: var(--main-ultra-light); font-size: 13px; text-decoration: none; }
-  &__back:hover { color: var(--Hub, #ffb300); }
+  &__back { color: var(--text-2); font-size: 13px; text-decoration: none; }
+  &__back:hover { color: var(--accent); }
   &__title { margin: 4px 0 2px; font-size: 22px; }
-  &__sub { margin: 0; color: var(--main-ultra-light); font-size: 13px; }
-  &__loading, &__empty, &__error { padding: 30px; text-align: center; color: var(--main-ultra-light); }
+  &__sub { margin: 0; color: var(--text-2); font-size: 13px; }
+  &__loading, &__empty, &__error { padding: 30px; text-align: center; color: var(--text-2); }
   &__error { color: var(--danger, #e5484d); }
 }
 
@@ -23,7 +23,7 @@
     align-items: center;
     gap: 6px;
     font-size: 13px;
-    color: var(--main-ultra-light);
+    color: var(--text-2);
     cursor: pointer;
   }
 }
@@ -39,7 +39,7 @@
   padding: 2px 8px;
   cursor: pointer;
   font: inherit;
-  &:hover { border-color: var(--Hub, #ffb300); }
+  &:hover { border-color: var(--accent); }
 }
 
 // AU1 · P1 — selector de mecanismo del modal "Ajustar existencia".
@@ -65,7 +65,7 @@
     top: 12px;
   }
   &--active {
-    border-color: var(--Hub, #ffb300);
+    border-color: var(--accent);
     background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.06));
   }
   &__title {

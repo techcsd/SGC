@@ -54,14 +54,14 @@
 .mnc-x {
   background: none;
   border: none;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   font-size: 1.1rem;
   cursor: pointer;
   &:hover { color: var(--sgc-text); }
 }
 
-.mnc-src { margin: 0; color: var(--main-ultra-light); }
-.mnc-note { margin: 0; font-size: 0.82rem; color: var(--main-ultra-light); }
+.mnc-src { margin: 0; color: var(--text-2); }
+.mnc-note { margin: 0; font-size: 0.82rem; color: var(--text-2); }
 
 // AY13 — toggle "generar movimiento"
 .mnc-mov {
@@ -78,6 +78,6 @@
   input { margin-top: 3px; flex-shrink: 0; }
   span { display: flex; flex-direction: column; gap: 3px; }
   strong { font-size: 0.9rem; }
-  small { color: var(--main-ultra-light); font-size: 0.78rem; line-height: 1.35; }
+  small { color: var(--text-2); font-size: 0.78rem; line-height: 1.35; }
 }
 .mnc-tag svg { vertical-align: -2px; margin-right: 2px; }

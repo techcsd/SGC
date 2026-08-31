@@ -28,14 +28,14 @@
     border-bottom: 1px solid var(--sgc-border);
     h2 { margin: 0; font-size: 1.05rem; }
   }
-  &__meta { font-size: 0.82rem; color: var(--main-ultra-light); }
+  &__meta { font-size: 0.82rem; color: var(--text-2); }
   &__body { padding: 1rem 1.25rem; }
 }
 
 .tray-x {
   background: none;
   border: none;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   font-size: 1.1rem;
   cursor: pointer;
   &:hover { color: var(--sgc-text); }
@@ -54,7 +54,7 @@
 }
 
 .tray-hint {
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   margin: 0.6rem 0 0;
   &--err { color: #f87171; }
 }

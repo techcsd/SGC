@@ -11,11 +11,11 @@
     margin-bottom: 12px;
   }
   &__status { flex: 1; text-align: center; font-size: 0.85rem; }
-  &__saving { color: var(--main-ultra-light, #929090); }
+  &__saving { color: var(--text-2); }
   &__saved { color: #16a34a; }
   &__topbar-actions { display: flex; gap: 8px; }
 
-  &__loading { color: var(--main-ultra-light, #929090); }
+  &__loading { color: var(--text-2); }
 
   &__titulo {
     width: 100%;

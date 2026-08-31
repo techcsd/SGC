@@ -1,5 +1,5 @@
 .pf-hint {
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   &--err { color: #f87171; }
 }
 
@@ -9,7 +9,7 @@
   border-radius: 14px;
   padding: 2rem;
   text-align: center;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -40,14 +40,14 @@
   transition: all 0.15s ease;
 
   &:hover {
-    border-color: var(--Hub);
+    border-color: var(--accent);
     transform: translateY(-2px);
   }
 
   &__main { display: flex; flex-direction: column; gap: 0.2rem; }
   &__num { font-weight: 700; color: var(--sgc-text); }
-  &__meta { font-size: 0.85rem; color: var(--main-ultra-light); }
-  &__cta { color: var(--Hub); font-weight: 600; white-space: nowrap; }
+  &__meta { font-size: 0.85rem; color: var(--text-2); }
+  &__cta { color: var(--accent); font-weight: 600; white-space: nowrap; }
   &__cta--warn { color: #f59e0b; }
 }
 
@@ -100,7 +100,7 @@
 .pf-x {
   background: none;
   border: none;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -121,7 +121,7 @@
 
   svg { color: #f59e0b; flex-shrink: 0; margin-top: 0.1rem; }
   strong { display: block; margin-bottom: 0.25rem; color: #f59e0b; }
-  p { margin: 0; font-size: 0.9rem; color: var(--main-ultra-light); }
+  p { margin: 0; font-size: 0.9rem; color: var(--text-2); }
 }
 
 .pf-datos {
@@ -131,7 +131,7 @@
   margin: 0 0 1rem;
 
   div { display: flex; flex-direction: column; }
-  dt { font-size: 0.75rem; color: var(--main-ultra-light); text-transform: uppercase; }
+  dt { font-size: 0.75rem; color: var(--text-2); text-transform: uppercase; }
   dd { margin: 0; color: var(--sgc-text); }
 }
 
@@ -159,29 +159,29 @@
     border-radius: 8px;
   }
   &--libre {
-    border-color: var(--Hub) !important;
-    em { color: var(--Hub); font-style: normal; font-size: 0.8rem; }
+    border-color: var(--accent) !important;
+    em { color: var(--accent); font-style: normal; font-size: 0.8rem; }
   }
   &__n { color: var(--sgc-text); }
-  &__q { color: var(--main-ultra-light); white-space: nowrap; }
+  &__q { color: var(--text-2); white-space: nowrap; }
 }
 
 .pf-obs {
   margin: 0.9rem 0 0;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
   font-size: 0.9rem;
 }
 
 .pf-note {
   margin: 0 0 0.5rem;
   font-size: 0.85rem;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
 }
 
 .pf-link {
   background: none;
   border: none;
-  color: var(--Hub);
+  color: var(--accent);
   cursor: pointer;
   padding: 0.3rem 0;
   font-size: 0.85rem;

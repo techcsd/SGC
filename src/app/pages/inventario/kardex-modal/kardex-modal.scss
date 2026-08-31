@@ -27,9 +27,9 @@
     margin-bottom: 12px;
   }
   &__title { margin: 0; font-size: 18px; }
-  &__sub { margin: 2px 0 0; color: var(--main-ultra-light); font-size: 13px; }
+  &__sub { margin: 2px 0 0; color: var(--text-2); font-size: 13px; }
 
-  &__loading, &__error, &__empty { padding: 24px; text-align: center; color: var(--main-ultra-light); }
+  &__loading, &__error, &__empty { padding: 24px; text-align: center; color: var(--text-2); }
   &__error { color: var(--danger, #e5484d); }
 
   &__stats {
@@ -44,7 +44,7 @@
     border: 1px solid var(--sgc-border);
     border-radius: 10px;
     padding: 10px 12px;
-    span { display: block; font-size: 12px; color: var(--main-ultra-light); }
+    span { display: block; font-size: 12px; color: var(--text-2); }
     strong { font-size: 20px; }
   }
 
@@ -55,20 +55,20 @@
     padding: 10px 12px;
     margin-bottom: 14px;
   }
-  &__timeline-cap { font-size: 12px; color: var(--main-ultra-light); }
+  &__timeline-cap { font-size: 12px; color: var(--text-2); }
   &__svg {
     width: 100%;
     height: 110px;
     display: block;
     margin-top: 6px;
   }
-  &__svg-line { fill: none; stroke: var(--Hub, #ffb300); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  &__svg-line { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; }
   &__svg-base { fill: none; stroke: #3a3a3a; stroke-width: 1; stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
   &__timeline-scale {
     display: flex;
     justify-content: space-between;
     font-size: 11px;
-    color: var(--main-ultra-light);
+    color: var(--text-2);
   }
 
   &__filters {

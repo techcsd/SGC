@@ -17,7 +17,7 @@
 
   &__cap {
     font-size: 0.74rem;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
     white-space: nowrap;
   }
 
@@ -32,18 +32,18 @@
     margin-left: auto;
     border: none;
     background: transparent;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
     cursor: pointer;
     font-size: 0.9rem;
     line-height: 1;
 
-    &:hover { color: var(--primary, #ff5f00); }
+    &:hover { color: var(--brand); }
     &:disabled { opacity: 0.5; cursor: not-allowed; }
   }
 
   &__muted {
     font-size: 0.74rem;
-    color: var(--main-ultra-light, #929090);
+    color: var(--text-2);
     margin: 0;
   }
 
@@ -58,13 +58,13 @@
   margin: 4px 0 0;
   font-size: 0.85rem;
   font-style: italic;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
   flex-basis: 100%;
 }
 .audio-notas__retry {
   border: none;
   background: transparent;
-  color: var(--primary, #ff5f00);
+  color: var(--brand);
   font-size: 0.78rem;
   cursor: pointer;
   padding: 0;

@@ -557,7 +557,7 @@ textarea {
   gap: 0.75rem;
   margin-bottom: 0.6rem;
   font-size: 0.9rem;
-  color: var(--main-ultra-light);
+  color: var(--text-2);
 }
 .libre-row {
   display: grid;
@@ -578,7 +578,7 @@ textarea {
 .libre-note {
   margin: 0.3rem 0 0;
   font-size: 0.8rem;
-  color: var(--Hub);
+  color: var(--accent);
 }
 
 // P2 — banner de acceso a la bandeja Requisiciones (Salidas ya no aprueba requisiciones).
@@ -591,9 +591,9 @@ textarea {
   margin-bottom: 16px;
   text-decoration: none;
   color: var(--sgc-text, inherit);
-  border-left: 4px solid var(--Hub, #ffb300);
+  border-left: 4px solid var(--accent);
   transition: background 0.15s ease;
 
   &:hover { background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.06)); }
-  &__cta { color: var(--Hub, #ffb300); font-weight: 600; white-space: nowrap; }
+  &__cta { color: var(--accent); font-weight: 600; white-space: nowrap; }
 }
