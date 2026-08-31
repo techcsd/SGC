@@ -155,8 +155,8 @@
 .req-detail__vincular {
   margin-top: 10px;
   padding: 10px;
-  background: #161616;
-  border: 1px solid #2d2d2d;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   border-radius: 10px;
 }
 .req-sueltos {
@@ -173,7 +173,8 @@
     justify-content: space-between;
     gap: 10px;
     padding: 6px 8px;
-    background: var(--secondary, #212121);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 8px;
   }
 }

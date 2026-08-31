@@ -172,7 +172,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #c0392b;
+  background: var(--danger);
   border: 1.5px solid var(--sgc-sidebar-bg, #121212);
 }
 
@@ -182,7 +182,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  background: #c0392b;
+  background: var(--danger);
   color: #fff;
   font-size: 11px;
   font-weight: 700;

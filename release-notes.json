@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.104.1": {
+      "titulo": "Rediseño (BD3): arranca el rollout por el shell + dos paneles que se veían oscuros",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "El buscador de lugares del conduce externo mostraba la lista de resultados con fondo oscuro heredado (texto casi ilegible); ahora usa la superficie clara del sistema, con sombra y texto legible."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "El panel para vincular un conduce suelto a una requisición se veía con fondo oscuro; ahora usa la superficie clara del sistema."
+        },
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "El menú lateral (shell) empieza a consumir los nuevos tokens del rediseño: el indicador de notificaciones ahora usa el color de estado centralizado. Sin cambios visibles."
+        }
+      ]
+    },
     "1.104.0": {
       "titulo": "Arranca el rediseño visual: sistema de diseño con tema claro y oscuro (interno)",
       "cambios": [
