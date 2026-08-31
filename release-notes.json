@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.104.3": {
+      "titulo": "Rediseño (BD3): Bitácora y conduces migrados al sistema de diseño",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Bitácora",
+          "d": "Parte diario y solicitudes de material migrados al sistema de tokens (grises y acentos centralizados). Look en claro idéntico, listos para el tema oscuro."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Listados de conduces (externos, por implementar y principal) migrados al sistema de tokens."
+        },
+        {
+          "t": "arreglo",
+          "m": "Bitácora",
+          "d": "En el parte diario, una línea divisoria usaba una variable de color que no estaba definida y caía a un gris fijo; ahora usa el borde estándar del sistema."
+        }
+      ]
+    },
     "1.104.2": {
       "titulo": "Rediseño (BD3): Requisiciones y conduce externo migrados al sistema de diseño",
       "cambios": [

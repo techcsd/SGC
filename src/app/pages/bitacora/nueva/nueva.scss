@@ -385,14 +385,14 @@
   gap: 8px;
   margin: 6px 0 2px;
   font-size: 0.85rem;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
   cursor: pointer;
 }
-.bitacora-matriz__aprox-toggle input { accent-color: var(--Hub, #ffb300); }
+.bitacora-matriz__aprox-toggle input { accent-color: var(--accent); }
 .bitacora-matriz__aprox-hint {
   margin: 4px 0 0;
   font-size: 0.78rem;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
   line-height: 1.35;
 }
 // AX6 — fila para agregar un elemento "Otros" (input + botón).
@@ -413,7 +413,7 @@
   flex-wrap: wrap;
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px dashed var(--color-border, #d4d4d4);
+  border-top: 1px dashed var(--border);
 
   .sgc-input { flex: 1 1 220px; }
 }
