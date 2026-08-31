@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.104.5": {
+      "titulo": "Rediseño (BD3): se cierran los últimos bordes/fondos oscuros heredados",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Dos líneas divisorias (en «lugares por registrar» y «proveedores de transporte») se veían con un tono oscuro heredado; ahora usan el borde claro estándar. Con esto no quedan fondos ni bordes oscuros heredados sueltos en la app."
+        }
+      ]
+    },
     "1.104.4": {
       "titulo": "Rediseño (BD3): módulo de Flota migrado al sistema de diseño",
       "cambios": [
