@@ -1,5 +1,30 @@
 {
   "web": {
+    "1.105.0": {
+      "titulo": "Compa reporta: resumen semanal de operaciones + consultas por rol",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Compa",
+          "d": "Compa ahora responde consultas por rol: '¿qué hizo hoy un chofer?' (para jefes de flota, logística, gerencia y admin), 'todas las rutas de hoy' (panorama completo para logística), y '¿en qué almacenes hay X?' resolviendo el artículo por su apodo. Un chofer sigue viendo solo lo suyo."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compa",
+          "d": "Resumen semanal de operaciones: cada lunes 7:00 AM sale un correo con requisiciones, estatus y pendientes por atender, rutas, conduces, movimiento de inventario, km/combustible de los camiones y bitácoras por obra. Con PDF detallado. Los mismos números se le pueden preguntar a Compa cualquier día."
+        },
+        {
+          "t": "mejora",
+          "m": "Compa",
+          "d": "Se acabó el 'No pude completar la consulta, intenta reformular': ahora cuando algo falla Compa dice la causa y ofrece una salida ('no encontré ese artículo — ¿se llama distinto?', 'ya lo reporté a Tecnología')."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Dos consolas nuevas: 'Resumen de operaciones' (preview de la semana + reenviar el correo a mano + historial de envíos) y 'Consultas de Compa' (el backlog automático de lo que la gente pregunta y Compa aún no puede responder)."
+        }
+      ]
+    },
     "1.104.5": {
       "titulo": "Rediseño (BD3): se cierran los últimos bordes/fondos oscuros heredados",
       "cambios": [

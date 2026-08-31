@@ -1,0 +1,88 @@
+<div class="cnc">
+  <header class="cnc-head">
+    <div>
+      <h1>Consultas no atendidas de Compa</h1>
+      <p class="cnc-sub">
+        El backlog automático: lo que la gente le pide a Compa y no puede responder.
+        Esta lista es la fuente de la próxima tanda de capacidades — no las capturas a mano.
+      </p>
+    </div>
+    <button class="cnc-btn" (click)="load()" [disabled]="loading()">Actualizar</button>
+  </header>
+
+  @if (error()) {
+    <div class="cnc-error">{{ error() }}</div>
+  }
+
+  <!-- KPIs -->
+  @if (conteos(); as c) {
+    <div class="cnc-kpis">
+      <div class="cnc-kpi">
+        <span class="cnc-kpi-n">{{ c.total }}</span>
+        <span class="cnc-kpi-l">Total</span>
+      </div>
+      <div class="cnc-kpi cnc-kpi--warn">
+        <span class="cnc-kpi-n">{{ c.pendientes }}</span>
+        <span class="cnc-kpi-l">Pendientes</span>
+      </div>
+      <div class="cnc-kpi">
+        <span class="cnc-kpi-n">{{ c.ultimos_7d }}</span>
+        <span class="cnc-kpi-l">Últimos 7 días</span>
+      </div>
+      <div class="cnc-kpi">
+        <span class="cnc-kpi-n">{{ c.sin_tool }}</span>
+        <span class="cnc-kpi-l">Sin herramienta</span>
+      </div>
+      <div class="cnc-kpi">
+        <span class="cnc-kpi-n">{{ c.error_de_tool }}</span>
+        <span class="cnc-kpi-l">Error de herramienta</span>
+      </div>
+      <div class="cnc-kpi">
+        <span class="cnc-kpi-n">{{ c.sin_permiso }}</span>
+        <span class="cnc-kpi-l">Sin permiso</span>
+      </div>
+    </div>
+  }
+
+  <!-- Filtros -->
+  <div class="cnc-filtros">
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'todos'" (click)="setMotivo('todos')">Todas</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'sin_tool'" (click)="setMotivo('sin_tool')">Sin herramienta</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'error_de_tool'" (click)="setMotivo('error_de_tool')">Error</button>
+    <button class="cnc-chip" [class.active]="filtroMotivo() === 'sin_permiso'" (click)="setMotivo('sin_permiso')">Sin permiso</button>
+    <span class="cnc-sep"></span>
+    <button class="cnc-chip" [class.active]="soloPendientes()" (click)="togglePendientes()">Solo pendientes</button>
+  </div>
+
+  @if (loading()) {
+    <p class="cnc-empty">Cargando…</p>
+  } @else if (filasVisibles().length === 0) {
+    <p class="cnc-empty">No hay consultas con este filtro. 🎉</p>
+  } @else {
+    <div class="cnc-list">
+      @for (f of filasVisibles(); track f.id) {
+        <article class="cnc-item" [class.resuelto]="f.resuelto">
+          <div class="cnc-item-top">
+            <span class="cnc-badge cnc-badge--{{ f.motivo }}">{{ motivoLabel(f.motivo) }}</span>
+            @if (f.tool) { <span class="cnc-tool">{{ f.tool }}</span> }
+            <span class="cnc-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+          </div>
+          <p class="cnc-pregunta">"{{ f.pregunta }}"</p>
+          <div class="cnc-meta">
+            @if (f.usuario_nombre) { <span>{{ f.usuario_nombre }}</span> }
+            @if (f.roles_snapshot) { <span class="cnc-roles">{{ f.roles_snapshot }}</span> }
+          </div>
+          @if (f.detalle) { <p class="cnc-detalle">{{ f.detalle }}</p> }
+          <div class="cnc-actions">
+            @if (!f.resuelto) {
+              <button class="cnc-btn cnc-btn--sm" (click)="resolver(f, true)">Marcar resuelta</button>
+            } @else {
+              <span class="cnc-resuelto-tag">Resuelta</span>
+              <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, false)">Reabrir</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

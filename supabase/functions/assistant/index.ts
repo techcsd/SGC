@@ -84,6 +84,9 @@ interface ToolDef {
   pdf?: boolean;
   // AY C4 — memoria: guarda una preferencia del propio usuario (recordar_memoria).
   memoria?: boolean;
+  // BE2 — "gap": no consulta ni actúa; registra que a Compa le FALTA una capacidad
+  // (motivo sin_tool) para el backlog de Tecnología. Se resuelve en el loop.
+  gap?: boolean;
   // Lectura:
   rpc?: string;
   map?: (i: Any) => Record<string, unknown>;
@@ -295,6 +298,116 @@ const TOOLS: ToolDef[] = [
     rpc: "personal_obra_conteos", map: (i) => ({ p_proyecto_id: i.proyecto_id }),
   },
 
+  // ── BE2 — Consultas por rol (los 3 gaps de las capturas) ──────────────────
+  {
+    // BE2(1) — "¿qué hizo hoy Misael?". Gate en el RPC: cualquiera ve LO SUYO;
+    // la actividad de OTRA persona exige supervisión operativa (admin/dirección/
+    // gerencia/logística/jefe de flota). Un chofer NO ve la de otro chofer.
+    name: "actividad_de_usuario",
+    description: "Resumen de la actividad de UN usuario en un día: rutas conducidas, conduces emitidos, echadas de combustible y bitácoras. Úsala para '¿qué hizo hoy <persona>?' o '¿qué he hecho yo hoy?'. Para la actividad de OTRA persona necesitas su usuario_id (resuélvelo con 'buscar_usuarios'); para la tuya, deja usuario_id vacío. Devuelve conteos y un detalle corto por dominio, no el volcado completo. Respeta el rol: si no tienes permiso para ver a esa persona, la herramienta lo dirá y no debes insistir. La fecha por defecto es hoy (zona República Dominicana); pásala como YYYY-MM-DD para otro día.",
+    modulos: null,
+    input_schema: { type: "object", properties: {
+      usuario_id: { type: "string", description: "usuario_id de la persona (de buscar_usuarios); vacío = tú mismo" },
+      fecha: { type: "string", description: "YYYY-MM-DD (por defecto hoy)" },
+    }, additionalProperties: false },
+    rpc: "actividad_de_usuario", map: (i) => ({ p_usuario_id: i.usuario_id ?? null, p_fecha: i.fecha ?? null }),
+  },
+  {
+    // BE2(2) — panorama de rutas del día. Supervisión = TODAS; el resto = las suyas.
+    // Misma fuente que Seguimiento / Panel del día (AU1). Complementa 'mis_rutas_hoy'.
+    name: "rutas_del_dia",
+    description: "Panorama de las rutas de transporte de un día, con su estado. Si eres de logística, jefe de flota, gerencia o admin, devuelve TODAS las rutas del día (el panorama global que antes había que pedirle a logística); si no, devuelve solo las tuyas. Úsala para 'resumen de todas las rutas de hoy', '¿cómo van las rutas?', '¿cuántas rutas hay hoy?'. Devuelve el total, un desglose por estado y la lista con conductor, vehículo y estado. Es la misma data del módulo de Seguimiento. La fecha por defecto es hoy (zona República Dominicana).",
+    modulos: null,
+    input_schema: { type: "object", properties: {
+      fecha: { type: "string", description: "YYYY-MM-DD (por defecto hoy)" },
+    }, additionalProperties: false },
+    rpc: "rutas_del_dia", map: (i) => ({ p_fecha: i.fecha ?? null }),
+  },
+  {
+    // BE2(3) — la consulta estrella de obra: "¿dónde hay puntales?". Resuelve por
+    // apodo (AU12) y devuelve dónde hay stock, filtrado por bodegas visibles al rol.
+    name: "disponibilidad_de_articulo",
+    description: "Dice DÓNDE hay existencia de un artículo: en qué almacenes y obras hay stock y cuánto. Úsala para '¿en qué almacenes o proyectos hay puntales?', '¿dónde hay cemento?', '¿tenemos X disponible?'. Resuelve el término por nombre, código o APODO (p. ej. 'puntales' puede ser un alias). Si el término coincide con varios artículos, devuelve los candidatos para que preguntes cuál; entonces vuelve a llamarla con 'articulo_id'. Solo muestra los almacenes que tu rol puede ver (si no tienes acceso a inventario, no verá existencias).",
+    modulos: null,
+    input_schema: { type: "object", properties: {
+      query: { type: "string", description: "nombre, código o apodo del artículo (p. ej. 'puntales')" },
+      articulo_id: { type: "string", description: "id exacto si ya lo resolviste (de buscar_articulos)" },
+    }, additionalProperties: false },
+    rpc: "disponibilidad_de_articulo", map: (i) => ({ p_query: i.query ?? null, p_articulo_id: i.articulo_id ?? null }),
+  },
+  {
+    // BE2 — el backlog automático: cuando a Compa le falta una capacidad, la registra
+    // (motivo sin_tool) para que Tecnología la construya. Sustituye las capturas a mano.
+    name: "reportar_gap",
+    description: "Regístrala cuando el usuario te pide algo para lo que NO tienes ninguna herramienta (no cuando una herramienta falla, eso ya se registra solo). Anota que a Compa le falta esa capacidad para que Tecnología la construya después. Llámala ANTES de disculparte, y luego dile al usuario con honestidad qué no puedes todavía y qué SÍ puedes ofrecerle como alternativa. No la uses para consultas que sí puedes resolver.",
+    modulos: null, gap: true,
+    input_schema: { type: "object", properties: {
+      tema: { type: "string", description: "en pocas palabras, qué capacidad falta (p. ej. 'ver el historial de precios de un artículo')" },
+    }, required: ["tema"], additionalProperties: false },
+  },
+
+  // ── BE1 — Reportes semanales (misma RPC que compone el correo del lunes) ───
+  {
+    // BE1(1) — requisiciones por obra × ingeniero. Preguntable cualquier día.
+    name: "resumen_requisiciones_semana",
+    description: "Resumen semanal de requisiciones: cuántas se crearon, por obra y por ingeniero solicitante, con el total. Úsala para '¿cuántas requisiciones hizo Torre Alpha esta semana?', '¿quién pidió más material?'. Por defecto la última semana cerrada (lunes-domingo); pasa anio + semana ISO para otra. Es la misma data del reporte del correo del lunes. Requiere módulo inventario, compras o dirección.",
+    modulos: ["inventario", "compras", "direccion"],
+    input_schema: { type: "object", properties: {
+      anio: { type: "integer" }, semana: { type: "integer", description: "semana ISO" },
+    }, additionalProperties: false },
+    rpc: "resumen_requisiciones_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  {
+    // BE1(2) — estatus/embudo + pendientes por atender con su edad.
+    name: "resumen_estatus_requisiciones",
+    description: "Estatus semanal de las requisiciones: el embudo (creadas, pendientes, aprobadas, despachadas parcial/total, canceladas) y la LISTA de pendientes por atender con su antigüedad ('REQ-000123 · Torre Alpha · 4 días esperando'). Úsala para '¿qué requisiciones están atascadas?', '¿qué falta por despachar?', '¿se atendieron todas?'. Por defecto la última semana cerrada; pasa anio + semana ISO para otra. Requiere módulo inventario, compras o dirección.",
+    modulos: ["inventario", "compras", "direccion"],
+    input_schema: { type: "object", properties: {
+      anio: { type: "integer" }, semana: { type: "integer", description: "semana ISO" },
+    }, additionalProperties: false },
+    rpc: "resumen_estatus_requisiciones", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  {
+    // BE1(3) — rutas hechas por chofer; cuarentena BB8 aparte.
+    name: "resumen_rutas_semana",
+    description: "Resumen semanal de rutas completadas: por chofer y total. Las 'en revisión' (rutas completadas sin km/tiempo trackeado — cuarentena BB8) se cuentan APARTE, no se mezclan. Úsala para '¿cuántas rutas se hicieron esta semana?', '¿quién hizo más rutas?'. Por defecto la última semana cerrada. Requiere módulo flota o dirección.",
+    modulos: ["flota", "direccion"],
+    input_schema: { type: "object", properties: { anio: { type: "integer" }, semana: { type: "integer" } }, additionalProperties: false },
+    rpc: "resumen_rutas_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  {
+    // BE1(4) — conduces emitidos por tipo y obra destino.
+    name: "resumen_conduces_semana",
+    description: "Resumen semanal de conduces emitidos: por tipo (normal / externo) y por obra destino, con el total. Úsala para '¿cuántos conduces se hicieron?', '¿a qué obra fueron más conduces?'. Por defecto la última semana cerrada. Requiere módulo inventario o dirección.",
+    modulos: ["inventario", "direccion"],
+    input_schema: { type: "object", properties: { anio: { type: "integer" }, semana: { type: "integer" } }, additionalProperties: false },
+    rpc: "resumen_conduces_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  {
+    // BE1(5) — movimiento de inventario por almacén.
+    name: "resumen_inventario_semana",
+    description: "Resumen semanal del movimiento de inventario por almacén: entradas, salidas y ajustes de la semana. Úsala para '¿cuánto movimiento hubo en el almacén X?', '¿qué almacén tuvo más entradas?'. Por defecto la última semana cerrada. Requiere módulo inventario o dirección.",
+    modulos: ["inventario", "direccion"],
+    input_schema: { type: "object", properties: { anio: { type: "integer" }, semana: { type: "integer" } }, additionalProperties: false },
+    rpc: "resumen_inventario_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  {
+    // BE1(6) — km + combustible de vehículos de carga (solo echadas válidas AW3).
+    name: "resumen_flota_carga_semana",
+    description: "Resumen semanal de los vehículos de CARGA (camiones): km recorridos, galones echados (solo echadas válidas, las corregidas no cuentan) y costo, por vehículo. Úsala para '¿cuánto combustible gastaron los camiones?', '¿cuántos km hicieron?'. Avisa si el km está en depuración (echadas sin odómetro). Por defecto la última semana cerrada. Requiere módulo flota o dirección.",
+    modulos: ["flota", "direccion"],
+    input_schema: { type: "object", properties: { anio: { type: "integer" }, semana: { type: "integer" } }, additionalProperties: false },
+    rpc: "resumen_flota_carga_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+  {
+    // BE1(7) — bitácoras por obra vs días laborables (el "quién no está llenando").
+    name: "resumen_bitacoras_semana",
+    description: "Resumen semanal de bitácoras por obra: cuántos días de la semana tuvieron bitácora vs los días laborables ('Torre Alpha: 5/6 días'). Muestra las obras activas SIN bitácora — el 'quién no está llenando'. Úsala para '¿qué obras no están llenando la bitácora?', '¿cuántas bitácoras hubo?'. Por defecto la última semana cerrada. Requiere módulo bitacora, proyectos o dirección.",
+    modulos: ["bitacora", "proyectos", "direccion"],
+    input_schema: { type: "object", properties: { anio: { type: "integer" }, semana: { type: "integer" } }, additionalProperties: false },
+    rpc: "resumen_bitacoras_semana", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
+
   // ── ESCRITURA (v2: preparar → confirmar → ejecutar) ────────────────────────
   {
     name: "proponer_tarea",
@@ -394,6 +507,9 @@ const INSTRUCCIONES_ESTATICAS = [
   "- GENERAR archivos (PDF/Excel) con 'generar_reporte_pdf' — aparecen como tarjeta descargable.",
   "- Explicar CÓMO funciona el sistema con 'buscar_ayuda' (usa esto para preguntas de uso, no de datos).",
   "- RECORDAR preferencias del usuario con 'recordar' (obra por defecto, formato, etc.).",
+  "- Ver la ACTIVIDAD del día de una persona con 'actividad_de_usuario' (la tuya siempre; la de otro solo si tu rol te lo permite — la herramienta lo controla).",
+  "- Ver las RUTAS del día con 'rutas_del_dia' (todas si eres logística/jefe de flota/gerencia/admin; si no, las tuyas).",
+  "- Decir DÓNDE hay existencia de un artículo con 'disponibilidad_de_articulo' (resuelve apodos; muestra solo los almacenes que tu rol ve).",
   "",
   "REGLAS DURAS:",
   "1. Para preparar una acción primero RESUELVE los IDs con las herramientas de lectura (mis_proyectos para la obra, buscar_articulos para cada ítem, listar_almacenes para el almacén, despachantes_disponibles, buscar_usuarios). Jamás inventes un ID.",
@@ -415,6 +531,11 @@ const INSTRUCCIONES_ESTATICAS = [
   "6. Distingue SIEMPRE dos fuentes: (a) tu PERFIL — el nombre, el rol/trato, si eres admin y los módulos del bloque de identidad; es un dato que te dieron al iniciar, NO lo consultaste; (b) una CONSULTA — lo que acabas de leer llamando una herramienta EN ESTE TURNO. Al hablar de datos, deja claro cuál es cuál (\"según tu perfil…\" vs \"acabo de consultar y…\").",
   "7. PROHIBIDO decir que \"verificaste\", \"consulté\", \"confirmé con el sistema\", \"en vivo\" o \"ya lo revisé\" si NO llamaste una herramienta en este mismo turno. Si no la llamaste, no lo afirmes. Si de verdad quieres confirmar algo, llama la herramienta (usa 'quien_soy' para la identidad) y recién entonces dilo.",
   "8. Si no tienes una herramienta para algo, dilo con claridad (\"eso no lo puedo consultar todavía, no tengo herramienta\") en vez de deducirlo del perfil y hacerlo pasar por consulta.",
+  "",
+  "NUNCA UNA EXCUSA VACÍA (BE2 — regla dura):",
+  "12. PROHIBIDO responder \"No pude completar la consulta, intenta reformular\" o cualquier disculpa sin contenido. TODO fallo lleva CAUSA + SALIDA: di POR QUÉ falló y ofrece el SIGUIENTE PASO. Ejemplos: \"no encontré el artículo 'puntales' — ¿se llama distinto? puedo buscarlo por apodo\"; \"esa consulta de stock falló, ya la reporté a Tecnología — ¿quieres que intente otra cosa?\"; \"eso no lo puedo ver con tu acceso actual\".",
+  "13. Si el usuario te pide algo para lo que NO tienes ninguna herramienta, PRIMERO llama 'reportar_gap' (para que Tecnología construya esa capacidad) y LUEGO dile con honestidad qué no puedes todavía y qué SÍ le ofreces. No inventes un rodeo para fingir que lo resolviste.",
+  "14. Si una herramienta te devuelve un error o 'no tengo acceso', no lo escondas: explícale al usuario qué pasó en una frase (el sistema ya lo registró para Tecnología) y ofrécele una alternativa.",
 ].join("\n");
 
 function bloqueIdentidad(cap: Cap, ahoraRD: string): string {
@@ -457,7 +578,7 @@ async function callClaude(system: Any, tools: Any, messages: Any, toolChoice?: A
 // forzamos una tool en la primera llamada (tool_choice:any). El prefill forzado hace
 // estructuralmente imposible responder "acabo de consultarlo" sin haber consultado.
 const INTENCION_DATOS =
-  /\b(mi rol|mis? roles?|mis? permisos?|tengo acceso|puedo (ver|entrar|acceder)|qui[eé]n soy|con qui[eé]n hablas|qu[eé] hora|qu[eé] d[ií]a|cu[aá]nto|cu[aá]ntos|cu[aá]ntas|mira|verifica|consulta|revisa|checa|chequea|mu[eé]strame|ens[eé][ñn]ame|lista|list[aá]me|dame|cu[aá]les son|mis? (obras?|proyectos?|conduces?|rutas?|tareas?|veh[ií]culos?)|stock|existencias?|inventario de|desempe[ñn]o|combustible|mantenimiento|s[aá]came|saca|saques|quiero|necesito|crea|cr[eé]ame|asigna|as[ií]gna|prepara|prep[aá]rame|mueve|env[ií]a|solicita|requisici[oó]n|conduce|taladro)\b/i;
+  /\b(mi rol|mis? roles?|mis? permisos?|tengo acceso|puedo (ver|entrar|acceder)|qui[eé]n soy|con qui[eé]n hablas|qu[eé] hora|qu[eé] d[ií]a|cu[aá]nto|cu[aá]ntos|cu[aá]ntas|mira|verifica|consulta|revisa|checa|chequea|mu[eé]strame|ens[eé][ñn]ame|lista|list[aá]me|dame|cu[aá]les son|mis? (obras?|proyectos?|conduces?|rutas?|tareas?|veh[ií]culos?)|stock|existencias?|disponibles?|d[oó]nde hay|en qu[eé] (almac[eé]n(es)?|bodegas?|obras?|proyectos?)|inventario de|desempe[ñn]o|combustible|mantenimiento|actividad|qu[eé] hizo|qu[eé] hice|rutas? (de |del )?(hoy|d[ií]a)|s[aá]came|saca|saques|quiero|necesito|crea|cr[eé]ame|asigna|as[ií]gna|prepara|prep[aá]rame|mueve|env[ií]a|solicita|requisici[oó]n|conduce|taladro)\b/i;
 function fuerzaHerramienta(mensaje: string): boolean {
   return INTENCION_DATOS.test(mensaje);
 }
@@ -804,6 +925,19 @@ Deno.serve(async (req: Request) => {
   let propuesta: Any = null;
   let archivo: { nombre: string; url: string } | null = null;
   let respuestaFinal = "";
+  // BE2 — último fallo de herramienta (para el mensaje de causa+salida sin excusa vacía).
+  let ultimoFallo: { motivo: "sin_permiso" | "error_de_tool"; tool: string } | null = null;
+
+  // BE2 — registra una consulta NO ATENDIDA (backlog de Tecnología). Institucionaliza
+  // las capturas a mano: cada gap/fallo queda con { pregunta, rol, motivo, fecha }.
+  async function registrarNoAtendida(
+    motivo: "sin_tool" | "error_de_tool" | "sin_permiso", tool: string | null, detalle: string | null,
+  ) {
+    await supabase.rpc("registrar_consulta_no_atendida", {
+      p_pregunta: mensaje, p_motivo: motivo, p_tool: tool ?? null,
+      p_detalle: detalle ? detalle.slice(0, 400) : null, p_conversacion_id: convId,
+    }).then(() => {}, () => {});
+  }
 
   // Corre el ciclo de tool-use hasta que Claude produzca texto. `forzarPrimera`
   // aplica tool_choice:any en la 1ª vuelta (router de intención / validador).
@@ -821,6 +955,14 @@ Deno.serve(async (req: Request) => {
           let out: unknown; let ok = false; let resumen = "";
           if (!cfg) {
             out = { error: "Herramienta no disponible." };
+          } else if (cfg.gap) {
+            // BE2 — Compa declara que le falta una capacidad → al backlog (sin_tool).
+            try {
+              const inp = block.input ?? {};
+              await registrarNoAtendida("sin_tool", null, String(inp.tema ?? ""));
+              out = { registrado: true, instruccion: "Ya quedó anotado para Tecnología. Ahora dile al usuario con honestidad qué NO puedes hacer todavía y ofrécele una alternativa concreta de lo que SÍ puedes. Nada de excusas vacías." };
+              ok = true; resumen = `gap: ${String(inp.tema ?? "").slice(0, 60)}`;
+            } catch (e) { out = { error: "No pude registrar el gap." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
           } else if (cfg.memoria) {
             // AY C4 — guarda una preferencia del propio usuario (escritura benigna, sin tarjeta).
             try {
@@ -878,9 +1020,22 @@ Deno.serve(async (req: Request) => {
             // Lectura.
             try {
               const { data, error } = await supabase.rpc(cfg.rpc!, cfg.map!(block.input ?? {}));
-              if (error) { out = { error: "No tengo acceso a eso o falló la consulta." }; resumen = error.message.slice(0, 200); }
+              if (error) {
+                // BE2 — distingue sin_permiso vs error de tool para el mensaje y el backlog.
+                const esPermiso = /42501|permission|no autorizado|autorizad/i.test(error.message || "");
+                out = { error: esPermiso ? "No tienes acceso a eso con tu rol." : "La consulta falló por un problema técnico (ya lo reporté a Tecnología)." };
+                resumen = error.message.slice(0, 200);
+                ultimoFallo = { motivo: esPermiso ? "sin_permiso" : "error_de_tool", tool: block.name };
+                await registrarNoAtendida(esPermiso ? "sin_permiso" : "error_de_tool", block.name, error.message);
+              }
               else { out = data ?? []; ok = true; resumen = Array.isArray(data) ? `${data.length} fila(s)` : "ok"; }
-            } catch (e) { out = { error: "Falló la consulta." }; resumen = (e instanceof Error ? e.message : "error").slice(0, 200); }
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : "error";
+              out = { error: "La consulta falló por un problema técnico (ya lo reporté a Tecnología)." };
+              resumen = msg.slice(0, 200);
+              ultimoFallo = { motivo: "error_de_tool", tool: block.name };
+              await registrarNoAtendida("error_de_tool", block.name, msg);
+            }
           }
           herramientasUsadas.push({ tool: block.name, ok });
           await supabase.from("assistant_acciones").insert({ conversacion_id: convId, tool: block.name, params: block.input ?? {}, ok, resumen }).then(() => {}, () => {});
@@ -919,7 +1074,20 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     return json({ error: `El asistente tuvo un problema: ${e instanceof Error ? e.message : "desconocido"}` }, 502);
   }
-  if (!respuestaFinal) respuestaFinal = propuesta ? "Preparé la acción; revísala y confírmala abajo." : archivo ? "Tu PDF está listo para descargar abajo." : "No pude completar la consulta. Intenta reformular.";
+  // BE2 — NUNCA una excusa vacía: si no hubo texto, el fallback lleva causa + salida.
+  if (!respuestaFinal) {
+    if (propuesta) respuestaFinal = "Preparé la acción; revísala y confírmala abajo.";
+    else if (archivo) respuestaFinal = "Tu archivo está listo para descargar abajo.";
+    else if (ultimoFallo?.motivo === "sin_permiso")
+      respuestaFinal = "Eso no lo puedo ver con tu acceso actual. Si crees que deberías tenerlo, avísale a Tecnología — ya lo dejé anotado.";
+    else if (ultimoFallo)
+      respuestaFinal = "Esa consulta falló por un problema técnico y ya quedó reportada a Tecnología para arreglarla. ¿Quieres que intente otra cosa mientras tanto?";
+    else {
+      // Sin fallo de tool y sin texto: no entendí la intención. Lo registro como gap.
+      respuestaFinal = "No terminé de agarrar qué necesitas. ¿Me lo dices de otra forma? Por ejemplo: \"¿dónde hay puntales?\", \"¿tengo conduces por firmar?\", o \"rutas de hoy\".";
+      await registrarNoAtendida("sin_tool", null, "respuesta vacía sin fallo de herramienta");
+    }
+  }
 
   await supabase.from("assistant_mensajes").insert([
     { conversacion_id: convId, rol: "user", contenido: mensaje },

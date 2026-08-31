@@ -99,6 +99,23 @@ export const tecnologiaRoutes: Routes = [
     title: 'APIs y consumo — Tecnología',
   },
   {
+    // BE1 — Resumen semanal de operaciones: preview + reenviar manual + historial.
+    path: 'resumen-operaciones',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('./resumen-operaciones/resumen-operaciones').then((m) => m.TecResumenOperaciones),
+    title: 'Resumen de operaciones — Tecnología',
+  },
+  {
+    // BE2 — Consultas no atendidas de Compa: el backlog automático de lo que la
+    // gente pregunta y Compa no puede responder. Gate: es_tecnologia.
+    path: 'consultas-compa',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('./consultas-compa/consultas-compa').then((m) => m.TecConsultasCompa),
+    title: 'Consultas de Compa — Tecnología',
+  },
+  {
     // BD3 — Galería de componentes / design system (tokens + componentes base en
     // ambos temas). Interna: es_tecnologia. Contrato visual del rollout.
     path: 'design-system',

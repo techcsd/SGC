@@ -1,0 +1,193 @@
+<div class="rso">
+  <header class="rso-head">
+    <div>
+      <h1>Resumen semanal de operaciones</h1>
+      <p class="rso-sub">
+        El correo automático de los lunes 7:00 AM. Cada número aquí es el mismo del
+        módulo y el mismo que puedes preguntarle a Compa en el chat.
+      </p>
+    </div>
+    <button class="rso-btn" (click)="reenviar()" [disabled]="reenviando() || loading()">
+      {{ reenviando() ? 'Enviando…' : 'Reenviar ahora' }}
+    </button>
+  </header>
+
+  @if (error()) { <div class="rso-error">{{ error() }}</div> }
+
+  @if (loading()) {
+    <p class="rso-empty">Cargando…</p>
+  } @else {
+    <div class="rso-meta">
+      <span class="rso-week">{{ fmtSemana() }}</span>
+      <span class="rso-dest">
+        {{ destinatarios().length }} destinatario(s):
+        {{ destinatarios().length ? (destinatariosTexto()) : 'ninguno configurado' }}
+      </span>
+    </div>
+
+    <!-- Reporte 1 -->
+    <section class="rso-card">
+      <h2>1 · Requisiciones por obra e ingeniero</h2>
+      <p class="rso-total">Total de la semana: <b>{{ totalReqs() }}</b></p>
+      @if (matriz().length) {
+        <table class="rso-table">
+          <thead><tr><th>Obra</th><th>Ingeniero</th><th>Requisiciones</th></tr></thead>
+          <tbody>
+            @for (m of matriz(); track $index) {
+              <tr><td>{{ m.obra }}</td><td>{{ m.ingeniero }}</td><td class="c">{{ m.cantidad }}</td></tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Sin requisiciones esta semana.</p> }
+    </section>
+
+    <!-- Reporte 2 -->
+    <section class="rso-card">
+      <h2>2 · Estatus de las requisiciones</h2>
+      @if (embudo(); as e) {
+        <div class="rso-embudo">
+          <div class="rso-pill"><span>{{ e.creadas }}</span>Creadas</div>
+          <div class="rso-pill rso-pill--warn"><span>{{ e.pendientes }}</span>Pendientes</div>
+          <div class="rso-pill"><span>{{ e.aprobadas }}</span>Aprobadas</div>
+          <div class="rso-pill"><span>{{ e.despachadas_parcial }}</span>Desp. parcial</div>
+          <div class="rso-pill rso-pill--ok"><span>{{ e.despachadas_total }}</span>Desp. total</div>
+          <div class="rso-pill"><span>{{ e.canceladas }}</span>Canceladas</div>
+        </div>
+      }
+      <h3>Pendientes por atender (más antiguas primero)</h3>
+      @if (pendientes().length) {
+        <table class="rso-table">
+          <thead><tr><th>Requisición</th><th>Obra</th><th>Esperando</th><th>Fase</th></tr></thead>
+          <tbody>
+            @for (p of pendientes(); track $index) {
+              <tr>
+                <td>{{ p.codigo }}</td><td>{{ p.obra }}</td>
+                <td class="c" [class.rso-old]="p.dias_esperando >= 4">{{ p.dias_esperando }} día(s)</td>
+                <td>{{ p.fase }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Nada pendiente por atender. 🎉</p> }
+    </section>
+
+    <!-- Reporte 3 -->
+    <section class="rso-card">
+      <h2>3 · Rutas hechas</h2>
+      <p class="rso-total">
+        <b>{{ rutasCompletadas() }}</b> completadas
+        @if (rutasEnRevision() > 0) {
+          · <b>{{ rutasEnRevision() }}</b> en revisión
+          <span class="rso-nota">(rutas completadas sin km/tiempo — cuarentena BB8, contadas aparte)</span>
+        }
+      </p>
+      @if (rutasPorChofer().length) {
+        <table class="rso-table">
+          <thead><tr><th>Chofer</th><th>Completadas</th><th>En revisión</th></tr></thead>
+          <tbody>
+            @for (c of rutasPorChofer(); track $index) {
+              <tr><td>{{ c.chofer }}</td><td class="c">{{ c.completadas }}</td><td class="c">{{ c.en_revision }}</td></tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Sin rutas completadas esta semana.</p> }
+    </section>
+
+    <!-- Reporte 4 -->
+    <section class="rso-card">
+      <h2>4 · Conduces hechos</h2>
+      <p class="rso-total">
+        Total <b>{{ conducesTotal() }}</b> · normales {{ conducesNormal() }} · externos {{ conducesExterno() }}
+      </p>
+      @if (conducesPorObra().length) {
+        <table class="rso-table">
+          <thead><tr><th>Obra destino</th><th>Normales</th><th>Externos</th></tr></thead>
+          <tbody>
+            @for (o of conducesPorObra(); track $index) {
+              <tr><td>{{ o.obra }}</td><td class="c">{{ o.normal }}</td><td class="c">{{ o.externo }}</td></tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Sin conduces esta semana.</p> }
+    </section>
+
+    <!-- Reporte 5 -->
+    <section class="rso-card">
+      <h2>5 · Movimiento de equipos y materiales</h2>
+      <p class="rso-total">
+        Entradas {{ invEntradas() }} · Salidas {{ invSalidas() }} · Ajustes {{ invAjustes() }}
+      </p>
+      @if (invPorAlmacen().length) {
+        <table class="rso-table">
+          <thead><tr><th>Almacén</th><th>Entradas</th><th>Salidas</th><th>Ajustes</th></tr></thead>
+          <tbody>
+            @for (a of invPorAlmacen(); track $index) {
+              <tr><td>{{ a.almacen }}</td><td class="c">{{ a.entradas }}</td><td class="c">{{ a.salidas }}</td><td class="c">{{ a.ajustes }}</td></tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Sin movimientos esta semana.</p> }
+    </section>
+
+    <!-- Reporte 6 -->
+    <section class="rso-card">
+      <h2>6 · Km y combustible — vehículos de carga</h2>
+      <p class="rso-total">
+        Galones {{ flotaGalones() }} · Km {{ flotaKm() }} · Costo {{ flotaCosto() }}
+        @if (flotaDepuracion()) { <span class="rso-nota">(km en depuración: echadas sin odómetro)</span> }
+      </p>
+      @if (flotaPorVehiculo().length) {
+        <table class="rso-table">
+          <thead><tr><th>Vehículo</th><th>Km</th><th>Galones</th><th>Costo</th></tr></thead>
+          <tbody>
+            @for (v of flotaPorVehiculo(); track $index) {
+              <tr><td>{{ v.placa }}</td><td class="c">{{ v.km }}</td><td class="c">{{ v.galones }}</td><td class="c">{{ v.costo }}</td></tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Sin echadas válidas de vehículos de carga esta semana.</p> }
+    </section>
+
+    <!-- Reporte 7 -->
+    <section class="rso-card">
+      <h2>7 · Bitácoras por obra</h2>
+      <p class="rso-total">Total <b>{{ bitacorasTotal() }}</b> bitácoras esta semana</p>
+      @if (bitacorasPorObra().length) {
+        <table class="rso-table">
+          <thead><tr><th>Obra</th><th>Días con bitácora</th></tr></thead>
+          <tbody>
+            @for (o of bitacorasPorObra(); track $index) {
+              <tr>
+                <td>{{ o.obra }}</td>
+                <td class="c" [class.rso-old]="o.dias_con_bitacora === 0">{{ o.dias_con_bitacora }}/{{ o.dias_laborables }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Sin obras activas.</p> }
+    </section>
+
+    <!-- Historial de envíos -->
+    <section class="rso-card">
+      <h2>Historial de envíos</h2>
+      @if (historial().length) {
+        <table class="rso-table">
+          <thead><tr><th>Semana</th><th>Cuándo</th><th>Estado</th><th>Destinatarios</th></tr></thead>
+          <tbody>
+            @for (h of historial(); track $index) {
+              <tr>
+                <td>{{ h.semana }}/{{ h.anio }}</td>
+                <td>{{ h.enviado_at | date: 'dd/MM/yy HH:mm' }}</td>
+                <td>
+                  @if (h.ok) { <span class="rso-tag rso-tag--ok">Enviado</span> }
+                  @else { <span class="rso-tag rso-tag--err" [title]="h.error || ''">Error</span> }
+                </td>
+                <td class="c">{{ h.destinatarios?.length || 0 }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else { <p class="rso-empty">Todavía no se ha enviado ningún resumen.</p> }
+    </section>
+  }
+</div>

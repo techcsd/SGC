@@ -32,13 +32,17 @@ function check(nombre, cond, detalle = '') {
 
 // Router de intención (BB4.2) — mismo patrón que index.ts `INTENCION_DATOS`.
 const INTENCION_DATOS =
-  /\b(mi rol|mis? roles?|mis? permisos?|tengo acceso|puedo (ver|entrar|acceder)|qui[eé]n soy|con qui[eé]n hablas|qu[eé] hora|qu[eé] d[ií]a|cu[aá]nto|cu[aá]ntos|cu[aá]ntas|mira|verifica|consulta|revisa|checa|chequea|mu[eé]strame|ens[eé][ñn]ame|lista|list[aá]me|dame|cu[aá]les son|mis? (obras?|proyectos?|conduces?|rutas?|tareas?|veh[ií]culos?)|stock|existencias?|inventario de|desempe[ñn]o|combustible|mantenimiento|s[aá]came|saca|saques|quiero|necesito|crea|cr[eé]ame|asigna|as[ií]gna|prepara|prep[aá]rame|mueve|env[ií]a|solicita|requisici[oó]n|conduce|taladro)\b/i;
+  /\b(mi rol|mis? roles?|mis? permisos?|tengo acceso|puedo (ver|entrar|acceder)|qui[eé]n soy|con qui[eé]n hablas|qu[eé] hora|qu[eé] d[ií]a|cu[aá]nto|cu[aá]ntos|cu[aá]ntas|mira|verifica|consulta|revisa|checa|chequea|mu[eé]strame|ens[eé][ñn]ame|lista|list[aá]me|dame|cu[aá]les son|mis? (obras?|proyectos?|conduces?|rutas?|tareas?|veh[ií]culos?)|stock|existencias?|disponibles?|d[oó]nde hay|en qu[eé] (almac[eé]n(es)?|bodegas?|obras?|proyectos?)|inventario de|desempe[ñn]o|combustible|mantenimiento|actividad|qu[eé] hizo|qu[eé] hice|rutas? (de |del )?(hoy|d[ií]a)|s[aá]came|saca|saques|quiero|necesito|crea|cr[eé]ame|asigna|as[ií]gna|prepara|prep[aá]rame|mueve|env[ií]a|solicita|requisici[oó]n|conduce|taladro)\b/i;
 const fuerzaHerramienta = (m) => INTENCION_DATOS.test(m);
 
 check('router: "mira mi rol" fuerza herramienta', fuerzaHerramienta('mira mi rol en el sistema'));
 check('router: "cuántos vehículos tenemos" fuerza herramienta', fuerzaHerramienta('¿cuántos vehículos tenemos?'));
 check('router: "sácame 10 taladros del almacén central" fuerza herramienta', fuerzaHerramienta('sácame 10 taladros del almacén central'));
 check('router: saludo "hola compa" NO fuerza herramienta', !fuerzaHerramienta('hola compa, buenas'));
+// BE2 — las 3 preguntas literales de las capturas fuerzan herramienta.
+check('router BE2: "que hizo hoy misael" fuerza herramienta', fuerzaHerramienta('Que hizo hoy misael'));
+check('router BE2: "pasame un resumen de todas las rutas de hoy" fuerza herramienta', fuerzaHerramienta('Pasame un resumen de todas las rutas de hoy'));
+check('router BE2: "en que almacenes o proyectos tengo disponible puntales" fuerza herramienta', fuerzaHerramienta('En que almacenes o proyectos tengo disponible puntales'));
 
 // Validador de honestidad (BB4.4) — mismo patrón que index.ts `AFIRMA_VERIFICACION`.
 const AFIRMA_VERIFICACION =
@@ -104,6 +108,20 @@ check('fuente: idempotencia de acciones (BB3)', /assistant_idempotencia/.test(sr
 check('fuente: transparencia es_prueba antes de confirmar (BB3)', /aviso_prueba/.test(src) && /es_prueba/.test(src));
 check('fuente: tool `proponer_ruta` existe (BB3.d)', /name:\s*"proponer_ruta"/.test(src));
 check('fuente: regla de desambiguación en el prompt (BB1)', /DESAMBIGUACI[OÓ]N/.test(src) && /Bodega Central/.test(src));
+
+// BE2 — las 3 tools nuevas por rol + registro de no-atendidas + fin del error genérico.
+check('fuente BE2: tool `actividad_de_usuario` existe', /name:\s*"actividad_de_usuario"/.test(src));
+check('fuente BE2: tool `rutas_del_dia` existe', /name:\s*"rutas_del_dia"/.test(src));
+check('fuente BE2: tool `disponibilidad_de_articulo` existe', /name:\s*"disponibilidad_de_articulo"/.test(src));
+check('fuente BE2: tool `reportar_gap` existe (backlog sin_tool)', /name:\s*"reportar_gap"/.test(src));
+check('fuente BE2: registro de consultas no atendidas cableado',
+  /registrarNoAtendida/.test(src) && /registrar_consulta_no_atendida/.test(src));
+check('fuente BE2: el error genérico "Intenta reformular" quedó PROHIBIDO (no aparece como respuesta)',
+  !/respuestaFinal\s*=\s*"No pude completar la consulta\. Intenta reformular\."/.test(src));
+check('fuente BE2: regla causa+salida en el prompt (nunca excusa vacía)',
+  /CAUSA \+ SALIDA/.test(src));
+check('fuente BE2: distingue sin_permiso vs error_de_tool para el backlog',
+  /sin_permiso/.test(src) && /error_de_tool/.test(src));
 
 // ─────────────────────────────────────────────────────────────────────────────
 if (fails.length) {
