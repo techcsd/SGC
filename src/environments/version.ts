@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.104.1';
-export const APP_VERSION_TITULO: string | null = "Rediseño (BD3): arranca el rollout por el shell + dos paneles que se veían oscuros";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Inventario","d":"El buscador de lugares del conduce externo mostraba la lista de resultados con fondo oscuro heredado (texto casi ilegible); ahora usa la superficie clara del sistema, con sombra y texto legible."},{"t":"arreglo","m":"Requisiciones","d":"El panel para vincular un conduce suelto a una requisición se veía con fondo oscuro; ahora usa la superficie clara del sistema."},{"t":"mejora","m":"General","d":"El menú lateral (shell) empieza a consumir los nuevos tokens del rediseño: el indicador de notificaciones ahora usa el color de estado centralizado. Sin cambios visibles."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/2fbbe5c";
+export const APP_VERSION = '1.104.2';
+export const APP_VERSION_TITULO: string | null = "Rediseño (BD3): Requisiciones y conduce externo migrados al sistema de diseño";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"mejora","m":"Inventario","d":"Requisiciones y el formulario de conduce externo migrados al nuevo sistema de tokens: se eliminaron bordes y grises heredados que se veían oscuros (líneas divisorias y borde de las fotos). El look en claro se mantiene y las pantallas quedan listas para el tema oscuro."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/eb56adb";

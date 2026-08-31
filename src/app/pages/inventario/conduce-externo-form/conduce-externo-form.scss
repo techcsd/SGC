@@ -11,7 +11,7 @@
   flex-direction: column;
   gap: 10px;
   padding-bottom: 18px;
-  border-bottom: 1px solid #2d2d2d;
+  border-bottom: 1px solid var(--border);
 
   &:last-of-type { border-bottom: none; padding-bottom: 0; }
 }
@@ -20,11 +20,11 @@
   font-size: 0.95rem;
   font-weight: 600;
   margin: 0;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
 }
 
 .cef-field { display: flex; flex-direction: column; gap: 6px; }
-.cef-label { font-size: 0.85rem; color: var(--main-ultra-light, #929090); }
+.cef-label { font-size: 0.85rem; color: var(--text-2); }
 
 .cef-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -42,7 +42,7 @@
   height: 105px;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid #2d2d2d;
+  border: 1px solid var(--border);
 }
 
 .cef-lugar { position: relative; }
@@ -70,13 +70,13 @@
   display: inline-block;
   font-size: 0.7rem;
   text-transform: uppercase;
-  color: var(--Hub, #ffb300);
+  color: var(--accent);
   margin-right: 6px;
 }
 
 .cef-hint {
   font-size: 0.8rem;
-  color: var(--main-ultra-light, #929090);
+  color: var(--text-2);
   margin: 4px 0 0;
 }
 

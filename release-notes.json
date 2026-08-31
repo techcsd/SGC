@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.104.2": {
+      "titulo": "Rediseño (BD3): Requisiciones y conduce externo migrados al sistema de diseño",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Requisiciones y el formulario de conduce externo migrados al nuevo sistema de tokens: se eliminaron bordes y grises heredados que se veían oscuros (líneas divisorias y borde de las fotos). El look en claro se mantiene y las pantallas quedan listas para el tema oscuro."
+        }
+      ]
+    },
     "1.104.1": {
       "titulo": "Rediseño (BD3): arranca el rollout por el shell + dos paneles que se veían oscuros",
       "cambios": [
