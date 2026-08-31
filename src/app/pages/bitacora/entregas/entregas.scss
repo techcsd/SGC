@@ -115,10 +115,32 @@
 
 .entregas__detail-meta {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
   font-size: 13px;
   color: var(--sgc-text-secondary);
   margin-bottom: 16px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+}
+
+.entregas__detail-link {
+  color: var(--sgc-primary-mid);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+// AW12 — icono de transporte inline SVG (reemplaza el emoji 🚚)
+.entregas__ic {
+  flex-shrink: 0;
+  vertical-align: middle;
 }
 
 .entregas__confirm-table {
@@ -205,6 +227,9 @@
 
 // QA-029 — conductor / vehículo del despacho
 .entregas__card-transporte {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 12px;
   color: var(--sgc-text-secondary);
   margin: 4px 0 0;

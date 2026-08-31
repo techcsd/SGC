@@ -122,11 +122,13 @@ export class Entregas implements OnInit {
       return;
     }
 
-    // AY1/AY2 — foto y firma obligatorias para confirmar, salvo admin (bypass AS15).
+    // BD2 — foto OBLIGATORIA pero NO BLOQUEANTE: si no se pudo tomar (cámara/permiso/
+    // sin señal) se acepta con una NOTA que lo explique. La firma sí es obligatoria.
+    // Todo salvo admin (bypass AS15).
     const pad = this.firmaPad();
     if (!this.esAdmin()) {
-      if (!this.foto()) {
-        this.saveError.set('Adjunta una foto de la recepción para confirmar.');
+      if (!this.foto() && !this.notas().trim()) {
+        this.saveError.set('Toma una foto de la recepción; si no puedes, explica por qué en las notas.');
         return;
       }
       if (!pad || pad.isEmpty()) {
