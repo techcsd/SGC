@@ -13,6 +13,7 @@ import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { IconName } from '../../../shared/ui/icon/icons';
+import { ThemeService } from '../../../shared/services/theme.service';
 
 interface ActividadItem {
   fecha: string;
@@ -29,6 +30,7 @@ interface ActividadItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Perfil implements OnInit {
+  protected theme = inject(ThemeService);
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private tareasService = inject(TareasService);

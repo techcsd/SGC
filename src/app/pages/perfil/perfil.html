@@ -37,6 +37,28 @@
       <div class="page-error" role="alert">{{ error() }}</div>
     }
 
+    <!-- Apariencia (BE6) -->
+    <section class="perfil-card sgc-card">
+      <h3 class="perfil-section-title">Apariencia</h3>
+      <div class="perfil-tema">
+        <div class="perfil-tema__txt">
+          <span class="perfil-tema__label">Tema oscuro</span>
+          <span class="perfil-tema__hint">Se sincroniza con la app móvil. También puedes cambiarlo con el botón de la luna en el encabezado.</span>
+        </div>
+        <button
+          type="button"
+          class="perfil-switch"
+          role="switch"
+          [class.perfil-switch--on]="theme.isDark()"
+          [attr.aria-checked]="theme.isDark()"
+          aria-label="Tema oscuro"
+          (click)="theme.toggle()"
+        >
+          <span class="perfil-switch__track"><span class="perfil-switch__thumb"></span></span>
+        </button>
+      </div>
+    </section>
+
     <!-- Roles y permisos -->
     <section class="perfil-card sgc-card">
       <h3 class="perfil-section-title">Mis roles y accesos</h3>

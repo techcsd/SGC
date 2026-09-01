@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.106.1": {
+      "titulo": "Switch de tema oscuro en tu perfil + sincroniza con la app",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Ahora puedes encender o apagar el tema oscuro con un switch en tu Perfil (además del botón de la luna en el encabezado). Tu preferencia se guarda y se sincroniza con la app móvil: si lo pones oscuro en un lado, el otro lo hereda."
+        }
+      ]
+    },
     "1.106.0": {
       "titulo": "Nuevo look de toda la web + tema oscuro",
       "cambios": [
