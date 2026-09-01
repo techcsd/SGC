@@ -12,6 +12,7 @@ import {
   inject,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { Icon } from '../../ui/icon/icon';
 import { GoogleMapsLoader } from '../../context/google-maps-loader.service';
 import { pinIcon } from '../../context/google-maps-marker.util';
 
@@ -20,7 +21,7 @@ import { pinIcon } from '../../context/google-maps-marker.util';
 // no renderiza; si la key de Maps no está configurada, muestra el enlace externo.
 @Component({
   selector: 'app-mini-mapa',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, Icon],
   templateUrl: './mini-mapa.html',
   styleUrl: './mini-mapa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

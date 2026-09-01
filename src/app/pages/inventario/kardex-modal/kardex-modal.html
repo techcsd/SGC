@@ -6,7 +6,7 @@
       <h2 class="kardex__title">{{ articuloNombre() || 'Kardex' }}</h2>
       <p class="kardex__sub">{{ bodegaNombre() }}</p>
     </div>
-    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="close.emit()" aria-label="Cerrar">✕</button>
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="close.emit()" aria-label="Cerrar"><app-icon name="x" [size]="18" /></button>
   </header>
 
   @if (loading()) {
@@ -98,7 +98,7 @@
                      [routerLink]="['/inventario/salidas', m.conduce_id, 'conduce']"
                      (click)="close.emit()">
                     {{ m.conduce_numero }}
-                    @if (m.fotos.length || m.firmas.length) { <span class="kardex__evi">📎</span> }
+                    @if (m.fotos.length || m.firmas.length) { <span class="kardex__evi"><app-icon name="paperclip" [size]="14" /></span> }
                   </a>
                 } @else { <span class="text-muted">—</span> }
               </td>

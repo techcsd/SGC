@@ -19,6 +19,7 @@ import {
   esTareaAtrasada,
 } from '../../../../shared/models/cronograma.model';
 import { FaseProyecto } from '../../../../shared/models/proyecto.model';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 
 /** AA24 — conector real de una dependencia (predecesora → esta tarea). */
@@ -66,7 +67,7 @@ const GANTT_LABEL_W = 220;
 
 @Component({
   selector: 'app-proyecto-cronograma',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, RouterLink, DecimalPipe, Icon],
   templateUrl: './cronograma.html',
   styleUrl: './cronograma.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

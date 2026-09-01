@@ -10,6 +10,7 @@ import {
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type Tab = 'activos' | 'pendientes_entrega' | 'por_confirmar' | 'historico';
 
@@ -27,7 +28,7 @@ const FASE_LABELS: Record<string, string> = {
 // obra/chofer/fecha y badges de conteo. Cada fila abre el detalle + PDF (AL4).
 @Component({
   selector: 'app-conduces',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, Icon],
   templateUrl: './conduces.html',
   styleUrl: './conduces.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

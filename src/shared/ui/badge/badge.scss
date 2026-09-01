@@ -1,0 +1,42 @@
+// app-badge — BE3. El par estado→bg sale de los tokens semánticos.
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+:host ::ng-deep svg {
+  width: 12px;
+  height: 12px;
+}
+
+:host(.b-success) {
+  background: var(--success-bg);
+  color: var(--success);
+}
+:host(.b-danger) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+:host(.b-warning) {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+:host(.b-info) {
+  background: var(--info-bg);
+  color: var(--info);
+}
+:host(.b-neutral) {
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+:host(.b-brand) {
+  background: var(--brand-soft);
+  color: var(--brand);
+}

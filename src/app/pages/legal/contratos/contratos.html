@@ -10,7 +10,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar los contratos filtrados a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

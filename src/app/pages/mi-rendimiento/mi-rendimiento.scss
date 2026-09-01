@@ -21,7 +21,7 @@
   background: var(--sgc-surface);
   display: flex; flex-direction: column; gap: 10px;
 
-  &--ok { border-color: var(--sgc-success, #16a34a); }
+  &--ok { border-color: var(--sgc-success); }
 
   &__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   &__week { font-size: 13px; color: var(--sgc-text-muted); }
@@ -29,20 +29,20 @@
   &__pts { font-size: 40px; font-weight: 800; line-height: 1; color: var(--sgc-text); }
   &__min { font-size: 13px; color: var(--sgc-text-muted); }
   &__decision { margin: 0; font-size: 13px; font-weight: 600; }
-  &__decision--ok { color: var(--sgc-success, #16a34a); }
-  &__decision--bad { color: var(--sgc-danger, #dc2626); }
+  &__decision--ok { color: var(--sgc-success); }
+  &__decision--bad { color: var(--sgc-danger); }
 }
 
 .mirend-bar {
-  height: 10px; border-radius: 6px; background: var(--sgc-surface-2, #eee); overflow: hidden;
-  &__fill { height: 100%; background: var(--sgc-warning, #d97706); transition: width 0.4s ease; }
-  &__fill--ok { background: var(--sgc-success, #16a34a); }
+  height: 10px; border-radius: 6px; background: var(--surface-3); overflow: hidden;
+  &__fill { height: 100%; background: var(--sgc-warning); transition: width 0.4s ease; }
+  &__fill--ok { background: var(--sgc-success); }
 }
 
 .mirend-list { display: flex; flex-direction: column; gap: 8px; }
 .mirend-item {
   border: 1px solid var(--sgc-border); border-radius: 12px; background: var(--sgc-surface); overflow: hidden;
-  &--open { border-color: var(--sgc-primary, #ff5f00); }
+  &--open { border-color: var(--sgc-primary); }
   &__main {
     width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
     background: transparent; border: none; cursor: pointer; text-align: left;
@@ -58,13 +58,13 @@
 }
 .mirend-renglon {
   display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--sgc-text);
-  &__count { color: var(--sgc-text-muted); em { color: var(--sgc-info, #2563eb); font-style: normal; } }
+  &__count { color: var(--sgc-text-muted); em { color: var(--sgc-info); font-style: normal; } }
 }
 
 .inc-badge {
   font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px; white-space: nowrap;
-  &--ok, &--approved { background: #e7f6ec; color: #16a34a; }
-  &--bad, &--declined { background: #fdeaea; color: #dc2626; }
+  &--ok, &--approved { background: var(--success-bg); color: var(--success); }
+  &--bad, &--declined { background: var(--danger-bg); color: var(--danger); }
 }
 
 @media (max-width: 768px) {

@@ -21,7 +21,7 @@
     <!-- AS1 — Diagnóstico del pipeline de tracking (contadores AK13) -->
     <div class="diag">
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDiag()">
-        {{ diagOpen() ? '▾' : '▸' }} Diagnóstico de rastreo
+        @if (diagOpen()) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> } Diagnóstico de rastreo
       </button>
       @if (diagOpen()) {
         @if (diagLoading()) {
@@ -91,7 +91,7 @@
 
             <div class="chofer-card__foot">
               <span class="chofer-card__pos" [class.chofer-card__pos--off]="!c.posicion">
-                📍 {{ c.posicion ? hace(c.posicion.capturado_en) : 'sin posición' }}
+                <app-icon name="map-pin" [size]="14" /> {{ c.posicion ? hace(c.posicion.capturado_en) : 'sin posición' }}
               </span>
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/flota/seguimiento">Ver trayecto</a>
             </div>

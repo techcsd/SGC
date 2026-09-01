@@ -328,7 +328,7 @@
           </button>
         </div>
       } @else {
-        <p class="nc-closed">✓ Cerrada el {{ nc.cerrada_en ? formatFecha(nc.cerrada_en) : '' }}</p>
+        <p class="nc-closed"><app-icon name="check" [size]="15" /> Cerrada el {{ nc.cerrada_en ? formatFecha(nc.cerrada_en) : '' }}</p>
       }
     </div>
   }

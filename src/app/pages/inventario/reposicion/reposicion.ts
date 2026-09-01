@@ -8,6 +8,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /**
  * A3.1 / Z8 — Reposición por almacén: artículos en o bajo el stock mínimo.
@@ -16,7 +17,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
  */
 @Component({
   selector: 'app-inventario-reposicion',
-  imports: [Skeleton],
+  imports: [Skeleton, Icon],
   templateUrl: './reposicion.html',
   styleUrl: './reposicion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

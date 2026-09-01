@@ -37,6 +37,7 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { TrayectoriaModal } from '../../../../shared/components/trayectoria-modal/trayectoria-modal';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -51,7 +52,7 @@ interface ParadaEdit {
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal, Icon],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

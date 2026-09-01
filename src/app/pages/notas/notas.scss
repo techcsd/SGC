@@ -447,7 +447,7 @@
 // AN7 — subtítulo (rol o correo) del compartido.
 .editor__share-sub {
   font-size: 11.5px;
-  color: var(--sgc-text-muted, #8a8a8a);
+  color: var(--sgc-text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

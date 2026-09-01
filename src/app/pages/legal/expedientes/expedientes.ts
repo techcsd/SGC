@@ -20,6 +20,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -30,7 +31,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, Icon],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -10,6 +10,7 @@ import { construirValoresAuto } from '../../../../shared/utils/plantilla-merge.u
 import { UserService } from '../../../../app/core/services/user.service';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { PersonalCarnet } from './personal-carnet';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import {
   Cargo, PersonalObra, FOTOS_GUIA, FotoTipo,
   NACIONALIDADES, TIPOS_DOCUMENTO,
@@ -18,7 +19,7 @@ import {
 /** AR1 — Wizard de registro de personal: datos → fotos guiadas → firma → carnet → resumen. */
 @Component({
   selector: 'app-personal-registro',
-  imports: [FormsModule, ReactiveFormsModule, RouterLink, SignaturePad, PersonalCarnet],
+  imports: [FormsModule, ReactiveFormsModule, RouterLink, SignaturePad, PersonalCarnet, Icon],
   templateUrl: './personal-registro.html',
   styleUrl: './personal-registro.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

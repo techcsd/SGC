@@ -17,10 +17,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { JiraService } from '../../../../shared/services/jira.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Router } from '@angular/router';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-tec-reportes-errores',
-  imports: [DecimalPipe, DateRangeFilter, Skeleton],
+  imports: [DecimalPipe, DateRangeFilter, Skeleton, Icon],
   templateUrl: './reportes-errores.html',
   styleUrl: './reportes-errores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

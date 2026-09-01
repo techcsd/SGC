@@ -1,0 +1,9 @@
+@if (heading()) {
+  <div class="card-head">
+    <h3>{{ heading() }}</h3>
+    <div class="card-actions"><ng-content select="[actions]"></ng-content></div>
+  </div>
+}
+<div class="card-body" [class.flush]="flush()">
+  <ng-content></ng-content>
+</div>

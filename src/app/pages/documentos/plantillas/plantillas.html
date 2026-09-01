@@ -41,7 +41,7 @@
                 <span class="plantilla-card__campos">{{ p.campos.length }} campo{{ p.campos.length !== 1 ? 's' : '' }}</span>
               </div>
               @if (p.origen !== 'sistema') {
-                <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" [attr.aria-label]="'Eliminar plantilla ' + p.nombre" title="Eliminar plantilla">✕</button>
+                <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" [attr.aria-label]="'Eliminar plantilla ' + p.nombre" title="Eliminar plantilla"><app-icon name="x" [size]="16" /></button>
               }
             </div>
           }

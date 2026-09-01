@@ -30,12 +30,13 @@ import {
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type QaTab = 'casos' | 'nueva' | 'ejecutar' | 'historial';
 
 @Component({
   selector: 'app-tec-qa',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
   templateUrl: './qa.html',
   styleUrl: './qa.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

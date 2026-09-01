@@ -26,7 +26,7 @@
   <!-- Paso 2 — previsualizar -->
   @if (paso() === 'previsualizar') {
     <div class="pi-meta">
-      <div class="pi-meta__file">📄 {{ archivoNombre() }}</div>
+      <div class="pi-meta__file"><app-icon name="file-text" [size]="14" /> {{ archivoNombre() }}</div>
       <div class="pi-meta__grid">
         <div><span>Proyecto (archivo)</span><strong>{{ proyectoDetectado() || '—' }}</strong></div>
         <div><span>Ubicación</span><strong>{{ ubicacionDetectada() || '—' }}</strong></div>
@@ -67,11 +67,11 @@
             <tr [class.pi-row--err]="f.estado === 'error'" [class.pi-row--warn]="f.estado === 'warning'">
               <td class="pi-status">
                 @switch (f.estado) {
-                  @case ('ok') { <span class="pi-dot pi-dot--ok" title="Lista">●</span> }
-                  @case ('warning') { <span class="pi-dot pi-dot--warn" [title]="f.motivo">▲</span> }
-                  @case ('error') { <span class="pi-dot pi-dot--err" [title]="f.motivo">✕</span> }
+                  @case ('ok') { <span class="pi-dot pi-dot--ok" title="Lista"><app-icon name="check" [size]="13" /></span> }
+                  @case ('warning') { <span class="pi-dot pi-dot--warn" [title]="f.motivo"><app-icon name="alert-triangle" [size]="13" /></span> }
+                  @case ('error') { <span class="pi-dot pi-dot--err" [title]="f.motivo"><app-icon name="x" [size]="13" /></span> }
                 }
-                @if (f.yaExiste) { <span class="pi-dup" title="Ya existe en la obra">⟳</span> }
+                @if (f.yaExiste) { <span class="pi-dup" title="Ya existe en la obra"><app-icon name="refresh" [size]="13" /></span> }
               </td>
               <td>{{ f.nombre }}</td>
               <td class="text-muted">{{ f.documento || '—' }} <small>{{ f.tipo_documento }}</small></td>

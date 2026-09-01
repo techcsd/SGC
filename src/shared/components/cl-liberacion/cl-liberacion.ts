@@ -13,6 +13,7 @@ import { ClLiberacionService } from '../../services/cl-liberacion.service';
 import { ObraEjecucionService } from '../../services/obra-ejecucion.service';
 import { ToastService } from '../../services/toast.service';
 import { SignaturePad } from '../../ui/signature-pad/signature-pad';
+import { Icon } from '../../ui/icon/icon';
 import { formatFechaDisplay } from '../../utils/fecha.util';
 import { ObraElemento, ObraVaciado } from '../../models/obra-ejecucion.model';
 import {
@@ -38,7 +39,7 @@ interface ItemForm extends ClRegistroItem {
  */
 @Component({
   selector: 'app-cl-liberacion',
-  imports: [FormsModule, SignaturePad],
+  imports: [FormsModule, SignaturePad, Icon],
   templateUrl: './cl-liberacion.html',
   styleUrl: './cl-liberacion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -8,7 +8,7 @@
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 40px 60px; border: 2px dashed var(--sgc-border); border-radius: 16px;
   cursor: pointer; transition: all 0.15s ease; color: var(--sgc-text-muted);
-  &:hover { border-color: var(--sgc-primary, #ff5f00); color: var(--sgc-text); }
+  &:hover { border-color: var(--sgc-primary); color: var(--sgc-text); }
   &__title { font-size: 15px; font-weight: 600; color: var(--sgc-text); }
   &__hint { font-size: 12px; }
 }
@@ -34,7 +34,7 @@
   th, td { font-size: 12.5px; }
   .pi-status { white-space: nowrap; }
   .pi-cargo { padding: 4px 6px; border: 1px solid var(--sgc-border); border-radius: 6px; font-size: 12.5px; max-width: 160px; }
-  .pi-cargo-src { display: block; font-size: 10.5px; color: var(--sgc-warning, #d97706); }
+  .pi-cargo-src { display: block; font-size: 10.5px; color: var(--sgc-warning); }
 }
 .pi-row--err { background: #fef4f4; }
 .pi-row--warn { background: #fffaf0; }
@@ -62,7 +62,7 @@
   &__nums { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
   &__h { margin: 8px 0 0; font-size: 14px; font-weight: 700; color: var(--sgc-text); }
   &__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px;
-    li { display: flex; flex-direction: column; padding: 6px 10px; background: var(--sgc-bg, #fafafa); border: 1px solid var(--sgc-border); border-radius: 8px; }
+    li { display: flex; flex-direction: column; padding: 6px 10px; background: var(--sgc-bg); border: 1px solid var(--sgc-border); border-radius: 8px; }
   }
   &__list--bajas li { border-color: #f59e0b; }
   &__nom { font-weight: 600; color: var(--sgc-text); }

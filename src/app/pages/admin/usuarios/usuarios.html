@@ -61,7 +61,7 @@
         <tr>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('nombre')">
-              Usuario @if (sortKey() === 'nombre') { <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+              Usuario @if (sortKey() === 'nombre') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
           <th scope="col">Correo</th>
@@ -69,12 +69,12 @@
           <th scope="col">Estado</th>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('web')">
-              Última vez web @if (sortKey() === 'web') { <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+              Última vez web @if (sortKey() === 'web') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
           <th scope="col">
             <button type="button" class="admin-usuarios__sort" (click)="setSort('app')">
-              Última vez app @if (sortKey() === 'app') { <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span> }
+              Última vez app @if (sortKey() === 'app') { <span aria-hidden="true">@if (sortDir() === 'asc') { <app-icon name="chevron-up" [size]="14" /> } @else { <app-icon name="chevron-down" [size]="14" /> }</span> }
             </button>
           </th>
           <th scope="col"><span class="sr-only">Acciones</span></th>
@@ -182,7 +182,7 @@
       title="Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.">Ver accesos efectivos</button>
     @if (u.pendiente) {
       <button type="button" role="menuitem" (click)="resendInvite(u); closeMenu()"
-        [disabled]="resettingId() === u.id">✉️ Reenviar invitación</button>
+        [disabled]="resettingId() === u.id"><app-icon name="mail" [size]="16" /> Reenviar invitación</button>
     }
     <button type="button" role="menuitem" (click)="resetPassword(u); closeMenu()"
       [disabled]="resettingId() === u.id">Restablecer contraseña</button>
@@ -284,7 +284,7 @@
         <div class="admin-usuarios__detail-section">
           <span class="admin-usuarios__detail-label">Perfil de conductor</span>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="irAConductor(c.id)">
-            🚚 Ver perfil de {{ c.nombre }}
+            <app-icon name="truck" [size]="16" /> Ver perfil de {{ c.nombre }}
           </button>
         </div>
       }

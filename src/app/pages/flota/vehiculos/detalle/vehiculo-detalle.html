@@ -82,7 +82,7 @@
         @for (n of [1, 2]; track n) {
           @if (llaveSlot($any(n)); as l) {
             <div class="vd-llaves__item">
-              <div class="vd-llaves__num">🔑 Llave #{{ n }}</div>
+              <div class="vd-llaves__num"><app-icon name="key" [size]="16" /> Llave #{{ n }}</div>
               <div class="vd-llaves__ubi">{{ LLAVE_UBICACION_LABEL[l.ubicacion_tipo] }}</div>
               <div class="vd-llaves__portador">{{ llaveDescripcion(l) }}</div>
               @if (l.updated_at) { <div class="vd-llaves__fecha">Actualizada: {{ fechaHora(l.updated_at) }}</div> }
@@ -172,18 +172,18 @@
     <!-- ── U11-web · Alerta de mantenimiento (visible en el perfil) ── -->
     @if (mantPorRevisar()) {
       <div class="vd-mant vd-mant--pre" role="status">
-        ⚠️ <strong>Dato de mantenimiento por revisar</strong> — la lectura del último mantenimiento supera la
+        <app-icon name="alert-triangle" [size]="16" /> <strong>Dato de mantenimiento por revisar</strong> — la lectura del último mantenimiento supera la
         lectura actual del vehículo. No se calcula el próximo mantenimiento hasta corregirlo (se avisó a Flota).
       </div>
     } @else if (alertaMant(); as am) {
       @if (am.estado === 'vencido') {
         <div class="page-error vd-mant--vencido" role="alert">
-          🔴 <strong>Mantenimiento atrasado</strong> — pasado con {{ am.km | number:'1.0-0' }} {{ unidad() }}.
+          <app-icon name="alert-circle" [size]="16" /> <strong>Mantenimiento atrasado</strong> — pasado con {{ am.km | number:'1.0-0' }} {{ unidad() }}.
           Agenda el mantenimiento de este vehículo cuanto antes.
         </div>
       } @else {
         <div class="vd-mant vd-mant--pre" role="status">
-          🟠 <strong>Mantenimiento próximo</strong> — faltan {{ am.km | number:'1.0-0' }} {{ unidad() }} para el próximo.
+          <app-icon name="alert-triangle" [size]="16" /> <strong>Mantenimiento próximo</strong> — faltan {{ am.km | number:'1.0-0' }} {{ unidad() }} para el próximo.
         </div>
       }
     }
@@ -218,7 +218,7 @@
           km/gal
           @if (rendimientoEsperado() != null) {
             · esperado {{ rendimientoEsperado() | number:'1.0-1' }}
-            @if (rendimientoBajo()) { <span class="vd-danger">⚠ por debajo</span> }
+            @if (rendimientoBajo()) { <span class="vd-danger"><app-icon name="alert-triangle" [size]="13" /> por debajo</span> }
           }
         </span>
       </div>
@@ -326,7 +326,7 @@
 
       @if (asignacionesHistoricas().length > 0) {
         <button type="button" class="vd-toggle" (click)="toggleHistorialAsig()">
-          {{ mostrarHistorialAsig() ? '▾' : '▸' }}
+          <app-icon [name]="mostrarHistorialAsig() ? 'chevron-down' : 'chevron-right'" [size]="14" />
           Historial de asignaciones ({{ asignacionesHistoricas().length }})
         </button>
         @if (mostrarHistorialAsig()) {
@@ -414,7 +414,7 @@
                   <td class="text-right">{{ r.galones != null ? (r.galones | number:'1.0-1') : '—' }}</td>
                   <td class="text-right">{{ r.monto != null ? (r.monto | number:'1.0-0') : '—' }}</td>
                   <td class="text-right">{{ r.rendimiento_km_gal != null ? (r.rendimiento_km_gal | number:'1.0-1') : '—' }}</td>
-                  <td>@if (r.alerta_consumo) { <span class="vd-danger" title="Consumo anormal">⚠</span> }</td>
+                  <td>@if (r.alerta_consumo) { <span class="vd-danger" title="Consumo anormal"><app-icon name="alert-triangle" [size]="14" /></span> }</td>
                 </tr>
               }
             </tbody>

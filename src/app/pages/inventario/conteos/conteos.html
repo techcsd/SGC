@@ -64,7 +64,7 @@
               @if (c.motivo) { · {{ c.motivo }} }
             </span>
           </div>
-          <span class="cn-card__count">{{ c.items?.length ?? 0 }} ítems ▾</span>
+          <span class="cn-card__count">{{ c.items?.length ?? 0 }} ítems <app-icon name="chevron-down" [size]="14" /></span>
         </button>
         @if (esAdmin()) {
           <div class="cn-admin-actions">
@@ -85,9 +85,9 @@
             <span class="sgc-badge" [class.sgc-badge--info]="esChequeo(c)" [class.sgc-badge--neutral]="!esChequeo(c)">
               {{ esChequeo(c) ? 'Chequeo semanal' : 'Ajuste de inventario' }}
             </span>
-            <span class="cn-detail-head__meta">🏬 {{ c.bodega?.nombre ?? 'Almacén' }}</span>
-            <span class="cn-detail-head__meta">👤 {{ c.creado?.nombre ?? '—' }}</span>
-            <span class="cn-detail-head__meta">🗓 {{ formatFechaHora(c.created_at) }}</span>
+            <span class="cn-detail-head__meta"><app-icon name="building" [size]="14" /> {{ c.bodega?.nombre ?? 'Almacén' }}</span>
+            <span class="cn-detail-head__meta"><app-icon name="user" [size]="14" /> {{ c.creado?.nombre ?? '—' }}</span>
+            <span class="cn-detail-head__meta"><app-icon name="calendar" [size]="14" /> {{ formatFechaHora(c.created_at) }}</span>
           </div>
           @if (c.motivo) { <p class="cn-motivo"><strong>Motivo:</strong> {{ c.motivo }}</p> }
           @if (c.observaciones) { <p class="cn-motivo">{{ c.observaciones }}</p> }
@@ -109,8 +109,8 @@
                   <td class="text-right">{{ it.cantidad_antes }}</td>
                   <td class="text-right">{{ it.cantidad_contada }}</td>
                   <td class="text-right" [class.cn-up]="it.cantidad_contada > it.cantidad_antes" [class.cn-down]="it.cantidad_contada < it.cantidad_antes">
-                    @if (it.cantidad_contada > it.cantidad_antes) { ↑ }
-                    @else if (it.cantidad_contada < it.cantidad_antes) { ↓ }
+                    @if (it.cantidad_contada > it.cantidad_antes) { <app-icon name="arrow-up" [size]="14" /> }
+                    @else if (it.cantidad_contada < it.cantidad_antes) { <app-icon name="arrow-down" [size]="14" /> }
                     {{ diff(it.cantidad_antes, it.cantidad_contada) }}
                   </td>
                   <td class="text-right" [class.cn-up]="it.cantidad_contada > it.cantidad_antes" [class.cn-down]="it.cantidad_contada < it.cantidad_antes">
@@ -122,8 +122,8 @@
           </table>
           @if (totales(c).ajustados > 0) {
             <div class="cn-leyenda">
-              <span class="cn-up">↑ Sobrante (contado &gt; sistema)</span>
-              <span class="cn-down">↓ Faltante (contado &lt; sistema)</span>
+              <span class="cn-up"><app-icon name="arrow-up" [size]="14" /> Sobrante (contado &gt; sistema)</span>
+              <span class="cn-down"><app-icon name="arrow-down" [size]="14" /> Faltante (contado &lt; sistema)</span>
             </div>
           }
           </div>

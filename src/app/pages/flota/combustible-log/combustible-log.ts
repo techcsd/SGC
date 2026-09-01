@@ -14,6 +14,7 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { formatFechaDisplay, formatHoraTimestamp, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /**
  * AF17 — Registro/log de echadas para admin y roles elevados. Sirve para detectar
@@ -22,7 +23,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [FlotaSubnav, DecimalPipe, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox],
+  imports: [FlotaSubnav, DecimalPipe, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

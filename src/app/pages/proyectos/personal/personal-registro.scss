@@ -45,7 +45,7 @@
 .pob-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
 .pob-foto {
   display: flex; flex-direction: column; gap: 8px;
-  border: 1px solid #2d2d2d22; border-radius: 12px; padding: 12px;
+  border: 1px solid var(--sgc-border); border-radius: 12px; padding: 12px;
   &.is-done { border-color: var(--accent); }
   &__prev {
     height: 150px; border-radius: 8px; overflow: hidden; background: #f0f0f0;
@@ -59,8 +59,8 @@
 
 .pob-doc-prev {
   max-height: 220px; overflow-y: auto;
-  border: 1px solid #2d2d2d22; border-radius: 10px; padding: 14px;
-  font-size: 13px; margin-bottom: 14px; background: #fafafa;
+  border: 1px solid var(--sgc-border); border-radius: 10px; padding: 14px;
+  font-size: 13px; margin-bottom: 14px; background: var(--surface-2);
 }
 // AZ1 — campos pendientes del documento (los que el sistema no resuelve solo)
 .pob-doc-pend {
@@ -70,10 +70,10 @@
   &__hint { margin: 0 0 12px; font-size: 12px; color: var(--sgc-text-muted); }
 }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.pob-doc-warn { margin: 8px 0 0; font-size: 12px; color: var(--sgc-danger, #d33); font-weight: 600; }
+.pob-doc-warn { margin: 8px 0 0; font-size: 12px; color: var(--sgc-danger); font-weight: 600; }
 
 .pob-firma-label { display: block; font-size: 13px; color: var(--sgc-text-muted); margin-bottom: 6px; }
-.pob-firma { border: 1px dashed #bbb; border-radius: 10px; overflow: hidden; height: 200px; }
+.pob-firma { border: 1px dashed var(--border-strong); border-radius: 10px; overflow: hidden; height: 200px; }
 
 .pob-resumen {
   text-align: center;

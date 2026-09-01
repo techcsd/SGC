@@ -21,10 +21,11 @@ import { formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-flota-avisos',
-  imports: [HumanizarEnumPipe, FormDrawer, Skeleton, HighlightItemDirective, Paginator, Lightbox, AudioNotas],
+  imports: [HumanizarEnumPipe, FormDrawer, Skeleton, HighlightItemDirective, Paginator, Lightbox, AudioNotas, Icon],
   templateUrl: './avisos.html',
   styleUrl: './avisos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -146,13 +146,13 @@
 }
 .cron__legend-real { display: inline-block; width: 18px; height: 6px; border-radius: 3px; background: var(--sgc-text-secondary); }
 .cron__legend-esperado i { display: inline-block; width: 2px; height: 12px; background: #0b0b0b; opacity: 0.6; }
-.cron__legend-dep i { display: inline-block; width: 18px; height: 0; border-top: 2px dashed var(--sgc-primary-mid, #9aa); }
+.cron__legend-dep i { display: inline-block; width: 18px; height: 0; border-top: 2px dashed var(--sgc-primary-mid); }
 
 // Z16 — conector de dependencia finish-to-start (línea punteada + flecha).
 .cron__dep {
   position: absolute; top: 0; height: 8px; z-index: 1;
-  border-top: 2px dashed var(--sgc-primary-mid, #9aa);
-  border-right: 2px dashed var(--sgc-primary-mid, #9aa);
+  border-top: 2px dashed var(--sgc-primary-mid);
+  border-right: 2px dashed var(--sgc-primary-mid);
   border-top-right-radius: 4px;
   &--warn { border-color: var(--sgc-danger); }
 }
@@ -160,7 +160,7 @@
   position: absolute; right: -1px; bottom: -5px;
   width: 0; height: 0;
   border-left: 4px solid transparent; border-right: 4px solid transparent;
-  border-top: 5px solid var(--sgc-primary-mid, #9aa);
+  border-top: 5px solid var(--sgc-primary-mid);
 }
 .cron__dep--warn .cron__dep-arrow { border-top-color: var(--sgc-danger); }
 
@@ -278,7 +278,7 @@
   color: var(--text-2);
   cursor: pointer;
   font-size: 0.9rem;
-  &:hover { color: var(--sgc-danger, #e53935); }
+  &:hover { color: var(--sgc-danger); }
 }
 .cron__dep-add {
   display: flex;

@@ -85,12 +85,12 @@
                 <td class="rep-actions">
                   @if (editMinId() === r.articulo_id) {
                     <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="guardarMinimo(r)">Guardar</button>
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editMinId.set(null)">✕</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editMinId.set(null)"><app-icon name="x" [size]="16" /></button>
                   } @else if (posponerId() === r.articulo_id) {
                     <input class="rep-dias" type="number" min="1" [value]="posponerDias()" (input)="posponerDias.set($any($event.target).valueAsNumber)" title="Días" />
                     <input class="rep-motivo" type="text" [value]="posponerMotivo()" (input)="posponerMotivo.set($any($event.target).value)" placeholder="Motivo" />
                     <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando()" (click)="confirmarPosponer(r)">Posponer</button>
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="posponerId.set(null)">✕</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="posponerId.set(null)"><app-icon name="x" [size]="16" /></button>
                   } @else {
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditMin(r)">Mínimo</button>
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirPosponer(r)">Posponer</button>

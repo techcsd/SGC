@@ -14,7 +14,7 @@
 
   <!-- AS8 — usuario sin rol/módulos: banner informativo (no bloqueo) -->
   @if (sinRol()) {
-    <div class="dashboard-error" role="status" style="background:#1c2440;border-color:#2d3a63;color:inherit;">
+    <div class="dashboard-error" role="status" style="background:var(--info-bg);border-color:var(--info);color:var(--text);">
       <strong>Tu cuenta aún no tiene módulos asignados.</strong>
       Por ahora puedes usar Notas, Tareas, Mensajes y Dudas. Para acceder a más
       secciones, habla con Administración para que te asignen un rol.

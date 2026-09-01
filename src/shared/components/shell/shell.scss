@@ -472,6 +472,30 @@
   }
 }
 
+// BE6 — toggle de tema (mismo lenguaje visual que la campana).
+.header-theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sgc-radius);
+  background: none;
+  border: 1px solid var(--sgc-border);
+  color: var(--sgc-text-muted);
+  cursor: pointer;
+  transition: var(--sgc-transition-fast);
+
+  &:hover {
+    background: var(--sgc-surface-hover);
+    color: var(--sgc-text);
+  }
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+}
+
 .notif-count {
   position: absolute;
   top: -5px;

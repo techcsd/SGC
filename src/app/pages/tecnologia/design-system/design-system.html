@@ -89,9 +89,78 @@
     </div>
   </section>
 
-  <!-- Botones -->
+  <!-- ═══ Componentes base del rediseño (BE3 / FASE 2) ═══ -->
   <section class="ds__section">
-    <h2 class="ds__h2">Botones</h2>
+    <h2 class="ds__h2">Componentes base <span class="ds__tag">BE3</span></h2>
+    <p class="ds__lead">
+      Los primitivos que matan el sprawl (estudio §2.7): <code class="ds__code">&lt;app-card&gt;</code>,
+      <code class="ds__code">&lt;app-badge&gt;</code> y la directiva
+      <code class="ds__code">appButton</code>. Solo consumen tokens semánticos → themean solos.
+    </p>
+
+    <h3 class="ds__h3">appButton (directiva sobre &lt;button&gt;/&lt;a&gt; nativo)</h3>
+    <div class="ds__row">
+      <button appButton variant="primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nueva requisición
+      </button>
+      <button appButton variant="secondary">Secundario</button>
+      <button appButton variant="danger">Anular</button>
+      <button appButton variant="ghost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        Exportar
+      </button>
+      <button appButton variant="primary" size="sm">Pequeño</button>
+      <button appButton variant="primary" disabled>Deshabilitado</button>
+    </div>
+
+    <h3 class="ds__h3">app-badge</h3>
+    <div class="ds__row">
+      <app-badge variant="success">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Sin incidencias
+      </app-badge>
+      <app-badge variant="danger">Echada inválida</app-badge>
+      <app-badge variant="warning">En revisión</app-badge>
+      <app-badge variant="info">En ruta</app-badge>
+      <app-badge variant="neutral">En cuarentena</app-badge>
+      <app-badge variant="brand">Destacado</app-badge>
+    </div>
+
+    <h3 class="ds__h3">app-card</h3>
+    <app-card heading="Conduce CD-000142">
+      <a actions appButton variant="ghost" size="sm">Ver conduce</a>
+      <p style="margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-sm);">
+        NOVAL · Riviera Bay → Bodega Central · Transporta: Papo.
+      </p>
+      <div class="ds__row">
+        <app-badge variant="info">En ruta</app-badge>
+        <app-badge variant="success">Firmado origen</app-badge>
+      </div>
+    </app-card>
+  </section>
+
+  <!-- ═══ Iconografía (BE4 / set único) ═══ -->
+  <section class="ds__section">
+    <h2 class="ds__h2">Iconografía <span class="ds__tag">BE4</span></h2>
+    <p class="ds__lead">
+      Set SVG único (<code class="ds__code">&lt;app-icon name="…"&gt;</code>, estilo lucide,
+      <code class="ds__code">stroke="currentColor"</code>). Reemplaza el emoji-como-icono (AW12).
+      Hereda color y tamaño del contexto.
+    </p>
+    <div class="ds__icons">
+      @for (n of iconNames; track n) {
+        <div class="ds__icon-cell">
+          <app-icon [name]="n" [size]="22" />
+          <span>{{ n }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Botones (legacy .sgc-btn — se mantienen hasta migrar cada pantalla) -->
+  <section class="ds__section">
+    <h2 class="ds__h2">Botones <span class="ds__tag ds__tag--muted">legacy .sgc-btn</span></h2>
     <div class="ds__row">
       <button class="sgc-btn sgc-btn--primary">Primario</button>
       <button class="sgc-btn sgc-btn--secondary">Secundario</button>

@@ -48,7 +48,7 @@
               @if ((s.items ?? []).length) {
                 <button type="button" class="req-toggle" [attr.aria-expanded]="estaExpandida(s.id)"
                   (click)="toggleExpand(s.id)">
-                  <span class="req-toggle__chevron" [class.req-toggle__chevron--open]="estaExpandida(s.id)" aria-hidden="true">▸</span>
+                  <span class="req-toggle__chevron" [class.req-toggle__chevron--open]="estaExpandida(s.id)" aria-hidden="true"><app-icon name="chevron-right" [size]="14" /></span>
                   {{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}
                 </button>
               } @else {
@@ -136,7 +136,7 @@
         </select>
         @if (obraSinAlmacen()) {
           <div class="sm-warn" role="note">
-            ⚠️ Esta obra no tiene almacén propio; lo que se reciba no se registrará en su inventario.
+<app-icon name="alert-triangle" [size]="14" /> Esta obra no tiene almacén propio; lo que se reciba no se registrará en su inventario.
             <a routerLink="/inventario/bodegas">Crear el almacén de la obra</a> (requiere permiso de Inventario).
           </div>
         }
@@ -182,7 +182,7 @@
             (click)="removeItem(i)"
             [disabled]="formItems().length === 1"
             aria-label="Quitar artículo"
-          >✕</button>
+          ><app-icon name="x" [size]="16" /></button>
         </div>
 
         <!-- "Otro" (texto libre) → descripción + unidad; alimenta otros_valores -->
@@ -218,7 +218,7 @@
         }
 
         @if (item.articulo_id && itemNota(item.articulo_id); as nota) {
-          <span class="item-row__nota">ℹ️ {{ nota }}</span>
+          <span class="item-row__nota"><app-icon name="info" [size]="14" /> {{ nota }}</span>
         }
       }
 
@@ -254,7 +254,7 @@
               ariaLabel="Cantidad"
               (valueChange)="updateItemCantidad(r.index, $event)"
             />
-            <button type="button" class="item-row__remove" (click)="removeItem(r.index)" aria-label="Quitar artículo">✕</button>
+            <button type="button" class="item-row__remove" (click)="removeItem(r.index)" aria-label="Quitar artículo"><app-icon name="x" [size]="16" /></button>
           </div>
         }
       </div>

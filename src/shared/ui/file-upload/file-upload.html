@@ -28,7 +28,7 @@
           @if (previewUrl(f); as url) {
             <img class="file-upload__thumb" [src]="url" [alt]="f.name" />
           } @else {
-            <span class="file-upload__thumb file-upload__thumb--file" aria-hidden="true">📄</span>
+            <span class="file-upload__thumb file-upload__thumb--file" aria-hidden="true"><app-icon name="file" [size]="24" /></span>
           }
           <span class="file-upload__name">{{ f.name }}</span>
           <button type="button" class="file-upload__remove" (click)="quitar(i)" [attr.aria-label]="'Quitar ' + f.name"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>

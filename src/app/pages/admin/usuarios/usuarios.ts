@@ -18,12 +18,13 @@ import { formatFechaMedia, formatFechaRelativa } from '../../../../shared/utils/
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, ExportExcel],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, ExportExcel, Icon],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -218,7 +218,7 @@
 .cuadre__link {
   background: none;
   border: none;
-  color: var(--sgc-primary, #ff5f00);
+  color: var(--sgc-primary);
   font-size: 12px;
   cursor: pointer;
   padding: 4px 0 0;
@@ -229,7 +229,7 @@
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
-  color: var(--sgc-text-muted, #666);
+  color: var(--sgc-text-muted);
   margin: 8px 0;
   cursor: pointer;
 

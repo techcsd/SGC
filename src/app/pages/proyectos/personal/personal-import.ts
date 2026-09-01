@@ -5,6 +5,7 @@ import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos
 import { Cargo } from '../../../../shared/models/personal-obra.model';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /** Fila previsualizada del import (antes de confirmar). */
 interface FilaPrev {
@@ -42,7 +43,7 @@ const CEDULA_RE = /^\d{3}-?\d{7}-?\d$/;
 
 @Component({
   selector: 'app-personal-import',
-  imports: [RouterLink],
+  imports: [RouterLink, Icon],
   templateUrl: './personal-import.html',
   styleUrl: './personal-import.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

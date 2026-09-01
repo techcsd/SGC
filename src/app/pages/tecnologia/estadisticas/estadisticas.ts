@@ -6,6 +6,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { formatFechaHumana, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type OrdenCol = 'nombre' | 'plataforma' | 'version' | 'ultimo';
 type OrdenDir = 'asc' | 'desc';
@@ -17,7 +18,7 @@ type OrdenDir = 'asc' | 'desc';
  */
 @Component({
   selector: 'app-tec-estadisticas',
-  imports: [DecimalPipe, FormsModule, Skeleton, BarChart, ExportExcel],
+  imports: [DecimalPipe, FormsModule, Skeleton, BarChart, ExportExcel, Icon],
   templateUrl: './estadisticas.html',
   styleUrl: './estadisticas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

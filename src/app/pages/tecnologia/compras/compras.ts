@@ -6,6 +6,7 @@ import { SolicitudCompra, SolicitudCompraEstado } from '../../../../shared/model
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface CompraItemForm {
   descripcion: string;
@@ -23,7 +24,7 @@ const ESTADO_META: Record<SolicitudCompraEstado, { label: string; badge: string 
 
 @Component({
   selector: 'app-tec-compras',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
   templateUrl: './compras.html',
   styleUrl: './compras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -19,6 +19,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import {
   ChecklistPlantilla,
   ChecklistPlantillaItem,
@@ -56,7 +57,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas, Icon],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

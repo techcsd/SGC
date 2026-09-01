@@ -8,7 +8,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelHistorial()"
             [disabled]="filtered().length === 0" title="Exportar el historial filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
   </div>
 </div>

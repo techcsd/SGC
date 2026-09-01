@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, model } from '@angular/core';
+import { Icon } from '../icon/icon';
 
 /**
  * Paginador reutilizable del sistema de diseño.
@@ -11,6 +12,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, model } fr
  */
 @Component({
   selector: 'app-paginator',
+  imports: [Icon],
   templateUrl: './paginator.html',
   styleUrl: './paginator.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

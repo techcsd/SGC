@@ -71,6 +71,48 @@
     border-radius: var(--radius-sm);
   }
 
+  &__icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: var(--space-2);
+  }
+  &__icon-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-2);
+
+    span {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-3);
+      text-align: center;
+      word-break: break-word;
+    }
+  }
+
+  &__tag {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: var(--space-2);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    padding: 1px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--brand-soft);
+    color: var(--brand);
+
+    &--muted {
+      background: var(--surface-3);
+      color: var(--text-3);
+    }
+  }
+
   // Color swatches
   &__swatches {
     display: grid;

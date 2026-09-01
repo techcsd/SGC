@@ -7,6 +7,7 @@ import {
   computed,
   effect,
 } from '@angular/core';
+import { Icon } from '../../ui/icon/icon';
 import { AudioNotasService } from '../../services/audio-notas.service';
 import { ToastService } from '../../services/toast.service';
 import { AudioNota, AudioEntidadTipo, MAX_AUDIO_NOTAS } from '../../models/audio-nota.model';
@@ -21,7 +22,7 @@ import { AudioNota, AudioEntidadTipo, MAX_AUDIO_NOTAS } from '../../models/audio
  */
 @Component({
   selector: 'app-audio-notas',
-  imports: [],
+  imports: [Icon],
   templateUrl: './audio-notas.html',
   styleUrl: './audio-notas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

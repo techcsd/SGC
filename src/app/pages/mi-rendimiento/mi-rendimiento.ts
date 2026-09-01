@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { IncentivosService, MiRendimientoSemana, RENGLON_LABELS } from '../../../shared/services/incentivos.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../shared/utils/fecha.util';
 
 // AT2 — "Mi rendimiento": el chofer ve SOLO su propio puntaje semanal e histórico
 // (no ve el módulo Incentivos). La RLS garantiza que solo llegan sus filas.
 @Component({
   selector: 'app-mi-rendimiento',
-  imports: [Skeleton],
+  imports: [Skeleton, Icon],
   templateUrl: './mi-rendimiento.html',
   styleUrl: './mi-rendimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

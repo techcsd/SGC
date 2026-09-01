@@ -5,6 +5,7 @@ import {
   PermisosMap,
   SubmoduloInfo,
 } from '../../../../shared/services/roles.service';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /** Nivel homologado que se muestra en el control de 3 posiciones. */
 type NivelUI = '' | 'ver' | 'operar';
@@ -36,6 +37,7 @@ interface GrupoModulo {
  */
 @Component({
   selector: 'app-role-permisos-editor',
+  imports: [Icon],
   templateUrl: './role-permisos-editor.html',
   styleUrl: './role-permisos-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

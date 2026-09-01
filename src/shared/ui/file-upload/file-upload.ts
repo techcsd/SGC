@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, output, signal, computed } from '@angular/core';
+import { Icon } from '../icon/icon';
 
 /**
  * R6 — Zona de subida de archivos consistente (design system).
@@ -8,7 +9,7 @@ import { Component, ChangeDetectionStrategy, input, output, signal, computed } f
  */
 @Component({
   selector: 'app-file-upload',
-  imports: [],
+  imports: [Icon],
   templateUrl: './file-upload.html',
   styleUrl: './file-upload.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

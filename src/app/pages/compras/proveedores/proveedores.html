@@ -7,11 +7,11 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelProveedores()"
             [disabled]="filtered().length === 0" title="Exportar los proveedores filtrados a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="abrirImport()"
             title="Importar proveedores desde Excel/CSV">
-      ⬆️ Importar
+      <app-icon name="upload" [size]="16" /> Importar
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -111,7 +111,7 @@
               <td>
                 <span class="prov-name">{{ p.nombre }}</span>
                 @if (p.is_hardware_store) {
-                  <span class="sgc-badge sgc-badge--info" title="Ferretería visible para choferes">🔧 Ferretería</span>
+                  <span class="sgc-badge sgc-badge--info" title="Ferretería visible para choferes"><app-icon name="wrench" [size]="14" /> Ferretería</span>
                 }
                 @if (p.es_prueba) {
                   <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
@@ -366,10 +366,10 @@
 
     <div class="import-prov__actions">
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla()">
-        ⬇️ Descargar plantilla
+        <app-icon name="download" [size]="16" /> Descargar plantilla
       </button>
       <label class="sgc-btn sgc-btn--secondary sgc-btn--sm import-prov__file">
-        📄 Elegir archivo
+        <app-icon name="file" [size]="16" /> Elegir archivo
         <input type="file" accept=".xlsx,.xls,.csv" (change)="onImportFile($event)" hidden />
       </label>
       @if (importNombre()) { <span class="import-prov__filename">{{ importNombre() }}</span> }

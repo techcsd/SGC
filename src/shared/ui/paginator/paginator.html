@@ -10,7 +10,7 @@
         [disabled]="page() === 1"
         aria-label="Página anterior"
       >
-        ‹ Anterior
+        <app-icon name="chevron-left" [size]="16" /> Anterior
       </button>
 
       <span class="paginator__page">Página {{ page() }} de {{ totalPages() }}</span>
@@ -22,7 +22,7 @@
         [disabled]="page() === totalPages()"
         aria-label="Página siguiente"
       >
-        Siguiente ›
+        Siguiente <app-icon name="chevron-right" [size]="16" />
       </button>
     </div>
   </nav>

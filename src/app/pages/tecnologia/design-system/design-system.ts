@@ -1,4 +1,9 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Card } from '../../../../shared/ui/card/card';
+import { Badge } from '../../../../shared/ui/badge/badge';
+import { ButtonDirective } from '../../../../shared/ui/button/button.directive';
+import { Icon } from '../../../../shared/ui/icon/icon';
+import { ICON_PATHS, IconName } from '../../../../shared/ui/icon/icons';
 
 // BD3 — Component gallery (galería de componentes del design system).
 // Internal, es_tecnologia-gated. Renders the base tokens + shared components live
@@ -7,7 +12,7 @@ import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 // so previewing dark here doesn't flip the whole app.
 @Component({
   selector: 'app-tec-design-system',
-  imports: [],
+  imports: [Card, Badge, ButtonDirective, Icon],
   templateUrl: './design-system.html',
   styleUrl: './design-system.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +48,8 @@ export class TecDesignSystem {
     { token: '--space-6', px: '24px' },
     { token: '--space-8', px: '32px' },
   ];
+
+  readonly iconNames = Object.keys(ICON_PATHS) as IconName[];
 
   readonly radiusScale: string[] = ['--radius-sm', '--radius', '--radius-lg', '--radius-pill'];
   readonly shadowScale: string[] = ['--shadow-sm', '--shadow', '--shadow-md', '--shadow-lg'];

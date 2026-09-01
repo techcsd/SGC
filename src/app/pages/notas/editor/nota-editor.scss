@@ -167,7 +167,7 @@
   }
   &__share-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
   &__share-name { color: var(--sgc-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  &__share-sub { font-size: 11.5px; color: var(--sgc-text-muted, #8a8a8a); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__share-sub { font-size: 11.5px; color: var(--sgc-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
 @media (max-width: 768px) {

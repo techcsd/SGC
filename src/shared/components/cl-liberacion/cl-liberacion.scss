@@ -25,7 +25,7 @@
   &__label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--main, #121212);
+    color: var(--text);
   }
 
   &__form {
@@ -223,7 +223,7 @@
     cursor: pointer;
 
     & + & { border-left: 1px solid #e0e0e0; }
-    &--active { background: var(--accent); color: var(--main, #121212); font-weight: 600; }
+    &--active { background: var(--accent); color: var(--text); font-weight: 600; }
   }
 
   // Q5 — etiqueta "foto" en la firma

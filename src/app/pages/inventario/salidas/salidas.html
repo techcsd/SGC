@@ -7,7 +7,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -163,7 +163,7 @@
                     @if (thumb(s); as t) {
                       <img [src]="t" alt="Foto de evidencia" loading="lazy" />
                     } @else {
-                      📷
+                      <app-icon name="camera" [size]="16" />
                     }
                   </button>
                 }
@@ -174,7 +174,7 @@
                     @if (firmaThumb(s); as t) {
                       <img [src]="t" alt="Firma de quien entrega" loading="lazy" />
                     } @else {
-                      ✍️
+                      <app-icon name="pen" [size]="16" />
                     }
                   </button>
                 }
@@ -488,7 +488,7 @@
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm salidas__foto-pick">
-          📷 Adjuntar foto
+          <app-icon name="camera" [size]="16" /> Adjuntar foto
           <input type="file" accept="image/*" capture="environment" (change)="onFotoSelected($event)" hidden />
         </label>
       }
@@ -544,7 +544,7 @@
             </div>
           }
           @if (item.articulo_id && itemNota(item.articulo_id); as nota) {
-            <span class="item-row__nota">ℹ️ {{ nota }}</span>
+            <span class="item-row__nota"><app-icon name="info" [size]="14" /> {{ nota }}</span>
           }
         }
       </div>
@@ -685,7 +685,7 @@
           <div class="salida-detalle__evidencia">
             <span class="salida-detalle__evidencia-label">Foto de despacho</span>
             <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFoto(s)" title="Ver en grande">
-              @if (detailFotoThumb(); as t) { <img [src]="t" alt="Foto de despacho" loading="lazy" /> } @else { 📷 }
+              @if (detailFotoThumb(); as t) { <img [src]="t" alt="Foto de despacho" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
             </button>
           </div>
         }
@@ -693,7 +693,7 @@
           <div class="salida-detalle__evidencia">
             <span class="salida-detalle__evidencia-label">Firma de quien entrega</span>
             <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFirma(s)" title="Ver firma">
-              @if (detailFirmaThumb(); as t) { <img [src]="t" alt="Firma de quien entrega" loading="lazy" /> } @else { ✍️ }
+              @if (detailFirmaThumb(); as t) { <img [src]="t" alt="Firma de quien entrega" loading="lazy" /> } @else { <app-icon name="pen" [size]="20" /> }
             </button>
           </div>
         }
@@ -701,7 +701,7 @@
           <div class="salida-detalle__evidencia">
             <span class="salida-detalle__evidencia-label">Foto de entrega{{ s.entrega_receptor ? ' — ' + s.entrega_receptor : '' }}</span>
             <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_foto_path!)" title="Ver en grande">
-              @if (detailEntregaFotoThumb(); as t) { <img [src]="t" alt="Foto de entrega" loading="lazy" /> } @else { 📷 }
+              @if (detailEntregaFotoThumb(); as t) { <img [src]="t" alt="Foto de entrega" loading="lazy" /> } @else { <app-icon name="camera" [size]="20" /> }
             </button>
           </div>
         }
@@ -709,7 +709,7 @@
           <div class="salida-detalle__evidencia">
             <span class="salida-detalle__evidencia-label">Firma de quien recibe</span>
             <button type="button" class="salidas__foto-thumb salidas__foto-thumb--lg" (click)="verFotoPath(s.entrega_firma_path!)" title="Ver firma">
-              @if (detailEntregaFirmaThumb(); as t) { <img [src]="t" alt="Firma de quien recibe" loading="lazy" /> } @else { ✍️ }
+              @if (detailEntregaFirmaThumb(); as t) { <img [src]="t" alt="Firma de quien recibe" loading="lazy" /> } @else { <app-icon name="pen" [size]="20" /> }
             </button>
           </div>
         }

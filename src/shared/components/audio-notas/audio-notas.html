@@ -8,7 +8,7 @@
 
     @for (n of notas(); track n.id) {
       <div class="audio-notas__item">
-        <span class="audio-notas__cap">🎤 Nota de voz @if (duracionLabel(n.duracion_seg)) { · {{ duracionLabel(n.duracion_seg) }} }</span>
+        <span class="audio-notas__cap"><app-icon name="mic" [size]="14" /> Nota de voz @if (duracionLabel(n.duracion_seg)) { · {{ duracionLabel(n.duracion_seg) }} }</span>
         @if (urlOf(n)) {
           <audio controls preload="none" [src]="urlOf(n)"></audio>
         } @else {
@@ -26,9 +26,9 @@
         } @else if (n.transcripcion_estado === 'pendiente') {
           <span class="audio-notas__muted">Transcripción pendiente.</span>
         } @else if (n.transcripcion_estado === 'fallida') {
-          <button type="button" class="audio-notas__retry" (click)="retranscribir(n)">↻ Reintentar transcripción</button>
+          <button type="button" class="audio-notas__retry" (click)="retranscribir(n)"><app-icon name="refresh" [size]="14" /> Reintentar transcripción</button>
         } @else {
-          <button type="button" class="audio-notas__retry" (click)="retranscribir(n)">✎ Transcribir</button>
+          <button type="button" class="audio-notas__retry" (click)="retranscribir(n)"><app-icon name="pen" [size]="14" /> Transcribir</button>
         }
       </div>
     }
@@ -37,7 +37,7 @@
       <div class="audio-notas__actions">
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
           (click)="toggleGrabar()" [disabled]="busy() || (!puedeAgregar() && !grabando())">
-          @if (grabando()) { ⏹ Detener } @else { 🎙 Grabar }
+          @if (grabando()) { <app-icon name="square" [size]="14" /> Detener } @else { <app-icon name="mic" [size]="14" /> Grabar }
         </button>
         <label class="sgc-btn sgc-btn--ghost sgc-btn--sm" [class.audio-notas__disabled]="!puedeAgregar() || busy()">
           + Subir audio

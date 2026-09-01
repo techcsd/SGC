@@ -9,10 +9,11 @@ import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { formatFechaHumana } from '../../../shared/utils/fecha.util';
 import { comprimirImagen } from '../../../shared/utils/comprimir-imagen.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-soporte',
-  imports: [ReactiveFormsModule, RouterLink, DonutChart, BarChart, Skeleton],
+  imports: [ReactiveFormsModule, RouterLink, DonutChart, BarChart, Skeleton, Icon],
   templateUrl: './soporte.html',
   styleUrl: './soporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

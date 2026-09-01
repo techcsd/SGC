@@ -7,11 +7,11 @@
     </div>
     <div class="cron__head-actions">
       <div class="cron__tabs">
-        <button type="button" class="cron__tab" [class.cron__tab--active]="vista() === 'gantt'" (click)="vista.set('gantt')">📊 Timeline</button>
-        <button type="button" class="cron__tab" [class.cron__tab--active]="vista() === 'lista'" (click)="vista.set('lista')">📄 Lista</button>
+        <button type="button" class="cron__tab" [class.cron__tab--active]="vista() === 'gantt'" (click)="vista.set('gantt')"><app-icon name="bar-chart" [size]="16" /> Timeline</button>
+        <button type="button" class="cron__tab" [class.cron__tab--active]="vista() === 'lista'" (click)="vista.set('lista')"><app-icon name="file-text" [size]="16" /> Lista</button>
       </div>
       @if (puedeGestionar()) {
-        <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/proyectos', proyectoId(), 'cronograma', 'importar']">⬆️ Importar Excel</a>
+        <a class="sgc-btn sgc-btn--ghost" [routerLink]="['/proyectos', proyectoId(), 'cronograma', 'importar']"><app-icon name="upload" [size]="16" /> Importar Excel</a>
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirNueva()">+ Nueva tarea</button>
       }
     </div>
@@ -76,7 +76,7 @@
                   <span class="cron__dep-badge" [attr.data-tipo]="item.dep.tipo">{{ item.dep.tipo }}</span>
                   {{ item.pred?.nombre ?? '—' }}
                   @if (item.dep.lag_dias) { <em>({{ item.dep.lag_dias > 0 ? '+' : '' }}{{ item.dep.lag_dias }}d)</em> }
-                  <button type="button" class="cron__dep-del" (click)="quitarDependencia(item.dep.id)" title="Quitar dependencia">✕</button>
+                  <button type="button" class="cron__dep-del" (click)="quitarDependencia(item.dep.id)" title="Quitar dependencia"><app-icon name="x" [size]="14" /></button>
                 </li>
               }
             </ul>
@@ -157,7 +157,7 @@
               @for (g of ganttGrupos(); track g.titulo) {
                 @if (g.titulo) {
                   <div class="cron__ggroup" [style.width.px]="LABEL_W">
-                    <span class="cron__ggroup-label">📁 {{ g.titulo }}</span>
+                    <span class="cron__ggroup-label"><app-icon name="folder" [size]="14" /> {{ g.titulo }}</span>
                   </div>
                 }
                 @for (b of g.bars; track b.tarea.id) {
@@ -221,9 +221,9 @@
                 <td>{{ t.orden }}</td>
                 <td>
                   <strong>{{ t.nombre }}</strong>
-                  @if (faseNombre(t.fase_id)) { <span class="cron__fase-tag">📁 {{ faseNombre(t.fase_id) }}</span> }
+                  @if (faseNombre(t.fase_id)) { <span class="cron__fase-tag"><app-icon name="folder" [size]="12" /> {{ faseNombre(t.fase_id) }}</span> }
                   @if (t.descripcion) { <div class="cron__muted cron__desc">{{ t.descripcion }}</div> }
-                  @if (t.justificacion_retraso) { <div class="cron__just">⚠ {{ t.justificacion_retraso }}</div> }
+                  @if (t.justificacion_retraso) { <div class="cron__just"><app-icon name="alert-triangle" [size]="13" /> {{ t.justificacion_retraso }}</div> }
                 </td>
                 <td><span class="cron__badge" [attr.data-tipo]="t.tipo">{{ tipoLabel(t.tipo) }}</span></td>
                 <td class="cron__ts">{{ formatFecha(t.fecha_inicio_plan) }} → {{ formatFecha(t.fecha_fin_plan) }}<br><small>{{ t.duracion_dias_plan }}d</small></td>
@@ -236,7 +236,7 @@
                   @else { <span class="cron__estado" [attr.data-estado]="t.estado">{{ t.estado | humanizarEnum }}</span> }
                 </td>
                 <td class="cron__acciones">
-                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleBitacoras(t)" title="Bitácoras enlazadas">🔗</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleBitacoras(t)" title="Bitácoras enlazadas"><app-icon name="link" [size]="14" /></button>
                   @if (puedeGestionar()) {
                     @if (t.estado === 'pendiente') {
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="iniciar(t)">Iniciar</button>
@@ -246,7 +246,7 @@
                     }
                     @if (atrasada(t)) {
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm cron__btn-just" (click)="abrirJustificar(t)"
-                              title="Justificar el retraso de esta tarea">⚠ Justificar retraso</button>
+                              title="Justificar el retraso de esta tarea"><app-icon name="alert-triangle" [size]="14" /> Justificar retraso</button>
                     }
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(t)">Editar</button>
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="eliminar(t)">Eliminar</button>

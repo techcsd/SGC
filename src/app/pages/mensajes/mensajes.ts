@@ -27,10 +27,11 @@ import { GrupoInfoPanel } from './grupo-info/grupo-info';
 import { Img } from '../../../shared/components/img/img';
 import { Lightbox } from '../../../shared/ui/lightbox/lightbox';
 import { VoicePlayer } from '../../../shared/ui/voice-player/voice-player';
+import { Icon } from '../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-mensajes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, UpperCasePipe, NgTemplateOutlet, Skeleton, Paginator, GrupoInfoPanel, Img, Lightbox, VoicePlayer, Icon],
   templateUrl: './mensajes.html',
   styleUrl: './mensajes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -5,7 +5,7 @@
     }
     <div class="mini-mapa__foot">
       <span class="mini-mapa__coords">{{ lat() | number: '1.5-6' }}, {{ lng() | number: '1.5-6' }}</span>
-      <a class="mini-mapa__link" [href]="verEnMapaUrl()" target="_blank" rel="noopener">Ver en mapa ↗</a>
+      <a class="mini-mapa__link" [href]="verEnMapaUrl()" target="_blank" rel="noopener">Ver en mapa <app-icon name="external-link" [size]="13" /></a>
     </div>
   </div>
 } @else {

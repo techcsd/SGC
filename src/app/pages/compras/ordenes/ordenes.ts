@@ -30,6 +30,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 const ESTADO_TRANSICIONES: Record<OrdenEstado, OrdenEstado[]> = {
   borrador: ['aprobada', 'cancelada'],
@@ -68,7 +69,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, Icon],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

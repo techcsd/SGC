@@ -18,6 +18,7 @@ import { NotificacionesCentroService, Notif } from '../../services/notificacione
 import { AppVersionesService } from '../../services/app-versiones.service';
 import { DatosPruebaViewService } from '../../services/datos-prueba-view.service';
 import { ActividadService } from '../../services/actividad.service';
+import { ThemeService } from '../../services/theme.service';
 import { ModuloOrdenService } from '../../services/modulo-orden.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
@@ -96,6 +97,7 @@ export class Shell implements OnInit {
   private appVersiones = inject(AppVersionesService);
   private datosPruebaView = inject(DatosPruebaViewService);
   private actividad = inject(ActividadService);
+  protected theme = inject(ThemeService);
   private moduloOrden = inject(ModuloOrdenService);
   private destroyRef = inject(DestroyRef);
 

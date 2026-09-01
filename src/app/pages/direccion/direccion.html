@@ -54,7 +54,7 @@
       <div class="direccion-alertas__list">
         @for (a of alertas(); track a.texto) {
           <a class="alerta" [class]="alertaClass(a.nivel)" [routerLink]="a.ruta">
-            <span class="alerta__icono" aria-hidden="true">{{ a.icono }}</span>
+            <span class="alerta__icono" aria-hidden="true"><app-icon [name]="a.icono" [size]="18" /></span>
             <span class="alerta__texto">{{ a.texto }}</span>
             <span class="alerta__cantidad">{{ a.cantidad }}</span>
           </a>

@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Icon } from '../../ui/icon/icon';
 import { ObrasClimaService, ObraClima } from '../obras-clima.service';
 import { Recomendacion, interpretarCodigoTiempo } from '../weather.model';
 
@@ -9,7 +10,7 @@ import { Recomendacion, interpretarCodigoTiempo } from '../weather.model';
  *  <app-obras-clima /> and get the same context-driven view. */
 @Component({
   selector: 'app-obras-clima',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DecimalPipe, RouterLink, Icon],
   templateUrl: './obras-clima.html',
   styleUrl: './obras-clima.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

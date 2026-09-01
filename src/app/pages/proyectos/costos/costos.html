@@ -6,7 +6,7 @@
       <p class="costos__sub">{{ proyectoNombre() || 'Obra' }}</p>
     </div>
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
-            [disabled]="data().por_articulo.length === 0">⬇️ Excel</button>
+            [disabled]="data().por_articulo.length === 0"><app-icon name="download" [size]="16" /> Excel</button>
   </header>
 
   <!-- Filtro de fechas -->

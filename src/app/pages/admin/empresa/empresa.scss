@@ -39,6 +39,8 @@
   &__note { margin: 12px 0 0; font-size: 0.75rem; color: var(--sgc-text-muted, #929090); }
 }
 .doc-head {
+  // BE5 — membrete imprimible: "papel" fijo (blanco + tinta) en AMBOS temas; el
+  // tema oscuro no lo invierte y se imprime en blanco/negro. // tokens-allow-dark
   display: flex;
   gap: 14px;
   align-items: center;

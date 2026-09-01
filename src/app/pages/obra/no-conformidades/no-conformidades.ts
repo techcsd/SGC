@@ -15,12 +15,13 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type Tab = 'nc' | 'incidentes';
 
 @Component({
   selector: 'app-obra-no-conformidades',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Lightbox, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Lightbox, Skeleton, Icon],
   templateUrl: './no-conformidades.html',
   styleUrl: './no-conformidades.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

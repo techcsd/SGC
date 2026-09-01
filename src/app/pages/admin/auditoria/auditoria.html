@@ -41,14 +41,14 @@
     }
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
             [disabled]="exportando()" title="Exportar a Excel todo lo que coincide con el filtro actual">
-      @if (exportando()) { Exportando… } @else { ⬇️ Excel }
+      @if (exportando()) { Exportando… } @else { <app-icon name="download" [size]="16" /> Excel }
     </button>
   </div>
 
   <!-- W6 — vistas: panel analítico (por defecto) / filas crudas (drill-down) -->
   <div class="aud__tabs">
-    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'panel'" (click)="cambiarVista('panel')">📊 Panel</button>
-    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'filas'" (click)="cambiarVista('filas')">📄 Filas</button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'panel'" (click)="cambiarVista('panel')"><app-icon name="bar-chart" [size]="16" /> Panel</button>
+    <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'filas'" (click)="cambiarVista('filas')"><app-icon name="file-text" [size]="16" /> Filas</button>
     <button type="button" class="aud__tab" [class.aud__tab--active]="vista() === 'admin'" (click)="cambiarVista('admin')">Acciones de admin</button>
   </div>
 
@@ -193,7 +193,7 @@
               </td>
               <td>{{ tablaLabel(r.tabla) }}</td>
               <td class="aud__reg"><code>{{ r.registro_id }}</code></td>
-              <td class="aud__chev">{{ expandedId() === r.id ? '▲' : '▼' }}</td>
+              <td class="aud__chev">@if (expandedId() === r.id) { <app-icon name="chevron-up" [size]="16" /> } @else { <app-icon name="chevron-down" [size]="16" /> }</td>
             </tr>
             @if (expandedId() === r.id) {
               <tr class="aud__detail-row">

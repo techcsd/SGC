@@ -1,4 +1,13 @@
 .carnet {
+  // BE5 — carnet imprimible: "papel" fijo (blanco + tinta) en AMBOS temas, con la
+  // banda superior oscura intencional (estilo credencial). No lo invierte el tema
+  // oscuro; imprime igual. // tokens-allow-dark
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --text-2: #555555;
+  --text-3: #777777;
+  --border: #dddddd;
+
   width: 340px;
   max-width: 100%;
   background: #fff;
@@ -8,7 +17,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 
   &__top {
-    background: var(--main, #121212);
+    background: #1a2e44; // tokens-allow-dark — banda oscura de credencial (intencional)
     color: #fff;
     padding: 12px 14px;
     display: flex;

@@ -8,10 +8,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-admin-app-versiones',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, DecimalPipe, Icon],
   templateUrl: './app-versiones.html',
   styleUrl: './app-versiones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

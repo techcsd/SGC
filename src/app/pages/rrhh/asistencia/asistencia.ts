@@ -17,10 +17,11 @@ import { todayIso, formatHora12 } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-asistencia',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

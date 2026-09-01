@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import QRCode from 'qrcode';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../shared/ui/icon/icon';
 
 interface VersionInfo {
   versionName: string;
@@ -23,7 +24,7 @@ const VERSION_URL =
  */
 @Component({
   selector: 'app-app-movil',
-  imports: [DecimalPipe, Skeleton],
+  imports: [DecimalPipe, Skeleton, Icon],
   templateUrl: './app-movil.html',
   styleUrl: './app-movil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

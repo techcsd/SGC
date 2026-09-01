@@ -96,7 +96,7 @@
               @if (fotoDe(v); as url) {
                 <app-img [src]="url" [alt]="ident(v)" [height]="150" fit="cover" [rounded]="false" fallback="🚚" />
               } @else {
-                <div class="uso-card__foto-ph" aria-hidden="true">🚚</div>
+                <div class="uso-card__foto-ph" aria-hidden="true"><app-icon name="truck" [size]="40" /></div>
               }
             </div>
 
@@ -165,7 +165,7 @@
         [class.sgc-btn--primary]="soloRevision()"
         (click)="toggleRevision()"
       >
-        ⚠️ Requieren revisión ({{ revisionCount() }})
+        <app-icon name="alert-triangle" [size]="16" /> Requieren revisión ({{ revisionCount() }})
       </button>
     </div>
 
@@ -189,15 +189,15 @@
                   <span class="resp-badge resp-badge--open">A cargo</span>
                 }
                 @if (e.requiere_revision) {
-                  <span class="resp-badge resp-badge--warn">⚠️ Revisar</span>
+                  <span class="resp-badge resp-badge--warn"><app-icon name="alert-triangle" [size]="14" /> Revisar</span>
                 }
               </div>
               <div class="resp-card__meta">
                 <span>{{ e.conductor?.nombre ?? '—' }}</span>
-                <span>{{ e.km | number: '1.0-0' }} km · ⛽ {{ e.combustible }}</span>
+                <span>{{ e.km | number: '1.0-0' }} km · <app-icon name="fuel" [size]="14" /> {{ e.combustible }}</span>
                 <span>{{ fechaHora(e.capturado_en) }}</span>
               </div>
-              <span class="resp-card__chev">{{ isExpanded(e.id) ? '▲' : '▼' }}</span>
+              <span class="resp-card__chev"><app-icon [name]="isExpanded(e.id) ? 'chevron-down' : 'chevron-right'" [size]="14" /></span>
             </button>
 
             @if (isExpanded(e.id)) {

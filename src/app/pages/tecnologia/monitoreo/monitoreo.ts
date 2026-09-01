@@ -8,12 +8,13 @@ import {
   MonitoredDomain, Subscription, DomainCheck, InfraAlert,
   SEVERITY_LABEL, CHECK_TYPE_LABEL, diasHasta,
 } from '../../../../shared/models/monitoring.model';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type Tab = 'dominios' | 'suscripciones' | 'alertas' | 'historico';
 
 @Component({
   selector: 'app-tec-monitoreo',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Icon],
   templateUrl: './monitoreo.html',
   styleUrl: './monitoreo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

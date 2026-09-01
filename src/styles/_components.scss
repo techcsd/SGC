@@ -1,0 +1,90 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  Componentes base globales del rediseño (BE3 / FASE 2).
+//  Estilos que NO pueden vivir encapsulados en un componente: la directiva
+//  `appButton` (button/anchor nativo). Solo tokens semánticos → ambos temas.
+// ════════════════════════════════════════════════════════════════════════════
+
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1.4;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition-fast);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.ui-btn--primary {
+  background: var(--brand);
+  color: var(--text-on-brand);
+
+  &:hover:not(:disabled) {
+    background: var(--brand-hover);
+  }
+}
+
+.ui-btn--secondary {
+  background: var(--surface-3);
+  color: var(--text);
+
+  &:hover:not(:disabled) {
+    background: var(--border);
+  }
+}
+
+.ui-btn--danger {
+  background: var(--danger);
+  color: var(--text-on-brand);
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.94);
+  }
+
+  &:focus-visible {
+    box-shadow: var(--focus-ring-danger);
+  }
+}
+
+.ui-btn--ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
+}
+
+.ui-btn--sm {
+  padding: 5px var(--space-3);
+  font-size: var(--fs-xs);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}

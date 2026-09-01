@@ -6,7 +6,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarListaExcel()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <a class="sgc-btn sgc-btn--primary" routerLink="/bitacora/nueva">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -141,7 +141,7 @@
               }
               @if (b.cronograma_tareas && b.cronograma_tareas.length > 0) {
                 <span class="sgc-badge sgc-badge--info historial__badge-inline"
-                      [title]="'Cronograma: ' + b.cronograma_tareas[0].tarea?.nombre">🔗 Tarea</span>
+                      [title]="'Cronograma: ' + b.cronograma_tareas[0].tarea?.nombre"><app-icon name="link" [size]="14" /> Tarea</span>
               }
             </td>
             <td>{{ b.proyecto?.nombre ?? '—' }}</td>
@@ -228,8 +228,8 @@
 <app-form-drawer [title]="drawerTitle()" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as b) {
     <div class="bit-toolbar no-print">
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()">🖨️ Imprimir / PDF</button>
-      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarDetalleExcel()">⬇️ Excel</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()"><app-icon name="printer" [size]="16" /> Imprimir / PDF</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarDetalleExcel()"><app-icon name="download" [size]="16" /> Excel</button>
     </div>
     <div class="bitacora-detail" id="bitacora-report-print">
       <!-- U13 — banda de encabezado: obra · fecha · tipo -->
@@ -281,7 +281,7 @@
             <span class="bitacora-detail__label">Clima</span>
             <span>
               @if (b.llovio) {
-                🌧 Llovió@if (b.horas_lluvia != null) { · afectó {{ b.horas_lluvia }} h }
+                <app-icon name="cloud-rain" [size]="14" /> Llovió@if (b.horas_lluvia != null) { · afectó {{ b.horas_lluvia }} h }
               } @else { Sin lluvia }
             </span>
           </div>
@@ -452,7 +452,7 @@
                   @let raudio = getRestriccionAudioUrl(r.id);
                   @if (raudio) {
                     <div class="bitacora-archivo bitacora-archivo--audio">
-                      <span>🎤 Nota de voz</span>
+                      <span><app-icon name="mic" [size]="14" /> Nota de voz</span>
                       <audio controls preload="none" [src]="raudio"></audio>
                       @if (r.transcripcion) { <p class="bitacora-archivo__transcripcion">“{{ r.transcripcion }}”</p> }
                     </div>
@@ -517,7 +517,7 @@
                 </a>
               } @else if (url && isAudio(a)) {
                 <div class="bitacora-archivo bitacora-archivo--audio">
-                  <span class="bitacora-archivo__cap">🎤 Nota de voz</span>
+                  <span class="bitacora-archivo__cap"><app-icon name="mic" [size]="14" /> Nota de voz</span>
                   <audio controls preload="none" [src]="url"></audio>
                   @if (a.transcripcion) {
                     <p class="bitacora-archivo__transcripcion">“{{ a.transcripcion }}”</p>
@@ -526,9 +526,9 @@
               } @else {
                 <div class="bitacora-archivo bitacora-archivo--file">
                   @if (url) {
-                    <a [href]="url" target="_blank" rel="noopener">📎 {{ a.nombre }}</a>
+                    <a [href]="url" target="_blank" rel="noopener"><app-icon name="paperclip" [size]="14" /> {{ a.nombre }}</a>
                   } @else {
-                    📎 {{ a.nombre }}
+                    <app-icon name="paperclip" [size]="14" /> {{ a.nombre }}
                   }
                 </div>
               }

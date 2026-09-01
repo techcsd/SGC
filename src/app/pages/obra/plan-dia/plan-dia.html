@@ -37,9 +37,9 @@
       <div class="charla-card__body">
         <p class="charla-tema">{{ c.tema }}</p>
         <div class="charla-meta">
-          <span>⏱ {{ formatDur(c.duracion_min ?? 5) }}</span>
-          @if (c.asistentes != null) { <span>👥 {{ c.asistentes }} asistentes</span> }
-          @if (c.fotos?.length) { <span>📷 {{ c.fotos.length }} foto(s)</span> }
+          <span><app-icon name="clock" [size]="14" /> {{ formatDur(c.duracion_min ?? 5) }}</span>
+          @if (c.asistentes != null) { <span><app-icon name="users" [size]="14" /> {{ c.asistentes }} asistentes</span> }
+          @if (c.fotos?.length) { <span><app-icon name="camera" [size]="14" /> {{ c.fotos.length }} foto(s)</span> }
         </div>
         @if (c.notas) { <p class="charla-notas">{{ c.notas }}</p> }
       </div>
@@ -64,14 +64,14 @@
   } @else {
     @for (g of grupos(); track g.brigada) {
       <div class="sgc-card brigada-grupo">
-        <div class="brigada-grupo__head">🛠 {{ g.brigada }} <span class="page-count">{{ g.tareas.length }}</span></div>
+        <div class="brigada-grupo__head"><app-icon name="wrench" [size]="15" /> {{ g.brigada }} <span class="page-count">{{ g.tareas.length }}</span></div>
         <ul class="brigada-tareas">
           @for (t of g.tareas; track t.id) {
             <li>
               <div class="brigada-tarea__main">
                 <span class="brigada-tarea__title">{{ t.titulo }}</span>
                 @if (t.responsable) { <span class="brigada-tarea__resp">· {{ t.responsable }}</span> }
-                @if (t.linked_tipo) { <span class="sgc-badge sgc-badge--info">🔗 {{ t.linked_tipo }}</span> }
+                @if (t.linked_tipo) { <span class="sgc-badge sgc-badge--info"><app-icon name="link" [size]="13" /> {{ t.linked_tipo }}</span> }
               </div>
               <span [class]="estadoBadge(t.estado)">{{ t.estado | humanizarEnum }}</span>
             </li>

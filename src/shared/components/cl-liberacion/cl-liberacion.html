@@ -270,7 +270,7 @@
                           }
                           <figcaption>
                             {{ rolLabel(s.rol) }}
-                            @if (s.metodo === 'foto') { <span class="cl__firma-metodo">📷 foto</span> }
+                            @if (s.metodo === 'foto') { <span class="cl__firma-metodo"><app-icon name="camera" [size]="13" /> foto</span> }
                             @if (s.nombre) { <br /><span class="text-muted">{{ s.nombre }}</span> }
                             @if (s.en_sustitucion_de_nombre) {
                               <br /><span class="cl__firma-sust text-muted">

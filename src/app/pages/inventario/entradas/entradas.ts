@@ -35,10 +35,11 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -31,7 +31,7 @@
         </div>
         <div class="mirend-bar"><div class="mirend-bar__fill" [style.width.%]="progreso(a)" [class.mirend-bar__fill--ok]="a.cumplio"></div></div>
         @if (a.decision === 'aprobado') {
-          <p class="mirend-actual__decision mirend-actual__decision--ok">✓ Tu incentivo de esta semana fue aprobado.</p>
+          <p class="mirend-actual__decision mirend-actual__decision--ok"><app-icon name="check" [size]="14" /> Tu incentivo de esta semana fue aprobado.</p>
         } @else if (a.decision === 'declinado') {
           <p class="mirend-actual__decision mirend-actual__decision--bad">Tu incentivo de esta semana no fue aprobado.</p>
         }
@@ -50,7 +50,7 @@
             @if (s.cumplio) { <span class="inc-badge inc-badge--ok">Cumplió</span> } @else { <span class="inc-badge inc-badge--bad">Bajo</span> }
             @if (s.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
             @else if (s.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
-            <span class="mirend-item__chev">{{ expandido() === s.informe_id ? '▲' : '▼' }}</span>
+            <span class="mirend-item__chev"><app-icon [name]="expandido() === s.informe_id ? 'chevron-up' : 'chevron-down'" [size]="14" /></span>
           </button>
           @if (expandido() === s.informe_id) {
             <div class="mirend-detail">

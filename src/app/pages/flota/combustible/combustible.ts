@@ -42,10 +42,12 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
+import { IconName } from '../../../../shared/ui/icon/icons';
 
 @Component({
   selector: 'app-combustible',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton, DateRangeFilter],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, Skeleton, DateRangeFilter, Icon],
   templateUrl: './combustible.html',
   styleUrl: './combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -175,8 +177,8 @@ export class Combustible implements OnInit {
     return r.alerta_consumo ? 'anormal' : 'optimo';
   }
   estadoMeta(r: RegistroCombustible) { return RENDIMIENTO_ESTADO_META[this.estadoDe(r)]; }
-  estadoIcon(r: RegistroCombustible): string {
-    return { optimo: '✓', bajo: '↓', anormal: '⚠', datos_insuficientes: '•' }[this.estadoDe(r)];
+  estadoIcon(r: RegistroCombustible): IconName {
+    return ({ optimo: 'check', bajo: 'arrow-down', anormal: 'alert-triangle', datos_insuficientes: 'info' } as const)[this.estadoDe(r)];
   }
 
   // ── Precios de combustible: override manual (admin/flota) ─

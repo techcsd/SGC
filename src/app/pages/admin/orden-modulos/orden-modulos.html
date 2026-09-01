@@ -23,8 +23,8 @@
           <span class="orden-modulos__pos">{{ i + 1 }}</span>
           <span class="orden-modulos__label">{{ s }}</span>
           <span class="orden-modulos__actions">
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="i === 0" (click)="subir(i)" aria-label="Subir">↑</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="i === secciones().length - 1" (click)="bajar(i)" aria-label="Bajar">↓</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="i === 0" (click)="subir(i)" aria-label="Subir"><app-icon name="arrow-up" [size]="16" /></button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="i === secciones().length - 1" (click)="bajar(i)" aria-label="Bajar"><app-icon name="arrow-down" [size]="16" /></button>
           </span>
         </li>
       }

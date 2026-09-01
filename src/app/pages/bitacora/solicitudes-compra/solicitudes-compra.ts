@@ -10,6 +10,7 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface ItemRow {
   descripcion: string;
@@ -47,7 +48,7 @@ const ORDEN_ESTADO_BADGE: Record<string, string> = {
 
 @Component({
   selector: 'app-bitacora-solicitudes-compra',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
   templateUrl: './solicitudes-compra.html',
   styleUrl: './solicitudes-compra.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

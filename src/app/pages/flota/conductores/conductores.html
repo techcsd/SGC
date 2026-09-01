@@ -51,7 +51,7 @@
     [attr.aria-pressed]="soloIncompletos()"
     title="Mostrar solo conductores con cédula o licencia sin subir"
   >
-    ⚠ Documentos incompletos
+    <app-icon name="alert-triangle" [size]="16" /> Documentos incompletos
   </button>
 
   @if (searchQuery() || selectedActivo() !== 'all' || soloIncompletos()) {
@@ -134,11 +134,11 @@
                   </div>
                 }
                 @if (c.nota) {
-                  <span class="conductores__nota" [title]="c.nota">📝 {{ c.nota }}</span>
+                  <span class="conductores__nota" [title]="c.nota"><app-icon name="pen" [size]="14" /> {{ c.nota }}</span>
                 }
                 @if (docsIncompletos(c.id)) {
                   <span class="sgc-badge sgc-badge--warning conductores__badge-docs"
-                    title="Falta cédula o licencia por subir">⚠ Documentos incompletos</span>
+                    title="Falta cédula o licencia por subir"><app-icon name="alert-triangle" [size]="14" /> Documentos incompletos</span>
                 }
               </td>
               <td>
@@ -469,7 +469,7 @@
           @for (t of tags(); track t) {
             <span class="cond-tag-chip">
               {{ t }}
-              <button type="button" (click)="removeTag(t)" [attr.aria-label]="'Quitar ' + t">✕</button>
+              <button type="button" (click)="removeTag(t)" [attr.aria-label]="'Quitar ' + t"><app-icon name="x" [size]="14" /></button>
             </span>
           }
         </div>
@@ -493,7 +493,7 @@
           @if (docsAlta().cedula; as f) {
             <span class="cond-doc-file">
               {{ f.name }}
-              <button type="button" (click)="removeDocAlta('cedula')" aria-label="Quitar cédula">✕</button>
+              <button type="button" (click)="removeDocAlta('cedula')" aria-label="Quitar cédula"><app-icon name="x" [size]="14" /></button>
             </span>
           } @else {
             <label class="cond-doc-add">
@@ -507,7 +507,7 @@
           @for (f of docsAlta().licencia; track f.name; let i = $index) {
             <span class="cond-doc-file">
               {{ f.name }}
-              <button type="button" (click)="removeDocAlta('licencia', i)" [attr.aria-label]="'Quitar ' + f.name">✕</button>
+              <button type="button" (click)="removeDocAlta('licencia', i)" [attr.aria-label]="'Quitar ' + f.name"><app-icon name="x" [size]="14" /></button>
             </span>
           }
           <label class="cond-doc-add">
@@ -559,7 +559,7 @@
     <div class="acceso-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="acceso-title">
       <div class="acceso-modal__header">
         <h2 id="acceso-title">{{ c.usuario_id ? 'Restablecer PIN' : 'Generar acceso' }}</h2>
-        <button type="button" class="acceso-modal__close" (click)="closeAcceso()" aria-label="Cerrar">✕</button>
+        <button type="button" class="acceso-modal__close" (click)="closeAcceso()" aria-label="Cerrar"><app-icon name="x" [size]="14" /></button>
       </div>
 
       <p class="acceso-modal__intro">
@@ -585,7 +585,7 @@
         <div class="save-error" role="alert">{{ accesoError() }}</div>
       }
       @if (accesoOk()) {
-        <div class="acceso-ok" role="status">✓ {{ accesoOk() }}</div>
+        <div class="acceso-ok" role="status"><app-icon name="check" [size]="14" /> {{ accesoOk() }}</div>
       }
 
       <div class="drawer-actions">

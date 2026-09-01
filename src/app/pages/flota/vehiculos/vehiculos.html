@@ -128,12 +128,12 @@
             @if (fotoDe(v); as url) {
               <app-img [src]="url" [alt]="'Foto de ' + v.placa" [height]="130" [rounded]="false" fit="contain" />
             } @else {
-              <span class="flota-vehiculos__photo-ph" aria-hidden="true">🚛</span>
+              <span class="flota-vehiculos__photo-ph" aria-hidden="true"><app-icon name="truck" [size]="40" /></span>
             }
           </div>
           <div class="flota-vehiculos__card-header">
             <div class="flota-vehiculos__card-tipo">
-              <span class="flota-vehiculos__tipo-icon" aria-hidden="true">🚛</span>
+              <span class="flota-vehiculos__tipo-icon" aria-hidden="true"><app-icon name="truck" [size]="16" /></span>
               <span class="flota-vehiculos__tipo-label">{{ getTipoLabel(v.tipo) }}</span>
             </div>
             <div class="flota-vehiculos__card-badges">
@@ -502,7 +502,7 @@
     <!-- Fotos -->
     <div class="sgc-field">
       <label>Fotos del vehículo</label>
-      <small class="sgc-field__hint">AA19 — usa las flechas para ordenar y ⭐ para elegir la portada (la que sale en las tarjetas y el perfil).</small>
+      <small class="sgc-field__hint">AA19 — usa las flechas para ordenar y <app-icon name="star" [size]="14" /> para elegir la portada (la que sale en las tarjetas y el perfil).</small>
       <div class="fotos-grid">
         @for (path of fotoPaths(); track path; let i = $index) {
           <div class="fotos-thumb" [class.fotos-thumb--portada]="esPortada(path)">
@@ -512,12 +512,12 @@
               <span class="fotos-thumb__loading" aria-hidden="true"></span>
             }
             @if (esPortada(path)) {
-              <span class="fotos-thumb__portada-badge" aria-label="Portada">⭐ Portada</span>
+              <span class="fotos-thumb__portada-badge" aria-label="Portada"><app-icon name="star" [size]="14" /> Portada</span>
             }
             <div class="fotos-thumb__actions">
-              <button type="button" (click)="moverFoto(i, -1)" [disabled]="i === 0" aria-label="Mover a la izquierda">‹</button>
-              <button type="button" (click)="usarComoPortada(path)" [class.active]="esPortada(path)" aria-label="Usar como portada" title="Usar como portada">⭐</button>
-              <button type="button" (click)="moverFoto(i, 1)" [disabled]="i === fotoPaths().length - 1" aria-label="Mover a la derecha">›</button>
+              <button type="button" (click)="moverFoto(i, -1)" [disabled]="i === 0" aria-label="Mover a la izquierda"><app-icon name="chevron-left" [size]="16" /></button>
+              <button type="button" (click)="usarComoPortada(path)" [class.active]="esPortada(path)" aria-label="Usar como portada" title="Usar como portada"><app-icon name="star" [size]="16" /></button>
+              <button type="button" (click)="moverFoto(i, 1)" [disabled]="i === fotoPaths().length - 1" aria-label="Mover a la derecha"><app-icon name="chevron-right" [size]="16" /></button>
             </div>
             <button type="button" class="fotos-thumb__remove" (click)="removeExistingFoto(path)"
               aria-label="Quitar foto">&times;</button>
@@ -527,10 +527,10 @@
           <div class="fotos-thumb fotos-thumb--pending" [class.fotos-thumb--portada]="esPortada(p.preview)">
             <img [src]="p.preview" alt="Foto pendiente de subir" />
             @if (esPortada(p.preview)) {
-              <span class="fotos-thumb__portada-badge" aria-label="Portada">⭐ Portada</span>
+              <span class="fotos-thumb__portada-badge" aria-label="Portada"><app-icon name="star" [size]="14" /> Portada</span>
             }
             <div class="fotos-thumb__actions">
-              <button type="button" (click)="usarComoPortada(p.preview)" [class.active]="esPortada(p.preview)" aria-label="Usar como portada" title="Usar como portada">⭐</button>
+              <button type="button" (click)="usarComoPortada(p.preview)" [class.active]="esPortada(p.preview)" aria-label="Usar como portada" title="Usar como portada"><app-icon name="star" [size]="16" /></button>
             </div>
             <button type="button" class="fotos-thumb__remove" (click)="removePending(i)"
               aria-label="Quitar foto">&times;</button>

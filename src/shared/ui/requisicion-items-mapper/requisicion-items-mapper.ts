@@ -5,6 +5,7 @@ import { Categoria } from '../../models/categoria.model';
 import { SolicitudMaterial } from '../../models/solicitud.model';
 import { ArticuloPicker, ArticuloPickerSelection } from '../articulo-picker/articulo-picker';
 import { QtyStepper } from '../qty-stepper/qty-stepper';
+import { Icon } from '../icon/icon';
 import { mejorCoincidenciaArticulo } from '../../utils/articulo-match.util';
 
 /** AT7 — un renglón de la requisición mapeado al catálogo durante la aprobación.
@@ -32,7 +33,7 @@ export interface ReqItemMap {
  *  guarda la última lista y la envía a `aprobar_requisicion`. */
 @Component({
   selector: 'app-requisicion-items-mapper',
-  imports: [DecimalPipe, ArticuloPicker, QtyStepper],
+  imports: [DecimalPipe, ArticuloPicker, QtyStepper, Icon],
   templateUrl: './requisicion-items-mapper.html',
   styleUrl: './requisicion-items-mapper.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

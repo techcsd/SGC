@@ -5,6 +5,7 @@ import { ProyectosService, KpiProyectoRaw } from '../../../../shared/services/pr
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 // AY3 — Pesos del score (suma = 1). Rebalanceados: el "desempeño" del encargado son
 // las señales que él CONTROLA (disciplina de reporte, seguridad, presupuesto). El
@@ -36,7 +37,7 @@ interface KpiProyecto extends KpiProyectoRaw {
 
 @Component({
   selector: 'app-proyectos-kpi',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon],
   templateUrl: './kpi.html',
   styleUrl: './kpi.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

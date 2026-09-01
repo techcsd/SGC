@@ -36,10 +36,10 @@
             <h1 class="proyectos__detail-nombre">{{ p.nombre }}</h1>
           </div>
           <div class="proyectos__detail-title-actions">
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']">💰 Costos</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']">🛒 Compras</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]">📦 Inventario</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']"><app-icon name="calendar" [size]="15" /> Cronograma</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']"><app-icon name="dollar-sign" [size]="15" /> Costos</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']"><app-icon name="shopping-cart" [size]="15" /> Compras</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]"><app-icon name="package" [size]="15" /> Inventario</a>
             @if (verRequisiciones()) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/requisiciones']"
                  [queryParams]="{ obra: p.id }" title="Requisiciones de esta obra">
@@ -68,7 +68,7 @@
       @if (!tieneAlmacen(p.id) && p.estado !== 'completado' && p.estado !== 'cancelado') {
         <div class="alm-faltantes alm-faltantes--inline" role="note">
           <div class="alm-faltantes__inline">
-            <span>⚠️ Esta obra no tiene almacén asignado.</span>
+            <span><app-icon name="alert-triangle" [size]="15" /> Esta obra no tiene almacén asignado.</span>
             @if (puedeGestionarResponsables()) {
               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
                       [disabled]="creandoAlmacen()" (click)="crearAlmacenParaObra(p)">
@@ -222,7 +222,7 @@
 
             @if (avance()?.pago_excede) {
               <div class="proyectos__pagado-alert" role="alert">
-                ⚠ El % pagado supera al % trabajado
+                <app-icon name="alert-triangle" [size]="14" /> El % pagado supera al % trabajado
               </div>
             }
 
@@ -293,7 +293,7 @@
               <span
                 class="proyectos__readiness-score"
                 [class.proyectos__readiness-score--complete]="listoParaIniciar(p.id)"
-              >{{ estrellas(p.id) }}/4 ★</span>
+              >{{ estrellas(p.id) }}/4 <app-icon name="star" [size]="14" /></span>
             </div>
             <ul class="proyectos__readiness-list">
               @for (s of READINESS_ESTRELLAS; track s.key) {
@@ -308,7 +308,7 @@
             </ul>
             @if (listoParaIniciar(p.id)) {
               <p class="proyectos__readiness-note proyectos__readiness-note--ok">
-                ✓ Lista para iniciar — puedes cambiar el estado a "En progreso".
+                <app-icon name="check" [size]="14" /> Lista para iniciar — puedes cambiar el estado a "En progreso".
               </p>
             } @else {
               <p class="proyectos__readiness-note">
@@ -489,7 +489,7 @@
                       class="proyectos__btn-icon proyectos__btn-icon--danger"
                       (click)="removeMiembro(m.id)"
                       [attr.aria-label]="'Quitar miembro del equipo'"
-                    >✕</button>
+                    ><app-icon name="x" [size]="14" /></button>
                   </div>
                 }
               }
@@ -628,10 +628,10 @@
             <div class="proyectos__fases-header">
               <h3 class="proyectos__fases-title">Fases del proyecto</h3>
               <div class="proyectos__fases-actions">
-                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']">📅 Cronograma</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']">💰 Costos</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']">🛒 Compras</a>
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]">📦 Inventario</a>
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'cronograma']"><app-icon name="calendar" [size]="15" /> Cronograma</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'costos']"><app-icon name="dollar-sign" [size]="15" /> Costos</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/proyectos', p.id, 'compras']"><app-icon name="shopping-cart" [size]="15" /> Compras</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/almacen/obra', p.id]"><app-icon name="package" [size]="15" /> Inventario</a>
                 @if (verRequisiciones()) {
                   <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/inventario/requisiciones']"
                      [queryParams]="{ obra: p.id }" title="Requisiciones de esta obra">
@@ -671,8 +671,8 @@
                     <span class="proyectos__badge proyectos__badge--{{ getFaseEstadoBadge(fase.estado) }}">
                       {{ getFaseEstadoLabel(fase.estado) }}
                     </span>
-                    <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase">✏️</button>
-                    <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase">🗑️</button>
+                    <button class="proyectos__btn-icon" (click)="openEditFase(fase)" aria-label="Editar fase"><app-icon name="edit" [size]="15" /></button>
+                    <button class="proyectos__btn-icon proyectos__btn-icon--danger" (click)="deleteFase(fase.id)" aria-label="Eliminar fase"><app-icon name="trash" [size]="15" /></button>
                   </div>
                 </div>
                 <div class="proyectos__fase-progress">
@@ -715,7 +715,7 @@
       <div class="proyectos__header-actions">
         <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
                 [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-          ⬇️ Excel
+          <app-icon name="download" [size]="16" /> Excel
         </button>
         @if (puedeGestionarProyectos()) {
           <a class="proyectos__btn-new" routerLink="/proyectos/nuevo">
@@ -750,7 +750,7 @@
       <div class="alm-faltantes" role="note">
         <button type="button" class="alm-faltantes__head" (click)="faltantesAlmacenAbierto.set(!faltantesAlmacenAbierto())"
                 [attr.aria-expanded]="faltantesAlmacenAbierto()">
-          <span>⚠️ {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
+          <span><app-icon name="alert-triangle" [size]="15" /> {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
           <span aria-hidden="true">{{ faltantesAlmacenAbierto() ? '▾' : '▸' }}</span>
         </button>
         @if (faltantesAlmacenAbierto()) {
@@ -947,7 +947,7 @@
               <!-- Card Footer -->
               <div class="proyectos__card-footer">
                 @if (p.responsable?.nombre) {
-                  <span class="proyectos__responsable">👤 {{ p.responsable!.nombre }}</span>
+                  <span class="proyectos__responsable"><app-icon name="user" [size]="14" /> {{ p.responsable!.nombre }}</span>
                 }
                 <div class="proyectos__card-footer-actions">
                   @if (esAdmin() && p.es_prueba) {
@@ -957,7 +957,7 @@
                       (click)="eliminarPrueba(p, $event)"
                       title="Eliminar dato de prueba"
                       [attr.aria-label]="'Eliminar dato de prueba ' + p.nombre"
-                    >🗑</button>
+                    ><app-icon name="trash" [size]="15" /></button>
                   }
                   <button
                     class="proyectos__btn-edit"
@@ -1076,7 +1076,7 @@
          aria-label="Crear almacén de la obra" (click)="$event.stopPropagation()">
       <div class="art-modal__head">
         <h2 class="art-modal__title">Almacén de la obra</h2>
-        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="Cerrar">✕</button>
+        <button type="button" class="art-modal__close" (click)="descartarAlmacenPrompt()" aria-label="Cerrar"><app-icon name="x" [size]="16" /></button>
       </div>
       <p class="alm-prompt__text">
         Toda obra debe tener un almacén. ¿Crear <strong>«Almacén {{ proy.nombre }}»</strong> ahora?

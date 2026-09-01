@@ -7,6 +7,7 @@ import {
   KardexMovimiento,
 } from '../../../../shared/services/inventario-almacen.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /**
  * AP3 — Kardex por artículo×almacén (el sketch de Xaviel manda): tabla de
@@ -16,7 +17,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
  */
 @Component({
   selector: 'app-kardex-modal',
-  imports: [RouterLink, DecimalPipe],
+  imports: [RouterLink, DecimalPipe, Icon],
   templateUrl: './kardex-modal.html',
   styleUrl: './kardex-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

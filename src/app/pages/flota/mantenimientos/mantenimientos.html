@@ -20,7 +20,7 @@
 @if (vehiculosMantenimiento().length > 0) {
   <div class="mant-banner sgc-card" role="status">
     <div class="mant-banner__title">
-      🔧 {{ vehiculosMantenimiento().length }} vehículo{{ vehiculosMantenimiento().length !== 1 ? 's' : '' }} necesita{{ vehiculosMantenimiento().length === 1 ? '' : 'n' }} atención de mantenimiento
+      <app-icon name="wrench" [size]="16" /> {{ vehiculosMantenimiento().length }} vehículo{{ vehiculosMantenimiento().length !== 1 ? 's' : '' }} necesita{{ vehiculosMantenimiento().length === 1 ? '' : 'n' }} atención de mantenimiento
     </div>
     <ul class="mant-banner__list">
       @for (x of vehiculosMantenimiento(); track x.v.id) {
@@ -242,7 +242,7 @@
                         (click)="marcarPrueba(m, true)"
                         aria-label="Marcar como dato de prueba"
                         title="Marcar como dato de prueba"
-                      >🧪</button>
+                      ><app-icon name="beaker" [size]="16" /></button>
                     } @else {
                       <button
                         type="button"
@@ -250,7 +250,7 @@
                         (click)="marcarPrueba(m, false)"
                         aria-label="Quitar de datos de prueba"
                         title="Quitar de datos de prueba"
-                      >↩️</button>
+                      ><app-icon name="rotate-ccw" [size]="16" /></button>
                       <button
                         type="button"
                         class="action-btn action-btn--danger"

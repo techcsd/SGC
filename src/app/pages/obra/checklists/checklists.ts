@@ -13,6 +13,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type Tab = 'ejecutar' | 'plantillas';
 interface Respuesta { cumple: ChecklistCumple; comentario: string; }
@@ -20,7 +21,7 @@ interface Hallazgo { etiqueta: string; comentario: string; ncCreada: boolean; }
 
 @Component({
   selector: 'app-obra-checklists',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

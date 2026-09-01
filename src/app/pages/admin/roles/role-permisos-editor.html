@@ -37,7 +37,7 @@
             [attr.aria-expanded]="isExpanded(g.key)"
             [attr.aria-label]="(isExpanded(g.key) ? 'Contraer ' : 'Expandir ') + g.label"
           >
-            <span class="perm-editor__group-caret" aria-hidden="true">{{ isExpanded(g.key) ? '▾' : '▸' }}</span>
+            <span class="perm-editor__group-caret" aria-hidden="true">@if (isExpanded(g.key)) { <app-icon name="chevron-down" [size]="16" /> } @else { <app-icon name="chevron-right" [size]="16" /> }</span>
           </button>
         } @else {
           <span class="perm-editor__group-caret perm-editor__group-caret--placeholder" aria-hidden="true"></span>

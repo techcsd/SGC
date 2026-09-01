@@ -46,6 +46,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { Img } from '../../../../shared/components/img/img';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -71,7 +72,7 @@ function kmUltimoMantCoherente(group: AbstractControl): ValidationErrors | null 
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel, Icon],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

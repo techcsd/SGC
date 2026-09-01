@@ -42,7 +42,7 @@
 </div>
 
 @if (saltos() > 0) {
-  <div class="cl-alerta" role="status">⚠️ {{ saltos() }} echada(s) con salto de kilometraje fuera de umbral.</div>
+  <div class="cl-alerta" role="status"><app-icon name="alert-triangle" [size]="16" /> {{ saltos() }} echada(s) con salto de kilometraje fuera de umbral.</div>
 }
 
 @if (loading()) {
@@ -68,7 +68,7 @@
             <td class="text-right">{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</td>
             <td class="text-right" [class.cl-delta--alerta]="r.km_alerta">
               {{ r.km_recorridos != null ? (r.km_recorridos | number) : '—' }}
-              @if (r.km_alerta) { <span title="Salto de km fuera de umbral">⚠️</span> }
+              @if (r.km_alerta) { <span title="Salto de km fuera de umbral"><app-icon name="alert-triangle" [size]="14" /></span> }
             </td>
             <td class="text-right">{{ r.galones != null ? (r.galones | number:'1.0-2') : '—' }}</td>
             <td class="text-right">{{ r.monto != null ? ('RD$ ' + (r.monto | number:'1.0-2')) : '—' }}</td>

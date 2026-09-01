@@ -6,10 +6,11 @@ import { UserService } from '../../../core/services/user.service';
 import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, Icon],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

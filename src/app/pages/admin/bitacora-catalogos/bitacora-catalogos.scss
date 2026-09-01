@@ -93,8 +93,8 @@
   margin-left: 6px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--sgc-text-muted, #929090);
-  background: #222;
+  color: var(--sgc-text-muted);
+  background: var(--surface-2);
   border-radius: 999px;
   padding: 1px 8px;
   vertical-align: middle;
@@ -102,6 +102,6 @@
 .bc-col__desc {
   margin: 2px 0 10px;
   font-size: 0.76rem;
-  color: var(--sgc-text-muted, #929090);
+  color: var(--sgc-text-muted);
   line-height: 1.4;
 }

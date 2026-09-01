@@ -16,6 +16,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { Vehiculo, identificacionVehiculo, unidadUso } from '../../../../shared/models/vehiculo.model';
 import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.model';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type RespTab = 'uso' | 'historial';
 
@@ -34,7 +35,7 @@ interface EstadoUso {
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega],
+  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

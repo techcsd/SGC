@@ -94,7 +94,7 @@
         <div class="pob-foto" [class.is-done]="fotoPreview()[g.tipo]">
           <div class="pob-foto__prev">
             @if (fotoPreview()[g.tipo]; as url) { <img [src]="url" [alt]="g.label" /> }
-            @else { <span class="pob-foto__ph">📷</span> }
+            @else { <span class="pob-foto__ph"><app-icon name="camera" [size]="28" /></span> }
           </div>
           <div class="pob-foto__meta">
             <strong>{{ g.label }}</strong>
@@ -220,7 +220,7 @@
   <section class="sgc-card pob-form pob-form--center">
     @if (personal(); as p) {
       <div class="pob-resumen">
-        <span class="pob-resumen__check">✓</span>
+        <span class="pob-resumen__check"><app-icon name="check" [size]="28" /></span>
         <h2>Personal registrado</h2>
         <p class="text-muted">{{ p.nombre }} {{ p.apellido }} — {{ p.cargo?.nombre ?? 'Sin cargo' }}</p>
         @if (p.carnet_numero) { <p class="pob-resumen__num">Carnet {{ p.carnet_numero }}</p> }

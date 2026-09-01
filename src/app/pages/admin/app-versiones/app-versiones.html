@@ -6,7 +6,7 @@
   <div class="page-header__actions">
     @if (ultima()?.apk_url; as apk) {
       <a class="sgc-btn sgc-btn--secondary" [href]="apk" target="_blank" rel="noopener">
-        ⬇️ Descargar última versión (v{{ ultima()!.version }})
+        <app-icon name="download" [size]="16" /> Descargar última versión (v{{ ultima()!.version }})
       </a>
     }
     @if (esAdmin()) {
@@ -27,8 +27,8 @@
   (click)="toggleGuia()"
   [attr.aria-expanded]="guiaAbierta()"
 >
-  <span>📖 ¿Cómo funciona esto? — Guía</span>
-  <span class="av-guia-toggle__chev">{{ guiaAbierta() ? '▲' : '▼' }}</span>
+  <span><app-icon name="book" [size]="16" /> ¿Cómo funciona esto? — Guía</span>
+  <span class="av-guia-toggle__chev">@if (guiaAbierta()) { <app-icon name="chevron-up" [size]="16" /> } @else { <app-icon name="chevron-down" [size]="16" /> }</span>
 </button>
 
 @if (guiaAbierta()) {
@@ -109,7 +109,7 @@
     </section>
 
     <p class="av-guia__note">
-      ⚠️ <strong>Ojo:</strong> subir el APK al servidor solo lo hace <em>descargable</em>. Lo que
+      <app-icon name="alert-triangle" [size]="16" /> <strong>Ojo:</strong> subir el APK al servidor solo lo hace <em>descargable</em>. Lo que
       decide qué ven los usuarios es el botón <strong>Publicar</strong> de aquí — son dos cosas
       distintas. Puedes tener un APK subido y sin publicar: nadie se entera hasta que lo publiques.
     </p>
@@ -154,7 +154,7 @@
               <td class="text-right">
                 <div class="av-actions">
                   @if (v.apk_url) {
-                    <a class="sgc-btn sgc-btn--ghost" [href]="v.apk_url" target="_blank" rel="noopener">⬇️ Descargar</a>
+                    <a class="sgc-btn sgc-btn--ghost" [href]="v.apk_url" target="_blank" rel="noopener"><app-icon name="download" [size]="16" /> Descargar</a>
                   }
                   <button class="sgc-btn sgc-btn--secondary" type="button" (click)="togglePublicada(v)">
                     {{ v.publicada ? 'Despublicar' : 'Publicar' }}

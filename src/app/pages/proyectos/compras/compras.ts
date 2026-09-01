@@ -10,6 +10,7 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { todayIso } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type FiltroTipo = 'todos' | 'orden_compra' | 'ferreteria' | 'gasto_directo';
 
@@ -26,7 +27,7 @@ const TIPO_LABEL: Record<string, string> = {
  */
 @Component({
   selector: 'app-proyecto-compras',
-  imports: [RouterLink, DecimalPipe, FormDrawer],
+  imports: [RouterLink, DecimalPipe, FormDrawer, Icon],
   templateUrl: './compras.html',
   styleUrl: './compras.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -54,7 +54,7 @@
   gap: 2px;
   padding: 10px 12px 10px 34px;
   position: relative;
-  border: 1px solid var(--sgc-border, #2d2d2d);
+  border: 1px solid var(--sgc-border);
   border-radius: 10px;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
@@ -75,7 +75,7 @@
   }
   &__desc {
     font-size: 12px;
-    color: var(--sgc-text-muted, #929090);
+    color: var(--sgc-text-muted);
     line-height: 1.35;
   }
 }

@@ -9,7 +9,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
   </div>
 </div>
@@ -62,7 +62,7 @@
               <td class="text-muted">
                 {{ m.concepto || '—' }}
                 @if (m.origen_tipo === 'devolucion_obra') {
-                  <span class="mov-origen">↩ Devolución de obra{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { · traspaso enlazado }</span>
+                  <span class="mov-origen"><app-icon name="rotate-ccw" [size]="14" /> Devolución de obra{{ obraNombre(m.origen_proyecto_id) ? ': ' + obraNombre(m.origen_proyecto_id) : '' }}@if (m.salida_id) { · traspaso enlazado }</span>
                 }
               </td>
               <td class="text-right">{{ m.items }}</td>

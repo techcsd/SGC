@@ -12,6 +12,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface VehiculoReport {
   id: string;
@@ -69,7 +70,7 @@ interface PlacaInfo {
 
 @Component({
   selector: 'app-flota-reportes',
-  imports: [DecimalPipe, TitleCasePipe, Skeleton],
+  imports: [DecimalPipe, TitleCasePipe, Skeleton, Icon],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -2,22 +2,22 @@
 <div class="nota-editor" [style.--accent]="color() || 'transparent'">
   <!-- Barra superior -->
   <div class="nota-editor__topbar">
-    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()">← Volver</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volver()"><app-icon name="arrow-left" [size]="16" /> Volver</button>
     <div class="nota-editor__status">
       @if (soloLectura()) {
         <span class="sgc-badge sgc-badge--neutral">Solo lectura (compartida)</span>
       } @else if (guardando()) {
         <span class="nota-editor__saving">Guardando…</span>
       } @else if (guardadoOk()) {
-        <span class="nota-editor__saved">✓ Guardado</span>
+        <span class="nota-editor__saved"><app-icon name="check" [size]="16" /> Guardado</span>
       }
     </div>
     @if (!soloLectura()) {
       <div class="nota-editor__topbar-actions">
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePin()" [class.is-active]="pinned()"
-          [title]="pinned() ? 'Quitar fijado' : 'Fijar'">{{ pinned() ? '📌 Fijada' : '📌 Fijar' }}</button>
+          [title]="pinned() ? 'Quitar fijado' : 'Fijar'"><app-icon name="map-pin" [size]="15" /> {{ pinned() ? 'Fijada' : 'Fijar' }}</button>
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleArchivar()"
-          [title]="archivada() ? 'Desarchivar' : 'Archivar'">{{ archivada() ? '🗃️ Archivada' : '🗃️ Archivar' }}</button>
+          [title]="archivada() ? 'Desarchivar' : 'Archivar'"><app-icon name="archive" [size]="15" /> {{ archivada() ? 'Archivada' : 'Archivar' }}</button>
       </div>
     }
   </div>
@@ -44,8 +44,8 @@
           A
           <input type="color" (change)="exec('foreColor', $any($event.target).value)" />
         </label>
-        <button type="button" title="Deshacer" (click)="exec('undo')">↶</button>
-        <button type="button" title="Rehacer" (click)="exec('redo')">↷</button>
+        <button type="button" title="Deshacer" (click)="exec('undo')"><app-icon name="rotate-ccw" [size]="16" /></button>
+        <button type="button" title="Rehacer" (click)="exec('redo')"><app-icon name="rotate-cw" [size]="16" /></button>
       </div>
     }
 
@@ -56,7 +56,7 @@
     <!-- Checklist -->
     <section class="nota-editor__section">
       <div class="nota-editor__section-head">
-        <h2>✓ Checklist
+        <h2><app-icon name="check" [size]="16" /> Checklist
           @if (checklistProgreso().total > 0) {
             <span class="nota-editor__progress">{{ checklistProgreso().done }}/{{ checklistProgreso().total }}</span>
           }
@@ -73,21 +73,21 @@
 
             @if (item.ref_tipo === 'tarea') {
               <span class="nota-editor__link-chip" title="Vinculado a una tarea; se marca solo al completarse">
-                🔗 {{ item.ref_label || 'Tarea' }}
+                <app-icon name="link" [size]="14" /> {{ item.ref_label || 'Tarea' }}
                 @if (!soloLectura()) {
-                  <button type="button" (click)="desvincularTarea(item)" aria-label="Desvincular">✕</button>
+                  <button type="button" (click)="desvincularTarea(item)" aria-label="Desvincular"><app-icon name="x" [size]="14" /></button>
                 }
               </span>
             }
 
             @if (!soloLectura()) {
               <div class="nota-editor__check-actions">
-                <button type="button" (click)="moverItem(item, -1)" title="Subir">↑</button>
-                <button type="button" (click)="moverItem(item, 1)" title="Bajar">↓</button>
+                <button type="button" (click)="moverItem(item, -1)" title="Subir"><app-icon name="arrow-up" [size]="14" /></button>
+                <button type="button" (click)="moverItem(item, 1)" title="Bajar"><app-icon name="arrow-down" [size]="14" /></button>
                 @if (item.ref_tipo !== 'tarea') {
-                  <button type="button" (click)="abrirVincular(item)" title="Vincular a una tarea">🔗</button>
+                  <button type="button" (click)="abrirVincular(item)" title="Vincular a una tarea"><app-icon name="link" [size]="14" /></button>
                 }
-                <button type="button" (click)="quitarItem(item)" title="Quitar">🗑️</button>
+                <button type="button" (click)="quitarItem(item)" title="Quitar"><app-icon name="trash" [size]="14" /></button>
               </div>
             }
 
@@ -116,7 +116,7 @@
     <!-- Compartir + color (solo dueño/editor) -->
     @if (!soloLectura()) {
       <section class="nota-editor__section">
-        <div class="nota-editor__section-head"><h2>🎨 Color</h2></div>
+        <div class="nota-editor__section-head"><h2><app-icon name="palette" [size]="16" /> Color</h2></div>
         <div class="nota-editor__colors">
           <button type="button" class="nota-editor__color-dot" [class.is-active]="color() === null"
             (click)="setColor(null)" title="Sin color" style="background:#ffffff;border:1px solid #ccc"></button>
@@ -128,7 +128,7 @@
       </section>
 
       <section class="nota-editor__section">
-        <div class="nota-editor__section-head"><h2>👥 Compartir con…</h2></div>
+        <div class="nota-editor__section-head"><h2><app-icon name="users" [size]="16" /> Compartir con…</h2></div>
         <div class="nota-editor__share-add">
           <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
             <option [value]="''">Elige una persona…</option>
@@ -161,7 +161,7 @@
                   <option value="ver">Puede ver</option>
                   <option value="editar">Puede editar</option>
                 </select>
-                <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso">✕</button>
+                <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso"><app-icon name="x" [size]="14" /></button>
               </li>
             }
           </ul>

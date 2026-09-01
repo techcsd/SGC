@@ -50,6 +50,7 @@ import { FormDrawer } from '../../../../../shared/components/form-drawer/form-dr
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { Lightbox } from '../../../../../shared/ui/lightbox/lightbox';
+import { Icon } from '../../../../../shared/ui/icon/icon';
 import { formatFechaDisplay, formatTimestampDisplay, formatFechaHoraDisplay } from '../../../../../shared/utils/fecha.util';
 
 const LLAVE_UBICACION_LABEL: Record<LlaveUbicacion, string> = {
@@ -62,7 +63,7 @@ const HISTORIAL_LIMITE = 15;
 
 @Component({
   selector: 'app-vehiculo-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle, Lightbox],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle, Lightbox, Icon],
   templateUrl: './vehiculo-detalle.html',
   styleUrl: './vehiculo-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

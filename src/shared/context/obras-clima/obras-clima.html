@@ -1,9 +1,9 @@
 <section class="obras-clima sgc-card">
   <div class="obras-clima__head">
-    <h2 class="obras-clima__title">🌦️ Clima en obras</h2>
+    <h2 class="obras-clima__title"><app-icon name="cloud-rain" [size]="18" /> Clima en obras</h2>
     @if (!loading() && obras().length > 0) {
       <button type="button" class="obras-clima__refresh" (click)="recargar()" aria-label="Actualizar clima">
-        ↻
+        <app-icon name="refresh" [size]="16" />
       </button>
     }
   </div>

@@ -9,7 +9,8 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { NotasService, DirectorioUsuario } from '../../../../shared/services/notas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
@@ -32,7 +33,7 @@ import {
  */
 @Component({
   selector: 'app-nota-editor',
-  imports: [RouterLink],
+  imports: [Icon],
   templateUrl: './nota-editor.html',
   styleUrl: './nota-editor.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

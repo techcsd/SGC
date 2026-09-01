@@ -257,7 +257,7 @@
                           <img [src]="stickerUrl(s.ref)" alt="Sticker" loading="lazy" />
                         </button>
                         @if (!pack.es_sistema && !s.es_asset) {
-                          <button type="button" class="sticker-picker__del" (click)="eliminarStickerLocal(s.id)" aria-label="Eliminar sticker">✕</button>
+                          <button type="button" class="sticker-picker__del" (click)="eliminarStickerLocal(s.id)" aria-label="Eliminar sticker"><app-icon name="x" [size]="14" /></button>
                         }
                       </div>
                     }
@@ -280,7 +280,7 @@
         @if (pendingFile(); as file) {
           <div class="composer__file">
             <span>📎 {{ file.name }}</span>
-            <button type="button" (click)="clearFile()" aria-label="Quitar archivo">✕</button>
+            <button type="button" (click)="clearFile()" aria-label="Quitar archivo"><app-icon name="x" [size]="16" /></button>
           </div>
         }
         <div class="composer__row">

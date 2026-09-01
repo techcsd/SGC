@@ -18,7 +18,7 @@
     <div class="seg-leyenda" [class.seg-leyenda--collapsed]="!mostrarLeyenda()">
       <button type="button" class="seg-leyenda__toggle" (click)="toggleLeyenda()"
         [attr.aria-expanded]="mostrarLeyenda()">
-        <span>Leyenda</span><span aria-hidden="true">{{ mostrarLeyenda() ? '▾' : '▸' }}</span>
+        <span>Leyenda</span><span aria-hidden="true">@if (mostrarLeyenda()) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> }</span>
       </button>
       @if (mostrarLeyenda()) {
         <ul class="seg-leyenda__list">
@@ -76,7 +76,7 @@
       <!-- AJ14 — indicador del trayecto dibujado -->
       @if (trazaInfo(); as t) {
         <div class="sgc-card seg__traza">
-          <span>{{ t.vivo ? '🟦 Trayecto en vivo' : '🟦 Recorrido' }} · {{ t.puntos }} punto{{ t.puntos !== 1 ? 's' : '' }}@if (t.km != null) { · {{ t.km }} km }</span>
+          <span><app-icon name="route" [size]="14" /> {{ t.vivo ? 'Trayecto en vivo' : 'Recorrido' }} · {{ t.puntos }} punto{{ t.puntos !== 1 ? 's' : '' }}@if (t.km != null) { · {{ t.km }} km }</span>
           <button type="button" class="seg-traza__clear" (click)="trazarRuta(rutaTrazada()!, t.vivo)">Ocultar</button>
         </div>
       }
@@ -161,7 +161,7 @@
                   } @else { · sin ubicación }
                 </span>
               </span>
-              @if (c.pos?.bateria != null) { <span class="seg-chofer__bat">🔋 {{ c.pos!.bateria }}%</span> }
+              @if (c.pos?.bateria != null) { <span class="seg-chofer__bat"><app-icon name="battery" [size]="13" /> {{ c.pos!.bateria }}%</span> }
             </button>
           }
         </div>

@@ -20,7 +20,7 @@
     <!-- W3 — pre-check: el vehículo ya está entregado a otro conductor -->
     @if (entregaAbierta(); as ea) {
       <div class="re-precheck" role="status">
-        ⚠️ Este vehículo figura entregado a <strong>{{ ea.conductor }}</strong>
+        <app-icon name="alert-triangle" [size]="15" /> Este vehículo figura entregado a <strong>{{ ea.conductor }}</strong>
         desde el {{ ea.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ ea.km | number: '1.0-0' }} km).
         @if (esFlotaElevado) {
           Puedes recibirlo igual: al guardar se cerrará la entrega anterior.
@@ -60,10 +60,10 @@
           @if (slotPreview(s.slot); as prev) {
             <img [src]="prev" [alt]="s.label" />
             <button type="button" class="re-foto-quitar" (click)="quitarSlotFoto(s.slot)"
-              [attr.aria-label]="'Quitar ' + s.label">✕</button>
+              [attr.aria-label]="'Quitar ' + s.label"><app-icon name="x" [size]="16" /></button>
           } @else {
             <label class="re-slot-add">
-              <span>📷</span>
+              <span><app-icon name="camera" [size]="20" /></span>
               <input type="file" accept="image/*" capture="environment" hidden
                 (change)="onSlotFoto(s.slot, $event)" />
             </label>
@@ -91,11 +91,11 @@
             @if (d.preview) {
               <img class="re-dano-foto" [src]="d.preview" alt="Foto del daño" />
             } @else {
-              <label class="re-dano-foto-add" title="Foto del daño">📷
+              <label class="re-dano-foto-add" title="Foto del daño"><app-icon name="camera" [size]="18" />
                 <input type="file" accept="image/*" capture="environment" hidden (change)="onDanoFoto($index, $event)" />
               </label>
             }
-            <button type="button" class="re-dano-remove" (click)="removeDano($index)" aria-label="Quitar daño">✕</button>
+            <button type="button" class="re-dano-remove" (click)="removeDano($index)" aria-label="Quitar daño"><app-icon name="x" [size]="16" /></button>
           </div>
         }
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="addDano()">+ Agregar daño</button>
@@ -109,7 +109,7 @@
     <div class="re-gps">
       <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="capturandoGps()"
         (click)="capturarGps()">
-        @if (capturandoGps()) { Obteniendo… } @else { 📍 Usar mi ubicación }
+        @if (capturandoGps()) { Obteniendo… } @else { <app-icon name="map-pin" [size]="16" /> Usar mi ubicación }
       </button>
       @if (gps(); as g) {
         <span class="re-gps-ok">{{ g.lat | number: '1.4-5' }}, {{ g.lng | number: '1.4-5' }}</span>
@@ -137,7 +137,7 @@
   @if (handoverInfo(); as h) {
     <div class="re-handover" role="alertdialog">
       <p>
-        🔁 <strong>{{ h.conductor }}</strong> tiene este vehículo desde el
+        <app-icon name="refresh" [size]="16" /> <strong>{{ h.conductor }}</strong> tiene este vehículo desde el
         {{ h.desde | date: 'dd/MM/yyyy HH:mm' }} ({{ h.km | number: '1.0-0' }} km).
       </p>
       <!-- Z14 — el handover deja de ser un muro: quien recibe puede tomarlo, cerrando

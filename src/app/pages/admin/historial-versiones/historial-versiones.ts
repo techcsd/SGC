@@ -5,6 +5,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 const TAGS: CambioTag[] = ['nuevo', 'mejora', 'arreglo', 'seguridad'];
 
@@ -35,7 +36,7 @@ export interface GrupoCambios {
  */
 @Component({
   selector: 'app-historial-versiones',
-  imports: [Skeleton, BarChart, DonutChart],
+  imports: [Skeleton, BarChart, DonutChart, Icon],
   templateUrl: './historial-versiones.html',
   styleUrl: './historial-versiones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

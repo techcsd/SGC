@@ -59,7 +59,7 @@
   margin-bottom: 16px;
   padding: 12px 14px;
   border: 1px solid var(--sgc-border);
-  border-left: 3px solid var(--sgc-primary, #ff5f00);
+  border-left: 3px solid var(--sgc-primary);
   border-radius: 10px;
   background: var(--sgc-surface-2, rgba(0, 0, 0, 0.02));
 
@@ -107,7 +107,7 @@
   &__tag {
     font-size: 10.5px;
     font-weight: 600;
-    color: var(--sgc-primary, #ff5f00);
+    color: var(--sgc-primary);
 
     &--ok { color: var(--sgc-success, #16a34a); }
     &--sug { color: var(--sgc-warning, #d97706); }
@@ -148,7 +148,7 @@
   border: 1px dashed var(--sgc-border);
   border-radius: 8px;
   background: transparent;
-  color: var(--sgc-primary, #ff5f00);
+  color: var(--sgc-primary);
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;

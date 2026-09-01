@@ -25,7 +25,7 @@
     }
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <a class="sgc-btn sgc-btn--ghost" routerLink="/flota/combustible-dashboard">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -106,7 +106,7 @@
     @if (loadingSospechosas()) {
       <app-skeleton variant="list" [rows]="3" />
     } @else if (sospechosas().length === 0) {
-      <p class="combustible__config-hint">✓ No hay echadas sospechosas. Todo limpio.</p>
+      <p class="combustible__config-hint"><app-icon name="check" [size]="14" /> No hay echadas sospechosas. Todo limpio.</p>
     } @else {
       <div class="table-scroll">
         <table class="data-table" aria-label="Echadas sospechosas">
@@ -155,10 +155,10 @@
 @if (preciosVigentes().length > 0) {
   <div class="combustible__precios-widget">
     <span class="combustible__precios-titulo">
-      ⛽ Precios oficiales MICM (RD$/gal)
+      <app-icon name="fuel" [size]="16" /> Precios oficiales MICM (RD$/gal)
       @if (esAdmin()) {
         <button type="button" class="combustible__precios-edit-btn" (click)="togglePreciosEdit()"
-          title="El MICM a veces publica con rezago. Edita el precio vigente a mano.">✎ Editar</button>
+          title="El MICM a veces publica con rezago. Edita el precio vigente a mano."><app-icon name="pen" [size]="14" /> Editar</button>
       }
     </span>
     <div class="combustible__precios-chips">
@@ -309,7 +309,7 @@
                 <span
                   class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"
                   [title]="r.motivo_alerta || estadoMeta(r).label">
-                  {{ estadoIcon(r) }} {{ estadoMeta(r).label }}
+                  <app-icon [name]="estadoIcon(r)" [size]="14" /> {{ estadoMeta(r).label }}
                 </span>
               </td>
             </tr>
@@ -450,13 +450,13 @@
         } @else if (calc().alerta) {
           <div class="calc-card__banda calc-card__banda--alerta">
             @switch (calc().refTipo) {
-              @case ('esperado') { ⚠ Rinde por debajo del esperado ({{ calc().esperado | number:'1.1-2' }} km/gal). Se notificará a Flota. }
-              @case ('propio') { ⚠ Consumo por debajo del promedio del vehículo ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota. }
-              @default { ⚠ Rendimiento imposiblemente bajo ({{ calc().rend | number:'1.1-2' }} km/gal, mínimo {{ calc().piso | number:'1.0-0' }} km/gal). Se notificará a Flota. }
+              @case ('esperado') { <app-icon name="alert-triangle" [size]="14" /> Rinde por debajo del esperado ({{ calc().esperado | number:'1.1-2' }} km/gal). Se notificará a Flota. }
+              @case ('propio') { <app-icon name="alert-triangle" [size]="14" /> Consumo por debajo del promedio del vehículo ({{ calc().prom | number:'1.1-2' }} km/gal). Se notificará a Flota. }
+              @default { <app-icon name="alert-triangle" [size]="14" /> Rendimiento imposiblemente bajo ({{ calc().rend | number:'1.1-2' }} km/gal, mínimo {{ calc().piso | number:'1.0-0' }} km/gal). Se notificará a Flota. }
             }
           </div>
         } @else {
-          <div class="calc-card__banda calc-card__banda--ok">✓ Consumo dentro de lo normal.</div>
+          <div class="calc-card__banda calc-card__banda--ok"><app-icon name="check" [size]="14" /> Consumo dentro de lo normal.</div>
         }
       </div>
     }
@@ -467,7 +467,7 @@
         <label>{{ esDepositoObra() ? 'Foto del garrafón / equipo' : 'Foto del recibo' }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="reciboPreview()">
           @if (reciboPreview()) { <img [src]="reciboPreview()" alt="Evidencia" /> }
-          @else { <span>📷 {{ esDepositoObra() ? 'Subir foto' : 'Subir recibo' }}</span> }
+          @else { <span><app-icon name="camera" [size]="16" /> {{ esDepositoObra() ? 'Subir foto' : 'Subir recibo' }}</span> }
           <input type="file" accept="image/*" capture (change)="onFileSelected('recibo', $event)" hidden />
         </label>
       </div>
@@ -475,7 +475,7 @@
         <label>{{ esDepositoObra() && medidaSel() === 'horas' ? 'Foto del horómetro' : 'Foto del tablero (km)' }} <span class="required">*</span></label>
         <label class="photo-drop" [class.photo-drop--filled]="tableroPreview()">
           @if (tableroPreview()) { <img [src]="tableroPreview()" alt="Tablero" /> }
-          @else { <span>📷 Subir tablero</span> }
+          @else { <span><app-icon name="camera" [size]="16" /> Subir tablero</span> }
           <input type="file" accept="image/*" (change)="onFileSelected('tablero', $event)" hidden />
         </label>
       </div>
@@ -530,9 +530,9 @@
           Precio oficial MICM vigente: <strong>RD$ {{ ref | number:'1.2-2' }}/gal</strong>
           @if (desviacionPrecio(); as d) {
             @if (d > 10 || d < -10) {
-              <span class="combustible__ref-desv">⚠ lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
+              <span class="combustible__ref-desv"><app-icon name="alert-triangle" [size]="14" /> lo pagado se desvía {{ d > 0 ? '+' : '' }}{{ d }}% del oficial</span>
             } @else {
-              <span class="combustible__ref-ok">✓ dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
+              <span class="combustible__ref-ok"><app-icon name="check" [size]="14" /> dentro de ±10% del oficial ({{ d > 0 ? '+' : '' }}{{ d }}%)</span>
             }
           }
         </div>
@@ -584,7 +584,7 @@
           <span class="detail__placa">{{ r.vehiculo?.placa ?? '—' }}</span>
           <span class="detail__sub">{{ r.vehiculo?.marca }} · {{ formatFecha(r.fecha) }}</span>
         </div>
-        @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger">⚠ Consumo anormal</span> }
+        @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger"><app-icon name="alert-triangle" [size]="14" /> Consumo anormal</span> }
         @else if (esV2(r)) { <span class="sgc-badge sgc-badge--success">Consumo normal</span> }
       </div>
 
@@ -614,7 +614,7 @@
         <p class="detail__analysis-line"
            [class.detail__analysis-line--alerta]="estadoDe(r) === 'anormal'"
            [class.detail__analysis-line--ok]="estadoDe(r) === 'optimo'">
-          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}">{{ estadoIcon(r) }} {{ estadoMeta(r).label }}</span>
+          <span class="sgc-badge sgc-badge--{{ estadoMeta(r).badge }}"><app-icon [name]="estadoIcon(r)" [size]="13" /> {{ estadoMeta(r).label }}</span>
           {{ r.motivo_alerta ?? estadoMeta(r).label }}
         </p>
         @if (r.rendimiento_km_gal !== null) {

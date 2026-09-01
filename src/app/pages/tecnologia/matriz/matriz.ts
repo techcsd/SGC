@@ -8,6 +8,7 @@ import {
 } from '../../../../shared/models/tecnologia.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface PuestoGroup {
   puesto: string;
@@ -16,7 +17,7 @@ interface PuestoGroup {
 
 @Component({
   selector: 'app-tec-matriz',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
   templateUrl: './matriz.html',
   styleUrl: './matriz.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

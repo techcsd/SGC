@@ -35,13 +35,14 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { daysUntil, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 
 @Component({
   selector: 'app-conductores',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel, Icon],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

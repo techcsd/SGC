@@ -184,7 +184,7 @@
                     @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
                     @else if (f.cumplio) { <span class="inc-badge inc-badge--ok">Cumplió</span> }
                     @else { <span class="inc-badge inc-badge--bad">Bajo</span> }
-                    @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión">⚠ {{ f.flags.length }}</span> }
+                    @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ f.flags.length }}</span> }
                   </td>
                 </tr>
               }
@@ -210,8 +210,8 @@
               @if (f.decision === 'aprobado') { <span class="inc-badge inc-badge--approved">Aprobado</span> }
               @else if (f.decision === 'declinado') { <span class="inc-badge inc-badge--declined">Declinado</span> }
               @else { <span class="inc-badge inc-badge--pending">Pendiente</span> }
-              @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión (anti-inflado)">⚠ {{ f.flags.length }}</span> }
-              <span class="inc-row__chev">{{ expandido() === f.informe_id ? '▲' : '▼' }}</span>
+              @if (f.flags?.length) { <span class="inc-row__flag" title="Marcado para revisión (anti-inflado)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>{{ f.flags.length }}</span> }
+              <span class="inc-row__chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
             </button>
 
             @if (expandido() === f.informe_id) {

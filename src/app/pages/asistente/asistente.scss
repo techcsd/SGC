@@ -23,17 +23,17 @@
   padding: 8px 10px;
   border: none;
   background: transparent;
-  color: var(--sgc-text);
+  color: var(--text);
   border-radius: 10px;
   cursor: pointer;
   font-size: 13px;
   transition: background 0.15s ease;
-  &:hover { background: var(--sgc-surface-hover); }
-  &--active { background: var(--sgc-surface-hover); font-weight: 600; }
+  &:hover { background: var(--surface-2); }
+  &--active { background: var(--surface-2); font-weight: 600; }
 }
 .compa__conv-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.compa__conv-date { font-size: 11px; font-weight: 400; color: var(--sgc-text-muted); }
-.compa__side-empty { color: var(--sgc-text-muted); font-size: 13px; padding: 8px; }
+.compa__conv-date { font-size: 11px; font-weight: 400; color: var(--text-3); }
+.compa__side-empty { color: var(--text-3); font-size: 13px; padding: 8px; }
 
 // AY11a — separador de día y hora del mensaje
 .compa__day-sep {
@@ -41,14 +41,14 @@
   margin: 10px 0 6px;
   span {
     font-size: 11px;
-    color: var(--sgc-text-muted);
-    background: var(--sgc-bg);
-    border: 1px solid var(--sgc-border);
+    color: var(--text-3);
+    background: var(--bg);
+    border: 1px solid var(--border);
     border-radius: 999px;
     padding: 2px 10px;
   }
 }
-.compa__msg-time { font-size: 10.5px; color: var(--sgc-text-muted); margin-top: 3px; }
+.compa__msg-time { font-size: 10.5px; color: var(--text-3); margin-top: 3px; }
 
 // AY11 — tarjeta de archivo descargable
 .compa__archivo {
@@ -59,16 +59,16 @@
   max-width: 78%;
   margin: 4px 0;
   padding: 10px 14px;
-  border: 1px solid var(--sgc-border);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--sgc-bg);
-  color: var(--sgc-text);
+  background: var(--bg);
+  color: var(--text);
   text-decoration: none;
   transition: all 0.15s ease;
   &:hover { border-color: var(--accent); transform: translateY(-1px); }
   svg { color: var(--accent); flex: 0 0 auto; }
 }
-.compa__archivo-txt { display: flex; flex-direction: column; strong { font-size: 13.5px; } small { color: var(--sgc-text-muted); font-size: 11.5px; } }
+.compa__archivo-txt { display: flex; flex-direction: column; strong { font-size: 13.5px; } small { color: var(--text-3); font-size: 11.5px; } }
 
 // ── Panel de chat ──
 .compa__chat {
@@ -76,8 +76,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--sgc-surface);
-  border: 1px solid var(--sgc-border);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -86,7 +86,7 @@
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  border-bottom: 1px solid var(--sgc-border);
+  border-bottom: 1px solid var(--border);
 }
 .compa__avatar {
   display: grid;
@@ -94,11 +94,11 @@
   width: 40px; height: 40px;
   border-radius: 12px;
   background: var(--accent);
-  color: #121212;
+  color: var(--text-on-accent);
   flex-shrink: 0;
 }
 .compa__title { margin: 0; font-size: 18px; }
-.compa__subtitle { margin: 0; color: var(--sgc-text-muted); font-size: 12.5px; }
+.compa__subtitle { margin: 0; color: var(--text-3); font-size: 12.5px; }
 
 .compa__messages {
   flex: 1;
@@ -112,13 +112,13 @@
 // ── Bienvenida ──
 .compa__welcome { margin: auto 0; text-align: center; padding: 20px; }
 .compa__welcome-hi { font-size: 20px; margin: 0 0 6px; }
-.compa__welcome-sub { color: var(--sgc-text-muted); margin: 0 0 18px; }
+.compa__welcome-sub { color: var(--text-3); margin: 0 0 18px; }
 .compa__chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 .compa__chip {
   padding: 8px 14px;
-  border: 1px solid var(--sgc-border);
-  background: var(--sgc-bg);
-  color: var(--sgc-text);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
   border-radius: 999px;
   cursor: pointer;
   font-size: 13px;
@@ -140,31 +140,31 @@
 }
 .compa__msg--user .compa__bubble {
   background: var(--accent);
-  color: #121212;
+  color: var(--text-on-accent);
   border-bottom-right-radius: 4px;
 }
 .compa__msg--assistant .compa__bubble {
-  background: var(--sgc-bg);
-  border: 1px solid var(--sgc-border);
-  color: var(--sgc-text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
   border-bottom-left-radius: 4px;
 }
 .compa__tools { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .compa__tool-chip {
   font-size: 10.5px;
-  color: var(--sgc-text-muted);
-  background: var(--sgc-bg);
-  border: 1px solid var(--sgc-border);
+  color: var(--text-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 1px 6px;
-  &--fail { color: var(--sgc-danger); border-color: var(--sgc-danger); }
+  &--fail { color: var(--danger); border-color: var(--danger); }
 }
 
 // ── Indicador "escribiendo…" ──
 .compa__bubble--typing { display: flex; gap: 4px; align-items: center; }
 .compa__bubble--typing span {
   width: 7px; height: 7px; border-radius: 50%;
-  background: var(--sgc-text-muted);
+  background: var(--text-3);
   animation: compa-blink 1.2s infinite both;
 }
 .compa__bubble--typing span:nth-child(2) { animation-delay: 0.2s; }
@@ -175,7 +175,7 @@
 .compa__propuesta {
   align-self: flex-start;
   max-width: 88%;
-  background: var(--sgc-surface);
+  background: var(--surface);
   border: 1px solid var(--accent);
   border-radius: 14px;
   padding: 14px 16px;
@@ -189,27 +189,27 @@
 .compa__propuesta-lineas {
   list-style: none; margin: 0 0 8px; padding: 0;
   display: flex; flex-direction: column; gap: 3px;
-  font-size: 13.5px; color: var(--sgc-text);
+  font-size: 13.5px; color: var(--text);
   white-space: pre-wrap;
 }
 // BB3 — aviso de que la acción saldrá marcada de prueba (transparencia).
 .compa__propuesta-prueba {
   margin: 0 0 10px;
   font-size: 12.5px;
-  color: var(--sgc-warning, #b7791f);
-  background: var(--sgc-warning-light, rgba(237, 137, 54, 0.1));
-  border: 1px solid var(--sgc-warning, #ed8936);
+  color: var(--warning);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
   border-radius: 8px;
   padding: 7px 10px;
 }
-.compa__propuesta-nota { margin: 0 0 12px; font-size: 12px; color: var(--sgc-text-muted); }
+.compa__propuesta-nota { margin: 0 0 12px; font-size: 12px; color: var(--text-3); }
 .compa__propuesta-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
 .compa__error {
   align-self: center;
-  color: var(--sgc-danger);
-  background: var(--sgc-danger-light, rgba(255,0,0,0.08));
-  border: 1px solid var(--sgc-danger);
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
   border-radius: 10px;
   padding: 8px 14px;
   font-size: 13px;
@@ -220,7 +220,7 @@
   display: flex;
   gap: 8px;
   padding: 12px 14px;
-  border-top: 1px solid var(--sgc-border);
+  border-top: 1px solid var(--border);
   align-items: flex-end;
 }
 .compa__input {
@@ -228,9 +228,9 @@
   resize: none;
   max-height: 120px;
   padding: 10px 14px;
-  border: 1px solid var(--sgc-border);
-  background: var(--sgc-surface);
-  color: var(--sgc-text);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   border-radius: 12px;
   font-size: 14px;
   font-family: inherit;

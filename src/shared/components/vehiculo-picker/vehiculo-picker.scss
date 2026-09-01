@@ -18,16 +18,16 @@
     font-size: 13px;
     color: var(--sgc-text);
 
-    &:hover:not(:disabled) { border-color: var(--sgc-primary, #2563eb); }
+    &:hover:not(:disabled) { border-color: var(--sgc-primary); }
     &:disabled { opacity: 0.55; cursor: not-allowed; }
   }
 
-  &--open &__control { border-color: var(--sgc-primary, #2563eb); }
+  &--open &__control { border-color: var(--sgc-primary); }
 
   &__thumb {
     width: 34px; height: 34px; flex-shrink: 0;
     border-radius: 6px; overflow: hidden;
-    background: var(--sgc-bg, #f1f2f4);
+    background: var(--sgc-bg);
     display: inline-flex; align-items: center; justify-content: center;
     img { width: 100%; height: 100%; object-fit: cover; display: block; }
     &-ph { font-size: 18px; }
@@ -58,8 +58,8 @@
   &__opt {
     display: flex; align-items: center; gap: 10px;
     padding: 6px 8px; border-radius: 6px; cursor: pointer;
-    &:hover { background: var(--sgc-bg, #f1f2f4); }
-    &--sel { background: var(--sgc-primary-light, #e8f0fe); }
+    &:hover { background: var(--sgc-bg); }
+    &--sel { background: var(--sgc-primary-light); }
     &--clear { color: var(--sgc-text-muted); }
     &--disabled {
       opacity: 0.5;
@@ -69,7 +69,7 @@
   }
 
   &__asignado {
-    color: var(--sgc-danger, #d32f2f);
+    color: var(--sgc-danger);
     font-weight: 600;
   }
 

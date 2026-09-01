@@ -3,10 +3,12 @@ export type RutaEstado = 'planificada' | 'en_curso' | 'completada' | 'cancelada'
 /** AD6 — tipo de ruta. `personal`/`traslado` no exigen carga. */
 export type RutaTipo = 'material' | 'personal' | 'traslado';
 
-export const RUTA_TIPO_META: Record<RutaTipo, { label: string; icon: string }> = {
-  material: { label: 'Material', icon: '📦' },
-  personal: { label: 'Personal', icon: '👷' },
-  traslado: { label: 'Traslado', icon: '🚚' },
+import { IconName } from '../ui/icon/icons';
+
+export const RUTA_TIPO_META: Record<RutaTipo, { label: string; icon: IconName }> = {
+  material: { label: 'Material', icon: 'package' },
+  personal: { label: 'Personal', icon: 'users' },
+  traslado: { label: 'Traslado', icon: 'truck' },
 };
 
 /** AC13 — parada intermedia de una ruta (multi-stop). El orden lo fija `orden`. */

@@ -84,7 +84,7 @@
               <td class="av-msg">
                 {{ a.mensaje }}
                 @if (a.estado === 'resuelto_auto' && a.resuelto_nota) {
-                  <span class="av-resuelto-nota">✓ {{ a.resuelto_nota }}</span>
+                  <span class="av-resuelto-nota"><app-icon name="check" [size]="14" /> {{ a.resuelto_nota }}</span>
                 }
               </td>
               <td>

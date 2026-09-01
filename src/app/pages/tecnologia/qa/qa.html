@@ -8,10 +8,10 @@
 
   <!-- Tabs principales -->
   <div class="qa__tabs">
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'casos'" (click)="cambiarTab('casos')">📋 Casos</button>
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'nueva'" (click)="cambiarTab('nueva')">➕ Nueva corrida</button>
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'ejecutar'" (click)="cambiarTab('ejecutar')" [disabled]="!activeRun()">▶️ Ejecutar</button>
-    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'historial'" (click)="cambiarTab('historial')">🕑 Historial</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'casos'" (click)="cambiarTab('casos')"><app-icon name="clipboard" [size]="16" /> Casos</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'nueva'" (click)="cambiarTab('nueva')"><app-icon name="plus" [size]="16" /> Nueva corrida</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'ejecutar'" (click)="cambiarTab('ejecutar')" [disabled]="!activeRun()"><app-icon name="play" [size]="16" /> Ejecutar</button>
+    <button type="button" class="qa__tab" [class.qa__tab--active]="tab() === 'historial'" (click)="cambiarTab('historial')"><app-icon name="clock" [size]="16" /> Historial</button>
   </div>
 
   @if (error()) {
@@ -165,7 +165,7 @@
           </p>
         </div>
         @if (!corridaCerrada()) {
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="completar()">✓ Marcar completada</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="completar()"><app-icon name="check" [size]="16" /> Marcar completada</button>
         }
       </div>
 
@@ -238,15 +238,15 @@
               }
               @if (!corridaCerrada()) {
                 <label class="sgc-btn sgc-btn--ghost sgc-btn--sm qa__upload">
-                  @if (subiendo() === r.id) { Subiendo… } @else { 📎 {{ r.evidencia_path ? 'Cambiar' : 'Evidencia' }} }
+                  @if (subiendo() === r.id) { Subiendo… } @else { <app-icon name="paperclip" [size]="14" /> {{ r.evidencia_path ? 'Cambiar' : 'Evidencia' }} }
                   <input type="file" accept="image/*" hidden (change)="onEvidencia(r, $event)" [disabled]="subiendo() === r.id" />
                 </label>
               }
 
               @if (r.error_report_id) {
-                <span class="sgc-badge sgc-badge--danger" title="Reporte de error enlazado">🐞 Defecto enlazado</span>
+                <span class="sgc-badge sgc-badge--danger" title="Reporte de error enlazado"><app-icon name="bug" [size]="14" /> Defecto enlazado</span>
               } @else if (r.resultado === 'failed' && !corridaCerrada()) {
-                <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="crearReporte(r)">🐞 Crear reporte de error</button>
+                <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="crearReporte(r)"><app-icon name="bug" [size]="14" /> Crear reporte de error</button>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="enlazarReporte(r)">Enlazar existente</button>
               }
             </div>

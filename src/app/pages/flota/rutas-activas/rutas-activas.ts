@@ -22,6 +22,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { traducir } from '../../../../shared/utils/dominio-labels.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 type Tab = 'activas' | 'historico';
 
@@ -55,7 +56,7 @@ interface ChoferRuta {
  */
 @Component({
   selector: 'app-rutas-activas',
-  imports: [FlotaSubnav, RouterLink],
+  imports: [FlotaSubnav, RouterLink, Icon],
   templateUrl: './rutas-activas.html',
   styleUrl: './rutas-activas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

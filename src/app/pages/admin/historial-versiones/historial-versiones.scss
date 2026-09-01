@@ -123,7 +123,7 @@
 .hv-kpi__both { display: flex; flex-direction: column; gap: 4px; margin-top: 2px; }
 .hv-kpi__both-row {
   display: flex; align-items: baseline; gap: 8px; font-size: 0.9rem; color: var(--text-2);
-  strong { margin-left: auto; font-size: 1.15rem; font-weight: 700; color: var(--sgc-text, inherit); font-variant-numeric: tabular-nums; }
+  strong { margin-left: auto; font-size: 1.15rem; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
 }
 
 // Z27 — mini-gráficos

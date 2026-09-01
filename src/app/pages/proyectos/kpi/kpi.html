@@ -92,13 +92,13 @@
       <span class="pagination__info">Página {{ currentPage() }} de {{ totalPages() }} · {{ ranking().length }} proyectos</span>
       <div class="pagination__controls">
         <button class="page-btn" type="button" (click)="goToPage(currentPage() - 1)"
-                [disabled]="currentPage() === 1" aria-label="Página anterior">‹</button>
+                [disabled]="currentPage() === 1" aria-label="Página anterior"><app-icon name="chevron-left" [size]="16" /></button>
         @for (p of pages; track p) {
           <button class="page-btn" type="button" (click)="goToPage(p)"
                   [class.page-btn--active]="p === currentPage()">{{ p }}</button>
         }
         <button class="page-btn" type="button" (click)="goToPage(currentPage() + 1)"
-                [disabled]="currentPage() === totalPages()" aria-label="Página siguiente">›</button>
+                [disabled]="currentPage() === totalPages()" aria-label="Página siguiente"><app-icon name="chevron-right" [size]="16" /></button>
       </div>
     </div>
   }

@@ -78,7 +78,7 @@
       [class.sgc-btn--ghost]="!soloCriticos()"
       (click)="toggleCriticos()"
     >
-      ⚠ Solo críticos sin atender ({{ criticosPendientes() }})
+      <app-icon name="alert-triangle" [size]="16" /> Solo críticos sin atender ({{ criticosPendientes() }})
     </button>
 
     @if (esAdmin()) {
@@ -312,11 +312,11 @@
                 <div class="cl-item-foto-edit">
                   <img [src]="prev" alt="Foto del ítem" />
                   <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(itemSlot(it.orden))"
-                    aria-label="Quitar foto del ítem">✕</button>
+                    aria-label="Quitar foto del ítem"><app-icon name="x" [size]="16" /></button>
                 </div>
               } @else {
                 <label class="cl-foto-add" [attr.title]="'Foto para ' + it.etiqueta">
-                  📷
+                  <app-icon name="camera" [size]="18" />
                   <input type="file" accept="image/*" capture="environment" hidden
                     (change)="onSlotFoto(itemSlot(it.orden), $event)" />
                 </label>
@@ -339,10 +339,10 @@
               @if (slotPreview(s.slot); as prev) {
                 <img [src]="prev" [alt]="s.label" />
                 <button type="button" class="cl-foto-quitar" (click)="quitarSlotFoto(s.slot)"
-                  [attr.aria-label]="'Quitar ' + s.label">✕</button>
+                  [attr.aria-label]="'Quitar ' + s.label"><app-icon name="x" [size]="16" /></button>
               } @else {
                 <label class="cl-foto-slot-add">
-                  <span>📷</span>
+                  <span><app-icon name="camera" [size]="20" /></span>
                   <input type="file" accept="image/*" capture="environment" hidden
                     (change)="onSlotFoto(s.slot, $event)" />
                 </label>
@@ -457,7 +457,7 @@
           @case ('Con hallazgos') { El vehículo puede salir; corregir los hallazgos no críticos en el plazo definido. }
           @default { El vehículo está apto para operar. }
         }
-        @if (c.alerta_mantenimiento === 'vencido') { <br />⚠ Mantenimiento vencido: coordinar servicio de inmediato. }
+        @if (c.alerta_mantenimiento === 'vencido') { <br /><app-icon name="alert-triangle" [size]="14" /> Mantenimiento vencido: coordinar servicio de inmediato. }
         @else if (c.alerta_mantenimiento === 'pre_cita') { <br />Agendar pre-cita de mantenimiento. }
       </div>
 

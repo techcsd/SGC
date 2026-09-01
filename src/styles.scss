@@ -1,6 +1,8 @@
 // BD3 — design tokens (primitives + semantic light/dark). Must come first so the
 // legacy `--sgc-*` names and the AS18 shim below can resolve onto the semantics.
 @use './styles/tokens';
+// BE3 — base component styles that can't be encapsulated (appButton directive).
+@use './styles/components';
 
 *,
 *::before,
@@ -32,6 +34,7 @@
   // Surface & backgrounds
   --sgc-bg: var(--bg);
   --sgc-surface: var(--surface);
+  --sgc-surface-2: var(--surface-2);
   --sgc-surface-hover: var(--surface-2);
   --sgc-border: var(--border);
   --sgc-border-active: var(--brand-hover);

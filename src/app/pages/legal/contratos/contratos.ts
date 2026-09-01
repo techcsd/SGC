@@ -13,6 +13,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { daysFromNowIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
   borrador: ['en_revision', 'cancelado'],
@@ -24,7 +25,7 @@ const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
 
 @Component({
   selector: 'app-contratos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, Icon],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

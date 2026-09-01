@@ -19,6 +19,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 
 /**
@@ -63,7 +64,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

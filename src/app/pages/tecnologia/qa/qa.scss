@@ -39,7 +39,7 @@
   &--active {
     background: var(--sgc-primary);
     border-color: var(--sgc-primary);
-    color: #fff;
+    color: var(--text-on-brand);
   }
   &:disabled {
     opacity: 0.45;
@@ -382,10 +382,10 @@ textarea.qa__input {
   &:hover:not(:disabled) { border-color: var(--sgc-border-active); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  &--active[data-res='passed'] { background: var(--sgc-success); border-color: var(--sgc-success); color: #fff; }
-  &--active[data-res='failed'] { background: var(--sgc-danger); border-color: var(--sgc-danger); color: #fff; }
-  &--active[data-res='blocked'] { background: var(--sgc-warning); border-color: var(--sgc-warning); color: #fff; }
-  &--active[data-res='skipped'] { background: var(--sgc-text-muted); border-color: var(--sgc-text-muted); color: #fff; }
+  &--active[data-res='passed'] { background: var(--sgc-success); border-color: var(--sgc-success); color: var(--text-on-brand); }
+  &--active[data-res='failed'] { background: var(--sgc-danger); border-color: var(--sgc-danger); color: var(--text-on-brand); }
+  &--active[data-res='blocked'] { background: var(--sgc-warning); border-color: var(--sgc-warning); color: var(--text-on-brand); }
+  &--active[data-res='skipped'] { background: var(--sgc-text-muted); border-color: var(--sgc-text-muted); color: var(--text-on-brand); }
 }
 .qa__notas {
   width: 100%;

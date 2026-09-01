@@ -137,7 +137,7 @@
                   }
                 </td>
                 <td class="text-muted">{{ haceCuanto(u.last_seen_at ?? u.ultimo_uso) }}</td>
-                <td class="est-chevron">{{ expandido() === u.usuario_id ? '▾' : '▸' }}</td>
+                <td class="est-chevron">@if (expandido() === u.usuario_id) { <app-icon name="chevron-down" [size]="16" /> } @else { <app-icon name="chevron-right" [size]="16" /> }</td>
               </tr>
               @if (expandido() === u.usuario_id) {
                 <tr class="est-fila-hist">

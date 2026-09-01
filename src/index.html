@@ -6,6 +6,14 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <!-- BE6 — aplica el tema cacheado antes de pintar (evita el parpadeo claro→oscuro). -->
+  <script>
+    try {
+      if (localStorage.getItem('sgc-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <app-root></app-root>

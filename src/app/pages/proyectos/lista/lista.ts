@@ -60,6 +60,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { UserService } from '../../../core/services/user.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface UsuarioSimple {
   id: string;
@@ -79,7 +80,7 @@ function fechaOrdenValidator(startKey: string, endKey: string): ValidatorFn {
 
 @Component({
   selector: 'app-lista',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, NgTemplateOutlet, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, NgTemplateOutlet, DocumentosProyecto, ExpedienteObra, CuadreObraComponent, EjecucionObra, ProyectoPartidas, ClLiberacion, LocationPicker, WeatherCard, RouterLink, Icon],
   templateUrl: './lista.html',
   styleUrl: './lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

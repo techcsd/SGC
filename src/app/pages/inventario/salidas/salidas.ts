@@ -39,10 +39,11 @@ import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requis
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-salidas',
-  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper],
+  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

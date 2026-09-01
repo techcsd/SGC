@@ -208,7 +208,7 @@
                 <td>{{ r.os_version }}</td>
                 <td>{{ r.app_version }}</td>
                 <td class="rep__msg">{{ r.message }}</td>
-                <td class="rep__chev">{{ expandedId() === r.id ? '▲' : '▼' }}</td>
+                <td class="rep__chev">@if (expandedId() === r.id) { <app-icon name="chevron-up" [size]="16" /> } @else { <app-icon name="chevron-down" [size]="16" /> }</td>
               </tr>
               @if (expandedId() === r.id) {
                 <tr class="rep__detail-row">

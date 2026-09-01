@@ -8,7 +8,7 @@
     <div class="compras__head-actions">
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirGasto()">+ Registrar gasto</button>
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()"
-              [disabled]="visibles().length === 0">⬇️ Excel</button>
+              [disabled]="visibles().length === 0"><app-icon name="download" [size]="16" /> Excel</button>
     </div>
   </header>
 

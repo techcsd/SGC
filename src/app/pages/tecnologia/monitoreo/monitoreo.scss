@@ -8,10 +8,10 @@
   padding: 8px 14px; border: 1px solid var(--sgc-border); border-radius: var(--sgc-radius);
   background: var(--sgc-surface); color: var(--sgc-text-secondary); font-size: 14px; font-weight: 600; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
-  &--active { background: var(--sgc-primary); border-color: var(--sgc-primary); color: #fff; }
+  &--active { background: var(--sgc-primary); border-color: var(--sgc-primary); color: var(--text-on-brand); }
 }
 .mon__badge {
-  background: var(--sgc-danger); color: #fff; border-radius: 999px; font-size: 11px;
+  background: var(--sgc-danger); color: var(--text-on-brand); border-radius: 999px; font-size: 11px;
   padding: 1px 7px; font-weight: 700;
 }
 .mon__error { color: var(--sgc-danger); background: var(--sgc-danger-light); border: 1px solid var(--sgc-danger); border-radius: var(--sgc-radius); padding: 10px 14px; }

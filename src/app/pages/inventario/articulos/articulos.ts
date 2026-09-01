@@ -33,10 +33,11 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-articulos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink, Icon],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

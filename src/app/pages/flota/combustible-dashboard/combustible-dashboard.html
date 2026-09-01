@@ -46,7 +46,7 @@
   } @else {
     @if (alertaVehiculo()) {
       <div class="dash-alert" role="alert">
-        ⚠ Las últimas 3 echadas rinden más de 20% por debajo del promedio del período. Revisar posible fuga o problema mecánico.
+        <app-icon name="alert-triangle" [size]="16" /> Las últimas 3 echadas rinden más de 20% por debajo del promedio del período. Revisar posible fuga o problema mecánico.
       </div>
     }
     <div class="stat-grid">
@@ -60,7 +60,7 @@
           <span class="stat-card__label">Esperado (manual)</span>
           <span class="stat-card__value">{{ vehiculoEsperado() | number:'1.1-2' }} km/gal</span>
           @if (vehiculoStats().rendimiento !== null && vehiculoStats().rendimiento! < vehiculoEsperado()!) {
-            <span class="stat-card__hint">⚠ real por debajo del esperado</span>
+            <span class="stat-card__hint"><app-icon name="alert-triangle" [size]="14" /> real por debajo del esperado</span>
           }
         </div>
       }
@@ -70,7 +70,7 @@
           <span class="stat-card__label">Precio prom. / gal</span>
           <span class="stat-card__value">RD$ {{ precioPromedioVehiculo() | number:'1.2-2' }}</span>
           <span class="stat-card__hint">
-            @if (precioFueraDeBanda()) { ⚠ fuera de banda }
+            @if (precioFueraDeBanda()) { <app-icon name="alert-triangle" [size]="14" /> fuera de banda }
             @else { dentro de RD${{ flotaConfig.precioGalMin() }}–{{ flotaConfig.precioGalMax() }} }
           </span>
         </div>

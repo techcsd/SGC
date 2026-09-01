@@ -1,0 +1,15 @@
+// app-icon — hereda el color del texto (currentColor). Sin tamaño propio: el svg
+// trae width/height desde el input `size`.
+:host {
+  display: inline-flex;
+  line-height: 0;
+  flex: none;
+}
+
+.app-icon {
+  display: inline-flex;
+}
+
+:host ::ng-deep svg {
+  display: block;
+}

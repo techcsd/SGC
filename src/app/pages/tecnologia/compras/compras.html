@@ -60,7 +60,7 @@
               </td>
               <td class="text-right">
                 {{ (c.items ?? []).length }}
-                @if (tieneFotos(c)) { <span title="Incluye fotos" aria-label="Incluye fotos">📷</span> }
+                @if (tieneFotos(c)) { <span title="Incluye fotos" aria-label="Incluye fotos"><app-icon name="camera" [size]="14" /></span> }
               </td>
               <td class="text-muted cell-clamp">{{ c.notas ?? '—' }}</td>
             </tr>
@@ -128,7 +128,7 @@
             (click)="removeItem($index)"
             [disabled]="formItems().length === 1"
             aria-label="Eliminar artículo"
-          >×</button>
+          ><app-icon name="x" [size]="16" /></button>
 
           <!-- U17 — foto opcional del renglón -->
           <div class="item-row__foto">
@@ -137,7 +137,7 @@
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearItemFoto($index)">Quitar foto</button>
             } @else {
               <label class="sgc-btn sgc-btn--ghost sgc-btn--sm foto-picker">
-                📷 Agregar foto
+                <app-icon name="camera" [size]="16" /> Agregar foto
                 <input type="file" accept="image/*" hidden (change)="onItemFoto($index, $event)" />
               </label>
             }

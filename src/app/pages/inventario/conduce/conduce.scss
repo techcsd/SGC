@@ -18,12 +18,30 @@
 }
 
 .conduce {
+  // BE5 — documento imprimible: se fija a "papel" (blanco + tinta) en AMBOS temas,
+  // re-escopando los tokens localmente. Así el tema oscuro (BE6) NO lo invierte y
+  // sigue imprimiéndose en blanco/negro. Negro intencional. // tokens-allow-dark
+  --surface: #ffffff;
+  --surface-2: #f7f7f7;
+  --surface-3: #eef1f4;
+  --text: #1a1a1a;
+  --text-2: #444444;
+  --text-3: #666666;
+  --border: #cccccc;
+  --border-strong: #999999;
+  --sgc-surface: #ffffff;
+  --sgc-surface-2: #f7f7f7;
+  --sgc-text: #1a1a1a;
+  --sgc-text-secondary: #444444;
+  --sgc-text-muted: #666666;
+  --sgc-border: #cccccc;
+
   max-width: 800px;
   margin: 0 auto;
   padding: 32px;
   background: #fff;
   color: #111;
-  border: 1px solid var(--sgc-border);
+  border: 1px solid var(--border);
   border-radius: var(--sgc-radius);
 
   &__header {

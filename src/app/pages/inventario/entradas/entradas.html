@@ -7,7 +7,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -118,7 +118,7 @@
                   <span class="sgc-badge sgc-badge--neutral">PRUEBA</span>
                 }
                 @if (e.pendiente_confirmacion) {
-                  <span class="sgc-badge sgc-badge--warning" title="Compra/recepción registrada por un chofer, aún sin confirmar (no ha movido stock)">⏳ Por confirmar</span>
+                  <span class="sgc-badge sgc-badge--warning" title="Compra/recepción registrada por un chofer, aún sin confirmar (no ha movido stock)"><app-icon name="clock" [size]="14" /> Por confirmar</span>
                 }
               </td>
               <td>{{ e.bodega?.nombre ?? '—' }}</td>
@@ -139,7 +139,7 @@
                     @if (thumb(e); as t) {
                       <img [src]="t" alt="Foto de evidencia" loading="lazy" />
                     } @else {
-                      📷
+                      <app-icon name="camera" [size]="16" />
                     }
                   </button>
                 } @else {
@@ -375,7 +375,7 @@
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm entradas__foto-pick">
-          📷 Adjuntar foto
+          <app-icon name="camera" [size]="16" /> Adjuntar foto
           <input type="file" accept="image/*" capture="environment" (change)="onFotoSelected($event)" hidden />
         </label>
       }
@@ -556,7 +556,7 @@
           </tbody>
         </table>
         @if (hayDiferencias()) {
-          <p class="conf-wizard__warn">⚠️ Hay diferencias entre lo enviado y lo recibido. Quedarán registradas.</p>
+          <p class="conf-wizard__warn"><app-icon name="alert-triangle" [size]="14" /> Hay diferencias entre lo enviado y lo recibido. Quedarán registradas.</p>
         }
       }
 
@@ -567,7 +567,7 @@
           @for (f of confirmFotos(); track f.url; let i = $index) {
             <div class="conf-wizard__foto">
               <img [src]="f.url" alt="Evidencia" />
-              <button type="button" class="conf-wizard__foto-x" (click)="removeConfirmFoto(i)" aria-label="Quitar foto">✕</button>
+              <button type="button" class="conf-wizard__foto-x" (click)="removeConfirmFoto(i)" aria-label="Quitar foto"><app-icon name="x" [size]="16" /></button>
             </div>
           }
           <label class="conf-wizard__foto-add">
@@ -635,7 +635,7 @@
           <button type="button" class="entradas__foto-thumb entradas__foto-thumb--lg" (click)="verFoto(e)" title="Ver en grande">
             @if (detailFotoThumb(); as t) {
               <img [src]="t" alt="Foto de evidencia de la entrada" loading="lazy" />
-            } @else { 📷 }
+            } @else { <app-icon name="camera" [size]="20" /> }
           </button>
         </div>
       }
@@ -647,7 +647,7 @@
           <button type="button" class="entradas__foto-thumb entradas__foto-thumb--lg" (click)="verFirma(e)" title="Ver firma">
             @if (detailFirmaThumb(); as t) {
               <img [src]="t" alt="Firma de quien recibe" loading="lazy" />
-            } @else { ✍️ }
+            } @else { <app-icon name="pen" [size]="20" /> }
           </button>
         </div>
       }
@@ -671,7 +671,7 @@
       <!-- AF2 — confirmaciones de recepción con evidencia -->
       @if (e.pendiente_confirmacion) {
         <div class="entrada-detalle__conf-pendiente">
-          <span class="sgc-badge sgc-badge--warning">⏳ Pendiente de confirmación</span>
+          <span class="sgc-badge sgc-badge--warning"><app-icon name="clock" [size]="14" /> Pendiente de confirmación</span>
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="closeDetail(); openConfirmar(e)">Confirmar recepción</button>
         </div>
       }
@@ -691,7 +691,7 @@
               <div class="conf-card__fotos">
                 @for (p of c.fotos; track p) {
                   <button type="button" class="entradas__foto-thumb" (click)="verFotoPath(p)" title="Ver en grande">
-                    @if (confThumb(p); as t) { <img [src]="t" alt="Evidencia de confirmación" loading="lazy" /> } @else { 📷 }
+                    @if (confThumb(p); as t) { <img [src]="t" alt="Evidencia de confirmación" loading="lazy" /> } @else { <app-icon name="camera" [size]="16" /> }
                   </button>
                 }
               </div>

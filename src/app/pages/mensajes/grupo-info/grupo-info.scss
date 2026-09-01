@@ -160,12 +160,12 @@
 
   &__leave {
     width: 100%;
-    color: var(--sgc-danger, #d64545);
-    border: 1px solid var(--sgc-danger, #d64545);
+    color: var(--sgc-danger);
+    border: 1px solid var(--sgc-danger);
     background: none;
 
     &:hover {
-      background: color-mix(in srgb, var(--sgc-danger, #d64545) 10%, transparent);
+      background: color-mix(in srgb, var(--sgc-danger) 10%, transparent);
     }
   }
 
@@ -265,8 +265,8 @@
     }
 
     &--danger:hover {
-      color: var(--sgc-danger, #d64545);
-      border-color: var(--sgc-danger, #d64545);
+      color: var(--sgc-danger);
+      border-color: var(--sgc-danger);
     }
   }
 }

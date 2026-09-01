@@ -3,6 +3,7 @@ import { NavigationError, Router, RouterOutlet } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { UserService } from './core/services/user.service';
 import { ToastService } from '../shared/services/toast.service';
+import { ThemeService } from '../shared/services/theme.service';
 import { ToastComponent } from '../shared/components/toast/toast';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
 
@@ -17,6 +18,7 @@ export class App implements OnInit {
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private theme = inject(ThemeService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
@@ -47,6 +49,11 @@ export class App implements OnInit {
     });
 
     this.authService.onAuthStateChange((event) => {
+      // BE6 — con sesión (INITIAL_SESSION / SIGNED_IN / refresh) reconcilia el tema
+      // con la preferencia server-side del usuario (best-effort; localStorage ya pintó).
+      if (event !== 'SIGNED_OUT') {
+        void this.theme.syncFromServer();
+      }
       if (event === 'SIGNED_OUT') {
         // Distinguimos un cierre voluntario de uno por sesión vencida: solo en el
         // segundo mostramos el aviso, para que el usuario entienda por qué volvió

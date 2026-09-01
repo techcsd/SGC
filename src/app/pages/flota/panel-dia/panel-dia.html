@@ -73,7 +73,7 @@
     <div class="sgc-card pd-col-side">
       <div class="pd-card-title">Choferes sin reportar ({{ choferesSinReportar().length }})</div>
       @if (choferesSinReportar().length === 0) {
-        <p class="pd-muted">Todos los choferes activos reportaron. ✓</p>
+        <p class="pd-muted">Todos los choferes activos reportaron. <app-icon name="check" [size]="14" /></p>
       } @else {
         <ul class="pd-list">
           @for (c of choferesVisibles(); track c.id) {
@@ -97,7 +97,7 @@
     <div class="sgc-card pd-col-side">
       <div class="pd-card-title">Alertas activas ({{ alertasActivas().length }})</div>
       @if (alertasActivas().length === 0) {
-        <p class="pd-muted">Sin alertas activas. ✓</p>
+        <p class="pd-muted">Sin alertas activas. <app-icon name="check" [size]="14" /></p>
       } @else {
         @for (a of alertasVisibles(); track a.id) {
           <div class="pd-alert">

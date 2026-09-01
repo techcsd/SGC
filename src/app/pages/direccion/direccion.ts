@@ -8,12 +8,14 @@ import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-cha
 import { ObrasClimaService } from '../../../shared/context/obras-clima.service';
 import { AlertasCuadreService } from '../../../shared/services/alertas-cuadre.service';
 import { NotificacionesService } from '../../../shared/services/notificaciones.service';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { IconName } from '../../../shared/ui/icon/icons';
 import { AlertaCuadre, AlertaEstado, ALERTA_SEVERIDADES } from '../../../shared/models/cuadre.model';
 import { todayIso, daysFromNowIso, formatTimestampDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
 interface Alerta {
-  icono: string;
+  icono: IconName;
   texto: string;
   cantidad: number;
   ruta: string;
@@ -22,7 +24,7 @@ interface Alerta {
 
 @Component({
   selector: 'app-direccion',
-  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton],
+  imports: [DecimalPipe, RouterLink, BarChart, DonutChart, Skeleton, Icon],
   templateUrl: './direccion.html',
   styleUrl: './direccion.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,25 +75,25 @@ export class Direccion implements OnInit {
   alertas = computed<Alerta[]>(() => {
     const a: Alerta[] = [];
     if (this.obrasClimaPeligro() > 0)
-      a.push({ icono: '🌩️', texto: 'Obras con clima peligroso', cantidad: this.obrasClimaPeligro(), ruta: '/proyectos', nivel: 'peligro' });
+      a.push({ icono: 'cloud-lightning', texto: 'Obras con clima peligroso', cantidad: this.obrasClimaPeligro(), ruta: '/proyectos', nivel: 'peligro' });
     else if (this.obrasClimaPrecaucion() > 0)
-      a.push({ icono: '🌦️', texto: 'Obras con precaución climática', cantidad: this.obrasClimaPrecaucion(), ruta: '/proyectos', nivel: 'precaucion' });
+      a.push({ icono: 'cloud-rain', texto: 'Obras con precaución climática', cantidad: this.obrasClimaPrecaucion(), ruta: '/proyectos', nivel: 'precaucion' });
     if (this.tareasVencidas() > 0)
-      a.push({ icono: '⏰', texto: 'Tareas vencidas', cantidad: this.tareasVencidas(), ruta: '/tareas/gestion', nivel: 'peligro' });
+      a.push({ icono: 'clock', texto: 'Tareas vencidas', cantidad: this.tareasVencidas(), ruta: '/tareas/gestion', nivel: 'peligro' });
     if (this.incidentesTotal() > 0)
-      a.push({ icono: '⚠️', texto: 'Incidentes (90 días)', cantidad: this.incidentesTotal(), ruta: '/bitacora/historial', nivel: 'peligro' });
+      a.push({ icono: 'alert-triangle', texto: 'Incidentes (90 días)', cantidad: this.incidentesTotal(), ruta: '/bitacora/historial', nivel: 'peligro' });
     if (this.contratosPorVencer() > 0)
-      a.push({ icono: '📄', texto: 'Contratos por vencer (30 días)', cantidad: this.contratosPorVencer(), ruta: '/legal/contratos', nivel: 'precaucion' });
+      a.push({ icono: 'file-text', texto: 'Contratos por vencer (30 días)', cantidad: this.contratosPorVencer(), ruta: '/legal/contratos', nivel: 'precaucion' });
     if (this.aprobacionesPendientes() > 0)
-      a.push({ icono: '⚖️', texto: 'Aprobaciones legales pendientes', cantidad: this.aprobacionesPendientes(), ruta: '/legal/aprobaciones', nivel: 'precaucion' });
+      a.push({ icono: 'scale', texto: 'Aprobaciones legales pendientes', cantidad: this.aprobacionesPendientes(), ruta: '/legal/aprobaciones', nivel: 'precaucion' });
     if (this.ausenciasPendientes() > 0)
-      a.push({ icono: '🏖️', texto: 'Solicitudes de ausencia pendientes', cantidad: this.ausenciasPendientes(), ruta: '/rrhh/ausencias', nivel: 'precaucion' });
+      a.push({ icono: 'umbrella', texto: 'Solicitudes de ausencia pendientes', cantidad: this.ausenciasPendientes(), ruta: '/rrhh/ausencias', nivel: 'precaucion' });
     if (this.solicitudesMaterial() > 0)
-      a.push({ icono: '📦', texto: 'Requisiciones pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
+      a.push({ icono: 'package', texto: 'Requisiciones pendientes', cantidad: this.solicitudesMaterial(), ruta: '/inventario/salidas', nivel: 'info' });
     if (this.solicitudesCompra() > 0)
-      a.push({ icono: '🛒', texto: 'Solicitudes de compra pendientes', cantidad: this.solicitudesCompra(), ruta: '/compras/ordenes', nivel: 'info' });
+      a.push({ icono: 'shopping-cart', texto: 'Solicitudes de compra pendientes', cantidad: this.solicitudesCompra(), ruta: '/compras/ordenes', nivel: 'info' });
     if (this.expedientesObraIncompletos() > 0)
-      a.push({ icono: '📋', texto: 'Obras con expediente de inicio incompleto', cantidad: this.expedientesObraIncompletos(), ruta: '/proyectos', nivel: 'precaucion' });
+      a.push({ icono: 'clipboard', texto: 'Obras con expediente de inicio incompleto', cantidad: this.expedientesObraIncompletos(), ruta: '/proyectos', nivel: 'precaucion' });
     return a;
   });
 

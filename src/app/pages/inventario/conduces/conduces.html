@@ -7,7 +7,7 @@
   <div class="page-header__actions">
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <a routerLink="/inventario/salidas" class="sgc-btn sgc-btn--ghost">Ir a Salidas</a>
   </div>

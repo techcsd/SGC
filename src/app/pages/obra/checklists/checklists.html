@@ -81,7 +81,7 @@
             <li>
               <span class="hallazgo-txt">{{ h.etiqueta }}@if (h.comentario) { <em> — {{ h.comentario }}</em> }</span>
               @if (h.ncCreada) {
-                <span class="sgc-badge sgc-badge--success">NC creada ✓</span>
+                <span class="sgc-badge sgc-badge--success">NC creada <app-icon name="check" [size]="14" /></span>
               } @else {
                 <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="levantarNCDeHallazgo(h, plantillaNombre(plantillaId()))">Levantar NC</button>
               }
@@ -154,7 +154,7 @@
             <li>
               <span>@if (it.seccion) { <em>{{ it.seccion }} · </em> }{{ it.etiqueta }}</span>
               @if (puedeOperar()) {
-                <button type="button" class="action-btn action-btn--danger" (click)="eliminarItem(it)" aria-label="Eliminar ítem" title="Eliminar">✕</button>
+                <button type="button" class="action-btn action-btn--danger" (click)="eliminarItem(it)" aria-label="Eliminar ítem" title="Eliminar"><app-icon name="x" [size]="16" /></button>
               }
             </li>
           }

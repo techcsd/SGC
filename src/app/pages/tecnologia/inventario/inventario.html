@@ -12,7 +12,7 @@
       [disabled]="filtered().length === 0"
       title="Exportar el listado filtrado a Excel"
     >
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -333,9 +333,9 @@
               }
               <div class="tec-galeria__actions">
                 @if (!esPortada(foto)) {
-                  <button type="button" title="Marcar como portada" (click)="marcarPortada(foto)">★</button>
+                  <button type="button" title="Marcar como portada" (click)="marcarPortada(foto)"><app-icon name="star" [size]="16" /></button>
                 }
-                <button type="button" title="Quitar" (click)="quitarFoto(foto)">✕</button>
+                <button type="button" title="Quitar" (click)="quitarFoto(foto)"><app-icon name="x" [size]="16" /></button>
               </div>
             </div>
           }

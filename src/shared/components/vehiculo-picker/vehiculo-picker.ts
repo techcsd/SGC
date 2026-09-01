@@ -12,6 +12,7 @@ import {
   forwardRef,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Icon } from '../../ui/icon/icon';
 import { Vehiculo, identificacionVehiculo } from '../../models/vehiculo.model';
 import { VehiculosService } from '../../services/vehiculos.service';
 
@@ -25,7 +26,7 @@ import { VehiculosService } from '../../services/vehiculos.service';
  */
 @Component({
   selector: 'app-vehiculo-picker',
-  imports: [],
+  imports: [Icon],
   templateUrl: './vehiculo-picker.html',
   styleUrl: './vehiculo-picker.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

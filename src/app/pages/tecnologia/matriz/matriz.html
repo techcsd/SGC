@@ -61,7 +61,7 @@
               (click)="remove(entry)"
               [attr.aria-label]="'Quitar ' + (entry.herramienta?.nombre ?? 'herramienta')"
               title="Quitar"
-            >×</button>
+            ><app-icon name="x" [size]="16" /></button>
           </li>
         }
       </ul>

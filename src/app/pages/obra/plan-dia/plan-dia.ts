@@ -12,6 +12,7 @@ import { todayIso, formatFechaDisplay, formatearDuracion } from '../../../../sha
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface BrigadaGrupo {
   brigada: string;
@@ -20,7 +21,7 @@ interface BrigadaGrupo {
 
 @Component({
   selector: 'app-obra-plan-dia',
-  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton],
+  imports: [HumanizarEnumPipe, ReactiveFormsModule, FormDrawer, FileUpload, Skeleton, Icon],
   templateUrl: './plan-dia.html',
   styleUrl: './plan-dia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

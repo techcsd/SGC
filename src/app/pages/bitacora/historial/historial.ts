@@ -14,10 +14,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { interpretarCodigoTiempo } from '../../../../shared/context/weather.model';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

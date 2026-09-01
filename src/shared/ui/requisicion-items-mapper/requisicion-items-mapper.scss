@@ -36,16 +36,16 @@
   &__tag {
     font-size: 10.5px;
     font-weight: 600;
-    color: var(--sgc-primary, #ff5f00);
+    color: var(--sgc-primary);
 
-    &--ok { color: var(--sgc-success, #16a34a); }
-    &--sug { color: var(--sgc-warning, #d97706); }
-    &--add { color: var(--sgc-info, #2563eb); }
+    &--ok { color: var(--sgc-success); }
+    &--sug { color: var(--sgc-warning); }
+    &--add { color: var(--sgc-info); }
   }
-  &__stock { font-size: 10.5px; color: var(--sgc-text-muted, #888); }
+  &__stock { font-size: 10.5px; color: var(--sgc-text-muted); }
   &__picker { grid-area: picker; min-width: 0; }
   &__cantidad { grid-area: qty; }
-  &__unidad { grid-area: unidad; font-size: 11.5px; color: var(--sgc-text-muted, #888); }
+  &__unidad { grid-area: unidad; font-size: 11.5px; color: var(--sgc-text-muted); }
   &__remove {
     grid-area: remove;
     width: 24px;
@@ -56,13 +56,13 @@
     border: 1px solid var(--sgc-border);
     border-radius: 6px;
     background: transparent;
-    color: var(--sgc-text-muted, #888);
+    color: var(--sgc-text-muted);
     font-size: 15px;
     line-height: 1;
     cursor: pointer;
     transition: all 0.15s ease;
 
-    &:hover { color: var(--sgc-danger, #dc2626); border-color: var(--sgc-danger, #dc2626); }
+    &:hover { color: var(--sgc-danger); border-color: var(--sgc-danger); }
   }
 }
 
@@ -72,7 +72,7 @@
   border: 1px dashed var(--sgc-border);
   border-radius: 8px;
   background: transparent;
-  color: var(--sgc-primary, #ff5f00);
+  color: var(--sgc-primary);
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;

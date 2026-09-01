@@ -433,7 +433,7 @@
     padding: 1px 6px;
     border-radius: 999px;
     background: var(--accent);
-    color: #121212;
+    color: var(--text-on-accent);
     font-size: 10px;
     font-weight: 700;
     line-height: 1.5;
@@ -464,7 +464,7 @@
 
       &:hover:not(:disabled) { background: rgb(0 0 0 / 0.85); }
       &:disabled { opacity: 0.35; cursor: default; }
-      &.active { background: var(--accent); color: #121212; }
+      &.active { background: var(--accent); color: var(--text-on-accent); }
     }
   }
 }

@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { BodegasService, AlmacenDuplicadoCandidato } from '../../../../shared/services/bodegas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /**
  * AY5 — Reporte de almacenes duplicados (fuzzy por nombre + misma obra). ⏸ La fusión
@@ -11,7 +12,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-admin-almacenes-duplicados',
-  imports: [Skeleton, DecimalPipe],
+  imports: [Skeleton, DecimalPipe, Icon],
   templateUrl: './almacenes-duplicados.html',
   styleUrl: './almacenes-duplicados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

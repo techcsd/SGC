@@ -18,7 +18,7 @@
       </select>
     </div>
     <label class="sgc-btn sgc-btn--primary cc-file">
-      📥 Importar informe (Excel/CSV)
+      <app-icon name="upload" [size]="16" /> Importar informe (Excel/CSV)
       <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" hidden />
     </label>
   </div>
@@ -59,7 +59,7 @@
       @if (previewStats().personas > 0) { <div class="stat-card"><span class="stat-card__label">Titular = persona</span><span class="stat-card__value">{{ previewStats().personas }}</span></div> }
     </div>
     @if (cuadraFactura() === false) {
-      <p class="cc-error">⚠️ La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
+      <p class="cc-error"><app-icon name="alert-triangle" [size]="14" /> La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
     }
 
     <div class="table-wrapper sgc-card">
@@ -156,7 +156,7 @@
     }
     <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportar()"
             [disabled]="detallesFiltrados().length === 0" title="Exportar las filas visibles a Excel">
-      ⬇️ Excel
+      <app-icon name="download" [size]="16" /> Excel
     </button>
   </div>
 

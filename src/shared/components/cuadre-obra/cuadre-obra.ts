@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { Icon } from '../../ui/icon/icon';
 import { CuadreService } from '../../services/cuadre.service';
 import { ToastService } from '../../services/toast.service';
 import {
@@ -33,7 +34,7 @@ interface CuadreGrupo {
  */
 @Component({
   selector: 'app-cuadre-obra',
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, Icon],
   templateUrl: './cuadre-obra.html',
   styleUrl: './cuadre-obra.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

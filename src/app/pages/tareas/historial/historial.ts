@@ -9,10 +9,11 @@ import { TareaDetalle } from '../../../../shared/components/tarea-detalle/tarea-
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-tareas-historial',
-  imports: [DatePipe, TareaDetalle, DonutChart, BarChart, Skeleton],
+  imports: [DatePipe, TareaDetalle, DonutChart, BarChart, Skeleton, Icon],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

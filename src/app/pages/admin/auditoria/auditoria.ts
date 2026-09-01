@@ -13,6 +13,7 @@ import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 const CAT = ['#1F4E79', '#2D7D46', '#B45309', '#5B3A8E', '#0E7490', '#C0392B', '#64748b'];
 
@@ -94,7 +95,7 @@ const ADMIN_ACCION_LABELS: Record<string, string> = {
  *  Reads sgc.auditoria (populated by DB triggers from BOTH web and app). */
 @Component({
   selector: 'app-admin-auditoria',
-  imports: [DecimalPipe, BarChart, DonutChart, Skeleton, DateRangeFilter],
+  imports: [DecimalPipe, BarChart, DonutChart, Skeleton, DateRangeFilter, Icon],
   templateUrl: './auditoria.html',
   styleUrl: './auditoria.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -63,7 +63,7 @@
   <div class="sgc-card rs-block">
     <div class="rs-card-title">Faltantes de esta semana ({{ faltantes().length }})</div>
     @if (faltantes().length === 0) {
-      <p class="rs-ok">Todos los vehículos reportaron esta semana ✓</p>
+      <p class="rs-ok">Todos los vehículos reportaron esta semana <app-icon name="check" [size]="14" /></p>
     } @else {
       <ul class="rs-list">
         @for (f of faltantes(); track f.vehiculo_id) {
@@ -91,7 +91,7 @@
               <td><span class="rs-placa">{{ f.placa }}</span></td>
               <td>{{ f.chofer_nombre ?? '—' }}</td>
               <td class="text-center">
-                @if (f.tiene_reporte) { <span class="rs-check">✓</span> } @else { <span class="rs-cross">✕</span> }
+                @if (f.tiene_reporte) { <span class="rs-check"><app-icon name="check" [size]="14" /></span> } @else { <span class="rs-cross"><app-icon name="x" [size]="14" /></span> }
               </td>
               <td>
                 @if (f.tiene_reporte) {
@@ -130,7 +130,7 @@
                 <span class="rs-muted">({{ toDate(g.semana_inicio) | date:'dd/MM' }}–{{ toDate(g.semana_fin) | date:'dd/MM' }})</span>
               </span>
               <span class="rs-acc-count">{{ g.reportados }}/{{ g.total }} reportados</span>
-              <span class="rs-acc-chevron" aria-hidden="true">{{ expandida() === g.key ? '▾' : '▸' }}</span>
+              <span class="rs-acc-chevron" aria-hidden="true">@if (expandida() === g.key) { <app-icon name="chevron-down" [size]="14" /> } @else { <app-icon name="chevron-right" [size]="14" /> }</span>
             </button>
             @if (expandida() === g.key) {
               <div class="table-scroll rs-acc-body">
@@ -144,7 +144,7 @@
                         <td><span class="rs-placa">{{ f.placa }}</span></td>
                         <td>{{ f.chofer_nombre ?? '—' }}</td>
                         <td class="text-center">
-                          @if (f.tiene_reporte) { <span class="rs-check">✓</span> } @else { <span class="rs-cross">✕</span> }
+                          @if (f.tiene_reporte) { <span class="rs-check"><app-icon name="check" [size]="14" /></span> } @else { <span class="rs-cross"><app-icon name="x" [size]="14" /></span> }
                         </td>
                         <td>
                 @if (f.tiene_reporte) {
@@ -186,7 +186,7 @@
             <div class="rs-mine__veh">
               <span class="rs-placa">{{ f.placa }}</span>
               @if (f.tiene_reporte) {
-                <span class="sgc-badge sgc-badge--success">Reportado ✓</span>
+                <span class="sgc-badge sgc-badge--success">Reportado <app-icon name="check" [size]="14" /></span>
                 @if (f.resultado) {
                   <span class="sgc-badge sgc-badge--{{ resultadoBadge(f.resultado) }}">{{ resultadoLabel(f.resultado) }}</span>
                 }

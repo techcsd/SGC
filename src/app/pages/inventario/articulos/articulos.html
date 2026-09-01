@@ -143,7 +143,7 @@
                     @if (thumbDe(art); as t) {
                       <img [src]="t" [alt]="art.nombre" loading="lazy" />
                     } @else {
-                      <span class="article-thumb__ph" aria-hidden="true">📦</span>
+                      <span class="article-thumb__ph" aria-hidden="true"><app-icon name="package" [size]="16" /></span>
                     }
                   </button>
                   <div class="article-cell__info">
@@ -392,7 +392,7 @@
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFoto()">Quitar foto</button>
         } @else {
           <label class="articulo-foto-edit__add">
-            <span aria-hidden="true">📷</span> Subir foto
+            <span aria-hidden="true"><app-icon name="camera" [size]="16" /></span> Subir foto
             <input type="file" accept="image/*" hidden (change)="onFotoSeleccionada($event)" />
           </label>
         }
@@ -539,7 +539,7 @@
     <div class="art-modal" role="dialog" aria-modal="true" [attr.aria-label]="'Detalle de ' + d.nombre" (click)="$event.stopPropagation()">
       <div class="art-modal__head">
         <h2 class="art-modal__title">{{ d.nombre }}</h2>
-        <button type="button" class="art-modal__close" (click)="cerrarDetalle()" aria-label="Cerrar">✕</button>
+        <button type="button" class="art-modal__close" (click)="cerrarDetalle()" aria-label="Cerrar"><app-icon name="x" [size]="18" /></button>
       </div>
 
       <div class="art-modal__body">
@@ -547,7 +547,7 @@
           @if (detalleFotoUrl(); as u) {
             <a [href]="u" target="_blank" rel="noopener"><img [src]="u" [alt]="d.nombre" /></a>
           } @else {
-            <div class="art-modal__foto-ph" aria-hidden="true">📦</div>
+            <div class="art-modal__foto-ph" aria-hidden="true"><app-icon name="package" [size]="20" /></div>
           }
         </div>
 

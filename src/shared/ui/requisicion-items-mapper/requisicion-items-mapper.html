@@ -3,7 +3,7 @@
     <div class="req-map-row__desc">
       <span class="req-map-row__text" [title]="item.descripcion">{{ item.descripcion }}@if (item.talla) { · Talla: {{ item.talla }} }</span>
       @switch (item.match_source) {
-        @case ('origen') { <span class="req-map-row__tag req-map-row__tag--ok">✓ Del catálogo</span> }
+        @case ('origen') { <span class="req-map-row__tag req-map-row__tag--ok"><app-icon name="check" [size]="13" /> Del catálogo</span> }
         @case ('sugerido') { <span class="req-map-row__tag req-map-row__tag--sug">Sugerido · {{ item.score * 100 | number:'1.0-0' }}% — verifica</span> }
         @case ('manual') { <span class="req-map-row__tag">Reasignado</span> }
         @case ('agregado') { <span class="req-map-row__tag req-map-row__tag--add">Agregado por ti</span> }
@@ -33,7 +33,7 @@
     />
     <span class="req-map-row__unidad">{{ item.unidad || '' }}</span>
     <button type="button" class="req-map-row__remove" (click)="remove($index)"
-            aria-label="Quitar renglón" title="Quitar renglón">×</button>
+            aria-label="Quitar renglón" title="Quitar renglón"><app-icon name="x" [size]="16" /></button>
   </div>
 }
 <button type="button" class="req-add-row" (click)="add()">+ Agregar renglón</button>

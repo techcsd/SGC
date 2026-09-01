@@ -11,6 +11,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 interface OrdenReport {
   id: string;
@@ -35,7 +36,7 @@ interface ProveedorStat {
 
 @Component({
   selector: 'app-compras-reportes',
-  imports: [DecimalPipe, Skeleton],
+  imports: [DecimalPipe, Skeleton, Icon],
   templateUrl: './reportes.html',
   styleUrl: './reportes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

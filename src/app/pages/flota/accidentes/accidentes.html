@@ -132,7 +132,7 @@
           @for (p of fotoPreviews(); track $index) {
             <div class="ac-foto-thumb">
               <img [src]="p" alt="Foto del hecho" />
-              <button type="button" class="ac-foto-quitar" (click)="quitarFoto($index)" aria-label="Quitar foto">✕</button>
+              <button type="button" class="ac-foto-quitar" (click)="quitarFoto($index)" aria-label="Quitar foto"><app-icon name="x" [size]="16" /></button>
             </div>
           }
         </div>
@@ -165,7 +165,7 @@
       <span class="ac-evidencia__label">Acta AMET</span>
       @if (a.reporte_amet_path && esPdf(a.reporte_amet_path)) {
         <!-- PDF: el visor de imagen no aplica; abrir el documento -->
-        <a class="sgc-btn sgc-btn--secondary" [href]="ametUrl()" target="_blank" rel="noopener">📄 Ver acta AMET (PDF)</a>
+        <a class="sgc-btn sgc-btn--secondary" [href]="ametUrl()" target="_blank" rel="noopener"><app-icon name="file-text" [size]="16" /> Ver acta AMET (PDF)</a>
       } @else if (ametUrl(); as url) {
         <button type="button" class="ac-foto-thumb ac-foto-thumb--doc" (click)="abrirLightbox(a.reporte_amet_path!)">
           <img [src]="url" alt="Acta AMET" loading="lazy" />
@@ -204,14 +204,14 @@
       <div class="ac-detail__prueba">
         @if (!a.es_prueba) {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(a, true)">
-            🧪 Marcar como dato de prueba
+            <app-icon name="beaker" [size]="16" /> Marcar como dato de prueba
           </button>
         } @else {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="marcarPrueba(a, false)">
-            ↩️ Quitar de datos de prueba
+            <app-icon name="rotate-ccw" [size]="16" /> Quitar de datos de prueba
           </button>
           <button type="button" class="sgc-btn sgc-btn--danger" (click)="eliminarPrueba(a)">
-            🗑️ Eliminar dato de prueba
+            <app-icon name="trash" [size]="16" /> Eliminar dato de prueba
           </button>
         }
       </div>

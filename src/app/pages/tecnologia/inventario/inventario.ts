@@ -15,6 +15,7 @@ import {
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
@@ -29,7 +30,7 @@ interface FotoItem {
 
 @Component({
   selector: 'app-tec-inventario',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Lightbox],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Lightbox, Icon],
   templateUrl: './inventario.html',
   styleUrl: './inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

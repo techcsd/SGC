@@ -490,7 +490,7 @@
                 class="equipo-row__remove sgc-btn sgc-btn--ghost"
                 (click)="removeEquipo(i)"
                 aria-label="Quitar equipo"
-              >✕</button>
+              ><app-icon name="x" [size]="16" /></button>
             </div>
             <!-- S7 — retiro / daño del equipo -->
             <div class="equipo-row__flags">
@@ -540,7 +540,7 @@
           <span class="bitacora-bloque-chip" [class.active]="bloqueActivo() === b">
             <button type="button" (click)="seleccionarBloque(b)">{{ b }}</button>
             @if (bloquesLista().length > 1) {
-              <button type="button" class="bitacora-bloque-chip__x" (click)="quitarBloque(b)" aria-label="Quitar bloque">✕</button>
+              <button type="button" class="bitacora-bloque-chip__x" (click)="quitarBloque(b)" aria-label="Quitar bloque"><app-icon name="x" [size]="14" /></button>
             }
           </span>
         }

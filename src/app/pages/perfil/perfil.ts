@@ -11,17 +11,19 @@ import { ReporteUsuario } from '../../../shared/models/reporte-usuario.model';
 import { DonutChart, DonutDatum } from '../../../shared/ui/donut-chart/donut-chart';
 import { BarChart, BarDatum } from '../../../shared/ui/bar-chart/bar-chart';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../shared/ui/icon/icon';
+import { IconName } from '../../../shared/ui/icon/icons';
 
 interface ActividadItem {
   fecha: string;
-  icono: string;
+  icono: IconName;
   texto: string;
   tipo: string;
 }
 
 @Component({
   selector: 'app-perfil',
-  imports: [DatePipe, RouterLink, DonutChart, BarChart, Skeleton],
+  imports: [DatePipe, RouterLink, DonutChart, BarChart, Skeleton, Icon],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,13 +79,13 @@ export class Perfil implements OnInit {
   actividad = computed<ActividadItem[]>(() => {
     const items: ActividadItem[] = [];
     for (const t of this.tareas()) {
-      items.push({ fecha: t.created_at, icono: '📋', tipo: 'tarea', texto: `Tarea asignada: ${t.titulo}` });
+      items.push({ fecha: t.created_at, icono: 'clipboard', tipo: 'tarea', texto: `Tarea asignada: ${t.titulo}` });
       if (t.fecha_completada) {
-        items.push({ fecha: t.fecha_completada, icono: '✅', tipo: 'tarea', texto: `Tarea completada: ${t.titulo}` });
+        items.push({ fecha: t.fecha_completada, icono: 'check-circle', tipo: 'tarea', texto: `Tarea completada: ${t.titulo}` });
       }
     }
     for (const r of this.reportes()) {
-      items.push({ fecha: r.created_at, icono: '💬', tipo: 'reporte', texto: `Reporte enviado: ${r.asunto}` });
+      items.push({ fecha: r.created_at, icono: 'message-circle', tipo: 'reporte', texto: `Reporte enviado: ${r.asunto}` });
     }
     return items.sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 15);
   });

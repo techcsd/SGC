@@ -104,12 +104,12 @@
               <td>
                 <span class="rutas__trip">{{ r.origen }} <span class="rutas__arrow">→</span> {{ r.destino }}</span>
                 <span class="sgc-badge sgc-badge--neutral" [title]="'Ruta de ' + getTipoInfo(r.tipo).label">
-                  {{ getTipoInfo(r.tipo).icon }} {{ getTipoInfo(r.tipo).label }}
+                  <app-icon [name]="getTipoInfo(r.tipo).icon" [size]="13" /> {{ getTipoInfo(r.tipo).label }}
                 </span>
                 @if (r.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
                 @if (climaRuta(r); as rec) {
                   <span class="clima-chip" [class]="nivelClima(rec.nivel)" [title]="rec.detalle">
-                    {{ rec.nivel === 'peligro' ? '⛈️' : '🌦️' }} {{ rec.titulo }}
+                    <app-icon [name]="rec.nivel === 'peligro' ? 'cloud-lightning' : 'cloud-rain'" [size]="14" /> {{ rec.titulo }}
                   </span>
                 }
               </td>
@@ -185,7 +185,7 @@
       <label for="tipo">Tipo de ruta <span class="required">*</span></label>
       <select id="tipo" formControlName="tipo">
         @for (t of RUTA_TIPOS; track t.value) {
-          <option [value]="t.value">{{ t.icon }} {{ t.label }}</option>
+          <option [value]="t.value">{{ t.label }}</option>
         }
       </select>
     </div>
@@ -316,11 +316,11 @@
             <span class="rutas__parada-num">Parada {{ $index + 1 }}</span>
             <div class="rutas__parada-ctrl">
               <button type="button" class="rutas__parada-btn" (click)="moverParada($index, -1)"
-                      [disabled]="$index === 0" title="Subir" aria-label="Subir parada">↑</button>
+                      [disabled]="$index === 0" title="Subir" aria-label="Subir parada"><app-icon name="arrow-up" [size]="14" /></button>
               <button type="button" class="rutas__parada-btn" (click)="moverParada($index, 1)"
-                      [disabled]="$index === paradas().length - 1" title="Bajar" aria-label="Bajar parada">↓</button>
+                      [disabled]="$index === paradas().length - 1" title="Bajar" aria-label="Bajar parada"><app-icon name="arrow-down" [size]="14" /></button>
               <button type="button" class="rutas__parada-btn rutas__parada-btn--del" (click)="quitarParada($index)"
-                      title="Quitar" aria-label="Quitar parada">✕</button>
+                      title="Quitar" aria-label="Quitar parada"><app-icon name="x" [size]="14" /></button>
             </div>
           </div>
           <input type="text" class="rutas__parada-input" [value]="p.ubicacion"
@@ -347,7 +347,7 @@
           @for (p of fotoPreviews(); track $index) {
             <div class="rutas__foto-thumb">
               <img [src]="p" alt="Foto de evidencia" />
-              <button type="button" class="rutas__foto-quitar" (click)="quitarRutaFoto($index)" aria-label="Quitar foto">✕</button>
+              <button type="button" class="rutas__foto-quitar" (click)="quitarRutaFoto($index)" aria-label="Quitar foto"><app-icon name="x" [size]="14" /></button>
             </div>
           }
         </div>
@@ -388,7 +388,7 @@
         <span class="spinner-dark" aria-hidden="true"></span> Calculando distancia y tiempo por mapa…
       </span>
     } @else if (autoEstimado()) {
-      <span class="field-hint">✓ Distancia y tiempo estimados por mapa — puedes ajustarlos.</span>
+      <span class="field-hint"><app-icon name="check" [size]="14" /> Distancia y tiempo estimados por mapa — puedes ajustarlos.</span>
     }
 
     <div class="sgc-field">
@@ -400,7 +400,7 @@
     @if (drawerDestinoCoords(); as c) {
       @if (drawerClima()?.recomendacion; as rec) {
         <div class="dispatch-advisory" [class.dispatch-advisory--peligro]="rec.nivel === 'peligro'">
-          <strong>🚚 {{ rec.titulo }}</strong>
+          <strong><app-icon name="truck" [size]="16" /> {{ rec.titulo }}</strong>
           <span>{{ rec.detalle }}</span>
         </div>
       } @else if (drawerClima()?.dia) {
@@ -624,7 +624,7 @@
 
       <!-- AV13 — indicador "(modificada)" + historial de cambios de la ruta -->
       @if (detalleTransporte()?.ruta?.modificada_at; as mod) {
-        <p class="ruta-detalle__mod">✏️ (modificada) · {{ formatFechaHora(mod) }}</p>
+        <p class="ruta-detalle__mod"><app-icon name="pen" [size]="14" /> (modificada) · {{ formatFechaHora(mod) }}</p>
       }
       @if (detalleTransporte()?.eventos?.length) {
         <h4 class="ruta-detalle__title">Historial de la ruta</h4>

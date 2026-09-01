@@ -13,6 +13,7 @@ import { pinIcon } from '../../../../shared/context/google-maps-marker.util';
 import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatTimestampDisplay, formatHoraTimestamp } from '../../../../shared/utils/fecha.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /** AS14 — ruta de hoy agrupada por su identidad visible (vehículo + origen→destino).
  *  Colapsa duplicados visuales; si un mismo trayecto tiene varias rutas (AV13
@@ -57,7 +58,7 @@ function hoyRD(): string {
  */
 @Component({
   selector: 'app-seguimiento',
-  imports: [FlotaSubnav, Skeleton],
+  imports: [FlotaSubnav, Skeleton, Icon],
   templateUrl: './seguimiento.html',
   styleUrl: './seguimiento.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

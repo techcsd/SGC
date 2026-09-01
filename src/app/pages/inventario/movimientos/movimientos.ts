@@ -8,6 +8,7 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
@@ -15,7 +16,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
   selector: 'app-inventario-movimientos',
-  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator],
+  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator, Icon],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

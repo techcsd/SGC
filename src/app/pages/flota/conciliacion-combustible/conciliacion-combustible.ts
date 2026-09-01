@@ -13,6 +13,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /** Fila normalizada del informe importado (Total Energies u otro). */
 interface InformeRow {
@@ -58,7 +59,7 @@ const MONTO_TOLERANCIA = 50;
  */
 @Component({
   selector: 'app-conciliacion-combustible',
-  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter],
+  imports: [FlotaSubnav, DecimalPipe, Skeleton, DateRangeFilter, Icon],
   templateUrl: './conciliacion-combustible.html',
   styleUrl: './conciliacion-combustible.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

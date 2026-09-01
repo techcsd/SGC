@@ -10,11 +10,11 @@
 <div class="hv-tabs" role="tablist" aria-label="Plataforma">
   <button type="button" role="tab" class="hv-tab" [class.hv-tab--active]="plataforma() === 'web'"
     [attr.aria-selected]="plataforma() === 'web'" (click)="setPlataforma('web')">
-    🖥️ Página web <span class="hv-tab__count">{{ totalWeb() }}</span>
+    <app-icon name="monitor" [size]="15" /> Página web <span class="hv-tab__count">{{ totalWeb() }}</span>
   </button>
   <button type="button" role="tab" class="hv-tab" [class.hv-tab--active]="plataforma() === 'movil'"
     [attr.aria-selected]="plataforma() === 'movil'" (click)="setPlataforma('movil')">
-    📱 App móvil <span class="hv-tab__count">{{ totalMovil() }}</span>
+    <app-icon name="smartphone" [size]="15" /> App móvil <span class="hv-tab__count">{{ totalMovil() }}</span>
   </button>
 </div>
 
@@ -33,8 +33,8 @@
     <div class="hv-kpi hv-kpi--both sgc-card">
       <span class="hv-kpi__label">Versión actual</span>
       <div class="hv-kpi__both">
-        <span class="hv-kpi__both-row">🖥️ Web <strong>{{ ultimaWeb() ? 'v' + ultimaWeb() : '—' }}</strong></span>
-        <span class="hv-kpi__both-row">📱 App <strong>{{ ultimaMovil() ? 'v' + ultimaMovil() : '—' }}</strong></span>
+        <span class="hv-kpi__both-row"><app-icon name="monitor" [size]="14" /> Web <strong>{{ ultimaWeb() ? 'v' + ultimaWeb() : '—' }}</strong></span>
+        <span class="hv-kpi__both-row"><app-icon name="smartphone" [size]="14" /> App <strong>{{ ultimaMovil() ? 'v' + ultimaMovil() : '—' }}</strong></span>
       </div>
     </div>
     <div class="hv-kpi sgc-card">
@@ -87,7 +87,7 @@
       <button type="button" class="hv-chip hv-chip--{{ t }}" [class.hv-chip--on]="filtro() === t"
         (click)="toggleFiltro(t)">{{ tagLabel(t) }}</button>
     }
-    @if (filtro()) { <button type="button" class="hv-chip hv-chip--clear" (click)="toggleFiltro(filtro()!)">✕ Quitar</button> }
+    @if (filtro()) { <button type="button" class="hv-chip hv-chip--clear" (click)="toggleFiltro(filtro()!)"><app-icon name="x" [size]="14" /> Quitar</button> }
   </div>
 
   @if (versiones().length === 0) {
@@ -130,11 +130,11 @@
 
             @if (v.plataforma === 'web' && v.url) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.url" target="_blank" rel="noopener">
-                🔗 Abrir esta versión
+                <app-icon name="link" [size]="16" /> Abrir esta versión
               </a>
             } @else if (v.plataforma === 'movil' && v.apk_url) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.apk_url" target="_blank" rel="noopener">
-                ⬇️ Descargar APK v{{ v.version }}
+                <app-icon name="download" [size]="16" /> Descargar APK v{{ v.version }}
               </a>
             }
           </div>

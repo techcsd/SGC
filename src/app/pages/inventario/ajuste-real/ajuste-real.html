@@ -29,7 +29,7 @@
     </div>
 
     @if (paso() === 'preview') {
-      <div class="ar-meta">📄 {{ archivoNombre() }}</div>
+      <div class="ar-meta"><app-icon name="file-text" [size]="14" /> {{ archivoNombre() }}</div>
       <div class="ar-summary">
         <span class="pi-chip pi-chip--ok">{{ okCount() }} listas</span>
         <span class="pi-chip pi-chip--dup">{{ conCambio() }} con cambio</span>

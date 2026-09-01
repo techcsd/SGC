@@ -7,12 +7,12 @@
   </header>
 
   <div class="mon__tabs">
-    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'dominios'" (click)="cambiarTab('dominios')">🌐 Dominios</button>
-    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'suscripciones'" (click)="cambiarTab('suscripciones')">💳 Suscripciones</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'dominios'" (click)="cambiarTab('dominios')"><app-icon name="globe" [size]="16" /> Dominios</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'suscripciones'" (click)="cambiarTab('suscripciones')"><app-icon name="credit-card" [size]="16" /> Suscripciones</button>
     <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'alertas'" (click)="cambiarTab('alertas')">
-      🔔 Alertas @if (alertasActivasCount() > 0) { <span class="mon__badge">{{ alertasActivasCount() }}</span> }
+      <app-icon name="bell" [size]="16" /> Alertas @if (alertasActivasCount() > 0) { <span class="mon__badge">{{ alertasActivasCount() }}</span> }
     </button>
-    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'historico'" (click)="cambiarTab('historico')">📜 Histórico</button>
+    <button type="button" class="mon__tab" [class.mon__tab--active]="tab() === 'historico'" (click)="cambiarTab('historico')"><app-icon name="file-text" [size]="16" /> Histórico</button>
   </div>
 
   @if (error()) { <p class="mon__error">{{ error() }}</p> }
@@ -59,7 +59,7 @@
             <tr [class.mon__row--off]="!s.is_active">
               <td>
                 <strong>{{ s.name }}</strong>
-                @if (s.panel_url) { <a class="mon__ext" [href]="s.panel_url" target="_blank" rel="noopener">↗</a> }
+                @if (s.panel_url) { <a class="mon__ext" [href]="s.panel_url" target="_blank" rel="noopener" aria-label="Abrir panel"><app-icon name="external-link" [size]="14" /></a> }
                 @if (s.impact_if_expired) { <div class="mon__muted mon__impact">{{ s.impact_if_expired }}</div> }
               </td>
               <td>{{ s.provider ?? '—' }}</td>
@@ -73,8 +73,8 @@
                   }
                 } @else { <span class="mon__muted">sin fecha</span> }
               </td>
-              <td>{{ s.auto_renew ? '✓' : '—' }}</td>
-              <td>{{ s.payment_ok ? '✓' : '⚠️' }}</td>
+              <td>@if (s.auto_renew) { <app-icon name="check" [size]="16" /> } @else { — }</td>
+              <td>@if (s.payment_ok) { <app-icon name="check" [size]="16" /> } @else { <app-icon name="alert-triangle" [size]="16" /> }</td>
               <td class="mon__ts">{{ s.amount ? (s.currency + ' ' + s.amount) : '—' }}</td>
               <td>{{ s.internal_responsible ?? '—' }}</td>
               <td class="data-table__actions">
@@ -138,7 +138,7 @@
         }
       </select>
       <button type="button" class="sgc-btn sgc-btn--primary" (click)="aplicarFiltroHist()">Filtrar</button>
-      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarHistorico()">⬇️ Excel</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportarHistorico()"><app-icon name="download" [size]="16" /> Excel</button>
     </div>
     <div class="mon__table-wrap">
       <table class="data-table">

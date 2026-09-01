@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { ModuloOrdenService, NAV_SECCIONES } from '../../../../shared/services/modulo-orden.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /**
  * AF38 — Orden de los módulos/secciones del menú lateral. El admin reordena con
@@ -10,7 +11,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-admin-orden-modulos',
-  imports: [Skeleton],
+  imports: [Skeleton, Icon],
   templateUrl: './orden-modulos.html',
   styleUrl: './orden-modulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

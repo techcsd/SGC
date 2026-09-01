@@ -81,6 +81,6 @@
     background: none;
     color: var(--sgc-text-muted);
     cursor: pointer;
-    &:hover { background: var(--sgc-danger-light, #fdecea); color: var(--sgc-danger); }
+    &:hover { background: var(--sgc-danger-light); color: var(--sgc-danger); }
   }
 }

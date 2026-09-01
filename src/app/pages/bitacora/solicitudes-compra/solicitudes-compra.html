@@ -43,7 +43,7 @@
             <td>{{ s.solicitante?.nombre ?? '—' }}</td>
             <td class="text-muted">
               {{ (s.items ?? []).length }} artículo{{ (s.items ?? []).length !== 1 ? 's' : '' }}
-              <span class="sc-chev">{{ expandedId() === s.id ? '▲' : '▼' }}</span>
+              <span class="sc-chev"><app-icon [name]="expandedId() === s.id ? 'chevron-down' : 'chevron-right'" [size]="14" /></span>
             </td>
             <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span></td>
             <td class="text-muted">
@@ -153,7 +153,7 @@
           (click)="removeItem(i)"
           [disabled]="formItems().length === 1"
           aria-label="Quitar artículo"
-        >✕</button>
+        ><app-icon name="x" [size]="16" /></button>
       </div>
     }
 

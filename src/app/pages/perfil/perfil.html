@@ -123,7 +123,7 @@
         <ul class="perfil-actividad">
           @for (a of actividad(); track $index) {
             <li class="perfil-actividad__item">
-              <span class="perfil-actividad__icon" aria-hidden="true">{{ a.icono }}</span>
+              <span class="perfil-actividad__icon" aria-hidden="true"><app-icon [name]="a.icono" [size]="16" /></span>
               <span class="perfil-actividad__texto">{{ a.texto }}</span>
               <span class="perfil-actividad__fecha">{{ a.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
             </li>

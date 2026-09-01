@@ -21,6 +21,7 @@ import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../.
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 interface ItemCierre {
@@ -35,7 +36,7 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
 
 @Component({
   selector: 'app-conduce',
-  imports: [Skeleton, SignaturePad, RouterLink, Lightbox],
+  imports: [Skeleton, SignaturePad, RouterLink, Lightbox, Icon],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

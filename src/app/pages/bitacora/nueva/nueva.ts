@@ -41,6 +41,7 @@ import { ReportesUsuarioService } from '../../../../shared/services/reportes-usu
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -76,7 +77,7 @@ interface Draft {
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, QtyStepper, Skeleton, FileUpload],
+  imports: [ReactiveFormsModule, QtyStepper, Skeleton, FileUpload, Icon],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

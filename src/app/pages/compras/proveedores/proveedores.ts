@@ -19,6 +19,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { UserService } from '../../../core/services/user.service';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import type { UbicacionSeleccionada } from '../../../../shared/context/location-picker/location-picker';
 
 // RNC (9 dígitos) o cédula (11 dígitos), con o sin guiones. Rechaza longitudes intermedias.
@@ -26,7 +27,7 @@ const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 
 @Component({
   selector: 'app-proveedores',
-  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker],
+  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

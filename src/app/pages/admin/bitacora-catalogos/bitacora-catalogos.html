@@ -61,14 +61,14 @@
                 title="Subir"
                 [disabled]="i === 0 || saving()"
                 (click)="mover(c, -1)"
-              >↑</button>
+              ><app-icon name="arrow-up" [size]="16" /></button>
               <button
                 class="sgc-btn sgc-btn--sm sgc-btn--ghost"
                 type="button"
                 title="Bajar"
                 [disabled]="i === count - 1 || saving()"
                 (click)="mover(c, 1)"
-              >↓</button>
+              ><app-icon name="arrow-down" [size]="16" /></button>
             </span>
             <span class="bc-item__val">{{ c.valor }}</span>
             <!-- AW1 — solo actividades: permitir "se trabajó" sin cantidad exacta (~). -->

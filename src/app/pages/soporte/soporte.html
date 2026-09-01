@@ -96,11 +96,11 @@
             <div class="soporte__foto">
               <img [src]="foto.preview" alt="Foto adjunta" />
               <button type="button" class="soporte__foto-quitar" (click)="quitarFoto($index)"
-                aria-label="Quitar foto">✕</button>
+                aria-label="Quitar foto"><app-icon name="x" [size]="16" /></button>
             </div>
           }
           <label class="soporte__foto-add">
-            <span>📷</span>
+            <app-icon name="camera" [size]="20" />
             <input type="file" accept="image/*" capture="environment" multiple hidden (change)="onFotos($event)" />
           </label>
         </div>

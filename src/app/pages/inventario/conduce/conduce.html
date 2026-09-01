@@ -100,7 +100,7 @@
 <!-- AV3 — motivo visible del bloqueo de entrega por firma del despachante pendiente -->
 @if (puedeCerrar() && firmaDespachantePendiente()) {
   <p class="cnd-anular__warn no-print" role="alert">
-    ⏳ Falta la firma del despachante{{ despachanteNombre() ? ' (' + despachanteNombre() + ')' : '' }}.
+    <app-icon name="clock" [size]="14" /> Falta la firma del despachante{{ despachanteNombre() ? ' (' + despachanteNombre() + ')' : '' }}.
     No puedes registrar la entrega hasta que firme el conduce desde su sesión. Ya se le notificó — puedes recordárselo.
   </p>
 }
@@ -111,7 +111,7 @@
     <div class="cnd-anular sgc-card" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="anular-titulo">
       <h3 id="anular-titulo">Eliminar conduce {{ numeroConduce }}</h3>
       <p class="cnd-anular__warn">
-        ⚠️ Esto eliminará el conduce y <strong>repondrá su stock</strong>. Si tiene una ruta vinculada, se cancelará.
+        <app-icon name="alert-triangle" [size]="14" /> Esto eliminará el conduce y <strong>repondrá su stock</strong>. Si tiene una ruta vinculada, se cancelará.
         No se puede deshacer.
       </p>
       <label class="sgc-field">
@@ -161,7 +161,7 @@
           @if (firmaEmisor()?.url) {
             <img class="conduce-cierre__emisor-firma" [src]="firmaEmisor()!.url" alt="Firma de quien entregó" />
           }
-          <p class="conduce-cierre__emisor-hint">✓ Firma ya registrada — no necesitas volver a firmar por el emisor.</p>
+          <p class="conduce-cierre__emisor-hint"><app-icon name="check" [size]="14" /> Firma ya registrada — no necesitas volver a firmar por el emisor.</p>
         </div>
       } @else if (emisorSinFirma()) {
         <!-- Despachante en registro pero sin firma digital (AS1 libre / entrega sin firma) -->
@@ -237,7 +237,7 @@
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm conduce-cierre__foto-pick">
-          📷 Adjuntar foto
+          <app-icon name="camera" [size]="16" /> Adjuntar foto
           <input type="file" accept="image/*" capture="environment" hidden (change)="onFotoCierre($event)" />
         </label>
       }

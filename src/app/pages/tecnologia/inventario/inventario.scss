@@ -200,7 +200,7 @@ textarea {
 .equipo-nombre-cell { display: flex; align-items: center; gap: 10px; }
 .equipo-thumb {
   width: 34px; height: 34px; border-radius: 6px; object-fit: cover; flex-shrink: 0;
-  background: var(--sgc-surface-hover, #f8fafc);
+  background: var(--sgc-surface-hover);
   display: inline-flex; align-items: center; justify-content: center; font-size: 16px;
   &--ph { opacity: 0.5; }
 }
@@ -236,7 +236,7 @@ textarea {
 .tec-galeria__badge {
   position: absolute; left: 0; bottom: 0; right: 0; text-align: center;
   font-size: 10px; font-weight: 700; padding: 2px 0;
-  background: var(--accent); color: #1a1a1a;
+  background: var(--accent); color: var(--text-on-accent);
 }
 .tec-galeria__actions {
   position: absolute; top: 2px; right: 2px; display: flex; gap: 2px;
@@ -250,7 +250,7 @@ textarea {
   input { flex: 1 1 140px; }
 }
 .tec-addtipo-link {
-  background: none; border: none; color: var(--sgc-primary, #ff5f00); cursor: pointer;
+  background: none; border: none; color: var(--sgc-primary); cursor: pointer;
   font-size: 12px; padding: 4px 0; text-align: left; align-self: flex-start;
 }
-.field-hint { display: block; font-size: 11px; color: var(--sgc-text-muted, #929090); margin-top: 4px; }
+.field-hint { display: block; font-size: 11px; color: var(--sgc-text-muted); margin-top: 4px; }
