@@ -301,7 +301,7 @@
                   class="proyectos__readiness-item"
                   [class.proyectos__readiness-item--ok]="readinessDe(p.id)?.[s.key]"
                 >
-                  <span class="proyectos__readiness-mark">{{ readinessDe(p.id)?.[s.key] ? '✓' : '○' }}</span>
+                  <span class="proyectos__readiness-mark"><app-icon [name]="readinessDe(p.id)?.[s.key] ? 'check' : 'circle'" [size]="13" /></span>
                   <span>{{ s.label }}</span>
                 </li>
               }
@@ -751,7 +751,7 @@
         <button type="button" class="alm-faltantes__head" (click)="faltantesAlmacenAbierto.set(!faltantesAlmacenAbierto())"
                 [attr.aria-expanded]="faltantesAlmacenAbierto()">
           <span><app-icon name="alert-triangle" [size]="15" /> {{ obrasSinAlmacen().length }} obra{{ obrasSinAlmacen().length !== 1 ? 's' : '' }} sin almacén asignado</span>
-          <span aria-hidden="true">{{ faltantesAlmacenAbierto() ? '▾' : '▸' }}</span>
+          <span aria-hidden="true"><app-icon [name]="faltantesAlmacenAbierto() ? 'chevron-down' : 'chevron-right'" [size]="14" /></span>
         </button>
         @if (faltantesAlmacenAbierto()) {
           <ul class="alm-faltantes__list">

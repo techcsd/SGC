@@ -126,6 +126,7 @@ export const ICON_PATHS = {
   zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
   square: '<rect x="5" y="5" width="14" height="14" rx="2"/>',
   play: '<path d="M6 3v18l15-9z"/>',
+  circle: '<circle cx="12" cy="12" r="9"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>',
   'clipboard-check': '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
   'help-circle': '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
