@@ -5,6 +5,10 @@ haga en la app móvil (`csd-app`) y en la web no. No se busca clonar la UI de la
 app, sino **coherencia funcional y de datos** (mismos campos, validaciones y orden
 lógico de captura; el layout puede diferir).
 
+> **Ronda BF (01/09/2026):** cerradas 4 capacidades nuevas (personal de obra con
+> documentos/contratos, requisición corregible, proveedor con tipos, preferencias
+> de avisos) — ver filas 4a–4d y "Decisiones (Ronda BF)".
+>
 > Estado: iniciado en Ronda 9 (23/07/2026). La auditoría dirigida encontró que
 > **el esquema de BD ya soporta casi todo** (ambos RPCs de bitácora escriben una
 > fila `bitacora_actividades` por actividad, cada una con su `bloque`). Los gaps
@@ -37,6 +41,17 @@ lógico de captura; el layout puede diferir).
 | 3g | Conteo de inventario con stock en vivo | Sí (diff, offline) | **Solo lista, sin form de conteo** | Sí | mediano | backlog |
 | 3h | Entrada/salida de inventario multi-línea | Sí (offline, drafted) | Vistas admin + registro | Parcial | mediano | backlog |
 | 3i | Captura offline-first (outbox) | Sí, todos los flujos | No (RPC online) | Sí | requiere decisión | backlog (fuera de alcance web) |
+| 4a | Personal de obra: registrar + expediente (datos, carnet/QR, fotos, **documentos y contratos firmados**) | Sí (wizard AZ + visor PDF de contratos, BF8/FASE 4) | **Sí (BF8)** — mismo hogar Proyectos › Personal; RRHH gana el submódulo `proyectos.personal` | — | mediano | **✅ cerrado BF** |
+| 4b | Requisición corregible tras creada (obra/ubicación editable + rechazada → corregir → **reenviar** v2 con historial) | **Sí (BF6)** — obra editable, motivo del rechazo visible, diff en historial | **Sí (BF6)** | — | mediano | **✅ cerrado BF** |
+| 4c | Proveedor con **tipos** (ferretería/suministros/transportista/otro) + alta al vuelo | Sí (transportista desde conduce externo, estampado server-side) | **Sí (BF2)** — maestro unificado `sgc.proveedores` con `tipos[]` | — | requiere decisión | **✅ cerrado BF** |
+| 4d | Preferencias de avisos por usuario (silenciar informativos; operativos no) | Sí (Perfil → Preferencias de avisos; silencia el **push** server-side, BF4) | **Sí (BF4)** — silenciado por usuario + reglas de admin por rol/global | — | rápido | **✅ cerrado BF** |
+
+## Decisiones de arquitectura (Ronda BF — 01/09/2026)
+
+- **Selector de obras POR CONTEXTO (BF7):** `directorio_proyectos(p_contexto)` es **WIDE** por defecto (conduce/ruta/personal/despacho → todas las obras activas para todos, incluido el chofer) y `proyectos_pickables()` es **SCOPED** (requisición/compra/bitácora → el ingeniero ve las suyas + red AW1). Arregla el "chofer no ve obras" sin barrer al ingeniero.
+- **Proveedores unificados (BF2):** un solo maestro `sgc.proveedores` con `tipos text[]` (ferreteria/suministros/transportista/otro, multiselección); `is_hardware_store` queda sincronizado con `'ferreteria'`. El alta al vuelo del conduce externo nace `transportista`.
+- **Requisición corregible (BF6):** `motivo_rechazo` es columna propia (deja de pisar `notas`); `editar_requisicion` pasa a 5-arg (`+p_proyecto_id`, editable en `pendiente` **y** `rechazada`; una rechazada vuelve a `pendiente` v2 con el diff en el historial que el aprobador ve antes de aprobar).
+- **Avisos (BF4):** `send_push` respeta `notif_pref_usuario` (silencio del usuario) **y** `notif_regla` (reglas de admin por rol/global) a nivel de servidor; cada envío deja traza en `notif_entregas` (enviada/entregada/fallida/omitida + motivo), visible en Administración.
 
 ## Decisiones de arquitectura (Ronda 9)
 
