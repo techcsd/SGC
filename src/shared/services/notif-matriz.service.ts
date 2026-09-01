@@ -31,7 +31,32 @@ export class NotifMatrizService {
     if (error) throw new Error(error.message);
     return (data ?? []) as NotifEntrega[];
   }
+
+  /** BF4 — catálogo de tipos de aviso (para la matriz per-tipo). */
+  async tiposCatalogo(): Promise<NotifTipoCat[]> {
+    const { data, error } = await this.supabase.client.rpc('notif_tipos_catalogo');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as NotifTipoCat[];
+  }
+
+  /** BF4 — reglas de admin (deshabilitar un tipo por rol/global). */
+  async reglas(): Promise<NotifRegla[]> {
+    const { data, error } = await this.supabase.client.rpc('notif_reglas');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as NotifRegla[];
+  }
+
+  /** BF4 — habilita/deshabilita un tipo (rol vacío = global). */
+  async setRegla(tipo: string, rol: string | null, habilitado: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_notif_regla', { p_tipo: tipo, p_rol: rol, p_habilitado: habilitado });
+    if (error) throw new Error(error.message);
+  }
 }
+
+/** BF4 — un tipo de aviso del catálogo. */
+export interface NotifTipoCat { tipo: string; etiqueta: string; es_operativa: boolean; }
+/** BF4 — una regla de admin (tipo deshabilitado global o por rol). */
+export interface NotifRegla { tipo: string; rol: string | null; habilitado: boolean; updated_at: string; }
 
 /** BF4 — una fila de la traza de entrega de notificaciones. */
 export interface NotifEntrega {

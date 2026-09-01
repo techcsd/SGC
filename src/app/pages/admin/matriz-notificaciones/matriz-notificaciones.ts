@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { NotifMatrizService, NotifParam, NotifEntrega } from '../../../../shared/services/notif-matriz.service';
+import { NotifMatrizService, NotifParam, NotifEntrega, NotifTipoCat } from '../../../../shared/services/notif-matriz.service';
 import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -70,6 +70,45 @@ export class AdminMatrizNotificaciones implements OnInit {
         return { ...p, seleccion: sel };
       }),
     );
+  }
+
+  // ── BF4 — reglas per-tipo: el admin apaga un tipo de alerta (global) ─────
+  mostrarReglas = signal(false);
+  tipos = signal<NotifTipoCat[]>([]);
+  reglasMap = signal<Map<string, boolean>>(new Map()); // tipo → habilitado global
+  guardandoRegla = signal<string | null>(null);
+
+  async toggleReglas() {
+    const abrir = !this.mostrarReglas();
+    this.mostrarReglas.set(abrir);
+    if (!abrir) return;
+    try {
+      const [cat, reglas] = await Promise.all([this.svc.tiposCatalogo(), this.svc.reglas()]);
+      this.tipos.set(cat);
+      const m = new Map<string, boolean>();
+      for (const t of cat) m.set(t.tipo, true);          // por defecto habilitado
+      for (const r of reglas) if (r.rol === null) m.set(r.tipo, r.habilitado); // regla global
+      this.reglasMap.set(m);
+    } catch (e) {
+      this.toast.error('No se pudieron cargar las reglas', e instanceof Error ? e.message : undefined);
+    }
+  }
+  tipoHabilitado(tipo: string): boolean {
+    return this.reglasMap().get(tipo) ?? true;
+  }
+  async toggleTipoGlobal(t: NotifTipoCat) {
+    if (this.guardandoRegla()) return;
+    const next = !this.tipoHabilitado(t.tipo);
+    this.guardandoRegla.set(t.tipo);
+    try {
+      await this.svc.setRegla(t.tipo, null, next);
+      this.reglasMap.update((m) => new Map(m).set(t.tipo, next));
+      this.toast.success(next ? 'Aviso habilitado' : 'Aviso deshabilitado', t.etiqueta);
+    } catch (e) {
+      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoRegla.set(null);
+    }
   }
 
   // ── BF4 — traza de entregas (diagnóstico "no me llegó") ──────────────────

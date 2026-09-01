@@ -31,3 +31,6 @@
 }
 
 @media (max-width: 768px) { .mn { padding: 16px 14px; } }
+
+// BF4 — etiqueta "operativa" en la lista de tipos de aviso.
+.mn-op { color: var(--text-2); font-size: var(--fs-xs); font-style: normal; }

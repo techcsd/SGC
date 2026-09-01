@@ -31,6 +31,28 @@
       </section>
     }
 
+    <!-- BF4 — Reglas por tipo de aviso (el admin apaga un tipo, global) -->
+    <section class="mn-card">
+      <div class="mn-card__head">
+        <h2 class="mn-card__title">Tipos de aviso (habilitar / deshabilitar)</h2>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleReglas()">
+          {{ mostrarReglas() ? 'Ocultar' : 'Administrar tipos' }}
+        </button>
+      </div>
+      <p class="mn-card__desc">Apaga un tipo de alerta para todos sin tocar código. Las <strong>informativas</strong> el usuario también puede silenciarlas en su perfil; las <strong>operativas</strong> (ruta asignada, conduce por confirmar) solo se administran aquí.</p>
+      @if (mostrarReglas()) {
+        <div class="mn-roles">
+          @for (t of tipos(); track t.tipo) {
+            <label class="mn-role" [class.mn-role--on]="tipoHabilitado(t.tipo)">
+              <input type="checkbox" [checked]="tipoHabilitado(t.tipo)"
+                     [disabled]="guardandoRegla() === t.tipo" (change)="toggleTipoGlobal(t)" />
+              <span>{{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> · operativa</em> }</span>
+            </label>
+          }
+        </div>
+      }
+    </section>
+
     <!-- BF4 — Traza de entregas (diagnóstico "no me llegó") -->
     <section class="mn-card">
       <div class="mn-card__head">

@@ -1,8 +1,11 @@
 -- ════════════════════════════════════════════════════════════════════════════
 -- BF2 (parte B) — FUSIÓN de sgc.proveedores_transporte → sgc.proveedores.
 --
--- ⚠️ NO APLICAR hasta que Xaviel revise la lista previa (criterio AM8):
---     node scripts/preview-merge-proveedores.mjs
+-- ✅ APLICADA 01/09/2026 tras revisar el preview (proveedores_transporte estaba
+--     VACÍA → 0 emparejamientos, 0 inserciones, 0 repunteos: no-op de datos, solo
+--     agrega columnas/tabla puente + comentario de deprecación). El nombre "-HELD"
+--     queda por historia; la unificación funcional la cierra bf2c.
+--     (preview: node scripts/preview-merge-proveedores.mjs)
 --
 -- Es DESTRUCTIVA (repunta FKs de conduces_externos y viajes_transporte). Deja
 -- proveedores_transporte VACÍA pero intacta como respaldo; una limpieza posterior
@@ -24,7 +27,7 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 begin;
-set local search_path = sgc, public;
+set local search_path = sgc, public, extensions;  -- unaccent puede vivir en extensions
 
 -- Columnas de transportista en el maestro unificado (estado de ratificación BA4).
 alter table sgc.proveedores add column if not exists transportista_estado text

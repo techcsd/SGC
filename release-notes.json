@@ -1,5 +1,12 @@
 {
   "web": {
+    "1.107.1": {
+      "titulo": "Tipos de aviso administrables + catálogo único de proveedores (transportistas)",
+      "cambios": [
+        { "t": "nuevo", "m": "Administración", "d": "La Matriz de notificaciones ahora permite habilitar o deshabilitar cada tipo de aviso (novedades, conduces, flota, etc.) sin tocar código. Las informativas el usuario también puede silenciarlas desde su perfil; las operativas solo se administran aquí." },
+        { "t": "mejora", "m": "Inventario", "d": "Los proveedores de transporte pasaron al catálogo único de proveedores (con el tipo 'transportista'): crear, listar, ratificar y ver sus viajes ahora usan el mismo maestro que el resto de proveedores. Sin cambios en cómo se usa." }
+      ]
+    },
     "1.107.0": {
       "titulo": "Proveedor con tipos, requisiciones corregibles, incentivo reenviable y arreglos críticos",
       "cambios": [
