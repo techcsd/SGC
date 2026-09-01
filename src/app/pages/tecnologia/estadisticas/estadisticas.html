@@ -106,10 +106,10 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th class="est-th" (click)="ordenar('nombre')">Usuario <span class="est-sort">{{ flecha('nombre') }}</span></th>
-              <th class="est-th" (click)="ordenar('plataforma')">Dispositivo <span class="est-sort">{{ flecha('plataforma') }}</span></th>
-              <th class="est-th" (click)="ordenar('version')">Versión <span class="est-sort">{{ flecha('version') }}</span></th>
-              <th class="est-th" (click)="ordenar('ultimo')">Última vez visto <span class="est-sort">{{ flecha('ultimo') }}</span></th>
+              <th class="est-th" (click)="ordenar('nombre')">Usuario <span class="est-sort">@if (flecha('nombre'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('plataforma')">Dispositivo <span class="est-sort">@if (flecha('plataforma'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('version')">Versión <span class="est-sort">@if (flecha('version'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
+              <th class="est-th" (click)="ordenar('ultimo')">Última vez visto <span class="est-sort">@if (flecha('ultimo'); as f) { <app-icon [name]="f" [size]="12" /> }</span></th>
               <th></th>
             </tr>
           </thead>

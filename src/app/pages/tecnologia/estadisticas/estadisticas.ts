@@ -7,6 +7,7 @@ import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { formatFechaHumana, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { IconName } from '../../../../shared/ui/icon/icons';
 
 type OrdenCol = 'nombre' | 'plataforma' | 'version' | 'ultimo';
 type OrdenDir = 'asc' | 'desc';
@@ -173,9 +174,9 @@ export class TecEstadisticas implements OnInit {
     }
   }
 
-  flecha(col: OrdenCol): string {
-    if (this.ordenCol() !== col) return '';
-    return this.ordenDir() === 'asc' ? '▲' : '▼';
+  flecha(col: OrdenCol): IconName | null {
+    if (this.ordenCol() !== col) return null;
+    return this.ordenDir() === 'asc' ? 'chevron-up' : 'chevron-down';
   }
 
   toggleExpandido(id: string) {
