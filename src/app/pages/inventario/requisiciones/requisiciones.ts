@@ -142,7 +142,7 @@ export class Requisiciones implements OnInit {
   solicitantesDisponibles = computed(() => {
     const map = new Map<string, string>();
     for (const r of this.requisiciones()) {
-      if (r.solicitante_id) map.set(r.solicitante_id, r.solicitante?.nombre ?? '—');
+      if (r.solicitante_id) map.set(r.solicitante_id, this.solicitanteNombre(r));
     }
     return [...map.entries()]
       .map(([id, nombre]) => ({ id, nombre }))
@@ -226,12 +226,19 @@ export class Requisiciones implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [reqs, bodegas, articulos, categorias] = await Promise.all([
+      const [reqs, bodegas, articulos, categorias, dir] = await Promise.all([
         this.service.getAll(),
         this.bodegasService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),
+        this.service.usuariosDirectorio().catch(() => new Map<string, { nombre: string; roles: string[] }>()),
       ]);
+      // BF6 — resuelve el solicitante por directorio (SECURITY DEFINER) para que
+      // nunca salga "Solicitante: —" cuando la RLS de usuarios oculta la fila.
+      for (const r of reqs) {
+        const u = r.solicitante_id ? dir.get(r.solicitante_id) : undefined;
+        if (u) r.solicitante_nombre_dir = u.nombre;
+      }
       this.requisiciones.set(reqs);
       this.bodegas.set(bodegas.filter((b) => b.activo !== false));
       this.articulos.set(articulos.filter((a) => a.activo));
@@ -269,6 +276,10 @@ export class Requisiciones implements OnInit {
   }
   rolSolicitante(r: SolicitudMaterial): string {
     return solicitanteRolLabel(r);
+  }
+  /** BF6 — nombre del solicitante robusto: embed → directorio → '—'. */
+  solicitanteNombre(r: SolicitudMaterial): string {
+    return r.solicitante?.nombre ?? r.solicitante_nombre_dir ?? '—';
   }
 
   // ── Detalle ───────────────────────────────────────────────
@@ -498,7 +509,7 @@ export class Requisiciones implements OnInit {
       Código: this.codigo(r),
       Fecha: this.formatFecha(r.created_at),
       Obra: r.proyecto?.nombre ?? '',
-      Solicitante: r.solicitante?.nombre ?? '',
+      Solicitante: this.solicitanteNombre(r) === '—' ? '' : this.solicitanteNombre(r),
       Rol: this.rolSolicitante(r),
       Urgencia: r.urgencia === 'urgente' ? 'Urgente' : 'Normal',
       Artículos: this.itemsCount(r),

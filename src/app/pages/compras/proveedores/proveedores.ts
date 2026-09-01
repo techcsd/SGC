@@ -8,12 +8,13 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProveedoresService, ProveedorPayload } from '../../../../shared/services/proveedores.service';
-import { Proveedor } from '../../../../shared/models/proveedor.model';
+import { Proveedor, ProveedorTipo, PROVEEDOR_TIPOS } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
+import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
@@ -67,6 +68,8 @@ export class Proveedores implements OnInit {
     telefono: new FormControl<string | null>(null, [Validators.maxLength(20)]),
     email: new FormControl<string | null>(null, [Validators.email, Validators.maxLength(150)]),
     direccion: new FormControl<string | null>(null),
+    // BF2 — tipos del proveedor (multiselección). 'ferreteria' sincroniza is_hardware_store.
+    tipos: new FormControl<string[]>([], { nonNullable: true }),
     // AF32 — ferretería visible para choferes + ubicación.
     is_hardware_store: new FormControl<boolean>(false),
     lat: new FormControl<number | null>(null),
@@ -112,7 +115,7 @@ export class Proveedores implements OnInit {
       const data = await this.proveedoresService.getAll();
       this.proveedores.set(data);
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar los proveedores.');
+      this.error.set(humanizeError(e).mensaje);
     } finally {
       this.loading.set(false);
     }
@@ -136,7 +139,23 @@ export class Proveedores implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ activo: true, es_prueba: false });
+    // BF1 — reset explícito de TODOS los controles. `FormGroup.reset({parcial})`
+    // pone a null los controles no listados; is_hardware_store (NOT NULL en BD)
+    // viajaba como null explícito y reventaba el insert. Sembramos sus defaults.
+    this.form.reset({
+      nombre: '',
+      rnc: null,
+      contacto: null,
+      telefono: null,
+      email: null,
+      direccion: null,
+      tipos: [],
+      is_hardware_store: false,
+      lat: null,
+      lng: null,
+      activo: true,
+      es_prueba: false,
+    });
     this.drawerOpen.set(true);
   }
 
@@ -150,6 +169,7 @@ export class Proveedores implements OnInit {
       telefono: p.telefono,
       email: p.email,
       direccion: p.direccion,
+      tipos: p.tipos ?? (p.is_hardware_store ? ['ferreteria'] : []),
       is_hardware_store: p.is_hardware_store ?? false,
       lat: p.lat ?? null,
       lng: p.lng ?? null,
@@ -194,7 +214,8 @@ export class Proveedores implements OnInit {
       }
       this.drawerOpen.set(false);
     } catch (e: unknown) {
-      this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
+      // BF1 — nunca dejar que el texto crudo de Postgres llegue al drawer.
+      this.saveError.set(humanizeError(e).mensaje);
     } finally {
       this.saving.set(false);
     }
@@ -426,6 +447,22 @@ export class Proveedores implements OnInit {
 
   get f() {
     return this.form.controls;
+  }
+
+  // ── BF2 — tipos de proveedor (multiselección) ────────────────────────────
+  readonly PROVEEDOR_TIPOS = PROVEEDOR_TIPOS;
+  tipoLabel(tipo: string): string {
+    return PROVEEDOR_TIPOS.find((t) => t.key === tipo)?.label ?? tipo;
+  }
+  tieneTipo(tipo: ProveedorTipo): boolean {
+    return (this.form.value.tipos ?? []).includes(tipo);
+  }
+  toggleTipo(tipo: ProveedorTipo) {
+    const actuales = new Set(this.form.value.tipos ?? []);
+    if (actuales.has(tipo)) actuales.delete(tipo); else actuales.add(tipo);
+    const tipos = [...actuales];
+    // 'ferreteria' sincroniza el flag legacy que alimenta ferreterias_visibles.
+    this.form.patchValue({ tipos, is_hardware_store: tipos.includes('ferreteria') });
   }
 
   // AS22 — ubicación estándar (link/coords/pin/Places) en el form de proveedores.

@@ -116,7 +116,7 @@ export class PersonalObraLista implements OnInit {
     try {
       const [personal, obras, cargos] = await Promise.all([
         this.service.listar(),
-        this.proyectos.getDirectorio(),
+        this.proyectos.getDirectorio('personal'),
         this.service.getCargos(),
       ]);
       this.personal.set(personal);

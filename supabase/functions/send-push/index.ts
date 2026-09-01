@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: "No autorizado." }, 401);
   }
 
-  const { user_ids, titulo, cuerpo, data } = await req.json().catch(() => ({}));
+  const { user_ids, titulo, cuerpo, data, tipo } = await req.json().catch(() => ({}));
   if (!Array.isArray(user_ids) || user_ids.length === 0) {
     return json({ skipped: true, reason: "Sin destinatarios." });
   }
@@ -76,19 +76,33 @@ Deno.serve(async (req: Request) => {
     { db: { schema: "sgc" } },
   );
 
+  // BF4 — traza de entrega: acumula filas y las inserta al final (best-effort).
+  const traza: Record<string, unknown>[] = [];
+  const short = (tok: string) => (tok ? tok.slice(0, 12) + "…" : "");
+  const logEntrega = (usuario_id: string | null, destino: string, estado: string, motivo: string | null) =>
+    traza.push({ canal: "push", usuario_id, tipo: tipo ?? null, titulo: titulo ?? null, destino, estado, motivo });
+  const flushTraza = async () => {
+    if (traza.length) { try { await supabase.from("notif_entregas").insert(traza); } catch (_) { /* noop */ } }
+  };
+
   const { data: tokens } = await supabase
     .from("device_tokens")
-    .select("token, plataforma")
+    .select("token, plataforma, usuario_id")
     .in("usuario_id", user_ids)
     .eq("activo", true);
 
   if (!tokens || tokens.length === 0) {
+    // BF4 — cada usuario sin dispositivo deja su traza (diagnóstico "no me llegó").
+    for (const uid of user_ids) logEntrega(uid, "", "omitida", "sin_dispositivo");
+    await flushTraza();
     return json({ skipped: true, reason: "Sin device tokens activos." });
   }
 
   const saRaw = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
   if (!saRaw) {
     // Credenciales FCM pendientes de Xaviel — el in-app ya cubre la entrega.
+    for (const t of tokens) logEntrega(t.usuario_id, short(t.token), "omitida", "fcm_apagado");
+    await flushTraza();
     return json({ skipped: true, reason: "FCM no configurado (FCM_SERVICE_ACCOUNT_JSON).", tokens: tokens.length });
   }
 
@@ -151,10 +165,12 @@ Deno.serve(async (req: Request) => {
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify(message),
     });
-    if (res.ok) { sent++; }
+    if (res.ok) { sent++; logEntrega(t.usuario_id, short(t.token), "enviada", null); }
     else {
       failed++;
-      if (res.status === 404 || res.status === 400) dead.push(t.token); // token inválido/expirado
+      const muerto = res.status === 404 || res.status === 400;
+      if (muerto) dead.push(t.token); // token inválido/expirado
+      logEntrega(t.usuario_id, short(t.token), "fallida", muerto ? "token_vencido" : `error:${res.status}`);
     }
   }
 
@@ -163,5 +179,6 @@ Deno.serve(async (req: Request) => {
     await supabase.from("device_tokens").update({ activo: false }).in("token", dead);
   }
 
+  await flushTraza();
   return json({ ok: true, sent, failed, cleaned: dead.length });
 });

@@ -9,12 +9,58 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Quién recibe
       </button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleParticipantes()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Gestionar participantes
+      </button>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleConfig()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Configurar puntaje
       </button>
     </div>
   </header>
+
+  <!-- BF5 — Gestionar participantes del Desempeño (flag participa_incentivo, auditado) -->
+  @if (mostrarParticipantes()) {
+    <section class="inc-config">
+      <h2 class="inc-config__title">Participantes del Desempeño</h2>
+      <p class="inc-config__hint">
+        Quién aparece en el Desempeño, el correo, el PDF y las herramientas de Compa. Los choferes
+        están sugeridos por defecto; apágalos para sacarlos sin borrar su historial pagado. Cada
+        cambio queda auditado (quién, cuándo, motivo). Recalcula o reenvía el informe para reflejarlo.
+      </p>
+      @if (cargandoParticipantes()) {
+        <app-skeleton [rows]="4" />
+      } @else if (participantes().length === 0) {
+        <p class="inc-config__hint">No hay conductores para gestionar.</p>
+      } @else {
+        <ul class="inc-part">
+          @for (p of participantes(); track p.conductor_id) {
+            <li class="inc-part__row" [class.inc-part__row--off]="!p.participa">
+              <label class="inc-part__toggle">
+                <input type="checkbox" [checked]="p.participa"
+                       [disabled]="participanteBusy() === p.conductor_id"
+                       (change)="toggleParticipa(p)" />
+                <span class="inc-part__nombre">{{ p.nombre }}</span>
+              </label>
+              <span class="inc-part__badges">
+                @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                @if (!p.es_chofer) { <span class="sgc-badge sgc-badge--warning">No chofer</span> }
+                @if (p.ultimo_cambio_en) {
+                  <span class="inc-part__audit" title="Último cambio">
+                    {{ formatFecha(p.ultimo_cambio_en) }}@if (p.ultimo_cambio_por) { · {{ p.ultimo_cambio_por }} }@if (p.ultimo_motivo) { · "{{ p.ultimo_motivo }}" }
+                  </span>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      }
+      <div class="inc-config__actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleParticipantes()">Cerrar</button>
+      </div>
+    </section>
+  }
 
   <!-- AV7 — Quién recibe este informe (destinatarios por rol elevado, parametrizable) -->
   @if (mostrarDestinatarios()) {
@@ -119,9 +165,9 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
           Recalcular
         </button>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="reenviar()">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="toggleReenvio()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-          Reenviar correo
+          Reenviar con cambios
         </button>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="!filas().length" (click)="exportar()">Exportar (nómina)</button>
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy() || !pendientes() || esSemanaEnCurso()" (click)="aprobarTodos()">
@@ -129,6 +175,59 @@
         </button>
       </div>
     </div>
+
+    <!-- BF3 — Reenviar con cambios (recalcula, versiona y reenvía; motivo obligatorio) -->
+    @if (mostrarReenvio()) {
+      <section class="inc-config">
+        <h2 class="inc-config__title">Reenviar informe — Semana {{ selSemana() }}/{{ selAnio() }}</h2>
+        <p class="inc-config__hint">
+          Recalcula con el estado actual (participantes, pesos, incidencias) y reenvía como
+          <strong>versión nueva</strong> marcada "reemplaza al anterior". Las decisiones ya tomadas
+          (aprobado/declinado) se conservan. El motivo es obligatorio y queda en el historial.
+        </p>
+        <label class="inc-config__field">
+          <span>Motivo del reenvío *</span>
+          <input type="text" [ngModel]="reenvioMotivo()" (ngModelChange)="reenvioMotivo.set($event)"
+                 placeholder="Ej.: se agregó al chofer Pérez / se corrigió una incidencia" />
+        </label>
+        <div class="inc-reenvio__dest">
+          <span class="inc-reenvio__dest-title">Destinatarios (destildar para acotar):</span>
+          @if (reenvioDest().length === 0) {
+            <p class="inc-config__hint">No hay destinatarios configurados para el informe.</p>
+          } @else {
+            @for (d of reenvioDest(); track d.email) {
+              <label class="inc-reenvio__dest-item">
+                <input type="checkbox" [checked]="d.incluir" (change)="toggleReenvioDest(d.email)" />
+                <span>{{ d.nombre }} <span class="inc-dest__mail">{{ d.email }}</span></span>
+              </label>
+            }
+          }
+        </div>
+        <div class="inc-config__actions">
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="confirmarReenvio()">Reenviar (nueva versión)</button>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleReenvio()">Cerrar</button>
+        </div>
+
+        @if (versiones().length) {
+          <div class="inc-reenvio__hist">
+            <span class="inc-reenvio__dest-title">Historial de versiones enviadas</span>
+            <ul class="inc-part">
+              @for (v of versiones(); track v.version) {
+                <li class="inc-part__row">
+                  <span class="inc-part__nombre">v{{ v.version }}</span>
+                  <span class="inc-part__badges">
+                    @if (v.reemplaza_version) { <span class="sgc-badge sgc-badge--neutral">reemplaza v{{ v.reemplaza_version }}</span> }
+                    <span class="inc-part__audit">
+                      {{ formatFechaHora(v.enviado_en) }}@if (v.enviado_por) { · {{ v.enviado_por }} } · {{ v.destinatarios.length }} dest.@if (v.motivo) { · "{{ v.motivo }}" }
+                    </span>
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </section>
+    }
 
     <!-- BB8c — la semana en curso es solo avance: no se aprueba hasta cerrar el corte -->
     @if (esSemanaEnCurso()) {

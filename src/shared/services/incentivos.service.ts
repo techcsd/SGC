@@ -201,4 +201,61 @@ export class IncentivosService {
     if (error) throw new Error(error.message);
     return (data ?? []) as MiRendimientoSemana[];
   }
+
+  /** BF5 — participantes del Desempeño (choferes con su flag + auditoría del último cambio). */
+  async participantes(): Promise<IncentivoParticipante[]> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_participantes');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as IncentivoParticipante[];
+  }
+
+  /**
+   * BF3 — recalcula, versiona y REENVÍA el informe (v2+ marca "reemplaza al del
+   * <fecha>"). Motivo obligatorio a partir de v2 (lo valida el server). Destinatarios
+   * dirigibles: si `destinatarios` va vacío/undefined, usa los del informe.
+   */
+  async reenviarVersion(
+    anio: number, semana: number, motivo: string,
+    destinatarios?: { email: string; nombre?: string }[],
+  ): Promise<{ version: number; reemplaza_version: number | null; destinatarios: number }> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_reenviar_version', {
+      p_anio: anio, p_semana: semana, p_motivo: motivo,
+      p_destinatarios: destinatarios && destinatarios.length ? destinatarios : null,
+    });
+    if (error) throw new Error(error.message);
+    const r = (data ?? {}) as { version?: number; reemplaza_version?: number | null; destinatarios?: number };
+    return { version: Number(r.version ?? 0), reemplaza_version: r.reemplaza_version ?? null, destinatarios: Number(r.destinatarios ?? 0) };
+  }
+
+  /** BF3 — historial de versiones enviadas de una semana. */
+  async versiones(anio: number, semana: number): Promise<IncentivoInformeVersion[]> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_versiones', { p_anio: anio, p_semana: semana });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as IncentivoInformeVersion[];
+  }
+}
+
+/** BF3 — una versión enviada del informe (snapshot + motivo + destinatarios). */
+export interface IncentivoInformeVersion {
+  version: number;
+  motivo: string | null;
+  reemplaza_version: number | null;
+  reemplaza_fecha: string | null;
+  destinatarios: { email: string; nombre?: string }[];
+  enviado_por: string | null;
+  enviado_en: string;
+  n_choferes: number;
+}
+
+/** BF5 — fila de la gestión de participantes del incentivo. */
+export interface IncentivoParticipante {
+  conductor_id: string;
+  usuario_id: string | null;
+  nombre: string;
+  participa: boolean;
+  es_prueba: boolean;
+  es_chofer: boolean;
+  ultimo_cambio_en: string | null;
+  ultimo_cambio_por: string | null;
+  ultimo_motivo: string | null;
 }

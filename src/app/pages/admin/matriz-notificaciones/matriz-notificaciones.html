@@ -31,6 +31,42 @@
       </section>
     }
 
+    <!-- BF4 — Traza de entregas (diagnóstico "no me llegó") -->
+    <section class="mn-card">
+      <div class="mn-card__head">
+        <h2 class="mn-card__title">Entregas de notificaciones (traza)</h2>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleEntregas()">
+          {{ mostrarEntregas() ? 'Ocultar' : 'Ver entregas recientes' }}
+        </button>
+      </div>
+      <p class="mn-card__desc">Cada push deja rastro: enviada, fallida (token vencido) u omitida (sin dispositivo / silenciada / FCM apagado). Sirve para diagnosticar por qué una alerta no llegó a alguien.</p>
+      @if (mostrarEntregas()) {
+        @if (cargandoEntregas()) {
+          <app-skeleton [rows]="4" />
+        } @else if (entregas().length === 0) {
+          <p class="mn-card__desc">Sin entregas registradas todavía (se registran al enviarse pushes tras aplicar BF4).</p>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Fecha</th><th>Usuario</th><th>Tipo</th><th>Título</th><th>Estado</th><th>Motivo</th></tr></thead>
+              <tbody>
+                @for (e of entregas(); track $index) {
+                  <tr>
+                    <td class="text-muted">{{ e.created_at }}</td>
+                    <td>{{ e.usuario_nombre ?? '—' }}</td>
+                    <td class="text-muted">{{ e.tipo ?? '—' }}</td>
+                    <td class="text-muted">{{ e.titulo ?? '—' }}</td>
+                    <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoEntregaBadge(e.estado)">{{ e.estado }}</span></td>
+                    <td class="text-muted">{{ e.motivo ?? '' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </section>
+
     <!-- Referencia (solo lectura) -->
     <section class="mn-card mn-card--ref">
       <h2 class="mn-card__title">Otros eventos (referencia)</h2>

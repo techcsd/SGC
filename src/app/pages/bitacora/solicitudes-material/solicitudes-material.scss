@@ -189,6 +189,18 @@ textarea {
   a { color: var(--sgc-primary-mid); font-weight: 600; }
 }
 
+/* BF6 — motivo del rechazo visible al autor (para corregir y reenviar) */
+.req-rechazo {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-danger, #c0392b);
+  background: rgb(192 57 43 / 0.08);
+  border-radius: var(--sgc-radius);
+  font-size: 13px;
+  color: var(--sgc-text);
+  strong { color: var(--sgc-danger, #c0392b); }
+}
+
 /* Z25 — filas de requisición expandibles con renglones clicables */
 .req-toggle {
   display: inline-flex; align-items: center; gap: 6px;

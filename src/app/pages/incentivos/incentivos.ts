@@ -3,8 +3,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   IncentivosService, IncentivoFila, IncentivoSemanaRef, IncentivoDecision,
-  IncentivoConfig, IncentivoFlag, RENGLON_LABELS, isoSemanaActual,
+  IncentivoConfig, IncentivoFlag, IncentivoParticipante, IncentivoInformeVersion,
+  RENGLON_LABELS, isoSemanaActual,
 } from '../../../shared/services/incentivos.service';
+import { ConductoresService } from '../../../shared/services/conductores.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../shared/utils/fecha.util';
@@ -19,6 +21,7 @@ import { exportarExcel } from '../../../shared/utils/exportar-excel.util';
 })
 export class Incentivos implements OnInit {
   private service = inject(IncentivosService);
+  private conductores = inject(ConductoresService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
 
@@ -299,13 +302,51 @@ export class Incentivos implements OnInit {
     }
   }
 
-  async reenviar() {
+  // ── BF3 — Reenviar con cambios (versionado, dirigible) ──
+  mostrarReenvio = signal(false);
+  reenvioMotivo = signal('');
+  reenvioDest = signal<{ email: string; nombre: string; incluir: boolean }[]>([]);
+  versiones = signal<IncentivoInformeVersion[]>([]);
+
+  async toggleReenvio() {
+    const abrir = !this.mostrarReenvio();
+    this.mostrarReenvio.set(abrir);
+    if (!abrir) return;
+    this.reenvioMotivo.set('');
+    const anio = this.selAnio(), semana = this.selSemana();
+    try {
+      const [dest, vers] = await Promise.all([
+        this.service.destinatariosInforme(),
+        anio && semana ? this.service.versiones(anio, semana) : Promise.resolve([] as IncentivoInformeVersion[]),
+      ]);
+      this.reenvioDest.set(dest.map((d) => ({ email: d.email, nombre: d.nombre, incluir: true })));
+      this.versiones.set(vers);
+    } catch (e) {
+      this.toast.error('No se pudo preparar el reenvío', e instanceof Error ? e.message : undefined);
+    }
+  }
+  toggleReenvioDest(email: string) {
+    this.reenvioDest.update((list) => list.map((d) => (d.email === email ? { ...d, incluir: !d.incluir } : d)));
+  }
+  /** BF3 — recalcula, versiona y reenvía; motivo obligatorio (materia de pago). */
+  async confirmarReenvio() {
     const anio = this.selAnio(), semana = this.selSemana();
     if (!anio || !semana || this.busy()) return;
+    const motivo = this.reenvioMotivo().trim();
+    if (!motivo) { this.toast.warning('Falta el motivo', 'Escribe por qué reenvías — queda en el historial de versiones.'); return; }
+    const incluidos = this.reenvioDest().filter((d) => d.incluir).map((d) => ({ email: d.email, nombre: d.nombre }));
+    if (!incluidos.length) { this.toast.warning('Sin destinatarios', 'Selecciona al menos un destinatario.'); return; }
     this.busy.set(true);
     try {
-      const r = await this.service.enviar(anio, semana, true);
-      this.toast.success('Correo del incentivo', r === 'ya_enviado' ? 'Ya se había enviado.' : 'Reenviando el informe por correo…');
+      const r = await this.service.reenviarVersion(anio, semana, motivo, incluidos);
+      this.toast.success(
+        `Informe reenviado (v${r.version})`,
+        r.reemplaza_version
+          ? `Reemplaza a la v${r.reemplaza_version}. Enviado a ${r.destinatarios} destinatario(s).`
+          : `Enviado a ${r.destinatarios} destinatario(s).`,
+      );
+      this.versiones.set(await this.service.versiones(anio, semana));
+      this.reenvioMotivo.set('');
     } catch (e) {
       this.toast.error('No se pudo reenviar', e instanceof Error ? e.message : undefined);
     } finally {
@@ -350,6 +391,58 @@ export class Incentivos implements OnInit {
       } catch (e) {
         this.toast.error('No se pudo cargar la lista de destinatarios', e instanceof Error ? e.message : undefined);
       }
+    }
+  }
+
+  // ── BF5 — Gestionar participantes ──
+  mostrarParticipantes = signal(false);
+  participantes = signal<IncentivoParticipante[]>([]);
+  cargandoParticipantes = signal(false);
+  participanteBusy = signal<string | null>(null);
+
+  async toggleParticipantes() {
+    const abrir = !this.mostrarParticipantes();
+    this.mostrarParticipantes.set(abrir);
+    if (abrir) await this.cargarParticipantes();
+  }
+  private async cargarParticipantes() {
+    this.cargandoParticipantes.set(true);
+    try {
+      this.participantes.set(await this.service.participantes());
+    } catch (e) {
+      this.toast.error('No se pudieron cargar los participantes', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.cargandoParticipantes.set(false);
+    }
+  }
+  /** BF5 — enciende/apaga la participación (con motivo, auditado). Refresca la semana. */
+  async toggleParticipa(p: IncentivoParticipante) {
+    if (this.participanteBusy()) return;
+    const next = !p.participa;
+    const motivo = prompt(
+      next
+        ? `Agregar a ${p.nombre} al incentivo. Motivo (opcional):`
+        : `Quitar a ${p.nombre} del incentivo. Motivo (opcional):`,
+    );
+    if (motivo === null) return; // canceló
+    this.participanteBusy.set(p.conductor_id);
+    try {
+      await this.conductores.setParticipaIncentivo(p.conductor_id, next, motivo.trim() || null);
+      this.participantes.update((list) =>
+        list.map((x) => (x.conductor_id === p.conductor_id
+          ? { ...x, participa: next, ultimo_motivo: motivo.trim() || null }
+          : x)),
+      );
+      // La población se filtra al leer: refrescar la semana la refleja al instante.
+      await this.cargarFilas();
+      this.toast.success(
+        next ? 'Participante agregado' : 'Participante quitado',
+        `${p.nombre}. Recalcula o reenvía el informe para que refleje el cambio.`,
+      );
+    } catch (e) {
+      this.toast.error('No se pudo cambiar la participación', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.participanteBusy.set(null);
     }
   }
 

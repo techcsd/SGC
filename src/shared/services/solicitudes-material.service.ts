@@ -24,6 +24,23 @@ export class SolicitudesMaterialService {
   private supabase = inject(SupabaseService);
   private notificaciones = inject(NotificacionesService);
 
+  /**
+   * BF6 — directorio de usuarios (nombre + roles) para resolver el solicitante de
+   * forma CONFIABLE. El embed `solicitante:usuarios!fk` pasa por la RLS de
+   * `usuarios`: si el aprobador no puede ver esa fila, el embed vuelve null y sale
+   * "Solicitante: —" (bug de REQ-000015). Esta RPC es SECURITY DEFINER y no
+   * depende de esa RLS. Devuelve un mapa id → {nombre, roles}.
+   */
+  async usuariosDirectorio(): Promise<Map<string, { nombre: string; roles: string[] }>> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios_detalle');
+    if (error) throw new Error(error.message);
+    const map = new Map<string, { nombre: string; roles: string[] }>();
+    for (const u of (data ?? []) as { id: string; nombre: string; roles?: string[] | null }[]) {
+      map.set(u.id, { nombre: u.nombre, roles: u.roles ?? [] });
+    }
+    return map;
+  }
+
   /** RLS scopes this: engineers see their own, Inventario staff/admin see all. */
   async getAll(): Promise<SolicitudMaterial[]> {
     const { data, error } = await this.supabase.client
@@ -58,19 +75,28 @@ export class SolicitudesMaterialService {
     return data as unknown as SolicitudMaterial;
   }
 
-  /** BB10 — edita la requisición propia mientras esté pendiente (renglones/urgencia/notas). */
+  /**
+   * BB10 + BF6 — edita la requisición propia mientras esté pendiente O rechazada.
+   * Si estaba rechazada, corregirla la REENVÍA (vuelve a 'pendiente' a la bandeja)
+   * y se re-notifica a los aprobadores. La OBRA (proyecto_id) es editable.
+   */
   async editar(
     solicitudId: string,
-    payload: { urgencia?: string | null; notas?: string | null; items?: unknown[] | null },
-  ): Promise<void> {
-    const { error } = await this.supabase.client.rpc('editar_requisicion', {
+    payload: { urgencia?: string | null; notas?: string | null; items?: unknown[] | null; proyecto_id?: string | null },
+  ): Promise<{ reenviada: boolean; version: number }> {
+    const { data, error } = await this.supabase.client.rpc('editar_requisicion', {
       p_solicitud_id: solicitudId,
       p_urgencia: payload.urgencia ?? null,
       p_notas: payload.notas ?? null,
       p_items: payload.items ?? null,
+      p_proyecto_id: payload.proyecto_id ?? null,
     });
     if (error) throw new Error(error.message);
+    const res = (data ?? {}) as { reenviada?: boolean; version?: number };
+    // BF6 — al reenviar una rechazada corregida, avisa de nuevo a los aprobadores.
+    if (res.reenviada) notificarSolicitud(this.supabase.client, 'material', solicitudId, 'creada');
     this.notificaciones.refresh();
+    return { reenviada: !!res.reenviada, version: Number(res.version ?? 0) };
   }
 
   /** BB10 — historial de ediciones de una requisición (qué cambió y cuándo). */

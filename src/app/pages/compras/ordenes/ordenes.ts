@@ -253,7 +253,7 @@ export class Ordenes implements OnInit {
       const [ordenes, proveedores, proyectos, solicitudes, articulos, categorias] = await Promise.all([
         this.ordenesService.getAll(),
         this.proveedoresService.getAll(),
-        this.proyectosService.getDirectorio(),
+        this.proyectosService.getDirectorio('orden_compra'), // BF7 — scoped: ingeniero ve sus obras
         this.solicitudesCompraService.getAll(),
         this.articulosService.getAll(),
         this.categoriasService.getAll(),

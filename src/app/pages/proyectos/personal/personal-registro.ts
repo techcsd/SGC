@@ -94,7 +94,7 @@ export class PersonalRegistro implements OnInit {
   async ngOnInit() {
     try {
       const [obras, cargos, plantillas, empresa] = await Promise.all([
-        this.proyectos.getDirectorio(),
+        this.proyectos.getDirectorio('personal'),
         this.service.getCargos(),
         this.plantillasSvc.getAll().catch(() => []),
         this.empresaSvc.get().catch(() => null),

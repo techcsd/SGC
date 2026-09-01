@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { NotifMatrizService, NotifParam } from '../../../../shared/services/notif-matriz.service';
+import { NotifMatrizService, NotifParam, NotifEntrega } from '../../../../shared/services/notif-matriz.service';
 import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -70,6 +70,30 @@ export class AdminMatrizNotificaciones implements OnInit {
         return { ...p, seleccion: sel };
       }),
     );
+  }
+
+  // ── BF4 — traza de entregas (diagnóstico "no me llegó") ──────────────────
+  mostrarEntregas = signal(false);
+  entregas = signal<NotifEntrega[]>([]);
+  cargandoEntregas = signal(false);
+
+  async toggleEntregas() {
+    const abrir = !this.mostrarEntregas();
+    this.mostrarEntregas.set(abrir);
+    if (abrir) await this.cargarEntregas();
+  }
+  async cargarEntregas() {
+    this.cargandoEntregas.set(true);
+    try {
+      this.entregas.set(await this.svc.entregasRecientes(150));
+    } catch (e) {
+      this.toast.error('No se pudo cargar la traza de entregas', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.cargandoEntregas.set(false);
+    }
+  }
+  estadoEntregaBadge(e: string): string {
+    return e === 'enviada' || e === 'entregada' ? 'success' : e === 'fallida' ? 'danger' : 'neutral';
   }
 
   async guardar(p: ParamRow) {

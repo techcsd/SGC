@@ -83,7 +83,7 @@ export class PersonalImport implements OnInit {
 
   async ngOnInit() {
     try {
-      const [cargos, obras] = await Promise.all([this.svc.getCargos(), this.proyectosSvc.getDirectorio()]);
+      const [cargos, obras] = await Promise.all([this.svc.getCargos(), this.proyectosSvc.getDirectorio('personal')]);
       this.cargos.set(cargos);
       this.obras.set(obras);
     } catch (e) {

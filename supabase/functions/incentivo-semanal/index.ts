@@ -42,6 +42,15 @@ function fmtDate(s: string | null): string {
   return d && m && y ? `${d}/${m}/${y}` : s;
 }
 
+// BF3 — fecha+hora legible (timestamptz) para el banner "reemplaza al enviado el …".
+function fmtDateTime(s: string | null): string {
+  if (!s) return "";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return s;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} UTC`;
+}
+
 interface Renglon { propio: number; ayudante: number; puntos: number }
 interface Fila {
   nombre: string;
@@ -146,6 +155,14 @@ Deno.serve(async (req: Request) => {
     anio = Number(body.anio); semana = Number(body.semana);
     if (!anio || !semana) return json({ error: "Falta anio/semana." }, 400);
 
+    // BF3 — reenvío versionado. Campos opcionales (retrocompatible con el cron v1).
+    const version: number | null = body.version != null ? Number(body.version) : null;
+    const reemplazaFecha: string | null = body.reemplaza_fecha ?? null;
+    const motivo: string | null = body.motivo ?? null;
+    // Destinatarios dirigidos (BF3): si vienen, se usan; si no, los del informe.
+    const destOverride: { email: string; nombre?: string }[] | null =
+      Array.isArray(body.destinatarios) && body.destinatarios.length ? body.destinatarios : null;
+
     // AX5 — misma fuente que el módulo "Desempeño de choferes" (RPC detallado,
     // solo choferes, sin datos de prueba en el correo real).
     const { data: rows, error } = await supabase
@@ -174,8 +191,14 @@ Deno.serve(async (req: Request) => {
     // AV7 — Destinatarios por ROL ELEVADO (parametrizable: incentivo_informe_roles),
     // nunca por correo quemado ni por "módulo admin". El informe compara choferes con
     // montos (sensible): solo roles elevados + admin.
-    const { data: dest } = await supabase.rpc("destinatarios_informe_incentivo");
-    const to = ((dest ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+    // BF3 — destinatarios dirigidos (si el reenvío los acotó) o los del informe.
+    let to: string[];
+    if (destOverride) {
+      to = destOverride.map((u) => u.email).filter(Boolean);
+    } else {
+      const { data: dest } = await supabase.rpc("destinatarios_informe_incentivo");
+      to = ((dest ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+    }
 
     const { data: resendApiKey } = await supabase.rpc("get_resend_api_key");
     const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
@@ -186,6 +209,19 @@ Deno.serve(async (req: Request) => {
       const cumplieron = filas.filter((f) => f.cumplio).length;
       const td = "padding:6px 10px;border-bottom:1px solid #eee;";
       const th = "padding:6px 10px;border-bottom:2px solid #ddd;color:#555;";
+
+      // BF3 — banner de versión ("reemplaza al enviado el …" + motivo) para v2+.
+      const esReenvio = version != null && version > 1;
+      const bannerHtml = esReenvio
+        ? `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:10px 14px;margin:0 0 14px;color:#9a3412;">` +
+          `<strong>Versión ${version}</strong> — reemplaza al informe enviado el ${esc(fmtDateTime(reemplazaFecha))}. ` +
+          `Paga con esta versión, no con la anterior.` +
+          (motivo ? `<br><span style="color:#7c2d12;">Motivo: ${esc(motivo)}</span>` : "") +
+          `</div>`
+        : "";
+      const bannerTxt = esReenvio
+        ? `*** VERSIÓN ${version} — reemplaza al enviado el ${fmtDateTime(reemplazaFecha)}. Paga con esta versión.${motivo ? ` Motivo: ${motivo}` : ""} ***\n\n`
+        : "";
 
       // AX5 — matriz detallada idéntica al módulo: fila por chofer, celda por
       // renglón (cantidad hecha), Total x/mínimo y Estado con ⚠N (incidencias).
@@ -206,6 +242,7 @@ Deno.serve(async (req: Request) => {
         `<th style="${th}text-align:center;">${esc(r.label)}</th>`).join("");
       const html =
         `<div style="font-family:Arial,sans-serif;color:#222;">` +
+        bannerHtml +
         `<h2 style="color:#ff5f00;margin:0 0 4px;">Incentivo semanal — Choferes</h2>` +
         `<p style="color:#666;margin:0 0 16px;">Semana ${semana} / ${anio} · ${esc(fmtDate(inicio))} – ${esc(fmtDate(fin))} · ${cumplieron}/${filas.length} cumplieron</p>` +
         `<div style="overflow-x:auto;"><table style="border-collapse:collapse;width:100%;font-size:13px;">` +
@@ -220,6 +257,7 @@ Deno.serve(async (req: Request) => {
 
       // Fallback de texto plano (clientes sin HTML).
       const texto = [
+        bannerTxt.trimEnd(),
         `Incentivo semanal — Choferes`,
         `Semana ${semana}/${anio} · ${fmtDate(inicio)} – ${fmtDate(fin)} · ${cumplieron}/${filas.length} cumplieron`,
         ``,
@@ -236,7 +274,7 @@ Deno.serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           from: fromEmail, to,
-          subject: `Incentivo semanal de choferes — Semana ${semana}/${anio}`,
+          subject: `Incentivo semanal de choferes — Semana ${semana}/${anio}` + (esReenvio ? ` (v${version} — reemplaza)` : ""),
           html, text: texto,
           attachments: [{ filename: `incentivo-semana-${anio}-${semana}.pdf`, content: toBase64(pdfBytes) }],
         }),

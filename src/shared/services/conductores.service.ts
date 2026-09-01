@@ -281,11 +281,12 @@ export class ConductoresService {
     if (error) throw new Error(error.message);
   }
 
-  /** BA2 — enciende/apaga la participación del chofer en el incentivo (gate server-side). */
-  async setParticipaIncentivo(id: string, participa: boolean): Promise<void> {
+  /** BA2/BF5 — enciende/apaga la participación del chofer en el incentivo (gate + auditoría server-side). */
+  async setParticipaIncentivo(id: string, participa: boolean, motivo: string | null = null): Promise<void> {
     const { error } = await this.supabase.client.rpc('set_participa_incentivo', {
       p_conductor_id: id,
       p_participa: participa,
+      p_motivo: motivo,
     });
     if (error) throw new Error(error.message);
   }

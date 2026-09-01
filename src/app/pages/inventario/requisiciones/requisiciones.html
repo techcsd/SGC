@@ -141,7 +141,7 @@
               <td><code class="req-codigo">{{ codigo(r) }}</code></td>
               <td class="text-muted">{{ formatTimestamp(r.created_at) }}</td>
               <td>{{ r.proyecto?.nombre ?? '—' }}</td>
-              <td class="text-muted">{{ r.solicitante?.nombre ?? '—' }}</td>
+              <td class="text-muted">{{ solicitanteNombre(r) }}</td>
               <td>
                 @if (r.urgencia === 'urgente') {
                   <span class="sgc-badge sgc-badge--danger">Urgente</span>
@@ -208,7 +208,7 @@
         <div>
           <dt>Solicitante</dt>
           <dd>
-            {{ s.solicitante?.nombre ?? '—' }}
+            {{ solicitanteNombre(s) }}
             @if (rolSolicitante(s); as rol) { <span class="req-detail__rol">· {{ rol }}</span> }
           </dd>
         </div>

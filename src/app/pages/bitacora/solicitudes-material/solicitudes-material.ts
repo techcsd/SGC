@@ -10,6 +10,7 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { SolicitudMaterial, requisicionCodigo } from '../../../../shared/models/solicitud.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Articulo } from '../../../../shared/models/articulo.model';
@@ -77,6 +78,7 @@ export class SolicitudesMaterial implements OnInit {
   private categoriasService = inject(CategoriasService);
   private bodegasService = inject(BodegasService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
   formatTimestamp = formatTimestampDisplay;
@@ -160,8 +162,13 @@ export class SolicitudesMaterial implements OnInit {
   codigo(s: SolicitudMaterial): string {
     return requisicionCodigo(s);
   }
+  // BB10 + BF6 — editable mientras pendiente; y rechazada (para corregir y reenviar).
   puedeEditar(s: SolicitudMaterial): boolean {
-    return s.estado === 'pendiente' && this.esAutor(s);
+    return (s.estado === 'pendiente' || s.estado === 'rechazada') && this.esAutor(s);
+  }
+  /** BF6 — una rechazada del autor: la corrige y reenvía. */
+  esRechazadaPropia(s: SolicitudMaterial): boolean {
+    return s.estado === 'rechazada' && this.esAutor(s);
   }
 
   proyectoNombre = computed(() => {
@@ -388,10 +395,13 @@ export class SolicitudesMaterial implements OnInit {
       // y sigue pendiente; el server lo re-valida) y recarga la lista.
       const editId = this.editandoId();
       if (editId) {
-        await this.solicitudesService.editar(editId, {
+        // BB10 + BF6 — la OBRA (proyecto_id) es editable; si estaba rechazada,
+        // corregir la REENVÍA (vuelve a pendiente a la bandeja del aprobador).
+        const res = await this.solicitudesService.editar(editId, {
           urgencia: v.urgencia!,
           notas: v.notas ?? null,
           items: itemsPayload,
+          proyecto_id: v.proyecto_id ?? null,
         });
         for (const i of items) {
           if (i.esOtro && i.descripcion.trim()) this.solicitudesService.registrarOtro(i.descripcion, editId);
@@ -399,6 +409,10 @@ export class SolicitudesMaterial implements OnInit {
         await this.loadAll();
         this.drawerOpen.set(false);
         this.editandoId.set(null);
+        this.toast.success(
+          res.reenviada ? 'Requisición corregida y reenviada' : 'Requisición actualizada',
+          res.reenviada ? 'Volvió a la bandeja de aprobación como nueva versión.' : `Versión v${res.version}.`,
+        );
         return;
       }
 

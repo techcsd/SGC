@@ -41,6 +41,15 @@ export interface ObraRef {
   longitud: number | null;
 }
 
+/**
+ * BF7 — contexto del selector de obras (matriz contexto×rol).
+ * WIDE = todos ven todas las obras activas · SCOPED = el ingeniero ve las suyas.
+ * Ver docs/OBRAS-SELECTOR-MATRIZ.md.
+ */
+export type ObraSelectorContexto =
+  | 'conduce' | 'ruta' | 'despacho' | 'personal' | 'admin' | 'gestion' // WIDE
+  | 'requisicion' | 'orden_compra' | 'bitacora'; // SCOPED
+
 /** AA23 QW4 — costo de material real consumido por una obra. */
 export interface CostoMaterialObra {
   total: number;
@@ -162,11 +171,17 @@ export class ProyectosService {
    * los selectores de "obra destino" (conduce/ruta), donde un chofer no tiene
    * el módulo Proyectos pero SÍ debe poder referenciar la obra. SECURITY DEFINER
    * en la BD → nunca depende de la RLS (frágil) de la tabla proyectos.
+   *
+   * BF7 — el `contexto` decide la política (matriz contexto×rol, ver
+   * docs/OBRAS-SELECTOR-MATRIZ.md): WIDE ('conduce','ruta','despacho','personal',
+   * 'admin') → todas las obras activas para todos (un chofer entrega donde lo
+   * manden); SCOPED ('requisicion','orden_compra','bitacora') → el ingeniero ve
+   * las suyas. Default 'conduce' = comportamiento de conduce/despacho.
    */
-  async getDirectorio(): Promise<ObraRef[]> {
+  async getDirectorio(contexto: ObraSelectorContexto = 'conduce'): Promise<ObraRef[]> {
     const { data, error } = await this.supabase.client
       .schema('sgc')
-      .rpc('directorio_proyectos');
+      .rpc('directorio_proyectos', { p_contexto: contexto });
     if (error) throw new Error(error.message);
     return (data ?? []) as ObraRef[];
   }

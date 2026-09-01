@@ -110,7 +110,11 @@
             <tr [class.row--inactive]="!p.activo">
               <td>
                 <span class="prov-name">{{ p.nombre }}</span>
-                @if (p.is_hardware_store) {
+                @if (p.tipos?.length) {
+                  @for (t of p.tipos; track t) {
+                    <span class="sgc-badge sgc-badge--info">{{ tipoLabel(t) }}</span>
+                  }
+                } @else if (p.is_hardware_store) {
                   <span class="sgc-badge sgc-badge--info" title="Ferretería visible para choferes"><app-icon name="wrench" [size]="14" /> Ferretería</span>
                 }
                 @if (p.es_prueba) {
@@ -283,14 +287,20 @@
       />
     </div>
 
-    <!-- AF32 — ferretería visible para choferes + ubicación -->
-    <div class="form-toggle">
-      <label class="toggle-label" for="prov-ferreteria">
-        <input id="prov-ferreteria" type="checkbox" formControlName="is_hardware_store" class="toggle-input" />
-        <span class="toggle-switch" aria-hidden="true"></span>
-        Ferretería (visible para choferes)
-      </label>
-      <small class="sgc-field__hint">Aparece como origen de compra al crear un conduce en la app.</small>
+    <!-- BF2 — tipos del proveedor (multiselección). 'Ferretería' lo hace visible a choferes; 'Transportista' lo habilita en conduces externos. -->
+    <div class="sgc-field">
+      <label>Tipo de proveedor</label>
+      <div class="prov-tipos">
+        @for (t of PROVEEDOR_TIPOS; track t.key) {
+          <button type="button" class="prov-tipo" [class.prov-tipo--on]="tieneTipo(t.key)"
+                  (click)="toggleTipo(t.key)" [attr.aria-pressed]="tieneTipo(t.key)">
+            {{ t.label }}
+          </button>
+        }
+      </div>
+      <small class="sgc-field__hint">
+        Ferretería = aparece como origen de compra al crear un conduce en la app · Transportista = elegible en conduces externos.
+      </small>
     </div>
 
     @if (f.is_hardware_store.value) {

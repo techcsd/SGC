@@ -46,6 +46,10 @@ export interface SolicitudMaterial {
   created_at: string;
   // BB10 — versión: sube en cada edición del autor mientras está pendiente.
   version?: number | null;
+  // BF6 — motivo del rechazo (campo propio, ya no pisa `notas`). Visible al autor.
+  motivo_rechazo?: string | null;
+  /** BF6 — nombre del solicitante resuelto por directorio (bypassa RLS de usuarios). */
+  solicitante_nombre_dir?: string | null;
   // BA6 — cancelación/cierre: motivo + quién + cuándo.
   cancelada_motivo?: string | null;
   cerrada_por?: string | null;
