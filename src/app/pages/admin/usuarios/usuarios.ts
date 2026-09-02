@@ -15,6 +15,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaMedia, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
+import { identidadLabel } from '../../../../shared/utils/identidad.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
@@ -61,6 +62,8 @@ export class AdminUsuarios implements OnInit {
 
   formatFecha = formatFechaMedia; // U9
   formatRelativa = formatFechaRelativa; // W12
+  // BH4 — nunca mostrar el email sintético: cédula o "usuario de prueba" en su lugar.
+  identidad = identidadLabel;
 
   // ── W10 — detalle de usuario (drawer) ────────────────────
   detailUser = signal<UsuarioAdmin | null>(null);
@@ -100,10 +103,18 @@ export class AdminUsuarios implements OnInit {
   createDrawerOpen = signal(false);
   creating = signal(false);
   createError = signal('');
-  // AZ7 — un solo lugar para crear ambos tipos: invitación por correo o usuario de prueba (sin correo).
-  createTipo = signal<'invitacion' | 'prueba'>('invitacion');
+  // AZ7/BH4 — un solo lugar para crear: invitación por correo, usuario de prueba
+  // (sin correo), o acceso por cédula + PIN (personal de campo sin correo).
+  createTipo = signal<'invitacion' | 'prueba' | 'cedula'>('invitacion');
   createRolIds = signal<number[]>([]);
   createResult = signal<{ email: string; password: string } | null>(null);
+  // BH4 — form del alta por cédula.
+  cedulaForm = new FormGroup({
+    nombre: new FormControl('', [Validators.required, Validators.maxLength(150)]),
+    cedula: new FormControl('', [Validators.required, Validators.pattern(/^[0-9-]{6,}$/)]),
+    tipo: new FormControl<'capataz' | 'conductor'>('capataz', [Validators.required]),
+    pin: new FormControl('', [Validators.required, Validators.pattern(/^\d{6}$/)]),
+  });
   // AZ7 — marcar/desmarcar como prueba
   marcandoId = signal<string | null>(null);
 
@@ -179,7 +190,7 @@ export class AdminUsuarios implements OnInit {
     const q = this.searchQuery().toLowerCase().trim();
     const status = this.selectedStatus();
     const list = this.usuarios().filter((u) => {
-      if (q && !u.nombre.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) {
+      if (q && !u.nombre.toLowerCase().includes(q) && !(u.email ?? '').toLowerCase().includes(q) && !(u.cedula ?? '').includes(q)) {
         return false;
       }
       if (status === 'active' && !u.activo) return false;
@@ -310,6 +321,7 @@ export class AdminUsuarios implements OnInit {
     this.createRolIds.set([]);
     this.createResult.set(null);
     this.createForm.reset({ email: '', fullName: '', roleId: null });
+    this.cedulaForm.reset({ nombre: '', cedula: '', tipo: 'capataz', pin: '' });
     this.createDrawerOpen.set(true);
   }
 
@@ -319,6 +331,28 @@ export class AdminUsuarios implements OnInit {
 
   async onCreateSave() {
     if (this.creating()) return;
+
+    // BH4 — acceso por cédula + PIN (personal de campo sin correo).
+    if (this.createTipo() === 'cedula') {
+      this.cedulaForm.markAllAsTouched();
+      if (this.cedulaForm.invalid) return;
+      this.creating.set(true);
+      this.createError.set('');
+      try {
+        const v = this.cedulaForm.value;
+        const res = await this.adminService.crearUsuarioCedula({
+          tipo: v.tipo!, nombre: v.nombre!.trim(), cedula: v.cedula!.trim(), pin: v.pin!,
+        });
+        // El PIN es el password; se muestra una vez para entregárselo a la persona.
+        this.createResult.set({ email: res.email, password: v.pin! });
+        this.usuarios.set(await this.adminService.getAllUsuarios());
+      } catch (e: unknown) {
+        this.createError.set(e instanceof Error ? e.message : 'Error al crear el acceso por cédula.');
+      } finally {
+        this.creating.set(false);
+      }
+      return;
+    }
 
     // AZ7 — usuario de prueba (sin correo): reusa el flujo de "Usuarios de prueba".
     if (this.createTipo() === 'prueba') {

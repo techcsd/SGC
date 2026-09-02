@@ -138,7 +138,7 @@
         <select id="asignado_a" formControlName="asignado_a" [class.invalid]="f.asignado_a.invalid && f.asignado_a.touched">
           <option [value]="null">Selecciona…</option>
           @for (u of usuarios(); track u.id) {
-            <option [value]="u.id">{{ u.nombre }}</option>
+            <option [value]="u.id">{{ optLabel(u) }}</option>
           }
         </select>
         @if (f.asignado_a.invalid && f.asignado_a.touched) {

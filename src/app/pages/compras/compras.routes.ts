@@ -19,6 +19,16 @@ export const comprasRoutes: Routes = [
     title: 'Órdenes de Compra — Compras',
   },
   {
+    // BH8 — MISMA pantalla que /bitacora/solicitudes-compra, ahora accesible desde
+    // Compras (donde vive Raykler) con el gate granular compras.solicitudes. AU1:
+    // una sola pantalla, dos entradas — no un segundo formulario.
+    path: 'solicitar',
+    canActivate: [submoduloGuard('compras.solicitudes')],
+    loadComponent: () =>
+      import('../bitacora/solicitudes-compra/solicitudes-compra').then((m) => m.SolicitudesCompra),
+    title: 'Solicitar Compra — Compras',
+  },
+  {
     path: 'reportes',
     canActivate: [moduleGuard('compras')],
     loadComponent: () => import('./reportes/reportes').then((m) => m.ComprasReportes),

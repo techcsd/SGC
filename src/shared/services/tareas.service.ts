@@ -9,15 +9,24 @@ const TAREA_SELECT =
 export interface DirectorioUsuario {
   id: string;
   nombre: string;
+  // BH6 — desambiguación del selector de asignados (homónimos, rol, es_prueba).
+  email?: string | null;
+  roles_label?: string | null;
+  es_prueba?: boolean;
+  es_duplicado?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
 export class TareasService {
   private supabase = inject(SupabaseService);
 
-  /** Minimal active-user list for the assignee picker (SECURITY DEFINER RPC). */
+  /**
+   * BH6 — lista de asignables que DESAMBIGUA (rol + email + marca de homónimos y
+   * oculta es_prueba salvo admin/usuario de prueba). Reemplaza a directorio_usuarios
+   * (nombres sueltos) para el picker de responsable.
+   */
   async getDirectorio(): Promise<DirectorioUsuario[]> {
-    const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
+    const { data, error } = await this.supabase.client.rpc('usuarios_asignables');
     if (error) throw new Error(error.message);
     return (data ?? []) as DirectorioUsuario[];
   }

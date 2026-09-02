@@ -176,8 +176,10 @@ Formato: **FUSIONAR** (submódulo → pestaña/filtro de otro) · **ELIMINAR** (
 - **QUEDAN:** Vehículos / Vehículos en uso, Avisos / Accidentes, Rutas (CRUD) — no son redundantes.
 - **Impacto:** flota elevada (admin/gerencia/jefe flota). **Costo:** medio-alto (unificar 3 vistas de monitoreo).
 
-### 🟡 P4 — PROYECTOS / OBRA / BITÁCORA → módulo "Ingeniería" (enlaza con AU6, depende de AT6)
-Árbol propuesto (⚠️ **Xaviel valida**):
+### 🟢 P4 — PROYECTOS / OBRA / BITÁCORA → módulo "Ingeniería" (DECIDIDO BH2, 02/09/2026)
+> **✅ Árbol de capacidades APROBADO (BH2).** La web ya tiene los 13 hijos bajo el grupo "Ingeniería" del sidebar (`shell.ts`). En la **app**, Xaviel eligió **traslado puro** de los tiles de uso diario al hub `/ingenieria` — pero **con mock validado primero** (lección BD1: el home agrupado de BC5 se revirtió en 24 h). El mock + traslado + los 2 huecos de capacidad (**Dashboard de bitácora**, **Mi proyecto**) se ejecutan en **PROMPT-31 (csd-app)**. Detalle y árbol en `docs/AV5-AV6-paridad-conduces-e-ingenieria.md` §AV6 CERRADO y en la fila BH2 de `PARIDAD.md`. La fusión `cronograma_tareas` (doble avance) sigue como mejora abierta, independiente del menú.
+
+Árbol propuesto (histórico — validado en BH2):
 ```
 Ingeniería  (módulo, espejo de la app AT6)
 ├── Ejecución (Producción de Obra)
@@ -199,6 +201,6 @@ Proyectos  (queda como CARTERA/gestión)
 | Unificar mecanismos de stock (P1) | 3 RPC + 2 vistas | 🔴 |
 | Un hogar para requisición (P2) | 4 puntos → 1 hogar + accesos | 🟠 |
 | Colapsar monitoreo + echadas + conductores (P3) | 6 → 3 | 🟠 |
-| Módulo Ingeniería (P4) | 3 módulos → 1 árbol | 🟡 (depende AT6) |
+| Módulo Ingeniería (P4) | 3 módulos → 1 árbol | 🟢 decidido BH2 (app: mock-first en PROMPT-31) |
 
 **Nada de lo anterior borra datos:** todas son fusiones de UI (pestañas/filtros) + redirects. Las tablas y su historial quedan intactos.

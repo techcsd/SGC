@@ -66,8 +66,15 @@
       <option value="entregada">Entregada</option>
       <option value="cerrada">Cerrada</option>
       <option value="rechazada">Rechazada</option>
+      <option value="cancelada">Cancelada</option>
     </select>
   </div>
+
+  <label class="sgc-field filters-bar__check">
+    <input type="checkbox" [checked]="ocultarCanceladas()"
+           (change)="ocultarCanceladas.set($any($event.target).checked)" />
+    <span class="filters-bar__label">Ocultar canceladas</span>
+  </label>
 
   <div class="sgc-field filters-bar__select">
     <label class="filters-bar__label">Urgencia</label>
@@ -268,7 +275,9 @@
                [routerLink]="['/inventario/salidas', s.salida_id, 'conduce']">Ver conduce / despacho</a>
           }
           @if (s.solicitud_compra_id) {
-            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/compras/ordenes">Ver compra del faltante</a>
+            <!-- BH7 — enlace inverso a la solicitud de compra concreta, no a la lista entera -->
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+               [routerLink]="['/compras/ordenes']" [queryParams]="{ solicitud: s.solicitud_compra_id }">Ver compra del faltante</a>
           }
         </div>
       }
@@ -339,8 +348,8 @@
         </div>
       }
 
-      <!-- Acciones de gestión -->
-      @if (puedeGestionar() && s.estado === 'pendiente') {
+      <!-- Acciones de gestión (aprobar/rechazar) — BH1: solo un tercero, nunca el autor -->
+      @if (puedeRechazar(s)) {
         @if (actionError()) {
           <div class="page-error" role="alert">{{ actionError() }}</div>
         }
@@ -428,6 +437,30 @@
             </div>
           }
         }
+      }
+
+      <!-- BH1 — "disponer de lo mío": el autor (que no ve aprobar/rechazar) cancela la suya -->
+      @if (s.estado === 'pendiente' && puedeCancelar(s) && !puedeRechazar(s)) {
+        @if (actionError()) {
+          <div class="page-error" role="alert">{{ actionError() }}</div>
+        }
+        <div class="req-detail__cancelar">
+          <p class="req-detail__hint">
+            Esta es tu requisición: no la apruebas ni la rechazas tú, pero puedes cancelarla si ya no la necesitas.
+          </p>
+          @if (!mostrarCancelar()) {
+            <div class="req-detail__actions">
+              <button type="button" class="sgc-btn sgc-btn--danger" (click)="mostrarCancelar.set(true)">Cancelar requisición…</button>
+            </div>
+          } @else {
+            <input class="sgc-field" placeholder="Motivo de cancelación (obligatorio)"
+                   [value]="cancelarMotivo()" (input)="cancelarMotivo.set($any($event.target).value)" />
+            <div class="req-detail__actions">
+              <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="saving()" (click)="confirmarCancelar()">Confirmar cancelación</button>
+              <button type="button" class="sgc-btn sgc-btn--ghost" (click)="mostrarCancelar.set(false)">Volver</button>
+            </div>
+          }
+        </div>
       }
     </div>
   }

@@ -44,6 +44,20 @@ migración** + smoke de **cada transición**.
   (check violation) a mensaje humano ("Alguno de los datos no es válido") — red de
   seguridad mientras el constraint no esté al día; el fix real es siempre el constraint.
 
+## 3.5 Ninguna acción se pinta si el guard la va a negar (BH1) — enfermedad recurrente
+Toda condición de visibilidad de un botón cuya RPC pueda responder "no autorizado" se
+**deriva de la MISMA regla que aplica el servidor**, no de una fuente distinta. El bug se
+repite tanda tras tanda: AU8 (menú que da 403) → AV1 (despachante inelegible) → BF7 (chofer
+sin obras) → **BH1** (al autor se le ofrecía "Rechazar" y el servidor lo negaba con
+"No puedes rechazar tu propia solicitud").
+- Espeja en el front la condición exacta del servidor (p. ej. `puedeRechazar = puedeGestionar
+  && pendiente && (!esAutor || esAdmin)` ⇆ `rechazar_solicitud_material`).
+- Si dos conceptos comparten una función de permiso, **sepáralos** (BH1 partió
+  `puede_gestionar_requisicion` = aprobar/rechazar/cerrar, de
+  `puede_disponer_de_mi_requisicion` = editar/cancelar).
+- **El smoke se corre desde la cuenta que sufre el caso** (el autor, el chofer, el capataz),
+  no solo desde admin.
+
 ## 4. Grants de schema y secuencias
 Al crear tabla/función/secuencia en `sgc`, verificar `grant` a `authenticated`/`service_role`
 según corresponda (bugs históricos: `permission denied for schema sgc`,

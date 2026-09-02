@@ -168,6 +168,25 @@ export class AdminService {
     return data as TestCredenciales;
   }
 
+  /**
+   * BH4 — alta directa por cédula + PIN (personal de campo sin correo). Reutiliza la
+   * edge `acceso-cedula` (AU1). tipo: 'capataz' | 'conductor'. Bloquea si ya existe
+   * esa cédula (AU18). Devuelve el email sintético generado.
+   */
+  async crearUsuarioCedula(payload: {
+    tipo: 'capataz' | 'conductor';
+    nombre: string;
+    cedula: string;
+    pin: string;
+  }): Promise<{ email: string; usuarioId: string; cedula: string }> {
+    const { data, error } = await this.supabase.client.functions.invoke('acceso-cedula', {
+      body: { tipo: payload.tipo, nombre: payload.nombre, cedula: payload.cedula, pin: payload.pin },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { email: string; usuarioId: string; cedula: string };
+  }
+
   /** Prepara credenciales frescas para "entrar como" un usuario de prueba (admin-only, auditado). */
   async credencialesEntrarComo(userId: string): Promise<{ email: string; password: string }> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-usuario-test-login', {

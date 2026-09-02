@@ -1,5 +1,55 @@
 {
   "web": {
+    "1.109.0": {
+      "titulo": "Requisiciones y compras más claras, alta por cédula y la ruta que se crea sola",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "El autor de una requisición ya no ve el botón «Rechazar» (que el sistema le negaba): ve «Cancelar» con motivo, que sí le corresponde. Aprobar/rechazar/cerrar quedan solo para un tercero; cancelar/editar para el autor o un admin."
+        },
+        {
+          "t": "mejora",
+          "m": "Requisiciones",
+          "d": "Las requisiciones canceladas quedan ocultas por defecto en la bandeja (una prueba cancelada dejó de parecer trabajo pendiente); un filtro las vuelve a mostrar."
+        },
+        {
+          "t": "mejora",
+          "m": "Compras",
+          "d": "En «Solicitudes de compra pendientes» la procedencia ahora es un enlace REQ-XXXXXX que abre la requisición de origen con su despacho y sus conduces, antes de crear la orden. El enlace inverso lleva a la solicitud concreta."
+        },
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "Al aprobar una requisición, el faltante conserva el artículo del catálogo: la orden de compra nace ligada al catálogo en vez de como texto libre «Otro»."
+        },
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "Rechazar una solicitud de compra ahora exige un motivo, igual que cancelar una requisición."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "«Solicitar Compra» ahora está en el menú de Compras (y también en Ingeniería): quien coordina compras puede crear una solicitud a mano sin depender de la generación automática."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nueva pestaña «Acceso por cédula (sin correo)» para crear usuarios de campo (capataz, chofer) que entran en la app con su cédula + PIN de 6 dígitos. La cédula pasa a ser identidad única: si la persona ya existe, el sistema lo avisa en vez de duplicarla. En ningún lado se muestra el correo interno sintético."
+        },
+        {
+          "t": "arreglo",
+          "m": "Tareas",
+          "d": "«Mis tareas» ahora muestra estrictamente las tareas propias (asignadas a mí o creadas por mí); la vista global vive en «Gestión de tareas». El selector de responsable desambigua por rol y correo y marca los homónimos. Asignar sin destinatario ya falla en vez de quedarse en silencio con quien la creó."
+        },
+        {
+          "t": "nuevo",
+          "m": "Transporte",
+          "d": "Cuando un conduce llega a un chofer, su ruta se crea sola (con origen, destino y los materiales del conduce) y se le notifica; también al aceptar una transferencia entre choferes. Es idempotente: reintentos no duplican rutas. La ruta derivada de un conduce no cuenta doble en el incentivo."
+        }
+      ]
+    },
     "1.107.1": {
       "titulo": "Tipos de aviso administrables + catálogo único de proveedores (transportistas)",
       "cambios": [

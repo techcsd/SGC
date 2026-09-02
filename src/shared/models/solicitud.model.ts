@@ -101,6 +101,11 @@ export interface SolicitudCompraItem {
   cantidad: number;
   proveedor_sugerido: string | null;
   foto_path?: string | null; // U17 — foto del renglón (bucket `inventario`)
+  /** BH7 — artículo del catálogo cuando el faltante nació de un renglón resuelto. */
+  articulo_id?: string | null;
+  unidad?: string | null;
+  /** BH7 — renglón de la requisición que originó este faltante. */
+  origen_item_id?: string | null;
 }
 
 export interface SolicitudCompra {
@@ -114,6 +119,8 @@ export interface SolicitudCompra {
   orden_compra_id: string | null;
   /** A2: requisición que originó esta compra por faltante (si aplica). */
   origen_requisicion_id?: string | null;
+  /** BH7 — folio de la requisición de procedencia (embed), para pintar REQ-XXXXXX. */
+  origen?: { folio: number | null } | null;
   /** A7: categoría de la compra (p.ej. 'tecnologia'). */
   categoria?: string | null;
   atendido_por: string | null;

@@ -194,10 +194,12 @@ export class Shell implements OnInit {
       icon: 'purchases',
       modulo: 'compras',
       flotaElevado: true, // AF32 — jefe de flota entra SOLO a Proveedores
-      submodulos: ['compras.proveedores'], // AG12 — visible con permiso granular
+      submodulos: ['compras.proveedores', 'compras.solicitudes'], // AG12 — visible con permiso granular
       children: [
         { label: 'Proveedores', route: '/compras/proveedores', submodulo: 'compras.proveedores' },
         { label: 'Órdenes de Compra', route: '/compras/ordenes', submodulo: 'compras.ordenes', badgeKey: 'compras.ordenes' },
+        // BH8 — "Solicitar Compra" donde vive quien la necesita (Raykler). Misma pantalla que en Ingeniería.
+        { label: 'Solicitar Compra', route: '/compras/solicitar', submodulo: 'compras.solicitudes' },
         { label: 'Reportes', route: '/compras/reportes', modulo: 'compras' },
       ],
     },
@@ -324,6 +326,8 @@ export class Shell implements OnInit {
         { label: 'Dashboard de bitácora', route: '/bitacora/dashboard', modulo: 'bitacora' },
         { label: 'Mi proyecto', route: '/bitacora/mi-proyecto', modulo: 'bitacora' },
         { label: 'Requisición', route: '/bitacora/solicitudes-material', modulo: 'bitacora' },
+        // BH8 — misma pantalla que en Compras (una sola, ruta canónica /compras/solicitar).
+        { label: 'Solicitud de compra', route: '/compras/solicitar', submodulo: 'compras.solicitudes' },
         { label: 'Confirmar entregas', route: '/bitacora/entregas', modulo: 'bitacora' },
         // Producción de Obra (submódulos granulares `obra.*`)
         { label: 'Plan del día', route: '/obra/plan-dia', submodulo: 'obra.plan_dia' },

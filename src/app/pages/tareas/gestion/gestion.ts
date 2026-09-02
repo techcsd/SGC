@@ -57,6 +57,16 @@ export class Gestion implements OnInit, OnDestroy {
     { key: 'vencida', label: 'Vencimiento', values: (r) => [this.isVencida(r as Tarea) ? 'Vencida' : 'Al día'] },
   ];
   usuarios = signal<DirectorioUsuario[]>([]);
+
+  /** BH6 — etiqueta desambiguada del asignable: nombre — rol · correo (prueba). */
+  optLabel(u: DirectorioUsuario): string {
+    let s = u.nombre;
+    if (u.roles_label) s += ` — ${u.roles_label}`;
+    // Solo se muestra el correo cuando hay homónimos (ruido mínimo el resto del tiempo).
+    if (u.es_duplicado && u.email) s += ` · ${u.email}`;
+    if (u.es_prueba) s += ' (prueba)';
+    return s;
+  }
   proyectos = signal<Proyecto[]>([]);
   loading = signal(true);
   saving = signal(false);

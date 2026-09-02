@@ -81,3 +81,18 @@ Flota / Transporte
 Rutas viejas con **redirect** · **permisos conservados** (nadie pierde ni gana acceso) · **badges** que suman al padre · **deep-links** de pushes/correos vivos · **layout por scope** (AK2/AJ4) · contratos para la app en **PROMPT-8 FASE 3** · actualizar la tabla de paridad de AT6.
 
 **⚠️ Decisiones para Xaviel (AV6):** (a) ¿aprobar el árbol canónico de arriba? (b) ¿nombre unificado de la requisición = "Requisición"? (c) ¿"Crear ruta" se mueve a Flota en la app? (d) ¿la app puede agrupar (paridad de capacidades) o exiges el mismo menú?
+
+---
+
+## ✅ AV6 CERRADO — decisión de Xaviel (BH2, 02/09/2026)
+
+Reabierto por BH2 (4ª vez: AT6 → AU6 → AV6 → BH2). Decisiones tomadas:
+
+- **(a) Árbol canónico APROBADO** tal como arriba. El árbol vigente de **capacidades** (web y app) es:
+  `Ingeniería → Requisición · Solicitud de movimiento · Confirmar entregas · Bitácora (suite) · Producción de obra (Plan del día · Avance · No conformidades · Checklists · Subcontratistas) · Informe semanal de obra · Mi proyecto · Dashboard de bitácora`. (Web ya tiene los 13 hijos bajo el grupo paraguas del sidebar; sin cambios.)
+- **(b) Nombre:** "Requisición" (web) y "Solicitud de movimiento" (AY11) son **cosas distintas** y así se quedan — la confusión ya estaba resuelta en el código.
+- **(c) "Crear ruta"** ya vive en Flota en la app (retirado de Ingeniería en AV6 ✓).
+- **(d/traslado) TRASLADO PURO — con mock validado primero.** Xaviel eligió mover los tiles de uso diario (bitácora, obra, requisición, por-recibir) **dentro** del hub `/ingenieria` de la app y quitarlos del home. Por la **lección BD1** (el home agrupado de BC5 se revirtió en 24 h), **NO se toca el layout de la app sin un mock aprobado en `/design`**. → El mock + el traslado + los dos huecos de capacidad (**Dashboard de bitácora**, **Mi proyecto**, que la app no tiene) se construyen en **PROMPT-31 (csd-app)**.
+- **Lado web:** el árbol ya es el canónico; único cambio de esta ronda = se añadió el acceso **"Solicitud de compra"** al grupo (BH8). Sin re-arreglo de navegación web.
+
+**Estado:** decisión tomada; ejecución de la app en PROMPT-31 (mock-first). Deuda documental cerrada en `PARIDAD.md` y `AUDITORIA-ARQUITECTURA-AU1.md` §P4.

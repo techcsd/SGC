@@ -6,8 +6,10 @@ import { NotificacionesService } from './notificaciones.service';
 
 // usuarios is joined twice (solicitante_id, atendido_por) — the relationship must be
 // disambiguated with !fkey_name or PostgREST rejects the embed as ambiguous.
+// BH7 — se embebe el folio de la requisición de procedencia para pintar REQ-XXXXXX
+// enlazable en el panel de solicitudes pendientes (deep-link a /inventario/requisiciones).
 const SELECT_QUERY =
-  '*, proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_compra_solicitante_id_fkey(nombre), items:solicitud_compra_items(*)';
+  '*, proyecto:proyectos(nombre), solicitante:usuarios!solicitudes_compra_solicitante_id_fkey(nombre), items:solicitud_compra_items(*), origen:solicitudes_material!origen_requisicion_id(folio)';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudesCompraService {

@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -69,7 +69,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, Icon],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, Icon, RouterLink],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -244,6 +244,13 @@ export class Ordenes implements OnInit {
       const orden = this.ordenes().find((o) => o.id === itemId);
       if (orden) void this.openDetail(orden);
     }
+    // BH7 — enlace inverso desde la requisición (?solicitud=<id>): si sigue pendiente,
+    // abre su atención (procedencia + renglones). Si ya se convirtió, se ve en la lista.
+    const solId = this.route.snapshot.queryParamMap.get('solicitud');
+    if (solId) {
+      const pend = this.solicitudesPendientes().find((s) => s.id === solId);
+      if (pend) this.atenderSolicitud(pend);
+    }
   }
 
   private async loadAll() {
@@ -358,9 +365,12 @@ export class Ordenes implements OnInit {
       proyecto_id: s.proyecto_id,
       notas: `Solicitud de ${s.solicitante?.nombre ?? 'ingeniero'}${s.notas ? ' — ' + s.notas : ''}`,
     });
+    // BH7 — si el faltante conserva su articulo_id (requisición resuelta), la orden
+    // nace ligada al catálogo en vez de como "Otro". Las filas viejas sin articulo_id
+    // siguen entrando como texto libre (retrocompatible).
     const items: ItemRow[] = (s.items ?? []).map((i) => ({
-      articulo_id: null,
-      esOtro: true,
+      articulo_id: i.articulo_id ?? null,
+      esOtro: !i.articulo_id,
       descripcion: i.proveedor_sugerido ? `${i.descripcion} (sugerido: ${i.proveedor_sugerido})` : i.descripcion,
       cantidad: i.cantidad,
       precio_unitario: 0,
@@ -370,12 +380,26 @@ export class Ordenes implements OnInit {
   }
 
   async rechazarSolicitud(s: SolicitudCompra) {
+    // BH7 — motivo obligatorio al rechazar (misma regla que cancelar una requisición, BA6).
+    // El servidor también lo exige; aquí evitamos la ida-y-vuelta.
+    const motivo = (window.prompt('Motivo del rechazo (obligatorio):') ?? '').trim();
+    if (!motivo) {
+      if (motivo === '') this.toast.info('Rechazo cancelado', 'Se necesita un motivo.');
+      return;
+    }
     try {
-      await this.solicitudesCompraService.rechazar(s.id);
+      await this.solicitudesCompraService.rechazar(s.id, motivo);
       this.solicitudesPendientes.update((list) => list.filter((x) => x.id !== s.id));
+      this.toast.info('Solicitud rechazada');
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al rechazar la solicitud.');
     }
+  }
+
+  /** BH7 — código citable de la requisición de procedencia (REQ-XXXXXX). */
+  reqCodigo(s: SolicitudCompra): string | null {
+    const folio = s.origen?.folio;
+    return folio != null ? 'REQ-' + String(folio).padStart(6, '0') : null;
   }
 
   closeCreate() {

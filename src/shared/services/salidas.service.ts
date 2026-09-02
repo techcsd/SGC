@@ -370,6 +370,15 @@ export class SalidasService {
         .eq('id', salidaId as string);
     }
 
+    // BH3 — si el conduce nace con chofer, su ruta se crea sola (crea-o-reutiliza
+    // la ruta del día del chofer, idempotente). Muere la deuda de AM5 ("creé el
+    // conduce y no sale en ruta"). Best-effort: un fallo no debe romper el conduce.
+    if (conductor_id) {
+      try {
+        await this.supabase.client.rpc('conduce_asegurar_ruta', { p_salida_id: salidaId as string });
+      } catch { /* la ruta se puede asegurar luego con "Iniciar ruta" */ }
+    }
+
     const { data, error: fetchError } = await this.supabase.client
       .from('salidas_inventario')
       .select(SELECT_QUERY)

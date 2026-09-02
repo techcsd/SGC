@@ -30,7 +30,12 @@
           <span class="solicitudes-panel__proyecto">{{ s.proyecto?.nombre ?? 'Sin proyecto' }}</span>
           <span class="solicitudes-panel__solicitante">{{ s.solicitante?.nombre }}</span>
           @if (s.origen_requisicion_id) {
-            <span class="sgc-badge sgc-badge--info" title="Faltante generado automáticamente al aprobar una requisición">Desde requisición</span>
+            <!-- BH7 — la procedencia es navegable: abre la requisición (con su despacho y conduces) sin construir nada nuevo -->
+            <a class="sgc-badge sgc-badge--info solicitudes-panel__origen"
+               [routerLink]="['/inventario/requisiciones']" [queryParams]="{ req: s.origen_requisicion_id }"
+               title="Ver la requisición de procedencia: su despacho y sus conduces">
+              {{ reqCodigo(s) ?? 'Desde requisición' }} ↗
+            </a>
           } @else if (s.categoria === 'tecnologia') {
             <span class="sgc-badge sgc-badge--neutral">Tecnología</span>
           }

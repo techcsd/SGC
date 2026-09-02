@@ -97,6 +97,8 @@ export class Requisiciones implements OnInit {
   fHasta = signal('');
   fArticulo = signal('');
   search = signal('');
+  // BH1 — una prueba cancelada no debe parecer trabajo pendiente: ocultas por defecto.
+  ocultarCanceladas = signal(true);
 
   // ── Detalle / gestión ────────────────────────────────────
   selected = signal<SolicitudMaterial | null>(null);
@@ -128,6 +130,38 @@ export class Requisiciones implements OnInit {
 
   /** Quién puede gestionar (mirror del gate del servidor). El ingeniero no llega aquí. */
   puedeGestionar = computed(() => this.userService.puedeVerTodasRequisiciones());
+
+  // ── BH1 — la acción no se pinta si el guard la va a negar (4ª regla del checklist) ──
+  /** Id del usuario en sesión (para saber si mira su propia requisición). */
+  private miId = computed(() => this.userService.profile()?.id ?? null);
+  /** El admin puentea el gate de autor. */
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  /** ¿El que mira es quien creó la requisición? */
+  esAutor(s: SolicitudMaterial): boolean {
+    const id = this.miId();
+    return !!id && s.solicitante_id === id;
+  }
+  /**
+   * "Gestionar" (aprobar / rechazar) = un tercero con módulo/rol, NUNCA el autor.
+   * Espejo exacto de sgc.rechazar_solicitud_material, que lanza
+   * "No puedes rechazar tu propia solicitud" si solicitante = uid y no es admin.
+   */
+  puedeRechazar(s: SolicitudMaterial): boolean {
+    return this.puedeGestionar() && s.estado === 'pendiente' && (!this.esAutor(s) || this.esAdmin());
+  }
+  /** Estados en los que una requisición todavía se puede cancelar (no cerrada/rechazada/entregada). */
+  private readonly ESTADOS_CANCELABLES = ['pendiente', 'aprobada', 'por_despachar', 'parcial'];
+  /**
+   * "Disponer de lo mío" (cancelar) = el autor, un admin, o un gestor. Espejo de
+   * sgc.puede_disponer_de_mi_requisicion (autor o admin) + regla BA6 de que un gestor
+   * también puede cancelar.
+   */
+  puedeCancelar(s: SolicitudMaterial): boolean {
+    return (
+      (this.esAutor(s) || this.esAdmin() || this.puedeGestionarReq()) &&
+      this.ESTADOS_CANCELABLES.includes(s.estado)
+    );
+  }
 
   obrasDisponibles = computed(() => {
     const map = new Map<string, string>();
@@ -184,6 +218,8 @@ export class Requisiciones implements OnInit {
     const q = this.search().trim().toLowerCase();
 
     return this.requisiciones().filter((r) => {
+      // BH1 — canceladas ocultas por defecto, salvo que se filtren explícitamente.
+      if (this.ocultarCanceladas() && !est && r.estado === 'cancelada') return false;
       if (obra && r.proyecto_id !== obra) return false;
       if (sol && r.solicitante_id !== sol) return false;
       if (est && r.estado !== est) return false;

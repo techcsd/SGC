@@ -63,10 +63,16 @@ Deno.serve(async (req: Request) => {
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
 
-    const { tipo, entityId, pin } = await req.json();
+    const { tipo, entityId, pin, nombre: nombreDirecto, cedula: cedulaDirecta } = await req.json();
     if (tipo !== "conductor" && tipo !== "capataz") return json({ error: "tipo inválido." }, 400);
     const cfg = CFG[tipo as Tipo];
-    if (typeof entityId !== "string" || !entityId) return json({ error: "entityId requerido." }, 400);
+    // BH4 — dos modos: desde una ficha existente (entityId) o ALTA DIRECTA (nombre+cedula).
+    const altaDirecta = (!entityId || typeof entityId !== "string") &&
+      typeof nombreDirecto === "string" && String(nombreDirecto).trim() !== "" &&
+      typeof cedulaDirecta === "string" && String(cedulaDirecta).replace(/\D/g, "") !== "";
+    if (!altaDirecta && (typeof entityId !== "string" || !entityId)) {
+      return json({ error: "Indica una ficha (entityId) o nombre + cédula para el alta directa." }, 400);
+    }
     if (typeof pin !== "string" || !/^\d{6}$/.test(pin)) return json({ error: "El PIN debe tener exactamente 6 dígitos." }, 400);
 
     // Autorización: admin o alguno de los módulos que administran ese tipo.
@@ -80,6 +86,41 @@ Deno.serve(async (req: Request) => {
     if (!permitido) return json({ error: "No autorizado para generar este acceso." }, 403);
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
+
+    // ── BH4 — ALTA DIRECTA: crear el acceso sin ficha previa (nombre + cédula). ──
+    if (altaDirecta) {
+      const cedula = String(cedulaDirecta).replace(/\D/g, "");
+      const nombre = String(nombreDirecto).trim();
+      const email = syntheticEmail(cfg.prefijo, cedula, cfg.dominio);
+
+      // AU18 — la cédula es identidad: si ya existe esa persona, se BLOQUEA con salida.
+      const { data: dupCedula } = await admin.from("usuarios").select("id, nombre").eq("cedula", cedula).maybeSingle();
+      const { data: dupEmail } = await admin.from("usuarios").select("id, nombre").eq("email", email).maybeSingle();
+      const dup = dupCedula ?? dupEmail;
+      if (dup?.id) {
+        return json({
+          error: `Ya existe un usuario con esa cédula: "${dup.nombre}". Usa "Crear/actualizar acceso" en su ficha en vez de crear otro.`,
+          duplicado: { id: dup.id, nombre: dup.nombre },
+        }, 409);
+      }
+
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
+        email, password: pin, email_confirm: true,
+        user_metadata: { nombre, acceso_cedula: true, rol_tipo: tipo },
+      });
+      if (createError || !created.user) return json({ error: createError?.message ?? "No se pudo crear el acceso." }, 400);
+      const userId = created.user.id;
+      const { error: profErr } = await admin.from("usuarios").insert({ id: userId, nombre, email, cedula, activo: true });
+      if (profErr) { await admin.auth.admin.deleteUser(userId); return json({ error: `No se pudo crear el perfil: ${profErr.message}` }, 400); }
+
+      const { data: rol, error: rolErr } = await admin.from("roles").select("id").eq("codigo", cfg.rol).maybeSingle();
+      if (rolErr || rol?.id == null) return json({ error: `No existe el rol '${cfg.rol}'. Configúralo en Administración › Roles.` }, 400);
+      const { error: rolAssignErr } = await admin.from("usuarios_roles")
+        .upsert({ usuario_id: userId, rol_id: rol.id, asignado_por: callerData.user.id }, { onConflict: "usuario_id,rol_id", ignoreDuplicates: true });
+      if (rolAssignErr) return json({ error: `No se pudo asignar el rol: ${rolAssignErr.message}` }, 400);
+
+      return json({ email, usuarioId: userId, cedula, created: true, altaDirecta: true });
+    }
 
     const { data: ficha, error: fErr } = await admin.from(cfg.tabla).select("*").eq("id", entityId).maybeSingle();
     if (fErr || !ficha) return json({ error: "Ficha no encontrada." }, 404);
@@ -117,7 +158,8 @@ Deno.serve(async (req: Request) => {
       });
       if (createError || !created.user) return json({ error: createError?.message ?? "No se pudo crear el acceso." }, 400);
       userId = created.user.id;
-      const { error: profErr } = await admin.from("usuarios").insert({ id: userId, nombre, email, activo: true });
+      // BH4 — la cédula también se persiste en el alta desde ficha (identidad única).
+      const { error: profErr } = await admin.from("usuarios").insert({ id: userId, nombre, email, cedula: cedula.replace(/\D/g, ""), activo: true });
       if (profErr) { await admin.auth.admin.deleteUser(userId); return json({ error: `No se pudo crear el perfil: ${profErr.message}` }, 400); }
     }
 

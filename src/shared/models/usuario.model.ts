@@ -15,7 +15,10 @@ export interface UsuarioRol {
 export interface Usuario {
   id: string;
   nombre: string;
-  email: string;
+  /** BH4 — el correo deja de ser obligatorio: el personal de campo entra por cédula. */
+  email?: string | null;
+  /** BH4 — cédula como identidad (personal sin correo). */
+  cedula?: string | null;
   activo: boolean;
   avatar_path?: string | null;
   created_at: string;

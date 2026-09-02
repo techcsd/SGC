@@ -46,6 +46,14 @@ lógico de captura; el layout puede diferir).
 | 4c | Proveedor con **tipos** (ferretería/suministros/transportista/otro) + alta al vuelo | Sí (transportista desde conduce externo, estampado server-side) | **Sí (BF2)** — maestro unificado `sgc.proveedores` con `tipos[]` | — | requiere decisión | **✅ cerrado BF** |
 | 4d | Preferencias de avisos por usuario (silenciar informativos; operativos no) | Sí (Perfil → Preferencias de avisos; silencia el **push** server-side, BF4) | **Sí (BF4)** — silenciado por usuario + reglas de admin por rol/global | — | rápido | **✅ cerrado BF** |
 
+## Árbol de Ingeniería (BH2 — 02/09/2026)
+
+| # | Capacidad | App | Web | Gap | Clase | Estado |
+|---|---|---|---|---|---|---|
+| BH2 | **Árbol de Ingeniería** (menú del módulo) | **1 tile** (Solicitud de movimiento) + capacidad dispersa en hubs sueltos (`/bitacora`, `/obra`, `/solicitudes`, `/transporte/por-confirmar`) | **13 hijos** bajo el grupo paraguas del sidebar (`shell.ts`) | **Organización, no capacidad** — la app tiene casi todo, en hubs separados. 2 huecos reales: **Dashboard de bitácora** y **Mi proyecto** no existen en la app | requiere decisión (cerrada) | **✅ decidido BH2** — árbol canónico aprobado (ver `docs/AV5-AV6-…` §AV6 CERRADO). Ejecución app = **traslado puro con mock-first** en **PROMPT-31**; web ya es canónica |
+
+Árbol canónico (capacidades, web=app): `Requisición · Solicitud de movimiento · Confirmar entregas · Bitácora (suite) · Producción de obra (Plan del día · Avance · No conformidades · Checklists · Subcontratistas) · Informe semanal de obra · Mi proyecto · Dashboard de bitácora`. **"Crear ruta"** vive en Flota (no en Ingeniería). El **traslado** de los tiles de uso diario del home de la app al hub va **con mock validado primero** (lección BD1).
+
 ## Decisiones de arquitectura (Ronda BF — 01/09/2026)
 
 - **Selector de obras POR CONTEXTO (BF7):** `directorio_proyectos(p_contexto)` es **WIDE** por defecto (conduce/ruta/personal/despacho → todas las obras activas para todos, incluido el chofer) y `proyectos_pickables()` es **SCOPED** (requisición/compra/bitácora → el ingeniero ve las suyas + red AW1). Arregla el "chofer no ve obras" sin barrer al ingeniero.

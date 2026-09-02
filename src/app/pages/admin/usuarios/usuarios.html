@@ -100,7 +100,7 @@
                 <span class="sgc-badge sgc-badge--neutral" title="Usuario de prueba (fuera de KPIs/correos/incentivos)">PRUEBA</span>
               }
             </td>
-            <td class="admin-usuarios__email">{{ usuario.email }}</td>
+            <td class="admin-usuarios__email">{{ identidad(usuario) }}</td>
             <td>
               <div class="admin-usuarios__roles">
                 @for (ur of usuario.roles.slice(0, 2); track ur.rol.id) {
@@ -231,7 +231,7 @@
         }
         <div>
           <h3 class="admin-usuarios__detail-name">{{ u.nombre }}</h3>
-          <p class="admin-usuarios__detail-email">{{ u.email }}</p>
+          <p class="admin-usuarios__detail-email">{{ identidad(u) }}</p>
           <div class="admin-usuarios__detail-badges">
             @if (u.activo) {
               <span class="sgc-badge sgc-badge--success">Activo</span>
@@ -401,6 +401,10 @@
         [class.active]="createTipo() === 'invitacion'" (click)="createTipo.set('invitacion')">
         Invitación por correo
       </button>
+      <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'cedula'"
+        [class.active]="createTipo() === 'cedula'" (click)="createTipo.set('cedula')">
+        Acceso por cédula (sin correo)
+      </button>
       <button type="button" role="tab" [attr.aria-selected]="createTipo() === 'prueba'"
         [class.active]="createTipo() === 'prueba'" (click)="createTipo.set('prueba')">
         Usuario de prueba (sin correo)
@@ -410,10 +414,61 @@
     @if (createResult(); as res) {
       <!-- Credenciales del usuario de prueba recién creado (se muestran una sola vez) -->
       <div class="admin-usuarios__test-cred">
-        <p><strong>Usuario de prueba creado.</strong> Guarda estas credenciales (no se vuelven a mostrar):</p>
-        <p>Correo: <code>{{ res.email }}</code></p>
-        <p>Contraseña: <code>{{ res.password }}</code></p>
+        @if (createTipo() === 'cedula') {
+          <p><strong>Acceso por cédula creado.</strong> Entrégale a la persona su cédula y este PIN (no se vuelve a mostrar):</p>
+          <p>Entra con: <strong>su cédula</strong> + el PIN.</p>
+          <p>PIN: <code>{{ res.password }}</code></p>
+        } @else {
+          <p><strong>Usuario de prueba creado.</strong> Guarda estas credenciales (no se vuelven a mostrar):</p>
+          <p>Correo: <code>{{ res.email }}</code></p>
+          <p>Contraseña: <code>{{ res.password }}</code></p>
+        }
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="closeCreateDrawer()">Listo</button>
+      </div>
+    } @else if (createTipo() === 'cedula') {
+      <!-- BH4 — alta directa por cédula + PIN (reutiliza la edge acceso-cedula) -->
+      <div [formGroup]="cedulaForm">
+        <p class="admin-usuarios__create-hint">
+          Para personal de campo sin correo de empresa. Entra en la app móvil con su <strong>cédula + PIN de 6 dígitos</strong>.
+          Si la cédula ya existe, el sistema lo avisa en vez de duplicar a la persona.
+        </p>
+        <div class="sgc-field">
+          <label for="ced-nombre">Nombre completo <span class="required" aria-hidden="true">*</span></label>
+          <input id="ced-nombre" type="text" formControlName="nombre" autocomplete="off" aria-required="true"
+            [class.invalid]="cedulaForm.controls.nombre.invalid && cedulaForm.controls.nombre.touched" />
+        </div>
+        <div class="sgc-field">
+          <label for="ced-cedula">Cédula <span class="required" aria-hidden="true">*</span></label>
+          <input id="ced-cedula" type="text" inputmode="numeric" formControlName="cedula" autocomplete="off" aria-required="true"
+            placeholder="000-0000000-0" [class.invalid]="cedulaForm.controls.cedula.invalid && cedulaForm.controls.cedula.touched" />
+          @if (cedulaForm.controls.cedula.invalid && cedulaForm.controls.cedula.touched) {
+            <span class="field-error" role="alert">Ingresa la cédula (solo dígitos y guiones).</span>
+          }
+        </div>
+        <div class="sgc-field">
+          <label for="ced-tipo">Tipo de acceso <span class="required" aria-hidden="true">*</span></label>
+          <select id="ced-tipo" formControlName="tipo">
+            <option value="capataz">Capataz (rol capataz)</option>
+            <option value="conductor">Chofer (rol chofer_transportista)</option>
+          </select>
+        </div>
+        <div class="sgc-field">
+          <label for="ced-pin">PIN de 6 dígitos <span class="required" aria-hidden="true">*</span></label>
+          <input id="ced-pin" type="text" inputmode="numeric" maxlength="6" formControlName="pin" autocomplete="off" aria-required="true"
+            placeholder="Ej. 471025" [class.invalid]="cedulaForm.controls.pin.invalid && cedulaForm.controls.pin.touched" />
+          @if (cedulaForm.controls.pin.invalid && cedulaForm.controls.pin.touched) {
+            <span class="field-error" role="alert">El PIN debe ser exactamente 6 dígitos.</span>
+          }
+        </div>
+      </div>
+      @if (createError()) {
+        <p class="admin-usuarios__save-error" role="alert">{{ createError() }}</p>
+      }
+      <div class="admin-usuarios__drawer-actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="closeCreateDrawer()">Cancelar</button>
+        <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="creating()">
+          {{ creating() ? 'Creando…' : 'Crear acceso' }}
+        </button>
       </div>
     } @else {
       @if (createTipo() === 'invitacion') {
