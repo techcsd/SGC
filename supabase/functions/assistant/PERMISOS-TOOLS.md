@@ -38,6 +38,7 @@
 | stock_por_almacen | inventario_almacen | puede_ver_inventario_bodega (raise 42501) | ✔ | según bodega | oculto | según inv. | oculto |
 | articulos_bajo_minimo | articulos_bajo_minimo→inventario_almacen | ídem (hereda) | ✔ | según bodega | oculto | según inv. | oculto |
 | movimientos_recientes | ultimos_movimientos_articulo | módulo inventario ([] si no) | ✔ | si inv. | oculto | si inv. | oculto |
+| material_en_cuarentena (BG4) | material_en_cuarentena | módulo inventario; el RPC filtra POR BODEGA con puede_ver_inventario_bodega | ✔ | según bodega | oculto | según inv. | oculto |
 | desempeno_semana | desempeno_semana→incentivo_listado | puede_gestionar_incentivos (admin/módulo incentivos) | ✔ | oculto | oculto | ✔ (AY6) | oculto |
 | cronograma_de_obra | listar_cronograma | puede_ver_cronograma(obra) (raise 42501) | ✔ | su obra (pend AY4) | oculto | oculto | oculto |
 | personal_de_obra | personal_obra_conteos | puede_ver_personal_obra(obra) ({} si no) | ✔ | su obra (pend AY4) | oculto | oculto | oculto |

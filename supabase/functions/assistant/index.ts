@@ -274,6 +274,15 @@ const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: { articulo_id: { type: "string" }, limit: { type: "integer" } }, required: ["articulo_id"] },
     rpc: "ultimos_movimientos_articulo", map: (i) => ({ p_articulo_id: i.articulo_id, p_limit: Math.min(Number(i.limit ?? 10), 50) }),
   },
+  {
+    // BG4 — material dañado / en cuarentena (no despachable). "¿cuánto material
+    // dañado hay en Bodega Central?". Solo muestra almacenes visibles al rol.
+    name: "material_en_cuarentena",
+    description: "Material DAÑADO en cuarentena (retirado, NO despachable) por almacén. Úsala para '¿cuánto material dañado hay?', '¿qué hay en cuarentena en Bodega Central?'. Opcional: filtro por texto (artículo o almacén). Solo muestra los almacenes que tu rol puede ver. Requiere inventario.",
+    modulos: ["inventario"],
+    input_schema: { type: "object", properties: { query: { type: "string" } }, additionalProperties: false },
+    rpc: "material_en_cuarentena", map: (i) => ({ p_query: i.query ?? null }),
+  },
   // Incentivo (roles autorizados — puede_gestionar_incentivos)
   {
     name: "desempeno_semana",
