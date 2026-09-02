@@ -96,6 +96,8 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 
 **Smoke E2E por rol (AY8) — ampliado:** el smoke de cada rol de campo incluye **"enviar una bitácora completa"** (parte diario con actividades → escribe `bitacora_catalogo_usos`). Este bug habría saltado ahí. Ver `scripts/smoke-bitacora-roles.mjs`.
 
+**BG2 (PROMPT-28) — el smoke corre contra el ENTORNO REAL y por la ruta de la APP:** `smoke-bitacora-roles.mjs` solo probaba la ruta WEB (`crear_entrada_bitacora`). El bug de las bitácoras atascadas del ingeniero (20/25-ago, RLS) vivía en la ruta de la APP — `crear_bitacora_app` **+ la subida de fotos a Storage** (bucket `sgc-bitacora`), que corre ANTES del RPC como el usuario plano. Ese camino nunca se smokeaba, y menos contra prod: por eso "sobrevivió al fix". Regla ampliada: **el smoke se corre contra el entorno que los usuarios usan, no solo local, y ejerce el flujo de la app (storage + RPC + fotos), no solo el RPC web.** Ver `scripts/smoke-bitacora-app-prod.mjs` (3 roles de campo, 2 fotos c/u, rollback). Fila E2E: `bitácora app (storage+RPC+fotos) × {ingeniero_campo, ingeniero_oficina, capataz} × prod` — verde 01/09/2026.
+
 ## 7. AG16 — Producción de Obra (06/08/2026)
 - **Módulo nuevo `obra`** (Gestión de Producción de Obra) con submódulos AG12: `obra.plan_dia`, `obra.no_conformidades` (enforced), `obra.checklists`, `obra.subcontratistas`, `obra.avance`, `obra.informes`. Añadido a `admin`.
 - **Rol `gerente_produccion`** (Gerente de Producción de Obra) — módulos `obra`, `bitacora`, `proyectos`. Protagonista del workstream.

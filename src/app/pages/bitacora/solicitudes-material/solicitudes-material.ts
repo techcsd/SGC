@@ -43,6 +43,11 @@ const ESTADO_BADGE: Record<string, string> = {
   entregada: 'success',
   cerrada: 'success',
   rechazada: 'danger',
+  // BA6 (Transporte v3 — despachos)
+  por_despachar: 'warning',
+  parcial: 'info',
+  completada: 'success',
+  cancelada: 'neutral',
 };
 
 // A2: "aprobada" = despachada en parte y con compra pendiente por el faltante.
@@ -52,6 +57,11 @@ const ESTADO_LABEL: Record<string, string> = {
   entregada: 'Entregada',
   cerrada: 'Cerrada',
   rechazada: 'Rechazada',
+  // BA6 (Transporte v3 — despachos)
+  por_despachar: 'Por despachar',
+  parcial: 'Despachada en parte',
+  completada: 'Completada',
+  cancelada: 'Cancelada',
 };
 
 const NUEVO_ITEM: () => ItemRow = () => ({

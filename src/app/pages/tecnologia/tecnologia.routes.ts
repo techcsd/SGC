@@ -116,6 +116,15 @@ export const tecnologiaRoutes: Routes = [
     title: 'Consultas de Compa — Tecnología',
   },
   {
+    // BG2 — Outbox atascado: registros que la app no pudo enviar por errores de
+    // sistema (RLS/constraint/5xx) — data real de obra en riesgo. Gate: es_tecnologia.
+    path: 'outbox-atascados',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () =>
+      import('./outbox-atascados/outbox-atascados').then((m) => m.TecOutboxAtascados),
+    title: 'Outbox atascado — Tecnología',
+  },
+  {
     // BD3 — Galería de componentes / design system (tokens + componentes base en
     // ambos temas). Interna: es_tecnologia. Contrato visual del rollout.
     path: 'design-system',

@@ -7,6 +7,12 @@
     </div>
   </header>
 
+  <!-- BG4/AU1 — un solo camino: el material DAÑADO no se saca por aquí. -->
+  <div class="ar-aviso-retiro">
+    ¿Vas a dar de baja material <strong>dañado</strong>? No uses «Ajuste real»: no deja traza ni evidencia.
+    Usa <a routerLink="/inventario/retiros">Retiro de material dañado</a> (solicitud con fotos → cuarentena → disposición auditada).
+  </div>
+
   @if (!esAdmin()) {
     <div class="save-error">Esta herramienta es solo para administradores.</div>
   } @else {

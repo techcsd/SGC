@@ -3,22 +3,66 @@
     "1.107.1": {
       "titulo": "Tipos de aviso administrables + catálogo único de proveedores (transportistas)",
       "cambios": [
-        { "t": "nuevo", "m": "Administración", "d": "La Matriz de notificaciones ahora permite habilitar o deshabilitar cada tipo de aviso (novedades, conduces, flota, etc.) sin tocar código. Las informativas el usuario también puede silenciarlas desde su perfil; las operativas solo se administran aquí." },
-        { "t": "mejora", "m": "Inventario", "d": "Los proveedores de transporte pasaron al catálogo único de proveedores (con el tipo 'transportista'): crear, listar, ratificar y ver sus viajes ahora usan el mismo maestro que el resto de proveedores. Sin cambios en cómo se usa." }
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "La Matriz de notificaciones ahora permite habilitar o deshabilitar cada tipo de aviso (novedades, conduces, flota, etc.) sin tocar código. Las informativas el usuario también puede silenciarlas desde su perfil; las operativas solo se administran aquí."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Los proveedores de transporte pasaron al catálogo único de proveedores (con el tipo 'transportista'): crear, listar, ratificar y ver sus viajes ahora usan el mismo maestro que el resto de proveedores. Sin cambios en cómo se usa."
+        }
       ]
     },
     "1.107.0": {
       "titulo": "Proveedor con tipos, requisiciones corregibles, incentivo reenviable y arreglos críticos",
       "cambios": [
-        { "t": "arreglo", "m": "Compras", "d": "Se corrigió el error que impedía crear un proveedor nuevo (fallaba con un mensaje técnico). Ahora se crea sin problema." },
-        { "t": "nuevo", "m": "Compras", "d": "Un proveedor puede marcarse con uno o varios tipos: ferretería, suministros, transportista u otro. 'Ferretería' lo hace visible a los choferes y 'Transportista' lo habilita para conduces externos." },
-        { "t": "arreglo", "m": "Inventario", "d": "El chofer vuelve a ver todas las obras activas al crear un conduce; se corrigió el selector de obra que salía vacío. Cada selector de obras ahora respeta una política clara por contexto y rol." },
-        { "t": "nuevo", "m": "Requisiciones", "d": "Una requisición se puede corregir después de creada —incluida la obra/ubicación— mientras esté pendiente. Y una requisición rechazada ya no es un callejón: se corrige el motivo y se reenvía la misma (como nueva versión), sin crear otra desde cero." },
-        { "t": "arreglo", "m": "Requisiciones", "d": "Se corrigió el detalle que mostraba 'Solicitante: —' cuando el dato sí existía." },
-        { "t": "nuevo", "m": "Incentivos", "d": "Nuevo 'Gestionar participantes': el admin elige quién aparece en el Desempeño de choferes, con badge de prueba y auditoría de cada cambio." },
-        { "t": "nuevo", "m": "Incentivos", "d": "El informe semanal se puede reenviar con los cambios como versión nueva ('reemplaza al enviado el…'), con motivo obligatorio, destinatarios dirigibles e historial de versiones. Las decisiones ya tomadas se conservan." },
-        { "t": "nuevo", "m": "Administración", "d": "La Matriz de notificaciones ahora muestra la traza de entrega de cada aviso (enviada, fallida por token vencido, u omitida por falta de dispositivo o silenciado), para diagnosticar por qué una alerta no llegó. Además, silenciar un aviso ahora también detiene el push, no solo lo oculta." },
-        { "t": "mejora", "m": "Proyectos", "d": "Personal de obra (registro, expediente, carnet, contratos, import de Excel) ahora es visible también para RRHH desde la web." }
+        {
+          "t": "arreglo",
+          "m": "Compras",
+          "d": "Se corrigió el error que impedía crear un proveedor nuevo (fallaba con un mensaje técnico). Ahora se crea sin problema."
+        },
+        {
+          "t": "nuevo",
+          "m": "Compras",
+          "d": "Un proveedor puede marcarse con uno o varios tipos: ferretería, suministros, transportista u otro. 'Ferretería' lo hace visible a los choferes y 'Transportista' lo habilita para conduces externos."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "El chofer vuelve a ver todas las obras activas al crear un conduce; se corrigió el selector de obra que salía vacío. Cada selector de obras ahora respeta una política clara por contexto y rol."
+        },
+        {
+          "t": "nuevo",
+          "m": "Requisiciones",
+          "d": "Una requisición se puede corregir después de creada —incluida la obra/ubicación— mientras esté pendiente. Y una requisición rechazada ya no es un callejón: se corrige el motivo y se reenvía la misma (como nueva versión), sin crear otra desde cero."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "Se corrigió el detalle que mostraba 'Solicitante: —' cuando el dato sí existía."
+        },
+        {
+          "t": "nuevo",
+          "m": "Incentivos",
+          "d": "Nuevo 'Gestionar participantes': el admin elige quién aparece en el Desempeño de choferes, con badge de prueba y auditoría de cada cambio."
+        },
+        {
+          "t": "nuevo",
+          "m": "Incentivos",
+          "d": "El informe semanal se puede reenviar con los cambios como versión nueva ('reemplaza al enviado el…'), con motivo obligatorio, destinatarios dirigibles e historial de versiones. Las decisiones ya tomadas se conservan."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "La Matriz de notificaciones ahora muestra la traza de entrega de cada aviso (enviada, fallida por token vencido, u omitida por falta de dispositivo o silenciado), para diagnosticar por qué una alerta no llegó. Además, silenciar un aviso ahora también detiene el push, no solo lo oculta."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "Personal de obra (registro, expediente, carnet, contratos, import de Excel) ahora es visible también para RRHH desde la web."
+        }
       ]
     },
     "1.106.1": {
@@ -3244,6 +3288,31 @@
           "t": "nuevo",
           "m": "Requisiciones",
           "d": "El detalle de la requisición ahora muestra su número de versión cuando el solicitante la editó (v2, v3…), y —si fue cancelada— el motivo, quién la canceló y cuándo. Igual que en la app móvil."
+        }
+      ]
+    },
+    "1.108.0": {
+      "titulo": "Registros atascados del outbox + retiro de material dañado",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nuevo panel «Registros atascados (outbox)»: cuando un registro de campo no puede enviarse por un problema del sistema (RLS/constraint), Tecnología recibe alerta con conteo, usuario, error y antigüedad — ya no se descubre por captura de pantalla semanas después."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Retiro de material dañado: solicitud con fotos → aprobación → conduce de retiro → cuarentena (visible pero NO despachable) → disposición final (descarte/reparación/devolución), toda auditada. Compa también consulta cuánto material dañado hay por almacén."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "Cancelar una requisición ya no falla: se actualizó la lista de estados válidos (por despachar/parcial/completada/cancelada)."
+        },
+        {
+          "t": "mejora",
+          "m": "Bitácora",
+          "d": "Los campos de estructura del parte aceptan textos más largos (hasta 200 caracteres) sin cortarse al guardarse."
         }
       ]
     }

@@ -1,0 +1,102 @@
+<div class="oba">
+  <header class="oba-head">
+    <div>
+      <h1>Outbox atascado</h1>
+      <p class="oba-sub">
+        Registros que la app no pudo enviar por errores del sistema (permiso, constraint, servidor).
+        Es data real de obra atascada en el teléfono — no debe perderse. Al publicar el fix,
+        el usuario reintenta y aquí lo marcas resuelto.
+      </p>
+    </div>
+    <button class="oba-btn" (click)="load()" [disabled]="loading()">Actualizar</button>
+  </header>
+
+  @if (error()) {
+    <div class="oba-error">{{ error() }}</div>
+  }
+
+  <!-- KPIs -->
+  @if (conteos(); as c) {
+    <div class="oba-kpis">
+      <div class="oba-kpi oba-kpi--warn">
+        <span class="oba-kpi-n">{{ c.sistema }}</span>
+        <span class="oba-kpi-l">Errores de sistema</span>
+      </div>
+      <div class="oba-kpi">
+        <span class="oba-kpi-n">{{ c.pendientes }}</span>
+        <span class="oba-kpi-l">Pendientes</span>
+      </div>
+      <div class="oba-kpi">
+        <span class="oba-kpi-n">{{ c.usuarios_afectados }}</span>
+        <span class="oba-kpi-l">Usuarios afectados</span>
+      </div>
+      <div class="oba-kpi">
+        <span class="oba-kpi-n">{{ c.fotos_en_riesgo }}</span>
+        <span class="oba-kpi-l">Fotos en riesgo</span>
+      </div>
+      <div class="oba-kpi">
+        <span class="oba-kpi-n">{{ c.mas_viejo_horas }}h</span>
+        <span class="oba-kpi-l">El más viejo</span>
+      </div>
+      <div class="oba-kpi">
+        <span class="oba-kpi-n">{{ c.ultimos_7d }}</span>
+        <span class="oba-kpi-l">Últimos 7 días</span>
+      </div>
+    </div>
+  }
+
+  <!-- Filtros -->
+  <div class="oba-filtros">
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'todas'" (click)="setCategoria('todas')">Todas</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'sistema'" (click)="setCategoria('sistema')">Sistema</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'dato'" (click)="setCategoria('dato')">Dato</button>
+    <button class="oba-chip" [class.active]="filtroCategoria() === 'transitorio'" (click)="setCategoria('transitorio')">Transitorio</button>
+    <span class="oba-sep"></span>
+    <button class="oba-chip" [class.active]="soloPendientes()" (click)="togglePendientes()">Solo pendientes</button>
+  </div>
+
+  @if (loading()) {
+    <p class="oba-empty">Cargando…</p>
+  } @else if (filasVisibles().length === 0) {
+    <p class="oba-empty">No hay registros atascados con este filtro. 🎉</p>
+  } @else {
+    <div class="oba-list">
+      @for (f of filasVisibles(); track f.id) {
+        <article class="oba-item" [class.resuelto]="f.resuelto">
+          <div class="oba-item-top">
+            <span class="oba-badge oba-badge--{{ f.categoria }}">{{ categoriaLabel(f.categoria) }}</span>
+            <span class="oba-tipo">{{ tipoLabel(f.tipo_op) }}</span>
+            @if (f.error_code) { <span class="oba-code">{{ f.error_code }}</span> }
+            @if (f.fotos_count) {
+              <span class="oba-fotos" title="Fotos atascadas con este registro">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>{{ f.fotos_count }}
+              </span>
+            }
+            <span class="oba-fecha">{{ f.primera_vez | date: 'dd/MM/yy HH:mm' }}</span>
+          </div>
+          <div class="oba-meta">
+            @if (f.usuario_nombre) { <span>{{ f.usuario_nombre }}</span> }
+            @if (f.roles_snapshot) { <span class="oba-roles">{{ f.roles_snapshot }}</span> }
+            <span>Intentos: {{ f.intentos }}</span>
+            @if (f.edad_horas != null) { <span>Edad: {{ f.edad_horas }}h</span> }
+          </div>
+          @if (resumenTexto(f.payload_resumen); as res) {
+            @if (res) { <p class="oba-resumen">{{ res }}</p> }
+          }
+          @if (f.error_msg) { <p class="oba-detalle">{{ f.error_msg }}</p> }
+          <div class="oba-actions">
+            @if (!f.resuelto) {
+              <button class="oba-btn oba-btn--sm" (click)="resolver(f, true)">Marcar resuelto</button>
+            } @else {
+              <span class="oba-resuelto-tag">Resuelto</span>
+              <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="resolver(f, false)">Reabrir</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

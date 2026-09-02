@@ -44,6 +44,9 @@ const REGLAS: { re: RegExp; mensaje: string }[] = [
     mensaje: 'Faltan datos obligatorios.' },
   { re: /check constraint|violates check|23514/i,
     mensaje: 'Alguno de los datos no es válido.' },
+  // BG5/varchar — texto más largo que el máximo de la columna (SQLSTATE 22001).
+  { re: /value too long|right truncation|22001/i,
+    mensaje: 'Uno de los textos es demasiado largo. Acórtalo e inténtalo de nuevo.' },
   { re: /infinite recursion|stack depth|deadlock|too many/i,
     mensaje: 'Ocurrió un problema procesando la solicitud. Ya lo estamos revisando.' },
   // BB5 — embed ambiguo de PostgREST (más de una relación entre dos tablas). El

@@ -640,6 +640,7 @@
                   <input
                     type="text"
                     class="sgc-input sgc-input--sm"
+                    maxlength="200"
                     placeholder="+ Otros: ¿qué se hizo? (ej: Curado, Limpieza…)"
                     [value]="otroActividadNombre()"
                     (input)="otroActividadNombre.set($any($event.target).value)"
@@ -664,6 +665,7 @@
             id="bitacora-otros"
             class="sgc-input"
             type="text"
+            maxlength="200"
             placeholder="Ej.: Rampa vehicular, Muro de contención…"
             [value]="otroNombre()"
             (input)="otroNombre.set($any($event.target).value)"

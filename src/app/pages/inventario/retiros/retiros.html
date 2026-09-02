@@ -1,0 +1,308 @@
+<div class="ret">
+  <header class="ret-head">
+    <div>
+      <h1>Retiro de material dañado</h1>
+      <p class="ret-sub">
+        Solicitud con evidencia → aprobación → conduce de retiro → cuarentena (no despachable) → disposición.
+        El material dañado NO vuelve al stock disponible; su único camino es este (no «Ajuste real»).
+      </p>
+    </div>
+    <button class="ret-btn" (click)="abrirCrear()">+ Nuevo retiro</button>
+  </header>
+
+  <div class="ret-tabs">
+    <button class="ret-tab" [class.active]="tab() === 'solicitudes'" (click)="setTab('solicitudes')">Solicitudes</button>
+    <button class="ret-tab" [class.active]="tab() === 'cuarentena'" (click)="setTab('cuarentena')">Cuarentena (stock dañado)</button>
+  </div>
+
+  @if (error()) { <div class="ret-error">{{ error() }}</div> }
+
+  @if (tab() === 'solicitudes') {
+    <div class="ret-filtros">
+      @for (e of ['todos','pendiente','aprobada','en_retiro','en_cuarentena','dispuesta','rechazada','cancelada']; track e) {
+        <button class="ret-chip" [class.active]="filtroEstado() === e" (click)="setFiltro($any(e))">
+          {{ e === 'todos' ? 'Todas' : estadoLabel(e) }}
+        </button>
+      }
+    </div>
+
+    @if (loading()) {
+      <app-skeleton />
+    } @else if (filasVisibles().length === 0) {
+      <p class="ret-empty">No hay retiros con este filtro.</p>
+    } @else {
+      <div class="ret-list">
+        @for (f of filasVisibles(); track f.id) {
+          <article class="ret-item" (click)="abrirDetalle(f)">
+            <div class="ret-item-top">
+              <span class="sgc-badge sgc-badge--{{ estadoBadge(f.estado) }}">{{ estadoLabel(f.estado) }}</span>
+              <span class="ret-folio">RET-{{ (f.folio ?? 0).toString().padStart(6, '0') }}</span>
+              @if (f.es_prueba) { <span class="ret-prueba">PRUEBA</span> }
+              <span class="ret-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
+            </div>
+            <div class="ret-item-body">
+              <strong>{{ f.proyecto_nombre || '—' }}</strong>
+              <span class="ret-motivo">{{ motivoLabel(f.motivo_dano) }}</span>
+            </div>
+            <div class="ret-meta">
+              @if (f.solicitante_nombre) { <span>{{ f.solicitante_nombre }}</span> }
+              <span>{{ f.items_count }} artículo(s)</span>
+              <span>{{ f.fotos_count }} foto(s)</span>
+              @if (f.disposicion) { <span class="ret-disp">{{ disposicionLabel(f.disposicion) }}</span> }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  } @else {
+    <!-- Cuarentena -->
+    @if (loading()) {
+      <app-skeleton />
+    } @else if (cuarentena().length === 0) {
+      <p class="ret-empty">No hay material en cuarentena. 🎉</p>
+    } @else {
+      <div class="ret-table-wrap">
+        <table class="ret-table">
+          <thead>
+            <tr><th>Almacén</th><th>Artículo</th><th>Código</th><th class="num">Cantidad</th><th>Actualizado</th></tr>
+          </thead>
+          <tbody>
+            @for (c of cuarentena(); track c.articulo_id + c.bodega_id) {
+              <tr>
+                <td>{{ c.bodega_nombre || '—' }}</td>
+                <td>{{ c.articulo_nombre || '—' }}</td>
+                <td>{{ c.codigo || '—' }}</td>
+                <td class="num">{{ c.cantidad }}</td>
+                <td>{{ c.updated_at | date: 'dd/MM/yy' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
+
+<!-- ── Crear ────────────────────────────────────────────────────────────────── -->
+<app-form-drawer [title]="'Nuevo retiro de material dañado'" [open]="crearAbierto()" (closed)="crearAbierto.set(false)">
+  <div class="drawer-form">
+    <div class="sgc-field">
+      <label>Obra <span class="required">*</span></label>
+      <select [value]="fProyecto()" (change)="fProyecto.set($any($event.target).value)">
+        <option value="">Selecciona la obra…</option>
+        @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+      </select>
+    </div>
+
+    <div class="sgc-field">
+      <label>Almacén destino (cuarentena)</label>
+      <select [value]="fAlmacen()" (change)="fAlmacen.set($any($event.target).value)">
+        <option value="">— (se asigna al aprobar)</option>
+        @for (b of bodegas(); track b.id) { <option [value]="b.id">{{ b.nombre }}</option> }
+      </select>
+    </div>
+
+    <div class="sgc-field">
+      <label>Motivo del daño <span class="required">*</span></label>
+      <select [value]="fMotivo()" (change)="fMotivo.set($any($event.target).value)">
+        <option value="danado_obra">Dañado en obra</option>
+        <option value="defecto_fabrica">Defecto de fábrica</option>
+        <option value="vencido">Vencido</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    @if (fMotivo() === 'otro') {
+      <div class="sgc-field">
+        <label>Detalle del motivo <span class="required">*</span></label>
+        <input type="text" maxlength="300" [value]="fMotivoDetalle()" (input)="fMotivoDetalle.set($any($event.target).value)" placeholder="Describe el daño" />
+      </div>
+    }
+
+    <div class="sgc-field">
+      <label>Artículos a retirar <span class="required">*</span></label>
+      @for (item of fItems(); track $index) {
+        <div class="ret-item-row">
+          <app-articulo-picker
+            [articulos]="articulos()"
+            [categorias]="categorias()"
+            [value]="item.articulo_id || null"
+            [esOtro]="item.esOtro"
+            (selectionChange)="onPick($index, $event)"
+          />
+          @if (item.esOtro) {
+            <input class="ret-desc" type="text" maxlength="200" [value]="item.descripcion" (input)="setDescripcion($index, $any($event.target).value)" placeholder="Describe el artículo" />
+          }
+          <app-qty-stepper [value]="item.cantidad" [min]="0" [step]="1" (valueChange)="setCantidad($index, $event)" />
+          <input class="ret-unidad" type="text" [value]="item.unidad" (input)="setUnidad($index, $any($event.target).value)" placeholder="Unidad" />
+          @if (fItems().length > 1) {
+            <button type="button" class="ret-x" (click)="removeItem($index)" aria-label="Quitar">×</button>
+          }
+        </div>
+      }
+      <button type="button" class="ret-btn ret-btn--ghost ret-btn--sm" (click)="addItem()">+ Otro artículo</button>
+    </div>
+
+    <div class="sgc-field">
+      <label>Fotos del material dañado <span class="required">*</span></label>
+      <input type="file" accept="image/*" multiple (change)="onFotoSelected($event)" [disabled]="subiendoFoto()" />
+      @if (subiendoFoto()) { <span class="ret-hint">Subiendo…</span> }
+      @if (fFotos().length) {
+        <div class="ret-fotos-chips">
+          @for (foto of fFotos(); track foto.path) {
+            <span class="ret-foto-chip">{{ foto.nombre }} <button type="button" (click)="removeFoto($index)">×</button></span>
+          }
+        </div>
+      }
+      <span class="ret-hint">La evidencia es obligatoria: material dañado sin foto es un hueco de control.</span>
+    </div>
+
+    <div class="sgc-field">
+      <label>Notas</label>
+      <textarea rows="2" maxlength="500" [value]="fNotas()" (input)="fNotas.set($any($event.target).value)"></textarea>
+    </div>
+
+    <div class="drawer-actions">
+      <button type="button" class="ret-btn ret-btn--ghost" (click)="crearAbierto.set(false)">Cancelar</button>
+      <button type="button" class="ret-btn" (click)="guardarCrear()" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Solicitar retiro' }}
+      </button>
+    </div>
+  </div>
+</app-form-drawer>
+
+<!-- ── Detalle ──────────────────────────────────────────────────────────────── -->
+<app-form-drawer [title]="'Detalle del retiro'" [open]="detalleAbierto()" [wide]="true" (closed)="detalleAbierto.set(false)">
+  @if (retiroActual; as r) {
+    <div class="ret-detalle">
+      <div class="ret-item-top">
+        <span class="sgc-badge sgc-badge--{{ estadoBadge($any(r['estado'])) }}">{{ estadoLabel($any(r['estado'])) }}</span>
+        <span class="ret-folio">RET-{{ ($any(r['folio']) ?? 0).toString().padStart(6, '0') }}</span>
+      </div>
+      <p class="ret-d-line"><strong>Obra:</strong> {{ r['proyecto_nombre'] }}</p>
+      <p class="ret-d-line"><strong>Solicitante:</strong> {{ r['solicitante_nombre'] }}</p>
+      <p class="ret-d-line"><strong>Motivo:</strong> {{ motivoLabel($any(r['motivo_dano'])) }}
+        @if (r['motivo_dano_detalle']) { — {{ r['motivo_dano_detalle'] }} }</p>
+      @if (r['almacen_nombre']) { <p class="ret-d-line"><strong>Almacén destino:</strong> {{ r['almacen_nombre'] }}</p> }
+      @if (r['notas']) { <p class="ret-d-line"><strong>Notas:</strong> {{ r['notas'] }}</p> }
+      @if (r['rechazada_motivo']) { <p class="ret-d-line ret-danger"><strong>Rechazo:</strong> {{ r['rechazada_motivo'] }}</p> }
+      @if (r['cancelada_motivo']) { <p class="ret-d-line"><strong>Cancelación:</strong> {{ r['cancelada_motivo'] }}</p> }
+      @if (r['disposicion']) { <p class="ret-d-line ret-success"><strong>Disposición:</strong> {{ disposicionLabel($any(r['disposicion'])) }}
+        @if (r['disposicion_nota']) { — {{ r['disposicion_nota'] }} }</p> }
+
+      <h3 class="ret-d-h">Artículos</h3>
+      <ul class="ret-d-items">
+        @for (it of itemsActual; track $index) {
+          <li>{{ it.descripcion }} — {{ it.cantidad }} {{ it.unidad }}</li>
+        }
+      </ul>
+
+      @if (detalleFotosUrls().length) {
+        <h3 class="ret-d-h">Evidencia</h3>
+        <div class="ret-d-fotos">
+          @for (u of detalleFotosUrls(); track u) { <img [src]="u" alt="Evidencia" /> }
+        </div>
+      }
+
+      <!-- Acciones por estado -->
+      @if (accion() === 'ver') {
+        <div class="drawer-actions ret-wrap">
+          @switch (r['estado']) {
+            @case ('pendiente') {
+              <button class="ret-btn" (click)="aprobar()" [disabled]="procesando()">Aprobar</button>
+              <button class="ret-btn ret-btn--ghost" (click)="setAccion('rechazar')">Rechazar</button>
+              <button class="ret-btn ret-btn--ghost" (click)="setAccion('cancelar')">Cancelar</button>
+            }
+            @case ('aprobada') {
+              <button class="ret-btn" (click)="setAccion('conduce')">Generar conduce de retiro</button>
+              <button class="ret-btn ret-btn--ghost" (click)="setAccion('recibir')">Recibir directo</button>
+              <button class="ret-btn ret-btn--ghost" (click)="setAccion('cancelar')">Cancelar</button>
+            }
+            @case ('en_retiro') {
+              <button class="ret-btn" (click)="setAccion('recibir')">Recibir (cuarentena)</button>
+            }
+            @case ('en_cuarentena') {
+              <button class="ret-btn" (click)="setAccion('disponer')">Disponer</button>
+            }
+          }
+        </div>
+      }
+
+      @if (accion() === 'rechazar' || accion() === 'cancelar') {
+        <div class="ret-accion">
+          <label>Motivo <span class="required">*</span></label>
+          <textarea rows="2" [value]="aMotivo()" (input)="aMotivo.set($any($event.target).value)"></textarea>
+          <div class="drawer-actions">
+            <button class="ret-btn ret-btn--ghost" (click)="setAccion('ver')">Volver</button>
+            <button class="ret-btn" [disabled]="procesando()"
+              (click)="accion() === 'rechazar' ? confirmarRechazo() : confirmarCancelar()">
+              {{ accion() === 'rechazar' ? 'Rechazar' : 'Cancelar retiro' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (accion() === 'conduce') {
+        <div class="ret-accion">
+          <label>¿Quién transporta? <span class="required">*</span></label>
+          <input type="text" [value]="aTransporta()" (input)="aTransporta.set($any($event.target).value)" placeholder="Chofer propio o proveedor externo" />
+          <label>Foto de la placa <span class="required">*</span></label>
+          <input type="file" accept="image/*" (change)="subirA('placa', $event)" />
+          @if (aPlacaPath()) { <span class="ret-ok">✓ placa subida</span> }
+          <label>Foto de la carga</label>
+          <input type="file" accept="image/*" (change)="subirA('carga', $event)" />
+          @if (aCargaPath()) { <span class="ret-ok">✓ carga subida</span> }
+          <label>Firma del emisor</label>
+          <input type="file" accept="image/*" (change)="subirA('emisor', $event)" />
+          @if (aEmisorFirmaPath()) { <span class="ret-ok">✓ firma subida</span> }
+          <div class="drawer-actions">
+            <button class="ret-btn ret-btn--ghost" (click)="setAccion('ver')">Volver</button>
+            <button class="ret-btn" (click)="confirmarConduce()" [disabled]="procesando()">Generar conduce</button>
+          </div>
+        </div>
+      }
+
+      @if (accion() === 'recibir') {
+        <div class="ret-accion">
+          <label>Foto de recepción <span class="required">*</span></label>
+          <input type="file" accept="image/*" (change)="subirA('recepFoto', $event)" />
+          @if (aRecepFotoPath()) { <span class="ret-ok">✓ foto subida</span> }
+          <label>Firma del receptor <span class="required">*</span></label>
+          <input type="file" accept="image/*" (change)="subirA('recepFirma', $event)" />
+          @if (aRecepFirmaPath()) { <span class="ret-ok">✓ firma subida</span> }
+          <label>Notas</label>
+          <textarea rows="2" [value]="aRecepNotas()" (input)="aRecepNotas.set($any($event.target).value)"></textarea>
+          <div class="drawer-actions">
+            <button class="ret-btn ret-btn--ghost" (click)="setAccion('ver')">Volver</button>
+            <button class="ret-btn" (click)="confirmarRecibir()" [disabled]="procesando()">Recibir a cuarentena</button>
+          </div>
+        </div>
+      }
+
+      @if (accion() === 'disponer') {
+        <div class="ret-accion">
+          <label>Disposición final <span class="required">*</span></label>
+          <select [value]="aDisposicion()" (change)="aDisposicion.set($any($event.target).value)">
+            <option value="descarte">Descarte (merma)</option>
+            <option value="reparacion">Reparación (vuelve a disponible)</option>
+            <option value="devolucion">Devolución a proveedor</option>
+          </select>
+          @if (aDisposicion() === 'devolucion') {
+            <label>Proveedor <span class="required">*</span></label>
+            <select [value]="aProveedor()" (change)="aProveedor.set($any($event.target).value)">
+              <option value="">Selecciona…</option>
+              @for (p of proveedores(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+            </select>
+          }
+          <label>Nota</label>
+          <textarea rows="2" [value]="aDisposicionNota()" (input)="aDisposicionNota.set($any($event.target).value)"></textarea>
+          <div class="drawer-actions">
+            <button class="ret-btn ret-btn--ghost" (click)="setAccion('ver')">Volver</button>
+            <button class="ret-btn" (click)="confirmarDisponer()" [disabled]="procesando()">Registrar disposición</button>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="ret-empty">Cargando…</p>
+  }
+</app-form-drawer>

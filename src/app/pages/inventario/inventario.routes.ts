@@ -57,6 +57,15 @@ export const inventarioRoutes: Routes = [
     loadComponent: () => import('./requisiciones/requisiciones').then((m) => m.Requisiciones),
     title: 'Requisiciones — Inventario',
   },
+  {
+    // BG4 — retiro de material dañado: solicitud → aprobación → conduce de retiro →
+    // cuarentena (no despachable) → disposición. SIN gate de submódulo: la RLS de
+    // retiros_material + los RPCs (puede_gestionar_retiro/puede_disponer_retiro) son
+    // el filtro real (responsable de obra ve/crea los suyos; almacén gestiona).
+    path: 'retiros',
+    loadComponent: () => import('./retiros/retiros').then((m) => m.InventarioRetiros),
+    title: 'Retiro de material dañado — Inventario',
+  },
   // AU8 — 'por-firmar' se movió a ruta top-level (/por-firmar, gateada por
   // noChoferGuard) porque es un inbox personal que no debe heredar el guard del
   // módulo Inventario. Ver app.routes.ts. /inventario/por-firmar redirige allí.

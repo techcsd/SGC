@@ -24,15 +24,35 @@ table…`). Ver `ROLES.md §6.1`.
 
 - **Guarda:** `scripts/audit-rls-tablas-nuevas.mjs` (on-demand, necesita DB).
 
-## 3. Grants de schema y secuencias
+## 3. Estado nuevo ⇒ constraint/enum actualizado en la MISMA migración (BG5)
+Al añadir un valor de `estado` (o cualquier columna con `CHECK (col in (...))` o enum) que
+el código va a escribir, **recrear el constraint con la lista completa en la misma
+migración** + smoke de **cada transición**.
+
+- **Por qué:** el código puede escribir un estado nuevo, pero si el `CHECK` de la tabla no
+  lo incluye, el `UPDATE`/`INSERT` revienta con `violates check constraint`.
+- **Caso real (BG5):** BA6 añadió `por_despachar`/`parcial`/`completada`/`cancelada` en los
+  RPCs, pero `solicitudes_material_estado_check` seguía con los 5 originales → cancelar
+  REQ-000026 explotaba. Fix: `sql/2026-09-01-bg5-requisicion-estado-constraint.sql`.
+- **Regla de amplitud:** ampliar la lista nunca viola filas existentes (es aditivo);
+  restringirla sí — no quites valores sin migrar los datos.
+- **Auditoría (01/09/2026):** revisadas las demás máquinas de estado con `*_estado_check`
+  (`salidas_inventario`, `rutas`, `ruta_paradas`, `conduces_externos`, `ordenes_compra`,
+  `chofer`) — todas al día con los estados que su código escribe. La única desactualizada
+  era `solicitudes_material`. Repetir esta auditoría al tocar cualquier máquina de estado.
+- **Manejador global (BF1/PROMPT-26 F1.3):** `friendly-error.util.ts` ya mapea `23514`
+  (check violation) a mensaje humano ("Alguno de los datos no es válido") — red de
+  seguridad mientras el constraint no esté al día; el fix real es siempre el constraint.
+
+## 4. Grants de schema y secuencias
 Al crear tabla/función/secuencia en `sgc`, verificar `grant` a `authenticated`/`service_role`
 según corresponda (bugs históricos: `permission denied for schema sgc`,
 `permission denied for sequence roles_id_seq`).
 
-## 4. RPCs de escritura para roles no-admin → `SECURITY DEFINER`
+## 5. RPCs de escritura para roles no-admin → `SECURITY DEFINER`
 Gemelo del gate de módulo. La guarda `verify-regresiones.mjs` exige `security definer`
 en RPCs marcados y detecta el cierre `$function$`.
 
-## 5. Aditivo y retrocompatible
+## 6. Aditivo y retrocompatible
 `add column if not exists`, `create ... if not exists`, `create or replace`. Nunca romper
 un contrato que la app (csd-app) ya consume — **paridad web↔app**.

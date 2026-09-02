@@ -19,3 +19,16 @@
 .ar-result { padding: 20px; border: 1px solid var(--sgc-border); border-radius: 14px; background: var(--sgc-surface);
   h2 { margin: 0 0 8px; font-size: 17px; } }
 @media (max-width: 768px) { .page { padding: 16px 14px; } }
+
+// BG4 — aviso: el material dañado va por Retiro, no por Ajuste real (regla un-solo-camino AU1).
+.ar-aviso-retiro {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+
+  a { color: inherit; font-weight: 600; text-decoration: underline; }
+}
