@@ -465,6 +465,13 @@ export class Ordenes implements OnInit {
       return;
     }
 
+    // BH8 — una OC directa (sin solicitud de procedencia) salta el control de la
+    // requisición; se permite (compras de oficina), pero deja traza: motivo obligatorio.
+    if (!this.solicitudEnAtencion() && !(this.form.value.notas ?? '').trim()) {
+      this.saveError.set('Esta es una orden directa (sin solicitud previa): indica el motivo en «Notas» para dejar traza.');
+      return;
+    }
+
     this.saving.set(true);
     this.saveError.set('');
 

@@ -281,12 +281,15 @@
     </div>
 
     <div class="sgc-field">
-      <label for="notas">Notas</label>
+      <label for="notas">
+        Notas
+        @if (!solicitudEnAtencion()) { <span class="required" aria-hidden="true">*</span> }
+      </label>
       <textarea
         id="notas"
         formControlName="notas"
         rows="2"
-        placeholder="Notas adicionales…"
+        [placeholder]="solicitudEnAtencion() ? 'Notas adicionales…' : 'Orden directa (sin solicitud): indica el motivo…'"
       ></textarea>
     </div>
 

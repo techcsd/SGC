@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.109.1": {
+      "titulo": "Orden de compra directa con motivo + panel de errores más legible",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Compras",
+          "d": "Crear una orden de compra «directa» (sin una solicitud de procedencia) ahora pide un motivo en Notas, para que quede traza de por qué se emitió fuera del flujo normal. Las órdenes que nacen de una solicitud no cambian."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "El panel de errores deja de llenarse con el ruido del «watchdog re-armándose» (que tapaba casi la mitad de la bandeja): ese patrón se descarta al registrarse y se limpiaron las ocurrencias viejas. Los errores reales del watcher y de sincronización se siguen registrando."
+        },
+        {
+          "t": "arreglo",
+          "m": "Proyectos",
+          "d": "La obra de prueba «saasasa» se desactivó para que deje de aparecer en los selectores de obra."
+        }
+      ]
+    },
     "1.109.0": {
       "titulo": "Requisiciones y compras más claras, alta por cédula y la ruta que se crea sola",
       "cambios": [
