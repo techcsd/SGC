@@ -91,17 +91,48 @@ Deno.serve(async (req: Request) => {
     const { data: callerData, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
 
-    // BI6 — gate único: admin o tecnología (crear acceso y rotar PIN).
-    const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
-    const { data: esTec } = await callerClient.schema("sgc").rpc("es_tecnologia");
-    if (!isAdmin && !esTec) return json({ error: "No autorizado. Solo Administración o Tecnología pueden gestionar accesos de campo." }, 403);
-
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
     const audit = (action: string, targetUserId: string | null, metadata: Record<string, unknown>) =>
       admin.from("audit_log").insert({ actor_id: callerData.user.id, action, target_user_id: targetUserId, metadata }).then(() => {}, () => {});
 
     const body = await req.json();
     const { tipo, entityId, usuarioId, pin, nombre: nombreDirecto, cedula: cedulaDirecta } = body;
+
+    // ── MODO 4 (BI6-FASE5): el PROPIO usuario rota SU PIN de acceso ────────────
+    // NO pasa por el gate admin/tecnología: cualquier trabajador autenticado puede
+    // cambiar SU PROPIO PIN, verificando el actual (re-auth). Solo aplica a cuentas
+    // de email sintético (acceso por cédula); las de correo real usan el enlace por
+    // correo. Nunca puede tocar el PIN de OTRO usuario: el target es siempre el uid
+    // del token. Queda auditado (via='self'). Va ANTES del gate a propósito.
+    if (body?.self === true) {
+      const uid = callerData.user.id;
+      const pinActual = String(body.pinActual ?? "");
+      const pinNuevo = String(body.pinNuevo ?? "");
+      if (!/^\d{6}$/.test(pinNuevo)) return json({ error: "El PIN nuevo debe tener exactamente 6 dígitos." }, 400);
+      const { data: me } = await admin.from("usuarios").select("id, email, cedula").eq("id", uid).maybeSingle();
+      if (!me) return json({ error: "Usuario no encontrado." }, 404);
+      const email = String(me.email ?? "");
+      if (!esEmailSintetico(email)) {
+        return json({ error: "Tu cuenta inicia sesión con correo. Para cambiar tu contraseña usa el enlace de restablecimiento por correo." }, 409);
+      }
+      if (pinNuevo === pinActual) return json({ error: "El PIN nuevo debe ser distinto del actual." }, 400);
+      // Verifica el PIN actual re-autenticando en un cliente efímero (no toca la sesión).
+      const check = createClient(supabaseUrl, anonKey);
+      const { error: reauthErr } = await check.auth.signInWithPassword({ email, password: pinActual });
+      if (reauthErr) return json({ error: "Tu PIN actual no es correcto." }, 401);
+      const cedForCheck = String(me.cedula ?? "") || email.split("@")[0].replace(/^(cap-|c-|t-)/, "");
+      if (esPinTrivial(pinNuevo, cedForCheck)) return json({ error: "Ese PIN es demasiado fácil de adivinar (repetido, secuencia o tu cédula). Elige otro." }, 400);
+      const { error: updErr } = await admin.auth.admin.updateUserById(uid, { password: pinNuevo });
+      if (updErr) return json({ error: `No se pudo cambiar el PIN: ${updErr.message}` }, 400);
+      await admin.from("conductor_login_intentos").delete().eq("cedula", cedForCheck.replace(/\D/g, "")).then(() => {}, () => {});
+      await audit("credencial_pin_rotado", uid, { via: "self", email });
+      return json({ self: true, rotated: true });
+    }
+
+    // BI6 — gate único para gestionar accesos de OTROS: admin o tecnología.
+    const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
+    const { data: esTec } = await callerClient.schema("sgc").rpc("es_tecnologia");
+    if (!isAdmin && !esTec) return json({ error: "No autorizado. Solo Administración o Tecnología pueden gestionar accesos de campo." }, 403);
 
     // ── MODO 3 (BI5): rotar el PIN de un usuario existente por su id ───────────
     if (typeof usuarioId === "string" && usuarioId) {
