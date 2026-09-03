@@ -49,9 +49,14 @@ Deno.serve(async (req: Request) => {
     if (callerError || !callerData.user) return json({ error: "Sesión inválida." }, 401);
 
     const { data: isAdmin } = await callerClient.schema("sgc").rpc("is_admin");
+    const { data: esTec } = await callerClient.schema("sgc").rpc("es_tecnologia");
     const { data: tieneFlota } = await callerClient.schema("sgc").rpc("tiene_modulo", { p_modulo: "flota" });
-    if (!isAdmin && !tieneFlota) {
-      return json({ error: "No autorizado. Solo admin o Flota puede generar accesos." }, 403);
+    // BI6 — gate. La ruta go-forward (acceso-cedula) exige admin/tecnología; ésta es la
+    // legacy que la APP usa para que un jefe de flota dé de alta choferes desde el móvil,
+    // así que se MANTIENE flota (no se rompe ese flujo real) y se AÑADE tecnología. El
+    // cierre total a admin+tecnología va con el gating de UI de la app (PROMPT-33, regla 4).
+    if (!isAdmin && !esTec && !tieneFlota) {
+      return json({ error: "No autorizado. Solo Administración, Tecnología o Flota puede generar accesos." }, 403);
     }
 
     const { conductorId, pin, mode } = await req.json();
@@ -64,6 +69,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const admin = createClient(supabaseUrl, serviceRoleKey, { db: { schema: "sgc" } });
+    // BI6 — toda creación/rotación/resync de credencial de campo queda en audit_log.
+    const audit = (action: string, targetUserId: string | null, metadata: Record<string, unknown>) =>
+      admin.from("audit_log").insert({ actor_id: callerData.user.id, action, target_user_id: targetUserId, metadata }).then(() => {}, () => {});
 
     // ── AA2 — MODO sync-cedula ────────────────────────────────────────────
     // Tras cambiar la cédula de un conductor con acceso PIN, el email sintético
@@ -113,6 +121,7 @@ Deno.serve(async (req: Request) => {
       await admin.from("conductor_login_intentos").delete()
         .eq("cedula", (cond.cedula || "").replace(/\D/g, ""));
 
+      await audit("credencial_email_resync", cond.usuario_id, { via: "conductor", email: newEmail, anterior: currentEmail });
       return json({ synced: true, email: newEmail });
     }
 
@@ -152,6 +161,7 @@ Deno.serve(async (req: Request) => {
       if (updErr) return json({ error: `No se pudo actualizar el PIN: ${updErr.message}` }, 400);
       // Limpiar cualquier bloqueo previo.
       await admin.from("conductor_login_intentos").delete().eq("cedula", conductor.cedula);
+      await audit("credencial_pin_rotado", conductor.usuario_id, { via: "conductor", cedula: (conductor.cedula || "").replace(/\D/g, ""), email });
       return json({ email, usuarioId: conductor.usuario_id, rotated: true });
     }
 
@@ -214,6 +224,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", conductorId);
     if (linkErr) return json({ error: `No se pudo enlazar el conductor: ${linkErr.message}` }, 400);
 
+    await audit("credencial_acceso_creado", userId, { via: "conductor", cedula: (conductor.cedula || "").replace(/\D/g, ""), email, rol: "chofer_transportista" });
     return json({ email, usuarioId: userId, created: true });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);

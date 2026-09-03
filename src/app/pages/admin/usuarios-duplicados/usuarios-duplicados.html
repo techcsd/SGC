@@ -1,0 +1,84 @@
+<div class="dup-head">
+  <div>
+    <h1>Usuarios duplicados</h1>
+    <p>Personas que aparecen en dos filas (a veces con cédulas distintas). Fusiónalas en una sola para no repartir su actividad ni su incentivo. Todo queda en la auditoría.</p>
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="recargar()" [disabled]="loading()">Actualizar</button>
+</div>
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="4" />
+} @else if (error()) {
+  <div class="dup-error" role="alert">{{ error() }}</div>
+} @else if (candidatos().length === 0) {
+  <div class="dup-empty">No se detectaron personas duplicadas. 🎉</div>
+} @else {
+  <p class="dup-count">{{ candidatos().length }} par(es) candidato(s) a fusión.</p>
+  <ul class="dup-list">
+    @for (c of candidatos(); track keyDe(c)) {
+      <li class="dup-card">
+        <button type="button" class="dup-card__row" (click)="toggle(c)"
+          [attr.aria-expanded]="expandKey() === keyDe(c)">
+          <div class="dup-card__pair">
+            <span class="dup-person">
+              <strong>{{ c.nombre_a }}</strong>
+              <span class="dup-meta">{{ c.cedula_a ? 'Cédula ' + c.cedula_a : identidad({ email: c.email_a, cedula: c.cedula_a }) }}</span>
+              @if (!c.activo_a) { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+            </span>
+            <span class="dup-vs">↔</span>
+            <span class="dup-person">
+              <strong>{{ c.nombre_b }}</strong>
+              <span class="dup-meta">{{ c.cedula_b ? 'Cédula ' + c.cedula_b : identidad({ email: c.email_b, cedula: c.cedula_b }) }}</span>
+              @if (!c.activo_b) { <span class="sgc-badge sgc-badge--neutral">Inactivo</span> }
+            </span>
+          </div>
+          <span class="dup-card__score">{{ c.motivo }} · {{ (c.score * 100) | number:'1.0-0' }}%</span>
+        </button>
+
+        @if (expandKey() === keyDe(c)) {
+          <div class="dup-card__body">
+            @if (resultado(); as r) {
+              <div class="dup-result">
+                <p>✓ Fusión hecha. Se re-apuntaron <strong>{{ r.tablas_reapuntadas.length }}</strong> tabla(s).</p>
+                @if (r.conflictos.length) {
+                  <p class="dup-conflict">⚠️ Requieren revisión manual (no se borró nada): {{ r.conflictos.join(', ') }}</p>
+                }
+              </div>
+            } @else {
+              <p class="dup-choose-label">Elige cuál es el usuario <strong>canónico</strong> (el que se queda):</p>
+              <div class="dup-choose">
+                <label class="dup-choose__opt" [class.active]="canonicoId() === c.id_a">
+                  <input type="radio" [checked]="canonicoId() === c.id_a" (change)="elegirCanonico(c, c.id_a)" />
+                  {{ c.nombre_a }}
+                </label>
+                <label class="dup-choose__opt" [class.active]="canonicoId() === c.id_b">
+                  <input type="radio" [checked]="canonicoId() === c.id_b" (change)="elegirCanonico(c, c.id_b)" />
+                  {{ c.nombre_b }}
+                </label>
+              </div>
+
+              <p class="dup-preview-label">Actividad del duplicado que se re-apuntaría al canónico:</p>
+              @if (previewLoading()) {
+                <p class="dup-meta">Calculando…</p>
+              } @else if (preview().length === 0) {
+                <p class="dup-meta">El duplicado no tiene actividad registrada.</p>
+              } @else {
+                <div class="dup-preview">
+                  @for (f of preview(); track f.tabla) {
+                    <span class="dup-chip">{{ f.tabla }} <em>{{ f.filas }}</em></span>
+                  }
+                </div>
+                <p class="dup-total">{{ totalFilas() }} registros en total.</p>
+              }
+
+              @if (fusionError()) { <p class="dup-error" role="alert">{{ fusionError() }}</p> }
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="fusionar(c)" [disabled]="fusionando()">
+                {{ fusionando() ? 'Fusionando…' : 'Fusionar en el canónico' }}
+              </button>
+            }
+          </div>
+        }
+      </li>
+    }
+  </ul>
+}

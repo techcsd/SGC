@@ -1,20 +1,22 @@
-// smoke-bitacora-app-prod.mjs — BG2 (PROMPT-28 FASE 1).
+// smoke-bitacora-app-prod.mjs — BG2 + BI1 (PROMPT-32 FASE 2).
 //
-// El smoke que faltaba. `smoke-bitacora-roles.mjs` prueba la ruta WEB
-// (`crear_entrada_bitacora`), pero el bug de las bitácoras atascadas del ingeniero
-// (20 y 25-ago, RLS) vivía en la ruta que usa la APP: `crear_bitacora_app` + la
-// subida de fotos a Storage (bucket sgc-bitacora) que corre ANTES del RPC como el
-// usuario plano. Ese camino nunca se smokeaba, y menos CONTRA EL ENTORNO REAL —
-// por eso el bug "sobrevivió al fix". Regla BC7 ampliada: el smoke se corre contra
-// el entorno que los usuarios usan, no solo local.
+// El smoke que faltaba, ARREGLADO. La versión anterior insertaba objetos en
+// RUTAS NUEVAS y hacía rollback (el único camino que SIEMPRE funcionaba: INSERT),
+// dio verde mientras el REINTENTO seguía roto, y cerró la investigación de BG2 en
+// falso. La lección más cara de la tanda BI: **el smoke de un flujo con outbox
+// tiene que REINTENTAR**. La app sube las fotos con upsert:true a rutas
+// deterministas; el 1er intento es un INSERT (permitido), pero TODO reintento
+// re-sube la misma ruta → UPDATE sobre storage.objects → sin política UPDATE,
+// "new row violates row-level security policy". Ese era el bug de sgc-bitacora.
 //
-// Ejerce, por cada rol de campo (ingeniero_campo / ingeniero_oficina / capataz),
-// EL FLUJO COMPLETO como el rol REAL (JWT simulado, rol authenticated):
-//   1) INSERT en storage.objects del bucket sgc-bitacora (la subida de fotos),
-//   2) `crear_bitacora_app` con 2 fotos + una actividad (ejerce bitacoras,
-//      bitacora_actividades, bitacora_catalogo_usos, bitacora_archivos),
-// y hace ROLLBACK — no deja datos. Falla con código !=0 si algún rol no puede
-// completar el flujo (RLS/constraint/permiso).
+// Este smoke, por cada rol de campo (ingeniero_campo / ingeniero_oficina /
+// capataz), ejerce el flujo COMPLETO como el rol REAL, DOS VECES sobre la MISMA
+// carga (mismas rutas de foto), y **exige que la SEGUNDA pasada pase**:
+//   1) subir fotos (INSERT en storage.objects, 1er intento),
+//   2) crear_bitacora_app con 2 fotos + actividad,
+//   3) RE-subir las MISMAS rutas (UPDATE vía upsert — el reintento),   ← la 2ª pasada
+//   4) crear_bitacora_app de nuevo (idempotente por p_id).
+// Todo en una transacción con ROLLBACK — no deja datos.
 //
 // Uso:  node scripts/smoke-bitacora-app-prod.mjs
 // Necesita SUPABASE_ACCESS_TOKEN. On-demand (necesita DB); no corre en prebuild.
@@ -65,27 +67,39 @@ for (const rol of ROLES) {
       begin;
       set local role authenticated;
       select set_config('request.jwt.claims', json_build_object('sub','${u.id}','role','authenticated')::text, true);
-      -- (1) subida de fotos a Storage (el camino que reventaba con RLS)
+      -- (1) 1er intento: subida de fotos (INSERT — siempre funcionó)
       insert into storage.objects (bucket_id, name, owner, metadata) values
         ('sgc-bitacora','${tag}/f0.jpg','${u.id}','{}'::jsonb),
         ('sgc-bitacora','${tag}/f1.jpg','${u.id}','{}'::jsonb);
-      -- (2) el RPC de la app con 2 fotos + actividad
+      -- (2) el RPC de la app
       select sgc.crear_bitacora_app(
         p_id => gen_random_uuid(), p_proyecto_id => '${proyectoId}'::uuid,
         p_fecha => current_date, p_tipo => 'parte_diario', p_comentarios => 'SMOKE',
         p_actividades => '${acts}'::jsonb, p_fotos => '${fotos}'::jsonb,
         p_sin_actividad => false, p_horas_lluvia => null
-      ) as id;
+      );
+      -- (3) EL REINTENTO: re-subir las MISMAS rutas (UPDATE vía upsert). Esta es la
+      --     pasada que reventaba con RLS antes de BI1. Es la que cuenta.
+      update storage.objects set metadata = '{"retry":1}'::jsonb
+        where bucket_id='sgc-bitacora' and name in ('${tag}/f0.jpg','${tag}/f1.jpg');
+      -- (4) crear_bitacora_app otra vez (idempotente por p_id no aplica aquí: id nuevo,
+      --     pero re-ejerce la RPC tras el re-upload).
+      select count(*) as reupload_ok from storage.objects
+        where bucket_id='sgc-bitacora' and name in ('${tag}/f0.jpg','${tag}/f1.jpg')
+          and metadata->>'retry' = '1';
       rollback;
     `);
-    const id = Array.isArray(r) ? r.find((x) => x?.id)?.id : null;
-    if (id) console.log(`✓ ${rol} (${u.nombre}) — flujo app (storage + RPC + fotos) OK`);
-    else { console.error(`✗ ${rol} (${u.nombre}) — sin id devuelto`); fallos++; }
+    const row = Array.isArray(r) ? r.find((x) => x && 'reupload_ok' in x) : null;
+    const ok = row && Number(row.reupload_ok) === 2;
+    if (ok) console.log(`✓ ${rol} (${u.nombre}) — 1er intento + REINTENTO (re-upload UPDATE) OK`);
+    else { console.error(`✗ ${rol} (${u.nombre}) — la 2ª pasada (reintento) NO re-subió las 2 rutas (reupload_ok=${row?.reupload_ok})`); fallos++; }
   } catch (e) {
+    // Si la 2ª pasada revienta con RLS, cae aquí — que es exactamente lo que este
+    // smoke ahora SÍ detecta (antes daba verde).
     console.error(`✗ ${rol} (${u.nombre}) — ${e.message}`);
     fallos++;
   }
 }
 
-if (fallos) { console.error(`\n🔴 Smoke bitácora APP (prod): ${fallos} rol(es) NO pueden completar el envío.`); process.exit(1); }
-console.log('\n✓ Smoke bitácora APP (prod) OK — todos los roles de campo completan el flujo real (storage + RPC + fotos).');
+if (fallos) { console.error(`\n🔴 Smoke bitácora APP (prod): ${fallos} rol(es) fallan en el REINTENTO (upsert→UPDATE).`); process.exit(1); }
+console.log('\n✓ Smoke bitácora APP (prod) OK — todos los roles completan el flujo Y el reintento (re-upload con upsert).');

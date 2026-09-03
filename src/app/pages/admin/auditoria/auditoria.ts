@@ -88,7 +88,12 @@ const ADMIN_ACCION_LABELS: Record<string, string> = {
   usuario_eliminado: 'Eliminó usuario',
   invitacion_reenviada: 'Reenvió invitación',
   password_reset_solicitado: 'Solicitó restablecer contraseña',
+  password_reset_rechazado_sintetico: 'Intentó restablecer contraseña de un usuario sin correo',
   mi_perfil_actualizado: 'Actualizó su perfil',
+  // BI6 — credenciales de campo (cédula + PIN)
+  credencial_acceso_creado: 'Creó acceso de campo (cédula + PIN)',
+  credencial_pin_rotado: 'Fijó/rotó el PIN de un usuario',
+  credencial_email_resync: 'Resincronizó el correo de acceso por cédula',
 };
 
 /** Admin → Auditoría: browse the full change trail (who changed what, when).

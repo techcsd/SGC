@@ -87,4 +87,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./almacenes-duplicados/almacenes-duplicados').then((m) => m.AdminAlmacenesDuplicados),
     title: 'Almacenes duplicados — Administración',
   },
+  {
+    // BI6/AU18 — detección + fusión de personas duplicadas (admin/tecnología; gate server-side).
+    path: 'usuarios-duplicados',
+    loadComponent: () => import('./usuarios-duplicados/usuarios-duplicados').then((m) => m.AdminUsuariosDuplicados),
+    title: 'Usuarios duplicados — Administración',
+  },
 ];

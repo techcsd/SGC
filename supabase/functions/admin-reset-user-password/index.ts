@@ -64,6 +64,23 @@ Deno.serve(async (req: Request) => {
       return json({ error: "Usuario no encontrado." }, 404);
     }
 
+    // BI5 — un email sintético (.local, sin MX) NUNCA recibe correo. GoTrue
+    // devuelve 200 para cualquier dirección (anti-enumeración), así que llamar a
+    // resetPasswordForEmail aquí produciría un "sent: true" que MIENTE. Se rechaza
+    // de entrada: ese usuario entra por cédula + PIN → el admin usa "Fijar PIN".
+    const SYNTH_DOMAINS = ["@conductores.constructorasd.local", "@personal.constructorasd.local", "@test.constructorasd.local"];
+    const email = String(usuario.email ?? "");
+    if (SYNTH_DOMAINS.some((d) => email.toLowerCase().endsWith(d))) {
+      await admin.from("audit_log").insert({
+        actor_id: callerData.user.id, action: "password_reset_rechazado_sintetico",
+        target_user_id: userId, metadata: { email, motivo: "email_sintetico_sin_buzon" },
+      }).then(() => {}, () => {});
+      return json({
+        error: "Este usuario no tiene correo real (entra con cédula + PIN). Usa \"Fijar PIN\" para cambiar su acceso.",
+        sintetico: true,
+      }, 400);
+    }
+
     // Same redirectTo-from-caller-origin pattern as admin-create-user — see
     // the comment there. Without it this fell back to the Site URL (localhost).
     // Deliver via Supabase's Auth mailer (reliable — same channel that sends

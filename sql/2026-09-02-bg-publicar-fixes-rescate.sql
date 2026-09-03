@@ -6,9 +6,17 @@
 -- que SOLO las apps con el código de reintento post-fix sugieran el reintento.
 -- (Aplicado el 2026-09-02 junto con la publicación de la 2.10.0.)
 --
--- Efecto: la app del ingeniero (ya actualizada) verá el banner "Hay una corrección
--- que puede resolver tus N pendientes — ¿reintentar?" para sus bitácoras atascadas
--- por RLS (42501) y por varchar (22001). El reintento re-envía payload + fotos y
+-- ⚠️ CORRECCIÓN (BI1, 03-sep): cuando esto se publicó (02-sep) el fix de RLS (42501)
+-- AÚN NO EXISTÍA en sql/ — era una señal falsa. El fix real (política UPDATE de
+-- sgc-bitacora) recién se aplicó en 2026-09-03-bi1-bitacora-storage-update.sql. Desde
+-- BI1 esta señal ya es verdadera. Además el error_code de los registros atascados está
+-- VACÍO (nació en app 2.10.0, los registros son de agosto), así que el matching por
+-- error_code NUNCA coincidía; BI2 (2026-09-03-bi2-outbox-fix-signal-sin-errorcode.sql)
+-- lo hace coincidir por tipo_op + min_app_version, con error_code como filtro opcional.
+--
+-- Efecto (post BI1 + BI2): la app del ingeniero verá el banner "Hay una corrección que
+-- puede resolver tus N pendientes — ¿reintentar?" para sus bitácoras atascadas por RLS
+-- (42501) y por varchar (22001). El reintento re-envía payload + fotos y
 -- crear_bitacora_app las graba idempotentemente.
 --
 -- Apply: node scripts/apply-migration.mjs sql/2026-09-02-bg-publicar-fixes-rescate.sql

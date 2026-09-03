@@ -142,13 +142,19 @@
                   } @else {
                     <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcando() === g.firma" (click)="marcar(g, 'abierto')">Reabrir</button>
                   }
+                  <!-- BI4 — crear issue desde el GRUPO (antes solo estaba en el detalle). -->
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="creandoIssue() === g.ejemplo_id" (click)="crearIssueDeGrupo(g)" title="Crear un issue en el board desde este grupo">Crear issue</button>
                 </td>
               </tr>
               @if (firmaExpandida() === g.firma) {
                 <tr class="rep__detail-row">
                   <td colspan="8">
                     @if (g.resuelto_por_nombre) {
-                      <p class="rep__resuelto">Marcado solucionado por <strong>{{ g.resuelto_por_nombre }}</strong>@if (g.resuelto_at) { · {{ formatTs(g.resuelto_at) }} }.</p>
+                      <p class="rep__resuelto">Marcado solucionado por <strong>{{ g.resuelto_por_nombre }}</strong>@if (g.resuelto_at) { · {{ formatTs(g.resuelto_at) }} }@if (g.resuelto_en_version) { · en versión <strong>{{ g.resuelto_en_version }}</strong> }.</p>
+                    }
+                    @if (g.nota) { <p class="rep__resuelto">Nota: {{ g.nota }}</p> }
+                    @if (g.ocurrencias_cliente_viejo && g.ocurrencias_cliente_viejo > 0) {
+                      <p class="rep__resuelto">⚠️ {{ g.ocurrencias_cliente_viejo }} ocurrencia(s) de clientes en versiones anteriores al fix (no reabren el grupo).</p>
                     }
                     @if (cargandoOcurrencias()) {
                       <app-skeleton variant="table" [rows]="3" />

@@ -17,6 +17,18 @@ export interface UsuarioAdmin extends Usuario {
   conductores?: { id: string; nombre: string }[];
 }
 
+// BI6/AU18 — detección y fusión de duplicados
+export interface DuplicadoCandidato {
+  id_a: string; nombre_a: string; email_a: string; cedula_a: string | null; activo_a: boolean;
+  id_b: string; nombre_b: string; email_b: string; cedula_b: string | null; activo_b: boolean;
+  score: number; motivo: string;
+}
+export interface FusionPreviewFila { tabla: string; columna: string; filas: number; }
+export interface FusionResultado {
+  ok: boolean; canonico: string; duplicado: string;
+  tablas_reapuntadas: string[]; conflictos: string[];
+}
+
 /** Edge Functions return {error: "..."} in the body on failure, but functions.invoke()
  *  only gives a generic FunctionsHttpError — this pulls the real message back out. */
 async function edgeFunctionErrorMessage(error: unknown): Promise<string> {
@@ -185,6 +197,40 @@ export class AdminService {
     if (error) throw new Error(await edgeFunctionErrorMessage(error));
     if (data?.error) throw new Error(data.error);
     return data as { email: string; usuarioId: string; cedula: string };
+  }
+
+  /**
+   * BI5 — fija/rota el PIN de un usuario que entra por cédula (email sintético),
+   * direccionado por su usuarioId. Reutiliza la edge `acceso-cedula` (modo usuarioId,
+   * AU1: mismo camino que Flota → Conductores y el expediente de Personal). Queda en
+   * audit_log. Devuelve el email sintético. Lanza si el usuario usa correo real.
+   */
+  async fijarPinUsuario(usuarioId: string, pin: string): Promise<{ email: string }> {
+    const { data, error } = await this.supabase.client.functions.invoke('acceso-cedula', {
+      body: { usuarioId, pin },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { email: string };
+  }
+
+  // ── BI6 / AU18 — Detección y fusión de usuarios duplicados ─────────────────
+  async detectarDuplicados(umbral = 0.45): Promise<DuplicadoCandidato[]> {
+    const { data, error } = await this.supabase.client.rpc('detectar_usuarios_duplicados', { p_umbral: umbral });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as DuplicadoCandidato[];
+  }
+
+  async previsualizarFusion(duplicadoId: string): Promise<FusionPreviewFila[]> {
+    const { data, error } = await this.supabase.client.rpc('previsualizar_fusion_usuarios', { p_duplicado: duplicadoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as FusionPreviewFila[];
+  }
+
+  async fusionarUsuarios(canonicoId: string, duplicadoId: string): Promise<FusionResultado> {
+    const { data, error } = await this.supabase.client.rpc('fusionar_usuarios', { p_canonico: canonicoId, p_duplicado: duplicadoId });
+    if (error) throw new Error(error.message);
+    return data as FusionResultado;
   }
 
   /** Prepara credenciales frescas para "entrar como" un usuario de prueba (admin-only, auditado). */

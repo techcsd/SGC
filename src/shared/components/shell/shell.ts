@@ -445,6 +445,7 @@ export class Shell implements OnInit {
       { label: 'Matriz de notificaciones', route: '/admin/matriz-notificaciones' },
       { label: 'Orden de módulos', route: '/admin/orden-modulos' },
       { label: 'Almacenes duplicados', route: '/admin/almacenes-duplicados' },
+      { label: 'Usuarios duplicados', route: '/admin/usuarios-duplicados' },
       { label: 'Auditoría', route: '/admin/auditoria' },
       { label: 'Comentarios y Reportes', route: '/admin/reportes' },
     ],

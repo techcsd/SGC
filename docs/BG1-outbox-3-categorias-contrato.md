@@ -52,11 +52,24 @@ Un reintento tras un fix NO debe duplicar el registro si un intento anterior esc
 ## 5. Señal "corregido" + telemetría (lado servidor — CONSTRUIDO)
 
 - **Telemetría (BG2):** `sgc.reportar_outbox_atascado(dedup_key, tipo_op, categoria, error_kind, error_code, error_msg, intentos, fotos_count, edad_horas, payload_resumen)` — la app lo llama cuando un item entra/permanece en 'sistema'. DEFINER (estampa identidad; no depende de permisos). Idempotente por `(usuario, dedup_key)`. Alerta a Tecnología la primera vez (Matriz BF4, tipo `outbox_atascado`) + resumen diario si persisten. Panel `/tecnologia/outbox-atascados`.
-- **Señal "corregido" (BG1c):** `sgc.publicar_fix_outbox(descripcion, tipo_op?, error_code?, min_app_version?)` (Tecnología, al deployar el fix) y `sgc.outbox_fixes_activos()` (la app consulta). Si un pendiente de 'sistema' coincide (tipo_op / error_code) y la versión de la app ≥ `min_app_version`, la app **sugiere el reintento**.
+- **Señal "corregido" (BG1c):** `sgc.publicar_fix_outbox(descripcion, tipo_op?, error_code?, min_app_version?)` (Tecnología, al deployar el fix) y `sgc.outbox_fixes_activos()` (la app consulta).
   - ⚠️ **Decisión Xaviel (PROMPT-29):** ¿el reintento post-fix es **sugerido** al usuario o **automático** (una vez por versión)? El contrato sirve a ambos.
+- **🆕 Matching sin `error_code` (BI2, PROMPT-32):** `sgc.outbox_fix_para(p_tipo_op, p_error_code?, p_app_version?)` es la **única fuente de verdad** del matching (AU1). La regla:
+  - **tipo_op:** el fix aplica si `fix.tipo_op` es null o coincide.
+  - **versión:** aplica si `fix.min_app_version` es null o `app_version >= min` (por `sgc.semver_code`).
+  - **error_code:** **filtro OPCIONAL** — sólo estrecha cuando el **item** trae `error_code` no vacío; si el item no lo trae, no bloquea.
+  - **Por qué:** el `error_code` de los registros atascados está **vacío y siempre lo estará** (el campo nació en la app 2.10.0; los registros son de agosto; y `StorageApiError` no trae `code`). El viejo `(it.error_code ?? '').startsWith(f.error_code)` hacía la señal **estructuralmente inalcanzable**. La app (PROMPT-33) **debe** llamar a `outbox_fix_para` en vez de comparar `error_code` en el cliente.
 
 ## 6. Rescate de las 3 bitácoras del ingeniero
 
-Con el fix deployado (el flujo ya funciona en prod para los 3 roles de campo — ver `scripts/smoke-bitacora-app-prod.mjs`), las bitácoras atascadas (20-ago · 10 fotos, 25-ago · 3 fotos, y la de varchar · 10 fotos) se rescatan **reintentando** desde el outbox (payload íntegro, fotos incluidas). **Verificar con el ingeniero que las 3 llegaron completas y se ven en la web.** La causa ya no existe:
-- las 2 de RLS: el flujo de la app (storage + `crear_bitacora_app` DEFINER) pasa en prod;
-- la de varchar: `bitacora_actividades.estructura` ampliada a 200.
+⚠️ **Corregido en BI1 (03-sep):** la causa real NO era una política de INSERT por rol —
+`crear_bitacora_app` es DEFINER y siempre pasó. Era que el bucket `sgc-bitacora` no tenía
+política **UPDATE**, y la app sube las fotos con `upsert:true`: el reintento (re-upload de la
+misma ruta) moría en Storage con RLS. Cerrado por `sql/2026-09-03-bi1-bitacora-storage-update.sql`
++ auditor `audit-buckets-upsert-policy.mjs` (prebuild) + smoke que **reintenta**.
+
+Estado del rescate (usuario real = **Jonathan Roman**): sus fotos **ya están en Storage**
+(folders huérfanos `63fa7138…`/6, `bda603c7…`/2, `1a35f057…`/10 — subidas en el 1er intento).
+Con BI1 aplicado, el reintento desde su teléfono re-sube (UPDATE, ahora permitido) y
+`crear_bitacora_app` graba. **Verificar con él que las 3 llegaron completas y se ven en la
+web.** Bloqueos de UI para que el botón de reintento aparezca = app, PROMPT-33 (BI2).

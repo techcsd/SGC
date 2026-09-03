@@ -1,0 +1,48 @@
+:host { display: block; }
+
+.dup-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;
+  margin-bottom: 1.25rem;
+  h1 { font-family: var(--font-heading); margin: 0 0 .25rem; }
+  p { color: var(--sgc-text-muted); max-width: 60ch; margin: 0; }
+}
+
+.dup-count, .dup-empty, .dup-error {
+  color: var(--sgc-text-muted); margin: .5rem 0;
+}
+.dup-error { color: var(--sgc-danger); }
+.dup-empty { padding: 2rem; text-align: center; }
+
+.dup-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .75rem; }
+
+.dup-card {
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border); border-radius: 14px; overflow: hidden;
+}
+.dup-card__row {
+  width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: 1rem; background: none; border: 0; cursor: pointer; text-align: left; color: inherit;
+  &:hover { background: var(--sgc-surface-2); }
+}
+.dup-card__pair { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.dup-person { display: flex; flex-direction: column; gap: .1rem; }
+.dup-meta { color: var(--sgc-text-muted); font-size: .85rem; }
+.dup-vs { color: var(--sgc-text-muted); font-size: 1.2rem; }
+.dup-card__score { color: var(--sgc-text-muted); font-size: .85rem; white-space: nowrap; }
+
+.dup-card__body { padding: 1rem; border-top: 1px solid var(--sgc-border); }
+.dup-choose-label, .dup-preview-label { margin: .25rem 0 .5rem; font-weight: 600; }
+.dup-choose { display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.dup-choose__opt {
+  display: flex; align-items: center; gap: .4rem; padding: .5rem .75rem;
+  border: 1px solid var(--sgc-border); border-radius: 10px; cursor: pointer;
+  &.active { border-color: var(--Hub); }
+}
+.dup-preview { display: flex; flex-wrap: wrap; gap: .4rem; margin: .25rem 0; }
+.dup-chip {
+  background: var(--sgc-surface-2); border: 1px solid var(--sgc-border); border-radius: 8px;
+  padding: .2rem .5rem; font-size: .82rem;
+  em { font-style: normal; font-weight: 700; color: var(--Hub); }
+}
+.dup-total { color: var(--sgc-text-muted); font-size: .85rem; margin: .25rem 0 1rem; }
+.dup-result { padding: .5rem 0; }
+.dup-conflict { color: var(--sgc-warning, #d98a00); }

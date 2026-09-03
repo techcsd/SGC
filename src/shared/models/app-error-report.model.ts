@@ -1,6 +1,9 @@
 // Y6 — Reporte de error/crash enviado por la app (telemetría propia).
 
-export type AppErrorType = 'crash' | 'error' | 'camera' | 'sync' | 'permission' | 'other';
+// BI4 — homologado con la whitelist del servidor (report_app_error).
+export type AppErrorType =
+  | 'crash' | 'error' | 'camera' | 'sync' | 'permission' | 'other'
+  | 'tracking' | 'login' | 'gps' | 'voice';
 
 export interface AppErrorReport {
   id: string;
@@ -38,12 +41,15 @@ export interface AppErrorGrupo {
   primera_vez: string;
   ultima_vez: string;
   ejemplo_message: string;
+  ejemplo_id?: string; // BI4 — un id de ocurrencia de ejemplo (para crear issue por grupo)
   // AW14 — workflow
   estado: AppErrorEstado;
   nota: string | null;
   resuelto_por_nombre: string | null;
   resuelto_at: string | null;
   reabierto_at: string | null;
+  resuelto_en_version?: string | null; // BI4 — versión en que se cerró
+  ocurrencias_cliente_viejo?: number; // BI4 — ocurrencias de clientes < versión de cierre
 }
 
 /** AW14 — ocurrencia individual de una firma (detalle + metadata + usuario). */
@@ -83,5 +89,9 @@ export const APP_ERROR_TYPES: { value: AppErrorType; label: string }[] = [
   { value: 'camera', label: 'Cámara' },
   { value: 'sync', label: 'Sincronización' },
   { value: 'permission', label: 'Permisos' },
+  { value: 'tracking', label: 'Rastreo' },
+  { value: 'login', label: 'Inicio de sesión' },
+  { value: 'gps', label: 'GPS' },
+  { value: 'voice', label: 'Voz' },
   { value: 'other', label: 'Otro' },
 ];

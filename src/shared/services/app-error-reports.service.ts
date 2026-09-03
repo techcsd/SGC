@@ -52,7 +52,7 @@ export class AppErrorReportsService {
       p_desde: filtros.desde ?? null,
       p_hasta: filtros.hasta ?? null,
       p_error_type: filtros.errorType ?? null,
-      p_limit: 200,
+      p_limit: 2000, // BI4 — sin tope efectivo (había 607 ocurrencias, ~39 grupos)
       p_source: filtros.source ?? null,
       p_estado: filtros.estado ?? null,
     });
@@ -71,11 +71,12 @@ export class AppErrorReportsService {
   }
 
   /** AW14 — marca el estado de atención de una firma (solo tecnología/admin). */
-  async marcarEstado(firma: string, estado: AppErrorEstado, nota?: string | null): Promise<void> {
+  async marcarEstado(firma: string, estado: AppErrorEstado, nota?: string | null, resueltoEnVersion?: string | null): Promise<void> {
     const { error } = await this.supabase.client.rpc('marcar_error_estado', {
       p_firma: firma,
       p_estado: estado,
       p_nota: nota ?? null,
+      p_resuelto_en_version: resueltoEnVersion ?? null,
     });
     if (error) throw new Error(error.message);
   }

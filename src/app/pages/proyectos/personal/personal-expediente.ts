@@ -14,6 +14,7 @@ import {
   AseguramientoEstado,
 } from '../../../../shared/models/personal-obra.model';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
+import { UserService } from '../../../core/services/user.service';
 
 /** AR1 — Expediente completo del personal: datos, galería, carnet e historial. */
 @Component({
@@ -27,6 +28,7 @@ export class PersonalExpediente implements OnInit {
   private service = inject(PersonalObraService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private userService = inject(UserService);
 
   readonly fotosGuia = FOTOS_GUIA;
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
@@ -56,6 +58,9 @@ export class PersonalExpediente implements OnInit {
   accesoError = signal('');
   esCapataz = computed(() => this.personal()?.cargo?.codigo === 'CAP');
   tieneAcceso = computed(() => !!this.personal()?.usuario_id);
+  // BI6 — gestionar el PIN pasó a ser de admin/tecnología (la edge acceso-cedula ya lo
+  // exige). Regla 4: no pintar el botón a quien la edge va a rechazar.
+  puedeGestionarAcceso = computed(() => this.userService.esTecnologia());
 
   async crearAccesoCapataz() {
     const p = this.personal();

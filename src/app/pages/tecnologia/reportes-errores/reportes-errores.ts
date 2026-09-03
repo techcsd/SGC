@@ -149,16 +149,33 @@ export class TecReportesErrores implements OnInit {
   /** AW14 — marca el estado de atención de una firma (en revisión / solucionado / reabrir). */
   async marcar(g: AppErrorGrupo, estado: AppErrorEstado) {
     if (this.marcando()) return;
+    // BI4 — al marcar SOLUCIONADO se pide la nota (qué lo cerró) y la versión del fix
+    // (para que un cliente viejo no reabra el grupo). Ambas son opcionales pero útiles.
+    let nota: string | null = null;
+    let version: string | null = null;
+    if (estado === 'solucionado') {
+      nota = (prompt('¿Qué lo cerró? (p. ej. la migración o el cambio). Se guarda en el grupo:') ?? '').trim() || null;
+      version = (prompt('¿En qué versión queda arreglado? (opcional; evita que un cliente viejo reabra el grupo)') ?? '').trim() || null;
+    }
     this.marcando.set(g.firma);
     this.error.set('');
     try {
-      await this.service.marcarEstado(g.firma, estado);
+      await this.service.marcarEstado(g.firma, estado, nota, version);
       await this.load();
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo actualizar el estado.');
     } finally {
       this.marcando.set(null);
     }
+  }
+
+  /** BI4 — crear un issue directamente desde un GRUPO (usa una ocurrencia de ejemplo). */
+  async crearIssueDeGrupo(g: AppErrorGrupo) {
+    if (!g.ejemplo_id) {
+      this.toast.error('Sin ocurrencia de ejemplo', 'No se pudo identificar un reporte del grupo.');
+      return;
+    }
+    await this.crearIssue(g.ejemplo_id);
   }
 
   estadoLabel(e: string): string {
@@ -256,29 +273,30 @@ export class TecReportesErrores implements OnInit {
     }
   }
 
+  /** BI4 — el export sirve para TRIAR: exporta GRUPOS (firma, tipo, estado, conteos,
+   *  primera/última vez, versión), no ocurrencias sueltas; sin tope de 500; respeta el
+   *  filtro de estado (bandeja/Historial). Si el usuario está en vista detalle, exporta
+   *  igual los grupos del filtro actual (que es lo útil para triar). */
   async exportar() {
     this.exportando.set(true);
     try {
-      // Exporta hasta 5 páginas (por seguridad) de lo que coincide con el filtro.
-      const cap = 10;
-      const all: AppErrorReport[] = [];
-      for (let p = 0; p < cap; p++) {
-        const { rows, total } = await this.service.getReports(this.filtros(), p);
-        all.push(...rows);
-        if (all.length >= total) break;
-      }
-      const filas = all.map((r) => ({
-        Fecha: this.formatTs(r.created_at),
-        Tipo: this.tipoLabel(r.error_type),
-        Marca: r.device_brand ?? '',
-        Modelo: r.device_model ?? '',
-        SO: r.os_version ?? '',
-        'Versión app': r.app_version ?? '',
-        Plataforma: r.platform ?? '',
-        Mensaje: r.message,
-        Contexto: this.contextStr(r.context),
+      const grupos = await this.service.getGrupos(this.filtros());
+      const filas = grupos.map((g) => ({
+        Firma: g.firma,
+        Tipo: this.tipoLabel(g.error_type),
+        Plataforma: g.source ?? '',
+        Estado: this.estadoLabel(g.estado),
+        Ocurrencias: g.ocurrencias,
+        'Clientes viejos': g.ocurrencias_cliente_viejo ?? 0,
+        Dispositivos: g.dispositivos,
+        Usuarios: g.usuarios,
+        'Primera vez': this.formatTs(g.primera_vez),
+        'Última vez': this.formatTs(g.ultima_vez),
+        'Cerrado en versión': g.resuelto_en_version ?? '',
+        Nota: g.nota ?? '',
+        Ejemplo: g.ejemplo_message,
       }));
-      await exportarExcel('reportes-errores-app', filas);
+      await exportarExcel('reportes-errores-grupos', filas);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'Error al exportar.');
     } finally {

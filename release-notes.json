@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.110.0": {
+      "titulo": "Rescate de bitácoras atascadas + fijar PIN de campo + panel de errores que mide bien",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Bitácora",
+          "d": "Las bitácoras de obra que quedaban atascadas al reintentar («no se pueden reenviar») ya se pueden reenviar: faltaba un permiso de Storage para volver a subir sus fotos. Se corrigió y se auditó que ningún otro adjunto (documentos, RRHH) tuviera el mismo problema."
+        },
+        {
+          "t": "seguridad",
+          "m": "Administración",
+          "d": "«Restablecer contraseña» ya no miente: para un usuario que entra con cédula (sin correo real) ahora dice «Fijar PIN» y el admin fija el PIN de verdad (generado o tecleado, sin PIN triviales). Toda creación o cambio de PIN de campo queda registrada en la auditoría."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nueva herramienta «Usuarios duplicados»: detecta personas que aparecen en dos fichas (misma persona, cédulas distintas) y las fusiona en una sola, sin perder su actividad ni su incentivo."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "El panel de «Reportes de errores» mide bien: los tipos dejan de caer todos en «Otro», los grupos se juntan por causa (no por cada id o número del mensaje), «Solucionado» recuerda la versión del fix (un teléfono viejo ya no reabre el grupo) y el export es de grupos, completo, sin cortarse."
+        },
+        {
+          "t": "mejora",
+          "m": "Bitácora",
+          "d": "El campo de bloque/entrepiso del parte acepta textos más largos (hasta 200) sin cortarse al guardar un parte con varios bloques."
+        }
+      ]
+    },
     "1.109.1": {
       "titulo": "Orden de compra directa con motivo + panel de errores más legible",
       "cambios": [

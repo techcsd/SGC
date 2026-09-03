@@ -15,7 +15,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Rol } from '../../../../shared/models/usuario.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { formatFechaMedia, formatFechaRelativa } from '../../../../shared/utils/fecha.util';
-import { identidadLabel } from '../../../../shared/utils/identidad.util';
+import { identidadLabel, esEmailSintetico } from '../../../../shared/utils/identidad.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
@@ -64,6 +64,13 @@ export class AdminUsuarios implements OnInit {
   formatRelativa = formatFechaRelativa; // W12
   // BH4 — nunca mostrar el email sintético: cédula o "usuario de prueba" en su lugar.
   identidad = identidadLabel;
+
+  // BI5 — ¿este usuario entra por cédula (email sintético, sin buzón real)? Si sí, el
+  // botón "Restablecer contraseña" (que manda un correo que no existe) se reemplaza por
+  // "Fijar PIN". La info para no ofrecer la acción imposible ya está en pantalla (regla 4).
+  esSintetico(u: UsuarioAdmin): boolean {
+    return esEmailSintetico((u as { email?: string | null }).email ?? null);
+  }
 
   // ── W10 — detalle de usuario (drawer) ────────────────────
   detailUser = signal<UsuarioAdmin | null>(null);
@@ -131,6 +138,95 @@ export class AdminUsuarios implements OnInit {
   // ── Password reset ───────────────────────────────────────
   resettingId = signal<string | null>(null);
   resetMessage = signal<{ userId: string; text: string } | null>(null);
+
+  // ── BI5 — Fijar PIN (usuarios que entran por cédula) ─────
+  pinDrawerOpen = signal(false);
+  pinUser = signal<UsuarioAdmin | null>(null);
+  pinSaving = signal(false);
+  pinError = signal('');
+  pinResult = signal<string | null>(null); // el PIN fijado, se muestra una sola vez
+  pinCopied = signal(false);
+  pinForm = new FormGroup({
+    pin: new FormControl('', [Validators.required, Validators.pattern(/^\d{6}$/)]),
+  });
+
+  /** Abre el diálogo de fijar PIN con un PIN generado por defecto (editable). */
+  abrirFijarPin(u: UsuarioAdmin) {
+    this.closeMenu();
+    this.pinUser.set(u);
+    this.pinError.set('');
+    this.pinResult.set(null);
+    this.pinCopied.set(false);
+    this.pinForm.reset({ pin: this.generarPin() });
+    this.pinDrawerOpen.set(true);
+  }
+
+  cerrarFijarPin() {
+    this.pinDrawerOpen.set(false);
+    this.pinUser.set(null);
+  }
+
+  /** Genera un PIN de 6 dígitos NO trivial (Xaviel: sistema genera o admin teclea). */
+  generarPin(): string {
+    for (let i = 0; i < 50; i++) {
+      const arr = new Uint32Array(6);
+      crypto.getRandomValues(arr);
+      const pin = Array.from(arr, (n) => (n % 10).toString()).join('');
+      if (!this.esPinTrivial(pin)) return pin;
+    }
+    return '481973';
+  }
+
+  regenerarPin() {
+    this.pinForm.setValue({ pin: this.generarPin() });
+    this.pinError.set('');
+  }
+
+  /** Espejo cliente de la validación del servidor (BI5). */
+  esPinTrivial(pin: string): boolean {
+    if (!/^\d{6}$/.test(pin)) return true;
+    if (/^(\d)\1{5}$/.test(pin)) return true;
+    const comunes = new Set(['123456', '654321', '123123', '121212', '112233', '102030', '147258']);
+    if (comunes.has(pin)) return true;
+    let asc = true, desc = true;
+    for (let i = 1; i < 6; i++) {
+      const d = pin.charCodeAt(i) - pin.charCodeAt(i - 1);
+      if (d !== 1) asc = false;
+      if (d !== -1) desc = false;
+    }
+    return asc || desc;
+  }
+
+  async guardarPin() {
+    const u = this.pinUser();
+    if (!u) return;
+    this.pinForm.markAllAsTouched();
+    if (this.pinForm.invalid) return;
+    const pin = this.pinForm.value.pin!;
+    if (this.esPinTrivial(pin)) {
+      this.pinError.set('Ese PIN es demasiado fácil de adivinar (repetido o secuencia). Elige otro o genera uno.');
+      return;
+    }
+    this.pinSaving.set(true);
+    this.pinError.set('');
+    try {
+      await this.adminService.fijarPinUsuario(u.id, pin);
+      this.pinResult.set(pin); // se muestra una sola vez
+    } catch (e: unknown) {
+      this.pinError.set(e instanceof Error ? e.message : 'No se pudo fijar el PIN.');
+    } finally {
+      this.pinSaving.set(false);
+    }
+  }
+
+  async copiarPin() {
+    const pin = this.pinResult();
+    if (!pin) return;
+    try {
+      await navigator.clipboard.writeText(pin);
+      this.pinCopied.set(true);
+    } catch { /* clipboard no disponible */ }
+  }
 
   // ── Delete ───────────────────────────────────────────────
   deletingId = signal<string | null>(null);

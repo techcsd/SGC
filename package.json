@@ -1,12 +1,12 @@
 {
   "name": "sgc",
-  "version": "1.109.1",
+  "version": "1.110.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
     "prestart": "node scripts/gen-version.mjs",
     "start": "ng serve",
-    "prebuild": "node scripts/verify-version-notes.mjs && node scripts/verify-regresiones.mjs && node scripts/check-ambiguous-embeds.mjs && node scripts/audit-notnull-sin-default.mjs && node scripts/verify-tokens.mjs && node scripts/evals-compa.mjs && node scripts/gen-version.mjs",
+    "prebuild": "node scripts/verify-version-notes.mjs && node scripts/verify-regresiones.mjs && node scripts/check-ambiguous-embeds.mjs && node scripts/audit-notnull-sin-default.mjs && node scripts/audit-buckets-upsert-policy.mjs && node scripts/verify-tokens.mjs && node scripts/evals-compa.mjs && node scripts/gen-version.mjs",
     "evals:compa": "node scripts/evals-compa.mjs",
     "build": "ng build",
     "postbuild": "node scripts/registrar-version-web.mjs",

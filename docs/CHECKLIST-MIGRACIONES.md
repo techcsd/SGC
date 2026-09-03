@@ -1,7 +1,8 @@
 # Checklist de migraciones SGC (reglas de nacimiento)
 
 Toda migración fechada en `sql/` debe cumplir estas reglas antes de aplicarse a prod.
-Dos de ellas están **automatizadas en `prebuild`** y **fallan el build** si se violan.
+**Tres** de ellas están **automatizadas en `prebuild`** y **fallan el build** si se violan
+(NOT NULL sin default, embeds ambiguos, y buckets con upsert sin UPDATE).
 
 ## 1. NOT NULL nace con default o backfill (BF1) — automatizado
 Toda columna **NOT NULL nueva** debe nacer con `DEFAULT` **o** con un `UPDATE ... SET col`
@@ -70,3 +71,37 @@ en RPCs marcados y detecta el cierre `$function$`.
 ## 6. Aditivo y retrocompatible
 `add column if not exists`, `create ... if not exists`, `create or replace`. Nunca romper
 un contrato que la app (csd-app) ya consume — **paridad web↔app**.
+
+## 7. Todo bucket usado con `upsert: true` nace con INSERT *y* UPDATE (BI1) — automatizado
+Cualquier bucket de Storage al que la app/web suba con `upsert: true` necesita **política
+INSERT y UPDATE** en `storage.objects`.
+
+- **Por qué:** la subida es idempotente por ruta determinista. El **1er intento** es un
+  `INSERT` (permitido); **todo reintento** re-sube la misma ruta → Storage ejecuta un
+  `UPDATE` → sin política UPDATE, `new row violates row-level security policy`. El error se
+  ve en la app como envío atascado en "Pendientes", y NO es del recurso de negocio (bitácora,
+  conduce): es de la **foto que se re-sube**.
+- **Caso real (BI1):** `sgc-bitacora` fue el único de los buckets de campo que nunca recibió
+  UPDATE → las bitácoras reales del ingeniero (Jonathan Roman) quedaron atascadas desde el
+  20-ago, con las fotos ya en Storage. La regla YA estaba escrita en dos migraciones
+  (`flota-documentos`, `bg4-retiro`) y aun así se saltó un bucket → **por eso ahora es un
+  script, no una nota.** El mismo auditor encontró además `sgc-documentos` y `sgc-rrhh`
+  (gaps reales) y `sgc-mensajes`/`sgc-cronograma` (existían en prod pero no en `sql/`).
+- **Guarda:** `scripts/audit-buckets-upsert-policy.mjs` (escaneo estático de ambos repos +
+  `sql/`, en `prebuild`). Rompe el build si un bucket con upsert:true no tiene UPDATE.
+
+## 8. El smoke de un flujo con outbox REINTENTA (regla de verificación de cierre, BI) — obligatoria
+Un smoke que sólo prueba el **camino feliz** (INSERT en ruta nueva) y da verde es **peor que
+no tener smoke**: cerró la investigación de BG2 en falso, y sobre ese verde se publicó una
+señal de fix inexistente.
+
+- **Regla:** todo smoke de un flujo con outbox (fotos + reintento) corre **dos veces seguidas
+  sobre la MISMA carga** (mismas rutas). La **segunda pasada** — el `upsert` que ejecuta un
+  `UPDATE` — **es la que cuenta**. No basta con que la RPC devuelva OK.
+- **Aplicado en:** `scripts/smoke-bitacora-app-prod.mjs` (sube → RPC → **re-sube las mismas
+  rutas** → exige que la 2ª pasada pase). Repetir el patrón en cualquier smoke de flujo con
+  fotos + outbox (retiro BG4, recepción, ficha de personal).
+- **Verificación de rescate:** cuando el criterio de éxito es "la data llega", **contar** lo
+  que llegó contra lo declarado (p. ej. fotos en Storage vs. las que el parte declara), no
+  sólo que la RPC no falló — una bitácora entra con 3 de 10 fotos porque el mínimo del
+  servidor es 2.

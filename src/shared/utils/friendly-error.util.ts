@@ -79,9 +79,21 @@ export function humanizeError(error: unknown): FriendlyError {
   return { mensaje: raw, technical: false, raw };
 }
 
-/** Categoría para telemetría (report_app_error.error_type). */
-export function errorType(raw: string): 'permission' | 'sync' | 'error' {
-  if (/permission denied|not authorized|forbidden|rls|policy/i.test(raw)) return 'permission';
-  if (/failed to fetch|network|timeout|upstream|50\d|econn/i.test(raw)) return 'sync';
+/** Categoría para telemetría (report_app_error.error_type). BI4 — homologada con la
+ *  whitelist del servidor (crash/error/camera/sync/permission/other/tracking/login/gps/voice)
+ *  para que el panel agrupe por causa y no todo caiga en 'error'/'other'. */
+export function errorType(
+  raw: string,
+): 'permission' | 'sync' | 'error' | 'crash' | 'camera' | 'login' | 'gps' | 'tracking' | 'voice' | 'other' {
+  const s = raw || '';
+  if (/permission denied|not authorized|forbidden|rls|row-level security|policy/i.test(s)) return 'permission';
+  if (/sign\s?in|log\s?in|login|credenc|invalid.*(password|pin)|auth\b/i.test(s)) return 'login';
+  if (/geolocation|gps|obtain location|position (unavailable|error)/i.test(s)) return 'gps';
+  if (/watchdog|watcher|registrar_posiciones|tracking/i.test(s)) return 'tracking';
+  if (/camera|cámara|getusermedia|captur/i.test(s)) return 'camera';
+  if (/audio|voz|miceph|microfono|micrófono|nota_voz/i.test(s)) return 'voice';
+  if (/failed to fetch|network|timeout|upstream|50\d|econn|sync|lote/i.test(s)) return 'sync';
+  if (/uncaught|unhandled|cannot read|is not a function|null is not an object|maximum call stack/i.test(s)) return 'crash';
+  if (s.trim() === '') return 'other';
   return 'error';
 }

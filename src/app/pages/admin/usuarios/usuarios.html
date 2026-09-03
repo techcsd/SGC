@@ -184,8 +184,12 @@
       <button type="button" role="menuitem" (click)="resendInvite(u); closeMenu()"
         [disabled]="resettingId() === u.id"><app-icon name="mail" [size]="16" /> Reenviar invitación</button>
     }
-    <button type="button" role="menuitem" (click)="resetPassword(u); closeMenu()"
-      [disabled]="resettingId() === u.id">Restablecer contraseña</button>
+    @if (esSintetico(u)) {
+      <button type="button" role="menuitem" (click)="abrirFijarPin(u)">Fijar PIN</button>
+    } @else {
+      <button type="button" role="menuitem" (click)="resetPassword(u); closeMenu()"
+        [disabled]="resettingId() === u.id">Restablecer contraseña</button>
+    }
     <button type="button" role="menuitem" (click)="toggleActivo(u); closeMenu()"
       [disabled]="isSelf(u)"
       [attr.title]="isSelf(u) ? 'No puedes desactivar tu propia cuenta' : null">
@@ -291,10 +295,17 @@
 
       <!-- Acciones -->
       <div class="admin-usuarios__drawer-actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost"
-          (click)="resetPassword(u)" [disabled]="resettingId() === u.id">
-          Restablecer contraseña
-        </button>
+        @if (esSintetico(u)) {
+          <button type="button" class="sgc-btn sgc-btn--ghost"
+            (click)="closeDetail(); abrirFijarPin(u)">
+            Fijar PIN
+          </button>
+        } @else {
+          <button type="button" class="sgc-btn sgc-btn--ghost"
+            (click)="resetPassword(u)" [disabled]="resettingId() === u.id">
+            Restablecer contraseña
+          </button>
+        }
         <button type="button" class="sgc-btn sgc-btn--primary"
           (click)="closeDetail(); openEdit(u)">
           Editar
@@ -534,4 +545,55 @@
     }
 
   </form>
+</app-form-drawer>
+
+<!-- BI5 — Fijar PIN (usuarios que entran por cédula, sin correo real) -->
+<app-form-drawer
+  title="Fijar PIN de acceso"
+  [open]="pinDrawerOpen()"
+  (closed)="cerrarFijarPin()"
+>
+  @if (pinUser(); as u) {
+    @if (pinResult(); as pin) {
+      <!-- El PIN se muestra una sola vez, con copia al portapapeles -->
+      <div class="admin-usuarios__test-cred">
+        <p><strong>PIN fijado para {{ u.nombre }}.</strong> Entrégaselo (no se vuelve a mostrar):</p>
+        <p>Entra con: <strong>{{ identidad(u) }}</strong> + este PIN.</p>
+        <p>PIN: <code>{{ pin }}</code>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="copiarPin()">
+            {{ pinCopied() ? 'Copiado ✓' : 'Copiar' }}
+          </button>
+        </p>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrarFijarPin()">Listo</button>
+      </div>
+    } @else {
+      <form [formGroup]="pinForm" (ngSubmit)="guardarPin()" novalidate>
+        <p class="admin-usuarios__create-hint">
+          {{ u.nombre }} entra con <strong>{{ identidad(u) }}</strong> + un PIN de 6 dígitos (no tiene correo).
+          El PIN se genera solo; puedes teclear otro. El cambio queda registrado en la auditoría.
+        </p>
+        <div class="sgc-field">
+          <label for="fijar-pin">PIN de 6 dígitos <span class="required" aria-hidden="true">*</span></label>
+          <div class="admin-usuarios__pin-row">
+            <input id="fijar-pin" type="text" inputmode="numeric" maxlength="6" formControlName="pin"
+              autocomplete="off" aria-required="true" placeholder="Ej. 481973"
+              [class.invalid]="pinForm.controls.pin.invalid && pinForm.controls.pin.touched" />
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="regenerarPin()">Generar otro</button>
+          </div>
+          @if (pinForm.controls.pin.invalid && pinForm.controls.pin.touched) {
+            <span class="field-error" role="alert">El PIN debe ser exactamente 6 dígitos.</span>
+          }
+        </div>
+        @if (pinError()) {
+          <p class="admin-usuarios__save-error" role="alert">{{ pinError() }}</p>
+        }
+        <div class="admin-usuarios__drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarFijarPin()">Cancelar</button>
+          <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="pinSaving()">
+            {{ pinSaving() ? 'Fijando…' : 'Fijar PIN' }}
+          </button>
+        </div>
+      </form>
+    }
+  }
 </app-form-drawer>
