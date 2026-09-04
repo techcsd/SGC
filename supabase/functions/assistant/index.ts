@@ -306,6 +306,17 @@ const TOOLS: ToolDef[] = [
     input_schema: { type: "object", properties: { proyecto_id: { type: "string" } }, required: ["proyecto_id"] },
     rpc: "personal_obra_conteos", map: (i) => ({ p_proyecto_id: i.proyecto_id }),
   },
+  {
+    // BJ1 — cobertura de bitácoras por obra (pedido de Eduardo NG por WhatsApp).
+    name: "cobertura_de_bitacoras",
+    description: "Reporte de cuántas bitácoras hay POR OBRA, con su última fecha y su estado (al día / atrasada / SIN bitácoras). Úsala para '¿cuántas bitácoras hay por obra?', '¿qué obras están al día con la bitácora?', '¿qué obras no han hecho bitácora?', 'reporte de bitácoras por obra para los ingenieros'. Devuelve TODAS las obras activas, incluidas las que tienen 0 (que son las que hay que atender). Por defecto cuenta todo el histórico; pasa desde/hasta (YYYY-MM-DD) para acotar un rango. Requiere módulo bitácora, proyectos o dirección.",
+    modulos: ["bitacora", "proyectos", "direccion"],
+    input_schema: { type: "object", properties: {
+      desde: { type: "string", description: "YYYY-MM-DD (opcional; por defecto todo el histórico)" },
+      hasta: { type: "string", description: "YYYY-MM-DD (opcional)" },
+    }, additionalProperties: false },
+    rpc: "bitacoras_cobertura_resumen", map: (i) => ({ p_desde: i.desde ?? null, p_hasta: i.hasta ?? null }),
+  },
 
   // ── BE2 — Consultas por rol (los 3 gaps de las capturas) ──────────────────
   {

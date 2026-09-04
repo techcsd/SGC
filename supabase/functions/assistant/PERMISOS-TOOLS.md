@@ -42,6 +42,7 @@
 | desempeno_semana | desempeno_semana→incentivo_listado | puede_gestionar_incentivos (admin/módulo incentivos) | ✔ | oculto | oculto | ✔ (AY6) | oculto |
 | cronograma_de_obra | listar_cronograma | puede_ver_cronograma(obra) (raise 42501) | ✔ | su obra (pend AY4) | oculto | oculto | oculto |
 | personal_de_obra | personal_obra_conteos | puede_ver_personal_obra(obra) ({} si no) | ✔ | su obra (pend AY4) | oculto | oculto | oculto |
+| **cobertura_de_bitacoras** (BJ1) | bitacoras_cobertura_resumen | módulo bitácora/proyectos/dirección o admin/tec (raise 42501); cuenta TODAS las obras activas, incluidas las de 0 | ✔ | ✔ (tiene bitácora) | oculto | oculto | oculto |
 | **actividad_de_usuario** (BE2) | actividad_de_usuario | **lo propio siempre; la de OTRO exige es_supervision_operativa (raise 42501)** | cualquiera | solo la suya | **solo la suya** | cualquiera (supervisión) | solo la suya |
 | **rutas_del_dia** (BE2) | rutas_del_dia | supervisión → TODAS; resto → las suyas | todas | las suyas | las suyas | **todas** (supervisión) | las suyas |
 | **disponibilidad_de_articulo** (BE2) | disponibilidad_de_articulo | **tool sin gate de módulo** (capacidades_asistente no escanea `obra`, así el ingeniero lo vería vacío); el RPC filtra POR BODEGA con puede_ver_inventario_bodega; apodos AU12; ambiguo→candidatos | ✔ | según sus obras (módulo obra) | ofrecido pero sin bodegas visibles → vacío | según inv. | ofrecido, vacío si no ve inventario |
