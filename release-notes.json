@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.111.0": {
+      "titulo": "Reporte de cobertura de bitácoras por obra y fecha",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Nuevo reporte «Cobertura por obra»: muestra cuántas bitácoras hay por obra y por fecha, marca cuáles están al día, atrasadas o sin ninguna, y se exporta a Excel para pasárselo a los ingenieros. Pensado para ver de un vistazo qué obras faltan por reportar."
+        }
+      ]
+    },
     "1.110.0": {
       "titulo": "Rescate de bitácoras atascadas + fijar PIN de campo + panel de errores que mide bien",
       "cambios": [

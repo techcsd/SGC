@@ -324,6 +324,7 @@ export class Shell implements OnInit {
         { label: 'Nueva bitácora', route: '/bitacora/nueva', modulo: 'bitacora' },
         { label: 'Mis bitácoras', route: '/bitacora/historial', modulo: 'bitacora' },
         { label: 'Dashboard de bitácora', route: '/bitacora/dashboard', modulo: 'bitacora' },
+        { label: 'Cobertura por obra', route: '/bitacora/cobertura', modulo: 'bitacora' },
         { label: 'Mi proyecto', route: '/bitacora/mi-proyecto', modulo: 'bitacora' },
         { label: 'Requisición', route: '/bitacora/solicitudes-material', modulo: 'bitacora' },
         // BH8 — misma pantalla que en Compras (una sola, ruta canónica /compras/solicitar).

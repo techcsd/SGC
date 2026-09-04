@@ -3,6 +3,19 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
 
+/** BJ1 — fila de cobertura por obra (RPC bitacoras_cobertura). */
+export interface CoberturaObra {
+  obra_id: string;
+  obra: string;
+  activa: boolean;
+  total: number;
+  dias_con_bitacora: number;
+  primera: string | null;
+  ultima: string | null;
+  dias_sin_reportar: number | null;
+  por_fecha: Record<string, number>;
+}
+
 const SELECT_QUERY =
   '*, proyecto:proyectos(nombre, codigo), autor:usuarios!bitacoras_usuario_id_fkey(id, nombre), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*), equipos:bitacora_equipos_alquilados(*), cronograma_tareas:cronograma_tarea_bitacoras(tarea:cronograma_tareas(id, nombre))';
 
@@ -15,6 +28,18 @@ const MAX_TAMANO_BYTES = 50 * 1024 * 1024;
 export class BitacoraService {
   private supabase = inject(SupabaseService);
   private cache = inject(SignedUrlCache);
+
+  /** BJ1 — reporte de cobertura de bitácoras por obra y fecha (pedido de Eduardo NG):
+   *  qué obras están al día, atrasadas o en cero. Una fila por obra activa. */
+  async getCobertura(desde: string, hasta: string): Promise<CoberturaObra[]> {
+    const { data, error } = await this.supabase.client.rpc('bitacoras_cobertura', {
+      p_desde: desde,
+      p_hasta: hasta,
+      p_incluir_prueba: false,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as CoberturaObra[];
+  }
 
   /** AQ8 — ¿puede ver bitácoras más allá de las suyas? (admin, módulo proyectos,
    *  o responsable de alguna obra). Gatea el submódulo "Todas las bitácoras". */

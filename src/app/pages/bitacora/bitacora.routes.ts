@@ -5,6 +5,7 @@ export const bitacoraRoutes: Routes = [
   { path: 'nueva', loadComponent: () => import('./nueva/nueva').then((m) => m.Nueva) },
   { path: 'historial', loadComponent: () => import('./historial/historial').then((m) => m.Historial) },
   { path: 'dashboard', loadComponent: () => import('./dashboard/dashboard').then((m) => m.BitacoraDashboard), title: 'Dashboard de bitácoras' },
+  { path: 'cobertura', loadComponent: () => import('./cobertura/cobertura').then((m) => m.BitacoraCobertura), title: 'Cobertura de bitácoras' },
   { path: 'mi-proyecto', loadComponent: () => import('./mi-proyecto/mi-proyecto').then((m) => m.MiProyecto) },
   {
     path: 'solicitudes-material',

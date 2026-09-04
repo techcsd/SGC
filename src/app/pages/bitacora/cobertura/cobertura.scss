@@ -1,0 +1,47 @@
+:host { display: block; }
+
+.cob-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;
+  h1 { font-family: var(--font-heading); margin: 0 0 .25rem; }
+  p { color: var(--sgc-text-muted); margin: 0; max-width: 60ch; }
+}
+
+.cob-filtros {
+  display: flex; gap: .75rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.25rem;
+  label { display: flex; flex-direction: column; gap: .25rem; font-size: .85rem; color: var(--sgc-text-muted); }
+  input { padding: .4rem .5rem; background: var(--sgc-surface); border: 1px solid var(--sgc-border); border-radius: 8px; color: inherit; }
+}
+
+.cob-error { color: var(--sgc-danger); padding: 1rem; }
+
+.cob-kpis { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.cob-kpi {
+  flex: 1 1 120px; background: var(--sgc-surface); border: 1px solid var(--sgc-border); border-radius: 14px;
+  padding: .9rem 1rem; display: flex; flex-direction: column; gap: .1rem;
+  &__n { font-size: 1.7rem; font-weight: 800; }
+  &__l { color: var(--sgc-text-muted); font-size: .82rem; }
+  &--ok { border-color: var(--sgc-success, #2e7d32); }
+  &--warn { border-color: var(--sgc-warning, #d98a00); }
+  &--danger { border-color: var(--sgc-danger, #c62828); }
+}
+
+.cob-sub { font-family: var(--font-heading); margin: 1.5rem 0 .5rem; }
+
+.cob-tabla-wrap { overflow-x: auto; border: 1px solid var(--sgc-border); border-radius: 12px; }
+.cob-tabla {
+  width: 100%; border-collapse: collapse; font-size: .9rem;
+  th, td { padding: .55rem .7rem; text-align: left; border-bottom: 1px solid var(--sgc-border); white-space: nowrap; }
+  th { background: var(--sgc-surface-2); color: var(--sgc-text-muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--sgc-surface-2); }
+}
+.cob-matriz .cob-cero { color: var(--sgc-text-muted); opacity: .4; }
+.cob-sticky { position: sticky; left: 0; background: var(--sgc-surface); z-index: 1; }
+.cob-matriz thead .cob-sticky { background: var(--sgc-surface-2); }
+
+.cob-badge {
+  display: inline-block; padding: .15rem .5rem; border-radius: 8px; font-size: .78rem; font-weight: 600;
+  &--success { background: color-mix(in srgb, var(--sgc-success, #2e7d32) 18%, transparent); color: var(--sgc-success, #2e7d32); }
+  &--warning { background: color-mix(in srgb, var(--sgc-warning, #d98a00) 20%, transparent); color: var(--sgc-warning, #d98a00); }
+  &--danger { background: color-mix(in srgb, var(--sgc-danger, #c62828) 18%, transparent); color: var(--sgc-danger, #c62828); }
+}

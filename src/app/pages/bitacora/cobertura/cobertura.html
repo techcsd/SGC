@@ -1,0 +1,81 @@
+<div class="cob-head">
+  <div>
+    <h1>Cobertura de bitácoras</h1>
+    <p>Cuántas bitácoras hay por obra y por fecha — para ver qué obras están al día y cuáles faltan.</p>
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="exportando() || loading()">
+    {{ exportando() ? 'Exportando…' : 'Exportar a Excel' }}
+  </button>
+</div>
+
+<div class="cob-filtros">
+  <label>Desde
+    <input type="date" [value]="desde()" (change)="onDesde($any($event.target).value)" />
+  </label>
+  <label>Hasta
+    <input type="date" [value]="hasta()" (change)="onHasta($any($event.target).value)" />
+  </label>
+  <button type="button" class="sgc-btn sgc-btn--primary" (click)="cargar()" [disabled]="loading()">Aplicar</button>
+</div>
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else if (error()) {
+  <div class="cob-error" role="alert">{{ error() }}</div>
+} @else {
+  <!-- KPIs -->
+  <div class="cob-kpis">
+    <div class="cob-kpi"><span class="cob-kpi__n">{{ totalObras() }}</span><span class="cob-kpi__l">Obras activas</span></div>
+    <div class="cob-kpi cob-kpi--ok"><span class="cob-kpi__n">{{ obrasAlDia() }}</span><span class="cob-kpi__l">Al día</span></div>
+    <div class="cob-kpi cob-kpi--warn"><span class="cob-kpi__n">{{ obrasAtrasadas() }}</span><span class="cob-kpi__l">Atrasadas (≥3 días)</span></div>
+    <div class="cob-kpi cob-kpi--danger"><span class="cob-kpi__n">{{ obrasEnCero() }}</span><span class="cob-kpi__l">Sin bitácoras</span></div>
+  </div>
+
+  <!-- Resumen por obra -->
+  <div class="cob-tabla-wrap">
+    <table class="cob-tabla">
+      <thead>
+        <tr>
+          <th>Obra</th><th>Total</th><th>Días</th><th>Última</th><th>Sin reportar</th><th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filas(); track f.obra_id) {
+          <tr>
+            <td>{{ f.obra }}</td>
+            <td class="num">{{ f.total }}</td>
+            <td class="num">{{ f.dias_con_bitacora }}</td>
+            <td>{{ f.ultima ?? '—' }}</td>
+            <td class="num">{{ f.dias_sin_reportar ?? '—' }}</td>
+            <td><span class="cob-badge cob-badge--{{ estado(f).tone }}">{{ estado(f).label }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Matriz obra × fecha -->
+  @if (fechas().length) {
+    <h2 class="cob-sub">Por fecha</h2>
+    <div class="cob-tabla-wrap">
+      <table class="cob-tabla cob-matriz">
+        <thead>
+          <tr>
+            <th class="cob-sticky">Obra</th>
+            @for (fe of fechas(); track fe) { <th class="num">{{ fe.slice(5) }}</th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of filas(); track f.obra_id) {
+            <tr>
+              <td class="cob-sticky">{{ f.obra }}</td>
+              @for (fe of fechas(); track fe) {
+                <td class="num" [class.cob-cero]="celda(f, fe) === 0">{{ celda(f, fe) || '·' }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}
