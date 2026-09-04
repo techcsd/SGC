@@ -21,6 +21,10 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = Deno.env.get("ASSISTANT_MODEL") ?? "claude-haiku-4-5-20251001";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// BJ2 — secreto compartido con el puente n8n (WhatsApp). Si no está seteado, el
+// modo WhatsApp queda apagado y la edge solo responde con sesión de usuario.
+const WHATSAPP_ASSISTANT_SECRET = Deno.env.get("WHATSAPP_ASSISTANT_SECRET");
 
 const MAX_MSGS_HORA = 60;
 const MAX_TOOL_LOOPS = 8;
@@ -812,16 +816,50 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Método no permitido" }, 405);
 
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) return json({ error: "No autorizado" }, 401);
   if (!ANTHROPIC_API_KEY) return json({ error: "El asistente no está configurado todavía (falta la API key). Avísale a Tecnología." }, 503);
+
+  let payload: { conversacion_id?: string; mensaje?: string; ejecutar?: Any; telefono?: string };
+  try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
+
+  let authHeader = req.headers.get("Authorization");
+
+  // ── BJ2 — Modo WhatsApp: el puente n8n llama con un secreto compartido + el
+  // teléfono del remitente. Resolvemos el teléfono a un usuario SGC (lista blanca)
+  // y le abrimos una sesión REAL (enlace mágico, sin tocar su contraseña) para que
+  // TODO el flujo —capacidades, gates de cada tool, RLS— corra como ESA persona.
+  // Un número fuera de la lista recibe un mensaje amable y nada de datos.
+  const waSecret = req.headers.get("x-wa-secret");
+  if (waSecret && WHATSAPP_ASSISTANT_SECRET && waSecret === WHATSAPP_ASSISTANT_SECRET) {
+    // el teléfono puede venir en el body o en un header (el tool de n8n lo manda por header)
+    const telefono = String(payload?.telefono ?? req.headers.get("x-wa-telefono") ?? "").trim();
+    const mensajeWa = String(payload?.mensaje ?? "").trim();
+    if (!mensajeWa) return json({ reply: "" });
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { db: { schema: "sgc" }, auth: { persistSession: false } });
+    const { data: resolved } = await admin.rpc("whatsapp_resolver", { p_telefono: telefono });
+    const row = Array.isArray(resolved) ? resolved[0] : resolved;
+    if (!row?.email) {
+      return json({ reply: "Hola 👋 Este número no está autorizado para consultar a Compa por aquí. Si crees que es un error, escríbele a Tecnología." });
+    }
+    const { data: link, error: linkErr } = await admin.auth.admin.generateLink({ type: "magiclink", email: row.email });
+    const tokenHash = (link as Any)?.properties?.hashed_token;
+    if (linkErr || !tokenHash) return json({ reply: "No pude abrir tu sesión de Compa ahora mismo. Reinténtalo en un momento." });
+    const vres = await fetch(`${SUPABASE_URL}/auth/v1/verify`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_ANON_KEY, "content-type": "application/json" },
+      body: JSON.stringify({ type: "magiclink", token_hash: tokenHash }),
+    });
+    const vj = await vres.json().catch(() => null);
+    if (!vj?.access_token) return json({ reply: "No pude abrir tu sesión de Compa. Reinténtalo." });
+    authHeader = `Bearer ${vj.access_token}`;
+    // Conversación efímera por mensaje (Q&A). El resto del flujo es idéntico.
+    payload = { mensaje: mensajeWa };
+  }
+
+  if (!authHeader) return json({ error: "No autorizado" }, 401);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: "sgc" }, global: { headers: { Authorization: authHeader } } });
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) return json({ error: "Sesión inválida" }, 401);
-
-  let payload: { conversacion_id?: string; mensaje?: string; ejecutar?: Any };
-  try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
 
   // Capacidades del usuario.
   const { data: cap, error: capErr } = await supabase.rpc("capacidades_asistente");
