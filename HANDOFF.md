@@ -1,9 +1,22 @@
 # HANDOFF — SGC
 
-## TL;DR — Ronda BJ (PROMPT-34, 05-06/09/2026) — web verde (1.111.0), **4 migraciones APLICADAS a prod + BJ5 smoke por rol OK**, SIN commit/push/deploy web
-5 de 6 fases hechas; FASE 5 bloqueada por falta del PDF de muestra. **4 migraciones APLICADAS** (`sql/2026-09-05-bj5…`, `bj3…`, `bj4…`, `bj1…`).
+## TL;DR — Ronda BJ (PROMPT-34, 05-07/09/2026) — **SHIPPED web 1.113.0** (commits 66b1580 + ec8c052, push main → Vercel), **4 migraciones APLICADAS a prod + BJ5 smoke por rol OK**
+**Las 6 fases hechas.** web 1.112.0 (BJ5/BJ3/BJ4/BJ1/BJ6) + 1.113.0 (BJ2 PDF). **4 migraciones APLICADAS** (`sql/2026-09-05-bj5…`, `bj3…`, `bj4…`, `bj1…`).
 
 **⚠️ Lección BJ5 (recursión RLS):** la 1ª versión de la política metía la red AW1 (`not exists (select from sgc.proyectos)`) DIRECTA en la policy de `sgc.proyectos` → **recursión infinita 42P17** (rompía toda lectura autenticada de proyectos). `proyectos_pickables()` se salva porque es SECURITY DEFINER. Fix: AW1 movida a helper `sgc.usuario_sin_obra_activa_ligada()` (DEFINER). **Regla:** una policy RLS NUNCA debe subconsultar su propia tabla sin blindar el subselect en un DEFINER. La corrección ya está en el archivo `bj5` y aplicada.
+
+**BJ2 (FASE 5) shipped — web 1.113.0 (commit ec8c052, push main):** la conciliación de
+combustible acepta la **factura PDF** de TotalEnergies (crédito fiscal electrónico), no solo
+Excel/CSV. Extractor por posición (`pdfjs-dist` getTextContent, `parse-pdf-totalenergies.util`)
+que reconstruye la tabla agrupada por TARJETA y devuelve el mismo `InformeRow[]` → el matcher
+y el import no se tocaron. **Verificado contra la factura real FA26/215223: 33 transacciones,
+15 tarjetas, cuadra al peso por total/producto/tarjeta (108,688.16)**; consumo a nombre de
+PERSONA marcado (`titular_es_persona`); llave de dedupe `factura#recibo#fecha#hora#idx`; el
+código de 4 dígitos (`numero_tarjeta`) es la llave estable para el mapeo. `pdfjs-dist` en chunk
+lazy + worker como asset. **Follow-ups**: pantalla de mapeo tarjeta→vehículo/persona (hoy las
+tarjetas sin placa caen a `solo_informe`), guardar el PDF en Storage, panel de cuadre por
+producto/tarjeta en la UI, columna Alerta persistida (la factura de muestra no trae alertas).
+El PDF real está **gitignoreado** (datos fiscales).
 
 **BJ5 smoke por rol (APLICADO, OK):** admin ve 15 (incl. 4 de prueba); ingeniero campo/oficina, jefe ing., chofer, Raykler y capataz ven la **lista** (11, nunca 0) y **0 obras de prueba**; dropdowns por contexto OK (WIDE=10 para todos; SCOPED=1 para el ingeniero de campo = su obra). Sin recursión.
 
