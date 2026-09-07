@@ -67,3 +67,6 @@ qa/*.local.json
 
 # Local QA/DB helper scripts (not part of the app)
 scratchpad/
+
+# BJ2 — factura real de muestra (datos fiscales, no va al repo)
+referencia-factura-totalenergies-*.pdf

@@ -18,16 +18,17 @@
       </select>
     </div>
     <label class="sgc-btn sgc-btn--primary cc-file">
-      <app-icon name="upload" [size]="16" /> Importar informe (Excel/CSV)
-      <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" hidden />
+      <app-icon name="upload" [size]="16" /> Importar informe (Excel/CSV/PDF)
+      <input type="file" accept=".xlsx,.xls,.csv,.pdf" (change)="onFileSelected($event)" hidden />
     </label>
   </div>
   @if (nombreArchivo()) { <p class="cc-file-name">Archivo: {{ nombreArchivo() }}</p> }
   @if (parsing()) { <p class="cc-muted">Procesando…</p> }
   @if (parseError()) { <p class="cc-error" role="alert">{{ parseError() }}</p> }
   <p class="cc-hint">
-    Reconoce el reporte real de Total Energies (coma decimal, fechas dd/mm/aaaa, Transacción_num) y otros
-    formatos. Nada se inserta hasta que confirmes en la <strong>vista previa</strong>.
+    Reconoce el reporte real de Total Energies en Excel/CSV (coma decimal, fechas dd/mm/aaaa,
+    Transacción_num) <strong>y la factura PDF</strong> (crédito fiscal electrónico, agrupada por tarjeta).
+    Nada se inserta hasta que confirmes en la <strong>vista previa</strong>.
   </p>
 </div>
 

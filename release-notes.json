@@ -3460,6 +3460,16 @@
           "d": "Las fotos y documentos se comprimen automáticamente antes de subirse (más rápido y menos datos), con límites de tamaño por tipo de archivo. Las firmas se conservan intactas."
         }
       ]
+    },
+    "1.113.0": {
+      "titulo": "Conciliación de combustible: acepta la factura PDF de TotalEnergies",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "La conciliación de combustible ahora acepta la factura PDF de TotalEnergies (crédito fiscal electrónico), además de Excel/CSV. Reconstruye el detalle agrupado por tarjeta, cuadra por total, por producto y por tarjeta, y marca el consumo que va a nombre de una persona (no de una placa). Vista previa obligatoria antes de importar."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

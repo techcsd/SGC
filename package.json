@@ -1,6 +1,6 @@
 {
   "name": "sgc",
-  "version": "1.112.0",
+  "version": "1.113.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
@@ -28,6 +28,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^1.1.0",
     "mammoth": "^1.12.0",
+    "pdfjs-dist": "^4.10.38",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

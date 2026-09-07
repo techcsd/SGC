@@ -6,7 +6,9 @@ import {
   ConciliacionRegistro,
   ConciliacionDetalle,
   ConciliacionMeta,
+  InformeRow,
 } from '../../../../shared/services/combustible-conciliacion.service';
+import { parseTotalEnergiesPdf } from '../../../../shared/utils/parse-pdf-totalenergies.util';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -14,37 +16,6 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
-
-/** Fila normalizada del informe importado (Total Energies u otro). */
-interface InformeRow {
-  identificador: string; // placa/registro/titular
-  fecha: string | null; // YYYY-MM-DD
-  galones: number | null;
-  monto: number | null;
-  // Z23 — datos extra del reporte real (para dedupe, preview y persistencia).
-  transaccion_num: string;
-  titular: string;
-  titular_es_persona: boolean;
-  numero_tarjeta: string;
-  numero_registro: string;
-  producto: string;
-  kilometraje: number | null;
-  hora: string;
-  estacion_codigo: string;
-  estacion_ubicacion: string;
-  ncf: string;
-  trans_status: string;
-  numero_factura: string;
-  total_factura: number | null;
-  fecha_factura: string | null;
-  duplicada?: boolean; // Transacción_num ya importado
-  invalida?: boolean; // sin datos mínimos
-  // BB7 — por qué la fila es inválida/dudosa (visible en tooltip + columna). El parser
-  // ya sabe el porqué; que lo diga en vez de un badge mudo.
-  motivos?: string[];
-  // BB7 — el usuario puede excluir conscientemente una fila del import.
-  excluida?: boolean;
-}
 
 // Tolerancias de matching.
 const DIAS_TOLERANCIA = 2;
@@ -231,9 +202,19 @@ export class ConciliacionCombustible implements OnInit {
     this.detalles.set([]);
     this.meta.set(null);
     try {
-      const filas = await this.parseInforme(file);
+      // BJ2 — el reporte puede venir como Excel/CSV (SheetJS) o como la FACTURA PDF
+      // de TotalEnergies (crédito fiscal electrónico). El PDF produce el mismo
+      // InformeRow[] → el matcher y el import no cambian.
+      const esPdf = /\.pdf$/i.test(file.name) || file.type === 'application/pdf';
+      const filas = esPdf
+        ? await parseTotalEnergiesPdf(new Uint8Array(await file.arrayBuffer()))
+        : await this.parseInforme(file);
       if (filas.length === 0) {
-        this.parseError.set('No se detectaron filas válidas en el archivo. Verifica que sea el reporte del proveedor.');
+        this.parseError.set(
+          esPdf
+            ? 'No se detectaron transacciones en el PDF. ¿Es la factura de consumo de TotalEnergies?'
+            : 'No se detectaron filas válidas en el archivo. Verifica que sea el reporte del proveedor.',
+        );
         return;
       }
       // Dedupe: marca las transacciones ya importadas.

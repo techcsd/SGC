@@ -1,6 +1,40 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 
+/** Fila normalizada del informe importado (Total Energies u otro), sea Excel/CSV o
+ *  PDF. Definida aquí (sin dependencias de Angular) para que el parser de PDF
+ *  (`parse-pdf-totalenergies.util`) y el componente compartan EXACTAMENTE la forma. */
+export interface InformeRow {
+  identificador: string; // placa/registro/titular
+  fecha: string | null; // YYYY-MM-DD
+  galones: number | null;
+  monto: number | null;
+  // Z23 — datos extra del reporte real (para dedupe, preview y persistencia).
+  transaccion_num: string;
+  titular: string;
+  titular_es_persona: boolean;
+  numero_tarjeta: string;
+  numero_registro: string;
+  producto: string;
+  kilometraje: number | null;
+  hora: string;
+  estacion_codigo: string;
+  estacion_ubicacion: string;
+  ncf: string;
+  trans_status: string;
+  numero_factura: string;
+  total_factura: number | null;
+  fecha_factura: string | null;
+  duplicada?: boolean; // Transacción_num ya importado
+  invalida?: boolean; // sin datos mínimos
+  // BB7 — por qué la fila es inválida/dudosa (visible en tooltip + columna).
+  motivos?: string[];
+  // BB7 — el usuario puede excluir conscientemente una fila del import.
+  excluida?: boolean;
+  // BJ2 — código de alerta de control de consumo (FR/H/J/X/Y/Z), fuera de política.
+  alerta?: string;
+}
+
 /** Cabecera guardada de una conciliación (para historial/dashboard). */
 export interface ConciliacionRegistro {
   id: string;
