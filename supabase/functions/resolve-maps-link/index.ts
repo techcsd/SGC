@@ -1,9 +1,13 @@
-// AM7 / AU16 — Resuelve un link de Google Maps (incluidos los cortos
+// AM7 / AU16 / BK2 — Resuelve un link de Google Maps (incluidos los cortos
 // maps.app.goo.gl / goo.gl/maps) a coordenadas lat/lng. El navegador NO puede
 // seguir el redirect (CORS), por eso se hace aquí (servidor). Cadena completa:
-//   1) ¿coordenadas pegadas? → devolver directo.
+//   0) BK2 — extraer la PRIMERA URL de un texto (Maps comparte a WhatsApp como
+//      "Nombre del lugar\nhttps://maps.app.goo.gl/…"; copiar el mensaje copia
+//      TODO). También acepta links sin esquema (WhatsApp a veces los muestra
+//      pelados) y plus-codes / geo:lat,lng.
+//   1) ¿coordenadas pegadas? → devolver directo (incluye geo:, q=, query=, daddr=).
 //   2) seguir el redirect → extraer coords de la URL final (patrones !3d!4d,
-//      /@lat,lng, /search/lat,lng, ?q=lat,lng).
+//      /@lat,lng, /search/lat,lng, ?q=/query=/daddr=lat,lng).
 //   3) AU16 — si la URL final NO trae coords pero SÍ un nombre de lugar
 //      (/maps/place/<NOMBRE>/, típico de los negocios locales como "Ferretería
 //      MC"), resolver ese nombre con Google Places (searchText) → coords + dir.
@@ -25,13 +29,22 @@ function json(body: unknown, status = 200) {
 
 // Extrae lat/lng de una URL de Google Maps o de un texto de coordenadas.
 function extractCoords(raw: string): { lat: number; lng: number } | null {
-  const s = decodeURIComponent(raw);
+  // BK2 — decodeURIComponent puede lanzar URIError con un `%` suelto (ej. "100%").
+  // extractPlaceName ya lo protegía; a extractCoords se le había olvidado.
+  let s: string;
+  try {
+    s = decodeURIComponent(raw);
+  } catch {
+    s = raw;
+  }
   const patterns = [
     /!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/,          // marcador del place (preferido)
-    /[?&]q=(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)/,       // ?q=lat,lng
+    // ?q= / &query= (el que genera la propia app) / &daddr= (compartir de WhatsApp)
+    /[?&](?:q|query|daddr|destination)=(-?\d{1,3}\.\d+),\s*\+?\s*(-?\d{1,3}\.\d+)/,
     /\/search\/(-?\d{1,3}\.\d+),\s*\+?\s*(-?\d{1,3}\.\d+)/, // /search/lat,+lng
     /\/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,             // centro del mapa /@lat,lng
-    /^\s*(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)\s*$/,  // coords pegadas
+    /\bgeo:(-?\d{1,3}\.\d+),\s*(-?\d{1,3}\.\d+)/,       // geo:lat,lng (Android)
+    /(?:^|[\s(])(-?\d{1,3}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)(?:[\s)]|$)/, // coords sueltas en texto
   ];
   for (const p of patterns) {
     const m = s.match(p);
@@ -42,6 +55,25 @@ function extractCoords(raw: string): { lat: number; lng: number } | null {
     }
   }
   return null;
+}
+
+// BK2 — Google Plus Code (Open Location Code), p. ej. "PGWM+9F" o
+// "8F9RPGWM+9F Santo Domingo". No se decodifica localmente: se resuelve por
+// Places (searchText) igual que un nombre de lugar.
+function looksLikePlusCode(s: string): boolean {
+  return /(^|\s)[23456789CFGHJMPQRVWX]{2,8}\+[23456789CFGHJMPQRVWX]{2,3}(\s|$)/i.test(s);
+}
+
+// BK2 — Extrae la primera URL de un texto. Maps comparte a WhatsApp con el
+// nombre del lugar en la primera línea y la URL debajo; copiar el mensaje copia
+// las dos. También rescata links "pelados" (sin http/https) que algunas vistas
+// de WhatsApp muestran así.
+function extractUrl(input: string): { url: string | null; hadText: boolean } {
+  const withScheme = input.match(/(https?:\/\/[^\s<>"']+)/i);
+  if (withScheme) return { url: withScheme[1], hadText: withScheme[1].trim() !== input.trim() };
+  const bare = input.match(/((?:maps\.app\.goo\.gl|goo\.gl\/maps|(?:www\.)?google\.[a-z.]+\/maps|maps\.google\.[a-z.]+)\/[^\s<>"']*)/i);
+  if (bare) return { url: 'https://' + bare[1], hadText: bare[1].trim() !== input.trim() };
+  return { url: null, hadText: false };
 }
 
 // AU16 — UA de navegador real. Con un UA "compatible; SGC/1.0" Google puede
@@ -125,23 +157,39 @@ Deno.serve(async (req: Request) => {
     const input: string | undefined = (url ?? texto)?.toString().trim();
     if (!input) return json({ error: 'Pega un link de Google Maps o unas coordenadas (lat, lng).' }, 400);
 
-    // 1) ¿Coordenadas pegadas directamente?
+    // 1) ¿Coordenadas pegadas directamente? (incluye geo:, ?q=, &query=, &daddr=)
     const direct = extractCoords(input);
     if (direct) return json({ ...direct, source: 'coords', resolved_url: null });
 
-    // 2) ¿Es una URL de Maps? Seguir el redirect y extraer.
-    if (!/^https?:\/\//i.test(input) || !/goo\.gl|google\.[a-z.]+\/maps/i.test(input)) {
+    // 2) BK2 — extraer la primera URL del texto (Maps comparte "Nombre\nURL");
+    //    acepta también el link "pelado" sin http/https.
+    const { url: link, hadText } = extractUrl(input);
+
+    if (!link) {
+      // 2b) BK2 — ¿un plus-code o un nombre de lugar suelto? → Places.
+      if (looksLikePlusCode(input)) {
+        const place = await resolvePlaceByName(input);
+        if (place) return json({ ...place, source: 'places', resolved_url: null, note: 'Resolví el plus-code por su nombre.' });
+      }
       return json(
-        { error: 'Eso no parece un link de Google Maps ni un par de coordenadas. Usa "Compartir → Copiar enlace" desde Maps, o pega "lat, lng".' },
+        { error: 'Eso no parece un link de Google Maps ni un par de coordenadas. Comparte desde Maps ("Compartir → Copiar enlace") o pega "lat, lng".' },
         400,
       );
     }
 
-    const finalUrl = await resolveFinalUrl(input);
+    if (!/goo\.gl|google\.[a-z.]+\/maps|maps\.google/i.test(link)) {
+      return json(
+        { error: 'El link no es de Google Maps. Comparte desde Maps ("Compartir → Copiar enlace") o pega "lat, lng".' },
+        400,
+      );
+    }
+
+    const finalUrl = await resolveFinalUrl(link);
+    const tookFromText = hadText ? 'Tomé el link del mensaje. ' : '';
 
     // 2a) Coords en la URL final (place con @lat,lng o !3d!4d).
     const coords = extractCoords(finalUrl);
-    if (coords) return json({ ...coords, source: 'maps_link', resolved_url: finalUrl });
+    if (coords) return json({ ...coords, source: 'maps_link', resolved_url: finalUrl, note: tookFromText || undefined });
 
     // 3) AU16 — Sin coords pero con nombre de lugar (negocios locales): Places.
     const placeName = extractPlaceName(finalUrl);
@@ -155,6 +203,7 @@ Deno.serve(async (req: Request) => {
           address: place.address,
           source: 'places',
           resolved_url: finalUrl,
+          note: tookFromText || undefined,
         });
       }
       // Hay nombre pero Places no lo ubicó (o falta la key): devolver el nombre

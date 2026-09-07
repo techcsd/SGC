@@ -36,6 +36,10 @@ export class FlotaConfigService {
   margenAlerta = signal(0.85);  // confirmación: galones > cap × este factor
   precioGalMin = signal(100);   // banda de precio RD$/galón
   precioGalMax = signal(600);
+  // BK5 — tolerancias del matching de la conciliación de combustible.
+  conciliacionDiasTol = signal(2);    // días de diferencia aceptados factura↔registro
+  conciliacionGalTol = signal(0.5);   // galones de diferencia aceptados
+  conciliacionMontoTol = signal(50);  // RD$ de diferencia aceptados
 
   private loaded = false;
 
@@ -101,6 +105,10 @@ export class FlotaConfigService {
           case 'tanque_margen_alerta':   this.margenAlerta.set(n); break;
           case 'precio_gal_min':         this.precioGalMin.set(n); break;
           case 'precio_gal_max':         this.precioGalMax.set(n); break;
+          // BK5 — tolerancias de conciliación.
+          case 'conciliacion_dias_tolerancia':  this.conciliacionDiasTol.set(n); break;
+          case 'conciliacion_gal_tolerancia':   this.conciliacionGalTol.set(n); break;
+          case 'conciliacion_monto_tolerancia': this.conciliacionMontoTol.set(n); break;
         }
       }
     } catch {

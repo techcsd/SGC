@@ -50,4 +50,24 @@ export class AlertasCuadreService {
       .eq('clave', clave);
     if (error) throw new Error(error.message);
   }
+
+  // ── BK5 — flota_config (segunda tabla clave/valor, se edita por RPC) ──
+  /** Lee todas las filas de flota_config (clave/valor). */
+  async getFlotaConfig(): Promise<Parametro[]> {
+    const { data, error } = await this.supabase.client
+      .from('flota_config')
+      .select('clave, valor')
+      .order('clave');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as Parametro[];
+  }
+
+  /** Escribe una clave de flota_config vía RPC (gate admin/flota). Solo numéricas. */
+  async setFlotaConfig(clave: string, valor: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_flota_config', {
+      p_clave: clave,
+      p_valor: valor,
+    });
+    if (error) throw new Error(error.message);
+  }
 }

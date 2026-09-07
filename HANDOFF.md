@@ -1,5 +1,56 @@
 # HANDOFF — SGC
 
+## TL;DR — Ronda BK (PROMPT-36, 07/09/2026) — **2 migraciones APLICADAS a prod + edge desplegado + smoke OK; frontend SIN commit/deploy**
+
+**APLICADO 07/09 (con OK de Xaviel):**
+- ✅ `sql/2026-09-07-bk5-config-knobs.sql` — tolerancias conciliación en `flota_config` (verificadas).
+- ✅ `sql/2026-09-07-bk1-notif-panel-core.sql` — `notif_tipo` (28 tipos), `notif_regla.usuario_id`, `notif_permitida`, 7 emisores + `send_push` con rastro. Aplicada; **smoke `scripts/smoke-notif-panel.mjs` = OK** (apagar tipo a usuario → no inbox, rastro registrado, reactiva al quitar regla).
+- ✅ Edge `resolve-maps-link` **desplegado** — live-test OK: coords-en-texto, `&query=` (link de la app) y texto con `%` ahora dan 200 (antes 400/422/500). **El fix del chofer es server-side → app y web se benefician sin actualizar.**
+- **Compatibilidad verificada:** la UI vieja de `matriz-notificaciones` sigue funcionando (set_notif_regla 3-arg resuelve al 4-arg por default; notif_reglas devuelve cols extra ignoradas). Tolerancias seed = defaults → comportamiento sin cambios hasta el próximo deploy web.
+
+**FALTA commit/push (frontend, activa al deploy Vercel):** pantalla Config unificada (FASE 3), picker maps `suggest_query` (FASE 2), conciliación leyendo tolerancias (FASE 4). Al shippear: bump `package.json` + `release-notes.json`.
+
+---
+
+## Detalle BK (build verde; lo de arriba ya está en prod)
+
+Contexto real: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-18.md` (§F = decisiones). Se hizo **FASE 0, 2, 3 y 4-parcial**. Faltan **FASE 1 (panel notif), 5 (padrón), 6 (reporte diario)** — grandes, tocan pago/notif, requieren §F.
+
+**⚠️ Lección BK: el CONTEXTO-18 sobreestimó los problemas — verificar cada premisa contra prod antes de construir.** 5 premisas resultaron inexactas: (1) las 26 claves NO estaban huérfanas (ya sembradas en `flota_config`+`parametros`; el hueco real = `admin/parametros` leía UNA tabla); (2) el cron `recordatorio-reporte-semanal-dia` NO está duplicado (upsert por nombre) y su 22×/domingo es **intencional** (AL6, sólo alarma a los pendientes); (3) el form de `incentivo_config` **ya existe y funciona** (`incentivos.ts:458`, muestra versión); (4) `incentivo_set_config` **ya existe** en prod; (5) Misael **sí** está en `conductores` (el bloqueo real es el gate por rol `chofer_transportista`, no el padrón).
+
+**FASE 0 (diagnóstico):** `FCM_SERVICE_ACCOUNT_JSON` **SÍ está configurado** — `notif_entregas` = 421 push `enviada`, 0 `omitida/fcm_apagado`, último hoy. El push entrega; cualquier "no me llegó" es por-usuario (device token / matriz), no un apagón global.
+
+**FASE 2 (BK2 maps) — hecho, build verde, edge SIN desplegar:**
+- `supabase/functions/resolve-maps-link/index.ts`: extrae la 1ª URL de un texto (el bug del chofer "Nombre\nURL"), acepta links sin esquema, `try/catch` en `decodeURIComponent` (el 500 por `%`), patrones `&query=` (el que la app genera), `?daddr=`, `geo:`, plus-codes→Places, y `note:"Tomé el link del mensaje"`. **12 casos probados** (`scratchpad/test-maps.mjs`, todos pasan).
+- Web `location-picker.ts`: al recibir `suggest_query` prellena el buscador y busca (paridad con `lugar-picker` de la app). **App (`location-picker` de crear-ruta) = PROMPT-37.**
+
+**FASE 3 (BK5a config) — hecho, build verde, SIN migración (no hacía falta):** `admin/parametros` reescrita como **"Configuración del sistema"** unificada: muestra `parametros` **y** `flota_config` juntas, agrupadas por área, con tipo + validación + input correcto por clave (catálogo nuevo `src/shared/config/parametros-catalogo.ts`). `flota` se guarda por `set_flota_config`, `parametros` por update directo. Cumple §D(a)+(g). Título arreglado.
+
+**FASE 4 (BK5) — parcial, build verde, migración `sql/2026-09-07-bk5-config-knobs.sql` SIN aplicar:**
+- **Tolerancias de conciliación** (`DIAS/GAL/MONTO`) → `flota_config` (público-legible) + leídas en `conciliacion-combustible.ts` vía `FlotaConfigService` + en el catálogo (editables en la Config unificada). Migración siembra las 3.
+- **`docs/CRONS.md`** — inventario de los 26 crons con hora RD + la nota de que el "duplicado" no lo es.
+- **Deferidos (documentados):** `kpi_config` (necesita su propio form para no nacer como tabla/RPC sin llamador — regla 6.5); **knob único de mínimo de fotos** (toca 2 overloads de `crear_bitacora_app` + RPC web + clientes app / PROMPT-37, path caliente de data de obra).
+
+**RLS clave descubierta:** `flota_config` SELECT = `true` (todos); `parametros` SELECT = `is_admin() OR tiene_modulo('direccion')`. ⇒ cualquier config leída client-side por no-admins (KPI, min-fotos) debe ir en tabla público-legible o RPC DEFINER, **nunca** en `parametros`.
+
+**FASE 1 (BK1 panel notif) — BACKEND CORE hecho, validado (begin/rollback OK), SIN aplicar.** Decisiones de Xaviel: **una tabla de reglas unificada** (usuario>rol>global) + **retirar `notificaciones_config`**. Migración `sql/2026-09-07-bk1-notif-panel-core.sql`:
+- `sgc.notif_tipo` (tabla catálogo) sembrada con los 13 + los ~16 que se emitían sin poder apagarse (mensaje, soporte, nota_compartida, las 2 alarmas dominicales, echada_duplicada, etc.); `notif_tipos_catalogo()` pasa a wrapper sobre la tabla (misma firma).
+- `notif_regla` + `usuario_id` (nullable) + índice único `ux_notif_regla_scope` (tipo,rol,usuario) + `notif_regla_audit`.
+- **`sgc.notif_permitida(usuario,tipo)`** (precedencia usuario>rol>global vía `notif_regla_habilitado` + silencio propio) — el predicado ÚNICO.
+- **Los 7 emisores lo consultan** (era el fix): `notificar`, `notificar_modulo` (5+7arg), `notificar_rol`, `notificar_flota_elevado`, `notificar_todos`, `trg_app_version_push` — el INBOX ahora respeta la regla, no sólo el push.
+- `send_push` usa `notif_permitida` y **registra `silenciada`/`fuera_de_matriz`** en `notif_entregas` antes de descartar (el panel ya puede responder "¿por qué no le llegó?").
+- `notificar_flota_elevado` deja de tener roles hardcodeados → parámetro `aviso_flota_elevado_roles`.
+- `notif_reglas()`/`set_notif_regla()` extendidos a nivel usuario (+ auditoría). Se dropea la vieja `set_notif_regla(text,text,boolean)` (usaba el índice retirado).
+- Smoke listo: `scripts/smoke-notif-panel.mjs` (corre TRAS aplicar).
+
+**FASE 1 — FALTA (chunk siguiente, todo frontend/edges):** (1) pantalla `admin/matriz-notificaciones` ampliada a tipos×global/rol/**usuario** con buscador de usuario + motivo + auditoría + rastro (copiar patrón `admin/roles`) y quitar el `null` clavado (`matriz-notificaciones.ts:104`, `:88`); (2) web `ajustes-notificaciones.ts` y app `avisos.ts` leen el catálogo de la tabla (hoy hardcodeado, ya divergido); (3) **retirar `notificaciones_config`** + pantalla `admin/notificaciones` (migrar sus 7 eventos al catálogo); (4) el correo entra a la matriz (9 edges `notificar-*`/incentivo/resumen, al menos por tipo+rol) + UI para los CSV de destinatarios.
+
+**§F pendientes para FASES 5/6** (del CONTEXTO-18): forma del panel notif (propuesta: una tabla de reglas con precedencia usuario>rol>global + correo en la matriz); `notificaciones_config` absorber/retirar; ¿los ~16 tipos sin catalogar entran todos? (prop: sí); `es_chofer` sólo declara para incentivo (prop: sí); regenerar histórico de Misael (toca pago); paridad app de participantes/BF3; `cumplio` diario (prop: quitar); destinatarios diario (prop: parámetro propio); ¿diario con PDF? (prop: no); `umbral_licencia_dias` 30 vs 90 (BD=30 gana hoy).
+
+**Para aplicar (con OK):** 1 migración (`bk5-config-knobs`), desplegar edge `resolve-maps-link`, y al shippear: bump `package.json` + entrada en `release-notes.json`.
+
+---
+
 ## TL;DR — Ronda BJ (PROMPT-34, 05-07/09/2026) — **SHIPPED web 1.113.0** (commits 66b1580 + ec8c052, push main → Vercel), **4 migraciones APLICADAS a prod + BJ5 smoke por rol OK**
 **Las 6 fases hechas.** web 1.112.0 (BJ5/BJ3/BJ4/BJ1/BJ6) + 1.113.0 (BJ2 PDF). **4 migraciones APLICADAS** (`sql/2026-09-05-bj5…`, `bj3…`, `bj4…`, `bj1…`).
 

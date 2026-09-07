@@ -11,6 +11,7 @@ import {
 } from '../../../../shared/services/combustible-conciliacion.service';
 import { parseTotalEnergiesPdfFull, TotalEnergiesCard } from '../../../../shared/utils/parse-pdf-totalenergies.util';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
+import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -18,11 +19,6 @@ import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-fi
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
-
-// Tolerancias de matching.
-const DIAS_TOLERANCIA = 2;
-const GAL_TOLERANCIA = 0.5;
-const MONTO_TOLERANCIA = 50;
 
 /**
  * T4 — Conciliación de combustible: importa el informe de la estación (Excel/CSV
@@ -42,6 +38,7 @@ export class ConciliacionCombustible implements OnInit {
   private estacionesService = inject(EstacionesCombustibleService);
   private vehiculosService = inject(VehiculosService);
   private toast = inject(ToastService);
+  private flotaConfig = inject(FlotaConfigService);
 
   formatFecha = formatFechaDisplay;
 
@@ -539,6 +536,10 @@ export class ConciliacionCombustible implements OnInit {
 
   /** Cruza el informe contra los registros de la plataforma en el rango. */
   private async conciliar(informe: InformeRow[], nombre: string) {
+    await this.flotaConfig.load(); // BK5 — tolerancias configurables (flota_config).
+    const diasTol = this.flotaConfig.conciliacionDiasTol();
+    const galTol = this.flotaConfig.conciliacionGalTol();
+    const montoTol = this.flotaConfig.conciliacionMontoTol();
     const fechas = informe.map((r) => r.fecha).filter((f): f is string => !!f).sort();
     const desde = fechas[0] ?? null;
     const hasta = fechas[fechas.length - 1] ?? null;
@@ -560,7 +561,7 @@ export class ConciliacionCombustible implements OnInit {
           !usados.has(reg.id) &&
           this.norm(reg.vehiculo?.placa ?? '') === idn &&
           idn !== '' &&
-          (!inf.fecha || !reg.fecha || this.diasEntre(inf.fecha, reg.fecha) <= DIAS_TOLERANCIA),
+          (!inf.fecha || !reg.fecha || this.diasEntre(inf.fecha, reg.fecha) <= diasTol),
       );
       if (cand) {
         usados.add(cand.id);
@@ -568,7 +569,7 @@ export class ConciliacionCombustible implements OnInit {
         const mp = Number(cand.monto) || 0;
         const dg = (inf.galones ?? 0) - gp;
         const dm = (inf.monto ?? 0) - mp;
-        const hayDif = Math.abs(dg) > GAL_TOLERANCIA || Math.abs(dm) > MONTO_TOLERANCIA;
+        const hayDif = Math.abs(dg) > galTol || Math.abs(dm) > montoTol;
         if (hayDif) diferencias++; else matches++;
         detalles.push({
           tipo: hayDif ? 'diferencia' : 'match',

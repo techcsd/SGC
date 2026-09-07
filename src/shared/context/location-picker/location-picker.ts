@@ -45,6 +45,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
   ubicacionChange = output<UbicacionSeleccionada>();
 
   private mapEl = viewChild.required<ElementRef<HTMLDivElement>>('map');
+  private searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   private map: google.maps.Map | null = null;
   private marker: google.maps.Marker | null = null;
   private resizeObs: ResizeObserver | null = null;
@@ -192,6 +193,17 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       const lat = data?.lat;
       const lng = data?.lng;
       if (error || data?.error || typeof lat !== 'number' || typeof lng !== 'number') {
+        // BK2/AU16 — el link apunta a un lugar sin coords exactas pero el edge
+        // devolvió su nombre: salir del "modo link" y prellenar la búsqueda con
+        // ese texto (mismo comportamiento que el lugar-picker de la app).
+        const sugerido = data?.suggest_query as string | undefined;
+        if (sugerido) {
+          const el = this.searchInput()?.nativeElement;
+          if (el) el.value = sugerido;
+          this.linkError.set('El link apunta a un lugar sin coordenadas exactas. Lo busqué por su nombre — elige el resultado o marca el punto en el mapa.');
+          this.onBuscar(sugerido);
+          return;
+        }
         this.linkError.set(data?.error || 'No se pudo resolver ese link. Pega el enlace de Google Maps o las coordenadas (ej. 18.56, -68.37).');
         return;
       }

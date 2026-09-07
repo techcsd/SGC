@@ -1,6 +1,7 @@
 <div class="location-picker">
   <div class="location-picker__search">
     <input
+      #searchInput
       type="search"
       placeholder="Buscar dirección o lugar…"
       (input)="onBuscar($any($event.target).value)"
