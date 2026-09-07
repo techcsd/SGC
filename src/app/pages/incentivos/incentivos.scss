@@ -354,3 +354,25 @@
   }
   &__hist { margin-top: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
 }
+
+// BK3/BK4 — pickers de "Agregar persona" (participantes) y destinatarios del diario.
+.inc-input {
+  padding: 7px 10px; border: 1px solid var(--sgc-border); border-radius: 8px;
+  font-size: 13px; color: var(--sgc-text); background: var(--sgc-surface); outline: none; min-width: 220px;
+  &:focus { border-color: var(--sgc-primary, #ff5f00); }
+}
+.inc-part__add { position: relative; margin-top: 10px; }
+.inc-part__addlist {
+  position: absolute; z-index: 5; top: calc(100% + 2px); left: 0; min-width: 260px; margin: 0; padding: 4px;
+  list-style: none; background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); max-height: 240px; overflow-y: auto;
+  li button {
+    display: block; width: 100%; text-align: left; padding: 7px 10px; border: 0; border-radius: 6px;
+    background: transparent; color: var(--sgc-text); font-size: 13px; cursor: pointer;
+    &:hover { background: var(--sgc-surface-2, rgba(0, 0, 0, 0.05)); }
+  }
+}
+.inc-diario-dest {
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--sgc-border);
+  &__title { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--sgc-text); }
+}

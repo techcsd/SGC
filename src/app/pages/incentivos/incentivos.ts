@@ -519,7 +519,7 @@ export class Incentivos implements OnInit {
   async toggleDiario() {
     const abrir = !this.mostrarDiario();
     this.mostrarDiario.set(abrir);
-    if (abrir) await this.cargarDia();
+    if (abrir) await Promise.all([this.cargarDia(), this.cargarDiarioDest()]);
   }
   async cargarDia() {
     this.cargandoDia.set(true);
@@ -538,6 +538,52 @@ export class Incentivos implements OnInit {
   diaCelda(f: IncentivoDiaFila, key: string): number {
     const r = f.conteos?.[key];
     return r ? (r.propio ?? 0) + (r.ayudante ?? 0) : 0;
+  }
+
+  // ── BK4 — Destinatarios del correo diario (lista de usuarios, editable) ──
+  diarioDest = signal<{ usuario_id: string; nombre: string; email: string }[]>([]);
+  diarioDirectorio = signal<{ id: string; nombre: string }[]>([]);
+  diarioBusqueda = signal('');
+  diarioBusy = signal<string | null>(null);
+  diarioCandidatos = computed(() => {
+    const q = this.diarioBusqueda().trim().toLowerCase();
+    const yaIds = new Set(this.diarioDest().map((d) => d.usuario_id));
+    const list = this.diarioDirectorio().filter((u) => !yaIds.has(u.id));
+    return (q ? list.filter((u) => u.nombre.toLowerCase().includes(q)) : list).slice(0, 8);
+  });
+  private async cargarDiarioDest() {
+    try {
+      const [dest, dir] = await Promise.all([this.service.diarioDestinatarios(), this.service.usuariosDirectorio()]);
+      this.diarioDest.set(dest);
+      this.diarioDirectorio.set(dir);
+    } catch { /* noop */ }
+  }
+  async agregarDiarioDest(u: { id: string; nombre: string }) {
+    if (this.diarioBusy()) return;
+    this.diarioBusy.set(u.id);
+    try {
+      await this.service.setDiarioDestinatario(u.id, true);
+      this.diarioBusqueda.set('');
+      await this.cargarDiarioDest();
+      this.toast.success('Destinatario agregado', u.nombre);
+    } catch (e) {
+      this.toast.error('No se pudo agregar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.diarioBusy.set(null);
+    }
+  }
+  async quitarDiarioDest(d: { usuario_id: string; nombre: string }) {
+    if (this.diarioBusy()) return;
+    this.diarioBusy.set(d.usuario_id);
+    try {
+      await this.service.setDiarioDestinatario(d.usuario_id, false);
+      await this.cargarDiarioDest();
+      this.toast.success('Destinatario quitado', d.nombre);
+    } catch (e) {
+      this.toast.error('No se pudo quitar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.diarioBusy.set(null);
+    }
   }
 
   // ── Config ──

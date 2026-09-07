@@ -231,6 +231,28 @@ export class IncentivosService {
     return (data ?? []) as IncentivoDiaFila[];
   }
 
+  /** BK4 — destinatarios (usuarios) del correo diario. */
+  async diarioDestinatarios(): Promise<{ usuario_id: string; nombre: string; email: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_diario_destinatarios');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { usuario_id: string; nombre: string; email: string }[];
+  }
+
+  /** BK4 — agrega/quita un usuario de los destinatarios del correo diario. */
+  async setDiarioDestinatario(usuarioId: string, incluir: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_incentivo_diario_destinatario', {
+      p_usuario_id: usuarioId, p_incluir: incluir,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Directorio de usuarios (para el picker de destinatarios). */
+  async usuariosDirectorio(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string }[];
+  }
+
   /**
    * BF3 — recalcula, versiona y REENVÍA el informe (v2+ marca "reemplaza al del
    * <fecha>"). Motivo obligatorio a partir de v2 (lo valida el server). Destinatarios

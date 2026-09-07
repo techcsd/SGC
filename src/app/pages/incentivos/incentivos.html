@@ -136,6 +136,39 @@
           </table>
         </div>
       }
+      <!-- BK4 — Destinatarios del correo diario (lista de usuarios, editable) -->
+      <div class="inc-diario-dest">
+        <h3 class="inc-diario-dest__title">Quién recibe el correo diario</h3>
+        <p class="inc-config__hint">El informe de las 8am se envía a estas personas. Agrega o quita quien quieras.</p>
+        @if (diarioDest().length === 0) {
+          <p class="inc-config__hint">Nadie configurado — nadie recibirá el correo diario.</p>
+        } @else {
+          <ul class="inc-part">
+            @for (d of diarioDest(); track d.usuario_id) {
+              <li class="inc-part__row">
+                <span class="inc-part__nombre">{{ d.nombre }} <span class="inc-part__audit">{{ d.email }}</span></span>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                        [disabled]="diarioBusy() === d.usuario_id" (click)="quitarDiarioDest(d)">Quitar</button>
+              </li>
+            }
+          </ul>
+        }
+        <div class="inc-part__add">
+          <input class="inc-input" type="search" placeholder="Agregar persona…"
+                 [ngModel]="diarioBusqueda()" (ngModelChange)="diarioBusqueda.set($event)" />
+          @if (diarioBusqueda()) {
+            <ul class="inc-part__addlist">
+              @for (u of diarioCandidatos(); track u.id) {
+                <li><button type="button" [disabled]="diarioBusy() === u.id"
+                            (click)="agregarDiarioDest(u)">{{ u.nombre }}</button></li>
+              } @empty {
+                <li class="inc-config__hint">Sin coincidencias.</li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+
       <div class="inc-config__actions">
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDiario()">Cerrar</button>
       </div>

@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.120.0": {
+      "titulo": "Destinatarios del correo diario editables por persona",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Incentivos",
+          "d": "En Incentivos → Actividad diaria ahora puedes elegir exactamente qué personas reciben el correo diario de las 8am: buscar y agregar usuarios, o quitarlos. Empieza configurado solo para Eduardo; agrega a quien necesites cuando quieras."
+        }
+      ]
+    },
     "1.119.0": {
       "titulo": "Reporte diario de actividad de choferes (8am)",
       "cambios": [
