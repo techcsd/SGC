@@ -13,10 +13,13 @@ y el import no se tocaron. **Verificado contra la factura real FA26/215223: 33 t
 15 tarjetas, cuadra al peso por total/producto/tarjeta (108,688.16)**; consumo a nombre de
 PERSONA marcado (`titular_es_persona`); llave de dedupe `factura#recibo#fecha#hora#idx`; el
 código de 4 dígitos (`numero_tarjeta`) es la llave estable para el mapeo. `pdfjs-dist` en chunk
-lazy + worker como asset. **Follow-ups**: pantalla de mapeo tarjeta→vehículo/persona (hoy las
-tarjetas sin placa caen a `solo_informe`), guardar el PDF en Storage, panel de cuadre por
+lazy + worker como asset. El PDF real está **gitignoreado** (datos fiscales).
+**BJ2b — mapeo cerrado (web 1.114.0, commit ac3f8ad):** tabla `combustible_tarjeta_map` +
+RPCs listar/set (DEFINER, gate `es_flota_elevado`) **APLICADA + smoke por rol** (Raykler mapea;
+chofer negado); panel «Tarjetas del PDF» en la vista previa asigna vehículo por tarjeta (se
+aprende una vez) → las de persona ya no caen a `solo_informe`.
+**Follow-ups menores restantes**: guardar el PDF en Storage (traza fiscal), panel de cuadre por
 producto/tarjeta en la UI, columna Alerta persistida (la factura de muestra no trae alertas).
-El PDF real está **gitignoreado** (datos fiscales).
 
 **BJ5 smoke por rol (APLICADO, OK):** admin ve 15 (incl. 4 de prueba); ingeniero campo/oficina, jefe ing., chofer, Raykler y capataz ven la **lista** (11, nunca 0) y **0 obras de prueba**; dropdowns por contexto OK (WIDE=10 para todos; SCOPED=1 para el ingeniero de campo = su obra). Sin recursión.
 
