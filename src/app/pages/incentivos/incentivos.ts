@@ -415,9 +415,9 @@ export class Incentivos implements OnInit {
       this.cargandoParticipantes.set(false);
     }
   }
-  /** BF5 — enciende/apaga la participación (con motivo, auditado). Refresca la semana. */
+  /** BK3 — enciende/apaga la participación (con motivo, auditado). Refresca la semana. */
   async toggleParticipa(p: IncentivoParticipante) {
-    if (this.participanteBusy()) return;
+    if (this.participanteBusy() || !p.usuario_id) return;
     const next = !p.participa;
     const motivo = prompt(
       next
@@ -425,15 +425,14 @@ export class Incentivos implements OnInit {
         : `Quitar a ${p.nombre} del incentivo. Motivo (opcional):`,
     );
     if (motivo === null) return; // canceló
-    this.participanteBusy.set(p.conductor_id);
+    this.participanteBusy.set(p.usuario_id);
     try {
-      await this.conductores.setParticipaIncentivo(p.conductor_id, next, motivo.trim() || null);
+      await this.service.setParticipante(p.usuario_id, next, p.es_chofer, motivo.trim() || null);
       this.participantes.update((list) =>
-        list.map((x) => (x.conductor_id === p.conductor_id
+        list.map((x) => (x.usuario_id === p.usuario_id
           ? { ...x, participa: next, ultimo_motivo: motivo.trim() || null }
           : x)),
       );
-      // La población se filtra al leer: refrescar la semana la refleja al instante.
       await this.cargarFilas();
       this.toast.success(
         next ? 'Participante agregado' : 'Participante quitado',
@@ -441,6 +440,60 @@ export class Incentivos implements OnInit {
       );
     } catch (e) {
       this.toast.error('No se pudo cambiar la participación', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.participanteBusy.set(null);
+    }
+  }
+
+  /** BK3 — marca/desmarca "es chofer" (declara la condición para el incentivo; NO otorga el rol). */
+  async toggleEsChofer(p: IncentivoParticipante) {
+    if (this.participanteBusy() || !p.usuario_id) return;
+    const next = !p.es_chofer;
+    const motivo = prompt(
+      next ? `Marcar a ${p.nombre} como chofer para el incentivo. Motivo (opcional):`
+           : `Quitar a ${p.nombre} como chofer del incentivo. Motivo (opcional):`,
+    );
+    if (motivo === null) return;
+    this.participanteBusy.set(p.usuario_id);
+    try {
+      await this.service.setParticipante(p.usuario_id, p.participa, next, motivo.trim() || null);
+      this.participantes.update((list) =>
+        list.map((x) => (x.usuario_id === p.usuario_id ? { ...x, es_chofer: next } : x)),
+      );
+      await this.cargarFilas();
+      this.toast.success(next ? 'Marcado como chofer' : 'Ya no es chofer',
+        `${p.nombre}. Recalcula el informe para reflejar el cambio.`);
+    } catch (e) {
+      this.toast.error('No se pudo cambiar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.participanteBusy.set(null);
+    }
+  }
+
+  // ── BK3 — Agregar persona al padrón (picker sobre usuarios) ──
+  mostrarAgregar = signal(false);
+  candidatos = signal<{ usuario_id: string; nombre: string }[]>([]);
+  candidatoBusqueda = signal('');
+  candidatosFiltrados = computed(() => {
+    const q = this.candidatoBusqueda().trim().toLowerCase();
+    const list = this.candidatos();
+    return (q ? list.filter((c) => c.nombre.toLowerCase().includes(q)) : list).slice(0, 8);
+  });
+  async abrirAgregar() {
+    this.mostrarAgregar.set(true);
+    try { this.candidatos.set(await this.service.candidatos()); } catch { /* noop */ }
+  }
+  async agregarPersona(c: { usuario_id: string; nombre: string }) {
+    if (this.participanteBusy()) return;
+    this.participanteBusy.set(c.usuario_id);
+    try {
+      // Se agrega como participante; "es chofer" se marca aparte (por defecto no).
+      await this.service.setParticipante(c.usuario_id, true, false, 'Agregado al padrón');
+      await this.cargarParticipantes();
+      this.candidatos.update((l) => l.filter((x) => x.usuario_id !== c.usuario_id));
+      this.toast.success('Persona agregada', `${c.nombre}. Márcala como chofer si aplica.`);
+    } catch (e) {
+      this.toast.error('No se pudo agregar', e instanceof Error ? e.message : undefined);
     } finally {
       this.participanteBusy.set(null);
     }

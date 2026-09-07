@@ -25,27 +25,37 @@
     <section class="inc-config">
       <h2 class="inc-config__title">Participantes del Desempeño</h2>
       <p class="inc-config__hint">
-        Quién aparece en el Desempeño, el correo, el PDF y las herramientas de Compa. Los choferes
-        están sugeridos por defecto; apágalos para sacarlos sin borrar su historial pagado. Cada
-        cambio queda auditado (quién, cuándo, motivo). Recalcula o reenvía el informe para reflejarlo.
+        Quién aparece en el Desempeño, el correo, el PDF y las herramientas de Compa. Puedes
+        <strong>agregar a cualquier persona</strong> (no solo choferes) y marcar quién <strong>es chofer</strong>
+        para el incentivo — marcar "chofer" NO otorga el rol, solo lo declara aquí. Apaga a alguien
+        para sacarlo sin borrar su historial pagado. Cada cambio queda auditado. Recalcula o reenvía
+        el informe para reflejarlo.
       </p>
       @if (cargandoParticipantes()) {
         <app-skeleton [rows]="4" />
       } @else if (participantes().length === 0) {
-        <p class="inc-config__hint">No hay conductores para gestionar.</p>
+        <p class="inc-config__hint">No hay personas en el padrón todavía.</p>
       } @else {
         <ul class="inc-part">
-          @for (p of participantes(); track p.conductor_id) {
+          @for (p of participantes(); track p.usuario_id) {
             <li class="inc-part__row" [class.inc-part__row--off]="!p.participa">
               <label class="inc-part__toggle">
                 <input type="checkbox" [checked]="p.participa"
-                       [disabled]="participanteBusy() === p.conductor_id"
+                       [disabled]="participanteBusy() === p.usuario_id"
                        (change)="toggleParticipa(p)" />
                 <span class="inc-part__nombre">{{ p.nombre }}</span>
               </label>
               <span class="inc-part__badges">
                 @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
-                @if (!p.es_chofer) { <span class="sgc-badge sgc-badge--warning">No chofer</span> }
+                <button type="button"
+                        class="sgc-badge"
+                        [class.sgc-badge--success]="p.es_chofer"
+                        [class.sgc-badge--warning]="!p.es_chofer"
+                        [disabled]="participanteBusy() === p.usuario_id"
+                        (click)="toggleEsChofer(p)"
+                        title="Marcar si es chofer para el incentivo (no otorga el rol)">
+                  {{ p.es_chofer ? 'Chofer' : 'No chofer' }}
+                </button>
                 @if (p.ultimo_cambio_en) {
                   <span class="inc-part__audit" title="Último cambio">
                     {{ formatFecha(p.ultimo_cambio_en) }}@if (p.ultimo_cambio_por) { · {{ p.ultimo_cambio_por }} }@if (p.ultimo_motivo) { · "{{ p.ultimo_motivo }}" }
@@ -56,7 +66,25 @@
           }
         </ul>
       }
+
+      <!-- BK3 — Agregar persona (picker sobre usuarios) -->
+      @if (mostrarAgregar()) {
+        <div class="inc-part__add">
+          <input class="inc-input" type="search" placeholder="Buscar persona…"
+                 [ngModel]="candidatoBusqueda()" (ngModelChange)="candidatoBusqueda.set($event)" />
+          <ul class="inc-part__addlist">
+            @for (c of candidatosFiltrados(); track c.usuario_id) {
+              <li><button type="button" [disabled]="participanteBusy() === c.usuario_id"
+                          (click)="agregarPersona(c)">{{ c.nombre }}</button></li>
+            } @empty {
+              <li class="inc-config__hint">Sin coincidencias.</li>
+            }
+          </ul>
+        </div>
+      }
+
       <div class="inc-config__actions">
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirAgregar()">Agregar persona</button>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleParticipantes()">Cerrar</button>
       </div>
     </section>

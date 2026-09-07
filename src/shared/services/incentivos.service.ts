@@ -209,6 +209,21 @@ export class IncentivosService {
     return (data ?? []) as IncentivoParticipante[];
   }
 
+  /** BK3 — padrón por usuario: setea participa + es_chofer (auditado). */
+  async setParticipante(usuarioId: string, participa: boolean, esChofer: boolean, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_incentivo_participante', {
+      p_usuario_id: usuarioId, p_participa: participa, p_es_chofer: esChofer, p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** BK3 — usuarios que aún no están en el padrón (para "Agregar persona"). */
+  async candidatos(): Promise<{ usuario_id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_candidatos');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { usuario_id: string; nombre: string }[];
+  }
+
   /**
    * BF3 — recalcula, versiona y REENVÍA el informe (v2+ marca "reemplaza al del
    * <fecha>"). Motivo obligatorio a partir de v2 (lo valida el server). Destinatarios
