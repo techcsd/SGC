@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Mantenimiento, MantenimientoFormData } from '../models/mantenimiento.model';
 
 @Injectable({ providedIn: 'root' })
@@ -59,6 +60,7 @@ export class MantenimientosService {
 
   /** Uploads one photo for a maintenance record and returns its storage path. */
   async uploadFoto(mantenimientoId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const safeName = (file.name || 'foto')
       .replace(/\.[^.]+$/, '')
       .replace(/[^a-zA-Z0-9_-]+/g, '-')

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Empleado, EmpleadoDocumento } from '../models/empleado.model';
 
 /** AN1 — subconjunto seguro de un empleado para selects de referencia. */
@@ -81,6 +82,7 @@ export class EmpleadosService {
   }
 
   async subirDocumento(empleadoId: string, tipo: string, file: File, subidoPor: string | null): Promise<EmpleadoDocumento> {
+    file = await comprimirImagen(file, 'documento');
     const path = `${empleadoId}/${crypto.randomUUID()}-${file.name}`;
     const { error: uploadError } = await this.supabase.client.storage.from('sgc-rrhh').upload(path, file);
     if (uploadError) throw new Error(uploadError.message);

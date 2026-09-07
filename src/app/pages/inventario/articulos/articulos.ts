@@ -313,6 +313,35 @@ export class Articulos implements OnInit {
     this.drawerOpen.set(true);
   }
 
+  /**
+   * BJ6 — Duplicar: abre el drawer de CREACIÓN prellenado con el contenido del
+   * artículo origen, dejándolo intacto. NO se copia: id, código (lo acuña el
+   * servidor al guardar), imagen (apunta a la ruta del id ORIGEN — copiar el string
+   * haría que dos artículos compartan el objeto), apodos ni imágenes. `requiere_talla`
+   * SÍ se copia y queda visible (para no confundir "variante por talla" con artículo).
+   */
+  duplicar(article: Articulo) {
+    this.editingId.set(null);
+    this.saveError.set('');
+    this.resetFoto(null); // no heredar la foto por referencia
+    this.form.reset({
+      nombre: `${article.nombre} (copia)`,
+      descripcion: article.descripcion,
+      categoria_id: article.categoria_id,
+      unidad: article.unidad,
+      stock_minimo: article.stock_minimo,
+      stock_maximo: article.stock_maximo,
+      precio_estimado: article.precio_estimado,
+      activo: article.activo,
+      requiere_talla: article.requiere_talla ?? false,
+      entrega_en_mano: article.entrega_en_mano ?? false,
+      nota: article.nota ?? null,
+      propiedad: article.propiedad ?? 'propio_csd',
+      es_prueba: article.es_prueba ?? false,
+    });
+    this.drawerOpen.set(true);
+  }
+
   closeDrawer() {
     this.drawerOpen.set(false);
   }
@@ -381,6 +410,14 @@ export class Articulos implements OnInit {
         const updated = await this.articulosService.update(id, payload);
         this.articles.update((list) => list.map((a) => (a.id === id ? updated : a)));
       } else {
+        // BJ6 — aviso suave si el nombre coincide con otro artículo (no bloquea; no
+        // hay unique en nombre, pero un duplicado ensucia la búsqueda fuzzy AU12/AW6).
+        const nombreNorm = (payload.nombre ?? '').trim().toLowerCase();
+        const dup = this.articles().find((a) => a.nombre.trim().toLowerCase() === nombreNorm);
+        if (dup && !confirm(`Ya existe un artículo llamado "${dup.nombre}" (${dup.codigo}). ¿Crear de todas formas?`)) {
+          this.saving.set(false);
+          return;
+        }
         const created = await this.articulosService.create(payload);
         if (this.fotoFile) {
           const path = await this.articulosService.uploadFoto(created.id, this.fotoFile);

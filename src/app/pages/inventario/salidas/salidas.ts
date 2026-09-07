@@ -19,6 +19,7 @@ import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
+import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaService, TablaPrueba } from '../../../../shared/services/datos-prueba.service';
 import { UserService } from '../../../core/services/user.service';
@@ -56,6 +57,7 @@ export class Salidas implements OnInit {
   private categoriasService = inject(CategoriasService);
   private proyectosService = inject(ProyectosService);
   private solicitudesMaterialService = inject(SolicitudesMaterialService);
+  private vehiculosService = inject(VehiculosService);
   private stockService = inject(StockService);
   private toast = inject(ToastService);
   private datosPrueba = inject(DatosPruebaService);
@@ -149,6 +151,8 @@ export class Salidas implements OnInit {
     observaciones: new FormControl<string | null>(null),
     receptor_usuario_id: new FormControl<string | null>(null), // AT16 — quién confirma en la obra
     despachante_usuario_id: new FormControl<string | null>(null), // AV5 — quién firma como despachante (feature flag)
+    conductor_id: new FormControl<string | null>(null), // BJ3 — chofer que transporta (dispara auto-ruta BH3)
+    vehiculo_id: new FormControl<string | null>(null), // BJ3 — vehículo del transporte
   });
 
   // AT16 — receptores elegibles para confirmar la entrega en la obra destino.
@@ -157,6 +161,10 @@ export class Salidas implements OnInit {
   // AV5 — wizard de conduce web (detrás de feature flag): selector de despachante.
   wizardConduceOn = signal(false);
   despachantes = signal<{ tipo: 'usuario' | 'empleado'; id: string; nombre: string; detalle: string | null; vinculado?: boolean }[]>([]);
+  // BJ3 — chofer + vehículo del transporte (dispara la auto-ruta BH3). Detrás del
+  // mismo flag del conduce; opcionales, pero al fijarse la ruta del día se crea sola.
+  conductores = signal<{ id: string; nombre: string }[]>([]);
+  vehiculos = signal<{ id: string; label: string }[]>([]);
 
   // ── Computed ─────────────────────────────────────────────
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
@@ -326,7 +334,10 @@ export class Salidas implements OnInit {
     // AV5 — feature flag del wizard de conduce web (selector de despachante).
     this.salidasService.wizardConduceHabilitado().then((on) => {
       this.wizardConduceOn.set(on);
-      if (on) this.loadDespachantes();
+      if (on) {
+        this.loadDespachantes();
+        this.loadConductoresYVehiculos();
+      }
     });
     // T13b — refresca el stock del picker al cambiar de almacén.
     this.form.controls.bodega_id.valueChanges
@@ -359,6 +370,37 @@ export class Salidas implements OnInit {
       }
     } catch {
       this.despachantes.set([]);
+    }
+  }
+
+  /** BJ3 — chofer + vehículo del transporte. Al fijarse un chofer, la auto-ruta
+   *  del día se crea sola (BH3). Si el propio usuario es chofer, se preselecciona
+   *  (auto-despacho: transporta lo que él mismo saca del almacén). */
+  private async loadConductoresYVehiculos() {
+    try {
+      const [conductores, vehiculos] = await Promise.all([
+        this.salidasService.getConductoresPicker(),
+        this.vehiculosService.getAll(),
+      ]);
+      this.conductores.set(conductores);
+      this.vehiculos.set(
+        (vehiculos ?? [])
+          .filter((v) => v.activo !== false)
+          .map((v) => ({
+            id: v.id,
+            label: [v.marca, v.modelo, v.placa].filter(Boolean).join(' · ') || v.placa || 'Vehículo',
+          })),
+      );
+      // Auto-despacho: el chofer que crea el conduce se transporta a sí mismo.
+      if (this.userService.esChofer() && !this.form.controls.conductor_id.value) {
+        const yo = this.userService.profile()?.id ?? null;
+        if (yo && conductores.some((c) => c.id === yo)) {
+          this.form.controls.conductor_id.setValue(yo, { emitEvent: false });
+        }
+      }
+    } catch {
+      this.conductores.set([]);
+      this.vehiculos.set([]);
     }
   }
 
@@ -517,6 +559,13 @@ export class Salidas implements OnInit {
     this.creado.set(null);
     this.step.set('form');
     this.form.reset({ fecha: this.today });
+    // BJ3 — reponer el auto-despacho del chofer tras el reset del form.
+    if (this.wizardConduceOn() && this.userService.esChofer()) {
+      const yo = this.userService.profile()?.id ?? null;
+      if (yo && this.conductores().some((c) => c.id === yo)) {
+        this.form.controls.conductor_id.setValue(yo, { emitEvent: false });
+      }
+    }
     this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
     this.formItemsLibres.set([]);
     this.quitarFoto();
@@ -666,6 +715,14 @@ export class Salidas implements OnInit {
       return;
     }
 
+    // BJ3 (§F) — foto de evidencia OBLIGATORIA para el conduce a obra (acepta
+    // archivo: una laptop de almacén no tiene cámara de obra). Solo cuando el flujo
+    // de conduce está activo y la salida es uso en proyecto; revertible apagando el flag.
+    if (this.wizardConduceOn() && v.motivo === 'uso_proyecto' && !this.fotoFile()) {
+      this.saveError.set('Adjunta la foto de evidencia de la carga (obligatoria para el conduce a obra).');
+      return;
+    }
+
     this.saveError.set('');
     this.step.set('resumen');
   }
@@ -696,8 +753,10 @@ export class Salidas implements OnInit {
           fecha: v.fecha!,
           responsable: v.responsable ?? null,
           observaciones: v.observaciones ?? null,
-          conductor_id: null,
-          vehiculo_id: null,
+          // BJ3 — chofer/vehículo (cuando el flujo de conduce está activo): al
+          // pasar chofer, el servidor crea la ruta del día sola (auto-ruta BH3).
+          conductor_id: this.wizardConduceOn() ? (v.conductor_id ?? null) : null,
+          vehiculo_id: this.wizardConduceOn() ? (v.vehiculo_id ?? null) : null,
           items,
         },
         userId,
@@ -756,6 +815,8 @@ export class Salidas implements OnInit {
       this.crearComoPrueba.set(false);
       this.form.controls.receptor_usuario_id.setValue(null, { emitEvent: false });
       this.form.controls.despachante_usuario_id.setValue(null, { emitEvent: false });
+      this.form.controls.conductor_id.setValue(null, { emitEvent: false });
+      this.form.controls.vehiculo_id.setValue(null, { emitEvent: false });
       this.salidas.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');

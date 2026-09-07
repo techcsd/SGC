@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Articulo, ArticuloFormData } from '../models/articulo.model';
 
 /** Z17 — bucket compartido de inventario; las fotos de artículo van bajo articulo/{id}/. */
@@ -43,31 +44,37 @@ export class ArticulosService {
     return data as unknown as Articulo;
   }
 
-  async generateNextCode(): Promise<string> {
-    const { data, error } = await this.supabase.client
-      .from('articulos')
-      .select('codigo')
-      .like('codigo', 'ART-%')
-      .order('codigo', { ascending: false })
-      .limit(1);
-
-    if (error) throw new Error(error.message);
-
-    const last = data?.[0]?.codigo as string | undefined;
-    const lastNumber = last ? parseInt(last.replace('ART-', ''), 10) || 0 : 0;
-    return `ART-${String(lastNumber + 1).padStart(4, '0')}`;
-  }
-
+  /**
+   * BJ6/AU1 — el código lo genera el SERVIDOR (`crear_articulo_app` →
+   * `CSD-<orden categoría 2d>-<seq 3d>`), fuente ÚNICA compartida con la app. Antes
+   * la web acuñaba `ART-####` en el cliente (dos generadores compitiendo). El RPC
+   * cubre nombre/categoría/unidad/propiedad/nota; los demás campos se completan con
+   * un update inmediato. Requiere categoría (el prefijo del código sale de su orden).
+   */
   async create(formData: ArticuloFormData): Promise<Articulo> {
-    const codigo = await this.generateNextCode();
-    const { data, error } = await this.supabase.client
-      .from('articulos')
-      .insert({ ...formData, codigo })
-      .select('*, categoria:categorias_inventario(nombre)')
-      .single();
-
+    if (formData.categoria_id == null) {
+      throw new Error('Selecciona una categoría para el artículo (el código depende de ella).');
+    }
+    const { data: res, error } = await this.supabase.client.rpc('crear_articulo_app', {
+      p_nombre: formData.nombre,
+      p_categoria_id: formData.categoria_id,
+      p_unidad: formData.unidad ?? null,
+      p_propiedad: formData.propiedad ?? 'propio_csd',
+      p_nota: formData.nota ?? null,
+    });
     if (error) throw new Error(error.message);
-    return data as unknown as Articulo;
+    const { id } = res as { id: string; codigo: string };
+    // Completa los campos que el RPC no cubre (nunca copiamos código/imagen aquí).
+    return await this.update(id, {
+      descripcion: formData.descripcion ?? null,
+      stock_minimo: formData.stock_minimo,
+      stock_maximo: formData.stock_maximo ?? null,
+      precio_estimado: formData.precio_estimado ?? null,
+      activo: formData.activo,
+      requiere_talla: formData.requiere_talla ?? false,
+      entrega_en_mano: formData.entrega_en_mano ?? false,
+      es_prueba: formData.es_prueba ?? false,
+    });
   }
 
   async update(id: string, formData: Partial<ArticuloFormData>): Promise<Articulo> {
@@ -137,6 +144,7 @@ export class ArticulosService {
 
   /** Sube una foto y devuelve su storage path (para guardar en imagen_url). */
   async uploadFoto(articuloId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const safeName =
       (file.name || 'foto')
         .replace(/\.[^.]+$/, '')

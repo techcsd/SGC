@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { daysFromNowIso } from '../utils/fecha.util';
 import {
   AprobacionLegal,
@@ -111,6 +112,7 @@ export class LegalService {
   }
 
   async subirArchivo(expedienteId: string, file: File, subidoPor: string | null): Promise<ExpedienteArchivo> {
+    file = await comprimirImagen(file, 'documento');
     const path = `${expedienteId}/${crypto.randomUUID()}-${file.name}`;
     const { error: uploadError } = await this.supabase.client.storage.from('sgc-legal').upload(path, file);
     if (uploadError) throw new Error(uploadError.message);

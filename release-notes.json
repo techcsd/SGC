@@ -3425,6 +3425,41 @@
           "d": "Los campos de estructura del parte aceptan textos más largos (hasta 200 caracteres) sin cortarse al guardarse."
         }
       ]
+    },
+    "1.112.0": {
+      "titulo": "La lista de obras vuelve para ingeniería, conduce desde la web y despacho parcial",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Proyectos",
+          "d": "La lista de obras vuelve a mostrarse para ingenieros de campo/oficina, jefe de ingenieros, capataces y choferes en todas las pantallas (bitácora, obra, requisiciones, inventario, etc.). Antes salía vacía por un desajuste de permisos."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Crear conduce desde la web (escritorio): origen, destino, artículos, despachante, chofer y vehículo, con foto de evidencia. Al asignar un chofer, la ruta del día se crea sola. Un chofer con permiso ya puede crear su propio conduce desde la web."
+        },
+        {
+          "t": "nuevo",
+          "m": "Requisiciones",
+          "d": "Despacho parcial: se puede despachar una parte ahora y el resto después (la requisición queda en «parcial» y sigue apareciendo en «por despachar»). Se puede quitar una línea con motivo y cerrar el resto."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "Aprobar sin despachar nada ya no marca la requisición como «entregada» por error: queda «por despachar» para que el material siga siendo alcanzable."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Duplicar artículo: botón para crear un artículo nuevo a partir de otro parecido, con código oficial del sistema (CSD-…). No hereda la foto ni los apodos del original."
+        },
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "Las fotos y documentos se comprimen automáticamente antes de subirse (más rápido y menos datos), con límites de tamaño por tipo de archivo. Las firmas se conservan intactas."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { NotificacionesService } from './notificaciones.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 
 const BUCKET = 'sgc-retiro';
 
@@ -62,6 +63,7 @@ export class RetirosService {
 
   /** Sube una evidencia (foto/firma) al bucket sgc-retiro y devuelve el path. */
   async uploadEvidencia(carpeta: string, file: File | Blob, ext = 'jpg'): Promise<string> {
+    if (file instanceof File) file = await comprimirImagen(file, 'evidencia');
     const path = `${carpeta}/${crypto.randomUUID()}.${ext}`;
     const { error } = await this.supabase.client.storage.from(BUCKET).upload(path, file);
     if (error) throw new Error(error.message);

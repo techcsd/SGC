@@ -144,6 +144,19 @@
   color: var(--text-2);
 }
 .req-pend { color: var(--accent); font-weight: 600; }
+
+// BJ4 — línea de requisición quitada (cancelada).
+.req-line-cancelada {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+.req-line-tag {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--sgc-text-muted, #929090);
+}
 .req-detail__cancelar {
   display: flex;
   flex-direction: column;

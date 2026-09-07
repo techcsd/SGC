@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { comprimirImagen } from '../../../shared/utils/comprimir-imagen.util';
 import { Usuario } from '../../../shared/models/usuario.model';
 
 const PROFILE_MAX_AGE_MS = 5 * 60 * 1000;
@@ -174,6 +175,7 @@ export class UserService {
   /** Uploads a new avatar for the current user and refreshes the profile.
    *  Name/email are NOT touched here — those stay admin-managed. */
   async uploadAvatar(file: File): Promise<void> {
+    file = await comprimirImagen(file, 'avatar');
     const userId = this._profile()?.id;
     if (!userId) throw new Error('Sesión inválida.');
 

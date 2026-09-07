@@ -35,6 +35,33 @@ La web **sí lista y opera** conduces (contra la hipótesis de que "no existen")
 
 **⚠️ Decisiones para Xaviel (AV5):** (a) ¿el alcance es "crear + firmar + confirmar desde la web" o solo el wizard de creación? (b) ¿esperar a que AU1 ubique el hogar de Inventario, o construir el paso de despachante detrás de un feature flag ya?
 
+### ✅ AV5 CERRADO — encendido en la web (BJ3, 05/09/2026)
+
+La brecha "CREAR conduce" de la tabla queda **saldada**. El wizard de creación vive en
+`/inventario/salidas` (hogar decidido por AU1: extender Salidas, no otro submódulo) y ya
+cubre el flujo completo **origen → destino → artículos → despachante → chofer/vehículo →
+receptor → foto → emisión**:
+
+- **Despachante:** cableado (`getDespachantes()` + `asignar_despachante_conduce`, firma
+  remota desde "Conduces por firmar").
+- **Chofer + vehículo (BJ3):** selectores nuevos; al fijar chofer, el servidor crea la
+  **ruta del día sola** (auto-ruta BH3, `conduce_asegurar_ruta`). Un chofer que crea su
+  propio conduce se auto-despacha (preselección de sí mismo).
+- **Foto de evidencia:** **obligatoria** para el conduce a obra (acepta archivo — una
+  laptop de almacén no tiene cámara). Revertible apagando el flag.
+- **Gate por `puede_crear_conduce()`** (admin / módulo inventario / chofer activo), no por
+  submódulo → un chofer elegible ya puede abrir `/inventario/salidas` (guard
+  `puedeCrearConduceGuard` + `extraAllow` del parent). Deriva de la regla del servidor (BH1).
+- **Flag `conduce_wizard_web_habilitado`** (sgc.parametros) = `true`; leído por RPC
+  `conduce_wizard_web_habilitado()` SECURITY DEFINER (la RLS de `parametros` solo deja leer
+  a admin/dirección — el chofer/almacén no podían leer su propio gate). **Retiro del flag:**
+  cuando esté verificado en prod, quitar `wizardConduceOn` del front y la fila queda no-op.
+- **Código muerto:** el wrapper TS `crearConduceSimple()` (cero llamadores) se borró; la RPC
+  `crear_conduce_simple` sigue viva (la usan devolución-a-suplidor y Bodega Central).
+- **Borradores (AE9):** siguen sin equivalente web (brecha menor, no prioritaria).
+
+Migración: `sql/2026-09-05-bj3-conduce-wizard-web.sql`. Fila de paridad en `PARIDAD.md`.
+
 ---
 
 ## AV6 — Árbol de Ingeniería web ↔ app: descuadre y árbol canónico

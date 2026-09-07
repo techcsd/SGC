@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { CronogramaData, CronogramaTarea, CronogramaTipo, DependenciaTipo } from '../models/cronograma.model';
 
 const BUCKET = 'sgc-cronograma';
@@ -178,6 +179,7 @@ export class CronogramaService {
 
   /** Sube la foto de evidencia y devuelve el storage path (para pasarlo a completar()). */
   async subirEvidencia(tareaId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'documento');
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const path = `${tareaId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await this.supabase.client.storage.from(BUCKET).upload(path, file);

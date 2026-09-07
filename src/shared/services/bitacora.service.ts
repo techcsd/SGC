@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
 
 /** BJ1 — fila de cobertura por obra (RPC bitacoras_cobertura). */
@@ -130,6 +131,7 @@ export class BitacoraService {
    * viewing/downloading later goes through `getSignedUrl()`.
    */
   async subirArchivo(bitacoraId: string, file: File): Promise<BitacoraArchivo> {
+    file = await comprimirImagen(file, 'evidencia');
     if (file.size > MAX_TAMANO_BYTES) {
       throw new Error(`"${file.name}" excede el tamaño máximo de 50 MB.`);
     }

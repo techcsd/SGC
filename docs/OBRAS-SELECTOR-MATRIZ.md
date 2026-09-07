@@ -38,3 +38,31 @@ conduces — "No hay opciones").
    ¿pertenece a la obra del ingeniero = SCOPED?).
 2. Web: `getDirectorio('<contexto>')`. App: pasar `p_contexto` al RPC.
 3. Si un contexto puede dar vacío legítimo, muestra el mensaje (vacío ≠ mudo).
+
+## Pantallas de LISTADO (no dropdowns) — BJ5
+
+Las pantallas que **listan/joinean obras** (no un dropdown de selección) leen la tabla
+directo: `ProyectosService.getAll()` → `.from('proyectos')`, gobernado por la **RLS de
+`sgc.proyectos`** (política `"proyectos: select"`), no por un contexto. Esa RLS **debe
+concordar con `proyectos_pickables()`** (BA1): módulos amplios (proyectos/inventario/
+compras/direccion/transporte/flota) + submódulo `proyectos.obras` + `es_responsable` +
+`es_capataz` + `proyecto_empleados` + red **AW1** (sin obra ligada → ve todas). La
+RESTRICTIVE `"es_prueba: oculta a no-admin"` aplica encima (AND, 3-vías BA1).
+
+- **Historia del bug (5 veces):** AX3→AY4→BA1→BF7 arreglaron **dropdowns**; la RLS de la
+  tabla quedó atrás → los listados salían vacíos para ingeniería (`tiene_modulo` NO matchea
+  el grant de submódulo `proyectos.obras`, con el que están sembrados los roles de
+  ingeniería). Cierre en `sql/2026-09-05-bj5-proyectos-select-rls-alinear.sql`.
+- **Al tocar la RLS de proyectos:** re-alinéala con `proyectos_pickables()` — son gemelas.
+  Si divergen, algún listado se rompe para algún rol.
+
+| Superficie | Loader | Regla |
+|---|---|---|
+| **21 pantallas de listado** — bitácora historial/nueva/solicitudes-compra/solicitudes-material · documentos generar · flota combustible · inventario activos/bodegas/entradas/movimientos · legal contratos/expedientes · obra avance/checklists/informes/no-conformidades/plan-dia/subcontratistas · tareas gestión · **proyectos lista** · proyectos historial | `ProyectosService.getAll()` → `.from('proyectos')` | **RLS `"proyectos: select"`** (= pickables). Ingeniero ve las suyas; admin/módulos amplios/submódulo `proyectos.obras`, todas; sin obra ligada, todas (AW1). |
+| Órdenes de compra (obra) | `getDirectorio('orden_compra')` (ya migrada por este bug) | contexto SCOPED. Las otras 20 **no** se migran: el fix es la RLS. |
+
+- **`es_prueba` en listados:** lo cubre la RESTRICTIVE. Si `saasasa` (u otra) sigue saliendo
+  a un rol real, es que **la obra no está marcada `es_prueba`** (deuda de datos AT26/AT14),
+  no un fallo de la política. Marcarla en Proyectos → Gestión.
+- **Botón "+ Nuevo proyecto":** deriva de `puedeGestionarProyectos` (espejo de
+  `sgc.puede_gestionar_proyectos()`), no del array de roles del perfil.

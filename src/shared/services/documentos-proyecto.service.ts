@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import * as mammoth from 'mammoth';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { DocumentoProyecto, DocumentoTipo } from '../models/documento-proyecto.model';
 
 const BUCKET = 'sgc-documentos';
@@ -27,6 +28,7 @@ export class DocumentosProyectoService {
     file: File,
     subidoPor: string | null,
   ): Promise<DocumentoProyecto> {
+    file = await comprimirImagen(file, 'documento');
     const path = `${proyectoId}/${tipo}/${crypto.randomUUID()}-${file.name}`;
     const { error: uploadError } = await this.supabase.client.storage.from(BUCKET).upload(path, file);
     if (uploadError) throw new Error(uploadError.message);

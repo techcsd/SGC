@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   ChecklistPlantilla,
   ChecklistVehiculo,
@@ -65,6 +66,7 @@ export class ChecklistsVehiculoService {
   /** Sube una foto de evidencia del checklist al bucket `vehiculos` (paridad app de campo).
    *  `slot` es un slot fijo (delantera, tablero…) o `item_N` para fotos por ítem. */
   async uploadFoto(checklistId: string, slot: string, file: File): Promise<{ slot: string; storage_path: string }> {
+    file = await comprimirImagen(file, 'evidencia');
     const path = `checklist/${checklistId}/${slot}-${crypto.randomUUID()}.jpg`;
     const { error } = await this.supabase.client.storage.from(BUCKET).upload(path, file);
     if (error) throw new Error(error.message);

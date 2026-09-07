@@ -3,6 +3,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Conversacion, GrupoInfo, Mensaje, ParticipanteInfo, PresenciaAccion, Recibo, StickerPack } from '../models/mensaje.model';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -119,6 +120,7 @@ export class MensajeriaService {
 
     let archivoSize: number | null = null;
     if (file) {
+      file = await comprimirImagen(file, 'evidencia');
       const path = `${conversacionId}/${crypto.randomUUID()}-${file.name}`;
       const { error: upErr } = await this.supabase.client.storage.from('sgc-mensajes').upload(path, file);
       if (upErr) throw new Error(upErr.message);
@@ -275,6 +277,7 @@ export class MensajeriaService {
    * `grupo_set_avatar`. Devuelve el path guardado.
    */
   async subirAvatarGrupo(conv: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'avatar');
     const path = `${conv}/avatar/${crypto.randomUUID()}.jpg`;
     const { error: upErr } = await this.supabase.client.storage
       .from('sgc-mensajes')
@@ -447,6 +450,7 @@ export class MensajeriaService {
    * pack automático "Mis stickers".
    */
   async subirSticker(usuarioId: string, file: File, packId?: string): Promise<void> {
+    file = await comprimirImagen(file, 'sticker');
     const ext = (file.name.split('.').pop() || 'webp').toLowerCase();
     const path = `${usuarioId}/${crypto.randomUUID()}.${ext}`;
     const { error: upErr } = await this.supabase.client.storage

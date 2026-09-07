@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { ReporteUsuario, ReporteEstado, ReporteTipo } from '../models/reporte-usuario.model';
 
 // usuarios is joined twice (usuario_id, asignado_a) — must be disambiguated
@@ -52,8 +53,9 @@ export class ReportesUsuarioService {
       const id = crypto.randomUUID();
       const fotoPaths: { storage_path: string }[] = [];
       for (const file of fotos) {
+        const comprimido = await comprimirImagen(file, 'evidencia');
         const path = `${payload.usuario_id}/${id}/${crypto.randomUUID()}.jpg`;
-        const { error: upErr } = await this.supabase.client.storage.from('reportes').upload(path, file);
+        const { error: upErr } = await this.supabase.client.storage.from('reportes').upload(path, comprimido);
         if (upErr) throw new Error(upErr.message);
         fotoPaths.push({ storage_path: path });
       }

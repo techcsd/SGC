@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   VehiculoAccidente,
   VehiculoDano,
@@ -168,6 +169,7 @@ export class FlotaIncidenciasService {
 
   // ── Storage ────────────────────────────────────────────────
   private async upload(prefix: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const path = `${prefix}/${crypto.randomUUID()}-${file.name}`;
     const { error } = await this.supabase.client.storage.from(BUCKET).upload(path, file);
     if (error) throw new Error(error.message);

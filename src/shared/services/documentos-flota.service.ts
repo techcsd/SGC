@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { DocumentoEntidad, DocumentoFlota } from '../models/documento-flota.model';
 
 const BUCKET = 'flota-documentos';
@@ -30,6 +31,7 @@ export class DocumentosFlotaService {
     nombre: string | null,
     subidoPor: string | null,
   ): Promise<DocumentoFlota> {
+    file = await comprimirImagen(file, 'documento');
     const path = `${entidad}/${entidadId}/${tipo}/${crypto.randomUUID()}-${file.name}`;
     const { error: uploadError } = await this.supabase.client.storage.from(BUCKET).upload(path, file);
     if (uploadError) throw new Error(uploadError.message);

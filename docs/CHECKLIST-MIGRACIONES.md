@@ -90,6 +90,23 @@ INSERT y UPDATE** en `storage.objects`.
 - **Guarda:** `scripts/audit-buckets-upsert-policy.mjs` (escaneo estático de ambos repos +
   `sql/`, en `prebuild`). Rompe el build si un bucket con upsert:true no tiene UPDATE.
 
+## 6.5 Un flag apagado o una función sin llamadores es DEUDA, no feature (BJ3) — automatizado
+Un feature detrás de un **flag apagado por defecto**, o una **función/export sin
+llamadores**, NO es un feature — es deuda que se pudre en silencio.
+
+- **Todo flag** de `sgc.parametros` que un gate lea **nace con su fila creada por la
+  migración** (si no, el gate lee un parámetro inexistente → feature apagado por
+  accidente; fue BJ3: `conduce_wizard_web_habilitado` llevaba semanas apagado). Su
+  condición de retiro va escrita y una línea en `PARIDAD.md` mientras esté encendido
+  por flag. Convención: los **flags booleanos** terminan en `_habilitado`/`_activo`/
+  `_enabled`/`_flag` (los umbrales numéricos con `coalesce(...,default)` NO son flags).
+- **Ningún export de servicio queda sin llamador** (fue BJ3: `crearConduceSimple()`
+  con cero llamadores por semanas). Al borrar el último llamador, borra el export.
+- **Guarda:** `scripts/audit-flags-exports-muertos.mjs` (prebuild). Falla si (a) un
+  flag `_habilitado`/… se lee sin `INSERT` en `sgc.parametros`, o (b) aparece un
+  dead-export **nuevo** (ratchet contra `scripts/.dead-exports-baseline.json`; tras
+  una limpieza intencional, regenerar con `--update-baseline`).
+
 ## 8. El smoke de un flujo con outbox REINTENTA (regla de verificación de cierre, BI) — obligatoria
 Un smoke que sólo prueba el **camino feliz** (INSERT en ruta nueva) y da verde es **peor que
 no tener smoke**: cerró la investigación de BG2 en falso, y sobre ese verde se publicó una

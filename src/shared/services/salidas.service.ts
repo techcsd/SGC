@@ -417,60 +417,29 @@ export class SalidasService {
     if (error) throw new Error(error.message);
   }
 
-  /** AV5 — feature flag del wizard de conduce en la web (toggle sin deploy desde
-   *  Administración › Parámetros). Default false. */
+  /** AV5/BJ3 — feature flag del wizard de conduce en la web. Se lee por RPC
+   *  SECURITY DEFINER (`conduce_wizard_web_habilitado`): la tabla `parametros`
+   *  solo la puede leer admin/dirección, y quien crea conduces (chofer/almacén)
+   *  no → el RPC expone SOLO este booleano a cualquier authenticated. */
   async wizardConduceHabilitado(): Promise<boolean> {
-    const { data, error } = await this.supabase.client
-      .schema('sgc')
-      .from('parametros')
-      .select('valor')
-      .eq('clave', 'conduce_wizard_web_habilitado')
-      .maybeSingle();
+    const { data, error } = await this.supabase.client.rpc('conduce_wizard_web_habilitado');
     if (error) return false;
-    return String((data as { valor?: string } | null)?.valor ?? '').toLowerCase() === 'true';
+    return data === true;
   }
 
-  /**
-   * AI2 — Conduce simplificado del chofer: despachante + foto de recepción (carga)
-   * + firmas chofer (transportista) y despachante (emisor). Envuelve el flujo AF23
-   * (auto-ruta). Devuelve el id del conduce creado.
-   */
-  async crearConduceSimple(payload: {
-    id: string;
-    fecha: string;
-    bodega_id: string | null;
-    proyecto_id: string | null;
-    observaciones: string | null;
-    vehiculo_id: string | null;
-    ruta_id: string | null;
-    items: unknown[];
-    despachante_nombre?: string | null;
-    despachante_usuario_id?: string | null;
-    despachante_empleado_id?: string | null;
-    carga_foto_path?: string | null;
-    firma_chofer_path?: string | null;
-    firma_despachante_path?: string | null;
-  }): Promise<string> {
-    const { data, error } = await this.supabase.client.rpc('crear_conduce_simple', {
-      p_id: payload.id,
-      p_fecha: payload.fecha,
-      p_bodega_id: payload.bodega_id,
-      p_proyecto_id: payload.proyecto_id,
-      p_observaciones: payload.observaciones,
-      p_vehiculo_id: payload.vehiculo_id,
-      p_ruta_id: payload.ruta_id,
-      p_items: payload.items,
-      p_despachante_nombre: payload.despachante_nombre ?? null,
-      p_despachante_usuario_id: payload.despachante_usuario_id ?? null,
-      p_despachante_empleado_id: payload.despachante_empleado_id ?? null,
-      p_carga_foto_path: payload.carga_foto_path ?? null,
-      p_firma_chofer_path: payload.firma_chofer_path ?? null,
-      p_firma_despachante_path: payload.firma_despachante_path ?? null,
-    });
-    if (error) throw new Error(error.message);
-    this.notificaciones.refresh();
-    return data as string;
+  /** BJ3 — ¿el usuario puede crear un conduce? Espejo de `sgc.puede_crear_conduce()`
+   *  (admin / módulo inventario / chofer activo). Fuente de verdad server-side; se
+   *  usa para gatear la ruta de Salidas (un chofer elegible debe poder abrirla). */
+  async puedeCrearConduce(): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('puede_crear_conduce');
+    if (error) return false;
+    return data === true;
   }
+
+  // BJ3/AU1 — el wrapper crearConduceSimple() se eliminó: tenía cero llamadores en
+  // la web. El único camino de creación de conduce desde la web es create()
+  // (registrar_salida_inventario). La RPC sgc.crear_conduce_simple() sigue viva:
+  // la usan otros RPCs server-side (devolución a suplidor, Bodega Central).
 
   /** AI2 — Conduces del chofer pendientes de entrega (badge "Pendiente entrega"). */
   async getPendientesEntrega(): Promise<SalidaInventario[]> {

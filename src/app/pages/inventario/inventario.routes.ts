@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { submoduloGuard } from '../../core/guards/submodulo.guard';
+import { puedeCrearConduceGuard } from '../../core/guards/puede-crear-conduce.guard';
 
 // AN2 — cada ruta hija se gatea por su submódulo granular (Ver = entrar).
 // El parent (`app.routes`) ya deja pasar por módulo completo O por cualquier
@@ -32,7 +33,9 @@ export const inventarioRoutes: Routes = [
   },
   {
     path: 'salidas',
-    canActivate: [submoduloGuard('inventario.salidas')],
+    // BJ3 — submódulo inventario.salidas O puede_crear_conduce() (incluye chofer):
+    // la visibilidad se deriva de la MISMA regla del servidor que autoriza crear.
+    canActivate: [puedeCrearConduceGuard],
     loadComponent: () => import('./salidas/salidas').then((m) => m.Salidas),
     title: 'Salidas — Inventario',
   },

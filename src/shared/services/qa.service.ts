@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { UserService } from '../../app/core/services/user.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   QaTestCase,
   QaTestRun,
@@ -200,6 +201,7 @@ export class QaService {
 
   // ── Evidencia (bucket privado 'qa') ──────────────────────────────────────
   async uploadEvidencia(runId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
     const path = `run/${runId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await this.supabase.client.storage

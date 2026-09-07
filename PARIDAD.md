@@ -45,6 +45,8 @@ lógico de captura; el layout puede diferir).
 | 4b | Requisición corregible tras creada (obra/ubicación editable + rechazada → corregir → **reenviar** v2 con historial) | **Sí (BF6)** — obra editable, motivo del rechazo visible, diff en historial | **Sí (BF6)** | — | mediano | **✅ cerrado BF** |
 | 4c | Proveedor con **tipos** (ferretería/suministros/transportista/otro) + alta al vuelo | Sí (transportista desde conduce externo, estampado server-side) | **Sí (BF2)** — maestro unificado `sgc.proveedores` con `tipos[]` | — | requiere decisión | **✅ cerrado BF** |
 | 4d | Preferencias de avisos por usuario (silenciar informativos; operativos no) | Sí (Perfil → Preferencias de avisos; silencia el **push** server-side, BF4) | **Sí (BF4)** — silenciado por usuario + reglas de admin por rol/global | — | rápido | **✅ cerrado BF** |
+| 5a | **Crear conduce** (origen→destino→artículos→despachante→chofer/vehículo→receptor→foto→emisión) | Sí (wizard táctil AU14) | **Sí (BJ3)** — `/inventario/salidas` con despachante + chofer/vehículo (auto-ruta BH3) + foto obligatoria; gate por `puede_crear_conduce()` (incluye chofer) | — | mediano | **✅ cerrado BJ3** — ⚠️ detrás del flag `conduce_wizard_web_habilitado` (=true); retirar el gate cuando esté verificado en prod |
+| 5b | Borradores de conduce (AE9) | Sí | No | Sí | mediano | backlog (menor) |
 
 ## Árbol de Ingeniería (BH2 — 02/09/2026)
 

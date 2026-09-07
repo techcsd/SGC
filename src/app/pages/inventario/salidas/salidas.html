@@ -428,6 +428,30 @@
             "Conduces por firmar"; el chofer podrá entregar recién después de esa firma.
           </span>
         </div>
+
+        <!-- BJ3 — Chofer + vehículo: al fijar chofer, la ruta del día se crea sola. -->
+        <div class="sgc-field">
+          <label for="conductor_id">Chofer (opcional)</label>
+          <select id="conductor_id" formControlName="conductor_id">
+            <option [value]="null">Sin asignar (se entrega en mostrador)</option>
+            @for (c of conductores(); track c.id) {
+              <option [value]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+          <span class="field-hint">
+            Si eliges un chofer, el conduce entra en su ruta del día automáticamente.
+          </span>
+        </div>
+
+        <div class="sgc-field">
+          <label for="vehiculo_id">Vehículo (opcional)</label>
+          <select id="vehiculo_id" formControlName="vehiculo_id">
+            <option [value]="null">Sin asignar</option>
+            @for (ve of vehiculos(); track ve.id) {
+              <option [value]="ve.id">{{ ve.label }}</option>
+            }
+          </select>
+        </div>
       }
 
       <!-- AL10 — Almacén destino (solo si motivo = traslado_almacen) -->

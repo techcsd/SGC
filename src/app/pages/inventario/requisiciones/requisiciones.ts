@@ -372,6 +372,27 @@ export class Requisiciones implements OnInit {
     }
   }
 
+  /** BJ4 — quitar (cancelar) una línea de la requisición, con motivo, dejando el
+   *  resto despachable. Recarga el avance para reflejar el nuevo pendiente/estado. */
+  async quitarLinea(item: RequisicionAvanceItem) {
+    const s = this.selected();
+    if (!s || this.saving()) return;
+    const motivo = (prompt(`Motivo para quitar "${item.descripcion}" de la requisición:`) ?? '').trim();
+    if (!motivo) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      await this.service.cancelarItem(item.item_id, motivo);
+      this.toast.success('Línea quitada', 'El resto de la requisición sigue despachable.');
+      await this.cargarAvance(s.id);
+      await this.loadAll();
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudo quitar la línea.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   async confirmarCancelar() {
     const s = this.selected();
     if (!s || this.saving()) return;

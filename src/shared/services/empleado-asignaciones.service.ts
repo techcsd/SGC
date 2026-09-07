@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 
 export type AsignacionEstado = 'asignado' | 'devuelto' | 'perdido' | 'dañado';
 export type AsignacionItemTipo = 'activo_fijo' | 'articulo' | 'libre';
@@ -85,6 +86,7 @@ export class EmpleadoAsignacionesService {
 
   /** Sube una foto opcional del item al bucket sgc-rrhh. */
   async subirFoto(empleadoId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'documento');
     const safe = (file.name || 'foto').replace(/[^a-zA-Z0-9_.-]+/g, '-').slice(0, 40);
     const path = `asignaciones/${empleadoId}/${crypto.randomUUID()}-${safe}`;
     const { error } = await this.supabase.client.storage.from('sgc-rrhh').upload(path, file);

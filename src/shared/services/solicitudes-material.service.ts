@@ -201,6 +201,17 @@ export class SolicitudesMaterialService {
     this.notificaciones.refresh();
   }
 
+  /** BJ4 — quitar (cancelar) UNA línea de la requisición, con motivo. Deja el resto
+   *  despachable y recalcula el estado de la requisición server-side. */
+  async cancelarItem(itemId: string, motivo: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('requisicion_cancelar_item', {
+      p_item_id: itemId,
+      p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   /** Vincular un conduce suelto (salida) a esta requisición (rectificación). */
   async vincularConduce(id: string, salidaId: string): Promise<void> {
     const { error } = await this.supabase.client.rpc('requisicion_vincular_conduce', { p_solicitud_id: id, p_salida_id: salidaId });
@@ -236,4 +247,6 @@ export interface RequisicionAvanceItem {
   solicitado: number;
   despachado: number;
   pendiente: number;
+  estado: 'pendiente' | 'despachada' | 'cancelada'; // BJ4 — estado por línea
+  item_id: string; // BJ4 — para quitar la línea
 }

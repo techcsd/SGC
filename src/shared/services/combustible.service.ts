@@ -9,6 +9,7 @@ import {
   EchadaSospechosa,
 } from '../models/combustible.model';
 import { cleanUuid } from '../utils/uuid.util';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 
 const BUCKET = 'vehiculos';
 
@@ -213,6 +214,7 @@ export class CombustibleService {
 
   /** Sube una foto (recibo|tablero) y devuelve su storage path. */
   private async uploadFoto(clientUuid: string, slot: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const path = `combustible/${clientUuid}/${slot}.jpg`;
     const { error } = await this.supabase.client.storage
       .from(BUCKET)

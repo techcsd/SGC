@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   ClPlantilla,
   ClPlantillaItem,
@@ -215,6 +216,7 @@ export class ClLiberacionService {
   // ── Storage (bucket privado `obra`) ────────────────────────
   /** Sube un archivo y devuelve su ruta en el bucket. */
   async upload(registroId: string, kind: 'plano' | 'foto' | 'firma', file: Blob, ext = 'jpg'): Promise<string> {
+    if (kind !== 'firma' && file instanceof File) file = await comprimirImagen(file, 'evidencia');
     const path = `cl/${registroId}/${kind}/${crypto.randomUUID()}.${ext}`;
     const { error } = await this.supabase.client.storage
       .from(this.BUCKET)
@@ -225,6 +227,7 @@ export class ClLiberacionService {
 
   /** Sube el plano/foto/firma antes de tener el id del registro (carpeta 'tmp'). */
   async uploadTmp(kind: 'plano' | 'foto' | 'firma', file: Blob, ext = 'jpg'): Promise<string> {
+    if (kind !== 'firma' && file instanceof File) file = await comprimirImagen(file, 'evidencia');
     const path = `cl/tmp/${kind}/${crypto.randomUUID()}.${ext}`;
     const { error } = await this.supabase.client.storage
       .from(this.BUCKET)

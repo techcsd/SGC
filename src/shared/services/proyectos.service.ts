@@ -8,6 +8,7 @@
 
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   FaseProyecto,
   Proyecto,
@@ -601,6 +602,7 @@ export class ProyectosService {
   }
 
   async uploadExpedienteArchivo(proyectoId: string, codigo: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `expediente/${proyectoId}/${codigo}-${safe}`;
     const { error } = await this.supabase.client.storage

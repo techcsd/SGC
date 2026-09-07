@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 
 export type JiraTipo = 'tarea' | 'bug' | 'mejora' | 'epica';
 export type JiraEstado = 'backlog' | 'por_hacer' | 'en_progreso' | 'en_revision' | 'hecho';
@@ -122,6 +123,7 @@ export class JiraService {
 
   /** Sube un adjunto al bucket sgc-jira y lo registra. */
   async adjuntar(issueId: string, file: File): Promise<void> {
+    file = await comprimirImagen(file, 'evidencia');
     const path = `${issueId}/${crypto.randomUUID()}-${file.name}`;
     const { error: up } = await this.supabase.client.storage.from('sgc-jira').upload(path, file);
     if (up) throw new Error(up.message);

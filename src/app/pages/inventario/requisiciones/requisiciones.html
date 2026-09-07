@@ -288,14 +288,25 @@
           <h3 class="req-detail__subtitle">Avance de despacho</h3>
           <div class="table-scroll">
             <table class="data-table">
-              <thead><tr><th>Renglón</th><th>Solicitado</th><th>Despachado</th><th>Pendiente</th></tr></thead>
+              <thead><tr><th>Renglón</th><th>Solicitado</th><th>Despachado</th><th>Pendiente</th><th></th></tr></thead>
               <tbody>
-                @for (a of avanceItems(); track a.descripcion) {
-                  <tr>
-                    <td>{{ a.descripcion }}</td>
+                @for (a of avanceItems(); track a.item_id) {
+                  <tr [class.req-line-cancelada]="a.estado === 'cancelada'">
+                    <td>
+                      {{ a.descripcion }}
+                      @if (a.estado === 'cancelada') { <span class="req-line-tag">quitada</span> }
+                    </td>
                     <td>{{ a.solicitado }}</td>
                     <td>{{ a.despachado }}</td>
                     <td [class.req-pend]="a.pendiente > 0">{{ a.pendiente }}</td>
+                    <td>
+                      <!-- BJ4 — quitar esta línea (con motivo) y cerrar el resto. -->
+                      @if (puedeGestionarReq() && a.estado === 'pendiente' && a.pendiente > 0
+                           && s.estado !== 'completada' && s.estado !== 'cerrada' && s.estado !== 'cancelada') {
+                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                                [disabled]="saving()" (click)="quitarLinea(a)">Quitar</button>
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   ObraNC,
   ObraNCFormData,
@@ -53,8 +54,9 @@ export class ObraProduccionService {
   async subirFotos(files: File[], carpeta: string): Promise<string[]> {
     const paths: string[] = [];
     for (const file of files) {
+      const comprimido = await comprimirImagen(file, 'evidencia');
       const path = `${carpeta}/${this.nuevoId()}-${file.name.replace(/[^\w.\-]+/g, '_')}`;
-      const { error } = await this.supabase.client.storage.from(this.BUCKET).upload(path, file, {
+      const { error } = await this.supabase.client.storage.from(this.BUCKET).upload(path, comprimido, {
         cacheControl: '3600',
         upsert: false,
       });

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { EntradaInventario, EntradaFormData, EntradaItemFormData } from '../models/entrada.model';
 
 const SELECT_QUERY =
@@ -83,6 +84,7 @@ export class EntradasService {
 
   /** Sube una foto de evidencia de confirmación al bucket `inventario`. */
   async subirFotoConfirmacion(entradaId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const safe = (file.name || 'foto').replace(/[^a-zA-Z0-9_.-]+/g, '-').slice(0, 40);
     const path = `confirmacion/${entradaId}/${crypto.randomUUID()}-${safe}`;
     const { error } = await this.supabase.client.storage.from('inventario').upload(path, file);
@@ -118,6 +120,7 @@ export class EntradasService {
   /** Sube una foto de evidencia (web) al bucket `inventario` y la enlaza a la entrada.
    *  Paridad con la app de campo: lo que la móvil captura, la web también. */
   async subirFoto(entradaId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
     const safe = (file.name || 'foto').replace(/[^a-zA-Z0-9_.-]+/g, '-').slice(0, 40);
     const path = `entrada/${entradaId}/${crypto.randomUUID()}-${safe}`;
     const { error } = await this.supabase.client.storage.from('inventario').upload(path, file);
