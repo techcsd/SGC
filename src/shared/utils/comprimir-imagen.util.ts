@@ -18,8 +18,11 @@ interface PerfilConfig {
 }
 
 // Números de la propuesta BJ1 (§F). Un solo lugar para tunear.
+// evidencia: decisión Xaviel (BJ1 §F, ronda BJ móvil) = MÁXIMO AHORRO → 1280/0.72
+// en AMBOS repos (antes 1600/0.75). Paridad con csd-app (camera.service). Si cambias
+// evidencia, cámbialo también allá.
 const PERFILES: Record<PerfilCompresion, PerfilConfig> = {
-  evidencia: { maxLado: 1600, calidad: 0.75 }, // fotos de obra/conduce/checklist
+  evidencia: { maxLado: 1280, calidad: 0.72 }, // fotos de obra/conduce/checklist
   documento: { maxLado: 2000, calidad: 0.8 },  // legibilidad de documentos escaneados
   avatar:    { maxLado: 512,  calidad: 0.8 },  // foto de perfil
   sticker:   { maxLado: 512,  calidad: 0.8 },  // stickers propios
