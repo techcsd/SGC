@@ -68,6 +68,10 @@ export class ConciliacionCombustible implements OnInit {
   /** Catálogo de vehículos activos para el selector de mapeo. */
   vehiculos = signal<{ id: string; label: string; placa: string }[]>([]);
   private tarjetaMap = new Map<string, TarjetaMap>();
+  /** BJ2 — factura PDF original (se sube al guardar la conciliación). */
+  private archivoPdf: File | null = null;
+  /** BJ2 — resumen por producto del PDF (para el cuadre). */
+  productosDetectados = signal<{ nombre: string; cantidad: number | null; monto: number | null }[]>([]);
   /** Cuántas tarjetas del PDF siguen sin vehículo (caerían en «solo informe»). */
   tarjetasSinMapear = computed(() =>
     this.cardsDetectadas().filter((c) => !c.vehiculo_id).length,
@@ -238,12 +242,15 @@ export class ConciliacionCombustible implements OnInit {
       const esPdf = /\.pdf$/i.test(file.name) || file.type === 'application/pdf';
       this.esPdfPreview.set(esPdf);
       this.cardsDetectadas.set([]);
+      this.productosDetectados.set([]);
+      this.archivoPdf = esPdf ? file : null;
       let filas: InformeRow[];
       let cards: TotalEnergiesCard[] = [];
       if (esPdf) {
         const parsed = await parseTotalEnergiesPdfFull(new Uint8Array(await file.arrayBuffer()));
         filas = parsed.rows;
         cards = parsed.cards;
+        this.productosDetectados.set(parsed.productos);
       } else {
         filas = await this.parseInforme(file);
       }
@@ -282,6 +289,8 @@ export class ConciliacionCombustible implements OnInit {
     this.parseError.set('');
     this.esPdfPreview.set(false);
     this.cardsDetectadas.set([]);
+    this.productosDetectados.set([]);
+    this.archivoPdf = null;
   }
 
   /** BJ2 — carga el mapeo aprendido, lo aplica a las filas (tarjeta→placa) y arma
@@ -387,6 +396,9 @@ export class ConciliacionCombustible implements OnInit {
         importe: f.monto,
         ncf: f.ncf || null,
         trans_status: f.trans_status || null,
+        // BJ2 — vehículo resuelto por el mapeo de tarjeta + alerta de la factura.
+        vehiculo_id: this.tarjetaMap.get(f.numero_tarjeta)?.vehiculo_id ?? null,
+        alerta: f.alerta ?? null,
       }));
       const nuevas = await this.service.importarTransacciones(payload);
       await this.conciliar(filas, this.nombreArchivo() ?? 'informe');
@@ -658,6 +670,14 @@ export class ConciliacionCombustible implements OnInit {
     if (!meta || this.saving()) return;
     this.saving.set(true);
     try {
+      // BJ2 — guarda la factura PDF original ligada a la conciliación (traza fiscal).
+      if (this.archivoPdf) {
+        try {
+          meta.pdf_path = await this.service.subirPdf(this.archivoPdf);
+        } catch {
+          this.toast.warning('Conciliación guardada sin el PDF', 'No se pudo subir la factura; el cuadre sí se guarda.');
+        }
+      }
       await this.service.guardar(meta, this.detalles());
       this.toast.success(
         'Conciliación guardada',

@@ -63,6 +63,34 @@
       <p class="cc-error"><app-icon name="alert-triangle" [size]="14" /> La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
     }
 
+    <!-- BJ2 — cuadre por producto (del resumen fiscal del PDF). -->
+    @if (esPdfPreview() && productosDetectados().length) {
+      <div class="cc-cuadre sgc-card">
+        <h3>Cuadre por producto (factura)</h3>
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Cuadre por producto">
+            <thead><tr><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th></tr></thead>
+            <tbody>
+              @for (p of productosDetectados(); track p.nombre) {
+                <tr>
+                  <td>{{ p.nombre }}</td>
+                  <td class="text-right">{{ p.cantidad === null ? '—' : (p.cantidad | number:'1.0-2') }}</td>
+                  <td class="text-right">{{ p.monto === null ? '—' : (p.monto | number:'1.2-2') }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Total factura</th>
+                <th class="text-right">{{ previewStats().sumaGalones | number:'1.0-2' }}</th>
+                <th class="text-right">{{ facturaTotal() === null ? '—' : (facturaTotal() | number:'1.2-2') }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    }
+
     <!-- BJ2 — mapeo tarjeta→vehículo (solo PDF). Se aprende una vez: la próxima
          factura ya llega resuelta. Sin vehículo, la tarjeta cae en «solo informe». -->
     @if (esPdfPreview() && cardsDetectadas().length) {

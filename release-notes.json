@@ -3480,6 +3480,16 @@
           "d": "En la factura PDF de combustible el consumo suele ir a nombre de una persona (ING. …), no de una placa. Ahora se asigna el vehículo de cada tarjeta una sola vez (el código de 4 dígitos es la llave) y se recuerda: las próximas facturas llegan ya resueltas para el cruce, en vez de caer en «solo informe»."
         }
       ]
+    },
+    "1.115.0": {
+      "titulo": "Conciliación de combustible por PDF: factura guardada, alerta y vehículo por transacción",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Al conciliar por factura PDF: (1) se guarda la factura original ligada a la conciliación (traza fiscal e-NCF/firma); (2) se registra la alerta de consumo de cada línea (frecuencia/horario/días/kilometraje/zona/>1 al día); (3) el vehículo resuelto por el mapeo de tarjeta queda pegado a cada transacción. La vista previa muestra el cuadre por producto."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

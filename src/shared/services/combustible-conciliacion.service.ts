@@ -70,6 +70,7 @@ export interface ConciliacionMeta {
   galones_plataforma: number;
   galones_informe: number;
   notas: string | null;
+  pdf_path?: string | null; // BJ2 — factura PDF original ligada a la conciliación
 }
 
 /** BJ2 — mapeo aprendido de una tarjeta de combustible. */
@@ -158,6 +159,16 @@ export class CombustibleConciliacionService {
     const { data, error } = await this.supabase.client.rpc('transacciones_existentes', { p_nums: nums });
     if (error) return [];
     return (data as string[]) ?? [];
+  }
+
+  /** BJ2 — sube la factura PDF original al bucket privado y devuelve su path. */
+  async subirPdf(file: File): Promise<string> {
+    const path = `conciliacion/${crypto.randomUUID()}.pdf`;
+    const { error } = await this.supabase.client.storage
+      .from('sgc-combustible')
+      .upload(path, file, { upsert: true, contentType: 'application/pdf' });
+    if (error) throw new Error(error.message);
+    return path;
   }
 
   /** BJ2 — mapa tarjeta→vehículo/persona (se aprende una vez). */
