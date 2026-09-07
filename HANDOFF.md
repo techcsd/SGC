@@ -18,8 +18,11 @@ lazy + worker como asset. El PDF real está **gitignoreado** (datos fiscales).
 RPCs listar/set (DEFINER, gate `es_flota_elevado`) **APLICADA + smoke por rol** (Raykler mapea;
 chofer negado); panel «Tarjetas del PDF» en la vista previa asigna vehículo por tarjeta (se
 aprende una vez) → las de persona ya no caen a `solo_informe`.
-**Follow-ups menores restantes**: guardar el PDF en Storage (traza fiscal), panel de cuadre por
-producto/tarjeta en la UI, columna Alerta persistida (la factura de muestra no trae alertas).
+**BJ2c — follow-ups CERRADOS (web 1.115.0, commit 80f3b82, migración APLICADA + smoke):**
+se guarda la factura PDF original (bucket privado `sgc-combustible`, `conciliaciones_combustible.pdf_path`);
+se persiste la columna **Alerta** (FR/H/J/X/Y/Z) por transacción; el `vehiculo_id` resuelto por el
+mapeo queda pegado a cada transacción; panel de **cuadre por producto** en la vista previa.
+**BJ2 queda 100% cerrado.**
 
 **BJ5 smoke por rol (APLICADO, OK):** admin ve 15 (incl. 4 de prueba); ingeniero campo/oficina, jefe ing., chofer, Raykler y capataz ven la **lista** (11, nunca 0) y **0 obras de prueba**; dropdowns por contexto OK (WIDE=10 para todos; SCOPED=1 para el ingeniero de campo = su obra). Sin recursión.
 
