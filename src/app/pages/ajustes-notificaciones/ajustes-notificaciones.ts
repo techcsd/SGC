@@ -4,10 +4,9 @@ import { NotificacionesCentroService } from '../../../shared/services/notificaci
 import { ToastService } from '../../../shared/services/toast.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
-/** AT23 — categorías informativas que el usuario puede silenciar. A propósito se
- *  dejan fuera las que exigen acción (firmas, alertas críticas, errores). Espejo
- *  de la lista de la app (csd-app: CATEGORIAS_NOTIF). */
-const CATEGORIAS_NOTIF: { tipo: string; label: string; desc: string }[] = [
+/** BK1 — fallback si el catálogo (tabla notif_tipo) no responde. Antes esta lista
+ *  estaba hardcodeada y ya divergía del backend; ahora es solo red de seguridad. */
+const CATEGORIAS_FALLBACK: { tipo: string; label: string; desc: string }[] = [
   { tipo: 'version_publicada', label: 'Nuevas versiones', desc: 'Avisos cuando se publica una actualización del sistema.' },
   { tipo: 'material_no_catalogado', label: 'Material no catalogado', desc: 'Cuando llega material sin artículo del catálogo.' },
   { tipo: 'otros_valor', label: 'Valores fuera de catálogo', desc: 'Texto libre capturado que podría convertirse en artículo.' },
@@ -34,7 +33,7 @@ export class AjustesNotificaciones implements OnInit {
   private centro = inject(NotificacionesCentroService);
   private toast = inject(ToastService);
 
-  readonly categorias = CATEGORIAS_NOTIF;
+  categorias = signal<{ tipo: string; label: string; desc: string }[]>(CATEGORIAS_FALLBACK);
   loading = signal(true);
   guardando = signal<string | null>(null);
   /** Tipos silenciados del usuario. */
@@ -42,10 +41,16 @@ export class AjustesNotificaciones implements OnInit {
 
   async ngOnInit() {
     try {
-      const prefs = await this.centro.misNotifPrefs();
+      const [prefs, cat] = await Promise.all([
+        this.centro.misNotifPrefs(),
+        this.centro.catalogoInformativas().catch(() => []),
+      ]);
       const s = new Set<string>();
       for (const p of prefs) if (p.silenciado) s.add(p.tipo);
       this.silenciados.set(s);
+      if (cat.length) {
+        this.categorias.set(cat.map((c) => ({ tipo: c.tipo, label: c.etiqueta, desc: c.descripcion ?? '' })));
+      }
     } catch {
       /* best-effort: sin prefs, todo activo */
     } finally {

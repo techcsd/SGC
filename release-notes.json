@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.117.0": {
+      "titulo": "Panel de notificaciones: apagar avisos por rol y por persona",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "En la Matriz de notificaciones ahora puedes apagar (o volver a encender) un tipo de aviso para un rol o para una persona concreta, con buscador de usuario. Gana la regla más específica: usuario sobre rol sobre global, y afecta tanto al push como a la campanita/bandeja."
+        },
+        {
+          "t": "mejora",
+          "m": "Notificaciones",
+          "d": "La lista de avisos que cada usuario puede silenciar en su perfil ahora sale del catálogo real del sistema (incluye chat, notas compartidas y demás), en vez de una lista fija que se quedaba corta."
+        }
+      ]
+    },
     "1.116.0": {
       "titulo": "Links de Google Maps de WhatsApp, panel de notificaciones que sí apaga, y Configuración del sistema unificada",
       "cambios": [

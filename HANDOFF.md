@@ -8,7 +8,14 @@
 - ✅ Edge `resolve-maps-link` **desplegado** — live-test OK: coords-en-texto, `&query=` (link de la app) y texto con `%` ahora dan 200 (antes 400/422/500). **El fix del chofer es server-side → app y web se benefician sin actualizar.**
 - **Compatibilidad verificada:** la UI vieja de `matriz-notificaciones` sigue funcionando (set_notif_regla 3-arg resuelve al 4-arg por default; notif_reglas devuelve cols extra ignoradas). Tolerancias seed = defaults → comportamiento sin cambios hasta el próximo deploy web.
 
-**FALTA commit/push (frontend, activa al deploy Vercel):** pantalla Config unificada (FASE 3), picker maps `suggest_query` (FASE 2), conciliación leyendo tolerancias (FASE 4). Al shippear: bump `package.json` + `release-notes.json`.
+**SHIPPED web 1.116.0** (commit a5d7988, push main → Vercel): frontend de FASE 2/3/4 (Config unificada, picker maps, conciliación leyendo tolerancias).
+
+**SHIPPED web 1.117.0** (push main → Vercel): **FASE 1 frontend (panel de notificaciones).**
+- `admin/matriz-notificaciones`: nueva sección "Reglas por rol y por usuario" — apagar/encender un tipo para un rol o para una persona (buscador sobre `directorio_usuarios`), precedencia usuario>rol>global; lista de reglas específicas con toggle. Catálogo desde la tabla (28 tipos). El rastro ya muestra `silenciada`/`fuera_de_matriz`.
+- `ajustes-notificaciones` (web): las categorías silenciables salen del catálogo tabla (`notif_tipo` where not es_operativa), fallback a la lista vieja. Incluye chat/notas/etc.
+- Servicios: `NotifMatrizService.setRegla(...,usuarioId)`, `usuariosDirectorio()`, `NotifRegla`+usuario; `NotificacionesCentroService.catalogoInformativas()`.
+
+**FASE 1 — FALTA todavía:** (1) **retirar `notificaciones_config`** — OJO: tiene 2 consumidores vivos en prod (`tg_reporte_usuario_notifica`, `obra_notif_activo`) + dimensión email/canal que el modelo nuevo no tiene → NO es rip-out, requiere migrar esos 2 y el canal email primero (follow-up con diseño); (2) **correo a la matriz** (9 edges `notificar-*`/incentivo/resumen, al menos por tipo+rol) + UI de CSV de destinatarios; (3) app `avisos.ts` lee catálogo de la tabla (PROMPT-37).
 
 ---
 

@@ -46,17 +46,34 @@ export class NotifMatrizService {
     return (data ?? []) as NotifRegla[];
   }
 
-  /** BF4 — habilita/deshabilita un tipo (rol vacío = global). */
-  async setRegla(tipo: string, rol: string | null, habilitado: boolean): Promise<void> {
-    const { error } = await this.supabase.client.rpc('set_notif_regla', { p_tipo: tipo, p_rol: rol, p_habilitado: habilitado });
+  /** BF4/BK1 — habilita/deshabilita un tipo. rol vacío + usuario null = global;
+   *  usuario != null = regla por usuario (precedencia usuario > rol > global). */
+  async setRegla(tipo: string, rol: string | null, habilitado: boolean, usuarioId: string | null = null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_notif_regla', {
+      p_tipo: tipo, p_rol: rol, p_habilitado: habilitado, p_usuario_id: usuarioId,
+    });
     if (error) throw new Error(error.message);
+  }
+
+  /** BK1 — directorio de usuarios para el buscador del panel (id + nombre). */
+  async usuariosDirectorio(): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_usuarios');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string }[];
   }
 }
 
 /** BF4 — un tipo de aviso del catálogo. */
 export interface NotifTipoCat { tipo: string; etiqueta: string; es_operativa: boolean; }
-/** BF4 — una regla de admin (tipo deshabilitado global o por rol). */
-export interface NotifRegla { tipo: string; rol: string | null; habilitado: boolean; updated_at: string; }
+/** BF4/BK1 — una regla de admin (global, por rol o por usuario). */
+export interface NotifRegla {
+  tipo: string;
+  rol: string | null;
+  usuario_id: string | null;
+  usuario_nombre: string | null;
+  habilitado: boolean;
+  updated_at: string;
+}
 
 /** BF4 — una fila de la traza de entrega de notificaciones. */
 export interface NotifEntrega {

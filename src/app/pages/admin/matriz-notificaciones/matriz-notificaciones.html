@@ -53,6 +53,95 @@
       }
     </section>
 
+    <!-- BK1 — Reglas específicas por ROL y por USUARIO (precedencia usuario > rol > global) -->
+    @if (mostrarReglas()) {
+      <section class="mn-card">
+        <div class="mn-card__head">
+          <h2 class="mn-card__title">Reglas por rol y por usuario</h2>
+        </div>
+        <p class="mn-card__desc">Apaga (o vuelve a encender) un tipo de aviso para <strong>un rol</strong> o para <strong>una persona</strong> concreta. Gana la más específica: usuario &gt; rol &gt; global. Afecta al push <strong>y</strong> a la campanita/bandeja.</p>
+
+        <!-- Agregar regla -->
+        <div class="mn-newrule">
+          <select class="mn-input" [ngModel]="nrTipo()" (ngModelChange)="nrTipo.set($event)">
+            <option value="">Tipo de aviso…</option>
+            @for (t of tipos(); track t.tipo) {
+              <option [value]="t.tipo">{{ t.etiqueta }}</option>
+            }
+          </select>
+
+          <select class="mn-input" [ngModel]="nrAmbito()" (ngModelChange)="nrAmbito.set($event)">
+            <option value="usuario">A un usuario</option>
+            <option value="rol">A un rol</option>
+          </select>
+
+          @if (nrAmbito() === 'rol') {
+            <select class="mn-input" [ngModel]="nrRol()" (ngModelChange)="nrRol.set($event)">
+              <option value="">Rol…</option>
+              @for (r of roles(); track r.id) {
+                <option [value]="r.codigo">{{ r.nombre }}</option>
+              }
+            </select>
+          } @else {
+            <div class="mn-userpick">
+              <input class="mn-input" type="search" placeholder="Buscar persona…"
+                     [ngModel]="nrBusqueda()" (ngModelChange)="nrBusqueda.set($event); nrUsuarioId.set('')" />
+              @if (nrBusqueda() && !nrUsuarioId()) {
+                <ul class="mn-userlist">
+                  @for (u of usuariosFiltrados(); track u.id) {
+                    <li><button type="button" (click)="seleccionarUsuario(u)">{{ u.nombre }}</button></li>
+                  }
+                </ul>
+              }
+            </div>
+          }
+
+          <select class="mn-input" [ngModel]="nrHabilitado()" (ngModelChange)="nrHabilitado.set($event === 'true' || $event === true)">
+            <option [ngValue]="false">Apagar</option>
+            <option [ngValue]="true">Encender</option>
+          </select>
+
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                  [disabled]="guardandoEspecifica()" (click)="agregarReglaEspecifica()">
+            {{ guardandoEspecifica() ? 'Guardando…' : 'Agregar regla' }}
+          </button>
+        </div>
+
+        <!-- Reglas específicas existentes -->
+        @if (reglasEspecificas().length === 0) {
+          <p class="mn-card__desc">No hay reglas por rol ni por usuario todavía.</p>
+        } @else {
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Tipo</th><th>Ámbito</th><th>Estado</th><th></th></tr></thead>
+              <tbody>
+                @for (r of reglasEspecificas(); track $index) {
+                  <tr>
+                    <td>{{ etiquetaTipo(r.tipo) }}</td>
+                    <td class="text-muted">
+                      @if (r.usuario_id) { <strong>Usuario:</strong> {{ r.usuario_nombre ?? 'usuario' }} }
+                      @else { <strong>Rol:</strong> {{ nombreRol(r.rol ?? '') }} }
+                    </td>
+                    <td>
+                      <span class="sgc-badge" [class]="'sgc-badge--' + (r.habilitado ? 'success' : 'danger')">
+                        {{ r.habilitado ? 'Encendido' : 'Apagado' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+                              [disabled]="guardandoEspecifica()" (click)="toggleReglaEspecifica(r)">
+                        {{ r.habilitado ? 'Apagar' : 'Encender' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+
     <!-- BF4 — Traza de entregas (diagnóstico "no me llegó") -->
     <section class="mn-card">
       <div class="mn-card__head">

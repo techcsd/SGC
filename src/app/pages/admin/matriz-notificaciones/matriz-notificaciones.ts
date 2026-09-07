@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
-import { NotifMatrizService, NotifParam, NotifEntrega, NotifTipoCat } from '../../../../shared/services/notif-matriz.service';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NotifMatrizService, NotifParam, NotifEntrega, NotifTipoCat, NotifRegla } from '../../../../shared/services/notif-matriz.service';
 import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -12,7 +13,7 @@ interface ParamRow extends NotifParam {
  *  matriz (por rol), sin tocar código. Backend: notif_config / set_notif_param. */
 @Component({
   selector: 'app-admin-matriz-notificaciones',
-  imports: [Skeleton],
+  imports: [Skeleton, FormsModule],
   templateUrl: './matriz-notificaciones.html',
   styleUrl: './matriz-notificaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,19 +79,97 @@ export class AdminMatrizNotificaciones implements OnInit {
   reglasMap = signal<Map<string, boolean>>(new Map()); // tipo → habilitado global
   guardandoRegla = signal<string | null>(null);
 
+  // ── BK1 — reglas específicas por rol y por usuario ───────────────────────
+  reglasEspecificas = signal<NotifRegla[]>([]);
+  usuarios = signal<{ id: string; nombre: string }[]>([]);
+  // Formulario "agregar regla".
+  nrTipo = signal('');
+  nrAmbito = signal<'rol' | 'usuario'>('usuario');
+  nrRol = signal('');
+  nrUsuarioId = signal('');
+  nrBusqueda = signal('');
+  nrHabilitado = signal(false); // por defecto se AÑADE para apagar
+  guardandoEspecifica = signal(false);
+
+  usuariosFiltrados = computed(() => {
+    const q = this.nrBusqueda().trim().toLowerCase();
+    const list = this.usuarios();
+    if (!q) return list.slice(0, 8);
+    return list.filter((u) => u.nombre.toLowerCase().includes(q)).slice(0, 8);
+  });
+
+  private cargarMapasReglas(cat: NotifTipoCat[], reglas: NotifRegla[]) {
+    const m = new Map<string, boolean>();
+    for (const t of cat) m.set(t.tipo, true); // por defecto habilitado
+    for (const r of reglas) if (r.rol === null && r.usuario_id === null) m.set(r.tipo, r.habilitado);
+    this.reglasMap.set(m);
+    this.reglasEspecificas.set(reglas.filter((r) => r.rol !== null || r.usuario_id !== null));
+  }
+
   async toggleReglas() {
     const abrir = !this.mostrarReglas();
     this.mostrarReglas.set(abrir);
     if (!abrir) return;
     try {
-      const [cat, reglas] = await Promise.all([this.svc.tiposCatalogo(), this.svc.reglas()]);
+      const [cat, reglas, usuarios] = await Promise.all([
+        this.svc.tiposCatalogo(), this.svc.reglas(), this.svc.usuariosDirectorio(),
+      ]);
       this.tipos.set(cat);
-      const m = new Map<string, boolean>();
-      for (const t of cat) m.set(t.tipo, true);          // por defecto habilitado
-      for (const r of reglas) if (r.rol === null) m.set(r.tipo, r.habilitado); // regla global
-      this.reglasMap.set(m);
+      this.usuarios.set(usuarios);
+      this.cargarMapasReglas(cat, reglas);
     } catch (e) {
       this.toast.error('No se pudieron cargar las reglas', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  etiquetaTipo(tipo: string): string {
+    return this.tipos().find((t) => t.tipo === tipo)?.etiqueta ?? tipo;
+  }
+  nombreRol(codigo: string): string {
+    return this.roles().find((r) => r.codigo === codigo)?.nombre ?? codigo;
+  }
+  seleccionarUsuario(u: { id: string; nombre: string }) {
+    this.nrUsuarioId.set(u.id);
+    this.nrBusqueda.set(u.nombre);
+  }
+
+  async agregarReglaEspecifica() {
+    if (this.guardandoEspecifica()) return;
+    const tipo = this.nrTipo();
+    if (!tipo) { this.toast.error('Elige un tipo de aviso'); return; }
+    const esUsuario = this.nrAmbito() === 'usuario';
+    const rol = esUsuario ? null : (this.nrRol() || null);
+    const usuarioId = esUsuario ? (this.nrUsuarioId() || null) : null;
+    if (esUsuario && !usuarioId) { this.toast.error('Elige un usuario'); return; }
+    if (!esUsuario && !rol) { this.toast.error('Elige un rol'); return; }
+    this.guardandoEspecifica.set(true);
+    try {
+      await this.svc.setRegla(tipo, rol, this.nrHabilitado(), usuarioId);
+      const [cat, reglas] = await Promise.all([this.svc.tiposCatalogo(), this.svc.reglas()]);
+      this.tipos.set(cat);
+      this.cargarMapasReglas(cat, reglas);
+      // Reset del formulario.
+      this.nrTipo.set(''); this.nrRol.set(''); this.nrUsuarioId.set(''); this.nrBusqueda.set('');
+      this.toast.success('Regla guardada');
+    } catch (e) {
+      this.toast.error('No se pudo guardar la regla', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoEspecifica.set(false);
+    }
+  }
+
+  async toggleReglaEspecifica(r: NotifRegla) {
+    if (this.guardandoEspecifica()) return;
+    this.guardandoEspecifica.set(true);
+    try {
+      await this.svc.setRegla(r.tipo, r.rol, !r.habilitado, r.usuario_id);
+      const [cat, reglas] = await Promise.all([this.svc.tiposCatalogo(), this.svc.reglas()]);
+      this.tipos.set(cat);
+      this.cargarMapasReglas(cat, reglas);
+    } catch (e) {
+      this.toast.error('No se pudo cambiar la regla', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoEspecifica.set(false);
     }
   }
   tipoHabilitado(tipo: string): boolean {

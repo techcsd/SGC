@@ -60,6 +60,19 @@ export class NotificacionesCentroService {
     return (data as { tipo: string; silenciado: boolean }[]) ?? [];
   }
 
+  /** BK1 — tipos informativos que el usuario puede silenciar (del catálogo tabla
+   *  notif_tipo, no de una lista hardcodeada). Las operativas se excluyen. */
+  async catalogoInformativas(): Promise<{ tipo: string; etiqueta: string; descripcion: string | null }[]> {
+    const { data, error } = await this.supabase.client
+      .from('notif_tipo')
+      .select('tipo, etiqueta, descripcion, es_operativa, activo, orden')
+      .eq('activo', true)
+      .eq('es_operativa', false)
+      .order('orden');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { tipo: string; etiqueta: string; descripcion: string | null }[];
+  }
+
   /** AT23 — silencia/reactiva un tipo; actualiza la cache y re-filtra la bandeja. */
   async setNotifPref(tipo: string, silenciado: boolean): Promise<void> {
     const { error } = await this.supabase.client.rpc('set_notif_pref', {

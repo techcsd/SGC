@@ -10,7 +10,7 @@
     <app-skeleton [rows]="6" />
   } @else {
     <ul class="notif-prefs">
-      @for (c of categorias; track c.tipo) {
+      @for (c of categorias(); track c.tipo) {
         <li class="notif-pref">
           <div class="notif-pref__info">
             <span class="notif-pref__label">{{ c.label }}</span>

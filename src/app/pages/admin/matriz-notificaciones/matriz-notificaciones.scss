@@ -34,3 +34,24 @@
 
 // BF4 — etiqueta "operativa" en la lista de tipos de aviso.
 .mn-op { color: var(--text-2); font-size: var(--fs-xs); font-style: normal; }
+
+// BK1 — formulario de reglas por rol/usuario.
+.mn-newrule {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-bottom: 14px;
+}
+.mn-input {
+  padding: 7px 10px; border: 1px solid var(--sgc-border); border-radius: 8px;
+  font-size: 13px; color: var(--sgc-text); background: var(--sgc-surface); outline: none;
+  &:focus { border-color: var(--sgc-primary, #ff5f00); }
+}
+.mn-userpick { position: relative; }
+.mn-userlist {
+  position: absolute; z-index: 5; top: calc(100% + 2px); left: 0; right: 0; margin: 0; padding: 4px;
+  list-style: none; background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: 8px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); max-height: 220px; overflow-y: auto;
+  li button {
+    display: block; width: 100%; text-align: left; padding: 7px 10px; border: 0; border-radius: 6px;
+    background: transparent; color: var(--sgc-text); font-size: 13px; cursor: pointer;
+    &:hover { background: var(--sgc-surface-2, rgba(0, 0, 0, 0.05)); }
+  }
+}
