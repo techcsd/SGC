@@ -37,6 +37,7 @@ Fuente de verdad: `select jobid, jobname, schedule, command, active from cron.jo
 | sgc-reporte-semanal-dia | `10 6 * * *` | 2:10 AM | sweep de avisos del reporte semanal |
 | sgc-incentivo-semanal-lunes | `0 14 * * 1` | lun 10:00 AM | informe de incentivo semanal |
 | sgc-resumen-operaciones-lunes | `0 11 * * 1` | lun 7:00 AM | resumen semanal de operaciones |
+| sgc-incentivo-diario | `0 12 * * *` | **8:00 AM** | informe DIARIO de actividad de choferes (BK4, informativo) |
 
 ## Nota BK5 — `sgc-recordatorio-reporte-semanal-dia` NO es un cron duplicado
 

@@ -17,6 +17,10 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Configurar puntaje
       </button>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleDiario()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Actividad diaria
+      </button>
     </div>
   </header>
 
@@ -86,6 +90,54 @@
       <div class="inc-config__actions">
         <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirAgregar()">Agregar persona</button>
         <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleParticipantes()">Cerrar</button>
+      </div>
+    </section>
+  }
+
+  <!-- BK4 — Actividad diaria (lo que va en el correo informativo de las 8am) -->
+  @if (mostrarDiario()) {
+    <section class="inc-config">
+      <h2 class="inc-config__title">Actividad diaria</h2>
+      <p class="inc-config__hint">
+        Actividad de choferes por día (reportes, inspecciones, echadas con foto, rutas y conduces).
+        Es el mismo contenido del correo informativo de las 8am. <strong>No es el puntaje de pago</strong>
+        (ese se calcula por semana, los lunes).
+      </p>
+      <div class="inc-config__row">
+        <label>Fecha
+          <input type="date" [ngModel]="diaFecha()" (ngModelChange)="setDiaFecha($event)" />
+        </label>
+      </div>
+      @if (cargandoDia()) {
+        <app-skeleton [rows]="4" />
+      } @else if (diaFilas().length === 0) {
+        <p class="inc-config__hint">Sin actividad de choferes ese día.</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Chofer</th>
+                @for (r of diaRenglones; track r.key) { <th style="text-align:center;">{{ r.label }}</th> }
+                <th style="text-align:center;">Puntos</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of diaFilas(); track f.usuario_id) {
+                <tr>
+                  <td>{{ f.nombre }}</td>
+                  @for (r of diaRenglones; track r.key) {
+                    <td style="text-align:center;">{{ diaCelda(f, r.key) || '·' }}</td>
+                  }
+                  <td style="text-align:center;font-weight:700;">{{ f.puntaje }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="inc-config__actions">
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleDiario()">Cerrar</button>
       </div>
     </section>
   }

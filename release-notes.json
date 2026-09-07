@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.119.0": {
+      "titulo": "Reporte diario de actividad de choferes (8am)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Incentivos",
+          "d": "Nuevo informe DIARIO de actividad de choferes que sale por correo cada día a las 8am (reportes, inspecciones, echadas con foto, rutas y conduces del día anterior). Es informativo: no es el puntaje de pago (ese sigue siendo semanal). Se ve en la app en Incentivos → Actividad diaria, con selector de fecha."
+        },
+        {
+          "t": "mejora",
+          "m": "Incentivos",
+          "d": "Los destinatarios del correo diario se controlan con su propio parámetro (incentivo_diario_roles), aparte del informe semanal."
+        }
+      ]
+    },
     "1.118.0": {
       "titulo": "Desempeño: agregar a cualquier persona y marcar quién es chofer",
       "cambios": [

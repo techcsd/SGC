@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   IncentivosService, IncentivoFila, IncentivoSemanaRef, IncentivoDecision,
   IncentivoConfig, IncentivoFlag, IncentivoParticipante, IncentivoInformeVersion,
-  RENGLON_LABELS, isoSemanaActual,
+  IncentivoDiaFila, RENGLON_LABELS, isoSemanaActual,
 } from '../../../shared/services/incentivos.service';
 import { ConductoresService } from '../../../shared/services/conductores.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -497,6 +497,47 @@ export class Incentivos implements OnInit {
     } finally {
       this.participanteBusy.set(null);
     }
+  }
+
+  // ── BK4 — Actividad diaria (informativa; lo mismo que va en el correo de 8am) ──
+  mostrarDiario = signal(false);
+  diaFecha = signal(this.ayerISO());
+  diaFilas = signal<IncentivoDiaFila[]>([]);
+  cargandoDia = signal(false);
+  readonly diaRenglones: { key: string; label: string }[] = [
+    { key: 'reporte_semanal', label: 'Reporte' },
+    { key: 'inspeccion', label: 'Inspección' },
+    { key: 'echada', label: 'Echada' },
+    { key: 'ruta', label: 'Ruta' },
+    { key: 'conduce', label: 'Conduce' },
+  ];
+  private ayerISO(): string {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  }
+  async toggleDiario() {
+    const abrir = !this.mostrarDiario();
+    this.mostrarDiario.set(abrir);
+    if (abrir) await this.cargarDia();
+  }
+  async cargarDia() {
+    this.cargandoDia.set(true);
+    try {
+      this.diaFilas.set(await this.service.diaListado(this.diaFecha()));
+    } catch (e) {
+      this.toast.error('No se pudo cargar la actividad diaria', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.cargandoDia.set(false);
+    }
+  }
+  setDiaFecha(f: string) {
+    this.diaFecha.set(f);
+    void this.cargarDia();
+  }
+  diaCelda(f: IncentivoDiaFila, key: string): number {
+    const r = f.conteos?.[key];
+    return r ? (r.propio ?? 0) + (r.ayudante ?? 0) : 0;
   }
 
   // ── Config ──

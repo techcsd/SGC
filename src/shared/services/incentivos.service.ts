@@ -224,6 +224,13 @@ export class IncentivosService {
     return (data ?? []) as { usuario_id: string; nombre: string }[];
   }
 
+  /** BK4 — actividad diaria (informativa, lo que se envía en el correo de las 8am). */
+  async diaListado(fecha: string): Promise<IncentivoDiaFila[]> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_dia_listado', { p_fecha: fecha });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as IncentivoDiaFila[];
+  }
+
   /**
    * BF3 — recalcula, versiona y REENVÍA el informe (v2+ marca "reemplaza al del
    * <fecha>"). Motivo obligatorio a partir de v2 (lo valida el server). Destinatarios
@@ -263,6 +270,13 @@ export interface IncentivoInformeVersion {
 }
 
 /** BF5 — fila de la gestión de participantes del incentivo. */
+export interface IncentivoDiaFila {
+  usuario_id: string;
+  nombre: string;
+  puntaje: number;
+  conteos: Record<string, { propio?: number; ayudante?: number; puntos?: number }>;
+}
+
 export interface IncentivoParticipante {
   conductor_id: string;
   usuario_id: string | null;
