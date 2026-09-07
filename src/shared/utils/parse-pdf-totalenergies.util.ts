@@ -305,11 +305,6 @@ export async function parseTotalEnergiesPdfFull(data: Uint8Array): Promise<Total
   return { rows, header, productos, cards };
 }
 
-/** API para el componente: devuelve solo las filas (misma forma que el parser Excel). */
-export async function parseTotalEnergiesPdf(data: Uint8Array): Promise<InformeRow[]> {
-  return (await parseTotalEnergiesPdfFull(data)).rows;
-}
-
 // Tipos mínimos de pdfjs (evita depender de sus .d.ts en el build).
 interface PdfItem { str: string; transform: number[]; }
 interface PdfPage { getTextContent(): Promise<{ items: unknown[] }>; }

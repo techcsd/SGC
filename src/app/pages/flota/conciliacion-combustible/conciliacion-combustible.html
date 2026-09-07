@@ -63,6 +63,46 @@
       <p class="cc-error"><app-icon name="alert-triangle" [size]="14" /> La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
     }
 
+    <!-- BJ2 — mapeo tarjeta→vehículo (solo PDF). Se aprende una vez: la próxima
+         factura ya llega resuelta. Sin vehículo, la tarjeta cae en «solo informe». -->
+    @if (esPdfPreview() && cardsDetectadas().length) {
+      <div class="cc-tarjetas sgc-card">
+        <div class="cc-tarjetas__head">
+          <h3>Tarjetas del PDF ({{ cardsDetectadas().length }})</h3>
+          @if (tarjetasSinMapear() > 0) {
+            <span class="sgc-badge sgc-badge--warning">{{ tarjetasSinMapear() }} sin vehículo</span>
+          } @else {
+            <span class="sgc-badge sgc-badge--success">todas mapeadas</span>
+          }
+        </div>
+        <p class="cc-hint">Asigna el vehículo de cada tarjeta (el código de 4 dígitos es la llave; se recuerda para las próximas facturas). Lo que dejes sin vehículo se cruzará como «solo informe».</p>
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Mapeo de tarjetas">
+            <thead><tr><th>Tarjeta</th><th>Titular en la factura</th><th>Vehículo</th></tr></thead>
+            <tbody>
+              @for (t of cardsDetectadas(); track t.card.codigo) {
+                <tr [class.cc-neg]="!t.vehiculo_id">
+                  <td><code class="code-tag">{{ t.card.codigo }}</code>
+                    @if (t.card.es_persona) { <span class="sgc-badge sgc-badge--neutral">persona</span> }
+                  </td>
+                  <td>{{ t.card.titular || '—' }}</td>
+                  <td>
+                    <select [value]="t.vehiculo_id ?? ''" [disabled]="t.guardando"
+                            (change)="asignarVehiculoTarjeta(t.card.codigo, $any($event.target).value)">
+                      <option value="">Sin vehículo (solo informe)</option>
+                      @for (v of vehiculos(); track v.id) {
+                        <option [value]="v.id">{{ v.label }}</option>
+                      }
+                    </select>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
     <div class="table-wrapper sgc-card">
       <div class="table-scroll">
         <table class="data-table" aria-label="Vista previa del reporte">

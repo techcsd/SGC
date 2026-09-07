@@ -54,3 +54,18 @@ tr.cc-excluida { opacity: 0.5; }
 .cc-preview__head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
 .cc-preview__actions { display: flex; gap: 8px; }
 .cc-dup { opacity: 0.6; }
+
+// BJ2 — panel de mapeo de tarjetas del PDF.
+.cc-tarjetas {
+  margin-top: 1rem;
+  padding: 1rem;
+}
+.cc-tarjetas__head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+
+  h3 { margin: 0; font-size: 1rem; }
+}
+.cc-tarjetas select { min-width: 220px; max-width: 100%; }

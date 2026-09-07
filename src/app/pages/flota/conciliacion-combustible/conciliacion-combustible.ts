@@ -7,8 +7,10 @@ import {
   ConciliacionDetalle,
   ConciliacionMeta,
   InformeRow,
+  TarjetaMap,
 } from '../../../../shared/services/combustible-conciliacion.service';
-import { parseTotalEnergiesPdf } from '../../../../shared/utils/parse-pdf-totalenergies.util';
+import { parseTotalEnergiesPdfFull, TotalEnergiesCard } from '../../../../shared/utils/parse-pdf-totalenergies.util';
+import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -38,6 +40,7 @@ const MONTO_TOLERANCIA = 50;
 export class ConciliacionCombustible implements OnInit {
   private service = inject(CombustibleConciliacionService);
   private estacionesService = inject(EstacionesCombustibleService);
+  private vehiculosService = inject(VehiculosService);
   private toast = inject(ToastService);
 
   formatFecha = formatFechaDisplay;
@@ -57,6 +60,18 @@ export class ConciliacionCombustible implements OnInit {
   facturaNum = signal('');
   facturaTotal = signal<number | null>(null);
   importando = signal(false);
+
+  // ── BJ2 — mapeo tarjeta→vehículo/persona (solo cuando el origen es el PDF) ────
+  esPdfPreview = signal(false);
+  /** Tarjetas detectadas en el PDF con su vehículo asignado (editable). */
+  cardsDetectadas = signal<{ card: TotalEnergiesCard; vehiculo_id: string | null; guardando?: boolean }[]>([]);
+  /** Catálogo de vehículos activos para el selector de mapeo. */
+  vehiculos = signal<{ id: string; label: string; placa: string }[]>([]);
+  private tarjetaMap = new Map<string, TarjetaMap>();
+  /** Cuántas tarjetas del PDF siguen sin vehículo (caerían en «solo informe»). */
+  tarjetasSinMapear = computed(() =>
+    this.cardsDetectadas().filter((c) => !c.vehiculo_id).length,
+  );
   previewStats = computed(() => {
     const rows = this.preview() ?? [];
     // BB7 — una fila cuenta como "válida a importar" si no es inválida, ni duplicada,
@@ -171,6 +186,21 @@ export class ConciliacionCombustible implements OnInit {
     } catch {
       /* catálogo opcional */
     }
+    try {
+      const vs = await this.vehiculosService.getAll();
+      this.vehiculos.set(
+        (vs ?? [])
+          .filter((v) => v.activo !== false && !!v.placa)
+          .map((v) => ({
+            id: v.id,
+            placa: v.placa as string,
+            label: [v.placa, v.marca, v.modelo].filter(Boolean).join(' · '),
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      );
+    } catch {
+      /* el mapeo puede quedarse sin catálogo; no bloquea */
+    }
     await this.cargarHistorial();
   }
 
@@ -206,9 +236,17 @@ export class ConciliacionCombustible implements OnInit {
       // de TotalEnergies (crédito fiscal electrónico). El PDF produce el mismo
       // InformeRow[] → el matcher y el import no cambian.
       const esPdf = /\.pdf$/i.test(file.name) || file.type === 'application/pdf';
-      const filas = esPdf
-        ? await parseTotalEnergiesPdf(new Uint8Array(await file.arrayBuffer()))
-        : await this.parseInforme(file);
+      this.esPdfPreview.set(esPdf);
+      this.cardsDetectadas.set([]);
+      let filas: InformeRow[];
+      let cards: TotalEnergiesCard[] = [];
+      if (esPdf) {
+        const parsed = await parseTotalEnergiesPdfFull(new Uint8Array(await file.arrayBuffer()));
+        filas = parsed.rows;
+        cards = parsed.cards;
+      } else {
+        filas = await this.parseInforme(file);
+      }
       if (filas.length === 0) {
         this.parseError.set(
           esPdf
@@ -228,6 +266,8 @@ export class ConciliacionCombustible implements OnInit {
       }
       this.facturaNum.set(filas.find((f) => f.numero_factura)?.numero_factura ?? '');
       this.facturaTotal.set(filas.find((f) => f.total_factura != null)?.total_factura ?? null);
+      // BJ2 — para el PDF: carga el mapeo aprendido y resuelve tarjeta→vehículo.
+      if (esPdf) await this.prepararMapeoTarjetas(cards, filas);
       this.preview.set(filas);
     } catch (e: unknown) {
       this.parseError.set(e instanceof Error ? e.message : 'No se pudo leer el archivo.');
@@ -240,6 +280,82 @@ export class ConciliacionCombustible implements OnInit {
     this.preview.set(null);
     this.nombreArchivo.set(null);
     this.parseError.set('');
+    this.esPdfPreview.set(false);
+    this.cardsDetectadas.set([]);
+  }
+
+  /** BJ2 — carga el mapeo aprendido, lo aplica a las filas (tarjeta→placa) y arma
+   *  el panel de tarjetas detectadas para que el usuario complete lo que falte. */
+  private async prepararMapeoTarjetas(cards: TotalEnergiesCard[], filas: InformeRow[]) {
+    try {
+      const mapa = await this.service.getTarjetaMap();
+      this.tarjetaMap = new Map(mapa.map((m) => [m.codigo_tarjeta, m]));
+    } catch {
+      this.tarjetaMap = new Map();
+    }
+    this.aplicarMapeoAFilas(filas);
+    // Tarjetas únicas del PDF (por si el parser repite), con su vehículo actual.
+    const vistos = new Set<string>();
+    const lista: { card: TotalEnergiesCard; vehiculo_id: string | null }[] = [];
+    for (const c of cards) {
+      if (!c.codigo || vistos.has(c.codigo)) continue;
+      vistos.add(c.codigo);
+      lista.push({ card: c, vehiculo_id: this.tarjetaMap.get(c.codigo)?.vehiculo_id ?? null });
+    }
+    this.cardsDetectadas.set(lista);
+  }
+
+  /** Aplica el mapeo actual: si la tarjeta tiene vehículo, el identificador de sus
+   *  filas pasa a ser la placa → el matcher (por placa) las cruza. */
+  private aplicarMapeoAFilas(filas: InformeRow[]) {
+    for (const f of filas) {
+      const m = this.tarjetaMap.get(f.numero_tarjeta);
+      if (m?.placa) f.identificador = m.placa;
+    }
+  }
+
+  /** BJ2 — el usuario asigna/actualiza el vehículo de una tarjeta; se aprende y se
+   *  re-resuelven las filas del preview al vuelo. */
+  async asignarVehiculoTarjeta(codigo: string, vehiculoId: string) {
+    const entry = this.cardsDetectadas().find((c) => c.card.codigo === codigo);
+    if (!entry) return;
+    const vid = vehiculoId || null;
+    this.cardsDetectadas.set(
+      this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, guardando: true } : c)),
+    );
+    try {
+      await this.service.setTarjetaMap({
+        codigo,
+        vehiculo_id: vid,
+        titular: entry.card.titular || null,
+        es_persona: entry.card.es_persona,
+      });
+      // Refresca el mapa y re-resuelve el preview.
+      const placa = this.vehiculos().find((v) => v.id === vid)?.placa ?? null;
+      this.tarjetaMap.set(codigo, {
+        codigo_tarjeta: codigo,
+        vehiculo_id: vid,
+        placa,
+        titular_nombre: entry.card.titular || null,
+        es_persona: entry.card.es_persona,
+        usuario_id: null,
+        notas: null,
+      });
+      const filas = this.preview();
+      if (filas) {
+        this.aplicarMapeoAFilas(filas);
+        this.preview.set([...filas]);
+      }
+      this.cardsDetectadas.set(
+        this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, vehiculo_id: vid, guardando: false } : c)),
+      );
+      this.toast.success('Tarjeta mapeada', placa ? `Ahora cruza con ${placa}.` : 'Sin vehículo (queda como consumo suelto).');
+    } catch (e: unknown) {
+      this.cardsDetectadas.set(
+        this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, guardando: false } : c)),
+      );
+      this.toast.error('No se pudo mapear la tarjeta', e instanceof Error ? e.message : undefined);
+    }
   }
 
   /** Z23 — Confirma: inserta transacciones (dedupe) y concilia contra la plataforma. */

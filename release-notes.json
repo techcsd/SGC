@@ -3470,6 +3470,16 @@
           "d": "La conciliación de combustible ahora acepta la factura PDF de TotalEnergies (crédito fiscal electrónico), además de Excel/CSV. Reconstruye el detalle agrupado por tarjeta, cuadra por total, por producto y por tarjeta, y marca el consumo que va a nombre de una persona (no de una placa). Vista previa obligatoria antes de importar."
         }
       ]
+    },
+    "1.114.0": {
+      "titulo": "Conciliación de combustible: mapeo de tarjeta→vehículo (factura PDF)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "En la factura PDF de combustible el consumo suele ir a nombre de una persona (ING. …), no de una placa. Ahora se asigna el vehículo de cada tarjeta una sola vez (el código de 4 dígitos es la llave) y se recuerda: las próximas facturas llegan ya resueltas para el cruce, en vez de caer en «solo informe»."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

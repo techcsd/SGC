@@ -72,6 +72,17 @@ export interface ConciliacionMeta {
   notas: string | null;
 }
 
+/** BJ2 — mapeo aprendido de una tarjeta de combustible. */
+export interface TarjetaMap {
+  codigo_tarjeta: string;
+  vehiculo_id: string | null;
+  placa: string | null;
+  titular_nombre: string | null;
+  es_persona: boolean;
+  usuario_id: string | null;
+  notas: string | null;
+}
+
 export interface ConciliacionDetalle {
   tipo: 'match' | 'diferencia' | 'solo_plataforma' | 'solo_informe';
   registro_id: string | null;
@@ -147,6 +158,33 @@ export class CombustibleConciliacionService {
     const { data, error } = await this.supabase.client.rpc('transacciones_existentes', { p_nums: nums });
     if (error) return [];
     return (data as string[]) ?? [];
+  }
+
+  /** BJ2 — mapa tarjeta→vehículo/persona (se aprende una vez). */
+  async getTarjetaMap(): Promise<TarjetaMap[]> {
+    const { data, error } = await this.supabase.client.rpc('combustible_tarjeta_map_listar');
+    if (error) return [];
+    return (data ?? []) as TarjetaMap[];
+  }
+
+  /** BJ2 — upsert del mapeo de una tarjeta. */
+  async setTarjetaMap(p: {
+    codigo: string;
+    vehiculo_id?: string | null;
+    titular?: string | null;
+    es_persona?: boolean;
+    usuario_id?: string | null;
+    notas?: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.rpc('combustible_tarjeta_map_set', {
+      p_codigo: p.codigo,
+      p_vehiculo_id: p.vehiculo_id ?? null,
+      p_titular: p.titular ?? null,
+      p_es_persona: p.es_persona ?? false,
+      p_usuario_id: p.usuario_id ?? null,
+      p_notas: p.notas ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   async getDetalle(conciliacionId: string): Promise<ConciliacionDetalle[]> {
