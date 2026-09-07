@@ -39,16 +39,39 @@
           {{ mostrarReglas() ? 'Ocultar' : 'Administrar tipos' }}
         </button>
       </div>
-      <p class="mn-card__desc">Apaga un tipo de alerta para todos sin tocar código. Las <strong>informativas</strong> el usuario también puede silenciarlas en su perfil; las <strong>operativas</strong> (ruta asignada, conduce por confirmar) solo se administran aquí.</p>
+      <p class="mn-card__desc">
+        <strong>Encendido</strong> = el aviso se emite (apágalo para silenciarlo a todos, sin tocar código).
+        <strong>Canales</strong> = por dónde sale ese tipo (campana, push, correo). Las <strong>informativas</strong>
+        el usuario también puede silenciarlas en su perfil.
+      </p>
       @if (mostrarReglas()) {
-        <div class="mn-roles">
-          @for (t of tipos(); track t.tipo) {
-            <label class="mn-role" [class.mn-role--on]="tipoHabilitado(t.tipo)">
-              <input type="checkbox" [checked]="tipoHabilitado(t.tipo)"
-                     [disabled]="guardandoRegla() === t.tipo" (change)="toggleTipoGlobal(t)" />
-              <span>{{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> · operativa</em> }</span>
-            </label>
-          }
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tipo de aviso</th>
+                <th style="text-align:center;">Encendido</th>
+                @for (c of CANALES; track c.key) { <th style="text-align:center;">{{ c.label }}</th> }
+              </tr>
+            </thead>
+            <tbody>
+              @for (t of tipos(); track t.tipo) {
+                <tr>
+                  <td>{{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> · operativa</em> }</td>
+                  <td style="text-align:center;">
+                    <input type="checkbox" [checked]="tipoHabilitado(t.tipo)"
+                           [disabled]="guardandoRegla() === t.tipo" (change)="toggleTipoGlobal(t)" />
+                  </td>
+                  @for (c of CANALES; track c.key) {
+                    <td style="text-align:center;">
+                      <input type="checkbox" [checked]="tieneCanal(t.tipo, c.key)"
+                             [disabled]="guardandoRegla() === t.tipo" (change)="toggleCanal(t, c.key)" />
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </section>

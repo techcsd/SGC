@@ -21,7 +21,12 @@
 
 **SHIPPED web 1.120.0 — Misael chofer + destinatarios diario editables (solicitud Xaviel).** Migración `sql/2026-09-07-bk3bk4-misael-destinatarios.sql` APLICADA: Misael `es_chofer=true` (puntúa desde la semana en curso); destinatarios del diario ahora por **lista de usuarios** (`incentivo_diario_usuarios`) UNION roles (`incentivo_diario_roles`), configurado **solo Eduardo NG** (2725c827). RPCs `incentivo_diario_destinatarios()`/`set_incentivo_diario_destinatario(usuario,incluir)`; UI en /incentivos → Actividad diaria → "Quién recibe el correo diario" (picker agregar/quitar). `destinatarios_informe_diario()` reescrito (usuarios+roles).
 
-**FASE 1 — FALTA todavía:** (1) **retirar `notificaciones_config`** — OJO: tiene 2 consumidores vivos en prod (`tg_reporte_usuario_notifica`, `obra_notif_activo`) + dimensión email/canal que el modelo nuevo no tiene → NO es rip-out, requiere migrar esos 2 y el canal email primero (follow-up con diseño); (2) **correo a la matriz** (9 edges `notificar-*`/incentivo/resumen, al menos por tipo+rol) + UI de CSV de destinatarios; (3) app `avisos.ts` lee catálogo de la tabla (PROMPT-37).
+**SHIPPED web 1.121.0 — FASE 1 CERRADA (web).** Migración `sql/2026-09-07-bk1b-retirar-notif-config-email-matriz.sql` APLICADA (dry-run OK):
+- **`notificaciones_config` RETIRADA**: sus 7 eventos migrados a `notif_tipo` (canal via `canales[]`+`activo`). Los 2 consumidores reimplantados sobre `notif_tipo`: `obra_notif_activo(evento,canal)` y `tg_reporte_usuario_notifica` (soporte). Tabla **dropeada**. Pantalla `admin/notificaciones` + servicio `notificaciones-config.service` **borrados**; ruta redirige a `matriz-notificaciones`; nav actualizado (label "Configuración del sistema" para parámetros).
+- **Correo en la matriz**: tipos nuevos `informe_incentivo`/`informe_incentivo_diario`/`resumen_operaciones` (canal email); los 3 resolvedores (`destinatarios_informe_incentivo`/`_diario`/`_resumen_operaciones`) filtran por canal email del tipo + `notif_permitida` (rol/usuario). `set_notif_tipo_canales(tipo,canales,activo)` RPC.
+- **UI matriz**: sección "Tipos de aviso" ahora es tabla con Encendido (regla global) + checkboxes de canal (Campana/Push/Correo) por tipo.
+
+**FASE 1 restante (solo app / PROMPT-37):** app `avisos.ts` que lea el catálogo desde la tabla. Los edges `notificar-*` de obra ya respetan la matriz vía `obra_notif_activo` (canales).
 
 ---
 

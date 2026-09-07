@@ -32,11 +32,23 @@ export class NotifMatrizService {
     return (data ?? []) as NotifEntrega[];
   }
 
-  /** BF4 — catálogo de tipos de aviso (para la matriz per-tipo). */
-  async tiposCatalogo(): Promise<NotifTipoCat[]> {
-    const { data, error } = await this.supabase.client.rpc('notif_tipos_catalogo');
+  /** BK1 — tipos con sus canales (in_app/push/email) y activo, para editarlos. */
+  async tiposFull(): Promise<NotifTipoFull[]> {
+    const { data, error } = await this.supabase.client
+      .from('notif_tipo')
+      .select('tipo, etiqueta, es_operativa, canales, activo, orden')
+      .eq('activo', true)
+      .order('orden');
     if (error) throw new Error(error.message);
-    return (data ?? []) as NotifTipoCat[];
+    return (data ?? []) as NotifTipoFull[];
+  }
+
+  /** BK1 — set de los canales (in_app/push/email) de un tipo. */
+  async setTipoCanales(tipo: string, canales: string[], activo: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_notif_tipo_canales', {
+      p_tipo: tipo, p_canales: canales, p_activo: activo,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** BF4 — reglas de admin (deshabilitar un tipo por rol/global). */
@@ -65,6 +77,8 @@ export class NotifMatrizService {
 
 /** BF4 — un tipo de aviso del catálogo. */
 export interface NotifTipoCat { tipo: string; etiqueta: string; es_operativa: boolean; }
+/** BK1 — un tipo con sus canales editables. */
+export interface NotifTipoFull { tipo: string; etiqueta: string; es_operativa: boolean; canales: string[]; activo: boolean; orden: number; }
 /** BF4/BK1 — una regla de admin (global, por rol o por usuario). */
 export interface NotifRegla {
   tipo: string;

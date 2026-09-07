@@ -439,10 +439,10 @@ export class Shell implements OnInit {
       { label: 'Empresa', route: '/admin/empresa' },
       { label: 'Unidades', route: '/admin/unidades' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
-      { label: 'Parámetros', route: '/admin/parametros' },
+      { label: 'Configuración del sistema', route: '/admin/parametros' },
       // Y11 — "Versiones de la app" e "Historial de versiones" movidas al módulo Tecnología.
       { label: 'Valores "Otro"', route: '/admin/otros-valores' },
-      { label: 'Notificaciones', route: '/admin/notificaciones' },
+      // BK1 — "Notificaciones" (switchboard viejo) retirado; absorbido en la Matriz.
       { label: 'Matriz de notificaciones', route: '/admin/matriz-notificaciones' },
       { label: 'Orden de módulos', route: '/admin/orden-modulos' },
       { label: 'Almacenes duplicados', route: '/admin/almacenes-duplicados' },

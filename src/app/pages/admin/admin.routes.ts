@@ -61,12 +61,16 @@ export const adminRoutes: Routes = [
     title: 'Auditoría — Administración',
   },
   {
+    // BK1 — el switchboard viejo (admin/notificaciones) se retiró; sus 7 eventos
+    // se absorbieron en la Matriz (notif_tipo + canales). Redirige para no romper
+    // enlaces guardados.
     path: 'notificaciones',
-    loadComponent: () => import('./notificaciones/notificaciones').then((m) => m.AdminNotificaciones),
-    title: 'Notificaciones — Administración',
+    redirectTo: 'matriz-notificaciones',
+    pathMatch: 'full',
   },
   {
-    // AT23 — matriz de notificaciones: quién recibe cada evento (por rol), editable.
+    // AT23/BK1 — matriz de notificaciones: quién recibe cada evento (por rol y
+    // por usuario) + canales por tipo, editable.
     path: 'matriz-notificaciones',
     loadComponent: () => import('./matriz-notificaciones/matriz-notificaciones').then((m) => m.AdminMatrizNotificaciones),
     title: 'Matriz de notificaciones — Administración',

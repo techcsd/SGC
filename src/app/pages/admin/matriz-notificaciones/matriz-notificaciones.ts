@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NotifMatrizService, NotifParam, NotifEntrega, NotifTipoCat, NotifRegla } from '../../../../shared/services/notif-matriz.service';
+import { NotifMatrizService, NotifParam, NotifEntrega, NotifTipoCat, NotifTipoFull, NotifRegla } from '../../../../shared/services/notif-matriz.service';
 import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -75,9 +75,33 @@ export class AdminMatrizNotificaciones implements OnInit {
 
   // ── BF4 — reglas per-tipo: el admin apaga un tipo de alerta (global) ─────
   mostrarReglas = signal(false);
-  tipos = signal<NotifTipoCat[]>([]);
+  tipos = signal<NotifTipoFull[]>([]);
   reglasMap = signal<Map<string, boolean>>(new Map()); // tipo → habilitado global
   guardandoRegla = signal<string | null>(null);
+  // BK1 — canales por tipo (in_app/push/email).
+  canalesMap = signal<Map<string, Set<string>>>(new Map());
+  readonly CANALES = [
+    { key: 'in_app', label: 'Campana' },
+    { key: 'push', label: 'Push' },
+    { key: 'email', label: 'Correo' },
+  ];
+  tieneCanal(tipo: string, canal: string): boolean {
+    return this.canalesMap().get(tipo)?.has(canal) ?? false;
+  }
+  async toggleCanal(t: NotifTipoFull, canal: string) {
+    if (this.guardandoRegla()) return;
+    const set = new Set(this.canalesMap().get(t.tipo) ?? []);
+    if (set.has(canal)) set.delete(canal); else set.add(canal);
+    this.guardandoRegla.set(t.tipo);
+    try {
+      await this.svc.setTipoCanales(t.tipo, [...set], true);
+      this.canalesMap.update((m) => new Map(m).set(t.tipo, set));
+    } catch (e) {
+      this.toast.error('No se pudo guardar el canal', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoRegla.set(null);
+    }
+  }
 
   // ── BK1 — reglas específicas por rol y por usuario ───────────────────────
   reglasEspecificas = signal<NotifRegla[]>([]);
@@ -98,11 +122,16 @@ export class AdminMatrizNotificaciones implements OnInit {
     return list.filter((u) => u.nombre.toLowerCase().includes(q)).slice(0, 8);
   });
 
-  private cargarMapasReglas(cat: NotifTipoCat[], reglas: NotifRegla[]) {
+  private cargarMapasReglas(cat: NotifTipoFull[], reglas: NotifRegla[]) {
     const m = new Map<string, boolean>();
-    for (const t of cat) m.set(t.tipo, true); // por defecto habilitado
+    const cm = new Map<string, Set<string>>();
+    for (const t of cat) {
+      m.set(t.tipo, true); // por defecto habilitado
+      cm.set(t.tipo, new Set(t.canales ?? []));
+    }
     for (const r of reglas) if (r.rol === null && r.usuario_id === null) m.set(r.tipo, r.habilitado);
     this.reglasMap.set(m);
+    this.canalesMap.set(cm);
     this.reglasEspecificas.set(reglas.filter((r) => r.rol !== null || r.usuario_id !== null));
   }
 
@@ -112,7 +141,7 @@ export class AdminMatrizNotificaciones implements OnInit {
     if (!abrir) return;
     try {
       const [cat, reglas, usuarios] = await Promise.all([
-        this.svc.tiposCatalogo(), this.svc.reglas(), this.svc.usuariosDirectorio(),
+        this.svc.tiposFull(), this.svc.reglas(), this.svc.usuariosDirectorio(),
       ]);
       this.tipos.set(cat);
       this.usuarios.set(usuarios);
@@ -145,7 +174,7 @@ export class AdminMatrizNotificaciones implements OnInit {
     this.guardandoEspecifica.set(true);
     try {
       await this.svc.setRegla(tipo, rol, this.nrHabilitado(), usuarioId);
-      const [cat, reglas] = await Promise.all([this.svc.tiposCatalogo(), this.svc.reglas()]);
+      const [cat, reglas] = await Promise.all([this.svc.tiposFull(), this.svc.reglas()]);
       this.tipos.set(cat);
       this.cargarMapasReglas(cat, reglas);
       // Reset del formulario.
@@ -163,7 +192,7 @@ export class AdminMatrizNotificaciones implements OnInit {
     this.guardandoEspecifica.set(true);
     try {
       await this.svc.setRegla(r.tipo, r.rol, !r.habilitado, r.usuario_id);
-      const [cat, reglas] = await Promise.all([this.svc.tiposCatalogo(), this.svc.reglas()]);
+      const [cat, reglas] = await Promise.all([this.svc.tiposFull(), this.svc.reglas()]);
       this.tipos.set(cat);
       this.cargarMapasReglas(cat, reglas);
     } catch (e) {

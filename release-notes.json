@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.121.0": {
+      "titulo": "Matriz de notificaciones única: canales por tipo y correo incluido",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "Se retiró la pantalla vieja de «Notificaciones» (switchboard aparte): sus 7 eventos se absorbieron en la Matriz de notificaciones. Ahora, por cada tipo de aviso, controlas si está encendido y por qué canales sale (campana, push, correo) en un solo lugar."
+        },
+        {
+          "t": "mejora",
+          "m": "Notificaciones",
+          "d": "Los correos de informe (incentivo semanal, actividad diaria, resumen de operaciones) ahora respetan la matriz: se pueden apagar por tipo, por rol o por persona, igual que el resto de los avisos."
+        }
+      ]
+    },
     "1.120.0": {
       "titulo": "Destinatarios del correo diario editables por persona",
       "cambios": [
