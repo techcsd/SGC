@@ -204,6 +204,116 @@ export class Conteos implements OnInit {
     );
   }
 
+  // ── BL4 — Conteo físico (stock real, sin tocar el ledger) ──
+  cfDrawerOpen = signal(false);
+  cfBodegaId = signal<string>('');
+  cfCiego = signal(false);
+  cfConteoId = signal<string>('');
+  cfRows = signal<ChequeoRow[]>([]);
+  cfSaving = signal(false);
+  cfError = signal('');
+
+  openConteoFisico() {
+    this.cfError.set('');
+    this.cfBodegaId.set('');
+    this.cfCiego.set(false);
+    this.cfConteoId.set('');
+    this.cfRows.set([]);
+    this.cfDrawerOpen.set(true);
+  }
+  closeCfDrawer() { this.cfDrawerOpen.set(false); }
+
+  async onCfBodegaChange(bodegaId: string) {
+    this.cfBodegaId.set(bodegaId);
+    this.cfRows.set([]);
+    this.cfConteoId.set('');
+    this.cfError.set('');
+    if (!bodegaId) return;
+    this.loadingStock.set(true);
+    try {
+      const id = await this.service.conteoFisicoAbrir(bodegaId, this.cfCiego());
+      this.cfConteoId.set(id);
+      const [stock, det] = await Promise.all([
+        this.service.getStockDeBodega(bodegaId),
+        this.service.conteoFisicoDetalle(id),
+      ]);
+      this.cfCiego.set(det.ciego); // reanudar respeta cómo se abrió
+      const saved = new Map(det.items.map((i) => [i.articulo_id, i.cantidad_contada]));
+      this.cfRows.set(
+        stock.map((s) => ({
+          ...s,
+          contada: saved.has(s.articulo_id)
+            ? (saved.get(s.articulo_id) ?? (null as unknown as number))
+            : (det.ciego ? (null as unknown as number) : Number(s.cantidad)),
+        })),
+      );
+    } catch (e: unknown) {
+      this.cfError.set(e instanceof Error ? e.message : 'Error al abrir el conteo.');
+    } finally {
+      this.loadingStock.set(false);
+    }
+  }
+
+  updateCfContada(index: number, value: string) {
+    this.cfRows.update((rows) =>
+      rows.map((r, i) => (i === index ? { ...r, contada: value === '' ? (null as unknown as number) : Number(value) } : r)),
+    );
+  }
+
+  private cfItemsPayload() {
+    return this.cfRows().map((r) => ({ articulo_id: r.articulo_id, cantidad_contada: r.contada ?? null }));
+  }
+
+  async guardarBorrador() {
+    if (!this.cfConteoId() || this.cfSaving()) return;
+    this.cfSaving.set(true);
+    this.cfError.set('');
+    try {
+      await this.service.conteoFisicoGuardar(this.cfConteoId(), this.cfItemsPayload());
+      this.toast.success('Borrador guardado', 'Puedes cerrar y retomarlo luego.');
+    } catch (e: unknown) {
+      this.cfError.set(e instanceof Error ? e.message : 'No se pudo guardar el borrador.');
+    } finally {
+      this.cfSaving.set(false);
+    }
+  }
+
+  async aplicarConteoFisico() {
+    if (!this.cfConteoId() || this.cfSaving()) return;
+    const conCantidad = this.cfRows().some((r) => r.contada != null);
+    if (!conCantidad) { this.cfError.set('Registra al menos una cantidad contada.'); return; }
+    const motivo = prompt('Motivo del conteo físico (queda en la auditoría):');
+    if (motivo === null) return;
+    if (!motivo.trim()) { this.toast.error('El motivo es obligatorio.'); return; }
+    this.cfSaving.set(true);
+    this.cfError.set('');
+    try {
+      await this.service.conteoFisicoGuardar(this.cfConteoId(), this.cfItemsPayload());
+      await this.service.conteoFisicoCerrar(this.cfConteoId());
+      const r = await this.service.conteoFisicoAplicar(this.cfConteoId(), motivo.trim());
+      this.toast.success('Stock real aplicado', `${r.ajustados} artículo(s) ajustado(s), sin mover el kardex.`);
+      this.conteos.set(await this.service.getAll());
+      this.cfDrawerOpen.set(false);
+    } catch (e: unknown) {
+      this.cfError.set(e instanceof Error ? e.message : 'No se pudo aplicar el conteo.');
+    } finally {
+      this.cfSaving.set(false);
+    }
+  }
+
+  esConteoFisico(c: Conteo): boolean { return c.tipo === 'conteo_fisico'; }
+
+  async deshacerConteoFisico(c: Conteo) {
+    if (!confirm(`¿Deshacer el conteo físico de "${c.bodega?.nombre ?? 'este almacén'}"? Restaura la existencia previa.`)) return;
+    try {
+      await this.service.conteoFisicoDeshacer(c.id);
+      this.toast.success('Conteo deshecho', 'Se restauró la existencia previa.');
+      this.conteos.set(await this.service.getAll());
+    } catch (e: unknown) {
+      this.toast.error('No se pudo deshacer', e instanceof Error ? e.message : undefined);
+    }
+  }
+
   async onSaveChequeo() {
     const bodegaId = this.chequeoBodegaId();
     if (!bodegaId) {

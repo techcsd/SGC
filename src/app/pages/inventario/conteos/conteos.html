@@ -3,12 +3,18 @@
     <h1 class="page-title">Conteos y ajustes</h1>
     <span class="page-count">{{ filtered().length }} conteo{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
-  <button class="sgc-btn sgc-btn--primary" type="button" (click)="openChequeo()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nuevo chequeo semanal
-  </button>
+  <div class="cn-head-actions">
+    <!-- BL4 — conteo físico (stock real) sin tocar el kardex -->
+    <button class="sgc-btn sgc-btn--primary" type="button" (click)="openConteoFisico()">
+      <app-icon name="clipboard-check" [size]="16" /> Conteo físico (stock real)
+    </button>
+    <button class="sgc-btn sgc-btn--secondary" type="button" (click)="openChequeo()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Chequeo semanal
+    </button>
+  </div>
 </div>
 
 <p class="cn-lead">
@@ -57,6 +63,7 @@
             <span class="cn-card__bodega">
               {{ c.bodega?.nombre ?? 'Almacén' }}
               @if (esChequeo(c)) { <span class="sgc-badge sgc-badge--info">Chequeo semanal</span> }
+              @if (esConteoFisico(c)) { <span class="sgc-badge sgc-badge--warning">Conteo físico</span> }
               @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
             </span>
             <span class="cn-card__meta">
@@ -68,6 +75,9 @@
         </button>
         @if (esAdmin()) {
           <div class="cn-admin-actions">
+            @if (esConteoFisico(c)) {
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="deshacerConteoFisico(c)">Deshacer conteo</button>
+            }
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcarPrueba(c, !c.es_prueba)">
               {{ c.es_prueba ? 'Quitar prueba' : 'Marcar como prueba' }}
             </button>
@@ -195,6 +205,75 @@
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeDrawer()">Cancelar</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="onSaveChequeo()">
         @if (saving()) { Guardando… } @else { Registrar chequeo }
+      </button>
+    </div>
+  </div>
+</app-form-drawer>
+
+<!-- BL4 — Conteo físico: fija el stock REAL sin escribir movimientos (rebasa la apertura) -->
+<app-form-drawer title="Conteo físico — stock real" [open]="cfDrawerOpen()" (closed)="closeCfDrawer()">
+  <div class="drawer-form">
+    <p class="cn-muted">
+      Pon el stock <strong>real</strong> del almacén tras contarlo físicamente. Al aplicar, el sistema
+      cuadra la existencia <strong>sin tocar el kardex</strong> (no crea movimientos). Puedes guardar el
+      borrador y retomarlo luego. Se puede deshacer.
+    </p>
+
+    <div class="sgc-field">
+      <label for="cf-bodega">Almacén <span class="required">*</span></label>
+      <select id="cf-bodega" [value]="cfBodegaId()" (change)="onCfBodegaChange($any($event.target).value)">
+        <option [value]="''">Seleccionar almacén…</option>
+        @for (b of bodegasVisibles(); track b.id) {
+          <option [value]="b.id">{{ b.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <label class="cn-ciego">
+      <input type="checkbox" [checked]="cfCiego()" [disabled]="!!cfBodegaId()" (change)="cfCiego.set($any($event.target).checked)" />
+      Conteo ciego (no mostrar la cantidad del sistema)
+    </label>
+
+    @if (loadingStock()) {
+      <app-skeleton variant="table" [rows]="6" />
+    } @else if (cfBodegaId() && cfRows().length === 0) {
+      <p class="cn-muted">Este almacén no tiene artículos con stock.</p>
+    } @else if (cfRows().length > 0) {
+      <table class="cn-table">
+        <thead>
+          <tr><th>Material</th>@if (!cfCiego()) { <th>Sistema</th> }<th>Real contado</th></tr>
+        </thead>
+        <tbody>
+          @for (r of cfRows(); track r.articulo_id; let i = $index) {
+            <tr>
+              <td>{{ r.articulo?.nombre ?? '—' }}</td>
+              @if (!cfCiego()) { <td class="text-muted">{{ r.cantidad }}</td> }
+              <td>
+                <input
+                  type="number" min="0" step="0.01"
+                  [value]="r.contada"
+                  (input)="updateCfContada(i, $any($event.target).value)"
+                  [class.cn-diff]="r.contada != null && r.contada !== r.cantidad"
+                  aria-label="Cantidad real contada"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (cfError()) {
+      <p class="cn-error" role="alert">{{ cfError() }}</p>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="closeCfDrawer()">Cerrar</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="cfSaving() || !cfConteoId()" (click)="guardarBorrador()">
+        Guardar borrador
+      </button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="cfSaving() || !cfConteoId()" (click)="aplicarConteoFisico()">
+        @if (cfSaving()) { Aplicando… } @else { Aplicar stock real }
       </button>
     </div>
   </div>
