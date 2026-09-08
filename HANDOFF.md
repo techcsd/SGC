@@ -1,5 +1,38 @@
 # HANDOFF — SGC
 
+## TL;DR — Ronda BM (PROMPT-40, 09/09/2026) — **7 migraciones APLICADAS a prod + verificadas**, web build verde SIN commit/deploy
+Contexto: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-20.md` (§D = decisiones). **Xaviel dio GO a aplicar.**
+
+**APLICADO 09-sep (verificado live):** `bm1` (RPC recreada, grant 20-args presente, 1 fila outbox_atascados→resuelta), `bm2` (buckets declarados, auditor ve 14), `bm3` (**probado en rollback: depósito=INSERTA_OK, persona=INSERTA_OK, estación-sin-tablero=RECHAZADO_OK**), `bm4` (grants authenticated presentes), `bm5` (columnas), `bm5b` (17 artículos: 6 atados + 11 paquetes con factor), `bm5c` (plumbing RPCs — grants preservados por create-or-replace). Server-side ⇒ app y web ya se benefician **sin deploy**.
+**Web build verde SIN commit/deploy:** modelos `Articulo.unidad_paquete/factor_paquete` + `unidad_capturada/factor_aplicado` en salida/solicitud/detalle (el `.select('*')` ya trae las columnas).
+
+**FASE 0 (2 min, resuelto):** la echada atascada de la captura (08-sep 14:27) NO era avería — era el **salto de km (1874 > 1000)**, un rechazo legítimo con `errcode 23514` que la app pinta "Problema del sistema". Confirmado en `sgc.app_error_reports` (`context.tipo_op='combustible'`) y 1 fila viva en `outbox_atascados`.
+
+**Hecho (build verde + prebuild verde, SIN aplicar/deploy/commit):**
+- **BM1** 🔴 (9ª regla — código de error = contrato). `sql/2026-09-09-bm1-combustible-canal-negocio.sql` (dry-run OK): `registrar_combustible_app` recreada — los 5 rechazos de negocio salen del canal de infra al **canal de datos** que el cliente YA honra: los 4 corregibles (galones/monto/kilometraje) → `sgc.error_campo` (**22023** → "Corregir"), el de autorización → **DR481** (dato + mensaje real). Verificado en prod: error_campo=22023, DR481 válido. **Server-side ⇒ app y web se benefician sin actualizar.** + BM4 grant de la firma de 20 args + telemetría cerrada (outbox_atascados combustible→resuelto).
+- **BM3** 🔴 `sql/2026-09-09-bm3-trigger-tablero-variantes.sql`: el trigger `combustible_requiere_tablero` se gatea (`origen<>'deposito_obra' and not titular_es_persona`) → **echada de persona (2 fotos) y depósito en obra (1 foto) ya pueden insertar** (estaban muertas en prod).
+- **BM4** 🔴 `sql/2026-09-09-bm4-grants-rpcs-vivas.sql`: grants explícitos a authenticated de 8 sobrecargas vivas sin grant en sql/ (crear_bitacora_app-41, crear_entrega_vehiculo-13, registrar_salida_inventario, recibir_conduce_app, crear_solicitud_app, notificar_modulo-7, incentivo_listado-3, incentivo_set_penalizacion). + auditor nuevo `scripts/audit-rpc-grants.mjs` en prebuild (rompe si un RPC del cliente no tiene NINGÚN grant a authenticated en sql/).
+- **BM2** 🔴 `sql/2026-09-09-bm2-buckets-vehiculos-conduces-inventario.sql`: declara `vehiculos`/`conduces`/`inventario` (INSERT+SELECT+UPDATE idempotentes + `file_size_limit` 15MB — prod ya tenía las policies, sql/ no). Auditor `audit-buckets` **invertido**: bucket con upsert NO declarado en sql/ **rompe el build** (probado). Ahora ve 14 (antes 11 ciego a los 2 más usados).
+- **Checklist** `docs/CHECKLIST-MIGRACIONES.md`: 9ª regla + 5-bis (bucket no declarado) + 5-ter (grant de sobrecarga viva).
+
+**Hallazgos verificados vs prod (premisas del prompt corregidas):**
+- `sgc-combustible` **NO está muerto**: BJ2c sube ahí la factura fiscal PDF de conciliación → se **conserva** (no retirar). §D-BM2 resuelto.
+- `crear_solicitud_compra_tec`: sql/ tiene un create de **5 args no desplegado** (prod vive en 2 args). Posible migración pendiente/muerta — revisar.
+
+**BM5 (FASE 4) — §D aprobado por Xaviel (factor+cantidad base · parsear+migrar empaques · mover a app-qty-input). Esquema+backfill construidos, dry-run OK:**
+- `sql/2026-09-09-bm5-factor-empaque-schema.sql`: `articulos.unidad_paquete`+`factor_paquete` (check>0) + `solicitud_material_items`/`detalle_salidas`.`unidad_capturada`+`factor_aplicado` (NOT NULL default 1, pasa audit-notnull). `cantidad` SIEMPRE en base ⇒ stock/kardex/costeo intactos. Copia fontanería de `talla`.
+- `sql/2026-09-09-bm5b-backfill-factor.sql` (⚠️ **lista a revisión**): 17 artículos parseados sin ambigüedad (17/17): CSD-02-001..006 ATADO ×120/80/60, CSD-03-001..011 PAQUETE ×50; siembra unidad `atado`; limpia `nota`. Dry-run verificado.
+- **HECHO plumbing RPCs** (`bm5c`, aplicado): registrar_salida_inventario/_app + crear_solicitud_material/_app leen `unidad_capturada`/`factor_aplicado` del jsonb (cantidad en base). aprobar_requisicion (carry-through al despacho) = pendiente (el renglón ya guarda el factor).
+- **HECHO UI web (build verde, SIN commit — verificar en browser antes de shippear):** control unidad/atado en **salidas** (`inventario/salidas`) y **requisición** (`bitacora/solicitudes-material`). Cuando `factor_paquete != null`, un `<select>` "por unidad / por <empaque> (×N)" + el stepper captura en esa unidad + helper "= N base". **Invariante de seguridad de stock:** `item.cantidad` SIEMPRE en base; el multiplicar ocurre en 2 métodos (`updateItemCantidad`, `setItemCaptura`) — artículos sin factor se comportan idéntico a antes (factor=1, sin selector) → radio de impacto = solo los 17 backfilled. Payload envía `unidad_capturada`/`factor_aplicado`. Modelos tipados + DecimalPipe.
+- **FALTA:** verificación en browser del flujo atado (elegir PINO/TIES, "por atado", enviar salida → stock baja base) antes de commit/push; mover el control a `app-qty-input` (opcional, cierra TODO AU13); UI **app** (selector→`app-qty-input`) = PROMPT-41 FASE 2; carry-through del factor en aprobar_requisicion.
+- **8 artículos-empaque existentes** (CSD-03-015/016, ALM-024, COC-011, OFI-016/021, OFI-003/004): fusión al factor = mover stock+refs (como AU18), necesita twin base confirmado → lista en bm5b, NO auto-migrado.
+
+**§D ya decidido (sobre propuesta, reversible):** BM1 canal (error_campo+DR481), odómetro (rechazo corregible con lectura viva; fresh-fetch del cliente = app/PROMPT-41), telemetría (cerrada).
+
+**Pendiente Xaviel:** (1) commit/push web (bump + release-notes) — el frontend NO es necesario para que los fixes server-side funcionen, pero los modelos tipados esperan commit; (2) construir la pasada de UI web (control unidad/atado) con verificación en browser; (3) revisar la fusión de los 8 artículos-empaque existentes; (4) app = PROMPT-41. Nota menor: `crear_solicitud_compra_tec` tiene un create 5-args en sql/ que prod no tiene (2-args) → migración pendiente/muerta a revisar.
+
+---
+
 ## TL;DR — Ronda BL (PROMPT-38, 08/09/2026) — build verde, TODO en espera de OK para aplicar/deploy/commit
 
 Contexto: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-19.md` (§E = decisiones).

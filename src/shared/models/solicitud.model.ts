@@ -16,10 +16,13 @@ export interface SolicitudMaterialItem {
   solicitud_id: string;
   articulo_id: string | null;
   descripcion: string;
-  cantidad: number;
+  cantidad: number; // BM5 — SIEMPRE en unidad base.
   unidad: string | null;
   /** Talla indicada (obligatoria para EPP con requiere_talla). */
   talla?: string | null;
+  /** BM5 — unidad capturada (ej. 'atado') + su factor; cantidad en base. */
+  unidad_capturada?: string | null;
+  factor_aplicado?: number | null;
 }
 
 export interface SolicitudMaterial {

@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -32,9 +33,12 @@ interface ItemRow {
   /** T14 — renglón en modo "Otro (texto libre)". Distinto del placeholder (nada elegido). */
   esOtro: boolean;
   descripcion: string;
-  cantidad: number;
+  cantidad: number; // BM5 — SIEMPRE en unidad base
   unidad: string;
   talla: string | null;
+  /** BM5 — unidad capturada (ej. 'atado') + su factor; cantidad en base. */
+  unidad_capturada: string | null;
+  factor_aplicado: number;
 }
 
 const ESTADO_BADGE: Record<string, string> = {
@@ -71,11 +75,13 @@ const NUEVO_ITEM: () => ItemRow = () => ({
   cantidad: 1,
   unidad: '',
   talla: null,
+  unidad_capturada: null,
+  factor_aplicado: 1,
 });
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -195,15 +201,20 @@ export class SolicitudesMaterial implements OnInit {
       .filter(({ it }) => (it.articulo_id || (it.esOtro && it.descripcion.trim())) && it.cantidad > 0)
       .map(({ it, index }) => {
         const a = it.articulo_id ? arts.find((x) => x.id === it.articulo_id) : undefined;
+        const factor = it.factor_aplicado ?? 1;
         return {
           index,
           nombre: a?.nombre ?? it.descripcion,
           codigo: a?.codigo ?? '',
           categoria: a ? (catName.get(a.categoria_id) ?? 'Otros') : 'Otro (texto libre)',
-          cantidad: it.cantidad,
+          cantidad: it.cantidad, // BM5 — base
           unidad: a?.unidad ?? it.unidad,
           talla: it.talla,
           esOtro: it.esOtro,
+          // BM5 — desglose de empaque.
+          unidad_capturada: it.unidad_capturada ?? null,
+          factor_aplicado: factor,
+          capturada: factor > 1 ? it.cantidad / factor : it.cantidad,
         };
       });
   });
@@ -247,6 +258,34 @@ export class SolicitudesMaterial implements OnInit {
   itemNota(articuloId: string): string | null {
     return this.articuloById(articuloId)?.nota ?? null;
   }
+  // ── BM5 — empaque: `cantidad` SIEMPRE en base; el multiplicar ocurre en un solo lugar. ──
+  itemFactor(articuloId: string | null | undefined): number | null {
+    const f = this.articuloById(articuloId ?? '')?.factor_paquete;
+    return f && f > 0 ? f : null;
+  }
+  itemUnidadPaquete(articuloId: string | null | undefined): string {
+    return this.articuloById(articuloId ?? '')?.unidad_paquete ?? 'paquete';
+  }
+  articuloUnidadBase(articuloId: string | null | undefined): string {
+    return this.articuloById(articuloId ?? '')?.unidad ?? 'u';
+  }
+  capturedQty(item: ItemRow): number {
+    const f = item.factor_aplicado ?? 1;
+    return f > 0 ? item.cantidad / f : item.cantidad;
+  }
+  setItemCaptura(index: number, mode: 'base' | 'paquete') {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        const captured = this.capturedQty(item);
+        if (mode === 'paquete') {
+          const factor = this.itemFactor(item.articulo_id) ?? 1;
+          return { ...item, unidad_capturada: this.itemUnidadPaquete(item.articulo_id), factor_aplicado: factor, cantidad: captured * factor };
+        }
+        return { ...item, unidad_capturada: null, factor_aplicado: 1, cantidad: captured };
+      }),
+    );
+  }
 
   /** Z25 — abre/cierra el detalle de renglones de una requisición. */
   toggleExpand(id: string) {
@@ -281,13 +320,15 @@ export class SolicitudesMaterial implements OnInit {
       urgencia: s.urgencia === 'urgente' ? 'urgente' : 'normal',
       notas: s.notas ?? null,
     });
-    const items = (s.items ?? []).map((it) => ({
+    const items: ItemRow[] = (s.items ?? []).map((it) => ({
       articulo_id: it.articulo_id ?? '',
       esOtro: !it.articulo_id,
       descripcion: it.descripcion ?? '',
-      cantidad: Number(it.cantidad) || 1,
+      cantidad: Number(it.cantidad) || 1, // BM5 — ya viene en base
       unidad: it.unidad ?? '',
       talla: it.talla ?? null,
+      unidad_capturada: it.unidad_capturada ?? null, // BM5
+      factor_aplicado: Number(it.factor_aplicado) || 1, // BM5
     }));
     this.formItems.set(items.length ? items : [NUEVO_ITEM()]);
     this.drawerOpen.set(true);
@@ -317,6 +358,8 @@ export class SolicitudesMaterial implements OnInit {
           esOtro: sel.esOtro,
           unidad: a?.unidad ?? (sel.esOtro ? item.unidad : ''),
           talla: null,
+          unidad_capturada: null, // BM5 — el empaque no aplica al nuevo artículo
+          factor_aplicado: 1,
           // Si vuelve a catálogo, la descripción libre deja de aplicar.
           descripcion: sel.esOtro ? item.descripcion : '',
         };
@@ -324,10 +367,11 @@ export class SolicitudesMaterial implements OnInit {
     );
   }
 
+  /** BM5 — el usuario edita EN LA UNIDAD CAPTURADA → guardamos cantidad base. */
   updateItemCantidad(index: number, value: number | string) {
-    const cantidad = Number(value);
+    const captured = Number(value);
     this.formItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, cantidad } : item)),
+      items.map((item, i) => (i === index ? { ...item, cantidad: captured * (item.factor_aplicado ?? 1) } : item)),
     );
   }
 
@@ -395,9 +439,11 @@ export class SolicitudesMaterial implements OnInit {
         return {
           articulo_id: i.articulo_id || null,
           descripcion: a?.nombre ?? i.descripcion,
-          cantidad: i.cantidad,
+          cantidad: i.cantidad, // BM5 — base
           unidad: (a?.unidad ?? i.unidad) || null,
           talla: (i.talla ?? '').trim() || null,
+          unidad_capturada: i.unidad_capturada || null, // BM5
+          factor_aplicado: i.factor_aplicado ?? 1, // BM5
         };
       });
 
@@ -436,9 +482,11 @@ export class SolicitudesMaterial implements OnInit {
           return {
             articulo_id: i.articulo_id || null,
             descripcion: a?.nombre ?? i.descripcion,
-            cantidad: i.cantidad,
+            cantidad: i.cantidad, // BM5 — base
             unidad: (a?.unidad ?? i.unidad) || null,
             talla: (i.talla ?? '').trim() || null,
+            unidad_capturada: i.unidad_capturada || null, // BM5
+            factor_aplicado: i.factor_aplicado ?? 1, // BM5
           };
         }),
       });

@@ -16,6 +16,9 @@ export interface DetalleSalida {
   cantidad_recibida: number | null;
   /** Talla indicada para artículos EPP con requiere_talla (se muestra en el conduce). */
   talla?: string | null;
+  /** BM5 — con qué unidad se capturó (ej. 'atado') y su factor; cantidad SIEMPRE en base. */
+  unidad_capturada?: string | null;
+  factor_aplicado?: number | null;
 }
 
 export interface SalidaInventario {
@@ -90,9 +93,12 @@ export interface SalidaFirma {
 
 export interface SalidaItemFormData {
   articulo_id: string;
-  cantidad: number;
+  cantidad: number; // BM5 — SIEMPRE en unidad base (la UI multiplica por el factor antes de enviar).
   /** Talla indicada (obligatoria para artículos EPP con requiere_talla). */
   talla?: string | null;
+  /** BM5 — unidad capturada (ej. 'atado') + su factor; para mostrar "2 atados (240 PZA)". */
+  unidad_capturada?: string | null;
+  factor_aplicado?: number | null;
 }
 
 export interface SalidaFormData {

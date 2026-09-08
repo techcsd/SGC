@@ -21,6 +21,10 @@ export interface Articulo {
   entrega_en_mano: boolean;
   /** Ayuda visible: atado/paquete/referencia (ej. "ATADO 120 PZA", "REF. TOTAL"). */
   nota: string | null;
+  /** BM5 — empaque máquina-legible: código de empaque (vs unidades.codigo). null = sólo por unidad. */
+  unidad_paquete: string | null;
+  /** BM5 — piezas de la unidad base por empaque (ATADO 120 → 120). null = sin empaque. */
+  factor_paquete: number | null;
   /** Subgrupo dentro de la categoría (ej. Madera/Plywood, CSD/Alquilado). */
   subgrupo: string | null;
   /** Orden oficial dentro de la categoría (según el Excel). */
@@ -48,6 +52,8 @@ export interface ArticuloFormData {
   propiedad?: ArticuloPropiedad;
   imagen_url?: string | null;
   es_prueba?: boolean;
+  unidad_paquete?: string | null; // BM5
+  factor_paquete?: number | null; // BM5
 }
 
 export const ARTICULO_PROPIEDADES: { value: ArticuloPropiedad; label: string; badge: string }[] = [

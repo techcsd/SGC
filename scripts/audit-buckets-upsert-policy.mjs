@@ -70,7 +70,12 @@ function walk(dir, acc = []) {
   return acc;
 }
 const upsertBuckets = new Map(); // bucket -> evidencia (archivo)
-function note(b, where) { if (declaredBuckets.has(b) && !upsertBuckets.has(b)) upsertBuckets.set(b, where); }
+// BM2 — se registra TODO bucket usado con upsert:true, DECLARADO O NO. El default
+// viejo (`declaredBuckets.has(b) && …`) descartaba en silencio los buckets creados
+// desde el dashboard (vehiculos/conduces/inventario) → el auditor era ciego a los
+// dos buckets más usados de la app. "No declarado" NO puede significar "está bien"
+// (la 8ª regla en versión script): ahora rompe el build hasta que se declare en sql/.
+function note(b, where) { if (!upsertBuckets.has(b)) upsertBuckets.set(b, where); }
 
 for (const root of SRC_DIRS) {
   if (!existsSync(root)) continue;
@@ -107,23 +112,40 @@ for (const root of SRC_DIRS) {
   }
 }
 
-// ── 4) Cruce: cada bucket con upsert debe tener política UPDATE ─────────────────
-const missing = [];
+// ── 4) Cruce: cada bucket con upsert debe estar DECLARADO en sql/ *y* tener
+//    política UPDATE. BM2 — dos fallos distintos, ambos rompen el build. ──────────
+const undeclared = []; // usado con upsert pero no declarado en sql/ (punto ciego BM2)
+const missing = [];    // declarado pero sin política UPDATE (regla 5 / BI1)
 for (const [b, where] of upsertBuckets) {
-  if (!bucketsWithUpdate.has(b)) missing.push({ bucket: b, where });
+  if (!declaredBuckets.has(b)) undeclared.push({ bucket: b, where });
+  else if (!bucketsWithUpdate.has(b)) missing.push({ bucket: b, where });
 }
 
-if (!missing.length) {
-  console.log(`✓ audit-buckets: ${upsertBuckets.size} bucket(s) con upsert:true, todos con política UPDATE.`);
+if (!undeclared.length && !missing.length) {
+  console.log(`✓ audit-buckets: ${upsertBuckets.size} bucket(s) con upsert:true, todos declarados en sql/ y con política UPDATE.`);
   process.exit(0);
 }
 
-console.error('\n✗ audit-buckets — bucket(s) usados con upsert:true SIN política UPDATE en storage.objects (regla 5):\n');
-for (const m of missing) console.error(`   · '${m.bucket}'  (evidencia: ${m.where})`);
-console.error(
-  '\nCada bucket que reciba subidas con upsert:true necesita política INSERT *y* UPDATE\n' +
-  "(patrón: create policy ... for update ... using/with check (bucket_id = 'X')).\n" +
-  'Sin la UPDATE, el REINTENTO de un envío (re-upload de la misma ruta) revienta con\n' +
-  '"new row violates row-level security policy". Ver docs/CHECKLIST-MIGRACIONES.md (regla 5).\n',
-);
+if (undeclared.length) {
+  console.error('\n✗ audit-buckets — bucket(s) usados con upsert:true pero NO declarados en sql/ (BM2):\n');
+  for (const m of undeclared) console.error(`   · '${m.bucket}'  (evidencia: ${m.where})`);
+  console.error(
+    '\nUn bucket creado desde el dashboard es INVISIBLE para el repo: no se le audita la\n' +
+    'política UPDATE ni se le pone límite de tamaño. Decláralo en sql/ (idempotente):\n' +
+    "  insert into storage.buckets (id,name,public,file_size_limit)\n" +
+    "    values ('<bucket>','<bucket>', false, 15728640) on conflict (id) do update ...;\n" +
+    "  + políticas INSERT/SELECT/UPDATE (create policy ... for update ... bucket_id='<bucket>').\n" +
+    'Ver sql/2026-09-09-bm2-buckets-*.sql como plantilla y docs/CHECKLIST-MIGRACIONES.md (regla 5).\n',
+  );
+}
+if (missing.length) {
+  console.error('\n✗ audit-buckets — bucket(s) usados con upsert:true SIN política UPDATE en storage.objects (regla 5):\n');
+  for (const m of missing) console.error(`   · '${m.bucket}'  (evidencia: ${m.where})`);
+  console.error(
+    '\nCada bucket que reciba subidas con upsert:true necesita política INSERT *y* UPDATE\n' +
+    "(patrón: create policy ... for update ... using/with check (bucket_id = 'X')).\n" +
+    'Sin la UPDATE, el REINTENTO de un envío (re-upload de la misma ruta) revienta con\n' +
+    '"new row violates row-level security policy". Ver docs/CHECKLIST-MIGRACIONES.md (regla 5).\n',
+  );
+}
 process.exit(1);

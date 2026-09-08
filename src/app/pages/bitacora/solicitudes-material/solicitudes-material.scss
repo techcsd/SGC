@@ -64,6 +64,9 @@ textarea {
   }
 
   &__articulo { min-width: 0; }
+  // BM5 — selector de unidad (atado) + stepper en la misma celda del grid.
+  &__qtywrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  &__unidad { width: 100%; min-width: 0; }
 
   select,
   input {

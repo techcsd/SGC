@@ -226,14 +226,20 @@ export class Salidas implements OnInit {
       .filter(({ it }) => it.articulo_id && it.cantidad > 0)
       .map(({ it, index }) => {
         const a = arts.find((x) => x.id === it.articulo_id);
+        const factor = it.factor_aplicado ?? 1;
         return {
           index,
           nombre: a?.nombre ?? '—',
           codigo: a?.codigo ?? '',
           categoria: a ? (catName.get(a.categoria_id) ?? 'Otros') : 'Otros',
-          cantidad: it.cantidad,
+          cantidad: it.cantidad, // BM5 — SIEMPRE en unidad base
           requiere_talla: a?.requiere_talla ?? false,
           talla: it.talla ?? null,
+          // BM5 — desglose de empaque para "2 atados (240 …)".
+          unidad_capturada: it.unidad_capturada ?? null,
+          factor_aplicado: factor,
+          capturada: factor > 1 ? it.cantidad / factor : it.cantidad,
+          unidad_base: a?.unidad ?? '',
         };
       });
   });
@@ -249,6 +255,10 @@ export class Salidas implements OnInit {
   /** Nota/ayuda del artículo (empaque/referencia) para mostrar en el renglón. */
   itemNota(articuloId: string): string | null {
     return this.articuloById(articuloId)?.nota ?? null;
+  }
+  /** BM5 — unidad base del artículo (para el "= N <unidad>" del desglose de empaque). */
+  articuloUnidadBase(articuloId: string | null | undefined): string {
+    return this.articuloById(articuloId ?? undefined)?.unidad ?? 'u';
   }
   updateItemTalla(index: number, value: string) {
     this.formItems.update((items) =>
@@ -640,8 +650,10 @@ export class Salidas implements OnInit {
 
   updateItemArticulo(index: number, value: string) {
     this.formItems.update((items) =>
-      // Al cambiar de artículo, se limpia la talla previa (no aplica al nuevo).
-      items.map((item, i) => (i === index ? { ...item, articulo_id: value, talla: null } : item)),
+      // Al cambiar de artículo, se limpia la talla y el empaque previos (no aplican al nuevo).
+      items.map((item, i) =>
+        i === index ? { ...item, articulo_id: value, talla: null, unidad_capturada: null, factor_aplicado: 1 } : item,
+      ),
     );
   }
 
@@ -650,10 +662,50 @@ export class Salidas implements OnInit {
     this.updateItemArticulo(index, sel.articuloId ?? '');
   }
 
+  // ── BM5 — empaque: `cantidad` SIEMPRE en unidad base; el usuario captura en la
+  //    unidad elegida y aquí se multiplica en UN solo lugar (nada de doble factor). ──
+  /** Factor de empaque del artículo (piezas base por empaque) o null. */
+  itemFactor(articuloId: string | null | undefined): number | null {
+    const f = this.articuloById(articuloId ?? undefined)?.factor_paquete;
+    return f && f > 0 ? f : null;
+  }
+  /** Etiqueta del empaque ('atado'/'paquete') para el selector. */
+  itemUnidadPaquete(articuloId: string | null | undefined): string {
+    return this.articuloById(articuloId ?? undefined)?.unidad_paquete ?? 'paquete';
+  }
+  /** Cantidad que ve el usuario, en la unidad capturada (base ÷ factor). */
+  capturedQty(item: SalidaItemFormData): number {
+    const f = item.factor_aplicado ?? 1;
+    return f > 0 ? item.cantidad / f : item.cantidad;
+  }
+
+  /** El usuario editó la cantidad EN LA UNIDAD CAPTURADA → guardamos cantidad base. */
   updateItemCantidad(index: number, value: number | string) {
-    const cantidad = Number(value);
+    const captured = Number(value);
     this.formItems.update((items) =>
-      items.map((item, i) => (i === index ? { ...item, cantidad } : item)),
+      items.map((item, i) =>
+        i === index ? { ...item, cantidad: captured * (item.factor_aplicado ?? 1) } : item,
+      ),
+    );
+  }
+
+  /** Cambia entre "por unidad" (base) y "por empaque" preservando la cantidad tecleada. */
+  setItemCaptura(index: number, mode: 'base' | 'paquete') {
+    this.formItems.update((items) =>
+      items.map((item, i) => {
+        if (i !== index) return item;
+        const captured = this.capturedQty(item); // conserva el número que se ve
+        if (mode === 'paquete') {
+          const factor = this.itemFactor(item.articulo_id) ?? 1;
+          return {
+            ...item,
+            unidad_capturada: this.itemUnidadPaquete(item.articulo_id),
+            factor_aplicado: factor,
+            cantidad: captured * factor,
+          };
+        }
+        return { ...item, unidad_capturada: null, factor_aplicado: 1, cantidad: captured };
+      }),
     );
   }
 

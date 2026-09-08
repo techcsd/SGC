@@ -174,14 +174,28 @@
             [esOtro]="item.esOtro"
             (selectionChange)="onArticuloSelect(i, $event)"
           />
-          <app-qty-stepper
-            class="item-row__cantidad"
-            [value]="item.cantidad"
-            [min]="0"
-            [step]="1"
-            ariaLabel="Cantidad"
-            (valueChange)="updateItemCantidad(i, $event)"
-          />
+          <div class="item-row__qtywrap">
+            @if (item.articulo_id && itemFactor(item.articulo_id); as factor) {
+              <!-- BM5 — pedir por unidad o por empaque (atado/paquete). -->
+              <select
+                class="item-row__unidad"
+                [value]="item.unidad_capturada ? 'paquete' : 'base'"
+                (change)="setItemCaptura(i, $any($event.target).value)"
+                aria-label="Unidad de captura"
+              >
+                <option value="base">por unidad</option>
+                <option value="paquete">por {{ itemUnidadPaquete(item.articulo_id) }} (×{{ factor }})</option>
+              </select>
+            }
+            <app-qty-stepper
+              class="item-row__cantidad"
+              [value]="capturedQty(item)"
+              [min]="0"
+              [step]="1"
+              ariaLabel="Cantidad"
+              (valueChange)="updateItemCantidad(i, $event)"
+            />
+          </div>
           <button
             type="button"
             class="item-row__remove"
@@ -190,6 +204,9 @@
             aria-label="Quitar artículo"
           ><app-icon name="x" [size]="16" /></button>
         </div>
+        @if (item.unidad_capturada && item.factor_aplicado > 1) {
+          <span class="item-row__nota">= {{ item.cantidad | number:'1.0-2' }} {{ articuloUnidadBase(item.articulo_id) }}</span>
+        }
 
         <!-- "Otro" (texto libre) → descripción + unidad; alimenta otros_valores -->
         @if (item.esOtro) {
@@ -249,12 +266,12 @@
             <div class="resumen-row__info">
               <span class="resumen-row__nombre">{{ r.nombre }}</span>
               <span class="resumen-row__cat">
-                {{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.unidad) { · {{ r.unidad }} }@if (r.talla) { · Talla: {{ r.talla }} }
+                {{ r.categoria }}@if (r.codigo) { · {{ r.codigo }} }@if (r.unidad) { · {{ r.unidad }} }@if (r.talla) { · Talla: {{ r.talla }} }@if (r.unidad_capturada && r.factor_aplicado > 1) { · {{ r.capturada | number:'1.0-2' }} {{ r.unidad_capturada }} = {{ r.cantidad | number:'1.0-2' }} {{ r.unidad }} }
               </span>
             </div>
             <app-qty-stepper
               class="resumen-row__qty"
-              [value]="r.cantidad"
+              [value]="r.capturada"
               [min]="0"
               [step]="1"
               ariaLabel="Cantidad"

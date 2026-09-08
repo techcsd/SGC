@@ -122,3 +122,38 @@ señal de fix inexistente.
   que llegó contra lo declarado (p. ej. fotos en Storage vs. las que el parte declara), no
   sólo que la RPC no falló — una bitácora entra con 3 de 10 fotos porque el mínimo del
   servidor es 2.
+
+## 9. Un rechazo de NEGOCIO no puede llevar un SQLSTATE de INFRAESTRUCTURA (BM1) — la 9ª regla
+El **código de error ES el contrato** entre el RPC y el cliente del outbox
+(`csd-app/.../outbox-categoria.ts`). `23514` significa *"un CHECK de la BD está mal"* y
+`42501` *"falta una política/grant"* → la app los clasifica como categoría **`sistema`**:
+*"ya quedó reportado a Tecnología, podrás reintentarlo cuando se publique la corrección"*.
+
+- **BM1 fue el costo:** los 5 rechazos de negocio de `registrar_combustible_app` (galones
+  sobre capacidad, precio fuera de banda, odómetro < lectura viva, salto de km, "ese vehículo
+  no es tuyo") viajaban con `23514`/`42501` → un rechazo **correcto** se presentó como avería,
+  el chofer quedó esperando un fix inexistente y la telemetría (BG2) contó falsos positivos.
+- **Regla:** cuando un RPC quiere decirle algo **al usuario**, usa el **canal de datos** que el
+  cliente ya honra — `sgc.error_campo(campo, motivo, mensaje)` (**22023**, activa *"Corregir"*)
+  cuando hay un campo que arreglar, o un **código de dominio `DRxxx`** (permanente + accionable)
+  cuando no lo hay. Los códigos de infraestructura (`22|23|42`) quedan **para infraestructura**.
+- **Al tocar un RPC:** ningún `raise … using errcode='23514'|'42501'|'22001'` puede ser en
+  realidad una regla de negocio. Auditar con `grep "errcode = '23514'\|'42501'"` en `sql/` y
+  separar negocio de infraestructura **antes** de cambiar en masa (FASE 1.4 de BM). DR481 =
+  "solo el usuario asignado puede echar combustible" (registro de dominio junto a DR409/45x/46x/47x).
+
+### 5-bis. Un bucket usado con upsert que no está DECLARADO en `sql/` rompe el build (BM2)
+El auditor de buckets sólo veía buckets **declarados en `sql/`** → `vehiculos` (todas las fotos
+de combustible), `conduces` e `inventario`, creados desde el dashboard, eran **invisibles**
+(sin auditar la UPDATE, sin límite de tamaño). *"No declarado" ya NO significa "está bien"*:
+`scripts/audit-buckets-upsert-policy.mjs` rompe el build hasta que el bucket se declare en
+`sql/` (INSERT + INSERT/SELECT/UPDATE policies + `file_size_limit`). Plantilla:
+`sql/2026-09-09-bm2-buckets-*.sql`.
+
+### 5-ter. La sobrecarga VIVA de un RPC del cliente necesita grant a authenticated (BM4)
+AW3 creó `registrar_combustible_app(20 args)` y sólo otorgó sus ayudantes → la RPC de 20 args
+vivía del `EXECUTE TO PUBLIC` por defecto de Postgres; si se revoca → `42501` → la app lo pinta
+*"Problema del sistema"* (BM1 otra vez). **Guarda:** `scripts/audit-rpc-grants.mjs` (prebuild)
+rompe si un RPC que el cliente llama por `.rpc('X')` no tiene **ningún** `grant … to authenticated`
+en `sql/`. La verificación de **aridad** exacta (¿el grant cubre la sobrecarga viva?) es estática
+y sólo aproximada — `--report` la lista; la firma viva se confirma contra `pg_proc` en prod.

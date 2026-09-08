@@ -289,6 +289,10 @@ textarea {
 
   &__articulo { grid-column: 1 / -1; min-width: 0; }
   &__cantidad { min-width: 0; }
+  // BM5 — envuelve el selector de unidad (atado) + el stepper en la misma celda
+  // del grid, así el conteo de columnas no cambia.
+  &__qtywrap { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  &__unidad { width: 100%; min-width: 0; }
 
   select,
   input {
