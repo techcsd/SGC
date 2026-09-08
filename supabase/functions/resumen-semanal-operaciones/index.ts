@@ -33,6 +33,16 @@ function fmtDate(s: string | null): string {
   const [y, m, d] = String(s).split("-");
   return d && m && y ? `${d}/${m}/${y}` : String(s);
 }
+// BL7 — formato es-DO: agrupación con punto de miles y coma decimal (1.234,56).
+function nf(n: unknown, dec = 2): string {
+  return Number(n ?? 0).toLocaleString("es-DO", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+function nfEnteros(n: unknown): string {
+  return Number(n ?? 0).toLocaleString("es-DO", { maximumFractionDigits: 0 });
+}
+function money(n: unknown): string { return `RD$ ${nf(n, 2)}`; }
+// Rendimiento: número con 1 decimal o "datos insuficientes" si la plausibilidad lo descartó.
+function rend(n: unknown): string { return n == null ? "datos insuficientes" : `${nf(n, 1)} km/gal`; }
 
 // deno-lint-ignore no-explicit-any
 type Any = any;
@@ -202,18 +212,29 @@ Deno.serve(async (req: Request) => {
       pdfSecs.push({ titulo: "5 · Movimiento de inventario por almacén", cols: ["Almacén", "Entradas", "Salidas", "Ajustes"], rows });
     }
 
-    // Reporte 6 — Km + combustible de vehículos de carga (solo echadas válidas AW3).
+    // Reporte 6 — Combustible + RENDIMIENTO de vehículos de carga (BL7).
+    // Rendimiento por echada plausible (no sum(km)/sum(gal), que un delta de
+    // odómetro inflaba) + estimado histórico (cascada T5). Formato es-DO.
     {
       const porVeh: Any[] = Array.isArray(r6.por_vehiculo) ? r6.por_vehiculo : [];
-      const rows = porVeh.map((v) => [String(v.placa), String(v.km), String(v.galones), String(v.costo)]);
+      const cols = ["Vehículo", "Galones", "Costo", "Rendimiento", "Estimado histórico"];
+      const rows = porVeh.map((v) => [
+        String(v.placa),
+        `${nf(v.galones, 2)} gal`,
+        money(v.costo),
+        rend(v.rendimiento),
+        rend(v.rendimiento_estimado),
+      ]);
+      const flotaEst = r6.flota_rendimiento_estimado != null
+        ? ` · Estimado de flota ${nf(r6.flota_rendimiento_estimado, 1)} km/gal` : "";
       const depuracion = r6.km_en_depuracion
-        ? ' <span style="color:#b45309;">(km en depuración: hay echadas sin odómetro registrado)</span>' : "";
+        ? ' <span style="color:#b45309;">(km en depuración: hay echadas sin odómetro; su rendimiento se omite)</span>' : "";
       htmlSecs.push(
-        `<h3 style="color:#333;margin:18px 0 2px;">6 · Km y combustible — vehículos de carga</h3>` +
-        `<p style="color:#666;margin:0 0 6px;font-size:13px;">Galones ${Number(r6.total_galones ?? 0)} · Km ${Number(r6.total_km ?? 0)} · Costo ${Number(r6.total_costo ?? 0)}${depuracion}</p>` +
-        tabla(["Vehículo", "Km", "Galones", "Costo"], rows));
-      pdfSecs.push({ titulo: "6 · Km y combustible — vehículos de carga", cols: ["Vehículo", "Km", "Galones", "Costo"], rows,
-        nota: r6.km_en_depuracion ? "Km en depuración: hay echadas sin odómetro registrado." : undefined });
+        `<h3 style="color:#333;margin:18px 0 2px;">6 · Combustible y rendimiento — vehículos de carga</h3>` +
+        `<p style="color:#666;margin:0 0 6px;font-size:13px;">Galones ${nf(r6.total_galones, 2)} · Costo ${money(r6.total_costo)} · Km total ${nfEnteros(r6.total_km)}${flotaEst}${depuracion}</p>` +
+        tabla(cols, rows));
+      pdfSecs.push({ titulo: "6 · Combustible y rendimiento — vehículos de carga", cols, rows,
+        nota: r6.km_en_depuracion ? "Km en depuración: hay echadas sin odómetro; su rendimiento se muestra como datos insuficientes." : undefined });
     }
 
     // Reporte 7 — Bitácoras por obra vs días laborables.
@@ -260,7 +281,8 @@ Deno.serve(async (req: Request) => {
         `3) Rutas hechas: ${Number(r3.completadas ?? 0)} completadas${Number(r3.en_revision ?? 0) > 0 ? ` · ${Number(r3.en_revision)} en revisión (cuarentena)` : ""}`,
         `4) Conduces hechos: ${Number(r4.total ?? 0)} (normales ${Number(r4.total_normal ?? 0)}, externos ${Number(r4.total_externo ?? 0)})`,
         `5) Movimiento de inventario: entradas ${Number(r5.total_entradas ?? 0)} · salidas ${Number(r5.total_salidas ?? 0)} · ajustes ${Number(r5.total_ajustes ?? 0)}`,
-        `6) Km/combustible (carga): ${Number(r6.total_galones ?? 0)} gal · ${Number(r6.total_km ?? 0)} km${r6.km_en_depuracion ? " (km en depuración)" : ""}`,
+        `6) Combustible (carga): ${nf(r6.total_galones, 2)} gal · ${money(r6.total_costo)}${r6.km_en_depuracion ? " (km en depuración)" : ""}`,
+        ...(((r6.por_vehiculo ?? []) as Any[]).map((v) => `   - ${v.placa}: ${rend(v.rendimiento)} (est. ${rend(v.rendimiento_estimado)})`)),
         `7) Bitácoras: ${Number(r7.total_bitacoras ?? 0)} en la semana (laborables ${Number(r7.dias_laborables ?? 6)})`,
       ].join("\n");
 

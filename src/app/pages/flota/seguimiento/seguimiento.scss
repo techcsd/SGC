@@ -34,7 +34,7 @@
   left: 10px;
   bottom: 14px;
   z-index: 500;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--sgc-surface); // BL6 — antes rgba(255,255,255,.96): losa blanca ilegible en oscuro
   border: 1px solid var(--sgc-border);
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
@@ -59,20 +59,20 @@
   &__sep { height: 1px; margin: 8px 0 2px; background: var(--sgc-border); }
   &__pin { display: inline-flex; flex: 0 0 auto; width: 13px; height: 13px; }
   &__pin svg { width: 13px; height: 13px; }
-  &__line { flex: 0 0 auto; width: 18px; height: 3px; border-radius: 2px; background: #2563eb; }
+  &__line { flex: 0 0 auto; width: 18px; height: 3px; border-radius: 2px; background: var(--sgc-info, #2563eb); }
   &__dash {
     flex: 0 0 auto; width: 18px; height: 0;
-    border-top: 2px dashed #9ca3af;
+    border-top: 2px dashed var(--sgc-text-muted);
   }
   &__vivo {
     flex: 0 0 auto; font-size: 10px; font-weight: 700; padding: 1px 6px;
-    border-radius: 999px; background: #16a34a; color: #fff;
+    border-radius: 999px; background: var(--sgc-success, #16a34a); color: #fff;
   }
 }
-.seg-chofer__stale { color: #b45309; font-style: italic; }
+.seg-chofer__stale { color: var(--sgc-warning, #b45309); font-style: italic; }
 .seg-chofer__vivo {
   font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
-  background: #16a34a; color: #fff;
+  background: var(--sgc-success, #16a34a); color: #fff;
 }
 
 // AU3 — el panel lateral se acota al alto del viewport (igual que el mapa) y NO
@@ -185,4 +185,15 @@
     &:hover:not(:disabled) { background: var(--sgc-primary, #2563eb); color: #fff; }
     &:disabled { opacity: .6; cursor: default; }
   }
+}
+
+// BL6 — botón "Ver todos" (overlay arriba-derecha del mapa).
+.seg__vertodos {
+  position: absolute; top: 10px; right: 10px; z-index: 500;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border: 1px solid var(--sgc-border); border-radius: 8px;
+  background: var(--sgc-surface); color: var(--sgc-text);
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  &:hover { border-color: var(--sgc-primary-mid, var(--sgc-primary)); }
 }

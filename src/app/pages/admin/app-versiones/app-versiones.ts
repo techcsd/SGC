@@ -6,7 +6,7 @@ import { UserService } from '../../../core/services/user.service';
 import { AppVersion, semverCode } from '../../../../shared/models/app-version.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
+import { formatFechaHumanaConDia } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
@@ -26,8 +26,8 @@ export class AdminAppVersiones implements OnInit {
    *  de software"). El rol tecnología solo puede marcar publicada/mínima. */
   esAdmin = computed(() => this.userService.hasRole('admin'));
 
-  // created_at es un timestamp: formatFechaHumana lo muestra legible ("18 jul 2026, 3:27 p. m.").
-  formatFecha = formatFechaHumana;
+  // BL3 — con día de semana ("Lunes 7 sep 2026, 10:22 a. m.").
+  formatFecha = formatFechaHumanaConDia;
 
   versiones = signal<AppVersion[]>([]);
   loading = signal(true);

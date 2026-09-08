@@ -84,7 +84,8 @@ export class PersonalObraService {
     // (personal_obra.proyecto_id) o PostgREST no sabe cuál relación usar.
     let q = this.client
       .from('personal_obra')
-      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo)')
+      // BL5 — trae "quién registró" (nombre) para mostrar la procedencia.
+      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo), registrador:usuarios!registrado_por(nombre)')
       .order('created_at', { ascending: false });
     if (proyectoId) q = q.eq('proyecto_id', proyectoId);
     const { data, error } = await q;

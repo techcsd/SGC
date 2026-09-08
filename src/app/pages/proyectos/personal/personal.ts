@@ -7,6 +7,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Cargo, PersonalObra, NACIONALIDAD_LABEL } from '../../../../shared/models/personal-obra.model';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
+import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { TelemetryService } from '../../../../shared/services/telemetry.service';
 
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
@@ -69,11 +70,13 @@ export class PersonalObraLista implements OnInit {
     });
   });
 
-  // AY6 — contadores para los tiles de resumen.
+  // AY6/BL5 — contadores para los tiles de resumen. Se quita "Activos" (redundante
+  // con "En la vista" bajo el filtro por defecto) y se añade procedencia.
+  formatFecha = formatFechaDisplay;
   totalVisibles = computed(() => this.filtrados().length);
-  totalActivos = computed(() => this.filtrados().filter((p) => p.estado === 'activo').length);
   obrasDistintas = computed(() => new Set(this.filtrados().map((p) => p.proyecto_id).filter(Boolean)).size);
-  conCarnet = computed(() => this.filtrados().filter((p) => !!p.carnet_numero).length);
+  importados = computed(() => this.filtrados().filter((p) => !!p.lote_import).length);
+  manuales = computed(() => this.filtrados().filter((p) => !p.lote_import).length);
 
   // AZ3 — vacío ≠ oculto ≠ error: el estado vacío debe decir la verdad.
   // Cuántos registros existen pero están ocultos SOLO por el filtro de datos de prueba.

@@ -77,18 +77,54 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // 2) Intentar login — AX2: prueba cada dominio de rol; gana el que exista.
+    // 2) BL1 — resolver el usuario por su CÉDULA (fuente de verdad; BH4/BI6), y
+    //    autenticar contra su email real con UN SOLO intento. El email sintético
+    //    pasa a ser un detalle interno; sólo se usa como retrocompat si no hay fila.
+    const { data: usuarioRow } = await admin
+      .from("usuarios")
+      .select("id, email")
+      .eq("cedula", cedulaKey)
+      .limit(1)
+      .maybeSingle();
+
     const anon = createClient(supabaseUrl, anonKey, { auth: { persistSession: false } });
     let sesion: { access_token: string; refresh_token: string; expires_in: number; expires_at?: number } | null = null;
-    for (const email of emailsCandidatos(cedula)) {
-      const { data: signIn } = await anon.auth.signInWithPassword({ email, password: pin });
-      if (signIn?.session) {
-        sesion = signIn.session;
-        break;
+    // deno-lint-ignore no-explicit-any
+    let authError: any = null;
+
+    const intentar = async (email: string): Promise<boolean> => {
+      const { data: signIn, error } = await anon.auth.signInWithPassword({ email, password: pin });
+      if (signIn?.session) { sesion = signIn.session; return true; }
+      if (error) authError = error; // BL1 — ya no se descarta
+      return false;
+    };
+
+    if (usuarioRow?.email) {
+      await intentar(usuarioRow.email);
+    } else {
+      // Retrocompat: sin fila por cédula, probar los dominios sintéticos.
+      for (const email of emailsCandidatos(cedula)) {
+        if (await intentar(email)) break;
       }
     }
 
     if (!sesion) {
+      // BL1 — el 401 deja de ser cajón de sastre. Sólo las credenciales inválidas
+      // cuentan para el bloqueo; un fallo de infraestructura (rate limit de Auth,
+      // logins deshabilitados, caída) se propaga y NO consume intentos.
+      const status = Number(authError?.status ?? 0);
+      const code = String(authError?.code ?? "");
+      const esCredencialInvalida = status === 400 || code === "invalid_credentials" || code === "invalid_grant";
+      if (authError && !esCredencialInvalida) {
+        return json(
+          {
+            error: "No pudimos validar tu acceso ahora mismo. Intenta de nuevo en un momento.",
+            auth_error: code || String(status) || "desconocido",
+            transient: true,
+          },
+          status === 429 ? 429 : 503,
+        );
+      }
       // Contar fallo (si el bloqueo anterior ya pasó, empezar de cero).
       const base = bloqueadoHasta && bloqueadoHasta <= now ? 0 : (intento?.intentos ?? 0);
       const intentos = base + 1;

@@ -123,7 +123,12 @@
       <tbody>
         @for (b of paginated(); track b.id) {
           <tr class="clickable-row" (click)="openDetail(b)">
-            <td>{{ formatFecha(b.fecha) }}</td>
+            <td>
+              {{ formatFecha(b.fecha) }}
+              @if (esRetrofechada(b)) {
+                <span class="bit-retro-chip" title="Bitácora de otra fecha (filada tarde)">otra fecha</span>
+              }
+            </td>
             <!-- AW2 — autor + hora exacta de registro -->
             <td>
               <div class="historial__autor">{{ b.autor?.nombre ?? '—' }}</div>
@@ -237,6 +242,11 @@
         <div class="bit-band__main">
           <span class="bit-band__obra">{{ proyectoNombre(b) }}</span>
           <span class="bit-band__fecha">{{ formatFecha(b.fecha) }}</span>
+          @if (esRetrofechada(b)) {
+            <span class="bit-band__retro" [title]="'Bitácora de otra fecha — registrada el ' + formatFechaHora(b.created_at)">
+              Otra fecha · registrada {{ formatFecha(b.created_at) }}
+            </span>
+          }
         </div>
         <span [class]="tipoBadgeClass(b.tipo)">{{ tipoLabel(b.tipo) }}</span>
       </div>

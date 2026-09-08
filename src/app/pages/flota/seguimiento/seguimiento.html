@@ -13,6 +13,10 @@
   <div class="seg__map sgc-card">
     <div #map class="seg__map-el"></div>
     @if (mapError()) { <div class="seg__map-error" role="alert">{{ mapError() }}</div> }
+    <!-- BL6 — reencuadrar en los marcadores vivos (tras seleccionar/alejarse) -->
+    <button type="button" class="seg__vertodos" (click)="verTodos()" title="Ver todos los choferes">
+      <app-icon name="target" [size]="14" /> Ver todos
+    </button>
     <!-- AS14 — UNA sola leyenda colapsable (antes eran dos overlays superpuestos):
          estados del chofer (AG11) + símbolos del mapa (AW11). Iconos por SVG (AW12). -->
     <div class="seg-leyenda" [class.seg-leyenda--collapsed]="!mostrarLeyenda()">

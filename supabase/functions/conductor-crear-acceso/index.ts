@@ -159,8 +159,10 @@ Deno.serve(async (req: Request) => {
         password: pin,
       });
       if (updErr) return json({ error: `No se pudo actualizar el PIN: ${updErr.message}` }, 400);
-      // Limpiar cualquier bloqueo previo.
-      await admin.from("conductor_login_intentos").delete().eq("cedula", conductor.cedula);
+      // BL1 — limpiar el bloqueo con la cédula NORMALIZADA (dígitos): la tabla se
+      // llena en dígitos, así que borrar con la cédula cruda de la ficha (con guiones)
+      // no encontraba la fila y el chofer seguía bloqueado tras rotar el PIN.
+      await admin.from("conductor_login_intentos").delete().eq("cedula", (conductor.cedula || "").replace(/\D/g, ""));
       await audit("credencial_pin_rotado", conductor.usuario_id, { via: "conductor", cedula: (conductor.cedula || "").replace(/\D/g, ""), email });
       return json({ email, usuarioId: conductor.usuario_id, rotated: true });
     }

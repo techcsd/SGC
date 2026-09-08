@@ -1,5 +1,40 @@
 {
   "web": {
+    "1.122.0": {
+      "titulo": "Resumen semanal con rendimiento real, personal con «quién lo subió», y arreglos de mapa y fechas",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El §6 del Resumen semanal ya no reporta un rendimiento imposible: ahora muestra km/gal por vehículo (filtrando echadas con odómetro saltado, que salen como «datos insuficientes» en vez de un número inflado) y el estimado según el histórico. Los galones, el costo y los números salen en formato dominicano (94,51 gal, RD$ 1.234,56)."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "Personal de obra ahora muestra quién registró cada persona (nombre + fecha) y si vino por importación o a mano; el registro manual ya guarda el autor. Nuevos indicadores: importados vs. manuales. Se preparó la base para detectar documentos duplicados aunque estén escritos con o sin guiones."
+        },
+        {
+          "t": "mejora",
+          "m": "Bitácora",
+          "d": "Una bitácora de una fecha anterior al día en que se registró se marca visiblemente como «otra fecha», tanto en la lista como en el detalle."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Seguimiento: la leyenda del mapa ya se lee en tema oscuro (antes era una losa blanca), el mapa abre encuadrado en los choferes con señal reciente (no en todo el país por un GPS viejo), y se agregó un botón «Ver todos»."
+        },
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "Historial y Versiones de la app ahora muestran el día de la semana (p. ej. «Lunes 7 sep 2026, 10:22 a. m.»)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Login con cédula: un fallo temporal del servicio ya no se disfraza de «Cédula o PIN incorrectos» ni consume intentos de bloqueo, el acceso se resuelve por la cédula registrada, y rotar el PIN desbloquea de verdad."
+        }
+      ]
+    },
     "1.121.0": {
       "titulo": "Matriz de notificaciones única: canales por tipo y correo incluido",
       "cambios": [

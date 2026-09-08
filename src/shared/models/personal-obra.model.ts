@@ -66,6 +66,8 @@ export interface PersonalObra {
   estado: EstadoPersonal;
   es_prueba?: boolean;
   registrado_por?: string | null;
+  lote_import?: string | null; // AT5/AV4 — presente si vino de una importación
+  documento_numero_norm?: string | null; // BL5 — dígitos del documento (dedupe)
   // AX2 — usuario del sistema enlazado (acceso por cédula del capataz).
   usuario_id?: string | null;
   created_at: string;
@@ -73,6 +75,7 @@ export interface PersonalObra {
   // joins
   cargo?: Cargo | null;
   proyecto?: { nombre: string; codigo?: string | null } | null;
+  registrador?: { nombre: string } | null; // BL5 — quién lo registró
 }
 
 export interface PersonalConteos {

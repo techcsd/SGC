@@ -75,7 +75,7 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
   private mapEl = viewChild<ElementRef<HTMLDivElement>>('map');
   private map: google.maps.Map | null = null;
   private mapReady = signal(false);   // AU2 — el mapa ya está creado y puede pintar
-  private hasFitted = false;          // AU2 — el fitBounds inicial solo corre una vez
+  private lastFitKey = '';            // BL6 — firma del conjunto de marcadores ya encuadrado
   private markers = new Map<string, google.maps.Marker>();
   private infoWindow: google.maps.InfoWindow | null = null;
   private channel: RealtimeChannel | null = null;
@@ -144,7 +144,7 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
       estado: e, label: ESTADO_META[e].label, color: ESTADO_META[e].color, count: counts.get(e) ?? 0,
     }));
   });
-  mostrarLeyenda = signal(true);
+  mostrarLeyenda = signal(false); // BL6 — cerrada por defecto (como la app); antes tapaba la esquina
   toggleLeyenda() { this.mostrarLeyenda.update((v) => !v); }
 
   constructor() {
@@ -168,8 +168,13 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
       for (const [uid, m] of this.markers) {
         if (!vistos.has(uid)) { m.setMap(null); this.markers.delete(uid); }
       }
-      // El encuadre inicial solo una vez (no reencuadrar tras cada tick/selección).
-      if (!this.hasFitted && this.markers.size) { this.fitToMarkers(); this.hasFitted = true; }
+      // BL6 — reencuadrar cuando cambia el CONJUNTO de choferes (no en cada tick de
+      // posición), y solo si el usuario no tiene uno seleccionado (está enfocado).
+      const key = [...this.markers.keys()].sort().join(',');
+      if (key && key !== this.lastFitKey && !this.seleccionado()) {
+        this.fitToMarkers();
+        this.lastFitKey = key;
+      }
     });
   }
 
@@ -327,13 +332,34 @@ export class Seguimiento implements OnInit, AfterViewInit, OnDestroy {
 
   private fitToMarkers() {
     if (!this.map || this.markers.size === 0) return;
+    const pos = this.posiciones();
     const bounds = new google.maps.LatLngBounds();
-    for (const m of this.markers.values()) {
-      const pos = m.getPosition();
-      if (pos) bounds.extend(pos);
+    let frescos = 0;
+    // BL6 — encuadrar solo los marcadores FRESCOS: un GPS "hace 11 días" estiraba
+    // la caja a todo el país. Si no hay ninguno fresco, caer a todos.
+    for (const [uid, m] of this.markers) {
+      if (this.esStale(pos[uid]?.capturado_en)) continue;
+      const p = m.getPosition();
+      if (p) { bounds.extend(p); frescos++; }
+    }
+    if (frescos === 0) {
+      for (const m of this.markers.values()) { const p = m.getPosition(); if (p) bounds.extend(p); }
     }
     this.map.fitBounds(bounds, 60);
-    if (this.markers.size === 1) this.map.setZoom(Math.min(this.map.getZoom() ?? 15, 15));
+    // BL6 — clamp de zoom (portado de la app, fitBounds maxZoom:15): con 1-2
+    // marcadores fitBounds acerca demasiado. Un 'idle' de una vez capa a 15.
+    google.maps.event.addListenerOnce(this.map, 'idle', () => {
+      if ((this.map?.getZoom() ?? 0) > 15) this.map?.setZoom(15);
+    });
+  }
+
+  /** BL6 — "Ver todos": vuelve a encuadrar los marcadores vivos y deselecciona. */
+  verTodos() {
+    this.seleccionado.set(null);
+    this.limpiarChoferTraza();
+    this.infoWindow?.close();
+    this.lastFitKey = ''; // fuerza re-fit en el próximo tick también
+    this.fitToMarkers();
   }
 
   seleccionar(usuarioId: string, pan = true) {

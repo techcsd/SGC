@@ -1,5 +1,31 @@
 # HANDOFF — SGC
 
+## TL;DR — Ronda BL (PROMPT-38, 08/09/2026) — build verde, TODO en espera de OK para aplicar/deploy/commit
+
+Contexto: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-19.md` (§E = decisiones).
+
+**⚠️ Lección BL (otra vez): los 2 root-causes 🔴 del prompt son FALSOS en el servidor.**
+- **BL1** (cédula↔email desync): **0 desincronizados** de 9; Manolo Duran sincronizado + **inició sesión ayer 07/09 15:52**, sin bloqueo. (Hay 2 "Manolo", ambos con fila de conductor → posible dup.)
+- **BL2** (`tiene_modulo`): NO es SECURITY DEFINER **pero** `usuarios_roles`/`roles` tienen RLS con policies SELECT; probado bajo RLS: `tiene_modulo('flota')`=**true**, Manolo ve **9 veh/13 cond**, Wagner ve **11 obras**. El vacío es el `catalog.service` de la app que se traga errores → **PROMPT-39**.
+- **BL10** Abraham = usuario real activo → app picker (usuarios_asignables), no dato.
+- **BL5** los 54 los subió **Roberly Camacho** (import 31/08); 1 fila manual con `registrado_por` NULL.
+
+**Hecho (build verde, SIN aplicar/deploy/commit):**
+- **BL7** 🔴 resumen §6: RPC `resumen_flota_carga_semana` reescrita (migración `sql/2026-09-08-bl7-resumen-rendimiento.sql`, dry-run OK) → rendimiento por echada plausible (10/35/3/50 de flota_config) + estimado cascada T5; **L473027 ya NO sale 68.9, sale `datos insuficientes`**; galones/costo intactos. Edge `resumen-semanal-operaciones` §6: rendimiento+estimado por vehículo, formato es-DO (galones 2 dec, `1.234,56`, RD$).
+- **BL3** `formatFechaHumanaConDia` (nueva, sin tocar la compartida de 9 pantallas); repuntadas solo historial-versiones + app-versiones.
+- **BL6** seguimiento: leyenda `var(--sgc-surface)` (era blanco quemado) + hexes tokenizados; `fitToMarkers` excluye stale + maxZoom 15 + re-fit al cambiar conjunto; leyenda cerrada por defecto; botón "Ver todos".
+- **BL9** badge "otra fecha" en historial (lista + banda) cuando `fecha < created_at::date`.
+- **BL5** migración `sql/2026-09-08-bl5-personal-registrado-por-doc-norm.sql` (dry-run OK): trigger rellena `registrado_por`; columna generada `documento_numero_norm` + índice (1 grupo dup detectado = Edward Mota). UI: columna "Registró" + badge Import/Manual; KPIs Importados/Manuales.
+- **BL1** edges (SIN deploy): `conductor-login` resuelve por `usuarios.cedula` (1 solo signIn), el 401 ya no es cajón de sastre (fallo de infra → 503/429, no cuenta intentos); `conductor-crear-acceso:163` desbloquea con cédula normalizada.
+
+**Para aplicar (con OK):** 2 migraciones (bl7, bl5) + deploy 3 edges (resumen-semanal-operaciones, conductor-login, conductor-crear-acceso) + commit frontend (bump + release-notes).
+
+**§E pendientes:** BL4 conteo físico (DIFERIDO — ver propuesta abajo); BL5 fusión de dups (Edward Mota, 1 grupo) + índice único + ocultar documento (AV4 §C/§E5); BL9 límite atrás + regenerar informe semanal + columna `capturado_en`; BL7 ¿avisar echada saltada?; BL2 picker vehículos excluir-en-uso; BL1 confirmar resolver-por-cédula.
+
+**BL4 (conteo físico, propuesta para próxima sesión):** unir las dos mitades existentes — cerrar el conteo con `ajuste_real_lote` (NO toca ledger) **pero** registrando cabecera+items+motivo+auditoría; cabecera `conteos_inventario` con ciclo de vida (estado `borrador→contado→aplicado`, constraint regla 3, tipo `'conteo_fisico'`), snapshot al abrir, borrador reanudable; gate submódulo `inventario.conteos` (operar) para Raykler; dar entrada de menú a `/inventario/ajuste-real` (hoy huérfano). Reutiliza `conteos.ts` + `ajuste-real.ts` + modal AU1·P1. Decisiones §E: conteo ciego sí/no, aprobación y de quién, lote-app en esta ronda.
+
+
+
 ## TL;DR — Ronda BK (PROMPT-36, 07/09/2026) — **2 migraciones APLICADAS a prod + edge desplegado + smoke OK; frontend SIN commit/deploy**
 
 **APLICADO 07/09 (con OK de Xaviel):**

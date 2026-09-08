@@ -54,9 +54,9 @@
   <!-- AY6 — contadores de resumen -->
   <div class="pob-tiles">
     <div class="pob-tile"><span class="pob-tile__num">{{ totalVisibles() }}</span><span class="pob-tile__lbl">En la vista</span></div>
-    <div class="pob-tile"><span class="pob-tile__num">{{ totalActivos() }}</span><span class="pob-tile__lbl">Activos</span></div>
+    <div class="pob-tile"><span class="pob-tile__num">{{ importados() }}</span><span class="pob-tile__lbl">Importados</span></div>
+    <div class="pob-tile"><span class="pob-tile__num">{{ manuales() }}</span><span class="pob-tile__lbl">Manuales</span></div>
     <div class="pob-tile"><span class="pob-tile__num">{{ obrasDistintas() }}</span><span class="pob-tile__lbl">Obras</span></div>
-    <div class="pob-tile"><span class="pob-tile__num">{{ conCarnet() }}</span><span class="pob-tile__lbl">Con carnet</span></div>
   </div>
 
   @if (!filtrados().length) {
@@ -91,7 +91,7 @@
       <div class="pob-tabla">
         <table class="data-table">
           <thead>
-            <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Asegurado</th><th>Carnet</th><th>Estado</th></tr>
+            <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Registró</th><th>Asegurado</th><th>Carnet</th><th>Estado</th></tr>
           </thead>
           <tbody>
             @for (p of filtrados(); track p.id) {
@@ -105,6 +105,16 @@
                 <td><span class="pob-chip pob-chip--nac pob-chip--nac-{{ p.nacionalidad }}">{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</span></td>
                 <td class="text-muted">{{ p.documento_numero ?? '—' }}</td>
                 <td class="text-muted">{{ p.proyecto?.nombre ?? '—' }}</td>
+                <td>
+                  <!-- BL5 — quién y de dónde vino la fila -->
+                  @if (p.lote_import) {
+                    <span class="sgc-badge sgc-badge--neutral">Import</span>
+                  } @else {
+                    <span class="sgc-badge sgc-badge--neutral">Manual</span>
+                  }
+                  <div class="pob-reg">{{ p.registrador?.nombre ?? '—' }}</div>
+                  <div class="text-muted pob-reg-fecha">{{ formatFecha(p.created_at) }}</div>
+                </td>
                 <td>
                   @switch (p.aseguramiento_estado) {
                     @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Asegurado</span> }

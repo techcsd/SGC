@@ -157,6 +157,23 @@ export function formatFechaHumana(ts: string | null | undefined): string {
   return `${d.getDate()} ${MESES_ABREV[d.getMonth()]} ${d.getFullYear()}, ${h}:${min} ${period}`;
 }
 
+// BL3 — día de la semana completo (capitalizado). Construido a mano igual que
+// MESES_ABREV para no depender de datos de locale de Intl (el WebView de Android
+// puede no traerlos; ver docstring de formatFechaHumana).
+const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+/**
+ * BL3 — Igual que `formatFechaHumana` pero anteponiendo el día de la semana, ej.
+ * `Lunes 7 sep 2026, 10:22 a. m.`. Uso puntual (Historial/Versiones de la app);
+ * NO cambiar `formatFechaHumana`, que la comparten 9 pantallas.
+ */
+export function formatFechaHumanaConDia(ts: string | null | undefined): string {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  return `${DIAS[d.getDay()]} ${formatFechaHumana(ts)}`;
+}
+
 /**
  * U9 — Fecha media es-DO de un `timestamptz`, sin hora, ej. `14 jul 2026`.
  * Para listados donde la hora no aporta. El timestamp trae offset UTC (`Z`).

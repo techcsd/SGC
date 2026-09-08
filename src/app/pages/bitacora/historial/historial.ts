@@ -41,6 +41,16 @@ export class Historial implements OnInit {
   formatFechaHora = formatFechaHumana; // U13 — "registrada el…"
   formatHora = formatHora12;
 
+  // BL9 — la bitácora es de una fecha ANTERIOR al día en que se registró
+  // (filada tarde). Compara la fecha operativa con el día de `created_at`.
+  esRetrofechada(b: { fecha?: string | null; created_at?: string | null }): boolean {
+    if (!b?.fecha || !b?.created_at) return false;
+    const d = new Date(b.created_at);
+    if (isNaN(d.getTime())) return false;
+    const reg = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return b.fecha < reg;
+  }
+
   bitacoras = signal<Bitacora[]>([]);
   proyectos = signal<Proyecto[]>([]);
   // AT14/AT26 — datos de prueba fuera del selector de filtro para no-admin.

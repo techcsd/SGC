@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { AppVersionesService } from '../../../../shared/services/app-versiones.service';
 import { AppVersion, CambioItem, CambioTag, CAMBIO_META, Plataforma } from '../../../../shared/models/app-version.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { formatFechaDisplay, formatFechaHumana } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHumanaConDia } from '../../../../shared/utils/fecha.util';
 import { BarChart, BarDatum } from '../../../../shared/ui/bar-chart/bar-chart';
 import { DonutChart, DonutDatum } from '../../../../shared/ui/donut-chart/donut-chart';
 import { Icon } from '../../../../shared/ui/icon/icon';
@@ -45,7 +45,7 @@ export class AdminHistorialVersiones implements OnInit {
   private service = inject(AppVersionesService);
 
   formatFecha = formatFechaDisplay;
-  formatFechaHora = formatFechaHumana; // X7 — fecha + hora
+  formatFechaHora = formatFechaHumanaConDia; // X7 + BL3 — día de semana + fecha + hora
   readonly TAGS = TAGS;
   readonly CAMBIO_META = CAMBIO_META;
 
