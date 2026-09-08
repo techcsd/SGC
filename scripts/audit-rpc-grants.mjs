@@ -38,6 +38,18 @@ function countParams(text, openIdx) {
   let depth = 0, count = 0, seen = false, i = openIdx;
   for (; i < text.length; i++) {
     const ch = text[i];
+    // Saltar comentarios `-- …` (una coma en el comentario NO es un parámetro).
+    if (ch === '-' && text[i + 1] === '-') {
+      const nl = text.indexOf('\n', i);
+      if (nl === -1) { i = text.length; break; }
+      i = nl; continue;
+    }
+    // Saltar literales '…' (un default con coma dentro NO separa parámetros).
+    if (ch === "'") {
+      i++;
+      while (i < text.length && text[i] !== "'") i++;
+      continue;
+    }
     if (ch === '(') depth++;
     else if (ch === ')') { depth--; if (depth === 0) break; }
     else if (ch === ',' && depth === 1) count++;
