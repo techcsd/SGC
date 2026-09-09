@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.125.0';
-export const APP_VERSION_TITULO: string | null = "Empaque del artículo (atado/paquete) editable desde su ficha";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"mejora","m":"Inventario","d":"Al crear o editar un artículo ya puedes definir su empaque de forma legible: eliges la unidad de empaque (Atado, Paquete…) y cuántas piezas trae (ej. Atado → 120). Así, al pedir o sacar el artículo se puede capturar por unidad o por empaque, y el stock siempre se guarda en unidad base. El campo «Nota» queda libre para notas de verdad (referencia, marca, observaciones), no para el empaque."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/838b9c2";
+export const APP_VERSION = '1.126.0';
+export const APP_VERSION_TITULO: string | null = "El empaque (atado/paquete) viaja al despacho y se ve en el conduce";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"mejora","m":"Inventario","d":"Cuando una requisición se pide por empaque (ej. «2 atados»), esa forma ahora se conserva al aprobarla/despacharla y se muestra en el detalle de la salida como «240 unidad · 2 atado». La cantidad sigue SIEMPRE en unidad base, así que el stock, el kardex y los costos no cambian — es solo trazabilidad. El conduce de la app también recibe el dato del empaque por renglón (para mostrarlo en su próxima versión)."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/8000163";

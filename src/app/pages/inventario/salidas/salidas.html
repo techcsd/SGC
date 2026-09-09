@@ -763,7 +763,13 @@
           @for (d of s.detalle_salidas ?? []; track d.id) {
             <tr>
               <td>{{ d.articulo?.nombre ?? '—' }} <span class="text-muted">{{ d.articulo?.codigo }}</span>@if (d.talla) { <span class="sgc-badge sgc-badge--neutral">Talla {{ d.talla }}</span> }</td>
-              <td class="text-right">{{ d.cantidad | number }} {{ d.articulo?.unidad }}</td>
+              <td class="text-right">
+                {{ d.cantidad | number }} {{ d.articulo?.unidad }}
+                <!-- BM5d — cómo se pidió/despachó: "2 atado" (la cantidad de arriba sigue en unidad base). -->
+                @if (d.unidad_capturada && d.factor_aplicado && d.factor_aplicado > 1) {
+                  <span class="text-muted"> · {{ (d.cantidad / d.factor_aplicado) | number:'1.0-2' }} {{ d.unidad_capturada }}</span>
+                }
+              </td>
               <td class="text-right">{{ d.cantidad_recibida != null ? (d.cantidad_recibida | number) : '—' }}</td>
             </tr>
           }
