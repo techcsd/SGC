@@ -463,10 +463,37 @@
         id="nota"
         type="text"
         formControlName="nota"
-        placeholder="Ej: ATADO 120 PZA, PAQUETE DE 50 UDS, REF. TOTAL…"
+        placeholder="Ej: REF. TOTAL, marca HILTI, observación…"
       />
-      <span class="field-hint">Se muestra como ayuda al pedir el artículo (empaque/referencia).</span>
+      <span class="field-hint">Notas de verdad. El empaque (atado/paquete) va en el campo de abajo.</span>
     </div>
+
+    <!-- BM5 — empaque máquina-legible: se puede pedir/sacar por unidad o por empaque. -->
+    <div class="sgc-field">
+      <label for="unidad_paquete">Empaque (opcional)</label>
+      <select id="unidad_paquete" formControlName="unidad_paquete">
+        <option [value]="null">Sin empaque (solo por unidad)</option>
+        @for (u of unidades(); track u.codigo) {
+          <option [value]="u.codigo">{{ u.nombre }}</option>
+        }
+      </select>
+      <span class="field-hint">Ej. Atado, Paquete. Deja "sin empaque" si solo se maneja por unidad.</span>
+    </div>
+    @if (f.unidad_paquete.value) {
+      <div class="sgc-field">
+        <label for="factor_paquete">Piezas por {{ f.unidad_paquete.value }}</label>
+        <input
+          id="factor_paquete"
+          type="number"
+          min="1"
+          step="1"
+          formControlName="factor_paquete"
+          placeholder="Ej. 120"
+          [class.invalid]="f.factor_paquete.invalid && f.factor_paquete.touched"
+        />
+        <span class="field-hint">Cuántas unidades base trae un {{ f.unidad_paquete.value }} (ATADO 120 → 120). El stock siempre se guarda en unidad base.</span>
+      </div>
+    }
 
     <div class="form-toggle">
       <label class="toggle-label" for="requiere_talla">

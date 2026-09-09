@@ -128,6 +128,9 @@ export class Articulos implements OnInit {
     requiere_talla: new FormControl<boolean>(false, { nonNullable: true }),
     entrega_en_mano: new FormControl<boolean>(false, { nonNullable: true }), // AF16
     nota: new FormControl<string | null>(null),
+    // BM5 — empaque máquina-legible (ej. ATADO 120): código de empaque + piezas base.
+    unidad_paquete: new FormControl<string | null>(null),
+    factor_paquete: new FormControl<number | null>(null, [Validators.min(0.0001)]),
     propiedad: new FormControl<'propio_csd' | 'alquilado'>('propio_csd', { nonNullable: true }),
     // Z5(d) — dato de prueba (solo admin lo edita).
     es_prueba: new FormControl<boolean>(false),
@@ -307,6 +310,8 @@ export class Articulos implements OnInit {
       requiere_talla: article.requiere_talla ?? false,
       entrega_en_mano: article.entrega_en_mano ?? false, // AF16
       nota: article.nota ?? null,
+      unidad_paquete: article.unidad_paquete ?? null, // BM5
+      factor_paquete: article.factor_paquete ?? null, // BM5
       propiedad: article.propiedad ?? 'propio_csd',
       es_prueba: article.es_prueba ?? false,
     });
@@ -336,6 +341,8 @@ export class Articulos implements OnInit {
       requiere_talla: article.requiere_talla ?? false,
       entrega_en_mano: article.entrega_en_mano ?? false,
       nota: article.nota ?? null,
+      unidad_paquete: article.unidad_paquete ?? null, // BM5
+      factor_paquete: article.factor_paquete ?? null, // BM5
       propiedad: article.propiedad ?? 'propio_csd',
       es_prueba: article.es_prueba ?? false,
     });

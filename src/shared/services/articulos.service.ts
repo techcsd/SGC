@@ -74,6 +74,8 @@ export class ArticulosService {
       requiere_talla: formData.requiere_talla ?? false,
       entrega_en_mano: formData.entrega_en_mano ?? false,
       es_prueba: formData.es_prueba ?? false,
+      unidad_paquete: formData.unidad_paquete ?? null, // BM5
+      factor_paquete: formData.factor_paquete ?? null, // BM5
     });
   }
 

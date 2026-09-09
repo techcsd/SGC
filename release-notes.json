@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.125.0": {
+      "titulo": "Empaque del artículo (atado/paquete) editable desde su ficha",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Al crear o editar un artículo ya puedes definir su empaque de forma legible: eliges la unidad de empaque (Atado, Paquete…) y cuántas piezas trae (ej. Atado → 120). Así, al pedir o sacar el artículo se puede capturar por unidad o por empaque, y el stock siempre se guarda en unidad base. El campo «Nota» queda libre para notas de verdad (referencia, marca, observaciones), no para el empaque."
+        }
+      ]
+    },
     "1.123.0": {
       "titulo": "Conteo físico de almacén: pon el stock real sin ensuciar el kardex",
       "cambios": [

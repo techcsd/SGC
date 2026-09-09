@@ -1,7 +1,9 @@
 # HANDOFF — SGC
 
-## TL;DR — Ronda BM (PROMPT-40, 09/09/2026) — **7 migraciones APLICADAS a prod + verificadas**, web build verde SIN commit/deploy
-Contexto: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-20.md` (§D = decisiones). **Xaviel dio GO a aplicar.**
+## TL;DR — Ronda BM (PROMPT-40, 09/09/2026) — **SHIPPED web 1.124.0 (commits 512a826 + 838b9c2) + 1.125.0 (empaque en ficha de artículo), push main → Vercel; 7 migraciones APLICADAS a prod + verificadas**
+Contexto: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-20.md` (§D = decisiones). **Xaviel: "haz todo" → aplicado + shipped.** Ronda cerrada.
+**web 1.125.0** cierra el pendiente menor del form de admin: la ficha de artículo (`inventario/articulos`) ya tiene selector **"Empaque (opcional)"** (unidades activas) + input **"Piezas por X"** (`unidad_paquete`/`factor_paquete`), `nota` liberada para notas de verdad; edit/duplicar/crear/update cablean los campos; build verde + 10 auditores prebuild OK. Pendiente en browser: crear/editar un artículo con "Atado → 120" y confirmar round-trip.
+Pendiente menor restante (no bloqueante): verificar en browser el flujo atado en salidas/requisición (radio = 17 artículos, default "por unidad" = comportamiento idéntico a antes); app = PROMPT-41; carry-through del factor en aprobar_requisicion; fusión de los 8 artículos-empaque (necesita twin base). `crear_solicitud_compra_tec` = falso positivo (bug del auditor, corregido).
 
 **APLICADO 09-sep (verificado live):** `bm1` (RPC recreada, grant 20-args presente, 1 fila outbox_atascados→resuelta), `bm2` (buckets declarados, auditor ve 14), `bm3` (**probado en rollback: depósito=INSERTA_OK, persona=INSERTA_OK, estación-sin-tablero=RECHAZADO_OK**), `bm4` (grants authenticated presentes), `bm5` (columnas), `bm5b` (17 artículos: 6 atados + 11 paquetes con factor), `bm5c` (plumbing RPCs — grants preservados por create-or-replace). Server-side ⇒ app y web ya se benefician **sin deploy**.
 **Web build verde SIN commit/deploy:** modelos `Articulo.unidad_paquete/factor_paquete` + `unidad_capturada/factor_aplicado` en salida/solicitud/detalle (el `.select('*')` ya trae las columnas).
