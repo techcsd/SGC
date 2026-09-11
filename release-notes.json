@@ -3705,6 +3705,16 @@
           "d": "El guardado de vehículos ahora filtra el formulario a solo sus columnas reales antes de enviarlo, para que un control de pantalla (como el selector de color/aseguradora «Otro») no pueda romper el guardado — la misma protección que ya tenían los almacenes. Sin cambios visibles: los vehículos se crean y editan igual."
         }
       ]
+    },
+    "1.127.2": {
+      "titulo": "Endurecimiento del guardado en 9 módulos más",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "m": "Sistema",
+          "d": "Se extendió a 9 servicios más (proveedores, conductores, mantenimientos, rutas, activos fijos, artículos, proyectos/fases/partidas, asistencia, tecnología) la protección que filtra cada formulario a las columnas reales de su tabla antes de guardar, para que un control de pantalla no pueda romper el guardado. Sin cambios visibles: todo se crea y edita igual."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

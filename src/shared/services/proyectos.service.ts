@@ -9,6 +9,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
+import { pickColumns } from '../utils/pick-columns.util';
 import {
   FaseProyecto,
   Proyecto,
@@ -29,6 +30,23 @@ import {
 } from '../models/proyecto-partida.model';
 
 const EXPEDIENTE_BUCKET = 'sgc-documentos';
+
+/** BN3 (regla 10) — columnas reales de prod para los 3 CRUD directos de este servicio. */
+const PROYECTO_COLS = new Set<string>([
+  'codigo', 'nombre', 'cliente', 'tipo', 'estado', 'fecha_inicio', 'fecha_fin_estimada',
+  'fecha_fin_real', 'presupuesto', 'ubicacion', 'descripcion', 'responsable_id',
+  'responsable_nombre', 'activo', 'updated_at', 'localidad', 'latitud', 'longitud',
+  'direccion_geo', 'porcentaje_pagado', 'es_prueba', 'ingeniero_obra', 'maestro_encargado',
+  'contacto_nombre', 'contacto_telefono', 'ubicacion_metodo', 'zona', 'cerrado_at',
+  'cerrado_por', 'provincia_id', 'municipio_id', 'sector_id', 'ingeniero_obra_id',
+  'maestro_usuario_id', 'maestro_personal_id',
+]);
+const FASE_COLS = new Set<string>([
+  'proyecto_id', 'nombre', 'descripcion', 'estado', 'fecha_inicio', 'fecha_fin', 'progreso', 'orden',
+]);
+const PARTIDA_COLS = new Set<string>([
+  'proyecto_id', 'nombre', 'unidad', 'cantidad_planeada', 'cantidad_ejecutada', 'activa', 'orden',
+]);
 
 /** AP1 — obra de referencia (subconjunto seguro, sin financieros) para selectores. */
 export interface ObraRef {
@@ -252,7 +270,7 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyectos')
-      .insert({ ...payload, codigo })
+      .insert(pickColumns({ ...payload, codigo }, PROYECTO_COLS))
       .select('*, responsable:usuarios!responsable_id(nombre)')
       .single();
 
@@ -264,7 +282,7 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyectos')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...payload, updated_at: new Date().toISOString() }, PROYECTO_COLS))
       .eq('id', id)
       .select('*, responsable:usuarios!responsable_id(nombre)')
       .single();
@@ -313,7 +331,7 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('fases_proyecto')
-      .insert(fase)
+      .insert(pickColumns(fase, FASE_COLS))
       .select()
       .single();
 
@@ -325,7 +343,7 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('fases_proyecto')
-      .update(payload)
+      .update(pickColumns(payload, FASE_COLS))
       .eq('id', id)
       .select()
       .single();
@@ -657,7 +675,7 @@ export class ProyectosService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proyecto_partidas')
-      .insert({ ...payload, proyecto_id: proyectoId })
+      .insert(pickColumns({ ...payload, proyecto_id: proyectoId }, PARTIDA_COLS))
       .select('*')
       .single();
     if (error) throw new Error(error.message);
@@ -668,7 +686,7 @@ export class ProyectosService {
     const { error } = await this.supabase.client
       .schema('sgc')
       .from('proyecto_partidas')
-      .update(payload)
+      .update(pickColumns(payload, PARTIDA_COLS))
       .eq('id', id);
     if (error) throw new Error(error.message);
   }

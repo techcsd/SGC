@@ -4,9 +4,20 @@ import { Ruta, RutaFormData, RutaEstado, RutaParada, RutaFoto } from '../models/
 import { sanitizeUuidFields } from '../utils/uuid.util';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
+import { pickColumns } from '../utils/pick-columns.util';
 
 /** C2 — uuid opcionales de una ruta a sanear ("null" de <select> → null). */
 const RUTA_UUID_FIELDS = ['conductor_id', 'vehiculo_id', 'destino_proyecto_id'] as const;
+
+/** BN3 (regla 10) — columnas reales de `sgc.rutas` (verificadas en prod). */
+const RUTA_COLS = new Set<string>([
+  'vehiculo_id', 'conductor_id', 'origen', 'destino', 'fecha', 'km_estimado',
+  'km_real', 'tiempo_estimado_min', 'tiempo_real_min', 'estado', 'notas',
+  'creado_por', 'updated_at', 'destino_lat', 'destino_lng', 'destino_proyecto_id',
+  'origen_lat', 'origen_lng', 'es_prueba', 'iniciada_at', 'finalizada_at', 'tipo',
+  'documento_path', 'trayecto', 'trayecto_polyline', 'trayecto_puntos', 'km_trazado',
+  'trayecto_consolidado_at', 'modificada_at', 'derivada_de_conduce',
+]);
 
 const SELECT_QUERY =
   '*, vehiculo:vehiculos(placa, marca, modelo), conductor:conductores(nombre), destino_proyecto:proyectos!destino_proyecto_id(nombre, latitud, longitud)';
@@ -32,7 +43,7 @@ export class RutasService {
   async create(payload: RutaFormData, userId: string | null): Promise<Ruta> {
     const { data, error } = await this.supabase.client
       .from('rutas')
-      .insert({ ...sanitizeUuidFields(payload, RUTA_UUID_FIELDS), creado_por: userId })
+      .insert(pickColumns({ ...sanitizeUuidFields(payload, RUTA_UUID_FIELDS), creado_por: userId }, RUTA_COLS))
       .select(SELECT_QUERY)
       .single();
 
@@ -43,7 +54,7 @@ export class RutasService {
   async update(id: string, payload: Partial<RutaFormData>): Promise<Ruta> {
     const { data, error } = await this.supabase.client
       .from('rutas')
-      .update({ ...sanitizeUuidFields(payload, RUTA_UUID_FIELDS), updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...sanitizeUuidFields(payload, RUTA_UUID_FIELDS), updated_at: new Date().toISOString() }, RUTA_COLS))
       .eq('id', id)
       .select(SELECT_QUERY)
       .single();

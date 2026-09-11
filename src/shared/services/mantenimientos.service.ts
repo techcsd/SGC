@@ -3,6 +3,14 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Mantenimiento, MantenimientoFormData } from '../models/mantenimiento.model';
+import { pickColumns } from '../utils/pick-columns.util';
+
+/** BN3 (regla 10) — columnas reales de `sgc.mantenimientos` (verificadas en prod). */
+const MANTENIMIENTO_COLS = new Set<string>([
+  'vehiculo_id', 'tipo', 'descripcion', 'fecha', 'costo',
+  'kilometraje_al_mantenimiento', 'proveedor', 'estado', 'notas', 'fotos',
+  'es_prueba', 'incluye_preventivo', 'accidente_id', 'creado_por',
+]);
 
 @Injectable({ providedIn: 'root' })
 export class MantenimientosService {
@@ -22,7 +30,7 @@ export class MantenimientosService {
   async create(payload: MantenimientoFormData): Promise<Mantenimiento> {
     const { data, error } = await this.supabase.client
       .from('mantenimientos')
-      .insert(payload)
+      .insert(pickColumns(payload, MANTENIMIENTO_COLS))
       .select('*, vehiculo:vehiculos(placa,marca,modelo), creado_por_usuario:usuarios(nombre)')
       .single();
 
@@ -33,7 +41,7 @@ export class MantenimientosService {
   async update(id: string, payload: Partial<MantenimientoFormData>): Promise<Mantenimiento> {
     const { data, error } = await this.supabase.client
       .from('mantenimientos')
-      .update(payload)
+      .update(pickColumns(payload, MANTENIMIENTO_COLS))
       .eq('id', id)
       .select('*, vehiculo:vehiculos(placa,marca,modelo), creado_por_usuario:usuarios(nombre)')
       .single();

@@ -10,9 +10,17 @@ import {
 import { ConductorStats, ConductorStatsPeriodo, ConductorStatsPeriodoValor } from '../models/vehiculo-asignacion.model';
 import { sanitizeUuidFields } from '../utils/uuid.util';
 import { edgeErrorMessage } from '../utils/edge.util';
+import { pickColumns } from '../utils/pick-columns.util';
 
 /** C2 — uuid opcionales de un payload de conductor a sanear antes de escribir. */
 const CONDUCTOR_UUID_FIELDS = ['usuario_id', 'vehiculo_id'] as const;
+
+/** BN3 (regla 10) — columnas reales de `sgc.conductores` (verificadas en prod). */
+const CONDUCTOR_COLS = new Set<string>([
+  'cedula', 'nombre', 'telefono', 'licencia_tipo', 'licencia_numero',
+  'licencia_vencimiento', 'activo', 'updated_at', 'vehiculo_id', 'usuario_id',
+  'tipo_vehiculo_autorizado', 'nota', 'tags', 'es_prueba', 'participa_incentivo',
+]);
 
 /** C7 — resumen de documentos destacados por conductor (vista v_conductor_documentos). */
 export interface ConductorDocumentosResumen {
@@ -185,7 +193,7 @@ export class ConductoresService {
   async create(payload: ConductorFormData): Promise<Conductor> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .insert(sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS))
+      .insert(pickColumns(sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS), CONDUCTOR_COLS))
       .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email, avatar_path, plataforma, plataforma_modelo, plataforma_at)')
       .single();
 
@@ -196,7 +204,7 @@ export class ConductoresService {
   async update(id: string, payload: Partial<ConductorFormData>): Promise<Conductor> {
     const { data, error } = await this.supabase.client
       .from('conductores')
-      .update({ ...sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS), updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...sanitizeUuidFields(payload, CONDUCTOR_UUID_FIELDS), updated_at: new Date().toISOString() }, CONDUCTOR_COLS))
       .eq('id', id)
       .select('*, vehiculo:vehiculos(placa, marca, modelo), usuario:usuarios(nombre, email, avatar_path, plataforma, plataforma_modelo, plataforma_at)')
       .single();

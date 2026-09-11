@@ -1,6 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Asistencia, AsistenciaFormData } from '../models/asistencia.model';
+import { pickColumns } from '../utils/pick-columns.util';
+
+/** BN3 (regla 10) — columnas reales de `sgc.asistencia` (verificadas en prod). */
+const ASISTENCIA_COLS = new Set<string>([
+  'empleado_id', 'fecha', 'hora_entrada', 'hora_salida', 'estado', 'notas',
+]);
 
 @Injectable({ providedIn: 'root' })
 export class AsistenciaService {
@@ -32,7 +38,7 @@ export class AsistenciaService {
   async upsert(payload: AsistenciaFormData): Promise<Asistencia> {
     const { data, error } = await this.supabase.client
       .from('asistencia')
-      .upsert(payload, { onConflict: 'empleado_id,fecha' })
+      .upsert(pickColumns(payload, ASISTENCIA_COLS), { onConflict: 'empleado_id,fecha' })
       .select('*, empleado:empleados(nombre, apellido, cargo, es_prueba)')
       .single();
 

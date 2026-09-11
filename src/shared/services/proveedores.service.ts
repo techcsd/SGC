@@ -1,6 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { Proveedor } from '../models/proveedor.model';
+import { pickColumns } from '../utils/pick-columns.util';
+
+/** BN3 (regla 10) — columnas reales de `sgc.proveedores` (verificadas en prod). */
+const PROVEEDOR_COLS = new Set<string>([
+  'nombre', 'rnc', 'contacto', 'telefono', 'email', 'direccion', 'activo',
+  'es_prueba', 'is_hardware_store', 'lat', 'lng', 'tipos',
+  'transportista_estado', 'ratificado_por', 'ratificado_en',
+]);
 
 export interface ProveedorPayload {
   nombre: string;
@@ -71,7 +79,7 @@ export class ProveedoresService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proveedores')
-      .insert(stripNullish(payload))
+      .insert(pickColumns(stripNullish(payload), PROVEEDOR_COLS))
       .select('*')
       .single();
 
@@ -83,7 +91,7 @@ export class ProveedoresService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proveedores')
-      .update(payload)
+      .update(pickColumns(payload, PROVEEDOR_COLS))
       .eq('id', id)
       .select('*')
       .single();
@@ -108,7 +116,7 @@ export class ProveedoresService {
     const { data, error } = await this.supabase.client
       .schema('sgc')
       .from('proveedores')
-      .insert(payloads.map(stripNullish))
+      .insert(payloads.map((p) => pickColumns(stripNullish(p), PROVEEDOR_COLS)))
       .select('*');
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Proveedor[];

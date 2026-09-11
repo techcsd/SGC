@@ -3,9 +3,22 @@ import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import { Articulo, ArticuloFormData } from '../models/articulo.model';
+import { pickColumns } from '../utils/pick-columns.util';
 
 /** Z17 — bucket compartido de inventario; las fotos de artículo van bajo articulo/{id}/. */
 const ARTICULOS_BUCKET = 'inventario';
+
+/**
+ * BN3 (regla 10) — columnas reales de `sgc.articulos` (verificadas en prod). Cubre
+ * todos los llamadores de update(): edición completa, la compleción tras crear_articulo_app
+ * y setImagenUrl ({imagen_url}). NO incluye `codigo` (nunca se reescribe desde el CRUD).
+ */
+const ARTICULO_COLS = new Set<string>([
+  'nombre', 'descripcion', 'categoria_id', 'unidad', 'stock_minimo', 'stock_maximo',
+  'precio_estimado', 'imagen_url', 'activo', 'updated_at', 'requiere_talla', 'nota',
+  'subgrupo', 'orden', 'propiedad', 'es_prueba', 'ambito', 'costo_promedio',
+  'entrega_en_mano', 'unidad_paquete', 'factor_paquete',
+]);
 
 /** AU12 — apodo/alias de un artículo (con traza de quién lo agregó). */
 export interface ArticuloAlias {
@@ -82,7 +95,7 @@ export class ArticulosService {
   async update(id: string, formData: Partial<ArticuloFormData>): Promise<Articulo> {
     const { data, error } = await this.supabase.client
       .from('articulos')
-      .update({ ...formData, updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...formData, updated_at: new Date().toISOString() }, ARTICULO_COLS))
       .eq('id', id)
       .select('*, categoria:categorias_inventario(nombre)')
       .single();

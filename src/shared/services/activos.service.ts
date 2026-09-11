@@ -23,8 +23,16 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { ActivoFijo, ActivoFormData } from '../models/activo.model';
+import { pickColumns } from '../utils/pick-columns.util';
 
 const SELECT_QUERY = '*, categoria:categorias_inventario(nombre), responsable:usuarios(nombre)';
+
+/** BN3 (regla 10) — columnas reales de `sgc.activos_fijos` (verificadas en prod). */
+const ACTIVO_COLS = new Set<string>([
+  'codigo', 'nombre', 'descripcion', 'categoria_id', 'valor_adquisicion',
+  'fecha_adquisicion', 'vida_util_anios', 'estado', 'ubicacion', 'responsable_id',
+  'notas', 'activo', 'updated_at', 'es_prueba', 'asignado_tipo', 'asignado_id',
+]);
 
 @Injectable({ providedIn: 'root' })
 export class ActivosService {
@@ -59,7 +67,7 @@ export class ActivosService {
     const codigo = await this.generateNextCode();
     const { data, error } = await this.supabase.client
       .from('activos_fijos')
-      .insert({ ...payload, codigo })
+      .insert(pickColumns({ ...payload, codigo }, ACTIVO_COLS))
       .select(SELECT_QUERY)
       .single();
 
@@ -70,7 +78,7 @@ export class ActivosService {
   async update(id: string, payload: Partial<ActivoFormData>): Promise<ActivoFijo> {
     const { data, error } = await this.supabase.client
       .from('activos_fijos')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...payload, updated_at: new Date().toISOString() }, ACTIVO_COLS))
       .eq('id', id)
       .select(SELECT_QUERY)
       .single();

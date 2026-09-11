@@ -12,6 +12,18 @@ import {
   TEC_CATEGORIAS,
   TEC_EQUIPO_ESTADOS,
 } from '../models/tecnologia.model';
+import { pickColumns } from '../utils/pick-columns.util';
+
+/** BN3 (regla 10) — columnas reales de prod (verificadas). */
+const TEC_HERRAMIENTA_COLS = new Set<string>([
+  'nombre', 'categoria', 'para_que', 'quien_usa', 'url', 'activo', 'orden', 'updated_at',
+]);
+const TEC_EQUIPO_COLS = new Set<string>([
+  'codigo', 'nombre', 'tipo', 'marca', 'modelo', 'serie', 'estado', 'empleado_id',
+  'asignado_en', 'ubicacion', 'notas', 'activo', 'updated_at', 'foto_path', 'costo',
+  'fecha_compra', 'garantia_hasta', 'origen_solicitud_compra_id', 'tipo_id', 'bodega_id',
+  'moneda', 'fotos', 'foto_portada',
+]);
 import { formatFechaMedia } from '../utils/fecha.util';
 import { SolicitudCompra } from '../models/solicitud.model';
 
@@ -95,7 +107,7 @@ export class TecnologiaService {
   async createHerramienta(payload: TecHerramientaFormData): Promise<TecHerramienta> {
     const { data, error } = await this.supabase.client
       .from('tec_herramientas')
-      .insert(payload)
+      .insert(pickColumns(payload, TEC_HERRAMIENTA_COLS))
       .select('*')
       .single();
     if (error) throw new Error(error.message);
@@ -105,7 +117,7 @@ export class TecnologiaService {
   async updateHerramienta(id: string, payload: Partial<TecHerramientaFormData>): Promise<void> {
     const { error } = await this.supabase.client
       .from('tec_herramientas')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...payload, updated_at: new Date().toISOString() }, TEC_HERRAMIENTA_COLS))
       .eq('id', id);
     if (error) throw new Error(error.message);
   }
@@ -207,7 +219,7 @@ export class TecnologiaService {
     const codigo = await this.generateEquipoCodigo();
     const { data, error } = await this.supabase.client
       .from('tec_equipos')
-      .insert({ ...payload, codigo })
+      .insert(pickColumns({ ...payload, codigo }, TEC_EQUIPO_COLS))
       .select('*, empleado:empleados(nombre, apellido, cargo)')
       .single();
     if (error) throw new Error(error.message);
@@ -227,7 +239,7 @@ export class TecnologiaService {
 
     const { error } = await this.supabase.client
       .from('tec_equipos')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update(pickColumns({ ...payload, updated_at: new Date().toISOString() }, TEC_EQUIPO_COLS))
       .eq('id', id);
     if (error) throw new Error(error.message);
 
