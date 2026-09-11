@@ -4,6 +4,34 @@ import { SignedUrlCache, ImgTransform } from './signed-url-cache.service';
 import { Vehiculo, VehiculoFormData } from '../models/vehiculo.model';
 import { VehiculoAsignacion, VehiculoStats } from '../models/vehiculo-asignacion.model';
 
+/**
+ * BN3 (regla 10 del checklist de migraciones) — columnas reales de `sgc.vehiculos`
+ * que este CRUD puede escribir. El servicio filtra a esta lista blanca antes de
+ * mandar a PostgREST: si un control de UI se cuela en el payload (p. ej. los pares
+ * `colorSel/colorOtro` / `aseguradoraSel/aseguradoraOtro`, que son estado de
+ * pantalla y NO columnas), PostgREST rechazaría la fila entera (400). Hoy el
+ * componente los descarta a mano (vehiculos.ts) — esto es la red de seguridad para
+ * que el servicio no dependa de esa disciplina. Coincide con `VehiculoFormData`.
+ */
+const VEHICULO_FIELDS = [
+  'placa', 'vin', 'marca', 'modelo', 'anio', 'tipo', 'estado', 'color',
+  'kilometraje', 'medida_uso', 'uso', 'capacidad_valor', 'capacidad_unidad',
+  'notas', 'numero_matricula', 'numero_seguro', 'aseguradora',
+  'vencimiento_matricula', 'vencimiento_seguro', 'km_ultimo_mantenimiento',
+  'intervalo_mantenimiento_km', 'intervalo_mantenimiento_horas',
+  'rendimiento_esperado_km_gal', 'foto_portada', 'es_prueba',
+] as const satisfies readonly (keyof VehiculoFormData)[];
+
+function pickVehiculoFields(input: Partial<VehiculoFormData>): Partial<VehiculoFormData> {
+  const out: Partial<VehiculoFormData> = {};
+  for (const k of VEHICULO_FIELDS) {
+    if (k in input && input[k] !== undefined) {
+      (out as Record<string, unknown>)[k] = input[k];
+    }
+  }
+  return out;
+}
+
 /** W3 — recepción abierta de un vehículo (pre-check `entrega_abierta_de`). */
 export interface EntregaAbierta {
   entrega_id: string;
@@ -229,7 +257,7 @@ export class VehiculosService {
   async create(payload: VehiculoFormData): Promise<Vehiculo> {
     const { data, error } = await this.supabase.client
       .from('vehiculos')
-      .insert(payload)
+      .insert(pickVehiculoFields(payload))
       .select('*, responsable:usuarios(nombre)')
       .single();
 
@@ -240,7 +268,7 @@ export class VehiculosService {
   async update(id: string, payload: Partial<VehiculoFormData>): Promise<Vehiculo> {
     const { data, error } = await this.supabase.client
       .from('vehiculos')
-      .update(payload)
+      .update(pickVehiculoFields(payload))
       .eq('id', id)
       .select('*, responsable:usuarios(nombre)')
       .single();

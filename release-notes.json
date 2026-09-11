@@ -3695,6 +3695,16 @@
           "d": "Al emitir el carnet de un trabajador, el carnet con su código QR se muestra de inmediato para imprimirlo, en vez de saltar directo al resumen."
         }
       ]
+    },
+    "1.127.1": {
+      "titulo": "Endurecimiento interno del guardado de vehículos",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "m": "Flota",
+          "d": "El guardado de vehículos ahora filtra el formulario a solo sus columnas reales antes de enviarlo, para que un control de pantalla (como el selector de color/aseguradora «Otro») no pueda romper el guardado — la misma protección que ya tenían los almacenes. Sin cambios visibles: los vehículos se crean y editan igual."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
