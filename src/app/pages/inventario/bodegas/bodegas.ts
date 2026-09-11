@@ -249,7 +249,24 @@ export class Bodegas implements OnInit {
     this.saving.set(true);
     this.saveError.set('');
 
-    const payload = this.form.value as BodegaFormData;
+    // BN3 — el payload se construye campo por campo con SÓLO las columnas de
+    // BodegaFormData. `heredar_ubicacion` es estado de pantalla (lo persiste
+    // setUbicacion vía el RPC set_bodega_ubicacion, más abajo), NO una columna:
+    // mandarlo hacía que PostgREST rechazara la fila entera (400) y rompía crear
+    // y editar almacenes en producción. Sin `as`: tipado explícito para que el
+    // compilador avise si un control de UI vuelve a colarse en el payload.
+    const v = this.form.getRawValue();
+    const payload: BodegaFormData = {
+      nombre: v.nombre ?? '',
+      descripcion: v.descripcion ?? null,
+      ubicacion: v.ubicacion ?? null,
+      activo: v.activo ?? true,
+      proyecto_id: v.proyecto_id ?? null,
+      es_principal: v.es_principal ?? false,
+      latitud: v.latitud ?? null,
+      longitud: v.longitud ?? null,
+      es_prueba: v.es_prueba ?? false,
+    };
 
     // Z5(d) — al marcar un almacén existente como prueba, avisar cuántos
     // registros relacionados se marcarán también.
@@ -287,8 +304,13 @@ export class Bodegas implements OnInit {
               lat, lng, direccion: this.form.value.ubicacion ?? null, metodo: 'coords',
             });
           }
-        } catch {
-          /* la ubicación es complementaria; el almacén ya se guardó */
+        } catch (e: unknown) {
+          // BN3 / regla 8 — el almacén ya se guardó, pero la ubicación no se pudo
+          // fijar: NO lo silencies, dilo en pantalla para que se pueda reintentar.
+          this.toast.warning(
+            'Almacén guardado, pero la ubicación no se pudo fijar',
+            e instanceof Error ? e.message : 'Vuelve a intentar fijar la ubicación desde el almacén.',
+          );
         }
       }
       this.drawerOpen.set(false);

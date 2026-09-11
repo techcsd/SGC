@@ -1,0 +1,64 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Orden de trabajo</h1>
+    @if (orden()?.bitacora; as b) {
+      <span class="page-count">{{ b.proyecto ?? '—' }} · {{ b.fecha | date:'d MMM y' }}</span>
+    }
+  </div>
+  <a routerLink="/bitacora/historial" class="sgc-btn sgc-btn--ghost sgc-btn--sm">← Historial</a>
+</div>
+
+@if (loading()) {
+  <p class="otf-loading">Cargando…</p>
+} @else if (error()) {
+  <p class="otf-error">{{ error() }}</p>
+} @else if (orden(); as o) {
+  <section class="otf-card sgc-card">
+    @if (o.detalle; as d) {
+      <div class="otf-block">
+        <h2 class="otf-title">Trabajo</h2>
+        <p class="otf-desc">{{ d.descripcion }}</p>
+        <dl class="otf-dl">
+          @if (d.ubicacion) { <div><dt>Ubicación</dt><dd>{{ d.ubicacion }}</dd></div> }
+          @if (d.cantidad != null) { <div><dt>Cantidad</dt><dd>{{ d.cantidad | number:'1.0-2' }} {{ d.unidad }}</dd></div> }
+          @if (d.monto_estimado != null) { <div><dt>Monto estimado</dt><dd>RD$ {{ d.monto_estimado | number:'1.0-2' }}</dd></div> }
+          @if (d.solicitado_por) { <div><dt>Solicitado por</dt><dd>{{ d.solicitado_por }}</dd></div> }
+        </dl>
+        @if (o.bitacora?.comentarios) { <p class="otf-coment">{{ o.bitacora?.comentarios }}</p> }
+      </div>
+    }
+
+    <div class="otf-block">
+      <h2 class="otf-title">Firmas</h2>
+      <div class="otf-firmas">
+        <div class="otf-firma">
+          <span class="otf-firma__rol">Ingeniero</span>
+          @if (firmaUrls()['ingeniero']) {
+            <img class="otf-firma__img" [src]="firmaUrls()['ingeniero']" alt="Firma del ingeniero" />
+          } @else { <div class="otf-firma__empty">Sin firma</div> }
+          <span class="otf-firma__nom">{{ firmaIng()?.nombre ?? '—' }}</span>
+          @if (firmaIng()?.rol_desc) { <span class="otf-firma__desc">{{ firmaIng()?.rol_desc }}</span> }
+          @if (firmaIng()?.cedula) { <span class="otf-firma__ced">Cédula: {{ firmaIng()?.cedula }}</span> }
+        </div>
+        <div class="otf-firma">
+          <span class="otf-firma__rol">Cliente</span>
+          @if (firmaUrls()['cliente']) {
+            <img class="otf-firma__img" [src]="firmaUrls()['cliente']" alt="Firma del cliente" />
+          } @else { <div class="otf-firma__empty">Sin firma</div> }
+          <span class="otf-firma__nom">{{ firmaCli()?.nombre ?? '—' }}</span>
+          @if (firmaCli()?.rol_desc) { <span class="otf-firma__desc">{{ firmaCli()?.rol_desc }}</span> }
+          @if (firmaCli()?.cedula) { <span class="otf-firma__ced">Cédula: {{ firmaCli()?.cedula }}</span> }
+        </div>
+      </div>
+    </div>
+
+    <div class="otf-meta">
+      @if (o.bitacora?.autor) { <span>Registrado por {{ o.bitacora?.autor }}</span> }
+      @if (o.bitacora?.es_prueba) { <span class="sgc-badge sgc-badge--neutral">prueba</span> }
+    </div>
+
+    <div class="otf-actions">
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / PDF</button>
+    </div>
+  </section>
+}

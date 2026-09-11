@@ -223,9 +223,15 @@
         <span class="pob-resumen__check"><app-icon name="check" [size]="28" /></span>
         <h2>Personal registrado</h2>
         <p class="text-muted">{{ p.nombre }} {{ p.apellido }} — {{ p.cargo?.nombre ?? 'Sin cargo' }}</p>
-        @if (p.carnet_numero) { <p class="pob-resumen__num">Carnet {{ p.carnet_numero }}</p> }
       </div>
+      <!-- BN6 — el carnet vive dentro del expediente; mostrarlo aquí para que no haya que adivinarlo. -->
+      @if (p.carnet_numero) {
+        <app-personal-carnet [personal]="p" [fotoDataUrl]="personaDataUrl()" [verifyUrl]="verifyUrl" />
+      }
       <div class="pob-form__foot pob-form__foot--split">
+        @if (p.carnet_numero) {
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="imprimirCarnet()">Ver / imprimir carnet</button>
+        }
         <button type="button" class="sgc-btn sgc-btn--primary" (click)="finalizar()">Ver expediente</button>
       </div>
     }

@@ -15,6 +15,7 @@ import { ArticulosService } from '../../../../shared/services/articulos.service'
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
+import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 
 /** AU1 · P1 — los tres mecanismos que fijan/mueven stock, unificados en un solo modal. */
 type AjusteMecanismo = 'conteo' | 'apertura' | 'ajuste_real';
@@ -27,7 +28,7 @@ type AjusteMecanismo = 'conteo' | 'apertura' | 'ajuste_real';
  */
 @Component({
   selector: 'app-almacen-inventario',
-  imports: [DecimalPipe, RouterLink, KardexModal, FormDrawer, ArticuloPicker],
+  imports: [DecimalPipe, RouterLink, KardexModal, FormDrawer, ArticuloPicker, ExportExcel],
   templateUrl: './almacen-inventario.html',
   styleUrl: './almacen-inventario.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,6 +79,31 @@ export class AlmacenInventario implements OnInit {
   });
 
   totalArticulos = computed(() => this.filtrados().length);
+
+  // ── BN4 — Descarga a Excel del inventario del almacén ──────────────────────
+  //   filtros vivos como [rows] (lo que se ve), items() como [allRows] (todo el
+  //   almacén; el RPC inventario_almacen ya devuelve el set completo, no pagina).
+  //   cantidad/apertura salen como NÚMERO (no la cadena del DecimalPipe) para que
+  //   Excel sume. Apertura sólo para admin, igual que la tabla.
+  //   filenameBase legible; exportarExcel() ya lo sanea y le agrega la fecha.
+  exportFilename = computed(() => `Inventario ${this.bodegaNombre() || 'Almacén'}`);
+  exportCols = computed<ExportColumn[]>(() => {
+    const cols: ExportColumn[] = [
+      { key: 'codigo', label: 'Código', value: (r) => (r as InventarioAlmacenItem).codigo ?? '' },
+      { key: 'nombre', label: 'Artículo', value: (r) => (r as InventarioAlmacenItem).nombre },
+      { key: 'categoria', label: 'Categoría', value: (r) => (r as InventarioAlmacenItem).categoria ?? '' },
+      { key: 'unidad', label: 'Unidad', value: (r) => (r as InventarioAlmacenItem).unidad ?? '' },
+      { key: 'existencia', label: 'Existencia', value: (r) => (r as InventarioAlmacenItem).cantidad },
+    ];
+    if (this.esAdmin()) {
+      cols.push({ key: 'apertura', label: 'Apertura', value: (r) => (r as InventarioAlmacenItem).apertura });
+    }
+    return cols;
+  });
+  readonly exportSecciones: ExportSection[] = [
+    { key: 'categoria', label: 'Categoría', values: (r) => { const c = (r as InventarioAlmacenItem).categoria; return c ? [c] : []; } },
+    { key: 'unidad', label: 'Unidad', values: (r) => { const u = (r as InventarioAlmacenItem).unidad; return u ? [u] : []; } },
+  ];
 
   async ngOnInit() {
     // Modo directo (almacen/:id) o por obra (almacen/obra/:proyectoId → su almacén).

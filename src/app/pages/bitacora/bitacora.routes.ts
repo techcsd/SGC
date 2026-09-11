@@ -3,6 +3,9 @@ import { Routes } from '@angular/router';
 export const bitacoraRoutes: Routes = [
   { path: '', redirectTo: 'nueva', pathMatch: 'full' },
   { path: 'nueva', loadComponent: () => import('./nueva/nueva').then((m) => m.Nueva) },
+  // BN1 — orden de trabajo (flujo propio con dos firmas: ingeniero + cliente).
+  { path: 'orden-trabajo', loadComponent: () => import('./orden-trabajo/orden-trabajo').then((m) => m.OrdenTrabajo), title: 'Orden de trabajo' },
+  { path: 'orden-trabajo/:id', loadComponent: () => import('./orden-trabajo/orden-trabajo-ficha').then((m) => m.OrdenTrabajoFicha), title: 'Orden de trabajo' },
   { path: 'historial', loadComponent: () => import('./historial/historial').then((m) => m.Historial) },
   { path: 'dashboard', loadComponent: () => import('./dashboard/dashboard').then((m) => m.BitacoraDashboard), title: 'Dashboard de bitácoras' },
   { path: 'cobertura', loadComponent: () => import('./cobertura/cobertura').then((m) => m.BitacoraCobertura), title: 'Cobertura de bitácoras' },

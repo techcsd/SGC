@@ -1,7 +1,15 @@
 .page {
   padding: 20px 24px 40px;
 
-  &__head { margin-bottom: 16px; }
+  &__head {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  &__head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   &__back { color: var(--text-2); font-size: 13px; text-decoration: none; }
   &__back:hover { color: var(--accent); }
   &__title { margin: 4px 0 2px; font-size: 22px; }

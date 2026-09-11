@@ -164,6 +164,63 @@ export class BitacoraService {
     return this.cache.signed('sgc-bitacora', path);
   }
 
+  // ── BN1 — Orden de trabajo ─────────────────────────────────────────────────
+  /**
+   * Sube el PNG de una firma al bucket privado `sgc-bitacora` y devuelve su path
+   * (que luego se resuelve con getSignedUrl). La orden aún no existe cuando se
+   * capturan las firmas, así que la ruta usa una carpeta aleatoria propia.
+   */
+  async subirFirmaOrden(rol: 'ingeniero' | 'cliente', blob: Blob): Promise<string> {
+    const path = `ordenes-firmas/${crypto.randomUUID()}-${rol}.png`;
+    const { error } = await this.supabase.client.storage
+      .from('sgc-bitacora')
+      .upload(path, blob, { contentType: 'image/png', upsert: true });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** BN1 — crea la orden de trabajo (bitácora tipo orden_trabajo) con sus dos firmas. */
+  async crearOrdenTrabajo(payload: {
+    proyecto_id: string;
+    fecha: string;
+    descripcion: string;
+    ubicacion?: string | null;
+    cantidad?: number | null;
+    unidad?: string | null;
+    monto_estimado?: number | null;
+    solicitado_por?: string | null;
+    notas?: string | null;
+    comentarios?: string | null;
+    firma_ing: { nombre: string; cedula?: string | null; rol_desc?: string | null; firma_path: string; metodo?: string } | null;
+    firma_cli: { nombre: string; cedula?: string | null; rol_desc?: string | null; firma_path: string; metodo?: string } | null;
+    es_prueba?: boolean;
+  }): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_orden_trabajo', {
+      p_proyecto_id: payload.proyecto_id,
+      p_fecha: payload.fecha,
+      p_descripcion: payload.descripcion,
+      p_ubicacion: payload.ubicacion ?? null,
+      p_cantidad: payload.cantidad ?? null,
+      p_unidad: payload.unidad ?? null,
+      p_monto_estimado: payload.monto_estimado ?? null,
+      p_solicitado_por: payload.solicitado_por ?? null,
+      p_notas: payload.notas ?? null,
+      p_comentarios: payload.comentarios ?? null,
+      p_firma_ing: payload.firma_ing,
+      p_firma_cli: payload.firma_cli,
+      p_es_prueba: payload.es_prueba ?? false,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+
+  /** BN1 — detalle + firmas de una orden de trabajo (para ficha/impresión). */
+  async getOrdenTrabajo(bitacoraId: string): Promise<import('../models/bitacora.model').OrdenTrabajoDetalle | null> {
+    const { data, error } = await this.supabase.client.rpc('orden_trabajo_detalle', { p_bitacora_id: bitacoraId });
+    if (error) throw new Error(error.message);
+    return (data ?? null) as import('../models/bitacora.model').OrdenTrabajoDetalle | null;
+  }
+
   get maxArchivos(): number {
     return MAX_ARCHIVOS;
   }

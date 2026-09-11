@@ -57,6 +57,8 @@ export class BitacoraDashboard implements OnInit {
   partes = computed(() => this.filtradas().filter((b) => b.tipo === 'parte_diario').length);
   visitas = computed(() => this.filtradas().filter((b) => b.tipo === 'visita').length);
   incidentes = computed(() => this.filtradas().filter((b) => b.tipo === 'incidente').length);
+  // BN1 — órdenes de trabajo (bitácora tipo orden_trabajo).
+  ordenes = computed(() => this.filtradas().filter((b) => b.tipo === 'orden_trabajo').length);
   // R7 — días ÚNICOS con lluvia (no # de bitácoras). La lluvia es 100% MANUAL
   // (campo `llovio` del parte); el pronóstico del weather NUNCA la registra.
   diasLluvia = computed(
@@ -106,8 +108,8 @@ export class BitacoraDashboard implements OnInit {
 
   /** Donut: bitácoras por tipo. */
   porTipo = computed<DonutDatum[]>(() => {
-    const label: Record<string, string> = { parte_diario: 'Bitácora del día', visita: 'Visita', incidente: 'Incidente' };
-    const color: Record<string, string> = { parte_diario: '#1F4E79', visita: '#0E7490', incidente: '#C0392B' };
+    const label: Record<string, string> = { parte_diario: 'Bitácora del día', visita: 'Visita', incidente: 'Incidente', orden_trabajo: 'Orden de trabajo' };
+    const color: Record<string, string> = { parte_diario: '#1F4E79', visita: '#0E7490', incidente: '#C0392B', orden_trabajo: '#B7791F' };
     return this.groupCount(this.filtradas().map((b) => b.tipo)).map((g) => ({
       label: label[g.key] ?? g.key, value: g.count, color: color[g.key] ?? '#64748b', key: g.key,
     }));

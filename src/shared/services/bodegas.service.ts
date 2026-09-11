@@ -28,6 +28,27 @@ export interface AlmacenDuplicadoCandidato {
   b_activa: boolean;
 }
 
+/**
+ * BN3 — columnas reales de `sgc.bodegas` que este CRUD puede escribir. El servicio
+ * filtra a esta lista blanca antes de mandar a PostgREST: un control de UI que se
+ * cuele en el payload (p. ej. `heredar_ubicacion`, que es estado de pantalla) haría
+ * que PostgREST rechace la fila entera (400). No reenvíes lo que te den.
+ */
+const BODEGA_FIELDS = [
+  'nombre', 'descripcion', 'ubicacion', 'activo', 'proyecto_id',
+  'es_principal', 'latitud', 'longitud', 'es_prueba',
+] as const satisfies readonly (keyof BodegaFormData)[];
+
+function pickBodegaFields(input: Partial<BodegaFormData>): Partial<BodegaFormData> {
+  const out: Partial<BodegaFormData> = {};
+  for (const k of BODEGA_FIELDS) {
+    if (k in input && input[k] !== undefined) {
+      (out as Record<string, unknown>)[k] = input[k];
+    }
+  }
+  return out;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BodegasService {
   private supabase = inject(SupabaseService);
@@ -87,7 +108,7 @@ export class BodegasService {
   async create(formData: BodegaFormData): Promise<Bodega> {
     const { data, error } = await this.supabase.client
       .from('bodegas')
-      .insert(formData)
+      .insert(pickBodegaFields(formData))
       .select('*, proyecto:proyectos(nombre)')
       .single();
 
@@ -98,7 +119,7 @@ export class BodegasService {
   async update(id: string, formData: Partial<BodegaFormData>): Promise<Bodega> {
     const { data, error } = await this.supabase.client
       .from('bodegas')
-      .update(formData)
+      .update(pickBodegaFields(formData))
       .eq('id', id)
       .select('*, proyecto:proyectos(nombre)')
       .single();

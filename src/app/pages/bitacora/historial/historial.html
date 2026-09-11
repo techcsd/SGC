@@ -156,6 +156,7 @@
                 @case ('parte_diario') { {{ b.ingeniero_responsable ?? '—' }} }
                 @case ('visita') { {{ b.visita_nombre ?? '—' }} }
                 @case ('incidente') { {{ b.incidente_subcontratista ?? '—' }} }
+                @case ('orden_trabajo') { {{ b.autor?.nombre ?? '—' }} }
               }
             </td>
             <td class="text-muted">
@@ -163,6 +164,7 @@
                 @case ('parte_diario') { {{ actividadesResumen(b) }} }
                 @case ('visita') { {{ visitanteLabel(b.visita_tipo_visitante) }} }
                 @case ('incidente') { {{ incidenteTipoLabel(b.incidente_tipo) }} · {{ gravedadLabel(b.incidente_gravedad) }} }
+                @case ('orden_trabajo') { Orden de trabajo }
               }
             </td>
             <!-- T2 — acciones de datos de prueba (solo admin). stopPropagation para no abrir el detalle. -->
@@ -343,6 +345,17 @@
             <p>{{ b.visita_motivo }}</p>
           </div>
         }
+      }
+
+      @if (b.tipo === 'orden_trabajo') {
+        <!-- BN1 — el detalle (descripción/monto/firmas) vive en tabla hija; se abre en su ficha. -->
+        <div class="bitacora-detail__section">
+          <h3>Orden de trabajo</h3>
+          @if (b.comentarios) { <p>{{ b.comentarios }}</p> }
+          <a [routerLink]="['/bitacora/orden-trabajo', b.id]" class="sgc-btn sgc-btn--secondary sgc-btn--sm">
+            Ver orden y firmas →
+          </a>
+        </div>
       }
 
       @if (b.tipo === 'incidente') {

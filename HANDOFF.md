@@ -1,5 +1,37 @@
 # HANDOFF — SGC
 
+## TL;DR — Ronda BN (PROMPT-42, 09-11/09/2026) — **build verde; BN1+BN5a APLICADAS a prod + verificadas; frontend SIN commit/bump**
+
+Contexto: `CONTEXTO-ACTUALIZACION-21.md` **NO existe en el repo** (referenciado por el prompt); trabajé con las referencias file:line embebidas en el prompt, todas verificadas vs código/prod.
+
+**FASE 0 (BM1, 2 min):** la echada atascada más reciente (11/09 y 09/09) = **"Solo el usuario asignado a este vehículo puede registrar su combustible"** (rechazo de autorización → ahora canal `DR481`); la del 08/09 = **salto de km (1874 > 1000)**. Ambos rechazos de negocio legítimos, ya reclasificados por BM1. Nota: `context->>'error_code'` sale **null** en todas las filas (el cliente no está estampando el code en el reporte) — deuda menor de telemetría.
+
+**HECHO + VERIFICADO:**
+- **BN3** 🔴 (FASE 1, regla 10) — **arreglado**. `bodegas.ts:onSave()` construye el payload campo por campo (9 campos de `BodegaFormData`), **sin `as`**, dejando `heredar_ubicacion` (estado de pantalla) FUERA; `bodegas.service.ts` filtra con lista blanca `pickBodegaFields` en create/update; el `catch` de ubicación ya NO es silencioso (toast). **No hay cambio de BD** (la columna `ubicacion_hereda_proyecto` ya existe; el bug era mandar el nombre `heredar_ubicacion` inexistente → PostgREST 400). Falta smoke E2E browser (4 casos) + verificar que `set_bodega_ubicacion` fija bien (1ª vez que corre).
+- **BN6** (FASE 2) — **arreglado**. Quitado `this.paso.set(5)` de `emitirCarnet()`; el paso 4 revela el `<app-personal-carnet>` (QR) con Imprimir/Continuar; paso 5 también lo muestra + enlace "Ver / imprimir carnet". Sin persistencia de PDF (§G-8 decide).
+- **BN4** (FASE 3) — **Excel hecho**. `<app-export-excel>` montado en `almacen-inventario` (contenedor de acciones nuevo), `[rows]=filtrados()` `[allRows]=items()`, cantidad/apertura como NÚMERO, columna Apertura solo admin, respeta filtros+es_prueba. **PDF NO** (bloqueado §G-4). Lista de cobertura de export abajo.
+- **BN5a** 🔴 (FASE 4, regla 11) — **APLICADA a prod**. `sql/2026-09-09-bn5a-crons-huerfanos.sql` declara `sgc-incentivo-diario` (era huérfano de BK4) y `outbox-atascados-diario` (comentado en BG2). Verificado: jobids 34/35→**36/37** (reprogramados). **Reconciliación cron.job(27) ↔ sql/(27): CERO discrepancias** — todos los 27 coinciden en nombre Y schedule. `docs/CRONS.md` actualizado (27 jobs, 09/09).
+- **BN1** 🔴 (FASE 6) — **backend APLICADO a prod + verificado E2E; frontend completo (compila)**. `sql/2026-09-09-bn1-orden-de-trabajo.sql`: tipo `orden_trabajo` (CHECK ampliado con nombre), tablas hijas `bitacora_orden_detalle` + `bitacora_orden_firmas` (molde `salida_firmas`, `rol in (ingeniero,cliente)`, unique(bitacora_id,rol)), RLS `puede_ver_bitacora`, RPC `crear_orden_trabajo` (valida las 2 firmas server-side, admin puede omitir), RPC `orden_trabajo_detalle`. **Smoke E2E**: creé orden es_prueba con 2 firmas → `orden_trabajo_detalle` devuelve bitácora+detalle+2 firmas, es_prueba propagó, borré, verifiqué gone. Frontend: página `orden-trabajo` (2 `signature-pad` firmaIng/firmaCli, sube PNG a `sgc-bitacora`), ficha `orden-trabajo-ficha` (imprimir→PDF vía window.print, patrón carnet, sin librería → sortea §G-4), rutas, model (`BitacoraTipo`+`BITACORA_TIPOS`+interfaces), service, y TODOS los sitios de display (nueva filtra+enlaza al flujo dedicado, dashboard KPI+donut, historial badge/label/resumen/detalle). **§G-1 confirmado FALSO**: las 3 columnas "NOT NULL" (bloque_entrepiso/ingeniero_responsable/hora_fin_trabajo) YA son nullables (bitacora-tipos) y los 3 contadores tienen DEFAULT 0 → el RPC solo las omite, sin centinelas ni tocar NOT NULL. **§G-2**: monto_estimado = solo registro (no hay facturación). ⚠️ RLS: crea = `tiene_modulo('bitacora')` (igual que parte diario) — v1; si Xaviel quiere gate distinto, ajustar.
+
+**BLOQUEADO (correctamente sin construir):**
+- **BN5b** (FASE 5, reporte diario de producción) — bloqueado por **§G-6** (Eduardo NG define secciones). Untouched. Molde = BK4. No conviene crear tabla+cron en prod para un reporte sin contenido definido.
+- **BN2** (FASE 7, firma tipo DocuSign) — bloqueado por **§G-3** (A/B/C/D, decisión legal). Untouched. Lo único seguro (C1: PDF del documento firmado a `personal_obra_firmas.documento_path`, columna muerta desde AR1) NO se hizo — es dev real, recomiendo esperar §G-3 (si sale C, C1 es el primer paso).
+
+**⚠️ NOTA IMPORTANTE:** las migraciones **bn1 + bn5a ya están APLICADAS a prod** (aditivas, retrocompatibles — tipo/tablas/RPCs nuevos + declaración de crons ya vivos; nada existente cambió salvo el CHECK que es superset). El **frontend BN sigue sin commit/bump** (version.ts en 1.126.0). Al shippear: bump 1.127.0 + entrada `release-notes.json`. Paridad app BN1 = PROMPT-43.
+
+**Listas que pediste (detalle en el reporte de la sesión):**
+- **`form.value as` (FASE 1.7):** 15 sitios; prioridad alta los 2 `as unknown as` (articulos.ts:393, tecnologia/inventario.ts:406, saltan el chequeo de propiedades excedentes por completo) + los que pasan `form.value` entero a service/insert (proveedores/mantenimientos/rutas/activos/asistencia/homologacion/subcontratistas/lista-fase). **Sin tocar en masa — espera prioridad.**
+- **Export (FASE 3.7):** 9 pantallas con `<app-export-excel>`, 32 con `exportarExcel` a mano (candidatas a migrar); almacén = plantilla. Falta enumerar pantallas SIN ninguna descarga (sweep mayor, §G-5).
+- **Cron drift (FASE 4.3):** CERO (BN5a lo cerró).
+
+**Smokes de browser — ✅ HECHOS (Playwright, dev server local + sesión QA admin minteada, todo es_prueba + limpiado):**
+- **BN3:** 4 casos (crear obra+heredarON, crear sin-obra, crear obra+heredarOFF, editar→heredarOFF) → **los 4 guardan, CERO respuestas 400**, sin errores de consola. Verificado en BD el path AS12 "primera vez": heredar ON → `ubicacion_metodo='proyecto'`, `ubicacion_hereda_proyecto=true`, y lat/lng heredadas **exactas** de la obra (trigger de sync corre bien). Case obra+heredarOFF sin coords → no llama setUbicacion (metodo null, correcto).
+- **BN1:** llené el form, dibujé en los **2 pads**, submit → navegó a la ficha; ficha muestra **ambas firmas** (Ingeniero+Cliente con el trazo), monto RD$ 15,000, botón Imprimir/PDF, toast "registrada con las dos firmas"; BD: `orden_trabajo` con **2 firmas**, es_prueba=true. Limpieza: 0 filas. (Screenshots en scratchpad.)
+
+**Pendiente Xaviel:** (1) commit/bump 1.127.0 + release-notes; (2) §G-3/§G-4/§G-5/§G-6 decisiones; (3) prioridad de la limpieza de `form.value as`; (4) app BN1 = PROMPT-43.
+
+---
+
 ## TL;DR — Ronda BM (PROMPT-40, 09/09/2026) — **SHIPPED web 1.124.0 (512a826 + 838b9c2) + 1.125.0 (empaque en ficha de artículo) + 1.126.0 (empaque viaja al despacho y se ve en el conduce), push main → Vercel; 8 migraciones APLICADAS a prod + verificadas**
 Contexto: `C:\developer\improvements\septiembre 2026\imp 01092026\CONTEXTO-ACTUALIZACION-20.md` (§D = decisiones). **Xaviel: "haz todo" → aplicado + shipped.** Ronda cerrada.
 

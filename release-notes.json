@@ -3670,6 +3670,31 @@
           "d": "Endurecimiento interno: permisos explícitos de ejecución en varias operaciones (combustible, salidas, requisiciones, bitácora, entregas) y control de tamaño en los depósitos de fotos de combustible y conduce."
         }
       ]
+    },
+    "1.127.0": {
+      "titulo": "Orden de trabajo con firma de ingeniero y cliente",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Nueva «Orden de trabajo»: el ingeniero levanta en obra un trabajo pedido por el cliente (descripción, ubicación, cantidad y monto estimado) y captura DOS firmas en el mismo dispositivo — la del ingeniero y la del cliente. Queda con su ficha imprimible/PDF con ambas firmas. El monto es solo registro (el sistema no genera facturas)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Crear y editar almacenes podía fallar al guardar; ya guarda correctamente. Si el almacén hereda la ubicación de su obra, ahora se fija y se mantiene sincronizada como corresponde, y si la ubicación no se pudo fijar la pantalla lo avisa en vez de callarlo."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "El inventario de un almacén ahora se puede descargar a Excel (respeta los filtros y categorías; la existencia va como número para poder sumar, y la apertura solo para administradores)."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "Al emitir el carnet de un trabajador, el carnet con su código QR se muestra de inmediato para imprimirlo, en vez de saltar directo al resumen."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

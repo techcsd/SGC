@@ -97,13 +97,43 @@ export const MOTIVOS_SIN_ACTIVIDAD: { value: string; label: string }[] = [
   { value: 'otro', label: 'Otro' },
 ];
 
-export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente';
+export type BitacoraTipo = 'parte_diario' | 'visita' | 'incidente' | 'orden_trabajo';
 
 export const BITACORA_TIPOS: { value: BitacoraTipo; label: string; icono: string; desc: string }[] = [
   { value: 'parte_diario', label: 'Bitácora del día', icono: '📋', desc: 'Actividades, personal y avance de la jornada' },
   { value: 'visita', label: 'Visita a obra', icono: '👷', desc: 'Registro de una visita o inspección externa' },
   { value: 'incidente', label: 'Incidente / accidente', icono: '⚠️', desc: 'Incidente, accidente o falla de equipo' },
+  // BN1 — orden de trabajo pedida por el cliente, con firma del ingeniero y del cliente.
+  { value: 'orden_trabajo', label: 'Orden de trabajo', icono: '🧾', desc: 'Trabajo pedido por el cliente, con firma del ingeniero y del cliente' },
 ];
+
+/** BN1 — una firma de la orden de trabajo (ingeniero o cliente). */
+export interface OrdenTrabajoFirma {
+  rol: 'ingeniero' | 'cliente';
+  nombre: string;
+  cedula?: string | null;
+  rol_desc?: string | null;
+  firma_path: string;
+  metodo?: 'pad' | 'foto';
+  firmado_en?: string;
+}
+
+/** BN1 — detalle de una orden de trabajo (bitácora tipo orden_trabajo). */
+export interface OrdenTrabajoDetalle {
+  bitacora: {
+    id: string; fecha: string; comentarios: string | null;
+    proyecto_id: string; proyecto: string | null;
+    usuario_id: string; autor: string | null;
+    created_at: string; es_prueba: boolean;
+  } | null;
+  detalle: {
+    descripcion: string; ubicacion: string | null;
+    cantidad: number | null; unidad: string | null;
+    monto_estimado: number | null; solicitado_por: string | null;
+    notas: string | null;
+  } | null;
+  firmas: OrdenTrabajoFirma[];
+}
 
 export const VISITANTE_TIPOS: { value: string; label: string }[] = [
   { value: 'institucion', label: 'Institución (MIVED, ayuntamiento, etc.)' },

@@ -272,7 +272,8 @@ export class PersonalRegistro implements OnInit {
     try {
       const num = await this.service.emitirCarnet(p.id);
       this.personal.set({ ...p, carnet_numero: num, carnet_emitido_at: new Date().toISOString() });
-      this.paso.set(5);
+      // BN6 — NO saltar al resumen: al llenarse carnet_numero, el paso 4 revela el
+      // carnet recién emitido (con QR) para imprimir. El usuario avanza con "Continuar".
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo emitir el carnet.');
     } finally {

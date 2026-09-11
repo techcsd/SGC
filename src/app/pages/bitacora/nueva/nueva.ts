@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
 import { ProyectoEstructurasService } from '../../../../shared/services/proyecto-estructuras.service';
@@ -77,7 +77,7 @@ interface Draft {
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, QtyStepper, Skeleton, FileUpload, Icon],
+  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -112,7 +112,9 @@ export class Nueva implements OnInit {
   // Q6 — catálogo de unidades de medida (activas) para el trabajo realizado.
   unidades = signal<Unidad[]>([]);
   restricciones = signal<{ value: string; label: string }[]>(RESTRICCIONES);
-  readonly TIPOS = BITACORA_TIPOS;
+  // BN1 — la orden de trabajo tiene su propio flujo (dos firmas) en una página
+  // dedicada; este wizard maneja los tres tipos de bitácora clásicos.
+  readonly TIPOS = BITACORA_TIPOS.filter((t) => t.value !== 'orden_trabajo');
   readonly VISITANTE_TIPOS = VISITANTE_TIPOS;
   readonly INCIDENTE_TIPOS = INCIDENTE_TIPOS;
   readonly MOTIVOS_SIN_ACTIVIDAD = MOTIVOS_SIN_ACTIVIDAD;

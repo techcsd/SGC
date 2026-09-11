@@ -417,3 +417,19 @@
 
   .sgc-input { flex: 1 1 220px; }
 }
+
+// BN1 — enlace a la orden de trabajo (flujo propio con dos firmas).
+.bitacora-ot-link {
+  display: block;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px dashed var(--accent, #ffb300);
+  border-radius: 10px;
+  color: var(--text-1);
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  &:hover { background: rgba(255, 179, 0, 0.08); }
+  strong { color: var(--accent, #ffb300); }
+}

@@ -1,13 +1,19 @@
 # Crons de SGC (pg_cron) — inventario
 
-Todos los `cron.schedule` viven en migraciones (`sql/`). **Hora RD = UTC−4, sin
-horario de verano**, así que la conversión es estable todo el año (p. ej.
-`0 12 * * *` = **8:00 AM RD**). `cron.schedule` hace **upsert por `jobname`**: si
-dos migraciones registran el mismo nombre, gana la última que corrió (no se
-duplica la fila).
+Todos los `cron.schedule` viven en migraciones (`sql/`) — regla 11 del checklist de
+migraciones. **Hora RD = UTC−4, sin horario de verano**, así que la conversión es
+estable todo el año (p. ej. `0 12 * * *` = **8:00 AM RD**). `cron.schedule` hace
+**upsert por `jobname`**: si dos migraciones registran el mismo nombre, gana la
+última que corrió (no se duplica la fila).
 
 Fuente de verdad: `select jobid, jobname, schedule, command, active from cron.job`.
-Última verificación contra prod: **07/09/2026** (26 jobs activos).
+Última verificación contra prod: **09/09/2026** (27 jobs activos, todos en la tabla).
+
+> **BN5a (09/09/2026):** hasta esta fecha, `sgc-incentivo-diario` y
+> `outbox-atascados-diario` corrían en prod pero estaban registrados **a mano**
+> (uno sin `cron.schedule` en su migración BK4, el otro comentado en BG2). La
+> migración `sql/2026-09-09-bn5a-crons-huerfanos.sql` los declara con el mismo
+> jobname/schedule/command verificado, para que existan también en el repo.
 
 | jobname | schedule (UTC) | RD | qué hace |
 |---|---|---|---|

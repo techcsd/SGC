@@ -1,0 +1,160 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Orden de trabajo</h1>
+    <span class="page-count">Trabajo pedido por el cliente, con firma del ingeniero y del cliente</span>
+  </div>
+  <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost sgc-btn--sm">← Bitácora</a>
+</div>
+
+@if (loading()) {
+  <p class="ot-loading">Cargando…</p>
+} @else {
+  <form class="ot-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+    <!-- 1. General -->
+    <section class="ot-section sgc-card">
+      <h2 class="ot-section__title">1. Datos de la orden</h2>
+      <div class="ot-row">
+        <div class="sgc-field">
+          <label for="fecha">Fecha <span class="required">*</span></label>
+          <input id="fecha" type="date" formControlName="fecha" [max]="today"
+                 [class.invalid]="f.fecha.invalid && f.fecha.touched" />
+        </div>
+        <div class="sgc-field">
+          <label for="proyecto_id">Obra / Proyecto <span class="required">*</span></label>
+          <select id="proyecto_id" formControlName="proyecto_id"
+                  [class.invalid]="f.proyecto_id.invalid && f.proyecto_id.touched">
+            <option [value]="null">Seleccionar obra…</option>
+            @for (p of proyectosVisibles(); track p.id) {
+              <option [value]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+          @if (f.proyecto_id.invalid && f.proyecto_id.touched) {
+            <span class="field-error">La obra es obligatoria.</span>
+          }
+        </div>
+      </div>
+
+      <div class="sgc-field">
+        <label for="descripcion">Descripción del trabajo <span class="required">*</span></label>
+        <textarea id="descripcion" rows="3" maxlength="1000" formControlName="descripcion"
+                  placeholder="¿Qué trabajo se pidió / se hizo?"
+                  [class.invalid]="f.descripcion.invalid && f.descripcion.touched"></textarea>
+        @if (f.descripcion.invalid && f.descripcion.touched) {
+          <span class="field-error">La descripción es obligatoria.</span>
+        }
+      </div>
+
+      <div class="ot-row">
+        <div class="sgc-field">
+          <label for="ubicacion">Ubicación en la obra</label>
+          <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Torre, piso, área…" />
+        </div>
+        <div class="sgc-field">
+          <label for="solicitado_por">Solicitado por (cliente)</label>
+          <input id="solicitado_por" type="text" formControlName="solicitado_por" placeholder="Nombre de quien lo pidió" />
+        </div>
+      </div>
+
+      <div class="ot-row">
+        <div class="sgc-field ot-field--sm">
+          <label for="cantidad">Cantidad</label>
+          <input id="cantidad" type="number" min="0" step="any" formControlName="cantidad" />
+        </div>
+        <div class="sgc-field ot-field--sm">
+          <label for="unidad">Unidad</label>
+          <input id="unidad" type="text" list="ot-unidades" formControlName="unidad" placeholder="m², qq, ud…" />
+          <datalist id="ot-unidades">
+            @for (u of unidades(); track u.id) { <option [value]="u.codigo">{{ u.nombre }}</option> }
+          </datalist>
+        </div>
+        <div class="sgc-field ot-field--sm">
+          <label for="monto_estimado">Monto estimado (RD$)</label>
+          <input id="monto_estimado" type="number" min="0" step="any" formControlName="monto_estimado" />
+        </div>
+      </div>
+      <p class="sgc-hint">El monto queda registrado y exportable; el sistema no genera facturas.</p>
+
+      <div class="sgc-field">
+        <label for="comentarios">Comentarios (opcional)</label>
+        <textarea id="comentarios" rows="2" maxlength="500" formControlName="comentarios"></textarea>
+      </div>
+    </section>
+
+    <!-- 2. Firmas -->
+    <section class="ot-section sgc-card">
+      <h2 class="ot-section__title">2. Firmas <span class="required">*</span></h2>
+      <p class="sgc-hint">Se requiere la firma del ingeniero y la del cliente para registrar la orden.</p>
+
+      <div class="ot-firmas">
+        <!-- Ingeniero -->
+        <div class="ot-firma">
+          <h3 class="ot-firma__title">Ingeniero</h3>
+          <div class="ot-row">
+            <div class="sgc-field">
+              <label for="ing_nombre">Nombre <span class="required">*</span></label>
+              <input id="ing_nombre" type="text" formControlName="ing_nombre"
+                     [class.invalid]="f.ing_nombre.invalid && f.ing_nombre.touched" />
+            </div>
+            <div class="sgc-field ot-field--sm">
+              <label for="ing_cedula">Cédula</label>
+              <input id="ing_cedula" type="text" formControlName="ing_cedula" />
+            </div>
+          </div>
+          <div class="sgc-field">
+            <label for="ing_rol_desc">Cargo / relación</label>
+            <input id="ing_rol_desc" type="text" formControlName="ing_rol_desc" placeholder="Ing. residente…" />
+          </div>
+          <div class="sgc-field">
+            <label>Firma del ingeniero</label>
+            <app-signature-pad #firmaIng ariaLabel="Firma del ingeniero"></app-signature-pad>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('ing')">Limpiar firma</button>
+          </div>
+        </div>
+
+        <!-- Cliente -->
+        <div class="ot-firma">
+          <h3 class="ot-firma__title">Cliente</h3>
+          <div class="ot-row">
+            <div class="sgc-field">
+              <label for="cli_nombre">Nombre <span class="required">*</span></label>
+              <input id="cli_nombre" type="text" formControlName="cli_nombre" placeholder="Nombre del cliente"
+                     [class.invalid]="f.cli_nombre.invalid && f.cli_nombre.touched" />
+              @if (f.cli_nombre.invalid && f.cli_nombre.touched) {
+                <span class="field-error">Requerido.</span>
+              }
+            </div>
+            <div class="sgc-field ot-field--sm">
+              <label for="cli_cedula">Cédula</label>
+              <input id="cli_cedula" type="text" formControlName="cli_cedula" />
+            </div>
+          </div>
+          <div class="sgc-field">
+            <label for="cli_rol_desc">Cargo / relación</label>
+            <input id="cli_rol_desc" type="text" formControlName="cli_rol_desc" placeholder="Propietario, representante…" />
+          </div>
+          <div class="sgc-field">
+            <label>Firma del cliente</label>
+            <app-signature-pad #firmaCli ariaLabel="Firma del cliente"></app-signature-pad>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarFirma('cli')">Limpiar firma</button>
+          </div>
+        </div>
+      </div>
+
+      @if (esAdmin()) {
+        <label class="ot-check">
+          <input type="checkbox" formControlName="es_prueba" /> Marcar como dato de prueba
+        </label>
+      }
+    </section>
+
+    @if (error()) { <p class="ot-error">{{ error() }}</p> }
+
+    <div class="ot-actions">
+      <a routerLink="/bitacora/nueva" class="sgc-btn sgc-btn--ghost">Cancelar</a>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Registrar orden de trabajo' }}
+      </button>
+    </div>
+  </form>
+}

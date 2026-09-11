@@ -5,9 +5,14 @@
       <h1 class="page__title">Inventario · {{ bodegaNombre() || 'Almacén' }}</h1>
       <p class="page__sub">{{ totalArticulos() }} artículo(s)</p>
     </div>
-    @if (puedeEditar()) {
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirAgregar()">+ Agregar artículo</button>
-    }
+    <!-- BN4 — contenedor de acciones (antes sólo estaba el botón suelto) -->
+    <div class="page__head-actions">
+      <app-export-excel [filenameBase]="exportFilename()" [rows]="filtrados()" [allRows]="items()"
+                        [columns]="exportCols()" [sections]="exportSecciones" vistaLabel="filtros actuales" />
+      @if (puedeEditar()) {
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirAgregar()">+ Agregar artículo</button>
+      }
+    </div>
   </header>
 
   <div class="filters-bar">

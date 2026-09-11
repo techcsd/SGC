@@ -157,3 +157,43 @@ vivía del `EXECUTE TO PUBLIC` por defecto de Postgres; si se revoca → `42501`
 rompe si un RPC que el cliente llama por `.rpc('X')` no tiene **ningún** `grant … to authenticated`
 en `sql/`. La verificación de **aridad** exacta (¿el grant cubre la sobrecarga viva?) es estática
 y sólo aproximada — `--report` la lista; la firma viva se confirma contra `pg_proc` en prod.
+
+## 10. Un `as` sobre `form.value` no es un tipo: es permiso para mandar un campo que no existe (BN3)
+El payload de una escritura se construye **campo por campo**, no con `const payload = this.form.value as XxxFormData`.
+
+- **Por qué:** un `FormGroup` mezcla controles que son **columnas** con controles que son **estado
+  de pantalla** (un toggle "heredar", un filtro, un "confirmar"). El chequeo de propiedades
+  excedentes de TypeScript **sólo aplica a literales**, así que `form.value as XxxFormData` **NO
+  quita** el control de más — lo deja pasar. PostgREST recibe una clave que no es columna y
+  **rechaza la fila entera** con un 400: un control de UI en el payload no degrada el guardado,
+  **lo mata**.
+- **Caso real (BN3):** el form de almacenes tenía `heredar_ubicacion` (estado de pantalla; la
+  columna real es `ubicacion_hereda_proyecto`, que fija el RPC `set_bodega_ubicacion`). El
+  `const payload = this.form.value as BodegaFormData` lo mandaba al `.insert`/`.update` → crear y
+  **editar almacenes rotos en producción**.
+- **Regla (doble filtro):** (a) el componente arma el objeto **explícito** con `getRawValue()` y
+  **sólo** las columnas, sin `as` (tipa el destino de verdad para que el compilador avise); (b) el
+  **servicio también filtra** por lista blanca de columnas antes de `.insert`/`.update` — un
+  servicio que reenvía lo que le dan convierte cualquier descuido de UI en un 400 en la cara del
+  usuario. Patrón: `pickBodegaFields()` en `bodegas.service.ts`.
+- **Barrido BN3 (09/09/2026):** de 10 sitios `form.value as XxxFormData`, **ninguno es bomba viva
+  hoy** (todos los controles son columnas), pero **9/10 reenvían el payload crudo sin lista
+  blanca** → cargados y sin seguro: el día que alguien agregue un control de pantalla a esos forms,
+  es un 400 instantáneo. Candidato a guarda de `prebuild` (flag a `form.value as` que alimenta un
+  `.insert/.update` sin `pick`).
+
+## 11. Si el `cron.schedule` no está en `sql/`, el trabajo no existe (BM2 un nivel arriba, BN5)
+Todo cron **vive en una migración de `sql/`**, no registrado a mano desde el dashboard.
+
+- **Por qué:** un job creado desde el dashboard funciona hasta que alguien reconstruya el proyecto,
+  y entonces **desaparece sin un error**. Lo que no está declarado en el repo **no se puede
+  auditar, ni restaurar, ni revisar en un PR** — es la regla 5-bis (buckets) un nivel más arriba.
+- **Caso real (BN5):** dos jobs corrían en prod fuera del repo — `sgc-incentivo-diario` (su
+  migración BK4 terminó en `commit;` sin `cron.schedule`) y `outbox-atascados-diario` (su
+  `cron.schedule` quedó **comentado** en BG2, "HELD para Xaviel"). Un `cron.schedule` **comentado**
+  cuenta como no declarado. Rescatados en `sql/2026-09-09-bn5a-crons-huerfanos.sql`.
+- **Regla:** al crear un cron, su `do $$ … cron.unschedule(...) … $$` + `cron.schedule(...)`
+  idempotente va **en la misma migración** que crea la función (patrón en
+  `2026-08-31-be1-resumen-operaciones-cron.sql:64-66`), y se añade la fila a `docs/CRONS.md`.
+  Fuente de verdad: `select jobid, jobname, schedule, command, active from cron.job` — reconciliar
+  las tres direcciones (prod ↔ `sql/` ↔ `CRONS.md`). RD = UTC−4 sin DST (`0 12 * * *` = 8 AM RD).

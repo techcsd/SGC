@@ -471,6 +471,7 @@ export class Historial implements OnInit {
     switch (tipo) {
       case 'visita': return 'sgc-badge sgc-badge--info';
       case 'incidente': return 'sgc-badge sgc-badge--danger';
+      case 'orden_trabajo': return 'sgc-badge sgc-badge--warning';
       default: return 'sgc-badge sgc-badge--neutral';
     }
   }
@@ -517,6 +518,8 @@ export class Historial implements OnInit {
   resumenEntrada(b: Bitacora): string {
     if (b.tipo === 'visita') return b.visita_nombre ?? 'Visita';
     if (b.tipo === 'incidente') return b.incidente_subcontratista ?? this.incidenteTipoLabel(b.incidente_tipo);
+    // BN1 — el detalle de la orden vive en tabla hija (no en el listado); se ve en su ficha.
+    if (b.tipo === 'orden_trabajo') return b.comentarios ?? 'Orden de trabajo';
     return b.bloque_entrepiso ?? '—';
   }
 
