@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
+import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   Cargo,
   FotoTipo,
@@ -219,8 +220,12 @@ export class PersonalObraService {
   }
 
   /** Sube una foto tipada al bucket y registra/actualiza su fila (una por tipo). */
-  async subirFoto(personal: PersonalObra, tipo: FotoTipo, file: Blob, ext = 'jpg'): Promise<string> {
-    const path = `${personal.proyecto_id}/${personal.id}/${tipo}.${ext}`;
+  async subirFoto(personal: PersonalObra, tipo: FotoTipo, file: File, ext = 'jpg'): Promise<string> {
+    // BJ1 — comprimir la foto antes de subir (perfil evidencia), como el resto del
+    // repo. Si no es imagen o falla, comprimirImagen devuelve el original.
+    file = await comprimirImagen(file, 'evidencia');
+    const finalExt = file.type === 'image/jpeg' ? 'jpg' : ext;
+    const path = `${personal.proyecto_id}/${personal.id}/${tipo}.${finalExt}`;
     const { error: upErr } = await this.client.storage
       .from(BUCKET)
       .upload(path, file, { upsert: true, contentType: file.type || 'image/jpeg' });
