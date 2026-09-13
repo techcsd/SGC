@@ -295,6 +295,25 @@
           </dd>
         </div>
         <div><dt>Urgencia</dt><dd>{{ s.urgencia === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
+        <!-- BO8 — fecha de necesidad + chip de proximidad (igual que la fila de la lista). -->
+        @if (s.fecha_necesidad; as fn) {
+          <div>
+            <dt>Necesidad</dt>
+            <dd>
+              📅 {{ formatFecha(fn) }}
+              @let dd = diasNecesidad(fn);
+              @if (dd !== null) {
+                @if (dd < 0) {
+                  <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -dd }} día{{ dd === -1 ? '' : 's' }}</span>
+                } @else if (dd === 0) {
+                  <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                } @else if (dd <= 3) {
+                  <span class="sgc-badge sgc-badge--warning">Faltan {{ dd }} día{{ dd === 1 ? '' : 's' }}</span>
+                }
+              }
+            </dd>
+          </div>
+        }
         <div><dt>Creada</dt><dd>{{ formatTimestamp(s.created_at) }}</dd></div>
         @if (s.atendido_en) {
           <div>
