@@ -1,6 +1,35 @@
 # HANDOFF — SGC
 
-## TL;DR — Ronda BO (PROMPT-44, 13/09/2026) — **SHIPPED web 1.128.0 (commit d0c9cdb en main, SIN push aún); 3 migraciones APLICADAS + verificadas en prod**
+## TL;DR — Auditoría PROMPT-46 de `imp 01092026` (13/09/2026) — **SHIPPED + PUSHED + DEPLOYED: web 1.128.1 (commit `edd299b` en main), Vercel `READY` en prod, versión registrada**
+
+**Estado:** auditoría de las tandas **BE + BH→BN** (solo web/BD) contra repo real **y prod** (Management API). Conclusión: **todas están sustancialmente entregadas y en prod** — el `PLAN.md` de `imp 01092026` etiquetaba BI/BK/BM como "por ejecutar" pero era **stale**. Reporte completo: `C:\developer\improvements\septiembre 2026\imp 11092026\REPORTE-AUDITORIA-01092026-SGC.md`. Columna "Estado" del PLAN viejo actualizada (CRLF respetado).
+
+**Cerrado en esta pasada (commit `edd299b`, 1.128.1, ya en prod):**
+- **🔴 BI4b** (bug real): el CHECK de `sgc.app_error_reports.error_type` nunca se amplió — la migración `bi4` amplió solo la whitelist de la función `report_app_error`, así que `tracking/login/gps/voice` fallaban 23514 en camino silencioso (SILENT_OP) y **se perdían**. Fix aditivo `sql/2026-09-13-bi4b-error-type-check-ampliar.sql` **aplicado+verificado en prod**.
+- **BM1e** (telemetría): cerré los 11 reportes de combustible que eran rechazos de negocio mal clasificados como `sistema` (4 firmas: DR481 ×8, salto-km ×2, ambigüedad-overload-v1.97 ×1 ya resuelta) → `solucionado` en `app_error_estados` con `resuelto_en_version='2.21.0'`. Decisión de Xaviel = cerrar. `sql/2026-09-13-bm1e-cerrar-telemetria-combustible.sql` **aplicado a prod**.
+- **BJ1**: `personal-obra.service.ts subirFoto` ahora comprime (perfil `evidencia`), como el resto del repo. Desplegado con 1.128.1.
+
+**Decisión de Xaviel esta sesión:** **BJ3 (wizard de conduce web) queda APAGADO por ahora** — el flag `conduce_wizard_web_habilitado='false'` en prod (la migración bj3 hizo `on conflict do nothing` sobre la fila que AV5 dejó en false). One-liner listo cuando quiera encenderlo: `update sgc.parametros set valor='true' where clave='conduce_wizard_web_habilitado';` (o Admin › Parámetros) + corregir doc (`PARIDAD.md`/`AV5-AV6` dicen "=true" mintiendo).
+
+**Gaps abiertos que necesitan DECISIÓN (no bloqueé nada, están en el reporte §e):** BK1 (6 edges de correo transaccional aún no pasan por la matriz de notificaciones), BN2 (la columna `personal_obra_firmas.documento_path` sigue muerta — ni la opción C1 se hizo), BM F1.4 (auditar los OTROS RPCs por errcode negocio/infra), BM2 (retirar bucket `sgc-combustible` muerto), BL5 (índice no-único + ocultar docs), BL7 (`km_en_depuracion` booleano, no conteo), BL6 (`#374151`+`zoom:11` en Seguimiento), BK5 (`umbral_licencia_dias` 30-vs-90), cron dominical `*/30 13-23 * * 0` (confirmar horario tras dedup).
+
+**Pruebas manuales 🔎 pendientes (reporte §f):** la #1 = conteo de fotos de las 3 bitácoras del ingeniero (criterio de éxito de BI1); smoke de BK1 (apagar un tipo → sin inbox/push).
+
+**Gotchas de la sesión (alto valor):**
+- **No hay tabla de control de migraciones** post-2026-07-03: `supabase_migrations.schema_migrations` está congelada (35 filas, última 20260703). Todo Ago/Sep se aplicó por API/dashboard → **repo-vs-prod se verifica por OBJETO** (`pg_proc`/`information_schema`/`pg_policies`/`cron.job`), no por la tabla de migraciones.
+- **Verificar prod sin CLI:** Management API con `$SUPABASE_ACCESS_TOKEN` (env, presente). Ref del proyecto = `jeeqhgccqefbqilntcpu`. Recipe: `curl -s -X POST "https://api.supabase.com/v1/projects/jeeqhgccqefbqilntcpu/database/query" -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" -d '{"query":"<SQL>"}'`.
+- **`marcar_error_estado` gatea por `auth.uid()`/`es_tecnologia()`** → NO se puede llamar desde la Management API (rol postgres, sin JWT → 42501). Se escribe directo a `app_error_estados` (efecto idéntico). Lo mismo aplica a cualquier RPC `SECURITY DEFINER` con gate de `auth.uid()`.
+- **Root cause de BJ3 (auditor ciego):** `scripts/audit-flags-exports-muertos.mjs` valida que un flag `_habilitado` **tenga fila**, NO su **valor** → no atrapa un `insert 'true' on conflict do nothing` que choca con una fila apagada preexistente. Candidato a endurecer.
+- **Premisas 🔴 de los prompts que resultaron FALSAS** (patrón recurrente): §G-1 de BN1 ("6 NOT NULL" — 3 ya nullable, 3 con DEFAULT 0), las 26 claves de BK5 (ya sembradas en flota_config/parametros), FCM apagado (0/985), isoweek de BK4, `tiene_modulo` de BL2 (hay SELECT policies).
+
+**Verify on resume:**
+- `git -C "C:\Users\xavie\Desktop\X Dev\dev\SGC" log -1 --oneline` → debe ser `edd299b` (o posterior).
+- Deploy: el último deployment de Vercel (proyecto `sgc`, prj_qujtQToGkfTpsKTYKJ1mP5PBi9wA) del commit `edd299b` está `READY`/production; `sgc.app_versiones` tiene `web 1.128.1`.
+- Prod CHECK: `select pg_get_constraintdef(oid) from pg_constraint where conname='app_error_reports_error_type_check';` → debe incluir tracking/login/gps/voice.
+
+---
+
+## TL;DR — Ronda BO (PROMPT-44, 13/09/2026) — **SHIPPED + PUSHED: web 1.128.0 (commit d0c9cdb en main); 3 migraciones APLICADAS + verificadas en prod** *(las pendientes de "push"/"aplicar" de abajo YA se resolvieron — prod está en 1.128.1)*
 
 **Estado:** las 3 migraciones (`bo4-bo5`, `bo1`, `bo8`) están **aplicadas y verificadas en prod**; el frontend está **commiteado a main (d0c9cdb, 1.128.0)** con su entrada en `release-notes.json`. **FALTA `git push`** (Xaviel pidió solo commit) → hasta el push, Vercel no despliega. Al pushear: Vercel auto-deploya y `autoRegistrarVersionWeb` registra 1.128.0 (o el postbuild si hay service-role en Vercel). Paridad app BO (fecha_necesidad F3) = PROMPT-45.
 

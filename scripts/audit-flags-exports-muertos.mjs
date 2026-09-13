@@ -84,6 +84,96 @@ for (const [key, where] of readKeys) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// (C) VALOR de los flags: un cambio de valor que un `on conflict do nothing`
+//     deja caer EN SILENCIO (el bug BJ3). Si una migración TEMPRANA fijó
+//     'X'='false' y una POSTERIOR intenta 'X'='true' pero usa `on conflict do
+//     nothing`, el segundo INSERT es un no-op sobre la fila existente: el valor
+//     efectivo sigue en 'false' y el feature queda apagado aunque el repo "diga"
+//     que se encendió. (Chequear que la fila EXISTA — check A — no basta: existía,
+//     con el valor equivocado.) La forma correcta de CAMBIAR el valor es
+//     `on conflict (clave) do update set valor = excluded.valor` o un `update
+//     sgc.parametros set valor=... where clave=...` explícito.
+//
+// Casos ACEPTADOS (el conflicto se conoce y la decisión es dejar el valor
+// efectivo): se listan aquí con su razón. Un flag fuera de esta lista con
+// valores en conflicto ROMPE el build.
+const ACCEPTED_FLAG_VALUE_CONFLICTS = new Map([
+  // BJ3 — el wizard de conduce web quedó 'false' (AV5) y BJ3 intentó 'true' con
+  // `do nothing` (no-op). Decisión de Xaviel (auditoría 13-sep-2026): dejarlo
+  // APAGADO por ahora; se encenderá con un `update`/toggle cuando se verifique.
+  ['conduce_wizard_web_habilitado', 'BJ3 — apagado a propósito (decisión 13-sep-2026)'],
+]);
+
+// Recolecta ESCRITURAS de valor por clave, en orden CRONOLÓGICO. Los archivos de
+// sql/ van prefijados por fecha (YYYY-MM-DD-…), así que ordenarlos por nombre =
+// ordenarlos por fecha de aplicación.
+const writesByKey = new Map(); // key -> [{ value, mode, file }]
+function addWrite(key, value, mode, file) {
+  if (!writesByKey.has(key)) writesByKey.set(key, []);
+  writesByKey.get(key).push({ value, mode, file });
+}
+const orderedSql = sqlFiles
+  .map((f, i) => ({ f, i, base: f.replace(/\\/g, '/').split('/').pop() }))
+  .sort((a, b) => (a.base < b.base ? -1 : a.base > b.base ? 1 : a.i - b.i));
+
+for (const { f, i } of orderedSql) {
+  const sql = sqlText[i];
+  const rel = relative(ROOT, f);
+  // INSERTs: separa las filas de valores de la cláusula ON CONFLICT.
+  const insRe = /insert\s+into\s+sgc\.parametros[\s\S]*?values([\s\S]*?);/gi;
+  let m;
+  while ((m = insRe.exec(sql)) !== null) {
+    const [rowsPart, ocPart = ''] = m[1].split(/on\s+conflict/i);
+    let mode;
+    if (!/on\s+conflict/i.test(m[1])) mode = 'none';           // insert plano
+    else if (/do\s+nothing/i.test(ocPart)) mode = 'nothing';   // no-op si existe
+    else if (/do\s+update/i.test(ocPart)) mode = /\bvalor\b/i.test(ocPart) ? 'update-valor' : 'update-other';
+    else mode = 'none';
+    // Fila = ('clave', 'valor', ...). valor de sgc.parametros es text ⇒ va entre comillas.
+    const rowRe = /\(\s*'([a-z0-9_]+)'\s*,\s*'([^']*)'/gi;
+    let r;
+    while ((r = rowRe.exec(rowsPart)) !== null) addWrite(r[1], r[2], mode, rel);
+  }
+  // UPDATE explícito de valor: cambia el valor de verdad.
+  const updRe = /update\s+sgc\.parametros\s+set\b([\s\S]*?)\bwhere\b([\s\S]*?);/gi;
+  while ((m = updRe.exec(sql)) !== null) {
+    const vv = /\bvalor\s*=\s*'([^']*)'/i.exec(m[1]);
+    const kk = /\bclave\s*=\s*'([a-z0-9_]+)'/i.exec(m[2]);
+    if (vv && kk) addWrite(kk[1], vv[1], 'update-stmt', rel);
+  }
+}
+
+// Simula el valor efectivo por clave y detecta el cambio dejado caer.
+const valueOffenders = []; // flags no aceptados → rompe el build
+const valueWarnings = [];  // aceptados + no-flags → aviso informativo
+for (const [key, writes] of writesByKey) {
+  let effective;
+  let exists = false;
+  let dropped = null;
+  for (const w of writes) {
+    switch (w.mode) {
+      case 'none':          // insert plano: fija/reemplaza (un dup real reventaría en prod, no es silencioso)
+      case 'update-valor':  // on conflict do update set valor=excluded.valor: override correcto
+      case 'update-stmt':   // update ... set valor=...: override correcto
+        effective = w.value; exists = true; break;
+      case 'nothing':       // on conflict do nothing: no cambia una fila existente
+      case 'update-other':  // on conflict do update que NO toca valor: tampoco lo cambia
+        if (!exists) { effective = w.value; exists = true; }
+        else if (w.value !== effective) dropped = { intended: w.value, effective, file: w.file };
+        break;
+    }
+  }
+  if (!dropped) continue;
+  const entry = { key, ...dropped };
+  if (IS_FLAG.test(key)) {
+    if (ACCEPTED_FLAG_VALUE_CONFLICTS.has(key)) valueWarnings.push({ ...entry, accepted: ACCEPTED_FLAG_VALUE_CONFLICTS.get(key) });
+    else valueOffenders.push(entry);
+  } else {
+    valueWarnings.push(entry); // no-flag (umbral numérico re-sembrado): solo aviso
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // (B) Exports de servicios sin llamadores. Alcance: métodos PÚBLICOS de
 //     src/shared/services/*.service.ts. Un método sin referencias fuera de su
 //     propio archivo = código muerto.
@@ -159,6 +249,27 @@ if (flagOffenders.length) {
     'o el gate lee un parámetro inexistente y el feature queda apagado por accidente.\n');
 } else {
   console.log('✓ audit-flags: todo parámetro leído tiene su fila en sgc.parametros.');
+}
+
+if (valueOffenders.length) {
+  failed = true;
+  console.error('\n✗ audit-flags(valor) — FLAGS cuyo cambio de valor se pierde por `on conflict do nothing` (bug BJ3):\n');
+  for (const o of valueOffenders) {
+    console.error(`   · '${o.key}': una migración intenta valor='${o.intended}', pero el valor efectivo sigue en '${o.effective}'`);
+    console.error(`     (${o.file} inserta sobre una fila que ya existía usando ON CONFLICT DO NOTHING → no-op).`);
+  }
+  console.error('\nPara CAMBIAR el valor de un parámetro usa `on conflict (clave) do update set valor = excluded.valor`\n' +
+    'o un `update sgc.parametros set valor=... where clave=...` explícito. Si el valor efectivo ES el deseado,\n' +
+    'añade la clave a ACCEPTED_FLAG_VALUE_CONFLICTS en este script con su razón.\n');
+} else {
+  console.log('✓ audit-flags(valor): ningún flag pierde su cambio de valor por on-conflict-do-nothing.');
+}
+for (const w of valueWarnings) {
+  if (w.accepted) {
+    console.log(`ℹ flag '${w.key}': conflicto de valor ACEPTADO — efectivo '${w.effective}', intento '${w.intended}' — ${w.accepted}.`);
+  } else {
+    console.log(`ℹ parámetro '${w.key}' (no-flag): el valor '${w.intended}' de ${w.file} no aplica (efectivo '${w.effective}', on-conflict-do-nothing).`);
+  }
 }
 
 if (newDead.length) {

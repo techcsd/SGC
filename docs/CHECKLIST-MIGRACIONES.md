@@ -102,10 +102,21 @@ llamadores**, NO es un feature — es deuda que se pudre en silencio.
   `_enabled`/`_flag` (los umbrales numéricos con `coalesce(...,default)` NO son flags).
 - **Ningún export de servicio queda sin llamador** (fue BJ3: `crearConduceSimple()`
   con cero llamadores por semanas). Al borrar el último llamador, borra el export.
+- **El VALOR del flag también cuenta, no solo que la fila exista** (auditoría 13-sep,
+  root cause de BJ3): un `insert … 'true' … on conflict (clave) do nothing` sobre una
+  fila que una migración anterior sembró en `'false'` es un **no-op silencioso** — la
+  fila existe (check A pasa) pero con el valor equivocado, y el feature queda apagado
+  aunque el repo "diga" que se encendió. **Para CAMBIAR el valor de un parámetro** usa
+  `on conflict (clave) do update set valor = excluded.valor` o un `update sgc.parametros
+  set valor=… where clave=…` explícito — nunca otro `insert … do nothing`.
 - **Guarda:** `scripts/audit-flags-exports-muertos.mjs` (prebuild). Falla si (a) un
-  flag `_habilitado`/… se lee sin `INSERT` en `sgc.parametros`, o (b) aparece un
+  flag `_habilitado`/… se lee sin `INSERT` en `sgc.parametros`, (b) aparece un
   dead-export **nuevo** (ratchet contra `scripts/.dead-exports-baseline.json`; tras
-  una limpieza intencional, regenerar con `--update-baseline`).
+  una limpieza intencional, regenerar con `--update-baseline`), o (c) un **flag cambia
+  de valor y el cambio se pierde** por `on conflict do nothing` (simula el valor
+  efectivo cronológicamente por `sql/`; los conflictos aceptados a propósito se listan
+  en `ACCEPTED_FLAG_VALUE_CONFLICTS` con su razón — hoy `conduce_wizard_web_habilitado`,
+  apagado por decisión). Los umbrales numéricos re-sembrados dan solo aviso, no rompen.
 
 ## 8. El smoke de un flujo con outbox REINTENTA (regla de verificación de cierre, BI) — obligatoria
 Un smoke que sólo prueba el **camino feliz** (INSERT en ruta nueva) y da verde es **peor que
