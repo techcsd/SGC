@@ -30,6 +30,9 @@ export interface SalidaInventario {
   destino_almacen?: { nombre: string } | null;
   proyecto_id: string | null;
   proyecto?: { nombre: string };
+  // BO7/F5.6 — requisición de la que procede este conduce (despacho enlazado).
+  origen_requisicion_id?: string | null;
+  origen_requisicion?: { id: string; folio: number | null } | null;
   motivo: string;
   responsable: string | null;
   observaciones: string | null;

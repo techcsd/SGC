@@ -14,7 +14,7 @@ import { Categoria } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
-import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_BADGE: Record<string, string> = {
@@ -99,6 +99,13 @@ export class Requisiciones implements OnInit {
   search = signal('');
   // BH1 — una prueba cancelada no debe parecer trabajo pendiente: ocultas por defecto.
   ocultarCanceladas = signal(true);
+  // BO8 — orden de la bandeja: por defecto la más reciente; opción "por fecha de
+  // necesidad" (la más próxima/vencida primero) para que Raykler priorice por obra.
+  orden = signal<'reciente' | 'necesidad'>('reciente');
+  // BO8 — solo requisiciones con fecha de necesidad fijada.
+  soloConNecesidad = signal(false);
+  /** BO8 — días hasta la fecha de necesidad (chip "faltan N / vencida"). */
+  diasNecesidad = (f: string | null | undefined) => (f ? daysUntil(f) : null);
 
   // ── Detalle / gestión ────────────────────────────────────
   selected = signal<SolicitudMaterial | null>(null);
@@ -204,7 +211,8 @@ export class Requisiciones implements OnInit {
       !!this.fDesde() ||
       !!this.fHasta() ||
       !!this.fArticulo() ||
-      !!this.search(),
+      !!this.search() ||
+      this.soloConNecesidad(),
   );
 
   filtered = computed(() => {
@@ -217,9 +225,12 @@ export class Requisiciones implements OnInit {
     const art = this.fArticulo().trim().toLowerCase();
     const q = this.search().trim().toLowerCase();
 
+    const soloNec = this.soloConNecesidad();
+
     return this.requisiciones().filter((r) => {
       // BH1 — canceladas ocultas por defecto, salvo que se filtren explícitamente.
       if (this.ocultarCanceladas() && !est && r.estado === 'cancelada') return false;
+      if (soloNec && !r.fecha_necesidad) return false; // BO8
       if (obra && r.proyecto_id !== obra) return false;
       if (sol && r.solicitante_id !== sol) return false;
       if (est && r.estado !== est) return false;
@@ -243,6 +254,57 @@ export class Requisiciones implements OnInit {
         if (!hay.includes(q)) return false;
       }
       return true;
+    });
+  });
+
+  // BO8 (§E-7) — vista de la bandeja: lista clásica o agrupada por semana de necesidad.
+  vista = signal<'lista' | 'semana'>('lista');
+
+  /**
+   * BO8 (§E-7) — agrupa lo filtrado en cubos por proximidad de la fecha de necesidad:
+   * Vencidas / Esta semana / Próxima semana / Más adelante / Sin fecha. Usa daysUntil
+   * (parte el string, sin `new Date(dateOnly)`), no matemática de calendario.
+   */
+  grupos = computed(() => {
+    const buckets: { key: string; titulo: string; orden: number; items: SolicitudMaterial[] }[] = [
+      { key: 'vencidas', titulo: 'Vencidas', orden: 0, items: [] },
+      { key: 'semana', titulo: 'Esta semana', orden: 1, items: [] },
+      { key: 'proxima', titulo: 'Próxima semana', orden: 2, items: [] },
+      { key: 'adelante', titulo: 'Más adelante', orden: 3, items: [] },
+      { key: 'sinfecha', titulo: 'Sin fecha de necesidad', orden: 4, items: [] },
+    ];
+    const by = new Map(buckets.map((b) => [b.key, b]));
+    for (const r of this.filtered()) {
+      const fn = r.fecha_necesidad;
+      let key: string;
+      if (!fn) key = 'sinfecha';
+      else {
+        const d = daysUntil(fn);
+        key = d < 0 ? 'vencidas' : d <= 6 ? 'semana' : d <= 13 ? 'proxima' : 'adelante';
+      }
+      by.get(key)!.items.push(r);
+    }
+    // Dentro de cada cubo, la más próxima/vencida primero; las sin fecha por reciente.
+    for (const b of buckets) {
+      if (b.key === 'sinfecha') continue;
+      b.items.sort((a, c) => ((a.fecha_necesidad ?? '') < (c.fecha_necesidad ?? '') ? -1 : 1));
+    }
+    return buckets.filter((b) => b.items.length);
+  });
+
+  /** BO8 — orden aplicado sobre lo filtrado. 'reciente' preserva created_at desc
+   *  (orden del getAll); 'necesidad' pone la fecha más próxima/vencida primero y las
+   *  sin fecha al final. No muta el array de la señal (copia con [...]). */
+  ordenadas = computed(() => {
+    const rows = this.filtered();
+    if (this.orden() !== 'necesidad') return rows;
+    return [...rows].sort((a, b) => {
+      const fa = a.fecha_necesidad ?? null;
+      const fb = b.fecha_necesidad ?? null;
+      if (fa && fb) return fa < fb ? -1 : fa > fb ? 1 : 0;
+      if (fa) return -1;
+      if (fb) return 1;
+      return 0;
     });
   });
 
@@ -559,12 +621,14 @@ export class Requisiciones implements OnInit {
     this.fHasta.set('');
     this.fArticulo.set('');
     this.search.set('');
+    this.soloConNecesidad.set(false); // BO8
   }
 
   async exportar() {
-    const rows = this.filtered().map((r) => ({
+    const rows = this.ordenadas().map((r) => ({
       Código: this.codigo(r),
       Fecha: this.formatFecha(r.created_at),
+      Necesidad: r.fecha_necesidad ? this.formatFecha(r.fecha_necesidad) : '', // BO8
       Obra: r.proyecto?.nombre ?? '',
       Solicitante: this.solicitanteNombre(r) === '—' ? '' : this.solicitanteNombre(r),
       Rol: this.rolSolicitante(r),

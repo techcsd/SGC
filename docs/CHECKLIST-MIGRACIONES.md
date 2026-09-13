@@ -197,3 +197,22 @@ Todo cron **vive en una migración de `sql/`**, no registrado a mano desde el da
   `2026-08-31-be1-resumen-operaciones-cron.sql:64-66`), y se añade la fila a `docs/CRONS.md`.
   Fuente de verdad: `select jobid, jobname, schedule, command, active from cron.job` — reconciliar
   las tres direcciones (prod ↔ `sql/` ↔ `CRONS.md`). RD = UTC−4 sin DST (`0 12 * * *` = 8 AM RD).
+
+## 12. Cuando un modelo reemplaza a otro, el viejo se retira o se documenta quién lo sigue leyendo (BO1/BO2)
+Toda migración de modelo **nace con la lista de sus lectores y una fecha de retiro del puente**.
+
+- **Por qué:** dejar el modelo viejo como *"puente legacy"* sin inventariar quién lo lee es una bomba
+  de tiempo. `vehiculo_asignaciones` fue sustituida por `vehiculo_usos`, la migración dejó
+  `vehiculos.responsable_id` como puente y **nadie hizo el inventario de lectores** → dos pantallas
+  quedaron preguntando por el modelo muerto (una se arregló, otra siguió rota en prod). Además, el gate
+  de combustible cae a `vehiculos.responsable_id` cuando no hay asignación activa, y ese campo lo
+  reescribe `iniciar_uso_vehiculo` cada vez que alguien toma un vehículo → basta tomarlo una vez para
+  quedar clavado a él (BO2).
+- **Regla:** el `comment on column/table` del puente **nombra la migración** donde vive el inventario;
+  esa migración lista **LECTORES** (quién sigue leyendo el campo viejo), **ESCRITORES** (quién ya migró
+  al nuevo) y una **FECHA/RONDA DE RETIRO**. Mientras el puente viva, un trigger lo mantiene sincronizado
+  y **nadie escribe el campo viejo directo**.
+- **Caso real (BO1):** `bodegas.es_principal` significaba tres cosas (central global / desempate por obra
+  / "es central"). Se partió en `es_central` + `es_principal_obra` (`sql/2026-09-13-bo1-almacen-split-central-obra.sql`);
+  `es_principal` quedó como puente de **solo lectura** sincronizado por trigger, con sus 8 lectores y su
+  fecha de retiro documentados en esa migración.

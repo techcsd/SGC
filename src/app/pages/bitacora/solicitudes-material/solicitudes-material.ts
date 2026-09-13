@@ -22,7 +22,7 @@ import { HighlightItemDirective } from '../../../../shared/directives/highlight-
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { Icon } from '../../../../shared/ui/icon/icon';
-import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatTimestampDisplay, todayIso, daysUntil } from '../../../../shared/utils/fecha.util';
 
 /**
  * Renglón de la requisición. Si articulo_id está vacío → es un "Otro" (texto
@@ -120,9 +120,15 @@ export class SolicitudesMaterial implements OnInit {
   step = signal<'form' | 'resumen'>('form');
   formItems = signal<ItemRow[]>([NUEVO_ITEM()]);
 
+  // BO8 — hoy (YYYY-MM-DD local) para el [min] del selector de fecha de necesidad.
+  readonly hoyIso = todayIso();
+  /** BO8 — días hasta la fecha de necesidad (para el chip "faltan N días / vencida"). */
+  diasNecesidad = (f: string | null | undefined) => (f ? daysUntil(f) : null);
+
   form = new FormGroup({
     proyecto_id: new FormControl<string | null>(null, [Validators.required]),
     urgencia: new FormControl<'normal' | 'urgente'>('normal', [Validators.required]),
+    fecha_necesidad: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
   });
 
@@ -476,6 +482,7 @@ export class SolicitudesMaterial implements OnInit {
         proyecto_id: v.proyecto_id!,
         solicitante_id: solicitanteId,
         urgencia: v.urgencia!,
+        fecha_necesidad: v.fecha_necesidad ?? null, // BO8
         notas: v.notas ?? null,
         items: items.map((i) => {
           const a = i.articulo_id ? this.articuloById(i.articulo_id) : undefined;

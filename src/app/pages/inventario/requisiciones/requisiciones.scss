@@ -1,3 +1,52 @@
+// BO8 (§E-7) — toggle de vista + vista agrupada por semana de necesidad.
+.req-vista-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.req-grupos { display: flex; flex-direction: column; gap: 18px; padding: 4px; }
+.req-grupo__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 2px solid var(--sgc-border, #e0e0e0);
+  margin-bottom: 8px;
+  &--vencidas { border-bottom-color: var(--sgc-danger, #e53935); }
+}
+.req-grupo__titulo { font-weight: 600; }
+.req-grupo__conteo {
+  font-size: 0.8rem;
+  color: var(--sgc-text-muted);
+  background: var(--sgc-surface-2, #f2f2f2);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.req-grupo__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.req-grupo__item {
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-border, #e0e0e0);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover { background: var(--sgc-surface-2, #f6f6f6); }
+}
+.req-grupo__linea1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.req-grupo__obra { font-weight: 500; }
+.req-grupo__linea2 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; font-size: 0.85rem; }
+.req-grupo__fecha { font-weight: 500; }
+
+// BO8 — cabecera clicable para ordenar por fecha de necesidad.
+.req-th-sort {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  &[aria-pressed='true'] { color: var(--sgc-primary, var(--primary)); font-weight: 600; }
+}
+
 .requisiciones__intro {
   color: var(--sgc-text-secondary);
   margin: 0 0 1rem;

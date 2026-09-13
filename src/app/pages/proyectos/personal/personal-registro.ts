@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
@@ -46,6 +47,11 @@ export class PersonalRegistro implements OnInit {
   readonly totalPasos = 5;
 
   obras = signal<ObraRef[]>([]);
+  // BO6 (§E-5) — ids de obras de prueba, para avisar (no bloquear) al registrar
+  // personal REAL en una obra de prueba: heredaría es_prueba por trigger y quedaría
+  // oculto de la lista real (así se "perdió" Papolo).
+  esPruebaIds = signal<Set<string>>(new Set());
+
   cargos = signal<Cargo[]>([]);
   plantillas = signal<PlantillaDocumento[]>([]);
   empresa = signal<Empresa | null>(null);
@@ -81,6 +87,13 @@ export class PersonalRegistro implements OnInit {
     notas: [''],
   });
 
+  // BO6 (§E-5) — la obra seleccionada es de prueba (declarado tras `form` por el
+  // orden de inicialización de campos: toSignal necesita el control ya creado).
+  private proyectoIdSig = toSignal(this.form.controls.proyecto_id.valueChanges, {
+    initialValue: this.form.controls.proyecto_id.value,
+  });
+  obraEsPrueba = computed(() => this.esPruebaIds().has(this.proyectoIdSig() ?? ''));
+
   get verifyUrl(): string {
     const p = this.personal();
     return p ? `${window.location.origin}/proyectos/personal/${p.id}` : '';
@@ -103,6 +116,8 @@ export class PersonalRegistro implements OnInit {
       this.cargos.set(cargos);
       this.plantillas.set(plantillas);
       this.empresa.set(empresa);
+      // BO6 (§E-5) — obras de prueba (para el aviso). Best-effort, no bloquea el alta.
+      this.proyectos.getObrasPruebaIds().then((ids) => this.esPruebaIds.set(new Set(ids)));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar los datos.');
     }

@@ -76,6 +76,13 @@
     <span class="filters-bar__label">Ocultar canceladas</span>
   </label>
 
+  <!-- BO8 — solo las que traen fecha de necesidad. -->
+  <label class="sgc-field filters-bar__check">
+    <input type="checkbox" [checked]="soloConNecesidad()"
+           (change)="soloConNecesidad.set($any($event.target).checked)" />
+    <span class="filters-bar__label">Con fecha de necesidad</span>
+  </label>
+
   <div class="sgc-field filters-bar__select">
     <label class="filters-bar__label">Urgencia</label>
     <select [value]="fUrgencia()" (change)="fUrgencia.set($any($event.target).value)" aria-label="Filtrar por urgencia">
@@ -111,6 +118,12 @@
   <div class="page-error" role="alert">{{ error() }}</div>
 }
 
+<!-- BO8 (§E-7) — alternar entre la lista clásica y la vista agrupada por semana de necesidad. -->
+<div class="req-vista-toggle">
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'lista'" [class.sgc-btn--ghost]="vista() !== 'lista'" (click)="vista.set('lista')">Lista</button>
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'semana'" [class.sgc-btn--ghost]="vista() !== 'semana'" (click)="vista.set('semana')">Por semana de necesidad</button>
+</div>
+
 <!-- ── Table ── -->
 <div class="table-wrapper sgc-card">
   @if (loading()) {
@@ -125,6 +138,43 @@
         }
       </p>
     </div>
+  } @else if (vista() === 'semana') {
+    <!-- BO8 (§E-7) — vista agrupada por proximidad de la fecha de necesidad. -->
+    <div class="req-grupos">
+      @for (g of grupos(); track g.key) {
+        <div class="req-grupo">
+          <div class="req-grupo__head" [class.req-grupo__head--vencidas]="g.key === 'vencidas'">
+            <span class="req-grupo__titulo">{{ g.titulo }}</span>
+            <span class="req-grupo__conteo">{{ g.items.length }}</span>
+          </div>
+          <ul class="req-grupo__lista">
+            @for (r of g.items; track r.id) {
+              <li class="req-grupo__item" role="button" tabindex="0" (click)="abrir(r)"
+                  (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()">
+                <div class="req-grupo__linea1">
+                  <code class="req-codigo">{{ codigo(r) }}</code>
+                  <span class="req-grupo__obra">{{ r.proyecto?.nombre ?? '—' }}</span>
+                  @if (r.urgencia === 'urgente') { <span class="sgc-badge sgc-badge--danger">Urgente</span> }
+                </div>
+                <div class="req-grupo__linea2">
+                  <span class="text-muted">{{ solicitanteNombre(r) }} · {{ itemsCount(r) }} art.</span>
+                  @if (r.fecha_necesidad; as fn) {
+                    <span class="req-grupo__fecha">{{ formatFecha(fn) }}</span>
+                    @let d = diasNecesidad(fn);
+                    @if (d !== null) {
+                      @if (d < 0) { <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} d</span> }
+                      @else if (d === 0) { <span class="sgc-badge sgc-badge--warning">Es hoy</span> }
+                      @else if (d <= 3) { <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} d</span> }
+                    }
+                  }
+                  <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">{{ estadoLabel(r.estado) }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
   } @else {
     <div class="table-scroll">
       <table class="data-table" aria-label="Requisiciones de material">
@@ -135,13 +185,20 @@
             <th>Obra</th>
             <th>Solicitante</th>
             <th>Urgencia</th>
+            <!-- BO8 — cabecera clicable para ordenar por fecha de necesidad. -->
+            <th>
+              <button type="button" class="req-th-sort" (click)="orden.set(orden() === 'necesidad' ? 'reciente' : 'necesidad')"
+                      [attr.aria-pressed]="orden() === 'necesidad'" title="Ordenar por fecha de necesidad">
+                Necesidad {{ orden() === 'necesidad' ? '▲' : '' }}
+              </button>
+            </th>
             <th>Artículos</th>
             <th>Estado</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (r of filtered(); track r.id) {
+          @for (r of ordenadas(); track r.id) {
             <tr class="row--link" (click)="abrir(r)" role="button" tabindex="0"
                 (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()"
                 aria-label="Ver requisición">
@@ -154,6 +211,24 @@
                   <span class="sgc-badge sgc-badge--danger">Urgente</span>
                 } @else {
                   <span class="text-muted">Normal</span>
+                }
+              </td>
+              <!-- BO8 — fecha de necesidad + chip de proximidad. -->
+              <td>
+                @if (r.fecha_necesidad; as fn) {
+                  <div class="text-muted">{{ formatFecha(fn) }}</div>
+                  @let d = diasNecesidad(fn);
+                  @if (d !== null) {
+                    @if (d < 0) {
+                      <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
+                    } @else if (d === 0) {
+                      <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                    } @else if (d <= 3) {
+                      <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
+                    }
+                  }
+                } @else {
+                  <span class="text-muted">—</span>
                 }
               </td>
               <td class="text-muted">{{ itemsCount(r) }}</td>
@@ -318,6 +393,10 @@
             @if (!mostrarCancelar()) {
               <div class="req-detail__actions">
                 <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="cerrarRequisicion()">Cerrar requisición</button>
+                <!-- BO7 — crear un conduce (despacho parcial) prellenado desde esta
+                     requisición; queda enlazado (despacho_marcar) y cuenta en el avance. -->
+                <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+                   [routerLink]="['/inventario/salidas']" [queryParams]="{ requisicion: s.id }">Crear conduce desde esta requisición</a>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular()">Vincular conduce suelto…</button>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">Cancelar…</button>
               </div>

@@ -36,7 +36,9 @@ export interface AlmacenDuplicadoCandidato {
  */
 const BODEGA_FIELDS = [
   'nombre', 'descripcion', 'ubicacion', 'activo', 'proyecto_id',
-  'es_principal', 'latitud', 'longitud', 'es_prueba',
+  // BO1 — se escriben las columnas fuente-de-verdad; es_principal es un puente
+  // legacy de solo lectura (lo sincroniza un trigger), no se manda desde el front.
+  'es_central', 'es_principal_obra', 'latitud', 'longitud', 'es_prueba',
 ] as const satisfies readonly (keyof BodegaFormData)[];
 
 function pickBodegaFields(input: Partial<BodegaFormData>): Partial<BodegaFormData> {

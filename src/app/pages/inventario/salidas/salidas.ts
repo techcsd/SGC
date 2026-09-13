@@ -12,7 +12,7 @@ import { identificacionVehiculo } from '../../../../shared/models/vehiculo.model
 import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { SalidasService } from '../../../../shared/services/salidas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
@@ -63,6 +63,7 @@ export class Salidas implements OnInit {
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
   private destroyRef = inject(DestroyRef);
+  private route = inject(ActivatedRoute);
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -78,6 +79,13 @@ export class Salidas implements OnInit {
   /** AP1 — true si la carga de obras FALLÓ (sin acceso), != a "no hay obras". */
   obrasSinAcceso = signal(false);
   solicitudesPendientes = signal<SolicitudMaterial[]>([]);
+  // BO7 — todas las requisiciones cargadas (para abrir una por deep-link ?requisicion=,
+  // no solo las 'pendiente'): una parcial ('por_despachar'/'parcial') también sirve.
+  solicitudesAll = signal<SolicitudMaterial[]>([]);
+  // BO7 — creando un conduce PLANO enlazado a una requisición (no el flujo A2 de
+  // aprobación). Cuando está activo, onSave usa el flujo normal y confirmar() llama
+  // despacho_marcar para propagar origen_requisicion_id.
+  modoConducePlano = signal(false);
   loading = signal(true);
   saving = signal(false);
   error = signal('');
@@ -364,6 +372,44 @@ export class Salidas implements OnInit {
         this.loadReceptores();
         if (this.wizardConduceOn()) this.loadDespachantes();
       });
+
+    // BO7 — deep-link desde la bandeja de requisiciones: crear conduce prellenado.
+    const reqId = this.route.snapshot.queryParamMap.get('requisicion');
+    if (reqId) {
+      const s = this.solicitudesAll().find((x) => x.id === reqId);
+      if (s) void this.crearConduceDesdeReq(s);
+    }
+  }
+
+  /**
+   * BO7 — crea un conduce PLANO (parcial) desde una requisición: prellena obra y los
+   * renglones aún pendientes (solo los del catálogo; los de texto libre no caben en el
+   * editor manual) y, al confirmar, enlaza el conduce a la requisición con despacho_marcar.
+   * Distinto del flujo A2 (aprobar_requisicion), que además genera compra por el faltante.
+   */
+  async crearConduceDesdeReq(s: SolicitudMaterial) {
+    this.saveError.set('');
+    this.creado.set(null);
+    this.solicitudEnAtencion.set(s);
+    this.modoConducePlano.set(true);
+    this.step.set('form');
+    this.form.reset({
+      fecha: this.today,
+      motivo: 'uso_proyecto',
+      proyecto_id: s.proyecto_id,
+      observaciones: s.notas ?? null,
+    });
+    // Prellena los renglones pendientes del catálogo (usa el avance por línea BJ4).
+    try {
+      const avance = await this.solicitudesMaterialService.avance(s.id);
+      const pendientes = avance
+        .filter((a) => a.articulo_id && a.estado !== 'cancelada' && a.pendiente > 0)
+        .map((a) => ({ articulo_id: a.articulo_id as string, cantidad: a.pendiente, talla: a.talla ?? null }));
+      this.formItems.set(pendientes.length ? pendientes : [{ articulo_id: '', cantidad: 1 }]);
+    } catch {
+      this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
+    }
+    this.drawerOpen.set(true);
   }
 
   /** AV5 — carga los despachantes elegibles (filtrados por la matriz AV1). */
@@ -481,6 +527,7 @@ export class Salidas implements OnInit {
           .map((b) => ({ id: b.id, nombre: b.nombre, es_central: true })),
       );
       this.solicitudesPendientes.set(solicitudes.filter((s) => s.estado === 'pendiente'));
+      this.solicitudesAll.set(solicitudes); // BO7
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
     } finally {
@@ -566,6 +613,7 @@ export class Salidas implements OnInit {
   openCreate() {
     this.saveError.set('');
     this.solicitudEnAtencion.set(null);
+    this.modoConducePlano.set(false); // BO7
     this.creado.set(null);
     this.step.set('form');
     this.form.reset({ fecha: this.today });
@@ -613,6 +661,7 @@ export class Salidas implements OnInit {
     this.creado.set(null);
     this.step.set('form');
     this.solicitudEnAtencion.set(s);
+    this.modoConducePlano.set(false); // BO7 — este es el flujo A2 (aprobar), no el conduce plano
     this.form.reset({
       fecha: this.today,
       motivo: 'uso_proyecto',
@@ -720,7 +769,9 @@ export class Salidas implements OnInit {
     // A2 — Aprobación de requisición: el sistema divide (despacho + compra automática).
     // Enviamos los renglones ORIGINALES de la requisición (incluye los de texto libre
     // sin artículo, que van 100% a compra) — no los del editor de salida manual.
-    if (solicitud) {
+    // BO7 — salvo en modo "conduce plano": ahí sigue el flujo normal (form→resumen→
+    // confirmar) y confirmar() enlaza el conduce con despacho_marcar.
+    if (solicitud && !this.modoConducePlano()) {
       await this.aprobarRequisicion(solicitud);
       return;
     }
@@ -863,6 +914,23 @@ export class Salidas implements OnInit {
         } catch (e) {
           this.toast.warning('Conduce registrado', e instanceof Error ? e.message : 'No se pudo designar el despachante; puedes hacerlo desde el conduce.');
         }
+      }
+      // BO7 — enlaza el conduce plano a la requisición de procedencia (despacho_marcar).
+      const solicitudPlano = this.modoConducePlano() ? this.solicitudEnAtencion() : null;
+      if (solicitudPlano) {
+        try {
+          await this.salidasService.despachoMarcar(created.id, solicitudPlano.id);
+          // Sale de la bandeja de pendientes si ya no queda nada por despachar lo decide
+          // el server; refrescamos la lista local quitándola de pendientes visibles.
+          this.solicitudesPendientes.update((l) => l.filter((x) => x.id !== solicitudPlano.id));
+        } catch (e) {
+          this.toast.warning(
+            'Conduce registrado',
+            e instanceof Error ? e.message : 'No se pudo enlazar a la requisición; vincúlalo desde la bandeja.',
+          );
+        }
+        this.solicitudEnAtencion.set(null);
+        this.modoConducePlano.set(false);
       }
       this.crearComoPrueba.set(false);
       this.form.controls.receptor_usuario_id.setValue(null, { emitEvent: false });

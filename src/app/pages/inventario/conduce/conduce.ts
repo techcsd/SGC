@@ -190,6 +190,11 @@ export class Conduce implements OnInit {
     return MOTIVOS_SALIDA.find((m) => m.value === motivo)?.label ?? motivo;
   }
 
+  /** BO7/F5.6 — código citable de la requisición de procedencia (REQ-XXXXXX). */
+  reqCodigo(folio: number | null | undefined): string {
+    return folio != null ? 'REQ-' + String(folio).padStart(6, '0') : 'requisición';
+  }
+
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {

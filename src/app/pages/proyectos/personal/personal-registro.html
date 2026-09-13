@@ -27,6 +27,14 @@
           <option [value]="''" disabled>Seleccionar obra…</option>
           @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
         </select>
+        <!-- BO6 (§E-5) — avisa (no bloquea) si la obra es de prueba: el trabajador
+             heredaría es_prueba y no aparecería en la lista real. -->
+        @if (obraEsPrueba()) {
+          <div class="pob-aviso-prueba" role="note">
+            ⚠ Esta es una <strong>obra de prueba</strong>. El trabajador quedará marcado como prueba y
+            no aparecerá en la lista de personal real. Elige una obra real si es un registro de verdad.
+          </div>
+        }
       </div>
       <div class="sgc-field">
         <label for="cargo">Cargo</label>

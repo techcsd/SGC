@@ -58,6 +58,8 @@ const SELECT_QUERY =
   ' recibido:usuarios!salidas_inventario_recibido_por_fkey(nombre),' +
   ' entregado:usuarios!salidas_inventario_entregado_por_fkey(nombre),' +
   ' creado:usuarios!salidas_inventario_creado_por_fkey(nombre),' +
+  // BO7/F5.6 — requisición de procedencia (para pintar REQ-XXXXXX navegable en el detalle).
+  ' origen_requisicion:solicitudes_material!salidas_inventario_origen_requisicion_id_fkey(id, folio),' +
   ' detalle_salidas(*, articulo:articulos(nombre, codigo, unidad))';
 
 @Injectable({ providedIn: 'root' })
@@ -335,6 +337,20 @@ export class SalidasService {
     const { data, error } = await this.supabase.client.rpc('conduce_ruta_info', { p_salida_id: salidaId });
     if (error) throw new Error(error.message);
     return (data as ConduceRutaInfo | null) ?? null;
+  }
+
+  /**
+   * BO7 — enlaza un conduce (salida) recién creado a la requisición de la que
+   * procede (origen_requisicion_id) usando el RPC canónico `despacho_marcar` (el
+   * mismo que usa la app). Idempotente server-side. No lanza si falla: el conduce
+   * ya se guardó; se reporta arriba para reintentar el vínculo.
+   */
+  async despachoMarcar(salidaId: string, requisicionId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('despacho_marcar', {
+      p_salida_id: salidaId,
+      p_requisicion_id: requisicionId,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** Atomic insert (header + items) with server-side stock validation, via RPC. */

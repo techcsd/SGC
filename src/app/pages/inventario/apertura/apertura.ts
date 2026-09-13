@@ -56,7 +56,7 @@ export class AperturaInventario implements OnInit {
       .map((b) => ({
         id: b.id,
         nombre: b.nombre,
-        es_central: !!b.es_principal,
+        es_central: !!b.es_central, // BO1 — columna fuente-de-verdad (antes es_principal)
         es_prueba: !!b.es_prueba,
       }))
       .sort((a, b) => a.nombre.localeCompare(b.nombre));

@@ -119,10 +119,17 @@
                 }
               </td>
               <td>
-                @if (bodega.es_principal) {
-                  <span class="sgc-badge sgc-badge--info">Principal (global)</span>
-                } @else if (bodega.proyecto?.nombre) {
+                <!-- BO1 — "Principal (global)" es SÓLO la central sin obra
+                     (proyecto_id null). Un almacén de obra muestra su obra; si
+                     además es principal, se anota con un chip aparte sin tapar el
+                     nombre. -->
+                @if (bodega.proyecto?.nombre) {
                   <span class="text-muted">{{ bodega.proyecto?.nombre }}</span>
+                  @if (bodega.es_principal_obra) {
+                    <span class="sgc-badge sgc-badge--info">Principal de obra</span>
+                  }
+                } @else if (bodega.es_central) {
+                  <span class="sgc-badge sgc-badge--info">Central (global)</span>
                 } @else {
                   <span class="text-muted">General</span>
                 }
@@ -312,18 +319,37 @@
       </div>
     }
 
-    <div class="form-toggle">
-      <label class="toggle-label" for="es_principal">
-        <input
-          id="es_principal"
-          type="checkbox"
-          formControlName="es_principal"
-          class="toggle-input"
-        />
-        <span class="toggle-switch" aria-hidden="true"></span>
-        Almacén principal (global)
-      </label>
-    </div>
+    <!-- BO1 — el "principal" es contextual: si el almacén está vinculado a una obra
+         es "principal de esa obra" (único por obra); si no, es la central global. -->
+    @if (f.proyecto_id.value) {
+      <div class="form-toggle">
+        <label class="toggle-label" for="es_principal_obra">
+          <input
+            id="es_principal_obra"
+            type="checkbox"
+            formControlName="es_principal_obra"
+            class="toggle-input"
+          />
+          <span class="toggle-switch" aria-hidden="true"></span>
+          Almacén principal de esta obra
+        </label>
+        <small class="sgc-field__hint">Se usa como origen/destino por defecto de la obra. Solo uno por obra.</small>
+      </div>
+    } @else {
+      <div class="form-toggle">
+        <label class="toggle-label" for="es_central">
+          <input
+            id="es_central"
+            type="checkbox"
+            formControlName="es_central"
+            class="toggle-input"
+          />
+          <span class="toggle-switch" aria-hidden="true"></span>
+          Almacén central (global)
+        </label>
+        <small class="sgc-field__hint">Central de la empresa: origen de material hacia las obras.</small>
+      </div>
+    }
 
     <div class="form-toggle">
       <label class="toggle-label" for="activo">
@@ -403,7 +429,7 @@
   @if (detailBodega(); as b) {
     <div class="bodega-detalle">
       <dl class="bodega-detalle__info">
-        <div><dt>Obra vinculada</dt><dd>{{ b.es_principal ? 'Principal (global)' : (b.proyecto?.nombre ?? 'General') }}</dd></div>
+        <div><dt>Obra vinculada</dt><dd>{{ b.es_central ? 'Central (global)' : (b.proyecto?.nombre ? (b.proyecto?.nombre + (b.es_principal_obra ? ' · Principal de obra' : '')) : 'General') }}</dd></div>
         <div><dt>Ubicación</dt><dd>{{ b.ubicacion ?? '—' }}</dd></div>
         <div><dt>Estado</dt><dd>{{ b.activo ? 'Activo' : 'Inactivo' }}</dd></div>
         <div><dt>Stock total</dt><dd>{{ detailStockTotal() | number:'1.0-2' }} uds.</dd></div>

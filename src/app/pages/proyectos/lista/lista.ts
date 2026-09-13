@@ -917,8 +917,12 @@ export class Lista implements OnInit {
     return !!proyectoId && this.proyectosConAlmacen().has(proyectoId);
   }
 
-  /** Crea "Almacén {obra}" ligado al proyecto (principal). Sirve al diálogo de alta
-   *  y al banner/detalle de obras existentes sin almacén. */
+  /** Crea "Almacén {obra}" ligado al proyecto. Sirve al diálogo de alta y al
+   *  banner/detalle de obras existentes sin almacén.
+   *  BO1 — NO nace `es_principal`: esa bandera significa "central global"
+   *  (proyecto_id null, filtrada por almacenes_destino), no "almacén de esta obra".
+   *  Marcarla en un almacén de obra lo hacía aparecer como "Principal (global)" y
+   *  tapaba el nombre de la obra (bodegas.html). El almacén de obra nace normal. */
   async crearAlmacenParaObra(proyecto?: Proyecto) {
     const proy = proyecto ?? this.almacenPrompt();
     if (!proy || this.creandoAlmacen()) return;
@@ -930,7 +934,8 @@ export class Lista implements OnInit {
         ubicacion: null,
         activo: true,
         proyecto_id: proy.id,
-        es_principal: true,
+        es_central: false,
+        es_principal_obra: false,
         latitud: proy.latitud ?? null,
         longitud: proy.longitud ?? null,
       });

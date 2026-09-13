@@ -1,5 +1,36 @@
 # HANDOFF — SGC
 
+## TL;DR — Ronda BO (PROMPT-44, 13/09/2026) — **build verde; 4 decisiones §E resueltas; 3 migraciones NUEVAS escritas SIN aplicar; frontend SIN commit/bump**
+
+Contexto: `CONTEXTO-ACTUALIZACION-22.md` **NO existe en el repo** (referenciado por el prompt); trabajé con las referencias file:line embebidas en el prompt, todas verificadas vs código/prod.
+
+**FASE 0 — los dos apuntes ya estaban resueltos (cerrados sin código):**
+- **BN3** (`heredar_ubicacion`): el arreglo (whitelist `BODEGA_FIELDS` + payload campo-por-campo) está en el árbol **y desplegado** — `app_versiones` registra web **1.127.0** el 11/09 15:15 ("arreglo crear/editar almacenes"). Si Xaviel lo ve otra vez = **cache del navegador**, no código. (No pude hacer repro browser interactivo desde aquí; el path de código + el registro de versión lo confirman.)
+- **BM5** (atado/unidad): schema en prod — `articulos.factor_paquete/unidad/unidad_paquete`, **17 artículos** con `factor_paquete>1`, registrado en 1.124–1.126. No se rehace.
+
+**HECHO (build verde, migraciones SIN aplicar, frontend SIN commit):**
+- **BO4/BO5** 🔴 (FASE 1) — `sql/2026-09-13-bo4-bo5-combustible-gate-flota-elevado.sql`: copia VERBATIM de `registrar_combustible_app` (bm1, la versión VIVA — NO aw3) con los DOS `is_admin()` → `es_flota_elevado()` (gate autorización :161 + salto km :217). Ahora admin+direccion+gerencia+jefe_flota+**logistica (Raykler)** registran/pasan. Server-side ⇒ web y app sin release.
+- **BO1** 🔴 (FASE 2, §E-1 = split) — `sql/2026-09-13-bo1-almacen-split-central-obra.sql`: 2 columnas `es_central` + `es_principal_obra` (backfill desde es_principal) + unique parcial `uq_bodega_principal_obra` (1 por obra) + 2 triggers (sync es_principal legacy + desmarcar otros). `es_principal` queda como **puente legacy solo-lectura** (regla 12: 8 lectores + fecha de retiro documentados en la migración; ningún RPC reescrito). Front: modelo, service (whitelist), form contextual (central vs principal-de-obra), badge, apertura.ts, lista.ts. `es_principal:true` erróneo del alta de almacén de obra **quitado**.
+- **BO3** 🔴 (FASE 3) — `proveedores.ts`/`.service.ts`: `catch(e)` pinta motivo real en `importError`, **no cierra el drawer** y **no canta éxito** si `fallidos>0`; **dedup DENTRO del archivo** (RNC/nombre repetidos → error con fila previa); respeta columna **Estado** (ya no reactiva inactivos en silencio). Causa raíz confirmada en prod (ver listas).
+- **BO6** (FASE 4) — `personal.ts`: búsqueda NFD + por tokens ("sacalo papolo" ya encuentra a Papolo); aviso de ocultos de prueba **siempre** (no solo lista vacía, regla 8) + badge PRUEBA en filas. §E-5: `personal-registro` **avisa (no bloquea)** al elegir obra de prueba (`getObrasPruebaIds`).
+- **BO7** (FASE 5, §E-vía-despacho_marcar) — botón "Crear conduce desde esta requisición" en la bandeja → `/inventario/salidas?requisicion=<id>`; `salidas.ts` nuevo modo "conduce plano" (prellena obra + renglones pendientes vía `avance`) que al confirmar llama `despacho_marcar(salida, requisicion)`. `SalidasService.despachoMarcar` nuevo. **F5.6 HECHO**: el detalle del conduce (`conduce.html`) muestra "Procede de requisición REQ-XXXXXX ↗" navegable (embed `origen_requisicion` en `SELECT_QUERY`).
+- **BO8** (FASE 6) — `sql/2026-09-13-bo8-fecha-necesidad-requisicion.sql`: `solicitudes_material.fecha_necesidad date` nullable + `p_fecha_necesidad` en las 2 RPCs (drop+recreate+regrant). Front: campo con `[min]=hoy` al crear, columna+chip proximidad (`daysUntil`) en la lista del solicitante y en la bandeja de Raykler (con **orden por necesidad** + filtro "con fecha de necesidad"). Nunca `new Date(dateOnly)` — usa `formatFecha`/`daysUntil`. **§E-7 HECHO**: vista **"Por semana de necesidad"** como toggle en la bandeja (cubos Vencidas/Esta semana/Próxima/Más adelante/Sin fecha vía `daysUntil`).
+
+**BLOQUEADO (correctamente sin empezar):** BO9 (medidas de moldes, §E-8) y BO10 (cartillas, §E-9) — faltan decisión + foto real + spec. Cuando se desbloqueen: molde BG4 + BL9 (fecha elegible) + BN1 + BM5.
+
+**✅ Las 3 migraciones fueron VALIDADAS contra prod** (envueltas en `rollback`, nada persistido) — `bo4-bo5`, `bo1`, `bo8` corren limpio: función compila / columnas+backfill+unique+triggers OK / drop+recreate+regrant OK. Seguras de aplicar.
+
+**⚠️ PENDIENTE DE XAVIEL:** (1) **aplicar las 3 migraciones** (`node scripts/apply-migration.mjs sql/2026-09-13-*.sql` — todas aditivas/idempotentes; bo1 y bo8 hacen drop+recreate de RPCs, sin dependencias duras) — HELD por la regla de cierre "nada de deploy sin avisar"; (2) commit/bump (version.ts sigue 1.127.2 → subir a 1.128.0 + entrada `release-notes.json`); (3) decidir §E-2 (trocear/RPC del import — con el dedup ya casi no hace falta) y §E-3/§E-4 (UX del rechazo de combustible).
+
+**Listas que pediste:**
+- **`es_principal=true` (F2.5):** **1 sola** fila en prod — "Bodega Central" (proyecto_id null). **CERO** almacenes de obra en true → no había duplicados que limpiar; el bug era preventivo.
+- **Rol del importador de los 1585 (F3.6):** **Raykler Peña** (roles: logistica, coord_compras, jefe_flota, guarda_almacen). 4 intentos el 10/09, **0 creados**. Con `logistica`→`es_flota_elevado()` **pasa la RLS INSERT** (OR de políticas) → **RLS descartada**. Causa raíz: **UNIQUE `proveedores_nombre_key` en `nombre`** (existe en prod, regla 11) + nombres repetidos en el archivo → el lote único aborta entero. Mi dedup lo ataca de raíz.
+- **Papolo (F4.1):** `es_prueba=true`, `estado=activo`, obra **"Riviera Bay TEST"** (`es_prueba=true`). Dato de prueba legítimo (heredó es_prueba por trigger) → oculto por el filtro. **No es data real perdida.**
+- **Lectores de `vehiculo_asignaciones` (regla 12):** sigue **VIVA** — 5 métodos en `vehiculos.service.ts` (getAsignaciones/…/crearAsignacion/retirarAsignacion) + el gate de combustible (fallback a `vehiculos.responsable_id`). **Hallazgo:** si el contexto BO2 la declaró "modelo muerto reemplazado por vehiculo_usos", **eso es incorrecto** — el front la lee y escribe activamente. El puente real problemático es `vehiculos.responsable_id` (lo reescribe `iniciar_uso_vehiculo` en cada toma → clava el combustible al último que tomó el vehículo). Documentado en regla 12 del checklist.
+- **Guardas de combustible sin bypass (F1.4):** capacidad de tanque (bm1:133) y banda de precio (bm1:147) — ninguna consulta is_admin/flota_elevado; NO las toqué (§E-4 decide).
+
+---
+
 ## TL;DR — Ronda BN (PROMPT-42, 09-11/09/2026) — **build verde; BN1+BN5a APLICADAS a prod + verificadas; frontend SIN commit/bump**
 
 Contexto: `CONTEXTO-ACTUALIZACION-21.md` **NO existe en el repo** (referenciado por el prompt); trabajé con las referencias file:line embebidas en el prompt, todas verificadas vs código/prod.

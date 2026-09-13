@@ -205,6 +205,18 @@ export class ProyectosService {
     return (data ?? []) as ObraRef[];
   }
 
+  /** BO6 (§E-5) — ids de las obras de prueba VISIBLES para el usuario (solo el admin
+   *  ve obras es_prueba). Sirve para avisar al crear personal real en una obra de
+   *  prueba (así se "perdió" Papolo). Best-effort: si falla, devuelve vacío. */
+  async getObrasPruebaIds(): Promise<string[]> {
+    const { data, error } = await this.supabase.client
+      .from('proyectos')
+      .select('id')
+      .eq('es_prueba', true);
+    if (error) return [];
+    return (data ?? []).map((r: { id: string }) => r.id);
+  }
+
   /** AT19 — cerrar (terminada + inactiva) o reabrir una obra. Solo admin (server-side).
    *  Cerrar la saca de los selectores y de KPIs de obras activas, pero su historial
    *  queda consultable. Reversible. */

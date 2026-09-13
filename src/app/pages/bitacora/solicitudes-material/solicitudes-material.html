@@ -33,6 +33,7 @@
           <th>Solicitante</th>
           <th>Artículos</th>
           <th>Urgencia</th>
+          <th>Necesidad</th>
           <th>Estado</th>
           <th>Atendida</th>
         </tr>
@@ -60,6 +61,24 @@
                 <span class="sgc-badge sgc-badge--danger">Urgente</span>
               } @else {
                 <span class="sgc-badge sgc-badge--neutral">Normal</span>
+              }
+            </td>
+            <!-- BO8 — fecha de necesidad + chip de proximidad (faltan N días / vencida) -->
+            <td>
+              @if (s.fecha_necesidad; as fn) {
+                <div>{{ formatFecha(fn) }}</div>
+                @let d = diasNecesidad(fn);
+                @if (d !== null) {
+                  @if (d < 0) {
+                    <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
+                  } @else if (d === 0) {
+                    <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                  } @else if (d <= 3) {
+                    <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
+                  }
+                }
+              } @else {
+                <span class="text-muted">—</span>
               }
             </td>
             <td>
@@ -158,6 +177,16 @@
           <option value="urgente">Urgente</option>
         </select>
       </div>
+
+      <!-- BO8 — fecha de necesidad (opcional): para cuándo se necesita el material.
+           [min]=hoy (no se pide para una fecha pasada). Solo al crear. -->
+      @if (!editandoId()) {
+        <div class="sgc-field">
+          <label for="fecha_necesidad">¿Para cuándo lo necesitas? <span class="text-muted">(opcional)</span></label>
+          <input id="fecha_necesidad" type="date" formControlName="fecha_necesidad" [min]="hoyIso" />
+          <span class="field-hint">Ayuda a Raykler a priorizar por fecha de obra, no solo por urgencia.</span>
+        </div>
+      }
 
       <div class="items-header">
         <label>Artículos solicitados <span class="required">*</span></label>
@@ -258,6 +287,9 @@
       <dl class="resumen-hoja__meta">
         <div><dt>Obra</dt><dd>{{ proyectoNombre() }}</dd></div>
         <div><dt>Urgencia</dt><dd>{{ f.urgencia.value === 'urgente' ? 'Urgente' : 'Normal' }}</dd></div>
+        @if (f.fecha_necesidad.value) {
+          <div><dt>Necesidad</dt><dd>{{ formatFecha(f.fecha_necesidad.value) }}</dd></div>
+        }
       </dl>
 
       <div class="resumen-hoja__list">

@@ -36,6 +36,8 @@ export interface SolicitudMaterial {
   solicitante?: { nombre: string; roles?: { rol: { codigo: string; nombre: string } | null }[] };
   estado: SolicitudMaterialEstado;
   urgencia: 'normal' | 'urgente';
+  /** BO8 — fecha para cuándo se necesita el material (prioridad real de obra). Nullable. */
+  fecha_necesidad?: string | null;
   notas: string | null;
   salida_id: string | null;
   /** A2: solicitud de compra auto-generada por el faltante al aprobar. */
@@ -87,6 +89,8 @@ export interface SolicitudMaterialFormData {
   proyecto_id: string;
   solicitante_id: string;
   urgencia: 'normal' | 'urgente';
+  /** BO8 — fecha de necesidad (opcional). */
+  fecha_necesidad?: string | null;
   notas: string | null;
   items: {
     articulo_id: string | null;

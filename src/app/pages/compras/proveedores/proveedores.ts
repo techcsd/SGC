@@ -345,6 +345,13 @@ export class Proveedores implements OnInit {
         if (p.rnc) byRnc.set(p.rnc.replace(/\D/g, ''), p);
       }
 
+      // BO3 — duplicados DENTRO del archivo: un directorio real de 1585 filas
+      // repite RNC/nombre con casi total seguridad, y dos filas idénticas revientan
+      // el lote entero. Marcamos la 2ª (y siguientes) apariciones como error, con la
+      // fila donde ya salió, para que el usuario las vea antes de importar.
+      const rncEnArchivo = new Map<string, number>();
+      const nombreEnArchivo = new Map<string, number>();
+
       const preview: ImportPreviewRow[] = raw.map((row, i) => {
         const nombre = pick(row, ['nombre', 'proveedor', 'razon social']);
         const rnc = pick(row, ['rnc', 'cedula', 'rnc / cedula', 'rnc/cedula']);
@@ -355,6 +362,11 @@ export class Proveedores implements OnInit {
         const ferreteriaStr = pick(row, ['ferreteria', 'is_hardware_store', 'hardware']);
         const latStr = pick(row, ['lat', 'latitud']);
         const lngStr = pick(row, ['lng', 'lon', 'longitud']);
+        // BO3 — respetar la columna "Estado" que el propio export escribe
+        // (Activo/Inactivo). Sin esto, reimportar un export reactivaba en silencio
+        // a los inactivos. Por defecto activo si la columna falta o está vacía.
+        const estadoStr = pick(row, ['estado', 'activo', 'status']);
+        const activo = estadoStr ? !/^(inactivo|inactive|no|false|0)$/i.test(estadoStr) : true;
 
         const payload: ProveedorPayload = {
           nombre,
@@ -366,13 +378,29 @@ export class Proveedores implements OnInit {
           is_hardware_store: /^(si|sí|s|yes|true|1|x)$/i.test(ferreteriaStr),
           lat: latStr && !isNaN(Number(latStr)) ? Number(latStr) : null,
           lng: lngStr && !isNaN(Number(lngStr)) ? Number(lngStr) : null,
-          activo: true,
+          activo,
         };
 
         // Validación por fila.
         if (!nombre) return { fila: i + 2, payload, estado: 'error' as const, detalle: 'Falta el nombre', match: null };
+
+        const nombreKey = norm(nombre);
         const rncDigits = rnc.replace(/\D/g, '');
-        const existente = byNombre.get(norm(nombre)) ?? (rncDigits ? byRnc.get(rncDigits) : undefined) ?? null;
+
+        // BO3 — repetido dentro del mismo archivo.
+        const filaRncPrevia = rncDigits ? rncEnArchivo.get(rncDigits) : undefined;
+        const filaNombrePrevia = nombreEnArchivo.get(nombreKey);
+        if (filaRncPrevia || filaNombrePrevia) {
+          return {
+            fila: i + 2, payload, estado: 'error' as const,
+            detalle: `Repetido en el archivo (ya aparece en la fila ${filaRncPrevia ?? filaNombrePrevia})`,
+            match: null,
+          };
+        }
+        if (rncDigits) rncEnArchivo.set(rncDigits, i + 2);
+        nombreEnArchivo.set(nombreKey, i + 2);
+
+        const existente = byNombre.get(nombreKey) ?? (rncDigits ? byRnc.get(rncDigits) : undefined) ?? null;
         if (existente) {
           return { fila: i + 2, payload, estado: 'duplicado' as const, detalle: `Ya existe: ${existente.nombre}`, match: existente };
         }
@@ -401,6 +429,10 @@ export class Proveedores implements OnInit {
     this.importing.set(true);
     this.importError.set('');
     let creados = 0, actualizados = 0, saltados = 0, fallidos = 0;
+    // BO3 — el motivo real del fallo (antes se tragaba en un `catch` sin variable
+    // e imputaba TODO el lote a "N con error", que engañaba: "1585 con error"
+    // significaba "un lote de 1585 falló", no "1585 filas malas").
+    const motivos: string[] = [];
     try {
       // Insertar nuevos en lote.
       if (nuevos.length) {
@@ -408,8 +440,9 @@ export class Proveedores implements OnInit {
           const created = await this.proveedoresService.insertMany(nuevos.map((r) => r.payload));
           creados = created.length;
           this.proveedores.update((list) => [...created, ...list]);
-        } catch {
+        } catch (e: unknown) {
           fallidos += nuevos.length;
+          motivos.push(e instanceof Error ? e.message : 'Error insertando el lote de nuevos.');
         }
       }
       // Duplicados: actualizar o saltar.
@@ -423,8 +456,9 @@ export class Proveedores implements OnInit {
               const updated = await this.proveedoresService.update(r.match.id, r.payload);
               this.proveedores.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
               actualizados++;
-            } catch {
+            } catch (e: unknown) {
               fallidos++;
+              if (motivos.length < 5) motivos.push(`Fila ${r.fila}: ${e instanceof Error ? e.message : 'error'}`);
             }
           }
         }
@@ -432,12 +466,19 @@ export class Proveedores implements OnInit {
       // AL3 — bitácora de importación (best-effort, no bloquea).
       await this.proveedoresService.registrarImport(
         { total: creados + actualizados + saltados + fallidos, creados, actualizados, saltados, fallidos },
+        this.importNombre() || undefined,
       );
-      this.toast.success(
-        'Importación completada',
-        `${creados} nuevo(s), ${actualizados} actualizado(s), ${saltados} saltado(s)${fallidos ? `, ${fallidos} con error` : ''}.`,
-      );
-      this.importOpen.set(false);
+
+      const resumen = `${creados} nuevo(s), ${actualizados} actualizado(s), ${saltados} saltado(s)${fallidos ? `, ${fallidos} con error` : ''}.`;
+      if (fallidos > 0) {
+        // BO3 / regla 8 — NO cantar éxito ni cerrar el drawer si algo falló: el
+        // usuario tiene que ver el motivo real y su preview para reintentar.
+        this.importError.set(`${resumen}${motivos.length ? ' Motivo: ' + motivos.join(' · ') : ''}`);
+        this.toast.warning('Importación con errores', resumen);
+      } else {
+        this.toast.success('Importación completada', resumen);
+        this.importOpen.set(false);
+      }
     } catch (e: unknown) {
       this.importError.set(e instanceof Error ? e.message : 'Error durante la importación.');
     } finally {

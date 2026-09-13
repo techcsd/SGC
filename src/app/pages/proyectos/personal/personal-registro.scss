@@ -1,5 +1,16 @@
 .pob-back { font-size: 13px; color: var(--sgc-text-muted); text-decoration: none; &:hover { text-decoration: underline; } }
 
+// BO6 (§E-5) — aviso de obra de prueba al registrar personal.
+.pob-aviso-prueba {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--sgc-text-secondary);
+  background: var(--sgc-warning-soft, #fff8e1);
+  border: 1px solid var(--sgc-warning, #ffb300);
+}
+
 .pob-steps {
   list-style: none;
   display: flex;

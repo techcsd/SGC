@@ -10,6 +10,11 @@ import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { TelemetryService } from '../../../../shared/services/telemetry.service';
 
+/** BO6 — normaliza para búsqueda: minúsculas, sin acentos (NFD), espacios colapsados. */
+function norm(s: string | null | undefined): string {
+  return (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+}
+
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
   selector: 'app-personal-obra',
@@ -54,7 +59,10 @@ export class PersonalObraLista implements OnInit {
     const obra = this.filObra();
     const aseg = this.filAsegurado();
     const cuad = this.filCuadrilla();
-    const q = this.busqueda().trim().toLowerCase();
+    // BO6 — búsqueda insensible a acentos (NFD) y por tokens: "sacalo papolo"
+    // encuentra a "Papolo Sacalo" (antes era substring del concatenado en orden y
+    // sensible a acentos, así que no lo hallaba).
+    const tokens = norm(this.busqueda()).split(/\s+/).filter(Boolean);
     return visibles.filter((p) => {
       if (obra && p.proyecto_id !== obra) return false;
       if (cargo && p.cargo_id !== cargo) return false;
@@ -62,9 +70,9 @@ export class PersonalObraLista implements OnInit {
       if (est && p.estado !== est) return false;
       if (aseg && (p.aseguramiento_estado ?? 'desconocido') !== aseg) return false;
       if (cuad && (p.cuadrilla ?? '') !== cuad) return false;
-      if (q) {
-        const hay = `${p.nombre} ${p.apellido ?? ''} ${p.documento_numero ?? ''} ${p.cargo?.nombre ?? ''} ${p.carnet_numero ?? ''}`.toLowerCase();
-        if (!hay.includes(q)) return false;
+      if (tokens.length) {
+        const hay = norm(`${p.nombre} ${p.apellido ?? ''} ${p.documento_numero ?? ''} ${p.cargo?.nombre ?? ''} ${p.carnet_numero ?? ''}`);
+        if (!tokens.every((t) => hay.includes(t))) return false;
       }
       return true;
     });

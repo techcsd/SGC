@@ -59,6 +59,7 @@ export class SolicitudesMaterialService {
       p_urgencia: payload.urgencia,
       p_notas: payload.notas,
       p_items: payload.items,
+      p_fecha_necesidad: payload.fecha_necesidad ?? null, // BO8
     });
 
     if (error) throw new Error(error.message);

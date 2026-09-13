@@ -59,6 +59,19 @@
     <div class="pob-tile"><span class="pob-tile__num">{{ obrasDistintas() }}</span><span class="pob-tile__lbl">Obras</span></div>
   </div>
 
+  <!-- BO6 / regla 8 — el aviso de ocultos sale SIEMPRE que haya registros de
+       prueba escondidos, no sólo cuando la lista queda vacía. Antes, con otros
+       trabajadores visibles, un registro de prueba (p. ej. Papolo en una obra de
+       prueba) simplemente no aparecía y nadie avisaba. -->
+  @if (ocultosPrueba() > 0 && filtrados().length) {
+    <div class="sgc-card pob-aviso-ocultos">
+      <span>Hay {{ ocultosPrueba() }} registro(s) de prueba oculto(s) que no aparecen en esta lista.</span>
+      @if (puedeVerPrueba()) {
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="mostrarPrueba()">Mostrar {{ ocultosPrueba() }} de prueba</button>
+      }
+    </div>
+  }
+
   @if (!filtrados().length) {
     <div class="sgc-card pob-empty">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -97,7 +110,10 @@
             @for (p of filtrados(); track p.id) {
               <tr class="pob-fila" (click)="abrir(p)">
                 <td class="pob-avatar-cell"><span class="pob-avatar">{{ iniciales(p) }}</span></td>
-                <td><strong>{{ p.nombre }} {{ p.apellido }}</strong></td>
+                <td>
+                  <strong>{{ p.nombre }} {{ p.apellido }}</strong>
+                  @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+                </td>
                 <td>
                   @if (p.cargo?.nombre) { <span class="pob-chip pob-chip--cargo">{{ p.cargo?.nombre }}</span> }
                   @else { <span class="text-muted">—</span> }

@@ -80,7 +80,9 @@ export class Bodegas implements OnInit {
     descripcion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
     proyecto_id: new FormControl<string | null>(null),
-    es_principal: new FormControl<boolean>(false),
+    // BO1 — split: central global vs principal de obra (según haya obra vinculada).
+    es_central: new FormControl<boolean>(false),
+    es_principal_obra: new FormControl<boolean>(false),
     latitud: new FormControl<number | null>(null),
     longitud: new FormControl<number | null>(null),
     // AS12 — heredar la ubicación de la obra vinculada (se sincroniza).
@@ -211,7 +213,8 @@ export class Bodegas implements OnInit {
       ubicacion: null,
       descripcion: null,
       proyecto_id: null,
-      es_principal: false,
+      es_central: false,
+      es_principal_obra: false,
       latitud: null,
       longitud: null,
       heredar_ubicacion: false,
@@ -229,7 +232,8 @@ export class Bodegas implements OnInit {
       descripcion: bodega.descripcion,
       activo: bodega.activo,
       proyecto_id: bodega.proyecto_id ?? null,
-      es_principal: bodega.es_principal ?? false,
+      es_central: bodega.es_central ?? false,
+      es_principal_obra: bodega.es_principal_obra ?? false,
       latitud: bodega.latitud ?? null,
       longitud: bodega.longitud ?? null,
       heredar_ubicacion: (bodega as { ubicacion_hereda_proyecto?: boolean }).ubicacion_hereda_proyecto ?? false,
@@ -256,13 +260,18 @@ export class Bodegas implements OnInit {
     // y editar almacenes en producción. Sin `as`: tipado explícito para que el
     // compilador avise si un control de UI vuelve a colarse en el payload.
     const v = this.form.getRawValue();
+    // BO1 — es_central sólo aplica a una central (sin obra); es_principal_obra sólo
+    // a un almacén de obra. El trigger de BD lo normaliza igual, pero lo dejamos
+    // coherente desde el front.
+    const tieneObra = !!v.proyecto_id;
     const payload: BodegaFormData = {
       nombre: v.nombre ?? '',
       descripcion: v.descripcion ?? null,
       ubicacion: v.ubicacion ?? null,
       activo: v.activo ?? true,
       proyecto_id: v.proyecto_id ?? null,
-      es_principal: v.es_principal ?? false,
+      es_central: tieneObra ? false : (v.es_central ?? false),
+      es_principal_obra: tieneObra ? (v.es_principal_obra ?? false) : false,
       latitud: v.latitud ?? null,
       longitud: v.longitud ?? null,
       es_prueba: v.es_prueba ?? false,

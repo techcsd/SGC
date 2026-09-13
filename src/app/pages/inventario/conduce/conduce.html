@@ -294,6 +294,15 @@
         <span class="conduce__label">Motivo</span>
         <span>{{ motivoLabel(s.motivo) }}</span>
       </div>
+      <!-- BO7/F5.6 — requisición de procedencia (navegable a la bandeja). -->
+      @if (s.origen_requisicion?.id) {
+        <div>
+          <span class="conduce__label">Procede de requisición</span>
+          <a [routerLink]="['/inventario/requisiciones']" [queryParams]="{ req: s.origen_requisicion?.id }">
+            {{ reqCodigo(s.origen_requisicion?.folio) }} ↗
+          </a>
+        </div>
+      }
       <div>
         <span class="conduce__label">Responsable que recibe</span>
         <span>{{ s.responsable ?? '—' }}</span>
