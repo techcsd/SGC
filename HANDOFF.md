@@ -1,6 +1,8 @@
 # HANDOFF — SGC
 
-## TL;DR — Ronda BO (PROMPT-44, 13/09/2026) — **build verde; 4 decisiones §E resueltas; 3 migraciones NUEVAS escritas SIN aplicar; frontend SIN commit/bump**
+## TL;DR — Ronda BO (PROMPT-44, 13/09/2026) — **SHIPPED web 1.128.0 (commit d0c9cdb en main, SIN push aún); 3 migraciones APLICADAS + verificadas en prod**
+
+**Estado:** las 3 migraciones (`bo4-bo5`, `bo1`, `bo8`) están **aplicadas y verificadas en prod**; el frontend está **commiteado a main (d0c9cdb, 1.128.0)** con su entrada en `release-notes.json`. **FALTA `git push`** (Xaviel pidió solo commit) → hasta el push, Vercel no despliega. Al pushear: Vercel auto-deploya y `autoRegistrarVersionWeb` registra 1.128.0 (o el postbuild si hay service-role en Vercel). Paridad app BO (fecha_necesidad F3) = PROMPT-45.
 
 Contexto: `CONTEXTO-ACTUALIZACION-22.md` **NO existe en el repo** (referenciado por el prompt); trabajé con las referencias file:line embebidas en el prompt, todas verificadas vs código/prod.
 
