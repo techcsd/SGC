@@ -1,5 +1,29 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-48 (Ronda BP) — 14/09/2026 — **BP1+BP3 EN PROD · BP2/BP4/BP5 build verde SIN commit · BO10 doc · BO9/BP6 mocks a validar**
+
+> ⚠️ **Al desplegar web (cuando Xaviel lo autorice): APLICAR PRIMERO las migraciones BP4 y BP5** (`sql/2026-09-14-bp4-*` y `bp5-*`), o `/notas` (guardar_nota 10-arg) y el paso de daños de la bitácora fallan. BP4/BP5 están **validadas con rollback, SIN aplicar**.
+
+**Estado:** F0 (verificación de lo repetido) **100% verde en prod**. Los dos bugs vivos resueltos. Decisiones §F respondidas por Xaviel: p_extra jsonb · marked+highlight.js · app dev-notes solo lectura · logistica módulo entero.
+
+**EN PROD ya (aplicado + edge desplegada esta sesión):**
+- **BP1 — Felix.** 3 migraciones aplicadas (fusión→trigger→normalizar): ficha real quedó única, cédula en dígitos, enlazada al usuario sintético (rol chofer). Smoke `scripts/smoke-conductor-acceso.mjs` **verde**. Edge `conductor-crear-acceso` **redeployada a v17** vía Management API (el CLI está bloqueado por Application Control de Windows; se usó `POST /v1/projects/<ref>/functions/deploy` — ver `scratchpad/deploy-edge.mjs`). **Felix ya puede entrar** (cédula `22301629623` + el PIN que se intentó, o re-generar desde la UI = ahora cae en Caso-1 rotar-PIN). 15 fichas con guiones quedaron protegidas por el trigger normalizado.
+- **BP3 — logistica gana `proyectos`** (`array_append` aplicado). Afecta a **Raykler, Misael, QA logistica**. Falta: smoke desde Raykler (crear obra `es_prueba`).
+
+**Build verde, SIN commit/push (working tree):**
+- **BP2 — nota vacía.** `nota-editor.ts`: `effect()` hidrata el `<div #body>` cuando existe + guard `bodyHidratado` (una tecla ya no borra la nota). La nota de Xaviel estaba **intacta** (verificado). Otros `queueMicrotask` del repo auditados = benignos.
+- **BP4 — daños en bitácora.** Migración `bp4-bitacora-danos.sql` (validada): tabla `bitacora_danos` + RLS (`puede_ver_bitacora`) + es_prueba por trigger + RPC **`guardar_bitacora_extra(p_bitacora_id, p_extra jsonb)`** (escritor hijo dedicado, NO tocamos los RPCs gigantes — decisión de arquitectura: `equipo_obra` no existe en prod + riesgo de overload AY6). Web: paso “¿Se dañó algo hoy?” en `nueva` (material/equipo propio, fotos, solicitar retiro→BG4), lectura en `historial`. Pendiente-polish: informe semanal, etiqueta origen en `/inventario/retiros`, articulo-picker (hoy texto libre), smoke.
+- **BP5 — Dev notes.** Migración `bp5-notas-ambito-dev.sql` (validada): `ambito/formato/tags` en notas + RLS dev solo `es_tecnologia` + `guardar_nota` a 10 args (drop 7-arg). Componente `shared/ui/markdown-editor` (marked+highlight.js+DOMPurify, deps instaladas). Página `/tecnologia/dev-notes` (lista + editor + tags + búsqueda + export/import `.md` + plantilla HANDOFF) + ruta + shell (grupo Sistema) + icono `code`. `/notas` filtra `ambito='general'`. Pendiente-polish: UI de compartir (RLS ya lo protege), “Mover a Dev notes”, ampliar `nota_checklist_items.ref_tipo`.
+- **BO10 — cartillas.** `docs/CARTILLAS-PROPUESTA.md` completa (entidades, flujo, reportes, 7 preguntas para Guilamo/Ramón, figuras SVG, mock móvil, respuesta §F-7 = vive en `/bitacora`, “oficina” = responsables de obra). **PARADO antes del DDL** — falta validar + foto de una cartilla real.
+
+**A VALIDAR (BD1) antes de construir — mocks publicados:** **BO9** (captura de moldes + esquema SVG en vivo) y **BP6** (filtros de Personal como chips con popover), tema claro/oscuro → Artifact `qa/mocks/bo9-bp6-mock.html`. Su implementación espera el OK de Xaviel.
+
+**Verify on resume:** `git log -1` = `edd299b` (nada commiteado; todo BP2/BP4/BP5 en el working tree). Prod: `select cedula,usuario_id from sgc.conductores where nombre ilike 'Felix%'` → 1 fila, dígitos, enlazada; edge `conductor-crear-acceso` = v17; `logistica.modulos` incluye `proyectos`. Migraciones BP4/BP5 NO aplicadas (por objeto: `bitacora_danos` no existe aún, `guardar_nota` sigue en 7 args).
+
+**Al hacer ship (Xaviel autoriza):** aplicar BP4+BP5 (orden libre entre sí), bump `package.json` → 1.129.0, `release-notes.json` (nuevo: daños en bitácora, dev notes; arreglo: acceso PIN de Felix, nota vacía; mejora: logistica gestiona proyectos), commit + push → Vercel.
+
+---
+
 ## TL;DR — Auditoría PROMPT-46 de `imp 01092026` (13/09/2026) — **SHIPPED + PUSHED + DEPLOYED: web 1.128.1 (commit `edd299b` en main), Vercel `READY` en prod, versión registrada**
 
 **Estado:** auditoría de las tandas **BE + BH→BN** (solo web/BD) contra repo real **y prod** (Management API). Conclusión: **todas están sustancialmente entregadas y en prod** — el `PLAN.md` de `imp 01092026` etiquetaba BI/BK/BM como "por ejecutar" pero era **stale**. Reporte completo: `C:\developer\improvements\septiembre 2026\imp 11092026\REPORTE-AUDITORIA-01092026-SGC.md`. Columna "Estado" del PLAN viejo actualizada (CRLF respetado).

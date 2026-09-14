@@ -84,3 +84,27 @@ lógico de captura; el layout puede diferir).
   inventario con stock en vivo** (hoy la web solo lista los conteos).
 - 3i — captura offline-first en la web (requiere decisión; el back-office suele
   tener conexión, así que baja prioridad).
+
+## PROMPT-48 (BP) — contratos para la app (PROMPT-49)
+
+- **BP4 — daños en bitácora (`guardar_bitacora_extra`).** La web crea la bitácora con
+  su RPC de siempre y luego llama **`guardar_bitacora_extra(p_bitacora_id, p_extra jsonb)`**
+  (SECURITY DEFINER, idempotente por bitácora). Contrato de `p_extra`:
+  ```json
+  { "danos": [ {
+      "tipo": "material" | "equipo_propio",
+      "articulo_id": "uuid|null", "nombre_libre": "texto",
+      "cantidad": 0, "unidad": "ud", "unidad_capturada": "atado|null", "factor_aplicado": null,
+      "detalle": "qué pasó", "fotos_paths": ["path1","path2"],
+      "solicita_retiro": false
+  } ] }
+  ```
+  `tipo='material'` + `solicita_retiro=true` (requiere ≥1 foto) crea el retiro BG4 idempotente
+  (`client_id = md5(bitacora_id:idx)`) y aparece en `/inventario/retiros`. `equipo_propio` no crea
+  retiro (no existe `equipo_obra`; se captura por texto). La app implementa el paso en PROMPT-49 F2:
+  sube las fotos del daño al bucket `sgc-bitacora` (subpath `.../danos/`) y manda sus paths.
+- **BP5 — Dev notes.** La app: **solo lectura** en esta tanda (lista + preview markdown,
+  `csd-app/pages/tecnologia/`, filtra `ambito='dev'`, gate `es_tecnologia`). Escribir desde el móvil
+  queda para más adelante. El cuerpo se renderiza con `marked` + sanitizado.
+- **BO9 — moldes (contrato futuro).** Mismo `p_extra` de arriba, clave `"moldes"`; el componente SVG
+  `molde-esquema` (forma + tramos en cm) se copia a `csd-app/src/app/shared/ui/`. Bloqueado por mock BD1.

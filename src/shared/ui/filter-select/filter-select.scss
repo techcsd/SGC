@@ -1,0 +1,83 @@
+.filter-select {
+  position: relative;
+  display: inline-block;
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text, inherit);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 12.5px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    app-icon { opacity: .5; }
+    &--active {
+      border-color: var(--Hub, #ffb300);
+      background: color-mix(in srgb, var(--Hub, #ffb300) 14%, var(--sgc-surface, #fff));
+    }
+  }
+  &__label { font-weight: 500; }
+  &__val {
+    background: var(--Hub, #ffb300);
+    color: #121212;
+    border-radius: 999px;
+    padding: 0 7px;
+    font-size: 11px;
+    font-weight: 700;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__pop {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 240px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    background: var(--sgc-surface, #fff);
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(20, 25, 40, .14);
+    padding: 8px;
+  }
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: 8px;
+    padding: 5px 8px;
+    margin-bottom: 6px;
+    input { border: none; background: none; outline: none; flex: 1; color: inherit; font-size: 13px; }
+  }
+  &__opts { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; }
+  &__opt {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+    &:hover { background: var(--sgc-surface-2, #f0f1f4); }
+    input { accent-color: var(--Hub, #ffb300); }
+  }
+  &__empty { color: var(--sgc-text-muted, #6b7280); font-size: 12.5px; padding: 6px 8px; }
+  &__clear {
+    width: 100%;
+    margin-top: 4px;
+    border: none;
+    background: none;
+    color: var(--sgc-text-muted, #6b7280);
+    font-size: 12.5px;
+    cursor: pointer;
+    padding: 6px;
+    text-decoration: underline;
+  }
+}

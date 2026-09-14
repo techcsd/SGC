@@ -384,6 +384,7 @@ export class Shell implements OnInit {
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
         { label: 'Issues (Jira interno)', route: '/tecnologia/issues', soloTecnologia: true },
+        { label: 'Dev notes', route: '/tecnologia/dev-notes', soloTecnologia: true },
         { label: 'Resumen de operaciones', route: '/tecnologia/resumen-operaciones', soloTecnologia: true },
         { label: 'Consultas de Compa', route: '/tecnologia/consultas-compa', soloTecnologia: true },
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },

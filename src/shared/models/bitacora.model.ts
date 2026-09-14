@@ -219,6 +219,8 @@ export interface Bitacora {
   restricciones?: BitacoraRestriccion[];
   archivos?: BitacoraArchivo[];
   equipos?: BitacoraEquipoAlquilado[];
+  danos?: BitacoraDano[]; // BP4
+  moldes?: BitacoraMolde[]; // BO9
   // Y15 — tareas del cronograma enlazadas a esta bitácora (evidencia).
   cronograma_tareas?: { tarea: { id: string; nombre: string } | null }[];
   // T2 — dato de prueba (oculto a no-admin vía RLS; solo admin lo marca/elimina).
@@ -280,4 +282,52 @@ export interface BitacoraFormData {
     danado?: boolean;
     dano_detalle?: string | null;
   }[];
+}
+
+// BP4 — Daños de material / equipo propio reportados en el parte diario.
+export interface BitacoraDanoInput {
+  tipo: 'material' | 'equipo_propio';
+  articulo_id?: string | null;
+  nombre_libre?: string | null;
+  cantidad?: number | null;
+  unidad?: string | null;
+  unidad_capturada?: string | null;
+  factor_aplicado?: number | null;
+  detalle: string;
+  fotos_paths?: string[];
+  solicita_retiro?: boolean;
+}
+
+export interface BitacoraDano extends BitacoraDanoInput {
+  id: string;
+  bitacora_id: string;
+  retiro_id?: string | null;
+  es_prueba?: boolean;
+  created_at?: string;
+}
+
+// BO9 — Moldes: medidas reales por tramo (cm) + medida de plano opcional.
+export interface MoldeTramoData {
+  lado?: string;
+  largo_cm?: number | null;
+  alto_cm?: number | null;
+  espesor_cm?: number | null;
+}
+
+export interface BitacoraMoldeInput {
+  estructura?: string | null;
+  identificador?: string | null;
+  forma?: 'rectangular' | 'L' | 'T' | 'U' | 'circular' | 'libre';
+  tramos: MoldeTramoData[];
+  medida_plano?: MoldeTramoData[] | null;
+  notas?: string | null;
+  fotos_paths?: string[];
+}
+
+export interface BitacoraMolde extends BitacoraMoldeInput {
+  id: string;
+  bitacora_id: string;
+  desviacion_max_cm?: number | null;
+  es_prueba?: boolean;
+  created_at?: string;
 }

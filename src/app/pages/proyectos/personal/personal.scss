@@ -1,11 +1,32 @@
 .pob-filtros {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   padding: 14px;
   margin-bottom: 16px;
-  input[type='search'] { flex: 1 1 260px; }
-  select { flex: 0 1 190px; }
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 240px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    background: var(--sgc-surface-2, #f0f1f4);
+    border-radius: 9px;
+    padding: 8px 11px;
+    app-icon { opacity: .5; }
+    input { border: none; background: none; outline: none; flex: 1; color: inherit; font-size: 13px; }
+  }
+  &__clear {
+    border: none;
+    background: none;
+    color: var(--sgc-text-muted, #6b7280);
+    font-size: 12.5px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 6px 4px;
+  }
 }
 .pob-tabla { overflow-x: auto; }
 .pob-fila { cursor: pointer; &:hover { background: var(--sgc-surface-2, #f6f6f6); } }

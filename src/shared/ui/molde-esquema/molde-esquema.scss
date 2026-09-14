@@ -1,0 +1,19 @@
+.molde-esquema {
+  &__real { stroke: var(--sgc-text, #1c2230); stroke-width: 2; }
+  &__plano { stroke: var(--sgc-text-muted, #9aa2b1); stroke-width: 2; }
+  &__cota { stroke: var(--sgc-text-muted, #6b7280); stroke-width: 1; }
+  &__bad { stroke: var(--sgc-danger, #e5484d); stroke-width: 2; }
+  &__label {
+    fill: var(--sgc-text-muted, #6b7280);
+    font-size: 12px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  &__bad-text { fill: var(--sgc-danger, #e5484d); font-weight: 600; }
+  &__foot {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: var(--sgc-text-muted, #6b7280);
+    &--bad { color: var(--sgc-danger, #e5484d); font-weight: 600; }
+  }
+  &__empty { color: var(--sgc-text-muted, #6b7280); font-size: 13px; margin: 8px 0; }
+}

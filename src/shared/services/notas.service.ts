@@ -22,6 +22,9 @@ export interface GuardarNotaInput {
   color: string | null;
   pinned: boolean;
   archivada: boolean;
+  ambito?: 'general' | 'dev'; // BP5
+  formato?: 'html' | 'markdown';
+  tags?: string[];
 }
 
 export interface GuardarNotaResult {
@@ -68,11 +71,12 @@ export class NotasService {
 
   /** Mis notas (owner_id = yo). La RLS también devuelve compartidas; por eso
    *  filtramos explícitamente por dueño aquí. */
-  async getMisNotas(ownerId: string, includeArchivadas = false): Promise<Nota[]> {
+  async getMisNotas(ownerId: string, includeArchivadas = false, ambito: 'general' | 'dev' = 'general'): Promise<Nota[]> {
     let query = this.supabase.client
       .from('notas')
       .select('*')
       .eq('owner_id', ownerId)
+      .eq('ambito', ambito) // BP5 — /notas ve 'general', Dev notes ve 'dev'
       .order('updated_at', { ascending: false });
 
     if (!includeArchivadas) query = query.eq('archivada', false);
@@ -84,7 +88,7 @@ export class NotasService {
 
   /** Notas compartidas conmigo: filas de `nota_compartidos` con usuario_id = yo,
    *  trayendo la nota embebida (FK única nota_id → notas). */
-  async getCompartidasConmigo(usuarioId: string): Promise<Nota[]> {
+  async getCompartidasConmigo(usuarioId: string, ambito: 'general' | 'dev' = 'general'): Promise<Nota[]> {
     const { data, error } = await this.supabase.client
       .from('nota_compartidos')
       .select('permiso, nota:notas(*)')
@@ -94,7 +98,7 @@ export class NotasService {
 
     const rows = (data ?? []) as unknown as { permiso: NotaPermiso; nota: Nota | null }[];
     return rows
-      .filter((r) => r.nota)
+      .filter((r) => r.nota && (r.nota.ambito ?? 'general') === ambito) // BP5
       .map((r) => ({ ...(r.nota as Nota), mi_permiso: r.permiso }))
       .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
   }
@@ -111,6 +115,9 @@ export class NotasService {
       p_pinned: input.pinned,
       p_archivada: input.archivada,
       p_expected_updated_at: expectedUpdatedAt ?? null,
+      p_ambito: input.ambito ?? null,
+      p_formato: input.formato ?? null,
+      p_tags: input.tags ?? null,
     });
 
     if (error) throw new Error(error.message);

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
-import { Bitacora, BitacoraArchivo, BitacoraFormData } from '../models/bitacora.model';
+import { Bitacora, BitacoraArchivo, BitacoraFormData, BitacoraDanoInput, BitacoraMoldeInput } from '../models/bitacora.model';
 
 /** BJ1 — fila de cobertura por obra (RPC bitacoras_cobertura). */
 export interface CoberturaObra {
@@ -18,7 +18,7 @@ export interface CoberturaObra {
 }
 
 const SELECT_QUERY =
-  '*, proyecto:proyectos(nombre, codigo), autor:usuarios!bitacoras_usuario_id_fkey(id, nombre), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*), equipos:bitacora_equipos_alquilados(*), cronograma_tareas:cronograma_tarea_bitacoras(tarea:cronograma_tareas(id, nombre))';
+  '*, proyecto:proyectos(nombre, codigo), autor:usuarios!bitacoras_usuario_id_fkey(id, nombre), weather_snapshot:weather_snapshots(id, capturado_en, temperatura, sensacion, humedad, viento_kmh, precipitacion_mm, prob_precipitacion, uv, codigo_tiempo), actividades:bitacora_actividades(*), restricciones:bitacora_restricciones(*), archivos:bitacora_archivos(*), equipos:bitacora_equipos_alquilados(*), danos:bitacora_danos(*), moldes:bitacora_molde_medidas(*), cronograma_tareas:cronograma_tarea_bitacoras(tarea:cronograma_tareas(id, nombre))';
 
 // W1: tope técnico ALTO (el modelo soporta N fotos; una fila por archivo). Espejo
 // del parámetro sgc.parametros.bitacora_max_fotos = 40.
@@ -162,6 +162,36 @@ export class BitacoraService {
   /** Resolves a stored object path to a time-limited signed URL for viewing/downloading. */
   async getSignedUrl(path: string): Promise<string> {
     return this.cache.signed('sgc-bitacora', path);
+  }
+
+  /**
+   * BP4 — sube una foto de un DAÑO (material/equipo) al bucket sgc-bitacora y
+   * devuelve solo su PATH. A diferencia de subirArchivo, no la registra en
+   * bitacora_archivos: la foto pertenece al daño (bitacora_danos.fotos_paths).
+   */
+  async subirFotoDano(bitacoraId: string, file: File): Promise<string> {
+    file = await comprimirImagen(file, 'evidencia');
+    const path = `${bitacoraId}/danos/${crypto.randomUUID()}-${file.name}`;
+    const { error } = await this.supabase.client.storage.from('sgc-bitacora').upload(path, file);
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /**
+   * BP4 — escritor hijo de la bitácora (daños; luego moldes en BO9). Procesa
+   * p_extra = { danos: [...] }. Idempotente por bitácora. Si un daño de material
+   * pide retiro, crea la solicitud BG4 y la enlaza (aparece en /inventario/retiros).
+   */
+  async guardarBitacoraExtra(
+    bitacoraId: string,
+    extra: { danos?: BitacoraDanoInput[]; moldes?: BitacoraMoldeInput[] },
+  ): Promise<{ danos: number; retiros: number; moldes?: number }> {
+    const { data, error } = await this.supabase.client.rpc('guardar_bitacora_extra', {
+      p_bitacora_id: bitacoraId,
+      p_extra: extra,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? { danos: 0, retiros: 0 }) as { danos: number; retiros: number; moldes?: number };
   }
 
   // ── BN1 — Orden de trabajo ─────────────────────────────────────────────────

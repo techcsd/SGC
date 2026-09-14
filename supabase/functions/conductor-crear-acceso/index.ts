@@ -170,6 +170,7 @@ Deno.serve(async (req: Request) => {
     // Caso 2: puede existir un auth user con ese email (por ejecución previa
     // parcial). Buscarlo antes de crear (idempotencia).
     let userId: string | null = null;
+    let createdHere = false; // ¿creamos el auth user en ESTA llamada? (para poder deshacerlo)
     const { data: existingProfile } = await admin
       .from("usuarios")
       .select("id")
@@ -190,6 +191,7 @@ Deno.serve(async (req: Request) => {
         return json({ error: createError?.message ?? "No se pudo crear el acceso." }, 400);
       }
       userId = created.user.id;
+      createdHere = true;
 
       const { error: profileError } = await admin
         .from("usuarios")
@@ -200,10 +202,46 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Deshace el usuario auth creado en ESTA llamada (evita cuentas a medias).
+    const undoUser = async () => {
+      if (!createdHere || !userId) return;
+      await admin.from("usuarios").delete().eq("id", userId).then(() => {}, () => {});
+      await admin.auth.admin.deleteUser(userId).then(() => {}, () => {});
+    };
+
+    // BP1 — ENLAZAR ANTES DE ASIGNAR EL ROL. El rol dispara el trigger AFTER INSERT
+    // `trg_usuarios_roles_asegura_conductor` → asegurar_conductor_de_usuario(). Si el
+    // conductor ya está enlazado (usuario_id puesto), esa función retorna temprano y NO
+    // fabrica una ficha fantasma; si el rol va primero, el trigger crea el duplicado y el
+    // update de enlace choca con uq_conductores_usuario (regla 13: el trigger es otro
+    // escritor de conductores.usuario_id; el orden de los pasos es parte del contrato).
+
+    // Pre-chequeo: si este usuario ya está enlazado a OTRA ficha, es cédula duplicada.
+    const digits = (conductor.cedula || "").replace(/\D/g, "");
+    const { data: yaEnlazado } = await admin
+      .from("conductores").select("id").eq("usuario_id", userId).neq("id", conductorId).maybeSingle();
+    if (yaEnlazado?.id) {
+      await undoUser();
+      return json({
+        error: `Otro registro de conductor con la cédula ${digits} ya tiene acceso. Revisa duplicados en Conductores.`,
+      }, 409);
+    }
+
+    // Enlazar el conductor con su usuario.
+    const { error: linkErr } = await admin
+      .from("conductores")
+      .update({ usuario_id: userId })
+      .eq("id", conductorId);
+    if (linkErr) {
+      await undoUser();
+      return json({ error: `No se pudo enlazar el conductor: ${linkErr.message}` }, 400);
+    }
+
     // Asignar rol chofer_transportista. R13 — el conductor DEBE quedar 100%
     // provisionado (usuario + rol con módulo flota); si algo falla aquí, el login
     // lo rebotaría con "sin módulos". Por eso se falla ruidosamente en vez de
-    // dejarlo a medias.
+    // dejarlo a medias. (El enlace ya está hecho: en un reintento el update de
+    // arriba es no-op y este upsert se completa.)
     const { data: rol, error: rolLookupErr } = await admin
       .from("roles").select("id").eq("codigo", "chofer_transportista").maybeSingle();
     if (rolLookupErr || rol?.id == null) {
@@ -219,14 +257,7 @@ Deno.serve(async (req: Request) => {
       return json({ error: `No se pudo asignar el rol de conductor: ${rolAssignErr.message}` }, 400);
     }
 
-    // Enlazar el conductor con su usuario.
-    const { error: linkErr } = await admin
-      .from("conductores")
-      .update({ usuario_id: userId })
-      .eq("id", conductorId);
-    if (linkErr) return json({ error: `No se pudo enlazar el conductor: ${linkErr.message}` }, 400);
-
-    await audit("credencial_acceso_creado", userId, { via: "conductor", cedula: (conductor.cedula || "").replace(/\D/g, ""), email, rol: "chofer_transportista" });
+    await audit("credencial_acceso_creado", userId, { via: "conductor", cedula: digits, email, rol: "chofer_transportista" });
     return json({ email, usuarioId: userId, created: true });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Error desconocido." }, 500);

@@ -11,40 +11,23 @@
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
 
+<!-- BP6 — barra de filtros como chips con popover (shared/ui/filter-select). -->
 <section class="sgc-card pob-filtros">
-  <input type="search" class="sgc-input" placeholder="Buscar por nombre, documento, cargo o carnet…"
-         [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar personal" />
-  <select class="sgc-input" [ngModel]="filObra()" (ngModelChange)="filObra.set($event)" aria-label="Filtrar por obra">
-    <option value="">Todas las obras</option>
-    @for (o of obras(); track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
-  </select>
-  <select class="sgc-input" [ngModel]="filCargo()" (ngModelChange)="filCargo.set($event)" aria-label="Filtrar por cargo">
-    <option value="">Todos los cargos</option>
-    @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
-  </select>
-  <select class="sgc-input" [ngModel]="filNacionalidad()" (ngModelChange)="filNacionalidad.set($event)" aria-label="Filtrar por nacionalidad">
-    <option value="">Toda nacionalidad</option>
-    <option value="dominicano">Dominicano</option>
-    <option value="haitiano">Haitiano</option>
-    <option value="otro">Otra</option>
-  </select>
-  <select class="sgc-input" [ngModel]="filEstado()" (ngModelChange)="filEstado.set($event)" aria-label="Filtrar por estado">
-    <option value="">Todos</option>
-    <option value="activo">Activos</option>
-    <option value="inactivo">Inactivos</option>
-  </select>
-  <!-- AV4 — vista de control: filtros por aseguramiento y cuadrilla -->
-  <select class="sgc-input" [ngModel]="filAsegurado()" (ngModelChange)="filAsegurado.set($event)" aria-label="Filtrar por aseguramiento">
-    <option value="">Todo aseguramiento</option>
-    <option value="asegurado">Asegurados</option>
-    <option value="no_asegurado">No asegurados</option>
-    <option value="desconocido">Sin dato</option>
-  </select>
+  <div class="pob-filtros__search">
+    <app-icon name="search" [size]="16" />
+    <input type="search" placeholder="Buscar por nombre, documento, cargo o carnet…"
+           [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar personal" />
+  </div>
+  <app-filter-select label="Obra" [options]="obrasOpt()" [value]="filObra()" (valueChange)="filObra.set($event)" placeholder="Todas" />
+  <app-filter-select label="Cargo" [options]="cargosOpt()" [value]="filCargo()" (valueChange)="filCargo.set($event)" />
+  <app-filter-select label="Nacionalidad" [options]="nacionalidadOpt" [value]="filNacionalidad()" (valueChange)="filNacionalidad.set($event)" [searchable]="false" />
+  <app-filter-select label="Estado" [options]="estadoOpt" [value]="filEstado()" (valueChange)="filEstado.set($event)" [searchable]="false" />
+  <app-filter-select label="Aseguramiento" [options]="aseguradoOpt" [value]="filAsegurado()" (valueChange)="filAsegurado.set($event)" [searchable]="false" />
   @if (cuadrillas().length) {
-    <select class="sgc-input" [ngModel]="filCuadrilla()" (ngModelChange)="filCuadrilla.set($event)" aria-label="Filtrar por cuadrilla">
-      <option value="">Toda cuadrilla</option>
-      @for (c of cuadrillas(); track c) { <option [value]="c">{{ c }}</option> }
-    </select>
+    <app-filter-select label="Cuadrilla" [options]="cuadrillaOpt()" [value]="filCuadrilla()" (valueChange)="filCuadrilla.set($event)" />
+  }
+  @if (filtrosActivos() > 0) {
+    <button type="button" class="pob-filtros__clear" (click)="limpiarFiltros()">Limpiar ({{ filtrosActivos() }})</button>
   }
 </section>
 

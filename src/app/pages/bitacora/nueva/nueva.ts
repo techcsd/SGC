@@ -34,6 +34,8 @@ import {
   INCIDENTE_GRAVEDADES,
   SUCESO_CATALOGO_TIPO,
   MOTIVOS_SIN_ACTIVIDAD,
+  BitacoraDanoInput,
+  BitacoraMoldeInput,
 } from '../../../../shared/models/bitacora.model';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
@@ -42,6 +44,7 @@ import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -61,6 +64,35 @@ interface EquipoRow {
   dano_detalle: string;
 }
 
+// BP4 — Daño de material o equipo PROPIO reportado en el parte diario. Las fotos
+// (File[]) no se serializan al borrador; el resto sí.
+interface DanoRow {
+  tipo: 'material' | 'equipo_propio';
+  nombre: string; // material (molde/viga) o equipo propio, texto libre
+  cantidad: number | null;
+  unidad: string;
+  detalle: string;
+  solicita_retiro: boolean;
+  fotos: File[];
+}
+type DanoDraft = Omit<DanoRow, 'fotos'>;
+
+// BO9 — Molde: un tramo real (cm) + medida de plano opcional. El esquema se dibuja solo.
+interface MoldeRow {
+  estructura: string;
+  identificador: string;
+  forma: 'rectangular' | 'L' | 'T' | 'U' | 'circular' | 'libre';
+  largo_cm: number | null;
+  alto_cm: number | null;
+  espesor_cm: number | null;
+  plano_largo_cm: number | null;
+  plano_alto_cm: number | null;
+  plano_espesor_cm: number | null;
+  notas: string;
+  fotos: File[];
+}
+type MoldeDraft = Omit<MoldeRow, 'fotos'>;
+
 interface Draft {
   form: Record<string, unknown>;
   actividades: string[];
@@ -71,13 +103,15 @@ interface Draft {
   bloqueActivo?: string;
   descripciones?: Record<string, string>;
   equipos?: EquipoRow[];
+  danos?: DanoDraft[]; // BP4 — sin fotos (File no serializa)
+  moldes?: MoldeDraft[]; // BO9 — sin fotos
   estructurasOtras?: string[];
   actividadesOtras?: Record<string, string[]>; // AZ6 — actividades libres por estructura
 }
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon],
+  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -198,6 +232,12 @@ export class Nueva implements OnInit {
   equiposAlquilados = signal<EquipoRow[]>([]);
   /** Sugerencias de equipos usados antes (datalist), alimenta/lee otros_valores (U25). */
   equiposSugeridos = signal<string[]>([]);
+
+  // BP4 — daños de material / equipo propio (parte diario). Lista dinámica.
+  danos = signal<DanoRow[]>([]);
+  // BO9 — moldes del día (parte diario). Lista dinámica.
+  moldes = signal<MoldeRow[]>([]);
+  moldeToleranciaCm = signal(2);
 
   // Daily-log controls carry required validators toggled off for visita/incidente.
   private readonly PARTE_CONTROLS = [
@@ -545,7 +585,7 @@ export class Nueva implements OnInit {
     const v = this.form.getRawValue();
     const hayOtros = this.estructurasOtras().length > 0;
     return !!(v.proyecto_id || this.actividadesSeleccionadas().size || this.restriccionesSeleccionadas().size
-      || v.comentarios || v.incidente_descripcion || this.equiposAlquilados().length || hayOtros);
+      || v.comentarios || v.incidente_descripcion || this.equiposAlquilados().length || this.danos().length || this.moldes().length || hayOtros);
   }
 
   private draftLabel(): string {
@@ -567,6 +607,8 @@ export class Nueva implements OnInit {
       bloqueActivo: this.bloqueActivo(),
       descripciones: this.restriccionDescripciones(),
       equipos: this.equiposAlquilados(),
+      danos: this.danos().map(({ fotos, ...rest }) => rest), // fotos (File) no serializan
+      moldes: this.moldes().map(({ fotos, ...rest }) => rest),
       estructurasOtras: this.estructurasOtras(),
       actividadesOtras: this.actividadesOtras(),
     };
@@ -588,6 +630,8 @@ export class Nueva implements OnInit {
     this.bloqueActivo.set(draft.bloqueActivo ?? this.bloquesLista()[0] ?? 'General');
     this.restriccionDescripciones.set(draft.descripciones ?? {});
     this.equiposAlquilados.set(draft.equipos ?? []);
+    this.danos.set((draft.danos ?? []).map((d) => ({ ...d, fotos: [] }))); // BP4 — fotos se re-agregan
+    this.moldes.set((draft.moldes ?? []).map((m) => ({ ...m, fotos: [] }))); // BO9
     // AX6 — restaura las estructuras "Otros"; deriva las que falten de las llaves
     // `bloque|estructura|actividad` para que la matriz pinte sus grupos.
     const otras = new Set(draft.estructurasOtras ?? []);
@@ -853,6 +897,107 @@ export class Nueva implements OnInit {
     this.saveDraft();
   }
 
+  // ── BP4 — Daños de material / equipo propio ──────────────────────────────────
+  addDano() {
+    this.danos.update((list) => [
+      ...list,
+      { tipo: 'material', nombre: '', cantidad: null, unidad: '', detalle: '', solicita_retiro: false, fotos: [] },
+    ]);
+    this.saveDraft();
+  }
+
+  removeDano(index: number) {
+    this.danos.update((list) => list.filter((_, i) => i !== index));
+    this.saveDraft();
+  }
+
+  updateDano(index: number, field: 'nombre' | 'unidad' | 'detalle', value: string) {
+    this.danos.update((list) => list.map((d, i) => (i === index ? { ...d, [field]: value } : d)));
+    this.saveDraft();
+  }
+
+  setDanoTipo(index: number, tipo: 'material' | 'equipo_propio') {
+    this.danos.update((list) =>
+      list.map((d, i) => (i === index ? { ...d, tipo, solicita_retiro: tipo === 'material' ? d.solicita_retiro : false } : d)),
+    );
+    this.saveDraft();
+  }
+
+  setDanoCantidad(index: number, value: number | null) {
+    const v = value != null && !Number.isNaN(value) ? value : null;
+    this.danos.update((list) => list.map((d, i) => (i === index ? { ...d, cantidad: v } : d)));
+    this.saveDraft();
+  }
+
+  setDanoRetiro(index: number, value: boolean) {
+    this.danos.update((list) => list.map((d, i) => (i === index ? { ...d, solicita_retiro: value } : d)));
+    this.saveDraft();
+  }
+
+  addDanoFotos(index: number, files: File[]) {
+    this.danos.update((list) =>
+      list.map((d, i) => (i === index ? { ...d, fotos: [...d.fotos, ...files].slice(0, 6) } : d)),
+    );
+  }
+
+  removeDanoFoto(index: number, fotoIndex: number) {
+    this.danos.update((list) =>
+      list.map((d, i) => (i === index ? { ...d, fotos: d.fotos.filter((_, n) => n !== fotoIndex) } : d)),
+    );
+  }
+
+  // ── BO9 — Moldes del día ─────────────────────────────────────────────────────
+  addMolde() {
+    this.moldes.update((list) => [
+      ...list,
+      {
+        estructura: '', identificador: '', forma: 'rectangular',
+        largo_cm: null, alto_cm: null, espesor_cm: null,
+        plano_largo_cm: null, plano_alto_cm: null, plano_espesor_cm: null,
+        notas: '', fotos: [],
+      },
+    ]);
+    this.saveDraft();
+  }
+
+  removeMolde(index: number) {
+    this.moldes.update((list) => list.filter((_, i) => i !== index));
+    this.saveDraft();
+  }
+
+  updateMoldeText(index: number, field: 'estructura' | 'identificador' | 'notas', value: string) {
+    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
+    this.saveDraft();
+  }
+
+  setMoldeForma(index: number, forma: MoldeRow['forma']) {
+    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, forma } : m)));
+    this.saveDraft();
+  }
+
+  setMoldeNum(index: number, field: 'largo_cm' | 'alto_cm' | 'espesor_cm' | 'plano_largo_cm' | 'plano_alto_cm' | 'plano_espesor_cm', value: number) {
+    const v = value != null && !Number.isNaN(value) ? value : null;
+    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, [field]: v } : m)));
+    this.saveDraft();
+  }
+
+  addMoldeFotos(index: number, files: File[]) {
+    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, fotos: [...m.fotos, ...files].slice(0, 6) } : m)));
+  }
+  removeMoldeFoto(index: number, fotoIndex: number) {
+    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, fotos: m.fotos.filter((_, n) => n !== fotoIndex) } : m)));
+  }
+
+  /** Tramos para el esquema SVG (un tramo). */
+  moldeTramos(m: MoldeRow) {
+    return [{ largo_cm: m.largo_cm, alto_cm: m.alto_cm, espesor_cm: m.espesor_cm }];
+  }
+  /** Medida de plano para el esquema, o null si no se capturó ninguna. */
+  moldePlano(m: MoldeRow) {
+    if (m.plano_largo_cm == null && m.plano_alto_cm == null && m.plano_espesor_cm == null) return null;
+    return [{ largo_cm: m.plano_largo_cm, alto_cm: m.plano_alto_cm, espesor_cm: m.plano_espesor_cm }];
+  }
+
   // ── Submit ───────────────────────────────────────────────────
   async onSubmit() {
     this.form.markAllAsTouched();
@@ -1071,6 +1216,54 @@ export class Nueva implements OnInit {
           await this.bitacoraService.subirArchivo(created.id, file);
         } catch (e: unknown) {
           console.error('Error subiendo archivo:', file.name, e);
+        }
+      }
+
+      // BP4 — daños de material / equipo propio (solo parte diario). Sube las fotos
+      // de cada daño y llama al escritor hijo; un daño de material con "solicitar
+      // retiro" crea la solicitud BG4 y la enlaza (aparece en /inventario/retiros).
+      const danosLimpios = esParte ? this.danos().filter((d) => d.nombre.trim() && d.detalle.trim()) : [];
+      const moldesLimpios = esParte ? this.moldes().filter((m) => m.largo_cm && m.espesor_cm) : [];
+      if (danosLimpios.length || moldesLimpios.length) {
+        const danosPayload: BitacoraDanoInput[] = [];
+        for (const d of danosLimpios) {
+          const fotos_paths: string[] = [];
+          for (const f of d.fotos) {
+            try { fotos_paths.push(await this.bitacoraService.subirFotoDano(created.id, f)); }
+            catch (e: unknown) { console.error('Error subiendo foto de daño:', e); }
+          }
+          danosPayload.push({
+            tipo: d.tipo,
+            nombre_libre: d.nombre.trim(),
+            cantidad: d.cantidad,
+            unidad: d.unidad.trim() || null,
+            detalle: d.detalle.trim(),
+            fotos_paths,
+            solicita_retiro: d.tipo === 'material' ? d.solicita_retiro : false,
+          });
+        }
+        const moldesPayload: BitacoraMoldeInput[] = [];
+        for (const m of moldesLimpios) {
+          const fotos_paths: string[] = [];
+          for (const f of m.fotos) {
+            try { fotos_paths.push(await this.bitacoraService.subirFotoDano(created.id, f)); }
+            catch (e: unknown) { console.error('Error subiendo foto de molde:', e); }
+          }
+          moldesPayload.push({
+            estructura: m.estructura.trim() || null,
+            identificador: m.identificador.trim() || null,
+            forma: m.forma,
+            tramos: [{ largo_cm: m.largo_cm, alto_cm: m.alto_cm, espesor_cm: m.espesor_cm }],
+            medida_plano: this.moldePlano(m),
+            notas: m.notas.trim() || null,
+            fotos_paths,
+          });
+        }
+        try {
+          await this.bitacoraService.guardarBitacoraExtra(created.id, { danos: danosPayload, moldes: moldesPayload });
+        } catch (e: unknown) {
+          // La bitácora ya se guardó; daños/moldes son anexos. No bloqueamos la navegación.
+          console.error('Error guardando anexos de la bitácora (daños/moldes):', e);
         }
       }
 

@@ -10,6 +10,10 @@ export interface Nota {
   archivada: boolean;
   created_at: string;
   updated_at: string;
+  /** BP5 — Dev notes: ámbito, formato del cuerpo y etiquetas. */
+  ambito?: 'general' | 'dev';
+  formato?: 'html' | 'markdown';
+  tags?: string[];
   /** Enriquecido en el cliente: nombre del dueño (para "Compartidas conmigo"). */
   owner_nombre?: string;
   /** Enriquecido en el cliente: mi permiso sobre una nota compartida conmigo. */

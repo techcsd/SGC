@@ -15,10 +15,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { interpretarCodigoTiempo } from '../../../../shared/context/weather.model';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -115,6 +116,7 @@ export class Historial implements OnInit {
   restriccionAudioUrls = signal<Map<string, string>>(new Map());
   // AA10 — URLs firmadas de las fotos (varias) por equipo dañado (keyed by equipo id).
   equipoFotoUrls = signal<Map<string, string[]>>(new Map());
+  danoFotoUrls = signal<Map<string, string[]>>(new Map()); // BP4
 
   /** Icon + label for the captured weather of the entry being viewed. */
   detailTiempo = computed(() => interpretarCodigoTiempo(this.detail()?.weather_snapshot?.codigo_tiempo ?? null));
@@ -319,6 +321,7 @@ export class Historial implements OnInit {
       await this.resolveArchivoUrls(full.archivos ?? []);
       await this.resolveRestriccionUrls(full.restricciones ?? []); // Z21/AA9
       await this.resolveEquipoFotos(full.equipos ?? []); // AA10
+      await this.resolveDanoFotos(full.danos ?? []); // BP4
     } catch {
       // keep basic data
     }
@@ -434,6 +437,28 @@ export class Historial implements OnInit {
 
   getEquipoFotos(id: string): string[] {
     return this.equipoFotoUrls().get(id) ?? [];
+  }
+
+  // BP4 — URLs firmadas de las fotos de cada daño.
+  private async resolveDanoFotos(danos: { id: string; fotos_paths?: string[] | null }[]): Promise<void> {
+    const map = new Map<string, string[]>();
+    await Promise.all(
+      danos.map(async (d) => {
+        const paths = d.fotos_paths ?? [];
+        if (!paths.length) return;
+        const urls = await Promise.all(
+          paths.map(async (p) => {
+            try { return await this.bitacoraService.getSignedUrl(p); } catch { return ''; }
+          }),
+        );
+        map.set(d.id, urls.filter(Boolean));
+      }),
+    );
+    this.danoFotoUrls.set(map);
+  }
+
+  getDanoFotos(id: string): string[] {
+    return this.danoFotoUrls().get(id) ?? [];
   }
 
   /** Photos captured in the field render inline; voice notes get an audio

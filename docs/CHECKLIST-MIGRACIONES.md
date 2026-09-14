@@ -227,3 +227,23 @@ Toda migración de modelo **nace con la lista de sus lectores y una fecha de ret
   / "es central"). Se partió en `es_central` + `es_principal_obra` (`sql/2026-09-13-bo1-almacen-split-central-obra.sql`);
   `es_principal` quedó como puente de **solo lectura** sincronizado por trigger, con sus 8 lectores y su
   fecha de retiro documentados en esa migración.
+
+## 13. Un trigger que ESCRIBE una tabla es un escritor más de esa tabla (BP1)
+Todo escritor nuevo de una columna —incluido un **trigger**— se registra en el **inventario de
+escritores** de esa columna, en el comentario de la migración. Y en una **edge** que orquesta varios
+pasos sobre tablas con triggers, **el orden de los pasos es parte del contrato**.
+
+- **Por qué:** es la regla 12 vista desde el otro lado (lectores del modelo viejo → **escritores del
+  modelo vivo**). AI9 (7-ago) añadió `trg_usuarios_roles_asegura_conductor`, que escribe
+  `conductores.usuario_id` desde un INSERT en `usuarios_roles`. La edge `conductor-crear-acceso` (jul)
+  escribía ese mismo campo **dos pasos más tarde** en el mismo flujo, sin que nadie inventariara que
+  ahora había DOS escritores. Al dar acceso a un conductor con la cédula con guiones, el trigger fabricó
+  una ficha fantasma y el enlace de la edge chocó con `uq_conductores_usuario`. Reintentar no servía: el
+  fantasma ya tenía el `usuario_id`.
+- **Regla:** al añadir un trigger que escribe, lista en la cabecera de la migración **todos** los
+  escritores de la columna que toca (edges, RPCs, otros triggers). Al orquestar pasos en una edge sobre
+  tablas con triggers, **enlaza/estampa antes de disparar** el trigger que compite por el mismo campo.
+- **Caso real (BP1):** `sql/2026-09-14-bp1-asegurar-conductor-normalizado.sql` declara el inventario de
+  escritores de `conductores.usuario_id` (edge `conductor-crear-acceso`, trigger AI9,
+  `z2-z3-conductor-fixes.sql:53`, `asegurar_mi_conductor()`) y la edge se reordenó para **enlazar antes
+  de asignar el rol**.

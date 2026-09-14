@@ -3765,6 +3765,46 @@
           "d": "Se extendió a 9 servicios más (proveedores, conductores, mantenimientos, rutas, activos fijos, artículos, proyectos/fases/partidas, asistencia, tecnología) la protección que filtra cada formulario a las columnas reales de su tabla antes de guardar, para que un control de pantalla no pueda romper el guardado. Sin cambios visibles: todo se crea y edita igual."
         }
       ]
+    },
+    "1.129.0": {
+      "titulo": "Daños en la bitácora, medidas de moldes y Dev notes",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "El parte diario ahora pregunta \"¿Se dañó algo hoy?\": puedes reportar material dañado (un molde, una viga…) o un equipo propio, con fotos, y solicitar el retiro del material — que aparece automáticamente en Inventario › Retiros."
+        },
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Moldes del día: captura las medidas reales (cm) y el sistema dibuja el esquema con cotas; si cargas la medida de plano, compara y avisa cuando el desvío pasa la tolerancia."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Dev notes: notas técnicas en Markdown con bloques de código, personales y compartidas, con búsqueda, etiquetas y exportar/importar .md."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Arreglado el error al generar el acceso PIN de un conductor cuya cédula tenía guiones (no se podía enlazar)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Notas",
+          "d": "Arreglada una nota que abría vacía y podía perder su contenido al escribir; ahora el cuerpo se carga siempre antes de editar."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "El rol de Logística ahora puede crear y gestionar proyectos."
+        },
+        {
+          "t": "mejora",
+          "m": "Personal de obra",
+          "d": "Los filtros del listado ahora son chips con búsqueda, más claros en modo oscuro."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

@@ -511,6 +511,51 @@
         </div>
       }
 
+      @if ((b.danos ?? []).length > 0) {
+        <div class="bitacora-detail__section">
+          <h3>Daños</h3>
+          <ul class="bitacora-detail__list">
+            @for (d of b.danos; track d.id) {
+              <li>
+                <span class="sgc-badge">{{ d.tipo === 'material' ? 'Material' : 'Equipo propio' }}</span>
+                <strong>{{ d.nombre_libre }}</strong>
+                @if (d.cantidad) { <span class="text-muted">· {{ d.cantidad }}{{ d.unidad ? ' ' + d.unidad : '' }}</span> }
+                <span class="text-muted">— {{ d.detalle }}</span>
+                @if (d.retiro_id) { <span class="sgc-badge sgc-badge--warning">Retiro solicitado</span> }
+                @if (getDanoFotos(d.id).length) {
+                  <div class="bitacora-archivos">
+                    @for (u of getDanoFotos(d.id); track u) {
+                      <a class="bitacora-archivo bitacora-archivo--img" [href]="u" target="_blank" rel="noopener">
+                        <img [src]="u" [alt]="'Foto de daño de ' + d.nombre_libre" loading="lazy" />
+                      </a>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if ((b.moldes ?? []).length > 0) {
+        <div class="bitacora-detail__section">
+          <h3>Moldes del día</h3>
+          @for (m of b.moldes; track m.id) {
+            <div class="bitacora-detail__molde">
+              <div class="bitacora-detail__molde-head">
+                <strong>{{ m.identificador || m.estructura || 'Molde' }}</strong>
+                @if (m.estructura && m.identificador) { <span class="text-muted">· {{ m.estructura }}</span> }
+                @if (m.desviacion_max_cm != null) {
+                  <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">Desvío {{ m.desviacion_max_cm }} cm</span>
+                }
+              </div>
+              <app-molde-esquema [forma]="m.forma ?? 'rectangular'" [tramos]="m.tramos ?? []"
+                [medidaPlano]="m.medida_plano ?? null" />
+            </div>
+          }
+        </div>
+      }
+
       @if (b.comentarios) {
         <div class="bitacora-detail__section">
           <h3>Comentarios</h3>

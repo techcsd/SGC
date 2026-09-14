@@ -53,6 +53,7 @@ export const PARAM_CATALOGO: Record<string, ParamMeta> = {
   otros_umbral_dias: { descripcion: '"Otros" combustible: ventana de días para repeticiones', tipo: 'entero', grupo: 'Combustible', fuente: 'flota', min: 1, max: 365 },
   otros_umbral_repeticiones: { descripcion: '"Otros" combustible: nº de repeticiones que alerta', tipo: 'entero', grupo: 'Combustible', fuente: 'flota', min: 1, max: 100 },
   conciliacion_dias_tolerancia: { descripcion: 'Conciliación: días de diferencia aceptados factura↔registro', tipo: 'entero', grupo: 'Combustible', fuente: 'flota', min: 0, max: 60 },
+  molde_tolerancia_cm: { descripcion: 'Moldes (BO9): desviación real↔plano aceptada antes de avisar (cm)', tipo: 'entero', grupo: 'Bitácora', fuente: 'parametros', min: 0, max: 100 },
   conciliacion_gal_tolerancia: { descripcion: 'Conciliación: galones de diferencia aceptados', tipo: 'decimal', grupo: 'Combustible', fuente: 'flota', min: 0, max: 100 },
   conciliacion_monto_tolerancia: { descripcion: 'Conciliación: RD$ de diferencia aceptados', tipo: 'entero', grupo: 'Combustible', fuente: 'flota', min: 0, max: 100000 },
 

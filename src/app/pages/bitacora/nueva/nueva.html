@@ -531,6 +531,158 @@
     </section>
     }
 
+    <!-- Sección: ¿Se dañó algo hoy? (BP4) — material o equipo propio, solo parte diario -->
+    @if (tipoActual() === 'parte_diario' && !sinActividad()) {
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">¿Se dañó algo hoy?</h2>
+      <p class="bitacora-section__hint">
+        Reporta material (un molde, una viga…) o un equipo propio (CSD) que se haya dañado en obra.
+        Si es material, puedes solicitar su retiro y aparecerá en Inventario › Retiros.
+      </p>
+
+      @for (d of danos(); track $index; let i = $index) {
+        <div class="dano-row">
+          <div class="dano-row__head">
+            <div class="dano-row__tipo" role="group" aria-label="Tipo de daño">
+              <button type="button" class="sgc-btn sgc-btn--sm"
+                [class.sgc-btn--primary]="d.tipo === 'material'" [class.sgc-btn--ghost]="d.tipo !== 'material'"
+                (click)="setDanoTipo(i, 'material')">Material</button>
+              <button type="button" class="sgc-btn sgc-btn--sm"
+                [class.sgc-btn--primary]="d.tipo === 'equipo_propio'" [class.sgc-btn--ghost]="d.tipo !== 'equipo_propio'"
+                (click)="setDanoTipo(i, 'equipo_propio')">Equipo propio</button>
+            </div>
+            <button type="button" class="dano-row__remove sgc-btn sgc-btn--ghost"
+              (click)="removeDano(i)" aria-label="Quitar daño"><app-icon name="x" [size]="16" /></button>
+          </div>
+
+          <div class="sgc-field">
+            <label [for]="'dano-nombre-' + i">
+              {{ d.tipo === 'material' ? 'Material dañado' : 'Equipo propio dañado' }} <span class="required">*</span>
+            </label>
+            <input [id]="'dano-nombre-' + i" type="text" [value]="d.nombre"
+              (input)="updateDano(i, 'nombre', $any($event.target).value)"
+              [placeholder]="d.tipo === 'material' ? 'Ej: Molde de columna, Viga de encofrado…' : 'Ej: Mezcladora CSD, Vibrador…'" />
+          </div>
+
+          @if (d.tipo === 'material') {
+            <div class="dano-row__qty">
+              <div class="sgc-field">
+                <label [for]="'dano-cant-' + i">Cantidad</label>
+                <input [id]="'dano-cant-' + i" type="number" min="0" step="any" [value]="d.cantidad"
+                  (input)="setDanoCantidad(i, $any($event.target).valueAsNumber)" placeholder="0" />
+              </div>
+              <div class="sgc-field">
+                <label [for]="'dano-unidad-' + i">Unidad</label>
+                <input [id]="'dano-unidad-' + i" type="text" [value]="d.unidad"
+                  (input)="updateDano(i, 'unidad', $any($event.target).value)" placeholder="ud, m, qq…" />
+              </div>
+            </div>
+          }
+
+          <div class="sgc-field">
+            <label [for]="'dano-detalle-' + i">¿Qué pasó? <span class="required">*</span></label>
+            <input [id]="'dano-detalle-' + i" type="text" [value]="d.detalle"
+              (input)="updateDano(i, 'detalle', $any($event.target).value)" placeholder="Describe el daño" />
+          </div>
+
+          @if (d.tipo === 'material') {
+            <label class="bitacora-check-line">
+              <input type="checkbox" [checked]="d.solicita_retiro"
+                (change)="setDanoRetiro(i, $any($event.target).checked)" />
+              <span>Solicitar retiro del material dañado (requiere foto)</span>
+            </label>
+          }
+
+          <div class="sgc-field">
+            <label>Fotos {{ d.solicita_retiro ? '' : '(opcional)' }}</label>
+            <app-file-upload [files]="d.fotos" [max]="6" accept="image/*"
+              hint="Fotos del daño."
+              (add)="addDanoFotos(i, $event)" (removeAt)="removeDanoFoto(i, $event)" />
+          </div>
+        </div>
+      }
+
+      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addDano()">
+        + Agregar daño
+      </button>
+    </section>
+    }
+
+    <!-- Sección: Moldes del día (BO9) — medidas reales + esquema, solo parte diario -->
+    @if (tipoActual() === 'parte_diario' && !sinActividad()) {
+    <section class="bitacora-section sgc-card">
+      <h2 class="bitacora-section__title">Moldes del día</h2>
+      <p class="bitacora-section__hint">
+        Captura las medidas reales (cm) de los moldes. El esquema se dibuja solo; si cargas la
+        medida de plano, se compara y avisa cuando el desvío pasa la tolerancia.
+      </p>
+
+      @for (m of moldes(); track $index; let i = $index) {
+        <div class="dano-row">
+          <div class="dano-row__head">
+            <div class="dano-row__tipo" role="group" aria-label="Forma del molde">
+              @for (fm of ['rectangular','L','T','U','circular']; track fm) {
+                <button type="button" class="sgc-btn sgc-btn--sm"
+                  [class.sgc-btn--primary]="m.forma === fm" [class.sgc-btn--ghost]="m.forma !== fm"
+                  (click)="setMoldeForma(i, $any(fm))">{{ fm }}</button>
+              }
+            </div>
+            <button type="button" class="dano-row__remove sgc-btn sgc-btn--ghost"
+              (click)="removeMolde(i)" aria-label="Quitar molde"><app-icon name="x" [size]="16" /></button>
+          </div>
+
+          <div class="dano-row__qty">
+            <div class="sgc-field">
+              <label [for]="'m-estr-' + i">Estructura</label>
+              <input [id]="'m-estr-' + i" type="text" [value]="m.estructura"
+                (input)="updateMoldeText(i, 'estructura', $any($event.target).value)" placeholder="COLUMNA, VIGA…" />
+            </div>
+            <div class="sgc-field">
+              <label [for]="'m-id-' + i">Identificador</label>
+              <input [id]="'m-id-' + i" type="text" [value]="m.identificador"
+                (input)="updateMoldeText(i, 'identificador', $any($event.target).value)" placeholder="C-12 (eje 3)" />
+            </div>
+          </div>
+
+          <label class="dano-row__grouplabel">Medida real (cm) <span class="required">*</span></label>
+          <div class="tramos">
+            <div class="sgc-field"><label>Largo</label>
+              <input type="number" min="0" step="1" [value]="m.largo_cm" (input)="setMoldeNum(i, 'largo_cm', $any($event.target).valueAsNumber)" /></div>
+            <div class="sgc-field"><label>Alto</label>
+              <input type="number" min="0" step="1" [value]="m.alto_cm" (input)="setMoldeNum(i, 'alto_cm', $any($event.target).valueAsNumber)" /></div>
+            <div class="sgc-field"><label>Espesor</label>
+              <input type="number" min="0" step="1" [value]="m.espesor_cm" (input)="setMoldeNum(i, 'espesor_cm', $any($event.target).valueAsNumber)" /></div>
+          </div>
+
+          <label class="dano-row__grouplabel">Medida de plano (opcional)</label>
+          <div class="tramos">
+            <div class="sgc-field"><label>Largo</label>
+              <input type="number" min="0" step="1" [value]="m.plano_largo_cm" (input)="setMoldeNum(i, 'plano_largo_cm', $any($event.target).valueAsNumber)" /></div>
+            <div class="sgc-field"><label>Alto</label>
+              <input type="number" min="0" step="1" [value]="m.plano_alto_cm" (input)="setMoldeNum(i, 'plano_alto_cm', $any($event.target).valueAsNumber)" /></div>
+            <div class="sgc-field"><label>Espesor</label>
+              <input type="number" min="0" step="1" [value]="m.plano_espesor_cm" (input)="setMoldeNum(i, 'plano_espesor_cm', $any($event.target).valueAsNumber)" /></div>
+          </div>
+
+          <div class="molde-preview">
+            <app-molde-esquema [forma]="m.forma" [tramos]="moldeTramos(m)"
+              [medidaPlano]="moldePlano(m)" [toleranciaCm]="moldeToleranciaCm()" />
+          </div>
+
+          <div class="sgc-field">
+            <label>Fotos (opcional)</label>
+            <app-file-upload [files]="m.fotos" [max]="6" accept="image/*" hint="Fotos del molde."
+              (add)="addMoldeFotos(i, $event)" (removeAt)="removeMoldeFoto(i, $event)" />
+          </div>
+        </div>
+      }
+
+      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addMolde()">
+        + Agregar molde
+      </button>
+    </section>
+    }
+
     <!-- Sección 2: Actividades + Personal (solo parte diario con trabajo) -->
     @if (tipoActual() === 'parte_diario' && !sinActividad()) {
     <section class="bitacora-section sgc-card">

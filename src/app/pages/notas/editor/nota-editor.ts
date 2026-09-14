@@ -4,6 +4,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   ElementRef,
   viewChild,
   OnInit,
@@ -71,9 +72,31 @@ export class NotaEditor implements OnInit, OnDestroy {
   guardando = signal(false);
   guardadoOk = signal(false);
 
+  // BP2 — El cuerpo se pinta en el <div #body>, que vive dentro del @else de
+  // @if(loading()). El queueMicrotask anterior corría antes de que el <div>
+  // existiera → el HTML nunca se asignaba y la nota se veía vacía; peor: una
+  // tecla en ese cuerpo vacío disparaba onBodyInput → autosave → la nota se
+  // sobrescribía con basura. Ahora hidratamos cuando el elemento EXISTE (effect)
+  // y bloqueamos onBodyInput/exec hasta que eso ocurra.
+  private contenidoParaHidratar = signal<string | null>(null);
+  private bodyHidratado = false;
+
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private lastUpdatedAt: string | null = null;
   private destroyed = false;
+
+  constructor() {
+    // Pinta el cuerpo la primera vez que el <div #body> aparece en el DOM y ya
+    // hay contenido cargado. Idempotente por el guard `bodyHidratado`.
+    effect(() => {
+      const el = this.bodyRef()?.nativeElement;
+      const pending = this.contenidoParaHidratar();
+      if (el && pending !== null && !this.bodyHidratado) {
+        el.innerHTML = pending;
+        this.bodyHidratado = true;
+      }
+    });
+  }
 
   esNueva = computed(() => this.notaId() === null);
   checklistProgreso = computed(() => {
@@ -89,6 +112,8 @@ export class NotaEditor implements OnInit, OnDestroy {
     if (id && id !== 'nueva') {
       await this.cargar(id);
     } else {
+      // Nota nueva: el cuerpo nace vacío y el usuario escribe libremente.
+      this.bodyHidratado = true;
       this.loading.set(false);
     }
   }
@@ -115,6 +140,8 @@ export class NotaEditor implements OnInit, OnDestroy {
 
   private async cargar(id: string) {
     this.loading.set(true);
+    this.bodyHidratado = false;
+    this.contenidoParaHidratar.set(null);
     try {
       // AH18 — traer la nota DIRECTO por id (RLS decide acceso). Evita el bug de
       // "no muestra nada / da error" que causaba traer todas-mis-notas y filtrar
@@ -136,11 +163,10 @@ export class NotaEditor implements OnInit, OnDestroy {
       this.archivada.set(nota.archivada);
       this.lastUpdatedAt = nota.updated_at;
       this.soloLectura.set(permiso === 'ver');
-      // Refleja el cuerpo en el contenteditable.
-      queueMicrotask(() => {
-        const el = this.bodyRef()?.nativeElement;
-        if (el) el.innerHTML = nota!.contenido ?? '';
-      });
+      // Dispara la hidratación del cuerpo (el effect la aplica cuando el <div> exista).
+      this.contenidoParaHidratar.set(nota.contenido ?? '');
+      // Renderiza el cuerpo YA; checklist/compartidos cargan después sin bloquearlo.
+      this.loading.set(false);
       await Promise.all([this.recargarChecklist(), this.recargarCompartidos()]);
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo abrir la nota');
@@ -198,13 +224,16 @@ export class NotaEditor implements OnInit, OnDestroy {
 
   // ── Barra de herramientas (contenteditable) ────────────────────────────────
   exec(cmd: string, value?: string) {
-    if (this.soloLectura()) return;
+    if (this.soloLectura() || !this.bodyHidratado) return;
     this.bodyRef()?.nativeElement.focus();
     document.execCommand(cmd, false, value);
     this.onBodyInput();
   }
 
   onBodyInput() {
+    // Nunca leer el <div> antes de que el HTML cargado se haya pintado en él:
+    // hacerlo capturaría un cuerpo vacío y borraría la nota en el autosave (BP2).
+    if (!this.bodyHidratado) return;
     const html = this.bodyRef()?.nativeElement.innerHTML ?? '';
     this.contenido.set(html);
     this.programarGuardado();

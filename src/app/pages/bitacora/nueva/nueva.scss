@@ -315,6 +315,52 @@
     flex-wrap: wrap;
   }
 }
+// BP4 — daños de material / equipo propio
+.dano-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--sgc-border);
+
+  &__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  &__tipo { display: flex; gap: 8px; }
+  &__remove {
+    color: var(--sgc-danger);
+    padding: 8px 10px;
+  }
+  &__qty {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  &__grouplabel {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 4px 0 -2px;
+    color: var(--sgc-text-muted);
+  }
+}
+// BO9 — tres campos por fila (largo/alto/espesor) + preview del esquema
+.tramos {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.molde-preview {
+  border: 1px solid var(--sgc-border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--sgc-surface-2, transparent);
+}
+
 // Radios en línea (propio/alquilado, operativo sí/no)
 .bitacora-radio-row {
   display: flex;

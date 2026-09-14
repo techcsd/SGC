@@ -1,0 +1,37 @@
+<div class="md-editor">
+  @if (!disabled()) {
+    <div class="md-toolbar" role="toolbar" aria-label="Formato markdown">
+      <button type="button" title="Negrita (Ctrl+B)" (click)="bold()"><b>B</b></button>
+      <button type="button" title="Cursiva (Ctrl+I)" (click)="italic()"><i>I</i></button>
+      <button type="button" title="Título" (click)="heading()">H</button>
+      <button type="button" title="Lista" (click)="bullet()">•</button>
+      <button type="button" title="Enlace (Ctrl+K)" (click)="link()"><app-icon name="link" [size]="15" /></button>
+      <span class="md-toolbar__sep"></span>
+      <label class="md-toolbar__code">
+        <app-icon name="code" [size]="15" />
+        <select (change)="code($any($event.target).value); $any($event.target).value=''" aria-label="Insertar bloque de código">
+          <option value="" selected>código…</option>
+          @for (l of LENGUAJES; track l) { <option [value]="l">{{ l }}</option> }
+        </select>
+      </label>
+      <span class="md-toolbar__grow"></span>
+      <button type="button" class="md-toolbar__toggle" (click)="vistaPreview.set(!vistaPreview())">
+        {{ vistaPreview() ? 'Editar' : 'Vista previa' }}
+      </button>
+    </div>
+  }
+
+  <div class="md-panes" [class.md-panes--preview]="vistaPreview()">
+    <textarea
+      #area
+      class="md-source"
+      [value]="value()"
+      [attr.readonly]="disabled() ? '' : null"
+      spellcheck="false"
+      placeholder="Escribe en Markdown…  ```ts para un bloque de código"
+      (input)="onInput($any($event.target).value)"
+      (keydown)="onKeydown($event)"
+    ></textarea>
+    <div class="md-preview" [innerHTML]="preview()"></div>
+  </div>
+</div>

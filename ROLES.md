@@ -1,6 +1,6 @@
 # ROLES.md — Auditoría de roles y permisos (SGC)
 
-> Documento vivo. Última actualización: **2026-07-28** (PROMPT-1 · Ronda IDs Y · FASE 3).
+> Documento vivo. Última actualización: **2026-09-14** (PROMPT-48 · Ronda IDs BP · BP3 logistica→proyectos, regla 13).
 > Fuente: esquema `sgc` en producción (`jeeqhgccqefbqilntcpu`) + código Angular.
 
 ## 1. Modelo de permisos — ya es multi-rol
@@ -30,7 +30,7 @@ El módulo `tecnologia` gatea el **contenido** de Tecnología (guía, matriz, in
 |----|--------|--------|---------|
 | 1 | `admin` | Administrador | inventario, compras, rrhh, proyectos, flota, bitacora, documentos, admin, legal, tareas, plantillas, direccion, tecnologia |
 | 2 | `gerencia` | Gerencia | inventario, compras, rrhh, proyectos, flota, direccion |
-| 3 | `logistica` | Logística y Transporte | inventario |
+| 3 | `logistica` | Logística y Transporte | inventario, flota, compras, tareas, **proyectos** (BP3, 2026-09-14) |
 | 4 | `coord_compras` | Coordinador de Compras | compras, inventario |
 | 5 | `jefe_rrhh` | Jefe de RRHH | rrhh |
 | 6 | `gerente_proyectos` | Gerente de Proyectos | proyectos |
@@ -89,6 +89,8 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 3. **INSERT/UPDATE/DELETE**: o política por rol, **o** —preferido cuando el único camino de escritura es un RPC— el RPC es **`SECURITY DEFINER` con `set search_path` y gate por matriz** (`tiene_modulo`/`is_admin`), y **NO** se dan grants de tabla sueltos a roles (un grant suelto permite escribir por fuera del RPC y salta la validación).
 4. `grant execute` del/los RPC a `authenticated` (+ `service_role` si edge lo usa).
 5. **Paridad app↔web**: si existe un RPC gemelo (p. ej. `crear_bitacora_app` ↔ `crear_entrada_bitacora`), **ambos** deben tener el mismo `SECURITY DEFINER`/gate. La divergencia fue la raíz de BC7.
+
+**⭐ Regla 13 (checklist de migraciones, BP1) — un trigger que ESCRIBE una tabla es un escritor más de esa tabla.** Todo escritor nuevo (incluido un trigger) se registra en el **inventario de escritores** de la columna que toca, en el comentario de la migración. Y en una edge que orquesta varios pasos sobre tablas con triggers, **el orden de los pasos es parte del contrato**. Costo de olvidarlo: BP1 — el trigger AI9 escribía `conductores.usuario_id` dos pasos antes de que `conductor-crear-acceso` lo escribiera, y el enlace chocaba con su propia fila fantasma.
 
 **Guardas automáticas:**
 - `scripts/verify-regresiones.mjs` (corre en `prebuild`) admite reglas `require` en la **cabecera** de una función: p. ej. `crear_entrada_bitacora` y `crear_bitacora_app` **deben** contener `security definer`. Si una migración futura los recrea sin él, **el build falla**.

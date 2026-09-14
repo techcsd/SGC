@@ -62,6 +62,13 @@ export const tecnologiaRoutes: Routes = [
     title: 'QA (pruebas) — Tecnología',
   },
   {
+    // BP5 — Dev notes (markdown + código, personal + compartido). Gate: es_tecnologia.
+    path: 'dev-notes',
+    canActivate: [tecnologiaGuard],
+    loadComponent: () => import('./dev-notes/dev-notes').then((m) => m.DevNotes),
+    title: 'Dev notes — Tecnología',
+  },
+  {
     // Z26 — Historial de versiones es público (sin guard).
     path: 'historial-versiones',
     loadComponent: () =>

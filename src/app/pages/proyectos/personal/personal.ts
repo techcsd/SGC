@@ -9,6 +9,8 @@ import { Cargo, PersonalObra, NACIONALIDAD_LABEL } from '../../../../shared/mode
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { TelemetryService } from '../../../../shared/services/telemetry.service';
+import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
+import { Icon } from '../../../../shared/ui/icon/icon';
 
 /** BO6 — normaliza para búsqueda: minúsculas, sin acentos (NFD), espacios colapsados. */
 function norm(s: string | null | undefined): string {
@@ -18,7 +20,7 @@ function norm(s: string | null | undefined): string {
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
   selector: 'app-personal-obra',
-  imports: [FormsModule, Skeleton, RouterLink],
+  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon],
   templateUrl: './personal.html',
   styleUrl: './personal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,6 +51,30 @@ export class PersonalObraLista implements OnInit {
   // AV4 — cuadrillas presentes (para el filtro de la vista de control).
   cuadrillas = computed(() =>
     [...new Set(this.personal().map((p) => (p.cuadrilla ?? '').trim()).filter(Boolean))].sort(),
+  );
+
+  // BP6 — opciones para los chips-filtro (filter-select).
+  obrasOpt = computed(() => this.obras().map((o) => ({ value: o.id, label: o.nombre })));
+  cargosOpt = computed(() => this.cargos().map((c) => ({ value: c.id, label: c.nombre })));
+  cuadrillaOpt = computed(() => this.cuadrillas().map((c) => ({ value: c, label: c })));
+  readonly nacionalidadOpt = [
+    { value: 'dominicano', label: 'Dominicano' },
+    { value: 'haitiano', label: 'Haitiano' },
+    { value: 'otro', label: 'Otra' },
+  ];
+  readonly estadoOpt = [
+    { value: 'activo', label: 'Activos' },
+    { value: 'inactivo', label: 'Inactivos' },
+  ];
+  readonly aseguradoOpt = [
+    { value: 'asegurado', label: 'Asegurados' },
+    { value: 'no_asegurado', label: 'No asegurados' },
+    { value: 'desconocido', label: 'Sin dato' },
+  ];
+  // Nº de filtros activos (para el botón "Limpiar (N)").
+  filtrosActivos = computed(() =>
+    [this.filObra(), this.filCargo(), this.filNacionalidad(), this.filEstado(), this.filAsegurado(), this.filCuadrilla()]
+      .filter(Boolean).length,
   );
 
   filtrados = computed(() => {
