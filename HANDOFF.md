@@ -1,10 +1,18 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-48 (Ronda BP) — 14/09/2026 — **BP1+BP3 EN PROD · BP2/BP4/BP5 build verde SIN commit · BO10 doc · BO9/BP6 mocks a validar**
+## TL;DR — PROMPT-48 (Ronda BP) — 14/09/2026 — **SHIPPED: web 1.129.0 (commit `2d491cf` push main) + 7 migraciones en prod + edge v17. Toda la tanda entregada.**
 
-> ⚠️ **Al desplegar web (cuando Xaviel lo autorice): APLICAR PRIMERO las migraciones BP4 y BP5** (`sql/2026-09-14-bp4-*` y `bp5-*`), o `/notas` (guardar_nota 10-arg) y el paso de daños de la bitácora fallan. BP4/BP5 están **validadas con rollback, SIN aplicar**.
+**Estado:** ronda BP completa y desplegada. F0 verde. Los dos bugs vivos resueltos, BP3/BP4/BP5/BO9/BP6 construidos y **en main**; migraciones **aplicadas y verificadas en prod**; BO10 = propuesta (sin DDL). Decisiones §F de Xaviel: p_extra jsonb · marked+highlight.js · app dev-notes solo lectura · logistica módulo entero. Vercel desplegando 1.129.0.
 
-**Estado:** F0 (verificación de lo repetido) **100% verde en prod**. Los dos bugs vivos resueltos. Decisiones §F respondidas por Xaviel: p_extra jsonb · marked+highlight.js · app dev-notes solo lectura · logistica módulo entero.
+**Migraciones en prod (7):** bp1-fusion, bp1-trigger-normalizado, bp1-cedula-normalizar, bp3-logistica-proyectos, bp4-bitacora-danos, bo9-bitacora-molde-medidas, bp5-notas-ambito-dev. Edge `conductor-crear-acceso` redeployada a **v17**.
+
+**Pendiente físico de Xaviel (no de código):** (1) confirmar login de Felix en la app; (2) smoke desde Raykler (crear obra `es_prueba` en Proyectos, editar, cerrar, borrar); (3) revisar los mocks BO9/BP6 en pantalla (ya están construidos, pero valida el resultado real).
+
+**Polish anotado para próxima ronda (no bloquea):** BP4 informe semanal + etiqueta origen en `/inventario/retiros` + articulo-picker para material (hoy texto libre); BP5 UI de compartir (RLS ya protege) + “Mover a Dev notes” + ampliar `nota_checklist_items.ref_tipo`; BO9 vista de oficina “Moldes vs plano” + export + multi-tramo (hoy 1 tramo); BP6 aplicar `filter-select` a Conductores/Requisiciones/Almacenes.
+
+---
+
+### Detalle previo de la sesión (antes del ship)
 
 **EN PROD ya (aplicado + edge desplegada esta sesión):**
 - **BP1 — Felix.** 3 migraciones aplicadas (fusión→trigger→normalizar): ficha real quedó única, cédula en dígitos, enlazada al usuario sintético (rol chofer). Smoke `scripts/smoke-conductor-acceso.mjs` **verde**. Edge `conductor-crear-acceso` **redeployada a v17** vía Management API (el CLI está bloqueado por Application Control de Windows; se usó `POST /v1/projects/<ref>/functions/deploy` — ver `scratchpad/deploy-edge.mjs`). **Felix ya puede entrar** (cédula `22301629623` + el PIN que se intentó, o re-generar desde la UI = ahora cae en Caso-1 rotar-PIN). 15 fichas con guiones quedaron protegidas por el trigger normalizado.
