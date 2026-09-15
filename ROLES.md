@@ -43,6 +43,7 @@ El módulo `tecnologia` gatea el **contenido** de Tecnología (guía, matriz, in
 | 19 | `chofer_transportista` | Chofer / Transportista | flota (NO elevado; login por cédula+PIN) |
 | 20 | `guarda_almacen` | Guarda-Almacén | inventario |
 | **21** | **`tecnologia`** | **Tecnología** | **tecnologia + plataforma (Y11)** |
+| 34 | `encargado_patio` | Encargado de Patio y Bodega Central | inventario **+ granulares** `proyectos.personal:operar`, `rrhh.asistencia:operar` (BQ4, 2026-09-14; `es_operativo=true`) |
 
 Roles "elevados" de flota (ven vehículos desactivados, gestionan todo): `admin, direccion, gerencia, jefe_flota` (`es_flota_elevado()`).
 Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
@@ -91,6 +92,10 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 5. **Paridad app↔web**: si existe un RPC gemelo (p. ej. `crear_bitacora_app` ↔ `crear_entrada_bitacora`), **ambos** deben tener el mismo `SECURITY DEFINER`/gate. La divergencia fue la raíz de BC7.
 
 **⭐ Regla 13 (checklist de migraciones, BP1) — un trigger que ESCRIBE una tabla es un escritor más de esa tabla.** Todo escritor nuevo (incluido un trigger) se registra en el **inventario de escritores** de la columna que toca, en el comentario de la migración. Y en una edge que orquesta varios pasos sobre tablas con triggers, **el orden de los pasos es parte del contrato**. Costo de olvidarlo: BP1 — el trigger AI9 escribía `conductores.usuario_id` dos pasos antes de que `conductor-crear-acceso` lo escribiera, y el enlace chocaba con su propia fila fantasma.
+
+**⭐ Regla 14 (checklist de migraciones, BQ) — un gate por rol vive en UN predicado del servidor, y toda pantalla/RPC/edge lo llama.** Un permiso "quién puede" se define una sola vez (`es_flota_elevado()`, `es_tecnologia()`, `puede_gestionar_incentivos()`, `puede_gestionar_proyectos()`…); cada pantalla, RPC hermano y edge lo **llama** — nunca copia la lista de roles ni deja un `is_admin()` "mientras tanto". El botón se pinta con el mismo predicado (regla 3.5). Corolario: cuando el servidor **fusiona/retira una identidad**, la migración nace con el **plan de reintento** de los payloads offline contra la identidad vieja (resolver por `auth.uid()`, `on conflict do nothing`, reapuntar FKs). Costo de olvidarlo: BQ3 — el gate de Saneamiento seguía en `is_admin()` mientras su RPC hermano ya estaba en `es_flota_elevado()`; Logística veía negado lo que el hermano le permitía.
+
+**Permisos granulares (roles.permisos jsonb).** Un rol puede otorgar acceso a un **submódulo suelto** sin dar el módulo padre entero, vía `roles.permisos` (`{"proyectos.personal":"operar","rrhh.asistencia":"operar"}`). Se usa cuando el módulo padre en `modulos[]` sería demasiado (otorga *todos* sus submódulos por `nivel_submodulo`). Ejemplos: `capataz` (§7, submódulos de `obra`), **`encargado_patio`** (BQ4 — `inventario` entero + granulares `proyectos.personal`/`rrhh.asistencia`). Los guards de submódulo (`puede_ver_submodulo`/`puede_operar_submodulo`) leen tanto `modulos[]` como `permisos`.
 
 **Guardas automáticas:**
 - `scripts/verify-regresiones.mjs` (corre en `prebuild`) admite reglas `require` en la **cabecera** de una función: p. ej. `crear_entrada_bitacora` y `crear_bitacora_app` **deben** contener `security definer`. Si una migración futura los recrea sin él, **el build falla**.

@@ -247,3 +247,29 @@ pasos sobre tablas con triggers, **el orden de los pasos es parte del contrato**
   escritores de `conductores.usuario_id` (edge `conductor-crear-acceso`, trigger AI9,
   `z2-z3-conductor-fixes.sql:53`, `asegurar_mi_conductor()`) y la edge se reordenó para **enlazar antes
   de asignar el rol**.
+
+## 14. Un gate por rol vive en UN predicado del servidor, y toda pantalla/RPC/edge lo llama (BQ)
+Un permiso "quién puede" (flota elevada, tecnología, gestionar incentivos, gestionar proyectos…) se
+define **una sola vez** como predicado del servidor (`es_flota_elevado()`, `es_tecnologia()`,
+`puede_gestionar_incentivos()`, `puede_gestionar_proyectos()`…). **Cada** pantalla, RPC hermano y edge
+que decida quién puede lo **llama** — nunca copia la lista de roles ni deja un `is_admin()` "mientras
+tanto". Corolario: cuando el servidor **fusiona o retira una identidad** (un usuario, un conductor, una
+bodega), la migración nace con el **plan de reintento** de los payloads que los clientes offline ya
+encolaron contra la identidad vieja.
+
+- **Por qué:** un mismo permiso duplicado en N sitios se desincroniza. BO4 movió el gate de combustible a
+  `es_flota_elevado()` pero `echadas_sospechosas()`/`sanear_echada()` seguían en `is_admin()` (BQ3) → el
+  panel de Saneamiento negaba a Logística lo que el RPC hermano ya le permitía; y el `is_admin()` sin JWT
+  lanzaba un 42501 que el friendly-error pintaba como error del sistema. El corolario: BP1 borró el
+  conductor "fantasma" de Felix, pero su teléfono traía el id cacheado y reintentaba (23503) — el fix
+  (BQ7) fue que el RPC **ignore el `conductor_id` del cliente y lo resuelva por `auth.uid()`**, así el
+  payload huérfano pasa al reintentar sin tocar el teléfono.
+- **Regla:** al tocar un gate por rol, `grep` el predicado y alinéa **todos** los llamadores (pantalla +
+  RPC + edge). Si el gate es de servidor, el botón se pinta con el **mismo** predicado (regla 3.5): si el
+  rol puede, ve el botón. Al fusionar/retirar una identidad, incluye en la migración cómo reintenta el
+  cliente offline (resolver por `auth.uid()`, `on conflict do nothing`, reapuntar FKs).
+- **Casos reales (BQ):** `sql/2026-09-14-bq3-bq5-saneamiento.sql` (is_admin→`es_flota_elevado()` en los
+  dos RPCs hermanos + grants), `sql/2026-09-14-bq7-combustible-conductor-por-uid.sql` (resuelve conductor
+  por `auth.uid()`, ignora el id huérfano con `raise notice`), `sql/2026-09-14-bq2-destinatarios-notificacion.sql`
+  (predicado único `destinatarios_notificacion` que las 6 edges de correo llaman en vez de copiar la
+  lista por módulo).

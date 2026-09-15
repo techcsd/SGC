@@ -106,5 +106,29 @@ lógico de captura; el layout puede diferir).
 - **BP5 — Dev notes.** La app: **solo lectura** en esta tanda (lista + preview markdown,
   `csd-app/pages/tecnologia/`, filtra `ambito='dev'`, gate `es_tecnologia`). Escribir desde el móvil
   queda para más adelante. El cuerpo se renderiza con `marked` + sanitizado.
-- **BO9 — moldes (contrato futuro).** Mismo `p_extra` de arriba, clave `"moldes"`; el componente SVG
-  `molde-esquema` (forma + tramos en cm) se copia a `csd-app/src/app/shared/ui/`. Bloqueado por mock BD1.
+- **BO9 / BQ8 — moldes (contrato para PROMPT-51 F4).** Mismo `p_extra` de arriba, clave `"moldes"`; el
+  RPC `guardar_bitacora_extra(p_bitacora_id, p_extra)` ya itera por tramo (sin cambio de DB).
+  - **`molde-esquema` v2** (`src/shared/ui/molde-esquema/`) — se copia **verbatim** a `csd-app`. API
+    estable: `forma: input<string>('rectangular')` (`rectangular|L|T|U|circular|libre`),
+    `tramos: input<MoldeTramo[]>([])`, `medidaPlano: input<MoldeTramo[]|null>(null)`,
+    `toleranciaCm: input<number>(2)`. `MoldeTramo = { lado?: string; largo_cm?; alto_cm?; espesor_cm? }`
+    (cm nullable). Dibuja por `forma`: rectangular con las 3 cotas, L/T/U como polígono de 2-3 tramos
+    (cota + plano punteado + rojo por lado fuera de tolerancia), circular (`largo_cm`=diámetro). Si
+    `tramos.length>1` en cualquier forma, compone.
+  - **`molde-compositor`** (`src/shared/ui/molde-compositor/`, BQ8b/c) — SVG + pointer events, sin
+    librería (misma base que el pad de firma, snap a rejilla de 5 cm, teclado = flechas 5 cm, targets
+    ≥56 px móvil). API: `valorInicial: input<CompositorFigura[]>([])`, `toleranciaCm: input<number>(2)`,
+    `cambio: output<CompositorFigura[]>()`. `CompositorFigura = { id; tipo:'rect'|'L'|'T'|'U'|'circle';
+    x; y; rot:0|90|180|270; largo_cm; alto_cm; espesor_cm; plano_largo_cm?; plano_alto_cm?;
+    plano_espesor_cm? }` — **el mismo JSON que la ficha**; `molde-esquema` lo pinta. Nada de imágenes:
+    datos. Modo alterno en "Moldes del día"; el borrador local guarda modo + figuras.
+- **BQ2 — destinatarios de notificación (contrato de servidor).** Predicado único
+  `sgc.destinatarios_notificacion(p_tipo, p_modulo, p_usuarios uuid[], p_canal)` → `(usuario_id, email,
+  nombre, excluido_por)`: base por módulo o lista explícita, **resta** `notif_regla` (siempre) y
+  `notif_pref_usuario` (salvo tipos `es_operativa`=críticos, §F-1); devuelve **también los excluidos**
+  con `excluido_por ∈ {pref_usuario, regla_rol, regla_global}`. Las 6 edges de correo
+  (`notificar-{flota,solicitud,entrega,incidente,soporte,cronograma}`) lo llaman y sólo mandan a los no
+  excluidos, trazando a `notif_entregas`. La app, al añadir cualquier correo/aviso propio, **usa este
+  predicado** — no copia la lista por módulo (regla 14). El path in-app/push sigue por
+  `notificar_modulo`/`send_push` (no rerouteado, evita regresión); BQ4 añadió
+  `notificar_usuarios(uuid[],…)` para avisar a una lista explícita (encargado de bodega).
