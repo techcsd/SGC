@@ -96,7 +96,7 @@
         </thead>
         <tbody>
           @for (r of paginated(); track r.id) {
-            <tr class="rutas__row--link" (click)="openDetail(r)" role="button" tabindex="0"
+            <tr class="rutas__row--link" [appHighlightItem]="r.id" (click)="openDetail(r)" role="button" tabindex="0"
                 (keydown.enter)="openDetail(r)" [attr.aria-label]="'Ver detalle de la ruta ' + r.origen + ' a ' + r.destino">
               <td class="rutas__fecha">{{ formatFecha(r.fecha) }}</td>
               <td>{{ r.vehiculo ? idVehiculo(r.vehiculo) : '—' }}</td>

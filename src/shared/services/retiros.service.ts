@@ -24,6 +24,8 @@ export interface RetiroListItem {
   fotos_count: number;
   es_prueba: boolean;
   created_at: string;
+  // BP4 — bitácora que originó este retiro (daño reportado en el parte diario), si aplica.
+  bitacora_id: string | null;
 }
 
 export interface RetiroItem {

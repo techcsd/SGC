@@ -2,27 +2,39 @@
   <div class="molde-esquema">
     <svg [attr.viewBox]="'0 0 ' + W + ' ' + H" width="100%" role="img" aria-label="Esquema del molde con cotas">
       <!-- Plano (punteado gris) -->
-      @if (g.rectPlano; as p) {
-        <rect [attr.x]="p.x" [attr.y]="p.y" [attr.width]="p.w" [attr.height]="p.h"
-          fill="none" class="molde-esquema__plano" stroke-dasharray="6 5" />
+      @for (p of g.planoPolys; track $index) {
+        <polygon [attr.points]="p.points" fill="none" class="molde-esquema__plano" stroke-dasharray="6 5" />
       }
+      @for (c of g.planoCircles; track $index) {
+        <circle [attr.cx]="c.cx" [attr.cy]="c.cy" [attr.r]="c.r" fill="none" class="molde-esquema__plano" stroke-dasharray="6 5" />
+      }
+
       <!-- Real (sólido) -->
-      <rect [attr.x]="g.rectReal.x" [attr.y]="g.rectReal.y" [attr.width]="g.rectReal.w" [attr.height]="g.rectReal.h"
-        fill="none" class="molde-esquema__real" />
+      @for (p of g.realPolys; track $index) {
+        <polygon [attr.points]="p.points" fill="none" class="molde-esquema__real" />
+      }
+      @for (c of g.realCircles; track $index) {
+        <circle [attr.cx]="c.cx" [attr.cy]="c.cy" [attr.r]="c.r" fill="none" class="molde-esquema__real" />
+      }
+
+      <!-- Aristas fuera de tolerancia (rojo) -->
+      @for (l of g.badLines; track $index) {
+        <line [attr.x1]="l.x1" [attr.y1]="l.y1" [attr.x2]="l.x2" [attr.y2]="l.y2" class="molde-esquema__bad" />
+      }
 
       <!-- Cotas -->
       @for (c of g.cotas; track $index) {
         <line [attr.x1]="c.x1" [attr.y1]="c.y1" [attr.x2]="c.x2" [attr.y2]="c.y2"
-          [class.molde-esquema__bad]="c.bad" class="molde-esquema__cota" />
+          class="molde-esquema__cota" [class.molde-esquema__bad]="c.bad" />
         @if (c.vertical) {
           <line [attr.x1]="c.x1 - 4" [attr.y1]="c.y1" [attr.x2]="c.x1 + 4" [attr.y2]="c.y1" class="molde-esquema__cota" [class.molde-esquema__bad]="c.bad" />
-          <line [attr.x1]="c.x1 - 4" [attr.y1]="c.y2" [attr.x2]="c.x1 + 4" [attr.y2]="c.y2" class="molde-esquema__cota" [class.molde-esquema__bad]="c.bad" />
-          <text [attr.x]="c.x1 + 8" [attr.y]="(c.y1 + c.y2) / 2 + 4" class="molde-esquema__label" [class.molde-esquema__bad-text]="c.bad">{{ c.label }} cm</text>
+          <line [attr.x1]="c.x2 - 4" [attr.y1]="c.y2" [attr.x2]="c.x2 + 4" [attr.y2]="c.y2" class="molde-esquema__cota" [class.molde-esquema__bad]="c.bad" />
         } @else {
           <line [attr.x1]="c.x1" [attr.y1]="c.y1 - 4" [attr.x2]="c.x1" [attr.y2]="c.y1 + 4" class="molde-esquema__cota" [class.molde-esquema__bad]="c.bad" />
           <line [attr.x1]="c.x2" [attr.y1]="c.y2 - 4" [attr.x2]="c.x2" [attr.y2]="c.y2 + 4" class="molde-esquema__cota" [class.molde-esquema__bad]="c.bad" />
-          <text [attr.x]="(c.x1 + c.x2) / 2" [attr.y]="c.y1 - 7" text-anchor="middle" class="molde-esquema__label" [class.molde-esquema__bad-text]="c.bad">{{ c.label }}</text>
         }
+        <text [attr.x]="c.lx" [attr.y]="c.ly" [attr.text-anchor]="c.anchor"
+          class="molde-esquema__label" [class.molde-esquema__bad-text]="c.bad">{{ c.label }}</text>
       }
     </svg>
     @if (desviacion() != null) {
@@ -33,5 +45,5 @@
     }
   </div>
 } @else {
-  <p class="molde-esquema__empty">Captura largo y espesor para ver el esquema.</p>
+  <p class="molde-esquema__empty">Captura las medidas para ver el esquema.</p>
 }

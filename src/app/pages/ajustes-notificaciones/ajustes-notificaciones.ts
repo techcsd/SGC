@@ -18,9 +18,10 @@ const CATEGORIAS_FALLBACK: { tipo: string; label: string; desc: string }[] = [
 ];
 
 /**
- * AT23 — Ajustes › Notificaciones. Cada usuario silencia los TIPOS de aviso que no
- * le aportan. Solo afecta SU bandeja y SU badge (no cambia a quién le llega el
- * evento). Backend: mis_notif_prefs / set_notif_pref.
+ * AT23/BQ2 — Ajustes › Notificaciones. Cada usuario silencia los TIPOS de aviso que
+ * no le aportan. Silenciar detiene el aviso en TODOS sus canales (campana, push y
+ * correo), salvo los operativos/críticos; no cambia a quién más le llega el evento.
+ * Backend: mis_notif_prefs / set_notif_pref.
  */
 @Component({
   selector: 'app-ajustes-notificaciones',

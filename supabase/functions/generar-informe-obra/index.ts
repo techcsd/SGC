@@ -95,6 +95,19 @@ async function buildPdf(informe: any, proyectoNombre: string): Promise<Uint8Arra
     for (const i of sec.incidentes) line(`• ${fmtDate(i.fecha)} — ${i.tipo} (${i.gravedad}): ${i.descripcion}`);
     y -= 6;
   }
+  // BP4 — daños de material / equipo propio reportados en las bitácoras de la semana.
+  if ((sec.danos ?? []).length) {
+    line(`Daños de material / equipo`, { size: 12, f: bold, color: primary });
+    for (const d of sec.danos) {
+      const tipo = d.tipo === "material" ? "Material" : "Equipo propio";
+      const cant = d.cantidad ? ` (${d.cantidad} ${d.unidad ?? ""})` : "";
+      const tags = [d.solicita_retiro ? "solicitó retiro" : "", d.tiene_foto ? "con foto" : ""]
+        .filter(Boolean).join(", ");
+      const fecha = d.fecha ? `${fmtDate(d.fecha)} — ` : "";
+      line(`• ${fecha}${tipo}: ${d.descripcion}${cant}${tags ? " [" + tags + "]" : ""}`);
+    }
+    y -= 6;
+  }
 
   const manual: [string, string][] = [
     ["Resumen del gerente", cm.resumen], ["Problemas críticos", cm.problemas_criticos],

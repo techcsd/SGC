@@ -331,3 +331,16 @@ export interface BitacoraMolde extends BitacoraMoldeInput {
   es_prueba?: boolean;
   created_at?: string;
 }
+
+// BO9 — fila de molde para la vista de oficina (join a su bitácora: obra/fecha/ingeniero).
+export interface BitacoraMoldeOffice extends BitacoraMolde {
+  bitacora?: {
+    id: string;
+    fecha: string;
+    ingeniero_responsable?: string | null;
+    proyecto_id?: string | null;
+    usuario_id?: string | null;
+    es_prueba?: boolean;
+    proyecto?: { nombre?: string | null; codigo?: string | null } | null;
+  } | null;
+}

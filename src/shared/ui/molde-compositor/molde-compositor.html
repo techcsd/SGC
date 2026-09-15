@@ -1,0 +1,100 @@
+<div class="mc" (keydown)="onKey($event)" tabindex="0">
+  <!-- Paleta -->
+  <div class="mc__palette" role="group" aria-label="Figuras">
+    @for (t of tipos; track t.tipo) {
+      <button type="button" class="mc__fig-btn" (click)="agregar(t.tipo)" [attr.aria-label]="'Agregar ' + t.label">
+        <svg width="24" height="22" viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          @switch (t.tipo) {
+            @case ('rect')   { <rect x="4" y="8" width="18" height="10" rx="1"/> }
+            @case ('L')      { <path d="M5 4 v16 h13 v-5 h-8 v-11 z"/> }
+            @case ('T')      { <path d="M4 5 h18 v5 h-6 v9 h-6 v-9 h-6 z"/> }
+            @case ('U')      { <path d="M5 4 v15 h13 v-15 h-4 v11 h-5 v-11 z"/> }
+            @case ('circle') { <circle cx="13" cy="13" r="9"/> }
+          }
+        </svg>
+        <span>{{ t.label }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Lienzo -->
+  <div class="mc__canvas-wrap">
+    <div class="mc__tools">
+      <button type="button" class="mc__tool" (click)="rotar()" [disabled]="!seleccionada()" title="Girar 90°">⟳ 90°</button>
+      <button type="button" class="mc__tool mc__tool--danger" (click)="eliminar()" [disabled]="!seleccionada()">Eliminar</button>
+      <span class="mc__hint">Rejilla 5&nbsp;cm · rojo = fuera de tolerancia</span>
+    </div>
+    <svg class="mc__canvas" [attr.viewBox]="'0 0 ' + VW + ' ' + VH" (pointermove)="onPointerMove($event)"
+         (pointerup)="onPointerUp()" (pointerleave)="onPointerUp()" role="img" aria-label="Lienzo del compositor de moldes">
+      @for (g of gridLines; track $index) {
+        <line [attr.x1]="g.x1" [attr.y1]="g.y1" [attr.x2]="g.x2" [attr.y2]="g.y2"
+              class="mc__grid" [class.mc__grid--major]="g.major" />
+      }
+      @for (v of vistas(); track v.f.id) {
+        <g [attr.transform]="'translate(' + v.f.x + ' ' + v.f.y + ') rotate(' + v.f.rot + ')'"
+           class="mc__fig" [class.mc__fig--sel]="v.f.id === selId()" [class.mc__fig--bad]="v.bad"
+           (pointerdown)="onPointerDown($event, v.f)">
+          @if (v.circle) {
+            <circle [attr.cx]="v.circle.cx" [attr.cy]="v.circle.cy" [attr.r]="v.circle.r" class="mc__shape" />
+            @if (v.circle.rInner > 1) {
+              <circle [attr.cx]="v.circle.cx" [attr.cy]="v.circle.cy" [attr.r]="v.circle.rInner" class="mc__shape-inner" />
+            }
+          } @else if (v.poly) {
+            <polygon [attr.points]="v.poly" class="mc__shape" />
+          }
+          @if (v.f.id === selId()) {
+            @for (h of v.handles; track $index) {
+              <rect [attr.x]="h.x - 4" [attr.y]="h.y - 4" width="8" height="8" rx="2" class="mc__handle" />
+            }
+          }
+        </g>
+      }
+    </svg>
+  </div>
+
+  <!-- Propiedades -->
+  <div class="mc__props">
+    @if (seleccionada(); as s) {
+      <span class="mc__tag">{{ labelTipo(s.tipo) }} · #{{ s.id }}</span>
+      <div class="mc__row">
+        <label class="mc__field">
+          <span>{{ s.tipo === 'circle' ? 'Diámetro real (cm)' : 'Largo real (cm)' }}</span>
+          <input type="number" step="0.5" [value]="s.largo_cm" (input)="editar('largo_cm', $any($event.target).value)" />
+        </label>
+        <label class="mc__field mc__field--plano">
+          <span>Plano</span>
+          <input type="number" step="0.5" [value]="s.plano_largo_cm ?? s.largo_cm" (input)="editar('plano_largo_cm', $any($event.target).value)" />
+        </label>
+      </div>
+      @if (s.tipo !== 'circle') {
+        <div class="mc__row">
+          <label class="mc__field">
+            <span>Alto real (cm)</span>
+            <input type="number" step="0.5" [value]="s.alto_cm" (input)="editar('alto_cm', $any($event.target).value)" />
+          </label>
+          <label class="mc__field mc__field--plano">
+            <span>Plano</span>
+            <input type="number" step="0.5" [value]="s.plano_alto_cm ?? s.alto_cm" (input)="editar('plano_alto_cm', $any($event.target).value)" />
+          </label>
+        </div>
+      }
+      <div class="mc__row">
+        <label class="mc__field">
+          <span>Espesor real (cm)</span>
+          <input type="number" step="0.5" [value]="s.espesor_cm" (input)="editar('espesor_cm', $any($event.target).value)" />
+        </label>
+        <label class="mc__field mc__field--plano">
+          <span>Plano</span>
+          <input type="number" step="0.5" [value]="s.plano_espesor_cm ?? s.espesor_cm" (input)="editar('plano_espesor_cm', $any($event.target).value)" />
+        </label>
+      </div>
+      <p class="mc__desv" [class.mc__desv--bad]="desviacion(s) > toleranciaCm()">
+        {{ desviacion(s) > toleranciaCm()
+            ? '⚠ Desvío máx ' + (desviacion(s) | number:'1.0-1') + ' cm — fuera de tolerancia'
+            : '✓ Dentro de tolerancia (desvío máx ' + (desviacion(s) | number:'1.0-1') + ' cm)' }}
+      </p>
+    } @else {
+      <p class="mc__empty">Toca una figura de la paleta para agregarla, luego selecciónala para editar sus medidas reales y las del plano.</p>
+    }
+  </div>
+</div>

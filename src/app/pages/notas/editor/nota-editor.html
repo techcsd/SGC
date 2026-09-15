@@ -18,6 +18,10 @@
           [title]="pinned() ? 'Quitar fijado' : 'Fijar'"><app-icon name="map-pin" [size]="15" /> {{ pinned() ? 'Fijada' : 'Fijar' }}</button>
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleArchivar()"
           [title]="archivada() ? 'Desarchivar' : 'Archivar'"><app-icon name="archive" [size]="15" /> {{ archivada() ? 'Archivada' : 'Archivar' }}</button>
+        @if (esTecnologia() && esOwner() && !esNueva()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="moverADevNotes()"
+            title="Mover esta nota a Dev notes (solo Tecnología)"><app-icon name="code" [size]="15" /> Mover a Dev notes</button>
+        }
       </div>
     }
   </div>

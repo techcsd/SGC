@@ -665,6 +665,9 @@
   overflow-y: auto;
   background: var(--sgc-bg);
   padding: 28px;
+  // BQ1 — al anclar/enfocar un campo por scroll (validación, foco), deja espacio
+  // para el header para que la fila superior (p. ej. tabs de tipo) no quede pegada.
+  scroll-padding-top: var(--sgc-header-height);
 }
 
 // ── Hamburger (mobile only) + drawer backdrop ────────────

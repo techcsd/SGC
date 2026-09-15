@@ -57,18 +57,9 @@
     </select>
   </div>
 
-  <div class="sgc-field filters-bar__select">
-    <label class="filters-bar__label">Estado</label>
-    <select [value]="fEstado()" (change)="fEstado.set($any($event.target).value)" aria-label="Filtrar por estado">
-      <option value="">Todos</option>
-      <option value="pendiente">Pendiente</option>
-      <option value="aprobada">Aprobada (en compra)</option>
-      <option value="entregada">Entregada</option>
-      <option value="cerrada">Cerrada</option>
-      <option value="rechazada">Rechazada</option>
-      <option value="cancelada">Cancelada</option>
-    </select>
-  </div>
+  <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
+  <app-filter-select label="Estado" [options]="estadoOpt" [value]="fEstado()"
+    (valueChange)="fEstado.set($event)" placeholder="Todos" [searchable]="false" />
 
   <label class="sgc-field filters-bar__check">
     <input type="checkbox" [checked]="ocultarCanceladas()"

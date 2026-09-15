@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import {
   RetirosService,
@@ -64,7 +65,7 @@ const DISPOSICION_LABEL: Record<Disposicion, string> = {
 
 @Component({
   selector: 'app-inventario-retiros',
-  imports: [DatePipe, FormDrawer, Skeleton, ArticuloPicker, QtyStepper],
+  imports: [DatePipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper],
   templateUrl: './retiros.html',
   styleUrl: './retiros.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

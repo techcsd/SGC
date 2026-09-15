@@ -1,0 +1,393 @@
+<title>Compositor de moldes — mock BQ8</title>
+<style>
+  :root {
+    --main: #121212; --secondary: #212121; --surface: #161616; --border: #2d2d2d;
+    --Hub: #ffb300; --primary: #ff5f00; --danger: #ef4444; --ok: #22c55e;
+    --text: #ececec; --muted: #929090; --grid: #2a2a2a; --plano: #6b7280;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  [data-theme="light"] {
+    --main: #f4f5f7; --secondary: #ffffff; --surface: #ffffff; --border: #d9dce1;
+    --text: #1a1c1f; --muted: #6b7280; --grid: #e6e8ec; --plano: #9aa2ad;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--main); color: var(--text); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .topbar h1 { font-size: 18px; margin: 0; font-weight: 700; letter-spacing: -.01em; }
+  .topbar .sub { color: var(--muted); font-size: 12.5px; margin: 0 0 18px; }
+  .spacer { flex: 1; }
+
+  .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600;
+    padding: 6px 14px; border-radius: 7px; cursor: pointer; }
+  .seg button.on { background: var(--Hub); color: #1a1a1a; }
+  .ghost { border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 13px;
+    padding: 7px 12px; border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .ghost:hover { border-color: var(--Hub); }
+
+  /* Frame that emulates the phone / desktop viewport */
+  .stage { margin-top: 14px; transition: max-width .25s ease; }
+  .stage.mobile { max-width: 360px; }
+  .stage.mobile .grid3 { grid-template-columns: 1fr; }
+  .stage.mobile .palette { flex-direction: row; flex-wrap: wrap; }
+  .stage.mobile .canvas-wrap { order: -1; }
+
+  .grid3 { display: grid; grid-template-columns: 132px 1fr 232px; gap: 12px; align-items: start; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
+  .card h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    margin: 0; padding: 12px 14px 8px; }
+
+  /* Palette */
+  .palette { display: flex; flex-direction: column; gap: 8px; padding: 0 12px 14px; }
+  .fig-btn { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--main); cursor: pointer; color: var(--text); font: inherit; font-size: 13px; font-weight: 600; }
+  .fig-btn:hover { border-color: var(--Hub); }
+  .fig-btn svg { flex: 0 0 26px; color: var(--Hub); }
+
+  .canvas-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px; }
+  .canvas-tools { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .canvas-tools .hint { color: var(--muted); font-size: 12px; margin-left: auto; }
+  svg.canvas { width: 100%; height: auto; display: block; background: var(--main); border-radius: 10px; touch-action: none; }
+
+  /* Props */
+  .props { padding: 0 14px 16px; }
+  .props .empty { color: var(--muted); font-size: 13px; padding: 6px 0 12px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .field label { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 3px; }
+  .field input { width: 100%; background: var(--main); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 7px 8px; font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .field input:focus { outline: 2px solid var(--Hub); outline-offset: -1px; border-color: var(--Hub); }
+  .field.plano input { border-style: dashed; }
+  .lado-tag { display: inline-block; font-size: 11px; font-weight: 700; color: #1a1a1a; background: var(--Hub);
+    border-radius: 6px; padding: 1px 7px; margin-bottom: 8px; }
+  .props-actions { display: flex; gap: 6px; margin-top: 4px; }
+  .danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+  .desv { font-size: 12px; margin-top: 10px; padding: 8px 10px; border-radius: 9px; background: var(--main); border: 1px solid var(--border); }
+  .desv.bad { border-color: var(--danger); color: var(--danger); }
+  .desv.ok { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); color: var(--ok); }
+
+  /* Ficha (numeric) view */
+  .ficha { padding: 0 14px 16px; display: none; }
+  .ficha table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ficha th, .ficha td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  .ficha th { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.5; }
+  [hidden] { display: none !important; }
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <h1>Compositor de moldes</h1>
+    <span class="seg" role="tablist" aria-label="Modo">
+      <button id="tab-comp" class="on" role="tab">Compositor</button>
+      <button id="tab-ficha" role="tab">Ficha</button>
+    </span>
+    <div class="spacer"></div>
+    <button class="ghost" id="btn-view">📱 Móvil 360</button>
+    <button class="ghost" id="btn-theme">☀︎ Claro</button>
+  </div>
+  <p class="sub">Mock BD1 — el ingeniero arma la formación con figuras; el resultado es <strong>data</strong> (tramos&nbsp;jsonb), no una imagen. Toca una figura de la paleta para agregarla, arrástrala (imán a 5&nbsp;cm), gírala y ajusta sus medidas.</p>
+
+  <div class="stage" id="stage">
+    <div class="grid3">
+      <!-- Palette -->
+      <div class="card">
+        <h2>Figuras</h2>
+        <div class="palette" id="palette"></div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="canvas-wrap">
+        <div class="canvas-tools">
+          <button class="ghost" id="btn-rot" title="Girar 90°">⟳ 90°</button>
+          <button class="ghost danger" id="btn-del" title="Eliminar figura">Eliminar</button>
+          <span class="hint">Rejilla = 5&nbsp;cm · rojo = fuera de tolerancia</span>
+        </div>
+        <svg class="canvas" id="canvas" viewBox="0 0 600 440" role="img" aria-label="Lienzo del compositor"></svg>
+      </div>
+
+      <!-- Props / Ficha -->
+      <div class="card">
+        <h2 id="side-title">Propiedades</h2>
+        <div class="props" id="props">
+          <p class="empty">Selecciona una figura para editar sus medidas reales y las del plano.</p>
+        </div>
+        <div class="ficha" id="ficha">
+          <table id="ficha-table"></table>
+          <p class="note">Esta tabla es exactamente lo que se guarda: un arreglo <code>tramos[]</code> con tipo, posición y medidas real/plano por lado. La misma data la dibuja <code>molde-esquema</code>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Tolerancia del mock: <strong>2&nbsp;cm</strong>. En producción viene de <code>molde_tolerancia_cm</code>. La rejilla, los imanes y las cotas automáticas se dibujan solos; el ingeniero coloca y teclea.</p>
+</div>
+
+<script>
+(function () {
+  const CM = 2.6;            // px per cm
+  const GRID_CM = 5;         // snap grid
+  const TOL = 2;             // tolerance cm (mock)
+  const svg = document.getElementById('canvas');
+  const NS = 'http://www.w3.org/2000/svg';
+  const VW = 600, VH = 440;
+
+  // Figure catalog (geometric, §F-6 v1). dims in cm.
+  const CATALOG = {
+    rect:   { label: 'Rectángulo', largo: 40, alto: 25, espesor: 10 },
+    L:      { label: 'L',          largo: 45, alto: 45, espesor: 12 },
+    T:      { label: 'T',          largo: 50, alto: 40, espesor: 12 },
+    U:      { label: 'U',          largo: 50, alto: 40, espesor: 12 },
+    circle: { label: 'Círculo',    largo: 40, alto: 40, espesor: 8  },
+  };
+  const ICONS = {
+    rect:   '<rect x="4" y="8" width="18" height="10" rx="1"/>',
+    L:      '<path d="M5 4 v16 h13 v-5 h-8 v-11 z"/>',
+    T:      '<path d="M4 5 h18 v5 h-6 v9 h-6 v-9 h-6 z"/>',
+    U:      '<path d="M5 4 v15 h13 v-15 h-4 v11 h-5 v-11 z"/>',
+    circle: '<circle cx="13" cy="13" r="9"/>',
+  };
+
+  let figures = [];
+  let selId = null, uid = 1;
+  let drag = null;
+
+  const snap = (v) => Math.round(v / (GRID_CM * CM)) * (GRID_CM * CM);
+
+  // ---- Palette ----
+  const pal = document.getElementById('palette');
+  Object.entries(CATALOG).forEach(([type, c]) => {
+    const b = document.createElement('button');
+    b.className = 'fig-btn';
+    b.innerHTML = `<svg width="26" height="24" viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.6">${ICONS[type]}</svg><span>${c.label}</span>`;
+    b.onclick = () => addFigure(type);
+    pal.appendChild(b);
+  });
+
+  function addFigure(type) {
+    const c = CATALOG[type];
+    const f = {
+      id: uid++, type,
+      x: snap(120 + Math.random() * 40), y: snap(120 + Math.random() * 40),
+      rot: 0,
+      largo: c.largo, alto: c.alto, espesor: c.espesor,
+      // plano (target) defaults equal to real; user tweaks to create deviation
+      pLargo: c.largo, pAlto: c.alto, pEspesor: c.espesor,
+    };
+    figures.push(f);
+    selId = f.id;
+    render(); renderSide();
+  }
+
+  // ---- Geometry: local polygon points (cm) per shape ----
+  function localPoly(f) {
+    const L = f.largo, A = f.alto, E = f.espesor;
+    switch (f.type) {
+      case 'rect':   return [[0,0],[L,0],[L,A],[0,A]];
+      case 'L':      return [[0,0],[E,0],[E,A-E],[L,A-E],[L,A],[0,A]];
+      case 'T':      return [[0,0],[L,0],[L,E],[(L+E)/2,E],[(L+E)/2,A],[(L-E)/2,A],[(L-E)/2,E],[0,E]];
+      case 'U':      return [[0,0],[E,0],[E,A-E],[L-E,A-E],[L-E,0],[L,0],[L,A],[0,A]];
+      default:       return null; // circle handled separately
+    }
+  }
+
+  function bbox(f) {
+    if (f.type === 'circle') return { w: f.largo, h: f.largo };
+    const p = localPoly(f);
+    const xs = p.map(q=>q[0]), ys = p.map(q=>q[1]);
+    return { w: Math.max(...xs), h: Math.max(...ys) };
+  }
+
+  function el(tag, attrs) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+  // ---- Render canvas ----
+  function render() {
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    // grid
+    const step = GRID_CM * CM;
+    for (let x = 0; x <= VW; x += step) svg.appendChild(el('line', { x1:x, y1:0, x2:x, y2:VH, stroke:'var(--grid)', 'stroke-width': x % (step*2) === 0 ? 1 : .5 }));
+    for (let y = 0; y <= VH; y += step) svg.appendChild(el('line', { x1:0, y1:y, x2:VW, y2:y, stroke:'var(--grid)', 'stroke-width': y % (step*2) === 0 ? 1 : .5 }));
+
+    figures.forEach(f => drawFigure(f));
+  }
+
+  function outOfTol(real, plano) { return Math.abs(real - plano) > TOL; }
+
+  function drawFigure(f) {
+    const g = el('g', { transform: `translate(${f.x} ${f.y}) rotate(${f.rot})`, style: 'cursor:move' });
+    g.dataset.id = f.id;
+    const sel = f.id === selId;
+    const badL = outOfTol(f.largo, f.pLargo), badA = outOfTol(f.alto, f.pAlto), badE = outOfTol(f.espesor, f.pEspesor);
+    const anyBad = badL || badA || badE;
+    const stroke = anyBad ? 'var(--danger)' : 'var(--Hub)';
+
+    if (f.type === 'circle') {
+      const r = f.largo * CM / 2;
+      // plano ghost
+      svgIf(g, el('circle', { cx:r, cy:r, r:(f.pLargo*CM/2), fill:'none', stroke:'var(--plano)', 'stroke-width':1, 'stroke-dasharray':'4 3' }));
+      g.appendChild(el('circle', { cx:r, cy:r, r, fill:'color-mix(in srgb, var(--Hub) 10%, transparent)', stroke, 'stroke-width': sel?2.5:1.8 }));
+      g.appendChild(el('circle', { cx:r, cy:r, r: Math.max(2, r - f.espesor*CM), fill:'none', stroke, 'stroke-width':1, 'stroke-dasharray':'2 2' }));
+      cota(g, r*0, r, r*2, r, `Ø ${f.largo}${badL?' (plano '+f.pLargo+')':''}`, badL, 'h');
+    } else {
+      const pts = localPoly(f).map(p => [p[0]*CM, p[1]*CM]);
+      const planoScale = f; // simple: draw plano poly using plano dims
+      const pPts = localPolyDims(f, f.pLargo, f.pAlto, f.pEspesor).map(p=>[p[0]*CM,p[1]*CM]);
+      svgIf(g, el('polygon', { points: pPts.map(p=>p.join(',')).join(' '), fill:'none', stroke:'var(--plano)', 'stroke-width':1, 'stroke-dasharray':'4 3' }));
+      g.appendChild(el('polygon', { points: pts.map(p=>p.join(',')).join(' '),
+        fill:'color-mix(in srgb, var(--Hub) 10%, transparent)', stroke, 'stroke-width': sel?2.5:1.8, 'stroke-linejoin':'round' }));
+      const bb = bbox(f);
+      cota(g, 0, bb.h*CM, bb.w*CM, bb.h*CM, `${f.largo}${badL?' (plano '+f.pLargo+')':''}`, badL, 'h');
+      cota(g, bb.w*CM, 0, bb.w*CM, bb.h*CM, `${f.alto}${badA?' (plano '+f.pAlto+')':''}`, badA, 'v');
+      cota(g, 0, 0, f.espesor*CM, 0, `esp ${f.espesor}${badE?' ('+f.pEspesor+')':''}`, badE, 'h');
+    }
+
+    if (sel) drawHandles(g, f);
+    g.addEventListener('pointerdown', (e) => startDrag(e, f));
+    svg.appendChild(g);
+  }
+
+  function localPolyDims(f, L, A, E) {
+    const tmp = { ...f, largo:L, alto:A, espesor:E };
+    return localPoly(tmp);
+  }
+
+  function svgIf(g, node) { g.appendChild(node); }
+
+  // dimension line with label
+  function cota(g, x1, y1, x2, y2, label, bad, dir) {
+    const col = bad ? 'var(--danger)' : 'var(--muted)';
+    const off = dir === 'h' ? 14 : 14;
+    const yy = dir === 'h' ? y1 + off : 0;
+    if (dir === 'h') {
+      g.appendChild(el('line', { x1, y1:y1+off, x2, y2:y1+off, stroke:col, 'stroke-width':1 }));
+      const t = el('text', { x:(x1+x2)/2, y:y1+off+13, 'text-anchor':'middle', fill:col, 'font-size':11, 'font-family':'var(--font)' });
+      t.textContent = label; g.appendChild(t);
+    } else {
+      g.appendChild(el('line', { x1:x1+off, y1, x2:x1+off, y2, stroke:col, 'stroke-width':1 }));
+      const t = el('text', { x:x1+off+6, y:(y1+y2)/2, fill:col, 'font-size':11, 'font-family':'var(--font)' });
+      t.textContent = label; g.appendChild(t);
+    }
+  }
+
+  function drawHandles(g, f) {
+    const bb = bbox(f);
+    const w = (f.type==='circle'? f.largo : bb.w) * CM, h = (f.type==='circle'? f.largo : bb.h) * CM;
+    [[0,0],[w,0],[w,h],[0,h]].forEach(([hx,hy]) => {
+      g.appendChild(el('rect', { x:hx-4, y:hy-4, width:8, height:8, rx:2, fill:'var(--primary)', stroke:'#fff', 'stroke-width':1 }));
+    });
+  }
+
+  // ---- Drag ----
+  function clientToSvg(e) {
+    const r = svg.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / r.width * VW, y: (e.clientY - r.top) / r.height * VH };
+  }
+  function startDrag(e, f) {
+    e.preventDefault();
+    selId = f.id;
+    const p = clientToSvg(e);
+    drag = { id: f.id, dx: p.x - f.x, dy: p.y - f.y };
+    svg.setPointerCapture(e.pointerId);
+    render(); renderSide();
+  }
+  svg.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const f = figures.find(q => q.id === drag.id); if (!f) return;
+    const p = clientToSvg(e);
+    f.x = snap(p.x - drag.dx); f.y = snap(p.y - drag.dy);
+    render();
+  });
+  svg.addEventListener('pointerup', (e) => { drag = null; try { svg.releasePointerCapture(e.pointerId); } catch(_){} });
+
+  // ---- Side panel (props) ----
+  function selFig() { return figures.find(f => f.id === selId); }
+  function renderSide() {
+    const props = document.getElementById('props');
+    const f = selFig();
+    if (!f) { props.innerHTML = '<p class="empty">Selecciona una figura para editar sus medidas reales y las del plano.</p>'; renderFicha(); return; }
+    const c = CATALOG[f.type];
+    props.innerHTML = `
+      <span class="lado-tag">${c.label} · #${f.id}</span>
+      <div class="row">
+        ${numField('Largo real (cm)', 'largo', f.largo)}
+        ${numField('Largo plano', 'pLargo', f.pLargo, true)}
+      </div>
+      <div class="row">
+        ${numField(f.type==='circle'?'Diámetro real':'Alto real (cm)', 'alto', f.alto)}
+        ${numField('Alto plano', 'pAlto', f.pAlto, true)}
+      </div>
+      <div class="row">
+        ${numField('Espesor real (cm)', 'espesor', f.espesor)}
+        ${numField('Espesor plano', 'pEspesor', f.pEspesor, true)}
+      </div>
+      ${desvBlock(f)}
+    `;
+    props.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', () => { f[inp.dataset.k] = parseFloat(inp.value) || 0; render(); refreshDesv(); });
+    });
+    renderFicha();
+  }
+  function numField(label, key, val, plano) {
+    return `<div class="field ${plano?'plano':''}"><label>${label}</label><input type="number" step="0.5" data-k="${key}" value="${val}"></div>`;
+  }
+  function desvBlock(f) {
+    const d = maxDesv(f);
+    const bad = d > TOL;
+    return `<div class="desv ${bad?'bad':'ok'}" id="desvbox">${bad ? '⚠ Desvío máx '+d.toFixed(1)+' cm — fuera de tolerancia ('+TOL+' cm)' : '✓ Dentro de tolerancia (desvío máx '+d.toFixed(1)+' cm)'}</div>`;
+  }
+  function maxDesv(f) {
+    return Math.max(Math.abs(f.largo-f.pLargo), Math.abs(f.alto-f.pAlto), Math.abs(f.espesor-f.pEspesor));
+  }
+  function refreshDesv() {
+    const f = selFig(); if (!f) return;
+    const box = document.getElementById('desvbox');
+    if (!box) return;
+    const d = maxDesv(f), bad = d > TOL;
+    box.className = 'desv ' + (bad?'bad':'ok');
+    box.textContent = bad ? '⚠ Desvío máx '+d.toFixed(1)+' cm — fuera de tolerancia ('+TOL+' cm)' : '✓ Dentro de tolerancia (desvío máx '+d.toFixed(1)+' cm)';
+    renderFicha();
+  }
+
+  // ---- Ficha (numeric = the saved JSON) ----
+  function renderFicha() {
+    const t = document.getElementById('ficha-table');
+    if (!figures.length) { t.innerHTML = '<tr><td class="empty">Aún no hay figuras.</td></tr>'; return; }
+    let rows = '<tr><th>#</th><th>Tipo</th><th>Real (L×A×E)</th><th>Plano</th><th>Desvío</th></tr>';
+    figures.forEach(f => {
+      const d = maxDesv(f), bad = d > TOL;
+      rows += `<tr>
+        <td>${f.id}</td><td>${CATALOG[f.type].label}</td>
+        <td>${f.largo}×${f.alto}×${f.espesor}</td>
+        <td>${f.pLargo}×${f.pAlto}×${f.pEspesor}</td>
+        <td style="color:${bad?'var(--danger)':'var(--ok)'}">${d.toFixed(1)} cm</td>
+      </tr>`;
+    });
+    t.innerHTML = rows;
+  }
+
+  // ---- Toolbar actions ----
+  document.getElementById('btn-rot').onclick = () => { const f = selFig(); if (f) { f.rot = (f.rot + 90) % 360; render(); } };
+  document.getElementById('btn-del').onclick = () => { if (selId==null) return; figures = figures.filter(f => f.id !== selId); selId = null; render(); renderSide(); };
+
+  // Ficha / Compositor toggle
+  const tabComp = document.getElementById('tab-comp'), tabFicha = document.getElementById('tab-ficha');
+  const propsEl = document.getElementById('props'), fichaEl = document.getElementById('ficha'), sideTitle = document.getElementById('side-title');
+  tabComp.onclick = () => { tabComp.classList.add('on'); tabFicha.classList.remove('on'); propsEl.style.display='block'; fichaEl.style.display='none'; sideTitle.textContent='Propiedades'; };
+  tabFicha.onclick = () => { tabFicha.classList.add('on'); tabComp.classList.remove('on'); propsEl.style.display='none'; fichaEl.style.display='block'; sideTitle.textContent='Ficha (data guardada)'; renderFicha(); };
+
+  // Viewport + theme toggles
+  const stage = document.getElementById('stage'), bv = document.getElementById('btn-view');
+  bv.onclick = () => { stage.classList.toggle('mobile'); bv.textContent = stage.classList.contains('mobile') ? '🖥 Escritorio' : '📱 Móvil 360'; };
+  const bt = document.getElementById('btn-theme');
+  bt.onclick = () => { const light = document.documentElement.getAttribute('data-theme') === 'light';
+    document.documentElement.setAttribute('data-theme', light ? 'dark' : 'light'); bt.textContent = light ? '☀︎ Claro' : '🌙 Oscuro'; };
+
+  // Seed with an example: an L slightly out of tolerance
+  addFigure('L');
+  const f0 = figures[0]; f0.pAlto = 42; f0.x = snap(150); f0.y = snap(120);
+  render(); renderSide();
+})();
+</script>

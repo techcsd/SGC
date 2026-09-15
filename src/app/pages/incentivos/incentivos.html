@@ -476,24 +476,94 @@
                     @for (g of incidenciasDe(f); track g.tipo) {
                       <div class="inc-inci-group">
                         <div class="inc-inci-group__head">
-                          {{ g.items.length }} · {{ g.label }}
+                          <span>{{ g.items.length }} · {{ g.label }}</span>
                           @if (g.pendientes) { <span class="inc-inci-pend">{{ g.pendientes }} en cuarentena</span> }
+                          <!-- BQ9 — masivo por grupo: decide todas las que siguen en cuarentena -->
+                          @if (puedeDecidir() && g.pendientes) {
+                            <span class="inc-inci-group__bulk">
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="decidirGrupo(f, g, 'excluida')">Excluir las {{ g.pendientes }}</button>
+                              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="decidirGrupo(f, g, 'aceptada')">Aceptar las {{ g.pendientes }}</button>
+                            </span>
+                          }
                         </div>
                         <ul class="inc-inci-list">
                           @for (fl of g.items; track fl.ref_id) {
                             <li class="inc-inci" [class.inc-inci--resuelta]="(fl.decision ?? 'cuarentena') !== 'cuarentena'">
-                              <a class="inc-inci__link" [routerLink]="refIncidencia(fl).link" [queryParams]="refIncidencia(fl).query">
-                                {{ fl.fecha ? formatFecha(fl.fecha) : '—' }} · {{ limpiarTexto(fl.msg) }}
-                              </a>
-                              @switch (fl.decision ?? 'cuarentena') {
-                                @case ('aceptada') { <span class="inc-badge inc-badge--approved">Aceptada (cuenta)</span> }
-                                @case ('excluida') { <span class="inc-badge inc-badge--declined">Excluida (no cuenta)</span> }
-                                @default {
-                                  <span class="inc-inci__actions">
-                                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">Excluir</button>
-                                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">Aceptar</button>
+                              <div class="inc-inci__row">
+                                <!-- BQ9 — clic en la fila = expande el detalle inline -->
+                                <button type="button" class="inc-inci__toggle" (click)="toggleIncidencia(fl)"
+                                        [attr.aria-expanded]="expandedIncidencia() === fl.ref_id">
+                                  <span class="inc-inci__chev" [class.inc-inci__chev--open]="expandedIncidencia() === fl.ref_id">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                                   </span>
+                                  <span class="inc-inci__txt">{{ fl.fecha ? formatFecha(fl.fecha) : '—' }} · {{ limpiarTexto(fl.msg) }}</span>
+                                </button>
+                                <!-- BQ9 — link aparte que navega al objeto (deep-link ?ruta=/?echada=) -->
+                                <a class="inc-inci__open" [routerLink]="refIncidencia(fl).link" [queryParams]="refIncidencia(fl).query" title="Abrir el registro en su módulo">
+                                  Abrir
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+                                </a>
+                                @switch (fl.decision ?? 'cuarentena') {
+                                  @case ('aceptada') { <span class="inc-badge inc-badge--approved">Aceptada (cuenta)</span> }
+                                  @case ('excluida') { <span class="inc-badge inc-badge--declined">Excluida (no cuenta)</span> }
+                                  @default {
+                                    @if (puedeDecidir()) {
+                                      <span class="inc-inci__actions">
+                                        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">Excluir</button>
+                                        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">Aceptar</button>
+                                      </span>
+                                    }
+                                  }
                                 }
+                              </div>
+
+                              <!-- BQ9 — panel inline: detalle de la ruta/echada de la incidencia -->
+                              @if (expandedIncidencia() === fl.ref_id) {
+                                <div class="inc-inci__detail">
+                                  @if (detalleIncidencia(fl.ref_id); as det) {
+                                    @switch (det.estado) {
+                                      @case ('loading') { <app-skeleton [rows]="2" /> }
+                                      @case ('error') { <p class="inc-inci__detail-empty">{{ det.mensaje }}</p> }
+                                      @case ('ruta') {
+                                        <dl class="inc-det-grid">
+                                          <div class="inc-det-item"><dt>Recorrido</dt><dd>{{ det.ruta.origen }} → {{ det.ruta.destino }}</dd></div>
+                                          <div class="inc-det-item"><dt>Estado</dt><dd>{{ det.ruta.estado }}</dd></div>
+                                          <div class="inc-det-item"><dt>Inicio</dt><dd>{{ det.ruta.iniciada_at ? formatFechaHora(det.ruta.iniciada_at) : '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>Fin</dt><dd>{{ det.ruta.finalizada_at ? formatFechaHora(det.ruta.finalizada_at) : '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>Km (est./real)</dt><dd>{{ det.ruta.km_estimado ?? '—' }} / {{ det.ruta.km_real ?? '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>Duración</dt><dd>{{ det.ruta.duracion_min ?? det.ruta.tiempo_real_min ?? '—' }}@if (det.ruta.duracion_min ?? det.ruta.tiempo_real_min) { min }</dd></div>
+                                        </dl>
+                                      }
+                                      @case ('echada') {
+                                        <dl class="inc-det-grid">
+                                          <div class="inc-det-item"><dt>Vehículo</dt><dd>{{ det.echada.marca }} · {{ det.echada.placa }}</dd></div>
+                                          <div class="inc-det-item"><dt>Estación</dt><dd>{{ det.echada.estacion || '—' }}</dd></div>
+                                          <div class="inc-det-item"><dt>Galones</dt><dd>{{ det.echada.galones }} ({{ det.echada.producto || '—' }})</dd></div>
+                                          <div class="inc-det-item"><dt>Kilometraje</dt><dd>{{ det.echada.kilometraje }}</dd></div>
+                                          <div class="inc-det-item"><dt>Km recorridos</dt><dd>{{ det.echada.km_recorridos }}</dd></div>
+                                          <div class="inc-det-item"><dt>Rendimiento</dt><dd>{{ det.echada.rendimiento_km_gal }} km/gal</dd></div>
+                                        </dl>
+                                        @if (det.fotos.length) {
+                                          <div class="inc-echada-fotos">
+                                            @for (foto of det.fotos; track foto.label) {
+                                              <a class="inc-echada-foto" [href]="foto.url" target="_blank" rel="noopener" [title]="foto.label">
+                                                <img [src]="foto.url" [alt]="'Foto de ' + foto.label" loading="lazy" />
+                                                <span>{{ foto.label }}</span>
+                                              </a>
+                                            }
+                                          </div>
+                                        }
+                                      }
+                                    }
+                                  }
+                                  <!-- BQ9 — acciones también dentro del panel, para quien pueda gestionar -->
+                                  @if (puedeDecidir() && (fl.decision ?? 'cuarentena') === 'cuarentena') {
+                                    <div class="inc-inci__detail-actions">
+                                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="busy()" (click)="excluirIncidencia(f, fl)">Excluir</button>
+                                      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="aceptarIncidencia(f, fl)">Aceptar</button>
+                                    </div>
+                                  }
+                                </div>
                               }
                             </li>
                           }

@@ -20,8 +20,10 @@ export interface Nota {
   mi_permiso?: NotaPermiso;
 }
 
-/** AD9 — un ítem de checklist estructurado de una nota. Puede vincularse a una Tarea. */
-export type NotaChecklistRefTipo = 'tarea';
+/** AD9 — un ítem de checklist estructurado de una nota. Puede vincularse a una Tarea.
+ *  BQ/BP5 — ampliado para poder referenciar también un issue (Jira interno) o una
+ *  versión (historial). El CHECK en BD acepta 'tarea','issue','version'. */
+export type NotaChecklistRefTipo = 'tarea' | 'issue' | 'version';
 
 export interface NotaChecklistItem {
   id: string;

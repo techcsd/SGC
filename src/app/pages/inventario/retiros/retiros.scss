@@ -113,6 +113,18 @@
   padding: 1px 7px;
   border-radius: 999px;
 }
+// BP4 — chip "desde bitácora" que enlaza a la fuente del retiro.
+.ret-origen {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--sgc-primary);
+  background: var(--sgc-primary-light);
+  padding: 1px 8px;
+  border-radius: 999px;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
 .ret-fecha {
   margin-left: auto;
   font-size: 0.75rem;

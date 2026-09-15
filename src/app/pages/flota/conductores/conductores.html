@@ -29,17 +29,14 @@
     />
   </div>
 
-  <div class="sgc-field filters-bar__select">
-    <select
-      [value]="selectedActivo()"
-      (change)="onActivoChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
-    >
-      <option value="all">Todos los estados</option>
-      <option value="active">Activos</option>
-      <option value="inactive">Inactivos</option>
-    </select>
-  </div>
+  <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
+  <app-filter-select
+    label="Estado"
+    [options]="estadoOpt"
+    [value]="selectedActivo() === 'all' ? '' : selectedActivo()"
+    (valueChange)="onActivoChange($event || 'all')"
+    [searchable]="false"
+  />
 
   <!-- C7 — filtro documentos incompletos -->
   <button

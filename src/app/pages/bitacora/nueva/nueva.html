@@ -69,27 +69,28 @@
             <span class="field-error">La obra es obligatoria.</span>
           }
         </div>
-
-        <!-- Y15 — enlace opcional con una tarea del cronograma (evidencia) -->
-        @if (tareasCronograma().length > 0) {
-          <div class="sgc-field">
-            <label for="cronograma_tarea_id">Tarea del cronograma (opcional)</label>
-            <select id="cronograma_tarea_id" formControlName="cronograma_tarea_id">
-              <option [value]="null">Ninguna</option>
-              @for (t of tareasCronograma(); track t.id) {
-                <option [value]="t.id">{{ t.nombre }}</option>
-              }
-            </select>
-            <span class="field-hint">Esta bitácora quedará enlazada como evidencia de la tarea.</span>
-            @if (f.cronograma_tarea_id.value) {
-              <label class="sgc-checkbox">
-                <input type="checkbox" formControlName="cronograma_completar" />
-                <span>Marcar la tarea como completada (usa una foto de esta bitácora como evidencia)</span>
-              </label>
-            }
-          </div>
-        }
       </div>
+
+      <!-- Y15 — enlace opcional con una tarea del cronograma (evidencia).
+           Fila completa: fuera del grid de 2 columnas para no romper el layout. -->
+      @if (tareasCronograma().length > 0) {
+        <div class="sgc-field">
+          <label for="cronograma_tarea_id">Tarea del cronograma (opcional)</label>
+          <select id="cronograma_tarea_id" formControlName="cronograma_tarea_id">
+            <option [value]="null">Ninguna</option>
+            @for (t of tareasCronograma(); track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
+          @if (f.cronograma_tarea_id.value) {
+            <span class="field-hint">Esta bitácora quedará enlazada como evidencia de la tarea.</span>
+            <label class="sgc-checkbox">
+              <input type="checkbox" formControlName="cronograma_completar" />
+              <span>Marcar la tarea como completada (usa una foto de esta bitácora como evidencia)</span>
+            </label>
+          }
+        </div>
+      }
 
       @if (tipoActual() === 'parte_diario') {
         <!-- Z4 — "No se trabajó en obra" -->
@@ -559,9 +560,26 @@
             <label [for]="'dano-nombre-' + i">
               {{ d.tipo === 'material' ? 'Material dañado' : 'Equipo propio dañado' }} <span class="required">*</span>
             </label>
-            <input [id]="'dano-nombre-' + i" type="text" [value]="d.nombre"
-              (input)="updateDano(i, 'nombre', $any($event.target).value)"
-              [placeholder]="d.tipo === 'material' ? 'Ej: Molde de columna, Viga de encofrado…' : 'Ej: Mezcladora CSD, Vibrador…'" />
+            @if (d.tipo === 'material') {
+              <!-- BP4 — material del catálogo (con "Otro (escribir)" para lo no catalogado). -->
+              <app-articulo-picker
+                [articulos]="articulosCat()"
+                [categorias]="categoriasCat()"
+                [value]="d.articulo_id"
+                [esOtro]="d.esOtro"
+                placeholder="Busca el material en el catálogo…"
+                (selectionChange)="onDanoArticulo(i, $event)"
+              />
+              @if (d.esOtro) {
+                <input class="dano-row__otro" [id]="'dano-nombre-' + i" type="text" [value]="d.nombre"
+                  (input)="updateDano(i, 'nombre', $any($event.target).value)"
+                  placeholder="Escribe el material (no está en el catálogo)" />
+              }
+            } @else {
+              <input [id]="'dano-nombre-' + i" type="text" [value]="d.nombre"
+                (input)="updateDano(i, 'nombre', $any($event.target).value)"
+                placeholder="Ej: Mezcladora CSD, Vibrador…" />
+            }
           </div>
 
           @if (d.tipo === 'material') {
@@ -644,25 +662,46 @@
             </div>
           </div>
 
-          <label class="dano-row__grouplabel">Medida real (cm) <span class="required">*</span></label>
-          <div class="tramos">
-            <div class="sgc-field"><label>Largo</label>
-              <input type="number" min="0" step="1" [value]="m.largo_cm" (input)="setMoldeNum(i, 'largo_cm', $any($event.target).valueAsNumber)" /></div>
-            <div class="sgc-field"><label>Alto</label>
-              <input type="number" min="0" step="1" [value]="m.alto_cm" (input)="setMoldeNum(i, 'alto_cm', $any($event.target).valueAsNumber)" /></div>
-            <div class="sgc-field"><label>Espesor</label>
-              <input type="number" min="0" step="1" [value]="m.espesor_cm" (input)="setMoldeNum(i, 'espesor_cm', $any($event.target).valueAsNumber)" /></div>
-          </div>
+          <!-- BO9 — medidas por lado (multi-tramo en L/T/U); rectangular/circular: un solo lado -->
+          @for (t of m.tramos; track $index; let ti = $index) {
+            <div class="molde-tramo">
+              @if (moldeMultiTramo(m)) {
+                <div class="molde-tramo__head">
+                  <span class="molde-tramo__lado">Lado {{ t.lado }}</span>
+                  @if (m.tramos.length > 1) {
+                    <button type="button" class="molde-tramo__remove sgc-btn sgc-btn--ghost sgc-btn--sm"
+                      (click)="removeMoldeLado(i, ti)" aria-label="Quitar lado"><app-icon name="x" [size]="14" /></button>
+                  }
+                </div>
+              }
 
-          <label class="dano-row__grouplabel">Medida de plano (opcional)</label>
-          <div class="tramos">
-            <div class="sgc-field"><label>Largo</label>
-              <input type="number" min="0" step="1" [value]="m.plano_largo_cm" (input)="setMoldeNum(i, 'plano_largo_cm', $any($event.target).valueAsNumber)" /></div>
-            <div class="sgc-field"><label>Alto</label>
-              <input type="number" min="0" step="1" [value]="m.plano_alto_cm" (input)="setMoldeNum(i, 'plano_alto_cm', $any($event.target).valueAsNumber)" /></div>
-            <div class="sgc-field"><label>Espesor</label>
-              <input type="number" min="0" step="1" [value]="m.plano_espesor_cm" (input)="setMoldeNum(i, 'plano_espesor_cm', $any($event.target).valueAsNumber)" /></div>
-          </div>
+              <label class="dano-row__grouplabel">Medida real (cm) <span class="required">*</span></label>
+              <div class="tramos">
+                <div class="sgc-field"><label>Largo</label>
+                  <input type="number" min="0" step="1" [value]="t.largo_cm" (input)="setMoldeNum(i, ti, 'largo_cm', $any($event.target).valueAsNumber)" /></div>
+                <div class="sgc-field"><label>Alto</label>
+                  <input type="number" min="0" step="1" [value]="t.alto_cm" (input)="setMoldeNum(i, ti, 'alto_cm', $any($event.target).valueAsNumber)" /></div>
+                <div class="sgc-field"><label>Espesor</label>
+                  <input type="number" min="0" step="1" [value]="t.espesor_cm" (input)="setMoldeNum(i, ti, 'espesor_cm', $any($event.target).valueAsNumber)" /></div>
+              </div>
+
+              <label class="dano-row__grouplabel">Medida de plano (opcional)</label>
+              <div class="tramos">
+                <div class="sgc-field"><label>Largo</label>
+                  <input type="number" min="0" step="1" [value]="t.plano_largo_cm" (input)="setMoldeNum(i, ti, 'plano_largo_cm', $any($event.target).valueAsNumber)" /></div>
+                <div class="sgc-field"><label>Alto</label>
+                  <input type="number" min="0" step="1" [value]="t.plano_alto_cm" (input)="setMoldeNum(i, ti, 'plano_alto_cm', $any($event.target).valueAsNumber)" /></div>
+                <div class="sgc-field"><label>Espesor</label>
+                  <input type="number" min="0" step="1" [value]="t.plano_espesor_cm" (input)="setMoldeNum(i, ti, 'plano_espesor_cm', $any($event.target).valueAsNumber)" /></div>
+              </div>
+            </div>
+          }
+
+          @if (moldeMultiTramo(m) && m.tramos.length < 3) {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm molde-add-lado" (click)="addMoldeLado(i)">
+              + Agregar lado
+            </button>
+          }
 
           <div class="molde-preview">
             <app-molde-esquema [forma]="m.forma" [tramos]="moldeTramos(m)"

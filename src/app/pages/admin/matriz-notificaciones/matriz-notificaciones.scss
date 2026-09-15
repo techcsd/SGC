@@ -35,6 +35,18 @@
 // BF4 — etiqueta "operativa" en la lista de tipos de aviso.
 .mn-op { color: var(--text-2); font-size: var(--fs-xs); font-style: normal; }
 
+// BQ2 — chips de canales que respetan la regla (in-app / push / correo).
+.mn-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.mn-chip {
+  display: inline-flex; align-items: center;
+  padding: 1px 7px; border-radius: 999px;
+  font-size: 11px; font-weight: 600; line-height: 1.5;
+  color: var(--sgc-primary, #ff5f00);
+  background: var(--sgc-surface-2, rgba(255, 95, 0, 0.08));
+  border: 1px solid var(--sgc-border);
+  &--off { color: var(--sgc-text-muted); background: transparent; }
+}
+
 // BK1 — formulario de reglas por rol/usuario.
 .mn-newrule {
   display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; margin-bottom: 14px;

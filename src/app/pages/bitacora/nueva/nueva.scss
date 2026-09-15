@@ -347,6 +347,8 @@
     margin: 4px 0 -2px;
     color: var(--sgc-text-muted);
   }
+  // BP4 — input de "Otro (escribir)" bajo el picker de material.
+  &__otro { margin-top: 8px; }
 }
 // BO9 — tres campos por fila (largo/alto/espesor) + preview del esquema
 .tramos {
@@ -360,6 +362,29 @@
   padding: 10px;
   background: var(--sgc-surface-2, transparent);
 }
+// BO9 — lado (tramo) de un molde compuesto (L/T/U)
+.molde-tramo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+
+  & + & { border-top: 1px dashed var(--sgc-border); }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  &__lado {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--sgc-text);
+  }
+  &__remove { color: var(--sgc-danger); padding: 4px 8px; }
+}
+.molde-add-lado { align-self: flex-start; }
 
 // Radios en línea (propio/alquilado, operativo sí/no)
 .bitacora-radio-row {

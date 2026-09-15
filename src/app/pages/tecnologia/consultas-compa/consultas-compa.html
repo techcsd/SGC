@@ -75,7 +75,8 @@
           @if (f.detalle) { <p class="cnc-detalle">{{ f.detalle }}</p> }
           <div class="cnc-actions">
             @if (!f.resuelto) {
-              <button class="cnc-btn cnc-btn--sm" (click)="resolver(f, true)">Marcar resuelta</button>
+              <button class="cnc-btn cnc-btn--sm" (click)="resolverYAvisar(f)" title="Marca las consultas equivalentes y avisa a quienes preguntaron">Resolver y avisar</button>
+              <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, true)">Marcar resuelta</button>
             } @else {
               <span class="cnc-resuelto-tag">Resuelta</span>
               <button class="cnc-btn cnc-btn--sm cnc-btn--ghost" (click)="resolver(f, false)">Reabrir</button>

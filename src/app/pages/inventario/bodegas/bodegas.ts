@@ -21,11 +21,12 @@ import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { LocationPicker } from '../../../../shared/context/location-picker/location-picker';
+import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { homologarTexto } from '../../../../shared/utils/texto.util';
 
 @Component({
   selector: 'app-bodegas',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, LocationPicker, RouterLink, Skeleton, FilterSelect],
   templateUrl: './bodegas.html',
   styleUrl: './bodegas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +47,8 @@ export class Bodegas implements OnInit {
   // ── Data state ──────────────────────────────────────────
   bodegas = signal<Bodega[]>([]);
   proyectos = signal<Proyecto[]>([]);
+  // BQ4 — usuarios para el selector de encargado del almacén.
+  usuarios = signal<{ id: string; nombre: string }[]>([]);
   // AT14/AT26 — datos de prueba fuera de los selectores de obra para no-admin.
   proyectosVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.proyectos()));
   loading = signal(true);
@@ -58,6 +61,11 @@ export class Bodegas implements OnInit {
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
   // V9 — filtro por obra: '' todas, 'general' sin obra, o el id de la obra.
   selectedObra = signal<string>('');
+  // BP6 — opciones del filtro de obra (chip + popover, filter-select).
+  obrasFiltroOpt = computed(() => [
+    { value: 'general', label: 'Almacén general (sin obra)' },
+    ...this.proyectosVisibles().map((p) => ({ value: p.id, label: p.nombre })),
+  ]);
 
   // ── Pagination ───────────────────────────────────────────
   currentPage = signal(1);
@@ -80,6 +88,8 @@ export class Bodegas implements OnInit {
     descripcion: new FormControl<string | null>(null),
     activo: new FormControl<boolean>(true),
     proyecto_id: new FormControl<string | null>(null),
+    // BQ4 — encargado (usuario responsable) del almacén.
+    encargado_id: new FormControl<string | null>(null),
     // BO1 — split: central global vs principal de obra (según haya obra vinculada).
     es_central: new FormControl<boolean>(false),
     es_principal_obra: new FormControl<boolean>(false),
@@ -150,12 +160,14 @@ export class Bodegas implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [bodegas, proyectos] = await Promise.all([
+      const [bodegas, proyectos, usuarios] = await Promise.all([
         this.bodegasService.getAll(),
         this.proyectosService.getAll(),
+        this.proyectosService.getDirectorioUsuarios().catch(() => []),
       ]);
       this.bodegas.set(bodegas);
       this.proyectos.set(proyectos.filter((p) => p.activo));
+      this.usuarios.set(usuarios);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los almacenes.');
     } finally {
@@ -213,6 +225,7 @@ export class Bodegas implements OnInit {
       ubicacion: null,
       descripcion: null,
       proyecto_id: null,
+      encargado_id: null,
       es_central: false,
       es_principal_obra: false,
       latitud: null,
@@ -232,6 +245,7 @@ export class Bodegas implements OnInit {
       descripcion: bodega.descripcion,
       activo: bodega.activo,
       proyecto_id: bodega.proyecto_id ?? null,
+      encargado_id: bodega.encargado_id ?? null,
       es_central: bodega.es_central ?? false,
       es_principal_obra: bodega.es_principal_obra ?? false,
       latitud: bodega.latitud ?? null,
@@ -270,6 +284,7 @@ export class Bodegas implements OnInit {
       ubicacion: v.ubicacion ?? null,
       activo: v.activo ?? true,
       proyecto_id: v.proyecto_id ?? null,
+      encargado_id: v.encargado_id ?? null,
       es_central: tieneObra ? false : (v.es_central ?? false),
       es_principal_obra: tieneObra ? (v.es_principal_obra ?? false) : false,
       latitud: v.latitud ?? null,

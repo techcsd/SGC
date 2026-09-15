@@ -149,6 +149,33 @@ export class IncentivosService {
     if (error) throw new Error(error.message);
   }
 
+  /** BQ9 — decide en LOTE varias incidencias del mismo corte; recalcula. Devuelve cuántas se decidieron. */
+  async decidirIncidencias(
+    anio: number, semana: number,
+    items: { ref_tipo: 'ruta' | 'echada'; ref_id: string }[],
+    decision: 'aceptada' | 'excluida', motivo: string | null = null,
+  ): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_decidir_incidencias', {
+      p_anio: anio, p_semana: semana, p_items: items, p_decision: decision, p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? 0) as number;
+  }
+
+  /** BQ9 — detalle de la RUTA de una incidencia (ref_tipo='ruta'), para el panel inline. */
+  async rutaDetalleIncidencia(rutaId: string): Promise<IncentivoRutaDetalle | null> {
+    const { data, error } = await this.supabase.client.rpc('ruta_detalle_transporte', { p_ruta_id: rutaId });
+    if (error) throw new Error(error.message);
+    return (data ?? null) as IncentivoRutaDetalle | null;
+  }
+
+  /** BQ9 — detalle de la ECHADA de una incidencia (ref_tipo='echada'). Puede devolver {error} si no autorizado. */
+  async echadaDetalleIncidencia(echadaId: string): Promise<IncentivoEchadaDetalle | { error: string }> {
+    const { data, error } = await this.supabase.client.rpc('echada_detalle_incentivo', { p_id: echadaId });
+    if (error) throw new Error(error.message);
+    return (data ?? { error: 'sin_datos' }) as IncentivoEchadaDetalle | { error: string };
+  }
+
   /** Recalcula el informe de la semana (idempotente) — para generar/refrescar a mano. */
   async generar(anio: number, semana: number): Promise<number> {
     const { data, error } = await this.supabase.client.rpc('incentivo_generar_semana', { p_anio: anio, p_semana: semana });
@@ -309,4 +336,46 @@ export interface IncentivoParticipante {
   ultimo_cambio_en: string | null;
   ultimo_cambio_por: string | null;
   ultimo_motivo: string | null;
+}
+
+/** BQ9 — detalle de una ruta para el panel de incidencia (ref_tipo='ruta'). */
+export interface IncentivoRutaDetalle {
+  ruta: {
+    id: string;
+    origen: string;
+    destino: string;
+    estado: string;
+    tipo: string;
+    fecha: string;
+    iniciada_at: string | null;
+    finalizada_at: string | null;
+    km_estimado: number | null;
+    km_real: number | null;
+    tiempo_real_min: number | null;
+    duracion_min: number | null;
+    conductor_id: string | null;
+    vehiculo_id: string | null;
+  };
+}
+
+/** BQ9 — detalle de una echada para el panel de incidencia (ref_tipo='echada'). */
+export interface IncentivoEchadaDetalle {
+  id: string;
+  fecha: string;
+  placa: string;
+  marca: string;
+  tipo: string;
+  galones: number;
+  monto: number;
+  precio_por_galon: number;
+  kilometraje: number;
+  km_recorridos: number;
+  rendimiento_km_gal: number;
+  estado: string;
+  estacion: string;
+  producto: string;
+  conductor: string;
+  foto_recibo_path: string | null;
+  foto_tablero_path: string | null;
+  foto_bomba_path: string | null;
 }

@@ -14,8 +14,10 @@
         </svg>
         Umbrales
       </button>
+    }
+    @if (esFlotaElevado()) {
       <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleSaneamiento()"
-              title="Revisar y sanear echadas sospechosas (admin)">
+              title="Revisar y sanear echadas sospechosas">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
@@ -93,8 +95,8 @@
   </form>
 }
 
-<!-- ── AW3 · Saneamiento de echadas sospechosas (admin) ── -->
-@if (esAdmin() && saneamientoOpen()) {
+<!-- ── AW3/BQ5 · Saneamiento de echadas sospechosas (flota elevado) ── -->
+@if (esFlotaElevado() && saneamientoOpen()) {
   <div class="combustible__config-panel sgc-card">
     <h3 class="combustible__config-title">Saneamiento de echadas</h3>
     <p class="combustible__config-hint">
@@ -105,7 +107,14 @@
     </p>
     @if (loadingSospechosas()) {
       <app-skeleton variant="list" [rows]="3" />
-    } @else if (sospechosas().length === 0) {
+    } @else if (sospechosasError()) {
+      <!-- BQ3 — estado de error honesto (no "Todo limpio" cuando en realidad falló). -->
+      <div class="combustible__config-hint">
+        <p><app-icon name="alert-triangle" [size]="14" /> No se pudieron cargar las echadas sospechosas.</p>
+        <p class="text-muted">{{ sospechosasError() }}</p>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cargarSospechosas()">Reintentar</button>
+      </div>
+    } @else if ((sospechosas()?.length ?? 0) === 0) {
       <p class="combustible__config-hint"><app-icon name="check" [size]="14" /> No hay echadas sospechosas. Todo limpio.</p>
     } @else {
       <div class="table-scroll">
@@ -118,7 +127,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (e of sospechosas(); track e.id) {
+            @for (e of (sospechosas() ?? []); track e.id) {
               <tr>
                 <td>{{ formatFecha(e.fecha) }}</td>
                 <td>

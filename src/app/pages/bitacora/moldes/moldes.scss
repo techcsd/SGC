@@ -1,0 +1,44 @@
+// BO9 — vista de oficina de medidas de moldes.
+.moldes-table {
+  th.num,
+  td.num { text-align: right; white-space: nowrap; }
+
+  &__titulo {
+    display: block;
+    font-weight: 600;
+    color: var(--sgc-text);
+  }
+  &__forma {
+    display: inline-block;
+    margin: 2px 0 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sgc-text-muted);
+  }
+  &__medidas {
+    display: block;
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+  }
+
+  &__esquema {
+    width: 200px;
+
+    app-molde-esquema { display: block; }
+    svg { max-width: 180px; height: auto; }
+  }
+
+  &__row--alerta td { background: var(--sgc-danger-light, transparent); }
+
+  &__desv--alerta {
+    color: var(--sgc-danger);
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 768px) {
+  .moldes-table__esquema { width: 140px; }
+  .moldes-table__esquema svg { max-width: 130px; }
+}

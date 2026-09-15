@@ -1,0 +1,141 @@
+// BQ8(b) — Compositor de moldes. Tokens SGC, sin hex crudos.
+.mc {
+  display: grid;
+  grid-template-columns: 120px 1fr 220px;
+  gap: 12px;
+  align-items: start;
+  outline: none;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    .mc__canvas-wrap { order: -1; }
+    .mc__palette { flex-direction: row; flex-wrap: wrap; }
+  }
+}
+
+.mc__palette {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mc__fig-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: 10px;
+  background: var(--sgc-surface);
+  color: var(--sgc-text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  svg { flex: 0 0 24px; color: var(--sgc-primary); }
+  &:hover { border-color: var(--sgc-primary); }
+  &:focus-visible { outline: 2px solid var(--sgc-primary); outline-offset: 2px; }
+}
+
+.mc__canvas-wrap {
+  background: var(--sgc-surface);
+  border: 1px solid var(--sgc-border);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.mc__tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.mc__tool {
+  border: 1px solid var(--sgc-border);
+  background: var(--sgc-surface-2, var(--sgc-surface));
+  color: var(--sgc-text);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { border-color: var(--sgc-primary); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &--danger:hover:not(:disabled) { border-color: var(--sgc-danger); color: var(--sgc-danger); }
+}
+
+.mc__hint { margin-left: auto; color: var(--sgc-text-muted); font-size: 12px; }
+
+.mc__canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: var(--sgc-bg, var(--sgc-surface));
+  border-radius: 10px;
+  touch-action: none;
+}
+
+.mc__grid { stroke: var(--sgc-border); stroke-width: 0.5; opacity: 0.5; }
+.mc__grid--major { stroke-width: 1; opacity: 0.8; }
+
+.mc__fig { cursor: move; }
+.mc__shape {
+  fill: color-mix(in srgb, var(--sgc-primary) 12%, transparent);
+  stroke: var(--sgc-primary);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.mc__shape-inner { fill: none; stroke: var(--sgc-primary); stroke-width: 1; stroke-dasharray: 2 2; }
+.mc__fig--sel .mc__shape { stroke-width: 2.6; }
+.mc__fig--bad .mc__shape { stroke: var(--sgc-danger); }
+.mc__fig--bad .mc__shape-inner { stroke: var(--sgc-danger); }
+.mc__handle { fill: var(--sgc-primary); stroke: var(--sgc-surface); stroke-width: 1; }
+
+.mc__props { display: flex; flex-direction: column; gap: 8px; }
+.mc__tag {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sgc-primary);
+  background: color-mix(in srgb, var(--sgc-primary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sgc-primary) 45%, var(--sgc-border));
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.mc__empty { color: var(--sgc-text-muted); font-size: 13px; margin: 0; }
+.mc__row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mc__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  span { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sgc-text-muted); }
+  input {
+    width: 100%;
+    background: var(--sgc-bg, var(--sgc-surface));
+    border: 1px solid var(--sgc-border);
+    color: var(--sgc-text);
+    border-radius: 8px;
+    padding: 7px 8px;
+    font: inherit;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  input:focus-visible { outline: 2px solid var(--sgc-primary); outline-offset: -1px; border-color: var(--sgc-primary); }
+  &--plano input { border-style: dashed; }
+}
+.mc__desv {
+  margin: 4px 0 0;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--sgc-bg, var(--sgc-surface));
+  border: 1px solid color-mix(in srgb, var(--sgc-success) 40%, var(--sgc-border));
+  color: var(--sgc-success);
+
+  &--bad { border-color: var(--sgc-danger); color: var(--sgc-danger); }
+}

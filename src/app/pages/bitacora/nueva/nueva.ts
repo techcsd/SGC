@@ -45,6 +45,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
+import { Articulo } from '../../../../shared/models/articulo.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 
 const DRAFT_KEY = 'sgc-bitacora-draft';
 
@@ -68,7 +73,10 @@ interface EquipoRow {
 // (File[]) no se serializan al borrador; el resto sí.
 interface DanoRow {
   tipo: 'material' | 'equipo_propio';
-  nombre: string; // material (molde/viga) o equipo propio, texto libre
+  // BP4 — material: artículo del catálogo (articulo_id) o texto libre (esOtro).
+  articulo_id: string | null;
+  esOtro: boolean;
+  nombre: string; // material (molde/viga) o equipo propio, texto libre / nombre del artículo
   cantidad: number | null;
   unidad: string;
   detalle: string;
@@ -77,21 +85,40 @@ interface DanoRow {
 }
 type DanoDraft = Omit<DanoRow, 'fotos'>;
 
-// BO9 — Molde: un tramo real (cm) + medida de plano opcional. El esquema se dibuja solo.
-interface MoldeRow {
-  estructura: string;
-  identificador: string;
-  forma: 'rectangular' | 'L' | 'T' | 'U' | 'circular' | 'libre';
+// BO9 — Lado (tramo) de un molde: medida real + medida de plano (cm). Un molde
+// rectangular/circular lleva un solo tramo (implícito, lado 'A'); L/T/U pueden
+// tener 2-3 lados con sus propias medidas y plano.
+interface MoldeTramoForm {
+  lado: string; // 'A' | 'B' | 'C'
   largo_cm: number | null;
   alto_cm: number | null;
   espesor_cm: number | null;
   plano_largo_cm: number | null;
   plano_alto_cm: number | null;
   plano_espesor_cm: number | null;
+}
+
+// BO9 — Molde: N tramos reales (cm) + medida de plano opcional. El esquema se dibuja solo.
+interface MoldeRow {
+  estructura: string;
+  identificador: string;
+  forma: 'rectangular' | 'L' | 'T' | 'U' | 'circular' | 'libre';
+  tramos: MoldeTramoForm[];
   notas: string;
   fotos: File[];
 }
 type MoldeDraft = Omit<MoldeRow, 'fotos'>;
+
+// BO9 — etiquetas de lado en orden y tope de tramos por molde.
+const MOLDE_LADOS = ['A', 'B', 'C'];
+const MOLDE_MAX_TRAMOS = 3;
+function nuevoMoldeTramo(lado: string): MoldeTramoForm {
+  return {
+    lado,
+    largo_cm: null, alto_cm: null, espesor_cm: null,
+    plano_largo_cm: null, plano_alto_cm: null, plano_espesor_cm: null,
+  };
+}
 
 interface Draft {
   form: Record<string, unknown>;
@@ -111,7 +138,7 @@ interface Draft {
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema],
+  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema, ArticuloPicker],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -139,6 +166,11 @@ export class Nueva implements OnInit {
   private catalogosService = inject(BitacoraCatalogosService);
   private unidadesService = inject(UnidadesService);
   private reportes = inject(ReportesUsuarioService);
+  // BP4 — catálogo de artículos para el picker de material dañado (best-effort).
+  private articulosService = inject(ArticulosService);
+  private categoriasService = inject(CategoriasService);
+  articulosCat = signal<Articulo[]>([]);
+  categoriasCat = signal<Categoria[]>([]);
 
   // Default to the built-in lists, then override with the admin-managed catalog.
   estructuras = signal<readonly string[]>(ESTRUCTURAS);
@@ -560,6 +592,19 @@ export class Nueva implements OnInit {
     } catch {
       /* sin catálogo de sucesos: el selector queda vacío, "Otro" sigue disponible */
     }
+
+    // BP4 — catálogo de artículos para el picker de material dañado (best-effort;
+    // si falla, el usuario igual puede escribir el material como "Otro").
+    try {
+      const [arts, cats] = await Promise.all([
+        this.articulosService.getAll(),
+        this.categoriasService.getAll(),
+      ]);
+      this.articulosCat.set(arts);
+      this.categoriasCat.set(cats);
+    } catch {
+      /* sin catálogo: el picker permite igualmente escribir "Otro" */
+    }
   }
 
   /** S2 — trae el catálogo con ranking de uso de la obra elegida (best-effort). */
@@ -630,8 +675,9 @@ export class Nueva implements OnInit {
     this.bloqueActivo.set(draft.bloqueActivo ?? this.bloquesLista()[0] ?? 'General');
     this.restriccionDescripciones.set(draft.descripciones ?? {});
     this.equiposAlquilados.set(draft.equipos ?? []);
-    this.danos.set((draft.danos ?? []).map((d) => ({ ...d, fotos: [] }))); // BP4 — fotos se re-agregan
-    this.moldes.set((draft.moldes ?? []).map((m) => ({ ...m, fotos: [] }))); // BO9
+    // BP4 — fotos se re-agregan; articulo_id/esOtro por defecto para borradores previos.
+    this.danos.set((draft.danos ?? []).map((d) => ({ ...d, articulo_id: d.articulo_id ?? null, esOtro: d.esOtro ?? false, fotos: [] })));
+    this.moldes.set((draft.moldes ?? []).map((m) => this.normalizarMoldeDraft(m))); // BO9 (soporta borradores legacy)
     // AX6 — restaura las estructuras "Otros"; deriva las que falten de las llaves
     // `bloque|estructura|actividad` para que la matriz pinte sus grupos.
     const otras = new Set(draft.estructurasOtras ?? []);
@@ -901,7 +947,7 @@ export class Nueva implements OnInit {
   addDano() {
     this.danos.update((list) => [
       ...list,
-      { tipo: 'material', nombre: '', cantidad: null, unidad: '', detalle: '', solicita_retiro: false, fotos: [] },
+      { tipo: 'material', articulo_id: null, esOtro: false, nombre: '', cantidad: null, unidad: '', detalle: '', solicita_retiro: false, fotos: [] },
     ]);
     this.saveDraft();
   }
@@ -918,7 +964,41 @@ export class Nueva implements OnInit {
 
   setDanoTipo(index: number, tipo: 'material' | 'equipo_propio') {
     this.danos.update((list) =>
-      list.map((d, i) => (i === index ? { ...d, tipo, solicita_retiro: tipo === 'material' ? d.solicita_retiro : false } : d)),
+      list.map((d, i) =>
+        i === index
+          ? {
+              ...d,
+              tipo,
+              solicita_retiro: tipo === 'material' ? d.solicita_retiro : false,
+              // El equipo propio no tiene catálogo: se escribe libre.
+              articulo_id: tipo === 'material' ? d.articulo_id : null,
+              esOtro: tipo === 'material' ? d.esOtro : false,
+            }
+          : d,
+      ),
+    );
+    this.saveDraft();
+  }
+
+  /**
+   * BP4 — selección del picker de artículos para el material dañado. Si eligió un
+   * artículo del catálogo, guardamos su id y autollenamos nombre/unidad; si eligió
+   * "Otro (escribir)", pasamos a texto libre conservando lo ya tecleado.
+   */
+  onDanoArticulo(index: number, sel: ArticuloPickerSelection) {
+    const art = sel.articuloId ? this.articulosCat().find((a) => a.id === sel.articuloId) : undefined;
+    this.danos.update((list) =>
+      list.map((d, i) =>
+        i === index
+          ? {
+              ...d,
+              articulo_id: sel.articuloId ?? null,
+              esOtro: sel.esOtro,
+              nombre: sel.esOtro ? d.nombre : art?.nombre ?? '',
+              unidad: art?.unidad ?? d.unidad,
+            }
+          : d,
+      ),
     );
     this.saveDraft();
   }
@@ -950,12 +1030,7 @@ export class Nueva implements OnInit {
   addMolde() {
     this.moldes.update((list) => [
       ...list,
-      {
-        estructura: '', identificador: '', forma: 'rectangular',
-        largo_cm: null, alto_cm: null, espesor_cm: null,
-        plano_largo_cm: null, plano_alto_cm: null, plano_espesor_cm: null,
-        notas: '', fotos: [],
-      },
+      { estructura: '', identificador: '', forma: 'rectangular', tramos: [nuevoMoldeTramo('A')], notas: '', fotos: [] },
     ]);
     this.saveDraft();
   }
@@ -970,14 +1045,52 @@ export class Nueva implements OnInit {
     this.saveDraft();
   }
 
+  /** Las formas L/T/U (y libre) admiten varios lados; rectangular/circular, uno solo. */
+  moldeMultiTramo(m: MoldeRow): boolean {
+    return m.forma === 'L' || m.forma === 'T' || m.forma === 'U' || m.forma === 'libre';
+  }
+
   setMoldeForma(index: number, forma: MoldeRow['forma']) {
-    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, forma } : m)));
+    const single = forma === 'rectangular' || forma === 'circular';
+    this.moldes.update((list) =>
+      list.map((m, i) => (i === index ? { ...m, forma, tramos: single ? m.tramos.slice(0, 1) : m.tramos } : m)),
+    );
     this.saveDraft();
   }
 
-  setMoldeNum(index: number, field: 'largo_cm' | 'alto_cm' | 'espesor_cm' | 'plano_largo_cm' | 'plano_alto_cm' | 'plano_espesor_cm', value: number) {
+  /** Agrega un lado (B, C…) a un molde compuesto, hasta el tope. */
+  addMoldeLado(index: number) {
+    this.moldes.update((list) =>
+      list.map((m, i) => {
+        if (i !== index || m.tramos.length >= MOLDE_MAX_TRAMOS) return m;
+        const lado = MOLDE_LADOS[m.tramos.length] ?? String(m.tramos.length + 1);
+        return { ...m, tramos: [...m.tramos, nuevoMoldeTramo(lado)] };
+      }),
+    );
+    this.saveDraft();
+  }
+
+  /** Quita un lado (mínimo uno) y re-etiqueta A/B/C. */
+  removeMoldeLado(index: number, tramoIndex: number) {
+    this.moldes.update((list) =>
+      list.map((m, i) => {
+        if (i !== index || m.tramos.length <= 1) return m;
+        const tramos = m.tramos
+          .filter((_, n) => n !== tramoIndex)
+          .map((t, n) => ({ ...t, lado: MOLDE_LADOS[n] ?? String(n + 1) }));
+        return { ...m, tramos };
+      }),
+    );
+    this.saveDraft();
+  }
+
+  setMoldeNum(index: number, tramoIndex: number, field: 'largo_cm' | 'alto_cm' | 'espesor_cm' | 'plano_largo_cm' | 'plano_alto_cm' | 'plano_espesor_cm', value: number) {
     const v = value != null && !Number.isNaN(value) ? value : null;
-    this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, [field]: v } : m)));
+    this.moldes.update((list) =>
+      list.map((m, i) =>
+        i === index ? { ...m, tramos: m.tramos.map((t, n) => (n === tramoIndex ? { ...t, [field]: v } : t)) } : m,
+      ),
+    );
     this.saveDraft();
   }
 
@@ -988,14 +1101,45 @@ export class Nueva implements OnInit {
     this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, fotos: m.fotos.filter((_, n) => n !== fotoIndex) } : m)));
   }
 
-  /** Tramos para el esquema SVG (un tramo). */
+  /** Tramos (medida real) para el esquema SVG. */
   moldeTramos(m: MoldeRow) {
-    return [{ largo_cm: m.largo_cm, alto_cm: m.alto_cm, espesor_cm: m.espesor_cm }];
+    return m.tramos.map((t) => ({ lado: t.lado, largo_cm: t.largo_cm, alto_cm: t.alto_cm, espesor_cm: t.espesor_cm }));
   }
-  /** Medida de plano para el esquema, o null si no se capturó ninguna. */
+  /** Medida de plano por tramo para el esquema, o null si no se capturó ninguna. */
   moldePlano(m: MoldeRow) {
-    if (m.plano_largo_cm == null && m.plano_alto_cm == null && m.plano_espesor_cm == null) return null;
-    return [{ largo_cm: m.plano_largo_cm, alto_cm: m.plano_alto_cm, espesor_cm: m.plano_espesor_cm }];
+    const hayPlano = m.tramos.some(
+      (t) => t.plano_largo_cm != null || t.plano_alto_cm != null || t.plano_espesor_cm != null,
+    );
+    if (!hayPlano) return null;
+    return m.tramos.map((t) => ({ lado: t.lado, largo_cm: t.plano_largo_cm, alto_cm: t.plano_alto_cm, espesor_cm: t.plano_espesor_cm }));
+  }
+
+  /** BO9 — normaliza un molde de un borrador (soporta el formato legacy de un solo
+   * tramo con campos planos largo_cm/plano_*). */
+  private normalizarMoldeDraft(m: MoldeDraft): MoldeRow {
+    const raw = m as unknown as Record<string, unknown>;
+    const num = (v: unknown): number | null => (typeof v === 'number' && !Number.isNaN(v) ? v : null);
+    const tramosRaw = raw['tramos'];
+    const tramos: MoldeTramoForm[] =
+      Array.isArray(tramosRaw) && tramosRaw.length
+        ? (tramosRaw as Record<string, unknown>[]).map((t, n) => ({
+            lado: (typeof t?.['lado'] === 'string' ? (t['lado'] as string) : MOLDE_LADOS[n]) ?? String(n + 1),
+            largo_cm: num(t?.['largo_cm']), alto_cm: num(t?.['alto_cm']), espesor_cm: num(t?.['espesor_cm']),
+            plano_largo_cm: num(t?.['plano_largo_cm']), plano_alto_cm: num(t?.['plano_alto_cm']), plano_espesor_cm: num(t?.['plano_espesor_cm']),
+          }))
+        : [{
+            lado: 'A',
+            largo_cm: num(raw['largo_cm']), alto_cm: num(raw['alto_cm']), espesor_cm: num(raw['espesor_cm']),
+            plano_largo_cm: num(raw['plano_largo_cm']), plano_alto_cm: num(raw['plano_alto_cm']), plano_espesor_cm: num(raw['plano_espesor_cm']),
+          }];
+    return {
+      estructura: typeof raw['estructura'] === 'string' ? (raw['estructura'] as string) : '',
+      identificador: typeof raw['identificador'] === 'string' ? (raw['identificador'] as string) : '',
+      forma: (raw['forma'] as MoldeRow['forma']) ?? 'rectangular',
+      tramos,
+      notas: typeof raw['notas'] === 'string' ? (raw['notas'] as string) : '',
+      fotos: [],
+    };
   }
 
   // ── Submit ───────────────────────────────────────────────────
@@ -1222,8 +1366,11 @@ export class Nueva implements OnInit {
       // BP4 — daños de material / equipo propio (solo parte diario). Sube las fotos
       // de cada daño y llama al escritor hijo; un daño de material con "solicitar
       // retiro" crea la solicitud BG4 y la enlaza (aparece en /inventario/retiros).
-      const danosLimpios = esParte ? this.danos().filter((d) => d.nombre.trim() && d.detalle.trim()) : [];
-      const moldesLimpios = esParte ? this.moldes().filter((m) => m.largo_cm && m.espesor_cm) : [];
+      // Material: vale si tiene artículo del catálogo o nombre libre. Equipo propio: nombre libre.
+      const danosLimpios = esParte
+        ? this.danos().filter((d) => (d.articulo_id || d.nombre.trim()) && d.detalle.trim())
+        : [];
+      const moldesLimpios = esParte ? this.moldes().filter((m) => !!m.tramos[0]?.largo_cm) : [];
       if (danosLimpios.length || moldesLimpios.length) {
         const danosPayload: BitacoraDanoInput[] = [];
         for (const d of danosLimpios) {
@@ -1232,9 +1379,13 @@ export class Nueva implements OnInit {
             try { fotos_paths.push(await this.bitacoraService.subirFotoDano(created.id, f)); }
             catch (e: unknown) { console.error('Error subiendo foto de daño:', e); }
           }
+          // BP4 — material vinculado al catálogo manda articulo_id; si es "Otro" o
+          // equipo propio manda nombre_libre (el RPC exige uno de los dos).
+          const usaArticulo = d.tipo === 'material' && !!d.articulo_id;
           danosPayload.push({
             tipo: d.tipo,
-            nombre_libre: d.nombre.trim(),
+            articulo_id: usaArticulo ? d.articulo_id : null,
+            nombre_libre: usaArticulo ? null : d.nombre.trim() || null,
             cantidad: d.cantidad,
             unidad: d.unidad.trim() || null,
             detalle: d.detalle.trim(),
@@ -1253,7 +1404,7 @@ export class Nueva implements OnInit {
             estructura: m.estructura.trim() || null,
             identificador: m.identificador.trim() || null,
             forma: m.forma,
-            tramos: [{ largo_cm: m.largo_cm, alto_cm: m.alto_cm, espesor_cm: m.espesor_cm }],
+            tramos: this.moldeTramos(m),
             medida_plano: this.moldePlano(m),
             notas: m.notas.trim() || null,
             fotos_paths,

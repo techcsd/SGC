@@ -64,6 +64,22 @@
         </section>
       }
 
+      <!-- Daños de material / equipo (BP4) -->
+      @if (sec().danos?.length) {
+        <section class="informe__sec">
+          <h3>Daños de material / equipo</h3>
+          <ul>@for (d of sec().danos; track $index) {
+            <li>
+              @if (d.fecha) { {{ formatFecha(d.fecha) }} · }
+              {{ d.tipo === 'material' ? 'Material' : 'Equipo propio' }} — {{ d.descripcion }}
+              @if (d.cantidad) { ({{ d.cantidad }} {{ d.unidad }}) }
+              @if (d.solicita_retiro) { <span class="sgc-badge sgc-badge--warning">Solicitó retiro</span> }
+              @if (d.tiene_foto) { <span class="sgc-badge sgc-badge--neutral">Con foto</span> }
+            </li>
+          }</ul>
+        </section>
+      }
+
       <!-- Campos manuales (edición) -->
       <form [formGroup]="manualForm" class="informe__manual no-print">
         <div class="sgc-field"><label for="im-res">Resumen del gerente</label><textarea id="im-res" rows="3" formControlName="resumen" [readonly]="!esBorrador()"></textarea></div>

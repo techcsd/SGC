@@ -4,13 +4,30 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   IncentivosService, IncentivoFila, IncentivoSemanaRef, IncentivoDecision,
   IncentivoConfig, IncentivoFlag, IncentivoParticipante, IncentivoInformeVersion,
-  IncentivoDiaFila, RENGLON_LABELS, isoSemanaActual,
+  IncentivoDiaFila, IncentivoRutaDetalle, IncentivoEchadaDetalle, RENGLON_LABELS, isoSemanaActual,
 } from '../../../shared/services/incentivos.service';
 import { ConductoresService } from '../../../shared/services/conductores.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { UserService } from '../../core/services/user.service';
+import { SignedUrlCache } from '../../../shared/services/signed-url-cache.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../shared/utils/exportar-excel.util';
+
+/** BQ9 — grupo de incidencias del mismo tipo (para el masivo). */
+export interface IncidenciaGrupo {
+  tipo: string;
+  label: string;
+  items: IncentivoFlag[];
+  pendientes: number;
+}
+
+/** BQ9 — estado del panel inline de una incidencia (ruta/echada). */
+export type IncDetalleState =
+  | { estado: 'loading' }
+  | { estado: 'error'; mensaje: string }
+  | { estado: 'ruta'; ruta: IncentivoRutaDetalle['ruta'] }
+  | { estado: 'echada'; echada: IncentivoEchadaDetalle; fotos: { label: string; url: string }[] };
 
 @Component({
   selector: 'app-incentivos',
@@ -24,6 +41,22 @@ export class Incentivos implements OnInit {
   private conductores = inject(ConductoresService);
   private toast = inject(ToastService);
   private route = inject(ActivatedRoute);
+  private userService = inject(UserService);
+  private signedUrls = inject(SignedUrlCache);
+
+  /**
+   * BQ9 — quién puede aceptar/excluir incidencias. Espejo del gate server-side
+   * `puede_gestionar_incentivos()` = admin O módulo `incentivos`. NO se limita a
+   * admin: la RLS es la fuente de verdad; esto solo evita mostrar botones inútiles.
+   */
+  puedeDecidir = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('incentivos'));
+
+  // BQ9 — panel inline de la incidencia (ruta/echada) + cache por ref_id.
+  expandedIncidencia = signal<string | null>(null);
+  private detalleCache = signal<Record<string, IncDetalleState>>({});
+  detalleIncidencia(refId: string): IncDetalleState | undefined {
+    return this.detalleCache()[refId];
+  }
 
   readonly RENGLON_LABELS = RENGLON_LABELS;
   readonly renglones = Object.keys(RENGLON_LABELS);
@@ -88,7 +121,7 @@ export class Incentivos implements OnInit {
 
   // BB8a — incidencias del chofer, AGRUPADAS por tipo y accionables. En cuarentena
   // (no puntúan) hasta que alguien las acepte/excluya.
-  incidenciasDe(f: IncentivoFila): { tipo: string; label: string; items: IncentivoFlag[]; pendientes: number }[] {
+  incidenciasDe(f: IncentivoFila): IncidenciaGrupo[] {
     const flags = f.flags ?? [];
     const grupos = new Map<string, IncentivoFlag[]>();
     for (const fl of flags) {
@@ -114,7 +147,16 @@ export class Incentivos implements OnInit {
     return s
       .replace(/â€"/g, '—').replace(/â€“/g, '–')
       .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
-      .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã±/g, 'ñ');
+      .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã±/g, 'ñ')
+      // BQ9 — la incidencia ahora es clickable/expandible; el sufijo "— revisar"
+      // (que sugería "hay algo que abrir") sobra: se quita para no duplicar la señal.
+      .replace(/\s*[—–-]\s*revisar\.?\s*$/i, '')
+      .trim();
+  }
+
+  /** BQ9 — tipo de referencia de una incidencia (legacy puede no traerlo). */
+  private refTipoDe(fl: IncentivoFlag): 'ruta' | 'echada' {
+    return fl.ref_tipo ?? (fl.tipo === 'echada_duplicada' ? 'echada' : 'ruta');
   }
 
   /** BB8a — link al registro concreto de la incidencia (ruta/echada). */
@@ -144,6 +186,78 @@ export class Incentivos implements OnInit {
       await this.cargarFilas();
     } catch (e) {
       this.toast.error('No se pudo registrar la decisión', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  /** BQ9 — expande/colapsa el detalle inline de una incidencia (carga perezosa, cache por ref_id). */
+  async toggleIncidencia(fl: IncentivoFlag) {
+    const id = fl.ref_id;
+    if (this.expandedIncidencia() === id) { this.expandedIncidencia.set(null); return; }
+    this.expandedIncidencia.set(id);
+    if (this.detalleCache()[id]) return; // ya cacheado
+    const refTipo = this.refTipoDe(fl);
+    this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'loading' } }));
+    try {
+      if (refTipo === 'echada') {
+        const e = await this.service.echadaDetalleIncidencia(id);
+        if ('error' in e) {
+          this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: 'No tienes acceso a este registro.' } }));
+          return;
+        }
+        const fotos = await this.resolverFotos(e);
+        this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'echada', echada: e, fotos } }));
+      } else {
+        const r = await this.service.rutaDetalleIncidencia(id);
+        if (!r?.ruta) {
+          this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: 'No se pudo cargar la ruta.' } }));
+          return;
+        }
+        this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'ruta', ruta: r.ruta } }));
+      }
+    } catch (err) {
+      this.detalleCache.update((m) => ({ ...m, [id]: { estado: 'error', mensaje: err instanceof Error ? err.message : 'No se pudo cargar el detalle.' } }));
+    }
+  }
+
+  /** BQ9 — firma las fotos de una echada (thumbnails) desde el bucket de vehículos. */
+  private async resolverFotos(e: IncentivoEchadaDetalle): Promise<{ label: string; url: string }[]> {
+    const specs: [string, string | null][] = [
+      ['Recibo', e.foto_recibo_path],
+      ['Tablero', e.foto_tablero_path],
+      ['Bomba', e.foto_bomba_path],
+    ];
+    const out: { label: string; url: string }[] = [];
+    for (const [label, path] of specs) {
+      if (!path) continue;
+      const url = await this.signedUrls.signed('vehiculos', path, { width: 240, quality: 60 });
+      if (url) out.push({ label, url });
+    }
+    return out;
+  }
+
+  /** BQ9 — decide EN LOTE las incidencias en cuarentena de un grupo (confirm + motivo opcional). */
+  async decidirGrupo(f: IncentivoFila, g: IncidenciaGrupo, decision: 'aceptada' | 'excluida') {
+    const anio = this.selAnio(), semana = this.selSemana();
+    if (!anio || !semana || this.busy()) return;
+    const pend = g.items.filter((i) => (i.decision ?? 'cuarentena') === 'cuarentena');
+    if (!pend.length) { this.toast.warning('Nada que decidir', 'No hay incidencias en cuarentena en este grupo.'); return; }
+    const verbo = decision === 'aceptada' ? 'Aceptar' : 'Excluir';
+    if (!confirm(`¿${verbo} las ${pend.length} incidencias en cuarentena de "${g.label}" (${f.nombre})?`)) return;
+    const motivo = prompt(`Motivo (opcional) para ${verbo.toLowerCase()} en lote:`);
+    if (motivo === null) return; // canceló
+    const items = pend.map((i) => ({ ref_tipo: this.refTipoDe(i), ref_id: i.ref_id }));
+    this.busy.set(true);
+    try {
+      const n = await this.service.decidirIncidencias(anio, semana, items, decision, motivo.trim() || null);
+      this.toast.success(
+        `${n} incidencia(s) ${decision === 'aceptada' ? 'aceptadas' : 'excluidas'}`,
+        decision === 'aceptada' ? 'Ahora cuentan para el puntaje.' : 'No cuentan para el puntaje.',
+      );
+      await this.cargarFilas();
+    } catch (e) {
+      this.toast.error('No se pudo procesar en lote', e instanceof Error ? e.message : undefined);
     } finally {
       this.busy.set(false);
     }

@@ -36,6 +36,20 @@ export interface LogCombustibleRow {
   created_at: string;
 }
 
+/** BQ5 — fila del historial de ediciones de una echada (auditoría). */
+export interface RegistroCombustibleHistorial {
+  id: string;
+  registro_id: string;
+  antes: Record<string, unknown> | null;
+  despues: Record<string, unknown> | null;
+  motivo: string | null;
+  editado_por: string | null;
+  editado_como_rol: string | null;
+  created_at: string;
+  /** Nombre embebido del editor (si PostgREST resuelve la FK a usuarios). */
+  editor?: { nombre: string | null } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CombustibleService {
   private supabase = inject(SupabaseService);
@@ -191,6 +205,37 @@ export class CombustibleService {
       p_motivo: campos?.motivo ?? null,
     });
     if (error) throw new Error(error.message);
+  }
+
+  /**
+   * BQ5 — edición de una echada por flota-elevado (gate en el RPC). Envía SOLO
+   * los campos cambiados en `p_cambios` (whitelist server: vehiculo_id, estacion,
+   * fecha, galones, monto, kilometraje, producto). El servidor recalcula
+   * precio/km_recorridos/rendimiento de esta echada y la siguiente, y deja traza.
+   */
+  async editarEchada(
+    id: string,
+    cambios: Record<string, unknown>,
+    motivo: string,
+  ): Promise<RegistroCombustible> {
+    const { data, error } = await this.supabase.client.rpc('editar_echada', {
+      p_id: id,
+      p_cambios: cambios,
+      p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+    return data as unknown as RegistroCombustible;
+  }
+
+  /** BQ5 — historial de ediciones de una echada (más reciente primero). */
+  async historialEchada(id: string): Promise<RegistroCombustibleHistorial[]> {
+    const { data, error } = await this.supabase.client
+      .from('registros_combustible_historial')
+      .select('id, registro_id, antes, despues, motivo, editado_por, editado_como_rol, created_at, editor:usuarios(nombre)')
+      .eq('registro_id', id)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as RegistroCombustibleHistorial[];
   }
 
   /** AA20 — precios oficiales vigentes (RD$/galón) por producto canónico. */

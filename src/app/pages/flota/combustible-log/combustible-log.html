@@ -91,6 +91,13 @@
     <app-skeleton variant="list" [rows]="4" />
   } @else if (detail(); as r) {
     <div class="cl-detalle">
+      @if (esFlotaElevado()) {
+        <div class="cl-detalle__acciones">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(r)">
+            <app-icon name="edit" [size]="15" /> Editar
+          </button>
+        </div>
+      }
       <dl class="cl-detalle__meta">
         <div><dt>Fecha y hora</dt><dd>{{ fechaHora(r) }}</dd></div>
         <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }}</dd></div>
@@ -134,6 +141,110 @@
       </div>
     </div>
   }
+</app-form-drawer>
+
+<!-- ── BQ5 — Editar echada (solo flota-elevado) ── -->
+<app-form-drawer title="Editar echada" [open]="editOpen()" (closed)="cerrarEditar()">
+  <form class="cl-edit" [formGroup]="editForm" (ngSubmit)="guardarEdicion()">
+    @if (editError()) { <div class="page-error" role="alert">{{ editError() }}</div> }
+
+    <div class="cl-edit__grid">
+      <div class="sgc-field">
+        <label for="ed-veh">Vehículo</label>
+        <select id="ed-veh" formControlName="vehiculo_id">
+          <option value="">— Sin vehículo —</option>
+          @for (v of vehiculosVisibles(); track v.id) { <option [value]="v.id">{{ idVehiculo(v) }}</option> }
+        </select>
+      </div>
+
+      <div class="sgc-field">
+        <label for="ed-fecha">Fecha <span class="cl-req">*</span></label>
+        <input id="ed-fecha" type="date" formControlName="fecha" required />
+        @if (editForm.controls.fecha.touched && editForm.controls.fecha.invalid) {
+          <span class="cl-field-error">La fecha es obligatoria.</span>
+        }
+      </div>
+
+      <div class="sgc-field">
+        <label for="ed-km">Kilometraje</label>
+        <input id="ed-km" type="number" inputmode="numeric" min="0" formControlName="kilometraje" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="ed-gal">Galones</label>
+        <input id="ed-gal" type="number" inputmode="decimal" min="0" step="0.01" formControlName="galones" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="ed-monto">Monto (RD$)</label>
+        <input id="ed-monto" type="number" inputmode="decimal" min="0" step="0.01" formControlName="monto" />
+      </div>
+
+      <div class="sgc-field">
+        <label for="ed-prod">Combustible</label>
+        <select id="ed-prod" formControlName="producto">
+          <option value="">— Sin especificar —</option>
+          @for (p of PRODUCTO_OPCIONES; track p.value) { <option [value]="p.value">{{ p.label }}</option> }
+        </select>
+      </div>
+
+      <div class="sgc-field cl-edit__full">
+        <label for="ed-est">Estación / Origen</label>
+        <input id="ed-est" type="text" formControlName="estacion" placeholder="Nombre de la estación" />
+      </div>
+
+      <div class="sgc-field cl-edit__full">
+        <label for="ed-motivo">Motivo del cambio <span class="cl-req">*</span></label>
+        <input id="ed-motivo" type="text" formControlName="motivo" required
+               placeholder="Ej: corrección de kilometraje mal digitado" />
+        @if (editForm.controls.motivo.touched && editForm.controls.motivo.invalid) {
+          <span class="cl-field-error">Indica un motivo (mínimo 3 caracteres).</span>
+        }
+      </div>
+    </div>
+
+    <p class="cl-edit__hint">Al guardar se recalculan precio/galón, Δ km y rendimiento de esta echada y la siguiente.</p>
+
+    <div class="cl-edit__actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarEditar()" [disabled]="editSaving()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="editSaving()">
+        {{ editSaving() ? 'Guardando…' : 'Guardar cambios' }}
+      </button>
+    </div>
+
+    <!-- Historial de ediciones + diff antes/después -->
+    <div class="cl-hist">
+      <h4 class="cl-detalle__title">Historial de ediciones</h4>
+      @if (historialLoading()) {
+        <app-skeleton variant="list" [rows]="2" />
+      } @else if (!historial().length) {
+        <p class="text-muted">Sin ediciones previas.</p>
+      } @else {
+        @for (h of historial(); track h.id) {
+          <div class="cl-hist__item">
+            <div class="cl-hist__head">
+              <span class="cl-hist__who">{{ editorNombre(h) }}</span>
+              @if (h.editado_como_rol) { <span class="sgc-badge sgc-badge--neutral">{{ h.editado_como_rol }}</span> }
+              <span class="cl-hist__when">{{ formatFechaHora(h.created_at) }}</span>
+            </div>
+            @if (h.motivo) { <p class="cl-hist__motivo">{{ h.motivo }}</p> }
+            <ul class="cl-hist__diff">
+              @for (d of diffCampos(h); track d.campo) {
+                <li>
+                  <span class="cl-hist__campo">{{ d.campo }}:</span>
+                  <span class="cl-hist__antes">{{ d.antes }}</span>
+                  <app-icon name="arrow-right" [size]="13" />
+                  <span class="cl-hist__despues">{{ d.despues }}</span>
+                </li>
+              } @empty {
+                <li class="text-muted">Sin cambios de campo registrados.</li>
+              }
+            </ul>
+          </div>
+        }
+      }
+    </div>
+  </form>
 </app-form-drawer>
 
 @if (lightbox(); as u) {

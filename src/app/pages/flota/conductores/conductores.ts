@@ -36,13 +36,14 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { daysUntil, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 
 @Component({
   selector: 'app-conductores',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel, Icon],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel, Icon, FilterSelect],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -76,6 +77,11 @@ export class Conductores implements OnInit {
   searchQuery = signal('');
   selectedActivo = signal<'all' | 'active' | 'inactive'>('all');
   soloIncompletos = signal(false); // C7 — filtrar por documentos incompletos
+  // BP6 — opciones del filtro de estado (chip + popover, filter-select).
+  readonly estadoOpt = [
+    { value: 'active', label: 'Activos' },
+    { value: 'inactive', label: 'Inactivos' },
+  ];
 
   // C7 — mapa conductor_id → resumen de documentos destacados.
   private docsResumen = signal<Map<string, ConductorDocumentosResumen>>(new Map());

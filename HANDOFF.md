@@ -1,5 +1,58 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-50 (Ronda BQ) — 15/09/2026 — **SHIPPED: web 1.130.0 (commit push main → Vercel). Toda la ronda BQ entregada — backend ya estaba 100% en prod, frontend subido esta sesión.**
+
+**Estado (sesión reanudada 15/09):** al verificar por objeto, **el backend BQ completo YA estaba vivo en prod** (las 12 migraciones aplicadas + las 6 edges redeployadas el 14/09 23:06 UTC) — el HANDOFF previo decía "nada aplicado" pero estaba obsoleto. El frontend estaba construido pero **no compilaba** (`nueva.ts:679` — `esOtro` duplicado por spread, TS2783); se arregló → `npm run build` + `verify-tokens` verdes → bump **1.130.0** + release-notes (9 cambios estructurados) → commit/push. Compositor real y vista oficina `/bitacora/moldes` ya construidos (no quedaron pendientes).
+
+**Verificación en prod (Management API, por objeto) — TODO aplicado:** `registrar_combustible_app` SHIELDED (auth.uid, §F-2 Felix), `echadas_sospechosas`/`sanear_echada` en `es_flota_elevado`, `editar_echada` + `registros_combustible_historial`, `destinatarios_notificacion` + `notif_tipo` con canal email + `compa_capacidad_nueva`, rol `encargado_patio` + `bodegas.encargado_id`, `echada_detalle_incentivo` + `incentivo_decidir_incidencias` (batch), `resolver_consulta_compa` + `resuelto_en_version`, trigger `molde_aviso_desviacion`, tools `buscar_folio`/`changelog_reciente`. Edges: `notificar-flota` v14, `-solicitud` v24, `-entrega` v19, `-incidente` v14, `-soporte` v5, `-cronograma` v10.
+
+**Felix:** 1 sola ficha `conductores` (cédula `22301629623` dígitos, enlazada, activa) → con el RPC blindado sus 3 envíos cacheados pasan al reintentar. **Pendiente físico de Xaviel:** que Felix reintente en la app y confirme.
+
+**Pendiente menor (no bloquea, próxima ronda):** BQ4 wiring "encargado de bodega destino primero" verificar en runtime; §D polish BP4/BP5/BP6 residual; **BQ6 espera que Xaviel diga qué vehículos "no salen"** (la vista `v_reporte_semanal_cumplimiento` está sana). App = PROMPT-51 (paridad `molde-esquema` v2 / `molde-compositor` / `destinatarios_notificacion`).
+
+**Verify on resume:** `git log -1` = commit de 1.130.0; prod web = 1.130.0 (Vercel READY); todos los objetos de arriba EXISTEN en prod.
+
+---
+
+### (histórico — diagnóstico detallado de la construcción BQ, previo al ship)
+
+**Diagnóstico en prod (Management API, por objeto) — confirma/corrige el prompt:**
+- **BQ7 (Felix) 🔴 CONFIRMADO = FK 23503 por payload huérfano.** `registrar_combustible_app` inserta `p_conductor_id` directo (FK→conductores). BP1 borró el fantasma `0dbc9b02-…`; el teléfono de Felix lo trae cacheado → reintento choca. Descartadas hipótesis 2/3: **una sola** sobrecarga viva (20 args) con `auth_ok=true`, y **0 filas** referencian al fantasma (BP1 fue limpio). `conductor_id` es NULLABLE. `asegurar_mi_conductor()` existe.
+- **BQ3 CORREGIDO: NO es error de cuerpo.** `echadas_sospechosas()` corre limpio en prod (**22 sospechosas**); el único fallo es el gate `is_admin()` (42501) que matchea el regex `42\d{3}` de friendly-error → toast. `es_flota_elevado()` incluye `admin`.
+- **BQ2:** el predicado canónico es `sgc.notif_permitida(u,tipo)` (regla admin + silencio) y la traza es **`notif_entregas`** (no `notif_envios`). `notif_tipo.es_operativa` = el flag "crítico" (§F-1). `novedad` ES un `notif_tipo` real y se usa → el silencio de Eduardo funcionará con el fix.
+- **BQ6 (semanal) = vista sana, sin bug reproducible.** `v_reporte_semanal_cumplimiento` + `registrar_checklist_vehiculo` (`fecha = coalesce(p_fecha, current_date)`) son correctos. La única "anomalía" (L542136 fecha 09-13) resultó ser una inspección **capturada el domingo** (`capturado_en` 09-13 08:54 local) sincronizada el lunes → pertenece legítimamente a la semana previa. **NECESITO que Xaviel diga QUÉ vehículos "no salen"** para reproducir (F9 lo pide).
+- **BQ9 gate = `puede_gestionar_incentivos()`** (no is_admin) → los botones Aceptar/Excluir deben verse a todo `incentivos` (Raykler).
+- **BQ10 backlog:** solo **9 filas, todas `sin_tool`** (0 error_de_tool, 0 sin_permiso). Temas reales: changelog/"en qué versión salió X" (×4) y buscar por folio REQ (×1); el resto es ruido/conexión.
+
+**LISTO — migraciones VALIDADAS (begin/rollback en prod), SIN aplicar:**
+1. `sql/2026-09-14-bq7-combustible-conductor-por-uid.sql` — blindaje: ignora `conductor_id` inexistente (raise notice) → resuelve por `auth.uid()` → por asignación del vehículo. Copia viva bo4-bo5 + bloque quirúrgico + grant. **Al aplicarse, los 3 envíos de Felix pasan al reintentar (§F-2 auto).**
+2. `sql/2026-09-14-bq3-bq5-saneamiento.sql` — `echadas_sospechosas`/`sanear_echada`: is_admin→`es_flota_elevado()` + grants + col `saneada_como_rol` + `mi_rol_flota_elevado()`. §F-3 (Xaviel=edición completa): tabla `registros_combustible_historial` + RLS + RPC `editar_echada(uuid,jsonb,text)` (whitelist 7 campos, recalcula esta echada + la siguiente, historial diff).
+3. `sql/2026-09-14-bq2-destinatarios-notificacion.sql` — RPC único `destinatarios_notificacion(tipo,modulo,usuarios[],canal)`: base por módulo/lista, resta `notif_regla` (siempre) + `notif_pref_usuario` (salvo `es_operativa`=crítico, §F-1); devuelve incluidos + excluidos con `excluido_por`. `send_push` NO se reruteó (evita regresión de push; unificación = follow-up). Añade 'email' a `notif_tipo.canales`.
+4. `sql/2026-09-14-bq4-rol-encargado-patio.sql` — rol `encargado_patio` (§F-5: `modulos=['inventario']` + `permisos={proyectos.personal, rrhh.asistencia}` granulares) + `bodegas.encargado_id`.
+
+**LISTO — 6 edges de correo reescritas (SIN deploy):** `notificar-{flota,solicitud,entrega,incidente,soporte,cronograma}` → usan `destinatarios_notificacion`, mandan solo a no-excluidos, trazan a `notif_entregas` (enviada/omitida+motivo). Deploy con `scratchpad/deploy-edge.mjs` **con OK de Xaviel**.
+
+**LISTO — 6 migraciones VALIDADAS (begin/rollback en prod), SIN aplicar:** bq7, bq3-bq5-saneamiento, bq2-destinatarios, bq4-rol, **bq9-cuarentena-detalle-masivo** (`echada_detalle_incentivo` + `incentivo_decidir_incidencias` batch), **bq10-compa-resolver-y-avisar** (`resolver_consulta_compa` + col `resuelto_en_version` + notif_tipo `compa_capacidad_nueva`).
+
+**LISTO — frontend (build verde 20.8s, verify-tokens verde, SIN commit):**
+- **BQ1** rejilla Nueva bitácora arreglada + auditados 5 formularios hermanos (sin regresión).
+- **BQ8a** `molde-esquema` dibuja por `forma()` (multi-tramo, API intacta = paridad app) + drawer historial estructura+identificador.
+- **BQ3/BQ5 (FASE2)** `combustible.ts/html`: `esFlotaElevado()`; Saneamiento visible a flota elevado; `sospechosas` `null`=error (3 estados honestos + Reintentar).
+- **BQ5 editar** `combustible-log`: drawer Editar (form 7 campos whitelist + motivo), diff antes/después + historial, gate esFlotaElevado, deep-link `?echada=`. Servicio `editarEchada`/`historialEchada`.
+- **BQ9 cuarentena** `incentivos`: detalle inline (ruta_detalle_transporte / echada_detalle_incentivo, fotos), `puedeDecidir`=admin∨módulo incentivos (espeja RPC), botones en panel, **masivo** "Aceptar/Excluir las N", `rutas.ts` abre `?ruta=`, quita "— revisar".
+- **BQ8 captura** multi-tramo en Moldes del día ("+ Agregar lado" A/B/C, cap 3) + **vista oficina `/bitacora/moldes`** (tabla+miniatura+filtros+export xlsx) + ruta + shell (Ingeniería). Sin cambio de DB (RPC ya itera tramos).
+- **BQ2 UI** matriz-notificaciones: chips "canales que respetan la regla"; ajustes-notificaciones leyenda corregida (silencio afecta campana/push/correo).
+- **BQ4 UI** Almacenes: select "Encargado" (`encargado_id`, whitelist payload).
+- **BQ10 UI** consultas-compa: botón "Resolver y avisar" → `resolver_consulta_compa`.
+
+**Mock publicado (espera OK §F-6):** `qa/mocks/bq8-compositor.html` (Artifact) — compositor de figuras geométricas, tema claro/oscuro, móvil 360/escritorio. Al aprobar → construir `shared/ui/molde-compositor`.
+
+**PENDIENTE (menor, siguiente push):** compositor real (tras OK del mock); aviso `notificar_modulo` cuando desviación molde > tolerancia (el RPC ya calcula `desviacion_max_cm`); BQ4 wiring "encargado de bodega destino primero" en destinatarios; BQ10 2 tools nuevas de Compa (buscar folio REQ, changelog — el resolver+aviso YA está); §D polish BP4/BP5/BP6; **BQ6 espera que Xaviel diga qué vehículos "no salen"** (la vista está sana).
+
+**Al autorizar:** aplicar 6 migraciones (orden libre; bq2 antes de redeploy de edges) → deploy 6 edges (`scratchpad/deploy-edge.mjs`) → bump 1.130.0 + release-notes → commit/push. **Verify on resume:** `git log -1` = `803854f`; prod = web 1.129.0; ninguna migración aplicada (por objeto: `registros_combustible_historial`, `destinatarios_notificacion`, `resolver_consulta_compa`, rol `encargado_patio`, `echada_detalle_incentivo` NO existen; `echadas_sospechosas` aún en is_admin()).
+
+---
+
 ## TL;DR — PROMPT-48 (Ronda BP) — 14/09/2026 — **SHIPPED: web 1.129.0 (commit `2d491cf` push main) + 7 migraciones en prod + edge v17. Toda la tanda entregada.**
 
 **Estado:** ronda BP completa y desplegada. F0 verde. Los dos bugs vivos resueltos, BP3/BP4/BP5/BO9/BP6 construidos y **en main**; migraciones **aplicadas y verificadas en prod**; BO10 = propuesta (sin DDL). Decisiones §F de Xaviel: p_extra jsonb · marked+highlight.js · app dev-notes solo lectura · logistica módulo entero. Vercel desplegando 1.129.0.

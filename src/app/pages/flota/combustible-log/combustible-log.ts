@@ -1,8 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DecimalPipe } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { CombustibleService, LogCombustibleRow } from '../../../../shared/services/combustible.service';
+import { CombustibleService, LogCombustibleRow, RegistroCombustibleHistorial } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { Vehiculo, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
@@ -11,10 +12,15 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
-import { formatFechaDisplay, formatHoraTimestamp, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatHoraTimestamp, formatFechaHoraDisplay, todayIso, daysAgoIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+
+/** BQ5 — campos editables (whitelist alineada con el RPC editar_echada). */
+type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' | 'kilometraje' | 'producto';
 
 /**
  * AF17 — Registro/log de echadas para admin y roles elevados. Sirve para detectar
@@ -23,7 +29,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [FlotaSubnav, DecimalPipe, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon],
+  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,9 +40,19 @@ export class CombustibleLog implements OnInit {
   private conductoresService = inject(ConductoresService);
   private route = inject(ActivatedRoute);
   private datosPruebaView = inject(DatosPruebaViewService);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
+  private fb = inject(FormBuilder);
 
   formatFecha = formatFechaDisplay;
+  formatFechaHora = formatFechaHoraDisplay;
   readonly idVehiculo = identificacionVehiculo;
+
+  // BQ5 — la edición/saneamiento de echadas la gestiona flota-elevado (mismo
+  // predicado que editar_echada / echadas_sospechosas en el servidor).
+  esFlotaElevado = computed(() =>
+    ['admin', 'direccion', 'gerencia', 'jefe_flota', 'logistica'].some((r) => this.userService.hasRole(r)),
+  );
 
   // BB6 — la echada muestra fecha Y hora. El día viene de `fecha` (lo que el usuario
   // eligió); la hora, del `created_at` (timestamptz del registro). Formato: dd/mm hh:mm.
@@ -191,5 +207,147 @@ export class CombustibleLog implements OnInit {
       'Salto km': r.km_alerta ? 'SÍ' : '',
     }));
     await exportarExcel('registro-combustible', rows);
+  }
+
+  // ── BQ5 — Editar echada (drawer, solo flota-elevado) ──
+  editOpen = signal(false);
+  editSaving = signal(false);
+  editError = signal('');
+  editId = signal<string | null>(null);
+  historial = signal<RegistroCombustibleHistorial[]>([]);
+  historialLoading = signal(false);
+
+  readonly PRODUCTO_OPCIONES = [
+    { value: 'gasolina', label: 'Gasolina' },
+    { value: 'diesel', label: 'Diésel' },
+  ];
+  // BQ5 — etiquetas de los campos para el diff antes/después del historial.
+  readonly CAMPO_LABEL: Record<string, string> = {
+    vehiculo_id: 'Vehículo', estacion: 'Estación', fecha: 'Fecha',
+    galones: 'Galones', monto: 'Monto', kilometraje: 'Kilometraje', producto: 'Combustible',
+    precio_por_galon: 'Precio/galón', km_recorridos: 'Δ km', rendimiento_km_gal: 'Rendimiento',
+  };
+
+  editForm = this.fb.group({
+    vehiculo_id: [''],
+    estacion: [''],
+    fecha: ['', Validators.required],
+    galones: [null as number | null],
+    monto: [null as number | null],
+    kilometraje: [null as number | null],
+    producto: [''],
+    motivo: ['', [Validators.required, Validators.minLength(3)]],
+  });
+
+  /** Abre el drawer de edición precargando los valores actuales de la echada. */
+  async abrirEditar(r: RegistroCombustible) {
+    if (!this.esFlotaElevado()) return;
+    this.editError.set('');
+    this.editId.set(r.id);
+    this.editForm.reset({
+      vehiculo_id: r.vehiculo_id ?? '',
+      estacion: r.estacion ?? '',
+      fecha: r.fecha ?? '',
+      galones: r.galones,
+      monto: r.monto,
+      kilometraje: r.kilometraje,
+      producto: r.producto ?? '',
+      motivo: '',
+    });
+    this.editOpen.set(true);
+    this.cargarHistorial(r.id);
+  }
+
+  cerrarEditar() { this.editOpen.set(false); }
+
+  private async cargarHistorial(id: string) {
+    this.historialLoading.set(true);
+    this.historial.set([]);
+    try {
+      this.historial.set(await this.combustibleService.historialEchada(id));
+    } catch { /* el historial es informativo; no bloquea la edición */ }
+    finally { this.historialLoading.set(false); }
+  }
+
+  /** Guarda solo los campos que cambiaron respecto al detalle cargado. */
+  async guardarEdicion() {
+    const id = this.editId();
+    const original = this.detail();
+    if (!id || !original) return;
+    if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
+
+    const v = this.editForm.getRawValue();
+    const propuesto: Record<CampoEditable, unknown> = {
+      vehiculo_id: v.vehiculo_id || null,
+      estacion: v.estacion?.trim() || null,
+      fecha: v.fecha || null,
+      galones: v.galones,
+      monto: v.monto,
+      kilometraje: v.kilometraje,
+      producto: v.producto || null,
+    };
+
+    // Solo enviar las claves realmente cambiadas.
+    const cambios: Record<string, unknown> = {};
+    (Object.keys(propuesto) as CampoEditable[]).forEach((k) => {
+      const antes = (original as unknown as Record<string, unknown>)[k] ?? null;
+      const despues = propuesto[k] ?? null;
+      if (String(antes) !== String(despues)) cambios[k] = despues;
+    });
+
+    if (Object.keys(cambios).length === 0) {
+      this.toast.warning('Sin cambios', 'No modificaste ningún campo.');
+      return;
+    }
+
+    this.editSaving.set(true);
+    this.editError.set('');
+    try {
+      await this.combustibleService.editarEchada(id, cambios, v.motivo!.trim());
+      this.toast.success('Echada actualizada', 'Se recalcularon los derivados y se guardó la traza.');
+      this.editForm.markAsPristine();
+      this.editOpen.set(false);
+      // Re-lee el detalle con sus joins (el RPC devuelve la fila cruda) y la lista.
+      try { this.detail.set(await this.combustibleService.getById(id)); } catch { /* no crítico */ }
+      await this.cargar();                  // refresca la lista (derivados/estado)
+    } catch (e: unknown) {
+      this.editError.set(e instanceof Error ? e.message : 'No se pudo guardar la edición.');
+    } finally {
+      this.editSaving.set(false);
+    }
+  }
+
+  /** Campos que cambiaron en una entrada del historial (para el diff antes/después). */
+  diffCampos(h: RegistroCombustibleHistorial): { campo: string; antes: string; despues: string }[] {
+    const antes = h.antes ?? {};
+    const despues = h.despues ?? {};
+    const claves = new Set([...Object.keys(antes), ...Object.keys(despues)]);
+    const out: { campo: string; antes: string; despues: string }[] = [];
+    claves.forEach((k) => {
+      const a = (antes as Record<string, unknown>)[k] ?? null;
+      const d = (despues as Record<string, unknown>)[k] ?? null;
+      if (String(a) !== String(d)) {
+        out.push({ campo: this.CAMPO_LABEL[k] ?? k, antes: this.fmtValor(k, a), despues: this.fmtValor(k, d) });
+      }
+    });
+    return out;
+  }
+
+  private fmtValor(campo: string, val: unknown): string {
+    if (val === null || val === undefined || val === '') return '—';
+    if (campo === 'fecha') return this.formatFecha(String(val));
+    if (campo === 'vehiculo_id') {
+      const veh = this.vehiculos().find((x) => x.id === val);
+      return veh ? this.idVehiculo(veh) : String(val);
+    }
+    if (campo === 'producto') {
+      return this.PRODUCTO_OPCIONES.find((p) => p.value === val)?.label
+        ?? this.PRODUCTO_LABEL[String(val)] ?? String(val);
+    }
+    return String(val);
+  }
+
+  editorNombre(h: RegistroCombustibleHistorial): string {
+    return h.editor?.nombre?.trim() || 'Usuario';
   }
 }

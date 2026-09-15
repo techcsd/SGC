@@ -3,9 +3,12 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Notifies inventario staff when a delivery is confirmed incomplete —
 // closing the loop the other direction from notificar-solicitud (which
-// notifies inventario when a request is CREATED). Same fire-and-forget,
-// no-op-if-unconfigured design: a missing notification must never block
-// the real confirmation workflow, and the caller doesn't wait on this.
+// notifies inventario when a request is CREATED). Recipients: módulo
+// inventario filtered through destinatarios_notificacion(tipo='entrega',
+// 'email') so user silences and admin notification rules are respected;
+// excluded recipients are recorded in notif_entregas for traceability. Same
+// fire-and-forget, no-op-if-unconfigured design: a missing notification must
+// never block the real confirmation workflow, and the caller doesn't wait on this.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -86,8 +89,16 @@ Deno.serve(async (req: Request) => {
       return json({ skipped: true, reason: "La entrega no está marcada como incompleta." });
     }
 
-    const { data: usuarios } = await supabase.rpc("usuarios_con_modulo", { p_modulo: "inventario" });
-    const to = ((usuarios ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+    // Este email representa el evento de notificación tipo 'entrega'.
+    const tipo = "entrega";
+    const { data: dest } = await supabase.rpc("destinatarios_notificacion", {
+      p_tipo: tipo,
+      p_modulo: "inventario",
+      p_canal: "email",
+    });
+    const rows = (dest ?? []) as { usuario_id: string; email: string; nombre: string; excluido_por: string | null }[];
+    const incluidos = rows.filter((r) => !r.excluido_por && r.email);
+    const to = [...new Set(incluidos.map((r) => r.email))];
     if (to.length === 0) {
       return json({ skipped: true, reason: "Sin destinatarios." });
     }
@@ -121,6 +132,16 @@ Deno.serve(async (req: Request) => {
       const text = await res.text();
       return json({ error: `Resend error: ${text}` }, 502);
     }
+
+    // Traza de entrega (best-effort, nunca bloquea): incluidos + omitidos.
+    try {
+      const titulo = subject;
+      const traza = [
+        ...incluidos.map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "enviada", motivo: null })),
+        ...rows.filter((r) => r.excluido_por).map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "omitida", motivo: r.excluido_por })),
+      ];
+      if (traza.length) await supabase.from("notif_entregas").insert(traza);
+    } catch (_) { /* trace must never block */ }
 
     return json({ sent: true, to });
   } catch (e) {

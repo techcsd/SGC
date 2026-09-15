@@ -3805,6 +3805,56 @@
           "d": "Los filtros del listado ahora son chips con búsqueda, más claros en modo oscuro."
         }
       ]
+    },
+    "1.130.0": {
+      "titulo": "Combustible de choferes, correo que respeta silencios y compositor de moldes",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Arreglado el error que impedía a algunos choferes registrar una echada de combustible: el sistema ahora identifica al conductor por su sesión, así que los envíos que quedaron en cola pasan al reintentar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El panel de Saneamiento de echadas ahora está disponible para Logística (no solo administradores) y distingue \"todo limpio\" de un error de carga, con opción de reintentar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Notificaciones",
+          "d": "Los correos de flota, solicitudes, entregas, incidentes, soporte y cronograma ahora respetan tus silencios y las reglas del administrador; antes el correo se saltaba esas preferencias."
+        },
+        {
+          "t": "arreglo",
+          "m": "Bitácora",
+          "d": "Arreglada la rejilla de Nueva bitácora: el campo de tarea del cronograma ya no desacomoda las columnas y los tabs se ven completos bajo el encabezado."
+        },
+        {
+          "t": "arreglo",
+          "m": "Bitácora",
+          "d": "El esquema de moldes ahora dibuja según la forma (rectangular, L, T, U, circular) con todas las cotas y soporta varios tramos por molde."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nuevo rol \"Encargado de Patio y Bodega Central\" con acceso a Inventario, Personal de obra y Asistencia; el encargado de una bodega recibe primero los avisos de esa bodega."
+        },
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Compositor de moldes: dibuja la pieza con figuras sobre una rejilla y captura las medidas reales y de plano de cada lado."
+        },
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "\"Compa ya puede ayudarte con esto\": al resolver una consulta que Compa no podía atender, se avisa a cada usuario que la había pedido."
+        },
+        {
+          "t": "mejora",
+          "m": "Incentivos",
+          "d": "La cuarentena de incentivos ahora muestra el detalle de cada incidencia en línea (ruta o echada) con Aceptar/Excluir dentro del panel y acciones masivas por grupo."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

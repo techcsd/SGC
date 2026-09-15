@@ -12,8 +12,11 @@ import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1?t
 // (sgcconstructorasd.com/bitacora/solicitudes-material — login enforced by the
 // app), and a one-page PDF attachment generated in-function with pdf-lib.
 // Recipients are the requisición matrix (usuarios_destinatarios_requisicion),
-// not a broadcast. PDF generation is best-effort: on failure the enriched HTML
-// email still goes out.
+// the compras module, or the solicitante — each filtered through
+// destinatarios_notificacion(..., 'email') so user silences and admin
+// notification rules are respected; excluded recipients are recorded in
+// notif_entregas for traceability. Not a broadcast. PDF generation is
+// best-effort: on failure the enriched HTML email still goes out.
 //
 // The Resend API key is stored in Supabase Vault (see
 // sql/2026-07-02-vault-resend-key.sql) rather than a plain
@@ -293,12 +296,34 @@ Deno.serve(async (req: Request) => {
     // Resend attachment payload (only the requisición PDF, when it builds).
     let attachments: Array<{ filename: string; content: string }> | undefined;
 
+    // BQ2 — el correo respeta silencios de usuario + reglas de admin vía
+    // destinatarios_notificacion. destRows conserva TAMBIÉN a los excluidos
+    // (excluido_por != null) para registrarlos como omitidos en notif_entregas.
+    type DestRow = { usuario_id: string; email: string; nombre: string; excluido_por: string | null };
+    let destRows: DestRow[] = [];
+    let incluidos: DestRow[] = [];
+    // No hay un notif_tipo registrado para solicitudes; se usa una constante
+    // sensata por evento (judgment call BQ2, ver reporte).
+    const notiTipo = evento === "creada" ? `solicitud_${tipo}` : "solicitud_resuelta";
+
     if (evento === "creada") {
       if (tipo === "material") {
         // Recipient matrix (NOT broadcast): módulo inventario + roles de proyecto
         // que gestionan requisiciones (mirror de puede_ver_todas_requisiciones).
+        // Se resuelve el MISMO conjunto base (por email) a usuario_id y luego se
+        // filtra por silencios/reglas — la matriz RPC no devuelve id.
         const { data: usuarios } = await supabase.rpc("usuarios_destinatarios_requisicion");
-        to = ((usuarios ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+        const baseEmails = [...new Set(((usuarios ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean))];
+        const { data: baseUsers } = baseEmails.length
+          ? await supabase.from("usuarios").select("id").in("email", baseEmails)
+          : { data: [] as { id: string }[] };
+        const baseIds = [...new Set(((baseUsers ?? []) as { id: string }[]).map((u) => u.id))];
+        const { data: dest } = baseIds.length
+          ? await supabase.rpc("destinatarios_notificacion", { p_tipo: notiTipo, p_usuarios: baseIds, p_canal: "email" })
+          : { data: [] as DestRow[] };
+        destRows = (dest ?? []) as DestRow[];
+        incluidos = destRows.filter((r) => !r.excluido_por && r.email);
+        to = [...new Set(incluidos.map((r) => r.email))];
 
         // Load items for the summary + PDF.
         const { data: itemsData } = await supabase
@@ -367,15 +392,31 @@ Deno.serve(async (req: Request) => {
           console.error("notificar-solicitud: PDF generation failed, sending HTML only", pdfErr);
         }
       } else {
-        // Solicitud de compra: recipients por módulo compras (sin PDF de items).
-        const { data: usuarios } = await supabase.rpc("usuarios_con_modulo", { p_modulo: "compras" });
-        to = ((usuarios ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
+        // Solicitud de compra: módulo compras filtrado por silencios/reglas (sin PDF de items).
+        const { data: dest } = await supabase.rpc("destinatarios_notificacion", {
+          p_tipo: notiTipo,
+          p_modulo: "compras",
+          p_canal: "email",
+        });
+        destRows = (dest ?? []) as DestRow[];
+        incluidos = destRows.filter((r) => !r.excluido_por && r.email);
+        to = [...new Set(incluidos.map((r) => r.email))];
         subject = `Nueva solicitud de ${tipoLabel} — ${proyectoNombre}`;
         html = `<p><strong>${solicitanteNombre}</strong> solicitó ${tipoLabel} para el proyecto <strong>${proyectoNombre}</strong>.</p><p>Ingresa a SGC para revisarla.</p>`;
       }
     } else {
-      const email = solicitud.solicitante?.email;
-      if (email) to = [email];
+      // Notificación al solicitante: se filtra por sus propios silencios/reglas.
+      const solicitanteId = (solicitud.solicitante_id as string | null) ?? null;
+      if (solicitanteId) {
+        const { data: dest } = await supabase.rpc("destinatarios_notificacion", {
+          p_tipo: notiTipo,
+          p_usuarios: [solicitanteId],
+          p_canal: "email",
+        });
+        destRows = (dest ?? []) as DestRow[];
+        incluidos = destRows.filter((r) => !r.excluido_por && r.email);
+        to = [...new Set(incluidos.map((r) => r.email))];
+      }
       const estadoLabel = evento === "aprobada" ? "aprobada" : "rechazada";
       subject = `Tu solicitud de ${tipoLabel} fue ${estadoLabel}`;
       html = `<p>Tu solicitud de ${tipoLabel} para el proyecto <strong>${proyectoNombre}</strong> fue <strong>${estadoLabel}</strong>.</p><p>Ingresa a SGC para ver el detalle.</p>`;
@@ -398,6 +439,15 @@ Deno.serve(async (req: Request) => {
       const text = await res.text();
       return json({ error: `Resend error: ${text}` }, 502);
     }
+
+    // Traza de entrega (best-effort, nunca bloquea): incluidos + omitidos.
+    try {
+      const traza = [
+        ...incluidos.map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo: notiTipo, titulo: String(subject ?? ""), destino: r.email, estado: "enviada", motivo: null })),
+        ...destRows.filter((r) => r.excluido_por).map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo: notiTipo, titulo: String(subject ?? ""), destino: r.email, estado: "omitida", motivo: r.excluido_por })),
+      ];
+      if (traza.length) await supabase.from("notif_entregas").insert(traza);
+    } catch (_) { /* trace must never block */ }
 
     return json({ sent: true, to });
   } catch (e) {

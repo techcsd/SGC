@@ -1,0 +1,96 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Medidas de moldes</h1>
+    <span class="page-count">{{ filtered().length }} molde{{ filtered().length !== 1 ? 's' : '' }}</span>
+  </div>
+  <div class="page-header__actions">
+    <button class="sgc-btn sgc-btn--ghost" type="button" (click)="exportarExcelLista()"
+            [disabled]="filtered().length === 0" title="Exportar el listado filtrado a Excel">
+      <app-icon name="download" [size]="16" /> Excel
+    </button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="filters-bar">
+  <div class="sgc-field filters-bar__select">
+    <select [value]="selectedEstructura()" (change)="onEstructuraChange($any($event.target).value)"
+            aria-label="Filtrar por estructura">
+      <option value="">Todas las estructuras</option>
+      @for (e of estructuras(); track e) {
+        <option [value]="e">{{ e }}</option>
+      }
+    </select>
+  </div>
+
+  <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
+
+  @if (hasActiveFilters()) {
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="clearFilters()">
+      Limpiar filtros
+    </button>
+  }
+</div>
+
+@if (loading()) {
+  <app-skeleton [rows]="6" />
+} @else if (error()) {
+  <div class="table-wrapper sgc-card">
+    <div class="table-empty"><p>{{ error() }}</p></div>
+  </div>
+} @else if (filtered().length === 0) {
+  <div class="table-wrapper sgc-card">
+    <div class="table-empty"><p>No hay medidas de moldes para los filtros seleccionados.</p></div>
+  </div>
+} @else {
+  <div class="table-wrapper sgc-card table-scroll">
+    <table class="data-table moldes-table">
+      <thead>
+        <tr>
+          <th scope="col">Obra</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Ingeniero</th>
+          <th scope="col">Molde</th>
+          <th scope="col">Esquema</th>
+          <th scope="col" class="num">Desv. máx</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of filtered(); track m.id) {
+          <tr [class.moldes-table__row--alerta]="fueraTolerancia(m)">
+            <td>
+              @if (m.bitacora?.id) {
+                <a [routerLink]="['/bitacora/historial']" [queryParams]="{ item: m.bitacora?.id }">{{ obraNombre(m) }}</a>
+              } @else {
+                {{ obraNombre(m) }}
+              }
+            </td>
+            <td>{{ m.bitacora?.fecha ? formatFecha(m.bitacora!.fecha) : '—' }}</td>
+            <td>{{ ingeniero(m) }}</td>
+            <td>
+              <span class="moldes-table__titulo">{{ moldeTitulo(m) }}</span>
+              <span class="moldes-table__forma">{{ m.forma }}</span>
+              <span class="moldes-table__medidas">Real: {{ medidasReal(m) }}</span>
+              @if (medidasPlano(m) !== '—') {
+                <span class="moldes-table__medidas">Plano: {{ medidasPlano(m) }}</span>
+              }
+            </td>
+            <td class="moldes-table__esquema">
+              <app-molde-esquema [forma]="$any(m.forma) ?? 'rectangular'" [tramos]="tramosReal(m)"
+                [medidaPlano]="tramosPlano(m)" [toleranciaCm]="toleranciaCm()" />
+            </td>
+            <td class="num">
+              @if (m.desviacion_max_cm != null) {
+                <span [class.moldes-table__desv--alerta]="fueraTolerancia(m)">
+                  {{ m.desviacion_max_cm | number:'1.0-1' }} cm
+                </span>
+              } @else {
+                —
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

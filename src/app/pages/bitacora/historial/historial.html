@@ -543,8 +543,9 @@
           @for (m of b.moldes; track m.id) {
             <div class="bitacora-detail__molde">
               <div class="bitacora-detail__molde-head">
-                <strong>{{ m.identificador || m.estructura || 'Molde' }}</strong>
-                @if (m.estructura && m.identificador) { <span class="text-muted">· {{ m.estructura }}</span> }
+                <strong>Molde</strong>
+                @if (m.estructura) { <span class="text-muted">· {{ m.estructura }}</span> }
+                @if (m.identificador) { <span class="text-muted">· {{ m.identificador }}</span> }
                 @if (m.desviacion_max_cm != null) {
                   <span class="sgc-badge" [class.sgc-badge--danger]="m.desviacion_max_cm > 2">Desvío {{ m.desviacion_max_cm }} cm</span>
                 }

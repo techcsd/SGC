@@ -4,8 +4,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Y15 — Email de avisos del Cronograma de Proyectos (por iniciar / por vencer /
 // atrasada). Lo invoca el sweep pg_cron `sgc.evaluar_avisos_cronograma()` vía
 // net.http_post con un secreto compartido (no hay sesión de usuario). El aviso
-// in-app + el bell ya existen (los escribe el sweep). Resend key desde Vault;
-// no-op si falta. Un email fallido NUNCA debe bloquear el flujo.
+// in-app + el bell ya existen (los escribe el sweep). Destinatarios: los
+// responsables activos del proyecto filtrados por destinatarios_notificacion
+// (silencios de usuario + reglas de admin); los excluidos se registran en
+// notif_entregas para trazabilidad. Resend key desde Vault; no-op si falta. Un
+// email fallido NUNCA debe bloquear el flujo.
 //
 // Deploy: --no-verify-jwt (auth por header x-sync-secret == CRONOGRAMA_SYNC_SECRET).
 
@@ -70,11 +73,16 @@ Deno.serve(async (req: Request) => {
     const ids = [...new Set(((resp ?? []) as { usuario_id: string }[]).map((r) => r.usuario_id))];
     if (ids.length === 0) return json({ skipped: true, reason: "Sin responsables." });
 
-    const { data: users } = await supabase.from("usuarios").select("email").in("id", ids);
-    const to = [
-      ...new Set(((users ?? []) as { email?: string }[]).map((u) => u.email).filter((e): e is string => !!e)),
-    ];
-    if (to.length === 0) return json({ skipped: true, reason: "Sin responsables con email." });
+    // Filtra la lista de responsables por silencios de usuario y reglas de admin.
+    const { data: dest } = await supabase.rpc("destinatarios_notificacion", {
+      p_tipo: tipo,
+      p_usuarios: ids,
+      p_canal: "email",
+    });
+    const rows = (dest ?? []) as { usuario_id: string; email: string; nombre: string; excluido_por: string | null }[];
+    const incluidos = rows.filter((r) => !r.excluido_por && r.email);
+    const to = [...new Set(incluidos.map((r) => r.email))];
+    if (to.length === 0) return json({ skipped: true, reason: "Sin destinatarios." });
 
     const prefijo = PREFIJO[tipo as string] ?? "Aviso de cronograma";
     const subject = `${prefijo} · ${escapeHtml(String(proyecto ?? ""))}`;
@@ -91,6 +99,16 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({ from: fromEmail, to, subject, html }),
     });
     if (!res.ok) return json({ error: `Resend error: ${await res.text()}` }, 502);
+
+    // Traza de entrega (best-effort, nunca bloquea): incluidos + omitidos.
+    try {
+      const titulo = subject;
+      const traza = [
+        ...incluidos.map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "enviada", motivo: null })),
+        ...rows.filter((r) => r.excluido_por).map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "omitida", motivo: r.excluido_por })),
+      ];
+      if (traza.length) await supabase.from("notif_entregas").insert(traza);
+    } catch (_) { /* trace must never block */ }
 
     return json({ sent: true, to, tarea_id });
   } catch (e) {

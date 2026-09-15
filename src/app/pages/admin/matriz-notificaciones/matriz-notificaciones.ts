@@ -88,6 +88,12 @@ export class AdminMatrizNotificaciones implements OnInit {
   tieneCanal(tipo: string, canal: string): boolean {
     return this.canalesMap().get(tipo)?.has(canal) ?? false;
   }
+  // BQ2 — etiqueta legible por canal para los chips "Canales que respetan la regla".
+  private readonly CANAL_CHIP: Record<string, string> = { in_app: 'in-app', push: 'push', email: 'correo' };
+  /** Canales activos de un tipo (respetan la regla), en el orden del catálogo CANALES. */
+  canalesActivos(tipo: string): string[] {
+    return this.CANALES.filter((c) => this.tieneCanal(tipo, c.key)).map((c) => this.CANAL_CHIP[c.key] ?? c.key);
+  }
   async toggleCanal(t: NotifTipoFull, canal: string) {
     if (this.guardandoRegla()) return;
     const set = new Set(this.canalesMap().get(t.tipo) ?? []);

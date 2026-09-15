@@ -117,4 +117,29 @@ export class TecConsultasCompa implements OnInit {
       this.toast.error('No se pudo actualizar', e instanceof Error ? e.message : undefined);
     }
   }
+
+  /**
+   * BQ10 — Resolver y avisar: agrupa las consultas equivalentes (misma pregunta
+   * normalizada / misma tool), las marca resueltas con la versión, y notifica a
+   * cada usuario que preguntó ("Compa ya puede ayudarte con esto").
+   */
+  async resolverYAvisar(f: ConsultaNoAtendida) {
+    const tool = prompt('Herramienta que ahora lo resuelve (opcional):', f.tool ?? '') ?? '';
+    const version = prompt('Versión donde se resolvió (ej. 1.130.0):', '') ?? '';
+    if (version === null) return;
+    try {
+      const { data, error } = await this.supabase.client.rpc('resolver_consulta_compa', {
+        p_id: f.id,
+        p_tool: tool.trim() || null,
+        p_nota: null,
+        p_version: version.trim() || null,
+      });
+      if (error) throw error;
+      const n = typeof data === 'number' ? data : 1;
+      this.toast.success('Resuelto y avisado', `Se marcaron ${n} consulta${n === 1 ? '' : 's'} y se notificó a quienes preguntaron.`);
+      await this.load();
+    } catch (e) {
+      this.toast.error('No se pudo resolver y avisar', e instanceof Error ? e.message : undefined);
+    }
+  }
 }

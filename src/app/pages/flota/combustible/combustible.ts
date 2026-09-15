@@ -68,6 +68,11 @@ export class Combustible implements OnInit {
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
+  // BQ5 — el saneamiento/edición de echadas lo gestiona flota elevado (mismo
+  // predicado que registrar_combustible_app / echadas_sospechosas en el servidor).
+  esFlotaElevado = computed(() =>
+    ['admin', 'direccion', 'gerencia', 'jefe_flota', 'logistica'].some((r) => this.userService.hasRole(r)),
+  );
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
@@ -843,7 +848,9 @@ export class Combustible implements OnInit {
   // ── AW3 — Panel de saneamiento de echadas (solo admin) ────
   saneamientoOpen = signal(false);
   loadingSospechosas = signal(false);
-  sospechosas = signal<EchadaSospechosa[]>([]);
+  // BQ3 — null = no cargado / error (distinto de [] = "no hay"). Regla 8.
+  sospechosas = signal<EchadaSospechosa[] | null>(null);
+  sospechosasError = signal<string | null>(null);
 
   async toggleSaneamiento() {
     const open = !this.saneamientoOpen();
@@ -851,13 +858,17 @@ export class Combustible implements OnInit {
     if (open) await this.cargarSospechosas();
   }
 
-  private async cargarSospechosas() {
-    if (!this.esAdmin()) return;
+  async cargarSospechosas() {
+    if (!this.esFlotaElevado()) return;
     this.loadingSospechosas.set(true);
+    this.sospechosasError.set(null);
     try {
       this.sospechosas.set(await this.combustibleService.echadasSospechosas());
     } catch (e: unknown) {
-      this.toast.error('No se pudieron cargar las echadas sospechosas', e instanceof Error ? e.message : undefined);
+      // BQ3 — no dejar la lista en []: eso pintaría "Todo limpio" mintiendo.
+      this.sospechosas.set(null);
+      this.sospechosasError.set(e instanceof Error ? e.message : 'Error inesperado');
+      this.toast.error('No se pudieron cargar las echadas sospechosas', this.sospechosasError() ?? undefined);
     } finally {
       this.loadingSospechosas.set(false);
     }
@@ -865,7 +876,7 @@ export class Combustible implements OnInit {
 
   /** Invalida (excluye de promedios/KPIs/incentivo) una echada, con traza. */
   async invalidarEchada(e: EchadaSospechosa) {
-    if (!this.esAdmin()) return;
+    if (!this.esFlotaElevado()) return;
     const motivo = prompt('Motivo para excluir esta echada (queda en la traza):', 'Dato inválido');
     if (motivo === null) return;
     try {
@@ -879,7 +890,7 @@ export class Combustible implements OnInit {
 
   /** Corrige los galones de una echada (caso decimal perdido), con traza. */
   async corregirEchada(e: EchadaSospechosa) {
-    if (!this.esAdmin()) return;
+    if (!this.esFlotaElevado()) return;
     const txt = prompt(
       `Galones correctos para esta echada (actual: ${e.galones}).\nEj.: si se registró 34118 y era 34.118, escribe 34.118`,
       String(e.galones ?? ''),

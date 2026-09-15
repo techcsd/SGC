@@ -38,6 +38,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { TrayectoriaModal } from '../../../../shared/components/trayectoria-modal/trayectoria-modal';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -52,7 +53,7 @@ interface ParadaEdit {
 
 @Component({
   selector: 'app-rutas',
-  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, WeatherCard, LocationPicker, VehiculoPicker, Skeleton, Paginator, AudioNotas, Lightbox, TrayectoriaModal, Icon, HighlightItemDirective],
   templateUrl: './rutas.html',
   styleUrl: './rutas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -341,10 +342,18 @@ export class Rutas implements OnInit {
   async ngOnInit() {
     await this.loadAll();
     // S16 — deep-link desde la notificación de ruta asignada (?item=): abre el detalle.
-    const item = this.route.snapshot.queryParamMap.get('item');
-    if (item) {
-      const r = this.rutas().find((x) => x.id === item);
-      if (r) this.openDetail(r);
+    // BQ9 — deep-link desde una incidencia del incentivo (?ruta=): abre el mismo detalle.
+    const target =
+      this.route.snapshot.queryParamMap.get('item') ??
+      this.route.snapshot.queryParamMap.get('ruta');
+    if (target) {
+      const r = this.rutas().find((x) => x.id === target);
+      if (r) {
+        // Coloca la ruta en la página visible para que el highlight de la fila enganche.
+        const idx = this.filtered().findIndex((x) => x.id === r.id);
+        if (idx >= 0) this.page.set(Math.floor(idx / this.PAGE_SIZE) + 1);
+        this.openDetail(r);
+      }
     }
   }
 

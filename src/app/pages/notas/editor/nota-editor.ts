@@ -47,10 +47,13 @@ export class NotaEditor implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
 
   readonly COLORES = NOTA_COLORES;
+  /** BP5 — solo Tecnología ve la acción "Mover a Dev notes". */
+  readonly esTecnologia = this.userService.esTecnologia;
   private bodyRef = viewChild<ElementRef<HTMLDivElement>>('body');
 
   // Estado de la nota.
   notaId = signal<string | null>(null);
+  ownerId = signal<string | null>(null);
   titulo = signal('');
   contenido = signal('');
   color = signal<string | null>(null);
@@ -99,6 +102,11 @@ export class NotaEditor implements OnInit, OnDestroy {
   }
 
   esNueva = computed(() => this.notaId() === null);
+  /** Dueño de la nota persistida (guardar_nota solo deja al owner cambiar el ámbito). */
+  esOwner = computed(() => {
+    const owner = this.ownerId();
+    return this.esNueva() || owner === (this.userService.profile()?.id ?? null);
+  });
   checklistProgreso = computed(() => {
     const items = this.checklist();
     const done = items.filter((i) => i.done).length;
@@ -156,6 +164,7 @@ export class NotaEditor implements OnInit, OnDestroy {
         return;
       }
       this.notaId.set(nota.id);
+      this.ownerId.set(nota.owner_id);
       this.titulo.set(nota.titulo ?? '');
       this.contenido.set(nota.contenido ?? '');
       this.color.set(nota.color);
@@ -212,6 +221,7 @@ export class NotaEditor implements OnInit, OnDestroy {
         null,
       );
       this.notaId.set(res.nota.id);
+      this.ownerId.set(res.nota.owner_id);
       this.lastUpdatedAt = res.nota.updated_at;
       // Reement URL sin recargar para que el detalle tenga id estable.
       this.router.navigate(['/notas', res.nota.id], { replaceUrl: true });
@@ -443,6 +453,35 @@ export class NotaEditor implements OnInit, OnDestroy {
 
   private textoPlano(html: string): string {
     return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+  }
+
+  // ── BP5 — Mover esta nota general a "Dev notes" (ambito='dev') ──────────────
+  // Solo Tecnología + dueño. Tras moverla deja de verse en /notas (filtra
+  // ambito='general') y aparece en /tecnologia/dev-notes.
+  async moverADevNotes() {
+    if (this.soloLectura() || !this.esTecnologia() || !this.esOwner()) return;
+    const id = this.notaId();
+    if (!id) return;
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    try {
+      const res = await this.notasSvc.guardarNota(
+        {
+          id,
+          titulo: this.titulo().trim(),
+          contenido: this.contenido(),
+          color: this.color(),
+          pinned: this.pinned(),
+          archivada: this.archivada(),
+          ambito: 'dev',
+        },
+        this.lastUpdatedAt,
+      );
+      this.lastUpdatedAt = res.nota.updated_at;
+      this.toast.success('Movida a Dev notes');
+      this.router.navigate(['/tecnologia/dev-notes']);
+    } catch (e: unknown) {
+      this.toast.errorFrom(e, 'No se pudo mover a Dev notes');
+    }
   }
 
   volver() {

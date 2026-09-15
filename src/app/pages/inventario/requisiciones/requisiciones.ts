@@ -14,6 +14,7 @@ import { Categoria } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
+import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
@@ -55,7 +56,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -93,6 +94,15 @@ export class Requisiciones implements OnInit {
   fSolicitante = signal('');
   fEstado = signal('');
   fUrgencia = signal('');
+  // BP6 — opciones del filtro de estado (chip + popover, filter-select).
+  readonly estadoOpt = [
+    { value: 'pendiente', label: 'Pendiente' },
+    { value: 'aprobada', label: 'Aprobada (en compra)' },
+    { value: 'entregada', label: 'Entregada' },
+    { value: 'cerrada', label: 'Cerrada' },
+    { value: 'rechazada', label: 'Rechazada' },
+    { value: 'cancelada', label: 'Cancelada' },
+  ];
   fDesde = signal('');
   fHasta = signal('');
   fArticulo = signal('');

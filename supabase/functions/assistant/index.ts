@@ -177,6 +177,22 @@ const TOOLS: ToolDef[] = [
     rpc: "buscar_ayuda", map: (i) => ({ p_query: String(i.query ?? "") }),
   },
   {
+    // BQ10 — buscar una requisición por su folio (REQ-######) para llegar a su conduce.
+    name: "buscar_folio",
+    description: "Busca una requisición por su folio (p. ej. 'REQ-000040' o solo '40'). Devuelve el código, estado, obra y la ruta para abrirla. Úsala cuando el usuario dé un número de folio (REQ-...) y pregunte dónde está o cómo llegar a su conduce.",
+    modulos: ["inventario", "compras"],
+    input_schema: { type: "object", properties: { folio: { type: "string" } }, required: ["folio"], additionalProperties: false },
+    rpc: "buscar_folio", map: (i) => ({ p_folio: String(i.folio ?? "") }),
+  },
+  {
+    // BQ10 — changelog: qué trajo la última actualización / en qué versión salió algo.
+    name: "changelog_reciente",
+    description: "Devuelve las últimas versiones publicadas (web y app) con su título y lista de cambios. Úsala cuando el usuario pregunte '¿qué trajo la última actualización?', '¿qué cambió?', o '¿en qué versión se implementó X?'.",
+    modulos: null,
+    input_schema: { type: "object", properties: { limite: { type: "integer" } }, additionalProperties: false },
+    rpc: "changelog_reciente", map: (i) => ({ p_limite: Math.min(Number(i.limite ?? 8), 30) }),
+  },
+  {
     // AY C4 — memoria: recuerda una preferencia del usuario entre conversaciones.
     name: "recordar",
     description: "Guarda una preferencia o dato operativo del usuario para recordarlo en futuras conversaciones (p. ej. su obra por defecto, formato preferido, a quién suele asignar). Es SOLO del propio usuario. Úsalo cuando el usuario diga 'recuerda que…' o exprese una preferencia estable.",

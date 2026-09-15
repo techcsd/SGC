@@ -4,8 +4,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // Email alert for Flota v2 operational events (bloqueo, consumo anormal,
 // pre-cita, mantenimiento vencido, vencimientos). Called by the SGC web/app
 // right after the event is persisted (the in-app aviso + notification already
-// exist via the RPC). Recipients: usuarios_con_modulo('flota'). Resend key from
-// Vault (no-ops if unset). A failed email must NEVER block the flow.
+// exist via the RPC). Recipients: destinatarios_notificacion(tipo, 'flota',
+// 'email') — respects user silences (pref_usuario) and admin notification rules
+// (regla_usuario/regla_rol/regla_global); excluded recipients are recorded in
+// notif_entregas for traceability. Resend key from Vault (no-ops if unset). A
+// failed email must NEVER block the flow.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,9 +88,16 @@ Deno.serve(async (req: Request) => {
     }
     const fromEmail = Deno.env.get("NOTIFICATIONS_FROM_EMAIL") ?? "notificaciones@resend.dev";
 
-    // Destinatarios: usuarios con el módulo flota (+ admins, ya incluidos por el RPC).
-    const { data: recipients } = await supabase.rpc("usuarios_con_modulo", { p_modulo: "flota" });
-    const to = [...new Set(((recipients ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean))];
+    // Destinatarios: módulo flota (+ admins) filtrados por silencios de usuario y
+    // reglas de admin. Las filas con excluido_por != null se registran como omitidas.
+    const { data: dest } = await supabase.rpc("destinatarios_notificacion", {
+      p_tipo: tipo,
+      p_modulo: "flota",
+      p_canal: "email",
+    });
+    const rows = (dest ?? []) as { usuario_id: string; email: string; nombre: string; excluido_por: string | null }[];
+    const incluidos = rows.filter((r) => !r.excluido_por && r.email);
+    const to = [...new Set(incluidos.map((r) => r.email))];
     if (to.length === 0) return json({ skipped: true, reason: "Sin destinatarios." });
 
     const prefijo = PREFIJO[tipo as string] ?? "Aviso de flota";
@@ -109,6 +119,15 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({ from: fromEmail, to, subject, html }),
     });
     if (!res.ok) return json({ error: `Resend error: ${await res.text()}` }, 502);
+
+    // Traza de entrega (best-effort, nunca bloquea): una fila por incluido y por omitido.
+    try {
+      const traza = [
+        ...incluidos.map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "enviada", motivo: null })),
+        ...rows.filter((r) => r.excluido_por).map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "omitida", motivo: r.excluido_por })),
+      ];
+      if (traza.length) await supabase.from("notif_entregas").insert(traza);
+    } catch (_) { /* trace must never block */ }
 
     return json({ sent: true, to });
   } catch (e) {

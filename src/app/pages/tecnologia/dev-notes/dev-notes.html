@@ -76,6 +76,11 @@
                 <app-icon name="star" [size]="16" />
               </button>
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="insertarPlantilla()" title="Plantilla HANDOFF">HANDOFF</button>
+              @if (puedeCompartir()) {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="moverANotas()" [disabled]="guardando()" title="Mover a Notas (ámbito general)">
+                  <app-icon name="arrow-left" [size]="16" /> Mover a Notas
+                </button>
+              }
             }
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportarMd()" title="Exportar .md">
               <app-icon name="download" [size]="16" />
@@ -102,6 +107,45 @@
 
         <app-markdown-editor [value]="contenido()" [disabled]="soloLectura()"
           (valueChange)="contenido.set($event)" />
+
+        <!-- Compartir (solo dueño de nota persistida). La RLS 'dev' mantiene la
+             nota visible solo para Tecnología, aunque se comparta. -->
+        @if (puedeCompartir()) {
+          <section class="dev-notes__share">
+            <h3><app-icon name="users" [size]="16" /> Compartir con…</h3>
+            <div class="dev-notes__share-add">
+              <select [value]="compartirUsuario() ?? ''" (change)="compartirUsuario.set($any($event.target).value || null)">
+                <option [value]="''">Elige una persona…</option>
+                @for (u of directorio(); track u.id) {
+                  <option [value]="u.id">{{ u.nombre }}</option>
+                }
+              </select>
+              <div class="dev-notes__seg" role="group" aria-label="Permiso al compartir">
+                <button type="button" [class.active]="compartirPermiso() === 'ver'" (click)="compartirPermiso.set('ver')">Solo ver</button>
+                <button type="button" [class.active]="compartirPermiso() === 'editar'" (click)="compartirPermiso.set('editar')">Editar</button>
+              </div>
+              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="agregarCompartido()" [disabled]="!compartirUsuario()">Compartir</button>
+            </div>
+
+            @if (compartidos().length) {
+              <ul class="dev-notes__shares">
+                @for (c of compartidos(); track c.id) {
+                  <li>
+                    <span class="dev-notes__share-who">
+                      <span>{{ c.nombre ?? 'Usuario' }}</span>
+                      @if (c.rol || c.email) { <small>{{ c.rol || c.email }}</small> }
+                    </span>
+                    <select [value]="c.permiso" (change)="cambiarPermiso(c, $any($event.target).value)">
+                      <option value="ver">Puede ver</option>
+                      <option value="editar">Puede editar</option>
+                    </select>
+                    <button type="button" (click)="quitarCompartido(c)" aria-label="Quitar acceso"><app-icon name="x" [size]="14" /></button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
 
         @if (!soloLectura()) {
           <div class="dev-notes__editor-foot">

@@ -57,7 +57,14 @@
             <tbody>
               @for (t of tipos(); track t.tipo) {
                 <tr>
-                  <td>{{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> · operativa</em> }</td>
+                  <td>
+                    {{ t.etiqueta }}@if (t.es_operativa) { <em class="mn-op"> · operativa</em> }
+                    <!-- BQ2 — canales que respetan la regla (incluye correo desde que las emails la respetan). -->
+                    <div class="mn-chips">
+                      @for (c of canalesActivos(t.tipo); track c) { <span class="mn-chip">{{ c }}</span> }
+                      @if (canalesActivos(t.tipo).length === 0) { <span class="mn-chip mn-chip--off">sin canales</span> }
+                    </div>
+                  </td>
                   <td style="text-align:center;">
                     <input type="checkbox" [checked]="tipoHabilitado(t.tipo)"
                            [disabled]="guardandoRegla() === t.tipo" (change)="toggleTipoGlobal(t)" />

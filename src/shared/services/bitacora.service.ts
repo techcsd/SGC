@@ -194,6 +194,22 @@ export class BitacoraService {
     return (data ?? { danos: 0, retiros: 0 }) as { danos: number; retiros: number; moldes?: number };
   }
 
+  /**
+   * BO9 — moldes para la vista de oficina. Lee `bitacora_molde_medidas` con la
+   * bitácora embebida (obra/fecha/ingeniero). RLS ya limita a las bitácoras que el
+   * usuario puede ver; es_prueba lo filtra la política salvo admin.
+   */
+  async getMoldes(): Promise<import('../models/bitacora.model').BitacoraMoldeOffice[]> {
+    const { data, error } = await this.supabase.client
+      .from('bitacora_molde_medidas')
+      .select(
+        '*, bitacora:bitacoras(id, fecha, ingeniero_responsable, proyecto_id, usuario_id, es_prueba, proyecto:proyectos(nombre, codigo))',
+      )
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as import('../models/bitacora.model').BitacoraMoldeOffice[];
+  }
+
   // ── BN1 — Orden de trabajo ─────────────────────────────────────────────────
   /**
    * Sube el PNG de una firma al bucket privado `sgc-bitacora` y devuelve su path

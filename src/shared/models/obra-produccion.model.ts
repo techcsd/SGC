@@ -369,6 +369,16 @@ export interface InformeSecciones {
   pruebas_campo?: number;
   bitacoras?: number;
   fotos?: string[];
+  // BP4 — daños de material / equipo propio reportados en las bitácoras de la semana.
+  danos?: {
+    tipo: 'material' | 'equipo_propio';
+    descripcion: string;
+    cantidad?: number | null;
+    unidad?: string | null;
+    tiene_foto?: boolean;
+    solicita_retiro?: boolean;
+    fecha?: string | null;
+  }[];
 }
 
 export interface InformeSemanal {

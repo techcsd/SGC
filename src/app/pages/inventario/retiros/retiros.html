@@ -38,6 +38,13 @@
               <span class="sgc-badge sgc-badge--{{ estadoBadge(f.estado) }}">{{ estadoLabel(f.estado) }}</span>
               <span class="ret-folio">RET-{{ (f.folio ?? 0).toString().padStart(6, '0') }}</span>
               @if (f.es_prueba) { <span class="ret-prueba">PRUEBA</span> }
+              <!-- BP4 — origen: retiro creado desde un daño de bitácora (enlaza a la fuente). -->
+              @if (f.bitacora_id) {
+                <a class="ret-origen" [routerLink]="['/bitacora/historial']" [queryParams]="{ item: f.bitacora_id }"
+                   (click)="$event.stopPropagation()" title="Ver la bitácora que originó este retiro">
+                  desde bitácora
+                </a>
+              }
               <span class="ret-fecha">{{ f.created_at | date: 'dd/MM/yy HH:mm' }}</span>
             </div>
             <div class="ret-item-body">

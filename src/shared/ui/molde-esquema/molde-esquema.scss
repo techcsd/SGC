@@ -1,8 +1,8 @@
 .molde-esquema {
-  &__real { stroke: var(--sgc-text, #1c2230); stroke-width: 2; }
-  &__plano { stroke: var(--sgc-text-muted, #9aa2b1); stroke-width: 2; }
+  &__real { stroke: var(--sgc-text, #1c2230); stroke-width: 2; stroke-linejoin: round; }
+  &__plano { stroke: var(--sgc-text-muted, #9aa2b1); stroke-width: 2; stroke-linejoin: round; }
   &__cota { stroke: var(--sgc-text-muted, #6b7280); stroke-width: 1; }
-  &__bad { stroke: var(--sgc-danger, #e5484d); stroke-width: 2; }
+  &__bad { stroke: var(--sgc-danger, #e5484d); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
   &__label {
     fill: var(--sgc-text-muted, #6b7280);
     font-size: 12px;

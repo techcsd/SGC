@@ -3,9 +3,12 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Email alert when the CSD field app reports an incidente/accidente. Called by
 // the app right after the bitácora (tipo=incidente) is created. Mirrors
-// notificar-solicitud: Resend key from Vault (no-ops if unset), recipients via
-// usuarios_con_modulo, session required. A missing notification must never
-// block the field workflow — the incident is already persisted in SGC.
+// notificar-solicitud: Resend key from Vault (no-ops if unset), session
+// required. Recipients: the incident project's team + admins, each filtered
+// through destinatarios_notificacion(tipo='incidente', 'email') so user
+// silences and admin notification rules are respected; excluded recipients are
+// recorded in notif_entregas for traceability. A missing notification must
+// never block the field workflow — the incident is already persisted in SGC.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,23 +78,43 @@ Deno.serve(async (req: Request) => {
       return json({ skipped: true, reason: "La bitácora no es un incidente." });
     }
 
+    // Este email representa el evento de notificación tipo 'incidente'.
+    const tipo = "incidente";
+
     // Recipients: the incident PROJECT's team (supervisores/ingenieros asignados
-    // a esa obra) + admins for oversight. Dedup emails.
-    const [teamRes, adminRes] = await Promise.all([
-      bitacora.proyecto_id
-        ? supabase
-            .from("proyecto_empleados")
-            .select("empleado:empleados(activo, usuario:usuarios(email))")
-            .eq("proyecto_id", bitacora.proyecto_id)
-        : Promise.resolve({ data: [] as unknown[] }),
-      supabase.rpc("usuarios_con_modulo", { p_modulo: "admin" }),
+    // a esa obra) + admins for oversight. Ambos conjuntos se filtran por
+    // destinatarios_notificacion (silencios de usuario + reglas de admin); las
+    // filas excluidas se conservan para registrarlas como omitidas.
+    const { data: teamRows } = bitacora.proyecto_id
+      ? await supabase
+          .from("proyecto_empleados")
+          .select("empleado:empleados(activo, usuario:usuarios(id))")
+          .eq("proyecto_id", bitacora.proyecto_id)
+      : { data: [] as unknown[] };
+    const teamIds = [
+      ...new Set(
+        ((teamRows ?? []) as Array<{ empleado: { activo: boolean; usuario: { id: string } | null } | null }>)
+          .filter((r) => r.empleado?.activo !== false)
+          .map((r) => r.empleado?.usuario?.id)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+
+    type DestRow = { usuario_id: string; email: string; nombre: string; excluido_por: string | null };
+    const [teamDest, adminDest] = await Promise.all([
+      teamIds.length
+        ? supabase.rpc("destinatarios_notificacion", { p_tipo: tipo, p_usuarios: teamIds, p_canal: "email" })
+        : Promise.resolve({ data: [] as DestRow[] }),
+      supabase.rpc("destinatarios_notificacion", { p_tipo: tipo, p_modulo: "admin", p_canal: "email" }),
     ]);
-    const teamEmails = ((teamRes.data ?? []) as Array<{ empleado: { activo: boolean; usuario: { email: string } | null } | null }>)
-      .filter((r) => r.empleado?.activo !== false)
-      .map((r) => r.empleado?.usuario?.email)
-      .filter((e): e is string => !!e);
-    const adminEmails = ((adminRes.data ?? []) as { email: string }[]).map((u) => u.email).filter(Boolean);
-    const to = [...new Set([...teamEmails, ...adminEmails])];
+    // Une equipo + admins y deduplica por usuario_id.
+    const byUser = new Map<string, DestRow>();
+    for (const r of [...((teamDest.data ?? []) as DestRow[]), ...((adminDest.data ?? []) as DestRow[])]) {
+      if (r && r.usuario_id && !byUser.has(r.usuario_id)) byUser.set(r.usuario_id, r);
+    }
+    const rows = [...byUser.values()];
+    const incluidos = rows.filter((r) => !r.excluido_por && r.email);
+    const to = [...new Set(incluidos.map((r) => r.email))];
     if (to.length === 0) return json({ skipped: true, reason: "Sin destinatarios." });
 
     const proyecto = escapeHtml(bitacora.proyecto?.nombre ?? "—");
@@ -115,6 +138,16 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({ from: fromEmail, to, subject, html }),
     });
     if (!res.ok) return json({ error: `Resend error: ${await res.text()}` }, 502);
+
+    // Traza de entrega (best-effort, nunca bloquea): incluidos + omitidos.
+    try {
+      const titulo = subject;
+      const traza = [
+        ...incluidos.map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "enviada", motivo: null })),
+        ...rows.filter((r) => r.excluido_por).map((r) => ({ canal: "email", usuario_id: r.usuario_id, tipo, titulo: String(titulo ?? ""), destino: r.email, estado: "omitida", motivo: r.excluido_por })),
+      ];
+      if (traza.length) await supabase.from("notif_entregas").insert(traza);
+    } catch (_) { /* trace must never block */ }
 
     return json({ sent: true, to });
   } catch (e) {

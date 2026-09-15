@@ -167,19 +167,68 @@
 // BB8a — incidencias agrupadas y accionables (cuarentena).
 .inc-inci-group {
   margin-top: var(--space-2);
-  &__head { font-weight: var(--fw-semibold); font-size: var(--fs-sm); color: var(--text); }
+  &__head {
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
+    font-weight: var(--fw-semibold); font-size: var(--fs-sm); color: var(--text);
+  }
+  // BQ9 — botones masivos por grupo, alineados a la derecha.
+  &__bulk { display: flex; gap: var(--space-2); margin-left: auto; }
 }
 .inc-inci-pend {
-  margin-left: var(--space-2); font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
   padding: 1px 7px; border-radius: var(--radius-pill); background: var(--warning-bg); color: var(--warning);
 }
 .inc-inci-list { list-style: none; margin: var(--space-1) 0 0; padding: 0; }
 .inc-inci {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
+  display: flex; flex-direction: column; gap: var(--space-2);
   padding: var(--space-1) 0; border-top: 1px dashed var(--border);
   &--resuelta { opacity: 0.6; }
-  &__link { flex: 1 1 220px; min-width: 0; color: var(--text); text-decoration: none; &:hover { text-decoration: underline; } }
+  &__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  // BQ9 — la fila entera es el toggle del detalle inline.
+  &__toggle {
+    flex: 1 1 220px; min-width: 0; display: flex; align-items: center; gap: var(--space-2);
+    background: none; border: none; padding: 0; text-align: left; cursor: pointer;
+    color: var(--text); font: inherit;
+    &:hover .inc-inci__txt { text-decoration: underline; }
+  }
+  &__chev {
+    flex: none; display: inline-flex; color: var(--text-2); transition: transform 0.15s ease;
+    svg { width: 15px; height: 15px; }
+    &--open { transform: rotate(180deg); }
+  }
+  &__txt { min-width: 0; }
+  // BQ9 — link separado que navega al objeto (deep-link).
+  &__open {
+    display: inline-flex; align-items: center; gap: 4px; flex: none;
+    font-size: var(--fs-xs); padding: 2px var(--space-2); border-radius: var(--radius-sm);
+    background: var(--surface-2); color: var(--text-2); text-decoration: none; border: 1px solid var(--border);
+    &:hover { border-color: var(--brand); color: var(--text); }
+  }
   &__actions { display: flex; gap: var(--space-2); }
+  &__detail {
+    display: flex; flex-direction: column; gap: var(--space-3);
+    padding: var(--space-3); margin: 0 0 var(--space-1) 24px;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  &__detail-empty { font-size: var(--fs-sm); color: var(--text-2); margin: 0; }
+  &__detail-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+}
+
+// BQ9 — grid de campos del detalle inline (ruta/echada).
+.inc-det-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-2) var(--space-4); margin: 0;
+}
+.inc-det-item {
+  dt { font-size: var(--fs-xs); color: var(--text-2); margin: 0; }
+  dd { margin: 0; font-size: var(--fs-sm); color: var(--text); font-variant-numeric: tabular-nums; }
+}
+.inc-echada-fotos { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.inc-echada-foto {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  text-decoration: none; color: var(--text-2); font-size: var(--fs-xs);
+  img { width: 88px; height: 88px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  &:hover img { border-color: var(--brand); }
 }
 
 // BB8c — banner de semana en curso (solo avance).

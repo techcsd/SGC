@@ -18,6 +18,8 @@ export interface Bodega {
   longitud?: number | null;
   // Z5(d) — dato de prueba (solo admin lo ve/gestiona)
   es_prueba?: boolean;
+  // BQ4 — encargado del almacén (usuario responsable), opcional.
+  encargado_id?: string | null;
 }
 
 export interface BodegaFormData {
@@ -33,4 +35,6 @@ export interface BodegaFormData {
   latitud: number | null;
   longitud: number | null;
   es_prueba?: boolean;
+  // BQ4 — encargado del almacén (usuario responsable), opcional.
+  encargado_id?: string | null;
 }
