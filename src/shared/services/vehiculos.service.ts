@@ -277,6 +277,27 @@ export class VehiculosService {
     return data as unknown as Vehiculo;
   }
 
+  /** BR1 — lectura del punto desde el que se mide el salto de km de combustible. */
+  async kmUltimaEchada(vehiculoId: string): Promise<{ max_echada: number | null; km_base: number | null; efectivo: number | null }> {
+    const { data, error } = await this.supabase.client.rpc('vehiculo_km_ultima_echada', {
+      p_vehiculo_id: vehiculoId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? { max_echada: null, km_base: null, efectivo: null }) as {
+      max_echada: number | null; km_base: number | null; efectivo: number | null;
+    };
+  }
+
+  /** BR1 — admin fija el km base de combustible (no toca las echadas históricas). */
+  async setKmBaseCombustible(vehiculoId: string, km: number, motivo: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('vehiculo_set_km_base_combustible', {
+      p_vehiculo_id: vehiculoId,
+      p_km: km,
+      p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** T2 — elimina una fila de datos de prueba (RPC SECURITY DEFINER, solo admin;
    *  solo borra si `es_prueba = true`). Lanza en error. */
   async eliminarDatoPrueba(id: string): Promise<boolean> {

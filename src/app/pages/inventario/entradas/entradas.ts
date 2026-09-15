@@ -157,6 +157,40 @@ export class Entradas implements OnInit {
     }
   });
 
+  // ── BR4 — Rechazar recepción (motivo obligatorio; no mueve stock) ──────────
+  rechazarId = signal<string | null>(null);
+  rechazoMotivo = signal('');
+  rechazoSaving = signal(false);
+  rechazoError = signal('');
+
+  openRechazar(e: EntradaInventario) {
+    this.rechazarId.set(e.id);
+    this.rechazoMotivo.set('');
+    this.rechazoError.set('');
+  }
+  cancelarRechazo() {
+    this.rechazarId.set(null);
+    this.rechazoMotivo.set('');
+    this.rechazoError.set('');
+  }
+  async confirmarRechazo(e: EntradaInventario) {
+    const motivo = this.rechazoMotivo().trim();
+    if (!motivo || this.rechazoSaving()) return;
+    this.rechazoSaving.set(true);
+    this.rechazoError.set('');
+    try {
+      await this.entradasService.rechazarRecepcion('entrada', e.id, motivo);
+      this.toast.success('Entrada rechazada', 'Se avisó al emisor para corregir y reenviar.');
+      this.cancelarRechazo();
+      this.closeDetail();
+      await this.loadAll();
+    } catch (err) {
+      this.rechazoError.set(err instanceof Error ? err.message : 'No se pudo rechazar.');
+    } finally {
+      this.rechazoSaving.set(false);
+    }
+  }
+
   hayDiferencias = computed(() => this.confirmItems().some((i) => i.cantidad_recibida !== i.cantidad_enviada));
 
   async openConfirmar(e: EntradaInventario) {

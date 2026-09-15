@@ -9,6 +9,10 @@
     </div>
   </header>
 
+  @if (origenRequisicionId()) {
+    <div class="sgc-badge sgc-badge--info">Procede de {{ reqCodigo() }} — compra en ferretería (cuenta en el avance al confirmarse)</div>
+  }
+
   @if (formError()) {
     <div class="page-error" role="alert">{{ formError() }}</div>
   }

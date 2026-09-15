@@ -113,6 +113,7 @@
 <div class="req-vista-toggle">
   <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'lista'" [class.sgc-btn--ghost]="vista() !== 'lista'" (click)="vista.set('lista')">Lista</button>
   <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'semana'" [class.sgc-btn--ghost]="vista() !== 'semana'" (click)="vista.set('semana')">Por semana de necesidad</button>
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vista() === 'mes'" [class.sgc-btn--ghost]="vista() !== 'mes'" (click)="vista.set('mes')">Mes</button>
 </div>
 
 <!-- ── Table ── -->
@@ -128,6 +129,47 @@
           Aún no hay requisiciones. Aparecen aquí las que crea el personal de obra.
         }
       </p>
+    </div>
+  } @else if (vista() === 'mes') {
+    <!-- BO8 (mes) — rejilla mensual con las requisiciones por fecha de necesidad. -->
+    <div class="req-cal">
+      <div class="req-cal__nav">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
+        <span class="req-cal__mes">{{ mesLabel() }}</span>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cambiarMes(1)" aria-label="Mes siguiente">›</button>
+      </div>
+      <div class="req-cal__dow">
+        @for (d of DIAS_ABREV; track d) { <span class="req-cal__dow-cell">{{ d }}</span> }
+      </div>
+      <div class="req-cal__grid">
+        @for (c of calendario(); track $index) {
+          <div class="req-cal__cell" [class.req-cal__cell--out]="!c.inMonth" [class.req-cal__cell--hoy]="c.hoy">
+            @if (c.inMonth) {
+              <span class="req-cal__daynum">{{ c.dayNum }}</span>
+              @for (r of c.items; track r.id) {
+                <button type="button" class="req-cal__ficha"
+                  [class.req-cal__ficha--urgente]="r.urgencia === 'urgente'"
+                  (click)="abrir(r)" [title]="(r.proyecto?.nombre ?? '') + ' · ' + itemsCount(r) + ' art.'">
+                  <span class="req-cal__ficha-obra">{{ r.proyecto?.nombre ?? '—' }}</span>
+                  <span class="req-cal__ficha-meta">{{ itemsCount(r) }} art. · {{ estadoLabel(r.estado) }}</span>
+                </button>
+              }
+            }
+          </div>
+        }
+      </div>
+      @if (sinFechaMes().length) {
+        <div class="req-cal__sinfecha">
+          <h4>Sin fecha de necesidad ({{ sinFechaMes().length }})</h4>
+          <ul>
+            @for (r of sinFechaMes(); track r.id) {
+              <li role="button" tabindex="0" (click)="abrir(r)" (keydown.enter)="abrir(r)">
+                <code class="req-codigo">{{ codigo(r) }}</code> {{ r.proyecto?.nombre ?? '—' }} · {{ itemsCount(r) }} art.
+              </li>
+            }
+          </ul>
+        </div>
+      }
     </div>
   } @else if (vista() === 'semana') {
     <!-- BO8 (§E-7) — vista agrupada por proximidad de la fecha de necesidad. -->
@@ -407,6 +449,11 @@
                      requisición; queda enlazado (despacho_marcar) y cuenta en el avance. -->
                 <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
                    [routerLink]="['/inventario/salidas']" [queryParams]="{ requisicion: s.id }">Crear conduce desde esta requisición</a>
+                <!-- BR5 — para lo que no hay en stock: conduce externo de compra en ferretería,
+                     enlazado a la requisición (cuenta en el avance al confirmarse la compra). -->
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                   [routerLink]="['/inventario/conduce-externo/nuevo']"
+                   [queryParams]="{ requisicion: s.id, proyecto: s.proyecto_id, destino: s.proyecto?.nombre }">Comprar en ferretería</a>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular()">Vincular conduce suelto…</button>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">Cancelar…</button>
               </div>
@@ -496,9 +543,11 @@
                 <input id="req-fecha" type="date" [value]="fecha()" (change)="fecha.set($any($event.target).value)" />
               </div>
               <div class="sgc-field">
-                <label class="filters-bar__label" for="req-resp">Responsable (opcional)</label>
-                <input id="req-resp" type="text" [value]="responsable()"
-                       (input)="responsable.set($any($event.target).value)" placeholder="Quién recibe / entrega" />
+                <label class="filters-bar__label">Responsable (opcional)</label>
+                <!-- BR2 — buscar por usuario (antes texto libre "Rakler Feliz"). -->
+                <app-user-picker [value]="responsableId()" [nombreLibre]="responsable()"
+                  placeholder="Quién recibe / entrega — busca por usuario"
+                  (selected)="onResponsablePicked($event)" />
               </div>
               <div class="sgc-field">
                 <label class="filters-bar__label" for="req-obs">Observaciones (opcional)</label>

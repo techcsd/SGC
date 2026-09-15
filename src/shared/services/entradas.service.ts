@@ -110,6 +110,15 @@ export class EntradasService {
     return rows;
   }
 
+  /** BR4 — rechaza una recepción (entrada|salida) con motivo obligatorio. No mueve
+   *  stock (la entrada pendiente aún no lo movió); avisa al emisor para corregir. */
+  async rechazarRecepcion(tipo: 'entrada' | 'salida', id: string, motivo: string, fotoPath?: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('rechazar_recepcion', {
+      p_tipo: tipo, p_id: id, p_motivo: motivo, p_foto_path: fotoPath ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** AF15 — ¿el usuario actual puede confirmar de forma remota? */
   async puedeConfirmarRemoto(): Promise<boolean> {
     const { data, error } = await this.supabase.client.rpc('puede_confirmar_remoto');

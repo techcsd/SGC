@@ -568,3 +568,27 @@
   outline: 2px solid var(--sgc-primary-mid);
   outline-offset: 2px;
 }
+
+// BR1 — bloque "Km de la última echada" (solo admin, dentro del drawer de edición).
+.flota-vehiculos__km-base {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  label { font-weight: 600; }
+
+  &-hint {
+    margin: 0.25rem 0 0.6rem;
+    font-size: 0.8rem;
+    color: var(--main-ultra-light);
+    span { display: block; margin-top: 0.15rem; }
+  }
+
+  &-msg {
+    margin: 0.4rem 0 0;
+    font-size: 0.8rem;
+    color: var(--Hub);
+  }
+}

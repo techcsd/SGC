@@ -167,10 +167,13 @@ export class Conduce implements OnInit {
     const s = this.salida();
     return !!s && this.puedeGestionarTransporte() && !s.ruta_id && s.estado !== 'entregado' && s.estado !== 'anulado';
   });
-  /** Transferir: cuando hay portador asignado y no está entregado/anulado. */
+  /** BR3 — Transferir / asignar: mientras no esté entregado/anulado. Antes exigía
+   *  `!!s.conductor_id` → un conduce SIN chofer (p. ej. emitido desde una requisición,
+   *  captura 3) no mostraba el botón: por eso "en la web no deja transferir". Ahora un
+   *  admin/inventario/flota puede ASIGNAR el conduce a un chofer aunque no tenga uno. */
   puedeTransferir = computed(() => {
     const s = this.salida();
-    return !!s && this.puedeGestionarTransporte() && !!s.conductor_id && s.estado !== 'entregado' && s.estado !== 'anulado';
+    return !!s && this.puedeGestionarTransporte() && s.estado !== 'entregado' && s.estado !== 'anulado';
   });
   vehiculosPicker = signal<Vehiculo[]>([]);
   conductoresPicker = signal<{ id: string; nombre: string }[]>([]);

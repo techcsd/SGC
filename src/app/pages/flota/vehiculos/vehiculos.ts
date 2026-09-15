@@ -161,6 +161,16 @@ export class FlotaVehiculos implements OnInit {
   // AA19 — path de la foto de portada elegida (existente o preview de una pendiente).
   fotoPortada = signal<string | null>(null);
 
+  // BR1 — "Km de la última echada" (solo admin, solo al editar). No es una columna
+  // directa: escribe km_base_combustible vía RPC con motivo y auditoría, sin tocar
+  // las echadas históricas. Precargado con vehiculo_km_ultima_echada.
+  kmBaseMaxEchada = signal<number | null>(null);
+  kmBaseActual = signal<number | null>(null);
+  kmBaseInput = signal<number | null>(null);
+  kmBaseMotivo = signal('');
+  kmBaseSaving = signal(false);
+  kmBaseMsg = signal('');
+
   form = new FormGroup({
     placa: new FormControl('', [Validators.required, Validators.maxLength(20)]),
     vin: new FormControl<string | null>(null, [Validators.maxLength(17)]),
@@ -395,7 +405,42 @@ export class FlotaVehiculos implements OnInit {
       rendimiento_esperado_km_gal: vehiculo.rendimiento_esperado_km_gal,
       es_prueba: vehiculo.es_prueba ?? false,
     });
+    // BR1 — precargar el punto de medición del salto (solo admin lo ve/edita).
+    this.kmBaseMaxEchada.set(null);
+    this.kmBaseActual.set(null);
+    this.kmBaseInput.set(null);
+    this.kmBaseMotivo.set('');
+    this.kmBaseMsg.set('');
+    if (this.esAdmin() && (vehiculo.medida_uso ?? 'km') !== 'horas') {
+      this.vehiculosService.kmUltimaEchada(vehiculo.id).then((r) => {
+        this.kmBaseMaxEchada.set(r.max_echada);
+        this.kmBaseActual.set(r.km_base);
+        this.kmBaseInput.set(r.efectivo);
+      }).catch(() => { /* no bloquea el drawer */ });
+    }
     this.drawerOpen.set(true);
+  }
+
+  /** BR1 — guarda el km base de combustible (motivo obligatorio). */
+  async guardarKmBase() {
+    const id = this.editingId();
+    const km = this.kmBaseInput();
+    const motivo = this.kmBaseMotivo().trim();
+    if (!id || km == null || km < 0 || this.kmBaseSaving()) return;
+    if (!motivo) { this.kmBaseMsg.set('Escribe un motivo del cambio.'); return; }
+    this.kmBaseSaving.set(true);
+    this.kmBaseMsg.set('');
+    try {
+      await this.vehiculosService.setKmBaseCombustible(id, km, motivo);
+      this.kmBaseActual.set(km);
+      this.kmBaseMotivo.set('');
+      this.toast.success('Km base de combustible actualizado');
+      this.kmBaseMsg.set('Guardado. El salto se medirá desde este km.');
+    } catch (e) {
+      this.kmBaseMsg.set(e instanceof Error ? e.message : 'No se pudo guardar');
+    } finally {
+      this.kmBaseSaving.set(false);
+    }
   }
 
   closeDrawer() {

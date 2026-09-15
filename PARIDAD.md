@@ -132,3 +132,40 @@ lógico de captura; el layout puede diferir).
   predicado** — no copia la lista por módulo (regla 14). El path in-app/push sigue por
   `notificar_modulo`/`send_push` (no rerouteado, evita regresión); BQ4 añadió
   `notificar_usuarios(uuid[],…)` para avisar a una lista explícita (encargado de bodega).
+
+---
+
+## Ronda BR (PROMPT-52, 15/09/2026) — contratos web↔app
+
+- **`registrar_combustible_app` (v-acepta, BR1/BQ7):** ya NO rechaza al chofer por salto de km ni por no
+  estar asignado. Acepta con banderas `km_alerta` / `sin_asignacion` (columnas nuevas en
+  `registros_combustible`) y avisa a Flota. Devuelve además `sin_asignacion` y `aviso` (texto "Logística
+  lo revisará"). Rechazo duro solo para galones > tanque / precio fuera de banda; un `es_flota_elevado()`
+  con `p_confirmado=true` los pasa. App (PROMPT-53 F1): la tarjeta de pendientes debe ofrecer *Descartar*
+  y *Avisar a Logística*; el salto ya no da error.
+- **`vehiculo_set_km_base_combustible(uuid, integer, text)` (BR1, admin):** fija `vehiculos.km_base_combustible`;
+  el salto se mide desde `greatest(max(kilometraje), km_base_combustible)`. Solo `is_admin()`.
+- **`responsable_id` (BR2):** `salidas_inventario.responsable_id → usuarios`. `registrar_salida_inventario` y
+  `aprobar_requisicion` aceptan `p_responsable_id uuid default null` (rellenan el texto `responsable` con
+  `usuarios.nombre`). App: al emitir conduce, mandar `responsable_id` (el texto queda como snapshot).
+- **Transferir conduce (BR3):** el mismo RPC de la app — `ofrecer_transferencia_conduce(salida_id,
+  conductor_id, notas)` → el receptor acepta con `aceptar_transferencia_conduce` (foto+firma). Gate
+  ampliado a `es_flota_elevado() or tiene_modulo('inventario') or titular`. Web permite **asignar** aunque
+  el conduce no tenga chofer aún.
+- **`rechazar_recepcion(p_tipo text, p_id uuid, p_motivo text, p_foto_path text)` (BR4):** `tipo`
+  `entrada|salida`. Motivo obligatorio (22023). No mueve stock. Estado `rechazada` (salidas) /
+  `rechazada=true` + `pendiente_confirmacion=false` (entradas). Notifica al emisor `recepcion_rechazada`.
+  App (PROMPT-53 F4): botón Rechazar junto a Confirmar; entradas con 0 renglones no se crean.
+- **Conduce externo ↔ requisición (BR5):** `crear_conduce_externo(..., p_origen_requisicion_id uuid)` ya
+  existe y setea `conduces_externos.origen_requisicion_id`; `requisicion_avance` lo cuenta al confirmarse
+  la compra. Web: botón "Comprar en ferretería" en la requisición prellena y enlaza.
+- **Cartillas (BO10):** contrato para la app (PROMPT-53 F5): `crear_cartilla(p_id uuid, p_proyecto_id uuid,
+  p_fecha date, p_atados jsonb, p_fotos jsonb, p_plano_path text, p_notas text)` idempotente por `p_id`.
+  `p_atados` = `[{identificador, elemento, cantidad_piezas, piezas:[{marca, diametro_codigo, figura_codigo,
+  tramos_cm:[{lado,cm}], cantidad}]}]`. Valida diámetro/figura contra `acero_diametros`/`cartilla_figuras`;
+  calcula `peso_kg`. Estados `borrador→enviada→revisada|observada→ejecutada` vía
+  `cartilla_cambiar_estado(p_id, p_estado, p_nota)`. Fotos → `cartilla_fotos` (bucket `sgc-cartillas`).
+  Fecha elegible (BL9). Detalle: `cartilla_detalle(p_id)`.
+- **`user-picker`** (`shared/ui/user-picker`): selecciona un usuario del directorio (búsqueda por
+  nombre/rol) o texto libre ("Otro"); emite `{usuario_id, nombre}`. Reusado por responsable (BR2) y
+  transferir (BR3).

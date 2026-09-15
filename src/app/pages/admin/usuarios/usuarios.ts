@@ -119,7 +119,8 @@ export class AdminUsuarios implements OnInit {
   cedulaForm = new FormGroup({
     nombre: new FormControl('', [Validators.required, Validators.maxLength(150)]),
     cedula: new FormControl('', [Validators.required, Validators.pattern(/^[0-9-]{6,}$/)]),
-    tipo: new FormControl<'capataz' | 'conductor'>('capataz', [Validators.required]),
+    // BR8 — el acceso por cédula+PIN admite también al encargado de patio (El flaco).
+    tipo: new FormControl<'capataz' | 'conductor' | 'encargado'>('capataz', [Validators.required]),
     pin: new FormControl('', [Validators.required, Validators.pattern(/^\d{6}$/)]),
   });
   // AZ7 — marcar/desmarcar como prueba

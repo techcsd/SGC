@@ -15,7 +15,8 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
-import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil } from '../../../../shared/utils/fecha.util';
+import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
+import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 
 const ESTADO_BADGE: Record<string, string> = {
@@ -56,7 +57,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,6 +125,8 @@ export class Requisiciones implements OnInit {
   bodegaId = signal<string>('');
   fecha = signal<string>(hoy());
   responsable = signal<string>('');
+  // BR2 — usuario responsable enlazado (buscar por usuario, no texto libre).
+  responsableId = signal<string | null>(null);
   observaciones = signal<string>('');
   rechazoNota = signal<string>('');
   saving = signal(false);
@@ -267,8 +270,54 @@ export class Requisiciones implements OnInit {
     });
   });
 
-  // BO8 (§E-7) — vista de la bandeja: lista clásica o agrupada por semana de necesidad.
-  vista = signal<'lista' | 'semana'>('lista');
+  // BO8 (§E-7) — vista de la bandeja: lista, por semana, o rejilla mensual (BO8 mes).
+  vista = signal<'lista' | 'semana' | 'mes'>('lista');
+
+  // BO8 (mes) — mes de referencia (YYYY-MM). Navegación ‹ mes ›.
+  readonly DIAS_ABREV = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'];
+  mesRef = signal<string>(todayIso().slice(0, 7));
+  private pad2(n: number): string { return String(n).padStart(2, '0'); }
+
+  mesLabel = computed(() => {
+    const [y, m] = this.mesRef().split('-').map(Number);
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return `${meses[m - 1]} ${y}`;
+  });
+
+  cambiarMes(delta: number) {
+    const [y, m] = this.mesRef().split('-').map(Number);
+    const idx = (m - 1) + delta;
+    const ny = y + Math.floor(idx / 12);
+    const nm = ((idx % 12) + 12) % 12;
+    this.mesRef.set(`${ny}-${this.pad2(nm + 1)}`);
+  }
+
+  /** BO8 (mes) — rejilla de 6×7 celdas del mes; cada día lista sus requisiciones por
+   *  fecha_necesidad. Sin `new Date(dateOnly)` para las fechas de datos (se comparan por
+   *  string YYYY-MM-DD); el grid se arma con el constructor numérico de Date (sin TZ). */
+  calendario = computed(() => {
+    const [y, m] = this.mesRef().split('-').map(Number);
+    const startDow = new Date(y, m - 1, 1).getDay();
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const hoy = todayIso();
+    const byDay = new Map<string, SolicitudMaterial[]>();
+    for (const r of this.filtered()) {
+      if (!r.fecha_necesidad) continue;
+      const key = r.fecha_necesidad.slice(0, 10);
+      (byDay.get(key) ?? byDay.set(key, []).get(key)!).push(r);
+    }
+    const cells: { key: string; dayNum: number | null; inMonth: boolean; hoy: boolean; items: SolicitudMaterial[] }[] = [];
+    for (let i = 0; i < 42; i++) {
+      const dayNum = i - startDow + 1;
+      const inMonth = dayNum >= 1 && dayNum <= daysInMonth;
+      const key = inMonth ? `${y}-${this.pad2(m)}-${this.pad2(dayNum)}` : '';
+      cells.push({ key, dayNum: inMonth ? dayNum : null, inMonth, hoy: key === hoy, items: inMonth ? (byDay.get(key) ?? []) : [] });
+    }
+    return cells;
+  });
+
+  /** BO8 (mes) — requisiciones sin fecha de necesidad (cajón debajo de la rejilla). */
+  sinFechaMes = computed(() => this.filtered().filter((r) => !r.fecha_necesidad));
 
   /**
    * BO8 (§E-7) — agrupa lo filtrado en cubos por proximidad de la fecha de necesidad:
@@ -390,6 +439,12 @@ export class Requisiciones implements OnInit {
     return r.solicitante?.nombre ?? r.solicitante_nombre_dir ?? '—';
   }
 
+  // BR2 — el picker de responsable emite {usuario_id, nombre}.
+  onResponsablePicked(sel: UserPickerSelection) {
+    this.responsableId.set(sel.usuario_id);
+    this.responsable.set(sel.nombre);
+  }
+
   // ── Detalle ───────────────────────────────────────────────
   abrir(r: SolicitudMaterial) {
     this.selected.set(r);
@@ -397,6 +452,7 @@ export class Requisiciones implements OnInit {
     this.actionError.set('');
     this.rechazoNota.set('');
     this.responsable.set('');
+    this.responsableId.set(null);
     this.observaciones.set('');
     this.fecha.set(hoy());
     // Prefill del almacén con el de la obra (si tiene) o el primero activo.
@@ -575,6 +631,7 @@ export class Requisiciones implements OnInit {
         bodega_id: this.bodegaId(),
         fecha: this.fecha(),
         responsable: this.responsable().trim() || null,
+        responsable_id: this.responsableId(),
         observaciones: this.observaciones().trim() || null,
         items: items.map((i) => ({
           articulo_id: i.articulo_id,

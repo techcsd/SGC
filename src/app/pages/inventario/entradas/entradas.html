@@ -673,6 +673,29 @@
         <div class="entrada-detalle__conf-pendiente">
           <span class="sgc-badge sgc-badge--warning"><app-icon name="clock" [size]="14" /> Pendiente de confirmación</span>
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="closeDetail(); openConfirmar(e)">Confirmar recepción</button>
+          <!-- BR4 — "así como puedo confirmarlo, debo poder rechazarlo desde ahí". -->
+          <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="openRechazar(e)">Rechazar</button>
+        </div>
+        @if (rechazarId() === e.id) {
+          <div class="entrada-detalle__rechazo">
+            <label for="ent-rechazo">Motivo del rechazo (obligatorio)</label>
+            <textarea id="ent-rechazo" rows="2" [value]="rechazoMotivo()"
+              (input)="rechazoMotivo.set($any($event.target).value)"
+              placeholder="Ej: la entrada llegó sin artículos / cantidades no coinciden…"></textarea>
+            @if (rechazoError()) { <p class="page-error" role="alert">{{ rechazoError() }}</p> }
+            <div class="entrada-detalle__rechazo-acciones">
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarRechazo()" [disabled]="rechazoSaving()">Cancelar</button>
+              <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="confirmarRechazo(e)"
+                [disabled]="rechazoSaving() || !rechazoMotivo().trim()">
+                {{ rechazoSaving() ? 'Rechazando…' : 'Confirmar rechazo' }}
+              </button>
+            </div>
+          </div>
+        }
+      } @else if (e.rechazada) {
+        <div class="entrada-detalle__conf-pendiente">
+          <span class="sgc-badge sgc-badge--danger">Rechazada</span>
+          @if (e.rechazo_motivo) { <span class="text-muted">{{ e.rechazo_motivo }}</span> }
         </div>
       }
       @if (detailConfirmaciones().length) {

@@ -126,6 +126,8 @@ export class SolicitudesMaterialService {
       bodega_id: string;
       fecha: string;
       responsable: string | null;
+      /** BR2 — usuario responsable enlazado (además del snapshot de texto). */
+      responsable_id?: string | null;
       observaciones: string | null;
       items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number; talla?: string | null }[];
     },
@@ -135,6 +137,7 @@ export class SolicitudesMaterialService {
       p_bodega_id: payload.bodega_id,
       p_fecha: payload.fecha,
       p_responsable: payload.responsable,
+      p_responsable_id: payload.responsable_id ?? null,
       p_observaciones: payload.observaciones,
       p_items: payload.items,
     });
@@ -186,6 +189,25 @@ export class SolicitudesMaterialService {
     const { data, error } = await this.supabase.client.rpc('requisicion_avance', { p_solicitud_id: id });
     if (error) throw new Error(error.message);
     return (data ?? []) as RequisicionAvanceItem[];
+  }
+
+  /** BR5 — renglones pendientes (faltante) de una requisición, con nombre de artículo,
+   *  para prellenar el conduce de compra en ferretería. */
+  async pendientesParaCompra(reqId: string): Promise<{ articulo_id: string | null; nombre: string; pendiente: number }[]> {
+    const { data, error } = await this.supabase.client.rpc('requisicion_pendiente_items', { p_solicitud_id: reqId });
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as { articulo_id: string | null; pendiente: number }[];
+    const ids = [...new Set(rows.map((r) => r.articulo_id).filter((x): x is string => !!x))];
+    const nombres = new Map<string, string>();
+    if (ids.length) {
+      const { data: arts } = await this.supabase.client.schema('sgc').from('articulos').select('id,nombre').in('id', ids);
+      for (const a of (arts ?? []) as { id: string; nombre: string }[]) nombres.set(a.id, a.nombre);
+    }
+    return rows.map((r) => ({
+      articulo_id: r.articulo_id,
+      nombre: (r.articulo_id && nombres.get(r.articulo_id)) || 'Artículo sin catálogo',
+      pendiente: Number(r.pendiente ?? 0),
+    }));
   }
 
   /** Cierre manual (por rol/autor/responsable — gate server-side). */

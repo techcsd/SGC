@@ -481,6 +481,33 @@
       </div>
     </div>
 
+    <!-- BR1 — Km de la última echada (solo admin, solo al editar). Reinicia el punto
+         desde el que se mide el salto de combustible, sin tocar echadas registradas. -->
+    @if (editingId() && esAdmin() && !esHoras()) {
+      <div class="flota-vehiculos__km-base">
+        <label for="km_base_combustible">Km de la última echada</label>
+        <p class="flota-vehiculos__km-base-hint">
+          Cambia el punto desde el que se mide el salto; no toca echadas registradas.
+          @if (kmBaseMaxEchada() != null) { <span>Última echada registrada: {{ kmBaseMaxEchada() | number:'1.0-0' }} km.</span> }
+        </p>
+        <div class="flota-vehiculos__form-row">
+          <div class="sgc-field">
+            <input id="km_base_combustible" type="number" min="0" [value]="kmBaseInput()"
+              (input)="kmBaseInput.set($any($event.target).valueAsNumber)" placeholder="km" />
+          </div>
+          <div class="sgc-field">
+            <input type="text" [value]="kmBaseMotivo()" (input)="kmBaseMotivo.set($any($event.target).value)"
+              placeholder="Motivo del cambio (obligatorio)" maxlength="200" />
+          </div>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="guardarKmBase()"
+            [disabled]="kmBaseSaving() || kmBaseInput() == null || !kmBaseMotivo().trim()">
+            {{ kmBaseSaving() ? 'Guardando…' : 'Guardar km base' }}
+          </button>
+        </div>
+        @if (kmBaseMsg()) { <p class="flota-vehiculos__km-base-msg">{{ kmBaseMsg() }}</p> }
+      </div>
+    }
+
     <div class="sgc-field">
       <label for="notas">Notas</label>
       <textarea id="notas" formControlName="notas" rows="3"

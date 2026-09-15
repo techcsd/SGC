@@ -467,3 +467,22 @@ textarea {
   }
   &__actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 4px; }
 }
+
+// BR4 — bloque de rechazo de recepción (motivo obligatorio) en el detalle.
+.entrada-detalle__rechazo {
+  margin-top: 0.6rem;
+  padding: 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  label { display: block; font-weight: 600; margin-bottom: 0.35rem; }
+  textarea { width: 100%; box-sizing: border-box; }
+
+  &-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+}

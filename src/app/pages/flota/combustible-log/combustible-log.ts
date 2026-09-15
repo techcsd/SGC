@@ -205,8 +205,16 @@ export class CombustibleLog implements OnInit {
       Registró: r.registrado_nombre ?? '',
       Conductor: r.conductor_nombre ?? '',
       'Salto km': r.km_alerta ? 'SÍ' : '',
+      'Sin asignación': r.sin_asignacion ? 'SÍ' : '',
     }));
     await exportarExcel('registro-combustible', rows);
+  }
+
+  /** BR1 — "Revisar" desde el chip KM ALERTA / SIN ASIGNACIÓN: abre el detalle
+   *  (superficie de revisión con el botón Editar de BQ5). */
+  revisar(r: LogCombustibleRow, ev: Event) {
+    ev.stopPropagation();
+    this.abrirDetalle(r);
   }
 
   // ── BQ5 — Editar echada (drawer, solo flota-elevado) ──

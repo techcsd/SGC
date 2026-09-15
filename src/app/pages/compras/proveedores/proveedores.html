@@ -387,6 +387,21 @@
 
     @if (importError()) { <div class="save-error" role="alert">{{ importError() }}</div> }
 
+    <!-- BO3 (§E-2) — errores POR FILA devueltos por el RPC (no cierra el drawer). -->
+    @if (importErrores().length) {
+      <div class="import-prov__errores">
+        <h4>{{ importErrores().length }} fila(s) con error</h4>
+        <table>
+          <thead><tr><th>Fila</th><th>Nombre</th><th>RNC</th><th>Motivo</th></tr></thead>
+          <tbody>
+            @for (e of importErrores(); track e.fila) {
+              <tr><td>{{ e.fila }}</td><td>{{ e.nombre ?? '—' }}</td><td>{{ e.rnc ?? '—' }}</td><td>{{ e.msg }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
     @if (importPreview().length) {
       <div class="import-prov__resumen">
         <span class="sgc-badge sgc-badge--success">{{ importResumen().nuevos }} nuevo(s)</span>

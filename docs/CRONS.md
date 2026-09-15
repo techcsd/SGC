@@ -62,3 +62,17 @@ medida que la completan. No es spam ni bug → **no se toca**.
 Follow-up abierto (§F BK5): si se quiere que los horarios de **informes y
 recordatorios** (política de negocio) sean administrables, mover *sólo esos* a una
 tabla de horarios; el resto se queda en migraciones.
+
+---
+
+## Crons nuevos (BR / BO8 — 15/09/2026)
+
+- **`sgc-vehiculos-sin-echada`** — `0 11 * * *` (07:00 RD). `select sgc.avisar_vehiculos_sin_echada()`.
+  Vehículos con actividad (uso v2 o ruta) en `dias_actividad_echada` (7) días y **sin echada** en
+  `dias_sin_echada_aviso` (10) días → aviso `vehiculo_sin_echada` al módulo Flota. Dedup por
+  `avisos_flota.dedup_key` (`sin_echada:<veh>:<IYYY-IW>`, una vez por vehículo/semana). BO §E-4: avisa
+  ANTES de que el siguiente choque, en vez de esperar. Declarado en `sql/2026-09-15-br1-combustible-acepta-y-avisa.sql`.
+- **`sgc-requisiciones-vencidas`** — `15 11 * * *` (07:15 RD). `select sgc.requisiciones_vencidas_avisar()`.
+  Requisiciones con `fecha_necesidad < hoy`, aún abiertas (`pendiente|aprobada|por_despachar|parcial`) y
+  sin aviso previo (`aviso_vencida_at is null`) → aviso `requisicion_vencida` al solicitante y al módulo
+  Inventario, una sola vez. Declarado en `sql/2026-09-15-br-bo8-requisiciones-vencidas.sql`.

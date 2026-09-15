@@ -66,6 +66,7 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 | Papo | chofer_transportista |
 | Xaviel Terrero Test | ingeniero_oficina |
 | Test User 3 | ingeniero_campo, gerente_proyectos |
+| El Flaco — Encargado de Patio (BR8, 2026-09-15) | encargado_patio (acceso cédula+PIN, dominio `@acceso.constructorasd.local`; encargado de Bodega Central) |
 
 ## 5. Hallazgos
 1. **Multi-rol ya nativo** — varios usuarios ya tienen 2-4 roles y ven la unión de módulos (verificado: Misael/Raykler ven flota + inventario). El requisito Y13 (multi-rol) ya estaba cubierto por el diseño; esta ronda solo lo documenta y añade el rol `tecnologia`.
@@ -79,6 +80,8 @@ Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.
 3. Entrada en `shell.ts` (nav) con gating (`modulo` y/o `submodulos`).
 4. `array_append` del módulo al rol `admin` (gotcha recurrente).
 5. Espejo del predicado en RLS si aplica (`tiene_modulo`/`puede_ver/operar_submodulo`).
+
+> **Regla 15 (BR1, 15/09/2026) — el servidor no le impide a un usuario registrar lo que hizo:** lo acepta con bandera, avisa a quien puede resolverlo, y el rechazo duro queda solo para lo físicamente imposible (que un rol elevado confirma). Detalle + casos reales en `docs/CHECKLIST-MIGRACIONES.md §15`. Ejemplo BC7 reciente: las tablas de **cartillas** (`sql/2026-09-15-br-bo10-cartillas-schema.sql`) nacen con RLS por visibilidad de obra (`puede_ver_cartilla`) + escritura solo por RPC.
 
 ## 6.1 ⭐ Convención permanente — toda TABLA NUEVA nace con RLS por rol (BC7)
 

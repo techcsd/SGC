@@ -28,6 +28,8 @@ export interface LogCombustibleRow {
   subtipo: string | null;
   estado: string | null;
   km_alerta: boolean;
+  /** BR1 — echada aceptada sin coincidir con la asignación del vehículo (AF18). */
+  sin_asignacion: boolean;
   alerta_consumo: boolean;
   registrado_por: string | null;
   registrado_nombre: string | null;

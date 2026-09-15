@@ -272,6 +272,8 @@ export class Proveedores implements OnInit {
   importing = signal(false);
   importError = signal('');
   importNombre = signal('');
+  // BO3 (§E-2) — errores por fila devueltos por el RPC importar_proveedores.
+  importErrores = signal<{ fila: number; nombre: string | null; rnc: string | null; msg: string }[]>([]);
 
   importResumen = computed(() => {
     const rows = this.importPreview();
@@ -286,6 +288,7 @@ export class Proveedores implements OnInit {
   abrirImport() {
     this.importPreview.set([]);
     this.importError.set('');
+    this.importErrores.set([]);
     this.importNombre.set('');
     this.importDupMode.set('update');
     this.importOpen.set(true);
@@ -416,64 +419,47 @@ export class Proveedores implements OnInit {
     }
   }
 
-  /** Ejecuta el import: inserta nuevos y actualiza/salta duplicados según la opción. */
+  /** BO3 (§E-2) — import FILA A FILA vía RPC: una fila mala no tumba el lote; el
+   *  resultado trae los errores por fila (se pintan en el drawer, no lo cierra). */
   async confirmarImport() {
     if (this.importing()) return;
-    const rows = this.importPreview();
-    const nuevos = rows.filter((r) => r.estado === 'nuevo');
-    const dups = rows.filter((r) => r.estado === 'duplicado');
-    if (!nuevos.length && !(dups.length && this.importDupMode() === 'update')) {
+    const rows = this.importPreview().filter((r) => r.estado !== 'error');
+    if (!rows.length) {
       this.importError.set('No hay filas para importar.');
       return;
     }
     this.importing.set(true);
     this.importError.set('');
-    let creados = 0, actualizados = 0, saltados = 0, fallidos = 0;
-    // BO3 — el motivo real del fallo (antes se tragaba en un `catch` sin variable
-    // e imputaba TODO el lote a "N con error", que engañaba: "1585 con error"
-    // significaba "un lote de 1585 falló", no "1585 filas malas").
-    const motivos: string[] = [];
+    this.importErrores.set([]);
     try {
-      // Insertar nuevos en lote.
-      if (nuevos.length) {
-        try {
-          const created = await this.proveedoresService.insertMany(nuevos.map((r) => r.payload));
-          creados = created.length;
-          this.proveedores.update((list) => [...created, ...list]);
-        } catch (e: unknown) {
-          fallidos += nuevos.length;
-          motivos.push(e instanceof Error ? e.message : 'Error insertando el lote de nuevos.');
-        }
-      }
-      // Duplicados: actualizar o saltar.
-      if (dups.length) {
-        if (this.importDupMode() === 'skip') {
-          saltados = dups.length;
-        } else {
-          for (const r of dups) {
-            if (!r.match) continue;
-            try {
-              const updated = await this.proveedoresService.update(r.match.id, r.payload);
-              this.proveedores.update((list) => list.map((p) => (p.id === updated.id ? updated : p)));
-              actualizados++;
-            } catch (e: unknown) {
-              fallidos++;
-              if (motivos.length < 5) motivos.push(`Fila ${r.fila}: ${e instanceof Error ? e.message : 'error'}`);
-            }
-          }
-        }
-      }
-      // AL3 — bitácora de importación (best-effort, no bloquea).
+      // El RPC re-deriva nuevo/duplicado por RNC/nombre; le mandamos todas las filas.
+      const filas = rows.map((r) => ({
+        fila: r.fila,
+        nombre: r.payload.nombre,
+        rnc: r.payload.rnc ?? null,
+        contacto: r.payload.contacto ?? null,
+        telefono: r.payload.telefono ?? null,
+        email: r.payload.email ?? null,
+        direccion: r.payload.direccion ?? null,
+        activo: r.payload.activo ?? true,
+        is_hardware_store: r.payload.is_hardware_store ?? false,
+      }));
+      const res = await this.proveedoresService.importarProveedores(
+        filas, this.importDupMode() === 'skip' ? 'saltar' : 'actualizar',
+      );
+      this.importErrores.set(res.errores);
+
       await this.proveedoresService.registrarImport(
-        { total: creados + actualizados + saltados + fallidos, creados, actualizados, saltados, fallidos },
+        { total: filas.length, creados: res.nuevos, actualizados: res.actualizados, saltados: res.saltados, fallidos: res.errores.length },
         this.importNombre() || undefined,
       );
+      // Refrescar la lista con los cambios reales.
+      this.proveedores.set(await this.proveedoresService.getAll());
 
-      const resumen = `${creados} nuevo(s), ${actualizados} actualizado(s), ${saltados} saltado(s)${fallidos ? `, ${fallidos} con error` : ''}.`;
-      if (fallidos > 0) {
-        // BO3 / regla 8 — NO cantar éxito ni cerrar el drawer si algo falló: el
-        // usuario tiene que ver el motivo real y su preview para reintentar.
-        this.importError.set(`${resumen}${motivos.length ? ' Motivo: ' + motivos.join(' · ') : ''}`);
+      const resumen = `${res.nuevos} nuevo(s), ${res.actualizados} actualizado(s), ${res.saltados} saltado(s)${res.errores.length ? `, ${res.errores.length} con error` : ''}.`;
+      if (res.errores.length > 0) {
+        // Regla 8 — NO cantar éxito ni cerrar: el usuario ve los errores por fila.
+        this.importError.set(resumen);
         this.toast.warning('Importación con errores', resumen);
       } else {
         this.toast.success('Importación completada', resumen);

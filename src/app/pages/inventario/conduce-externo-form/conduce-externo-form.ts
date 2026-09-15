@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { TransporteV3Service, ProveedorTransporte, LugarBuscado } from '../../../../shared/services/transporte-v3.service';
+import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
@@ -28,8 +29,15 @@ interface LugarSel {
 })
 export class ConduceExternoForm {
   private svc = inject(TransporteV3Service);
+  private solicitudes = inject(SolicitudesMaterialService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  // BR5 — cuando se abre desde una requisición ("Comprar en ferretería"): queda
+  // enlazado (origen_requisicion_id) y cuenta en el avance al confirmarse la compra.
+  origenRequisicionId = signal<string | null>(null);
+  reqCodigo = signal<string>('');
 
   // Proveedor
   proveedores = signal<ProveedorTransporte[]>([]);
@@ -64,6 +72,25 @@ export class ConduceExternoForm {
       this.proveedores.set(await this.svc.proveedores());
     } catch {
       /* catálogo vacío no es error */
+    }
+    // BR5 — abierto desde una requisición: enlaza + prellena destino (obra) y material.
+    const qp = this.route.snapshot.queryParamMap;
+    const reqId = qp.get('requisicion');
+    if (reqId) {
+      this.origenRequisicionId.set(reqId);
+      this.reqCodigo.set('REQ-' + reqId.slice(0, 6).toUpperCase());
+      const destino = qp.get('destino');
+      if (destino) { this.destinoQuery.set(destino); }
+      try {
+        const pend = await this.solicitudes.pendientesParaCompra(reqId);
+        const conFaltante = pend.filter((p) => p.pendiente > 0);
+        if (conFaltante.length) {
+          this.material.set(
+            'Compra para ' + this.reqCodigo() + ':\n' +
+            conFaltante.map((p) => `- ${p.nombre} x ${p.pendiente}`).join('\n'),
+          );
+        }
+      } catch { /* si no se pueden leer los pendientes, el material queda editable */ }
     }
   }
 
@@ -163,6 +190,7 @@ export class ConduceExternoForm {
         origenProyectoId: o?.proyectoId ?? null, origenBodegaId: o?.bodegaId ?? null,
         destino: d?.texto ?? null, destinoLat: d?.lat ?? null, destinoLng: d?.lng ?? null,
         destinoProyectoId: d?.proyectoId ?? null, destinoBodegaId: d?.bodegaId ?? null,
+        origenRequisicionId: this.origenRequisicionId(),
       });
       this.toast.success('Conduce externo emitido', 'El viaje quedó registrado (pendiente de pago).');
       this.router.navigate(['/inventario/conduces-externos'], { queryParams: { nuevo: id } });

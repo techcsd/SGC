@@ -1,0 +1,89 @@
+// BO10 — Cartillas de acero.
+.cart-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  align-items: center;
+
+  select, input { min-width: 0; }
+}
+
+.cart-acero {
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  &__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  h3 { margin: 0; }
+  &__chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  &__chip {
+    padding: 0.3rem 0.6rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.85rem;
+  }
+}
+
+.cart-detalle {
+  &__meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem 1rem;
+    dt { font-size: 0.72rem; color: var(--main-ultra-light); }
+    dd { margin: 0; }
+  }
+  &__obs { padding: 0.5rem; background: var(--surface-2); border-radius: 8px; }
+  &__nota { margin-top: 0.5rem; input { width: 100%; box-sizing: border-box; } }
+  &__acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+}
+
+.cart-atado { margin-top: 0.75rem; h4 { margin: 0 0 0.35rem; } }
+.cart-piezas { width: 100%; font-size: 0.82rem; }
+
+.cart-fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+}
+
+.cart-eventos {
+  list-style: none;
+  margin: 0.35rem 0;
+  padding: 0;
+  li { padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+}
+
+.cart-captura {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  &__total { text-align: right; }
+  &__acciones { display: flex; justify-content: flex-end; gap: 0.5rem; }
+}
+
+.cart-cap-atado {
+  padding: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+
+  &__head { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.4rem; input { flex: 1; min-width: 0; } }
+}
+
+.cart-cap-pieza {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.35rem 0;
+  border-top: 1px dashed var(--border);
+
+  &__marca { width: 5rem; }
+  &__cant { width: 4rem; }
+  &__peso { font-size: 0.8rem; color: var(--main-ultra-light); min-width: 4.5rem; text-align: right; }
+}
+.cart-cap-tramos { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; input { width: 4rem; } }

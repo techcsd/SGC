@@ -186,7 +186,7 @@ export class AdminService {
    * esa cédula (AU18). Devuelve el email sintético generado.
    */
   async crearUsuarioCedula(payload: {
-    tipo: 'capataz' | 'conductor';
+    tipo: 'capataz' | 'conductor' | 'encargado';
     nombre: string;
     cedula: string;
     pin: string;

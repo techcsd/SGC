@@ -46,12 +46,18 @@ function esPinTrivial(pin: string, cedula = ""): boolean {
   return false;
 }
 
-type Tipo = "conductor" | "capataz";
+// BR8 — el acceso por cédula+PIN ya no es solo para choferes/capataces. "El flaco"
+// (Encargado de Patio y Bodega Central) no tiene correo y necesita entrar por cédula.
+// Añadimos el tipo `encargado` con dominio propio @acceso.constructorasd.local — NO
+// @conductores. — para que el trigger `asegurar_conductor_de_usuario` (regla 13, BP1),
+// cuyo regex solo mira @conductores., NO le fabrique una ficha de conductor.
+type Tipo = "conductor" | "capataz" | "encargado";
 interface Cfg {
   tabla: string;
   dominio: string;
   prefijo: string;
   rol: string;
+  soloAltaDirecta?: boolean; // no tiene tabla de ficha; solo alta directa / rotación por usuarioId
   cedula: (row: Record<string, unknown>) => string;
   nombre: (row: Record<string, unknown>) => string;
 }
@@ -68,8 +74,14 @@ const CFG: Record<Tipo, Cfg> = {
     cedula: (r) => String(r.documento_numero ?? ""),
     nombre: (r) => `${r.nombre ?? ""} ${r.apellido ?? ""}`.trim() || "Capataz",
   },
+  encargado: {
+    tabla: "usuarios", dominio: "@acceso.constructorasd.local", prefijo: "e-",
+    rol: "encargado_patio", soloAltaDirecta: true,
+    cedula: (r) => String(r.cedula ?? ""),
+    nombre: (r) => String(r.nombre ?? "Encargado"),
+  },
 };
-const SYNTH_DOMAINS = ["@conductores.constructorasd.local", "@personal.constructorasd.local", "@test.constructorasd.local"];
+const SYNTH_DOMAINS = ["@conductores.constructorasd.local", "@personal.constructorasd.local", "@acceso.constructorasd.local", "@test.constructorasd.local"];
 function esEmailSintetico(email: string): boolean {
   return SYNTH_DOMAINS.some((d) => email.toLowerCase().endsWith(d));
 }
@@ -152,8 +164,12 @@ Deno.serve(async (req: Request) => {
       return json({ usuarioId, email, rotated: true });
     }
 
-    if (tipo !== "conductor" && tipo !== "capataz") return json({ error: "tipo inválido." }, 400);
+    if (tipo !== "conductor" && tipo !== "capataz" && tipo !== "encargado") return json({ error: "tipo inválido." }, 400);
     const cfg = CFG[tipo as Tipo];
+    // BR8 — los tipos sin tabla de ficha (encargado) solo se dan de alta directa.
+    if (cfg.soloAltaDirecta && (typeof entityId === "string" && entityId)) {
+      return json({ error: `El tipo '${tipo}' se crea por alta directa (nombre + cédula), no desde una ficha.` }, 400);
+    }
     // BH4 — dos modos: desde una ficha existente (entityId) o ALTA DIRECTA (nombre+cedula).
     const altaDirecta = (!entityId || typeof entityId !== "string") &&
       typeof nombreDirecto === "string" && String(nombreDirecto).trim() !== "" &&

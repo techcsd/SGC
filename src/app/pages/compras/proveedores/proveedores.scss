@@ -270,3 +270,17 @@ textarea {
     font-weight: 600;
   }
 }
+
+// BO3 (§E-2) — tabla de errores por fila del import de proveedores.
+.import-prov__errores {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+  h4 { margin: 0 0 0.4rem; color: var(--danger, #d33); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--border); }
+  td:last-child { color: var(--main-ultra-light); }
+}

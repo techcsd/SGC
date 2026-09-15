@@ -110,16 +110,23 @@ export class ProveedoresService {
     if (error) throw new Error(error.message);
   }
 
-  /** AG7 — inserta un lote de proveedores nuevos (uno por fila). Devuelve los creados. */
-  async insertMany(payloads: ProveedorPayload[]): Promise<Proveedor[]> {
-    if (!payloads.length) return [];
-    const { data, error } = await this.supabase.client
-      .schema('sgc')
-      .from('proveedores')
-      .insert(payloads.map((p) => pickColumns(stripNullish(p), PROVEEDOR_COLS)))
-      .select('*');
+  /** BO3 (§E-2) — importa proveedores FILA A FILA (una fila mala no tumba el lote).
+   *  Devuelve conteos + errores por fila. Dedup por RNC / nombre normalizado. */
+  async importarProveedores(
+    filas: Record<string, unknown>[],
+    modo: 'actualizar' | 'saltar' = 'actualizar',
+  ): Promise<{ nuevos: number; actualizados: number; saltados: number; errores: { fila: number; nombre: string | null; rnc: string | null; msg: string }[] }> {
+    const { data, error } = await this.supabase.client.schema('sgc').rpc('importar_proveedores', {
+      p_filas: filas, p_modo: modo,
+    });
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as Proveedor[];
+    const r = (data ?? {}) as { nuevos?: number; actualizados?: number; saltados?: number; errores?: unknown };
+    return {
+      nuevos: Number(r.nuevos ?? 0),
+      actualizados: Number(r.actualizados ?? 0),
+      saltados: Number(r.saltados ?? 0),
+      errores: (Array.isArray(r.errores) ? r.errores : []) as { fila: number; nombre: string | null; rnc: string | null; msg: string }[],
+    };
   }
 
   /** AL3 — registra la bitácora de una importación (quién/cuándo/cuántos). Best-effort. */

@@ -1,0 +1,91 @@
+// BR2 — selector de usuario con búsqueda (tokens BD3, tema claro/oscuro).
+.user-picker {
+  position: relative;
+  width: 100%;
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  &__otro {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  &__link {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: var(--sgc-accent, var(--primary));
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    max-width: 100%;
+
+    &--libre { border-style: dashed; }
+    &-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    &-x {
+      background: none;
+      border: none;
+      color: var(--main-ultra-light);
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 0;
+    }
+  }
+
+  &__list {
+    position: absolute;
+    z-index: 40;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  &__opt {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 0.6rem;
+    cursor: pointer;
+    color: inherit;
+
+    &:hover { background: var(--surface-2); }
+    &-rol { font-size: 0.72rem; color: var(--main-ultra-light); }
+    &--otro { color: var(--sgc-accent, var(--primary)); font-weight: 600; }
+  }
+
+  &__muted {
+    padding: 0.5rem 0.6rem;
+    color: var(--main-ultra-light);
+    font-size: 0.85rem;
+  }
+}

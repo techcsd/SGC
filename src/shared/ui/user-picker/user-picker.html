@@ -1,0 +1,49 @@
+<!-- BR2 — selector de usuario con búsqueda + "Otro (nombre libre)". -->
+<div class="user-picker">
+  @if (otroMode()) {
+    <div class="user-picker__otro">
+      <input type="text" [value]="otroNombre()" (input)="otroNombre.set($any($event.target).value)"
+        (blur)="confirmarOtro()" (keydown.enter)="confirmarOtro()"
+        placeholder="Nombre del responsable (externo)" maxlength="150" [disabled]="disabled()" />
+      <button type="button" class="user-picker__link" (click)="otroMode.set(false)">Elegir de la lista</button>
+    </div>
+  } @else if (elegido(); as u) {
+    <div class="user-picker__chip">
+      <span class="user-picker__chip-name">{{ u.nombre }}</span>
+      @if (!disabled()) {
+        <button type="button" class="user-picker__chip-x" (click)="limpiar()" aria-label="Quitar">×</button>
+      }
+    </div>
+  } @else if (nombreLibre() && value() == null) {
+    <div class="user-picker__chip user-picker__chip--libre">
+      <span class="user-picker__chip-name">{{ nombreLibre() }}</span>
+      @if (!disabled()) {
+        <button type="button" class="user-picker__chip-x" (click)="limpiar()" aria-label="Quitar">×</button>
+      }
+    </div>
+  } @else {
+    <input type="text" [value]="query()" (input)="query.set($any($event.target).value); abrir()"
+      (focus)="abrir()" [placeholder]="placeholder()" [disabled]="disabled()" autocomplete="off" />
+    @if (open()) {
+      <ul class="user-picker__list" role="listbox">
+        @if (loading()) {
+          <li class="user-picker__muted">Cargando…</li>
+        } @else {
+          @for (u of filtered(); track u.id) {
+            <li>
+              <button type="button" class="user-picker__opt" (click)="elegir(u)">
+                <span class="user-picker__opt-name">{{ u.nombre }}</span>
+                @if (u.roles?.length) { <span class="user-picker__opt-rol">{{ u.roles?.join(', ') }}</span> }
+              </button>
+            </li>
+          } @empty {
+            <li class="user-picker__muted">Sin resultados</li>
+          }
+          @if (allowOtro()) {
+            <li><button type="button" class="user-picker__opt user-picker__opt--otro" (click)="usarOtro()">+ Otro (nombre libre)</button></li>
+          }
+        }
+      </ul>
+    }
+  }
+</div>

@@ -42,6 +42,10 @@ export interface EntradaInventario {
   // T2 — dato de prueba (oculto a no-admin por RLS; admin lo marca/elimina).
   es_prueba?: boolean;
   detalle_entradas?: DetalleEntrada[];
+  // BR4 — recepción rechazada (motivo obligatorio; no movió stock).
+  rechazada?: boolean;
+  rechazo_motivo?: string | null;
+  entrada_origen_id?: string | null;
 }
 
 export interface EntradaItemFormData {

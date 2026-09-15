@@ -188,3 +188,24 @@ medida en cm, escala automática al contenedor, imprimible en el PDF (SVG puro, 
 pantallas de captura (app) y revisión (web), reportes kg-por-obra-y-diámetro.
 
 **Pendiente: validación con Guilamo y Ramón + foto de una cartilla real.**
+
+---
+
+## Construido v1 (15-sep-2026) — PROMPT-52 F8
+
+Se construyó v1 con el modelo de esta propuesta (DEFAULT, Regla A). **Lo que Guilamo/Ramón pueden cambiar
+sin código, desde datos:** los catálogos `sgc.acero_diametros` (kg/m por diámetro) y `sgc.cartilla_figuras`
+(figuras de doblado) son administrables — hoy se editan por SQL/Admin. **Lo que requirió código:** el
+esquema (`cartillas`, `cartilla_atados`, `cartilla_piezas`, `cartilla_fotos`, `cartilla_eventos`), los RPCs
+(`crear_cartilla`, `cartilla_cambiar_estado`, `cartilla_detalle`, `cartillas_listado`, `cartillas_resumen_acero`),
+el bucket `sgc-cartillas`, la página `/bitacora/cartillas` (bandeja + detalle + captura + reporte "Acero por
+obra") y el contrato de la app (PARIDAD.md).
+
+**Decisiones aplicadas (DEFAULT, ajustables usando la herramienta):** por atado **y** por pieza; peso
+automático (kg/m × longitud × cantidad); plano de referencia = adjunto opcional; marcas libres por pieza;
+Ramón/oficina revisa/observa/exporta, el autor marca ejecutada tras revisada; fecha elegible (BL9, no
+real-time).
+
+**Residual (polish, no bloquea):** UI de Admin › Catálogos para diámetros/figuras (hoy por SQL); miniatura
+SVG de la figura en la pieza (hoy se muestra el nombre de la figura); captura de fotos/plano desde la web
+(el servicio `subirArchivo` está listo; falta cablear el input en el drawer de captura).

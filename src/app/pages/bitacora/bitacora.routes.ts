@@ -11,6 +11,9 @@ export const bitacoraRoutes: Routes = [
   { path: 'cobertura', loadComponent: () => import('./cobertura/cobertura').then((m) => m.BitacoraCobertura), title: 'Cobertura de bitácoras' },
   // BO9 — revisión de oficina de las medidas de moldes por obra.
   { path: 'moldes', loadComponent: () => import('./moldes/moldes').then((m) => m.BitacoraMoldes), title: 'Medidas de moldes' },
+  // BO10 — cartillas de acero (bandeja de oficina + captura + reporte de acero).
+  { path: 'cartillas', loadComponent: () => import('./cartillas/cartillas').then((m) => m.Cartillas), title: 'Cartillas de acero' },
+  { path: 'cartillas/:id', loadComponent: () => import('./cartillas/cartillas').then((m) => m.Cartillas), title: 'Cartillas de acero' },
   { path: 'mi-proyecto', loadComponent: () => import('./mi-proyecto/mi-proyecto').then((m) => m.MiProyecto) },
   {
     path: 'solicitudes-material',

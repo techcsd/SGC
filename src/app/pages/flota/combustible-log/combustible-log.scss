@@ -173,3 +173,11 @@
   &__antes { text-decoration: line-through; color: var(--sgc-text-muted); }
   &__despues { font-weight: 600; }
 }
+
+// BR1 — chips de estado de la echada (KM ALERTA / SIN ASIGNACIÓN) + acción Revisar.
+.cl-flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}

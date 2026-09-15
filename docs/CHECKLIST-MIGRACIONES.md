@@ -273,3 +273,19 @@ encolaron contra la identidad vieja.
   por `auth.uid()`, ignora el id huérfano con `raise notice`), `sql/2026-09-14-bq2-destinatarios-notificacion.sql`
   (predicado único `destinatarios_notificacion` que las 6 edges de correo llaman en vez de copiar la
   lista por módulo).
+
+## 15. El servidor no le impide a un usuario registrar lo que hizo (BR1/BQ7/BO5)
+
+- **Por qué:** un chofer echó gasolina **de verdad** y el sistema **rechazaba el dato** porque otro no
+  registró antes (salto de km irreal) o porque una tabla de asignación no lo listaba (AF18). El rechazo
+  duro debe quedar solo para lo **físicamente imposible** (galones > capacidad del tanque, precio fuera de
+  banda) — y aun esos, un rol elevado los **confirma**.
+- **Regla:** el servidor **acepta** el dato con una **bandera** (`km_alerta`, `sin_asignacion`) y **avisa
+  a quien puede resolverlo** (Logística), en vez de lanzar una excepción. El mensaje al usuario **dice
+  quién** puede ayudarle. Corolario cliente: un dato rechazado por negocio siempre ofrece **"Descartar"** y
+  **"Avisar a quien puede"** — nunca se queda en cola para siempre.
+- **Casos reales (BR):** `sql/2026-09-15-br1-combustible-acepta-y-avisa.sql` (AF18 une `vehiculo_usos` y ya
+  no rechaza → `sin_asignacion` + aviso; el salto de km acepta a todos con `km_alerta`; `km_base_combustible`
+  editable por admin; cron `sgc-vehiculos-sin-echada` que avisa proactivamente),
+  `sql/2026-09-15-br4-recepcion-rechazar.sql` (rechazar una recepción con motivo + aviso al emisor, sin
+  mover stock).
