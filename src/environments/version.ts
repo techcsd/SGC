@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.131.0';
-export const APP_VERSION_TITULO: string | null = "Avisos de bodega al encargado, daños en el informe semanal y arreglos";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Inventario","d":"Cuando llega mercancía a una bodega que tiene un encargado asignado, el encargado recibe un aviso de \"Conduce por confirmar\" (antes solo aparecía en la bandeja, sin aviso)."},{"t":"mejora","m":"Proyectos","d":"El informe semanal de obra ahora incluye una sección de Daños con el material o equipo dañado reportado en las bitácoras de la semana."},{"t":"mejora","m":"Inventario","d":"En Retiros, un retiro que nació de un daño en la bitácora ahora muestra la etiqueta \"desde bitácora\" y enlaza a la bitácora que lo originó."},{"t":"arreglo","m":"Tecnología","d":"Arreglado el error al vincular un ítem de una Dev note a un issue o a una versión (antes fallaba)."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/a397724";
+export const APP_VERSION = '1.132.0';
+export const APP_VERSION_TITULO: string | null = "Compositor de moldes en la bitácora del día";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Bitácora","d":"En «Moldes del día» ahora puedes armar la formación con el nuevo modo «Compositor»: colocas figuras (rectángulo, L, T, U, círculo) en un lienzo con rejilla de 5 cm, las mueves, giras y ajustas sus medidas reales y de plano; cada figura es un molde. Sigue disponible la ficha de siempre para escribir las medidas."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/421faad";

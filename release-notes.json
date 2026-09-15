@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.132.0": {
+      "titulo": "Compositor de moldes en la bitácora del día",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "En «Moldes del día» ahora puedes armar la formación con el nuevo modo «Compositor»: colocas figuras (rectángulo, L, T, U, círculo) en un lienzo con rejilla de 5 cm, las mueves, giras y ajustas sus medidas reales y de plano; cada figura es un molde. Sigue disponible la ficha de siempre para escribir las medidas."
+        }
+      ]
+    },
     "1.128.1": {
       "titulo": "Arreglos de auditoría: reportes de error que se perdían y compresión de fotos de personal",
       "cambios": [

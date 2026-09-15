@@ -45,6 +45,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
+import { MoldeCompositor, CompositorFigura } from '../../../../shared/ui/molde-compositor/molde-compositor';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -106,6 +107,7 @@ interface MoldeRow {
   tramos: MoldeTramoForm[];
   notas: string;
   fotos: File[];
+  desdeCompositor?: boolean; // BQ8c — fila originada por el compositor (no se envía; solo para preservar las de la ficha al alternar de modo)
 }
 type MoldeDraft = Omit<MoldeRow, 'fotos'>;
 
@@ -132,13 +134,15 @@ interface Draft {
   equipos?: EquipoRow[];
   danos?: DanoDraft[]; // BP4 — sin fotos (File no serializa)
   moldes?: MoldeDraft[]; // BO9 — sin fotos
+  moldeModo?: 'ficha' | 'compositor'; // BQ8c
+  compositorFiguras?: CompositorFigura[]; // BQ8c
   estructurasOtras?: string[];
   actividadesOtras?: Record<string, string[]>; // AZ6 — actividades libres por estructura
 }
 
 @Component({
   selector: 'app-bitacora-nueva',
-  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema, ArticuloPicker],
+  imports: [ReactiveFormsModule, RouterLink, QtyStepper, Skeleton, FileUpload, Icon, MoldeEsquema, MoldeCompositor, ArticuloPicker],
   templateUrl: './nueva.html',
   styleUrl: './nueva.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -270,6 +274,11 @@ export class Nueva implements OnInit {
   // BO9 — moldes del día (parte diario). Lista dinámica.
   moldes = signal<MoldeRow[]>([]);
   moldeToleranciaCm = signal(2);
+  // BQ8c — dos modos de captura: "Ficha" (default) y "Compositor" (lienzo de figuras).
+  // Ambos escriben la MISMA lista `moldes` → el payload no cambia. El compositor
+  // gestiona las filas `desdeCompositor`; las de la ficha se conservan al alternar.
+  moldeModo = signal<'ficha' | 'compositor'>('ficha');
+  compositorFiguras = signal<CompositorFigura[]>([]);
 
   // Daily-log controls carry required validators toggled off for visita/incidente.
   private readonly PARTE_CONTROLS = [
@@ -654,6 +663,8 @@ export class Nueva implements OnInit {
       equipos: this.equiposAlquilados(),
       danos: this.danos().map(({ fotos, ...rest }) => rest), // fotos (File) no serializan
       moldes: this.moldes().map(({ fotos, ...rest }) => rest),
+      moldeModo: this.moldeModo(), // BQ8c
+      compositorFiguras: this.compositorFiguras(), // BQ8c
       estructurasOtras: this.estructurasOtras(),
       actividadesOtras: this.actividadesOtras(),
     };
@@ -678,6 +689,8 @@ export class Nueva implements OnInit {
     // BP4 — fotos se re-agregan; articulo_id/esOtro por defecto para borradores previos.
     this.danos.set((draft.danos ?? []).map((d) => ({ ...d, articulo_id: d.articulo_id ?? null, esOtro: d.esOtro ?? false, fotos: [] })));
     this.moldes.set((draft.moldes ?? []).map((m) => this.normalizarMoldeDraft(m))); // BO9 (soporta borradores legacy)
+    this.moldeModo.set(draft.moldeModo ?? 'ficha'); // BQ8c
+    this.compositorFiguras.set(draft.compositorFiguras ?? []); // BQ8c
     // AX6 — restaura las estructuras "Otros"; deriva las que falten de las llaves
     // `bloque|estructura|actividad` para que la matriz pinte sus grupos.
     const otras = new Set(draft.estructurasOtras ?? []);
@@ -1040,6 +1053,49 @@ export class Nueva implements OnInit {
     this.saveDraft();
   }
 
+  // ── BQ8c — modo Compositor (lienzo de figuras) ────────────────────────────
+  setMoldeModo(modo: 'ficha' | 'compositor') {
+    this.moldeModo.set(modo);
+    this.saveDraft();
+  }
+
+  private static readonly FORMA_DE_TIPO: Record<string, MoldeRow['forma']> = {
+    rect: 'rectangular', L: 'L', T: 'T', U: 'U', circle: 'circular',
+  };
+
+  /** Una figura del compositor = un molde de un tramo (geometría + real/plano). */
+  private figuraToMoldeRow(f: CompositorFigura): MoldeRow {
+    return {
+      estructura: '',
+      identificador: `Figura ${f.id}`,
+      forma: Nueva.FORMA_DE_TIPO[f.tipo] ?? 'rectangular',
+      tramos: [
+        {
+          lado: 'A',
+          largo_cm: f.largo_cm ?? null,
+          alto_cm: f.alto_cm ?? null,
+          espesor_cm: f.espesor_cm ?? null,
+          plano_largo_cm: f.plano_largo_cm ?? null,
+          plano_alto_cm: f.plano_alto_cm ?? null,
+          plano_espesor_cm: f.plano_espesor_cm ?? null,
+        },
+      ],
+      notas: '',
+      fotos: [],
+      desdeCompositor: true,
+    };
+  }
+
+  /** El compositor emitió su lista: sincroniza las filas del compositor en `moldes`,
+   *  conservando las que se agregaron por la ficha. */
+  onCompositorCambio(figuras: CompositorFigura[]) {
+    this.compositorFiguras.set(figuras);
+    const fichaRows = this.moldes().filter((m) => !m.desdeCompositor);
+    const figRows = figuras.map((f) => this.figuraToMoldeRow(f));
+    this.moldes.set([...figRows, ...fichaRows]);
+    this.saveDraft();
+  }
+
   updateMoldeText(index: number, field: 'estructura' | 'identificador' | 'notas', value: string) {
     this.moldes.update((list) => list.map((m, i) => (i === index ? { ...m, [field]: value } : m)));
     this.saveDraft();
@@ -1139,6 +1195,7 @@ export class Nueva implements OnInit {
       tramos,
       notas: typeof raw['notas'] === 'string' ? (raw['notas'] as string) : '',
       fotos: [],
+      desdeCompositor: raw['desdeCompositor'] === true, // BQ8c — conserva el origen al retomar el borrador
     };
   }
 

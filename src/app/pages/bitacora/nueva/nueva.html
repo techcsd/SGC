@@ -635,6 +635,25 @@
         medida de plano, se compara y avisa cuando el desvío pasa la tolerancia.
       </p>
 
+      <!-- BQ8c — toggle Ficha / Compositor (ambos escriben la misma lista de moldes) -->
+      <div class="molde-modo" role="group" aria-label="Modo de captura de moldes">
+        <button type="button" class="sgc-btn sgc-btn--sm"
+          [class.sgc-btn--primary]="moldeModo() === 'ficha'" [class.sgc-btn--ghost]="moldeModo() !== 'ficha'"
+          (click)="setMoldeModo('ficha')">Ficha</button>
+        <button type="button" class="sgc-btn sgc-btn--sm"
+          [class.sgc-btn--primary]="moldeModo() === 'compositor'" [class.sgc-btn--ghost]="moldeModo() !== 'compositor'"
+          (click)="setMoldeModo('compositor')">Compositor</button>
+      </div>
+
+      @if (moldeModo() === 'compositor') {
+        <p class="bitacora-section__hint">
+          Arma la formación con figuras: colócalas en la rejilla de 5&nbsp;cm, muévelas, gíralas y
+          ajusta sus medidas reales y de plano. Cada figura es un molde.
+        </p>
+        <app-molde-compositor [valorInicial]="compositorFiguras()" [toleranciaCm]="moldeToleranciaCm()"
+          (cambio)="onCompositorCambio($event)" />
+      } @else {
+
       @for (m of moldes(); track $index; let i = $index) {
         <div class="dano-row">
           <div class="dano-row__head">
@@ -719,6 +738,7 @@
       <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addMolde()">
         + Agregar molde
       </button>
+      }
     </section>
     }
 

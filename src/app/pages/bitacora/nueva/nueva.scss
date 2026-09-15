@@ -362,6 +362,12 @@
   padding: 10px;
   background: var(--sgc-surface-2, transparent);
 }
+// BQ8c — segmentado Ficha / Compositor
+.molde-modo {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
 // BO9 — lado (tramo) de un molde compuesto (L/T/U)
 .molde-tramo {
   display: flex;
