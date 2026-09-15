@@ -10,7 +10,12 @@
 
 **Pendiente menor (no bloquea, próxima ronda):** BQ4 wiring "encargado de bodega destino primero" verificar en runtime; §D polish BP4/BP5/BP6 residual; **BQ6 espera que Xaviel diga qué vehículos "no salen"** (la vista `v_reporte_semanal_cumplimiento` está sana). App = PROMPT-51 (paridad `molde-esquema` v2 / `molde-compositor` / `destinatarios_notificacion`).
 
-**Verify on resume:** `git log -1` = commit de 1.130.0; prod web = 1.130.0 (Vercel READY); todos los objetos de arriba EXISTEN en prod.
+**Verify on resume:** `git log -1` = commit de 1.130.0 (`6b6279e`) o el follow-up de bq4-aviso; prod web = 1.130.0 (Vercel READY, registrado en `app_versiones` 15/09 12:55 UTC); todos los objetos de arriba EXISTEN en prod.
+
+**Continuación 15/09 (post-ship, autónomo):**
+- **§D polish BP — 3 migraciones aplicadas + verificadas en prod** (cerraban features cuyo frontend YA vivía en 1.130.0): `bp4b` (`compilar_informe_semanal` suma sección **Daños** de `bitacora_danos`), `bp4c` (`retiros_listado` devuelve `bitacora_id` → link "desde bitácora" funciona), `bp5-ref-tipo` (`nota_checklist_items.ref_tipo` acepta `tarea/issue/version` — **cerraba un 23514 activo** al vincular dev-note a issue/versión). Dry-run + verificación por objeto OK.
+- **BQ4 aviso al encargado — COMPLETADO** (`sql/2026-09-15-bq4-aviso-encargado-conduce.sql`, aplicado + smoke 3 ramas). Diagnóstico: hoy la recepción es 100% pull (badge `mis_entregas_por_confirmar`); NADIE recibía aviso al llegar mercancía. Fix = **1 trigger** `trg_conduce_por_confirmar` AFTER UPDATE en `salidas_inventario` (misma condición que abre el badge: estado entregado/incompleto + `recibido_por` null + destino bodega + no es_prueba; cubre todos los RPCs de entrega, regla 13) + primitivo `notificar_usuarios(uuid[],…)`. **Semántica (regla 7, decisión de diseño):** bodega CON encargado → aviso SÓLO al encargado (1 ping; smoke=1, incluye El flaco aunque su rol `encargado_patio` sea es_operativo — `notificar_modulo` lo excluye); bodega SIN encargado → respaldo al módulo inventario (smoke=18). El tipo `conduce_por_confirmar` es es_operativa (insilenciable) → se evitó spamear 18 insilenciables por conduce; para volver a "siempre módulo" cambiar el `else` del trigger. Esto completa la promesa de 1.130.0 ("el encargado de una bodega recibe primero los avisos"), sin bump.
+- **PENDIENTE de push:** `sql/2026-09-15-bq4-aviso-encargado-conduce.sql` está aplicado en prod pero SIN commit (regla 11 — falta subirlo). BQ6 sigue esperando qué vehículos "no salen".
 
 ---
 
