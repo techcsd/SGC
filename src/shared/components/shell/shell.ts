@@ -37,6 +37,7 @@ interface NavItem {
   noChofer?: boolean;
   /** AL1 — grupo de plataforma "Sistema": solo admin | rol tecnologia | gerencia | dirección. */
   soloTecnologia?: boolean;
+  soloDesarrollador?: boolean;
   /** AF32 — visible además para roles de flota elevados aunque no tengan el módulo
    *  (el jefe de flota entra a Compras SOLO por Proveedores). */
   flotaElevado?: boolean;
@@ -72,6 +73,7 @@ interface NavSubItem {
   flotaElevado?: boolean;
   /** Y11 — solo visible para admin | rol tecnologia (módulo Tecnología de plataforma). */
   soloTecnologia?: boolean;
+  soloDesarrollador?: boolean;
   /** AS10 — solo visible para admin (herramientas admin como Apertura). */
   soloAdmin?: boolean;
   /** AG12 — visible si el usuario puede VER este submódulo (permiso granular). */
@@ -386,7 +388,7 @@ export class Shell implements OnInit {
         { label: 'Estadísticas', route: '/tecnologia/estadisticas', soloTecnologia: true },
         { label: 'Reportes de errores', route: '/tecnologia/reportes-errores', soloTecnologia: true },
         { label: 'Issues (Jira interno)', route: '/tecnologia/issues', soloTecnologia: true },
-        { label: 'Dev notes', route: '/tecnologia/dev-notes', soloTecnologia: true },
+        { label: 'Dev notes', route: '/tecnologia/dev-notes', soloDesarrollador: true },
         { label: 'Resumen de operaciones', route: '/tecnologia/resumen-operaciones', soloTecnologia: true },
         { label: 'Consultas de Compa', route: '/tecnologia/consultas-compa', soloTecnologia: true },
         { label: 'Outbox atascado', route: '/tecnologia/outbox-atascados', soloTecnologia: true },
@@ -469,6 +471,7 @@ export class Shell implements OnInit {
     if (child.flotaElevado && !this.userService.esFlotaElevado()) return false;
     // Y11 — submódulos de plataforma solo para admin | rol tecnologia.
     if (child.soloTecnologia && !this.userService.esTecnologia()) return false;
+    if (child.soloDesarrollador && !this.userService.esDesarrollador()) return false;
     // AS10 — herramientas admin (Apertura de inventario).
     if (child.soloAdmin && !this.userService.hasRole('admin')) return false;
     // AS7 — bandeja global de requisiciones (inventario o roles de proyecto).
@@ -620,6 +623,7 @@ export class Shell implements OnInit {
     if (item.showIfAnyChild) return (item.children ?? []).some((c) => this.canAccessChild(c));
     // AL1 — grupo "Sistema" (plataforma): solo es_tecnologia.
     if (item.soloTecnologia && !this.userService.esTecnologia()) return false;
+    if (item.soloDesarrollador && !this.userService.esDesarrollador()) return false;
     // AF32 — acceso extra por flota elevado (p. ej. Compras solo-Proveedores).
     if (item.flotaElevado && this.userService.esFlotaElevado()) return true;
     // AG12 — acceso extra por permiso granular de submódulo (p. ej. Compras solo-Proveedores).

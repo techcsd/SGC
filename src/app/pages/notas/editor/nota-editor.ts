@@ -53,7 +53,7 @@ export class NotaEditor implements OnInit, OnDestroy {
 
   readonly COLORES = NOTA_COLORES;
   /** BP5 — solo Tecnología ve la acción "Mover a Dev notes". */
-  readonly esTecnologia = this.userService.esTecnologia;
+  readonly esDesarrollador = this.userService.esDesarrollador;
   private bodyRef = viewChild<ElementRef<HTMLDivElement>>('body');
 
   // Estado de la nota.
@@ -152,7 +152,7 @@ export class NotaEditor implements OnInit, OnDestroy {
       this.directorio.set(dir.filter((u) => u.id !== this.userService.profile()?.id));
       this.tareas.set(tar);
       // BP5 (F10) — issues + versiones vinculables (solo Tecnología las gestiona).
-      if (this.esTecnologia()) {
+      if (this.esDesarrollador()) {
         this.jira.listar().then((is) => this.issues.set(is.map((i) => ({ id: i.id, label: i.titulo }))))
           .catch(() => { /* opcional */ });
         this.versionesSvc.getHistorial().then((vs) => this.versiones.set(
@@ -490,7 +490,7 @@ export class NotaEditor implements OnInit, OnDestroy {
   // Solo Tecnología + dueño. Tras moverla deja de verse en /notas (filtra
   // ambito='general') y aparece en /tecnologia/dev-notes.
   async moverADevNotes() {
-    if (this.soloLectura() || !this.esTecnologia() || !this.esOwner()) return;
+    if (this.soloLectura() || !this.esDesarrollador() || !this.esOwner()) return;
     const id = this.notaId();
     if (!id) return;
     if (this.saveTimer) clearTimeout(this.saveTimer);

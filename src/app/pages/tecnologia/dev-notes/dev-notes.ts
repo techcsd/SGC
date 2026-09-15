@@ -99,7 +99,8 @@ export class DevNotes implements OnInit {
   });
 
   async ngOnInit() {
-    this.notasSvc.getDirectorio().then((d) => this.directorio.set(d)).catch(() => {});
+    // BR — dev notes solo se comparten con desarrolladores (Tecnología/programación).
+    this.notasSvc.getDirectorioDesarrolladores().then((d) => this.directorio.set(d)).catch(() => {});
     await this.recargar();
   }
 

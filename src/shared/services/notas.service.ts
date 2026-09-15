@@ -43,6 +43,14 @@ export class NotasService {
     return (data ?? []) as DirectorioUsuario[];
   }
 
+  /** BR — solo desarrolladores/programadores (Tecnología), para compartir DEV notes.
+   *  Las dev notes no deben salirle a nadie más (la RLS y compartir_nota también lo blindan). */
+  async getDirectorioDesarrolladores(): Promise<DirectorioUsuario[]> {
+    const { data, error } = await this.supabase.client.rpc('directorio_desarrolladores');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as DirectorioUsuario[];
+  }
+
   /** AH18 — Trae UNA nota por id directamente (RLS decide el acceso: dueño o
    *  compartida). Robusto ante timing del perfil y no depende de traer "todas mis
    *  notas" para filtrar. Devuelve null si no existe o no tengo acceso; enriquece

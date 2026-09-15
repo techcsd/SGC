@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.134.0';
-export const APP_VERSION_TITULO: string | null = "Cierre web de la ronda BR: responsable por usuario en salidas, cartillas más completas y más filtros";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"mejora","m":"Inventario","d":"Al registrar una salida/conduce, el responsable se elige buscando por usuario (queda enlazado), igual que en aprobar requisición."},{"t":"arreglo","m":"Inventario","d":"Una entrada sin ningún renglón ya no se puede crear (el servidor la rechaza), además del bloqueo que ya había en pantalla."},{"t":"mejora","m":"Bitácora","d":"Cartillas de acero: cada figura muestra su dibujo (recta, L, U, estribo, gancho, Z); la captura web permite adjuntar fotos y el plano; y el administrador puede editar los kg/m de cada diámetro y las figuras desde «Catálogos»."},{"t":"mejora","m":"Inventario","d":"El filtro de estado en Almacenes ahora es un chip con popover (como los demás filtros)."},{"t":"mejora","m":"Tecnología","d":"En las notas, un ítem del checklist se puede enlazar también a un issue o a una versión (antes solo a una tarea)."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/d9ffd25";
+export const APP_VERSION = '1.135.0';
+export const APP_VERSION_TITULO: string | null = "Dev notes: visibles solo para Tecnología / desarrollo";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"seguridad","m":"Tecnología","d":"Las Dev notes ahora solo las ven y se comparten con desarrollador/programador (admin + rol Tecnología + Encargado de Tecnología). Antes gerencia y dirección también podían verlas. Se blindó en el servidor (RLS + compartir), la ruta, el menú y el selector de compartir."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/2c1ca4f";

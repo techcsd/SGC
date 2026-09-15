@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.135.0": {
+      "titulo": "Dev notes: visibles solo para Tecnología / desarrollo",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "m": "Tecnología",
+          "d": "Las Dev notes ahora solo las ven y se comparten con desarrollador/programador (admin + rol Tecnología + Encargado de Tecnología). Antes gerencia y dirección también podían verlas. Se blindó en el servidor (RLS + compartir), la ruta, el menú y el selector de compartir."
+        }
+      ]
+    },
     "1.134.0": {
       "titulo": "Cierre web de la ronda BR: responsable por usuario en salidas, cartillas más completas y más filtros",
       "cambios": [

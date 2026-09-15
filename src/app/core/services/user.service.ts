@@ -101,6 +101,18 @@ export class UserService {
   );
 
   /**
+   * BR — desarrollador/programador: SOLO admin + rol Tecnología + Encargado de
+   * Tecnología. Más estrecho que `esTecnologia` (excluye gerencia/dirección).
+   * Reservado a las **Dev notes**. Debe coincidir con `sgc.es_desarrollador()`.
+   */
+  esDesarrollador = computed(
+    () =>
+      this.hasRole('admin') ||
+      this.hasRole('tecnologia') ||
+      this.hasRole('encargado_tecnologia'),
+  );
+
+  /**
    * AC2 — persona "chofer": el usuario de experiencia reducida que entra por
    * cédula + PIN (rol `chofer_transportista`). El módulo Tecnología es visible
    * para todos EXCEPTO este perfil. Debe coincidir con `sgc.es_chofer()`.

@@ -18,7 +18,7 @@
           [title]="pinned() ? 'Quitar fijado' : 'Fijar'"><app-icon name="map-pin" [size]="15" /> {{ pinned() ? 'Fijada' : 'Fijar' }}</button>
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="toggleArchivar()"
           [title]="archivada() ? 'Desarchivar' : 'Archivar'"><app-icon name="archive" [size]="15" /> {{ archivada() ? 'Archivada' : 'Archivar' }}</button>
-        @if (esTecnologia() && esOwner() && !esNueva()) {
+        @if (esDesarrollador() && esOwner() && !esNueva()) {
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="moverADevNotes()"
             title="Mover esta nota a Dev notes (solo Tecnología)"><app-icon name="code" [size]="15" /> Mover a Dev notes</button>
         }
@@ -97,7 +97,7 @@
 
             @if (linkingItemId() === item.id) {
               <div class="nota-editor__link-picker">
-                @if (esTecnologia()) {
+                @if (esDesarrollador()) {
                   <select class="nota-editor__link-select" [value]="linkTipo()" (change)="linkTipo.set($any($event.target).value)">
                     <option value="tarea">Tarea</option>
                     <option value="issue">Issue</option>

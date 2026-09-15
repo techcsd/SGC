@@ -15,6 +15,17 @@ export const tecnologiaGuard: CanActivateFn = () => {
 };
 
 /**
+ * BR — Guard de las **Dev notes**: SOLO desarrollador/programador (admin, rol
+ * Tecnología, Encargado de Tecnología). Más estrecho que `tecnologiaGuard` (excluye
+ * gerencia/dirección). Debe coincidir con `sgc.es_desarrollador()` (RLS de `notas`).
+ */
+export const desarrolladorGuard: CanActivateFn = () => {
+  const userService = inject(UserService);
+  const router = inject(Router);
+  return userService.esDesarrollador() ? true : router.createUrlTree(['/403']);
+};
+
+/**
  * AL1 — Guard del contenedor `/tecnologia`. El árbol de rutas mezcla dos mundos:
  * los activos de TI (Tecnología real: gestión por módulo `tecnologia`) y la
  * consola de plataforma "Sistema" (versiones, QA, monitoreo, errores: `es_tecnologia`).

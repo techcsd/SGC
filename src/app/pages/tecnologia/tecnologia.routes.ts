@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { moduleGuard } from '../../core/guards/module.guard';
-import { tecnologiaGuard } from '../../core/guards/tecnologia.guard';
+import { tecnologiaGuard, desarrolladorGuard } from '../../core/guards/tecnologia.guard';
 
 export const tecnologiaRoutes: Routes = [
   { path: '', redirectTo: 'guia', pathMatch: 'full' },
@@ -62,9 +62,10 @@ export const tecnologiaRoutes: Routes = [
     title: 'QA (pruebas) — Tecnología',
   },
   {
-    // BP5 — Dev notes (markdown + código, personal + compartido). Gate: es_tecnologia.
+    // BP5/BR — Dev notes (markdown + código, personal + compartido). Gate: solo
+    // desarrollador/programador (admin, tecnologia, encargado_tecnologia) — NO gerencia/dirección.
     path: 'dev-notes',
-    canActivate: [tecnologiaGuard],
+    canActivate: [desarrolladorGuard],
     loadComponent: () => import('./dev-notes/dev-notes').then((m) => m.DevNotes),
     title: 'Dev notes — Tecnología',
   },
