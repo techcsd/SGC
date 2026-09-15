@@ -363,6 +363,7 @@ export class SalidasService {
       p_proyecto_id: header.proyecto_id,
       p_motivo: header.motivo,
       p_responsable: header.responsable,
+      p_responsable_id: header.responsable_id ?? null,
       p_observaciones: header.observaciones,
       p_creado_por: userId,
       p_items: items,

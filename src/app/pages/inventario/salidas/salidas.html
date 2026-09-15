@@ -469,15 +469,12 @@
       }
     }
 
-    <!-- Responsable -->
+    <!-- Responsable — BR2: buscar por usuario (queda enlazado), o texto libre "Otro". -->
     <div class="sgc-field">
-      <label for="responsable">Responsable</label>
-      <input
-        id="responsable"
-        type="text"
-        formControlName="responsable"
-        placeholder="Nombre de quien retira el material"
-      />
+      <label>Responsable</label>
+      <app-user-picker [value]="responsableId()" [nombreLibre]="form.controls.responsable.value ?? ''"
+        placeholder="Quien retira el material — busca por usuario"
+        (selected)="onResponsablePicked($event)" />
     </div>
 
     <!-- Observaciones -->

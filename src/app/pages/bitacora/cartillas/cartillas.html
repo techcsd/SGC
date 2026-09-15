@@ -7,6 +7,7 @@
     <div class="page-header__actions">
       <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="abrirCaptura()">Nueva cartilla</button>
       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="exportar()">Exportar</button>
+      @if (esAdmin()) { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirCatalogos()">Catálogos</button> }
     </div>
   </header>
 
@@ -96,7 +97,7 @@
                 <tr>
                   <td>{{ p.marca ?? '—' }}</td>
                   <td>{{ p.diametro_codigo ?? '—' }}</td>
-                  <td>{{ figuraNombre(p.figura_codigo) }}</td>
+                  <td><span class="cart-fig"><app-cartilla-figura-icono [codigo]="p.figura_codigo" [size]="24" /> {{ figuraNombre(p.figura_codigo) }}</span></td>
                   <td>@if (p.tramos_cm?.length) { {{ tramosText(p.tramos_cm) }} } @else { — }</td>
                   <td class="text-right">{{ p.longitud_total_cm | number:'1.0-0' }}</td>
                   <td class="text-right">{{ p.cantidad }}</td>
@@ -176,6 +177,7 @@
             <select [value]="p.figura_codigo ?? ''" (change)="setPieza(cAtados().indexOf(a), $index, 'figura_codigo', $any($event.target).value)">
               @for (f of figuras(); track f.codigo) { <option [value]="f.codigo">{{ f.nombre }}</option> }
             </select>
+            <span class="cart-fig"><app-cartilla-figura-icono [codigo]="p.figura_codigo" [size]="22" /></span>
             <div class="cart-cap-tramos">
               @for (t of p.tramos_cm ?? []; track $index) {
                 <input type="number" min="0" [value]="t.cm" (input)="setTramo(cAtados().indexOf(a), a.piezas.indexOf(p), $index, +$any($event.target).value)" placeholder="cm" />
@@ -192,6 +194,27 @@
     }
     <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="addAtado()">+ Atado</button>
 
+    <!-- F8 — fotos + plano de referencia (opcionales). -->
+    <div class="sgc-field">
+      <label>Fotos (opcional)</label>
+      <input type="file" accept="image/*" multiple (change)="onCFotos($event)" />
+      @if (cFotos().length) {
+        <div class="cart-fotos">
+          @for (f of cFotos(); track f.preview) {
+            <div class="cart-cap-foto">
+              <img [src]="f.preview" alt="Foto" />
+              <button type="button" (click)="quitarCFoto($index)" aria-label="Quitar">×</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <div class="sgc-field">
+      <label>Plano de referencia (opcional)</label>
+      <input type="file" accept="image/*,application/pdf" (change)="onCPlano($event)" />
+      @if (cPlanoNombre()) { <span class="text-muted">{{ cPlanoNombre() }}</span> }
+    </div>
+
     <div class="sgc-field">
       <label>Notas</label>
       <textarea rows="2" [value]="cNotas()" (input)="cNotas.set($any($event.target).value)"></textarea>
@@ -205,5 +228,35 @@
         {{ cGuardando() ? 'Guardando…' : 'Enviar cartilla' }}
       </button>
     </div>
+  </div>
+</app-form-drawer>
+
+<!-- ── F8 — Admin: catálogos de acero ── -->
+<app-form-drawer title="Catálogos de acero" [open]="catalogosOpen()" (closed)="cerrarCatalogos()">
+  <div class="cart-catalogos">
+    <h4>Diámetros (kg por metro)</h4>
+    <table class="data-table">
+      <thead><tr><th>Diámetro</th><th>kg/m</th><th></th></tr></thead>
+      <tbody>
+        @for (d of diametros(); track d.codigo) {
+          <tr>
+            <td>{{ d.codigo }}</td>
+            <td><input type="number" min="0" step="0.001" #kgm [value]="d.kg_por_m" [disabled]="catBusy()" /></td>
+            <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="catBusy()" (click)="guardarKgm(d.codigo, +kgm.value)">Guardar</button></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <h4>Figuras</h4>
+    <ul class="cart-cat-figs">
+      @for (f of figuras(); track f.codigo) {
+        <li>
+          <app-cartilla-figura-icono [codigo]="f.codigo" [size]="26" />
+          <span>{{ f.nombre }}</span>
+          <label class="cart-cat-toggle"><input type="checkbox" [checked]="f.activo" [disabled]="catBusy()" (change)="toggleFigura(f.codigo, $any($event.target).checked)" /> activa</label>
+        </li>
+      }
+    </ul>
+    <p class="text-muted">Los diámetros están sembrados con los valores estándar; edita el kg/m si tu proveedor difiere.</p>
   </div>
 </app-form-drawer>

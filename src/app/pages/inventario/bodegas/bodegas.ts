@@ -59,6 +59,11 @@ export class Bodegas implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
+  // BP6 — opciones del filtro de estado (chip + popover, filter-select).
+  readonly estadoOpt = [
+    { value: 'active', label: 'Activas' },
+    { value: 'inactive', label: 'Inactivas' },
+  ];
   // V9 — filtro por obra: '' todas, 'general' sin obra, o el id de la obra.
   selectedObra = signal<string>('');
   // BP6 — opciones del filtro de obra (chip + popover, filter-select).

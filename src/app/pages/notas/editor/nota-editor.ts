@@ -15,11 +15,14 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { NotasService, DirectorioUsuario } from '../../../../shared/services/notas.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
+import { JiraService } from '../../../../shared/services/jira.service';
+import { AppVersionesService } from '../../../../shared/services/app-versiones.service';
 import {
   Nota,
   NotaCompartido,
   NotaChecklistItem,
   NotaPermiso,
+  NotaChecklistRefTipo,
   TareaVinculable,
   NOTA_COLORES,
 } from '../../../../shared/models/nota.model';
@@ -43,6 +46,8 @@ export class NotaEditor implements OnInit, OnDestroy {
   private notasSvc = inject(NotasService);
   private toast = inject(ToastService);
   private userService = inject(UserService);
+  private jira = inject(JiraService);
+  private versionesSvc = inject(AppVersionesService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -65,6 +70,11 @@ export class NotaEditor implements OnInit, OnDestroy {
   compartidos = signal<NotaCompartido[]>([]);
   directorio = signal<DirectorioUsuario[]>([]);
   tareas = signal<TareaVinculable[]>([]);
+  // BP5 (F10) — el checklist enlaza tarea, issue o versión (ref_tipo). Issues/versiones
+  // solo se cargan para Tecnología (son objetos de dev).
+  issues = signal<{ id: string; label: string }[]>([]);
+  versiones = signal<{ id: string; label: string }[]>([]);
+  linkTipo = signal<NotaChecklistRefTipo>('tarea');
 
   nuevoItemTexto = signal('');
   compartirUsuario = signal<string | null>(null);
@@ -141,6 +151,14 @@ export class NotaEditor implements OnInit, OnDestroy {
       ]);
       this.directorio.set(dir.filter((u) => u.id !== this.userService.profile()?.id));
       this.tareas.set(tar);
+      // BP5 (F10) — issues + versiones vinculables (solo Tecnología las gestiona).
+      if (this.esTecnologia()) {
+        this.jira.listar().then((is) => this.issues.set(is.map((i) => ({ id: i.id, label: i.titulo }))))
+          .catch(() => { /* opcional */ });
+        this.versionesSvc.getHistorial().then((vs) => this.versiones.set(
+          vs.map((v) => ({ id: v.id, label: `${v.plataforma === 'movil' ? 'App' : 'Web'} ${v.version}` })),
+        )).catch(() => { /* opcional */ });
+      }
     } catch {
       /* selectores opcionales */
     }
@@ -382,6 +400,19 @@ export class NotaEditor implements OnInit, OnDestroy {
       await this.notasSvc.linkChecklistItem(item.id, tareaId ? 'tarea' : null, tareaId || null);
       await this.recargarChecklist();
       if (tareaId) this.toast.success('Vinculado a la tarea', 'El ítem se marcará solo cuando la tarea se complete.');
+    } catch (e: unknown) {
+      this.toast.errorFrom(e, 'No se pudo vincular');
+    }
+  }
+
+  /** BP5 (F10) — vincula el ítem a un issue o una versión (ref_tipo). */
+  async vincularRef(item: NotaChecklistItem, tipo: NotaChecklistRefTipo, refId: string) {
+    this.linkingItemId.set(null);
+    if (!refId) return;
+    try {
+      await this.notasSvc.linkChecklistItem(item.id, tipo, refId);
+      await this.recargarChecklist();
+      this.toast.success(tipo === 'issue' ? 'Vinculado al issue' : 'Vinculado a la versión');
     } catch (e: unknown) {
       this.toast.errorFrom(e, 'No se pudo vincular');
     }

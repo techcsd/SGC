@@ -24,17 +24,13 @@
     />
   </div>
 
-  <div class="sgc-field filters-bar__select">
-    <select
-      [value]="selectedStatus()"
-      (change)="onStatusChange($any($event.target).value)"
-      aria-label="Filtrar por estado"
-    >
-      <option value="all">Todos los estados</option>
-      <option value="active">Activas</option>
-      <option value="inactive">Inactivas</option>
-    </select>
-  </div>
+  <!-- BP6 — filtro de estado como chip + popover (filter-select). -->
+  <app-filter-select
+    label="Estado"
+    [options]="estadoOpt"
+    [value]="selectedStatus() === 'all' ? '' : selectedStatus()"
+    (valueChange)="onStatusChange($event || 'all')"
+    placeholder="Todos los estados" />
 
   <!-- BP6 — filtro de obra como chip + popover (filter-select). -->
   <app-filter-select

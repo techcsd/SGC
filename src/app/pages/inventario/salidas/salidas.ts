@@ -41,10 +41,11 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 
 @Component({
   selector: 'app-salidas',
-  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon],
+  imports: [DecimalPipe, Skeleton, ReactiveFormsModule, FormDrawer, RouterLink, QtyStepper, HighlightItemDirective, ArticuloPicker, DateRangeFilter, Lightbox, RequisicionItemsMapper, Icon, UserPicker],
   templateUrl: './salidas.html',
   styleUrl: './salidas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -162,6 +163,13 @@ export class Salidas implements OnInit {
     conductor_id: new FormControl<string | null>(null), // BJ3 — chofer que transporta (dispara auto-ruta BH3)
     vehiculo_id: new FormControl<string | null>(null), // BJ3 — vehículo del transporte
   });
+
+  // BR2 — usuario responsable enlazado (el texto del form es el snapshot/nombre).
+  responsableId = signal<string | null>(null);
+  onResponsablePicked(sel: UserPickerSelection) {
+    this.responsableId.set(sel.usuario_id);
+    this.form.controls.responsable.setValue(sel.nombre || null);
+  }
 
   // AT16 — receptores elegibles para confirmar la entrega en la obra destino.
   receptores = signal<{ id: string; nombre: string; detalle: string | null; vinculado: boolean }[]>([]);
@@ -626,6 +634,7 @@ export class Salidas implements OnInit {
     }
     this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
     this.formItemsLibres.set([]);
+    this.responsableId.set(null); // BR2
     this.quitarFoto();
     this.drawerOpen.set(true);
   }
@@ -855,6 +864,7 @@ export class Salidas implements OnInit {
           motivo: v.motivo!,
           fecha: v.fecha!,
           responsable: v.responsable ?? null,
+          responsable_id: this.responsableId(),
           observaciones: v.observaciones ?? null,
           // BJ3 — chofer/vehículo (cuando el flujo de conduce está activo): al
           // pasar chofer, el servidor crea la ruta del día sola (auto-ruta BH3).

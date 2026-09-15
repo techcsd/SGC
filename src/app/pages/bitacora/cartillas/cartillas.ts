@@ -11,6 +11,8 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { CartillaFiguraIcono } from '../../../../shared/ui/cartilla-figura-icono/cartilla-figura-icono';
+import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 
 interface ObraRef { id: string; nombre: string; }
 
@@ -22,7 +24,7 @@ interface ObraRef { id: string; nombre: string; }
  */
 @Component({
   selector: 'app-cartillas',
-  imports: [DecimalPipe, Skeleton, FormDrawer, Icon],
+  imports: [DecimalPipe, Skeleton, FormDrawer, Icon, CartillaFiguraIcono],
   templateUrl: './cartillas.html',
   styleUrl: './cartillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -171,6 +173,26 @@ export class Cartillas implements OnInit {
     }
   }
 
+  // ── F8 — Admin: catálogos de acero (diámetros kg/m + figuras) ─────────────
+  catalogosOpen = signal(false);
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  catBusy = signal(false);
+  abrirCatalogos() { this.catalogosOpen.set(true); }
+  cerrarCatalogos() { this.catalogosOpen.set(false); }
+  async guardarKgm(codigo: string, kg: number) {
+    if (this.catBusy() || !(kg > 0)) return;
+    this.catBusy.set(true);
+    try { await this.svc.guardarDiametro(codigo, { kg_por_m: kg }); this.diametros.set(await this.svc.diametros()); this.toast.success('Diámetro actualizado'); }
+    catch (e) { this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined); }
+    finally { this.catBusy.set(false); }
+  }
+  async toggleFigura(codigo: string, activo: boolean) {
+    this.catBusy.set(true);
+    try { await this.svc.guardarFigura(codigo, { activo }); this.figuras.set(await this.svc.figuras()); }
+    catch (e) { this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined); }
+    finally { this.catBusy.set(false); }
+  }
+
   // ── Captura (oficina) ───────────────────────────────────────────────────
   capturaOpen = signal(false);
   cObra = signal('');
@@ -179,6 +201,27 @@ export class Cartillas implements OnInit {
   cAtados = signal<CartillaAtado[]>([]);
   cGuardando = signal(false);
   cError = signal('');
+  // F8 — fotos + plano de la captura web (se suben al bucket antes de crear_cartilla).
+  cFotos = signal<{ file: File; preview: string }[]>([]);
+  cPlano = signal<File | null>(null);
+  cPlanoNombre = signal('');
+
+  onCFotos(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const picked = Array.from(input.files ?? []).filter((f) => f.type.startsWith('image/'));
+    Promise.all(picked.map(async (f) => ({ file: await comprimirImagen(f), preview: URL.createObjectURL(f) })))
+      .then((nuevas) => this.cFotos.update((l) => [...l, ...nuevas]));
+    input.value = '';
+  }
+  quitarCFoto(i: number) {
+    this.cFotos.update((l) => { const t = l[i]; if (t) URL.revokeObjectURL(t.preview); return l.filter((_, x) => x !== i); });
+  }
+  onCPlano(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const f = input.files?.[0];
+    input.value = '';
+    if (f) { this.cPlano.set(f); this.cPlanoNombre.set(f.name); }
+  }
 
   abrirCaptura() {
     this.cObra.set(this.fObra() || '');
@@ -186,6 +229,10 @@ export class Cartillas implements OnInit {
     this.cNotas.set('');
     this.cError.set('');
     this.cAtados.set([{ identificador: '', elemento: '', cantidad_piezas: null, piezas: [] }]);
+    for (const f of this.cFotos()) URL.revokeObjectURL(f.preview);
+    this.cFotos.set([]);
+    this.cPlano.set(null);
+    this.cPlanoNombre.set('');
     this.capturaOpen.set(true);
   }
   cerrarCaptura() { this.capturaOpen.set(false); }
@@ -245,8 +292,15 @@ export class Cartillas implements OnInit {
     this.cError.set('');
     try {
       const id = crypto.randomUUID();
+      // F8 — subir fotos + plano al bucket ANTES de crear_cartilla (paths → RPC).
+      let planoPath: string | null = null;
+      const fotoPaths: { path: string }[] = [];
+      try {
+        if (this.cPlano()) planoPath = await this.svc.subirArchivo('plano', id, this.cPlano()!);
+        for (const f of this.cFotos()) fotoPaths.push({ path: await this.svc.subirArchivo('foto', id, f.file) });
+      } catch { this.toast.warning('Cartilla', 'No se pudieron subir algunas imágenes; la cartilla se guarda igual.'); }
       await this.svc.crear({
-        id, proyectoId: this.cObra(), fecha: this.cFecha(),
+        id, proyectoId: this.cObra(), fecha: this.cFecha(), planoPath, fotos: fotoPaths,
         atados: atados.map((a) => ({
           identificador: a.identificador || null, elemento: a.elemento || null,
           cantidad_piezas: a.piezas.length, piezas: a.piezas.map((p) => ({

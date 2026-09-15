@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.134.0": {
+      "titulo": "Cierre web de la ronda BR: responsable por usuario en salidas, cartillas más completas y más filtros",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Al registrar una salida/conduce, el responsable se elige buscando por usuario (queda enlazado), igual que en aprobar requisición."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Una entrada sin ningún renglón ya no se puede crear (el servidor la rechaza), además del bloqueo que ya había en pantalla."
+        },
+        {
+          "t": "mejora",
+          "m": "Bitácora",
+          "d": "Cartillas de acero: cada figura muestra su dibujo (recta, L, U, estribo, gancho, Z); la captura web permite adjuntar fotos y el plano; y el administrador puede editar los kg/m de cada diámetro y las figuras desde «Catálogos»."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "El filtro de estado en Almacenes ahora es un chip con popover (como los demás filtros)."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "En las notas, un ítem del checklist se puede enlazar también a un issue o a una versión (antes solo a una tarea)."
+        }
+      ]
+    },
     "1.133.0": {
       "titulo": "Cartillas de acero, calendario de requisiciones, compra en ferretería y arreglos de recepción/combustible",
       "cambios": [

@@ -87,3 +87,22 @@
   &__peso { font-size: 0.8rem; color: var(--main-ultra-light); min-width: 4.5rem; text-align: right; }
 }
 .cart-cap-tramos { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; input { width: 4rem; } }
+
+// F8 — figura + fotos en captura.
+.cart-fig { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--main-ultra-light); }
+.cart-fig app-cartilla-figura-icono { color: var(--Hub); }
+.cart-cap-foto {
+  position: relative;
+  img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+  button { position: absolute; top: -6px; right: -6px; background: var(--danger, #d33); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; line-height: 1; }
+}
+
+// F8 — Admin catálogos.
+.cart-catalogos {
+  h4 { margin: 0.75rem 0 0.4rem; }
+  input[type="number"] { width: 7rem; }
+}
+.cart-cat-figs { list-style: none; margin: 0; padding: 0; }
+.cart-cat-figs li { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+.cart-cat-figs app-cartilla-figura-icono { color: var(--Hub); }
+.cart-cat-toggle { margin-left: auto; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.3rem; }

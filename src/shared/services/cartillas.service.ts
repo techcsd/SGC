@@ -89,6 +89,17 @@ export class CartillasService {
     return (data ?? []) as { diametro_codigo: string; piezas: number; peso_kg: number }[];
   }
 
+  /** F8 — admin edita el kg/m o el estado de un diámetro (RLS: solo admin escribe). */
+  async guardarDiametro(codigo: string, cambios: { kg_por_m?: number; activo?: boolean }): Promise<void> {
+    const { error } = await this.supabase.client.schema('sgc').from('acero_diametros').update(cambios).eq('codigo', codigo);
+    if (error) throw new Error(error.message);
+  }
+  /** F8 — admin edita nombre/estado de una figura. */
+  async guardarFigura(codigo: string, cambios: { nombre?: string; activo?: boolean }): Promise<void> {
+    const { error } = await this.supabase.client.schema('sgc').from('cartilla_figuras').update(cambios).eq('codigo', codigo);
+    if (error) throw new Error(error.message);
+  }
+
   async getFotoUrl(path: string | null | undefined): Promise<string | null> {
     if (!path) return null;
     return this.cache.signed(BUCKET, path);

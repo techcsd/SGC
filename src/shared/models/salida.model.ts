@@ -112,6 +112,8 @@ export interface SalidaFormData {
   destino_almacen_id?: string | null;
   motivo: string;
   responsable: string | null;
+  /** BR2 — usuario responsable enlazado (además del snapshot de texto). */
+  responsable_id?: string | null;
   observaciones: string | null;
   conductor_id: string | null;
   vehiculo_id: string | null;

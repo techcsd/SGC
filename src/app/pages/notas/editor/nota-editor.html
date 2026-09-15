@@ -75,9 +75,9 @@
             <input class="nota-editor__check-text" type="text" [value]="item.texto"
               (blur)="editarTextoItem(item, $any($event.target).value)" [disabled]="soloLectura()" />
 
-            @if (item.ref_tipo === 'tarea') {
-              <span class="nota-editor__link-chip" title="Vinculado a una tarea; se marca solo al completarse">
-                <app-icon name="link" [size]="14" /> {{ item.ref_label || 'Tarea' }}
+            @if (item.ref_tipo) {
+              <span class="nota-editor__link-chip" [title]="'Vinculado a ' + item.ref_tipo + (item.ref_tipo === 'tarea' ? '; se marca solo al completarse' : '')">
+                <app-icon name="link" [size]="14" /> {{ item.ref_label || (item.ref_tipo === 'issue' ? 'Issue' : item.ref_tipo === 'version' ? 'Versión' : 'Tarea') }}
                 @if (!soloLectura()) {
                   <button type="button" (click)="desvincularTarea(item)" aria-label="Desvincular"><app-icon name="x" [size]="14" /></button>
                 }
@@ -88,20 +88,43 @@
               <div class="nota-editor__check-actions">
                 <button type="button" (click)="moverItem(item, -1)" title="Subir"><app-icon name="arrow-up" [size]="14" /></button>
                 <button type="button" (click)="moverItem(item, 1)" title="Bajar"><app-icon name="arrow-down" [size]="14" /></button>
-                @if (item.ref_tipo !== 'tarea') {
-                  <button type="button" (click)="abrirVincular(item)" title="Vincular a una tarea"><app-icon name="link" [size]="14" /></button>
+                @if (!item.ref_tipo) {
+                  <button type="button" (click)="abrirVincular(item)" title="Vincular a tarea, issue o versión"><app-icon name="link" [size]="14" /></button>
                 }
                 <button type="button" (click)="quitarItem(item)" title="Quitar"><app-icon name="trash" [size]="14" /></button>
               </div>
             }
 
             @if (linkingItemId() === item.id) {
-              <select class="nota-editor__link-select" (change)="vincularTarea(item, $any($event.target).value)">
-                <option value="">Elige una tarea…</option>
-                @for (t of tareas(); track t.id) {
-                  <option [value]="t.id">{{ t.titulo }} ({{ t.estado }})</option>
+              <div class="nota-editor__link-picker">
+                @if (esTecnologia()) {
+                  <select class="nota-editor__link-select" [value]="linkTipo()" (change)="linkTipo.set($any($event.target).value)">
+                    <option value="tarea">Tarea</option>
+                    <option value="issue">Issue</option>
+                    <option value="version">Versión</option>
+                  </select>
                 }
-              </select>
+                @switch (linkTipo()) {
+                  @case ('issue') {
+                    <select class="nota-editor__link-select" (change)="vincularRef(item, 'issue', $any($event.target).value)">
+                      <option value="">Elige un issue…</option>
+                      @for (i of issues(); track i.id) { <option [value]="i.id">{{ i.label }}</option> }
+                    </select>
+                  }
+                  @case ('version') {
+                    <select class="nota-editor__link-select" (change)="vincularRef(item, 'version', $any($event.target).value)">
+                      <option value="">Elige una versión…</option>
+                      @for (v of versiones(); track v.id) { <option [value]="v.id">{{ v.label }}</option> }
+                    </select>
+                  }
+                  @default {
+                    <select class="nota-editor__link-select" (change)="vincularTarea(item, $any($event.target).value)">
+                      <option value="">Elige una tarea…</option>
+                      @for (t of tareas(); track t.id) { <option [value]="t.id">{{ t.titulo }} ({{ t.estado }})</option> }
+                    </select>
+                  }
+                }
+              </div>
             }
           </li>
         }
