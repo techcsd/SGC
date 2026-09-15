@@ -3855,6 +3855,31 @@
           "d": "La cuarentena de incentivos ahora muestra el detalle de cada incidencia en línea (ruta o echada) con Aceptar/Excluir dentro del panel y acciones masivas por grupo."
         }
       ]
+    },
+    "1.131.0": {
+      "titulo": "Avisos de bodega al encargado, daños en el informe semanal y arreglos",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Cuando llega mercancía a una bodega que tiene un encargado asignado, el encargado recibe un aviso de \"Conduce por confirmar\" (antes solo aparecía en la bandeja, sin aviso)."
+        },
+        {
+          "t": "mejora",
+          "m": "Proyectos",
+          "d": "El informe semanal de obra ahora incluye una sección de Daños con el material o equipo dañado reportado en las bitácoras de la semana."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "En Retiros, un retiro que nació de un daño en la bitácora ahora muestra la etiqueta \"desde bitácora\" y enlaza a la bitácora que lo originó."
+        },
+        {
+          "t": "arreglo",
+          "m": "Tecnología",
+          "d": "Arreglado el error al vincular un ítem de una Dev note a un issue o a una versión (antes fallaba)."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
