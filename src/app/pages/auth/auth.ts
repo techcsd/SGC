@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { NgOptimizedImage } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
+import { PreferenciasService } from '../../../shared/services/preferencias.service';
 
 @Component({
   selector: 'app-auth',
@@ -15,6 +16,7 @@ import { UserService } from '../../core/services/user.service';
 export class Auth {
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private preferencias = inject(PreferenciasService);
   private router = inject(Router);
 
   loading = signal(false);
@@ -142,7 +144,17 @@ export class Auth {
       return;
     }
 
-    this.router.navigate(['/dashboard']);
+    // BS3 — respeta el "módulo de inicio" preferido del usuario (guardado en
+    // Configuración › Inicio). Si no hay o falla, cae al dashboard. Los guards de
+    // ruta protegen el destino si el acceso cambió.
+    let destino = '/dashboard';
+    try {
+      const prefs = await this.preferencias.cargar();
+      if (prefs?.modulo_inicio) destino = prefs.modulo_inicio;
+    } catch {
+      /* best-effort */
+    }
+    this.router.navigate([destino]);
   }
 
   openForgot() {

@@ -2,12 +2,14 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { comprimirImagen } from '../../../shared/utils/comprimir-imagen.util';
 import { Usuario } from '../../../shared/models/usuario.model';
+import { I18nService } from '../../../shared/i18n/i18n.service';
 
 const PROFILE_MAX_AGE_MS = 5 * 60 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private supabase = inject(SupabaseService);
+  private i18n = inject(I18nService);
 
   private _profile = signal<Usuario | null>(null);
   profile = this._profile.asReadonly();
@@ -169,6 +171,9 @@ export class UserService {
 
     this._profile.set(data as Usuario);
     this.loadedAt = Date.now();
+    // BS4 — el idioma del servidor (usuarios.idioma) sigue al usuario entre
+    // dispositivos y a la app: adoptarlo sin re-escribir el servidor.
+    void this.i18n.adoptFromServer((data as { idioma?: string | null }).idioma);
   }
 
   /** Reloads the profile if missing or older than PROFILE_MAX_AGE_MS, so a role/activo change made elsewhere takes effect without forcing a manual logout. */

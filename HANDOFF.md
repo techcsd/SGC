@@ -1,5 +1,29 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-54 (Ronda BS) — 17/09/2026 — **CONSTRUIDO: web 1.136.0 (build + verify-tokens/dev-strings/i18n verdes). 2 migraciones VALIDADAS (dry-run begin/rollback) + smoke de RPCs con auth. NADA aplicado/committeado/deployado (gateado). FASE 0 ya estaba en prod.**
+
+**Estado de arranque:** el repo llegó a `fcc2b24` (1.135.0). **FASE 0 ya resuelta en prod** — la migración owed de la app (`combustible_avisar_revision`) YA fue aplicada en `fcc2b24` (junto a `usuarios.idioma`/`mi_idioma_set` de BR7); El Flaco, `rechazar_recepcion`, `importar_proveedores`, `cartillas`, ambos crons: todos verificados por objeto. `COBERTURA-NOTAS.md` creado (filas 36-39 = BS + verificación BR).
+
+**Construido esta sesión (working tree, 1.136.0, sin commit):**
+- **FASE 1 (BS2) 🔴** — *nada de lenguaje de desarrollador al usuario.* Causa Raykler diagnosticada: la RLS **ya** le concede Flota (módulo `flota` por logistica/jefe_flota/guarda_almacen; `es_flota_elevado`) → el banner "Tabla no configurada / Ejecuta el SQL en Supabase" era el bug (mapeaba cualquier `permission denied` a jerga de dev). **DEFAULT (guard=RLS): no se abrió RLS.** Nuevo `friendly-error.util.presentarError(e,ctx)` (pure) + `shared/ui/error-state` (mensaje por rol + reporte a `report_app_error` + `<details>` técnico SOLO `esDesarrollador()`, espejo ya existente en `UserService`). Migrados `flota/vehiculos`, `flota/checklists`, `flota/responsabilidad` (murió `dbNotReady`). Guard de build `scripts/verify-dev-strings.mjs` (prebuild) — baseline vacío.
+- **FASE 2 (BS1)** — el select "Almacén de despacho" (`inventario/requisiciones`) ofrece **TODOS** los almacenes legibles, orden Central→obra→resto, con **"cubre n/N"** por opción (carga perezosa, cache). Preselección DEFAULT: Central si cubre ≥1 renglón, si no la de la obra. RLS de `bodegas` ya permitía leer todas → sin cambio. Alineados `inventario/salidas` (origen, Central primero) y verificado que `conduce-externo-form` ya ofrece todos.
+- **FASE 3 (BS3)** — módulo **Configuración** (`/configuracion`, authGuard, SIN moduleGuard). Secciones: Cuenta (embebe `<app-perfil>`), Idioma, Apariencia (claro/oscuro/**sistema** + densidad + tamaño de letra reales), Notificaciones (embebe `<app-ajustes-notificaciones>`), Inicio (módulo de arranque **real** — redirige al login), Sesión (edge `auth-signout-others`), Privacidad (choferes), Acerca. Shell: engranaje junto al avatar; `/perfil`→`#cuenta`, `/ajustes/notificaciones`→`#notificaciones` (redirects funcionales, deep-links vivos). `ThemeService` extendido con preferencia `sistema`.
+- **FASE 4 (BS4)** — **i18n portado del hijo (csd-app)** — 1ª vez que el hijo es la referencia de infra: `shared/i18n/{i18n.service,translate.pipe}`, `shared/ui/language-selector`, `scripts/verify-i18n.mjs`, `public/i18n/{en,ht}.json`. `localStorage` en vez de Capacitor; idioma canónico = `usuarios.idioma` (RPC `mi_idioma_set`, compartido con la app). `UserService.loadProfile` adopta el idioma del servidor. **Diálogo de primer ingreso** `shared/ui/language-onboarding` (modal bloqueante en el shell, sella `idioma_elegido_at`). Notif i18n v1: `notif_tipo.titulo_i18n` + los 2 overloads de `notificar_modulo` localizan el título **por destinatario**.
+
+**Migraciones VALIDADAS (dry-run begin/rollback en prod), SIN aplicar:**
+1. `sql/2026-09-17-bs3-usuario-preferencias.sql` — **aditiva** a la tabla existente `usuario_preferencias` (BE6: usuario_id/tema/actualizado_en). Añade idioma/densidad/tamano_letra/modulo_inicio/idioma_elegido_at; amplía CHECK de tema a `sistema`; RPCs `mis_preferencias()` + `set_mi_preferencia(clave,valor)`. **Smoke con auth OK** (set tema/idioma/densidad + `mis_preferencias`; idioma canónico escrito en `usuarios.idioma`).
+2. `sql/2026-09-17-bs4-notif-titulo-i18n.sql` — `notif_tipo.titulo_i18n jsonb` + seed de 12 tipos + reescritura de los 2 overloads de `notificar_modulo` (localiza título por `usuarios.idioma` del destinatario, cae al español). **Smoke con auth OK** (destinatario `idioma='en'` → título "Fuel entry to review").
+
+**Edge nueva (SIN deploy):** `supabase/functions/auth-signout-others` — revoca las demás sesiones del usuario (`scope:'others'`), mantiene viva la actual.
+
+**Decisiones DEFAULT (reportadas):** idioma canónico en `usuarios.idioma` (no se duplica en usuario_preferencias — `mis_preferencias` lo coalesca, `set_mi_preferencia('idioma')` escribe ambos); guard=RLS en BS2 (no se abre RLS); notif i18n = solo TÍTULO in-app por destinatario (cuerpo + push en español, v1); densidad guarda + aplica atributo (efecto visual global diferido), tamaño de letra sí escala (`font-size` raíz).
+
+**Al autorizar (gate):** `node scripts/apply-migration.mjs sql/2026-09-17-bs3-usuario-preferencias.sql` + `…bs4-notif-titulo-i18n.sql` → deploy edge `auth-signout-others` → commit/push (ya bumpeado a 1.136.0 + `release-notes.json` + `version.ts`). **Verify on resume:** `git log -1` = `fcc2b24` (nada committeado nuevo); `package.json`=1.136.0 (working tree); prod: por objeto NO existen aún `mis_preferencias`, `set_mi_preferencia`, `usuario_preferencias.idioma`, `notif_tipo.titulo_i18n`; edge `auth-signout-others` no desplegada.
+
+**App = PROMPT-55:** Perfil ⚙ lee/escribe `usuario_preferencias` (misma tabla) + `mi_idioma_set`; diálogo de primer ingreso de idioma en la app; picker de almacén de `generar-conduce` ofrece lo mismo que la web (Central primero).
+
+---
+
 ## TL;DR — PROMPT-52 (Ronda BR) — 15/09/2026 — **SHIPPED: web 1.133.0 → 1.134.0 → 1.135.0 (todo en `main`, push a Vercel). 9 migraciones APLICADAS + verificadas por objeto, edge `acceso-cedula` v7, usuario "El Flaco" CREADO, las 3 versiones registradas en `sgc.app_versiones`. Ronda BR entregada + residuales web cerrados + dev notes blindadas.**
 
 **Versiones de la sesión (todas en main, registradas en el historial):**

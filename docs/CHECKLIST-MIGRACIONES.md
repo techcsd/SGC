@@ -289,3 +289,23 @@ encolaron contra la identidad vieja.
   editable por admin; cron `sgc-vehiculos-sin-echada` que avisa proactivamente),
   `sql/2026-09-15-br4-recepcion-rechazar.sql` (rechazar una recepción con motivo + aviso al emisor, sin
   mover stock).
+
+## 16. Lo que el usuario ve lo decide su ROL, no el estado del sistema (BS1/BS2)
+
+- **Por qué:** a Raykler (almacén) le salía **"Tabla de vehículos no configurada — ejecuta el SQL en el SQL
+  Editor de Supabase"** (BS2, #37). Él no es desarrollador ni administra la base: ese texto no es para él. Y
+  en una requisición solo le dejaban ver **un** almacén (BS1, #36), escondiendo opciones válidas por
+  conveniencia.
+- **Regla:** un **error técnico nunca le habla al usuario en lenguaje de desarrollador** — se **traduce**
+  (mensaje humano por rol), se **reporta a Tecnología** con el detalle (ruta, rol, SQLSTATE, mensaje), y el
+  **detalle técnico solo lo ve `es_desarrollador()`**. Fuente única en el front: `friendly-error.util.presentarError`
+  + `shared/ui/error-state`; guard de build `scripts/verify-dev-strings.mjs` (rompe el build si aparece jerga
+  de BD/infra en un template fuera de `pages/tecnologia|admin`).
+- **Corolario:** un **selector nunca esconde opciones válidas por conveniencia** — la conveniencia es el
+  **preseleccionado**, no el **filtro**. (BS1: el almacén de despacho ofrece todos los que el rol lee, con
+  Central preseleccionado; `inventario/requisiciones`.)
+- **Corolario de acceso:** si una cuenta ve una pantalla que no debería, se arregla **del lado que
+  corresponda** (regla 4/14): guard = RLS. DEFAULT si es ambiguo: **no se abre la RLS** (se cierra el guard).
+  En BS2 la RLS ya concedía Flota a Raykler (módulo `flota` por 3 roles) → el bug era el banner, no el acceso.
+- **Casos reales (BS):** `friendly-error.util.ts` (`presentarError`), `shared/ui/error-state`,
+  `scripts/verify-dev-strings.mjs`; `inventario/requisiciones` (picker de almacén con cobertura n/N).

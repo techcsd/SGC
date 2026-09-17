@@ -4,6 +4,8 @@ import { AuthService } from './core/services/auth.service';
 import { UserService } from './core/services/user.service';
 import { ToastService } from '../shared/services/toast.service';
 import { ThemeService } from '../shared/services/theme.service';
+import { PreferenciasService } from '../shared/services/preferencias.service';
+import { aplicarDensidad, aplicarTamanoLetra } from '../shared/utils/apariencia.util';
 import { ToastComponent } from '../shared/components/toast/toast';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
 
@@ -19,6 +21,7 @@ export class App implements OnInit {
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private theme = inject(ThemeService);
+  private preferencias = inject(PreferenciasService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
@@ -53,6 +56,16 @@ export class App implements OnInit {
       // con la preferencia server-side del usuario (best-effort; localStorage ya pintó).
       if (event !== 'SIGNED_OUT') {
         void this.theme.syncFromServer();
+        // BS3 — aplica densidad + tamaño de letra del servidor (best-effort).
+        void this.preferencias
+          .cargar()
+          .then((p) => {
+            if (p) {
+              aplicarDensidad(p.densidad);
+              aplicarTamanoLetra(p.tamano_letra);
+            }
+          })
+          .catch(() => {});
       }
       if (event === 'SIGNED_OUT') {
         // Distinguimos un cierre voluntario de uno por sesión vencida: solo en el

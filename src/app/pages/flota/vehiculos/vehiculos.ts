@@ -47,6 +47,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { Img } from '../../../../shared/components/img/img';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
@@ -72,7 +73,7 @@ function kmUltimoMantCoherente(group: AbstractControl): ValidationErrors | null 
 
 @Component({
   selector: 'app-flota-vehiculos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel, Icon],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, Img, ExportExcel, Icon, ErrorState],
   templateUrl: './vehiculos.html',
   styleUrl: './vehiculos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -130,9 +131,9 @@ export class FlotaVehiculos implements OnInit {
   listaFotos = signal<Record<string, string>>({});
   loading = signal(true);
   saving = signal(false);
-  error = signal('');
+  // BS2 — el error crudo; `app-error-state` lo presenta por rol y lo reporta.
+  error = signal<unknown>(null);
   saveError = signal('');
-  dbNotReady = signal(false);
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -290,8 +291,7 @@ export class FlotaVehiculos implements OnInit {
 
   private async loadAll() {
     this.loading.set(true);
-    this.error.set('');
-    this.dbNotReady.set(false);
+    this.error.set(null);
     try {
       const vehiculos = await this.vehiculosService.getAll();
       this.vehiculos.set(vehiculos);
@@ -301,12 +301,10 @@ export class FlotaVehiculos implements OnInit {
         this.vehiculosService.getVehiculosConPPActiva().then((m) => this.ppMap.set(m)).catch(() => {});
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '';
-      if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('permission denied')) {
-        this.dbNotReady.set(true);
-      } else {
-        this.error.set(msg || 'Error al cargar vehículos.');
-      }
+      // BS2 — el error crudo va a `app-error-state`: mensaje por rol + reporte a
+      // Tecnología + detalle técnico solo para desarrollador. Se acabó el banner
+      // "ejecuta el SQL en Supabase" que veía Raykler.
+      this.error.set(e);
     } finally {
       this.loading.set(false);
     }

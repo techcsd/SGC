@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.136.0": {
+      "titulo": "Configuración para todos, idioma español/inglés y arreglos de almacén y errores",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Cuenta",
+          "d": "Nuevo módulo Configuración (icono de engranaje junto a tu avatar): cuenta, idioma, apariencia (claro/oscuro/automático), notificaciones, pantalla de inicio, sesión y dispositivos, y acerca de. Accesible para todos los usuarios."
+        },
+        {
+          "t": "nuevo",
+          "m": "Cuenta",
+          "d": "Idioma español/inglés: al entrar por primera vez la app te pregunta tu idioma, y luego puedes cambiarlo en Configuración › Idioma. El idioma te sigue entre dispositivos y la app móvil."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Al despachar una requisición ahora puedes elegir cualquier almacén (Bodega Central primero), con los renglones que cubre cada uno; antes solo dejaba ver el almacén de la obra."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Se acabaron los mensajes técnicos al usuario: si algo falla, ves un mensaje claro y se reporta a Tecnología automáticamente (el detalle técnico solo lo ve el desarrollador). El acceso a Flota ahora es coherente con tu rol."
+        },
+        {
+          "t": "mejora",
+          "m": "Cuenta",
+          "d": "Tus preferencias (idioma, tema, densidad, tamaño de letra, pantalla de inicio) se guardan en tu cuenta y te siguen entre la web y la app."
+        }
+      ]
+    },
     "1.135.0": {
       "titulo": "Dev notes: visibles solo para Tecnología / desarrollo",
       "cambios": [

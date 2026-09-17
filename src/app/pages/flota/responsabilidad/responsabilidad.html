@@ -39,10 +39,8 @@
 
 @if (loading()) {
   <app-skeleton variant="table" [rows]="8" />
-} @else if (dbNotReady()) {
-  <p class="resp-muted">La tabla aún no existe. Aplica la migración de la CSD App.</p>
 } @else if (error()) {
-  <p class="resp-error">{{ error() }}</p>
+  <app-error-state [error]="error()" pantalla="la responsabilidad de vehículos" (retry)="ngOnInit()" />
 } @else {
 
   <!-- ══════════════ TAB 1 — En uso ══════════════ -->

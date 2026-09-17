@@ -79,6 +79,62 @@ export function humanizeError(error: unknown): FriendlyError {
   return { mensaje: raw, technical: false, raw };
 }
 
+// BS2 — presentación de un error al usuario según su ROL. El usuario ve un
+// mensaje humano; el detalle técnico (SQLSTATE + crudo) queda para el
+// desarrollador. Función pura: el REPORTE a telemetría y el gate de rol lo hace
+// quien la usa (el componente `error-state` o `ToastService`), no esta util.
+export interface PresentacionError {
+  /** Mensaje apto para el usuario, según su rol. */
+  mensajeUsuario: string;
+  /** Detalle técnico (SQLSTATE + mensaje crudo + sugerencia) — SOLO desarrollador. */
+  detalleTecnico: string;
+  /** Código SQLSTATE si se pudo extraer (42501, 23505, PGRST…), o null. */
+  sqlstate: string | null;
+  /** true si el fallo es de acceso/permiso (42501/RLS) → el rol no alcanza. */
+  esAccesoDenegado: boolean;
+  /** Texto crudo original (para el reporte a telemetría). */
+  raw: string;
+}
+
+/** Extrae el SQLSTATE de un error de PostgREST/Postgres (campo `code` o del texto). */
+function extraerSqlstate(error: unknown, raw: string): string | null {
+  const e = (error ?? {}) as { code?: unknown };
+  if (typeof e.code === 'string' && e.code.trim()) return e.code.trim();
+  // SQLSTATE = 5 caracteres [0-9A-Z]; o un código PostgREST tipo PGRST123.
+  const m = raw.match(/\bPGRST\d{3}\b/) ?? raw.match(/\b(\d{2}[0-9A-Z]{3})\b/);
+  return m ? m[0] : null;
+}
+
+/**
+ * BS2 — traduce un error crudo a una presentación por rol. `pantalla` nombra la
+ * vista para el mensaje humano; `accion` (opcional) reemplaza el verbo "cargar".
+ * Devuelve el objeto estructurado; NO reporta ni consulta el rol (eso lo hace el
+ * llamador, típicamente el componente `app-error-state`).
+ */
+export function presentarError(
+  error: unknown,
+  ctx: { pantalla: string; accion?: string },
+): PresentacionError {
+  const raw = errorMessage(error).trim();
+  const sqlstate = extraerSqlstate(error, raw);
+  const esAccesoDenegado =
+    sqlstate === '42501' ||
+    /permission denied|not authorized|forbidden|row-level security|violates row-level|\brls\b|policy/i.test(raw);
+
+  const mensajeUsuario = esAccesoDenegado
+    ? 'Tu rol no tiene acceso a esta información.'
+    : ctx.accion
+      ? `No pudimos ${ctx.accion}. Ya se reportó a Tecnología.`
+      : `No pudimos cargar ${ctx.pantalla}. Ya se reportó a Tecnología.`;
+
+  const sugerencia = esAccesoDenegado
+    ? 'Revisa los módulos/RLS del rol en Administración › Roles.'
+    : 'Revisa el detalle en Tecnología › Reportes de error.';
+  const detalleTecnico = `[${sqlstate ?? '—'}] ${raw || '(sin mensaje)'}\n${sugerencia}`;
+
+  return { mensajeUsuario, detalleTecnico, sqlstate, esAccesoDenegado, raw };
+}
+
 /** Categoría para telemetría (report_app_error.error_type). BI4 — homologada con la
  *  whitelist del servidor (crash/error/camera/sync/permission/other/tracking/login/gps/voice)
  *  para que el panel agrupe por causa y no todo caiga en 'error'/'other'. */

@@ -203,13 +203,63 @@ export class Requisiciones implements OnInit {
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   });
 
-  /** Almacenes de la obra seleccionada en el detalle (para prellenar el despacho). */
-  bodegasDeObra = computed(() => {
-    const pid = this.selected()?.proyecto_id;
-    if (!pid) return this.bodegas();
-    const propias = this.bodegas().filter((b) => b.proyecto_id === pid);
-    return propias.length ? propias : this.bodegas();
+  /**
+   * BS1 (regla 16) — el select de "Almacén de despacho" ofrece TODOS los almacenes
+   * activos que el rol puede leer, no solo el de la obra: la conveniencia es el
+   * PRESELECCIONADO (Central), nunca el filtro. Orden: Central (`es_central`) →
+   * el de la obra de la requisición → resto por nombre.
+   */
+  bodegasDespacho = computed(() => {
+    const pid = this.selected()?.proyecto_id ?? null;
+    const rank = (b: Bodega): number => {
+      if (b.es_central) return 0;
+      if (pid && b.proyecto_id === pid) return 1;
+      return 2;
+    };
+    return [...this.bodegas()].sort(
+      (a, b) => rank(a) - rank(b) || a.nombre.localeCompare(b.nombre),
+    );
   });
+
+  /** BS1 — stock por almacén cacheado (renglones cubiertos n/N en cada opción). */
+  private stockCache = signal<Record<string, Record<string, number>>>({});
+
+  /** Renglones del pedido abierto (fuente de la cobertura, estable al abrir). */
+  private renglonesPedido = computed(() => this.selected()?.items ?? []);
+
+  /** BS1 — "renglones cubiertos n/N" de un almacén: n = renglones con artículo del
+   *  catálogo cuyo stock en ese almacén alcanza la cantidad; N = total de renglones. */
+  cobertura(bodegaId: string): { n: number; N: number } | null {
+    const stock = this.stockCache()[bodegaId];
+    const renglones = this.renglonesPedido();
+    const N = renglones.length;
+    if (!stock || N === 0) return null;
+    const n = renglones.filter(
+      (i) => i.articulo_id && (stock[i.articulo_id] ?? 0) >= (i.cantidad ?? 0),
+    ).length;
+    return { n, N };
+  }
+
+  coberturaLabel(bodegaId: string): string {
+    const c = this.cobertura(bodegaId);
+    return c ? ` — cubre ${c.n}/${c.N}` : '';
+  }
+
+  /** Carga (y cachea) el stock de un almacén para calcular su cobertura. */
+  private async cargarStockBodega(bodegaId: string): Promise<void> {
+    if (!bodegaId || this.stockCache()[bodegaId]) return;
+    try {
+      const map = await this.stockService.getMapByBodega(bodegaId);
+      this.stockCache.update((c) => ({ ...c, [bodegaId]: map }));
+    } catch {
+      /* best-effort: sin cobertura para ese almacén, no rompe el picker */
+    }
+  }
+
+  /** BS1 — precarga perezosa de la cobertura de todos los almacenes al abrir el select. */
+  precargarCoberturas(): void {
+    for (const b of this.bodegasDespacho()) void this.cargarStockBodega(b.id);
+  }
 
   pendientesCount = computed(
     () => this.requisiciones().filter((r) => r.estado === 'pendiente').length,
@@ -411,7 +461,9 @@ export class Requisiciones implements OnInit {
   private async loadStock(bodegaId: string): Promise<void> {
     if (!bodegaId) { this.stockMap.set({}); return; }
     try {
-      this.stockMap.set(await this.stockService.getMapByBodega(bodegaId));
+      const map = await this.stockService.getMapByBodega(bodegaId);
+      this.stockMap.set(map);
+      this.stockCache.update((c) => ({ ...c, [bodegaId]: map })); // BS1 — reutiliza para la cobertura
     } catch {
       this.stockMap.set({});
     }
@@ -455,10 +507,10 @@ export class Requisiciones implements OnInit {
     this.responsableId.set(null);
     this.observaciones.set('');
     this.fecha.set(hoy());
-    // Prefill del almacén con el de la obra (si tiene) o el primero activo.
-    const pid = r.proyecto_id;
-    const propia = this.bodegas().find((b) => b.proyecto_id === pid);
-    this.bodegaId.set(propia?.id ?? this.bodegas()[0]?.id ?? '');
+    // BS1 (regla 16) — preselección por conveniencia (Central si cubre ≥1 renglón;
+    // si no, la de la obra), pero el select ofrece TODOS los almacenes.
+    this.stockMap.set({});
+    void this.preseleccionarBodega(r);
     this.mostrarCancelar.set(false);
     this.cancelarMotivo.set('');
     this.mostrarVincular.set(false);
@@ -468,6 +520,31 @@ export class Requisiciones implements OnInit {
 
   cerrar() {
     this.drawerOpen.set(false);
+  }
+
+  /**
+   * BS1 — preselecciona el almacén de despacho por conveniencia sin ESCONDER el
+   * resto (regla 16): Central si cubre ≥1 renglón del pedido; si no, la de la obra;
+   * si no hay ninguna, la primera de la lista. El usuario puede cambiarlo.
+   */
+  private async preseleccionarBodega(r: SolicitudMaterial): Promise<void> {
+    const pid = r.proyecto_id ?? null;
+    const lista = this.bodegasDespacho();
+    const central = lista.find((b) => b.es_central) ?? null;
+    const obra = pid ? lista.find((b) => b.proyecto_id === pid) ?? null : null;
+    // Provisional inmediato para que el select no quede vacío mientras carga el stock.
+    const provisional = central ?? obra ?? lista[0] ?? null;
+    if (provisional) this.onBodegaAprob(provisional.id);
+    // Refina con la cobertura real: Central si cubre ≥1; si no, la de la obra.
+    await Promise.all(
+      [central?.id, obra?.id]
+        .filter((id): id is string => !!id)
+        .map((id) => this.cargarStockBodega(id)),
+    );
+    if (central && obra) {
+      const cov = this.cobertura(central.id);
+      if (cov && cov.n === 0) this.onBodegaAprob(obra.id);
+    }
   }
 
   // ── BA / Transporte v3 — despachos ─────────────────────────────────────────

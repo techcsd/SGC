@@ -20,6 +20,7 @@ import { DatosPruebaService } from '../../../../shared/services/datos-prueba.ser
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 import {
   ChecklistPlantilla,
   ChecklistPlantillaItem,
@@ -57,7 +58,7 @@ import { AudioNotas } from '../../../../shared/components/audio-notas/audio-nota
  */
 @Component({
   selector: 'app-checklists',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas, Icon],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, RouterLink, VehiculoPicker, SignaturePad, AudioNotas, Icon, ErrorState],
   templateUrl: './checklists.html',
   styleUrl: './checklists.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -92,9 +93,9 @@ export class Checklists implements OnInit {
 
   loading = signal(true);
   saving = signal(false);
-  error = signal('');
+  // BS2 — error crudo; `app-error-state` lo presenta por rol y lo reporta.
+  error = signal<unknown>(null);
   saveError = signal('');
-  dbNotReady = signal(false);
 
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
@@ -296,8 +297,7 @@ export class Checklists implements OnInit {
 
   private async loadAll() {
     this.loading.set(true);
-    this.error.set('');
-    this.dbNotReady.set(false);
+    this.error.set(null);
     try {
       const [checklists, vehiculos, conductores, plantillas] = await Promise.all([
         this.checklistsService.getChecklists(),
@@ -310,12 +310,8 @@ export class Checklists implements OnInit {
       this.conductores.set(conductores);
       this.plantillas.set(plantillas);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '';
-      if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('permission denied')) {
-        this.dbNotReady.set(true);
-      } else {
-        this.error.set(msg || 'Error al cargar los checklists.');
-      }
+      // BS2 — el error crudo va a `app-error-state`: mensaje por rol + reporte.
+      this.error.set(e);
     } finally {
       this.loading.set(false);
     }

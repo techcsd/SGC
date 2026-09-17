@@ -18,21 +18,8 @@
   </div>
 </div>
 
-<!-- DB not ready notice -->
-@if (dbNotReady()) {
-  <div class="flota-vehiculos__setup-notice">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-    </svg>
-    <div>
-      <strong>Tabla de vehículos no configurada</strong>
-      <p>Ejecuta el SQL del archivo <code>vehiculos.service.ts</code> en el SQL Editor de Supabase para habilitar este módulo.</p>
-    </div>
-  </div>
-}
-
 <!-- Filters -->
-@if (!dbNotReady()) {
+@if (!error()) {
   <div class="flota-vehiculos__filters">
     <input
       class="flota-vehiculos__search"
@@ -94,18 +81,13 @@
   <app-skeleton variant="cards" [rows]="6" />
 }
 
-<!-- Error -->
+<!-- Error (BS2 — mensaje por rol, detalle técnico solo desarrollador) -->
 @if (error()) {
-  <div class="flota-vehiculos__error" role="alert">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-      <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-    </svg>
-    {{ error() }}
-  </div>
+  <app-error-state [error]="error()" pantalla="los vehículos" (retry)="ngOnInit()" />
 }
 
 <!-- Grid -->
-@if (!loading() && !error() && !dbNotReady()) {
+@if (!loading() && !error()) {
   @if (filtered().length === 0) {
     <div class="flota-vehiculos__empty">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">

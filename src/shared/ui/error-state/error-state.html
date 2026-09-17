@@ -1,0 +1,24 @@
+<div class="error-state" [class.error-state--compact]="compact()" role="alert">
+  <div class="error-state__icon" [class.error-state__icon--denied]="presentacion().esAccesoDenegado">
+    <app-icon [name]="presentacion().esAccesoDenegado ? 'alert-circle' : 'alert-triangle'" [size]="compact() ? 20 : 28" />
+  </div>
+
+  <div class="error-state__body">
+    <p class="error-state__msg">{{ presentacion().mensajeUsuario | t }}</p>
+
+    <div class="error-state__actions">
+      <button type="button" class="error-state__retry" (click)="onRetry()">
+        <app-icon name="rotate-cw" [size]="15" />
+        {{ 'Reintentar' | t }}
+      </button>
+    </div>
+
+    <!-- Detalle técnico: SOLO para desarrollador (espejo de es_desarrollador()). -->
+    @if (esDesarrollador()) {
+      <details class="error-state__dev">
+        <summary>{{ 'Detalle técnico' | t }}</summary>
+        <pre>{{ presentacion().detalleTecnico }}</pre>
+      </details>
+    }
+  </div>
+</div>

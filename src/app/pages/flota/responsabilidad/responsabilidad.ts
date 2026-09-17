@@ -17,6 +17,7 @@ import { Vehiculo, identificacionVehiculo, unidadUso } from '../../../../shared/
 import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.model';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { ErrorState } from '../../../../shared/ui/error-state/error-state';
 
 type RespTab = 'uso' | 'historial';
 
@@ -35,7 +36,7 @@ interface EstadoUso {
  */
 @Component({
   selector: 'app-flota-responsabilidad',
-  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon],
+  imports: [DecimalPipe, RouterLink, Skeleton, MiniMapa, FormDrawer, Img, RegistrarEntrega, Icon, ErrorState],
   templateUrl: './responsabilidad.html',
   styleUrl: './responsabilidad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,8 +64,8 @@ export class Responsabilidad implements OnInit {
   entregas = signal<VehiculoEntrega[]>([]);
 
   loading = signal(true);
-  error = signal('');
-  dbNotReady = signal(false);
+  // BS2 — error crudo; `app-error-state` lo presenta por rol y lo reporta.
+  error = signal<unknown>(null);
 
   searchQuery = signal('');
   soloRevision = signal(false);
@@ -134,8 +135,7 @@ export class Responsabilidad implements OnInit {
 
   private async load() {
     this.loading.set(true);
-    this.error.set('');
-    this.dbNotReady.set(false);
+    this.error.set(null);
     try {
       const [vehiculos, asignados, stats, entregas] = await Promise.all([
         this.vehiculosService.getAll(),
@@ -151,12 +151,8 @@ export class Responsabilidad implements OnInit {
       this.entregas.set(entregas);
       this.resolverFotosGrid(vehiculos);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '';
-      if (msg.includes('relation') || msg.includes('does not exist') || msg.includes('permission denied')) {
-        this.dbNotReady.set(true);
-      } else {
-        this.error.set(msg || 'Error al cargar la información.');
-      }
+      // BS2 — el error crudo va a `app-error-state`: mensaje por rol + reporte.
+      this.error.set(e);
     } finally {
       this.loading.set(false);
     }

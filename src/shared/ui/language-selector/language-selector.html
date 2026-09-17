@@ -1,0 +1,16 @@
+<div class="lang">
+  @for (idioma of idiomas; track idioma.code) {
+    <button
+      type="button"
+      class="lang__opt"
+      [class.lang__opt--on]="actual() === idioma.code"
+      (click)="elegir(idioma.code)"
+    >
+      <span class="lang__bandera" aria-hidden="true">{{ idioma.bandera }}</span>
+      <span class="lang__nombre">{{ idioma.nativo }}</span>
+      @if (actual() === idioma.code) {
+        <span class="lang__check"><app-icon name="check-circle" [size]="18" /></span>
+      }
+    </button>
+  }
+</div>

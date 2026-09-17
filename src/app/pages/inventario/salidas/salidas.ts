@@ -185,7 +185,13 @@ export class Salidas implements OnInit {
   // ── Computed ─────────────────────────────────────────────
   activeProyectos = computed(() => this.proyectos().filter((p) => p.activo));
   // AT14 — el almacén de origen no debe ofrecer bodegas de prueba a no-admins.
-  bodegasVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.bodegas()));
+  // BS1 — el almacén de origen ofrece TODOS los almacenes legibles (nunca esconde
+  // opciones válidas), con Central primero por conveniencia (regla 16).
+  bodegasVisibles = computed(() =>
+    [...this.datosPruebaViewSvc.visibles(this.bodegas())].sort(
+      (a, b) => Number(!!b.es_central) - Number(!!a.es_central) || a.nombre.localeCompare(b.nombre),
+    ),
+  );
 
   /**
    * Artículos agrupados por categoría para los <select> (R16). Se itera categorias()

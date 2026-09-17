@@ -135,6 +135,30 @@ lógico de captura; el layout puede diferir).
 
 ---
 
+## Ronda BS (PROMPT-54, 17/09/2026) — contratos web↔app
+
+- **⭐ i18n portada del HIJO — 1ª vez que csd-app es la referencia de infraestructura.** El sistema i18n
+  runtime (sin `@angular/localize`) nació en la app: la web portó `i18n.service.ts`, `translate.pipe.ts`,
+  `language-selector` y `verify-i18n.mjs` **del hijo** (adaptación: `localStorage` en vez de Capacitor
+  Preferences). **Las CLAVES de traducción SON el texto en español** (es no necesita catálogo); `en`/`ht` son
+  superposiciones (`public/i18n/*.json`). Al tocar cualquier pantalla, pásala por `t()` (regla en CLAUDE.md).
+- **Idioma canónico = `usuarios.idioma`** (BR7, compartido). Web y app escriben vía `mi_idioma_set(p_idioma)`
+  y lo adoptan al cargar el perfil (`adoptFromServer`). **NO se duplica** en `usuario_preferencias`:
+  `mis_preferencias()` lo coalesca desde `usuarios.idioma`; `set_mi_preferencia('idioma',…)` escribe ambos.
+- **`usuario_preferencias` (BS3) — misma tabla para web y app.** RPCs `mis_preferencias()` / `set_mi_preferencia(clave,valor)`
+  (whitelist: idioma|tema|densidad|tamano_letra|modulo_inicio). RLS: solo el propio usuario. App (PROMPT-55 F2):
+  Perfil ⚙ lee/escribe esta tabla (idioma, tema) — no inventa columnas nuevas.
+- **Diálogo de primer ingreso de idioma (BS4/#39) — en AMBAS plataformas.** Web ya lo tiene
+  (`shared/ui/language-onboarding`, sella `idioma_elegido_at` vía `set_mi_preferencia`). App (PROMPT-55): al
+  primer login, si `idioma_elegido_at` es null, muestra el mismo modal; al elegir, **nunca vuelve a salir** (ni
+  cross-device, ni en la otra plataforma) porque el sello es canónico.
+- **Notificaciones i18n v1 (BS4).** `notif_tipo.titulo_i18n jsonb` + `notificar_modulo` localiza el **título
+  in-app por destinatario** (`usuarios.idioma`). Cuerpo y push en español (v1). App: sin cambio (recibe el
+  título ya localizado).
+- **Picker de almacén (BS1) — contrato para `generar-conduce` (PROMPT-55 F3):** el selector de almacén debe
+  ofrecer **todos** los almacenes que el rol lee (nunca solo el de la obra), con **Central primero** por
+  conveniencia y la cobertura n/N por opción. La conveniencia es el preseleccionado, no el filtro (regla 16).
+
 ## Ronda BR (PROMPT-52, 15/09/2026) — contratos web↔app
 
 - **`registrar_combustible_app` (v-acepta, BR1/BQ7):** ya NO rechaza al chofer por salto de km ni por no

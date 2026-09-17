@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { Routes, Router } from '@angular/router';
+import { inject } from '@angular/core';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
 import { moduloOSubmoduloGuard } from './core/guards/modulo-o-submodulo.guard';
@@ -44,17 +45,21 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dudas/dudas').then((m) => m.Dudas),
       },
       {
-        path: 'perfil',
-        loadComponent: () => import('./pages/perfil/perfil').then((m) => m.Perfil),
+        // BS3 — módulo "Configuración" (general, sin gate de módulo: como Notas/Mensajes).
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./pages/configuracion/configuracion').then((m) => m.Configuracion),
       },
       {
-        // AT23 — Ajustes › Notificaciones: cada usuario silencia tipos de aviso.
-        // Sin gate de módulo: es preferencia personal (como Mensajería/Notas).
+        // BS3 — /perfil se unifica en Configuración › Cuenta (deep-links vivos).
+        path: 'perfil',
+        redirectTo: () => inject(Router).parseUrl('/configuracion#cuenta'),
+      },
+      {
+        // AT23/BS3 — Ajustes › Notificaciones vive ahora en Configuración › Notificaciones.
+        // Sin gate de módulo: preferencia personal. Los deep-links de correos siguen vivos.
         path: 'ajustes/notificaciones',
-        loadComponent: () =>
-          import('./pages/ajustes-notificaciones/ajustes-notificaciones').then(
-            (m) => m.AjustesNotificaciones,
-          ),
+        redirectTo: () => inject(Router).parseUrl('/configuracion#notificaciones'),
       },
       {
         // AU8 — "Conduces por firmar" (bandeja del despachante) es un inbox PERSONAL:

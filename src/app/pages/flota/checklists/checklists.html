@@ -35,18 +35,8 @@
   <a routerLink="/flota/reporte-semanal">dashboard de cumplimiento</a>.
 </p>
 
-<!-- ── DB not ready ── -->
-@if (dbNotReady()) {
-  <div class="page-error" role="status">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
-    </svg>
-    Las tablas de checklists aún no existen. Aplica la migración correspondiente en Supabase.
-  </div>
-}
-
 <!-- ── Filters ── -->
-@if (!dbNotReady()) {
+@if (!error()) {
   <div class="filters-bar">
     <div class="sgc-field filters-bar__search">
       <input
@@ -91,14 +81,9 @@
   </div>
 }
 
-<!-- ── Error ── -->
+<!-- ── Error (BS2 — mensaje por rol, detalle técnico solo desarrollador) ── -->
 @if (error()) {
-  <div class="page-error" role="alert">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    {{ error() }}
-  </div>
+  <app-error-state [error]="error()" pantalla="los checklists" (retry)="ngOnInit()" />
 }
 
 <!-- ── Loading ── -->
@@ -107,7 +92,7 @@
 }
 
 <!-- ── Table ── -->
-@if (!loading() && !error() && !dbNotReady()) {
+@if (!loading() && !error()) {
   <div class="table-wrapper sgc-card">
     @if (filtered().length === 0) {
       <div class="table-empty">

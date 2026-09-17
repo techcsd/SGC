@@ -1,0 +1,140 @@
+<div class="cfg">
+  <!-- Cabecera -->
+  <div class="cfg__header">
+    <h1>{{ 'Configuración' | t }}</h1>
+    <p>{{ 'Ajusta tu cuenta, idioma, apariencia y avisos.' | t }}</p>
+  </div>
+
+  <div class="cfg__layout">
+    <!-- Navegación lateral por secciones -->
+    <nav class="cfg__nav" aria-label="Secciones de configuración">
+      @for (s of secciones(); track s.id) {
+        <button type="button" class="cfg__nav-item" [class.cfg__nav-item--on]="seccion() === s.id"
+                (click)="ir(s.id)">
+          <app-icon [name]="s.icon" [size]="18" />
+          <span>{{ s.label | t }}</span>
+        </button>
+      }
+      @if (esTecnologia()) {
+        <a class="cfg__nav-item cfg__nav-item--link" routerLink="/admin/parametros">
+          <app-icon name="settings" [size]="18" />
+          <span>{{ 'Configuración del sistema' | t }}</span>
+          <app-icon name="external-link" [size]="14" />
+        </a>
+      }
+    </nav>
+
+    <!-- Contenido -->
+    <section class="cfg__content">
+      @switch (seccion()) {
+        @case ('cuenta') {
+          <app-perfil />
+        }
+
+        @case ('idioma') {
+          <div class="cfg__card">
+            <h2>{{ 'Idioma' | t }}</h2>
+            <p class="cfg__muted">
+              {{ 'Los catálogos, nombres de obras y mensajes del sistema siguen en español.' | t }}
+            </p>
+            <app-language-selector />
+          </div>
+        }
+
+        @case ('apariencia') {
+          <div class="cfg__card">
+            <h2>{{ 'Apariencia' | t }}</h2>
+
+            <label class="cfg__label">{{ 'Tema' | t }}</label>
+            <div class="cfg__seg">
+              @for (tm of temas; track tm.value) {
+                <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="temaPref() === tm.value"
+                        (click)="setTema(tm.value)">
+                  <app-icon [name]="tm.icon" [size]="16" />
+                  {{ tm.label | t }}
+                </button>
+              }
+            </div>
+
+            <label class="cfg__label">{{ 'Densidad' | t }}</label>
+            <div class="cfg__seg">
+              @for (d of densidades; track d.value) {
+                <button type="button" class="cfg__seg-btn"
+                        [class.cfg__seg-btn--on]="(prefs()?.densidad ?? 'normal') === d.value"
+                        (click)="setDensidad(d.value)">{{ d.label | t }}</button>
+              }
+            </div>
+
+            <label class="cfg__label">{{ 'Tamaño de letra' | t }}</label>
+            <div class="cfg__seg">
+              @for (tl of tamanos; track tl.value) {
+                <button type="button" class="cfg__seg-btn"
+                        [class.cfg__seg-btn--on]="(prefs()?.tamano_letra ?? 'normal') === tl.value"
+                        (click)="setTamano(tl.value)">{{ tl.label | t }}</button>
+              }
+            </div>
+          </div>
+        }
+
+        @case ('notificaciones') {
+          <app-ajustes-notificaciones />
+        }
+
+        @case ('inicio') {
+          <div class="cfg__card">
+            <h2>{{ 'Pantalla de inicio' | t }}</h2>
+            <p class="cfg__muted">{{ 'Elige a dónde llegar al iniciar sesión.' | t }}</p>
+            <div class="cfg__list">
+              @for (o of opcionesInicio(); track o.route) {
+                <button type="button" class="cfg__opt"
+                        [class.cfg__opt--on]="(prefs()?.modulo_inicio ?? '/dashboard') === o.route"
+                        (click)="setModuloInicio(o.route)">
+                  <span>{{ o.label | t }}</span>
+                  @if ((prefs()?.modulo_inicio ?? '/dashboard') === o.route) {
+                    <app-icon name="check-circle" [size]="18" />
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @case ('sesion') {
+          <div class="cfg__card">
+            <h2>{{ 'Sesión y dispositivos' | t }}</h2>
+            <p class="cfg__muted">
+              {{ 'Si perdiste un dispositivo o iniciaste sesión en uno prestado, cierra la sesión en todos los demás.' | t }}
+            </p>
+            <button type="button" class="cfg__btn cfg__btn--danger"
+                    [disabled]="cerrandoSesiones()" (click)="cerrarOtrasSesiones()">
+              <app-icon name="log-out" [size]="16" />
+              {{ (cerrandoSesiones() ? 'Cerrando…' : 'Cerrar sesión en otros dispositivos') | t }}
+            </button>
+          </div>
+        }
+
+        @case ('privacidad') {
+          <div class="cfg__card">
+            <h2>{{ 'Privacidad' | t }}</h2>
+            <p class="cfg__muted">
+              {{ 'Como chofer, la app comparte tu ubicación durante tus rutas para el seguimiento de logística. Puedes gestionar el permiso de ubicación desde tu teléfono.' | t }}
+            </p>
+          </div>
+        }
+
+        @case ('acerca') {
+          <div class="cfg__card">
+            <h2>{{ 'Acerca de' | t }}</h2>
+            <p class="cfg__muted">{{ 'Versión web' | t }}: <strong>{{ appVersion }}</strong></p>
+            @if (esTecnologia()) {
+              <a class="cfg__btn" routerLink="/tecnologia/historial-versiones">
+                <app-icon name="file-text" [size]="16" />
+                {{ 'Historial de versiones' | t }}
+              </a>
+            }
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

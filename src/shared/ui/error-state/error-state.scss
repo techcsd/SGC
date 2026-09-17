@@ -1,0 +1,94 @@
+.error-state {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  border: 1px solid var(--sgc-border, #e2e5ea);
+  background: var(--sgc-surface, #fff);
+  border-radius: 14px;
+  padding: 20px;
+  max-width: 560px;
+  margin: 18px auto;
+  color: var(--sgc-text, inherit);
+
+  &--compact {
+    padding: 12px 14px;
+    gap: 10px;
+    margin: 8px 0;
+    max-width: none;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: var(--sgc-warning, #c2410c);
+    background: color-mix(in srgb, var(--sgc-warning, #c2410c) 12%, var(--sgc-surface, #fff));
+
+    &--denied {
+      color: var(--sgc-danger, #b91c1c);
+      background: color-mix(in srgb, var(--sgc-danger, #b91c1c) 12%, var(--sgc-surface, #fff));
+    }
+  }
+  &--compact &__icon { width: 32px; height: 32px; border-radius: 9px; }
+
+  &__body { flex: 1; min-width: 0; }
+
+  &__msg {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.45;
+    color: var(--sgc-text, inherit);
+  }
+
+  &__actions { margin-top: 12px; }
+  &--compact &__actions { margin-top: 8px; }
+
+  &__retry {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    background: var(--sgc-surface-2, #f0f1f4);
+    color: var(--sgc-text, inherit);
+    border-radius: 9px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      border-color: var(--Hub, #ffb300);
+      background: color-mix(in srgb, var(--Hub, #ffb300) 12%, var(--sgc-surface, #fff));
+    }
+  }
+
+  &__dev {
+    margin-top: 14px;
+    border-top: 1px dashed var(--sgc-border, #e2e5ea);
+    padding-top: 10px;
+
+    summary {
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sgc-text-muted, #6b7280);
+      user-select: none;
+    }
+    pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      border-radius: 8px;
+      background: var(--sgc-surface-2, #f0f1f4);
+      color: var(--sgc-text-muted, #6b7280);
+      font-size: 11.5px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-x: auto;
+    }
+  }
+}

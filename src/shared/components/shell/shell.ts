@@ -22,6 +22,7 @@ import { ThemeService } from '../../services/theme.service';
 import { ModuloOrdenService } from '../../services/modulo-orden.service';
 import { OnboardingWeb } from '../onboarding-web/onboarding-web';
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
+import { LanguageOnboarding } from '../../ui/language-onboarding/language-onboarding';
 import { formatFechaRelativa } from '../../utils/fecha.util';
 
 interface NavItem {
@@ -84,7 +85,7 @@ interface NavSubItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, ConfirmDialog],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, ConfirmDialog, LanguageOnboarding],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

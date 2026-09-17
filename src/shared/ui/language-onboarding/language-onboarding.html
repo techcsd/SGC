@@ -1,0 +1,21 @@
+@if (visible()) {
+  <div class="lo-backdrop" role="dialog" aria-modal="true" aria-labelledby="lo-title">
+    <div class="lo-card">
+      <h2 id="lo-title" class="lo-title">Elige tu idioma / Choose your language / Chwazi lang ou</h2>
+
+      <div class="lo-opts">
+        @for (idioma of idiomas; track idioma.code) {
+          <button type="button" class="lo-opt" [class.lo-opt--on]="elegido() === idioma.code"
+                  (click)="elegir(idioma.code)">
+            <span class="lo-flag" aria-hidden="true">{{ idioma.bandera }}</span>
+            <span class="lo-name">{{ idioma.nativo }}</span>
+          </button>
+        }
+      </div>
+
+      <button type="button" class="lo-confirm" [disabled]="guardando()" (click)="confirmar()">
+        {{ guardando() ? '…' : 'OK' }}
+      </button>
+    </div>
+  </div>
+}

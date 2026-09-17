@@ -1,0 +1,159 @@
+.cfg {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 8px 4px 40px;
+
+  &__header {
+    margin-bottom: 20px;
+    h1 { margin: 0 0 4px; font-size: 22px; }
+    p { margin: 0; color: var(--sgc-text-muted, #6b7280); font-size: 14px; }
+  }
+
+  &__layout {
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 12px;
+  }
+  &__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: var(--sgc-radius-md, 10px);
+    background: none;
+    color: var(--sgc-text, inherit);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+
+    span { flex: 1; }
+    app-icon { opacity: 0.7; }
+
+    &:hover { background: var(--sgc-surface-2, #f0f1f4); }
+    &--on {
+      background: color-mix(in srgb, var(--Hub, #ffb300) 14%, var(--sgc-surface, #fff));
+      color: var(--sgc-text, inherit);
+      font-weight: 600;
+      app-icon { opacity: 1; }
+    }
+    &--link { border-top: 1px dashed var(--sgc-border, #e2e5ea); margin-top: 8px; padding-top: 14px; }
+  }
+
+  &__content { min-width: 0; }
+
+  &__card {
+    background: var(--sgc-surface, #fff);
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius-lg, 14px);
+    padding: 22px;
+
+    h2 { margin: 0 0 6px; font-size: 17px; }
+  }
+  &__muted { color: var(--sgc-text-muted, #6b7280); font-size: 13.5px; line-height: 1.5; margin: 0 0 16px; }
+
+  &__label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--sgc-text-muted, #6b7280);
+    margin: 18px 0 8px;
+    &:first-of-type { margin-top: 6px; }
+  }
+
+  &__seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  &__seg-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: 999px;
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text, inherit);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { border-color: var(--Hub, #ffb300); }
+    &--on {
+      border-color: var(--Hub, #ffb300);
+      background: color-mix(in srgb, var(--Hub, #ffb300) 14%, var(--sgc-surface, #fff));
+      font-weight: 600;
+    }
+  }
+
+  &__list { display: flex; flex-direction: column; gap: 6px; }
+  &__opt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius-md, 10px);
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text, inherit);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover { border-color: var(--Hub, #ffb300); }
+    &--on { border-color: var(--Hub, #ffb300); font-weight: 600; }
+    app-icon { color: var(--Hub, #ffb300); }
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius-md, 10px);
+    background: var(--sgc-surface-2, #f0f1f4);
+    color: var(--sgc-text, inherit);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+
+    &:hover { border-color: var(--Hub, #ffb300); }
+    &:disabled { opacity: 0.6; cursor: default; }
+
+    &--danger {
+      color: var(--sgc-danger, #b91c1c);
+      border-color: color-mix(in srgb, var(--sgc-danger, #b91c1c) 40%, var(--sgc-border, #e2e5ea));
+      &:hover { border-color: var(--sgc-danger, #b91c1c); background: color-mix(in srgb, var(--sgc-danger, #b91c1c) 10%, var(--sgc-surface, #fff)); }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .cfg__layout { grid-template-columns: 1fr; }
+  .cfg__nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .cfg__nav-item { white-space: nowrap; }
+  .cfg__nav-item--link { border-top: none; margin-top: 0; padding-top: 10px; }
+}
