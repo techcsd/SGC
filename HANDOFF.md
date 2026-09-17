@@ -1,6 +1,8 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-54 (Ronda BS) — 17/09/2026 — **SHIPPED: web 1.136.0 (commit `8ee8e05` push main → Vercel). 2 migraciones APLICADAS + verificadas por objeto en prod, edge `auth-signout-others` desplegada (v1). Ronda BS entregada completa.**
+## TL;DR — PROMPT-54 (Ronda BS) — 17/09/2026 — **SHIPPED: web 1.136.0 (`8ee8e05`) + 1.137.0 (`f4a7a44`), push main → Vercel. 2 migraciones APLICADAS + verificadas por objeto en prod, edge `auth-signout-others` desplegada (v1). Ronda BS entregada completa.**
+
+**Follow-up 1.137.0 (`f4a7a44`) — pendientes del scope FASE 4.2 + AT11:** `t()` cableado en el **menú lateral** (labels de módulos y submenús, ~120), **login** y **paginador**; `en.json` ampliado (38 claves literales + todos los labels de navegación; el resto de la web sigue en español, rollout incremental). **Densidad** (Configuración › Apariencia) ahora tiene **efecto visible real** (`[data-densidad]` ajusta line-height + separación de campos/filas) — antes solo se guardaba.
 
 **Aplicado en prod (verificado por objeto):** RPCs `mis_preferencias`/`set_mi_preferencia`; columnas `usuario_preferencias.{idioma,densidad,tamano_letra,modulo_inicio,idioma_elegido_at}` + CHECK de tema ampliado a `sistema`; `notif_tipo.titulo_i18n` (12 tipos sembrados) + los 2 overloads de `notificar_modulo` localizando el título por destinatario. Edge `auth-signout-others` v1 (verify_jwt=true). Migraciones: `sql/2026-09-17-bs3-usuario-preferencias.sql`, `sql/2026-09-17-bs4-notif-titulo-i18n.sql`.
 
