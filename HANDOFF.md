@@ -1,6 +1,12 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-54 (Ronda BS) — 17/09/2026 — **CONSTRUIDO: web 1.136.0 (build + verify-tokens/dev-strings/i18n verdes). 2 migraciones VALIDADAS (dry-run begin/rollback) + smoke de RPCs con auth. NADA aplicado/committeado/deployado (gateado). FASE 0 ya estaba en prod.**
+## TL;DR — PROMPT-54 (Ronda BS) — 17/09/2026 — **SHIPPED: web 1.136.0 (commit `8ee8e05` push main → Vercel). 2 migraciones APLICADAS + verificadas por objeto en prod, edge `auth-signout-others` desplegada (v1). Ronda BS entregada completa.**
+
+**Aplicado en prod (verificado por objeto):** RPCs `mis_preferencias`/`set_mi_preferencia`; columnas `usuario_preferencias.{idioma,densidad,tamano_letra,modulo_inicio,idioma_elegido_at}` + CHECK de tema ampliado a `sistema`; `notif_tipo.titulo_i18n` (12 tipos sembrados) + los 2 overloads de `notificar_modulo` localizando el título por destinatario. Edge `auth-signout-others` v1 (verify_jwt=true). Migraciones: `sql/2026-09-17-bs3-usuario-preferencias.sql`, `sql/2026-09-17-bs4-notif-titulo-i18n.sql`.
+
+**Pendiente físico de Xaviel (no de código):** confirmar en el navegador que (1) la cuenta `almacen@` (Raykler) ya NO ve el banner técnico en Flota; (2) el diálogo de idioma sale al primer login de un usuario nuevo y no vuelve; (3) el cambio de tema/idioma persiste al recargar y entre dispositivos. App = PROMPT-55 (Perfil ⚙ sobre `usuario_preferencias`, diálogo de idioma, picker de almacén Central-primero).
+
+### (histórico — construcción, antes del ship)
 
 **Estado de arranque:** el repo llegó a `fcc2b24` (1.135.0). **FASE 0 ya resuelta en prod** — la migración owed de la app (`combustible_avisar_revision`) YA fue aplicada en `fcc2b24` (junto a `usuarios.idioma`/`mi_idioma_set` de BR7); El Flaco, `rechazar_recepcion`, `importar_proveedores`, `cartillas`, ambos crons: todos verificados por objeto. `COBERTURA-NOTAS.md` creado (filas 36-39 = BS + verificación BR).
 
@@ -18,7 +24,7 @@
 
 **Decisiones DEFAULT (reportadas):** idioma canónico en `usuarios.idioma` (no se duplica en usuario_preferencias — `mis_preferencias` lo coalesca, `set_mi_preferencia('idioma')` escribe ambos); guard=RLS en BS2 (no se abre RLS); notif i18n = solo TÍTULO in-app por destinatario (cuerpo + push en español, v1); densidad guarda + aplica atributo (efecto visual global diferido), tamaño de letra sí escala (`font-size` raíz).
 
-**Al autorizar (gate):** `node scripts/apply-migration.mjs sql/2026-09-17-bs3-usuario-preferencias.sql` + `…bs4-notif-titulo-i18n.sql` → deploy edge `auth-signout-others` → commit/push (ya bumpeado a 1.136.0 + `release-notes.json` + `version.ts`). **Verify on resume:** `git log -1` = `fcc2b24` (nada committeado nuevo); `package.json`=1.136.0 (working tree); prod: por objeto NO existen aún `mis_preferencias`, `set_mi_preferencia`, `usuario_preferencias.idioma`, `notif_tipo.titulo_i18n`; edge `auth-signout-others` no desplegada.
+**✅ Autorizado y ejecutado (17/09):** 2 migraciones aplicadas + verificadas, edge desplegada, commit `8ee8e05` push main. **Verify on resume:** `git log -1` = `8ee8e05`; prod web = 1.136.0 (Vercel auto-deploy tras el push); por objeto EXISTEN `mis_preferencias`, `set_mi_preferencia`, `usuario_preferencias.idioma`, `notif_tipo.titulo_i18n` (12 sembrados), edge `auth-signout-others` v1.
 
 **App = PROMPT-55:** Perfil ⚙ lee/escribe `usuario_preferencias` (misma tabla) + `mi_idioma_set`; diálogo de primer ingreso de idioma en la app; picker de almacén de `generar-conduce` ofrece lo mismo que la web (Central primero).
 
