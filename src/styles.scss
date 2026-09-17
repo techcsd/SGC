@@ -122,6 +122,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+// BS3 — densidad de la interfaz (Configuración › Apariencia). Ajusta el ritmo
+// vertical global (line-height + separación de campos y filas de tabla) para que
+// el control tenga un efecto visible real, sin tocar cada componente. El atributo
+// lo pone `aplicarDensidad()` en <html>. Default (sin atributo o 'normal') = lo de body.
+:root[data-densidad='compacta'] {
+  body { line-height: 1.35; }
+  .sgc-field { margin-bottom: 10px; }
+  table td, table th { padding-top: 6px; padding-bottom: 6px; }
+}
+:root[data-densidad='comoda'] {
+  body { line-height: 1.72; }
+  .sgc-field { margin-bottom: 22px; }
+  table td, table th { padding-top: 14px; padding-bottom: 14px; }
+}
+
 a {
   color: var(--sgc-primary-mid);
   text-decoration: none;

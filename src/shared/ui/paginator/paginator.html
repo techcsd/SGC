@@ -1,6 +1,6 @@
 @if (totalPages() > 1) {
   <nav class="paginator" aria-label="Paginación">
-    <span class="paginator__count">{{ desde() }}–{{ hasta() }} de {{ total() }}</span>
+    <span class="paginator__count">{{ desde() }}–{{ hasta() }} {{ 'de' | t }} {{ total() }}</span>
 
     <div class="paginator__controls">
       <button
@@ -10,10 +10,10 @@
         [disabled]="page() === 1"
         aria-label="Página anterior"
       >
-        <app-icon name="chevron-left" [size]="16" /> Anterior
+        <app-icon name="chevron-left" [size]="16" /> {{ 'Anterior' | t }}
       </button>
 
-      <span class="paginator__page">Página {{ page() }} de {{ totalPages() }}</span>
+      <span class="paginator__page">{{ 'Página' | t }} {{ page() }} {{ 'de' | t }} {{ totalPages() }}</span>
 
       <button
         type="button"
@@ -22,7 +22,7 @@
         [disabled]="page() === totalPages()"
         aria-label="Página siguiente"
       >
-        Siguiente <app-icon name="chevron-right" [size]="16" />
+        {{ 'Siguiente' | t }} <app-icon name="chevron-right" [size]="16" />
       </button>
     </div>
   </nav>

@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.137.0": {
+      "titulo": "El menú y el inicio de sesión ahora hablan inglés; la densidad ya se nota",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Cuenta",
+          "d": "El idioma inglés llega al menú lateral (todos los módulos y submenús) y a la pantalla de inicio de sesión; antes solo estaba traducida la pantalla de Configuración."
+        },
+        {
+          "t": "arreglo",
+          "m": "Cuenta",
+          "d": "La opción de Densidad en Apariencia ahora cambia de verdad el espaciado de la interfaz (compacta/normal/cómoda), no solo se guardaba."
+        }
+      ]
+    },
     "1.136.0": {
       "titulo": "Configuración para todos, idioma español/inglés y arreglos de almacén y errores",
       "cambios": [

@@ -44,7 +44,7 @@
                 <span class="nav-icon-dot" aria-hidden="true"></span>
               }
             </span>
-            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-label">{{ item.label | t }}</span>
             @if (pendingBadge(item) > 0) {
               <span class="nav-badge" [attr.aria-label]="pendingBadge(item) + ' sin leer'">{{ pendingBadge(item) }}</span>
             }
@@ -61,7 +61,7 @@
             <span class="nav-icon" aria-hidden="true">
               <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: item.icon }" />
             </span>
-            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-label">{{ item.label | t }}</span>
             <span class="nav-phase">{{ item.phase }}</span>
           </div>
         } @else {
@@ -80,7 +80,7 @@
                   <span class="nav-icon-dot" aria-hidden="true"></span>
                 }
               </span>
-              <span class="nav-label">{{ item.label }}</span>
+              <span class="nav-label">{{ item.label | t }}</span>
               @if (pendingBadge(item) > 0) {
                 <span class="nav-badge" [attr.aria-label]="pendingBadge(item) + ' solicitudes pendientes'">{{ pendingBadge(item) }}</span>
               }
@@ -100,7 +100,7 @@
                       [routerLink]="child.route"
                       routerLinkActive="active"
                     >
-                      <span class="nav-child__label">{{ child.label }}</span>
+                      <span class="nav-child__label">{{ child.label | t }}</span>
                       @if (childBadge(child) > 0) {
                         <span class="nav-badge nav-badge--child" [attr.aria-label]="childBadge(child) + ' pendientes'">{{ childBadge(child) }}</span>
                       }
@@ -128,7 +128,7 @@
             <span class="nav-icon" aria-hidden="true">
               <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: 'admin' }" />
             </span>
-            <span class="nav-label">Administración</span>
+            <span class="nav-label">{{ 'Administración' | t }}</span>
             <span class="nav-chevron" aria-hidden="true">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <polyline points="6 9 12 15 18 9"/>
@@ -144,7 +144,7 @@
                   [routerLink]="child.route"
                   routerLinkActive="active"
                 >
-                  {{ child.label }}
+                  {{ child.label | t }}
                 </a>
               }
             </div>

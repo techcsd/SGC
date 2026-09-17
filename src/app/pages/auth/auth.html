@@ -12,7 +12,7 @@
       />
       <div class="auth-brand-text">
         <span class="auth-brand-name">SGC</span>
-        <span class="auth-brand-subtitle">Sistema de Gestión de Construcción</span>
+        <span class="auth-brand-subtitle">{{ 'Sistema de Gestión de Construcción' | t }}</span>
       </div>
     </div>
 
@@ -30,7 +30,7 @@
           role="tab"
           (click)="setMode('empleado')"
         >
-          Empleado
+          {{ 'Empleado' | t }}
         </button>
         <button
           type="button"
@@ -40,7 +40,7 @@
           role="tab"
           (click)="setMode('conductor')"
         >
-          Soy conductor
+          {{ 'Soy conductor' | t }}
         </button>
       </div>
     }
@@ -49,7 +49,7 @@
       <!-- P5 — Login de conductor: cédula + PIN -->
       <form class="auth-form" [formGroup]="conductorForm" (ngSubmit)="onConductorSubmit()" novalidate>
         <div class="sgc-field">
-          <label for="cedula">Cédula <span class="required">*</span></label>
+          <label for="cedula">{{ 'Cédula' | t }} <span class="required">*</span></label>
           <input
             id="cedula"
             type="text"
@@ -65,7 +65,7 @@
         </div>
 
         <div class="sgc-field">
-          <label for="pin">PIN <span class="required">*</span></label>
+          <label for="pin">{{ 'PIN' | t }} <span class="required">*</span></label>
           <div class="password-wrapper">
             <input
               id="pin"
@@ -117,9 +117,9 @@
         <button type="submit" class="auth-submit" [disabled]="loading()" [attr.aria-busy]="loading()">
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span>
-            Iniciando sesión...
+            {{ 'Iniciando sesión...' | t }}
           } @else {
-            Iniciar sesión
+            {{ 'Iniciar sesión' | t }}
           }
         </button>
 
@@ -132,7 +132,7 @@
       <form class="auth-form" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
         <div class="sgc-field">
-          <label for="email">Correo electrónico <span class="required">*</span></label>
+          <label for="email">{{ 'Correo electrónico' | t }} <span class="required">*</span></label>
           <input
             id="email"
             type="email"
@@ -150,7 +150,7 @@
         </div>
 
         <div class="sgc-field">
-          <label for="password">Contraseña <span class="required">*</span></label>
+          <label for="password">{{ 'Contraseña' | t }} <span class="required">*</span></label>
           <div class="password-wrapper">
             <input
               id="password"
@@ -187,7 +187,7 @@
           }
         </div>
 
-        <button type="button" class="auth-forgot-link" (click)="openForgot()">¿Olvidaste tu contraseña?</button>
+        <button type="button" class="auth-forgot-link" (click)="openForgot()">{{ '¿Olvidaste tu contraseña?' | t }}</button>
 
         <!-- Error alert -->
         @if (errorMessage()) {
@@ -209,9 +209,9 @@
         >
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span>
-            Iniciando sesión...
+            {{ 'Iniciando sesión...' | t }}
           } @else {
-            Iniciar sesión
+            {{ 'Iniciar sesión' | t }}
           }
         </button>
 
@@ -222,7 +222,7 @@
         <div class="auth-intro">
           Si <strong>{{ email.value }}</strong> corresponde a una cuenta activa, recibirás un correo con instrucciones para restablecer tu contraseña.
         </div>
-        <button type="button" class="auth-submit" (click)="closeForgot()">Volver a iniciar sesión</button>
+        <button type="button" class="auth-submit" (click)="closeForgot()">{{ 'Volver a iniciar sesión' | t }}</button>
       } @else {
         <p class="auth-intro">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</p>
         <div class="sgc-field">
@@ -248,12 +248,12 @@
         >
           @if (forgotLoading()) {
             <span class="spinner" aria-hidden="true"></span>
-            Enviando…
+            {{ 'Enviando…' | t }}
           } @else {
-            Enviar enlace
+            {{ 'Enviar enlace' | t }}
           }
         </button>
-        <button type="button" class="auth-forgot-link" (click)="closeForgot()">Volver a iniciar sesión</button>
+        <button type="button" class="auth-forgot-link" (click)="closeForgot()">{{ 'Volver a iniciar sesión' | t }}</button>
       }
     }
 
