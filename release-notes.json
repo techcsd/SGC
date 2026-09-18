@@ -4070,6 +4070,21 @@
           "d": "La foto de perfil que no carga ahora cae a la inicial del usuario en vez de quedar rota."
         }
       ]
+    },
+    "1.139.0": {
+      "titulo": "Importar echadas: resuelve por tarjeta y por chofer, y no duplica",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al registrar las echadas faltantes de una conciliación, el sistema ahora resuelve el vehículo o el chofer por el número de tarjeta de TotalEnergies (antes usaba el identificador de la fila y no cuadraba), y usa el número de transacción como clave para no duplicar si se vuelve a importar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Arreglado un error al importar echadas de una tarjeta asignada a una persona (el conductor se resuelve ahora contra la ficha de conductor correcta); la echada guarda además el titular de la tarjeta tal como viene en la factura."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

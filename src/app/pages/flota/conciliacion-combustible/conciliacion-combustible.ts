@@ -598,6 +598,13 @@ export class ConciliacionCombustible implements OnInit {
           monto_informe: inf.monto,
           diferencia_galones: null,
           diferencia_monto: null,
+          // BT1 — para «Registrar faltantes»: la resolución de vehículo/persona va por la
+          // TARJETA (no por el identificador), y la idempotencia por el nº de transacción.
+          numero_tarjeta: inf.numero_tarjeta || null,
+          transaccion_num: inf.transaccion_num || null,
+          titular: inf.titular || null,
+          titular_es_persona: inf.titular_es_persona,
+          kilometraje: inf.kilometraje ?? null,
         });
       }
     }
@@ -688,10 +695,12 @@ export class ConciliacionCombustible implements OnInit {
         galones: d.galones_informe,
         monto: d.monto_informe,
         precio_por_galon: d.galones_informe && d.monto_informe ? d.monto_informe / d.galones_informe : null,
-        // Clave estable para idempotencia (la factura no trae nº por fila en el informe).
-        nro_factura: `${d.identificador ?? ''}|${d.fecha}`,
-        tarjeta: d.identificador,
-        km: null,
+        // Idempotencia por nº de transacción (único por fila); resolución por la TARJETA real.
+        nro_factura: d.transaccion_num || `${d.identificador ?? ''}|${d.fecha}`,
+        tarjeta: d.numero_tarjeta || d.identificador,
+        titular: d.titular,
+        titular_es_persona: d.titular_es_persona ?? false,
+        km: d.kilometraje && d.kilometraje > 0 ? d.kilometraje : null,
       }));
       const r = await this.service.importarEchadas(id, filas);
       this.toast.success(

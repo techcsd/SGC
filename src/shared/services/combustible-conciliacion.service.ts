@@ -96,6 +96,12 @@ export interface ConciliacionDetalle {
   monto_informe: number | null;
   diferencia_galones: number | null;
   diferencia_monto: number | null;
+  // BT1 — datos de la fila del informe (para «Registrar faltantes» — resolución por tarjeta).
+  numero_tarjeta?: string | null;
+  transaccion_num?: string | null;
+  titular?: string | null;
+  titular_es_persona?: boolean;
+  kilometraje?: number | null;
 }
 
 /** T4 — conciliación de combustible: registros de la plataforma + persistencia. */
