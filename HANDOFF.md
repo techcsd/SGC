@@ -1,5 +1,12 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-56 follow-up — 18/09/2026 — **SHIPPED: web 1.139.0 (commit `41d74b8`, push main). Import de echadas mejorado con la factura REAL FA26463587 + 23 echadas reales importadas a prod.**
+
+**Import de la factura real FA26463587** (23 tx, RD$115,324.19, mayo-junio): probada de punta a punta. Aprendizajes aplicados:
+- **Fix (migración `sql/2026-09-18-bt1c-import-conductor-fk.sql`, aplicada):** `registros_combustible.conductor_id` referencia **`conductores`**, no `usuarios` → la resolución ahora ata el conductor a un `conductores.id` real (por el uso del vehículo o por el usuario de la tarjeta de persona si tiene ficha); el `titular` de la factura SIEMPRE se guarda; una tarjeta de persona conocida = **resuelta** aunque la persona no sea conductor formal.
+- **Web (1.139.0):** el detalle de conciliación lleva `numero_tarjeta`/`transaccion_num`/`titular` → «Registrar faltantes» resuelve por la **tarjeta real** (antes usaba el identificador y no cuadraba con `combustible_tarjeta_map`) e idempotencia por **nº de transacción**.
+- **Datos reales en prod:** 4 tarjetas de persona mapeadas (Bernabel Ortiz, Juan Ocsena, Emmanuel Peralta, Abraham Mercedes) en `combustible_tarjeta_map`; **23 echadas importadas** (conciliacion `a5e4d3c2-…`, cada una en su fecha de transacción 2026-05-29→06-07, chip IMPORTADA, 8 resueltas por persona, 14 km_pendiente). Las 7 tarjetas de vehículo (Mitsubishi Fuso ×2, KIA, Impala, Esperanza Díaz, Apaga Fuego, CSD-8) quedaron `sin_asignación` para que Raykler les asigne el vehículo (las placas de la factura PP355109/PP480029 no están en la flota; los titulares son descripciones ambiguas — no se adivinó).
+
 ## TL;DR — PROMPT-56 (Ronda BT) — 17/09/2026 — **SHIPPED: web 1.138.0 (commit `f136eab`, push main → Vercel). 3 migraciones APLICADAS + verificadas por objeto en prod, versión registrada en `app_versiones` (7 cambios). Ronda BT (lado web) entregada completa.**
 
 **Verify on resume:** `git log -1` = `f136eab` (1.138.0, push main); prod por objeto: FK `conduces_externos_transporta_proveedor_id_fkey` → **`sgc.proveedores`** (ya no la tabla vacía); EXISTEN `notif_tipo.silenciable_por/_roles` (2 alarmas sembradas admin/gerencia/direccion), `registros_combustible.{importada,conciliacion_id,km_pendiente,nro_factura}`, `importar_echadas_conciliacion`, `puede_silenciar_notif`, `set_notif_tipo_silenciable`, `mis_notif_operativas`, tablas `importaciones`/`importaciones_mapeo`, `deshacer_importacion`, `importar_vehiculos`/`importar_articulos`, bucket `sgc-importaciones`.
