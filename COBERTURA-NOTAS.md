@@ -1,4 +1,4 @@
-# COBERTURA-NOTAS — ronda BS (PROMPT-54, 17/09/2026)
+# COBERTURA-NOTAS — rondas BS/BT (PROMPT-54/56, 17/09/2026)
 
 Matriz de cobertura de la tanda BS. Las filas 1-35 (tandas previas) viven en
 `C:\developer\improvements\septiembre 2026\imp 14092026\` (fuera del repo); aquí se
@@ -45,3 +45,24 @@ comprobación de capacidad** (degrada a `mi_idioma_set`/`mi_tema`+local si falta
 | 39 | **BS4** 🔴 — idioma FUERA del PIN/Login; diálogo de primer ingreso | ✅ 2.25.0 (pre-release, bloqueante) | Quitado `app-language-selector` de `pin-unlock` y `login`; queda solo en Perfil › Idioma. `shared/ui/language-onboarding` (modal bloqueante en el shell, una sola vez, preselección = idioma del dispositivo). `IdiomaOnboardingService`: local flag → `mis_preferencias().idioma_elegido_at` (capacidad) → preguntar; confirma con `setIdioma` + sella `set_mi_preferencia`, reintento de sello pendiente offline. `I18nService.deviceLang()` + orden servidor→local→dispositivo→es. |
 
 **Ninguna fila espera decisión.** (App pendiente solo del OK de Xaviel para commit + release, por regla madre.)
+
+## Ronda BT — esta tanda (PROMPT-56, filas 40-48) — web **1.138.0** (build+guards verdes, SIN aplicar/commit)
+
+Reglas A/B: nada espera decisión — DEFAULT aplicado y reportado. Migraciones **validadas**
+(`begin/rollback` en prod) **sin aplicar** (gate de Xaviel). Nace la **17ª regla** (i18n por pantalla).
+
+| # | Nota | Estado (web) | Dónde se ve / objeto |
+|---|------|--------------|----------------------|
+| 40 | Re-pegadas las 4 notas BS (almacén único · "ejecuta el SQL" · Configuración web · idioma fuera del PIN) | ✅ ya en prod desde 1.136.0/1.137.0 y app 2.25.0 | ver filas 36-39 |
+| 41 | **BT2** 🔴 — "cambié a inglés y sigo viendo español" | ✅ 1.138.0 (mecanismo + selector honesto; sweep de pantallas = rollout incremental medido) | `scripts/i18n-coverage.mjs` + `docs/I18N-COVERAGE.md` (en **4 %** del alcance) + `src/app/core/i18n/alcance.json`; selector `en` **beta 4 %** / `ht` **próximamente** (`shared/ui/language-selector`, `language-onboarding`); launcher ya con `t()`. **17ª regla** en checklist. → app PROMPT-57 F1 (mismo script/umbral) |
+| 42 | **BT3** — la foto de perfil no aparece | ✅ 1.138.0 | Columna/bucket ya unificados (`usuarios.avatar_path` + bucket **público** `sgc-avatars`); `perfil` cae a la inicial con `(error)` (antes imagen rota). Contrato en `PARIDAD.md § avatar`. → app PROMPT-57 F2 |
+| 43 | **BT4** — conduce externo: borrador sin enviar | → **app** PROMPT-57 F0.b | (captura offline con fotos = app; corolario regla 17) |
+| 44 | **BT5** 🔴 — tomar foto en conduce externo cierra la app | → **app** PROMPT-57 F0.c | (PWA iOS memoria / Android reinicio; compresión + destruir mapa) |
+| 45 | **BT6** — alarmas semanales silenciables solo para admin/gerencia/elegidos | ✅ 1.138.0 (migración validada) | `notif_tipo.silenciable_por/_roles` + `puede_silenciar_notif` + `notif_permitida`/`destinatarios_notificacion` gate + `mis_notif_operativas`/`mis_preferencias().notif`; **Admin › Matriz** "Pueden silenciarla" (roles chips + user-picker → `set_notif_tipo_silenciable`); **Configuración › Notificaciones** switch/"Siempre activa"; emisor `recordatorio_reporte_semanal` respeta el silencio. DEFAULT sembrado admin/gerencia/direccion. → app PROMPT-57 F4 |
+| 46 | **BT7** 🔴 — transferir/crear conduce externo revienta con FK y le muestra el SQL al chofer | ✅ 1.138.0 (migración validada + causa) | **Causa:** FK `transporta_proveedor_id` apuntaba a `proveedores_transporte` (VACÍA); los transportistas viven en `proveedores` con `tipos={transportista}` (regla 12: FK nunca re-apuntada → 0 conduces externos con proveedor jamás). **Fix:** re-apunta 3 FK a `proveedores` + `crear_conduce_externo` valida (22023 negocio, no 23503). `clasificarError`/`humanizeError` en `conduce-externo-form` + `conduce` detalle; `verify-dev-strings` cubre "violates foreign key"/"insert or update on table". → app PROMPT-57 F0.a |
+| 47 | **BT1** — importar echadas de TotalEnergies + datos de Odoo | ✅ 1.138.0 (migración validada + smoke) | **Flota › Conciliación:** botón "Registrar N faltantes" → `importar_echadas_conciliacion` (importada/km_pendiente/idempotente; chip **IMPORTADA**/**KM PENDIENTE** en `combustible-log`). **Admin › Importar datos** (`/admin/importar`): asistente 4 pasos Excel/CSV→entidad (proveedores/vehículos/artículos v1) con auto-mapeo Odoo + preview + **deshacer 24 h** (`importaciones`/`importaciones_mapeo`/`deshacer_importacion`). `docs/IMPORTAR-DATOS.md`. Vehículo por tarjeta = `combustible_tarjeta_map` (existente). → app: solo aviso km_pendiente |
+| 48 | **BT8** — al aprobar requisición, poder dejar en cero lo no despachado | ✅ 1.138.0 (solo cliente, sin migración) | `inventario/requisiciones`: 0 = pendiente (el servidor `aprobar_requisicion` YA salta los 0); error solo si TODOS son 0 o hay negativos; chip "Pendiente" + atenuado; X = quitar con confirmación (`requisicion-items-mapper`). → app PROMPT-57 F3 |
+
+**Pendientes físicos de Xaviel:** OK a las migraciones **BT7 / BT1 / BT6** · OK al commit **1.138.0** · Raykler:
+llenar `combustible_tarjeta_map` (tarjeta→vehículo) una vez y probar la conciliación con la factura real ·
+elegir en la Matriz qué usuarios pueden silenciar las alarmas (DEFAULT ya sembrado: admin, gerencia, dirección).

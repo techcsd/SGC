@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { MODULOS_DISPONIBLES } from '../../../shared/services/roles.service';
+import { humanizeError } from '../../../shared/utils/friendly-error.util';
 import { TareasService } from '../../../shared/services/tareas.service';
 import { ReportesUsuarioService } from '../../../shared/services/reportes-usuario.service';
 import { Tarea } from '../../../shared/models/tarea.model';
@@ -40,6 +41,8 @@ export class Perfil implements OnInit {
   avatarUrl = this.userService.avatarUrl;
 
   uploading = signal(false);
+  /** BT3 — la foto falló al cargar → mostramos la inicial en su lugar. */
+  avatarFailed = signal(false);
   error = signal('');
   loadingStats = signal(true);
 
@@ -124,8 +127,9 @@ export class Perfil implements OnInit {
     this.error.set('');
     try {
       await this.userService.uploadAvatar(file);
+      this.avatarFailed.set(false); // BT3 — la nueva foto merece un intento limpio.
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al subir la imagen.');
+      this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'Error al subir la imagen.');
     } finally {
       this.uploading.set(false);
       input.value = '';

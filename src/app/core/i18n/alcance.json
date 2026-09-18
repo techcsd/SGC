@@ -1,0 +1,14 @@
+{
+  "_doc": "BT2 / regla 17 — pantallas en ALCANCE de i18n (es/en). `enforce:true` rompe el build si la pantalla tiene literales sin t() (guard i18n-coverage). El alcance crece por tandas; el selector marca `en` beta hasta ≥95% del alcance. Orden de tandas: Configuración, shell/launcher, Flota, Inventario, Bitácora; el resto (Admin, Tecnología, Proyectos, RRHH, Compa) se mide pero aún no está en alcance (PROMPT-58+).",
+  "pantallas": {
+    "configuracion": { "enforce": false },
+    "perfil": { "enforce": false },
+    "ajustes-notificaciones": { "enforce": false },
+    "flota": { "enforce": false },
+    "inventario": { "enforce": false },
+    "inventario/requisiciones": { "enforce": false },
+    "inventario/conduce": { "enforce": false },
+    "inventario/conduce-externo-form": { "enforce": false },
+    "bitacora": { "enforce": false }
+  }
+}

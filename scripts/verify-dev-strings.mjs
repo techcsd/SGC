@@ -37,6 +37,12 @@ const PROHIBIDO = [
   /\bno configurad[ao]\b/i,
   /tabla .* no existe/i,
   /run the sql/i,
+  // BT7 — nada de SQL crudo de Postgres en un template de usuario (regla 16).
+  /violates .*constraint/i,
+  /violates foreign key/i,
+  /insert or update on table/i,
+  /row-level security policy/i,
+  /\bSQLSTATE\b/i,
 ];
 
 function walk(dir) {

@@ -74,3 +74,11 @@
 
   &:disabled { opacity: 0.6; cursor: default; }
 }
+
+// BT2 — honestidad del diálogo de primer ingreso.
+.lo-opt--disabled { opacity: 0.5; cursor: not-allowed; }
+.lo-badge {
+  margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px;
+  color: var(--sgc-warning, #b26a00); background: rgba(255, 179, 0, 0.14);
+  &--pronto { color: var(--sgc-text-muted); background: rgba(0,0,0,0.06); }
+}

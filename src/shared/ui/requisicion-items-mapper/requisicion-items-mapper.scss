@@ -41,6 +41,13 @@
     &--ok { color: var(--sgc-success); }
     &--sug { color: var(--sgc-warning); }
     &--add { color: var(--sgc-info); }
+    &--pend { color: var(--sgc-text-muted); font-style: italic; }
+  }
+
+  // BT8 — renglón en cero: atenuado, se despachará en otro momento.
+  &--pendiente {
+    opacity: 0.62;
+    .req-map-row__text { text-decoration: line-through; text-decoration-color: var(--sgc-border); }
   }
   &__stock { font-size: 10.5px; color: var(--sgc-text-muted); }
   &__picker { grid-area: picker; min-width: 0; }

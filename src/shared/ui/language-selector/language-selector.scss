@@ -31,3 +31,16 @@
 .lang__bandera { font-size: 22px; line-height: 1; }
 .lang__nombre { flex: 1; }
 .lang__check { color: var(--Hub, #ffb300); display: inline-flex; }
+
+// BT2 — badges de honestidad del selector (beta / próximamente).
+.lang__opt--disabled { opacity: 0.55; cursor: not-allowed; }
+.lang__badge {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  text-transform: lowercase;
+  &--beta { color: var(--sgc-warning, #b26a00); background: rgba(255, 179, 0, 0.14); }
+  &--pronto { color: var(--sgc-text-muted); background: var(--sgc-surface-2, rgba(0,0,0,0.05)); }
+}

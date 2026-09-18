@@ -36,11 +36,19 @@ export class NotifMatrizService {
   async tiposFull(): Promise<NotifTipoFull[]> {
     const { data, error } = await this.supabase.client
       .from('notif_tipo')
-      .select('tipo, etiqueta, es_operativa, canales, activo, orden')
+      .select('tipo, etiqueta, es_operativa, canales, activo, orden, silenciable_por, silenciable_por_roles')
       .eq('activo', true)
       .order('orden');
     if (error) throw new Error(error.message);
     return (data ?? []) as NotifTipoFull[];
+  }
+
+  /** BT6 — quién puede silenciar un tipo operativo (roles + usuarios). Admin only. */
+  async setTipoSilenciable(tipo: string, roles: string[], usuarios: string[]): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_notif_tipo_silenciable', {
+      p_tipo: tipo, p_roles: roles, p_usuarios: usuarios,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** BK1 — set de los canales (in_app/push/email) de un tipo. */
@@ -78,7 +86,7 @@ export class NotifMatrizService {
 /** BF4 — un tipo de aviso del catálogo. */
 export interface NotifTipoCat { tipo: string; etiqueta: string; es_operativa: boolean; }
 /** BK1 — un tipo con sus canales editables. */
-export interface NotifTipoFull { tipo: string; etiqueta: string; es_operativa: boolean; canales: string[]; activo: boolean; orden: number; }
+export interface NotifTipoFull { tipo: string; etiqueta: string; es_operativa: boolean; canales: string[]; activo: boolean; orden: number; silenciable_por: string[] | null; silenciable_por_roles: string[] | null; }
 /** BF4/BK1 — una regla de admin (global, por rol o por usuario). */
 export interface NotifRegla {
   tipo: string;

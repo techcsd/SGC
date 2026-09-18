@@ -1,7 +1,11 @@
 @for (item of items(); track $index) {
-  <div class="req-map-row">
+  <div class="req-map-row" [class.req-map-row--pendiente]="item.cantidad === 0">
     <div class="req-map-row__desc">
       <span class="req-map-row__text" [title]="item.descripcion">{{ item.descripcion }}@if (item.talla) { · Talla: {{ item.talla }} }</span>
+      @if (item.cantidad === 0) {
+        <!-- BT8 — 0 = no se despacha ahora; queda pendiente para otro conduce o compra. -->
+        <span class="req-map-row__tag req-map-row__tag--pend">Pendiente — no se despacha ahora</span>
+      }
       @switch (item.match_source) {
         @case ('origen') { <span class="req-map-row__tag req-map-row__tag--ok"><app-icon name="check" [size]="13" /> Del catálogo</span> }
         @case ('sugerido') { <span class="req-map-row__tag req-map-row__tag--sug">Sugerido · {{ item.score * 100 | number:'1.0-0' }}% — verifica</span> }

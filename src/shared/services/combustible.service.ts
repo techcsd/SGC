@@ -36,6 +36,10 @@ export interface LogCombustibleRow {
   conductor_nombre: string | null;
   es_prueba: boolean;
   created_at: string;
+  /** BT1 — echada creada al importar la factura de TotalEnergies (chip IMPORTADA). */
+  importada?: boolean;
+  /** BT1 — la factura no traía kilometraje; queda por completar. */
+  km_pendiente?: boolean;
 }
 
 /** BQ5 — fila del historial de ediciones de una echada (auditoría). */

@@ -4,6 +4,7 @@ import { NotifMatrizService, NotifParam, NotifEntrega, NotifTipoCat, NotifTipoFu
 import { RolesService, Rol } from '../../../../shared/services/roles.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { UserPicker } from '../../../../shared/ui/user-picker/user-picker';
 
 interface ParamRow extends NotifParam {
   seleccion: Set<string>; // códigos de rol marcados
@@ -13,7 +14,7 @@ interface ParamRow extends NotifParam {
  *  matriz (por rol), sin tocar código. Backend: notif_config / set_notif_param. */
 @Component({
   selector: 'app-admin-matriz-notificaciones',
-  imports: [Skeleton, FormsModule],
+  imports: [Skeleton, FormsModule, UserPicker],
   templateUrl: './matriz-notificaciones.html',
   styleUrl: './matriz-notificaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -128,17 +129,70 @@ export class AdminMatrizNotificaciones implements OnInit {
     return list.filter((u) => u.nombre.toLowerCase().includes(q)).slice(0, 8);
   });
 
+  // BT6 — "Pueden silenciarla" por tipo operativo: roles + usuarios.
+  silRolesMap = signal<Map<string, Set<string>>>(new Map());
+  silUsuariosMap = signal<Map<string, string[]>>(new Map());
+  guardandoSil = signal<string | null>(null);
+
   private cargarMapasReglas(cat: NotifTipoFull[], reglas: NotifRegla[]) {
     const m = new Map<string, boolean>();
     const cm = new Map<string, Set<string>>();
+    const sr = new Map<string, Set<string>>();
+    const su = new Map<string, string[]>();
     for (const t of cat) {
       m.set(t.tipo, true); // por defecto habilitado
       cm.set(t.tipo, new Set(t.canales ?? []));
+      sr.set(t.tipo, new Set(t.silenciable_por_roles ?? []));
+      su.set(t.tipo, [...(t.silenciable_por ?? [])]);
     }
     for (const r of reglas) if (r.rol === null && r.usuario_id === null) m.set(r.tipo, r.habilitado);
     this.reglasMap.set(m);
     this.canalesMap.set(cm);
+    this.silRolesMap.set(sr);
+    this.silUsuariosMap.set(su);
     this.reglasEspecificas.set(reglas.filter((r) => r.rol !== null || r.usuario_id !== null));
+  }
+
+  // ── BT6 — quién puede silenciar cada tipo operativo ──────────────────────
+  tiposOperativos = computed(() => this.tipos().filter((t) => t.es_operativa));
+  silTieneRol(tipo: string, codigo: string): boolean {
+    return this.silRolesMap().get(tipo)?.has(codigo) ?? false;
+  }
+  silUsuarios(tipo: string): { id: string; nombre: string }[] {
+    const ids = this.silUsuariosMap().get(tipo) ?? [];
+    const byId = new Map(this.usuarios().map((u) => [u.id, u.nombre] as const));
+    return ids.map((id) => ({ id, nombre: byId.get(id) ?? id }));
+  }
+  async toggleSilRol(tipo: string, codigo: string) {
+    const set = new Set(this.silRolesMap().get(tipo) ?? []);
+    if (set.has(codigo)) set.delete(codigo); else set.add(codigo);
+    this.silRolesMap.update((m) => new Map(m).set(tipo, set));
+    await this.persistSil(tipo);
+  }
+  async addSilUsuario(tipo: string, u: { id: string; nombre: string } | null) {
+    if (!u) return;
+    const list = [...(this.silUsuariosMap().get(tipo) ?? [])];
+    if (list.includes(u.id)) return;
+    list.push(u.id);
+    this.silUsuariosMap.update((m) => new Map(m).set(tipo, list));
+    await this.persistSil(tipo);
+  }
+  async removeSilUsuario(tipo: string, id: string) {
+    const list = (this.silUsuariosMap().get(tipo) ?? []).filter((x) => x !== id);
+    this.silUsuariosMap.update((m) => new Map(m).set(tipo, list));
+    await this.persistSil(tipo);
+  }
+  private async persistSil(tipo: string) {
+    this.guardandoSil.set(tipo);
+    try {
+      await this.svc.setTipoSilenciable(
+        tipo, [...(this.silRolesMap().get(tipo) ?? [])], this.silUsuariosMap().get(tipo) ?? [],
+      );
+    } catch (e) {
+      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoSil.set(null);
+    }
   }
 
   async toggleReglas() {

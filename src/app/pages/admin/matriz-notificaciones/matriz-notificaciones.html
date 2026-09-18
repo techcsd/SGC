@@ -83,6 +83,39 @@
       }
     </section>
 
+    <!-- BT6 — Quién puede SILENCIAR cada alarma operativa -->
+    @if (mostrarReglas() && tiposOperativos().length) {
+      <section class="mn-card">
+        <div class="mn-card__head">
+          <h2 class="mn-card__title">Pueden silenciarla</h2>
+        </div>
+        <p class="mn-card__desc">Las alarmas operativas están <strong>siempre activas</strong> para todos. Aquí eliges qué <strong>roles</strong> y qué <strong>personas</strong> pueden apagarlas para sí mismos (desde Configuración › Notificaciones). El resto las sigue recibiendo siempre.</p>
+        @for (t of tiposOperativos(); track t.tipo) {
+          <div class="mn-sil">
+            <div class="mn-sil__label">{{ t.etiqueta }}</div>
+            <div class="mn-sil__roles">
+              @for (r of roles(); track r.id) {
+                <button type="button" class="mn-chip mn-chip--toggle"
+                        [class.mn-chip--on]="silTieneRol(t.tipo, r.codigo)"
+                        [disabled]="guardandoSil() === t.tipo"
+                        (click)="toggleSilRol(t.tipo, r.codigo)">{{ r.nombre }}</button>
+              }
+            </div>
+            <div class="mn-sil__users">
+              @for (u of silUsuarios(t.tipo); track u.id) {
+                <span class="mn-chip mn-chip--user">{{ u.nombre }}
+                  <button type="button" class="mn-chip__x" aria-label="Quitar"
+                          (click)="removeSilUsuario(t.tipo, u.id)">×</button>
+                </span>
+              }
+              <app-user-picker placeholder="Agregar persona…"
+                (selected)="addSilUsuario(t.tipo, $event.usuario_id ? { id: $event.usuario_id, nombre: $event.nombre } : null)" />
+            </div>
+          </div>
+        }
+      </section>
+    }
+
     <!-- BK1 — Reglas específicas por ROL y por USUARIO (precedencia usuario > rol > global) -->
     @if (mostrarReglas()) {
       <section class="mn-card">

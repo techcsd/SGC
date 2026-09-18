@@ -666,6 +666,49 @@ export class ConciliacionCombustible implements OnInit {
     await exportarExcel(`conciliacion-combustible-${this.tab()}`, filas);
   }
 
+  /** Nº de filas del informe sin contraparte en la plataforma (echadas por crear). */
+  faltantesCount = computed(() => this.detalles().filter((d) => d.tipo === 'solo_informe').length);
+
+  /** BT1 (#47) — registra como echadas las filas de la factura que nadie registró.
+   *  Guarda la conciliación (para tener id), luego crea las echadas faltantes
+   *  (origen estación, importada, km pendiente si la factura no trae kilometraje). */
+  async registrarFaltantes() {
+    const meta = this.meta();
+    if (!meta || this.saving()) return;
+    const soloInf = this.detalles().filter((d) => d.tipo === 'solo_informe');
+    if (!soloInf.length) { this.toast.info('No hay filas del informe sin registrar.'); return; }
+    this.saving.set(true);
+    try {
+      if (this.archivoPdf && !meta.pdf_path) {
+        try { meta.pdf_path = await this.service.subirPdf(this.archivoPdf); } catch { /* sin PDF */ }
+      }
+      const id = await this.service.guardar(meta, this.detalles());
+      const filas = soloInf.map((d) => ({
+        fecha: d.fecha,
+        galones: d.galones_informe,
+        monto: d.monto_informe,
+        precio_por_galon: d.galones_informe && d.monto_informe ? d.monto_informe / d.galones_informe : null,
+        // Clave estable para idempotencia (la factura no trae nº por fila en el informe).
+        nro_factura: `${d.identificador ?? ''}|${d.fecha}`,
+        tarjeta: d.identificador,
+        km: null,
+      }));
+      const r = await this.service.importarEchadas(id, filas);
+      this.toast.success(
+        `Registradas ${r.creadas} echada(s) de la factura`,
+        r.con_km_pendiente ? `${r.con_km_pendiente} sin kilometraje — complétalo en el registro de combustible.` : undefined,
+      );
+      this.detalles.set([]);
+      this.meta.set(null);
+      this.nombreArchivo.set(null);
+      await this.cargarHistorial();
+    } catch (e: unknown) {
+      this.toast.errorFrom(e, 'No se pudieron registrar las echadas faltantes');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   async guardar() {
     const meta = this.meta();
     if (!meta || this.saving()) return;

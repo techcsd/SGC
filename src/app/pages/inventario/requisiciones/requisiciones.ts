@@ -18,6 +18,7 @@ import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select'
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
+import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 
 const ESTADO_BADGE: Record<string, string> = {
   pendiente: 'warning',
@@ -688,8 +689,15 @@ export class Requisiciones implements OnInit {
       this.actionError.set('La requisición no tiene renglones que aprobar.');
       return;
     }
-    if (items.some((i) => !(i.cantidad > 0))) {
-      this.actionError.set('Cada renglón debe tener una cantidad mayor que cero.');
+    // BT8 (nota #48: "si no he despachado algo pueda colocarlo en cero"): 0 = "no se
+    // despacha ahora" → el renglón queda pendiente (el servidor lo salta y mantiene el
+    // pendiente). Solo se bloquea si NO hay nada que despachar, o si hay negativos/NaN.
+    if (items.some((i) => !Number.isFinite(i.cantidad) || i.cantidad < 0)) {
+      this.actionError.set('Las cantidades no pueden ser negativas.');
+      return;
+    }
+    if (items.every((i) => !(i.cantidad > 0))) {
+      this.actionError.set('Selecciona al menos un renglón a despachar (deja en cero lo que no despachas ahora).');
       return;
     }
     // Un mismo artículo mapeado no puede repetirse (el despacho fallaría al sumar stock).
@@ -728,7 +736,7 @@ export class Requisiciones implements OnInit {
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error al aprobar la requisición.';
+      const msg = e instanceof Error ? humanizeError(e).mensaje : 'Error al aprobar la requisición.';
       this.actionError.set(msg);
       this.toast.error('No se pudo aprobar', msg);
     } finally {

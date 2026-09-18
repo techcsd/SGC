@@ -4,10 +4,17 @@
       type="button"
       class="lang__opt"
       [class.lang__opt--on]="actual() === idioma.code"
+      [class.lang__opt--disabled]="!disponible(idioma.code)"
+      [disabled]="!disponible(idioma.code)"
+      [attr.title]="tooltip(idioma.code) || null"
       (click)="elegir(idioma.code)"
     >
       <span class="lang__bandera" aria-hidden="true">{{ idioma.bandera }}</span>
       <span class="lang__nombre">{{ idioma.nativo }}</span>
+      @switch (estado(idioma.code)) {
+        @case ('beta') { <span class="lang__badge lang__badge--beta">beta · {{ cobertura(idioma.code) }}%</span> }
+        @case ('proximamente') { <span class="lang__badge lang__badge--pronto">próximamente</span> }
+      }
       @if (actual() === idioma.code) {
         <span class="lang__check"><app-icon name="check-circle" [size]="18" /></span>
       }

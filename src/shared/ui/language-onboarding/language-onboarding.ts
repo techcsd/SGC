@@ -6,6 +6,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { I18nService, IDIOMAS, Idioma } from '../../i18n/i18n.service';
+import { I18N_COVERAGE, I18N_UMBRAL } from '../../i18n/i18n-coverage.generated';
 import { PreferenciasService } from '../../services/preferencias.service';
 
 /**
@@ -36,7 +37,9 @@ export class LanguageOnboarding implements OnInit {
     try {
       const p = await this.prefs.cargar();
       if (p && !p.idioma_elegido_at) {
-        this.elegido.set(this.i18n.idiomaNavegador());
+        const nav = this.i18n.idiomaNavegador();
+        // BT2/regla 17 — no preseleccionar un idioma que no se ofrece ("próximamente").
+        this.elegido.set(this.disponible(nav) ? nav : 'es');
         this.visible.set(true);
       }
     } catch {
@@ -44,7 +47,19 @@ export class LanguageOnboarding implements OnInit {
     }
   }
 
+  // BT2/regla 17 — misma honestidad que el selector (beta / próximamente).
+  estado(code: Idioma): 'ok' | 'beta' | 'proximamente' {
+    if (code === 'es') return 'ok';
+    const cov = I18N_COVERAGE[code as 'en' | 'ht'] ?? 0;
+    const umbral = I18N_UMBRAL[code as 'en' | 'ht'] ?? 95;
+    if (cov >= umbral) return 'ok';
+    return cov > 0 ? 'beta' : 'proximamente';
+  }
+  cobertura(code: Idioma): number { return I18N_COVERAGE[code as 'en' | 'ht'] ?? 0; }
+  disponible(code: Idioma): boolean { return this.estado(code) !== 'proximamente'; }
+
   elegir(code: Idioma) {
+    if (!this.disponible(code)) return;
     this.elegido.set(code);
   }
 

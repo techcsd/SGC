@@ -9,8 +9,9 @@
     <!-- Avatar + identidad -->
     <section class="perfil-card sgc-card">
       <div class="perfil-avatar">
-        @if (avatarUrl(); as url) {
-          <img [src]="url" alt="Foto de perfil" class="perfil-avatar__img" />
+        @if (avatarUrl() && !avatarFailed(); as url) {
+          <!-- BT3 — si la foto no carga (path sin archivo, URL vencida), cae a la inicial. -->
+          <img [src]="avatarUrl()" alt="Foto de perfil" class="perfil-avatar__img" (error)="avatarFailed.set(true)" />
         } @else {
           <span class="perfil-avatar__initials">{{ iniciales() }}</span>
         }

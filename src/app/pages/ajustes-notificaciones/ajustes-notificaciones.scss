@@ -85,3 +85,22 @@
 @media (max-width: 480px) {
   .notif-switch__text { display: none; }
 }
+
+// BT6 — sección de alarmas operativas
+.notif-section-title {
+  margin: 20px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sgc-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.notif-siempre {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sgc-text-muted);
+  padding: 4px 10px;
+  border: 1px solid var(--sgc-border);
+  border-radius: 999px;
+  white-space: nowrap;
+}

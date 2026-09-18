@@ -4,6 +4,7 @@ import { TransporteV3Service, ProveedorTransporte, LugarBuscado } from '../../..
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 
 /** Lugar seleccionado (del sistema) o texto libre («Otros»). */
 interface LugarSel {
@@ -195,7 +196,9 @@ export class ConduceExternoForm {
       this.toast.success('Conduce externo emitido', 'El viaje quedó registrado (pendiente de pago).');
       this.router.navigate(['/inventario/conduces-externos'], { queryParams: { nuevo: id } });
     } catch (e) {
-      this.formError.set(e instanceof Error ? e.message : 'No se pudo emitir el conduce.');
+      // BT7/regla 16: nunca el `e.message` crudo (FK/SQL) en pantalla. `humanizeError`
+      // deja pasar los mensajes de negocio (22023 «Revisar dato») y traduce lo técnico.
+      this.formError.set(humanizeError(e).mensaje);
       this.toast.errorFrom(e, 'No se pudo emitir el conduce');
     } finally {
       this.guardando.set(false);

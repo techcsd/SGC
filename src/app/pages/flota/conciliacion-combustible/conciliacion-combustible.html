@@ -201,9 +201,18 @@
       <button type="button" [class.cc-tab--active]="tab() === 'solo_plataforma'" (click)="tab.set('solo_plataforma')">Solo plataforma ({{ m.total_solo_plataforma }})</button>
       <button type="button" [class.cc-tab--active]="tab() === 'match'" (click)="tab.set('match')">Coinciden ({{ m.total_matches }})</button>
     </div>
-    <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
-      {{ saving() ? 'Guardando…' : 'Guardar conciliación' }}
-    </button>
+    <div class="cc-actions">
+      @if (faltantesCount() > 0) {
+        <!-- BT1 — crea las echadas que nadie registró (filas del informe sin match). -->
+        <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="registrarFaltantes()"
+                title="Registra como echadas las filas de la factura que no están en la plataforma">
+          {{ saving() ? 'Registrando…' : 'Registrar ' + faltantesCount() + ' echada(s) faltante(s)' }}
+        </button>
+      }
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="saving()" (click)="guardar()">
+        {{ saving() ? 'Guardando…' : 'Guardar conciliación' }}
+      </button>
+    </div>
   </div>
 
   <!-- Z23.3 — Filtros del detalle + exportar filas visibles -->

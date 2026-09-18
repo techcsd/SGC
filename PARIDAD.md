@@ -135,6 +135,41 @@ lógico de captura; el layout puede diferir).
 
 ---
 
+## Ronda BT (PROMPT-56, 17/09/2026) — contratos web↔app
+
+- **§ avatar (BT3/#42, regla AU1) — columna y bucket ÚNICOS.** La foto de perfil vive en
+  `usuarios.avatar_path` (una sola columna; **no** existe `foto_url`) y en el bucket **`sgc-avatars`
+  (PÚBLICO)**. La URL se arma con `storage.from('sgc-avatars').getPublicUrl(path)` — **no** hay URL
+  firmada ni TTL (bucket público → simple y estable; corrige la suposición del CONTEXTO). Escritura:
+  RPC `actualizar_mi_avatar(p_path)` + subida comprimida (`comprimirImagen(file,'avatar')`, 512 px).
+  **Fallback obligatorio:** `<img (error)>` → inicial del usuario (nunca un logo genérico). App
+  (PROMPT-57 F2): leer la MISMA columna y bucket, misma `getPublicUrl`, mismo `onerror`→inicial; el
+  bug del "logo SD" era construir mal la URL de un bucket público. Subir en una plataforma se ve en la
+  otra en <1 min (el path es la fuente de verdad).
+- **§ errores (BT7/#46, regla 9+16) — clasificación NEGOCIO vs SISTEMA compartida.** El SQLSTATE es el
+  contrato: `22023`/`P0001` **con** `detail.campo` → **negocio** ("Revisar dato: <campo>", corregible);
+  `23xxx`/`42xxx`/`53xxx`/`57xxx`/`08xxx` → **sistema** ("Con problema al enviar. Ya se reportó." +
+  `report_app_error`). Web: `friendly-error.util.clasificarError()` + `humanizeError()`; el `mensaje` crudo
+  NUNCA se pinta (`conduce-externo-form`, `conduce` detalle). App (PROMPT-57 F0): `outbox-detalle`/`pendientes`
+  pasan el `mensaje` por `humanizeError`; el SQLSTATE crudo solo en `🩺 Código` (`esDesarrollador()`).
+- **§ conduce externo — "quién transporta" (BT7).** El proveedor de transporte es un `sgc.proveedores`
+  con `tipos @> {transportista}` (la tabla `proveedores_transporte` quedó RETIRADA/vacía; las FK se
+  re-apuntaron a `proveedores` en BT7). La persona/«Otro» va por `transporta_texto` (texto libre) — no hay
+  columna de persona. `crear_conduce_externo` valida el proveedor y devuelve `22023` (negocio) si no existe;
+  la app debe **refrescar el catálogo** antes de enviar y separar persona (texto) de empresa (proveedor).
+- **§ requisición cero (BT8/#48) — contrato RPC.** `aprobar_requisicion` ya **acepta renglones con
+  cantidad 0** (los salta, no toca `detalle_salidas`, mantiene el pendiente). La app (`generar-conduce
+  ?requisicion=`, PROMPT-57 F3): 0 = "no se despacha ahora"; error solo si TODOS son 0; la X quita el
+  renglón (con confirmación), distinto de 0.
+- **§ preferencias — `mis_preferencias().notif` (BT6/#45).** `mis_preferencias()` devuelve, además de idioma/tema,
+  `notif: [{tipo, activa, silenciable}]` — `silenciable` = el usuario puede apagar esa alarma operativa
+  (por `notif_tipo.silenciable_por`/`silenciable_por_roles`). App (PROMPT-57 F4): en *Preferencias de
+  avisos*, las alarmas semanales muestran switch si `silenciable`, "Siempre activa" si no.
+- **§ i18n-coverage (BT2/#41) — mismo script y umbrales.** `scripts/i18n-coverage.mjs` + `src/app/core/i18n/alcance.json`
+  (pantallas del alcance) + `scripts/i18n-whitelist.json` (nombres propios) se copian **del padre al hijo**.
+  Umbrales: `en` se ofrece al ≥95 % de las pantallas del alcance, `ht` al ≥90 % (si no, "próximamente"
+  deshabilitado). La unidad de cobertura es la **pantalla**, no la clave (regla 17).
+
 ## Ronda BS (PROMPT-54, 17/09/2026) — contratos web↔app
 
 - **⭐ i18n portada del HIJO — 1ª vez que csd-app es la referencia de infraestructura.** El sistema i18n

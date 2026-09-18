@@ -35,6 +35,8 @@ export class AjustesNotificaciones implements OnInit {
   private toast = inject(ToastService);
 
   categorias = signal<{ tipo: string; label: string; desc: string }[]>(CATEGORIAS_FALLBACK);
+  /** BT6 — alarmas operativas: switch si el usuario puede silenciarlas, "Siempre activa" si no. */
+  operativas = signal<{ tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean }[]>([]);
   loading = signal(true);
   guardando = signal<string | null>(null);
   /** Tipos silenciados del usuario. */
@@ -42,9 +44,10 @@ export class AjustesNotificaciones implements OnInit {
 
   async ngOnInit() {
     try {
-      const [prefs, cat] = await Promise.all([
+      const [prefs, cat, ope] = await Promise.all([
         this.centro.misNotifPrefs(),
         this.centro.catalogoInformativas().catch(() => []),
+        this.centro.notifOperativas().catch(() => []),
       ]);
       const s = new Set<string>();
       for (const p of prefs) if (p.silenciado) s.add(p.tipo);
@@ -52,10 +55,29 @@ export class AjustesNotificaciones implements OnInit {
       if (cat.length) {
         this.categorias.set(cat.map((c) => ({ tipo: c.tipo, label: c.etiqueta, desc: c.descripcion ?? '' })));
       }
+      this.operativas.set(ope);
     } catch {
       /* best-effort: sin prefs, todo activo */
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /** BT6 — apaga/enciende una alarma operativa silenciable (activa=recibir). */
+  async toggleOperativa(tipo: string) {
+    if (this.guardando()) return;
+    const cur = this.operativas().find((o) => o.tipo === tipo);
+    if (!cur || !cur.silenciable) return;
+    const silenciar = cur.activa; // si está activa, ahora se silencia
+    this.guardando.set(tipo);
+    this.operativas.update((list) => list.map((o) => (o.tipo === tipo ? { ...o, activa: !silenciar } : o)));
+    try {
+      await this.centro.setNotifPref(tipo, silenciar);
+    } catch (e) {
+      this.operativas.update((list) => list.map((o) => (o.tipo === tipo ? { ...o, activa: silenciar } : o)));
+      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardando.set(null);
     }
   }
 

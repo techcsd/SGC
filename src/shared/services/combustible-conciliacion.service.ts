@@ -135,6 +135,20 @@ export class CombustibleConciliacionService {
     return data as string;
   }
 
+  /** BT1 — crea las echadas faltantes (filas del informe sin match) para una
+   *  conciliación ya guardada. Idempotente por (conciliación, nro_factura). */
+  async importarEchadas(
+    conciliacionId: string,
+    filas: Record<string, unknown>[],
+  ): Promise<{ creadas: number; con_km_pendiente: number; sin_asignacion: number; errores: { i: number; motivo: string }[] }> {
+    const { data, error } = await this.supabase.client.rpc('importar_echadas_conciliacion', {
+      p_conciliacion_id: conciliacionId,
+      p_filas: filas,
+    });
+    if (error) throw new Error(error.message);
+    return data as { creadas: number; con_km_pendiente: number; sin_asignacion: number; errores: { i: number; motivo: string }[] };
+  }
+
   async getHistorial(): Promise<ConciliacionRegistro[]> {
     const { data, error } = await this.supabase.client
       .from('conciliaciones_combustible')

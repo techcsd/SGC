@@ -4030,6 +4030,46 @@
           "d": "Arreglado el error al vincular un ítem de una Dev note a un issue o a una versión (antes fallaba)."
         }
       ]
+    },
+    "1.138.0": {
+      "titulo": "Importar echadas de TotalEnergies y datos externos; alarmas semanales silenciables; arreglos",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "En Conciliación de combustible, un botón «Registrar N echadas faltantes» crea las echadas que la factura de TotalEnergies trae pero nadie registró (resuelve el vehículo por la tarjeta y el conductor por la asignación; marca «km pendiente» si la factura no trae kilometraje). Se ven con la etiqueta IMPORTADA en el registro de combustible."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nueva herramienta «Importar datos»: sube un Excel o CSV (incluidos los exports de Odoo) para cargar proveedores, vehículos o artículos, con mapeo automático de columnas, vista previa y opción de deshacer en 24 horas."
+        },
+        {
+          "t": "nuevo",
+          "m": "Configuración",
+          "d": "Las alarmas «Reporte semanal» e «Inspección semanal» ahora se pueden silenciar, pero solo para administración, gerencia, dirección y las personas que se elijan en la Matriz de notificaciones; para el resto siguen siempre activas."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "Al emitir un conduce externo, ya no se cae con un error técnico si el proveedor de transporte no es válido: ahora avisa «revisar dato» y nunca muestra lenguaje de base de datos al usuario."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Al aprobar una requisición ya se puede dejar un renglón en cero para no despacharlo ahora (queda pendiente para otro despacho); antes obligaba a que todos fueran mayores que cero."
+        },
+        {
+          "t": "mejora",
+          "m": "Configuración",
+          "d": "El selector de idioma es honesto: inglés se ofrece marcado «beta» con el porcentaje de pantallas cubiertas y kreyòl aparece «próximamente» hasta que esté traducido, en vez de dejar media pantalla en español."
+        },
+        {
+          "t": "arreglo",
+          "m": "Configuración",
+          "d": "La foto de perfil que no carga ahora cae a la inicial del usuario en vez de quedar rota."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

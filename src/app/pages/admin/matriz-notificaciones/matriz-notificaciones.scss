@@ -67,3 +67,24 @@
     &:hover { background: var(--sgc-surface-2, rgba(0, 0, 0, 0.05)); }
   }
 }
+
+// BT6 — editor "Pueden silenciarla" por alarma operativa.
+.mn-sil {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--sgc-border);
+  &:last-child { border-bottom: none; }
+  &__label { font-size: 13px; font-weight: 700; color: var(--sgc-text); margin-bottom: 6px; }
+  &__roles { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+  &__users { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+}
+.mn-chip--toggle {
+  cursor: pointer;
+  color: var(--sgc-text-muted);
+  background: transparent;
+  &.mn-chip--on { color: #fff; background: var(--sgc-primary, #ff5f00); border-color: var(--sgc-primary, #ff5f00); }
+}
+.mn-chip--user { gap: 4px; }
+.mn-chip__x {
+  border: none; background: transparent; cursor: pointer;
+  color: inherit; font-size: 14px; line-height: 1; padding: 0 0 0 2px;
+}

@@ -6,9 +6,15 @@
       <div class="lo-opts">
         @for (idioma of idiomas; track idioma.code) {
           <button type="button" class="lo-opt" [class.lo-opt--on]="elegido() === idioma.code"
+                  [class.lo-opt--disabled]="!disponible(idioma.code)"
+                  [disabled]="!disponible(idioma.code)"
                   (click)="elegir(idioma.code)">
             <span class="lo-flag" aria-hidden="true">{{ idioma.bandera }}</span>
             <span class="lo-name">{{ idioma.nativo }}</span>
+            @switch (estado(idioma.code)) {
+              @case ('beta') { <span class="lo-badge">beta · {{ cobertura(idioma.code) }}%</span> }
+              @case ('proximamente') { <span class="lo-badge lo-badge--pronto">próximamente</span> }
+            }
           </button>
         }
       </div>

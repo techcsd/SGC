@@ -445,6 +445,7 @@ export class Shell implements OnInit {
       { label: 'Usuarios de prueba', route: '/admin/usuarios-test' },
       { label: 'Empresa', route: '/admin/empresa' },
       { label: 'Unidades', route: '/admin/unidades' },
+      { label: 'Importar datos', route: '/admin/importar' },
       { label: 'Catálogos de bitácora', route: '/admin/bitacora-catalogos' },
       { label: 'Configuración del sistema', route: '/admin/parametros' },
       // Y11 — "Versiones de la app" e "Historial de versiones" movidas al módulo Tecnología.

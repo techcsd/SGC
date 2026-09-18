@@ -1,0 +1,122 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Importar datos</h1>
+    <p class="page-subtitle">Sube un Excel o CSV (incluidos los exports de Odoo) para cargar proveedores, vehículos o artículos. El asistente mapea las columnas, muestra una vista previa y puedes deshacer en 24 h.</p>
+  </div>
+</div>
+
+<div class="imp sgc-card">
+  <!-- Paso 1 — entidad -->
+  @if (paso() === 1) {
+    <h2 class="imp__step">1 · ¿Qué vas a importar?</h2>
+    <div class="imp__entidades">
+      @for (e of entidades; track e.key) {
+        <div class="imp__ent">
+          <button type="button" class="imp__ent-btn" (click)="elegirEntidad(e)">
+            <span class="imp__ent-label">{{ e.label }}</span>
+            @if (e.odoo) { <span class="imp__ent-odoo">Odoo · {{ e.odoo }}</span> }
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla(e)">Plantilla</button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Paso 2 — archivo -->
+  @if (paso() === 2 && entidad(); as e) {
+    <h2 class="imp__step">2 · Sube el archivo de {{ e.label }}</h2>
+    <label class="sgc-btn sgc-btn--primary imp__file">
+      Elegir archivo (.xlsx / .csv)
+      <input type="file" class="sr-only" accept=".xlsx,.xls,.csv" (change)="onArchivo($event)" />
+    </label>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla(e)">Descargar plantilla</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reiniciar()">Volver</button>
+  }
+
+  <!-- Paso 3 — mapeo -->
+  @if (paso() === 3 && entidad(); as e) {
+    <h2 class="imp__step">3 · Mapea las columnas — {{ nombreArchivo() }} ({{ rows().length }} filas)</h2>
+    <div class="imp__mapeo">
+      @for (c of e.campos; track c.t) {
+        <div class="imp__map-row">
+          <span class="imp__map-campo">{{ c.label }}@if (c.requerido) { <span class="imp__req">*</span> }</span>
+          <select class="sgc-input" [value]="mapeo()[c.t] || ''" (change)="setMapeo(c.t, $any($event.target).value)">
+            <option value="">— sin mapear —</option>
+            @for (h of headers(); track h) { <option [value]="h">{{ h }}</option> }
+          </select>
+        </div>
+      }
+    </div>
+    @if (camposRequeridosFaltan().length) {
+      <p class="imp__warn">Faltan por mapear: {{ camposRequeridosFaltan().join(', ') }}</p>
+    }
+    <div class="imp__actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="reiniciar()">Volver</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="camposRequeridosFaltan().length > 0" (click)="irAPreview()">Ver preview</button>
+    </div>
+  }
+
+  <!-- Paso 4 — preview + importar / resultado -->
+  @if (paso() === 4 && entidad(); as e) {
+    @if (!resultado()) {
+      <h2 class="imp__step">4 · Vista previa ({{ rows().length }} filas)</h2>
+      <div class="imp__table-wrap">
+        <table class="imp__table">
+          <thead><tr>@for (c of e.campos; track c.t) { <th>{{ c.label }}</th> }</tr></thead>
+          <tbody>
+            @for (row of preview(); track $index) {
+              <tr>@for (c of e.campos; track c.t) { <td>{{ colValor(row, c.t) }}</td> }</tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (rows().length > 8) { <p class="imp__muted">… y {{ rows().length - 8 }} filas más.</p> }
+      <div class="imp__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="paso.set(3)">Volver al mapeo</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando()" (click)="importar()">
+          {{ procesando() ? 'Importando…' : 'Importar ' + rows().length + ' fila(s)' }}
+        </button>
+      </div>
+    } @else {
+      <h2 class="imp__step">Resultado</h2>
+      <p class="imp__result">
+        <strong>{{ resultado()!.nuevos }}</strong> nuevas ·
+        <strong>{{ resultado()!.actualizados }}</strong> actualizadas ·
+        <strong>{{ resultado()!.errores.length }}</strong> con error
+      </p>
+      @if (resultado()!.errores.length) {
+        <div class="imp__errores">
+          @for (err of resultado()!.errores; track $index) {
+            <div class="imp__error">Fila {{ err.i }}: {{ err.motivo }}</div>
+          }
+        </div>
+      }
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">Importar otra cosa</button>
+    }
+  }
+</div>
+
+<!-- Historial + deshacer -->
+@if (historial().length) {
+  <div class="imp sgc-card">
+    <h2 class="imp__step">Importaciones recientes</h2>
+    <table class="imp__table">
+      <thead><tr><th>Fecha</th><th>Entidad</th><th>Nuevas</th><th>Actualizadas</th><th>Errores</th><th></th></tr></thead>
+      <tbody>
+        @for (h of historial(); track h.id) {
+          <tr>
+            <td>{{ h.created_at | date:'dd/MM/yy HH:mm' }}</td>
+            <td>{{ h.entidad }}</td>
+            <td>{{ h.nuevos }}</td>
+            <td>{{ h.actualizados }}</td>
+            <td>{{ h.errores.length }}</td>
+            <td>
+              @if (h.deshecha_at) { <span class="imp__muted">deshecha</span> }
+              @else { <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="deshacer(h.id)">Deshacer</button> }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

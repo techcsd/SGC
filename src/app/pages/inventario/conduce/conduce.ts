@@ -18,6 +18,7 @@ import { UserService } from '../../../../app/core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { formatFechaDisplay, formatFechaHoraDisplay, todayIso } from '../../../../shared/utils/fecha.util';
+import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
@@ -220,7 +221,7 @@ export class Conduce implements OnInit {
       // AF23 — fase del ciclo de vida (no bloqueante).
       this.salidasService.getFase(id).then((f) => this.fase.set(f));
     } catch (e: unknown) {
-      this.error.set(e instanceof Error ? e.message : 'Error al cargar la salida.');
+      this.error.set(e instanceof Error ? humanizeError(e).mensaje : 'Error al cargar la salida.');
     } finally {
       this.loading.set(false);
     }
@@ -277,7 +278,7 @@ export class Conduce implements OnInit {
       this.mostrarAnular.set(false);
       this.router.navigate(['/inventario/conduces']);
     } catch (e: unknown) {
-      this.anularError.set(e instanceof Error ? e.message : 'No se pudo eliminar el conduce.');
+      this.anularError.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudo eliminar el conduce.');
     } finally {
       this.anulando.set(false);
     }
@@ -516,7 +517,7 @@ export class Conduce implements OnInit {
       this.mostrarCierre.set(false);
       this.toast.success('Conduce entregado', 'Se registró la entrega con su evidencia.');
     } catch (e: unknown) {
-      this.cierreError.set(e instanceof Error ? e.message : 'No se pudo registrar la entrega.');
+      this.cierreError.set(e instanceof Error ? humanizeError(e).mensaje : 'No se pudo registrar la entrega.');
     } finally {
       this.guardandoCierre.set(false);
     }

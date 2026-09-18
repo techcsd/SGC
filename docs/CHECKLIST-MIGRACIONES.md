@@ -309,3 +309,22 @@ encolaron contra la identidad vieja.
   En BS2 la RLS ya concedía Flota a Raykler (módulo `flota` por 3 roles) → el bug era el banner, no el acceso.
 - **Casos reales (BS):** `friendly-error.util.ts` (`presentarError`), `shared/ui/error-state`,
   `scripts/verify-dev-strings.mjs`; `inventario/requisiciones` (picker de almacén con cobertura n/N).
+
+## 17. La unidad de i18n es la PANTALLA, no la clave — y toda captura con fotos guarda borrador (BT2/BT4)
+
+- **Por qué:** la convención "la clave de traducción ES el texto en español" hace que **todo lo no cableado
+  con `t()` se vea "bien" en español** y nadie lo note en build (`verify-i18n` solo avisa por claves usadas sin
+  `en`; lo no cableado ni siquiera es clave). El usuario elige "English" y ve media pantalla en español (BT2,
+  #41). **Un cambio de idioma que deja la mitad en el idioma anterior es un bug, no un "rollout incremental".**
+- **Regla:** un idioma se **ofrece completo** en el selector **solo cuando cubre todas las pantallas del
+  alcance** (guard `scripts/i18n-coverage.mjs` en prebuild, mide por pantalla; alcance en
+  `src/app/core/i18n/alcance.json`, nombres propios en `scripts/i18n-whitelist.json`). Mientras no llegue al
+  umbral (95 % `en`, 90 % `ht`), el selector lo marca **beta** (con la cobertura real) o **próximamente**
+  (deshabilitado) — **nunca lo ofrece a medias**. Una pantalla marcada `enforce:true` rompe el build si tiene
+  literales sin `t()`. El script y el `alcance.json` se **comparten con la app** (padre → hijo).
+- **Corolario (BT4/BT5):** **toda captura con fotos guarda borrador local desde la primera tecla** — la app
+  puede morir (memoria, cámara, cierre por el sistema) y el usuario recupera exactamente donde iba (banner
+  "Tienes un borrador sin enviar"). Nada que el usuario escribió se pierde por un cierre.
+- **Casos reales (BT):** `scripts/i18n-coverage.mjs`, `docs/I18N-COVERAGE.md`, `src/app/core/i18n/alcance.json`,
+  `shared/ui/language-selector`/`language-onboarding` (badges beta/próximamente); borradores de captura en
+  `csd-app` (`conduce-externo`, PROMPT-57).

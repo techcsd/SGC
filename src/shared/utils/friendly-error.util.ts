@@ -135,6 +135,55 @@ export function presentarError(
   return { mensajeUsuario, detalleTecnico, sqlstate, esAccesoDenegado, raw };
 }
 
+// BT7 — clasificación NEGOCIO vs SISTEMA (regla 9 + 16). El SQLSTATE es el contrato:
+//  · 22023 / P0001 con detail.campo  → NEGOCIO (dato a corregir): "Revisar dato: <campo>".
+//    El servidor lo emite con `sgc.error_campo(campo,motivo,mensaje)` → mensaje ya humano.
+//  · 23xxx (FK/unique/not-null/check), 42xxx (grant/objeto), 57xxx (timeouts/admin) → SISTEMA:
+//    "Con problema al enviar. Ya se reportó." + report_app_error (lo hace el llamador).
+// Espejo del contrato del outbox de la app (csd-app outbox-categoria.ts) — ver PARIDAD.md.
+export interface ErrorClasificado {
+  clase: 'negocio' | 'sistema';
+  /** Mensaje humano para el usuario. */
+  mensaje: string;
+  /** Campo a corregir (solo negocio con detail.campo), o null. */
+  campo: string | null;
+  sqlstate: string | null;
+  raw: string;
+}
+
+function extraerCampo(error: unknown, raw: string): string | null {
+  const e = (error ?? {}) as { hint?: unknown; details?: unknown; detail?: unknown };
+  if (typeof e.hint === 'string' && e.hint.trim() && !/\s/.test(e.hint.trim())) return e.hint.trim();
+  const det = (typeof e.details === 'string' ? e.details : typeof e.detail === 'string' ? e.detail : '') || raw;
+  const m = det.match(/"?campo"?\s*[:=]\s*"?([a-z_]+)"?/i);
+  return m ? m[1] : null;
+}
+
+export function clasificarError(error: unknown): ErrorClasificado {
+  const raw = errorMessage(error).trim();
+  const sqlstate = extraerSqlstate(error, raw);
+  const campo = extraerCampo(error, raw);
+  // Negocio: 22023 (error_campo) o P0001 (raise) que trae un campo a corregir.
+  const esNegocio =
+    (sqlstate === '22023' || sqlstate === 'P0001') && !!campo;
+  if (esNegocio) {
+    // El mensaje del servidor ya es humano; anteponer "Revisar dato" solo si no lo trae.
+    const h = humanizeError(error);
+    return { clase: 'negocio', mensaje: h.mensaje, campo, sqlstate, raw };
+  }
+  // Sistema: cualquier SQLSTATE de infra (23/42/57/53/08) o texto técnico.
+  const esSistema =
+    (sqlstate && /^(0[8A]|22|23|42|53|57|58|xx)/i.test(sqlstate) && sqlstate !== '22023') ||
+    /violates|insert or update on table|foreign key|constraint|permission denied|does not exist|failed to fetch|network/i.test(raw);
+  return {
+    clase: esSistema ? 'sistema' : 'negocio',
+    mensaje: esSistema ? 'Con problema al enviar. Ya se reportó a Tecnología.' : humanizeError(error).mensaje,
+    campo,
+    sqlstate,
+    raw,
+  };
+}
+
 /** Categoría para telemetría (report_app_error.error_type). BI4 — homologada con la
  *  whitelist del servidor (crash/error/camera/sync/permission/other/tracking/login/gps/voice)
  *  para que el panel agrupe por causa y no todo caiga en 'error'/'other'. */

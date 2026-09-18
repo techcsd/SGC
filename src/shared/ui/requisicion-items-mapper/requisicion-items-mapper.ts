@@ -126,6 +126,11 @@ export class RequisicionItemsMapper {
   }
 
   remove(index: number) {
+    // BT8 — quitar ≠ poner en cero. La X saca el renglón de la requisición (el
+    // solicitante lo verá como no aprobado); poner 0 lo deja pendiente para otro despacho.
+    const it = this.items()[index];
+    const nombre = it?.descripcion?.trim() || 'este renglón';
+    if (!confirm(`¿Quitar «${nombre}» de la requisición? El solicitante lo verá como no aprobado. (Para dejarlo pendiente, ponlo en cero en vez de quitarlo.)`)) return;
     this.commit(this.items().filter((_, i) => i !== index));
   }
 

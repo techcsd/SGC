@@ -32,6 +32,36 @@
       }
     </ul>
 
+    @if (operativas().length) {
+      <h2 class="notif-section-title">Alarmas operativas</h2>
+      <ul class="notif-prefs">
+        @for (o of operativas(); track o.tipo) {
+          <li class="notif-pref">
+            <div class="notif-pref__info">
+              <span class="notif-pref__label">{{ o.etiqueta }}</span>
+              @if (o.descripcion) { <span class="notif-pref__desc">{{ o.descripcion }}</span> }
+            </div>
+            @if (o.silenciable) {
+              <button
+                type="button"
+                class="notif-switch"
+                [class.notif-switch--on]="o.activa"
+                [attr.aria-pressed]="o.activa"
+                [attr.aria-label]="(o.activa ? 'Silenciar' : 'Activar') + ': ' + o.etiqueta"
+                [disabled]="guardando() === o.tipo"
+                (click)="toggleOperativa(o.tipo)"
+              >
+                <span class="notif-switch__track"><span class="notif-switch__thumb"></span></span>
+                <span class="notif-switch__text">{{ o.activa ? 'Recibir' : 'Silenciado' }}</span>
+              </button>
+            } @else {
+              <span class="notif-siempre">Siempre activa</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+
     <p class="notif-prefs__foot">
       Los avisos operativos o críticos que exigen tu acción (firmas pendientes, alertas) no se pueden silenciar
       y seguirán llegándote por todos sus canales.
