@@ -1,5 +1,19 @@
 # HANDOFF — SGC
 
+## TL;DR — Hotfix Combustible — 21/09/2026 — **SHIPPED: web 1.139.1 (commit `3d90193`, push main → Vercel). Flota › Combustible volvía a fallar al abrir; embed ambiguo vehiculos↔usuarios arreglado.**
+
+**Bug (reportado por Xaviel):** abrir **Flota › Combustible** lanzaba *"Could not embed because more than one relationship was found for 'vehiculos' and 'usuarios'"*. La página carga la lista de vehículos con `VehiculosService.getAll()`, cuyo `.select('*, responsable:usuarios(nombre)')` quedó **ambiguo** porque la migración **BR1** (`sql/2026-09-15-br1-combustible-acepta-y-avisa.sql:30`) añadió una **2ª FK** `vehiculos.km_base_combustible_por → usuarios` (además de `responsable_id`). Mismo patrón recurrente AN5→AU5→AS2→BB5.
+
+**Fix (1.139.1):**
+- `src/shared/services/vehiculos.service.ts` — los **4** embeds nombran la FK: `responsable:usuarios!responsable_id(nombre)` (getAll, getById, create, update). Misma forma ya usada en `proyectos.service.ts`/`obra-produccion.service.ts`.
+- `scripts/check-ambiguous-embeds.mjs` — **seed** de la FK base `vehiculos.responsable_id → usuarios`. El guard construye su grafo de FKs SÓLO desde `sql/`, pero la tabla base `vehiculos` se creó directo en Supabase (su CREATE TABLE es solo un comentario TODO en el servicio) → el guard sólo veía la FK nueva de BR1, el par parecía tener 1 sola relación y NO marcaba el embed → **build verde con prod roto**. Con el seed, el guard ya detecta esta clase de regresión.
+
+**Verify on resume:** `git log -1` = `3d90193`; `package.json` = 1.139.1; `node scripts/check-ambiguous-embeds.mjs` verde (465 FKs, 240 embeds); prod: al abrir Flota › Combustible la lista carga con su responsable, sin el banner de error. Sin migraciones ni edges (solo front + guard). Nada pendiente de este hotfix.
+
+**Gotcha (alto valor):** el guard anti-embeds NO conoce las FKs de tablas base creadas fuera de `sql/` (vehiculos, y potencialmente otras). Si una migración nueva agrega una 2ª FK a una tabla base contra `usuarios`/`proyectos`/etc., el guard puede quedar verde mientras PostgREST revienta. Al agregar una FK, revisar manualmente los `.select()` que embeben esa tabla — o seedear la FK base en `SEED_EDGES`.
+
+---
+
 ## TL;DR — PROMPT-56 follow-up — 18/09/2026 — **SHIPPED: web 1.139.0 (commit `41d74b8`, push main). Import de echadas mejorado con la factura REAL FA26463587 + 23 echadas reales importadas a prod.**
 
 **Import de la factura real FA26463587** (23 tx, RD$115,324.19, mayo-junio): probada de punta a punta. Aprendizajes aplicados:
