@@ -95,3 +95,13 @@ La app los consume **directo** (aún tras comprobación de capacidad).
 **Pendiente físico de Xaviel (app):** OK al commit + release **2.26.0** + publicar/mínima; device-QA (iPhone PWA + Android):
 6 fotos seguidas en conduce externo sin cierre, borrador tras cierre forzado, recorrido English, foto de perfil.
 *(Este bloque queda en el repo SGC sin commitear — patrón habitual; commitéalo en la próxima sesión del padre.)*
+
+---
+
+## Fila 49 — BU1: Entorno de desarrollo (PROMPT-58) — ✅ SHIPPED 1.140.0
+
+**Estado:** entregado end-to-end (F0–F8). Web **1.140.0** en prod (`main` `6119661`, Vercel READY, `sgcconstructorasd.com`, versión registrada). Backend BU1 aplicado a **prod** (ledger + backfill 623 migr/37 edges, migración de crons por entorno + `config_entorno`, 14 edges redeployadas con `_shared` pass-through, 0 refs de prod en crons/funciones). Entorno **dev** completo: `sgc-dev` (`fzfrnrvndzrjwyvdpkgg`) con esquema clonado (diff=0), 37 edges, secrets/Vault, 29 crons, seed 17k filas + 52 usuarios en Auth; rama `dev` en Vercel. **Regla 18** viva (scripts `--env`, ledger gatea prod, guards en prebuild + Action `pr-main`).
+
+**Guía completa:** [`docs/ENTORNOS.md`](./docs/ENTORNOS.md).
+
+**Pendiente físico de Xaviel:** (1) proteger `main` — `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh`); (2) Vercel: `dev.sgcconstructorasd.com` → rama `dev` + env vars Preview=dev; DNS `CNAME dev`; (3) GitHub secrets `SUPABASE_ACCESS_TOKEN`+`SUPABASE_PROJECT_REF_DEV` para la Action; (4) Google Maps referrer dev. (5) App 2.26.0 estrena el flujo por dev (PROMPT-59).

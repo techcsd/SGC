@@ -21,15 +21,17 @@
 
 **F7 hecho — flujo + docs:** `docs/ENTORNOS.md` (guía completa + pasos físicos), regla 18 añadida a `docs/CHECKLIST-MIGRACIONES.md`(#18)/`CLAUDE.md`(#12)/`.claude/CLAUDE.md`/`AGENTS.md`/`README.md`/`VERSIONADO.md`, `docs/CRONS.md` (BU1). `scripts/verify-ledger-dev.mjs` + `.github/workflows/pr-main.yml` (job `build-and-ledger`) + `.github/pull_request_template.md`. Rama **`dev` creada local** (en `main`, SIN push). Comando de protección de `main` listo en `scratchpad/bu1-proteger-main.sh` (GATEADO). Build verde con todo.
 
-**➡️ SOLO QUEDA F8 (todo GATEADO — requiere OK explícito de Xaviel + tareas físicas). Runbook F8 (en orden):**
-1. **Físico Xaviel (Vercel/DNS/GitHub):** rama `dev` como Preview + dominio `dev.sgcconstructorasd.com` + env vars Preview=dev; DNS `CNAME dev→cname.vercel-dns.com`; GitHub secrets `SUPABASE_ACCESS_TOKEN`+`SUPABASE_PROJECT_REF_DEV`; (Google Maps referrer dev).
-2. **Commit** todo (rama `feature/bu1-entorno-dev`) → merge a **`dev`** → push `dev` → Vercel construye dev. **Bump 1.140.0 + release-notes** antes del build. (Nota: al mergear a dev, `push origin dev` — no main.)
-3. Xaviel prueba en `dev.sgcconstructorasd.com` (login, Flota, Inventario, una migración de juguete `apply-migration --env dev`).
-4. Con OK, en **PROD** (`--env prod --yes`): `apply-migration sql/2026-09-18-bu1-ledger-migraciones.sql`; `backfill-ledger --env prod`; `apply-migration sql/2026-09-18-bu1-crons-por-entorno.sql` + `set-config-entorno --env prod` + sembrar Vault prod (`infra/weather/cronograma_sync_secret` ya existen en prod; solo falta que `sgc.sync_secret()`/`edge_url()` existan — los crea la migración); `aplicar-secret --env prod ENTORNO` (=prod) + `deploy-edge --env prod --all` (redeploy con `_shared/entorno.ts`; pasan porque están en ledger dev); `bash scratchpad/bu1-proteger-main.sh` (protege main); PR `dev → main` → merge → Vercel prod 1.140.0.
-5. `COBERTURA-NOTAS.md` fila 49 Estado + enlace a `docs/ENTORNOS.md`.
-6. Estreno real del flujo: release app 2.26.0 (PROMPT-59) primero por dev.
+**F8 SHIPPED ✅ — web 1.140.0 en prod.** Commit `6119661` en `main` (push) + `dev` (ambas ramas en `6119661`). Vercel prod **READY** en `sgcconstructorasd.com`; versión 1.140.0 registrada en prod `app_versiones`. Prod backend BU1 aplicado + verificado: ledger creado + backfill (623 migr/37 edges), migración de crons por entorno + `set-config-entorno --env prod` (29 crons, **0 con ref de prod**, 0 funciones con ref, `edge_url('fuel-prices')`→prod), 14 edges `_shared`-wrapped redeployadas (pass-through en prod). Gotcha resuelto: checksum del ledger normaliza CRLF→LF (autocrlf rompía regla 18 entre checkout de ramas).
 
-**Verify on resume:** `git branch` tiene `dev` + `feature/bu1-entorno-dev` (nada committeado aún); dev `fzfrnrvndzrjwyvdpkgg` con esquema+edges+secrets+crons+seed; `npm run verify:entornos` (diff estructural 0; crons/catálogos ≠0 hasta que prod tome la migración/seed no aplica a prod); build:dev y build:prod verdes.
+**Pendiente FÍSICO de Xaviel (no bloquea prod; habilita el flujo dev):**
+1. Proteger `main`: `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh` CLI).
+2. Vercel: `dev.sgcconstructorasd.com` → rama `dev` (branch domain) + env vars *Preview* = dev; DNS `CNAME dev→cname.vercel-dns.com`.
+3. GitHub → Secrets (Actions): `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
+4. Google Maps: restringir referrer a `dev.`/`app-dev.`.
+5. Confirmar `NOTIFICATIONS_FROM_EMAIL` de dev (derivado; ajustar si el sender verificado en Resend difiere).
+6. **App 2.26.0 estrena el flujo por dev** (PROMPT-59, hijo).
+
+**Verify on resume:** `git log -1 origin/main` = `6119661` (1.140.0); Vercel prod READY; prod por objeto: `sgc.migraciones_aplicadas` existe + poblada, `sgc.config_entorno.edge_base_url`=prod, 0 crons con ref; dev `fzfrnrvndzrjwyvdpkgg` completo (`npm run verify:entornos` diff estructural 0; crons/catálogos difieren si dev y prod divergen — normal). Rama `dev` = `main`.
 
 **En dev:** proyecto `sgc-dev` = **`fzfrnrvndzrjwyvdpkgg`** (us-east-1, PG17). **Esquema clonado de prod por introspección (no pg_dump — no había creds de DB de prod ni pg_dump/docker corriendo): `diff-esquema.mjs` = 0 en columnas(2985)/constraints(1081)/índices(635)/funciones(797)/triggers(139)/políticas(673)/tipos(272)/secuencias(17)/grants_rpc(1480)/buckets(23)/extensiones(10).** Faltan por diseño: crons (F4) y filas de catálogo notif_tipo/roles (F5 seed). Auth de dev configurada (site_url dev, allow-list dev/app-dev/localhost, `mailer_autoconfirm=true`, sin SMTP → correos de auth no salen). Creds/keys de dev+prod en `.env.local`. Aún SIN edges/secrets (F2), SIN datos (F5).
 **En prod:** intacto y NO tocado. El clon fue read-only sobre prod (solo SELECT a catálogos). `jeeqhgccqefbqilntcpu` (csd-core).
