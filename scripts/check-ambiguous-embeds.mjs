@@ -52,10 +52,19 @@ function normTable(name) {
   return name.replace(/^"?[a-z_][a-z0-9_]*"?\./i, '').replace(/"/g, '').toLowerCase();
 }
 
+// FKs de tablas BASE creadas directamente en Supabase (no viven en `sql/`), que el
+// grafo no puede descubrir leyendo migraciones. Sin este seed, el guard sólo veía la
+// 2ª FK vehiculos→usuarios (km_base_combustible_por, BR1) y NO marcaba el embed
+// `responsable:usuarios(...)` como ambiguo — justo el bug de Combustible en Flota.
+/** @type {FkEdge[]} */
+const SEED_EDGES = [
+  { src: 'vehiculos', dest: 'usuarios', col: 'responsable_id' },
+];
+
 /** @returns {FkEdge[]} */
 function buildFkEdges() {
   /** @type {FkEdge[]} */
-  const edges = [];
+  const edges = [...SEED_EDGES];
   const files = readdirSync(SQL_DIR).filter((f) => f.endsWith('.sql')).sort();
 
   for (const file of files) {

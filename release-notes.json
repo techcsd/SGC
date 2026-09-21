@@ -4085,6 +4085,16 @@
           "d": "Arreglado un error al importar echadas de una tarjeta asignada a una persona (el conductor se resuelve ahora contra la ficha de conductor correcta); la echada guarda además el titular de la tarjeta tal como viene en la factura."
         }
       ]
+    },
+    "1.139.1": {
+      "titulo": "Combustible vuelve a abrir en Flota",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Arreglado el error que impedía abrir la sección de Combustible (mostraba un mensaje sobre relaciones entre vehículos y usuarios). La lista de vehículos vuelve a cargar con su responsable correctamente."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

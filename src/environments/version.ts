@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.139.0';
-export const APP_VERSION_TITULO: string | null = "Importar echadas: resuelve por tarjeta y por chofer, y no duplica";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"mejora","m":"Flota","d":"Al registrar las echadas faltantes de una conciliación, el sistema ahora resuelve el vehículo o el chofer por el número de tarjeta de TotalEnergies (antes usaba el identificador de la fila y no cuadraba), y usa el número de transacción como clave para no duplicar si se vuelve a importar."},{"t":"arreglo","m":"Flota","d":"Arreglado un error al importar echadas de una tarjeta asignada a una persona (el conductor se resuelve ahora contra la ficha de conductor correcta); la echada guarda además el titular de la tarjeta tal como viene en la factura."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/ebf62dc";
+export const APP_VERSION = '1.139.1';
+export const APP_VERSION_TITULO: string | null = "Combustible vuelve a abrir en Flota";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Flota","d":"Arreglado el error que impedía abrir la sección de Combustible (mostraba un mensaje sobre relaciones entre vehículos y usuarios). La lista de vehículos vuelve a cargar con su responsable correctamente."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/75f6868";

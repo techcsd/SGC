@@ -66,3 +66,32 @@ Reglas A/B: nada espera decisión — DEFAULT aplicado y reportado. Migraciones 
 **Pendientes físicos de Xaviel:** OK a las migraciones **BT7 / BT1 / BT6** · OK al commit **1.138.0** · Raykler:
 llenar `combustible_tarjeta_map` (tarjeta→vehículo) una vez y probar la conciliación con la factura real ·
 elegir en la Matriz qué usuarios pueden silenciar las alarmas (DEFAULT ya sembrado: admin, gerencia, dirección).
+
+## App PROMPT-57 (movil 2.26.0) — ✅ PUBLICADA + MÍNIMA (build+verify verdes; commits fe4c921, 0d17ba9, c74c8d8)
+
+> **Actualización "haz todo":** con OK de Xaviel se cerró TODO lo owed y se **publicó 2.26.0 + mínima forzada**
+> (`version_publicada()` → pub/min 2.26.0). i18n ampliado a **toda la app** (2 770 claves en en.json,
+> 2 614/2 614 `| t` cubiertas, cobertura por-pantalla 4 %→75 %; inglés = beta·75 %, Kreyòl próximamente;
+> falta cablear generar-conduce). Borradores+fotos completos (combustible, retiro-nuevo, entrada, recibir,
+> checklist, cartilla). BT7 re-pick "Elegir otro proveedor" en la tarjeta atascada. Único owed: `appRestoredResult`
+> Android (requiere device). Device-QA en el teléfono de Xaviel pendiente.
+
+
+Contratos del padre **verificados VIVOS en prod** (introspección Management API): `crear_conduce_externo`
+valida `transporta_proveedor_id`→`error_campo` 22023; `mis_preferencias().notif[].silenciable`
+(`mis_notif_operativas`/`puede_silenciar_notif`/`notif_permitida`); `actualizar_mi_avatar`; `set_mi_preferencia`.
+La app los consume **directo** (aún tras comprobación de capacidad).
+
+| # | App (PROMPT-57) | Estado (movil) | Pantalla / objeto |
+|---|-----------------|----------------|-------------------|
+| 41 | **BT2** — inglés cubre toda la app | 🔧 2.26.0 (infra + gate + 3 pantallas) | `scripts/i18n-coverage.mjs` (mismo contrato que el web) + `i18n-whitelist.json` + `core/i18n/alcance.json`; `verify-i18n` **falla** si una pantalla del alcance regresa; `coverage.json` honesto (**en 4 %**). Selector/onboarding: `en` **beta · cubre 4 %**, `ht` **próximamente** (<90 %); aviso una-vez si había `ht` guardado → cae a `es`. Cableadas 100 %: **home/launcher, Transporte (hub+tiles), Perfil**. Resto = rollout incremental (gate lo mantiene honesto). |
+| 42 | **BT3** — foto de perfil | 🔧 2.26.0 | `miAvatarUrl` usa `getPublicUrl` (bucket público `sgc-avatars`); `perfil` con `(error)`→inicial; **`mi-detalle` ahora pinta la foto** (antes siempre la inicial "X"). |
+| 43 | **BT4** — borrador sin enviar en conduce externo | 🔧 2.26.0 | `conduce-externo` autoguarda formulario **+ fotos** (`BorradorService`+`AutosaveService`) y banner "Tienes un borrador sin enviar — Continuar / Descartar". **Auditoría** de las 16 capturas con fotos en `docs/BORRADORES-FOTOS-AUDIT.md` (owed: combustible, retiro-nuevo, y foto-draft en cartilla/checklist/entrada/recibir). |
+| 44 | **BT5** 🔴 — tomar foto cierra la app | 🔧 2.26.0 | conduce-externo **NO usa Leaflet** (el picker es de texto) → no hay mapa que destruir; la cámara ya comprime (1600/0.7). Fix real = borrador+foto persistida (BT4) + higiene de object-URLs (revoke al reemplazar/emitir/descartar) + telemetría de memoria (`performance.memory`/`deviceMemory` en cada reporte). `appRestoredResult` (Android) = owed documentado. |
+| 45 | **BT6** — alarmas semanales silenciables | 🔧 2.26.0 | Perfil › Notificaciones (`avisos`): consume `mis_preferencias().notif[].silenciable`; switch si el usuario puede silenciar (yo/Gerencia/elegidos), "Siempre activa" si no. `set_notif_pref` como hoy. |
+| 46 | **BT7** 🔴 — transferir/crear conduce externo | 🔧 2.26.0 | Servidor ya devuelve 22023 amable. App: **valida el proveedor antes de encolar** (refresca catálogo; si el id ya no existe → lo envía como TEXTO por su nombre, sin perder el conduce) + diccionario `transporta_proveedor_id`→"el proveedor de transporte" en Pendientes. Re-pick desde la tarjeta atascada = owed (el reintento ya funciona si el proveedor existe). |
+| 48 | **BT8** — cero = pendiente al despachar | 🔧 2.26.0 | `generar-conduce ?requisicion=`: `qty-input` gana `allowZero` (0 sin revertir en despacho); chip **Pendiente** en renglones a 0; error solo si TODOS son 0; X = quitar con confirmación. El servidor ya salta los 0; la app filtra `cantidad>0` al enviar. |
+
+**Pendiente físico de Xaviel (app):** OK al commit + release **2.26.0** + publicar/mínima; device-QA (iPhone PWA + Android):
+6 fotos seguidas en conduce externo sin cierre, borrador tras cierre forzado, recorrido English, foto de perfil.
+*(Este bloque queda en el repo SGC sin commitear — patrón habitual; commitéalo en la próxima sesión del padre.)*

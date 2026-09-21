@@ -118,7 +118,9 @@ export class VehiculosService {
   async getAll(): Promise<Vehiculo[]> {
     const { data, error } = await this.supabase.client
       .from('vehiculos')
-      .select('*, responsable:usuarios(nombre)')
+      // BR1 agregó una 2ª FK vehiculos→usuarios (km_base_combustible_por), así que
+      // el embed DEBE nombrar la FK o PostgREST lanza "more than one relationship".
+      .select('*, responsable:usuarios!responsable_id(nombre)')
       .order('placa');
 
     if (error) throw new Error(error.message);
@@ -129,7 +131,7 @@ export class VehiculosService {
   async getById(id: string): Promise<Vehiculo | null> {
     const { data, error } = await this.supabase.client
       .from('vehiculos')
-      .select('*, responsable:usuarios(nombre)')
+      .select('*, responsable:usuarios!responsable_id(nombre)')
       .eq('id', id)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -258,7 +260,7 @@ export class VehiculosService {
     const { data, error } = await this.supabase.client
       .from('vehiculos')
       .insert(pickVehiculoFields(payload))
-      .select('*, responsable:usuarios(nombre)')
+      .select('*, responsable:usuarios!responsable_id(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
@@ -270,7 +272,7 @@ export class VehiculosService {
       .from('vehiculos')
       .update(pickVehiculoFields(payload))
       .eq('id', id)
-      .select('*, responsable:usuarios(nombre)')
+      .select('*, responsable:usuarios!responsable_id(nombre)')
       .single();
 
     if (error) throw new Error(error.message);
