@@ -52,7 +52,9 @@ async function runQuery(ref, sql, attempt = 0) {
 // urls embebidas, etc.) → <REF>.
 function normRef(s) {
   if (s == null) return s;
-  return String(s).replaceAll(PROD, '<REF>').replaceAll(DEV, '<REF>');
+  // Normaliza ref del proyecto + fin de línea (autocrlf mete \r en el source de
+  // funciones/crons aplicados desde un archivo CRLF; es cosmético).
+  return String(s).replaceAll(PROD, '<REF>').replaceAll(DEV, '<REF>').replaceAll('\r', '');
 }
 
 // ── Categorías: cada una devuelve filas {k: <clave única>, ...campos} ─────────
@@ -78,7 +80,7 @@ const CATS = {
 
   funciones: `select json_agg(json_build_object(
       'k', n.nspname||'.'||p.proname||'('||pg_get_function_identity_arguments(p.oid)||')',
-      'v', md5(pg_get_functiondef(p.oid))
+      'v', md5(replace(pg_get_functiondef(p.oid), chr(13), ''))
     ) order by 1) as data
     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
     where n.nspname in ('sgc','public')`,
