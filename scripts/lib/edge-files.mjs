@@ -43,7 +43,8 @@ export function checksumEdge(slug) {
   for (const f of [...files].sort()) {
     h.update(relative(FN_ROOT, f).replace(/\\/g, '/'));
     h.update('\0');
-    h.update(readFileSync(f));
+    // Normaliza fin de línea (git autocrlf) para checksum estable dev↔prod.
+    h.update(readFileSync(f, 'utf8').replace(/\r\n/g, '\n'));
   }
   return { checksum: h.digest('hex'), files };
 }

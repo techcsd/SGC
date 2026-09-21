@@ -30,7 +30,7 @@ async function sql(query) {
 // ── Migraciones ──────────────────────────────────────────────────────────────
 const files = readdirSync('sql').filter((f) => f.endsWith('.sql')).sort();
 const rows = files.map((f) => {
-  const checksum = createHash('sha256').update(readFileSync(`sql/${f}`, 'utf8')).digest('hex');
+  const checksum = createHash('sha256').update(readFileSync(`sql/${f}`, 'utf8').replace(/\r\n/g, '\n')).digest('hex');
   return `('sql/${f}','${checksum}','${env.entorno}','${POR}','${MOTIVO}')`;
 });
 // Inserta en lotes de 200 filas.
@@ -38,7 +38,7 @@ let migOk = 0;
 for (let i = 0; i < rows.length; i += 200) {
   const chunk = rows.slice(i, i + 200);
   const r = await sql(`insert into sgc.migraciones_aplicadas (archivo,checksum,entorno,aplicada_por,motivo)
-    values ${chunk.join(',')} on conflict (archivo) do nothing`);
+    values ${chunk.join(',')} on conflict (archivo) do update set checksum=excluded.checksum`);
   migOk += chunk.length;
   void r;
 }

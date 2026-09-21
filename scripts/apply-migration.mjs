@@ -23,7 +23,9 @@ const dryRun = argv.includes('--dry-run');
 
 const sql = readFileSync(file, 'utf8');
 const archivo = file.replace(/\\/g, '/');
-const checksum = createHash('sha256').update(sql).digest('hex');
+// Checksum independiente del fin de línea: git (autocrlf) reescribe LF↔CRLF al
+// hacer checkout, así que normalizamos antes de hashear para que dev y prod cuadren.
+const checksum = createHash('sha256').update(sql.replace(/\r\n/g, '\n')).digest('hex');
 
 async function dbq(ref, query) {
   for (let a = 0; ; a++) {

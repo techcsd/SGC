@@ -34,7 +34,7 @@ const faltan = [];
 // Migraciones tocadas.
 const sqls = changed.filter((f) => f.startsWith('sql/') && f.endsWith('.sql'));
 for (const f of sqls) {
-  const checksum = createHash('sha256').update(readFileSync(f, 'utf8')).digest('hex');
+  const checksum = createHash('sha256').update(readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).digest('hex');
   const r = await devSql(`select 1 from sgc.migraciones_aplicadas where archivo='${f}' and checksum='${checksum}' limit 1`);
   if (!(Array.isArray(r) && r.length)) faltan.push(`migración ${f} (no está en dev con este checksum)`);
 }
