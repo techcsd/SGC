@@ -23,12 +23,16 @@
 
 **F8 SHIPPED ✅ — web 1.140.0 en prod.** Commit `6119661` en `main` (push) + `dev` (ambas ramas en `6119661`). Vercel prod **READY** en `sgcconstructorasd.com`; versión 1.140.0 registrada en prod `app_versiones`. Prod backend BU1 aplicado + verificado: ledger creado + backfill (623 migr/37 edges), migración de crons por entorno + `set-config-entorno --env prod` (29 crons, **0 con ref de prod**, 0 funciones con ref, `edge_url('fuel-prices')`→prod), 14 edges `_shared`-wrapped redeployadas (pass-through en prod). Gotcha resuelto: checksum del ledger normaliza CRLF→LF (autocrlf rompía regla 18 entre checkout de ramas).
 
-**Pendiente FÍSICO de Xaviel (no bloquea prod; habilita el flujo dev):**
-1. Proteger `main`: `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh` CLI).
-2. Vercel: `dev.sgcconstructorasd.com` → rama `dev` (branch domain) + env vars *Preview* = dev; DNS `CNAME dev→cname.vercel-dns.com`.
+**Hecho vía Vercel MCP (F8, esta sesión):** dominio **`dev.sgcconstructorasd.com` → rama `dev`** añadido y **verificado** (Vercel gestiona el DNS; NO hizo falta CNAME manual). 3 deploys de `dev` READY. Env vars separadas: `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` **ya NO comparten preview+production** (antes preview usaba creds de PROD → riesgo de registrar versiones de dev en prod) → ahora production-only; añadido `SUPABASE_URL`=dev para *Preview*.
+
+**🔴 Bloqueante para que Raykler/testers usen dev:** `dev.sgcconstructorasd.com` está detrás de **Vercel Authentication (Deployment Protection)** — redirige a login de Vercel. Hay que **desactivar la protección SSO de Vercel para Preview** (el login de la app SGC sigue protegiendo los datos; los datos de dev son anonimizados → riesgo bajo). Decisión de posture de seguridad → pendiente de OK de Xaviel (afecta a TODOS los previews).
+
+**Pendiente FÍSICO de Xaviel (no bloquea prod):**
+1. **Desactivar Vercel Authentication en Preview** (para que dev sea accesible) — o decir que lo haga yo.
+2. Proteger `main`: `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh` CLI ni token).
 3. GitHub → Secrets (Actions): `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
-4. Google Maps: restringir referrer a `dev.`/`app-dev.`.
-5. Confirmar `NOTIFICATIONS_FROM_EMAIL` de dev (derivado; ajustar si el sender verificado en Resend difiere).
+4. (Opcional) `SUPABASE_SERVICE_ROLE_KEY`=dev en *Preview* (registro de versión en build; si no, autoRegistrar lo cubre).
+5. Google Maps: restringir referrer a `dev.`/`app-dev.`; confirmar `NOTIFICATIONS_FROM_EMAIL` de dev.
 6. **App 2.26.0 estrena el flujo por dev** (PROMPT-59, hijo).
 
 **Verify on resume:** `git log -1 origin/main` = `6119661` (1.140.0); Vercel prod READY; prod por objeto: `sgc.migraciones_aplicadas` existe + poblada, `sgc.config_entorno.edge_base_url`=prod, 0 crons con ref; dev `fzfrnrvndzrjwyvdpkgg` completo (`npm run verify:entornos` diff estructural 0; crons/catálogos difieren si dev y prod divergen — normal). Rama `dev` = `main`.
