@@ -25,14 +25,14 @@
 
 **Hecho vía Vercel MCP (F8, esta sesión):** dominio **`dev.sgcconstructorasd.com` → rama `dev`** añadido y **verificado** (Vercel gestiona el DNS; NO hizo falta CNAME manual). 3 deploys de `dev` READY. Env vars separadas: `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` **ya NO comparten preview+production** (antes preview usaba creds de PROD → riesgo de registrar versiones de dev en prod) → ahora production-only; añadido `SUPABASE_URL`=dev para *Preview*.
 
-**🔴 Bloqueante para que Raykler/testers usen dev:** `dev.sgcconstructorasd.com` está detrás de **Vercel Authentication (Deployment Protection)** — redirige a login de Vercel. Hay que **desactivar la protección SSO de Vercel para Preview** (el login de la app SGC sigue protegiendo los datos; los datos de dev son anonimizados → riesgo bajo). Decisión de posture de seguridad → pendiente de OK de Xaviel (afecta a TODOS los previews).
+**✅ dev.sgcconstructorasd.com LIVE y accesible** — Xaviel autorizó desactivar Vercel Authentication; `ssoProtection` → `enabled:false` (prod ya era público; el login de la app SGC sigue gateando datos, dev anonimizado). `curl` → HTTP 200, sirve la app (title SGC + `<app-root>`; el `[DEV]` + cinta naranja los pinta el runtime `EntornoBadge`).
 
-**Pendiente FÍSICO de Xaviel (no bloquea prod):**
-1. **Desactivar Vercel Authentication en Preview** (para que dev sea accesible) — o decir que lo haga yo.
-2. Proteger `main`: `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh` CLI ni token).
-3. GitHub → Secrets (Actions): `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
-4. (Opcional) `SUPABASE_SERVICE_ROLE_KEY`=dev en *Preview* (registro de versión en build; si no, autoRegistrar lo cubre).
-5. Google Maps: restringir referrer a `dev.`/`app-dev.`; confirmar `NOTIFICATIONS_FROM_EMAIL` de dev.
+**Pendiente FÍSICO de Xaviel (no bloquea prod ni el uso de dev):**
+1. Proteger `main`: `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh` CLI ni token de GitHub).
+2. GitHub → Secrets (Actions): `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
+3. (Opcional) `SUPABASE_SERVICE_ROLE_KEY`=dev en *Preview* (registro de versión en build; si no, autoRegistrar lo cubre).
+4. Google Maps: restringir referrer a `dev.`/`app-dev.`; confirmar `NOTIFICATIONS_FROM_EMAIL` de dev.
+5. Verificar visualmente en `dev.sgcconstructorasd.com`: cinta DEV + `[DEV]` en título, y login como usuario anonimizado (contraseña `QA_DEV_PASSWORD`).
 6. **App 2.26.0 estrena el flujo por dev** (PROMPT-59, hijo).
 
 **Verify on resume:** `git log -1 origin/main` = `6119661` (1.140.0); Vercel prod READY; prod por objeto: `sgc.migraciones_aplicadas` existe + poblada, `sgc.config_entorno.edge_base_url`=prod, 0 crons con ref; dev `fzfrnrvndzrjwyvdpkgg` completo (`npm run verify:entornos` diff estructural 0; crons/catálogos difieren si dev y prod divergen — normal). Rama `dev` = `main`.
