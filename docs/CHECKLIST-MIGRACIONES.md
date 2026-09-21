@@ -328,3 +328,19 @@ encolaron contra la identidad vieja.
 - **Casos reales (BT):** `scripts/i18n-coverage.mjs`, `docs/I18N-COVERAGE.md`, `src/app/core/i18n/alcance.json`,
   `shared/ui/language-selector`/`language-onboarding` (badges beta/próximamente); borradores de captura en
   `csd-app` (`conduce-externo`, PROMPT-57).
+
+## 18. Nada llega a producción sin haber vivido en dev (BU1)
+
+- **Por qué:** hasta BU1 cualquier `ng serve` local escribía en prod y toda migración/edge/secret iba directo a
+  producción sin una red donde probar. Un error en prod se veía con datos y usuarios reales.
+- **Regla:** **toda migración, edge, secret, versión web y APK se aplica primero en `sgc-dev`, se prueba ahí, y
+  solo entonces va a prod** — y los scripts lo hacen cumplir (`--env prod` rechaza lo que no esté en el ledger de
+  dev con el mismo checksum). La única excepción es Xaviel diciéndolo explícitamente: `--force-prod --motivo "…"`,
+  que queda registrado con nombre y motivo en el ledger. **Corolario: ningún script tiene prod como destino por
+  defecto; sin `--env` no corre.**
+- **Plantilla `Apply:` (nueva):** cada migración lleva
+  `Apply: node scripts/apply-migration.mjs sql/… --env dev  →  --env prod`.
+- **Casos reales (BU1):** ledger `sgc.{migraciones_aplicadas,edges_desplegadas,secrets_aplicados}` en ambos
+  proyectos; `scripts/lib/entorno.mjs` (resolverEnv), `apply-migration/deploy-edge/aplicar-secret --env`,
+  `backfill-ledger.mjs`, `verify-ledger-dev.mjs` (Action `pr-main`), `verify-sin-ref-hardcodeado.mjs` (prebuild),
+  `diff-esquema.mjs` (`npm run verify:entornos`). Flujo completo y pasos físicos en **[`ENTORNOS.md`](./ENTORNOS.md)**.

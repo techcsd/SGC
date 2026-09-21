@@ -70,3 +70,6 @@ scratchpad/
 
 # BJ2 — factura real de muestra (datos fiscales, no va al repo)
 referencia-factura-totalenergies-*.pdf
+
+# BU1 F6 — environment.ts local se genera con `npm run env:dev` (gitignored)
+src/environments/environment.ts

@@ -1,0 +1,30 @@
+# BU1 F7 — CI en PR a `main` (= producción). Corre el build completo (con todos los
+# guards de prebuild) y verifica la REGLA 18: toda migración/edge del PR ya vive en
+# el ledger de dev. Sin esto verde, el PR a main no se mergea.
+name: pr-main
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # necesitamos historia para el diff vs main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build (prod config + guards)
+        run: node scripts/build-env.mjs --env prod
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF_DEV: ${{ secrets.SUPABASE_PROJECT_REF_DEV }}
+      - name: Regla 18 — todo pasó por dev
+        run: node scripts/verify-ledger-dev.mjs --base origin/${{ github.base_ref }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF_DEV: ${{ secrets.SUPABASE_PROJECT_REF_DEV }}

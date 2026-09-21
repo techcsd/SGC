@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.139.1';
-export const APP_VERSION_TITULO: string | null = "Combustible vuelve a abrir en Flota";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Flota","d":"Arreglado el error que impedía abrir la sección de Combustible (mostraba un mensaje sobre relaciones entre vehículos y usuarios). La lista de vehículos vuelve a cargar con su responsable correctamente."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/75f6868";
+export const APP_VERSION = '1.140.0';
+export const APP_VERSION_TITULO: string | null = "Entorno de desarrollo: probar antes de producción";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Tecnología","d":"Nace un entorno de desarrollo separado (dev.sgcconstructorasd.com, base de datos aparte con datos anonimizados). Ahora todo cambio se prueba ahí antes de tocar producción; los correos de dev se redirigen a Tecnología y las notificaciones push quedan apagadas, para no molestar a nadie con pruebas."},{"t":"mejora","m":"Tecnología","d":"Regla permanente: ninguna migración, función o versión llega a producción sin haber pasado y sido probada en desarrollo primero (salvo que Tecnología lo fuerce explícitamente, quedando registrado). Una cinta naranja 'DEV' identifica el entorno de pruebas para que nadie lo confunda con el real."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/3dc2428";

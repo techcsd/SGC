@@ -7,11 +7,12 @@ import { ThemeService } from '../shared/services/theme.service';
 import { PreferenciasService } from '../shared/services/preferencias.service';
 import { aplicarDensidad, aplicarTamanoLetra } from '../shared/utils/apariencia.util';
 import { ToastComponent } from '../shared/components/toast/toast';
+import { EntornoBadge } from '../shared/ui/entorno-badge/entorno-badge';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastComponent],
+  imports: [RouterOutlet, ToastComponent, EntornoBadge],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

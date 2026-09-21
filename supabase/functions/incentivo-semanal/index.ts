@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 
 // AT2 — Informe semanal del INCENTIVO por chofer: envía por email (Resend, PDF
@@ -272,12 +273,12 @@ Deno.serve(async (req: Request) => {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(ajustarCorreoResend({
           from: fromEmail, to,
           subject: `Incentivo semanal de choferes — Semana ${semana}/${anio}` + (esReenvio ? ` (v${version} — reemplaza)` : ""),
           html, text: texto,
           attachments: [{ filename: `incentivo-semana-${anio}-${semana}.pdf`, content: toBase64(pdfBytes) }],
-        }),
+        })),
       });
       if (!res.ok) { ok = false; errMsg = await res.text(); }
     } else {

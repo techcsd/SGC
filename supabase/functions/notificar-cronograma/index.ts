@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 
 // Y15 — Email de avisos del Cronograma de Proyectos (por iniciar / por vencer /
 // atrasada). Lo invoca el sweep pg_cron `sgc.evaluar_avisos_cronograma()` vía
@@ -96,7 +97,7 @@ Deno.serve(async (req: Request) => {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: fromEmail, to, subject, html }),
+      body: JSON.stringify(ajustarCorreoResend({ from: fromEmail, to, subject, html })),
     });
     if (!res.ok) return json({ error: `Resend error: ${await res.text()}` }, 502);
 

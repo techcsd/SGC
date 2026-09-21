@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 
 // Y17 — check-domains (SGC-CSI-MOD-01). Corre checks sin API keys: DoH
 // (dns.google) para resolución/MX/SPF/DKIM + RDAP (rdap.org) para clientHold y
@@ -56,7 +57,7 @@ async function sendEmail(sb: SB, to: string[], subject: string, html: string): P
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify(ajustarCorreoResend({ from, to, subject, html })),
     });
     return { channel: "email", ok: r.ok, at: new Date().toISOString() };
   } catch (e) {

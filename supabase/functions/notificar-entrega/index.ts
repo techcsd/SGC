@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 
 // Notifies inventario staff when a delivery is confirmed incomplete —
 // closing the loop the other direction from notificar-solicitud (which
@@ -125,7 +126,7 @@ Deno.serve(async (req: Request) => {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: fromEmail, to, subject, html }),
+      body: JSON.stringify(ajustarCorreoResend({ from: fromEmail, to, subject, html })),
     });
 
     if (!res.ok) {

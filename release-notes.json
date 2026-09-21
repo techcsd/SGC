@@ -4095,6 +4095,21 @@
           "d": "Arreglado el error que impedía abrir la sección de Combustible (mostraba un mensaje sobre relaciones entre vehículos y usuarios). La lista de vehículos vuelve a cargar con su responsable correctamente."
         }
       ]
+    },
+    "1.140.0": {
+      "titulo": "Entorno de desarrollo: probar antes de producción",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Tecnología",
+          "d": "Nace un entorno de desarrollo separado (dev.sgcconstructorasd.com, base de datos aparte con datos anonimizados). Ahora todo cambio se prueba ahí antes de tocar producción; los correos de dev se redirigen a Tecnología y las notificaciones push quedan apagadas, para no molestar a nadie con pruebas."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "Regla permanente: ninguna migración, función o versión llega a producción sin haber pasado y sido probada en desarrollo primero (salvo que Tecnología lo fuerce explícitamente, quedando registrado). Una cinta naranja 'DEV' identifica el entorno de pruebas para que nadie lo confunda con el real."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

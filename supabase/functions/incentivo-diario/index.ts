@@ -4,6 +4,7 @@
 // propio parámetro (incentivo_diario_roles). Invocado por sgc.incentivo_cron_diario().
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -101,7 +102,7 @@ Deno.serve(async (req: Request) => {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: fromEmail, to, subject: `Actividad diaria de choferes — ${fmtDate(fecha)}`, html, text: texto }),
+        body: JSON.stringify(ajustarCorreoResend({ from: fromEmail, to, subject: `Actividad diaria de choferes — ${fmtDate(fecha)}`, html, text: texto })),
       });
       if (!res.ok) { ok = false; errMsg = await res.text(); }
     } else {

@@ -76,3 +76,14 @@ tabla de horarios; el resto se queda en migraciones.
   Requisiciones con `fecha_necesidad < hoy`, aún abiertas (`pendiente|aprobada|por_despachar|parcial`) y
   sin aviso previo (`aviso_vencida_at is null`) → aviso `requisicion_vencida` al solicitante y al módulo
   Inventario, una sola vez. Declarado en `sql/2026-09-15-br-bo8-requisiciones-vencidas.sql`.
+
+## BU1 — Crons por entorno (regla: ningún cron escribe ref ni secret)
+
+Desde BU1, ningún `cron.job.command` ni función lleva el ref del proyecto ni un secreto literal:
+- La URL base de las edges sale de `sgc.config_entorno.edge_base_url` (distinta por entorno) vía **`sgc.edge_url(slug)`**.
+- El secreto de sincronización lo lee **`sgc.sync_secret()`** del Vault local (`infra_sync_secret`).
+- Los 29 jobs se re-declaran en `sql/2026-09-18-bu1-crons-por-entorno.sql` (upsert por jobname) usando `edge_url()`.
+- **Post-paso obligatorio tras aplicar en un entorno:** `node scripts/set-config-entorno.mjs --env <dev|prod>`.
+- `dev-fix-crons.mjs --env dev` = red de seguridad si algún cron quedara con el ref de prod escrito.
+
+`diff-esquema.mjs` compara `cron.job.command` normalizando el ref; da 0 cuando prod y dev corren la misma migración.

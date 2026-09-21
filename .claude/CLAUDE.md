@@ -53,3 +53,10 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Entornos (BU1 — regla 18)
+
+- Dos entornos: **prod** (`jeeqhgccqefbqilntcpu`) y **dev** (`fzfrnrvndzrjwyvdpkgg` = sgc-dev, `dev.sgcconstructorasd.com`).
+- **Nada llega a prod sin pasar por dev.** Migraciones/edges/secrets: `--env dev` primero, probar, luego `--env prod` (rechaza lo que no esté en el ledger de dev salvo `--force-prod --motivo`). Sin `--env` los scripts no corren.
+- `environment.ts` local está gitignored → `npm run env:dev`. Nunca hardcodees el ref de prod (guard `verify-sin-ref-hardcodeado`).
+- Flujo: `feature/*` → `dev` → PR `dev → main`. Detalle en `docs/ENTORNOS.md`.

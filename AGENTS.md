@@ -53,3 +53,11 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Environments & workflow (BU1 — regla 18)
+
+- Two environments: **prod** (`jeeqhgccqefbqilntcpu`) and **dev** (`fzfrnrvndzrjwyvdpkgg` = sgc-dev).
+- **Nothing reaches prod without first living in dev.** Apply every migration/edge/secret to dev first (`--env dev`), test on `dev.sgcconstructorasd.com`, then prod (`--env prod`, which rejects anything not in the dev ledger unless `--force-prod --motivo "…"`). Scripts refuse to run without `--env`.
+- Work in `feature/*` → merge to `dev` (auto-deploys dev) → open a PR `dev → main` (prod). `main` is protected.
+- Local `environment.ts` is gitignored — generate with `npm run env:dev`. Never hardcode the prod project ref.
+- Full guide: `docs/ENTORNOS.md`.

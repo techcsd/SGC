@@ -104,3 +104,9 @@ rellena campos vacíos, **nunca sobrescribe** notas ya editadas por un admin.
 - [ ] `release-notes.json` con `web.<version>` (título + cambios).
 - [ ] `npm run build` verde (el guard valida las notas).
 - [ ] Commit incluye `package.json`, `release-notes.json` y `src/environments/version.ts`.
+
+## Versión por entorno (BU1)
+
+Cada entorno tiene su propio historial `sgc.app_versiones`: `registrar-version-web.mjs` (postbuild) usa las creds
+del entorno que construye (dev registra en dev, prod en prod). Una versión "salió" cuando llegó a **prod** vía el
+flujo `dev → main`; dev puede tener versiones intermedias que aún no están en prod. Ver [`docs/ENTORNOS.md`](./docs/ENTORNOS.md).

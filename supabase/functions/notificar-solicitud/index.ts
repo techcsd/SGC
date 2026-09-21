@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1?target=deno";
 
 // Email notifications for the solicitudes workflow. Called directly by the
@@ -432,7 +433,7 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${resendApiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: fromEmail, to, subject, html, ...(attachments ? { attachments } : {}) }),
+      body: JSON.stringify(ajustarCorreoResend({ from: fromEmail, to, subject, html, ...(attachments ? { attachments } : {}) })),
     });
 
     if (!res.ok) {

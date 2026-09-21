@@ -1,17 +1,86 @@
 project_id = "jeeqhgccqefbqilntcpu"
 
-# P5 — login público de conductores (cédula + PIN): pre-auth, sin JWT.
+# BU1 F2 — verify_jwt de las 37 edge functions (fuente de verdad para
+# `scripts/deploy-edge.mjs --all`). Valores tomados del estado real en prod
+# (18/09/2026). Las `false` son server-to-server (x-sync-secret) o pre-auth
+# (login por cédula/PIN); las `true` exigen JWT de usuario. El destino (prod/dev)
+# lo decide `--env`, NO el project_id de arriba (el CLI de Supabase no se usa;
+# todo va por Management API).
+
+# ── Pre-auth / server-to-server (sin JWT) ──
 [functions.conductor-login]
 verify_jwt = false
-
-# AA20 — precios de combustible (cron, x-sync-secret): sin JWT.
+[functions.conductor-crear-acceso]
+verify_jwt = false
 [functions.fuel-prices]
 verify_jwt = false
-
-# AA22 — transcripción de notas de voz (cron, x-sync-secret): sin JWT.
 [functions.transcribe-audio]
 verify_jwt = false
-
-# AF7 — envío de push (server-to-server, x-sync-secret): sin JWT.
 [functions.send-push]
 verify_jwt = false
+[functions.sync-weather-obras]
+verify_jwt = false
+[functions.routing-directions]
+verify_jwt = false
+[functions.notificar-flota]
+verify_jwt = false
+[functions.notificar-cronograma]
+verify_jwt = false
+[functions.check-domains]
+verify_jwt = false
+[functions.check-subscriptions]
+verify_jwt = false
+[functions.notificar-soporte]
+verify_jwt = false
+[functions.generar-informe-obra]
+verify_jwt = false
+[functions.incentivo-semanal]
+verify_jwt = false
+[functions.assistant]
+verify_jwt = false
+[functions.resumen-semanal-operaciones]
+verify_jwt = false
+
+# ── Requieren JWT de usuario ──
+[functions.notificar-solicitud]
+verify_jwt = true
+[functions.notificar-entrega]
+verify_jwt = true
+[functions.notificar-incidente]
+verify_jwt = true
+[functions.notificar-version]
+verify_jwt = true
+[functions.admin-create-user]
+verify_jwt = true
+[functions.admin-deactivate-user]
+verify_jwt = true
+[functions.admin-reset-user-password]
+verify_jwt = true
+[functions.admin-delete-user]
+verify_jwt = true
+[functions.admin-resend-invite]
+verify_jwt = true
+[functions.resolve-maps-link]
+verify_jwt = true
+[functions.places-search]
+verify_jwt = true
+[functions.reverse-geocode]
+verify_jwt = true
+[functions.snap-to-roads]
+verify_jwt = true
+[functions.acceso-cedula]
+verify_jwt = true
+[functions.admin-crear-usuario-test]
+verify_jwt = true
+[functions.admin-usuario-test-login]
+verify_jwt = true
+[functions.admin-entrar-como]
+verify_jwt = true
+[functions.admin-fin-impersonacion]
+verify_jwt = true
+[functions.transcribe-now]
+verify_jwt = true
+[functions.incentivo-diario]
+verify_jwt = true
+[functions.auth-signout-others]
+verify_jwt = true

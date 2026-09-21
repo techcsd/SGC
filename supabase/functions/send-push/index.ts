@@ -8,6 +8,7 @@
 // se inserta en paralelo. Web: tokens FCM web opcionales.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { puedeEnviarPush } from "../_shared/entorno.ts";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -133,6 +134,8 @@ Deno.serve(async (req: Request) => {
   let sent = 0, failed = 0;
   const dead: string[] = [];
   for (const t of tokens) {
+    // BU1 F2.3 — en dev el push está apagado salvo tokens en PUSH_ALLOWLIST.
+    if (!puedeEnviarPush(t.token)) { logEntrega(t.usuario_id, short(t.token), "omitida", "dev_push_off"); continue; }
     const androidNotification = channelId
       ? {
           channel_id: channelId,

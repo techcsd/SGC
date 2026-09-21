@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  entorno: 'prod',
   // Canonical public URL used to build auth-email links (invite / password
   // reset) so they always point at the live site — never at whatever origin
   // the admin's browser happens to be on when creating a user.

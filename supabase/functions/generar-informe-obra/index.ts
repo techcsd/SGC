@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 import { PDFDocument, StandardFonts, rgb } from "npm:pdf-lib@1.17.1";
 
 // AG16 · FASE 5 — Genera el PDF del informe semanal de obra y lo envía por email
@@ -174,10 +175,10 @@ Deno.serve(async (req: Request) => {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(ajustarCorreoResend({
         from: fromEmail, to, subject, html,
         attachments: [{ filename: `informe-obra-${informe_id}.pdf`, content: base64 }],
-      }),
+      })),
     });
     if (!res.ok) return json({ pdf: pdfPath, email: `error: ${await res.text()}` }, 502);
     return json({ sent: true, to, pdf: pdfPath });

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { ajustarCorreoResend } from "../_shared/entorno.ts";
 
 // V4 — Email a TODOS los usuarios activos cuando se publica una nueva versión
 // de la app móvil. Se llama desde la web justo después de publicar (el aviso
@@ -103,7 +104,7 @@ Deno.serve(async (req: Request) => {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ from: fromEmail, to: fromEmail, bcc: lote, subject, html }),
+        body: JSON.stringify(ajustarCorreoResend({ from: fromEmail, to: fromEmail, bcc: lote, subject, html })),
       });
       if (res.ok) enviados += lote.length;
       else errores.push(await res.text());
