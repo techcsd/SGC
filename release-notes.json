@@ -4096,6 +4096,21 @@
         }
       ]
     },
+    "1.141.0": {
+      "titulo": "Combustible: Raykler edita echadas y la factura de julio se lee",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Raykler (y cualquier rol de flota) ya puede editar echadas de combustible sin el error 'Solo un administrador puede recalcular el histórico'. El recálculo del histórico ahora lo permite el mismo rol que edita."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "La importación de la factura de TotalEnergies ya tolera facturas con otro formato de fecha, y cuando un PDF no se puede leer explica por qué (imagen escaneada vs formato nuevo) y lo reporta solo a Tecnología para agregarlo, en vez de un error genérico."
+        }
+      ]
+    },
     "1.140.0": {
       "titulo": "Entorno de desarrollo: probar antes de producción",
       "cambios": [
