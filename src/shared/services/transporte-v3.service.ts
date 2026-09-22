@@ -91,6 +91,9 @@ export interface CrearConduceExternoInput {
   destinoBodegaId?: string | null;
   emisorFirmaPath?: string | null;
   origenRequisicionId?: string | null;
+  /** BV6 — renglones del catálogo que mueve el conduce (afecta inventario:
+   *  salida si el origen es un almacén nuestro, entrada pendiente si el destino lo es). */
+  items?: { articulo_id: string; cantidad: number }[] | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -158,7 +161,7 @@ export class TransporteV3Service {
       p_placa_foto_path: i.placaFotoPath,
       p_carga_foto_path: i.cargaFotoPath ?? null,
       p_material_descripcion: i.materialDescripcion ?? null,
-      p_items: null,
+      p_items: i.items && i.items.length ? i.items : null,
       p_origen: i.origen ?? null,
       p_origen_lat: i.origenLat ?? null,
       p_origen_lng: i.origenLng ?? null,

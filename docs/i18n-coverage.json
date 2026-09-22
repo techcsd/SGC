@@ -233,9 +233,9 @@
     },
     {
       "pantalla": "inventario/conduce-externo-form",
-      "total": 41,
+      "total": 54,
       "cubiertos": 0,
-      "sin": 41,
+      "sin": 54,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -273,6 +273,18 @@
         "@if (destinoResultados().length) {",
         "@for (l of destinoResultados(); track l.id) {",
         "Si el lugar no aparece, escríbelo igual: se registra como «Otros» y cae en la bandeja de Logística para agregarlo al sistema.",
+        "Material del catálogo (opcional)",
+        "@if (afectaInventario()) {",
+        "@if (sentidoInventario() === 'salida') { El origen es un almacén nuestro: estos renglones",
+        "salen de su inventario",
+        "al emitir. } @else { El destino es un almacén nuestro: estos renglones",
+        "entrarán al inventario cuando el receptor confirme",
+        "la recepción (foto + firma). }",
+        "} @else {",
+        "Agrega renglones del catálogo solo si el conduce sale de, o llega a, un almacén nuestro. Si no, deja esta sección vacía.",
+        "} @for (it of items(); track $index) {",
+        "Quitar",
+        "+ Agregar material",
         "Nombre del proveedor",
         "Teléfono (opcional)",
         "Nombre del transportista",
@@ -280,7 +292,8 @@
         "Carga",
         "Descripción del material (ej. una nevera, 20 sacos de cemento…)",
         "Buscar obra / almacén / lugar, o escribe «Otros»",
-        "Buscar obra / almacén / lugar, o escribe «Otros»"
+        "Buscar obra / almacén / lugar, o escribe «Otros»",
+        "Elegir artículo…"
       ]
     },
     {

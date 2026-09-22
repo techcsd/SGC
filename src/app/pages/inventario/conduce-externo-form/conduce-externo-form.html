@@ -105,6 +105,39 @@
       <p class="cef-hint">Si el lugar no aparece, escríbelo igual: se registra como «Otros» y cae en la bandeja de Logística para agregarlo al sistema.</p>
     </section>
 
+    <!-- BV6 — material del catálogo (opcional): mueve inventario si un extremo es un almacén nuestro -->
+    <section class="cef-section">
+      <h2 class="cef-h">Material del catálogo (opcional)</h2>
+      @if (afectaInventario()) {
+        <p class="cef-hint cef-hint--info">
+          @if (sentidoInventario() === 'salida') {
+            El origen es un almacén nuestro: estos renglones <strong>salen de su inventario</strong> al emitir.
+          } @else {
+            El destino es un almacén nuestro: estos renglones <strong>entrarán al inventario cuando el receptor confirme</strong> la recepción (foto + firma).
+          }
+        </p>
+      } @else {
+        <p class="cef-hint">Agrega renglones del catálogo solo si el conduce sale de, o llega a, un almacén nuestro. Si no, deja esta sección vacía.</p>
+      }
+
+      @for (it of items(); track $index) {
+        <div class="cef-item">
+          <app-articulo-picker
+            class="cef-item__art"
+            [articulos]="articulos()"
+            [categorias]="categorias()"
+            [value]="it.articuloId"
+            [allowOtro]="false"
+            placeholder="Elegir artículo…"
+            (selectionChange)="onArticuloElegido($index, $event)" />
+          <input class="sgc-field cef-item__qty" type="number" min="0" step="any"
+                 [value]="it.cantidad" (input)="setCantidad($index, $any($event.target).value)" />
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarItem($index)">Quitar</button>
+        </div>
+      }
+      <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarItem()">+ Agregar material</button>
+    </section>
+
     <div class="cef-actions">
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="guardando()" (click)="guardar()">
         {{ guardando() ? 'Emitiendo…' : 'Emitir conduce externo' }}

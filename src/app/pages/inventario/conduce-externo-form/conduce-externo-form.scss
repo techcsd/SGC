@@ -81,3 +81,14 @@
 }
 
 .cef-actions { display: flex; justify-content: flex-end; }
+
+// BV6 — renglones de material del catálogo.
+.cef-hint--info { color: var(--accent); }
+.cef-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.cef-item__art { flex: 1 1 auto; min-width: 0; }
+.cef-item__qty { width: 96px; flex: 0 0 auto; }
