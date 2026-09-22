@@ -11,6 +11,8 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 
 type Tab = 'activos' | 'pendientes_entrega' | 'por_confirmar' | 'historico';
 
@@ -35,6 +37,17 @@ const FASE_LABELS: Record<string, string> = {
 })
 export class Conduces implements OnInit {
   private salidasService = inject(SalidasService);
+  private toast = inject(ToastService);
+  private userService = inject(UserService);
+
+  // BV7 — asignar chofer a un conduce sin chofer (logística/flota/admin).
+  puedeAsignarChofer = computed(
+    () => this.userService.hasRole('admin') || this.userService.hasModulo('flota'),
+  );
+  choferesDisponibles = signal<{ conductor_id: string; nombre: string }[]>([]);
+  asignandoId = signal<string | null>(null);
+  choferSel = signal<string>('');
+  asignandoSaving = signal(false);
 
   formatFecha = formatFechaDisplay;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -186,12 +199,14 @@ export class Conduces implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [rows, usuarios] = await Promise.all([
+      const [rows, usuarios, choferes] = await Promise.all([
         this.salidasService.getConducesWebListado(),
         this.salidasService.getUsuariosDirectorio().catch(() => []),
+        this.puedeAsignarChofer() ? this.salidasService.choferesActivos().catch(() => []) : Promise.resolve([]),
       ]);
       this.rows.set(rows);
       this.usuariosMap.set(Object.fromEntries(usuarios.map((u) => [u.id, u.nombre])));
+      this.choferesDisponibles.set(choferes);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los conduces.');
     } finally {
@@ -202,6 +217,32 @@ export class Conduces implements OnInit {
   setTab(t: Tab) {
     this.tab.set(t);
     this.currentPage.set(1);
+  }
+
+  // ── BV7 — asignar chofer ────────────────────────────────────────────────────
+  abrirAsignar(id: string) {
+    this.asignandoId.set(id);
+    this.choferSel.set('');
+  }
+  cancelarAsignar() {
+    this.asignandoId.set(null);
+    this.choferSel.set('');
+  }
+  async confirmarAsignar(id: string) {
+    const chofer = this.choferSel();
+    if (!chofer || this.asignandoSaving()) return;
+    this.asignandoSaving.set(true);
+    try {
+      await this.salidasService.asignarChofer(id, chofer, null);
+      this.toast.success('Chofer asignado', 'El chofer verá el conduce en su ruta.');
+      this.asignandoId.set(null);
+      this.choferSel.set('');
+      await this.ngOnInit();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo asignar el chofer');
+    } finally {
+      this.asignandoSaving.set(false);
+    }
   }
 
   faseLabel(fase: string): string {

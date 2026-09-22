@@ -87,3 +87,43 @@
     line-height: 1.35;
   }
 }
+
+// BV3 — panel de pendientes del almacén.
+.ai-pendientes {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.ai-pendientes__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--text-2);
+}
+.ai-pendientes__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ai-pend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 6px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+.ai-pend--viejo { border-color: var(--warning, #b26a00); }
+.ai-pend__tipo {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.ai-pend__tipo--in { color: var(--success, #1a7f37); background: color-mix(in srgb, var(--success, #1a7f37) 14%, transparent); }
+.ai-pend__ref { flex: 1 1 auto; min-width: 0; }
+.ai-pend__dias { color: var(--text-2); font-size: 0.78rem; }

@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   InventarioAlmacenService,
   InventarioAlmacenItem,
+  BodegaPendiente,
 } from '../../../../shared/services/inventario-almacen.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { UserService } from '../../../core/services/user.service';
@@ -50,6 +51,8 @@ export class AlmacenInventario implements OnInit {
   bodegaNombre = signal<string>('');
   bodegaProyecto = signal<string | null>(null);
   items = signal<InventarioAlmacenItem[]>([]);
+  // BV3 — pendientes accionables del almacén (entradas por confirmar / salidas sin recibir).
+  pendientes = signal<BodegaPendiente[]>([]);
   loading = signal(true);
   error = signal('');
 
@@ -136,15 +139,17 @@ export class AlmacenInventario implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [bodega, items] = await Promise.all([
+      const [bodega, items, pendientes] = await Promise.all([
         this.bodegasService.getById(id).catch(() => null),
         this.service.getInventario(id, true),
+        this.service.pendientes(id).catch(() => [] as BodegaPendiente[]),
       ]);
       if (bodega) {
         this.bodegaNombre.set(bodega.nombre);
         this.bodegaProyecto.set((bodega as { proyecto_id?: string | null }).proyecto_id ?? null);
       }
       this.items.set(items);
+      this.pendientes.set(pendientes);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el inventario.');
     } finally {

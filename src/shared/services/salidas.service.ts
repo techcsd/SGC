@@ -100,6 +100,23 @@ export class SalidasService {
     return (data ?? []) as ConduceListadoRow[];
   }
 
+  /** BV7 — choferes activos (id+nombre) para asignar a un conduce. */
+  async choferesActivos(): Promise<{ conductor_id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('choferes_activos');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { conductor_id: string; nombre: string }[];
+  }
+
+  /** BV7 — asigna chofer (+vehículo opcional) a un conduce; dispara la auto-ruta. */
+  async asignarChofer(salidaId: string, conductorId: string, vehiculoId: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('asignar_chofer_conduce', {
+      p_salida_id: salidaId,
+      p_conductor_id: conductorId,
+      p_vehiculo_id: vehiculoId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** AP4 — directorio de usuarios (id+nombre) para el filtro por responsable. */
   async getUsuariosDirectorio(): Promise<{ id: string; nombre: string }[]> {
     const { data, error } = await this.supabase.client.rpc('directorio_usuarios_detalle');

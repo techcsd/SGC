@@ -53,6 +53,16 @@ export interface KardexFiltros {
   hasta?: string | null;
 }
 
+/** BV3 — un pendiente accionable del almacén (entrada por confirmar / salida sin recibir). */
+export interface BodegaPendiente {
+  tipo: 'entrada' | 'salida';
+  id: string;
+  fecha: string;
+  referencia: string;
+  renglones: number;
+  dias: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class InventarioAlmacenService {
   private supabase = inject(SupabaseService);
@@ -73,6 +83,13 @@ export class InventarioAlmacenService {
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as InventarioAlmacenItem[];
+  }
+
+  /** BV3 — pendientes accionables del almacén (entradas por confirmar + salidas sin recibir). */
+  async pendientes(bodegaId: string): Promise<BodegaPendiente[]> {
+    const { data, error } = await this.supabase.client.rpc('bodega_pendientes', { p_bodega_id: bodegaId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as BodegaPendiente[];
   }
 
   /** AU6 — cuántos artículos tocaría la apertura en lote (para el preview). */

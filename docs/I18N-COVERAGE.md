@@ -78,12 +78,12 @@
 | incentivos | - | 226 | 0 | 226 | 0% |
 | inventario/activos | - | 117 | 0 | 117 | 0% |
 | inventario/ajuste-real | - | 39 | 0 | 39 | 0% |
-| inventario/almacen-inventario | - | 62 | 0 | 62 | 0% |
+| inventario/almacen-inventario | - | 68 | 0 | 68 | 0% |
 | inventario/apertura | - | 39 | 0 | 39 | 0% |
 | inventario/articulos | - | 166 | 0 | 166 | 0% |
 | inventario/bodegas | - | 116 | 0 | 116 | 0% |
 | inventario/categorias | - | 34 | 0 | 34 | 0% |
-| inventario/conduces | - | 53 | 0 | 53 | 0% |
+| inventario/conduces | - | 61 | 0 | 61 | 0% |
 | inventario/conduces-externos | - | 19 | 0 | 19 | 0% |
 | inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
 | inventario/confirmaciones | - | 44 | 0 | 44 | 0% |

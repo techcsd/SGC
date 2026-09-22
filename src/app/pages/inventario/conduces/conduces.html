@@ -146,7 +146,31 @@
                 }
               </td>
               <td class="text-muted">{{ r.bodega ?? '—' }}</td>
-              <td class="text-muted">{{ r.conductor ?? '—' }}</td>
+              <td class="text-muted">
+                @if (r.conductor) {
+                  {{ r.conductor }}
+                } @else if (puedeAsignarChofer()) {
+                  @if (asignandoId() === r.id) {
+                    <!-- BV7 — picker inline para asignar chofer (no navega la fila) -->
+                    <div class="conduces__asignar" (click)="$event.stopPropagation()">
+                      <select class="sgc-field sgc-field--sm" [value]="choferSel()" (change)="choferSel.set($any($event.target).value)">
+                        <option value="">Elegir chofer…</option>
+                        @for (c of choferesDisponibles(); track c.conductor_id) {
+                          <option [value]="c.conductor_id">{{ c.nombre }}</option>
+                        }
+                      </select>
+                      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                              [disabled]="!choferSel() || asignandoSaving()" (click)="confirmarAsignar(r.id)">Asignar</button>
+                      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarAsignar()">Cancelar</button>
+                    </div>
+                  } @else {
+                    <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+                            (click)="$event.stopPropagation(); abrirAsignar(r.id)">Asignar chofer</button>
+                  }
+                } @else {
+                  —
+                }
+              </td>
               <td class="text-right">{{ r.items }}</td>
               <td>
                 <span class="sgc-badge" [class]="'sgc-badge--' + faseModifier(r.bucket)">

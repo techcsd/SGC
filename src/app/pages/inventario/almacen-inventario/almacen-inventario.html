@@ -15,6 +15,26 @@
     </div>
   </header>
 
+  <!-- BV3 — Pendientes del almacén: entradas por confirmar + salidas sin recibir -->
+  @if (pendientes().length) {
+    <div class="ai-pendientes">
+      <h2 class="ai-pendientes__title">Pendientes del almacén ({{ pendientes().length }})</h2>
+      <ul class="ai-pendientes__list">
+        @for (p of pendientes(); track p.id) {
+          <li class="ai-pend" [class.ai-pend--viejo]="p.dias >= 3">
+            <span class="ai-pend__tipo" [class.ai-pend__tipo--in]="p.tipo === 'entrada'">
+              {{ p.tipo === 'entrada' ? 'Por recibir' : 'Despachada sin confirmar' }}
+            </span>
+            <span class="ai-pend__ref">{{ p.referencia }} · {{ p.renglones }} renglón(es)</span>
+            <span class="ai-pend__dias">hace {{ p.dias }} día(s)</span>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+               [routerLink]="p.tipo === 'entrada' ? '/inventario/confirmaciones' : '/inventario/conduces'">Ver</a>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
   <div class="filters-bar">
     <div class="sgc-field filters-bar__search">
       <input type="search" [value]="search()" (input)="onSearch($any($event.target).value)"

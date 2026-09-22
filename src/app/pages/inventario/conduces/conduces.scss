@@ -64,3 +64,12 @@
   gap: 10px;
   align-items: center;
 }
+
+// BV7 — picker inline para asignar chofer a un conduce.
+.conduces__asignar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  select { min-width: 140px; }
+}
