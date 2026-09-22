@@ -102,8 +102,13 @@
           } @else {
             <span class="sgc-badge sgc-badge--success">todas mapeadas</span>
           }
+          @if (autoSugeridas() > 0) {
+            <button type="button" class="sgc-btn sgc-btn--sm" (click)="aceptarAutomaticos()">
+              Aceptar los {{ autoSugeridas() }} automáticos
+            </button>
+          }
         </div>
-        <p class="cc-hint">Asigna el vehículo de cada tarjeta (el código de 4 dígitos es la llave; se recuerda para las próximas facturas). Lo que dejes sin vehículo se cruzará como «solo informe».</p>
+        <p class="cc-hint">El vehículo de cada tarjeta se sugiere solo (chip «auto»); revísalo y ajusta si hace falta. El código de 4 dígitos es la llave: lo que confirmes se recuerda para las próximas facturas. Lo que dejes sin vehículo se cruzará como «solo informe».</p>
         <div class="table-scroll">
           <table class="data-table" aria-label="Mapeo de tarjetas">
             <thead><tr><th>Tarjeta</th><th>Titular en la factura</th><th>Vehículo</th></tr></thead>
@@ -122,6 +127,9 @@
                         <option [value]="v.id">{{ v.label }}</option>
                       }
                     </select>
+                    @if (t.auto && t.sugerido) {
+                      <span class="sgc-badge sgc-badge--info" title="Sugerido automáticamente por {{ t.sugerido.via }}">auto · {{ (t.sugerido.score * 100) | number:'1.0-0' }}% · {{ t.sugerido.via }}</span>
+                    }
                   </td>
                 </tr>
               }

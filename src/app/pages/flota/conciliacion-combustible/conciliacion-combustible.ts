@@ -61,7 +61,9 @@ export class ConciliacionCombustible implements OnInit {
   // ── BJ2 — mapeo tarjeta→vehículo/persona (solo cuando el origen es el PDF) ────
   esPdfPreview = signal(false);
   /** Tarjetas detectadas en el PDF con su vehículo asignado (editable). */
-  cardsDetectadas = signal<{ card: TotalEnergiesCard; vehiculo_id: string | null; guardando?: boolean }[]>([]);
+  cardsDetectadas = signal<{ card: TotalEnergiesCard; vehiculo_id: string | null; guardando?: boolean; sugerido?: { score: number; via: string } | null; auto?: boolean }[]>([]);
+  /** BV13 — tarjetas con vehículo AUTO-sugerido (preseleccionado, aún sin guardar). */
+  autoSugeridas = computed(() => this.cardsDetectadas().filter((c) => c.auto && c.vehiculo_id).length);
   /** Catálogo de vehículos activos para el selector de mapeo. */
   vehiculos = signal<{ id: string; label: string; placa: string }[]>([]);
   private tarjetaMap = new Map<string, TarjetaMap>();
@@ -309,13 +311,48 @@ export class ConciliacionCombustible implements OnInit {
     this.aplicarMapeoAFilas(filas);
     // Tarjetas únicas del PDF (por si el parser repite), con su vehículo actual.
     const vistos = new Set<string>();
-    const lista: { card: TotalEnergiesCard; vehiculo_id: string | null }[] = [];
+    const lista: { card: TotalEnergiesCard; vehiculo_id: string | null; sugerido?: { score: number; via: string } | null; auto?: boolean }[] = [];
     for (const c of cards) {
       if (!c.codigo || vistos.has(c.codigo)) continue;
       vistos.add(c.codigo);
       lista.push({ card: c, vehiculo_id: this.tarjetaMap.get(c.codigo)?.vehiculo_id ?? null });
     }
+    // BV13 — para las que NO tienen mapa guardado, pide sugerencia (mapa→titular→persona)
+    // y PRESELECCIONA con chip auto·%. Ambiguo/sin candidato → queda vacío (respaldo manual).
+    const fecha = filas.find((f) => f.fecha)?.fecha ?? null;
+    await Promise.all(
+      lista.map(async (e) => {
+        if (e.vehiculo_id || !e.card.titular) return;
+        const s = await this.service.sugerirVehiculoTarjeta(e.card.titular, fecha).catch(() => null);
+        if (s && this.vehiculos().some((v) => v.id === s.vehiculo_id)) {
+          e.vehiculo_id = s.vehiculo_id;
+          e.sugerido = { score: s.score, via: s.via };
+          e.auto = true;
+        }
+      }),
+    );
     this.cardsDetectadas.set(lista);
+    // Aplica también las auto-sugerencias al preview (placa) para que crucen ya.
+    this.aplicarAutoAFilas(filas);
+    this.preview.set([...filas]);
+  }
+
+  /** BV13 — aplica las placas de las auto-sugerencias (aún sin guardar) al preview. */
+  private aplicarAutoAFilas(filas: InformeRow[]) {
+    const byCodigo = new Map(this.cardsDetectadas().map((c) => [c.card.codigo, c]));
+    for (const f of filas) {
+      const e = byCodigo.get(f.numero_tarjeta);
+      const placa = e?.vehiculo_id ? this.vehiculos().find((v) => v.id === e.vehiculo_id)?.placa : null;
+      if (placa) f.identificador = placa;
+    }
+  }
+
+  /** BV13 — acepta todas las auto-sugerencias de una: las persiste en el mapa. */
+  async aceptarAutomaticos() {
+    for (const e of this.cardsDetectadas().filter((c) => c.auto && c.vehiculo_id)) {
+      await this.asignarVehiculoTarjeta(e.card.codigo, e.vehiculo_id!);
+    }
+    this.toast.success('Sugerencias aceptadas', 'Se aprendieron los vínculos automáticos de tarjeta → vehículo.');
   }
 
   /** Aplica el mapeo actual: si la tarjeta tiene vehículo, el identificador de sus
@@ -360,7 +397,7 @@ export class ConciliacionCombustible implements OnInit {
         this.preview.set([...filas]);
       }
       this.cardsDetectadas.set(
-        this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, vehiculo_id: vid, guardando: false } : c)),
+        this.cardsDetectadas().map((c) => (c.card.codigo === codigo ? { ...c, vehiculo_id: vid, guardando: false, auto: false, sugerido: null } : c)),
       );
       this.toast.success('Tarjeta mapeada', placa ? `Ahora cruza con ${placa}.` : 'Sin vehículo (queda como consumo suelto).');
     } catch (e: unknown) {
@@ -377,6 +414,11 @@ export class ConciliacionCombustible implements OnInit {
     if (filas.length === 0) {
       this.toast.error('No hay transacciones nuevas que importar.');
       return;
+    }
+    // BV13 — aprende las auto-sugerencias que quedaron preseleccionadas y sin aceptar
+    // explícitamente: al guardar la conciliación se persisten en el mapa (regla 1 futura).
+    for (const e of this.cardsDetectadas().filter((c) => c.auto && c.vehiculo_id)) {
+      void this.service.setTarjetaMap({ codigo: e.card.codigo, vehiculo_id: e.vehiculo_id, titular: e.card.titular || null, es_persona: e.card.es_persona });
     }
     this.importando.set(true);
     try {

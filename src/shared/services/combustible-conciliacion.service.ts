@@ -220,6 +220,18 @@ export class CombustibleConciliacionService {
     return (data ?? []) as TarjetaMap[];
   }
 
+  /** BV13 — sugiere el vehículo probable de una tarjeta por su titular (mapa →
+   *  titular≈vehículo único → persona→asignado). null si no hay candidato claro. */
+  async sugerirVehiculoTarjeta(titular: string, fecha: string | null): Promise<{ vehiculo_id: string; score: number; via: string } | null> {
+    const { data, error } = await this.supabase.client.rpc('sugerir_vehiculo_tarjeta', {
+      p_titular: titular,
+      p_fecha: fecha,
+    });
+    if (error || !Array.isArray(data) || !data.length) return null;
+    const s = data[0] as { vehiculo_id: string; score: number; via: string };
+    return s.vehiculo_id ? s : null;
+  }
+
   /** BJ2 — upsert del mapeo de una tarjeta. */
   async setTarjetaMap(p: {
     codigo: string;
