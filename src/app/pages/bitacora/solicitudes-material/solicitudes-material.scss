@@ -229,3 +229,22 @@ textarea {
   font-weight: 600;
   white-space: nowrap;
 }
+
+// BV8 — material a cargo del ingeniero.
+.mac-card { margin-bottom: 16px; padding: 0; overflow: hidden; }
+.mac-card__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-1, inherit);
+  text-align: left;
+}
+.mac-card__toggle { font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+.mac-card__hint { color: var(--text-2); font-size: 0.85rem; margin: 0 14px 10px; }

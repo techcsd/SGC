@@ -274,6 +274,13 @@ export class SolicitudesMaterialService {
     const { error } = await this.supabase.client.rpc('desvincular_cobertura', { p_id: coberturaId });
     if (error) throw new Error(error.message);
   }
+
+  /** BV8 — materiales a cargo del usuario (recibido − devuelto en sus obras). */
+  async materialesACargo(usuarioId?: string | null): Promise<MaterialACargo[]> {
+    const { data, error } = await this.supabase.client.rpc('materiales_a_cargo', { p_usuario_id: usuarioId ?? null });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as MaterialACargo[];
+  }
 }
 
 /** BA — un conduce (salida) sin vincular a ninguna requisición. */
@@ -312,4 +319,14 @@ export interface RequisicionCoberturaItem {
   score: number | null;
   revisar: boolean;
   created_at: string;
+}
+
+/** BV8 — un material a cargo del ingeniero (neto recibido − devuelto en su obra). */
+export interface MaterialACargo {
+  proyecto_id: string;
+  proyecto: string;
+  articulo_id: string;
+  articulo: string;
+  unidad: string | null;
+  cantidad: number;
 }

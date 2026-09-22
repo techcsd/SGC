@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
+import { SolicitudesMaterialService, MaterialACargo } from '../../../../shared/services/solicitudes-material.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
@@ -251,6 +251,20 @@ export class SolicitudesMaterial implements OnInit {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las requisiciones.');
     } finally {
       this.loading.set(false);
+    }
+    // BV8 — materiales a mi cargo (best-effort; solo si soy responsable de alguna obra).
+    void this.cargarMaterialesACargo();
+  }
+
+  // ── BV8 — materiales a cargo del ingeniero ──────────────────────────────────
+  materialesACargo = signal<MaterialACargo[]>([]);
+  verMaterialesACargo = signal(false);
+  toggleMaterialesACargo() { this.verMaterialesACargo.update((v) => !v); }
+  async cargarMaterialesACargo() {
+    try {
+      this.materialesACargo.set(await this.solicitudesService.materialesACargo());
+    } catch {
+      /* sin material a cargo no es error */
     }
   }
 

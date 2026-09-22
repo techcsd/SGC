@@ -15,6 +15,33 @@
   <div class="page-error" role="alert">{{ error() }}</div>
 }
 
+<!-- BV8 — material que recibí en mis obras y aún no devolví (a mi cargo) -->
+@if (materialesACargo().length) {
+  <div class="sgc-card mac-card">
+    <button type="button" class="mac-card__head" (click)="toggleMaterialesACargo()">
+      <span>Materiales a mi cargo ({{ materialesACargo().length }})</span>
+      <span class="mac-card__toggle">{{ verMaterialesACargo() ? 'Ocultar' : 'Ver' }}</span>
+    </button>
+    @if (verMaterialesACargo()) {
+      <p class="mac-card__hint">Material recibido en tus obras que aún no se ha devuelto. Es tu responsabilidad hasta que se consuma o devuelva.</p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Obra</th><th>Artículo</th><th class="text-right">Cantidad</th></tr></thead>
+          <tbody>
+            @for (m of materialesACargo(); track m.proyecto_id + m.articulo_id) {
+              <tr>
+                <td>{{ m.proyecto }}</td>
+                <td>{{ m.articulo }}</td>
+                <td class="text-right">{{ m.cantidad | number:'1.0-2' }} {{ m.unidad ?? '' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}
+
 <div class="table-wrapper sgc-card">
   @if (loading()) {
     <app-skeleton variant="table" [rows]="8" />
