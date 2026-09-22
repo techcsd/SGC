@@ -4180,6 +4180,26 @@
           "d": "El formulario de vehículo tiene un campo Nombre/Alias. Rellénalo para reconocer el vehículo por nombre (se muestra junto a la placa en resúmenes y selectores), en vez de solo por placa."
         }
       ]
+    },
+    "1.141.2": {
+      "titulo": "Echada recuperable, avisos de requisición y conduce que afecta inventario",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Si cierras o se cae la pantalla mientras llenas una echada de combustible, al volver a Nueva echada puedes Retomar los datos que habías escrito (las fotos se vuelven a tomar) o Descartar."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Al emitir un conduce externo hacia una obra con requisiciones activas, un aviso indica cuáles (REQ-XXXXXX) y que el material coincidente se marcará solo al recibir."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "En Conduces externos, los que mueven inventario muestran una etiqueta AFECTA INVENTARIO."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

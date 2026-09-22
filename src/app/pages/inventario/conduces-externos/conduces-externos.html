@@ -45,7 +45,10 @@
                   @if (c.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
                 </td>
                 <td>{{ c.origen || '—' }} → {{ c.destino || '—' }}</td>
-                <td>{{ c.material || (c.afecta_inventario ? 'Material de catálogo' : '—') }}</td>
+                <td>
+                  {{ c.material || (c.afecta_inventario ? 'Material de catálogo' : '—') }}
+                  @if (c.afecta_inventario) { <span class="sgc-badge sgc-badge--info" title="Este conduce mueve inventario">AFECTA INVENTARIO</span> }
+                </td>
                 <td>{{ c.emisor_nombre || '—' }}</td>
                 <td><span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(c.estado)">{{ estadoLabel(c.estado) }}</span></td>
                 <td>{{ c.created_at | date: 'dd/MM/yyyy HH:mm' }}</td>

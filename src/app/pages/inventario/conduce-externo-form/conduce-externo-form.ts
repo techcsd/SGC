@@ -77,6 +77,8 @@ export class ConduceExternoForm {
   destinoQuery = signal('');
   destinoResultados = signal<LugarBuscado[]>([]);
   destinoSel = signal<LugarSel | null>(null);
+  // BV4 — requisiciones activas de la obra destino (aviso: el material puede cubrirlas).
+  reqsActivasDestino = signal<{ id: string; folio: number | null }[]>([]);
 
   // BV6 — material del catálogo (opcional). Si origen o destino es un almacén
   // nuestro, estos renglones mueven inventario (salida / entrada pendiente).
@@ -180,6 +182,7 @@ export class ConduceExternoForm {
   async buscarDestino(v: string) {
     this.destinoQuery.set(v);
     this.destinoSel.set(null);
+    this.reqsActivasDestino.set([]);
     this.destinoResultados.set(v.trim().length >= 2 ? await this.svc.buscarLugares(v) : []);
   }
   elegirOrigen(l: LugarBuscado) {
@@ -188,9 +191,22 @@ export class ConduceExternoForm {
     this.origenResultados.set([]);
   }
   elegirDestino(l: LugarBuscado) {
-    this.destinoSel.set(this.aSel(l));
+    const sel = this.aSel(l);
+    this.destinoSel.set(sel);
     this.destinoQuery.set(l.nombre);
     this.destinoResultados.set([]);
+    // BV4 — si el destino es una obra, avisa de sus requisiciones activas.
+    this.reqsActivasDestino.set([]);
+    if (sel.proyectoId) {
+      void this.solicitudes.activasDeObra(sel.proyectoId)
+        .then((r) => this.reqsActivasDestino.set(r))
+        .catch(() => { /* aviso best-effort */ });
+    }
+  }
+
+  /** BV4 — código citable REQ-XXXXXX de una requisición activa del destino. */
+  reqCodigoDe(folio: number | null): string {
+    return folio != null ? 'REQ-' + String(folio).padStart(6, '0') : 'REQ';
   }
   private aSel(l: LugarBuscado): LugarSel {
     return {

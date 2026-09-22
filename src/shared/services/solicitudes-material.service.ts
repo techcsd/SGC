@@ -275,6 +275,20 @@ export class SolicitudesMaterialService {
     if (error) throw new Error(error.message);
   }
 
+  /** BV4 — requisiciones activas (pendiente/aprobada/parcial/por_despachar) de una obra,
+   *  para avisar al crear un conduce/salida que su material podría cubrirlas. */
+  async activasDeObra(proyectoId: string): Promise<{ id: string; folio: number | null }[]> {
+    const { data, error } = await this.supabase.client
+      .schema('sgc')
+      .from('solicitudes_material')
+      .select('id, folio')
+      .eq('proyecto_id', proyectoId)
+      .in('estado', ['pendiente', 'aprobada', 'parcial', 'por_despachar'])
+      .order('fecha_necesidad', { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; folio: number | null }[];
+  }
+
   /** BV8 — materiales a cargo del usuario (recibido − devuelto en sus obras). */
   async materialesACargo(usuarioId?: string | null): Promise<MaterialACargo[]> {
     const { data, error } = await this.supabase.client.rpc('materiales_a_cargo', { p_usuario_id: usuarioId ?? null });

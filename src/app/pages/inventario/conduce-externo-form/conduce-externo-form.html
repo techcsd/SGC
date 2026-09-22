@@ -105,6 +105,15 @@
       <p class="cef-hint">Si el lugar no aparece, escríbelo igual: se registra como «Otros» y cae en la bandeja de Logística para agregarlo al sistema.</p>
     </section>
 
+    <!-- BV4 — aviso: la obra destino tiene requisiciones activas que este material puede cubrir -->
+    @if (reqsActivasDestino().length) {
+      <div class="cef-reqaviso" role="status">
+        Esta obra tiene {{ reqsActivasDestino().length }} requisición(es) activa(s)
+        (@for (r of reqsActivasDestino(); track r.id; let last = $last) {{{ reqCodigoDe(r.folio) }}{{ last ? '' : ', ' }}}).
+        Lo que coincida con sus renglones pendientes se marcará automáticamente al recibir; lo demás entra al inventario.
+      </div>
+    }
+
     <!-- BV6 — material del catálogo (opcional): mueve inventario si un extremo es un almacén nuestro -->
     <section class="cef-section">
       <h2 class="cef-h">Material del catálogo (opcional)</h2>

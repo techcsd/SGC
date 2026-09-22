@@ -10,7 +10,7 @@ import {
 import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
@@ -150,7 +150,16 @@ export class Combustible implements OnInit {
   });
   esDepositoObra = computed(() => this.origenVal() === 'deposito_obra');
 
+  // BV5 — borrador local de la echada en curso: si la app/pestaña se cierra o
+  // crashea a mitad de llenar, se puede retomar. Solo texto (las fotos hay que
+  // volver a tomarlas). Se limpia al registrar o al descartar explícitamente.
+  private readonly DRAFT_KEY = 'sgc:echada-borrador';
+  borradorPendiente = signal<Record<string, unknown> | null>(null);
+
   constructor() {
+    // BV5 — autoguardado del borrador mientras el drawer está abierto.
+    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.guardarBorrador());
+
     // AC11 — el origen reconfigura las validaciones: en depósito de obra el monto
     // es opcional (garrafón sin factura) y la obra pasa a ser obligatoria.
     effect(() => {
@@ -608,9 +617,37 @@ export class Combustible implements OnInit {
       estacionSel: 'Total Energies', estacion: null, notas: null,
       producto: null, subtipo: null, tarjeta: null, titular: null, titular_es_persona: false });
     this.drawerOpen.set(true);
+    // BV5 — ¿quedó una echada sin terminar? Ofrecer retomarla.
+    const b = this.leerBorrador();
+    this.borradorPendiente.set(b && this.tieneContenidoBorrador(b) ? b : null);
   }
 
-  closeDrawer() { this.drawerOpen.set(false); this.clearFiles(); }
+  closeDrawer() { this.drawerOpen.set(false); this.clearFiles(); this.borradorPendiente.set(null); }
+
+  // ── BV5 — borrador de echada ────────────────────────────────────────────────
+  private tieneContenidoBorrador(v: Record<string, unknown>): boolean {
+    return !!(v['vehiculo_id'] || v['kilometraje'] || v['galones'] || v['monto'] || v['tarjeta'] || v['titular'] || v['notas']);
+  }
+  private guardarBorrador() {
+    if (!this.drawerOpen() || typeof localStorage === 'undefined') return;
+    const v = this.form.getRawValue() as Record<string, unknown>;
+    if (!this.tieneContenidoBorrador(v)) return;
+    try { localStorage.setItem(this.DRAFT_KEY, JSON.stringify({ v, ts: Date.now() })); } catch { /* cuota / modo privado */ }
+  }
+  private leerBorrador(): Record<string, unknown> | null {
+    if (typeof localStorage === 'undefined') return null;
+    try { const s = localStorage.getItem(this.DRAFT_KEY); return s ? (JSON.parse(s)?.v ?? null) : null; } catch { return null; }
+  }
+  private limpiarBorrador() {
+    this.borradorPendiente.set(null);
+    if (typeof localStorage !== 'undefined') { try { localStorage.removeItem(this.DRAFT_KEY); } catch { /* noop */ } }
+  }
+  retomarBorrador() {
+    const b = this.borradorPendiente();
+    if (b) this.form.patchValue(b);
+    this.borradorPendiente.set(null); // el banner se va; el borrador sigue hasta registrar
+  }
+  descartarBorrador() { this.limpiarBorrador(); }
 
   private clearFiles() {
     const r = this.reciboPreview(); if (r) URL.revokeObjectURL(r);
@@ -724,6 +761,7 @@ export class Combustible implements OnInit {
       this.registros.update((list) => [registro, ...list]);
       this.drawerOpen.set(false);
       this.clearFiles();
+      this.limpiarBorrador(); // BV5 — echada registrada → el borrador ya no aplica
 
       if (derivados.alerta_consumo) {
         // AW2 — anomalía con dirección: alto = error de dato (revisar lectura),

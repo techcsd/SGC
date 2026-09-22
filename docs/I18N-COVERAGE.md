@@ -3,13 +3,13 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 3%** (18/547 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 3%** (18/549 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 16 | 0 | 16 | 0% |
 | inventario/conduce | scope | 191 | 0 | 191 | 0% |
-| inventario/conduce-externo-form | scope | 54 | 0 | 54 | 0% |
+| inventario/conduce-externo-form | scope | 56 | 0 | 56 | 0% |
 | inventario/requisiciones | scope | 216 | 0 | 216 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | configuracion | scope | 35 | 18 | 17 | 51% |
@@ -58,7 +58,7 @@
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
-| flota/combustible | - | 265 | 0 | 265 | 0% |
+| flota/combustible | - | 271 | 0 | 271 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 147 | 0 | 147 | 0% |
 | flota/conciliacion-combustible | - | 118 | 0 | 118 | 0% |
@@ -84,7 +84,7 @@
 | inventario/bodegas | - | 116 | 0 | 116 | 0% |
 | inventario/categorias | - | 34 | 0 | 34 | 0% |
 | inventario/conduces | - | 61 | 0 | 61 | 0% |
-| inventario/conduces-externos | - | 19 | 0 | 19 | 0% |
+| inventario/conduces-externos | - | 22 | 0 | 22 | 0% |
 | inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
 | inventario/confirmaciones | - | 44 | 0 | 44 | 0% |
 | inventario/conteos | - | 92 | 0 | 92 | 0% |

@@ -258,3 +258,20 @@ textarea { resize: vertical; min-height: 72px; }
   color: var(--sgc-primary-mid); cursor: pointer; font-size: 0.78rem; font-weight: 500;
 }
 .combustible__precios-form { margin-top: 12px; }
+
+// BV5 — banner de echada sin terminar (recuperable).
+.cmb-borrador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--Hub, #ffb300);
+  background: color-mix(in srgb, var(--Hub, #ffb300) 12%, transparent);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.cmb-borrador__txt em { color: var(--text-2); font-style: italic; }
+.cmb-borrador__acc { display: flex; gap: 6px; flex-shrink: 0; }

@@ -353,6 +353,20 @@
 <app-form-drawer title="Nuevo registro de combustible" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
+    <!-- BV5 — echada sin terminar recuperable (crash / cierre de pantalla) -->
+    @if (borradorPendiente()) {
+      <div class="cmb-borrador" role="status">
+        <div class="cmb-borrador__txt">
+          <strong>Tienes una echada sin terminar.</strong>
+          Puedes retomar los datos que habías escrito. <em>Las fotos hay que volver a tomarlas.</em>
+        </div>
+        <div class="cmb-borrador__acc">
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="retomarBorrador()">Retomar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descartarBorrador()">Descartar</button>
+        </div>
+      </div>
+    }
+
     <div class="sgc-field">
       <label for="vehiculo_id">Vehículo <span class="required">*</span></label>
       <app-vehiculo-picker formControlName="vehiculo_id" [vehiculos]="vehiculosDisponibles()" />
