@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto } from '../../../../shared/services/solicitudes-material.service';
+import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto, RequisicionCoberturaItem } from '../../../../shared/services/solicitudes-material.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -164,6 +164,8 @@ export class Requisiciones implements OnInit {
   // ── BA / Transporte v3 — despachos (avance + cierre/cancelación) ──────────
   avanceItems = signal<RequisicionAvanceItem[]>([]);
   cargandoAvance = signal(false);
+  // BV4 — cobertura implícita del pedido abierto (movimientos que matchearon renglones).
+  coberturaReq = signal<RequisicionCoberturaItem[]>([]);
   mostrarCancelar = signal(false);
   cancelarMotivo = signal('');
   // Vincular conduce suelto (rectificación)
@@ -573,6 +575,7 @@ export class Requisiciones implements OnInit {
     this.mostrarVincular.set(false);
     this.drawerOpen.set(true);
     void this.cargarAvance(r.id);
+    void this.cargarCobertura(r.id);
   }
 
   cerrar() {
@@ -614,6 +617,39 @@ export class Requisiciones implements OnInit {
       /* avance vacío no es error */
     } finally {
       this.cargandoAvance.set(false);
+    }
+  }
+
+  /** BV4 — score (0-1) a porcentaje entero para la etiqueta de match por nombre. */
+  pctScore(score: number): number {
+    return Math.round(score * 100);
+  }
+
+  /** BV4 — carga la cobertura implícita (movimientos que matchearon renglones). */
+  async cargarCobertura(id: string) {
+    this.coberturaReq.set([]);
+    try {
+      this.coberturaReq.set(await this.service.cobertura(id));
+    } catch {
+      /* sin cobertura no es error */
+    }
+  }
+
+  /** BV4 — deshacer un match dudoso; recarga avance + cobertura (el pendiente sube solo). */
+  async desvincularCobertura(c: RequisicionCoberturaItem) {
+    const s = this.selected();
+    if (!s || this.saving()) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      await this.service.desvincularCobertura(c.id);
+      this.toast.success('Cobertura deshecha');
+      await this.cargarAvance(s.id);
+      await this.cargarCobertura(s.id);
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudo desvincular.');
+    } finally {
+      this.saving.set(false);
     }
   }
 

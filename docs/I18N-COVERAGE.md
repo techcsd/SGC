@@ -3,14 +3,14 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 4%** (18/511 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 3%** (18/534 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 16 | 0 | 16 | 0% |
 | inventario/conduce | scope | 191 | 0 | 191 | 0% |
 | inventario/conduce-externo-form | scope | 41 | 0 | 41 | 0% |
-| inventario/requisiciones | scope | 193 | 0 | 193 | 0% |
+| inventario/requisiciones | scope | 216 | 0 | 216 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | configuracion | scope | 35 | 18 | 17 | 51% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
@@ -61,7 +61,7 @@
 | flota/combustible | - | 265 | 0 | 265 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 123 | 0 | 123 | 0% |
-| flota/conciliacion-combustible | - | 114 | 0 | 114 | 0% |
+| flota/conciliacion-combustible | - | 118 | 0 | 118 | 0% |
 | flota/conductores | - | 284 | 0 | 284 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
 | flota/mantenimientos | - | 140 | 0 | 140 | 0% |

@@ -260,6 +260,20 @@ export class SolicitudesMaterialService {
     if (error) throw new Error(error.message);
     return (data ?? []) as ConduceSuelto[];
   }
+
+  /** BV4 — cobertura IMPLÍCITA: movimientos (no ligados) cuyo material matcheó renglones
+   *  de esta requisición y por eso bajan su pendiente. AT11: se muestra en el detalle. */
+  async cobertura(id: string): Promise<RequisicionCoberturaItem[]> {
+    const { data, error } = await this.supabase.client.rpc('requisicion_cobertura', { p_solicitud_id: id });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as RequisicionCoberturaItem[];
+  }
+
+  /** BV4 — deshacer un match dudoso (revisar). El pendiente vuelve a subir solo. */
+  async desvincularCobertura(coberturaId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('desvincular_cobertura', { p_id: coberturaId });
+    if (error) throw new Error(error.message);
+  }
 }
 
 /** BA — un conduce (salida) sin vincular a ninguna requisición. */
@@ -284,4 +298,18 @@ export interface RequisicionAvanceItem {
   pendiente: number;
   estado: 'pendiente' | 'despachada' | 'cancelada'; // BJ4 — estado por línea
   item_id: string; // BJ4 — para quitar la línea
+}
+
+/** BV4 — una cobertura implícita (movimiento que matcheó un renglón de la requisición). */
+export interface RequisicionCoberturaItem {
+  id: string;
+  requisicion_item_id: string;
+  renglon: string;
+  movimiento_tipo: 'salida' | 'entrada';
+  movimiento_id: string;
+  cantidad: number;
+  via: 'articulo' | 'nombre';
+  score: number | null;
+  revisar: boolean;
+  created_at: string;
 }

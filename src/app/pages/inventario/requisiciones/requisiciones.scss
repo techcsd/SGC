@@ -242,6 +242,47 @@
 }
 .req-sueltos__info { font-size: 0.85rem; }
 
+// BV4 — cobertura implícita (movimientos que matchearon renglones del pedido).
+.req-detail__cobertura {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.req-cobertura {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.req-cobertura__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.req-cobertura__info { font-size: 0.85rem; }
+.req-cobertura__via {
+  font-size: 0.75rem;
+  color: var(--sgc-text-muted, #929090);
+  margin-left: 0.35rem;
+}
+.req-cobertura__flag {
+  margin-left: 0.4rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: var(--warning, #b26a00);
+  background: color-mix(in srgb, var(--warning, #b26a00) 14%, transparent);
+}
+
 /* BA6 — banner de cancelación en el detalle (motivo · quién · cuándo). */
 .req-detail__cancelada {
   margin: 8px 0 4px;

@@ -528,6 +528,30 @@
         </div>
       }
 
+      <!-- BV4 — cobertura implícita: material que llegó a la obra por movimientos NO
+           ligados a este pedido y matcheó sus renglones (baja el pendiente). AT11. -->
+      @if (coberturaReq().length) {
+        <div class="req-detail__cobertura">
+          <h3 class="req-detail__subtitle">Cubierto por material llegado a la obra</h3>
+          <p class="req-detail__hint">Movimientos que no se emitieron para este pedido pero cuyo material coincide con sus renglones. Ya descuentan del pendiente.</p>
+          <ul class="req-cobertura">
+            @for (c of coberturaReq(); track c.id) {
+              <li class="req-cobertura__row">
+                <span class="req-cobertura__info">
+                  <strong>{{ c.renglon }}</strong> · {{ c.cantidad }}
+                  <span class="req-cobertura__via">{{ c.via === 'articulo' ? 'por artículo' : 'por nombre' }}@if (c.via === 'nombre' && c.score != null) { · {{ pctScore(c.score) }}%}</span>
+                  @if (c.revisar) { <span class="req-cobertura__flag">revisar</span> }
+                </span>
+                @if (puedeGestionarReq()) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                          [disabled]="saving()" (click)="desvincularCobertura(c)">Deshacer</button>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
       <!-- Acciones de gestión (aprobar/rechazar) — BH1: solo un tercero, nunca el autor -->
       @if (puedeRechazar(s)) {
         @if (actionError()) {
