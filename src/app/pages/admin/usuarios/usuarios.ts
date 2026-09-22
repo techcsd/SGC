@@ -9,6 +9,7 @@ import {
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminService, UsuarioAdmin } from '../../../../shared/services/admin.service';
+import { SolicitudesMaterialService, MaterialACargo } from '../../../../shared/services/solicitudes-material.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -32,6 +33,7 @@ type SortKey = 'nombre' | 'web' | 'app';
 })
 export class AdminUsuarios implements OnInit {
   private adminService = inject(AdminService);
+  private solicitudesService = inject(SolicitudesMaterialService);
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private auth = inject(AuthService);
@@ -323,12 +325,23 @@ export class AdminUsuarios implements OnInit {
   }
 
   // ── W10 — detalle de usuario ─────────────────────────────
+  // BV8 — materiales a cargo (si el usuario es responsable de obras con material recibido).
+  cargoUsuario = signal<MaterialACargo[]>([]);
+  cargandoCargo = signal(false);
+
   openDetail(usuario: UsuarioAdmin) {
     this.detailUser.set(usuario);
     this.detailOpen.set(true);
+    this.cargoUsuario.set([]);
+    this.cargandoCargo.set(true);
+    this.solicitudesService.materialesACargo(usuario.id)
+      .then((r) => this.cargoUsuario.set(r))
+      .catch(() => { /* sin cargo o sin permiso: se omite */ })
+      .finally(() => this.cargandoCargo.set(false));
   }
   closeDetail() {
     this.detailOpen.set(false);
+    this.cargoUsuario.set([]);
   }
 
   /** Avatar público del usuario (bucket sgc-avatars) o null. */

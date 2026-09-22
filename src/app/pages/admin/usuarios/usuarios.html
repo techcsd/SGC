@@ -293,6 +293,26 @@
         </div>
       }
 
+      <!-- BV8 — materiales a cargo (responsable de obras con material recibido) -->
+      @if (cargandoCargo()) {
+        <p class="admin-usuarios__cargo-hint">Cargando materiales a su cargo…</p>
+      } @else if (cargoUsuario().length) {
+        <div class="admin-usuarios__cargo">
+          <h3 class="admin-usuarios__cargo-title">A su cargo ({{ cargoUsuario().length }})</h3>
+          <p class="admin-usuarios__cargo-hint">Material recibido en sus obras que aún no se ha devuelto.</p>
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Obra</th><th>Artículo</th><th class="text-right">Cantidad</th></tr></thead>
+              <tbody>
+                @for (m of cargoUsuario(); track m.proyecto_id + m.articulo_id) {
+                  <tr><td>{{ m.proyecto }}</td><td>{{ m.articulo }}</td><td class="text-right">{{ m.cantidad }} {{ m.unidad ?? '' }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
       <!-- Acciones -->
       <div class="admin-usuarios__drawer-actions">
         @if (esSintetico(u)) {

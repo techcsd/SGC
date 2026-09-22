@@ -4200,6 +4200,16 @@
           "d": "En Conduces externos, los que mueven inventario muestran una etiqueta AFECTA INVENTARIO."
         }
       ]
+    },
+    "1.141.3": {
+      "titulo": "Materiales a cargo en el perfil del usuario",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Administración",
+          "d": "Al abrir el detalle de un usuario en Administración › Usuarios se ven los Materiales a su cargo (lo recibido en las obras de las que es responsable y aún no devuelto)."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

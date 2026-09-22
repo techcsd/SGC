@@ -28,7 +28,7 @@
 | admin/reportes | - | 49 | 0 | 49 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 178 | 0 | 178 | 0% |
+| admin/usuarios | - | 187 | 0 | 187 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 32 | 0 | 32 | 0% |
 | app-movil | - | 24 | 0 | 24 | 0% |

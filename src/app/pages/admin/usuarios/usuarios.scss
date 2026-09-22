@@ -570,3 +570,8 @@
   p { margin: 0 0 8px; font-size: 13px; }
   code { background: var(--sgc-border); padding: 2px 6px; border-radius: 6px; user-select: all; }
 }
+
+// BV8 — materiales a cargo en el detalle de usuario.
+.admin-usuarios__cargo { margin: 14px 0; padding-top: 12px; border-top: 1px solid var(--border); }
+.admin-usuarios__cargo-title { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; }
+.admin-usuarios__cargo-hint { color: var(--text-2); font-size: 0.82rem; margin: 0 0 8px; }
