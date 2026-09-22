@@ -136,3 +136,28 @@ La app los consume **directo** (aún tras comprobación de capacidad).
 - **Fila 63 — BV14** (recalcular abre a flota) — ✅ dev · F1. `recalcular_estados_combustible` gate `is_admin`→`es_flota_elevado` + lint `perform`-gate.
 
 **Residual menor (no bloquea la prueba en dev):** campo *Alias* en Editar vehículo, vehiculo-picker nombre·placa, lado ingeniero de las tabs de fase, correo diario ordenado por necesidad, paridad app. Backfill BV4 por articulo_id = no-op en dev (seed sin overlap); queda como script prod-gated.
+
+## App PROMPT-61 (móvil 2.27.0) — 🔧 EN DEV (rama `feature/bv-ronda`, build+guards verdes)
+
+Espejo en la app de la ronda BV. Consume los contratos del padre (todos vivos en dev)
+**detrás de comprobación de capacidad** (degradan solos si un contrato aún no está
+desplegado). `npm run build` (SGC_ENV=dev) verde; guards verdes (i18n **en 96 %**).
+**Falta correr el APK dev + publicar + merge a `dev`** (owed físico de Xaviel) — ver
+`csd-app/HANDOFF.md`. **Mínima se queda en 2.26.1** (DEFAULT; sin crash que la justifique).
+
+**SQL `mis_permisos_retro()`:** ✅ **aplicada en dev** (copiada a `SGC/sql/2026-09-22-bv1b-mis-permisos-retro.sql`,
+en el ledger `sgc.migraciones_aplicadas` de dev). **Falta prod:**
+`node scripts/apply-migration.mjs sql/2026-09-22-bv1b-mis-permisos-retro.sql --env prod` (pasa el ledger).
+Sin ella el campo Fecha retroactiva de la app no aparece (degrada limpio).
+
+| Fila | App (PROMPT-61) | Estado (móvil) | Pantalla / objeto |
+|---|---|---|---|
+| 50 | **BV1** — echada de fecha pasada con permiso | 🔧 2.27.0 dev | `combustible`: campo Fecha solo si `mis_permisos_retro()` vigente (rango `desde…hoy`), envía `p_fecha`; chip RETROACTIVA; deep-link `combustible_permiso_retro` |
+| 51 | **BV2** — vehículo nombre·placa | 🔧 2.27.0 dev | `vehiculos.alias` en selects directos + `vehiculoIdentidad` alias-aware + `vehiculo-card [alias]` + picker (RPCs sin alias caen a marca·modelo·placa) |
+| 52 | **BV3** — pendientes del almacén | 🔧 2.27.0 dev | `almacen-inventario`: "Pendientes de este almacén" (`bodega_pendientes`) — entradas por confirmar / salidas sin recibir + deep-link a *Por recibir* |
+| 53 | **BV4** — material que cubre la requisición | 🔧 2.27.0 dev (lado requis.) | `requisicion_cobertura` en el detalle + *¿Revisar? No* → `desvincular_cobertura`. **Residual:** chip "Cubre REQ (n/m)" en conduce-detalle |
+| 54 | **BV5** — la echada a medias se retoma | 🔧 2.27.0 dev | Home *"Pendiente de terminar"* (EnProceso incl. combustible/conduce_externo) + `appRestoredResult` central en `CameraService` (device-QA Android pendiente) |
+| 55 | **BV6** — conduce externo → inventario | 🔧 2.27.0 dev | toggle "Con materiales del inventario" + almacén origen (Central primero) + picker de stock → `crear_conduce_externo(p_items)`. **Residual:** chip AFECTA INVENTARIO en recepción |
+| 56 | **BV7** — asignar chofer desde la lista | 🔧 2.27.0 dev | *Conduces pendientes*: "Asignar chofer" inline (elevado) → `asignar_chofer_conduce`. **Residual:** lista dedicada "por despachar sin chofer" + multi-select |
+| 57 | **BV8** — materiales a cargo del ingeniero | 🔧 2.27.0 dev | Perfil › "A mi cargo" (`/perfil/a-mi-cargo`, `materiales_a_cargo()`, solo lectura, offline) |
+| 58-60 | **BV9/BV10/BV11** — fase + orden por necesidad + editar fecha | 🔧 2.27.0 dev | *Mis requisiciones* + *Bandeja*: tabs por fase (`faseRequisicion` cliente/server), orden por fecha de necesidad, 1ª línea "en N días/vencida"; detalle: fecha destacada + editar (outbox `requisicion_fecha` → `requisicion_set_fecha_necesidad`) |
