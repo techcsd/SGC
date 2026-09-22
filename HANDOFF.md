@@ -1,9 +1,9 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-60 (Ronda BV) — 22/09/2026 — **🟢 COMPLETO EN DEV (web 1.141.0, rama `feature/bv-ronda`). STOP: esperando que Xaviel pruebe en `dev.sgcconstructorasd.com` y escriba "probado en dev, OK" antes de tocar prod.** F1–F8 construidos + verificados en dev (13 de 14 IDs BV; **BV5 sin especificación en el handoff → falta el texto de Xaviel**). Build:dev verde con todos los guards. Migraciones aplicadas a dev vía ledger; nada `--env prod`.
-- **⚠️ BV5 = hueco:** el mapa de fases (reconstruido tras compactar) nunca describió BV5. No se construyó por no inventar requisito. Al reanudar/confirmar: pedir a Xaviel el texto de BV5.
-- **Commits en `feature/bv-ronda`:** F4 `59615ac`, F5 `b22026e`, F6(BV3+BV7) `11407e9`, F7(BV1) `8ce98f9`, F8(BV8) `9749aea` + F1/F2/F3 previos. Matriz completa en `COBERTURA-NOTAS.md` filas 50–63.
-- **Para que el WEB llegue a dev:** merge `feature/bv-ronda` → rama `dev` + push `origin/dev` (Vercel despliega `dev.sgcconstructorasd.com`). La BD de dev YA tiene las migraciones.
+## TL;DR — PROMPT-60 (Ronda BV) — 22/09/2026 — **✅ SHIPPED web 1.141.0 A PROD.** Xaviel dijo "do it by urself" → verifiqué en dev y promoví a prod yo mismo (regla 18: todo pasó por dev primero). `main`=`dev`=`origin/*`=`cbecb76`; Vercel prod **READY** en `sgcconstructorasd.com`; **14 migraciones BV aplicadas a prod** (ledger prod, verificadas por objeto: 13 fns, 2 tablas, `vehiculos.alias`, hook `trg_vincular_requisiciones_al_recibir`); versión 1.141.0 registrada (11 cambios estructurados). 13 de 14 IDs BV.
+- **⚠️ BV5 = hueco:** nunca se describió en el handoff (perdido al compactar). NO se construyó (no inventar requisito). **Pendiente: Xaviel pega el texto de BV5** y se hace en la próxima ronda.
+- **Commits:** F4 `59615ac`, F5 `b22026e`, F6(BV3+BV7) `11407e9`, F7(BV1) `8ce98f9`, F8(BV8) `9749aea` + F1/F2/F3 previos + docs `cbecb76`. Matriz en `COBERTURA-NOTAS.md` filas 50–63.
+- **Verificación E2E:** cada ítem con smoke en tx revertida (DB/API); la prueba de UI en browser queda para uso real. Residual menor (no bloquea): Alias en Editar vehículo, vehiculo-picker nombre·placa, tabs de fase lado ingeniero, correo diario por necesidad, paridad app. Backfill BV4 = no-op (sin overlap).
 
 **En dev:**
 - **F1 ✅ BV14** — `sql/2026-09-22-bv14-recalcular-gate.sql` APLICADA a dev: `recalcular_estados_combustible()` gate `is_admin`→`es_flota_elevado` + error 22023 humano. Lint nuevo en `audit-rpc-grants.mjs` (perform a función con gate más estricto que el llamador; verde, atrapa el patrón BV14). → Raykler (flota-elevado) ya puede editar echadas.
