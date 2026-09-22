@@ -48,6 +48,14 @@ export class Conduces implements OnInit {
   asignandoId = signal<string | null>(null);
   choferSel = signal<string>('');
   asignandoSaving = signal(false);
+  // BV7 — asignación múltiple: selección de conduces sin chofer + "Asignar N a…".
+  seleccionados = signal<Set<string>>(new Set());
+  choferLote = signal<string>('');
+  estaSeleccionado = (id: string) => this.seleccionados().has(id);
+  toggleSeleccion(id: string) {
+    this.seleccionados.update((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }
+  limpiarSeleccion() { this.seleccionados.set(new Set()); }
 
   formatFecha = formatFechaDisplay;
   readonly ESTADO_LABELS = SALIDA_ESTADO_LABELS;
@@ -243,6 +251,23 @@ export class Conduces implements OnInit {
     } finally {
       this.asignandoSaving.set(false);
     }
+  }
+
+  /** BV7 — asigna el chofer elegido a TODOS los conduces seleccionados. */
+  async asignarLote() {
+    const chofer = this.choferLote();
+    const ids = [...this.seleccionados()];
+    if (!chofer || !ids.length || this.asignandoSaving()) return;
+    this.asignandoSaving.set(true);
+    let ok = 0;
+    for (const id of ids) {
+      try { await this.salidasService.asignarChofer(id, chofer, null); ok++; } catch { /* sigue con los demás */ }
+    }
+    this.toast.success(`Chofer asignado a ${ok} de ${ids.length} conduce(s)`);
+    this.seleccionados.set(new Set());
+    this.choferLote.set('');
+    this.asignandoSaving.set(false);
+    await this.ngOnInit();
   }
 
   faseLabel(fase: string): string {

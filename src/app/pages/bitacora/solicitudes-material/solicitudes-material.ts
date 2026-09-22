@@ -125,6 +125,61 @@ export class SolicitudesMaterial implements OnInit {
   /** BO8 — días hasta la fecha de necesidad (para el chip "faltan N días / vencida"). */
   diasNecesidad = (f: string | null | undefined) => (f ? daysUntil(f) : null);
 
+  // BV9/10/11 — mismas fases, orden por necesidad y edición de fecha que la bandeja
+  // de inventario, pero del lado del ingeniero (su propia bandeja de requisiciones).
+  faseTab = signal<'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada'>('todas');
+  readonly faseTabs: { key: 'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada'; label: string }[] = [
+    { key: 'todas', label: 'Todas' },
+    { key: 'pendiente', label: 'Pendientes' },
+    { key: 'en_proceso', label: 'En proceso' },
+    { key: 'completada', label: 'Completadas' },
+    { key: 'rechazada', label: 'Rechazadas' },
+  ];
+  faseCount = (f: string) => (f === 'todas' ? this.solicitudes().length : this.solicitudes().filter((s) => (s.fase ?? 'pendiente') === f).length);
+  faseLabel = (f: string | null | undefined) =>
+    ({ pendiente: 'Pendiente', en_proceso: 'En proceso', completada: 'Completada', rechazada: 'Rechazada' }[f ?? 'pendiente'] ?? '—');
+
+  /** Lista filtrada por fase y ordenada por proximidad de la fecha de necesidad (BV10). */
+  listaVisible = computed(() => {
+    const tab = this.faseTab();
+    const rows = this.solicitudes().filter((s) => tab === 'todas' || (s.fase ?? 'pendiente') === tab);
+    return [...rows].sort((a, b) => {
+      const fa = a.fecha_necesidad, fb = b.fecha_necesidad;
+      if (fa && fb) return fa < fb ? -1 : fa > fb ? 1 : 0;
+      if (fa) return -1; // con fecha primero
+      if (fb) return 1;
+      return (b.created_at ?? '').localeCompare(a.created_at ?? ''); // sin fecha: reciente primero
+    });
+  });
+
+  // BV11 — edición inline de la fecha de necesidad (autor, mientras no esté completada).
+  editandoFechaId = signal<string | null>(null);
+  nuevaFecha = signal<string>('');
+  motivoFecha = signal<string>('');
+  puedeEditarFecha = (s: SolicitudMaterial) =>
+    this.esAutor(s) && (s.fase === 'pendiente' || s.fase === 'en_proceso' || s.estado === 'pendiente' || s.estado === 'aprobada');
+  abrirEditarFecha(s: SolicitudMaterial) {
+    this.editandoFechaId.set(s.id);
+    this.nuevaFecha.set(s.fecha_necesidad ?? '');
+    this.motivoFecha.set('');
+  }
+  async guardarNuevaFecha(s: SolicitudMaterial) {
+    if (this.saving()) return;
+    const f = this.nuevaFecha();
+    if (!f) { this.toast.warning('Elige una fecha de necesidad'); return; }
+    this.saving.set(true);
+    try {
+      await this.solicitudesService.setFechaNecesidad(s.id, f, this.motivoFecha().trim() || null);
+      this.toast.success('Fecha de necesidad actualizada');
+      this.editandoFechaId.set(null);
+      await this.loadAll();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo actualizar la fecha');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   form = new FormGroup({
     proyecto_id: new FormControl<string | null>(null, [Validators.required]),
     urgencia: new FormControl<'normal' | 'urgente'>('normal', [Validators.required]),

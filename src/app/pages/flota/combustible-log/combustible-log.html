@@ -135,11 +135,12 @@
             <td>
               <div class="cl-flags">
                 @if (r.importada) { <span class="sgc-badge sgc-badge--neutral" title="Creada al importar la factura de TotalEnergies">IMPORTADA</span> }
+                @if (r.retroactiva) { <span class="sgc-badge sgc-badge--info" title="Registrada con fecha pasada bajo un permiso retroactivo">RETROACTIVA</span> }
                 @if (r.km_pendiente) { <span class="sgc-badge sgc-badge--warning" title="Falta el kilometraje">KM PENDIENTE</span> }
                 @if (r.km_alerta) { <span class="sgc-badge sgc-badge--warning">KM ALERTA</span> }
                 @if (r.sin_asignacion) { <span class="sgc-badge sgc-badge--warning">SIN ASIGNACIÓN</span> }
                 @if (r.alerta_consumo) { <span class="sgc-badge sgc-badge--danger">Consumo anormal</span> }
-                @if (!r.importada && !r.km_pendiente && !r.km_alerta && !r.sin_asignacion && !r.alerta_consumo) { <span class="text-muted">{{ r.estado ?? '—' }}</span> }
+                @if (!r.importada && !r.retroactiva && !r.km_pendiente && !r.km_alerta && !r.sin_asignacion && !r.alerta_consumo) { <span class="text-muted">{{ r.estado ?? '—' }}</span> }
                 @if ((r.km_alerta || r.sin_asignacion) && esFlotaElevado()) {
                   <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="revisar(r, $event)">Revisar</button>
                 }

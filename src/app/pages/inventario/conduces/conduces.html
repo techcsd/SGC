@@ -115,6 +115,21 @@
       </p>
     </div>
   } @else {
+    <!-- BV7 — barra de asignación múltiple (aparece al seleccionar conduces sin chofer) -->
+    @if (puedeAsignarChofer() && seleccionados().size > 0) {
+      <div class="conduces__lote">
+        <span>{{ seleccionados().size }} conduce(s) seleccionado(s)</span>
+        <select class="sgc-field" [value]="choferLote()" (change)="choferLote.set($any($event.target).value)">
+          <option value="">Elegir chofer…</option>
+          @for (c of choferesDisponibles(); track c.conductor_id) {
+            <option [value]="c.conductor_id">{{ c.nombre }}</option>
+          }
+        </select>
+        <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                [disabled]="!choferLote() || asignandoSaving()" (click)="asignarLote()">Asignar a los {{ seleccionados().size }}</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="limpiarSeleccion()">Limpiar</button>
+      </div>
+    }
     <div class="table-scroll">
       <table class="data-table" aria-label="Listado de conduces">
         <thead>
@@ -164,6 +179,9 @@
                       <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cancelarAsignar()">Cancelar</button>
                     </div>
                   } @else {
+                    <label class="conduces__sel" (click)="$event.stopPropagation()">
+                      <input type="checkbox" [checked]="estaSeleccionado(r.id)" (change)="toggleSeleccion(r.id)" />
+                    </label>
                     <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm"
                             (click)="$event.stopPropagation(); abrirAsignar(r.id)">Asignar chofer</button>
                   }

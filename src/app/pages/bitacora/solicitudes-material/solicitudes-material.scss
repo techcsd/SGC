@@ -248,3 +248,36 @@ textarea {
 }
 .mac-card__toggle { font-size: 0.8rem; color: var(--accent); font-weight: 500; }
 .mac-card__hint { color: var(--text-2); font-size: 0.85rem; margin: 0 14px 10px; }
+
+// BV9/10/11 — pestañas por fase + edición inline de fecha (lado ingeniero).
+.req-fase-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.req-fase-tab {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-2, inherit);
+}
+.req-fase-tab--activa { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.req-fase-tab__n {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  font-size: 0.75rem;
+}
+.req-fecha-editar {
+  margin-top: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.req-fecha-edit { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+.req-fecha-edit__acc { display: flex; gap: 4px; }

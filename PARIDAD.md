@@ -228,3 +228,40 @@ lógico de captura; el layout puede diferir).
 - **`user-picker`** (`shared/ui/user-picker`): selecciona un usuario del directorio (búsqueda por
   nombre/rol) o texto libre ("Otro"); emite `{usuario_id, nombre}`. Reusado por responsable (BR2) y
   transferir (BR3).
+
+## Ronda BV (PROMPT-60 web) → contratos para la app (PROMPT-61)
+- **Vehículo `nombre · placa` (BV2):** `sgc.vehiculo_display(uuid)` = `coalesce(alias, marca modelo año) · placa`;
+  `vehiculos.alias` editable. Regla: **un vehículo se muestra SIEMPRE `nombre · placa`**, nunca solo la placa
+  (resúmenes, selects, tablas de Flota, app).
+- **Requisición con fase (BV9/10/11):** columna computada `requisicion_fase(uuid)` →
+  `pendiente|en_proceso|completada|rechazada` (NO tocar el CHECK de `estado`). La app lista por fase (pestañas
+  con conteo), ordena por `fecha_necesidad` ascendente (sin fecha al final) y permite editar la fecha con
+  `requisicion_set_fecha_necesidad(p_id, p_fecha, p_motivo)` (gate solicitante mientras pendiente/en_proceso,
+  o flota-elevado/inventario; historial + aviso `requisicion_fecha_cambio`).
+- **Cobertura de requisición (BV4):** al confirmar recepción de una salida NO ligada, el hook
+  `trg_vincular_requisiciones_al_recibir` corre `vincular_movimiento_requisiciones('salida', id[, p_solo_articulo])`
+  (catálogo score 1; nombre trigram ≥0.6 con `revisar` <0.8; idempotente; salta `origen_requisicion_id`).
+  Pendiente = coverage-aware; `requisicion_fase` cierra a completada al llegar a 0. Ver/deshacer:
+  `requisicion_cobertura(p_id)` / `desvincular_cobertura(p_id)`. Kill-switch `flota_config.vincular_requisiciones=0`.
+- **Conduce externo con inventario (BV6):** `crear_conduce_externo(..., p_items jsonb)`: si el ORIGEN es
+  almacén nuestro → salida (baja stock al emitir); si el DESTINO lo es → entrada **pendiente**
+  (`pendiente_confirmacion` + `items_propuestos`, sin stock). `conduce_externo_confirmar_receptor` materializa
+  la entrada (sube stock) y marca la salida recibida (dispara BV4). `origen_tipo`='otro'. Anular borra la
+  entrada si seguía pendiente. Chip AFECTA INVENTARIO.
+- **Asignar chofer a conduce (BV7):** `asignar_chofer_conduce(p_salida_id, p_conductor_id, p_vehiculo_id)`
+  (gate logística/flota/admin, valida chofer activo; dispara `tg_conduce_autoruta`). La app puede asignar desde
+  "Por despachar" (uno o varios). Choferes: `choferes_activos()`.
+- **Pendientes del almacén (BV3):** `bodega_pendientes(p_bodega_id)` → filas `{tipo 'entrada'|'salida', id, fecha,
+  referencia, renglones, dias}` (entradas por confirmar + salidas despachadas sin recibir). La app las muestra al
+  abrir un almacén.
+- **Materiales a cargo del ingeniero (BV8):** `materiales_a_cargo(p_usuario_id)` → `{proyecto_id, proyecto,
+  articulo_id, articulo, unidad, cantidad}` (recibido − devuelto en sus obras; ver el de otro exige admin/dirección).
+  App: pestaña "A mi cargo" / en el perfil del ingeniero.
+- **Echada retroactiva con permiso (BV1):** `registrar_combustible_app(..., p_fecha)` rechaza fecha futura y,
+  si la fecha es pasada, exige `puede_registrar_combustible_retro(uid, fecha)` (permiso vigente o flota-elevado/
+  admin). Otorgar/revocar/listar: `otorgar_permiso_combustible_retro(p_usuario, p_dias_max, p_vence, p_motivo)` /
+  `revocar_permiso_combustible_retro(p_id)` / `permisos_combustible_retro_listar()`. La echada queda
+  `retroactiva=true` + `permiso_id`; avisos `combustible_retro_permitida` (al chofer) / `combustible_retro_usada`
+  (a flota). App: pantalla "Nueva echada" con borrador recuperable (BV5) + fecha bloqueada salvo permiso.
+- **Echada recuperable (BV5):** la pantalla de nueva echada autoguarda un borrador local; si se cierra/crashea,
+  ofrece Retomar (datos de texto; fotos se re-toman) o Descartar; se limpia al registrar.

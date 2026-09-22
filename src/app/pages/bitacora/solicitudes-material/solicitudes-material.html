@@ -50,6 +50,15 @@
       <p>No hay requisiciones.</p>
     </div>
   } @else {
+    <!-- BV9 — pestañas por fase con contador -->
+    <div class="req-fase-tabs" role="tablist">
+      @for (t of faseTabs; track t.key) {
+        <button type="button" class="req-fase-tab" [class.req-fase-tab--activa]="faseTab() === t.key"
+                role="tab" [attr.aria-selected]="faseTab() === t.key" (click)="faseTab.set(t.key)">
+          {{ t.label }} <span class="req-fase-tab__n">{{ faseCount(t.key) }}</span>
+        </button>
+      }
+    </div>
     <div class="table-scroll">
     <table class="data-table" aria-label="Requisiciones">
       <thead>
@@ -61,12 +70,13 @@
           <th>Artículos</th>
           <th>Urgencia</th>
           <th>Necesidad</th>
+          <th>Fase</th>
           <th>Estado</th>
           <th>Atendida</th>
         </tr>
       </thead>
       <tbody>
-        @for (s of solicitudes(); track s.id) {
+        @for (s of listaVisible(); track s.id) {
           <tr [appHighlightItem]="s.id" [class.req-row--open]="estaExpandida(s.id)">
             <td><code class="req-codigo">{{ codigo(s) }}</code></td>
             <td>{{ formatTimestamp(s.created_at) }}</td>
@@ -92,22 +102,38 @@
             </td>
             <!-- BO8 — fecha de necesidad + chip de proximidad (faltan N días / vencida) -->
             <td>
-              @if (s.fecha_necesidad; as fn) {
-                <div>{{ formatFecha(fn) }}</div>
-                @let d = diasNecesidad(fn);
-                @if (d !== null) {
-                  @if (d < 0) {
-                    <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
-                  } @else if (d === 0) {
-                    <span class="sgc-badge sgc-badge--warning">Es hoy</span>
-                  } @else if (d <= 3) {
-                    <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
-                  }
-                }
+              @if (editandoFechaId() === s.id) {
+                <!-- BV11 — edición inline de la fecha de necesidad -->
+                <div class="req-fecha-edit">
+                  <input type="date" [value]="nuevaFecha()" [min]="hoyIso" (input)="nuevaFecha.set($any($event.target).value)" />
+                  <input type="text" placeholder="Motivo (opcional)" [value]="motivoFecha()" (input)="motivoFecha.set($any($event.target).value)" />
+                  <div class="req-fecha-edit__acc">
+                    <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="guardarNuevaFecha(s)">Guardar</button>
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="editandoFechaId.set(null)">Cancelar</button>
+                  </div>
+                </div>
               } @else {
-                <span class="text-muted">—</span>
+                @if (s.fecha_necesidad; as fn) {
+                  <div>{{ formatFecha(fn) }}</div>
+                  @let d = diasNecesidad(fn);
+                  @if (d !== null) {
+                    @if (d < 0) {
+                      <span class="sgc-badge sgc-badge--danger">Vencida hace {{ -d }} día{{ d === -1 ? '' : 's' }}</span>
+                    } @else if (d === 0) {
+                      <span class="sgc-badge sgc-badge--warning">Es hoy</span>
+                    } @else if (d <= 3) {
+                      <span class="sgc-badge sgc-badge--warning">Faltan {{ d }} día{{ d === 1 ? '' : 's' }}</span>
+                    }
+                  }
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+                @if (puedeEditarFecha(s)) {
+                  <button type="button" class="req-fecha-editar" (click)="abrirEditarFecha(s)">Editar</button>
+                }
               }
             </td>
+            <td><span class="sgc-badge sgc-badge--neutral">{{ faseLabel(s.fase) }}</span></td>
             <td>
               <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(s.estado)">{{ estadoLabel(s.estado) }}</span>
               @if (s.salida_id || s.solicitud_compra_id) {
@@ -132,7 +158,7 @@
           </tr>
           @if (estaExpandida(s.id)) {
             <tr class="req-detail-row">
-              <td colspan="8">
+              <td colspan="9">
                 <ul class="req-items">
                   @for (it of s.items ?? []; track it.id) {
                     <li class="req-item">

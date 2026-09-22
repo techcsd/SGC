@@ -73,3 +73,19 @@
   flex-wrap: wrap;
   select { min-width: 140px; }
 }
+
+// BV7 — barra de asignación múltiple de chofer.
+.conduces__lote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  select { min-width: 160px; }
+}
+.conduces__sel { margin-right: 6px; }

@@ -4210,6 +4210,26 @@
           "d": "Al abrir el detalle de un usuario en Administración › Usuarios se ven los Materiales a su cargo (lo recibido en las obras de las que es responsable y aún no devuelto)."
         }
       ]
+    },
+    "1.141.4": {
+      "titulo": "Requisiciones del ingeniero por fase, asignación múltiple de chofer y echada retroactiva con rastro",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "La bandeja de Requisiciones del ingeniero (Bitácora) ahora tiene pestañas por fase (Pendientes/En proceso/Completadas/Rechazadas), se ordena por proximidad de la fecha de necesidad y permite editar esa fecha en línea."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "En Conduces puedes seleccionar varios conduces sin chofer y asignarlos todos a un mismo chofer de una vez."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Las echadas registradas con fecha pasada quedan marcadas RETROACTIVA (con el permiso que las autorizó); se avisa a Flota cuando se usa una y al chofer cuando se le concede el permiso."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

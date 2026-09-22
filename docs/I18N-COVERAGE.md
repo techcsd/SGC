@@ -44,7 +44,7 @@
 | bitacora/nueva | - | 268 | 0 | 268 | 0% |
 | bitacora/orden-trabajo | - | 92 | 0 | 92 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| bitacora/solicitudes-material | - | 108 | 0 | 108 | 0% |
+| bitacora/solicitudes-material | - | 116 | 0 | 116 | 0% |
 | compras/ordenes | - | 143 | 0 | 143 | 0% |
 | compras/proveedores | - | 113 | 0 | 113 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
@@ -60,7 +60,7 @@
 | flota/checklists | - | 165 | 0 | 165 | 0% |
 | flota/combustible | - | 271 | 0 | 271 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
-| flota/combustible-log | - | 147 | 0 | 147 | 0% |
+| flota/combustible-log | - | 150 | 0 | 150 | 0% |
 | flota/conciliacion-combustible | - | 118 | 0 | 118 | 0% |
 | flota/conductores | - | 284 | 0 | 284 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
@@ -83,7 +83,7 @@
 | inventario/articulos | - | 166 | 0 | 166 | 0% |
 | inventario/bodegas | - | 116 | 0 | 116 | 0% |
 | inventario/categorias | - | 34 | 0 | 34 | 0% |
-| inventario/conduces | - | 61 | 0 | 61 | 0% |
+| inventario/conduces | - | 66 | 0 | 66 | 0% |
 | inventario/conduces-externos | - | 22 | 0 | 22 | 0% |
 | inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
 | inventario/confirmaciones | - | 44 | 0 | 44 | 0% |

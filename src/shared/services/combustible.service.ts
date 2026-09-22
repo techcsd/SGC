@@ -40,6 +40,8 @@ export interface LogCombustibleRow {
   importada?: boolean;
   /** BT1 — la factura no traía kilometraje; queda por completar. */
   km_pendiente?: boolean;
+  /** BV1 — registrada con fecha pasada bajo un permiso retroactivo. */
+  retroactiva?: boolean;
 }
 
 /** BQ5 — fila del historial de ediciones de una echada (auditoría). */
