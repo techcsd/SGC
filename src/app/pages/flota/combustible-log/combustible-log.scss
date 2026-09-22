@@ -181,3 +181,19 @@
   align-items: center;
   gap: 0.35rem;
 }
+
+// BV1 — panel de permisos de registro retroactivo.
+.cl-permisos { margin-bottom: 16px; }
+.cl-permisos__title { font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
+.cl-permisos__hint { color: var(--text-2); font-size: 0.85rem; margin: 0 0 12px; }
+.cl-permisos__form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.cl-permisos__motivo { flex: 1 1 160px; }
+.cl-permisos__list { width: 100%; }
+.cl-permisos__vencido { opacity: 0.6; }
+.cl-permisos__empty { color: var(--text-2); font-size: 0.85rem; }

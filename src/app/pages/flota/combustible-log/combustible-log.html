@@ -6,11 +6,69 @@
     <p class="page-subtitle">Auditoría de combustible: quién registró, kilómetros recorridos y saltos de lectura irreales.</p>
   </div>
   <div class="page-header__actions">
+    @if (esFlotaElevado()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="togglePermisos()">
+        {{ mostrarPermisos() ? 'Ocultar permisos retroactivos' : 'Permisos retroactivos' }}
+      </button>
+    }
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="exportar()" [disabled]="!rows().length">Exportar a Excel</button>
   </div>
 </div>
 
 @if (error()) { <div class="page-error" role="alert">{{ error() }}</div> }
+
+<!-- BV1 — permisos de registro retroactivo (solo flota-elevado/admin) -->
+@if (esFlotaElevado() && mostrarPermisos()) {
+  <div class="sgc-card cl-permisos">
+    <h2 class="cl-permisos__title">Permisos de registro retroactivo</h2>
+    <p class="cl-permisos__hint">Por defecto una echada se registra con fecha de hoy. Otorga aquí un permiso temporal para que un usuario pueda registrar echadas con fecha pasada (hasta N días atrás, hasta que venza).</p>
+
+    <div class="cl-permisos__form">
+      <div class="sgc-field">
+        <label for="pr-usr">Usuario</label>
+        <select id="pr-usr" [value]="permisoUsuario()" (change)="permisoUsuario.set($any($event.target).value)">
+          <option value="">Elegir usuario…</option>
+          @for (u of usuarios(); track u.id) { <option [value]="u.id">{{ u.nombre }}</option> }
+        </select>
+      </div>
+      <div class="sgc-field">
+        <label for="pr-dias">Días atrás</label>
+        <input id="pr-dias" type="number" min="1" max="90" [value]="permisoDias()"
+               (input)="permisoDias.set(+$any($event.target).value)" />
+      </div>
+      <div class="sgc-field">
+        <label for="pr-vence">Vence</label>
+        <input id="pr-vence" type="date" [value]="permisoVence()" (input)="permisoVence.set($any($event.target).value)" />
+      </div>
+      <div class="sgc-field cl-permisos__motivo">
+        <label for="pr-mot">Motivo</label>
+        <input id="pr-mot" type="text" placeholder="Opcional" [value]="permisoMotivo()"
+               (input)="permisoMotivo.set($any($event.target).value)" />
+      </div>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="permisoSaving()" (click)="otorgarPermiso()">Otorgar</button>
+    </div>
+
+    @if (permisosRetro().length) {
+      <table class="data-table cl-permisos__list">
+        <thead><tr><th>Usuario</th><th>Días</th><th>Vence</th><th>Motivo</th><th>Otorgó</th><th></th></tr></thead>
+        <tbody>
+          @for (p of permisosRetro(); track p.id) {
+            <tr [class.cl-permisos__vencido]="!p.vigente">
+              <td>{{ p.usuario }}</td>
+              <td>{{ p.dias_max }}</td>
+              <td>{{ p.vence }} @if (!p.vigente) { <span class="sgc-badge sgc-badge--neutral">vencido</span> }</td>
+              <td class="text-muted">{{ p.motivo ?? '—' }}</td>
+              <td class="text-muted">{{ p.otorgado_por_nombre ?? '—' }}</td>
+              <td><button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="revocarPermiso(p.id)">Revocar</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } @else {
+      <p class="cl-permisos__empty">No hay permisos activos.</p>
+    }
+  </div>
+}
 
 <!-- Filtros -->
 <div class="sgc-card cl-filtros">

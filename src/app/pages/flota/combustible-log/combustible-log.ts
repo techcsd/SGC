@@ -3,7 +3,7 @@ import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DecimalPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { CombustibleService, LogCombustibleRow, RegistroCombustibleHistorial } from '../../../../shared/services/combustible.service';
+import { CombustibleService, LogCombustibleRow, RegistroCombustibleHistorial, PermisoRetro } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { Vehiculo, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
@@ -89,6 +89,15 @@ export class CombustibleLog implements OnInit {
 
   saltos = computed(() => this.rows().filter((r) => r.km_alerta).length);
 
+  // BV1 — permisos de registro retroactivo (panel para flota-elevado/admin).
+  mostrarPermisos = signal(false);
+  permisosRetro = signal<PermisoRetro[]>([]);
+  permisoUsuario = signal('');
+  permisoDias = signal(7);
+  permisoVence = signal('');
+  permisoMotivo = signal('');
+  permisoSaving = signal(false);
+
   async ngOnInit() {
     try {
       const [vehiculos, usuarios] = await Promise.all([
@@ -98,6 +107,7 @@ export class CombustibleLog implements OnInit {
       this.vehiculos.set(vehiculos);
       this.usuarios.set(usuarios);
     } catch { /* filtros opcionales */ }
+    if (this.esFlotaElevado()) void this.cargarPermisos();
     await this.cargar();
 
     // AQ6/AQ13 — deep-link desde la notificación de consumo anormal: ?echada=<id>
@@ -136,6 +146,41 @@ export class CombustibleLog implements OnInit {
     this.hasta.set(todayIso());
     this.cargar();
   }
+  // ── BV1 — panel de permisos retroactivos ────────────────────────────────────
+  togglePermisos() { this.mostrarPermisos.update((v) => !v); }
+  async cargarPermisos() {
+    try {
+      this.permisosRetro.set(await this.combustibleService.listarPermisosRetro());
+    } catch { /* sin permisos no es error */ }
+  }
+  async otorgarPermiso() {
+    if (this.permisoSaving()) return;
+    if (!this.permisoUsuario()) { this.toast.warning('Elige el usuario'); return; }
+    if (!this.permisoVence()) { this.toast.warning('Indica el vencimiento del permiso'); return; }
+    this.permisoSaving.set(true);
+    try {
+      await this.combustibleService.otorgarPermisoRetro(
+        this.permisoUsuario(), this.permisoDias(), this.permisoVence(), this.permisoMotivo().trim() || null,
+      );
+      this.toast.success('Permiso otorgado', 'El usuario ya puede registrar echadas con fecha pasada.');
+      this.permisoUsuario.set(''); this.permisoMotivo.set('');
+      await this.cargarPermisos();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo otorgar el permiso');
+    } finally {
+      this.permisoSaving.set(false);
+    }
+  }
+  async revocarPermiso(id: string) {
+    try {
+      await this.combustibleService.revocarPermisoRetro(id);
+      this.toast.success('Permiso revocado');
+      await this.cargarPermisos();
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo revocar el permiso');
+    }
+  }
+
   onVehiculo(v: string) { this.vehiculoId.set(v); this.cargar(); }
   onUsuario(v: string) { this.usuarioId.set(v); this.cargar(); }
   limpiar() {

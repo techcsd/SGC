@@ -56,6 +56,20 @@ export interface RegistroCombustibleHistorial {
   editor?: { nombre: string | null } | null;
 }
 
+/** BV1 — permiso de registro retroactivo de echadas para un usuario. */
+export interface PermisoRetro {
+  id: string;
+  usuario_id: string;
+  usuario: string;
+  dias_max: number;
+  vence: string;
+  motivo: string | null;
+  otorgado_por_nombre: string | null;
+  activo: boolean;
+  vigente: boolean;
+  created_at: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CombustibleService {
   private supabase = inject(SupabaseService);
@@ -260,6 +274,26 @@ export class CombustibleService {
       p_producto: producto,
       p_precio: precio,
     });
+    if (error) throw new Error(error.message);
+  }
+
+  // ── BV1 — permisos de registro retroactivo de echadas (flota-elevado/admin) ──
+  async listarPermisosRetro(): Promise<PermisoRetro[]> {
+    const { data, error } = await this.supabase.client.rpc('permisos_combustible_retro_listar', { p_solo_activos: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as PermisoRetro[];
+  }
+  async otorgarPermisoRetro(usuarioId: string, diasMax: number, vence: string, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('otorgar_permiso_combustible_retro', {
+      p_usuario_id: usuarioId,
+      p_dias_max: diasMax,
+      p_vence: vence,
+      p_motivo: motivo,
+    });
+    if (error) throw new Error(error.message);
+  }
+  async revocarPermisoRetro(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('revocar_permiso_combustible_retro', { p_id: id });
     if (error) throw new Error(error.message);
   }
 
