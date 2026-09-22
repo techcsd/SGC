@@ -4097,17 +4097,62 @@
       ]
     },
     "1.141.0": {
-      "titulo": "Combustible: Raykler edita echadas y la factura de julio se lee",
+      "titulo": "Requisiciones que se completan solas, conduces con inventario y más control de flota",
       "cambios": [
         {
           "t": "arreglo",
           "m": "Flota",
-          "d": "Raykler (y cualquier rol de flota) ya puede editar echadas de combustible sin el error 'Solo un administrador puede recalcular el histórico'. El recálculo del histórico ahora lo permite el mismo rol que edita."
+          "d": "Raykler (y cualquier rol de flota) ya puede editar echadas de combustible sin el error 'Solo un administrador puede recalcular el histórico'."
         },
         {
           "t": "arreglo",
           "m": "Flota",
-          "d": "La importación de la factura de TotalEnergies ya tolera facturas con otro formato de fecha, y cuando un PDF no se puede leer explica por qué (imagen escaneada vs formato nuevo) y lo reporta solo a Tecnología para agregarlo, en vez de un error genérico."
+          "d": "La importación de la factura de TotalEnergies tolera otro formato de fecha, y si un PDF no se puede leer explica por qué (escaneado vs formato nuevo) y lo reporta a Tecnología, en vez de un error genérico."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "El resumen semanal y la conciliación muestran el vehículo como nombre/alias y placa (antes solo un id). Cada vehículo puede tener un alias."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "La conciliación de combustible preselecciona el vehículo de cada tarjeta del PDF (por mapa, titular o asignación) con su % de confianza; puedes aceptar todos los automáticos de una vez."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Las requisiciones tienen fase (pendiente / en proceso / completada / rechazada) con pestañas y conteo; el orden por defecto es por fecha de necesidad y puedes editar esa fecha desde el detalle."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "El material que llega a una obra cubre automáticamente los renglones pendientes de sus requisiciones (baja el pendiente y cierra la fase); cada cobertura se ve en el detalle y se puede deshacer si el match es dudoso."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "El conduce externo puede mover material del catálogo: si sale de un almacén nuestro baja stock al emitir; si llega a uno, entra al inventario cuando el receptor confirma la recepción (foto + firma)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "La página del almacén muestra sus pendientes: entradas por confirmar y salidas despachadas sin recibir."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Logística/Flota puede asignar un chofer a un conduce desde la lista de Conduces; se le arma la ruta automáticamente."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Registro de echadas con fecha pasada solo con permiso: Flota otorga a un usuario un permiso temporal (días hacia atrás + vencimiento) desde el Registro de echadas."
+        },
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "El ingeniero ve los 'Materiales a mi cargo': lo recibido en sus obras que aún no se ha devuelto."
         }
       ]
     },

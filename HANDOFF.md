@@ -1,6 +1,9 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-60 (Ronda BV) — 22/09/2026 — **EN CURSO en rama `feature/bv-ronda` (base 1.140.0 `2de2ee2`). Flujo regla 18: se construye en dev, NO va a prod hasta que Xaviel escriba "probado en dev, OK".** Xaviel eligió dev-primero (no directo a prod). 14 IDs BV (bugs vivos + nuevo). Objetivo: web **1.141.0** a `dev.sgcconstructorasd.com`, luego STOP para su prueba.
+## TL;DR — PROMPT-60 (Ronda BV) — 22/09/2026 — **🟢 COMPLETO EN DEV (web 1.141.0, rama `feature/bv-ronda`). STOP: esperando que Xaviel pruebe en `dev.sgcconstructorasd.com` y escriba "probado en dev, OK" antes de tocar prod.** F1–F8 construidos + verificados en dev (13 de 14 IDs BV; **BV5 sin especificación en el handoff → falta el texto de Xaviel**). Build:dev verde con todos los guards. Migraciones aplicadas a dev vía ledger; nada `--env prod`.
+- **⚠️ BV5 = hueco:** el mapa de fases (reconstruido tras compactar) nunca describió BV5. No se construyó por no inventar requisito. Al reanudar/confirmar: pedir a Xaviel el texto de BV5.
+- **Commits en `feature/bv-ronda`:** F4 `59615ac`, F5 `b22026e`, F6(BV3+BV7) `11407e9`, F7(BV1) `8ce98f9`, F8(BV8) `9749aea` + F1/F2/F3 previos. Matriz completa en `COBERTURA-NOTAS.md` filas 50–63.
+- **Para que el WEB llegue a dev:** merge `feature/bv-ronda` → rama `dev` + push `origin/dev` (Vercel despliega `dev.sgcconstructorasd.com`). La BD de dev YA tiene las migraciones.
 
 **En dev:**
 - **F1 ✅ BV14** — `sql/2026-09-22-bv14-recalcular-gate.sql` APLICADA a dev: `recalcular_estados_combustible()` gate `is_admin`→`es_flota_elevado` + error 22023 humano. Lint nuevo en `audit-rpc-grants.mjs` (perform a función con gate más estricto que el llamador; verde, atrapa el patrón BV14). → Raykler (flota-elevado) ya puede editar echadas.

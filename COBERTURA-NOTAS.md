@@ -113,3 +113,26 @@ La app los consume **directo** (aún tras comprobación de capacidad).
 **Guía del hijo:** `csd-app/docs/ENTORNOS.md`.
 
 **Pendiente físico de Xaviel (hijo):** (a) DNS `CNAME app-dev` + Vercel proyecto app: rama `dev` Preview + dominio `app-dev.sgcconstructorasd.com` + env vars Preview; (b) **Firebase**: app Android `com.constructorasd.csdapp.dev` → `android/app/src/dev/google-services.json` (hasta entonces APK dev sin push, ya avisado en "Acerca de"); (c) instalar PWA dev + APK `.dev` en su teléfono para el device-QA; (d) proteger `main` de `techcsd/csd-app` (`gh api -X PUT … --input .github/branch-protection-main.json`); (e) **OK a cada paso de F4** (merge a `dev`, luego release a prod). Nota: el repo ya está en **2.26.1 publicada** (no 2.26.0); el estreno por dev arranca desde ahí.
+
+---
+
+## Filas 50–63 — Ronda BV (PROMPT-60) — 🟡 EN DEV (web 1.141.0, rama `feature/bv-ronda`)
+
+**Regla 18:** todo aplicado y verificado en **dev** (`fzfrnrvndzrjwyvdpkgg`); **nada en prod** hasta que Xaviel escriba "probado en dev, OK". Cada ítem verificado con smoke (tx rolled-back / limpiado por UUID) — ver el commit citado.
+
+- **Fila 50 — BV1** (echada retroactiva con permiso) — ✅ dev · `8ce98f9`. Guard en `registrar_combustible_app` (futura rechazada; pasada solo con permiso vigente / flota-elevado / admin), tabla `combustible_permisos_retro` + otorgar/revocar/listar, panel en Registro de echadas.
+- **Fila 51 — BV2** (vehículo nombre·placa + alias) — ✅ dev · `f3d6fda`/`904e3d0`. `vehiculos.alias` + `vehiculo_display()`, resumen semanal usa el display.
+- **Fila 52 — BV3** (pendientes por almacén) — ✅ dev · `11407e9`. `bodega_pendientes()` (entradas por confirmar + salidas sin recibir) + sección en la página del almacén.
+- **Fila 53 — BV4** (material que llega cubre la requisición) — ✅ dev · `59615ac`. `requisicion_cubierta_por` + motor `vincular_movimiento_requisiciones` + pendiente coverage-aware + hook al recibir + `requisicion_cobertura`/`desvincular_cobertura` + sección "Cubierto por material llegado a la obra".
+- **Fila 54 — BV5** — ⚠️ **SIN ESPECIFICACIÓN en el handoff.** El mapa de fases (reconstruido tras compactar) no describe BV5; no se construyó por no inventar requisito. **Falta que Xaviel pegue el texto de BV5.**
+- **Fila 55 — BV6** (conduce externo → inventario) — ✅ dev · `b22026e`. Entrada entrante nace pendiente y sube stock al confirmar recepción; salida baja al emitir y marca recibida (dispara BV4); anular limpia la entrada pendiente; fix `origen_tipo 'otros'→'otro'`. Web: selector de material en el form.
+- **Fila 56 — BV7** (asignar chofer a un conduce) — ✅ dev · `11407e9`. `asignar_chofer_conduce()` (dispara auto-ruta) + picker inline en Conduces.
+- **Fila 57 — BV8** (materiales a cargo del ingeniero) — ✅ dev · `9749aea`. `materiales_a_cargo()` derivada + sección "Materiales a mi cargo" en Requisiciones del ingeniero.
+- **Fila 58 — BV9** (fase de la requisición) — ✅ dev · `9e334b1`. `requisicion_fase()` + columna computada + tabs con conteo.
+- **Fila 59 — BV10** (orden por necesidad) — ✅ dev · `9e334b1`. Orden por defecto = fecha de necesidad (persistido).
+- **Fila 60 — BV11** (editar fecha de necesidad) — ✅ dev · `9e334b1`. `requisicion_set_fecha_necesidad()` + editor inline + historial + aviso al aprobador.
+- **Fila 61 — BV12** (parser factura julio) — ✅ dev · F1. `parse-pdf-totalenergies` tolera formatos de fecha + diagnóstico + auto-reporte a Tecnología. ⚠️ El PDF real de julio no está en prod; endurecido por hipótesis (se auto-reporta al próximo intento).
+- **Fila 62 — BV13** (auto-vínculo tarjeta→vehículo) — ✅ dev · `f342989`. `sugerir_vehiculo_tarjeta()` + preselección con %/vía + "aceptar automáticos".
+- **Fila 63 — BV14** (recalcular abre a flota) — ✅ dev · F1. `recalcular_estados_combustible` gate `is_admin`→`es_flota_elevado` + lint `perform`-gate.
+
+**Residual menor (no bloquea la prueba en dev):** campo *Alias* en Editar vehículo, vehiculo-picker nombre·placa, lado ingeniero de las tabs de fase, correo diario ordenado por necesidad, paridad app. Backfill BV4 por articulo_id = no-op en dev (seed sin overlap); queda como script prod-gated.
