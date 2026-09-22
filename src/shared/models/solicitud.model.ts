@@ -38,6 +38,8 @@ export interface SolicitudMaterial {
   urgencia: 'normal' | 'urgente';
   /** BO8 — fecha para cuándo se necesita el material (prioridad real de obra). Nullable. */
   fecha_necesidad?: string | null;
+  /** BV9 — fase derivada por el servidor (columna computada requisicion_fase). */
+  fase?: 'pendiente' | 'en_proceso' | 'completada' | 'rechazada' | null;
   notas: string | null;
   salida_id: string | null;
   /** A2: solicitud de compra auto-generada por el faltante al aprobar. */

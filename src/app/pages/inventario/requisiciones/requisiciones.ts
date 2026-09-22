@@ -78,6 +78,9 @@ export class Requisiciones implements OnInit {
   readonly formatTimestamp = formatFechaHoraDisplay;
   estadoBadge = (e: string) => ESTADO_BADGE[e] ?? 'neutral';
   estadoLabel = (e: string) => ESTADO_LABEL[e] ?? e;
+  /** BV9 — etiqueta legible de la fase. */
+  faseLabel = (f: string | null | undefined): string =>
+    ({ pendiente: 'Pendiente', en_proceso: 'En proceso', completada: 'Completada', rechazada: 'Rechazada' } as Record<string, string>)[f ?? 'pendiente'] ?? 'Pendiente';
 
   requisiciones = signal<SolicitudMaterial[]>([]);
   bodegas = signal<Bodega[]>([]);
@@ -111,9 +114,34 @@ export class Requisiciones implements OnInit {
   search = signal('');
   // BH1 — una prueba cancelada no debe parecer trabajo pendiente: ocultas por defecto.
   ocultarCanceladas = signal(true);
-  // BO8 — orden de la bandeja: por defecto la más reciente; opción "por fecha de
-  // necesidad" (la más próxima/vencida primero) para que Raykler priorice por obra.
-  orden = signal<'reciente' | 'necesidad'>('reciente');
+  // BV10 — orden por defecto = por fecha de NECESIDAD (más próxima/vencida primero)
+  // para priorizar por obra; se recuerda por dispositivo. Antes era 'reciente'.
+  orden = signal<'reciente' | 'necesidad'>(
+    (typeof localStorage !== 'undefined' && (localStorage.getItem('sgc-req-orden') as 'reciente' | 'necesidad' | null)) || 'necesidad',
+  );
+  /** BV9 — pestaña por fase (derivada en el servidor). */
+  faseTab = signal<'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada'>('todas');
+  readonly faseTabs = [
+    { key: 'todas', label: 'Todas' },
+    { key: 'pendiente', label: 'Pendientes' },
+    { key: 'en_proceso', label: 'En proceso' },
+    { key: 'completada', label: 'Completadas' },
+    { key: 'rechazada', label: 'Rechazadas' },
+  ] as const;
+  setFaseTab(f: 'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada') { this.faseTab.set(f); }
+  /** BV10 — recuerda el orden elegido (por dispositivo). */
+  setOrden(v: 'reciente' | 'necesidad') { this.orden.set(v); try { localStorage.setItem('sgc-req-orden', v); } catch { /* ignore */ } }
+  /** BV9 — conteo por fase para los chips de las pestañas. */
+  faseCount = computed(() => {
+    const c = { todas: 0, pendiente: 0, en_proceso: 0, completada: 0, rechazada: 0 };
+    for (const r of this.requisiciones()) {
+      if (this.ocultarCanceladas() && r.estado === 'cancelada') continue;
+      c.todas++;
+      const f = r.fase ?? 'pendiente';
+      if (f in c) (c as Record<string, number>)[f]++;
+    }
+    return c;
+  });
   // BO8 — solo requisiciones con fecha de necesidad fijada.
   soloConNecesidad = signal(false);
   /** BO8 — días hasta la fecha de necesidad (chip "faltan N / vencida"). */
@@ -294,6 +322,7 @@ export class Requisiciones implements OnInit {
     return this.requisiciones().filter((r) => {
       // BH1 — canceladas ocultas por defecto, salvo que se filtren explícitamente.
       if (this.ocultarCanceladas() && !est && r.estado === 'cancelada') return false;
+      if (this.faseTab() !== 'todas' && (r.fase ?? 'pendiente') !== this.faseTab()) return false; // BV9
       if (soloNec && !r.fecha_necesidad) return false; // BO8
       if (obra && r.proyecto_id !== obra) return false;
       if (sol && r.solicitante_id !== sol) return false;
@@ -459,6 +488,33 @@ export class Requisiciones implements OnInit {
   }
 
   /** AT7 — carga el stock del almacén elegido (para decidir despacho vs compra). */
+  // ── BV11 — editar la fecha de necesidad (solicitante / inventario / flota) ──
+  editandoFecha = signal(false);
+  nuevaFecha = signal('');
+  motivoFecha = signal('');
+  puedeEditarFecha = (r: SolicitudMaterial | null): boolean => !!r && r.fase !== 'completada' && r.fase !== 'rechazada';
+  abrirEditarFecha() {
+    const r = this.selected();
+    if (!r) return;
+    this.nuevaFecha.set(r.fecha_necesidad ? r.fecha_necesidad.slice(0, 10) : '');
+    this.motivoFecha.set('');
+    this.editandoFecha.set(true);
+  }
+  async guardarNuevaFecha() {
+    const r = this.selected();
+    const f = this.nuevaFecha();
+    if (!r || !f) return;
+    try {
+      await this.service.setFechaNecesidad(r.id, f, this.motivoFecha().trim() || null);
+      this.toast.success('Fecha de necesidad actualizada');
+      this.editandoFecha.set(false);
+      await this.loadAll();
+      this.selected.set(this.requisiciones().find((x) => x.id === r.id) ?? null);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cambiar la fecha', e instanceof Error ? e.message : undefined);
+    }
+  }
+
   private async loadStock(bodegaId: string): Promise<void> {
     if (!bodegaId) { this.stockMap.set({}); return; }
     try {

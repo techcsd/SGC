@@ -172,6 +172,16 @@
       }
     </div>
   } @else if (vista() === 'semana') {
+    <!-- BV9 — pestañas por fase de la requisición. -->
+    <div class="req-fase-tabs">
+      @for (t of faseTabs; track t.key) {
+        <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="faseTab() === t.key"
+                [attr.aria-pressed]="faseTab() === t.key" (click)="setFaseTab(t.key)">
+          {{ t.label }} ({{ faseCount()[t.key] }})
+        </button>
+      }
+    </div>
+
     <!-- BO8 (§E-7) — vista agrupada por proximidad de la fecha de necesidad. -->
     <div class="req-grupos">
       @for (g of grupos(); track g.key) {
@@ -220,7 +230,7 @@
             <th>Urgencia</th>
             <!-- BO8 — cabecera clicable para ordenar por fecha de necesidad. -->
             <th>
-              <button type="button" class="req-th-sort" (click)="orden.set(orden() === 'necesidad' ? 'reciente' : 'necesidad')"
+              <button type="button" class="req-th-sort" (click)="setOrden(orden() === 'necesidad' ? 'reciente' : 'necesidad')"
                       [attr.aria-pressed]="orden() === 'necesidad'" title="Ordenar por fecha de necesidad">
                 Necesidad {{ orden() === 'necesidad' ? '▲' : '' }}
               </button>
@@ -346,6 +356,29 @@
               }
             </dd>
           </div>
+        }
+        <!-- BV9 — fase derivada. -->
+        <div><dt>Fase</dt><dd><span class="sgc-badge sgc-badge--info">{{ faseLabel(s.fase) }}</span></dd></div>
+        <!-- BV11 — editar la fecha de necesidad (solicitante / inventario / flota). -->
+        @if (puedeEditarFecha(s)) {
+          @if (!editandoFecha()) {
+            @if (!s.fecha_necesidad) {
+              <div><dt>Fecha de necesidad</dt>
+                <dd>Sin fecha <button type="button" class="sgc-btn sgc-btn--sm" (click)="abrirEditarFecha()">Fijar fecha</button></dd>
+              </div>
+            } @else {
+              <div><dt>&nbsp;</dt><dd><button type="button" class="sgc-btn sgc-btn--sm" (click)="abrirEditarFecha()">Cambiar fecha de necesidad</button></dd></div>
+            }
+          } @else {
+            <div><dt>Nueva fecha</dt>
+              <dd class="req-fecha-edit">
+                <input type="date" [value]="nuevaFecha()" (change)="nuevaFecha.set($any($event.target).value)" />
+                <input type="text" placeholder="Motivo (opcional)" [value]="motivoFecha()" (input)="motivoFecha.set($any($event.target).value)" />
+                <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="!nuevaFecha()" (click)="guardarNuevaFecha()">Guardar</button>
+                <button type="button" class="sgc-btn sgc-btn--sm sgc-btn--ghost" (click)="editandoFecha.set(false)">Cancelar</button>
+              </dd>
+            </div>
+          }
         }
         <div><dt>Creada</dt><dd>{{ formatTimestamp(s.created_at) }}</dd></div>
         @if (s.atendido_en) {

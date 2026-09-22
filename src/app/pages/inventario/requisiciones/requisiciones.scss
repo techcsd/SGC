@@ -336,3 +336,17 @@
   .req-cal__cell { min-height: 64px; }
   .req-cal__ficha-meta { display: none; }
 }
+
+// BV9/BV11 — pestañas por fase + editor inline de fecha de necesidad.
+.req-fase-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.req-fecha-edit {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}

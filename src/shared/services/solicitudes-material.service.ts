@@ -17,7 +17,8 @@ const SELECT_QUERY =
   'solicitante:usuarios!solicitudes_material_solicitante_id_fkey(nombre, roles:usuarios_roles!usuarios_roles_usuario_id_fkey(rol:roles(codigo,nombre))), ' +
   'atendido:usuarios!solicitudes_material_atendido_por_fkey(nombre), ' +
   // BA6 — quién canceló/cerró (para "Cancelada: motivo · por X").
-  'cerrada:usuarios!solicitudes_material_cerrada_por_fkey(nombre), items:solicitud_material_items(*)';
+  // BV9 — fase derivada (columna computada requisicion_fase): pendiente/en_proceso/completada/rechazada.
+  'cerrada:usuarios!solicitudes_material_cerrada_por_fkey(nombre), items:solicitud_material_items(*), fase:requisicion_fase';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudesMaterialService {
@@ -39,6 +40,17 @@ export class SolicitudesMaterialService {
       map.set(u.id, { nombre: u.nombre, roles: u.roles ?? [] });
     }
     return map;
+  }
+
+  /** BV11 — edita la fecha de necesidad (solicitante mientras no esté completada/
+   *  rechazada, o inventario/flota). El servidor valida el gate y deja historial. */
+  async setFechaNecesidad(id: string, fecha: string, motivo?: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('requisicion_set_fecha_necesidad', {
+      p_id: id,
+      p_fecha: fecha,
+      p_motivo: motivo ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   /** RLS scopes this: engineers see their own, Inventario staff/admin see all. */
