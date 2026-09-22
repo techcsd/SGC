@@ -1,6 +1,17 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-58 (BU1) Entorno de dev — 21/09/2026 — **EN CURSO en rama `feature/bu1-entorno-dev` (base 1.139.1 `3dc2428`). F0 ✅ · F1 ✅ · F2 ✅ · F3 en curso (ledger aplicado a dev). Nada committeado/pusheado. `sgc-dev` con gasto real ~US$10/mes activo. Backend de dev YA funcional (esquema + 37 edges + secrets + PostgREST expone sgc + auth).**
+## TL;DR — PROMPT-60 (Ronda BV) — 22/09/2026 — **EN CURSO en rama `feature/bv-ronda` (base 1.140.0 `2de2ee2`). Flujo regla 18: se construye en dev, NO va a prod hasta que Xaviel escriba "probado en dev, OK".** Xaviel eligió dev-primero (no directo a prod). 14 IDs BV (bugs vivos + nuevo). Objetivo: web **1.141.0** a `dev.sgcconstructorasd.com`, luego STOP para su prueba.
+
+**En dev:**
+- **F1 ✅ BV14** — `sql/2026-09-22-bv14-recalcular-gate.sql` APLICADA a dev: `recalcular_estados_combustible()` gate `is_admin`→`es_flota_elevado` + error 22023 humano. Lint nuevo en `audit-rpc-grants.mjs` (perform a función con gate más estricto que el llamador; verde, atrapa el patrón BV14). → Raykler (flota-elevado) ya puede editar echadas.
+- **F1 ✅ BV12** — parser `parse-pdf-totalenergies` endurecido: `DATE_RE` acepta dd/mm/yyyy **y** dd-mm-yy (causa probable de julio), `SKIP_RE` nunca se traga una fila con fecha, devuelve `{diagnostico:'ok'|'sin_texto'|'formato_desconocido', muestra[40] montos-redactados}`. UI Conciliación: mensajes DISTINTOS (escaneado vs formato nuevo) + reporte automático a Tecnología (`reportarPdfNoLeido`→report_app_error). Test `qa/pdf/parse-totalenergies.spec.ts` (agosto=20 tx, verde). **⚠️ El PDF real de julio NO está en prod** (import fallido no persiste) → endurecido por hipótesis + auto-diagnóstico; el próximo intento de julio se auto-reporta con la muestra.
+- build:prod verde (guards + lint). Falta F2-F8.
+
+**En prod:** intacto (1.140.0). Nada `--env prod` esta sesión.
+
+---
+
+## TL;DR — PROMPT-58 (BU1) Entorno de dev — 21/09/2026 — **✅ SHIPPED web 1.140.0 (`2de2ee2` en main+Vercel READY, `sgcconstructorasd.com`).** F0–F8 completos; `sgc-dev`=`fzfrnrvndzrjwyvdpkgg`, `dev.sgcconstructorasd.com` LIVE, ledger + `--env` + regla 18 vivos, prod backend migrado (crons por entorno, 0 refs), diff PROD↔DEV=0. main SIN proteger (decisión Xaviel, dev único).
 
 **F2 hecho — edges/secrets en dev:** las **37 edges desplegadas a dev** (0 errores) vía `scripts/deploy-edge.mjs --env dev --all` (bundlea `_shared/**`). **`_shared/entorno.ts`** cableado en las 13 edges de correo + `send-push`: en dev el correo se REDIRIGE a `Tecnologia@constructorasd.com` con asunto `[DEV → destinatarios]` (wrapper `ajustarCorreoResend`, pass-through en prod) y el push queda APAGADO (`puedeEnviarPush`, PUSH_ALLOWLIST vacío). Secrets de dev sembrados (edge + Vault): `ENTORNO=dev`, sync secrets NUEVOS (infra/weather/cronograma/whatsapp — en edge Deno.env **y** en Vault para los crons de F4), `NOTIF_REDIRECT_TO`/`INFRA_ALERT_EMAILS`=Tecnologia@, `APP_URL`/`WEB_URL` dev, maps+anthropic (de archivos locales), `resend_api_key` copiado del Vault de prod. **🔴 Fix crítico de paridad:** el PostgREST de dev NO exponía el esquema `sgc` (solo `public,graphql_public`) — lo habría roto todo; PATCH → `public,graphql_public,sgc` (+ `db_extra_search_path=public,extensions`). Smoke dev OK: `send-push` 401 sin secret / 200 skipped con secret; `notificar-soporte` alcanza `sgc` y 404 correcto con reporte falso (boot + `_shared` + sgc reachable). **Ledger `sgc.migraciones_aplicadas/edges_desplegadas/secrets_aplicados` APLICADO a dev** (dogfood: `apply-migration.mjs --env dev` se auto-registró).
 
@@ -27,13 +38,14 @@
 
 **✅ dev.sgcconstructorasd.com LIVE y accesible** — Xaviel autorizó desactivar Vercel Authentication; `ssoProtection` → `enabled:false` (prod ya era público; el login de la app SGC sigue gateando datos, dev anonimizado). `curl` → HTTP 200, sirve la app (title SGC + `<app-root>`; el `[DEV]` + cinta naranja los pinta el runtime `EntornoBadge`).
 
-**Pendiente FÍSICO de Xaviel (no bloquea prod ni el uso de dev):**
-1. Proteger `main`: `bash scratchpad/bu1-proteger-main.sh` (aquí no hay `gh` CLI ni token de GitHub).
-2. GitHub → Secrets (Actions): `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF_DEV` (para la Action `pr-main`).
-3. (Opcional) `SUPABASE_SERVICE_ROLE_KEY`=dev en *Preview* (registro de versión en build; si no, autoRegistrar lo cubre).
-4. Google Maps: restringir referrer a `dev.`/`app-dev.`; confirmar `NOTIFICATIONS_FROM_EMAIL` de dev.
-5. Verificar visualmente en `dev.sgcconstructorasd.com`: cinta DEV + `[DEV]` en título, y login como usuario anonimizado (contraseña `QA_DEV_PASSWORD`).
-6. **App 2.26.0 estrena el flujo por dev** (PROMPT-59, hijo).
+**DECISIÓN DE XAVIEL (21/09):** NO se protege `main` — es dev único (su propio PM / lead dev / encargado de tecnología); él decide cuándo pushea a `main`. La regla 18 NO depende de esto: se hace cumplir a nivel de SCRIPT (`--env prod` rechaza lo no-dev) + guard de prebuild. La Action `pr-main` + `pull_request_template` + `scratchpad/bu1-proteger-main.sh` quedan **inertes** (solo corren en PRs a main; con push directo nunca se disparan) — disponibles si algún día quiere el flujo con PR. **No re-proponer proteger main.**
+
+**Pendiente FÍSICO de Xaviel (NADA bloquea prod ni el uso de dev):**
+1. (Opcional) GitHub Secrets `SUPABASE_ACCESS_TOKEN`+`SUPABASE_PROJECT_REF_DEV` — solo si activa la Action `pr-main` (hoy inerte).
+2. (Opcional) `SUPABASE_SERVICE_ROLE_KEY`=dev en *Preview* (registro de versión en build; si no, autoRegistrar lo cubre).
+3. Google Maps: restringir referrer a `dev.`/`app-dev.`; confirmar `NOTIFICATIONS_FROM_EMAIL` de dev.
+4. Verificar visualmente en `dev.sgcconstructorasd.com`: cinta DEV + `[DEV]` en título, y login como usuario anonimizado (contraseña `QA_DEV_PASSWORD`).
+5. **App 2.26.0 estrena el flujo por dev** (PROMPT-59, hijo).
 
 **Verify on resume:** `git log -1 origin/main` = `6119661` (1.140.0); Vercel prod READY; prod por objeto: `sgc.migraciones_aplicadas` existe + poblada, `sgc.config_entorno.edge_base_url`=prod, 0 crons con ref; dev `fzfrnrvndzrjwyvdpkgg` completo (`npm run verify:entornos` diff estructural 0; crons/catálogos difieren si dev y prod divergen — normal). Rama `dev` = `main`.
 

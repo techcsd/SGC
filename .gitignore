@@ -73,3 +73,6 @@ referencia-factura-totalenergies-*.pdf
 
 # BU1 F6 — environment.ts local se genera con `npm run env:dev` (gitignored)
 src/environments/environment.ts
+
+# BV12 — PDFs reales de facturas (no commitear; sí fixtures anonimizados)
+qa/pdf/*.pdf

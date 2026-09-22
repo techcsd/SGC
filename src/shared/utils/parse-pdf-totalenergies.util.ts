@@ -49,6 +49,13 @@ export interface TotalEnergiesParse {
   };
   productos: { nombre: string; cantidad: number | null; monto: number | null }[];
   cards: TotalEnergiesCard[];
+  // BV12 — diagnóstico para la UI y el reporte automático a Tecnología:
+  //  'ok' (hay transacciones) · 'sin_texto' (PDF escaneado, pdfjs no dio texto)
+  //  · 'formato_desconocido' (hay texto pero la tabla no se reconoció).
+  diagnostico: 'ok' | 'sin_texto' | 'formato_desconocido';
+  // Primeras ~40 líneas de texto extraído, con montos redactados — para diagnosticar
+  // un formato nuevo sin pedirle el archivo a Raykler (report_app_error).
+  muestra: string[];
 }
 
 // ── Rangos de columna por X (según el encabezado de la tabla de detalle) ──────
@@ -87,7 +94,8 @@ function toIso(dmy: string | null | undefined): string | null {
   return `${yy}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
 }
 
-const DATE_RE = /^\d{2}\/\d{2}\/\d{4}$/;
+// BV12 — tolera dd/mm/yyyy (agosto) y dd-mm-yy / d-m-yyyy (otras plantillas de julio).
+const DATE_RE = /^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}$/;
 const CONSUMO_RE = /Consumo\s+[\d.,]+\s*L\/100/i;
 const SKIP_RE = /TotalEnergies Marketing|FACTURA DE CREDITO|Para contactarnos|Número cliente|Número cuenta|Los valores están|^Página|Fecha\/Hora|de recibo|incluyendo|impuestos|Producto\b.*Cantidad|Registro de Empresas|RNC:|TEL:|Email:|Website:|CONSTRUCTORA SCHEKER|VIRGILIO DIAZ|SANTO DOMINGO|Torre Acrópolis|Av\. Winston|Número Factura|e-NCF|Fecha de|Anulación de restricción|Más de 1 Transacción/i;
 
@@ -237,7 +245,9 @@ export async function parseTotalEnergiesPdfFull(data: Uint8Array): Promise<Total
   };
 
   for (const r of allRows) {
-    if (SKIP_RE.test(r.text) && !DATE_RE.test(r.cells[0]?.str?.trim() ?? '')) continue;
+    // BV12 — SKIP_RE nunca puede tragarse una fila que trae una fecha (inicio de
+    // transacción): solo se salta si NINGUNA celda parece fecha.
+    if (SKIP_RE.test(r.text) && !r.cells.some((c) => DATE_RE.test(c.str.trim()))) continue;
 
     if (CONSUMO_RE.test(r.text)) {
       // Línea de subtotal de tarjeta: [code] [titular...] [placa?] Consumo X L/100 Km ...
@@ -302,7 +312,13 @@ export async function parseTotalEnergiesPdfFull(data: Uint8Array): Promise<Total
     flush(orphan);
   }
 
-  return { rows, header, productos, cards };
+  // BV12 — diagnóstico + muestra (montos redactados) para UI y reporte automático.
+  const redact = (t: string) => t.replace(/\d[\d,]*\.\d{2}\b/g, '***');
+  const muestra = allRows.slice(0, 40).map((r) => redact(r.text));
+  const diagnostico: TotalEnergiesParse['diagnostico'] =
+    rows.length > 0 ? 'ok' : allRows.length === 0 ? 'sin_texto' : 'formato_desconocido';
+
+  return { rows, header, productos, cards, diagnostico, muestra };
 }
 
 // Tipos mínimos de pdfjs (evita depender de sus .d.ts en el build).

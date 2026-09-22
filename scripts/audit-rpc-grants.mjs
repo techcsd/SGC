@@ -142,6 +142,59 @@ for (const name of clientRpcs) {
   if (!grants.has(arity)) arityMismatch.push({ name, arity, grants: [...grants].sort((a, b) => a - b) });
 }
 
+// ── BV14 — lint de gate por `perform` ───────────────────────────────────────
+// Una función llamada con `perform sgc.<f>()` desde un RPC gateado con predicado P
+// no puede tener un gate MÁS ESTRICTO que P (si no, el RPC "abierto" revienta por
+// dentro: caso BV14 — editar_echada[es_flota_elevado] → recalcular[is_admin]).
+// Estático sobre sql/, última definición gana; conservador: solo pares con gates
+// conocidos en el ranking. Ranking: is_admin/es_desarrollador > es_tecnologia >
+// es_flota_elevado > (abierto/authenticated).
+const GATE_RANK = { is_admin: 4, es_desarrollador: 4, es_tecnologia: 3, es_flota_elevado: 2 };
+const performViolations = [];
+{
+  const files = readdirSync(SQL_DIR).filter((f) => f.endsWith('.sql')).sort();
+  const fnGate = new Map(); // name -> gate predicate (o null)
+  const fnCallees = new Map(); // name -> Set de callees por perform
+  for (const f of files) {
+    const sql = readFileSync(join(SQL_DIR, f), 'utf8');
+    // Trocea por cada create function; el chunk va hasta el siguiente create function.
+    const re = /create\s+(?:or\s+replace\s+)?function\s+(?:sgc\.)?([a-z0-9_]+)\s*\(/gi;
+    const starts = [];
+    let m;
+    while ((m = re.exec(sql)) !== null) starts.push({ name: m[1].toLowerCase(), idx: m.index });
+    for (let i = 0; i < starts.length; i++) {
+      const chunk = sql.slice(starts[i].idx, i + 1 < starts.length ? starts[i + 1].idx : sql.length);
+      const name = starts[i].name;
+      const gateM = chunk.match(/if\s+not\s+sgc\.([a-z0-9_]+)\s*\(\s*\)/i);
+      fnGate.set(name, gateM ? gateM[1].toLowerCase() : null); // última def gana
+      const callees = new Set();
+      let pm; const pre = /perform\s+sgc\.([a-z0-9_]+)\s*\(/gi;
+      while ((pm = pre.exec(chunk)) !== null) callees.add(pm[1].toLowerCase());
+      fnCallees.set(name, callees);
+    }
+  }
+  for (const [caller, callees] of fnCallees) {
+    // Solo aplica a un llamador GATEADO con un predicado del ranking (la nota: "desde
+    // un RPC gateado con predicado P"). Un llamador SIN gate propio puede estar
+    // delegando su gate justo al callee (patrón `perform sgc._jira_guard()`) → no es
+    // violación. Comparamos solo side-effects internos más estrictos que P.
+    const pRank = GATE_RANK[fnGate.get(caller)];
+    if (!pRank) continue;
+    for (const g of callees) {
+      const gRank = GATE_RANK[fnGate.get(g)];
+      if (gRank && gRank > pRank) {
+        performViolations.push({ caller, callerGate: fnGate.get(caller) ?? '(abierto)', callee: g, calleeGate: fnGate.get(g) });
+      }
+    }
+  }
+}
+if (performViolations.length) {
+  console.error('\n✗ audit-rpc-grants (BV14) — `perform` a una función con gate MÁS ESTRICTO que el llamador:\n');
+  for (const v of performViolations) console.error(`   · sgc.${v.caller} [${v.callerGate}] → perform sgc.${v.callee} [${v.calleeGate}]  (regla 14: mismo predicado para la misma acción)`);
+  console.error('\nAbre el gate de la función interna al del llamador, o extrae la parte protegida.\n');
+}
+if (performViolations.length) process.exit(1);
+
 if (REPORT_ONLY && arityMismatch.length) {
   console.error('\n⚠ audit-rpc-grants (report) — grant a authenticated existe pero no en la aridad del create más reciente de sql/ (verificar firma viva contra prod):\n');
   for (const m of arityMismatch) console.error(`   · sgc.${m.name}(create más reciente: ${m.arity} args)  — grants a authenticated: ${m.grants.join(', ')}`);

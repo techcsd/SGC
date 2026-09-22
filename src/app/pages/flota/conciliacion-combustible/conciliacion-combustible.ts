@@ -248,16 +248,23 @@ export class ConciliacionCombustible implements OnInit {
         filas = parsed.rows;
         cards = parsed.cards;
         this.productosDetectados.set(parsed.productos);
+        if (parsed.rows.length === 0) {
+          // BV12 — mensajes DISTINTOS según la causa + reporte automático a Tecnología
+          // (con la muestra sin montos) para agregar el formato nuevo sin pedir el archivo.
+          this.parseError.set(
+            parsed.diagnostico === 'sin_texto'
+              ? 'Este PDF no tiene texto (es una imagen escaneada). Pide a TotalEnergies el Excel/CSV o el PDF original.'
+              : 'Este PDF tiene un formato que aún no reconocemos. Ya se reportó a Tecnología para agregarlo.',
+          );
+          void this.service.reportarPdfNoLeido(parsed.diagnostico, parsed.muestra, file.name);
+          return;
+        }
       } else {
         filas = await this.parseInforme(file);
-      }
-      if (filas.length === 0) {
-        this.parseError.set(
-          esPdf
-            ? 'No se detectaron transacciones en el PDF. ¿Es la factura de consumo de TotalEnergies?'
-            : 'No se detectaron filas válidas en el archivo. Verifica que sea el reporte del proveedor.',
-        );
-        return;
+        if (filas.length === 0) {
+          this.parseError.set('No se detectaron filas válidas en el archivo. Verifica que sea el reporte del proveedor.');
+          return;
+        }
       }
       // Dedupe: marca las transacciones ya importadas.
       const nums = filas.map((f) => f.transaccion_num).filter(Boolean);

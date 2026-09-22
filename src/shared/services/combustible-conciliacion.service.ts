@@ -132,6 +132,28 @@ export class CombustibleConciliacionService {
     }[];
   }
 
+  /** BV12 — reporta a Tecnología (report_app_error) una factura de TotalEnergies que
+   *  no se pudo leer, con las primeras líneas extraídas (montos redactados) para que
+   *  el formato nuevo se arregle sin pedirle el archivo a Raykler. No bloquea. */
+  async reportarPdfNoLeido(diagnostico: string, muestra: string[], nombre: string): Promise<void> {
+    try {
+      await this.supabase.client.rpc('report_app_error', {
+        p_error_type: 'sync',
+        p_message: `Factura TotalEnergies no leída (${diagnostico}): ${nombre}`,
+        p_stack: muestra.join('\n').slice(0, 4000),
+        p_context: { origen: 'conciliacion-combustible', diagnostico, archivo: nombre },
+        p_device_brand: 'web',
+        p_device_model: 'Navegador',
+        p_os_version: '',
+        p_app_version: '',
+        p_platform: 'web',
+        p_source: 'web',
+      });
+    } catch {
+      /* el reporte nunca bloquea la UI */
+    }
+  }
+
   async guardar(meta: ConciliacionMeta, detalles: ConciliacionDetalle[]): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('guardar_conciliacion_combustible', {
       p_meta: meta,
