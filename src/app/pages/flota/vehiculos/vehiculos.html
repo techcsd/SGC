@@ -290,6 +290,18 @@
       }
     </div>
 
+    <!-- BV2 — alias legible del vehículo (Eduardo: "por placa no sé cuál es cuál") -->
+    <div class="sgc-field">
+      <label for="alias">Nombre / Alias</label>
+      <input id="alias" type="text" formControlName="alias" maxlength="60"
+        placeholder="Ej. Camión Raykler, Suburban blanca…"
+        [class.invalid]="f.alias.invalid && f.alias.touched" />
+      <small class="sgc-field__hint">Nombre corto con el que se reconoce el vehículo. Se muestra junto a la placa en resúmenes y selectores. Opcional.</small>
+      @if (f.alias.invalid && f.alias.touched) {
+        <span class="field-error" role="alert">El alias no debe exceder 60 caracteres.</span>
+      }
+    </div>
+
     <div class="flota-vehiculos__form-row">
       <div class="sgc-field">
         <label for="marca">Marca <span class="required" aria-hidden="true">*</span></label>

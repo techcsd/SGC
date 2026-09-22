@@ -175,6 +175,7 @@ export class FlotaVehiculos implements OnInit {
   form = new FormGroup({
     placa: new FormControl('', [Validators.required, Validators.maxLength(20)]),
     vin: new FormControl<string | null>(null, [Validators.maxLength(17)]),
+    alias: new FormControl<string | null>(null, [Validators.maxLength(60)]), // BV2
     marca: new FormControl('', [Validators.required, Validators.maxLength(80)]),
     modelo: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     anio: new FormControl<number>(new Date().getFullYear(), [
@@ -378,6 +379,7 @@ export class FlotaVehiculos implements OnInit {
     this.form.reset({
       placa: vehiculo.placa,
       vin: vehiculo.vin,
+      alias: vehiculo.alias ?? null,
       marca: vehiculo.marca,
       modelo: vehiculo.modelo,
       anio: vehiculo.anio,
@@ -536,6 +538,7 @@ export class FlotaVehiculos implements OnInit {
       // AC14 — placa vacía (equipo sin matrícula) → null, no ''.
       placa: (raw.placa ?? '').trim().toUpperCase().replace(/\s+/g, ' ') || null,
       vin: vin || null,
+      alias: (raw.alias ?? '').trim() || null, // BV2
       color,
       aseguradora,
       // AA18.3 — para vehículos por km, no arrastrar el intervalo de horas.

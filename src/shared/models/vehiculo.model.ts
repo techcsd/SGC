@@ -30,6 +30,9 @@ export interface Vehiculo {
   // V1 — número VIN (chasis): identificador único para diferenciar vehículos casi
   // idénticos (mismo modelo/año, placas parecidas).
   vin: string | null;
+  // BV2 — nombre corto legible del vehículo (Eduardo: "por placa no sé cuál es cuál").
+  // Se muestra en resúmenes/selects como `alias · placa` vía sgc.vehiculo_display().
+  alias: string | null;
   marca: string;
   modelo: string;
   anio: number;
@@ -81,6 +84,7 @@ export interface VehiculoFormData {
   // AC14 — null cuando el equipo no tiene placa (ver EQUIPO_SIN_PLACA / tipoSinPlaca).
   placa: string | null;
   vin: string | null;
+  alias?: string | null; // BV2
   marca: string;
   modelo: string;
   anio: number;

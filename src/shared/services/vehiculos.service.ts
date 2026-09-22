@@ -14,7 +14,7 @@ import { VehiculoAsignacion, VehiculoStats } from '../models/vehiculo-asignacion
  * que el servicio no dependa de esa disciplina. Coincide con `VehiculoFormData`.
  */
 const VEHICULO_FIELDS = [
-  'placa', 'vin', 'marca', 'modelo', 'anio', 'tipo', 'estado', 'color',
+  'placa', 'vin', 'alias', 'marca', 'modelo', 'anio', 'tipo', 'estado', 'color',
   'kilometraje', 'medida_uso', 'uso', 'capacidad_valor', 'capacidad_unidad',
   'notas', 'numero_matricula', 'numero_seguro', 'aseguradora',
   'vencimiento_matricula', 'vencimiento_seguro', 'km_ultimo_mantenimiento',
