@@ -5,7 +5,9 @@
 **En dev:**
 - **F1 ✅ BV14** — `sql/2026-09-22-bv14-recalcular-gate.sql` APLICADA a dev: `recalcular_estados_combustible()` gate `is_admin`→`es_flota_elevado` + error 22023 humano. Lint nuevo en `audit-rpc-grants.mjs` (perform a función con gate más estricto que el llamador; verde, atrapa el patrón BV14). → Raykler (flota-elevado) ya puede editar echadas.
 - **F1 ✅ BV12** — parser `parse-pdf-totalenergies` endurecido: `DATE_RE` acepta dd/mm/yyyy **y** dd-mm-yy (causa probable de julio), `SKIP_RE` nunca se traga una fila con fecha, devuelve `{diagnostico:'ok'|'sin_texto'|'formato_desconocido', muestra[40] montos-redactados}`. UI Conciliación: mensajes DISTINTOS (escaneado vs formato nuevo) + reporte automático a Tecnología (`reportarPdfNoLeido`→report_app_error). Test `qa/pdf/parse-totalenergies.spec.ts` (agosto=20 tx, verde). **⚠️ El PDF real de julio NO está en prod** (import fallido no persiste) → endurecido por hipótesis + auto-diagnóstico; el próximo intento de julio se auto-reporta con la muestra.
-- build:prod verde (guards + lint). Falta F2-F8.
+- **F2 backend ✅ (aplicado a dev, commits `f3d6fda`+`904e3d0`)** — BV2 `vehiculos.alias` + `sgc.vehiculo_display()` (nombre|marca modelo año · placa); `resumen_flota_carga_semana` ahora emite el display → **resumen semanal muestra nombre·placa (fix de Eduardo, ya vivo en dev DB)**. BV13 `sugerir_vehiculo_tarjeta(titular,fecha)` verificado (SUBURBAN→0.67, CAMION KIA→0.64, 2×Fuso→ambiguo no adivina, IMPALA→sin match).
+  - **F2 web PENDIENTE:** UI Conciliación *Tarjetas del PDF* (preselect auto·%·via + "Aceptar todos" + persistir map al guardar), campo **Alias** en Editar vehículo, `vehiculo-picker`/selects nombre·placa, sweep de las demás edges de correo (notificar-flota etc.), regla en PARIDAD.
+- build:prod verde (guards + lint). Falta F2-web + F3-F8.
 
 **En prod:** intacto (1.140.0). Nada `--env prod` esta sesión.
 
