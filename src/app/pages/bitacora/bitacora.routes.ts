@@ -5,6 +5,8 @@ export const bitacoraRoutes: Routes = [
   { path: 'nueva', loadComponent: () => import('./nueva/nueva').then((m) => m.Nueva) },
   // BN1 — orden de trabajo (flujo propio con dos firmas: ingeniero + cliente).
   { path: 'orden-trabajo', loadComponent: () => import('./orden-trabajo/orden-trabajo').then((m) => m.OrdenTrabajo), title: 'Orden de trabajo' },
+  // BW1 — lista de órdenes de trabajo (ver/revisar/compartir). Antes del :id (aunque el prefijo difiere).
+  { path: 'ordenes-trabajo', loadComponent: () => import('./orden-trabajo/orden-trabajo-lista').then((m) => m.OrdenTrabajoLista), title: 'Órdenes de trabajo' },
   { path: 'orden-trabajo/:id', loadComponent: () => import('./orden-trabajo/orden-trabajo-ficha').then((m) => m.OrdenTrabajoFicha), title: 'Orden de trabajo' },
   { path: 'historial', loadComponent: () => import('./historial/historial').then((m) => m.Historial) },
   { path: 'dashboard', loadComponent: () => import('./dashboard/dashboard').then((m) => m.BitacoraDashboard), title: 'Dashboard de bitácoras' },

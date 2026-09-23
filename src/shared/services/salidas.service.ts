@@ -589,6 +589,27 @@ export class SalidasService {
     this.notificaciones.refresh();
   }
 
+  /** BW2 — crea el artículo del catálogo desde el material libre y lo vincula en una
+   *  sola operación atómica (gate es_flota_elevado() OR inventario). Devuelve el id/código. */
+  async crearArticuloDesdeLibre(
+    itemLibreId: string,
+    nombre: string,
+    categoriaId: number,
+    unidad: string | null,
+    generarMovimiento = false,
+  ): Promise<{ id: string; codigo: string }> {
+    const { data, error } = await this.supabase.client.rpc('crear_articulo_desde_libre', {
+      p_item_libre_id: itemLibreId,
+      p_nombre: nombre,
+      p_categoria_id: categoriaId,
+      p_unidad: unidad,
+      p_generar_movimiento: generarMovimiento,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+    return data as { id: string; codigo: string };
+  }
+
   /** AT11 — declina un item libre (no se creará el artículo) → historial + notifica al
    *  reportante. `sugeridoArticuloId` cuando el motivo es "ya existe" (apunta al correcto). */
   async declinarItemLibre(itemLibreId: string, motivo: string, sugeridoArticuloId: string | null = null): Promise<void> {

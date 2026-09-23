@@ -108,6 +108,7 @@
             [articulos]="catalogo()"
             [categorias]="categorias()"
             [allowOtro]="false"
+            [value]="vincularArticuloId()"
             (selectionChange)="onVincularSel($event)"
           />
         } @else {
@@ -124,6 +125,7 @@
               [articulos]="catalogo()"
               [categorias]="categorias()"
               [allowOtro]="false"
+              [value]="declinarArticuloId()"
               (selectionChange)="onDeclinarSel($event)"
             />
           } @else if (declinarMotivo() === 'otro') {
@@ -154,8 +156,8 @@
             {{ guardando() ? 'Creando…' : 'Crear y vincular' }}
           </button>
         } @else if (modo() === 'vincular') {
-          <button type="button" class="sgc-btn sgc-btn--primary" (click)="vincular()" [disabled]="guardando()">
-            {{ guardando() ? 'Vinculando…' : 'Vincular' }}
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="vincular()" [disabled]="guardando() || !vincularArticuloId()">
+            {{ guardando() ? 'Vinculando…' : (vincularArticuloNombre() ? 'Vincular a ' + vincularArticuloNombre() : 'Vincular') }}
           </button>
         } @else {
           <button type="button" class="sgc-btn sgc-btn--danger" (click)="confirmarDeclinar()" [disabled]="guardando()">

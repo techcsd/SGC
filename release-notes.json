@@ -1,5 +1,30 @@
 {
   "web": {
+    "1.142.0": {
+      "titulo": "Órdenes de trabajo: lista, número OT y compartir; se arregla el selector de Material no catalogado",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Nueva pantalla Órdenes de trabajo (Bitácora): lista con buscador por nº/obra/responsable, filtros por obra, fecha y estado (borrador/emitida/firmada) y alternador Mis OT / Todas. Se llega desde el menú, desde el hub de Nueva bitácora y desde el historial."
+        },
+        {
+          "t": "nuevo",
+          "m": "Bitácora",
+          "d": "Cada orden de trabajo tiene ahora un número visible (OT-000123) y su ficha permite Imprimir/PDF, Copiar enlace, Enviar a usuarios del sistema (les llega un aviso con el enlace) y Compartir."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "En Material no catalogado, al elegir un artículo para vincular (o al indicar cuál ya existe al declinar) el selector ahora sí muestra la elección; antes se veía vacío aunque se hubiera seleccionado. El botón dice a qué artículo se vinculará."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Logística (Raykler) además de Inventario y administradores puede vincular o crear artículos desde Material no catalogado."
+        }
+      ]
+    },
     "1.137.0": {
       "titulo": "El menú y el inicio de sesión ahora hablan inglés; la densidad ya se nota",
       "cambios": [

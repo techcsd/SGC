@@ -10,12 +10,13 @@
 //
 // Añadir una nueva guarda = una entrada más en REGLAS.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SQL_DIR = join(__dirname, '..', 'sql');
+const SRC_DIR = join(__dirname, '..', 'src');
 
 // ── Reglas de regresión ──────────────────────────────────────────────────────
 // fn      : firma completa `esquema.funcion` tal como aparece tras `create or replace function`
@@ -144,11 +145,61 @@ for (const regla of REGLAS) {
   }
 }
 
+// ── BW2 — Controles CONTROLADOS sin `[value]` son "mudos" ─────────────────────
+// Un componente controlado pinta lo elegido desde su input `value`/`values` y solo
+// EMITE su cambio; si una plantilla enlaza el output pero NO el input, el usuario
+// elige y el control sigue vacío (regresó en material-no-catalogado, BW2). Este lint
+// falla el build si un `<app-*>` con su evento de cambio no recibe también su valor.
+const CONTROLES = [
+  { tag: 'app-articulo-picker', evento: /\(selectionChange\)/, valor: /\[value\]/, req: '[value]' },
+  { tag: 'app-user-picker', evento: /\(selected\)/, valor: /\[value\]/, req: '[value]' },
+  { tag: 'app-filter-select', evento: /\(valueChange\)/, valor: /\[value\]/, req: '[value]' },
+  { tag: 'app-filter-select', evento: /\(valuesChange\)/, valor: /\[values\]/, req: '[values]' },
+];
+
+function htmlFiles(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    const st = statSync(p);
+    if (st.isDirectory()) out.push(...htmlFiles(p));
+    else if (name.endsWith('.html')) out.push(p);
+  }
+  return out;
+}
+
+function lineOf(raw, index) {
+  return raw.slice(0, index).split('\n').length;
+}
+
+let controlesRevisados = 0;
+for (const file of htmlFiles(SRC_DIR)) {
+  const raw = readFileSync(file, 'utf8');
+  for (const c of CONTROLES) {
+    const tagRe = new RegExp(`<${c.tag}\\b[\\s\\S]*?>`, 'gi');
+    let m;
+    while ((m = tagRe.exec(raw)) !== null) {
+      const tag = m[0];
+      if (!c.evento.test(tag)) continue; // sin el evento no es controlado
+      controlesRevisados++;
+      if (!c.valor.test(tag)) {
+        const rel = file.slice(file.indexOf('src'));
+        fallos.push(
+          `✗ CONTROL MUDO en ${rel}:${lineOf(raw, m.index)} — <${c.tag}> enlaza ${c.evento} ` +
+            `pero le falta ${c.req}.\n` +
+            `   BW2: un control controlado sin su valor de entrada nunca muestra lo elegido ` +
+            `(el usuario cree que no seleccionó y reintenta). Añade ${c.req}.`
+        );
+      }
+    }
+  }
+}
+
 if (fallos.length) {
   console.error('\n🔴 GUARDA DE REGRESIÓN — build detenido:\n');
   console.error(fallos.join('\n\n'));
-  console.error('\nCorrige la migración que reintrodujo el patrón antes de desplegar.\n');
+  console.error('\nCorrige la migración/plantilla que reintrodujo el patrón antes de desplegar.\n');
   process.exit(1);
 }
 
-console.log(`\n✓ Guarda de regresión OK (${REGLAS.length} regla(s)).`);
+console.log(`\n✓ Guarda de regresión OK (${REGLAS.length} regla(s) SQL + ${controlesRevisados} control(es) controlado(s) con su valor).`);

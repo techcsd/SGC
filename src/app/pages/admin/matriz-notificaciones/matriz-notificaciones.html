@@ -108,7 +108,8 @@
                           (click)="removeSilUsuario(t.tipo, u.id)">×</button>
                 </span>
               }
-              <app-user-picker placeholder="Agregar persona…"
+              <!-- BW2 — picker de "agregar": no retiene selección (cada elección se agrega como chip y vuelve a vacío). -->
+              <app-user-picker placeholder="Agregar persona…" [value]="null"
                 (selected)="addSilUsuario(t.tipo, $event.usuario_id ? { id: $event.usuario_id, nombre: $event.nombre } : null)" />
             </div>
           </div>
