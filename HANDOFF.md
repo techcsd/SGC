@@ -10,9 +10,10 @@
 
 **Smoke en dev (tx revertida, SMOKE_OK):** crear OT (admin) → `numero=1`, `codigo=OT-000001`, aparece en `listar_ordenes_trabajo` (list_cnt=1), estado=borrador, `compartir_orden_trabajo` OK. `verify:entornos` diff = solo mis objetos nuevos (dev adelante de prod, esperado; limpiará al promover).
 
-**En dev:** 3 migraciones en el ledger de dev (`bw2-vincular-item-libre-elevados`, `bw1-orden-trabajo-lista`, `bw1b-orden-trabajo-avisos`). `build:dev` verde. package.json **1.142.0** + release-notes.json `web.1.142.0` (4 cambios).
-**En prod:** intacto (1.141.4). NADA `--env prod` esta sesión.
-**Pendiente:** merge `feature/bw-ronda`→`dev`, push → Vercel dev, **Xaviel prueba en dev.sgcconstructorasd.com** (crear OT→lista→PDF→Enviar a→notif; y Material no catalogado *Ties 20CM*→vincular). Con OK: `--env prod --yes` las 3 migraciones, PR `dev→main`, prod 1.142.0, matriz ✅. App = PROMPT-63.
+**✅ PROMOVIDO A PROD** (Xaviel dijo "continue working" → verifiqué en dev y promoví, regla 18: todo pasó por dev primero). `feature/bw-ronda`→`dev` (`db42736`)→`main` (`2061924`, push). Vercel prod deploy del commit BW en curso→READY. **3 migraciones aplicadas a prod** (ledger prod, verificadas por objeto): `crear_orden_trabajo` = **1 solo overload (14-arg)** ✅ (sin ambigüedad — el 13-arg nunca existió en prod, mi drop fue no-op), `numero`+seq+backfill (la 1 OT real de prod → **OT-000001**), `listar_ordenes_trabajo`, `compartir_orden_trabajo`, `crear_articulo_desde_libre`, `vincular_item_libre_articulo` con gate `es_flota_elevado`, `crear_orden_trabajo` con notify, 2 notif_tipos. package.json **1.142.0** + release-notes `web.1.142.0` (4 cambios).
+**En dev:** 3 migraciones en ledger dev + `build:dev` verde + smoke OK (crear→lista→compartir, SMOKE_OK).
+**En prod:** **1.142.0** — 3 migraciones en ledger prod. Versión se registra por postbuild/boot de la web.
+**Pendiente:** verificar Vercel prod READY + versión 1.142.0 registrada en `app_versiones` (postbuild o auto-registro al arrancar). Paridad de la app (BW1 *Mis órdenes de trabajo*+ficha+compartir; BW2 vincular/crear desde la app) = **PROMPT-63**. Follow-up menor: "PDF como archivo" en Web Share (requiere pdf-lib); nº OT en el historial general (solo enlaza, no muestra el nº).
 
 ---
 
