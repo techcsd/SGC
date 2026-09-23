@@ -265,3 +265,30 @@ lógico de captura; el layout puede diferir).
   (a flota). App: pantalla "Nueva echada" con borrador recuperable (BV5) + fecha bloqueada salvo permiso.
 - **Echada recuperable (BV5):** la pantalla de nueva echada autoguarda un borrador local; si se cierra/crashea,
   ofrece Retomar (datos de texto; fotos se re-toman) o Descartar; se limpia al registrar.
+
+## Ronda BW (PROMPT-62 web) → contratos para la app (PROMPT-63)
+
+### § Material no catalogado (BW2)
+- **Bug (web):** el `app-articulo-picker` es **controlado** (pinta lo elegido desde su input
+  `[value]`, solo emite `selectionChange`). El modal *Vincular a un artículo* / *Declinar → ya existe*
+  no pasaba `[value]` → el usuario elegía y el select seguía en «Selecciona un artículo…» (lo que
+  reportó Felix con *Ties 20CM*). **Arreglado:** `[value]="vincularArticuloId()"` /
+  `[value]="declinarArticuloId()"`; el botón dice *«Vincular a <artículo>»* (AT11) y se deshabilita sin
+  selección. **Lint permanente** en `verify-regresiones.mjs`: todo `<app-articulo-picker>` (evento
+  `selectionChange`), `<app-user-picker>` (`selected`) y `<app-filter-select>` (`valueChange`/`valuesChange`)
+  **debe** enlazar su valor (`[value]` / `[values]`); un picker de "agregar" que resetea usa `[value]="null"`.
+- **RPCs (nombres reales — la app los llama igual):**
+  - `sgc.vincular_item_libre_articulo(p_item_libre_id uuid, p_articulo_id uuid, p_generar_movimiento boolean)`
+    → vincula el material libre a un artículo existente. `p_generar_movimiento` (AY13) registra además la
+    salida real desde la bodega de origen del conduce (baja stock); si se deja `false`, solo vincula.
+  - `sgc.crear_articulo_desde_libre(p_item_libre_id uuid, p_nombre text, p_categoria_id int, p_unidad text, p_generar_movimiento boolean)`
+    → **atómico**: crea el artículo (código `CSD-NN-###` autogenerado, triggers de apertura aplican el piso),
+    lo vincula y opcionalmente genera el movimiento. Devuelve `{ id, codigo }`. (No existe
+    `crear_articulo_desde_libre` previo; se creó en esta ronda. La web dejó de hacer create+vincular en 2 pasos.)
+- **Gate (ambos RPCs):** `es_flota_elevado() OR tiene_modulo('inventario')` — antes era
+  `is_admin() OR inventario`, dejaba fuera a Raykler/logística. **No** se ensanchó `puede_gestionar_articulos()`
+  (editar/borrar/stock del catálogo siguen admin/inventario). Web: `puedeGestionar = esFlotaElevado() || hasModulo('inventario')`.
+- **App (PROMPT-63 F1):** `material-no-catalogado` de la app hoy es solo lectura + *declinar*
+  («Crea el artículo desde la web SGC…»). Gana **Vincular a un artículo** (picker de la app, offline:
+  outbox `tipo_op:'vincular_item_libre'`) y **Crear artículo** (llama `crear_articulo_desde_libre`), ambos con
+  el switch *Generar movimiento de inventario* (AY13). Visibles para `es_flota_elevado()`/inventario.

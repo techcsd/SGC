@@ -327,6 +327,7 @@ export class Shell implements OnInit {
         // Bitácora (módulo `bitacora`)
         { label: 'Nueva bitácora', route: '/bitacora/nueva', modulo: 'bitacora' },
         { label: 'Mis bitácoras', route: '/bitacora/historial', modulo: 'bitacora' },
+        { label: 'Órdenes de trabajo', route: '/bitacora/ordenes-trabajo', modulo: 'bitacora' },
         { label: 'Dashboard de bitácora', route: '/bitacora/dashboard', modulo: 'bitacora' },
         { label: 'Cobertura por obra', route: '/bitacora/cobertura', modulo: 'bitacora' },
         { label: 'Medidas de moldes', route: '/bitacora/moldes', modulo: 'bitacora' },

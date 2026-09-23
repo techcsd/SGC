@@ -267,6 +267,34 @@ export class BitacoraService {
     return (data ?? null) as import('../models/bitacora.model').OrdenTrabajoDetalle | null;
   }
 
+  /** BW1 — lista de órdenes de trabajo visibles (RLS de bitácora), con estado y nº OT. */
+  async listarOrdenesTrabajo(filtros: {
+    proyecto?: string | null;
+    desde?: string | null;
+    hasta?: string | null;
+    estado?: string | null;
+    soloMias?: boolean;
+  } = {}): Promise<import('../models/bitacora.model').OrdenTrabajoResumen[]> {
+    const { data, error } = await this.supabase.client.rpc('listar_ordenes_trabajo', {
+      p_proyecto: filtros.proyecto ?? null,
+      p_desde: filtros.desde ?? null,
+      p_hasta: filtros.hasta ?? null,
+      p_estado: filtros.estado ?? null,
+      p_solo_mias: filtros.soloMias ?? false,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as import('../models/bitacora.model').OrdenTrabajoResumen[];
+  }
+
+  /** BW1 — comparte una OT con usuarios del sistema (aviso + deep-link a la ficha). */
+  async compartirOrdenTrabajo(bitacoraId: string, usuarioIds: string[]): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compartir_orden_trabajo', {
+      p_bitacora_id: bitacoraId,
+      p_usuarios: usuarioIds,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   get maxArchivos(): number {
     return MAX_ARCHIVOS;
   }

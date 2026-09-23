@@ -37,7 +37,8 @@ export class MaterialNoCatalogado implements OnInit {
   private toast = inject(ToastService);
   readonly unidades = UNIDADES;
 
-  puedeGestionar = computed(() => this.userService.hasRole('admin') || this.userService.hasModulo('inventario'));
+  // BW2 — paridad con el RPC: los elevados (logística/flota/gerencia) también curan la bandeja.
+  puedeGestionar = computed(() => this.userService.esFlotaElevado() || this.userService.hasModulo('inventario'));
 
   filas = signal<MaterialNoCatalogadoRow[]>([]);
   loading = signal(true);
@@ -69,6 +70,12 @@ export class MaterialNoCatalogado implements OnInit {
   nuevaUnidad = signal<string>('unidad');
   // Vincular a existente.
   vincularArticuloId = signal<string | null>(null);
+  // BW2 — AT11: el botón nombra a qué se vincula (feedback de que sí se eligió).
+  vincularArticuloNombre = computed(() => {
+    const id = this.vincularArticuloId();
+    if (!id) return null;
+    return this.catalogo().find((a) => a.id === id)?.nombre ?? null;
+  });
   // AY13 — per-case: ¿generar el movimiento de inventario retroactivo al vincular?
   generarMovimiento = signal(false);
 
@@ -191,17 +198,8 @@ export class MaterialNoCatalogado implements OnInit {
     if (catId == null) { this.toast.error('Elige una categoría.'); return; }
     this.guardando.set(true);
     try {
-      const art = await this.articulosSvc.create({
-        nombre,
-        descripcion: null,
-        categoria_id: catId,
-        unidad: this.nuevaUnidad(),
-        stock_minimo: 0,
-        stock_maximo: null,
-        precio_estimado: null,
-        activo: true,
-      });
-      await this.svc.vincularItemLibre(fila.id, art.id, this.generarMovimiento());
+      // BW2 — un solo RPC atómico (crear + vincular + mov. opcional); mismo gate que la app.
+      await this.svc.crearArticuloDesdeLibre(fila.id, nombre, catId, this.nuevaUnidad(), this.generarMovimiento());
       this.toast.success('Artículo creado y vinculado.', 'Ya está en el catálogo para futuros conduces.');
       this.cerrar();
       await this.cargar();

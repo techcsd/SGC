@@ -1,0 +1,75 @@
+<!-- BW1 — Lista de órdenes de trabajo -->
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">{{ 'Órdenes de trabajo' | t }}</h1>
+    <span class="page-count">{{ filtradas().length }} {{ (filtradas().length === 1 ? 'orden' : 'órdenes') | t }}</span>
+  </div>
+  <a routerLink="/bitacora/orden-trabajo" class="sgc-btn sgc-btn--primary sgc-btn--sm">+ {{ 'Nueva orden de trabajo' | t }}</a>
+</div>
+
+<div class="otl-filtros">
+  <input type="search" class="sgc-input otl-search" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)"
+         [placeholder]="'Buscar por nº, obra o responsable…' | t" />
+  <app-filter-select [label]="'Obra' | t" [options]="obrasOpts()" [value]="filObra()" (valueChange)="onObra($event)" />
+  <app-filter-select [label]="'Estado' | t" [options]="ESTADOS_OPTS" [value]="filEstado()" (valueChange)="onEstado($event)" />
+  <label class="otl-date">{{ 'Desde' | t }}
+    <input type="date" class="sgc-input" [ngModel]="desde()" (ngModelChange)="onDesde($event)" />
+  </label>
+  <label class="otl-date">{{ 'Hasta' | t }}
+    <input type="date" class="sgc-input" [ngModel]="hasta()" (ngModelChange)="onHasta($event)" />
+  </label>
+  @if (puedeVerOtras()) {
+    <div class="otl-scope">
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="!soloMias()" [class.sgc-btn--ghost]="soloMias()" (click)="setSoloMias(false)">{{ 'Todas' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="soloMias()" [class.sgc-btn--ghost]="!soloMias()" (click)="setSoloMias(true)">{{ 'Mis OT' | t }}</button>
+    </div>
+  }
+</div>
+
+@if (loading()) {
+  <app-skeleton [rows]="5" />
+} @else if (error()) {
+  <p class="otl-error">{{ error() }}</p>
+} @else if (filtradas().length === 0) {
+  <p class="page__empty">{{ 'No hay órdenes de trabajo con estos filtros.' | t }}</p>
+} @else {
+  <div class="table-scroll">
+    <table class="data-table" aria-label="Órdenes de trabajo">
+      <thead>
+        <tr>
+          <th>{{ 'Nº' | t }}</th>
+          <th>{{ 'Obra' | t }}</th>
+          <th>{{ 'Fecha' | t }}</th>
+          <th>{{ 'Trabajo' | t }}</th>
+          <th>{{ 'Responsable' | t }}</th>
+          <th>{{ 'Estado' | t }}</th>
+          <th class="text-right">{{ 'Fotos' | t }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filtradas(); track f.bitacora_id) {
+          <tr>
+            <td class="otl-cod">{{ f.codigo }}</td>
+            <td>{{ f.proyecto ?? '—' }}
+              @if (f.es_prueba) { <span class="sgc-badge sgc-badge--neutral">{{ 'prueba' | t }}</span> }
+            </td>
+            <td class="text-muted">{{ f.fecha | date:'d MMM y' }}</td>
+            <td class="otl-desc">{{ f.descripcion }}</td>
+            <td class="text-muted">{{ f.responsable ?? '—' }}</td>
+            <td>
+              <span class="sgc-badge"
+                    [class.sgc-badge--success]="f.estado === 'firmada'"
+                    [class.sgc-badge--warning]="f.estado === 'emitida'"
+                    [class.sgc-badge--neutral]="f.estado === 'borrador'">{{ ESTADO_LABEL[f.estado] | t }}</span>
+            </td>
+            <td class="text-right text-muted">{{ f.fotos || '—' }}</td>
+            <td class="text-right">
+              <a [routerLink]="['/bitacora/orden-trabajo', f.bitacora_id]" class="sgc-btn sgc-btn--secondary sgc-btn--sm">{{ 'Ver' | t }}</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
