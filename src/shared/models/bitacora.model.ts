@@ -127,12 +127,31 @@ export interface OrdenTrabajoDetalle {
     created_at: string; es_prueba: boolean;
   } | null;
   detalle: {
+    numero?: number | null; // BW1 — número visible OT-000123
     descripcion: string; ubicacion: string | null;
     cantidad: number | null; unidad: string | null;
     monto_estimado: number | null; solicitado_por: string | null;
     notas: string | null;
   } | null;
   firmas: OrdenTrabajoFirma[];
+}
+
+/** BW1 — fila de la lista de órdenes de trabajo (RPC listar_ordenes_trabajo). */
+export interface OrdenTrabajoResumen {
+  bitacora_id: string;
+  numero: number | null;
+  codigo: string;            // OT-000123
+  fecha: string;
+  proyecto_id: string;
+  proyecto: string | null;
+  descripcion: string;
+  ubicacion: string | null;
+  responsable: string | null;
+  creado_por: string | null;
+  created_at: string;
+  estado: 'borrador' | 'emitida' | 'firmada';
+  fotos: number;
+  es_prueba: boolean;
 }
 
 export const VISITANTE_TIPOS: { value: string; label: string }[] = [

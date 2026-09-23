@@ -41,8 +41,7 @@
 | bitacora/historial | - | 175 | 0 | 175 | 0% |
 | bitacora/mi-proyecto | - | 15 | 0 | 15 | 0% |
 | bitacora/moldes | - | 28 | 0 | 28 | 0% |
-| bitacora/nueva | - | 268 | 0 | 268 | 0% |
-| bitacora/orden-trabajo | - | 92 | 0 | 92 | 0% |
+| bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | bitacora/solicitudes-material | - | 116 | 0 | 116 | 0% |
 | compras/ordenes | - | 143 | 0 | 143 | 0% |
@@ -146,4 +145,5 @@
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
+| bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
 | auth | - | 57 | 15 | 42 | 26% |

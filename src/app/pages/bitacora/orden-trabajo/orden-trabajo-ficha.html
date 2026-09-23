@@ -1,11 +1,20 @@
 <div class="page-header">
   <div class="page-header__left">
-    <h1 class="page-title">Orden de trabajo</h1>
+    <h1 class="page-title">
+      {{ 'Orden de trabajo' | t }}
+      @if (orden()) { <span class="otf-cod">{{ codigo() }}</span> }
+      @if (orden()) {
+        <span class="sgc-badge"
+              [class.sgc-badge--success]="estado() === 'firmada'"
+              [class.sgc-badge--warning]="estado() === 'emitida'"
+              [class.sgc-badge--neutral]="estado() === 'borrador'">{{ ESTADO_LABEL[estado()] | t }}</span>
+      }
+    </h1>
     @if (orden()?.bitacora; as b) {
       <span class="page-count">{{ b.proyecto ?? '—' }} · {{ b.fecha | date:'d MMM y' }}</span>
     }
   </div>
-  <a routerLink="/bitacora/historial" class="sgc-btn sgc-btn--ghost sgc-btn--sm">← Historial</a>
+  <a routerLink="/bitacora/ordenes-trabajo" class="sgc-btn sgc-btn--ghost sgc-btn--sm">← {{ 'Órdenes de trabajo' | t }}</a>
 </div>
 
 @if (loading()) {
@@ -58,7 +67,34 @@
     </div>
 
     <div class="otf-actions">
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">Imprimir / PDF</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="imprimir()">{{ 'Imprimir / PDF' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="copiarEnlace()">{{ 'Copiar enlace' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="toggleEnviar()">{{ 'Enviar a…' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="compartir()">{{ 'Compartir' | t }}</button>
     </div>
+
+    @if (enviarAbierto()) {
+      <div class="otf-enviar">
+        <h3 class="otf-title">{{ 'Enviar a usuarios del sistema' | t }}</h3>
+        <p class="otf-enviar__hint">{{ 'Cada persona recibe una notificación con el enlace a esta orden.' | t }}</p>
+        @if (destinatarios().length) {
+          <div class="otf-chips">
+            @for (d of destinatarios(); track d.id) {
+              <span class="otf-chip">{{ d.nombre }}
+                <button type="button" class="otf-chip__x" aria-label="Quitar" (click)="removeDestinatario(d.id)">×</button>
+              </span>
+            }
+          </div>
+        }
+        <!-- BW2 — picker de "agregar": no retiene selección (cada elección se agrega como chip). -->
+        <app-user-picker [value]="null" [placeholder]="'Agregar persona…' | t" (selected)="onDestinatarioPicked($event)" />
+        <div class="otf-enviar__foot">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleEnviar()" [disabled]="enviando()">{{ 'Cancelar' | t }}</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="enviar()" [disabled]="enviando() || !destinatarios().length">
+            {{ enviando() ? ('Enviando…' | t) : ('Enviar' | t) }}
+          </button>
+        </div>
+      </div>
+    }
   </section>
 }

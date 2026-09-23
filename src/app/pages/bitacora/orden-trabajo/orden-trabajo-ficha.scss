@@ -6,8 +6,9 @@
   margin-bottom: 16px;
   &__left { display: flex; flex-direction: column; gap: 2px; }
 }
-.page-title { margin: 0; font-size: 22px; }
+.page-title { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .page-count { color: var(--text-2); font-size: 13px; }
+.otf-cod { font-size: 14px; font-weight: 700; color: var(--accent, #ffb300); }
 
 .otf-loading, .otf-error { padding: 30px; text-align: center; color: var(--text-2); }
 .otf-error { color: var(--danger, #e5484d); }
@@ -45,7 +46,39 @@
 }
 
 .otf-meta { display: flex; align-items: center; gap: 10px; color: var(--text-2); font-size: 13px; }
-.otf-actions { display: flex; justify-content: flex-end; }
+.otf-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+
+.otf-enviar {
+  border: 1px solid var(--border, #2d2d2d);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  &__hint { margin: 0; color: var(--text-2); font-size: 13px; }
+  &__foot { display: flex; justify-content: flex-end; gap: 8px; }
+}
+.otf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.otf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2, #212121);
+  border: 1px solid var(--border, #2d2d2d);
+  border-radius: 999px;
+  padding: 3px 6px 3px 12px;
+  font-size: 13px;
+  &__x {
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    &:hover { color: var(--danger, #e5484d); }
+  }
+}
 
 @media (max-width: 768px) {
   .otf-firma { flex: 1 1 100%; }

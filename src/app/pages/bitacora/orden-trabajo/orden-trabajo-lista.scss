@@ -1,0 +1,42 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  &__left { display: flex; flex-direction: column; gap: 2px; }
+}
+.page-title { margin: 0; font-size: 22px; }
+.page-count { color: var(--text-2); font-size: 13px; }
+
+.otl-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.otl-search { min-width: 220px; flex: 1 1 240px; }
+.otl-date {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.otl-scope { display: flex; gap: 4px; }
+
+.otl-error { padding: 24px; text-align: center; color: var(--danger, #e5484d); }
+.page__empty { padding: 30px; text-align: center; color: var(--text-2); }
+
+.otl-cod { font-weight: 700; color: var(--accent, #ffb300); white-space: nowrap; }
+.otl-desc {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .otl-desc { max-width: 160px; }
+}
