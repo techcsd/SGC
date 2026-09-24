@@ -99,19 +99,25 @@ export class UserService {
       this.hasRole('admin') ||
       this.hasRole('tecnologia') ||
       this.hasRole('gerencia') ||
-      this.hasRole('direccion'),
+      this.hasRole('direccion') ||
+      // BX1 — el rol Developer tiene el módulo `tecnologia` (dev notes, errores,
+      // versiones, importar, matriz). Espejo de la SQL `es_tecnologia()` (por módulo).
+      this.hasRole('desarrollador') ||
+      this.hasModulo('tecnologia'),
   );
 
   /**
-   * BR — desarrollador/programador: SOLO admin + rol Tecnología + Encargado de
-   * Tecnología. Más estrecho que `esTecnologia` (excluye gerencia/dirección).
-   * Reservado a las **Dev notes**. Debe coincidir con `sgc.es_desarrollador()`.
+   * BR/BX1 — desarrollador/programador: admin + rol Tecnología + Encargado de
+   * Tecnología + rol Developer (`desarrollador`). Más estrecho que `esTecnologia`
+   * (excluye gerencia/dirección). Dev notes, detalle técnico de errores (regla 16),
+   * cinta DEV. Debe coincidir con `sgc.es_desarrollador()` / `es_rol_desarrollador()`.
    */
   esDesarrollador = computed(
     () =>
       this.hasRole('admin') ||
       this.hasRole('tecnologia') ||
-      this.hasRole('encargado_tecnologia'),
+      this.hasRole('encargado_tecnologia') ||
+      this.hasRole('desarrollador'),
   );
 
   /**

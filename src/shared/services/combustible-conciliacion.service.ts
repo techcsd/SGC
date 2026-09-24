@@ -35,6 +35,24 @@ export interface InformeRow {
   alerta?: string;
 }
 
+/** BX4 — factura de combustible guardada al subir (estado + diagnóstico). */
+export interface CombustibleFactura {
+  id: string;
+  nro_factura: string | null;
+  estacion: string | null;
+  archivo_path: string;
+  miniatura_path: string | null;
+  tamano: number | null;
+  paginas: number | null;
+  fecha_documento: string | null;
+  total_factura: number | null;
+  estado: 'subida' | 'parseada' | 'importada' | 'fallida';
+  diagnostico: { diagnostico?: string; rows?: number; cards?: number; cuadre?: { esperado: number | null; obtenido: number; cuadra: boolean }; columnas_faltantes?: string[] } | null;
+  conciliacion_id: string | null;
+  subido_por_nombre: string | null;
+  subido_en: string;
+}
+
 /** Cabecera guardada de una conciliación (para historial/dashboard). */
 export interface ConciliacionRegistro {
   id: string;
@@ -213,6 +231,95 @@ export class CombustibleConciliacionService {
     return path;
   }
 
+  // ── BX4 — Guardar el PDF AL SUBIR (antes de parsear) + ficha de factura ──────
+  /** BX4 — sha256 del archivo (dedupe cuando no se pudo leer el nº de factura). */
+  async sha256(file: File): Promise<string> {
+    const buf = await file.arrayBuffer();
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /** BX4 — sube el PDF a facturas/<año>/<clave>.pdf (upsert = idempotente por clave). */
+  async subirFacturaPdf(file: File, anio: number, clave: string): Promise<string> {
+    const path = `facturas/${anio}/${clave}.pdf`;
+    const { error } = await this.supabase.client.storage
+      .from('sgc-combustible')
+      .upload(path, file, { upsert: true, contentType: 'application/pdf' });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** BX4 — sube la miniatura PNG de la página 1. */
+  async subirMiniatura(blob: Blob, path: string): Promise<string> {
+    const { error } = await this.supabase.client.storage
+      .from('sgc-combustible')
+      .upload(path, blob, { upsert: true, contentType: blob.type || 'image/png' });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** BX4 — registra la factura AL SUBIR (dedupe por nº o sha256). Devuelve id+existente. */
+  async registrarFactura(p: {
+    archivo_path: string; nro_factura?: string | null; estacion?: string | null;
+    tamano?: number | null; paginas?: number | null; fecha_documento?: string | null;
+    total_factura?: number | null; sha256?: string | null;
+  }): Promise<{ id: string; existente: boolean; estado: string; subido_por?: string | null; subido_en?: string | null }> {
+    const { data, error } = await this.supabase.client.rpc('combustible_factura_registrar', {
+      p_archivo_path: p.archivo_path,
+      p_nro_factura: p.nro_factura ?? null,
+      p_estacion: p.estacion ?? null,
+      p_tamano: p.tamano ?? null,
+      p_paginas: p.paginas ?? null,
+      p_fecha_documento: p.fecha_documento ?? null,
+      p_total_factura: p.total_factura ?? null,
+      p_sha256: p.sha256 ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as { id: string; existente: boolean; estado: string };
+  }
+
+  /** BX4 — actualiza estado/diagnóstico/miniatura tras parsear. */
+  async actualizarFactura(id: string, p: {
+    estado?: string; diagnostico?: unknown; miniatura_path?: string | null;
+    nro_factura?: string | null; fecha_documento?: string | null; total_factura?: number | null; paginas?: number | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.rpc('combustible_factura_actualizar', {
+      p_id: id,
+      p_estado: p.estado ?? null,
+      p_diagnostico: p.diagnostico ?? null,
+      p_miniatura_path: p.miniatura_path ?? null,
+      p_nro_factura: p.nro_factura ?? null,
+      p_fecha_documento: p.fecha_documento ?? null,
+      p_total_factura: p.total_factura ?? null,
+      p_paginas: p.paginas ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** BX4 — enlaza la factura a la conciliación guardada. */
+  async vincularFactura(id: string, conciliacionId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('combustible_factura_vincular', {
+      p_id: id, p_conciliacion_id: conciliacionId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** BX4 — lista de facturas subidas (Flota › Conciliación › Facturas). */
+  async listarFacturas(): Promise<CombustibleFactura[]> {
+    const { data, error } = await this.supabase.client.rpc('combustible_facturas_listar');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as CombustibleFactura[];
+  }
+
+  /** BX4 — URL firmada (1 h) para ver/bajar el PDF o la miniatura del bucket privado. */
+  async urlFirmada(path: string, segundos = 3600): Promise<string | null> {
+    if (!path) return null;
+    const { data, error } = await this.supabase.client.storage
+      .from('sgc-combustible').createSignedUrl(path, segundos);
+    if (error) return null;
+    return data?.signedUrl ?? null;
+  }
+
   /** BJ2 — mapa tarjeta→vehículo/persona (se aprende una vez). */
   async getTarjetaMap(): Promise<TarjetaMap[]> {
     const { data, error } = await this.supabase.client.rpc('combustible_tarjeta_map_listar');
@@ -222,10 +329,11 @@ export class CombustibleConciliacionService {
 
   /** BV13 — sugiere el vehículo probable de una tarjeta por su titular (mapa →
    *  titular≈vehículo único → persona→asignado). null si no hay candidato claro. */
-  async sugerirVehiculoTarjeta(titular: string, fecha: string | null): Promise<{ vehiculo_id: string; score: number; via: string } | null> {
+  async sugerirVehiculoTarjeta(titular: string, fecha: string | null, placa?: string | null): Promise<{ vehiculo_id: string; score: number; via: string } | null> {
     const { data, error } = await this.supabase.client.rpc('sugerir_vehiculo_tarjeta', {
       p_titular: titular,
       p_fecha: fecha,
+      p_placa: placa ?? null,
     });
     if (error || !Array.isArray(data) || !data.length) return null;
     const s = data[0] as { vehiculo_id: string; score: number; via: string };

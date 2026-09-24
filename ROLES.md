@@ -45,6 +45,9 @@ El módulo `tecnologia` gatea el **contenido** de Tecnología (guía, matriz, in
 | 20 | `guarda_almacen` | Guarda-Almacén | inventario |
 | **21** | **`tecnologia`** | **Tecnología** | **tecnologia + plataforma (Y11)** |
 | 34 | `encargado_patio` | Encargado de Patio y Bodega Central | inventario **+ granulares** `proyectos.personal:operar`, `rrhh.asistencia:operar` (BQ4, 2026-09-14; `es_operativo=true`) |
+| 35 | **`desarrollador`** | **Developer** | **tecnologia (completo)** + **lectura granular** `inventario/flota/compras/proyectos.*:ver`, `bitacora.ver_todas:ver` (BX1, 2026-09-23; `es_operativo=false`) |
+
+**Rol `desarrollador` (Developer, id 35, BX1):** desarrollador de software. Tiene el módulo `tecnologia` completo (dev notes, errores de app, versiones + marcar versión/mínima, Importar datos, Matriz de notificaciones) y **lectura** (`:ver` granular) de inventario, flota, compras y proyectos para reproducir y depurar. **`es_desarrollador()` lo incluye** (ve 🩺 Código / detalle técnico de errores, dev notes, la cinta DEV) y **`es_tecnologia()` también** (por módulo). **NO** entra en `is_admin()`. **Qué NO puede:** escribir datos de obra (los RPC operativos gatean la escritura por módulo/`operar`, que este rol no tiene), crear/borrar usuarios ni cambiar roles (eso es `admin`; solo LEE Admin › Usuarios). Predicado unificado en `es_rol_desarrollador(uuid)` (una sola fuente para `es_desarrollador`, `directorio_desarrolladores`, `compartir_nota`).
 
 Roles "elevados" de flota (ven vehículos desactivados, gestionan todo): `admin, direccion, gerencia, jefe_flota` (`es_flota_elevado()`).
 Roles de plataforma Tecnología (`es_tecnologia()`): `admin, tecnologia`.

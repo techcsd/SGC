@@ -8,8 +8,10 @@ import {
   ConciliacionMeta,
   InformeRow,
   TarjetaMap,
+  CombustibleFactura,
 } from '../../../../shared/services/combustible-conciliacion.service';
-import { parseTotalEnergiesPdfFull, TotalEnergiesCard } from '../../../../shared/utils/parse-pdf-totalenergies.util';
+import { parseTotalEnergiesPdfFull, TotalEnergiesCard, ALERTA_CHIP } from '../../../../shared/utils/parse-pdf-totalenergies.util';
+import { generarMiniaturaPdf } from '../../../../shared/utils/pdf-thumbnail.util';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
@@ -71,6 +73,19 @@ export class ConciliacionCombustible implements OnInit {
   private archivoPdf: File | null = null;
   /** BJ2 — resumen por producto del PDF (para el cuadre). */
   productosDetectados = signal<{ nombre: string; cantidad: number | null; monto: number | null }[]>([]);
+  /** BX4 — id de la factura guardada al subir (para enlazar la conciliación). */
+  facturaId = signal<string | null>(null);
+  /** BX3 — cuadre Σ Total vs total de la factura (para el aviso del preview). */
+  cuadre = signal<{ esperado: number | null; obtenido: number; cuadra: boolean; filas_invalidas: number } | null>(null);
+  /** BX4 — lista de facturas subidas (Flota › Conciliación › Facturas). */
+  facturas = signal<CombustibleFactura[]>([]);
+  facturasAbierto = signal(false);
+  loadingFacturas = signal(false);
+  readonly ALERTA_CHIP = ALERTA_CHIP;
+  /** BX3 — texto del chip de alerta de una fila del informe. */
+  alertaChip(cod: string | undefined): string {
+    return cod ? (this.ALERTA_CHIP[cod] ?? cod) : '';
+  }
   /** Cuántas tarjetas del PDF siguen sin vehículo (caerían en «solo informe»). */
   tarjetasSinMapear = computed(() =>
     this.cardsDetectadas().filter((c) => !c.vehiculo_id).length,
@@ -243,24 +258,66 @@ export class ConciliacionCombustible implements OnInit {
       this.cardsDetectadas.set([]);
       this.productosDetectados.set([]);
       this.archivoPdf = esPdf ? file : null;
+      this.facturaId.set(null);
       let filas: InformeRow[];
       let cards: TotalEnergiesCard[] = [];
       if (esPdf) {
-        const parsed = await parseTotalEnergiesPdfFull(new Uint8Array(await file.arrayBuffer()));
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        // BX4.a — GUARDAR el PDF AL SUBIR, antes de parsear: un fallo de parse ya no
+        // pierde el archivo (así julio deja de ser un misterio). Dedupe por sha256.
+        const sha = await this.service.sha256(file).catch(() => '');
+        const anio = new Date().getFullYear();
+        let facturaId: string | null = null;
+        try {
+          const path = await this.service.subirFacturaPdf(file, anio, sha || crypto.randomUUID());
+          const reg = await this.service.registrarFactura({
+            archivo_path: path, sha256: sha || null, tamano: file.size, estacion: this.estacionSel(),
+          });
+          facturaId = reg.id;
+          this.facturaId.set(reg.id);
+          if (reg.existente) {
+            this.toast.info('Esta factura ya estaba subida', 'Se reintenta la lectura con el parser actual.');
+          }
+        } catch { /* si el guardado falla, seguimos: al menos intentamos parsear */ }
+
+        const parsed = await parseTotalEnergiesPdfFull(bytes);
         filas = parsed.rows;
         cards = parsed.cards;
         this.productosDetectados.set(parsed.productos);
+        this.cuadre.set(parsed.cuadre);
+
+        // BX4 — miniatura ligera de la p.1 (best-effort) + estado/diagnóstico.
+        if (facturaId) {
+          let miniPath: string | null = null;
+          try {
+            const mini = await generarMiniaturaPdf(bytes);
+            if (mini) miniPath = await this.service.subirMiniatura(mini, `facturas/${anio}/${facturaId}-p1.${mini.type.includes('jpeg') ? 'jpg' : 'png'}`);
+          } catch { /* la miniatura nunca bloquea */ }
+          await this.service.actualizarFactura(facturaId, {
+            estado: parsed.rows.length ? 'parseada' : 'fallida',
+            diagnostico: { diagnostico: parsed.diagnostico, rows: parsed.rows.length, cards: parsed.cards.length, cuadre: parsed.cuadre, columnas_faltantes: parsed.columnas_faltantes },
+            miniatura_path: miniPath,
+            nro_factura: parsed.header.numero_factura || null,
+            fecha_documento: parsed.header.fecha_documento,
+            total_factura: parsed.header.total_factura,
+            paginas: null,
+          }).catch(() => { /* no bloquea el preview */ });
+        }
+
         if (parsed.rows.length === 0) {
-          // BV12 — mensajes DISTINTOS según la causa + reporte automático a Tecnología
-          // (con la muestra sin montos) para agregar el formato nuevo sin pedir el archivo.
+          // BV12/BX3 — mensajes DISTINTOS según la causa + reporte automático a Tecnología.
           this.parseError.set(
             parsed.diagnostico === 'sin_texto'
               ? 'Este PDF no tiene texto (es una imagen escaneada). Pide a TotalEnergies el Excel/CSV o el PDF original.'
-              : 'Este PDF tiene un formato que aún no reconocemos. Ya se reportó a Tecnología para agregarlo.',
+              : parsed.diagnostico === 'columnas_faltantes'
+                ? `Este PDF tiene un formato distinto (faltan columnas: ${parsed.columnas_faltantes.join(', ')}). El archivo quedó guardado en Facturas para que Tecnología lo revise.`
+                : 'Este PDF tiene un formato que aún no reconocemos. El archivo quedó guardado en Facturas y ya se reportó a Tecnología.',
           );
           void this.service.reportarPdfNoLeido(parsed.diagnostico, parsed.muestra, file.name);
+          void this.cargarFacturas();
           return;
         }
+        void this.cargarFacturas();
       } else {
         filas = await this.parseInforme(file);
         if (filas.length === 0) {
@@ -322,8 +379,9 @@ export class ConciliacionCombustible implements OnInit {
     const fecha = filas.find((f) => f.fecha)?.fecha ?? null;
     await Promise.all(
       lista.map(async (e) => {
-        if (e.vehiculo_id || !e.card.titular) return;
-        const s = await this.service.sugerirVehiculoTarjeta(e.card.titular, fecha).catch(() => null);
+        if (e.vehiculo_id || (!e.card.titular && !e.card.placa)) return;
+        // BX3/BV13 — la PLACA del pie de tarjeta (PP295123) manda el auto-vínculo exacto.
+        const s = await this.service.sugerirVehiculoTarjeta(e.card.titular, fecha, e.card.placa).catch(() => null);
         if (s && this.vehiculos().some((v) => v.id === s.vehiculo_id)) {
           e.vehiculo_id = s.vehiculo_id;
           e.sugerido = { score: s.score, via: s.via };
@@ -735,10 +793,11 @@ export class ConciliacionCombustible implements OnInit {
     if (!soloInf.length) { this.toast.info('No hay filas del informe sin registrar.'); return; }
     this.saving.set(true);
     try {
-      if (this.archivoPdf && !meta.pdf_path) {
+      if (!this.facturaId() && this.archivoPdf && !meta.pdf_path) {
         try { meta.pdf_path = await this.service.subirPdf(this.archivoPdf); } catch { /* sin PDF */ }
       }
       const id = await this.service.guardar(meta, this.detalles());
+      if (this.facturaId()) await this.service.vincularFactura(this.facturaId()!, id).catch(() => { /* no crítico */ });
       const filas = soloInf.map((d) => ({
         fecha: d.fecha,
         galones: d.galones_informe,
@@ -772,15 +831,13 @@ export class ConciliacionCombustible implements OnInit {
     if (!meta || this.saving()) return;
     this.saving.set(true);
     try {
-      // BJ2 — guarda la factura PDF original ligada a la conciliación (traza fiscal).
-      if (this.archivoPdf) {
-        try {
-          meta.pdf_path = await this.service.subirPdf(this.archivoPdf);
-        } catch {
-          this.toast.warning('Conciliación guardada sin el PDF', 'No se pudo subir la factura; el cuadre sí se guarda.');
-        }
+      // BJ2/BX4 — el PDF ya se guardó AL SUBIR (facturaId). Fallback: subirPdf si el
+      // origen fue Excel/CSV o no se registró la factura.
+      if (!this.facturaId() && this.archivoPdf && !meta.pdf_path) {
+        try { meta.pdf_path = await this.service.subirPdf(this.archivoPdf); } catch { /* sin PDF */ }
       }
-      await this.service.guardar(meta, this.detalles());
+      const id = await this.service.guardar(meta, this.detalles());
+      if (this.facturaId()) await this.service.vincularFactura(this.facturaId()!, id).catch(() => { /* no crítico */ });
       this.toast.success(
         'Conciliación guardada',
         this.discrepancias() > 0
@@ -790,11 +847,59 @@ export class ConciliacionCombustible implements OnInit {
       this.detalles.set([]);
       this.meta.set(null);
       this.nombreArchivo.set(null);
+      this.facturaId.set(null);
       await this.cargarHistorial();
+      await this.cargarFacturas();
     } catch (e: unknown) {
       this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  // ── BX4 — Facturas: lista, ver, reintentar lectura, bajar ───────────────────
+  async cargarFacturas() {
+    this.loadingFacturas.set(true);
+    try { this.facturas.set(await this.service.listarFacturas()); }
+    catch { /* la lista es informativa */ }
+    finally { this.loadingFacturas.set(false); }
+  }
+
+  toggleFacturas() {
+    const abrir = !this.facturasAbierto();
+    this.facturasAbierto.set(abrir);
+    if (abrir && !this.facturas().length) void this.cargarFacturas();
+  }
+
+  /** BX4 — abre el PDF original (URL firmada 1 h, bucket privado). */
+  async verFactura(f: CombustibleFactura) {
+    const url = await this.service.urlFirmada(f.archivo_path);
+    if (url) window.open(url, '_blank');
+    else this.toast.error('No se pudo abrir el PDF', 'Vuelve a intentarlo.');
+  }
+
+  /** BX4 — vuelve a leer una factura guardada con el parser ACTUAL (así se arregla
+   *  julio sin re-subir): descarga el PDF, lo re-parsea y actualiza estado/diagnóstico. */
+  async reintentarLectura(f: CombustibleFactura) {
+    const url = await this.service.urlFirmada(f.archivo_path);
+    if (!url) { this.toast.error('No se pudo descargar el PDF'); return; }
+    try {
+      const bytes = new Uint8Array(await (await fetch(url)).arrayBuffer());
+      const parsed = await parseTotalEnergiesPdfFull(bytes);
+      await this.service.actualizarFactura(f.id, {
+        estado: parsed.rows.length ? 'parseada' : 'fallida',
+        diagnostico: { diagnostico: parsed.diagnostico, rows: parsed.rows.length, cards: parsed.cards.length, cuadre: parsed.cuadre, columnas_faltantes: parsed.columnas_faltantes },
+        nro_factura: parsed.header.numero_factura || null,
+        fecha_documento: parsed.header.fecha_documento,
+        total_factura: parsed.header.total_factura,
+      });
+      this.toast.success(
+        parsed.rows.length ? `Leída: ${parsed.rows.length} transacción(es)` : 'Sigue sin poder leerse',
+        parsed.rows.length ? 'Ya puedes conciliarla desde el archivo.' : `Diagnóstico: ${parsed.diagnostico}.`,
+      );
+      await this.cargarFacturas();
+    } catch (e: unknown) {
+      this.toast.errorFrom(e, 'No se pudo releer la factura');
     }
   }
 }

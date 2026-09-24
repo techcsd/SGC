@@ -151,7 +151,11 @@
                 <td><code class="code-tag">{{ r.transaccion_num || '—' }}</code></td>
                 <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }}{{ r.hora ? ' · ' + r.hora : '' }}</td>
                 <td>{{ r.identificador }} @if (r.titular_es_persona) { <span class="sgc-badge sgc-badge--neutral">persona</span> }</td>
-                <td>{{ r.producto || '—' }}</td>
+                <td>
+                  {{ r.producto || '—' }}
+                  <!-- BX3 — alerta de control de consumo (X/Y/FR/H/J/Z), dato útil no ruido -->
+                  @if (r.alerta) { <span class="sgc-badge sgc-badge--warning" [title]="alertaChip(r.alerta)">{{ alertaChip(r.alerta) }}</span> }
+                </td>
                 <td class="text-right">{{ r.galones === null ? '—' : (r.galones | number:'1.0-2') }}</td>
                 <td class="text-right">{{ r.monto === null ? '—' : (r.monto | number:'1.0-2') }}</td>
                 <td>
@@ -319,4 +323,65 @@
       </table>
     </div>
   </div>
+}
+
+<!-- ── BX4 — Facturas subidas (guardadas al subir, aunque el parse falle) ── -->
+<h2 class="cc-section">
+  <button type="button" class="cc-toggle" (click)="toggleFacturas()">
+    <app-icon [name]="facturasAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
+    Facturas ({{ facturas().length || '—' }})
+  </button>
+</h2>
+@if (facturasAbierto()) {
+  @if (loadingFacturas()) {
+    <app-skeleton variant="list" [rows]="3" />
+  } @else if (!facturas().length) {
+    <div class="table-empty sgc-card"><p>Aún no se ha subido ninguna factura.</p></div>
+  } @else {
+    <div class="table-wrapper sgc-card">
+      <div class="table-scroll">
+        <table class="data-table" aria-label="Facturas de combustible subidas">
+          <thead>
+            <tr><th></th><th>Nº factura</th><th>Estación</th><th>Fecha doc.</th><th class="text-right">Total</th><th>Estado</th><th>Diagnóstico</th><th>Subió</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            @for (f of facturas(); track f.id) {
+              <tr>
+                <td>
+                  @if (f.miniatura_path) {
+                    <button type="button" class="cc-thumb" (click)="verFactura(f)" title="Ver PDF">
+                      <app-icon name="file-text" [size]="18" />
+                    </button>
+                  } @else { <app-icon name="file-text" [size]="18" /> }
+                </td>
+                <td><code class="code-tag">{{ f.nro_factura || '—' }}</code></td>
+                <td>{{ f.estacion || '—' }}</td>
+                <td>{{ f.fecha_documento ? formatFecha(f.fecha_documento) : '—' }}</td>
+                <td class="text-right">{{ f.total_factura === null ? '—' : (f.total_factura | number:'1.2-2') }}</td>
+                <td>
+                  @switch (f.estado) {
+                    @case ('importada') { <span class="sgc-badge sgc-badge--success">importada</span> }
+                    @case ('parseada') { <span class="sgc-badge sgc-badge--neutral">leída</span> }
+                    @case ('fallida') { <span class="sgc-badge sgc-badge--danger">no se pudo leer</span> }
+                    @default { <span class="sgc-badge sgc-badge--warning">subida</span> }
+                  }
+                </td>
+                <td>
+                  @if (f.diagnostico?.rows) { <small>{{ f.diagnostico?.rows }} tx</small> }
+                  @if (f.diagnostico?.cuadre && !f.diagnostico?.cuadre?.cuadra) { <small class="cc-neg"> · no cuadra</small> }
+                  @if (f.diagnostico?.columnas_faltantes?.length) { <small class="cc-neg"> · faltan cols: {{ f.diagnostico?.columnas_faltantes?.join(', ') }}</small> }
+                  @if (f.diagnostico?.diagnostico === 'sin_texto') { <small class="cc-neg">PDF escaneado</small> }
+                </td>
+                <td>{{ f.subido_por_nombre || '—' }}</td>
+                <td class="cc-acciones">
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verFactura(f)">Ver PDF</button>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reintentarLectura(f)">Reintentar lectura</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 }

@@ -100,12 +100,15 @@ export class CombustibleLog implements OnInit {
 
   async ngOnInit() {
     try {
-      const [vehiculos, usuarios] = await Promise.all([
+      const [vehiculos, usuarios, conductores] = await Promise.all([
         this.vehiculosService.getAll(),
         this.conductoresService.getUsuariosVinculables().catch(() => []),
+        this.conductoresService.getAll().catch(() => []),
       ]);
       this.vehiculos.set(vehiculos);
       this.usuarios.set(usuarios);
+      // BX2 — mapa conductor_id → nombre, para que el historial NUNCA muestre un uuid.
+      this.conductoresMap.set(new Map(conductores.map((c) => [c.id, c.nombre])));
     } catch { /* filtros opcionales */ }
     if (this.esFlotaElevado()) void this.cargarPermisos();
     await this.cargar();
@@ -274,11 +277,25 @@ export class CombustibleLog implements OnInit {
     { value: 'gasolina', label: 'Gasolina' },
     { value: 'diesel', label: 'Diésel' },
   ];
-  // BQ5 — etiquetas de los campos para el diff antes/después del historial.
+  // BX2 — mapa conductor_id → nombre (para no exponer uuid en el historial).
+  conductoresMap = signal<Map<string, string>>(new Map());
+
+  // BQ5/BX2 — SOLO campos de negocio se listan en el historial, con etiqueta humana.
+  // Los campos de sistema (saneada*, valor_original, rendimiento*, ids, timestamps) NO
+  // se listan: se resumen en una línea humana (resumenSistema) o quedan en el detalle
+  // técnico (solo desarrollador). Regla 16 + AT11.
   readonly CAMPO_LABEL: Record<string, string> = {
     vehiculo_id: 'Vehículo', estacion: 'Estación', fecha: 'Fecha',
     galones: 'Galones', monto: 'Monto', kilometraje: 'Kilometraje', producto: 'Combustible',
-    precio_por_galon: 'Precio/galón', km_recorridos: 'Δ km', rendimiento_km_gal: 'Rendimiento',
+    conductor_id: 'Conductor',
+  };
+  // Campos de negocio que se muestran (allowlist). El resto no se pinta crudo.
+  private readonly CAMPOS_NEGOCIO = Object.keys(this.CAMPO_LABEL);
+  // Roles internos → nombre legible para las líneas del historial.
+  private readonly ROL_LEGIBLE: Record<string, string> = {
+    admin: 'Administración', jefe_flota: 'Jefe de Flota', logistica: 'Logística',
+    gerencia: 'Gerencia', direccion: 'Dirección', desarrollador: 'Developer',
+    tecnologia: 'Tecnología', encargado_tecnologia: 'Encargado de Tecnología',
   };
 
   editForm = this.fb.group({
@@ -370,34 +387,90 @@ export class CombustibleLog implements OnInit {
     }
   }
 
-  /** Campos que cambiaron en una entrada del historial (para el diff antes/después). */
-  diffCampos(h: RegistroCombustibleHistorial): { campo: string; antes: string; despues: string }[] {
-    const antes = h.antes ?? {};
-    const despues = h.despues ?? {};
+  /** BX2 — SOLO los campos de negocio que cambiaron, con etiqueta y valor humanos. */
+  cambiosNegocio(h: RegistroCombustibleHistorial): { campo: string; antes: string; despues: string }[] {
+    const antes = (h.antes ?? {}) as Record<string, unknown>;
+    const despues = (h.despues ?? {}) as Record<string, unknown>;
+    const out: { campo: string; antes: string; despues: string }[] = [];
+    for (const k of this.CAMPOS_NEGOCIO) {
+      const a = antes[k] ?? null;
+      const d = despues[k] ?? null;
+      if (String(a) !== String(d)) {
+        out.push({ campo: this.CAMPO_LABEL[k], antes: this.fmtCampo(k, a), despues: this.fmtCampo(k, d) });
+      }
+    }
+    return out;
+  }
+
+  /** BX2 — cambios de SISTEMA resumidos en lenguaje humano (nada de uuid/ISO/jsonb). */
+  resumenSistema(h: RegistroCombustibleHistorial): string[] {
+    const antes = (h.antes ?? {}) as Record<string, unknown>;
+    const despues = (h.despues ?? {}) as Record<string, unknown>;
+    const out: string[] = [];
+    const num = (v: unknown) => (v == null || v === '' ? null : Number(v));
+    if (!antes['saneada'] && despues['saneada']) {
+      const rol = this.rolLegible(String(despues['saneada_como_rol'] ?? h.editado_como_rol ?? ''));
+      out.push(`Marcada como saneada por ${this.editorNombre(h)}${rol ? ` (${rol})` : ''}`);
+    }
+    const rA = num(antes['rendimiento_km_gal']); const rD = num(despues['rendimiento_km_gal']);
+    if (rA !== rD && (rA != null || rD != null)) {
+      out.push(`Rendimiento recalculado: ${rA ?? '—'} → ${rD ?? '—'} km/gal`);
+    }
+    const pA = num(antes['precio_por_galon']); const pD = num(despues['precio_por_galon']);
+    if (pA !== pD && (pA != null || pD != null)) {
+      out.push(`Precio/galón recalculado: ${pA ?? '—'} → ${pD ?? '—'}`);
+    }
+    const kA = num(antes['km_recorridos']); const kD = num(despues['km_recorridos']);
+    if (kA !== kD && (kA != null || kD != null)) {
+      out.push(`Δ km recalculado: ${kA ?? '—'} → ${kD ?? '—'} km`);
+    }
+    return out;
+  }
+
+  /** BX2 — detalle técnico crudo (SOLO desarrollador, regla 16): todas las claves. */
+  detalleTecnico(h: RegistroCombustibleHistorial): { campo: string; antes: string; despues: string }[] {
+    const antes = (h.antes ?? {}) as Record<string, unknown>;
+    const despues = (h.despues ?? {}) as Record<string, unknown>;
     const claves = new Set([...Object.keys(antes), ...Object.keys(despues)]);
     const out: { campo: string; antes: string; despues: string }[] = [];
     claves.forEach((k) => {
-      const a = (antes as Record<string, unknown>)[k] ?? null;
-      const d = (despues as Record<string, unknown>)[k] ?? null;
-      if (String(a) !== String(d)) {
-        out.push({ campo: this.CAMPO_LABEL[k] ?? k, antes: this.fmtValor(k, a), despues: this.fmtValor(k, d) });
+      const a = antes[k] ?? null; const d = despues[k] ?? null;
+      if (JSON.stringify(a) !== JSON.stringify(d)) {
+        out.push({ campo: k, antes: this.crudo(a), despues: this.crudo(d) });
       }
     });
     return out;
   }
+  esDesarrollador = computed(() => this.userService.esDesarrollador());
 
-  private fmtValor(campo: string, val: unknown): string {
+  private crudo(val: unknown): string {
+    if (val === null || val === undefined) return '—';
+    return typeof val === 'object' ? JSON.stringify(val) : String(val);
+  }
+
+  rolLegible(codigo: string): string {
+    const c = (codigo || '').trim();
+    return c ? (this.ROL_LEGIBLE[c] ?? c) : '';
+  }
+
+  /** Valor de un campo de negocio en lenguaje humano (RD$, gal, km, fecha, nombres). */
+  private fmtCampo(campo: string, val: unknown): string {
     if (val === null || val === undefined || val === '') return '—';
-    if (campo === 'fecha') return this.formatFecha(String(val));
-    if (campo === 'vehiculo_id') {
-      const veh = this.vehiculos().find((x) => x.id === val);
-      return veh ? this.idVehiculo(veh) : String(val);
+    switch (campo) {
+      case 'fecha': return this.formatFecha(String(val));
+      case 'galones': return `${Number(val)} gal`;
+      case 'kilometraje': return `${Number(val).toLocaleString('es-DO')} km`;
+      case 'monto': return `RD$ ${Number(val).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case 'vehiculo_id': {
+        const veh = this.vehiculos().find((x) => x.id === val);
+        return veh ? this.idVehiculo(veh) : 'otro vehículo';
+      }
+      case 'conductor_id': return this.conductoresMap().get(String(val)) ?? 'otro conductor';
+      case 'producto':
+        return this.PRODUCTO_OPCIONES.find((p) => p.value === val)?.label
+          ?? this.PRODUCTO_LABEL[String(val)] ?? String(val);
+      default: return String(val);
     }
-    if (campo === 'producto') {
-      return this.PRODUCTO_OPCIONES.find((p) => p.value === val)?.label
-        ?? this.PRODUCTO_LABEL[String(val)] ?? String(val);
-    }
-    return String(val);
   }
 
   editorNombre(h: RegistroCombustibleHistorial): string {

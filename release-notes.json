@@ -4255,6 +4255,36 @@
           "d": "Las echadas registradas con fecha pasada quedan marcadas RETROACTIVA (con el permiso que las autorizó); se avisa a Flota cuando se usa una y al chofer cuando se le concede el permiso."
         }
       ]
+    },
+    "1.143.0": {
+      "titulo": "Facturas de combustible: lectura por columnas que ya no se rompe, se guarda cada PDF al subir, historial de echadas legible y rol Developer",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "La lectura de la factura de TotalEnergies dejó de romperse: ahora las columnas se ubican por el encabezado del PDF, así que una alerta (X) en una fila o una plantilla con una columna distinta ya no descuadran los datos. La echada del Suburban Chevrolet 2023 que salía inválida ahora se lee bien, con su alerta de kilometraje."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Cada PDF de factura se guarda apenas se sube, antes de leerlo: si la lectura falla (como el reporte de julio) el archivo ya no se pierde. Nueva sección Facturas en Conciliación: lista con estado y diagnóstico, Ver PDF y Reintentar lectura (así se arregla julio sin volver a pedírselo a nadie)."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al leer la factura se muestra el cuadre (la suma de las echadas contra el total del documento) y un chip por cada alerta de consumo (kilometraje, horario, zona…). Las tarjetas del PDF se auto-vinculan al vehículo por su placa exacta."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "El historial de edición de una echada se ve en lenguaje humano: solo los campos de negocio (galones, monto, precio, kilometraje, fecha, vehículo) con sus unidades, y los cambios internos resumidos en una línea (\"Marcada como saneada por…\", \"Rendimiento recalculado: …\"). Se acabaron los uuid, fechas técnicas y [object Object]; el detalle crudo queda solo para desarrollo."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Nuevo rol Developer: acceso completo a Tecnología y lectura de los módulos operativos (inventario, flota, compras, proyectos) para reproducir y depurar, sin escribir datos de obra ni administrar usuarios."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

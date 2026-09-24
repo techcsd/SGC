@@ -292,22 +292,48 @@
           <div class="cl-hist__item">
             <div class="cl-hist__head">
               <span class="cl-hist__who">{{ editorNombre(h) }}</span>
-              @if (h.editado_como_rol) { <span class="sgc-badge sgc-badge--neutral">{{ h.editado_como_rol }}</span> }
+              @if (h.editado_como_rol) { <span class="sgc-badge sgc-badge--neutral">{{ rolLegible(h.editado_como_rol) }}</span> }
               <span class="cl-hist__when">{{ formatFechaHora(h.created_at) }}</span>
             </div>
             @if (h.motivo) { <p class="cl-hist__motivo">{{ h.motivo }}</p> }
-            <ul class="cl-hist__diff">
-              @for (d of diffCampos(h); track d.campo) {
-                <li>
-                  <span class="cl-hist__campo">{{ d.campo }}:</span>
-                  <span class="cl-hist__antes">{{ d.antes }}</span>
-                  <app-icon name="arrow-right" [size]="13" />
-                  <span class="cl-hist__despues">{{ d.despues }}</span>
-                </li>
-              } @empty {
-                <li class="text-muted">Sin cambios de campo registrados.</li>
+            @if (cambiosNegocio(h); as cambios) {
+              <ul class="cl-hist__diff">
+                @for (d of cambios; track d.campo) {
+                  <li>
+                    <span class="cl-hist__campo">{{ d.campo }}:</span>
+                    <span class="cl-hist__antes">{{ d.antes }}</span>
+                    <app-icon name="arrow-right" [size]="13" />
+                    <span class="cl-hist__despues">{{ d.despues }}</span>
+                  </li>
+                }
+              </ul>
+              @if (resumenSistema(h); as sistema) {
+                @for (linea of sistema; track linea) {
+                  <p class="cl-hist__sistema text-muted">{{ linea }}</p>
+                }
               }
-            </ul>
+              @if (!cambios.length && !resumenSistema(h).length) {
+                <p class="text-muted">Sin cambios registrados.</p>
+              }
+            }
+            <!-- BX2 — el diff crudo (uuid/ISO/jsonb) SOLO para desarrollador (regla 16). -->
+            @if (esDesarrollador() && detalleTecnico(h); as tec) {
+              @if (tec.length) {
+                <details class="cl-hist__tecnico">
+                  <summary>Detalle técnico ({{ tec.length }} campos)</summary>
+                  <ul class="cl-hist__diff">
+                    @for (d of tec; track d.campo) {
+                      <li>
+                        <span class="cl-hist__campo">{{ d.campo }}:</span>
+                        <span class="cl-hist__antes">{{ d.antes }}</span>
+                        <app-icon name="arrow-right" [size]="13" />
+                        <span class="cl-hist__despues">{{ d.despues }}</span>
+                      </li>
+                    }
+                  </ul>
+                </details>
+              }
+            }
           </div>
         }
       }

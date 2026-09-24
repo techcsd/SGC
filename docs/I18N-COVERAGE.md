@@ -59,8 +59,8 @@
 | flota/checklists | - | 165 | 0 | 165 | 0% |
 | flota/combustible | - | 271 | 0 | 271 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
-| flota/combustible-log | - | 150 | 0 | 150 | 0% |
-| flota/conciliacion-combustible | - | 118 | 0 | 118 | 0% |
+| flota/combustible-log | - | 155 | 0 | 155 | 0% |
+| flota/conciliacion-combustible | - | 155 | 0 | 155 | 0% |
 | flota/conductores | - | 284 | 0 | 284 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
 | flota/mantenimientos | - | 140 | 0 | 140 | 0% |
