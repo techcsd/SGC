@@ -1,5 +1,16 @@
 # HANDOFF — SGC
 
+## ⚠️ Reportado por la app (PROMPT-67, ronda BY, app 2.31.0 en prod) — 3 huecos del padre
+La app construyó BY1/BY5 + BY4 + BY3 y salió a prod, mitigando estos 3 en cliente. **Ninguno bloquea** (la app ya funciona), pero conviene cerrarlos en el SGC:
+
+1. **`listar_bitacoras(p_todas, filtros)` NO existe.** PROMPT-67 F2 lo asumía. La app usa un **read directo** a `bitacoras` con la RLS de BY4 (`puede_ver_bitacora_de`) para "Bitácoras de las obras" y `getBitacora(id)` para el detalle. *Pedido:* si conviene una sola fuente, crear `listar_bitacoras(p_todas boolean, p_proyecto, p_desde, p_hasta, p_ingeniero)` security-definer que respete la RLS; la app migraría `todasBitacoras`/`getBitacora` a él. (Retrocompat: mantener el read directo hasta ≥2 versiones.)
+2. **`reenviar_echada(p_original, p_datos)` NO es idempotente.** Llama a `registrar_combustible_app(gen_random_uuid(), …)` y deja la original `rechazada`, así que un **reintento del outbox** (commit OK pero respuesta perdida) crearía un reenvío **duplicado**. La app mitiga comprobando `exists(reenvio_de = original)` antes de llamar. *Pedido:* aceptar un `p_client_uuid`/`p_id` opcional en `reenviar_echada` y pasarlo a `registrar_combustible_app` (idempotencia real server-side). Backward-compatible (param opcional).
+3. **La LISTA de requisiciones no expone `cerrada_en`.** `requisiciones_bandeja` (RPC) y el select de `solicitudes_material` que consume la app (`misSolicitudes`) no traen fecha de cierre; solo `RequisicionDetalle` la tiene. La app ordena **Historial por `created_at desc`** como proxy. *Pedido:* exponer `cerrada_en` (o `cierre_at`) en la fila de la lista/bandeja para ordenar Historial por cierre real desc (BY3 exacto).
+
+*(Detalle en csd-app `HANDOFF.md` → sesión 25/09 BY, sección "Contratos del padre".)*
+
+---
+
 ## TL;DR — ✅ 1.145.0 + BY1b EN PROD — 25/09/2026 (Xaviel dio OK)
 - **1.145.0 en prod** (`main`=`0259665`, Vercel deploy **READY**, versión registrada en `app_versiones`). BY2 UI 3 cubos + BY3 parity (frontend, sin migraciones).
 - **BY1b (hotfix, dev+prod):** `echadas_por_aprobar` + recordatorio excluyen `invalidada`. **Resultó clave:** el backfill BY1 marcó 104 echadas `en_espera`, y la limpieza BY2 luego invalidó 93 de ellas (fuera-de-flota). Sin BY1b, Raykler vería 104 (93 ya limpiadas); **con BY1b su cola de "Por aprobar" son 11 echadas reales de flota** (prod: 11 activas / 93 en_espera-invalidadas ocultas). Correcto y limpio.
