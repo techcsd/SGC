@@ -90,18 +90,40 @@ export class ConciliacionCombustible implements OnInit {
   tarjetasSinMapear = computed(() =>
     this.cardsDetectadas().filter((c) => !c.vehiculo_id).length,
   );
+  // BY2 — tres cubos: Flota (tarjeta con vehículo → lo importante), Fuera de flota
+  // (tarjeta de persona o sin vehículo → sección lateral), Anulaciones (galones/monto
+  // negativos → se cancelan, no se importan). Se clasifica en el cliente.
+  /** Códigos de tarjeta que YA tienen vehículo resuelto (del panel de tarjetas). */
+  private flotaTarjetas = computed(() => new Set(
+    this.cardsDetectadas().filter((c) => c.vehiculo_id).map((c) => c.card.codigo),
+  ));
+  cuboDeFila(r: InformeRow): 'flota' | 'fuera_flota' | 'anulacion' {
+    if ((r.galones ?? 0) < 0 || (r.monto ?? 0) < 0) return 'anulacion';
+    if (r.numero_registro || this.flotaTarjetas().has(r.numero_tarjeta)) return 'flota';
+    return 'fuera_flota';
+  }
+  filasFlota = computed(() => (this.preview() ?? []).filter((r) => this.cuboDeFila(r) === 'flota'));
+  filasFuera = computed(() => (this.preview() ?? []).filter((r) => this.cuboDeFila(r) === 'fuera_flota'));
+  filasAnulacion = computed(() => (this.preview() ?? []).filter((r) => this.cuboDeFila(r) === 'anulacion'));
+  fueraFlotaAbierto = signal(false);
+  anulacionesAbierto = signal(false);
+  cuboMonto(rows: InformeRow[]): number { return rows.reduce((s, r) => s + (r.monto ?? 0), 0); }
+
   previewStats = computed(() => {
     const rows = this.preview() ?? [];
-    // BB7 — una fila cuenta como "válida a importar" si no es inválida, ni duplicada,
-    // ni fue excluida a mano por el usuario.
-    const validas = rows.filter((r) => !r.invalida && !r.duplicada && !r.excluida);
+    // BY2 — solo la FLOTA cuenta como "a importar"; fuera-de-flota y anulaciones van
+    // a sus secciones y NO se cruzan ni crean echadas.
+    const flota = this.filasFlota();
+    const validas = flota.filter((r) => !r.invalida && !r.duplicada && !r.excluida);
     return {
       total: rows.length,
       validas: validas.length,
-      duplicadas: rows.filter((r) => r.duplicada).length,
-      invalidas: rows.filter((r) => r.invalida).length,
-      excluidas: rows.filter((r) => r.excluida && !r.invalida && !r.duplicada).length,
+      duplicadas: flota.filter((r) => r.duplicada).length,
+      invalidas: flota.filter((r) => r.invalida).length,
+      excluidas: flota.filter((r) => r.excluida && !r.invalida && !r.duplicada).length,
       personas: rows.filter((r) => r.titular_es_persona).length,
+      fueraFlota: this.filasFuera().length,
+      anulaciones: this.filasAnulacion().length,
       sumaGalones: validas.reduce((s, r) => s + (r.galones ?? 0), 0),
       sumaMonto: validas.reduce((s, r) => s + (r.monto ?? 0), 0),
     };
@@ -468,8 +490,13 @@ export class ConciliacionCombustible implements OnInit {
 
   /** Z23 — Confirma: inserta transacciones (dedupe) y concilia contra la plataforma. */
   async confirmarImport() {
-    const filas = (this.preview() ?? []).filter((f) => !f.invalida && !f.duplicada && !f.excluida);
-    if (filas.length === 0) {
+    // BY2 — solo la FLOTA se cruza y puede crear echadas. Fuera-de-flota y anulaciones
+    // se conservan en el archivo del informe (transacciones_proveedor) para trazabilidad,
+    // pero NO se convierten en registros_combustible (no ensucian el log ni el dashboard).
+    const flota = (this.filasFlota()).filter((f) => !f.invalida && !f.duplicada && !f.excluida);
+    const otras = (this.preview() ?? []).filter((f) => this.cuboDeFila(f) !== 'flota' && !f.invalida && !f.duplicada);
+    const filas = flota;
+    if (flota.length === 0 && otras.length === 0) {
       this.toast.error('No hay transacciones nuevas que importar.');
       return;
     }
@@ -480,7 +507,9 @@ export class ConciliacionCombustible implements OnInit {
     }
     this.importando.set(true);
     try {
-      const payload = filas.map((f) => ({
+      // Archivo del informe = flota + fuera-de-flota + anulaciones (traza completa);
+      // el cruce/echadas más abajo solo usa `filas` (flota).
+      const payload = [...flota, ...otras].map((f) => ({
         transaccion_num: f.transaccion_num,
         numero_factura: f.numero_factura || null,
         fecha_factura: f.fecha_factura,

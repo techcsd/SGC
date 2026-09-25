@@ -57,7 +57,8 @@
       @if (previewStats().duplicadas > 0) { <div class="stat-card stat-card--warn"><span class="stat-card__label">Duplicadas (ya importadas)</span><span class="stat-card__value">{{ previewStats().duplicadas }}</span></div> }
       @if (previewStats().invalidas > 0) { <div class="stat-card stat-card--danger"><span class="stat-card__label">Inválidas</span><span class="stat-card__value">{{ previewStats().invalidas }}</span></div> }
       @if (previewStats().excluidas > 0) { <div class="stat-card stat-card--warn"><span class="stat-card__label">Excluidas a mano</span><span class="stat-card__value">{{ previewStats().excluidas }}</span></div> }
-      @if (previewStats().personas > 0) { <div class="stat-card"><span class="stat-card__label">Titular = persona</span><span class="stat-card__value">{{ previewStats().personas }}</span></div> }
+      @if (previewStats().fueraFlota > 0) { <div class="stat-card stat-card--warn"><span class="stat-card__label">Fuera de flota</span><span class="stat-card__value">{{ previewStats().fueraFlota }}</span></div> }
+      @if (previewStats().anulaciones > 0) { <div class="stat-card"><span class="stat-card__label">Anulaciones</span><span class="stat-card__value">{{ previewStats().anulaciones }}</span></div> }
     </div>
     @if (cuadraFactura() === false) {
       <p class="cc-error"><app-icon name="alert-triangle" [size]="14" /> La suma de montos ({{ previewStats().sumaMonto | number:'1.2-2' }}) no cuadra con el total de la factura ({{ facturaTotal() | number:'1.2-2' }}). Revisa antes de confirmar.</p>
@@ -139,14 +140,16 @@
       </div>
     }
 
+    <!-- BY2 — la tabla principal = FLOTA (lo importante). -->
+    <h3 class="cc-section">Flota ({{ filasFlota().length }})</h3>
     <div class="table-wrapper sgc-card">
       <div class="table-scroll">
-        <table class="data-table" aria-label="Vista previa del reporte">
+        <table class="data-table" aria-label="Vista previa del reporte (flota)">
           <thead>
             <tr><th>Transacción</th><th>Fecha y hora</th><th>Vehículo / Titular</th><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th><th>Estado</th></tr>
           </thead>
           <tbody>
-            @for (r of rows; track $index) {
+            @for (r of filasFlota(); track $index) {
               <tr [class.cc-dup]="r.duplicada" [class.cc-neg]="r.invalida" [class.cc-excluida]="r.excluida">
                 <td><code class="code-tag">{{ r.transaccion_num || '—' }}</code></td>
                 <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }}{{ r.hora ? ' · ' + r.hora : '' }}</td>
@@ -178,6 +181,65 @@
         </table>
       </div>
     </div>
+
+    <!-- BY2 — Fuera de flota (tarjetas de persona / sin vehículo): NO se importan como
+         echadas. Asigna un vehículo en el panel de arriba para promoverlas a Flota. -->
+    @if (filasFuera().length) {
+      <div class="cc-cubo sgc-card">
+        <button type="button" class="cc-cubo__head" (click)="fueraFlotaAbierto.set(!fueraFlotaAbierto())">
+          <app-icon [name]="fueraFlotaAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
+          Fuera de flota ({{ filasFuera().length }}) · RD$ {{ cuboMonto(filasFuera()) | number:'1.0-2' }}
+          <span class="cc-hint">no se importan; asigna un vehículo arriba para incluirlas</span>
+        </button>
+        @if (fueraFlotaAbierto()) {
+          <div class="table-scroll">
+            <table class="data-table" aria-label="Fuera de flota">
+              <thead><tr><th>Fecha</th><th>Tarjeta / Titular</th><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th></tr></thead>
+              <tbody>
+                @for (r of filasFuera(); track $index) {
+                  <tr>
+                    <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }}{{ r.hora ? ' · ' + r.hora : '' }}</td>
+                    <td>@if (r.numero_tarjeta) { <code class="code-tag">{{ r.numero_tarjeta }}</code> } {{ r.titular || r.identificador }}</td>
+                    <td>{{ r.producto || '—' }}</td>
+                    <td class="text-right">{{ r.galones === null ? '—' : (r.galones | number:'1.0-2') }}</td>
+                    <td class="text-right">{{ r.monto === null ? '—' : (r.monto | number:'1.0-2') }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- BY2 — Anulaciones (galones/monto negativos del informe): se cancelan, no se importan. -->
+    @if (filasAnulacion().length) {
+      <div class="cc-cubo sgc-card">
+        <button type="button" class="cc-cubo__head" (click)="anulacionesAbierto.set(!anulacionesAbierto())">
+          <app-icon [name]="anulacionesAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
+          Anulaciones ({{ filasAnulacion().length }}) · RD$ {{ cuboMonto(filasAnulacion()) | number:'1.0-2' }}
+          <span class="cc-hint">créditos/reversos del informe; no se importan</span>
+        </button>
+        @if (anulacionesAbierto()) {
+          <div class="table-scroll">
+            <table class="data-table" aria-label="Anulaciones">
+              <thead><tr><th>Fecha</th><th>Tarjeta / Titular</th><th>Producto</th><th class="text-right">Galones</th><th class="text-right">Monto</th></tr></thead>
+              <tbody>
+                @for (r of filasAnulacion(); track $index) {
+                  <tr class="cc-neg">
+                    <td>{{ r.fecha ? formatFecha(r.fecha) : '—' }}{{ r.hora ? ' · ' + r.hora : '' }}</td>
+                    <td>@if (r.numero_tarjeta) { <code class="code-tag">{{ r.numero_tarjeta }}</code> } {{ r.titular || r.identificador }}</td>
+                    <td>{{ r.producto || '—' }}</td>
+                    <td class="text-right">{{ r.galones === null ? '—' : (r.galones | number:'1.0-2') }}</td>
+                    <td class="text-right">{{ r.monto === null ? '—' : (r.monto | number:'1.0-2') }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
   </div>
 }
 

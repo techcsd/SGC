@@ -75,3 +75,13 @@ tr.cc-excluida { opacity: 0.5; }
   padding: 1rem;
   h3 { margin: 0 0 0.5rem; font-size: 1rem; }
 }
+
+// ── BY2 — cubos plegables Fuera de flota / Anulaciones ──
+.cc-cubo { margin-top: 1rem; padding: 0; overflow: hidden; }
+.cc-cubo__head {
+  width: 100%; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  background: none; border: none; padding: 0.85rem 1rem; cursor: pointer;
+  font: inherit; font-weight: 600; color: var(--text-1); text-align: left;
+}
+.cc-cubo__head .cc-hint { font-weight: 400; color: var(--text-2); font-size: 0.8rem; margin-left: auto; }
+.cc-cubo .table-scroll { padding: 0 1rem 1rem; }

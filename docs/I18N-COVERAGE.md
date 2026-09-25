@@ -43,7 +43,7 @@
 | bitacora/moldes | - | 28 | 0 | 28 | 0% |
 | bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
-| bitacora/solicitudes-material | - | 116 | 0 | 116 | 0% |
+| bitacora/solicitudes-material | - | 117 | 0 | 117 | 0% |
 | compras/ordenes | - | 143 | 0 | 143 | 0% |
 | compras/proveedores | - | 113 | 0 | 113 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
@@ -60,7 +60,7 @@
 | flota/combustible | - | 271 | 0 | 271 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 189 | 0 | 189 | 0% |
-| flota/conciliacion-combustible | - | 155 | 0 | 155 | 0% |
+| flota/conciliacion-combustible | - | 181 | 0 | 181 | 0% |
 | flota/conductores | - | 284 | 0 | 284 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
 | flota/mantenimientos | - | 140 | 0 | 140 | 0% |

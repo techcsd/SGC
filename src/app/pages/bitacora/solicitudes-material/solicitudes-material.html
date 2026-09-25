@@ -50,14 +50,16 @@
       <p>No hay requisiciones.</p>
     </div>
   } @else {
-    <!-- BV9 — pestañas por fase con contador -->
+    <!-- BY3 — Activas (por entrega más cercana) / Historial -->
     <div class="req-fase-tabs" role="tablist">
-      @for (t of faseTabs; track t.key) {
-        <button type="button" class="req-fase-tab" [class.req-fase-tab--activa]="faseTab() === t.key"
-                role="tab" [attr.aria-selected]="faseTab() === t.key" (click)="faseTab.set(t.key)">
-          {{ t.label }} <span class="req-fase-tab__n">{{ faseCount(t.key) }}</span>
-        </button>
-      }
+      <button type="button" class="req-fase-tab" [class.req-fase-tab--activa]="vistaTab() === 'activas'"
+              role="tab" [attr.aria-selected]="vistaTab() === 'activas'" (click)="setVistaTab('activas')">
+        Activas <span class="req-fase-tab__n">{{ tabCount().activas }}</span>
+      </button>
+      <button type="button" class="req-fase-tab" [class.req-fase-tab--activa]="vistaTab() === 'historial'"
+              role="tab" [attr.aria-selected]="vistaTab() === 'historial'" (click)="setVistaTab('historial')">
+        Historial <span class="req-fase-tab__n">{{ tabCount().historial }}</span>
+      </button>
     </div>
     <div class="table-scroll">
     <table class="data-table" aria-label="Requisiciones">

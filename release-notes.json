@@ -4320,6 +4320,21 @@
           "d": "Quien puede ver las bitácoras de todos los proyectos (encargados, gerencia) ahora entra directamente a \"Todas las bitácoras\" en vez de \"Mis bitácoras\", y el detalle (actividades, fotos, equipos) usa la misma regla de visibilidad que la lista."
         }
       ]
+    },
+    "1.145.0": {
+      "titulo": "Conciliación separa Flota / Fuera de flota / Anulaciones; la bandeja del ingeniero también arranca en Activas",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al importar el reporte de TotalEnergies, la vista previa ahora separa en tres: Flota (las tarjetas con vehículo, lo importante, arriba), Fuera de flota (tarjetas de persona o sin vehículo, plegable, con su total) y Anulaciones (líneas negativas del informe). Solo la Flota se importa y se cruza; el resto queda a la vista pero no ensucia el registro ni el dashboard."
+        },
+        {
+          "t": "mejora",
+          "m": "Bitácora",
+          "d": "La bandeja de requisiciones del ingeniero (Solicitud de material) ahora también arranca en Activas (por entrega más cercana) con su Historial aparte, igual que la de Inventario."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

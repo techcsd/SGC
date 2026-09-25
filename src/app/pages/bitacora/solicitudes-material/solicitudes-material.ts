@@ -127,22 +127,30 @@ export class SolicitudesMaterial implements OnInit {
 
   // BV9/10/11 — mismas fases, orden por necesidad y edición de fecha que la bandeja
   // de inventario, pero del lado del ingeniero (su propia bandeja de requisiciones).
-  faseTab = signal<'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada'>('todas');
-  readonly faseTabs: { key: 'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada'; label: string }[] = [
-    { key: 'todas', label: 'Todas' },
-    { key: 'pendiente', label: 'Pendientes' },
-    { key: 'en_proceso', label: 'En proceso' },
-    { key: 'completada', label: 'Completadas' },
-    { key: 'rechazada', label: 'Rechazadas' },
-  ];
-  faseCount = (f: string) => (f === 'todas' ? this.solicitudes().length : this.solicitudes().filter((s) => (s.fase ?? 'pendiente') === f).length);
+  // BY3 — Activas (pendiente + en proceso) / Historial (completada/rechazada/cancelada),
+  // igual que la bandeja de inventario. Default Activas, recordado.
+  vistaTab = signal<'activas' | 'historial'>(
+    (typeof localStorage !== 'undefined' && (localStorage.getItem('sgc-solmat-vista') as 'activas' | 'historial' | null)) || 'activas',
+  );
+  setVistaTab(v: 'activas' | 'historial') {
+    this.vistaTab.set(v);
+    try { localStorage.setItem('sgc-solmat-vista', v); } catch { /* ignore */ }
+  }
+  private esHistorialSol = (s: { fase?: string | null; estado?: string | null }) =>
+    s.estado === 'cancelada' || (s.fase ?? 'pendiente') === 'completada' || (s.fase ?? 'pendiente') === 'rechazada';
+  tabCount = computed(() => {
+    let activas = 0, historial = 0;
+    for (const s of this.solicitudes()) { if (this.esHistorialSol(s)) historial++; else activas++; }
+    return { activas, historial };
+  });
   faseLabel = (f: string | null | undefined) =>
     ({ pendiente: 'Pendiente', en_proceso: 'En proceso', completada: 'Completada', rechazada: 'Rechazada' }[f ?? 'pendiente'] ?? '—');
 
-  /** Lista filtrada por fase y ordenada por proximidad de la fecha de necesidad (BV10). */
+  /** BY3 — Activas por fecha de necesidad asc (vencidas primero); Historial por reciente. */
   listaVisible = computed(() => {
-    const tab = this.faseTab();
-    const rows = this.solicitudes().filter((s) => tab === 'todas' || (s.fase ?? 'pendiente') === tab);
+    const hist = this.vistaTab() === 'historial';
+    const rows = this.solicitudes().filter((s) => this.esHistorialSol(s) === hist);
+    if (hist) return [...rows].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
     return [...rows].sort((a, b) => {
       const fa = a.fecha_necesidad, fb = b.fecha_necesidad;
       if (fa && fb) return fa < fb ? -1 : fa > fb ? 1 : 0;
