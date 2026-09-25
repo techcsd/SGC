@@ -9,6 +9,9 @@ La app construyó BY1/BY5 + BY4 + BY3 y salió a prod, mitigando estos 3 en clie
 
 *(Detalle en csd-app `HANDOFF.md` → sesión 25/09 BY, sección "Contratos del padre".)*
 
+### 📋 Matriz de cobertura — AHORA versionada en el repo
+`COBERTURA-NOTAS.md` (raíz del repo SGC) ya contiene la **matriz completa (filas 1-76)** y es la **fuente de verdad a editar de aquí en adelante** — antes solo se llevaba la copia fuera del repo (`C:\developer\improvements\septiembre 2026\imp 14092026\COBERTURA-NOTAS.md`). En próximas rondas: edita la copia **del repo** y commitea; si la de la carpeta `imp` sigue usándose como borrador, sincronízala hacia el repo al cerrar (no al revés).
+
 ---
 
 ## TL;DR — ✅ 1.145.0 + BY1b EN PROD — 25/09/2026 (Xaviel dio OK)
