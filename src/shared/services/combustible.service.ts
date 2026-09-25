@@ -119,13 +119,16 @@ export class CombustibleService {
     return (data ?? []) as unknown as RegistroCombustible[];
   }
 
-  /** AG6 — registro completo de una echada (estación + 3 fotos) para el detalle del log. */
+  /**
+   * BZ1 — detalle completo de una echada por UN SOLO camino: el RPC `echada_detalle`
+   * (SECURITY DEFINER, gate es_flota_elevado/admin/dueño). Antes leía la tabla directo
+   * con embeds bajo RLS, y para quien listaba por `log_combustible` (definer) pero no
+   * pasaba la RLS de la tabla, `maybeSingle()` devolvía null → "No se pudo cargar el
+   * detalle". El RPC devuelve la fila + los mismos embeds (vehiculo/conductor/registrador)
+   * + revisor + display + historial (nota #77).
+   */
   async getById(id: string): Promise<RegistroCombustible | null> {
-    const { data, error } = await this.supabase.client
-      .from('registros_combustible')
-      .select('*, vehiculo:vehiculos(placa,marca), conductor:conductores(nombre), registrador:usuarios!registrado_por(nombre)')
-      .eq('id', id)
-      .maybeSingle();
+    const { data, error } = await this.supabase.client.rpc('echada_detalle', { p_id: id });
     if (error) throw new Error(error.message);
     return (data as unknown as RegistroCombustible) ?? null;
   }

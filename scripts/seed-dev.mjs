@@ -39,6 +39,18 @@ async function devSql(query) {
 const guard = await devSql("select valor from sgc.config_entorno where clave='entorno'");
 if (!(guard[0] && guard[0].valor === 'dev')) { console.error('🔴 config_entorno.entorno != dev — abortado.'); process.exit(1); }
 
+// ── BZ3: SQL de solo-lectura contra PROD (Management API) para saber quién conserva
+// su email real en dev (admin/desarrollador/tecnologia + lista emails_reales). ──────
+async function prodSql(query) {
+  const r = await fetch(`https://api.supabase.com/v1/projects/${PROD}/database/query`, {
+    method: 'POST', headers: { Authorization: `Bearer ${env.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+  if (!r.ok) throw new Error(`prodSql ${r.status}: ${await r.text()}`);
+  return JSON.parse(await r.text());
+}
+const soloUsuarios = process.argv.includes('--solo-usuarios');
+
 // ── Metadatos del esquema (tablas, columnas, PK, FKs) ────────────────────────
 const meta = (await devSql(`select json_build_object(
   'tables',(select json_agg(t.relname order by t.relname) from pg_class t join pg_namespace n on n.oid=t.relnamespace where n.nspname='sgc' and t.relkind='r'),
@@ -133,15 +145,36 @@ async function seedUsers() {
   const r = await fetch(`${PROD_URL}/rest/v1/usuarios?select=*`, { headers: { apikey: PROD_KEY, Authorization: `Bearer ${PROD_KEY}`, 'Accept-Profile': 'sgc' } });
   if (!r.ok) throw new Error(`GET usuarios ${r.status}`);
   const usuarios = await r.json();
+
+  // BZ3 — quién conserva su email real en dev: la lista explícita `emails_reales` +
+  // el criterio por defecto (rol admin/desarrollador, o módulo tecnologia/admin).
+  const keepReal = new Set((cfg.emails_reales || []).map((e) => String(e).toLowerCase()));
+  try {
+    const rows = await prodSql(`select distinct lower(u.email) as email
+      from sgc.usuarios u
+      join sgc.usuarios_roles ur on ur.usuario_id = u.id
+      join sgc.roles r on r.id = ur.rol_id
+      where u.email is not null
+        and (r.nombre in ('admin','desarrollador') or 'tecnologia' = any(r.modulos) or 'admin' = any(r.modulos))`);
+    for (const row of rows) if (row.email) keepReal.add(row.email);
+  } catch (e) { console.log(`  ⚠️ no se pudo calcular emails reales por rol (${String(e.message).slice(0, 80)}); uso solo la lista.`); }
+
   const q = (s) => String(s).replace(/'/g, "''");
   const authVals = [], identVals = [], devRows = [];
+  let reales = 0;
   for (const u of usuarios) {
     const acceso = typeof u.email === 'string' && u.email.endsWith('@acceso.constructorasd.local');
     const c11 = ced11(u.cedula ?? u.id);
-    const email = acceso ? `e-${c11}@acceso.constructorasd.local` : `u-${sha(u.id).slice(0, 8)}@dev.constructorasd.local`;
+    // BZ3: admin/tecnologia/desarrollador (y la lista) mantienen su email real para
+    // poder entrar en dev con sus credenciales (contraseña = QA_DEV_PASSWORD).
+    const real = typeof u.email === 'string' && keepReal.has(u.email.toLowerCase());
+    const email = real ? u.email
+      : (acceso ? `e-${c11}@acceso.constructorasd.local` : `u-${sha(u.id).slice(0, 8)}@dev.constructorasd.local`);
+    if (real) reales++;
     authVals.push(`('${u.id}'::uuid,'00000000-0000-0000-0000-000000000000','authenticated','authenticated','${q(email)}',crypt('${q(QA_PWD)}',gen_salt('bf')),now(),now(),now(),'{"provider":"email","providers":["email"]}','{"dev_seed":true}','','','','')`);
     identVals.push(`(gen_random_uuid(),'${u.id}'::uuid,jsonb_build_object('sub','${u.id}','email','${q(email)}'),'email','${u.id}',now(),now(),now())`);
-    devRows.push({ ...u, email, cedula: c11, telefono: '809-000-0000', avatar_path: null });
+    // El email real conservado también se refleja en sgc.usuarios (para el login y el panel QA).
+    devRows.push({ ...u, email, cedula: real ? u.cedula : c11, telefono: real ? u.telefono : '809-000-0000', avatar_path: real ? u.avatar_path : null });
   }
   // auth.users (token cols en '' para no romper GoTrue).
   for (let i = 0; i < authVals.length; i += 100) {
@@ -155,11 +188,20 @@ async function seedUsers() {
   }
   // sgc.usuarios anonimizado (upsert por PK id).
   await pgUpsert('usuarios', devRows);
-  console.log(`✓ usuarios: ${usuarios.length} anonimizados + Auth (mismo id, contraseña QA)`);
+  console.log(`✓ usuarios: ${usuarios.length} en Auth (mismo id, contraseña QA); ${reales} con email real (admin/tecnologia/desarrollador + lista), ${usuarios.length - reales} anonimizados`);
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 console.log(`▶ seed-dev → ${env.ref} (leyendo de prod, escribiendo solo en dev)\n`);
+
+// BZ3 — refrescar solo los usuarios (emails reales + Auth) sin recopiar toda la
+// operación: node scripts/seed-dev.mjs --env dev --solo-usuarios  (o npm run seed:dev -- --solo-usuarios).
+if (soloUsuarios) {
+  await seedUsers();
+  console.log('\n✓ seed-dev --solo-usuarios: usuarios + Auth actualizados (sin recopiar operación).');
+  process.exit(0);
+}
+
 await subirPlaceholders();
 
 if (refrescar) {

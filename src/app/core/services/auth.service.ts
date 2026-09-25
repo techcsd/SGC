@@ -38,6 +38,23 @@ export class AuthService {
     return { user: data.user, error };
   }
 
+  /** BZ3 — ¿estamos en un entorno de desarrollo (no prod)? Gatea el panel del login. */
+  get esDev(): boolean {
+    return environment.entorno !== 'prod';
+  }
+
+  /**
+   * BZ3 — cuentas QA por rol para el panel "usuarios de prueba" del login de dev.
+   * El RPC `usuarios_qa_dev` solo devuelve datos cuando config_entorno.entorno='dev'
+   * (en prod, vacío). No expone contraseñas: la QA se escribe a mano.
+   */
+  async usuariosQaDev(): Promise<{ email: string; nombre: string; rol: string }[]> {
+    if (!this.esDev) return [];
+    const { data, error } = await this.supabase.client.rpc('usuarios_qa_dev');
+    if (error) return [];
+    return (data ?? []) as { email: string; nombre: string; rol: string }[];
+  }
+
   /**
    * P5 — Login de conductor por cédula + PIN. Llama a la edge `conductor-login`
    * (mapea cédula→email sintético + bloqueo por intentos) y, si es válida,

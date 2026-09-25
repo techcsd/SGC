@@ -1,5 +1,7 @@
 {
   "_doc": "BU1 F5 — clasificación de tablas para seed-dev.mjs. `omitir` = telemetría/caches/logs/chat/dispositivos/auditoría/ephemeral que NO se copian a dev. El resto se copia: si la tabla tiene una columna de fecha se filtra a los últimos `dias_operacion` días (cap `cap_operacion`); si no, se copia entera (cap `cap_catalogo`). `usuarios` tiene tratamiento especial (anonimización + Auth). `date_col` fuerza la columna de fecha cuando el auto-detect no acierta.",
+  "_doc_emails_reales": "BZ3 — el seed CONSERVA el email real (y crea/actualiza el usuario en Auth de dev con contraseña QA + email_confirm) para: (a) todo usuario con rol admin o desarrollador, o con módulo tecnologia/admin (criterio por defecto en el código); y (b) cualquier email listado aquí en `emails_reales`. El resto sigue anonimizado (u-<hash>@dev...). Rollback: emails_reales: [] (y quitar el criterio por defecto si se quisiera anonimizar todo).",
+  "emails_reales": [],
   "dias_operacion": 30,
   "cap_operacion": 20000,
   "cap_catalogo": 50000,

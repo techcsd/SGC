@@ -90,7 +90,7 @@
 | inventario/entradas | - | 227 | 0 | 227 | 0% |
 | inventario/kardex-modal | - | 47 | 0 | 47 | 0% |
 | inventario/lugares-por-registrar | - | 20 | 0 | 20 | 0% |
-| inventario/material-no-catalogado | - | 51 | 0 | 51 | 0% |
+| inventario/material-no-catalogado | - | 56 | 0 | 56 | 0% |
 | inventario/movimientos | - | 30 | 0 | 30 | 0% |
 | inventario/por-firmar | - | 42 | 0 | 42 | 0% |
 | inventario/proveedores-transporte | - | 37 | 0 | 37 | 0% |
@@ -145,5 +145,5 @@
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
+| auth | - | 75 | 15 | 60 | 20% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
-| auth | - | 57 | 15 | 42 | 26% |

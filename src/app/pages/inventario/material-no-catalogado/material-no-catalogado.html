@@ -12,16 +12,31 @@
   </header>
 
   <div class="filters-bar">
-    <label class="prueba-toggle">
-      <input type="checkbox" [checked]="incluirResueltos()" (change)="toggleResueltos($any($event.target).checked)" />
-      Mostrar resueltos y declinados
-    </label>
+    @if (conduceFiltro()) {
+      <!-- BZ2 — llegó desde "Implementar" de un conduce: solo sus materiales, con estado -->
+      <span class="mnc-filter-chip">
+        Mostrando los materiales del conduce <strong>{{ conduceNumero() || 'seleccionado' }}</strong>
+        (incluye resueltos y declinados)
+      </span>
+      <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/material-no-catalogado">Ver toda la bandeja</a>
+    } @else {
+      <label class="prueba-toggle">
+        <input type="checkbox" [checked]="incluirResueltos()" (change)="toggleResueltos($any($event.target).checked)" />
+        Mostrar resueltos y declinados
+      </label>
+    }
   </div>
 
   @if (loading()) {
     <app-skeleton [rows]="4" />
   } @else if (filas().length === 0) {
-    <p class="page__empty">No hay material no catalogado pendiente.</p>
+    <p class="page__empty">
+      @if (conduceFiltro()) {
+        Este conduce ya no tiene materiales por implementar (todos vinculados o declinados).
+      } @else {
+        No hay material no catalogado pendiente.
+      }
+    </p>
   } @else {
     <div class="table-scroll">
       <table class="data-table" aria-label="Material no catalogado">

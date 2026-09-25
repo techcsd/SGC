@@ -9,6 +9,7 @@ import {
 import { DecimalPipe, TitleCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
+import { CombustibleService } from '../../../../shared/services/combustible.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { daysAgoIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcelHojas } from '../../../../shared/utils/exportar-excel.util';
@@ -77,6 +78,7 @@ interface PlacaInfo {
 })
 export class FlotaReportes implements OnInit {
   private supabase = inject(SupabaseService);
+  private combustibleService = inject(CombustibleService);
   private router = inject(Router);
 
   // X6 — etiqueta legible del tipo de visita a taller.
@@ -210,30 +212,28 @@ export class FlotaReportes implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [vRes, mRes, cRes, pRes] = await Promise.all([
+      // BZ1 — combustible pasa por el servicio (no un .from suelto): la lectura de
+      // registros_combustible se centraliza en combustible.service (baseline del lint).
+      const [vRes, mRes, cData, pRes] = await Promise.all([
         this.supabase.client.from('vehiculos').select('*').order('placa'),
         this.supabase.client
           .from('mantenimientos')
           .select('*, vehiculo:vehiculos(placa,marca,modelo,anio)')
           .order('fecha', { ascending: false }),
-        this.supabase.client
-          .from('registros_combustible')
-          .select('*, vehiculo:vehiculos(placa,marca)')
-          .order('fecha', { ascending: false }),
+        this.combustibleService.getAll(),
         // R4a — placas denormalizadas (incluye vehículos inactivos) para no pintar UUID.
         this.supabase.client.rpc('flota_placas'),
       ]);
 
       if (vRes.error) throw new Error(vRes.error.message);
       if (mRes.error) throw new Error(mRes.error.message);
-      if (cRes.error) throw new Error(cRes.error.message);
 
       if (!pRes.error && Array.isArray(pRes.data)) {
         this.placaMap.set(new Map((pRes.data as PlacaInfo[]).map((p) => [p.id, p])));
       }
       this.vehiculos.set((vRes.data ?? []) as unknown as VehiculoReport[]);
       this.mantenimientos.set((mRes.data ?? []) as unknown as MantenimientoReport[]);
-      this.combustible.set((cRes.data ?? []) as unknown as CombustibleReport[]);
+      this.combustible.set((cData ?? []) as unknown as CombustibleReport[]);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error al cargar reportes.';
       if (!msg.includes('does not exist') && !msg.includes('relation')) {

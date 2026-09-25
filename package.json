@@ -1,6 +1,6 @@
 {
   "name": "sgc",
-  "version": "1.145.0",
+  "version": "1.146.0",
   "scripts": {
     "ng": "ng",
     "gen-version": "node scripts/gen-version.mjs",
@@ -14,6 +14,7 @@
     "build:prod": "node scripts/build-env.mjs --env prod",
     "env:dev": "node scripts/gen-environment.mjs dev",
     "env:prod": "node scripts/gen-environment.mjs prod",
+    "seed:dev": "node scripts/seed-dev.mjs --env dev",
     "postbuild": "node scripts/registrar-version-web.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

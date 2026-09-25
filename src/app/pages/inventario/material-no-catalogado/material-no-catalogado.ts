@@ -1,7 +1,7 @@
 import {
   Component, ChangeDetectionStrategy, inject, signal, computed, OnInit,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import {
   SalidasService, MaterialNoCatalogadoRow,
 } from '../../../../shared/services/salidas.service';
@@ -35,7 +35,13 @@ export class MaterialNoCatalogado implements OnInit {
   private categoriasSvc = inject(CategoriasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
   readonly unidades = UNIDADES;
+
+  // BZ2 — filtro por conduce (desde "Implementar"): la bandeja muestra solo los
+  // materiales de ese conduce, incluidos los ya resueltos/declinados (ver qué pasó).
+  conduceFiltro = signal<string | null>(null);
+  conduceNumero = computed(() => this.filas()[0]?.conduce_numero ?? null);
 
   // BW2 — paridad con el RPC: los elevados (logística/flota/gerencia) también curan la bandeja.
   puedeGestionar = computed(() => this.userService.esFlotaElevado() || this.userService.hasModulo('inventario'));
@@ -80,6 +86,8 @@ export class MaterialNoCatalogado implements OnInit {
   generarMovimiento = signal(false);
 
   async ngOnInit() {
+    const conduce = this.route.snapshot.queryParamMap.get('conduce');
+    this.conduceFiltro.set(conduce);
     await this.cargar();
     try {
       const [arts, cats] = await Promise.all([
@@ -94,7 +102,7 @@ export class MaterialNoCatalogado implements OnInit {
   private async cargar() {
     this.loading.set(true);
     try {
-      this.filas.set(await this.svc.getMaterialNoCatalogado(this.incluirResueltos()));
+      this.filas.set(await this.svc.getMaterialNoCatalogado(this.incluirResueltos(), this.conduceFiltro()));
     } catch (e: unknown) {
       this.toast.error(e instanceof Error ? e.message : 'No se pudo cargar la bandeja.');
     } finally {

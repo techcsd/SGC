@@ -1,5 +1,35 @@
 {
   "web": {
+    "1.146.0": {
+      "titulo": "El detalle de la echada abre para Logística; \"Conduces por implementar\" ya no muestra los que se declinaron; entrar a dev con ayuda",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El detalle de una echada de combustible ya abre para Logística y Jefe de Flota (antes salía \"No se pudo cargar el detalle\"). La lista y el detalle ahora usan el mismo camino en el servidor, así que quien ve una echada en el registro también puede abrirla con sus fotos, su revisión y su historial."
+        },
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "\"Conduces por implementar\" ya no lista los conduces cuyo material no catalogado se vinculó o se declinó; el contador del menú cuadra. \"Implementar\" abre la bandeja filtrada por ese conduce, mostrando también lo ya resuelto o declinado con su estado."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "La bandeja de material no catalogado y la acción de declinar quedan disponibles para Logística/Jefe de Flota (antes exigían el módulo de Inventario, así que a Raykler le salía vacía)."
+        },
+        {
+          "t": "mejora",
+          "m": "Sistema",
+          "d": "En el entorno de desarrollo, la pantalla de inicio de sesión muestra un panel de usuarios de prueba con las cuentas QA por rol y un botón \"Entrar como…\"; las cuentas de Tecnología entran con su correo real y la contraseña QA. (No aplica en producción.)"
+        },
+        {
+          "t": "mejora",
+          "m": "Requisiciones",
+          "d": "La lista de requisiciones expone la fecha de cierre para armar el historial (soporte de la app)."
+        }
+      ]
+    },
     "1.142.0": {
       "titulo": "Órdenes de trabajo: lista, número OT y compartir; se arregla el selector de Material no catalogado",
       "cambios": [
