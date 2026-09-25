@@ -292,3 +292,29 @@ lógico de captura; el layout puede diferir).
   («Crea el artículo desde la web SGC…»). Gana **Vincular a un artículo** (picker de la app, offline:
   outbox `tipo_op:'vincular_item_libre'`) y **Crear artículo** (llama `crear_articulo_desde_libre`), ambos con
   el switch *Generar movimiento de inventario* (AY13). Visibles para `es_flota_elevado()`/inventario.
+
+### § BZ (25/09/2026) — detalle de echada, pendiente único, bitácoras y requisiciones (PROMPT-69)
+- **`sgc.echada_detalle(p_id uuid) returns jsonb`** — camino ÚNICO del detalle de una echada
+  (web `getById` + app). SECURITY DEFINER, gate `es_flota_elevado() or is_admin() or dueño`
+  (chofer del `conductor_id` o `registrado_por`). Devuelve la fila + `vehiculo{placa,marca}` +
+  `conductor{nombre}` + `registrador{nombre}` + `revisor{nombre}` + `vehiculo_display` +
+  `motivo_revision` + `historial[]` (con `editor.nombre`, listo para humanizar, BX2). Reemplaza el
+  `.from('registros_combustible')` con embeds que fallaba para quien lista por RPC pero no pasa la RLS
+  de la tabla. **La app usa el mismo RPC en el detalle de la echada** (nota #77). Lint
+  `verify-regresiones`: `.from('registros_combustible')` solo en `combustible.service.ts` /
+  `combustible-conciliacion.service.ts`.
+- **`sgc.item_libre_pendiente(il sgc.salida_items_libres) returns boolean`** = `articulo_vinculado_id is null
+  AND declinado_at is null`. Predicado ÚNICO de "material no catalogado pendiente"; lo usan
+  `conduces_por_implementar()/_count()`, `material_no_catalogado_pendientes()/_count()` y el hook BV4.
+  La app debe usarlo (no el predicado inline) al contar/mostrar pendientes (nota #78). Lint permanente
+  contra `articulo_vinculado_id is null` fuera de esa función.
+  - `material_no_catalogado_pendientes(p_incluir_resueltos boolean, p_salida_id uuid)` — nuevo 2º arg:
+    filtra por conduce (desde "Implementar") e incluye resueltos/declinados para ver qué pasó.
+  - Gate de lectura de la bandeja alineado: `is_admin() or inventario or flota or es_flota_elevado()`
+    (antes solo inventario → a Raykler le salía vacía). `declinar`/`revertir` ahora `es_flota_elevado() or inventario`.
+- **`sgc.listar_bitacoras(p_todas boolean, p_proyecto uuid, p_desde date, p_hasta date, p_ingeniero uuid)`**
+  (BY4) — contrato de lista para la app con la RLS de bitácora (`puede_ver_bitacora_de`). `p_todas=false`
+  → solo las mías; `true` → todas las visibles.
+- **`sgc.reenviar_echada(p_original uuid, p_datos jsonb)`** — idempotente por `(reenvio_de, client_uuid)`:
+  la app debe mandar `p_datos.client_uuid` estable; un reintento devuelve el reenvío ya creado (BY5).
+- **`sgc.requisiciones_bandeja(...)`** — ahora expone `cerrada_en` en la lista (la app arma el Historial, BY3).

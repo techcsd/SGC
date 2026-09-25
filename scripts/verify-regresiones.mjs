@@ -58,6 +58,21 @@ const REGLAS = [
       'BC7: crear_bitacora_app DEBE seguir siendo SECURITY DEFINER (ruta de la app). ' +
       'Ver sql/2026-08-29-bc7-bitacora-catalogo-usos-grant.sql.',
   },
+  // BZ2: "pendiente" del material no catalogado = SIN vincular Y SIN declinar. La única
+  // fuente de verdad es sgc.item_libre_pendiente(il). Estas funciones NO deben volver a
+  // usar el predicado inline `articulo_vinculado_id is null` (contaba declinados como
+  // pendientes → conduces fantasma en "por implementar" y bandeja vacía). Nota #78.
+  // (item_libre_pendiente() SÍ lo contiene — es su definición — y no está en esta lista.)
+  ...['sgc.conduces_por_implementar', 'sgc.conduces_por_implementar_count',
+      'sgc.material_no_catalogado_pendientes', 'sgc.material_no_catalogado_pendientes_count',
+      'sgc.vincular_movimiento_requisiciones'].map((fn) => ({
+    fn,
+    forbid: /articulo_vinculado_id\s+is\s+null/i,
+    reason:
+      `BZ2: ${fn} debe usar sgc.item_libre_pendiente(il) (sin vincular Y sin declinar), ` +
+      'no el predicado inline `articulo_vinculado_id is null` (regresó al contar los ' +
+      'declinados como pendientes). Ver sql/2026-09-25-bz2-item-libre-pendiente.sql.',
+  })),
 ];
 
 // ── Utilidades ───────────────────────────────────────────────────────────────
@@ -192,6 +207,52 @@ for (const file of htmlFiles(SRC_DIR)) {
         );
       }
     }
+  }
+}
+
+// ── BZ1 — el detalle de la echada va por RPC, no por lecturas sueltas de la tabla ──
+// `registros_combustible` solo se lee directo dentro de su servicio (getAll/registrar,
+// bajo RLS) y del servicio de conciliación (baseline). Cualquier `.from('registros_combustible')`
+// nuevo en otro archivo debe pasar por un RPC (echada_detalle / log_combustible).
+const RC_ALLOWED = ['combustible.service.ts', 'combustible-conciliacion.service.ts'];
+// ── BZ2 — el predicado de "pendiente" no se hardcodea en el frontend ──
+const RC_FROM_RE = /\.from\(\s*['"]registros_combustible['"]\s*\)/g;
+const ILP_RE = /articulo_vinculado_id\s+is\s+null/gi;
+
+function srcFiles(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    const st = statSync(p);
+    if (st.isDirectory()) out.push(...srcFiles(p));
+    else if (/\.(ts|html)$/.test(name)) out.push(p);
+  }
+  return out;
+}
+
+for (const file of srcFiles(SRC_DIR)) {
+  const rel = file.slice(file.indexOf('src'));
+  const base = file.split(/[\\/]/).pop();
+  const raw = readFileSync(file, 'utf8');
+  if (!RC_ALLOWED.includes(base)) {
+    let m;
+    RC_FROM_RE.lastIndex = 0;
+    while ((m = RC_FROM_RE.exec(raw)) !== null) {
+      fallos.push(
+        `✗ BZ1 en ${rel}:${lineOf(raw, m.index)} — .from('registros_combustible') fuera de ` +
+          `${RC_ALLOWED.join(' / ')}. El detalle va por el RPC echada_detalle (y la lista por ` +
+          `log_combustible). Ver sql/2026-09-25-bz1-echada-detalle.sql.`
+      );
+    }
+  }
+  let m2;
+  ILP_RE.lastIndex = 0;
+  while ((m2 = ILP_RE.exec(raw)) !== null) {
+    fallos.push(
+      `✗ BZ2 en ${rel}:${lineOf(raw, m2.index)} — el predicado 'articulo_vinculado_id is null' ` +
+        `no va en el frontend; el estado "pendiente" lo decide el servidor ` +
+        `(sgc.item_libre_pendiente). Ver sql/2026-09-25-bz2-item-libre-pendiente.sql.`
+    );
   }
 }
 

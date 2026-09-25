@@ -550,10 +550,15 @@ export class SalidasService {
     return (data as number) ?? 0;
   }
 
-  /** AU4 — bandeja de material no catalogado (pendientes de vínculo, o todos). */
-  async getMaterialNoCatalogado(incluirResueltos = false): Promise<MaterialNoCatalogadoRow[]> {
+  /**
+   * AU4 — bandeja de material no catalogado (pendientes de vínculo, o todos).
+   * BZ2 — `salidaId` filtra por un conduce (desde "Implementar") y, al hacerlo, el RPC
+   * incluye también sus resueltos/declinados para ver qué pasó con cada material.
+   */
+  async getMaterialNoCatalogado(incluirResueltos = false, salidaId?: string | null): Promise<MaterialNoCatalogadoRow[]> {
     const { data, error } = await this.supabase.client.rpc('material_no_catalogado_pendientes', {
       p_incluir_resueltos: incluirResueltos,
+      p_salida_id: salidaId ?? null,
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as MaterialNoCatalogadoRow[];

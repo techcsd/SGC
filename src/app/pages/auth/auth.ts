@@ -32,6 +32,30 @@ export class Auth {
   forgotSent = signal(false);
   forgotLoading = signal(false);
 
+  // BZ3 — panel "usuarios de prueba" solo en dev (no prod). Lista las cuentas QA por
+  // rol; "Entrar como…" rellena el email (la contraseña QA se escribe a mano — nunca
+  // va en el bundle).
+  esDev = this.authService.esDev;
+  qaUsers = signal<{ email: string; nombre: string; rol: string }[]>([]);
+  qaOpen = signal(false);
+
+  constructor() {
+    if (this.esDev) void this.cargarQa();
+  }
+
+  private async cargarQa() {
+    try { this.qaUsers.set(await this.authService.usuariosQaDev()); } catch { /* best-effort */ }
+  }
+
+  toggleQa() { this.qaOpen.update((v) => !v); }
+
+  /** Rellena el email con una cuenta QA (contraseña QA a mano). */
+  entrarComo(email: string) {
+    this.setMode('empleado');
+    this.form.patchValue({ email });
+    this.password.reset('');
+  }
+
   form = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required]),

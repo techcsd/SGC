@@ -257,6 +257,46 @@
       }
     }
 
+    <!-- BZ3 — Entorno de desarrollo: usuarios de prueba (nunca en prod) -->
+    @if (esDev && !forgotMode()) {
+      <div class="auth-dev">
+        <button type="button" class="auth-dev__toggle" (click)="toggleQa()" [attr.aria-expanded]="qaOpen()">
+          <span class="auth-dev__tag">DEV</span>
+          Entorno de desarrollo — usuarios de prueba
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               [style.transform]="qaOpen() ? 'rotate(180deg)' : 'none'">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        @if (qaOpen()) {
+          <p class="auth-dev__hint">
+            Entra con tu correo real y la <strong>contraseña QA</strong> de <code>.env.local</code>
+            (la que te dio Tecnología). Estas cuentas de prueba usan esa misma contraseña.
+          </p>
+          @if (qaUsers().length) {
+            <ul class="auth-dev__list">
+              @for (u of qaUsers(); track u.email) {
+                <li class="auth-dev__item">
+                  <div class="auth-dev__who">
+                    <span class="auth-dev__name">{{ u.rol || '—' }}</span>
+                    <span class="auth-dev__email">{{ u.email }}</span>
+                  </div>
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="entrarComo(u.email)">
+                    Entrar como…
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="auth-dev__hint">No hay cuentas QA cargadas (corre <code>npm run seed:dev -- --solo-usuarios</code>).</p>
+          }
+          <p class="auth-dev__hint auth-dev__hint--sm">
+            Choferes de prueba: entran por <strong>Soy conductor</strong> con cédula + PIN.
+          </p>
+        }
+      </div>
+    }
+
     <p class="auth-footer">
       ¿Problemas para acceder? Contacta a
       <a href="mailto:tecnologia@constructorasd.com">Tecnología CSD</a>

@@ -47,7 +47,9 @@
                 <span class="cpi-badge">{{ f.pendientes }} de {{ f.total_libres }}</span>
               </td>
               <td class="text-right">
-                <a class="sgc-btn sgc-btn--primary sgc-btn--sm" routerLink="/inventario/material-no-catalogado">Implementar</a>
+                <a class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                   routerLink="/inventario/material-no-catalogado"
+                   [queryParams]="{ conduce: f.salida_id }">Implementar</a>
               </td>
             </tr>
           }

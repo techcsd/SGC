@@ -17,14 +17,24 @@ Desde PROMPT-58 (BU1) el sistema tiene **dos entornos**. La regla madre (18) es:
 
 Los refs, URLs y keys de ambos viven en `.env.local` (gitignored): `SUPABASE_{PROJECT_REF,URL,ANON_KEY,SERVICE_ROLE_KEY}_{DEV,PROD}`, `SUPABASE_DB_PASSWORD_DEV`, `INFRA/WEATHER/CRONOGRAMA_SYNC_SECRET_DEV`, `QA_DEV_PASSWORD`.
 
-## Cómo entrar a dev
+## Cómo entrar a dev (BZ3)
 
-- **Web dev:** https://dev.sgcconstructorasd.com (cuando el dominio esté asignado en Vercel — ver *Pasos físicos*).
-- **Usuarios:** son los reales **anonimizados**. Email de login = `u-<8hex>@dev.constructorasd.local` (los de acceso por cédula: `e-<cédula-hash>@acceso.constructorasd.local`). El **nombre real se conserva** para probar como cada persona.
-- **Contraseña:** una sola para todos = `QA_DEV_PASSWORD` (en `.env.local`).
-- Para entrar como un rol concreto, busca su email:
+- **Web dev:** https://dev.sgcconstructorasd.com · **App dev:** https://app-dev.sgcconstructorasd.com
+- **Con tu correo real (Tecnología/admin/desarrollador):** el seed **conserva el email real** para
+  todo usuario con rol `admin`/`desarrollador` o módulo `tecnologia`/`admin`, y para cualquiera listado
+  en `scripts/seed-dev.tablas.json → emails_reales`. Entras con **tu correo real** + la contraseña
+  **`QA_DEV_PASSWORD`** (`.env.local`). Ej.: `tecnologia@constructorasd.com` + QA.
+- **Cuentas QA por rol:** el resto de usuarios va **anonimizado** (`u-<8hex>@dev.constructorasd.local`),
+  con el **nombre real conservado** y la misma contraseña QA. En el login de dev, el panel
+  **"Entorno de desarrollo — usuarios de prueba"** las lista por rol con botón **Entrar como…**
+  (rellena el email; la contraseña QA se escribe a mano — nunca va en el bundle). Ese panel se alimenta
+  del RPC `sgc.usuarios_qa_dev()`, que **solo devuelve datos en dev** (en prod, vacío → no se pinta).
+- **Choferes de prueba:** entran por **Soy conductor** con **cédula + PIN**. En dev la cédula está
+  hasheada (`e-<cédula-hash>@acceso.constructorasd.local`); usa la cédula/PIN de QA que te dé Tecnología.
+- **Refrescar solo los usuarios** (emails reales + Auth, sin recopiar la operación):
+  `npm run seed:dev -- --solo-usuarios`.
+- Para listar emails por rol (contra dev):
   ```sql
-  -- contra dev
   select u.nombre, u.email, r.nombre as rol
   from sgc.usuarios u join sgc.usuarios_roles ur on ur.usuario_id=u.id
   join sgc.roles r on r.id=ur.rol_id order by r.nombre;

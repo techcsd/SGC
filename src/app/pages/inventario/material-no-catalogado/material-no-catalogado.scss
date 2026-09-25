@@ -81,3 +81,13 @@
   small { color: var(--text-2); font-size: 0.78rem; line-height: 1.35; }
 }
 .mnc-tag svg { vertical-align: -2px; margin-right: 2px; }
+
+// BZ2 — chip cuando la bandeja está filtrada por un conduce (desde "Implementar").
+.filters-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mnc-filter-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 999px;
+  background: var(--surface-2, #161616); border: 1px solid var(--border, #2d2d2d);
+  color: var(--text-2); font-size: 0.85rem;
+  strong { color: var(--text-1); }
+}
