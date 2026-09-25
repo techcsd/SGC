@@ -1,6 +1,12 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-66 follow-ups (BY2 UI + BY3 parity) — 25/09/2026 — **🧪 EN DEV 1.145.0, pendiente OK.** Rama `feature/by-followups` (desde `dev`). **Sin migraciones** (frontend-only). Build + guards + `ng test` verdes. Commit `371f7d4`, pusheado a `dev`.
+## TL;DR — ✅ 1.145.0 + BY1b EN PROD — 25/09/2026 (Xaviel dio OK)
+- **1.145.0 en prod** (`main`=`0259665`, Vercel deploy **READY**, versión registrada en `app_versiones`). BY2 UI 3 cubos + BY3 parity (frontend, sin migraciones).
+- **BY1b (hotfix, dev+prod):** `echadas_por_aprobar` + recordatorio excluyen `invalidada`. **Resultó clave:** el backfill BY1 marcó 104 echadas `en_espera`, y la limpieza BY2 luego invalidó 93 de ellas (fuera-de-flota). Sin BY1b, Raykler vería 104 (93 ya limpiadas); **con BY1b su cola de "Por aprobar" son 11 echadas reales de flota** (prod: 11 activas / 93 en_espera-invalidadas ocultas). Correcto y limpio.
+- **Ledger prod:** BX (4) + BY (by1, by4) + BY1b = 7 migraciones; limpieza BY2 aplicada. Todo verificado por objeto.
+- **Pendiente:** Raykler aprueba/rechaza las **11** en *Por aprobar*. App BX+BY → PROMPT-67 (repo csd-app). Nada más de código pendiente en el repo web para esta ronda.
+
+## TL;DR — PROMPT-66 follow-ups (BY2 UI + BY3 parity) — 25/09/2026 — ✅ promovido a prod en 1.145.0. Rama `feature/by-followups` (desde `dev`). **Sin migraciones** (frontend-only). Build + guards + `ng test` verdes. Commit `371f7d4`, pusheado a `dev`.
 - **BY2 UI (completa la parte diferida):** la vista previa de Conciliación separa **Flota** (tabla principal, lo único que se importa/cruza), **Fuera de flota** (plegable, tarjetas de persona/sin vehículo, con total) y **Anulaciones** (plegable, líneas negativas). Clasificación en cliente (`cuboDeFila`); `previewStats`/`confirmarImport` solo cuentan/cruzan flota; fuera-de-flota + anulaciones se guardan en el archivo del informe (transacciones_proveedor) para trazabilidad pero **no crean echadas**. El dashboard hereda el fix (los totales guardados ya son flota-only). *La limpieza de datos BY2 ya está en prod desde 1.144.0.*
 - **BY3 parity:** `bitacora/solicitudes-material` (bandeja del ingeniero) también arranca en **Activas** (por entrega más cercana) / **Historial**, igual que Inventario. El "correo diario de requisiciones" no existe como edge propio (el cron de requisiciones-vencidas ya prioriza por fecha) → N/A.
 - **Pendiente:** OK en dev → promover 1.145.0 a prod (PR `dev→main`, sin migraciones). App BY → PROMPT-67.
