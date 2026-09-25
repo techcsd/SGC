@@ -1,6 +1,15 @@
 # HANDOFF — SGC
 
-## ⚠️ Reportado por la app (PROMPT-67, ronda BY, app 2.31.0 en prod) — 3 huecos del padre
+## ✅ Reportado por la app (PROMPT-67) — 3 huecos del padre — CERRADOS en 1.146.0-dev (BZ0)
+Los tres se cerraron en `sql/2026-09-25-bz0-huecos-app.sql` (dev, pendiente OK→prod):
+1. **`listar_bitacoras(p_todas, p_proyecto, p_desde, p_hasta, p_ingeniero)`** creada (security-definer, RLS `puede_ver_bitacora_de`). Smoke: qa_admin todas=134, mías=0.
+2. **`reenviar_echada` idempotente** por `(reenvio_de, client_uuid)`: la app manda `p_datos.client_uuid`; retry → mismo reenvío. Smoke OK (mismo id; distinto client_uuid → nuevo).
+3. **`cerrada_en` en `requisiciones_bandeja`** (drop+recreate con la columna). Smoke: 43 filas con `cerrada_en`.
+
+*(Contratos para la app en `PARIDAD.md § BZ`.)*
+
+<details><summary>Detalle original (histórico)</summary>
+
 La app construyó BY1/BY5 + BY4 + BY3 y salió a prod, mitigando estos 3 en cliente. **Ninguno bloquea** (la app ya funciona), pero conviene cerrarlos en el SGC:
 
 1. **`listar_bitacoras(p_todas, filtros)` NO existe.** PROMPT-67 F2 lo asumía. La app usa un **read directo** a `bitacoras` con la RLS de BY4 (`puede_ver_bitacora_de`) para "Bitácoras de las obras" y `getBitacora(id)` para el detalle. *Pedido:* si conviene una sola fuente, crear `listar_bitacoras(p_todas boolean, p_proyecto, p_desde, p_hasta, p_ingeniero)` security-definer que respete la RLS; la app migraría `todasBitacoras`/`getBitacora` a él. (Retrocompat: mantener el read directo hasta ≥2 versiones.)
@@ -8,6 +17,29 @@ La app construyó BY1/BY5 + BY4 + BY3 y salió a prod, mitigando estos 3 en clie
 3. **La LISTA de requisiciones no expone `cerrada_en`.** `requisiciones_bandeja` (RPC) y el select de `solicitudes_material` que consume la app (`misSolicitudes`) no traen fecha de cierre; solo `RequisicionDetalle` la tiene. La app ordena **Historial por `created_at desc`** como proxy. *Pedido:* exponer `cerrada_en` (o `cierre_at`) en la fila de la lista/bandeja para ordenar Historial por cierre real desc (BY3 exacto).
 
 *(Detalle en csd-app `HANDOFF.md` → sesión 25/09 BY, sección "Contratos del padre".)*
+</details>
+
+---
+
+## TL;DR — PROMPT-68 (Ronda BZ) — 25/09/2026 (tarde) — **🧪 EN DEV 1.146.0, pendiente OK de Xaviel.** Rama `feature/bz-ronda` (desde `dev`) → merge a `dev` (`78b98b3`, push → Vercel dev). Build + prebuild guards VERDES. 4 migraciones en ledger **dev**. 3 IDs + huecos del padre (F0, arriba).
+
+**BZ1 (🔴 nota #77) — Raykler no podía abrir "Detalle de echada":** la lista va por `log_combustible` (SECURITY DEFINER → la ve) pero `getById` leía `registros_combustible` **directo bajo RLS** → `maybeSingle()` null para filas que lista pero no puede SELECT-ear → el drawer pintaba "No se pudo cargar el detalle". (En dev Raykler es `es_flota_elevado` → no reproduce; muerde en prod.) **Fix:** RPC único **`echada_detalle(p_id)`** SECURITY DEFINER (gate `es_flota_elevado/is_admin/dueño`) que devuelve fila + `vehiculo/conductor/registrador/revisor` + `vehiculo_display` + `motivo_revision` + `historial`; política `select` de `registros_combustible` **alineada** al mismo predicado; `getById` usa el RPC. Lint `verify-regresiones`: `.from('registros_combustible')` solo en `combustible.service.ts`/`combustible-conciliacion.service.ts` (moví el read de `flota/reportes` a `combustibleService.getAll()`). Smoke Raykler: propia/otro/en-espera/importada → 200 con fotos.
+
+**BZ2 (nota #78) — "Conduces por implementar" mostraba gestionados y "Implementar" abría bandeja vacía:** predicado doble de "pendiente". **Fix:** función única **`sgc.item_libre_pendiente(il)`** = `articulo_vinculado_id is null AND declinado_at is null`, usada por `conduces_por_implementar()/_count`, `material_no_catalogado_pendientes()/_count` y el hook BV4. "Implementar" → `/inventario/material-no-catalogado?conduce=<id>` (bandeja filtrada, muestra resueltos/declinados con estado). **2ª causa hallada en dev:** la bandeja exigía módulo `inventario`, pero Raykler es flota-elevado **sin** ese módulo → salía vacía aunque no hubiera declinados; **gate alineado** (`is_admin/inventario/flota/es_flota_elevado`) + `declinar`/`revertir` a `es_flota_elevado` (paridad con crear/vincular, BW2). Lint contra el predicado inline en sql nuevos y en `src`. Smoke (data sintética, Raykler): declinar todos → conduce sale de la lista, badge cuadra, bandeja-por-conduce muestra los declinados.
+
+**BZ3 (🔴 nota #79) — no podías entrar a dev con tu correo real:** el seed anonimizaba **todos** los emails → `tecnologia@` no existía en Auth de dev (`site_url`/allow-list de Auth OK, no era eso). **Fix:** el seed **conserva el email real** de admin/tecnologia/desarrollador (+ `emails_reales` en `seed-dev.tablas.json`) creándolos en Auth de dev con contraseña QA + `email_confirm`; flag **`--solo-usuarios`** + `npm run seed:dev`. Panel **"usuarios de prueba"** en el login de dev (`environment.entorno !== 'prod'`) con **Entrar como…** (rellena email; la contraseña QA se escribe a mano — nunca en el bundle), alimentado por RPC **`usuarios_qa_dev()`** (solo devuelve datos si `config_entorno.entorno='dev'`; en prod, vacío → no se pinta). `docs/ENTORNOS.md § Cómo entrar` reescrito. Smoke: **`tecnologia@` + QA entra en dev** (email_confirmed); RPC lista 9 cuentas QA vía anon. `npm run seed:dev -- --solo-usuarios` → 9 con email real / 44 anonimizados.
+
+**Migraciones (ledger dev):** bz0-huecos-app, bz1-echada-detalle, bz2-item-libre-pendiente, bz3-login-dev. **Rollback:** RPC/funciones aditivas; la política `select` de `registros_combustible` vuelve a `es_flota_elevado() or conductor_id in (mis_conductor_ids())`; seed `emails_reales: []`.
+
+**Lista de prueba en `dev.` (empieza por esto):**
+1. **Entra en `dev.sgcconstructorasd.com` con tu email real (`tecnologia@constructorasd.com`) + la contraseña QA de `.env.local`.** (Y en `app-dev.` igual.) El login muestra el panel *usuarios de prueba* con Entrar como… por rol.
+2. Como **Raykler** (Entrar como… / o su cuenta QA): Flota › Combustible › abre el **Detalle** de una echada propia, de otro chofer, y de una en espera → cargan con fotos, revisión e historial (ya no "No se pudo cargar").
+3. **Conduces por implementar** → un conduce con material no catalogado → **Implementar** → bandeja **filtrada por ese conduce** (no vacía), con los resueltos/declinados marcados; al vincular/declinar todos, el conduce sale de la lista y el badge del menú cuadra.
+4. Un **chofer QA** entra por **Soy conductor** (cédula + PIN).
+
+**Pendientes físicos de Xaviel:** probar 1.146.0 en dev con tu email real + QA y dar el OK → promuevo a prod (migraciones bz0/bz1/bz2/bz3 `--env prod --yes`, PR `dev→main`, 1.146.0). · Raykler: aprobar las 11 echadas en *Por aprobar* (sigue de BY). · App: PROMPT-69 (BZ) usa `echada_detalle`, `item_libre_pendiente`, `listar_bitacoras`, `reenviar_echada` idempotente.
+
+---
 
 ### 📋 Matriz de cobertura — AHORA versionada en el repo
 `COBERTURA-NOTAS.md` (raíz del repo SGC) ya contiene la **matriz completa (filas 1-76)** y es la **fuente de verdad a editar de aquí en adelante** — antes solo se llevaba la copia fuera del repo (`C:\developer\improvements\septiembre 2026\imp 14092026\COBERTURA-NOTAS.md`). En próximas rondas: edita la copia **del repo** y commitea; si la de la carpeta `imp` sigue usándose como borrador, sincronízala hacia el repo al cerrar (no al revés).
