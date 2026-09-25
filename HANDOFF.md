@@ -1,5 +1,10 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-66 follow-ups (BY2 UI + BY3 parity) — 25/09/2026 — **🧪 EN DEV 1.145.0, pendiente OK.** Rama `feature/by-followups` (desde `dev`). **Sin migraciones** (frontend-only). Build + guards + `ng test` verdes. Commit `371f7d4`, pusheado a `dev`.
+- **BY2 UI (completa la parte diferida):** la vista previa de Conciliación separa **Flota** (tabla principal, lo único que se importa/cruza), **Fuera de flota** (plegable, tarjetas de persona/sin vehículo, con total) y **Anulaciones** (plegable, líneas negativas). Clasificación en cliente (`cuboDeFila`); `previewStats`/`confirmarImport` solo cuentan/cruzan flota; fuera-de-flota + anulaciones se guardan en el archivo del informe (transacciones_proveedor) para trazabilidad pero **no crean echadas**. El dashboard hereda el fix (los totales guardados ya son flota-only). *La limpieza de datos BY2 ya está en prod desde 1.144.0.*
+- **BY3 parity:** `bitacora/solicitudes-material` (bandeja del ingeniero) también arranca en **Activas** (por entrega más cercana) / **Historial**, igual que Inventario. El "correo diario de requisiciones" no existe como edge propio (el cron de requisiciones-vencidas ya prioriza por fecha) → N/A.
+- **Pendiente:** OK en dev → promover 1.145.0 a prod (PR `dev→main`, sin migraciones). App BY → PROMPT-67.
+
 ## TL;DR — PROMPT-66 (Ronda BY) — 25/09/2026 — **🧪 EN DEV 1.144.0, pendiente OK de Xaviel.** Rama `feature/by-ronda` (desde `dev`, sobre 1.143.0 BX que sigue en dev). **BX NO se promovió** (sin OK explícito → apilé BY encima, regla 18). Build `SGC_ENV=dev` + guards + `ng test` verdes. 3 migraciones + 1 script de limpieza aplicados a **dev**.
 
 **Estado BX:** 1.143.0 (BX) sigue en dev (`main`=1.142.0). Al promover: primero las migraciones bx (bx3-placa, bx4, bx2, bx1) `--env prod`, luego by.
