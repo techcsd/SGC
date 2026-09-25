@@ -42,6 +42,37 @@ export interface LogCombustibleRow {
   km_pendiente?: boolean;
   /** BV1 — registrada con fecha pasada bajo un permiso retroactivo. */
   retroactiva?: boolean;
+  /** BY1 — normal | en_espera | aprobada | rechazada. */
+  revision?: string;
+}
+
+/** BY1 — echada en espera de aprobación (pestaña "Por aprobar"). */
+export interface EchadaPorAprobar {
+  id: string;
+  fecha: string;
+  created_at: string;
+  vehiculo_id: string | null;
+  placa: string | null;
+  vehiculo_label: string | null;
+  km_anterior: number | null;
+  kilometraje: number | null;
+  km_recorridos: number | null;
+  galones: number | null;
+  monto: number | null;
+  producto: string | null;
+  estacion: string | null;
+  registrado_por: string | null;
+  registrado_nombre: string | null;
+  conductor_nombre: string | null;
+  km_alerta: boolean;
+  alerta_consumo: boolean;
+  sin_asignacion: boolean;
+  retroactiva: boolean;
+  motivo: string | null;
+  foto_recibo_path: string | null;
+  foto_tablero_path: string | null;
+  foto_bomba_path: string | null;
+  reenvio_de: string | null;
 }
 
 /** BQ5 — fila del historial de ediciones de una echada (auditoría). */
@@ -258,6 +289,33 @@ export class CombustibleService {
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as RegistroCombustibleHistorial[];
+  }
+
+  // ── BY1 — zona de espera / aprobación de echadas ────────────────────────────
+  async echadasPorAprobar(vehiculoId?: string | null, usuarioId?: string | null): Promise<EchadaPorAprobar[]> {
+    const { data, error } = await this.supabase.client.rpc('echadas_por_aprobar', {
+      p_vehiculo_id: vehiculoId ?? null, p_usuario_id: usuarioId ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as EchadaPorAprobar[];
+  }
+
+  async aprobarEchada(id: string, nota?: string | null, correccion?: Record<string, unknown> | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('aprobar_echada', {
+      p_id: id, p_nota: nota ?? null, p_correccion: correccion ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async rechazarEchada(id: string, motivo: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('rechazar_echada', { p_id: id, p_motivo: motivo });
+    if (error) throw new Error(error.message);
+  }
+
+  async reenviarEchada(original: string, datos: Record<string, unknown>): Promise<unknown> {
+    const { data, error } = await this.supabase.client.rpc('reenviar_echada', { p_original: original, p_datos: datos });
+    if (error) throw new Error(error.message);
+    return data;
   }
 
   /** AA20 — precios oficiales vigentes (RD$/galón) por producto canónico. */

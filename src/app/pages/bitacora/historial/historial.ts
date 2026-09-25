@@ -198,6 +198,13 @@ export class Historial implements OnInit {
     // Solo si el usuario tiene permiso para verlas (si no, RLS igual las ocultaría).
     if (this.puedeVerTodas() && (proyecto || tipo || qp.get('sin_actividad') || qp.get('llovio') || qp.get('item'))) {
       this.alcance.set('todas');
+    } else if (this.puedeVerTodas()) {
+      // BY4 (Sócrates) — quien puede ver TODAS arranca en "Todas" (no en "Mis"), a
+      // menos que haya elegido explícitamente "Mis" antes. Así encuentra las bitácoras
+      // de los proyectos sin tener que descubrir el toggle.
+      let pref: string | null = null;
+      try { pref = localStorage.getItem('sgc-bitacora-alcance'); } catch { /* ignore */ }
+      this.alcance.set(pref === 'mias' ? 'mias' : 'todas');
     }
     await this.loadAll();
 
@@ -242,6 +249,7 @@ export class Historial implements OnInit {
     if (a === 'mias') this.selectedUsuario.set('');
     this.alcance.set(a);
     this.currentPage.set(1);
+    try { localStorage.setItem('sgc-bitacora-alcance', a); } catch { /* ignore */ } // BY4 — recuerda la elección
   }
 
   onUsuarioChange(value: string) {

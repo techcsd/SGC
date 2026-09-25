@@ -4285,6 +4285,41 @@
           "d": "Nuevo rol Developer: acceso completo a Tecnología y lectura de los módulos operativos (inventario, flota, compras, proyectos) para reproducir y depurar, sin escribir datos de obra ni administrar usuarios."
         }
       ]
+    },
+    "1.144.0": {
+      "titulo": "Echadas con aviso van a una zona de espera para aprobar o rechazar; requisiciones activas por entrega y con historial; Sócrates ve todas las bitácoras",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Cuando una echada de combustible tiene un aviso (salto de kilometraje, rendimiento imposible, sin vehículo asignado o permiso retroactivo) ya no cuenta de una vez: queda EN ESPERA y aparece en una pestaña \"Por aprobar\" en Combustible. Raykler o un administrador la Aprueban, la Aprueban con corrección, o la Rechazan con un motivo. El registro nunca se pierde."
+        },
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Al chofer se le avisa si su echada fue aprobada o rechazada (con el motivo). Una echada en espera no cuenta en rendimiento, tableros ni conciliación hasta que se aprueba. Recordatorio automático si algo lleva más de 48 h sin aprobar."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El detalle de una echada ya no abre en blanco: muestra un cargando mientras trae los datos y, si es una echada importada sin vehículo, lo dice en vez de dejar los campos vacíos."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Conciliación de combustible: se limpiaron las echadas importadas que no son de la flota (tarjetas de persona sin vehículo) y las anulaciones; el dashboard vuelve a mostrar el % de coincidencia real en vez de casi 0."
+        },
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Requisiciones: la vista principal ahora es \"Activas\" (pendientes y en proceso) ordenadas por la fecha de entrega más cercana (las vencidas arriba). Las completadas, rechazadas y canceladas pasan a \"Historial\". Se quitó la pestaña \"Todas\"."
+        },
+        {
+          "t": "arreglo",
+          "m": "Bitácora",
+          "d": "Quien puede ver las bitácoras de todos los proyectos (encargados, gerencia) ahora entra directamente a \"Todas las bitácoras\" en vez de \"Mis bitácoras\", y el detalle (actividades, fotos, equipos) usa la misma regla de visibilidad que la lista."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

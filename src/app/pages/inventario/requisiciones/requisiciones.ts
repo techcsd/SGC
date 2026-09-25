@@ -113,32 +113,50 @@ export class Requisiciones implements OnInit {
   fArticulo = signal('');
   search = signal('');
   // BH1 — una prueba cancelada no debe parecer trabajo pendiente: ocultas por defecto.
-  ocultarCanceladas = signal(true);
   // BV10 — orden por defecto = por fecha de NECESIDAD (más próxima/vencida primero)
   // para priorizar por obra; se recuerda por dispositivo. Antes era 'reciente'.
   orden = signal<'reciente' | 'necesidad'>(
     (typeof localStorage !== 'undefined' && (localStorage.getItem('sgc-req-orden') as 'reciente' | 'necesidad' | null)) || 'necesidad',
   );
-  /** BV9 — pestaña por fase (derivada en el servidor). */
-  faseTab = signal<'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada'>('todas');
-  readonly faseTabs = [
+  /** BY3 — vista principal: Activas (pendiente + en proceso) o Historial (completadas
+   *  + rechazadas + canceladas). Por defecto Activas; recordada por dispositivo. */
+  vistaTab = signal<'activas' | 'historial'>(
+    (typeof localStorage !== 'undefined' && (localStorage.getItem('sgc-req-vista') as 'activas' | 'historial' | null)) || 'activas',
+  );
+  /** BY3 — sub-filtro dentro del Historial. */
+  histSub = signal<'todas' | 'completada' | 'rechazada' | 'cancelada'>('todas');
+  readonly histSubs = [
     { key: 'todas', label: 'Todas' },
-    { key: 'pendiente', label: 'Pendientes' },
-    { key: 'en_proceso', label: 'En proceso' },
     { key: 'completada', label: 'Completadas' },
     { key: 'rechazada', label: 'Rechazadas' },
+    { key: 'cancelada', label: 'Canceladas' },
   ] as const;
-  setFaseTab(f: 'todas' | 'pendiente' | 'en_proceso' | 'completada' | 'rechazada') { this.faseTab.set(f); }
+  setVistaTab(v: 'activas' | 'historial') {
+    this.vistaTab.set(v);
+    try { localStorage.setItem('sgc-req-vista', v); } catch { /* ignore */ }
+    if (v === 'activas') this.setOrden('necesidad'); // Activas = por entrega más cercana.
+  }
+  setHistSub(s: 'todas' | 'completada' | 'rechazada' | 'cancelada') { this.histSub.set(s); }
+  /** BY3 — ¿la requisición está cerrada (Historial)? completada/rechazada/cancelada. */
+  private esHistorial(r: SolicitudMaterial): boolean {
+    return r.estado === 'cancelada'
+      || (r.fase ?? 'pendiente') === 'completada' || (r.fase ?? 'pendiente') === 'rechazada';
+  }
   /** BV10 — recuerda el orden elegido (por dispositivo). */
   setOrden(v: 'reciente' | 'necesidad') { this.orden.set(v); try { localStorage.setItem('sgc-req-orden', v); } catch { /* ignore */ } }
-  /** BV9 — conteo por fase para los chips de las pestañas. */
-  faseCount = computed(() => {
-    const c = { todas: 0, pendiente: 0, en_proceso: 0, completada: 0, rechazada: 0 };
+  /** BY3 — conteos para las pestañas Activas / Historial (+ sub-filtros). */
+  tabCount = computed(() => {
+    const c = { activas: 0, historial: 0, completada: 0, rechazada: 0, cancelada: 0 };
     for (const r of this.requisiciones()) {
-      if (this.ocultarCanceladas() && r.estado === 'cancelada') continue;
-      c.todas++;
       const f = r.fase ?? 'pendiente';
-      if (f in c) (c as Record<string, number>)[f]++;
+      if (this.esHistorial(r)) {
+        c.historial++;
+        if (r.estado === 'cancelada') c.cancelada++;
+        else if (f === 'completada') c.completada++;
+        else if (f === 'rechazada') c.rechazada++;
+      } else {
+        c.activas++;
+      }
     }
     return c;
   });
@@ -322,9 +340,17 @@ export class Requisiciones implements OnInit {
     const soloNec = this.soloConNecesidad();
 
     return this.requisiciones().filter((r) => {
-      // BH1 — canceladas ocultas por defecto, salvo que se filtren explícitamente.
-      if (this.ocultarCanceladas() && !est && r.estado === 'cancelada') return false;
-      if (this.faseTab() !== 'todas' && (r.fase ?? 'pendiente') !== this.faseTab()) return false; // BV9
+      // BY3 — Activas (pendiente/en_proceso) vs Historial (completada/rechazada/cancelada).
+      const enHist = this.esHistorial(r);
+      if (this.vistaTab() === 'activas') {
+        if (enHist) return false;
+      } else {
+        if (!enHist) return false;
+        const sub = this.histSub();
+        if (sub === 'cancelada' && r.estado !== 'cancelada') return false;
+        if (sub === 'completada' && !(r.estado !== 'cancelada' && (r.fase ?? 'pendiente') === 'completada')) return false;
+        if (sub === 'rechazada' && !(r.estado !== 'cancelada' && (r.fase ?? 'pendiente') === 'rechazada')) return false;
+      }
       if (soloNec && !r.fecha_necesidad) return false; // BO8
       if (obra && r.proyecto_id !== obra) return false;
       if (sol && r.solicitante_id !== sol) return false;
@@ -438,6 +464,8 @@ export class Requisiciones implements OnInit {
    *  sin fecha al final. No muta el array de la señal (copia con [...]). */
   ordenadas = computed(() => {
     const rows = this.filtered();
+    // BY3 — Historial: lo más recientemente cerrado primero (created_at desc = orden del getAll).
+    if (this.vistaTab() === 'historial') return rows;
     if (this.orden() !== 'necesidad') return rows;
     return [...rows].sort((a, b) => {
       const fa = a.fecha_necesidad ?? null;

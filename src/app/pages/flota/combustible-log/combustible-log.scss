@@ -197,3 +197,31 @@
 .cl-permisos__list { width: 100%; }
 .cl-permisos__vencido { opacity: 0.6; }
 .cl-permisos__empty { color: var(--text-2); font-size: 0.85rem; }
+
+// ── BY1 — pestañas Registro / Por aprobar + zona de espera ──
+.cl-tabs { display: flex; gap: 0.25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border, #2d2d2d); }
+.cl-tab {
+  background: none; border: none; padding: 0.6rem 1rem; cursor: pointer;
+  color: var(--text-2); font: inherit; border-bottom: 2px solid transparent;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.cl-tab--active { color: var(--text-1); border-bottom-color: var(--Hub, #ffb300); font-weight: 600; }
+.cl-aprobar { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.cl-aprobar__card { padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+.cl-aprobar__head { display: flex; align-items: center; gap: 0.6rem; justify-content: space-between; flex-wrap: wrap; }
+.cl-aprobar__motivo { color: var(--warn, #e0a800); display: flex; align-items: center; gap: 0.4rem; margin: 0; font-size: 0.9rem; }
+.cl-aprobar__meta { display: grid; gap: 0.35rem; margin: 0; }
+.cl-aprobar__meta div { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.85rem; }
+.cl-aprobar__meta dt { color: var(--text-2); margin: 0; }
+.cl-aprobar__meta dd { margin: 0; text-align: right; }
+.cl-aprobar__acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; }
+.cl-detalle__revision { margin: 0 0 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+// ── BY1 — modal de rechazo ──
+.cl-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.cl-modal { max-width: 440px; width: 100%; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.cl-modal h4 { margin: 0; }
+.cl-modal__acciones { display: flex; gap: 0.5rem; justify-content: flex-end; }

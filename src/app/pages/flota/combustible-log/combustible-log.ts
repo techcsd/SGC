@@ -3,7 +3,7 @@ import { FlotaSubnav } from '../flota-subnav/flota-subnav';
 import { DecimalPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { CombustibleService, LogCombustibleRow, RegistroCombustibleHistorial, PermisoRetro } from '../../../../shared/services/combustible.service';
+import { CombustibleService, LogCombustibleRow, RegistroCombustibleHistorial, PermisoRetro, EchadaPorAprobar } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { Vehiculo, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
@@ -110,8 +110,10 @@ export class CombustibleLog implements OnInit {
       // BX2 — mapa conductor_id → nombre, para que el historial NUNCA muestre un uuid.
       this.conductoresMap.set(new Map(conductores.map((c) => [c.id, c.nombre])));
     } catch { /* filtros opcionales */ }
-    if (this.esFlotaElevado()) void this.cargarPermisos();
+    if (this.esFlotaElevado()) { void this.cargarPermisos(); void this.cargarPorAprobar(); }
     await this.cargar();
+    // BY1 — deep-link ?revision=en_espera abre directamente la pestaña Por aprobar.
+    if (this.route.snapshot.queryParamMap.get('revision') === 'en_espera') this.setVista('aprobar');
 
     // AQ6/AQ13 — deep-link desde la notificación de consumo anormal: ?echada=<id>
     const echadaId = this.route.snapshot.queryParamMap.get('echada');
@@ -208,6 +210,75 @@ export class CombustibleLog implements OnInit {
   lightbox = signal<string | null>(null);
   readonly PRODUCTO_LABEL = PRODUCTO_CANONICO_LABEL;
   readonly RENDIMIENTO_META = RENDIMIENTO_ESTADO_META;
+
+  // ── BY1 — zona de espera / aprobación ────────────────────────────────────────
+  vista = signal<'registro' | 'aprobar'>('registro');
+  porAprobar = signal<EchadaPorAprobar[]>([]);
+  loadingAprobar = signal(false);
+  aprobandoId = signal<string | null>(null);
+  // Modal de rechazo (motivo obligatorio).
+  rechazoId = signal<string | null>(null);
+  rechazoMotivo = signal('');
+  rechazoSaving = signal(false);
+  // El drawer de edición sirve también para "Aprobar con corrección".
+  modoAprobar = signal(false);
+  // El Registro NO mezcla las que están en espera (van a "Por aprobar").
+  rowsRegistro = computed(() => this.rows().filter((r) => r.revision !== 'en_espera'));
+
+  setVista(v: 'registro' | 'aprobar') { this.vista.set(v); if (v === 'aprobar') void this.cargarPorAprobar(); }
+
+  async cargarPorAprobar() {
+    if (!this.esFlotaElevado()) return;
+    this.loadingAprobar.set(true);
+    try { this.porAprobar.set(await this.combustibleService.echadasPorAprobar()); }
+    catch { /* informativo */ }
+    finally { this.loadingAprobar.set(false); }
+  }
+
+  revisionChip(rev: string | null | undefined): { label: string; badge: string } | null {
+    switch (rev) {
+      case 'en_espera': return { label: 'EN ESPERA', badge: 'warning' };
+      case 'aprobada': return { label: 'APROBADA', badge: 'success' };
+      case 'rechazada': return { label: 'RECHAZADA', badge: 'danger' };
+      default: return null;
+    }
+  }
+
+  async aprobar(id: string) {
+    if (this.aprobandoId()) return;
+    this.aprobandoId.set(id);
+    try {
+      await this.combustibleService.aprobarEchada(id);
+      this.toast.success('Echada aprobada', 'Ya cuenta en los tableros y se avisó al chofer.');
+      await Promise.all([this.cargarPorAprobar(), this.cargar()]);
+      if (this.detail()?.id === id) this.cerrarDetalle();
+    } catch (e) { this.toast.errorFrom(e, 'No se pudo aprobar'); }
+    finally { this.aprobandoId.set(null); }
+  }
+
+  /** Abre el drawer de edición en modo "aprobar con corrección". */
+  aprobarConCorreccion(r: RegistroCombustible) {
+    this.modoAprobar.set(true);
+    this.abrirEditar(r);
+  }
+
+  abrirRechazo(id: string) { this.rechazoId.set(id); this.rechazoMotivo.set(''); }
+  cerrarRechazo() { this.rechazoId.set(null); }
+  async confirmarRechazo() {
+    const id = this.rechazoId();
+    const motivo = this.rechazoMotivo().trim();
+    if (!id) return;
+    if (motivo.length < 3) { this.toast.warning('Escribe el motivo del rechazo'); return; }
+    this.rechazoSaving.set(true);
+    try {
+      await this.combustibleService.rechazarEchada(id, motivo);
+      this.toast.success('Echada rechazada', 'Se avisó al chofer con el motivo.');
+      this.rechazoId.set(null);
+      await Promise.all([this.cargarPorAprobar(), this.cargar()]);
+      if (this.detail()?.id === id) this.cerrarDetalle();
+    } catch (e) { this.toast.errorFrom(e, 'No se pudo rechazar'); }
+    finally { this.rechazoSaving.set(false); }
+  }
 
   abrirDetalle(row: LogCombustibleRow) { return this.abrirDetallePorId(row.id); }
 
@@ -328,7 +399,7 @@ export class CombustibleLog implements OnInit {
     this.cargarHistorial(r.id);
   }
 
-  cerrarEditar() { this.editOpen.set(false); }
+  cerrarEditar() { this.editOpen.set(false); this.modoAprobar.set(false); }
 
   private async cargarHistorial(id: string) {
     this.historialLoading.set(true);
@@ -373,10 +444,18 @@ export class CombustibleLog implements OnInit {
     this.editSaving.set(true);
     this.editError.set('');
     try {
-      await this.combustibleService.editarEchada(id, cambios, v.motivo!.trim());
-      this.toast.success('Echada actualizada', 'Se recalcularon los derivados y se guardó la traza.');
+      if (this.modoAprobar()) {
+        // BY1 — aprobar con corrección: aplica los cambios y da el visto bueno en un paso.
+        await this.combustibleService.aprobarEchada(id, v.motivo!.trim(), cambios);
+        this.toast.success('Echada aprobada con corrección', 'Ya cuenta en los tableros y se avisó al chofer.');
+        void this.cargarPorAprobar();
+      } else {
+        await this.combustibleService.editarEchada(id, cambios, v.motivo!.trim());
+        this.toast.success('Echada actualizada', 'Se recalcularon los derivados y se guardó la traza.');
+      }
       this.editForm.markAsPristine();
       this.editOpen.set(false);
+      this.modoAprobar.set(false);
       // Re-lee el detalle con sus joins (el RPC devuelve la fila cruda) y la lista.
       try { this.detail.set(await this.combustibleService.getById(id)); } catch { /* no crítico */ }
       await this.cargar();                  // refresca la lista (derivados/estado)

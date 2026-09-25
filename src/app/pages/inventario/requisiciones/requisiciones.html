@@ -61,11 +61,8 @@
   <app-filter-select label="Estado" [options]="estadoOpt" [value]="fEstado()"
     (valueChange)="fEstado.set($event)" placeholder="Todos" [searchable]="false" />
 
-  <label class="sgc-field filters-bar__check">
-    <input type="checkbox" [checked]="ocultarCanceladas()"
-           (change)="ocultarCanceladas.set($any($event.target).checked)" />
-    <span class="filters-bar__label">Ocultar canceladas</span>
-  </label>
+  <!-- BY3 — las canceladas ahora viven en el Historial (pestaña arriba); ya no hace
+       falta el checkbox "Ocultar canceladas". -->
 
   <!-- BO8 — solo las que traen fecha de necesidad. -->
   <label class="sgc-field filters-bar__check">
@@ -107,6 +104,28 @@
 
 @if (error()) {
   <div class="page-error" role="alert">{{ error() }}</div>
+}
+
+<!-- BY3 — Activas (pendiente + en proceso) / Historial (completadas + rechazadas + canceladas). -->
+<div class="req-fase-tabs">
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vistaTab() === 'activas'"
+          [class.sgc-btn--ghost]="vistaTab() !== 'activas'" [attr.aria-pressed]="vistaTab() === 'activas'" (click)="setVistaTab('activas')">
+    Activas ({{ tabCount().activas }})
+  </button>
+  <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="vistaTab() === 'historial'"
+          [class.sgc-btn--ghost]="vistaTab() !== 'historial'" [attr.aria-pressed]="vistaTab() === 'historial'" (click)="setVistaTab('historial')">
+    Historial ({{ tabCount().historial }})
+  </button>
+</div>
+@if (vistaTab() === 'historial') {
+  <div class="req-fase-tabs req-fase-tabs--sub">
+    @for (s of histSubs; track s.key) {
+      <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="histSub() === s.key"
+              [class.sgc-btn--ghost]="histSub() !== s.key" (click)="setHistSub(s.key)">
+        {{ s.label }}@if (s.key !== 'todas') { ({{ tabCount()[s.key] }}) }
+      </button>
+    }
+  </div>
 }
 
 <!-- BO8 (§E-7) — alternar entre la lista clásica y la vista agrupada por semana de necesidad. -->
@@ -172,16 +191,6 @@
       }
     </div>
   } @else if (vista() === 'semana') {
-    <!-- BV9 — pestañas por fase de la requisición. -->
-    <div class="req-fase-tabs">
-      @for (t of faseTabs; track t.key) {
-        <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="faseTab() === t.key"
-                [attr.aria-pressed]="faseTab() === t.key" (click)="setFaseTab(t.key)">
-          {{ t.label }} ({{ faseCount()[t.key] }})
-        </button>
-      }
-    </div>
-
     <!-- BO8 (§E-7) — vista agrupada por proximidad de la fecha de necesidad. -->
     <div class="req-grupos">
       @for (g of grupos(); track g.key) {

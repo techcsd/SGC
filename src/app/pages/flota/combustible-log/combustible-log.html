@@ -99,13 +99,24 @@
   }
 </div>
 
+<!-- BY1 — Registro / Por aprobar (solo flota-elevado) -->
+@if (esFlotaElevado()) {
+  <div class="cl-tabs" role="tablist">
+    <button type="button" class="cl-tab" [class.cl-tab--active]="vista() === 'registro'" (click)="setVista('registro')">Registro</button>
+    <button type="button" class="cl-tab" [class.cl-tab--active]="vista() === 'aprobar'" (click)="setVista('aprobar')">
+      Por aprobar @if (porAprobar().length) { <span class="sgc-badge sgc-badge--warning">{{ porAprobar().length }}</span> }
+    </button>
+  </div>
+}
+
+@if (vista() === 'registro') {
 @if (saltos() > 0) {
   <div class="cl-alerta" role="status"><app-icon name="alert-triangle" [size]="16" /> {{ saltos() }} echada(s) con salto de kilometraje fuera de umbral.</div>
 }
 
 @if (loading()) {
   <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
-} @else if (!rows().length) {
+} @else if (!rowsRegistro().length) {
   <div class="sgc-card cl-empty"><p>No hay echadas para los filtros seleccionados.</p></div>
 } @else {
   <div class="sgc-card cl-tabla">
@@ -118,7 +129,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (r of rows(); track r.id) {
+        @for (r of rowsRegistro(); track r.id) {
           <tr class="row--link" [class.cl-row--alerta]="r.km_alerta" (click)="abrirDetalle(r)"
               role="button" tabindex="0" (keydown.enter)="abrirDetalle(r)" aria-label="Ver detalle de la echada">
             <td>{{ fechaHora(r) }}</td>
@@ -152,6 +163,40 @@
     </table>
   </div>
 }
+} @else {
+  <!-- BY1 — Por aprobar: zona de espera (aprobar / aprobar con corrección / rechazar) -->
+  @if (loadingAprobar()) {
+    <div class="sgc-card"><app-skeleton variant="list" [rows]="4" /></div>
+  } @else if (!porAprobar().length) {
+    <div class="sgc-card cl-empty"><p>No hay echadas en espera de aprobación. 🎉</p></div>
+  } @else {
+    <div class="cl-aprobar">
+      @for (e of porAprobar(); track e.id) {
+        <div class="cl-aprobar__card sgc-card">
+          <div class="cl-aprobar__head">
+            <strong>{{ e.vehiculo_label || e.placa || 'Sin vehículo' }}</strong>
+            <span class="cl-hist__when">{{ formatFechaHora(e.created_at) }}</span>
+            @if (e.reenvio_de) { <span class="sgc-badge sgc-badge--info" title="Reenvío de una echada rechazada">REENVÍO</span> }
+          </div>
+          <p class="cl-aprobar__motivo"><app-icon name="alert-triangle" [size]="14" /> {{ e.motivo || 'Requiere revisión' }}</p>
+          <dl class="cl-aprobar__meta">
+            <div><dt>Registró</dt><dd>{{ e.registrado_nombre || e.conductor_nombre || '—' }}</dd></div>
+            <div><dt>Fecha</dt><dd>{{ formatFecha(e.fecha) }}</dd></div>
+            <div><dt>Km ant. → actual</dt><dd>{{ e.km_anterior ?? '—' }} → {{ e.kilometraje ?? '—' }} @if (e.km_recorridos != null) { <span [class.cl-delta--alerta]="e.km_alerta">(Δ {{ e.km_recorridos | number }})</span> }</dd></div>
+            <div><dt>Galones / Monto</dt><dd>{{ e.galones != null ? (e.galones | number:'1.0-2') : '—' }} gal · {{ e.monto != null ? ('RD$ ' + (e.monto | number:'1.0-2')) : '—' }}</dd></div>
+          </dl>
+          <div class="cl-aprobar__acciones">
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="aprobandoId() === e.id" (click)="aprobar(e.id)">
+              {{ aprobandoId() === e.id ? 'Aprobando…' : 'Aprobar' }}
+            </button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDetallePorId(e.id)">Aprobar con corrección</button>
+            <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="abrirRechazo(e.id)">Rechazar</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
 
 <!-- ── AG6 — Detalle de la echada ── -->
 <app-form-drawer title="Detalle de la echada" [open]="detailOpen()" (closed)="cerrarDetalle()">
@@ -159,16 +204,29 @@
     <app-skeleton variant="list" [rows]="4" />
   } @else if (detail(); as r) {
     <div class="cl-detalle">
+      <!-- BY1 — chip de revisión siempre visible (AT11) -->
+      @if (revisionChip(r.revision); as chip) {
+        <p class="cl-detalle__revision">
+          <span class="sgc-badge" [class]="'sgc-badge--' + chip.badge">{{ chip.label }}</span>
+          @if (r.revision === 'rechazada' && r.revision_motivo) { <span class="text-muted">{{ r.revision_motivo }}</span> }
+        </p>
+      }
       @if (esFlotaElevado()) {
         <div class="cl-detalle__acciones">
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(r)">
-            <app-icon name="edit" [size]="15" /> Editar
-          </button>
+          @if (r.revision === 'en_espera') {
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="aprobandoId() === r.id" (click)="aprobar(r.id)">Aprobar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="aprobarConCorreccion(r)">Aprobar con corrección</button>
+            <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="abrirRechazo(r.id)">Rechazar</button>
+          } @else {
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirEditar(r)">
+              <app-icon name="edit" [size]="15" /> Editar
+            </button>
+          }
         </div>
       }
       <dl class="cl-detalle__meta">
         <div><dt>Fecha y hora</dt><dd>{{ fechaHora(r) }}</dd></div>
-        <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? '—' }}</dd></div>
+        <div><dt>Vehículo</dt><dd>{{ r.vehiculo?.placa ?? (r.importada ? 'Importada — sin vehículo' : '—') }}</dd></div>
         <div><dt>Conductor</dt><dd>{{ r.conductor?.nombre ?? '—' }}</dd></div>
         <div><dt>Registró</dt><dd>{{ r.registrador?.nombre ?? '—' }}</dd></div>
         <div><dt>Lectura (km/h)</dt><dd>{{ r.kilometraje != null ? (r.kilometraje | number) : '—' }}</dd></div>
@@ -208,11 +266,32 @@
         </div>
       </div>
     </div>
+  } @else {
+    <!-- BY1 (captura 2) — detalle no disponible: mensaje humano, nunca un drawer en blanco -->
+    <div class="cl-empty"><p>No se pudo cargar el detalle de esta echada. Ciérralo y vuelve a intentarlo.</p></div>
   }
 </app-form-drawer>
 
+<!-- BY1 — Modal de rechazo (motivo obligatorio) -->
+@if (rechazoId(); as rid) {
+  <div class="cl-modal-backdrop" (click)="cerrarRechazo()">
+    <div class="cl-modal sgc-card" (click)="$event.stopPropagation()">
+      <h4>Rechazar echada</h4>
+      <p class="text-muted">El chofer verá el motivo y podrá corregir y reenviar. La echada no se borra.</p>
+      <textarea class="sgc-input" rows="3" [value]="rechazoMotivo()" (input)="rechazoMotivo.set($any($event.target).value)"
+                placeholder="Motivo del rechazo (obligatorio)"></textarea>
+      <div class="cl-modal__acciones">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarRechazo()" [disabled]="rechazoSaving()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--danger" (click)="confirmarRechazo()" [disabled]="rechazoSaving()">
+          {{ rechazoSaving() ? 'Rechazando…' : 'Rechazar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- ── BQ5 — Editar echada (solo flota-elevado) ── -->
-<app-form-drawer title="Editar echada" [open]="editOpen()" (closed)="cerrarEditar()">
+<app-form-drawer [title]="modoAprobar() ? 'Aprobar con corrección' : 'Editar echada'" [open]="editOpen()" (closed)="cerrarEditar()">
   <form class="cl-edit" [formGroup]="editForm" (ngSubmit)="guardarEdicion()">
     @if (editError()) { <div class="page-error" role="alert">{{ editError() }}</div> }
 

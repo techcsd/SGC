@@ -134,7 +134,9 @@ export class CombustibleConciliacionService {
       .select('id, vehiculo_id, fecha, galones, monto, estacion, vehiculo:vehiculos(placa)')
       // AC11 — las echadas de depósito en obra (garrafón) son consumo interno:
       // no tienen contraparte en el reporte de la estación, no se concilian.
-      .neq('origen', 'deposito_obra');
+      .neq('origen', 'deposito_obra')
+      // BY1 — las echadas en espera de aprobación no se concilian hasta el visto bueno.
+      .neq('revision', 'en_espera');
     if (desde) q = q.gte('fecha', desde);
     if (hasta) q = q.lte('fecha', hasta);
     const { data, error } = await q.order('fecha', { ascending: true });

@@ -9,6 +9,7 @@
   "src/shared/services/checklists-vehiculo.service.ts::countPendientesCriticos",
   "src/shared/services/cl-liberacion.service.ts::updateObservaciones",
   "src/shared/services/combustible-conciliacion.service.ts::getDetalle",
+  "src/shared/services/combustible.service.ts::reenviarEchada",
   "src/shared/services/conductores.service.ts::autoRegistrar",
   "src/shared/services/datos-prueba-view.service.ts::effect",
   "src/shared/services/empleado-asignaciones.service.ts::getEventos",

@@ -76,6 +76,16 @@ export interface RegistroCombustible {
   saneamiento_motivo?: string | null;
   saneada_at?: string | null;
 
+  // BY1 — zona de espera / aprobación: normal | en_espera | aprobada | rechazada.
+  revision?: 'normal' | 'en_espera' | 'aprobada' | 'rechazada' | string;
+  revision_motivo?: string | null;
+  revisada_por?: string | null;
+  revisada_en?: string | null;
+  km_alerta?: boolean;
+  sin_asignacion?: boolean;
+  retroactiva?: boolean;
+  importada?: boolean;
+
   created_at: string;
 }
 
