@@ -453,9 +453,13 @@ export class ProyectosService {
    * condiciones y trae las fases embebidas. Reemplaza a getAsignadosA para "Mi
    * proyecto". Sin p_usuario, el RPC usa el usuario autenticado.
    */
-  async misProyectos(usuarioId?: string): Promise<Proyecto[]> {
+  async misProyectos(usuarioId?: string, todas = false): Promise<Proyecto[]> {
+    // CA2 — mis_proyectos(p_usuario, p_todos): p_todos=false → solo las suyas (la web
+    // "Mi proyecto" muestra las obras del usuario); p_todos=null/true → todo lo visible
+    // (lo usa la app para que un módulo-proyectos como Sócrates vea todas las obras).
     const { data, error } = await this.supabase.client.rpc('mis_proyectos', {
       p_usuario: usuarioId ?? null,
+      p_todos: todas,
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Proyecto[];

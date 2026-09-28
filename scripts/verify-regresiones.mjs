@@ -160,6 +160,58 @@ for (const regla of REGLAS) {
   }
 }
 
+// ── CA2 — predicado ÚNICO de visibilidad: política SELECT == RPC de lista/detalle ──
+// Regla 14: una tabla con RLS de visibilidad y un RPC que lista/lee el mismo dato deben
+// resolver la visibilidad con LA MISMA función `puede_ver_*`. Si divergen, un usuario ve
+// la fila por un camino y no por el otro (CA2 proyectos: web amplia / app estrecha; BZ1
+// combustible: lista por RPC / detalle por tabla). Se verifica sobre la definición VIVA
+// (último archivo por fecha) de la política y del RPC.
+const PREDICADO_UNICO = [
+  { tabla: 'proyectos',             policy: 'proyectos: select',             rpc: 'sgc.mis_proyectos',    fn: 'puede_ver_proyecto',
+    reason: 'CA2: la política "proyectos: select" y mis_proyectos deben usar sgc.puede_ver_proyecto ' +
+      '(regla 14). Divergieron y Sócrates veía las obras en la web pero no en la app. ' +
+      'Ver sql/2026-09-27-ca2-proyectos-visibilidad-unica.sql.' },
+  { tabla: 'bitacoras',             policy: 'bitacoras: select',             rpc: 'sgc.listar_bitacoras', fn: 'puede_ver_bitacora_de',
+    reason: 'BY4: la política "bitacoras: select" y listar_bitacoras deben usar sgc.puede_ver_bitacora_de ' +
+      '(regla 14). Ver sql/2026-09-25-by4-bitacora-visibilidad.sql.' },
+  { tabla: 'registros_combustible', policy: 'registros_combustible: select', rpc: 'sgc.echada_detalle',    fn: 'puede_ver_echada',
+    reason: 'BZ1/CA2: la política "registros_combustible: select" y echada_detalle deben usar ' +
+      'sgc.puede_ver_echada (regla 14). Ver sql/2026-09-27-ca2-proyectos-visibilidad-unica.sql.' },
+];
+
+// Texto VIVO de una `create policy "<nombre>"` (última definición por fecha), sin comentarios.
+function politicaViva(nombre) {
+  const escaped = nombre.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const marcador = new RegExp(`create\\s+policy\\s+"${escaped}"[\\s\\S]*?;`, 'gi');
+  let encontrada = null;
+  for (const file of sqlFilesSorted()) {
+    const raw = readFileSync(join(SQL_DIR, file), 'utf8');
+    let m;
+    while ((m = marcador.exec(raw)) !== null) encontrada = { file, text: m[0] };
+    marcador.lastIndex = 0;
+  }
+  return encontrada;
+}
+
+for (const p of PREDICADO_UNICO) {
+  const pol = politicaViva(p.policy);
+  const rpc = definicionViva(p.rpc);
+  const fnRe = new RegExp(`\\b${p.fn}\\b`);
+  if (!pol) {
+    fallos.push(`✗ ${p.tabla}: no se encontró la política "${p.policy}" en sql/.`);
+  } else if (!fnRe.test(sinComentarios(pol.text))) {
+    fallos.push(`✗ REGRESIÓN en la política "${p.policy}" (viva: ${pol.file}): no referencia sgc.${p.fn}.\n   ${p.reason}`);
+  }
+  if (!rpc) {
+    fallos.push(`✗ ${p.tabla}: no se encontró el RPC ${p.rpc} en sql/.`);
+  } else if (!fnRe.test(sinComentarios(rpc.body))) {
+    fallos.push(`✗ REGRESIÓN en ${p.rpc} (viva: ${rpc.file}): no referencia sgc.${p.fn}.\n   ${p.reason}`);
+  }
+  if (pol && rpc && fnRe.test(sinComentarios(pol.text)) && fnRe.test(sinComentarios(rpc.body))) {
+    console.log(`✓ ${p.tabla} — política y ${p.rpc} usan sgc.${p.fn} (predicado único).`);
+  }
+}
+
 // ── BW2 — Controles CONTROLADOS sin `[value]` son "mudos" ─────────────────────
 // Un componente controlado pinta lo elegido desde su input `value`/`values` y solo
 // EMITE su cambio; si una plantilla enlaza el output pero NO el input, el usuario

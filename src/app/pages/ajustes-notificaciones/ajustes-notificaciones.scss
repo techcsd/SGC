@@ -33,6 +33,17 @@
   &__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   &__label { font-size: 14px; font-weight: 600; color: var(--sgc-text); }
   &__desc { font-size: 12.5px; color: var(--sgc-text-muted); }
+  // CA1 — el admin silenció esta alarma para el usuario (AT11: visible).
+  &__admin {
+    align-self: flex-start;
+    margin-top: 2px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--sgc-warning, #b45309);
+    background: var(--sgc-warning-bg, rgba(180, 83, 9, 0.12));
+    border-radius: 6px;
+    padding: 1px 7px;
+  }
 }
 
 // Interruptor accesible (ON = recibir).

@@ -318,3 +318,30 @@ lógico de captura; el layout puede diferir).
 - **`sgc.reenviar_echada(p_original uuid, p_datos jsonb)`** — idempotente por `(reenvio_de, client_uuid)`:
   la app debe mandar `p_datos.client_uuid` estable; un reintento devuelve el reenvío ya creado (BY5).
 - **`sgc.requisiciones_bandeja(...)`** — ahora expone `cerrada_en` en la lista (la app arma el Historial, BY3).
+
+## Ronda CA (27/09/2026) — contratos para la app (PROMPT-71)
+
+### CA2 — Visibilidad de obras unificada (`mis_proyectos`)
+- **`sgc.mis_proyectos(p_usuario uuid default null, p_todos boolean default null)`** — mismo predicado
+  que la RLS de `proyectos` (`sgc.puede_ver_proyecto`). Cambios de contrato:
+  - **Nueva firma de 2 args.** La app llama `mis_proyectos()` (sin args) → `p_todos=null` → devuelve
+    **todo lo visible** (para un módulo-proyectos como Sócrates = todas las obras activas). Antes la
+    firma de 1 arg devolvía solo las suyas → la app mostraba vacío (bug CA2).
+  - `p_todos=false` → **solo las suyas** (responsable/residente/empleado) → úsalo para el bloque
+    **"Mis obras"**. `p_todos=null/true` → todas las visibles → el resto va a **"Otras obras"**.
+  - **Cada fila trae `es_mia boolean`** (responsable/residente/empleado): con esto la app separa
+    *Mis obras* (`es_mia=true`) de *Otras obras* (`es_mia=false`) sin una segunda llamada, y el picker
+    de bitácora/conduce/OT prioriza *Mis obras*.
+  - `es_prueba` sigue solo admin. La red AW1 ("sin obra ligada → ve todas") aplica igual que en la web.
+- Nota: un chofer puro (sin obra ligada) también verá todas bajo *Otras obras* (red AW1, paridad con web).
+
+### CA1 — Alarmas de vehículo solo a operativos + pref fijada por admin
+- **`sgc.es_usuario_operativo_flota(p_usuario uuid default auth.uid())`** — la app puede usarla como
+  cinturón: antes de disparar la **alarma nativa** (`data.tipo='alarm-weekly-inspection'`), verifica la
+  pref y/o que el usuario sea operativo; si no, **no dispares** y **cancela** cualquier alarma local
+  programada. Un Gerente/Ingeniero con ficha suelta ya no es "chofer".
+- **`sgc.mis_notif_operativas()`** — cada tipo trae ahora `silenciada_por_admin boolean`. Muéstralo en
+  Perfil › Notificaciones como *"Silenciada por Tecnología"* (AT11: dato enviado = dato visible). Si
+  `activa=false`, la app no debe programar la alarma local de ese tipo.
+- **`sgc.notif_permitida(u,tipo)`** ahora respeta el silencio fijado por un admin aunque el usuario no
+  pueda silenciarse solo (columna "Silenciada para" de la Matriz, backing `notif_pref_usuario.definida_por`).
