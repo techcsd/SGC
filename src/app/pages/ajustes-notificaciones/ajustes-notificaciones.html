@@ -40,6 +40,9 @@
             <div class="notif-pref__info">
               <span class="notif-pref__label">{{ o.etiqueta }}</span>
               @if (o.descripcion) { <span class="notif-pref__desc">{{ o.descripcion }}</span> }
+              @if (o.silenciada_por_admin) {
+                <span class="notif-pref__admin">Silenciada por Tecnología</span>
+              }
             </div>
             @if (o.silenciable) {
               <button

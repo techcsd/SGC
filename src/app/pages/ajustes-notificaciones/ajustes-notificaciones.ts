@@ -36,7 +36,7 @@ export class AjustesNotificaciones implements OnInit {
 
   categorias = signal<{ tipo: string; label: string; desc: string }[]>(CATEGORIAS_FALLBACK);
   /** BT6 — alarmas operativas: switch si el usuario puede silenciarlas, "Siempre activa" si no. */
-  operativas = signal<{ tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean }[]>([]);
+  operativas = signal<{ tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean; silenciada_por_admin?: boolean }[]>([]);
   loading = signal(true);
   guardando = signal<string | null>(null);
   /** Tipos silenciados del usuario. */

@@ -134,6 +134,43 @@ export class AdminMatrizNotificaciones implements OnInit {
   silUsuariosMap = signal<Map<string, string[]>>(new Map());
   guardandoSil = signal<string | null>(null);
 
+  // CA1 — "Silenciada para": a quién le silenció el admin cada alarma (pref de otro).
+  silForMap = signal<Map<string, { id: string; nombre: string }[]>>(new Map());
+  silFor(tipo: string): { id: string; nombre: string }[] {
+    return this.silForMap().get(tipo) ?? [];
+  }
+  private async cargarSilenciadaPara(cat: NotifTipoFull[]) {
+    const pares = await Promise.all(
+      cat.filter((t) => t.es_operativa).map(async (t) => [t.tipo, await this.svc.silenciadaPara(t.tipo)] as const),
+    );
+    this.silForMap.set(new Map(pares));
+  }
+  async agregarSilenciadaPara(tipo: string, u: { id: string; nombre: string } | null) {
+    if (!u) return;
+    if (this.silFor(tipo).some((x) => x.id === u.id)) return;
+    this.guardandoSil.set(tipo);
+    try {
+      await this.svc.setNotifPrefDe(u.id, tipo, false); // false = silenciar
+      this.silForMap.update((m) => new Map(m).set(tipo, [...this.silFor(tipo), u]));
+      this.toast.success('Silenciada para', u.nombre);
+    } catch (e) {
+      this.toast.error('No se pudo silenciar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoSil.set(null);
+    }
+  }
+  async quitarSilenciadaPara(tipo: string, id: string) {
+    this.guardandoSil.set(tipo);
+    try {
+      await this.svc.setNotifPrefDe(id, tipo, true); // true = reactivar
+      this.silForMap.update((m) => new Map(m).set(tipo, this.silFor(tipo).filter((x) => x.id !== id)));
+    } catch (e) {
+      this.toast.error('No se pudo reactivar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.guardandoSil.set(null);
+    }
+  }
+
   private cargarMapasReglas(cat: NotifTipoFull[], reglas: NotifRegla[]) {
     const m = new Map<string, boolean>();
     const cm = new Map<string, Set<string>>();
@@ -206,6 +243,7 @@ export class AdminMatrizNotificaciones implements OnInit {
       this.tipos.set(cat);
       this.usuarios.set(usuarios);
       this.cargarMapasReglas(cat, reglas);
+      await this.cargarSilenciadaPara(cat);
     } catch (e) {
       this.toast.error('No se pudieron cargar las reglas', e instanceof Error ? e.message : undefined);
     }

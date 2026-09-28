@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.147.0": {
+      "titulo": "Las obras se ven igual en la app que en la web; las alarmas de vehículo solo le llegan a los choferes reales",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Proyectos",
+          "d": "Quien tiene el módulo de Proyectos (por ejemplo un Gerente de Proyectos) ahora ve TODAS las obras activas también en la app, no solo las suyas —igual que en la web. Antes la app usaba un criterio de visibilidad más estrecho que la web y una misma persona veía las obras en un lado y no en el otro. Ahora ambos usan la misma regla; la app separa \"Mis obras\" de \"Otras obras\"."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Las alarmas y recordatorios de vehículo (inspección/reporte semanal, \"actualiza tu estado\", \"mucho tiempo disponible\") ya solo le llegan a los choferes operativos. Un Gerente o Ingeniero con un vínculo suelto a un vehículo deja de recibirlas."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "La Matriz de notificaciones tiene una columna \"Silenciada para\": Tecnología puede apagar una alarma para una persona concreta aunque esa persona no pueda apagarla sola. En Configuración › Notificaciones el usuario ve el aviso \"Silenciada por Tecnología\"."
+        }
+      ]
+    },
     "1.146.0": {
       "titulo": "El detalle de la echada abre para Logística; \"Conduces por implementar\" ya no muestra los que se declinaron; entrar a dev con ayuda",
       "cambios": [

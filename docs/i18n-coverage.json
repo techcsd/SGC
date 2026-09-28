@@ -4,9 +4,9 @@
   "filas": [
     {
       "pantalla": "ajustes-notificaciones",
-      "total": 16,
+      "total": 18,
       "cubiertos": 0,
-      "sin": 16,
+      "sin": 18,
       "pct": 0,
       "enScope": true,
       "enforce": false,
@@ -20,6 +20,8 @@
         "Alarmas operativas",
         "@for (o of operativas(); track o.tipo) {",
         "@if (o.descripcion) {",
+        "} @if (o.silenciada_por_admin) {",
+        "Silenciada por Tecnología",
         "@if (o.silenciable) {",
         "} @else {",
         "Siempre activa",
@@ -1181,9 +1183,9 @@
     },
     {
       "pantalla": "admin/matriz-notificaciones",
-      "total": 91,
+      "total": 95,
       "cubiertos": 0,
-      "sin": 91,
+      "sin": 95,
       "pct": 0,
       "enScope": false,
       "enforce": false,
@@ -1227,6 +1229,8 @@
         "@for (t of tiposOperativos(); track t.tipo) {",
         "@for (r of roles(); track r.id) {",
         "@for (u of silUsuarios(t.tipo); track u.id) {",
+        "Silenciada para:",
+        "@for (u of silFor(t.tipo); track u.id) {",
         "@if (mostrarReglas()) {",
         "Reglas por rol y por usuario",
         "Apaga (o vuelve a encender) un tipo de aviso para",
@@ -1278,6 +1282,8 @@
         "@for (e of eventos; track e.evento) {",
         "Quitar",
         "Agregar persona…",
+        "Reactivar",
+        "Silenciar para…",
         "Buscar persona…"
       ]
     },

@@ -112,6 +112,19 @@
               <app-user-picker placeholder="Agregar persona…" [value]="null"
                 (selected)="addSilUsuario(t.tipo, $event.usuario_id ? { id: $event.usuario_id, nombre: $event.nombre } : null)" />
             </div>
+            <!-- CA1 — "Silenciada para": el admin la apaga PARA una persona (aunque no pueda apagarla sola). -->
+            <div class="mn-sil__silfor">
+              <span class="mn-sil__silfor-label">Silenciada para:</span>
+              @for (u of silFor(t.tipo); track u.id) {
+                <span class="mn-chip mn-chip--user mn-chip--muted">{{ u.nombre }}
+                  <button type="button" class="mn-chip__x" aria-label="Reactivar"
+                          [disabled]="guardandoSil() === t.tipo"
+                          (click)="quitarSilenciadaPara(t.tipo, u.id)">×</button>
+                </span>
+              }
+              <app-user-picker placeholder="Silenciar para…" [value]="null"
+                (selected)="agregarSilenciadaPara(t.tipo, $event.usuario_id ? { id: $event.usuario_id, nombre: $event.nombre } : null)" />
+            </div>
           </div>
         }
       </section>

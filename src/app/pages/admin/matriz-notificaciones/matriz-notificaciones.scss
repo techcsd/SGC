@@ -76,7 +76,14 @@
   &__label { font-size: 13px; font-weight: 700; color: var(--sgc-text); margin-bottom: 6px; }
   &__roles { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
   &__users { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  // CA1 — "Silenciada para" (el admin apaga la alarma para una persona).
+  &__silfor {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--sgc-border);
+  }
+  &__silfor-label { font-size: 12px; font-weight: 600; color: var(--sgc-text-muted); }
 }
+.mn-chip--muted { color: var(--sgc-text-muted); background: transparent; }
 .mn-chip--toggle {
   cursor: pointer;
   color: var(--sgc-text-muted);
