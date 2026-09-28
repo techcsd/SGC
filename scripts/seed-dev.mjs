@@ -191,6 +191,71 @@ async function seedUsers() {
   console.log(`✓ usuarios: ${usuarios.length} en Auth (mismo id, contraseña QA); ${reales} con email real (admin/tecnologia/desarrollador + lista), ${usuarios.length - reales} anonimizados`);
 }
 
+// ── Fixture QA: material no catalogado (BZ2) ─────────────────────────────────
+// Prod no tiene items libres PENDIENTES (todos vinculados/declinados), así que la
+// copia deja dev sin datos para probar la bandeja de material no catalogado ni el
+// filtro por conduce. Este fixture crea 3 `salida_items_libres` sobre una salida real
+// de dev — pendiente + declinado (con sugerencia) + vinculado — con ids FIJOS (upsert
+// idempotente) y `es_prueba=false` para que un rol elevado de flota (no admin, p. ej.
+// Raykler) los vea. Todos los FK se resuelven por SQL contra lo ya sembrado en dev.
+const QA_MNC_IDS = [
+  'a5eed001-0000-4000-8000-000000000001', // pendiente
+  'a5eed001-0000-4000-8000-000000000002', // declinado
+  'a5eed001-0000-4000-8000-000000000003', // vinculado
+];
+async function seedMaterialNoCatalogadoQA() {
+  const sql = `
+  with ctx as (
+    select
+      (select id from sgc.salidas_inventario
+         where es_prueba = false and proyecto_id is not null and estado <> 'anulado'
+         order by created_at desc limit 1) as salida_id,
+      (select usuario_id from sgc.conductores where usuario_id is not null order by usuario_id limit 1) as chofer_id,
+      (select u.id from sgc.usuarios u
+         join sgc.usuarios_roles ur on ur.usuario_id = u.id
+         join sgc.roles r on r.id = ur.rol_id
+         where r.nombre in ('admin','jefe_flota') order by u.id limit 1) as elev_id,
+      (select id from sgc.articulos order by id limit 1) as art1,
+      (select id from sgc.articulos order by id offset 1 limit 1) as art2
+  )
+  insert into sgc.salida_items_libres
+    (id, salida_id, nombre, cantidad, unidad, es_prueba, created_by, created_at,
+     articulo_vinculado_id, vinculado_at, vinculado_por,
+     declinado_at, declinado_por, declinar_motivo, sugerido_articulo_id)
+  select r.id, ctx.salida_id, r.nombre, r.cantidad, 'u', false,
+         coalesce(ctx.chofer_id, ctx.elev_id), now(),
+         case when r.kind = 'vinc' then ctx.art1 end,
+         case when r.kind = 'vinc' then now() end,
+         case when r.kind = 'vinc' then ctx.elev_id end,
+         case when r.kind = 'decl' then now() end,
+         case when r.kind = 'decl' then ctx.elev_id end,
+         case when r.kind = 'decl' then 'Ya existe en el catálogo' end,
+         case when r.kind = 'decl' then ctx.art2 end
+  from ctx, (values
+    ('${QA_MNC_IDS[0]}'::uuid, 'Tornillo hexagonal 3/8 (QA material no catalogado)', 25, 'pend'),
+    ('${QA_MNC_IDS[1]}'::uuid, 'Cinta métrica 5m (QA material no catalogado)',        3,  'decl'),
+    ('${QA_MNC_IDS[2]}'::uuid, 'Extensión de puntal (QA material no catalogado)',     10, 'vinc')
+  ) as r(id, nombre, cantidad, kind)
+  where ctx.salida_id is not null
+  on conflict (id) do update set
+    salida_id = excluded.salida_id, nombre = excluded.nombre, cantidad = excluded.cantidad,
+    articulo_vinculado_id = excluded.articulo_vinculado_id, vinculado_at = excluded.vinculado_at, vinculado_por = excluded.vinculado_por,
+    declinado_at = excluded.declinado_at, declinado_por = excluded.declinado_por,
+    declinar_motivo = excluded.declinar_motivo, sugerido_articulo_id = excluded.sugerido_articulo_id
+  returning salida_id;`;
+  try {
+    const res = await devSql(sql);
+    if (res && res.length) {
+      const cnd = 'CND-' + String(res[0].salida_id).slice(0, 8).toUpperCase();
+      console.log(`✓ fixture QA material no catalogado: 3 items (pendiente+declinado+vinculado) en el conduce ${cnd}`);
+    } else {
+      console.log('  ⚠️ fixture material no catalogado: no había una salida elegible en dev — omitido');
+    }
+  } catch (e) {
+    console.log(`  ⚠️ fixture material no catalogado falló (no crítico): ${String(e.message).slice(0, 120)}`);
+  }
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 console.log(`▶ seed-dev → ${env.ref} (leyendo de prod, escribiendo solo en dev)\n`);
 
@@ -259,6 +324,9 @@ for (let pass = 0; pass < 6 && pending.length; pass++) {
   if (failed.length === pending.length) break; // sin progreso
   pending = failed;
 }
+
+// Fixture QA (BZ2) — corre tras la copia, cuando ya existen salidas/usuarios/articulos.
+await seedMaterialNoCatalogadoQA();
 
 console.log(`\n✓ seed-dev: ${done} tablas copiadas, ${report.filas} filas, ${report.saltadas} omitidas.`);
 if (pending.length) {
