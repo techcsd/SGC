@@ -1,5 +1,41 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-70 (Ronda CA) — 27-28/09/2026 — **✅ SHIPPED A PROD web 1.147.0** (Xaviel probó en dev, dio OK, y pidió promover). `feature/ca-ronda` → `dev` → `main` (`c7a2d4d`, push → Vercel). **2 migraciones en ledger prod** (`ca2`, `ca1`), verificadas por objeto; `app_versiones` web 1.147.0 registrada. Matriz `COBERTURA-NOTAS.md` filas 81-82 → ✅. **Además, probado en prod SIN esperar al domingo** (SELECTs read-only que reproducen la decisión de los emisores) que Eduardo queda fuera de las alarmas de vehículo y los choferes reales no. Eduardo tenía `chofer_estado='disponible'` atascado desde 2026-08-10 (**borrado en prod** a pedido de Xaviel).
+
+### Done — PROMPT-70 (CA)
+- **CA2 🔴 (nota #82 — Sócrates no veía las obras en la app):** causa = dos predicados (regla 14): la web lee `proyectos` por la RLS amplia (bj5) y la app llamaba `mis_proyectos()` estrecho (solo responsable/empleado, ignora módulo proyectos). Fix: **`sgc.puede_ver_proyecto(p_proyecto, p_usuario)` ÚNICA** (todas las ramas de bj5; ramas amplias módulo/submódulo/capataz/AW1 gateadas por `p_usuario=auth.uid()`, vínculo personal parametrizable) usada por la política `proyectos: select` **y** por **`mis_proyectos(p_usuario, p_todos)`** (se dropeó la firma de 1 arg; `create or replace` para que el lint la vea). `p_todos=null/true`→todo visible; `false`→solo suyas; **cada fila trae `es_mia`** (Mis obras / Otras obras). Web `misProyectos(id, todas=false)` → sin cambios visibles. Migración `sql/2026-09-27-ca2-proyectos-visibilidad-unica.sql`.
+- **CA1 (nota #81 — alarma a Eduardo):** el diagnóstico con datos de prod cambió el fix. La alarma de inspección **ya estaba apagada** (notif_regla de usuario, BQ2) y Eduardo **nunca la recibió**; lo que le llegaba eran los recordatorios de estado de chofer **AV6** (`recordar_estados_chofer`: "Actualiza tu estado", "Chofer mucho tiempo disponible") por su ficha `conductores` + estado atascado + `gerencia`=flota-elevado. La def del prompt (ficha=operativo) **habría fallado** (Eduardo/Felipe/TestUser3/Xaviel tienen ficha+rol oficina). Fix: **`sgc.es_usuario_operativo_flota()` ROL-primario** (rol es_operativo/chofer_transportista/jefe_flota; la ficha sola solo cuenta si NO hay rol de oficina) aplicada a los emisores de chofer (alarmas semanales **y AV6**). Migración `sql/2026-09-27-ca1-alarmas-destinatario-operativo.sql`.
+- **Matriz "Silenciada para"** (fuente única = `notif_pref_usuario`, regla 14): `set_notif_pref_de(u,tipo,activa)` (gate admin, escribe `notif_pref_usuario.definida_por`); `notif_permitida` respeta el silencio del admin aunque el usuario no pueda silenciarse solo; `notif_silenciada_para(tipo)` para la UI; `mis_notif_operativas` trae `silenciada_por_admin`; **Configuración › Notificaciones** muestra "Silenciada por Tecnología" (AT11). Seed: Eduardo silenciado en ambas alarmas (definida_por=Xaviel, ids hardcoded estables dev/prod).
+- **Lint `verify-regresiones`** nuevo: exige política == RPC en `proyectos`/`bitacoras`/`registros_combustible` (extraje **`puede_ver_echada`** del predicado inline de BZ1 y reescribí `echada_detalle` para usarlo). 8 reglas SQL verdes.
+- **Frontend:** columna "Silenciada para" en Admin › Matriz de notificaciones; badge "Silenciada por Tecnología" en Configuración › Notificaciones.
+
+### Pending — Claude can do
+- Nada de esta ronda. (Todo shipped y verificado.) La **mitad app = PROMPT-71** (repo `csd-app`, versión 2.32.0): contratos en `PARIDAD.md § Ronda CA` — `mis_proyectos()` con `es_mia`/`p_todos` (Mis obras/Otras obras), `mis_notif_operativas` con `silenciada_por_admin`, y **cancelar/no-disparar la alarma nativa local** si `es_usuario_operativo_flota=false` o `activa=false`.
+
+### Pending — Xavier only
+- Confirmar con **Sócrates desde su teléfono** que ya ve las obras (tras app 2.32.0).
+- (Opcional, ya demostrado por SELECT) confirmar con **Eduardo** que no le llegan alarmas de vehículo.
+- Arrastres previos vigentes: aprobar las 11 echadas en *Por aprobar* (BY); El Flaco cédula real + PIN; Raykler alias de vehículos / re-subir julio.
+
+### Gotchas — PROMPT-70 (CA)
+- **`v_reporte_semanal_cumplimiento` es `security_invoker`**: consultada por la Management API (rol postgres, sin `auth.uid()`) devuelve **vacío** (su `WHERE es_flota_elevado() OR chofer=auth.uid()`). Para diagnósticos/pruebas hay que simular un jwt: `set_config('request.jwt.claims','{"sub":"<id>","role":"authenticated"}', true)` dentro de un CTE en el FROM (se evalúa antes que el SELECT). Sin eso parece que "el emisor no tiene candidatos".
+- **Overload ambiguo**: `mis_proyectos(uuid)` + `mis_proyectos(uuid, boolean)` coexistiendo hace que `mis_proyectos()` sea ambiguo (42725). Hay que **dropear la firma vieja** antes de crear la de 2 args (bloque `do $$ ... drop function ... $$`). Gotcha recurrente (igual que BW `crear_orden_trabajo`).
+- **El lint `verify-regresiones` solo ve `create or replace function`**: si usas `drop` + `create function` (sin `or replace`), el lint toma como "viva" una definición anterior. Usa `create or replace` tras el drop.
+- **`es_usuario_operativo_flota` NO puede basarse en la ficha `conductores` sola**: en prod hay 4 usuarios con ficha + rol de oficina (Eduardo, Felipe=dirección, Test User 3, Xaviel). La ficha cuenta solo si el usuario no tiene ningún rol de oficina.
+- **CA1 no era la alarma semanal sino AV6** (`recordar_estados_chofer`): lección repetida — diagnosticar con datos de prod antes de asumir la causa del prompt.
+
+### Verify on resume (CA)
+```
+git -C "C:/Users/xavie/Desktop/X Dev/dev/SGC" log -1 --oneline        # → c7a2d4d (o posterior)
+# prod por objeto (read-only):
+node -e "import('./scripts/lib/entorno.mjs').then(async({resolverEnv,dbQuery})=>{const e=await resolverEnv(['--env','prod','--yes']);console.log(await dbQuery(e,\`select proname,pg_get_function_identity_arguments(p.oid) a from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='sgc' and proname in ('puede_ver_proyecto','mis_proyectos','es_usuario_operativo_flota','set_notif_pref_de')\`))})"
+# → mis_proyectos SOLO 2-arg; las otras existen. app_versiones web = 1.147.0.
+```
+
+---
+
+# ⏬ Histórico (rondas anteriores, ya en prod) — git tiene el detalle completo
+
 ## ✅ Reportado por la app (PROMPT-67) — 3 huecos del padre — CERRADOS en 1.146.0-dev (BZ0)
 Los tres se cerraron en `sql/2026-09-25-bz0-huecos-app.sql` (dev, pendiente OK→prod):
 1. **`listar_bitacoras(p_todas, p_proyecto, p_desde, p_hasta, p_ingeniero)`** creada (security-definer, RLS `puede_ver_bitacora_de`). Smoke: qa_admin todas=134, mías=0.
