@@ -75,6 +75,21 @@ export class NotifMatrizService {
     if (error) throw new Error(error.message);
   }
 
+  /** CA1 — a qué usuarios les silenció el ADMIN este tipo (columna "Silenciada para"). */
+  async silenciadaPara(tipo: string): Promise<{ id: string; nombre: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('notif_silenciada_para', { p_tipo: tipo });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string }[];
+  }
+
+  /** CA1 — el admin activa/silencia la notificación de OTRO usuario (Silenciada para). */
+  async setNotifPrefDe(usuarioId: string, tipo: string, activa: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_notif_pref_de', {
+      p_usuario: usuarioId, p_tipo: tipo, p_activa: activa,
+    });
+    if (error) throw new Error(error.message);
+  }
+
   /** BK1 — directorio de usuarios para el buscador del panel (id + nombre). */
   async usuariosDirectorio(): Promise<{ id: string; nombre: string }[]> {
     const { data, error } = await this.supabase.client.rpc('directorio_usuarios');

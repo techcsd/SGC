@@ -76,11 +76,11 @@ export class NotificacionesCentroService {
   /** BT6 — alarmas operativas con su estado por usuario: `silenciable` = el usuario puede
    *  apagarla (admin/gerencia/lista); `activa` = notif_permitida hoy. */
   async notifOperativas(): Promise<
-    { tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean }[]
+    { tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean; silenciada_por_admin?: boolean }[]
   > {
     const { data, error } = await this.supabase.client.rpc('mis_notif_operativas');
     if (error) throw new Error(error.message);
-    return (data as { tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean }[]) ?? [];
+    return (data as { tipo: string; etiqueta: string; descripcion: string | null; silenciable: boolean; activa: boolean; silenciada_por_admin?: boolean }[]) ?? [];
   }
 
   /** AT23 — silencia/reactiva un tipo; actualiza la cache y re-filtra la bandeja. */
