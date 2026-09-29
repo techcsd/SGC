@@ -163,7 +163,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 3px solid var(--sgc-warning);
+  border: 1px solid var(--sgc-border);
+  box-shadow: var(--sgc-shadow-sm);
 
   &__title {
     font-size: 13px;
@@ -582,7 +583,7 @@ textarea {
 .libre-note {
   margin: 0.3rem 0 0;
   font-size: 0.8rem;
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 // P2 — banner de acceso a la bandeja Requisiciones (Salidas ya no aprueba requisiciones).
@@ -599,5 +600,5 @@ textarea {
   transition: background 0.15s ease;
 
   &:hover { background: var(--sgc-surface-hover, rgba(255, 179, 0, 0.06)); }
-  &__cta { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  &__cta { color: var(--accent-hover); font-weight: 600; white-space: nowrap; }
 }

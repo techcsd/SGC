@@ -12,11 +12,8 @@
 
 .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .kpi-card {
-  background: var(--sgc-surface); border: 1px solid var(--sgc-border); border-left: 3px solid var(--sgc-primary-mid);
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--sgc-shadow-sm);
-  &--danger { border-left-color: var(--sgc-danger); }
-  &--success { border-left-color: var(--sgc-success); }
-  &--warning { border-left-color: var(--sgc-warning); }
   .kpi-value { font-size: 1.6rem; font-weight: 700; color: var(--sgc-text); small { font-size: 0.9rem; font-weight: 500; color: var(--sgc-text-secondary); } }
   .kpi-label { font-size: 0.8rem; color: var(--sgc-text-secondary); }
 }

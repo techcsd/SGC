@@ -282,16 +282,11 @@ textarea.qa__input {
   border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius-lg);
   padding: 14px 16px;
-  border-left: 4px solid var(--sgc-border);
+  box-shadow: var(--sgc-shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
-
-  &--primary { border-left-color: var(--sgc-primary-mid); }
 }
-.qa__kpi--ok { border-left-color: var(--sgc-success); }
-.qa__kpi--bad { border-left-color: var(--sgc-danger); }
-.qa__kpi--warn { border-left-color: var(--sgc-warning); }
 .kpi-label {
   font-size: 12px;
   color: var(--sgc-text-secondary);

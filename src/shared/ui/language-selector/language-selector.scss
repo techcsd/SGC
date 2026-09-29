@@ -30,7 +30,7 @@
 
 .lang__bandera { font-size: 22px; line-height: 1; }
 .lang__nombre { flex: 1; }
-.lang__check { color: var(--Hub, #ffb300); display: inline-flex; }
+.lang__check { color: var(--accent-hover, #ea580c); display: inline-flex; }
 
 // BT2 — badges de honestidad del selector (beta / próximamente).
 .lang__opt--disabled { opacity: 0.55; cursor: not-allowed; }

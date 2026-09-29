@@ -11,7 +11,7 @@
   }
   &__head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   &__back { color: var(--text-2); font-size: 13px; text-decoration: none; }
-  &__back:hover { color: var(--accent); }
+  &__back:hover { color: var(--accent-hover); }
   &__title { margin: 4px 0 2px; font-size: 22px; }
   &__sub { margin: 0; color: var(--text-2); font-size: 13px; }
   &__loading, &__empty, &__error { padding: 30px; text-align: center; color: var(--text-2); }
@@ -121,7 +121,7 @@
   letter-spacing: 0.03em;
   padding: 1px 6px;
   border-radius: 999px;
-  color: var(--accent);
+  color: var(--accent-hover);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 .ai-pend__tipo--in { color: var(--success, #1a7f37); background: color-mix(in srgb, var(--success, #1a7f37) 14%, transparent); }

@@ -10,7 +10,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-left: 3px solid var(--sgc-warning);
+  border: 1px solid var(--sgc-border);
+  box-shadow: var(--sgc-shadow-sm);
 
   &__title {
     font-size: 13px;

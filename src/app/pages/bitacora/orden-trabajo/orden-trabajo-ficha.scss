@@ -8,7 +8,7 @@
 }
 .page-title { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .page-count { color: var(--text-2); font-size: 13px; }
-.otf-cod { font-size: 14px; font-weight: 700; color: var(--accent, #ffb300); }
+.otf-cod { font-size: 14px; font-weight: 700; color: var(--accent-hover, #ea580c); }
 
 .otf-loading, .otf-error { padding: 30px; text-align: center; color: var(--text-2); }
 .otf-error { color: var(--danger, #e5484d); }
@@ -38,7 +38,7 @@
   border: 1px solid var(--border, #2d2d2d);
   border-radius: 12px;
   padding: 14px;
-  &__rol { font-size: 12px; color: var(--accent, #ffb300); font-weight: 700; }
+  &__rol { font-size: 12px; color: var(--accent-hover, #ea580c); font-weight: 700; }
   &__img { max-height: 90px; max-width: 100%; align-self: flex-start; background: #fff; border-radius: 6px; padding: 4px; }
   &__empty { height: 60px; display: flex; align-items: center; color: var(--text-2); font-size: 13px; }
   &__nom { font-weight: 700; font-size: 14px; margin-top: 4px; }
