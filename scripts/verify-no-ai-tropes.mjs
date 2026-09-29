@@ -60,7 +60,9 @@ const violations = [];
 
 // ── 1 + 2: SCSS (gradientes de fondo, border-left de color) ──────────────────
 for (const file of walk(SRC_DIR, ['.scss'])) {
-  const rel = relative(ROOT, file);
+  // Ruta SIEMPRE con '/' → la firma del baseline es estable entre Windows y el
+  // Linux de Vercel (si no, `relative` mete '\' en local y todo sale "nuevo" en CI).
+  const rel = relative(ROOT, file).replace(/\\/g, '/');
   if (GRADIENT_OK_FILE.test(rel)) continue;
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
@@ -88,7 +90,7 @@ for (const file of walk(SRC_DIR, ['.scss'])) {
 
 // ── 3: emoji-icono en plantillas HTML ────────────────────────────────────────
 for (const file of walk(SRC_DIR, ['.html'])) {
-  const rel = relative(ROOT, file);
+  const rel = relative(ROOT, file).replace(/\\/g, '/');
   if (EMOJI_CONTENT_FILE.test(rel)) continue;
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
