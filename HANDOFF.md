@@ -1,7 +1,7 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-72 (Ronda CB — rediseño visual v2) — 29/09/2026 — **🧪 EN DEV 1.148.0-dev, NO en prod**
-Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **Inter**, sin tocar ningún flujo (regla 1: cero cambios de rutas/servicios/RPC/SQL/permisos — verificado). Rama `feature/cb-rediseno` → **merge a `dev`** (`e99fe5b`), + fix de deploy `eaab0d9`. Web **1.148.0** (release-notes + version.ts). **Vercel dev READY en `dev.sgcconstructorasd.com`.** **Falta OK de Xaviel en dev → luego PR `dev → main`.**
+## TL;DR — PROMPT-72 (Ronda CB — rediseño visual v2) — 29/09/2026 — **✅ SHIPPED A PROD web 1.148.0**
+Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **Inter**, sin tocar ningún flujo (regla 1: cero cambios de rutas/servicios/RPC/SQL/permisos — verificado, `git diff main dev` de routes/services/sql = vacío). Xaviel probó y dio OK → **merge `dev → main` `b288107`** (push → Vercel prod). Web **1.148.0**. Esta ronda es **solo piel** (CSS/tokens/plantillas), **sin migraciones/edges/SQL** → no hubo nada que promover en la BD. Rollback = revert del merge. **App = PROMPT-73** (csd-app, aparte).
 
 ### Done — PROMPT-72 (CB1 fundación + CB2/CB3 shell/componentes)
 - **CB1 tokens v2** (`src/styles/_tokens.scss`): paleta unificada navy `#1e3a5f` + naranja `#f97316` (acción), neutros slate fríos, sombras 1-2 capas, radios en escalera **8/10/16/24**, tokens nuevos (`--accent-hover`, `--text-on-accent`=navy `#14243a`, `--dot-*`, `--glass-*`, `--radius-xl`, `--shadow-pop`, `--font-display`). **Mismos nombres semánticos** → la piel se propaga a TODA la app por los shims `--sgc-*`/`--main`/`--Hub` sin tocar pantallas. `--Hub` (ámbar) = alias de `--accent`. `--sgc-radius*` re-apuntados a la escalera nueva.
