@@ -216,3 +216,51 @@
     margin-bottom: var(--space-3);
   }
 }
+
+// CB — dos tarjetas lado a lado (normal + énfasis navy)
+.ds__cards2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+// CB — escenario para demostrar el vidrio sobre contenido
+.ds__glass-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: var(--surface-3);
+
+  // manchas de color sólidas (sin degradado) para que el blur se note
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    filter: blur(6px);
+    opacity: 0.5;
+  }
+  &::before { background: var(--brand); top: -40px; left: 8%; }
+  &::after { background: var(--accent); bottom: -50px; right: 10%; }
+}
+
+.ds__glass-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xl);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+}

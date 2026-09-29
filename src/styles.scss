@@ -1,3 +1,5 @@
+// CB — self-hosted Inter / Inter Tight (@font-face). No Google Fonts at runtime.
+@use './styles/fonts';
 // BD3 — design tokens (primitives + semantic light/dark). Must come first so the
 // legacy `--sgc-*` names and the AS18 shim below can resolve onto the semantics.
 @use './styles/tokens';
@@ -56,9 +58,10 @@
   --sgc-text-secondary: var(--text-2);
   --sgc-text-muted: var(--text-3);
 
-  // Typography — using system fonts until custom fonts are added
-  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-heading: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  // Typography — CB: Inter (body) + Inter Tight (display), self-hosted.
+  // `--font-body` / `--font-display` are defined in styles/_tokens.scss; here we
+  // only bridge the legacy `--font-heading` name onto the display face.
+  --font-heading: var(--font-display);
   --font-mono: 'Consolas', 'Courier New', monospace;
 
   // Shadows (re-pointed → darker automatically in dark theme)
@@ -67,13 +70,12 @@
   --sgc-shadow-md: var(--shadow-md);
   --sgc-shadow-lg: var(--shadow-lg);
 
-  // Radius — theme-invariant, kept at the legacy values so migrating a module to
-  // the new (--radius* = 6/10/14) ladder is a deliberate, per-module choice, not
-  // a silent global reflow.
-  --sgc-radius-sm: 4px;
-  --sgc-radius: 8px;
-  --sgc-radius-md: 10px;
-  --sgc-radius-lg: 14px;
+  // Radius — CB v2: re-pointed onto the new ladder (8 / 10 / 16 / 24) so the whole
+  // app picks up the softer, modern corners without editing each component.
+  --sgc-radius-sm: var(--radius-sm);  // 8
+  --sgc-radius: var(--radius);        // 10
+  --sgc-radius-md: var(--radius-lg);  // 16
+  --sgc-radius-lg: var(--radius-lg);  // 16
 
   // Transitions
   --sgc-transition: var(--transition);
@@ -114,12 +116,35 @@
 html,
 body {
   height: 100%;
-  font-family: var(--font-body);
+  font-family: var(--font-body), 'Inter Fallback';
   font-size: 14px;
   color: var(--sgc-text);
   background: var(--sgc-bg);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  // CB — Inter OpenType niceties (rsms.me/inter): cv11 = single-storey a,
+  // ss01 = alternate glyphs; keeps text feeling modern without changing sizes.
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+// CB — tabular figures. `.tnum` aligns digits in columns; applied by default to
+// table cells, money, KPIs and document numbers so nothing "wiggles" when it
+// updates. Headings use the display face.
+.tnum,
+td,
+th,
+.data-table td,
+.data-table th {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum', 'cv11', 'ss01';
+}
+
+h1, h2, h3,
+.page-title,
+.page-header__left h1,
+.kpi-value {
+  font-family: var(--font-display), var(--font-body), 'Inter Fallback';
+  letter-spacing: -0.02em;
 }
 
 // BS3 — densidad de la interfaz (Configuración › Apariencia). Ajusta el ritmo
@@ -309,18 +334,18 @@ textarea {
   input,
   select,
   textarea {
-    padding: 9px 12px;
+    padding: 10px 12px;               // CB: ~40px de alto
     border: 1px solid var(--sgc-border);
     border-radius: var(--sgc-radius);
     font-size: 14px;
     color: var(--sgc-text);
     background: var(--sgc-surface);
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
     outline: none;
 
     &:focus {
-      border-color: var(--sgc-primary-mid);
-      box-shadow: 0 0 0 3px rgb(46 117 182 / 0.15);
+      border-color: var(--brand);      // CB: foco navy + halo 4px
+      box-shadow: var(--focus-ring);
     }
 
     &.invalid {
@@ -351,15 +376,15 @@ select.sgc-select {
 }
 // `.sgc-select` fuera de `.sgc-field` necesita también el borde/padding base.
 select.sgc-select {
-  padding: 9px 34px 9px 12px;
+  padding: 10px 34px 10px 12px;
   border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius);
   font-size: 14px;
   color: var(--sgc-text);
   background-color: var(--sgc-surface);
   outline: none;
-  transition: border-color 0.15s ease;
-  &:focus { border-color: var(--sgc-primary-mid); box-shadow: 0 0 0 3px rgb(46 117 182 / 0.15); }
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  &:focus { border-color: var(--brand); box-shadow: var(--focus-ring); }
 }
 
 // ── Print ─────────────────────────────────────────────────
@@ -546,14 +571,13 @@ tr.row--link {
   border-collapse: collapse;
   font-size: 13.5px;
 
+  // CB: cabecera sobria (surface-2, 12px/600, sin gritar en mayúsculas).
   th {
     padding: 11px 16px;
-    background: var(--sgc-primary-light);
-    color: var(--sgc-primary);
-    font-size: 11.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 600;
     text-align: left;
     white-space: nowrap;
     border-bottom: 1px solid var(--sgc-border);
@@ -572,6 +596,12 @@ tr.row--link {
 
   tr:hover td {
     background: var(--sgc-surface-hover);
+  }
+
+  // CB: fila seleccionada = tinte naranja 7 %.
+  tr.selected td,
+  tr[aria-selected='true'] td {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
   }
 
   // AW10 — patrón estándar para la columna de acciones (Editar/Eliminar…). Evita

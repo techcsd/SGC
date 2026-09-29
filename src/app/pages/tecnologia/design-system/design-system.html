@@ -5,9 +5,9 @@
     <div>
       <h1 class="ds__title">Sistema de diseño</h1>
       <p class="ds__lead">
-        Tokens y componentes base del rediseño BD3, vivos en ambos temas. En claro se ven
-        exactamente como hoy; el tema oscuro es nuevo (aún no activado en la app). Nada de
-        esto se aplica a ningún módulo todavía — es el contrato visual para el rollout.
+        Tokens y componentes base del rediseño <strong>CB v2</strong> (paleta navy + naranja,
+        fuente Inter, vidrio, radios en escalera), vivos en ambos temas. Es el contrato visual
+        del que cuelga todo el rollout — un cambio de token se verifica aquí antes de tocar módulos.
       </p>
     </div>
     <button type="button" class="sgc-btn sgc-btn--ghost ds__theme" (click)="toggleTheme()">
@@ -99,11 +99,13 @@
     </p>
 
     <h3 class="ds__h3">appButton (directiva sobre &lt;button&gt;/&lt;a&gt; nativo)</h3>
+    <p class="ds__lead">CB: <strong>una sola</strong> acción naranja por pantalla (<code class="ds__code">accent</code>); guardar/confirmar = navy (<code class="ds__code">primary</code>). Nunca texto blanco sobre naranja — tinta navy.</p>
     <div class="ds__row">
-      <button appButton variant="primary">
+      <button appButton variant="accent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        Nueva requisición
+        Nuevo conduce
       </button>
+      <button appButton variant="primary">Guardar</button>
       <button appButton variant="secondary">Secundario</button>
       <button appButton variant="danger">Anular</button>
       <button appButton variant="ghost">
@@ -127,17 +129,60 @@
       <app-badge variant="brand">Destacado</app-badge>
     </div>
 
+    <h3 class="ds__h3">status-pill — punto + palabra + fondo suave (Regla 2)</h3>
+    <p class="ds__lead">Mapa único <code class="ds__code">estado→tono</code> en <code class="ds__code">shared/utils/estado-tono.ts</code> — mismo estado, mismo color en conduces, requisiciones, echadas, OT, bitácoras y compras.</p>
+    <div class="ds__row">
+      <span class="status-pill status-pill--success">Aprobado</span>
+      <span class="status-pill status-pill--warning">Pendiente</span>
+      <span class="status-pill status-pill--danger">Rechazado</span>
+      <span class="status-pill status-pill--info">En ruta</span>
+      <span class="status-pill status-pill--neutral">Borrador</span>
+      <span class="status-pill status-pill--accent">Nuevo</span>
+      <span class="status-pill status-pill--brand">Principal</span>
+    </div>
+    <div class="ds__row" style="margin-top: 8px;">
+      <app-badge variant="success" [dot]="true">Firmado</app-badge>
+      <app-badge variant="warning" [dot]="true">En revisión</app-badge>
+      <app-badge variant="danger" [dot]="true">Anulado</app-badge>
+      <app-badge variant="info" [dot]="true">En uso</app-badge>
+    </div>
+
     <h3 class="ds__h3">app-card</h3>
-    <app-card heading="Conduce CD-000142">
-      <a actions appButton variant="ghost" size="sm">Ver conduce</a>
-      <p style="margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-sm);">
-        NOVAL · Riviera Bay → Bodega Central · Transporta: Papo.
-      </p>
-      <div class="ds__row">
-        <app-badge variant="info">En ruta</app-badge>
-        <app-badge variant="success">Firmado origen</app-badge>
+    <div class="ds__cards2">
+      <app-card heading="Conduce CD-000142">
+        <a actions appButton variant="ghost" size="sm">Ver conduce</a>
+        <p style="margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-sm);">
+          NOVAL · Riviera Bay → Bodega Central · Transporta: Papo.
+        </p>
+        <div class="ds__row">
+          <span class="status-pill status-pill--info">En ruta</span>
+          <span class="status-pill status-pill--success">Firmado origen</span>
+        </div>
+      </app-card>
+      <app-card heading="Resumen de la semana" [emphasis]="true">
+        <p style="margin: 0; font-size: var(--fs-sm); opacity: 0.9;">
+          UNA tarjeta de énfasis navy por dashboard — para el KPI o el resumen que manda.
+        </p>
+      </app-card>
+    </div>
+  </section>
+
+  <!-- ═══ Vidrio (CB / capa flotante) ═══ -->
+  <section class="ds__section">
+    <h2 class="ds__h2">Vidrio <span class="ds__tag">CB</span></h2>
+    <p class="ds__lead">
+      Material esmerilado <strong>solo</strong> para la capa que flota sobre contenido
+      (topbar, barra de acciones en lote, controles sobre mapa/foto/visor). Nunca en tarjetas,
+      tablas ni formularios. Respaldo sólido con <code class="ds__code">&#64;supports</code>,
+      <code class="ds__code">prefers-reduced-transparency</code> y <code class="ds__code">.no-glass</code>.
+    </p>
+    <div class="ds__glass-stage">
+      <div class="glass ds__glass-bar">
+        <span>3 seleccionados</span>
+        <button appButton variant="accent" size="sm">Entregar y firmar</button>
+        <button appButton variant="ghost" size="sm">Cancelar</button>
       </div>
-    </app-card>
+    </div>
   </section>
 
   <!-- ═══ Iconografía (BE4 / set único) ═══ -->

@@ -21,9 +21,11 @@ export type BadgeVariant =
   selector: 'app-badge',
   templateUrl: './badge.html',
   styleUrl: './badge.scss',
-  host: { '[class]': "'b-' + variant()" },
+  host: { '[class]': "'b-' + variant()", '[class.has-dot]': 'dot()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Badge {
   variant = input<BadgeVariant>('neutral');
+  /** CB: muestra un punto de estado (Regla 2: punto + palabra + fondo suave). */
+  dot = input(false);
 }

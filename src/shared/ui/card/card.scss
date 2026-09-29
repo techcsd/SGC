@@ -1,10 +1,21 @@
-// app-card — BE3. Solo tokens semánticos (ambos temas gratis).
+// app-card — BE3 → CB. Solo tokens semánticos (ambos temas gratis).
 :host {
   display: block;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+}
+
+// CB: tarjeta de énfasis navy (UNA por dashboard). Texto e hijos en claro.
+:host(.card--emphasis) {
+  background: var(--brand);
+  border-color: transparent;
+  color: var(--text-on-brand);
+  box-shadow: var(--shadow-md);
+
+  .card-head { border-bottom-color: rgba(255, 255, 255, 0.14); }
+  .card-head h3 { color: var(--text-on-brand); }
 }
 
 .card-head {
