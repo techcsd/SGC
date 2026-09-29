@@ -83,7 +83,7 @@
 }
 .aud__imp {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-weight: 600;
 }
 .aud__chev {
@@ -261,15 +261,10 @@
   border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius-lg);
   padding: 16px 18px;
-  border-left: 4px solid var(--sgc-border);
+  box-shadow: var(--sgc-shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
-
-  &--primary { border-left-color: var(--sgc-primary-mid); }
-  &--info    { border-left-color: var(--sgc-info); }
-  &--success { border-left-color: var(--sgc-success); }
-  &--warning { border-left-color: var(--sgc-warning); }
 }
 .kpi-label {
   font-size: 12px;

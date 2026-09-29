@@ -41,7 +41,7 @@
 .dup-chip {
   background: var(--sgc-surface-2); border: 1px solid var(--sgc-border); border-radius: 8px;
   padding: .2rem .5rem; font-size: .82rem;
-  em { font-style: normal; font-weight: 700; color: var(--Hub); }
+  em { font-style: normal; font-weight: 700; color: var(--accent-hover); }
 }
 .dup-total { color: var(--sgc-text-muted); font-size: .85rem; margin: .25rem 0 1rem; }
 .dup-result { padding: .5rem 0; }

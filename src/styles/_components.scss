@@ -1,8 +1,11 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  Componentes base globales del rediseño (BE3 / FASE 2).
+//  Componentes base globales del rediseño (BE3 → CB v2 / FASE 2).
 //  Estilos que NO pueden vivir encapsulados en un componente: la directiva
-//  `appButton` (button/anchor nativo). Solo tokens semánticos → ambos temas.
+//  `appButton` (button/anchor nativo), el material de vidrio y utilidades
+//  globales. Solo tokens semánticos → ambos temas.
 // ════════════════════════════════════════════════════════════════════════════
+
+@use './mixins' as m;
 
 .ui-btn {
   display: inline-flex;
@@ -12,10 +15,11 @@
   border: 1px solid transparent;
   border-radius: var(--radius);
   font-family: inherit;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
   line-height: 1.4;
-  padding: var(--space-2) var(--space-4);
+  min-height: 40px;            // CB: 40px control height
+  padding: 0 var(--space-4);
   cursor: pointer;
   text-decoration: none;
   transition: var(--transition-fast);
@@ -38,6 +42,18 @@
   }
 }
 
+// CB — the ONE orange action per screen (Nuevo, Siguiente, Entregar y firmar).
+// Navy ink on orange (never white — fails AA).
+.ui-btn--accent {
+  background: var(--accent);
+  color: var(--text-on-accent);
+
+  &:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+}
+
+// Save / confirm = navy.
 .ui-btn--primary {
   background: var(--brand);
   color: var(--text-on-brand);
@@ -80,11 +96,58 @@
 }
 
 .ui-btn--sm {
-  padding: 5px var(--space-3);
-  font-size: var(--fs-xs);
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--fs-sm);
 
   svg {
     width: 14px;
     height: 14px;
   }
+}
+
+// ── Glass — the frosted floating material (topbar, batch bar, map/lightbox) ──
+// Global utility so any template can add class="glass"; components can also
+// `@use 'src/styles/mixins' as m; @include m.glass;`.
+.glass {
+  @include m.glass;
+}
+// `.no-glass` on <html> (Android <10 / deviceMemory<=2 / user pref) disables it
+// app-wide; the mixin already reacts to `html.no-glass`, this covers ad-hoc use.
+html.no-glass .glass {
+  background: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+// ── Status pill with a leading dot (Regla 2: dot + word + soft bg) ──────────
+// Single source of the estado→tono mapping is shared/utils/estado-tono.ts, which
+// emits one of these tone classes.
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: 1.5;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--_dot, var(--dot-neutral));
+    flex: none;
+  }
+
+  &--success { background: var(--success-bg); color: var(--success); --_dot: var(--dot-success); }
+  &--warning { background: var(--warning-bg); color: var(--warning); --_dot: var(--dot-warning); }
+  &--danger  { background: var(--danger-bg);  color: var(--danger);  --_dot: var(--dot-danger); }
+  &--info    { background: var(--info-bg);    color: var(--info);    --_dot: var(--dot-info); }
+  &--neutral { background: var(--surface-3);  color: var(--text-2);  --_dot: var(--dot-neutral); }
+  &--accent  { background: var(--accent-soft); color: var(--accent-hover); --_dot: var(--accent); }
+  &--brand   { background: var(--brand-soft); color: var(--brand);   --_dot: var(--brand); }
 }

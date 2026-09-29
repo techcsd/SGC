@@ -1,86 +1,95 @@
 // ════════════════════════════════════════════════════════════════════════════
-//  SGC — Design tokens (BD3 / rediseño visual, FASE 1)
+//  SGC — Design tokens — v2 (CB / rediseño visual v2, tanda 28/09/2026)
 //  ---------------------------------------------------------------------------
-//  Single source of truth for color, type, spacing, radius and shadow.
+//  Single source of truth for color, type, spacing, radius, shadow and glass.
 //  Consumed by `src/styles.scss` (which re-points the legacy `--sgc-*` names and
 //  the AS18 shim onto these semantics, so every existing reference themes for
 //  free) and by new/migrated components, which use the SEMANTIC names directly.
 //
-//  RULES (PLAN-REDISENO-VISUAL.md §1):
+//  v2 changes ONLY the VALUES and adds the missing tokens — the semantic NAMES
+//  are identical to v1 (BD3), so the whole app re-skins to the unified
+//  navy + orange palette without touching a single flow. See CONTEXTO-35 §B.
+//
+//  RULES:
 //   1. Screens never use a primitive or a raw hex — only SEMANTIC tokens.
-//   2. Both themes are defined together, here, from day one.
-//   3. LIGHT values are chosen to reproduce today's look byte-for-byte, so
-//      importing this file changes NOTHING visually until a module is migrated.
-//   4. DARK is defined but NOT activated by default — a `[data-theme="dark"]`
-//      on <html> flips it (wired only in the component gallery for now).
+//   2. Both themes are defined together, here.
+//   3. `--accent` (orange) ALWAYS pairs with `--text-on-accent` (navy ink) —
+//      never white text on orange (fails AA). The token guard enforces it.
+//   4. DARK is flipped by `[data-theme="dark"]` on <html>.
 // ════════════════════════════════════════════════════════════════════════════
 
 // ── PRIMITIVES ──────────────────────────────────────────────────────────────
 // Raw scales. Never referenced by components; they only feed the semantics below.
 :root {
-  // Brand blue
-  --blue-700: #1f4e79;
-  --blue-600: #255a8a;
-  --blue-500: #2e75b6;
-  --blue-400: #4a90d0;
-  --blue-100: #d6e4f0;
+  // Brand navy ramp (the identity)
+  --navy-900: #0f1f33;   // sidebar / nav
+  --navy-800: #14243a;   // ink over accent
+  --navy-700: #17304f;   // brand hover
+  --navy-600: #1e3a5f;   // brand
+  --navy-400: #2a4a75;   // dark-theme brand fill
+  --navy-200: #9cc0ec;   // dark-theme brand text
+  --navy-50:  #eef3f9;   // brand soft (light)
 
-  // Accent amber (ex --Hub — kept as brand identity)
+  // Accent orange
+  --orange-600: #ea580c; // accent hover (light)
+  --orange-500: #f97316; // accent
+  --orange-400: #fb923c; // accent (dark)
+  --orange-50:  #fff4ec; // accent soft (light)
+
+  // Legacy amber (ex --Hub) — retained as a primitive alias so any stray direct
+  // reference still resolves; the semantic `--accent` is now orange.
   --amber-500: #ffb300;
-  --amber-700: #b45309;
-  --amber-100: #fef3c7;
 
-  // Status
-  --green-600: #2d7d46;
-  --green-500: #3faa63;
-  --green-100: #d4edda;
-  --red-600: #c0392b;
-  --red-500: #e05a4c;
-  --red-100: #fde8e6;
-  --sky-600: #0284c7;
-  --sky-500: #38b0e8;
-  --sky-100: #e0f2fe;
+  // Status foregrounds / soft backgrounds
+  --green-600: #067647;
+  --green-100: #ecfdf3;
+  --amber-700: #b54708;
+  --amber-100: #fffaeb;
+  --red-600:   #b42318;
+  --red-100:   #fef3f2;
+  --sky-600:   #175cd3;
+  --sky-100:   #eff8ff;
 
-  // Neutral — ONE slate ramp that replaces the six off-palette greys
-  // (#929090 / #ff5f00 etc. are retired; everything neutral maps here).
-  --slate-950: #0f1a28;
-  --slate-900: #1a2e44;
-  --slate-800: #243d58;
-  --slate-700: #334155;
-  --slate-600: #475569;
-  --slate-500: #64748b;
-  --slate-400: #94a3b8;
-  --slate-300: #cbd5e1;
-  --slate-200: #e2e8f0;
-  --slate-100: #f1f5f9;
-  --slate-50: #f0f4f8;
+  // Neutral slate ramp (cool, low-chroma — the "atemporal" look)
+  --slate-950: #0b121c;
+  --slate-900: #101828;
+  --slate-800: #1b2736;
+  --slate-700: #344054;
+  --slate-600: #475467;
+  --slate-500: #5b6b80;
+  --slate-400: #7a8799;
+  --slate-300: #d0d5dd;
+  --slate-200: #e4e7ec;
+  --slate-100: #f2f4f7;
+  --slate-75:  #f8f9fb;
+  --slate-50:  #f5f6f8;
   --white: #ffffff;
 }
 
 // ── SEMANTIC — LIGHT (default) ──────────────────────────────────────────────
-// These names are the public API. Values reproduce the current light look.
 :root {
   // Surfaces
-  --bg: var(--slate-50);            // app canvas            (#f0f4f8)
-  --surface: var(--white);          // cards, panels         (#ffffff)
-  --surface-2: #f8fafc;             // hover / subtle fill
-  --surface-3: var(--slate-100);    // deeper inset
-  --border: var(--slate-200);       // hairlines             (#e2e8f0)
-  --border-strong: var(--slate-300);// stronger dividers     (#cbd5e1)
+  --bg: var(--slate-50);              // app canvas            (#f5f6f8)
+  --surface: var(--white);           // cards, panels         (#ffffff)
+  --surface-2: var(--slate-75);      // hover / subtle fill   (#f8f9fb)
+  --surface-3: var(--slate-100);     // deeper inset          (#f2f4f7)
+  --border: var(--slate-200);        // hairlines             (#e4e7ec)
+  --border-strong: var(--slate-300); // stronger dividers     (#d0d5dd)
 
   // Text
-  --text: #1e293b;                  // primary text
-  --text-2: var(--slate-500);       // secondary             (#64748b)
-  --text-3: var(--slate-400);       // muted / placeholder   (#94a3b8)
-  --text-on-brand: var(--white);    // text over brand fills
-  --text-on-accent: var(--slate-900); // dark ink over amber accent fills (both themes)
+  --text: var(--slate-900);          // primary text          (#101828)
+  --text-2: var(--slate-500);        // secondary             (#5b6b80)
+  --text-3: var(--slate-400);        // muted / placeholder   (#7a8799)
+  --text-on-brand: var(--white);     // text over navy fills
+  --text-on-accent: var(--navy-800); // navy ink over orange  (#14243a) — AA 5.6:1
 
-  // Brand + accent
-  --brand: var(--blue-700);         // #1f4e79
-  --brand-hover: var(--blue-500);   // #2e75b6
-  --brand-soft: var(--blue-100);    // tints / table headers (#d6e4f0)
-  --accent: var(--amber-500);       // #ffb300
-  --accent-soft: rgba(255, 179, 0, 0.18);
+  // Brand (navy) + accent (orange)
+  --brand: var(--navy-600);          // #1e3a5f
+  --brand-hover: var(--navy-700);    // #17304f
+  --brand-soft: var(--navy-50);      // tints / table headers (#eef3f9)
+  --accent: var(--orange-500);       // #f97316  — the ONE action colour
+  --accent-hover: var(--orange-600); // #ea580c
+  --accent-soft: var(--orange-50);   // #fff4ec
 
   // Status (fg + soft bg pair)
   --success: var(--green-600);
@@ -92,18 +101,25 @@
   --info: var(--sky-600);
   --info-bg: var(--sky-100);
 
-  // Sidebar / header (already dark in light theme — kept)
-  --nav-bg: var(--slate-900);       // #1a2e44
-  --nav-hover: var(--slate-800);    // #243d58
-  --nav-active: var(--blue-700);    // #1f4e79
-  --nav-text: var(--white);
-  --nav-text-muted: #94b4cc;
+  // Status dots (a solid, saturated dot always precedes the word — Regla 2)
+  --dot-success: #12b76a;
+  --dot-warning: #f79009;
+  --dot-danger: #f04438;
+  --dot-info: #2e90fa;
+  --dot-neutral: #98a2b3;
 
-  // Focus
-  --focus-ring: 0 0 0 3px rgb(46 117 182 / 0.25);
-  --focus-ring-danger: 0 0 0 3px rgb(192 57 43 / 0.25);
+  // Sidebar / header — navy 900, "inset" floating panel
+  --nav-bg: var(--navy-900);         // #0f1f33
+  --nav-hover: rgba(255, 255, 255, 0.06);
+  --nav-active: rgba(255, 255, 255, 0.10);
+  --nav-text: #dbe4ef;
+  --nav-text-muted: #8ba0b8;
 
-  // ── Typography — ONE scale (px only), replaces the 61 ad-hoc sizes ──────────
+  // Focus — navy ring + 4px halo (Regla 7)
+  --focus-ring: 0 0 0 4px rgb(30 58 95 / 0.18);
+  --focus-ring-danger: 0 0 0 4px rgb(180 35 24 / 0.18);
+
+  // ── Typography ──────────────────────────────────────────────────────────
   --fs-xs: 12px;
   --fs-sm: 13px;
   --fs-base: 14px;
@@ -111,6 +127,7 @@
   --fs-lg: 18px;
   --fs-xl: 22px;
   --fs-2xl: 28px;
+  --fs-3xl: 32px;
   --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
@@ -118,7 +135,7 @@
   --lh-tight: 1.2;
   --lh-normal: 1.5;
 
-  // ── Spacing — the scale that didn't exist ───────────────────────────────────
+  // ── Spacing ─────────────────────────────────────────────────────────────
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -126,65 +143,95 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  // ── Radius — consolidates 8/10/12/14 into a small ladder ────────────────────
-  --radius-sm: 6px;
+  // ── Radius — the new ladder 8 / 10 / 16 / 24 ─────────────────────────────
+  --radius-sm: 8px;
   --radius: 10px;
-  --radius-lg: 14px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-pill: 999px;
 
-  // ── Shadows ─────────────────────────────────────────────────────────────────
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  // ── Shadows — 1-2 soft layers (Regla 5: no giant shadows) ────────────────
+  --shadow-sm: 0 1px 2px 0 rgb(16 24 40 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(16 24 40 / 0.08), 0 1px 2px -1px rgb(16 24 40 / 0.06);
+  --shadow-md: 0 4px 10px -2px rgb(16 24 40 / 0.10), 0 2px 4px -2px rgb(16 24 40 / 0.06);
+  --shadow-lg: 0 12px 24px -6px rgb(16 24 40 / 0.14), 0 4px 8px -4px rgb(16 24 40 / 0.08);
+  --shadow-pop: 0 12px 32px -8px rgb(16 24 40 / 0.18), 0 2px 6px 0 rgb(16 24 40 / 0.06);
 
-  // ── Motion ──────────────────────────────────────────────────────────────────
+  // ── Glass — ONLY for the floating layer (topbar, batch bar, map/photo/lightbox controls) ──
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-border: rgba(255, 255, 255, 0.80);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.70), 0 12px 32px rgba(16, 24, 40, 0.14);
+  --glass-blur: blur(20px) saturate(180%);
+
+  // ── Fonts — Inter (body) + Inter Tight (display), self-hosted ────────────
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Inter Tight', 'Inter', system-ui, -apple-system, sans-serif;
+
+  // ── Motion ──────────────────────────────────────────────────────────────
   --transition: all 0.2s ease;
   --transition-fast: all 0.15s ease;
 }
 
 // ── SEMANTIC — DARK ([data-theme="dark"]) ───────────────────────────────────
-// Same names, dark values. Defined now (both-themes-from-day-one) but not
-// activated app-wide yet — only previewed in the component gallery.
 [data-theme='dark'] {
-  --bg: var(--slate-950);           // #0f1a28
-  --surface: #16212e;
-  --surface-2: #1d2b3a;
-  --surface-3: #243141;
-  --border: #2b3a4c;
-  --border-strong: #3a4d63;
+  --bg: var(--slate-950);            // #0b121c
+  --surface: #111a26;
+  --surface-2: #172231;
+  --surface-3: #1b2736;
+  --border: #1e2b3c;
+  --border-strong: #2b3a4c;
 
-  --text: #e8eef4;
-  --text-2: #a3b3c4;
+  --text: #e6ebf1;
+  --text-2: #9aa8ba;
   --text-3: #6f8194;
   --text-on-brand: var(--white);
+  --text-on-accent: var(--navy-800);
 
-  --brand: var(--blue-500);         // lift for contrast on dark
-  --brand-hover: var(--blue-400);
-  --brand-soft: rgba(46, 117, 182, 0.22);
-  --accent: var(--amber-500);
-  --accent-soft: rgba(255, 179, 0, 0.22);
+  // NOTE: `--brand` in dark must work BOTH as a fill (white text on it — primary
+  // buttons, active states) AND as text on the dark canvas. A light tint (#9cc0ec)
+  // breaks button fills (white-on-light = fails AA); the deep navy fill (#2a4a75)
+  // breaks links (too dark as text). #2e75b6 is the balance that shipped pre-CB:
+  // white on it = 5:1 (AA), and it stays legible as emphasis text on the dark bg.
+  --brand: #2e75b6;
+  --brand-hover: #4a90d0;
+  --brand-soft: rgba(46, 117, 182, 0.20);
+  --accent: var(--orange-400);       // #fb923c
+  --accent-hover: var(--orange-500); // #f97316
+  --accent-soft: rgba(251, 146, 60, 0.16);
 
-  --success: var(--green-500);
-  --success-bg: rgba(45, 125, 70, 0.22);
-  --danger: var(--red-500);
-  --danger-bg: rgba(192, 57, 43, 0.24);
-  --warning: #d98324;
-  --warning-bg: rgba(180, 83, 9, 0.26);
-  --info: var(--sky-500);
-  --info-bg: rgba(2, 132, 199, 0.22);
+  --success: #6ce9a6;
+  --success-bg: rgba(18, 183, 106, 0.14);
+  --danger: #fda29b;
+  --danger-bg: rgba(240, 68, 56, 0.16);
+  --warning: #fec84b;
+  --warning-bg: rgba(247, 144, 9, 0.16);
+  --info: #84caff;
+  --info-bg: rgba(46, 144, 250, 0.16);
 
-  --nav-bg: #0d1622;
-  --nav-hover: #1a2836;
-  --nav-active: var(--blue-600);
-  --nav-text: #e8eef4;
+  // status dots stay saturated on dark
+  --dot-success: #12b76a;
+  --dot-warning: #f79009;
+  --dot-danger: #f04438;
+  --dot-info: #2e90fa;
+  --dot-neutral: #98a2b3;
+
+  --nav-bg: #0e1826;
+  --nav-hover: rgba(255, 255, 255, 0.05);
+  --nav-active: rgba(255, 255, 255, 0.09);
+  --nav-text: #dbe4ef;
   --nav-text-muted: #7f96ac;
 
-  --focus-ring: 0 0 0 3px rgb(74 144 208 / 0.35);
-  --focus-ring-danger: 0 0 0 3px rgb(224 90 76 / 0.35);
+  --focus-ring: 0 0 0 4px rgb(156 192 236 / 0.30);
+  --focus-ring-danger: 0 0 0 4px rgb(253 162 155 / 0.30);
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+  --shadow-md: 0 4px 10px -2px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 24px -6px rgb(0 0 0 / 0.6), 0 4px 8px -4px rgb(0 0 0 / 0.5);
+  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 2px 6px 0 rgb(0 0 0 / 0.4);
+
+  --glass-bg: rgba(17, 26, 38, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(20px) saturate(180%);
 }

@@ -66,7 +66,7 @@
   text-decoration: none;
   transition: all 0.15s ease;
   &:hover { border-color: var(--accent); transform: translateY(-1px); }
-  svg { color: var(--accent); flex: 0 0 auto; }
+  svg { color: var(--accent-hover); flex: 0 0 auto; }
 }
 .compa__archivo-txt { display: flex; flex-direction: column; strong { font-size: 13.5px; } small { color: var(--text-3); font-size: 11.5px; } }
 
@@ -182,7 +182,7 @@
 }
 .compa__propuesta-head {
   display: flex; align-items: center; gap: 8px;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-size: 14px;
   margin-bottom: 8px;
 }

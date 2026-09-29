@@ -47,7 +47,7 @@
   border-color: rgba(31, 157, 85, 0.35);
 }
 .cimport__chip--modificada {
-  color: var(--accent);
+  color: var(--accent-hover);
   background: rgba(255, 179, 0, 0.12);
   border-color: rgba(255, 179, 0, 0.35);
 }
@@ -75,7 +75,7 @@
 }
 .cimport__cambio {
   font-size: 0.75rem;
-  color: var(--accent);
+  color: var(--accent-hover);
 }
 
 .cimport__hoja {
@@ -97,7 +97,7 @@
   gap: 6px;
   margin: 4px 0;
   font-size: 0.85rem;
-  color: var(--accent);
+  color: var(--accent-hover);
 
   svg { width: 15px; height: 15px; flex-shrink: 0; }
 }

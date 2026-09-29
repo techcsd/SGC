@@ -508,5 +508,5 @@
   transition: background 0.15s ease;
 
   &:hover { background: rgba(255, 179, 0, 0.08); }
-  strong { color: var(--accent, #ffb300); }
+  strong { color: var(--accent-hover, #ea580c); }
 }

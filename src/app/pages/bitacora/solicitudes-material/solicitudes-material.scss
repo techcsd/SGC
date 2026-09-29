@@ -225,7 +225,7 @@ textarea {
 // BC4 — código citable de la requisición (REQ-XXXXXX).
 .req-codigo {
   font-size: 0.8rem;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -246,7 +246,7 @@ textarea {
   color: var(--text-1, inherit);
   text-align: left;
 }
-.mac-card__toggle { font-size: 0.8rem; color: var(--accent); font-weight: 500; }
+.mac-card__toggle { font-size: 0.8rem; color: var(--accent-hover); font-weight: 500; }
 .mac-card__hint { color: var(--text-2); font-size: 0.85rem; margin: 0 14px 10px; }
 
 // BV9/10/11 — pestañas por fase + edición inline de fecha (lado ingeniero).
@@ -260,7 +260,7 @@ textarea {
   font-size: 0.85rem;
   color: var(--text-2, inherit);
 }
-.req-fase-tab--activa { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.req-fase-tab--activa { border-color: var(--accent); color: var(--accent-hover); font-weight: 600; }
 .req-fase-tab__n {
   display: inline-block;
   margin-left: 4px;
@@ -274,7 +274,7 @@ textarea {
   background: none;
   border: none;
   padding: 0;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-size: 0.78rem;
   cursor: pointer;
   text-decoration: underline;

@@ -117,7 +117,7 @@
 
     &:hover { border-color: var(--Hub, #ffb300); }
     &--on { border-color: var(--Hub, #ffb300); font-weight: 600; }
-    app-icon { color: var(--Hub, #ffb300); }
+    app-icon { color: var(--accent-hover, #ea580c); }
   }
 
   &__btn {

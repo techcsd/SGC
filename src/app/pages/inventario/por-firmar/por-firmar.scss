@@ -47,7 +47,7 @@
   &__main { display: flex; flex-direction: column; gap: 0.2rem; }
   &__num { font-weight: 700; color: var(--sgc-text); }
   &__meta { font-size: 0.85rem; color: var(--text-2); }
-  &__cta { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  &__cta { color: var(--accent-hover); font-weight: 600; white-space: nowrap; }
   &__cta--warn { color: #f59e0b; }
 }
 
@@ -160,7 +160,7 @@
   }
   &--libre {
     border-color: var(--accent) !important;
-    em { color: var(--accent); font-style: normal; font-size: 0.8rem; }
+    em { color: var(--accent-hover); font-style: normal; font-size: 0.8rem; }
   }
   &__n { color: var(--sgc-text); }
   &__q { color: var(--text-2); white-space: nowrap; }
@@ -181,7 +181,7 @@
 .pf-link {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-hover);
   cursor: pointer;
   padding: 0.3rem 0;
   font-size: 0.85rem;

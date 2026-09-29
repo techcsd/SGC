@@ -79,7 +79,7 @@
     font-family: var(--font-mono);
     font-weight: 700;
     font-size: 0.95rem;
-    color: var(--accent);
+    color: var(--accent-hover);
     margin-right: auto;
   }
 
@@ -175,7 +175,7 @@
 // BC4 — código de requisición en la lista.
 .req-codigo {
   font-size: 0.8rem;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -192,7 +192,7 @@
   margin: 0 0 8px;
   color: var(--text-2);
 }
-.req-pend { color: var(--accent); font-weight: 600; }
+.req-pend { color: var(--accent-hover); font-weight: 600; }
 
 // BJ4 — línea de requisición quitada (cancelada).
 .req-line-cancelada {

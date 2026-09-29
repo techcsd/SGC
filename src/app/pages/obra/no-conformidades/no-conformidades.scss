@@ -10,17 +10,12 @@
 .kpi-card {
   background: var(--sgc-surface);
   border: 1px solid var(--sgc-border);
-  border-left: 3px solid var(--sgc-primary-mid);
   border-radius: var(--sgc-radius);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   box-shadow: var(--sgc-shadow-sm);
-
-  &--danger { border-left-color: var(--sgc-danger); }
-  &--success { border-left-color: var(--sgc-success); }
-  &--warning { border-left-color: var(--sgc-warning); }
 
   .kpi-value {
     font-size: 1.6rem;

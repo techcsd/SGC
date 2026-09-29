@@ -90,7 +90,7 @@
 
 // F8 — figura + fotos en captura.
 .cart-fig { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--main-ultra-light); }
-.cart-fig app-cartilla-figura-icono { color: var(--Hub); }
+.cart-fig app-cartilla-figura-icono { color: var(--accent-hover); }
 .cart-cap-foto {
   position: relative;
   img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
@@ -104,5 +104,5 @@
 }
 .cart-cat-figs { list-style: none; margin: 0; padding: 0; }
 .cart-cat-figs li { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
-.cart-cat-figs app-cartilla-figura-icono { color: var(--Hub); }
+.cart-cat-figs app-cartilla-figura-icono { color: var(--accent-hover); }
 .cart-cat-toggle { margin-left: auto; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.3rem; }

@@ -76,3 +76,8 @@ src/environments/environment.ts
 
 # BV12 — PDFs reales de facturas (no commitear; sí fixtures anonimizados)
 qa/pdf/*.pdf
+
+# CB — QA visual: capturas y sesión de login (los scripts SÍ se versionan)
+qa/visual/cb/
+qa/visual/.auth.json
+qa/visual/rutas.json

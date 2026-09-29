@@ -90,12 +90,10 @@
   border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius-lg);
   padding: 16px 18px;
-  border-left: 4px solid var(--sgc-border);
+  box-shadow: var(--sgc-shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 6px;
-
-  &--primary { border-left-color: var(--sgc-primary-mid); }
 }
 .kpi-label {
   font-size: 12px;

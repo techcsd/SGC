@@ -7,11 +7,7 @@
   background: var(--sgc-surface); border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius); padding: 14px 16px;
   display: flex; flex-direction: column; gap: 4px;
-  border-left: 4px solid var(--sgc-border);
-  &--ok { border-left-color: var(--sgc-success); }
-  &--warn { border-left-color: var(--sgc-warning); }
-  &--danger { border-left-color: var(--sgc-danger); }
-  &--muted { border-left-color: var(--sgc-text-muted); }
+  box-shadow: var(--sgc-shadow-sm);
   &__label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--sgc-text-muted); }
   &__value { font-size: 22px; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
   &__hint { font-size: 11px; color: var(--sgc-text-secondary); }

@@ -730,7 +730,7 @@
 
 // AW15 — nota de voz (composer + burbuja)
 .composer__mic { color: var(--text-2); }
-.composer__mic:hover { color: var(--accent); }
+.composer__mic:hover { color: var(--accent-hover); }
 .composer__cancel { color: var(--brand); }
 .composer__recording {
   flex: 1;
@@ -827,7 +827,7 @@
   gap: 8px;
   padding: 4px 16px 6px;
   font-size: 0.8rem;
-  color: var(--accent);
+  color: var(--accent-hover);
   font-style: italic;
 }
 .thread__typing-dots {

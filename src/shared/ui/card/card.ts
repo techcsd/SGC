@@ -19,6 +19,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   selector: 'app-card',
   templateUrl: './card.html',
   styleUrl: './card.scss',
+  host: { '[class.card--emphasis]': 'emphasis()' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Card {
@@ -26,4 +27,6 @@ export class Card {
   heading = input<string>('');
   /** Cuerpo sin padding (para tablas / listas a sangre). */
   flush = input(false);
+  /** CB: variante de énfasis navy (UNA por dashboard). */
+  emphasis = input(false);
 }

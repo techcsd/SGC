@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.148.0": {
+      "titulo": "Nuevo diseño: un look más moderno y unificado (navy + naranja, tipografía Inter) — mismos flujos, mejor aspecto",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Todo el sistema",
+          "d": "Renovamos por completo el aspecto de SGC sin cambiar cómo funciona ni dónde está cada cosa: nueva paleta navy + naranja unificada, tipografía Inter más clara, esquinas y sombras más suaves, y un tema oscuro cuidado. Las mismas pantallas, botones y pasos de siempre — solo que se ven más modernos y ordenados."
+        },
+        {
+          "t": "mejora",
+          "m": "Navegación",
+          "d": "El menú lateral ahora flota como un panel navy con esquinas redondeadas; el ítem activo se resalta con un relleno suave y los submenús se conectan con una guía fina. La barra superior usa un efecto de vidrio esmerilado."
+        },
+        {
+          "t": "mejora",
+          "m": "Listas y formularios",
+          "d": "Tablas con cabeceras más sobrias y números alineados, estados con punto de color + palabra (más fáciles de leer de un vistazo), y campos de formulario con foco más claro. Una sola acción naranja por pantalla para que resalte lo importante."
+        }
+      ]
+    },
     "1.147.0": {
       "titulo": "Las obras se ven igual en la app que en la web; las alarmas de vehículo solo le llegan a los choferes reales",
       "cambios": [

@@ -64,12 +64,7 @@
     border: 1px solid var(--sgc-border);
     border-radius: var(--sgc-radius-lg);
     padding: 20px;
-    border-left: 4px solid var(--sgc-border);
-
-    &--success { border-left-color: var(--sgc-success); }
-    &--warning { border-left-color: var(--sgc-warning); }
-    &--info    { border-left-color: var(--sgc-info); }
-    &--primary { border-left-color: var(--sgc-primary-mid); }
+    box-shadow: var(--sgc-shadow-sm);
 
     // Regla del jefe: la tarjeta de resumen abre su listado.
     &--link {

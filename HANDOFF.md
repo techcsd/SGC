@@ -1,5 +1,52 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-72 (Ronda CB — rediseño visual v2) — 29/09/2026 — **🧪 EN DEV 1.148.0-dev, NO en prod**
+Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **Inter**, sin tocar ningún flujo (regla 1: cero cambios de rutas/servicios/RPC/SQL/permisos — verificado). Rama `feature/cb-rediseno` → **merge a `dev`** (`e99fe5b`), + fix de deploy `eaab0d9`. Web **1.148.0** (release-notes + version.ts). **Vercel dev READY en `dev.sgcconstructorasd.com`.** **Falta OK de Xaviel en dev → luego PR `dev → main`.**
+
+### Done — PROMPT-72 (CB1 fundación + CB2/CB3 shell/componentes)
+- **CB1 tokens v2** (`src/styles/_tokens.scss`): paleta unificada navy `#1e3a5f` + naranja `#f97316` (acción), neutros slate fríos, sombras 1-2 capas, radios en escalera **8/10/16/24**, tokens nuevos (`--accent-hover`, `--text-on-accent`=navy `#14243a`, `--dot-*`, `--glass-*`, `--radius-xl`, `--shadow-pop`, `--font-display`). **Mismos nombres semánticos** → la piel se propaga a TODA la app por los shims `--sgc-*`/`--main`/`--Hub` sin tocar pantallas. `--Hub` (ámbar) = alias de `--accent`. `--sgc-radius*` re-apuntados a la escalera nueva.
+- **Fuente**: Inter + Inter Tight **auto-hospedadas** (woff2 variable en `public/assets/fonts/`, subset latin+latin-ext con `unicode-range`, `font-display: swap`, fallback `Inter Fallback` con `size-adjust` anti-CLS). `font-feature-settings: cv11,ss01`; `.tnum` en tablas/montos/KPIs. Cero Google Fonts en runtime. `_fonts.scss` nuevo, `@use` primero en `styles.scss`.
+- **Vidrio**: mixin `glass()` en `_mixins.scss` (respaldos `@supports` / `prefers-reduced-transparency` / `html.no-glass`) + clase global `.glass`. Solo capa flotante.
+- **Guards**: `verify-no-ai-tropes.mjs` nuevo en prebuild (degradado de fondo en card/page/section, `border-left` de color en tarjetas, emoji-icono; **baseline 47 grandfathered** en `scripts/no-ai-tropes.baseline.json`, se baja con `SGC_TROPES_UPDATE=1`). `verify-tokens.mjs` amplía: **prohíbe texto blanco sobre `--accent`** (AA; usa `--text-on-accent`).
+- **CB2 shell** (`shell.scss`): sidebar navy **"inset"** (margen 12, radio 18, `--shadow-lg`), ítem activo = relleno blanco 10% **sin borde lateral**, submenú con **guía vertical 1px**, contador = **píldora naranja suave**, **header de vidrio sticky** (con respaldos). Drawer móvil resetea margen/radio.
+- **CB3 componentes** (`shared/ui`): botón variante **`accent`** (naranja, tinta navy, 40px); `card` variante **`emphasis`** (navy); `badge` con **`[dot]`**; **`.status-pill`** global con punto (mapa único `estado→tono` en `shared/utils/estado-tono.ts`); tabla global sobria (cabecera `--surface-2` 12/600, fila `.selected` tinte naranja 7%); inputs foco navy + halo 4px. Galería `/tecnologia/design-system` refleja todo (claro/oscuro) + demo de vidrio.
+- **QA visual**: `qa/visual/capturar.mjs` (Playwright, claro+oscuro, 1440+390) + `qa/visual/login.mjs`. **Verificado en dev**: `/auth` claro y oscuro renderizan la piel nueva (Inter, navy+naranja, botón legible en ambos temas — ver captura). Build **verde** con todos los guards.
+- **Fix contraste oscuro**: `--brand` en dark = mid-blue `#2e75b6` (no el tint `#9cc0ec`) para que el fill del botón primario pase AA con texto blanco **y** siga legible como texto.
+
+### Rollout FASE 3-6 — barrido autenticado hecho (29-sep)
+- **Sweep completo**: `qa/visual/capturar.mjs` recorre las **150 rutas reales** (resuelve los lazy `*.routes.ts` de cada módulo) como **qa_admin en dev**, claro+oscuro, 1440+390 → `qa/visual/cb/cb-despues/` (608 capturas) + índice navegable `qa/visual/cb/index.html` (`indice.mjs`, 30 módulos). Login sin fricción: usa `SGC_QA_EMAIL=qa_admin@constructorasd.com` + `QA_DEV_PASSWORD` (en `.env.local`); el RPC `sgc.usuarios_qa_dev` lista las cuentas QA. El script **descarta el modal de idioma** (BS4) tras login (si no, tapa todas las capturas).
+- **Revisado** (qa_admin, claro+oscuro): dashboards, conduces (tabla+tabs+pills), flota/seguimiento (mapa+controles), bitácora dashboard, matriz notif → la piel nueva se ve **consistente y pulida** en ambos temas. Los mapas de Google quedan en claro (esperado).
+- **Stragglers arreglados**: barrita lateral de color en tarjetas KPI (regla 5) de los **3 dashboards diarios** (Dashboard, Gerencia, Bitácora) → tarjeta limpia + color en el número. Baseline tropos 47→44.
+- **Card-stripes eliminados (regla 5)**: las 18 pantallas con barrita lateral de color en tarjetas KPI/stat/panel → tarjeta limpia (borde + `shadow-sm`) por un subagente + verificado. Baseline tropos **44→27** (card-border-left 18→1: solo queda el marcador de ítem activo del grid de módulos, que es lista, no tarjeta). Los marcadores de lista/banner/nota/alert legítimos se dejaron (attendance rows, `nota-accent`, `mant-banner`, `rs-note`, `pagado-alert`, `requisiciones--urgente`, clima, timeline de rutas).
+
+### FASE 7 — oscuro / a11y / rendimiento (29-sep) ✅
+- **Contraste AA**: nuevo guard `scripts/verify-contraste.mjs` (en prebuild) resuelve los tokens (var()+rgba compuesto) y comprueba 14 pares (texto/superficie, estado/fondo, acento/tinta, sidebar) en **ambos temas** → todos ✓. Halló y arregló: el naranja de acción `--accent` (2.8:1 como texto sobre claro) es solo para **rellenos** (con tinta navy); como **texto** se usa `--accent-hover` (3.6:1) — **60 usos migrados** en 32 archivos (`color: var(--accent|--Hub)` → `--accent-hover`; `accent-color` de formularios intacto).
+- **Oscuro**: revisadas dashboards, gallery DS, conduces, mapa, responsabilidad, bitácora — consistentes. **0 SVG con `fill` fijo** en plantillas (todo `currentColor`, AW12) → nada que romper en oscuro.
+- **Rendimiento** (medido con `qa/visual/perf.mjs`, Chromium, sesión admin): fuentes **91 KB/2** (latin; latin-ext tras `unicode-range`); **glass en vivo = 1** (solo topbar; peor caso topbar+modal = 2 ✓); **CLS de fuente limpio** (conduces 0.047 con las mismas fuentes). Dashboard CLS 0.308 = reflujo de datos async (KPIs/charts llegan por fetch), **pre-existente, no del skin** (fuera del alcance piel/regla 1; requeriría skeletons). LCP dev 884ms dashboard / 284ms conduces (dev sin minificar).
+- **App = PROMPT-73** (repo `csd-app`): aparte.
+- **Sin pendientes de código de esta ronda.** Falta solo el OK visual de Xaviel (`qa/visual/cb/index.html` + dev) → PR `dev → main`.
+
+### Pending — Xavier only
+- **Generar sesión de captura**: `npm start` → `node qa/visual/login.mjs` (entra como admin en dev) → `node qa/visual/capturar.mjs antes` / `… despues`. Sin esto solo se capturan `/auth*` (el authGuard protege el resto).
+- **Probar en dev** `dev.sgcconstructorasd.com` 1.148.0-dev como **admin / Raykler / un chofer** (y `/tecnologia/design-system`). Dar **OK → PR `dev → main`** para prod 1.148.0.
+- Decidir **CB-P1** (buscador global / Compa en header web) y **CB-P2** (barra inferior app) — DEFAULT §D: no se construyen esta tanda.
+
+### Gotchas — PROMPT-72 (CB)
+- **🔴 Baseline de guard con rutas del SO = falla solo en Vercel (Linux)**: `verify-no-ai-tropes.mjs` armaba la firma del baseline con la ruta nativa → en Windows `src\app\…` (`\`), en el Linux de Vercel `src/app/…` (`/`). Ninguna firma casaba en CI → los 47 tropos grandfathered salían "nuevos" → `npm run prebuild` moría → **deploy ERROR** (aunque `npm run build` local pasaba). Fix: normalizar la ruta a `/` (`.replace(/\\/g,'/')`) en la firma y regenerar el baseline. **Regla nueva: cualquier guard con baseline DEBE normalizar rutas a `/`** (si no, pasa en local Windows y rompe en CI). Deploys `4e7da0c`/`e99fe5b` quedaron ERROR; `eaab0d9` = READY en `dev.sgcconstructorasd.com`.
+- **Tema oscuro y `--brand`**: un solo token no puede ser AA como fill (texto blanco encima) Y como texto sobre el lienzo oscuro a la vez. `#2e75b6` es el balance (5:1 como fill). No lo pongas en `#9cc0ec` (rompe botones) ni `#2a4a75` (rompe links).
+- **Fuentes**: los `.woff2` latin-ext (83-87KB) solo se descargan si aparece un char latin-ext (unicode-range); en español efectivo cargan ~91KB (latin).
+- **Server orfano**: `npm start &` desde el Bash tool deja el proceso vivo tras "exit 0" (hay que matarlo por puerto 4200). Usar `run_in_background: true` del tool, no `&`.
+- **Regla 1**: `git diff dev main -- '*.routes.ts' 'src/**/*.service.ts' 'sql/'` = vacío (esta tanda es solo CSS/plantillas/tokens).
+
+### Verify on resume (CB)
+```
+git -C "C:/Users/xavie/Desktop/X Dev/dev/SGC" log --oneline -3 dev   # → e99fe5b merge CB → dev
+git -C "C:/Users/xavie/Desktop/X Dev/dev/SGC" diff main dev --stat -- '*.routes.ts' 'src/**/*.service.ts' 'sql/'  # vacío
+# tokens v2 aplicados: grep '#f97316' src/styles/_tokens.scss ; guards: node scripts/verify-no-ai-tropes.mjs
+```
+
+---
+
 ## TL;DR — PROMPT-70 (Ronda CA) — 27-28/09/2026 — **✅ SHIPPED A PROD web 1.147.0** (Xaviel probó en dev, dio OK, y pidió promover). `feature/ca-ronda` → `dev` → `main` (`c7a2d4d`, push → Vercel). **2 migraciones en ledger prod** (`ca2`, `ca1`), verificadas por objeto; `app_versiones` web 1.147.0 registrada. Matriz `COBERTURA-NOTAS.md` filas 81-82 → ✅. **Además, probado en prod SIN esperar al domingo** (SELECTs read-only que reproducen la decisión de los emisores) que Eduardo queda fuera de las alarmas de vehículo y los choferes reales no. Eduardo tenía `chofer_estado='disponible'` atascado desde 2026-08-10 (**borrado en prod** a pedido de Xaviel).
 
 ### Done — PROMPT-70 (CA)

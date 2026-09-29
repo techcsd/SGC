@@ -28,7 +28,7 @@
     padding: 8px 14px;
     cursor: pointer;
     font: inherit;
-    &--active { color: var(--accent); border-bottom-color: var(--accent); }
+    &--active { color: var(--accent-hover); border-bottom-color: var(--accent); }
   }
 }
 
@@ -64,7 +64,7 @@
     flex-wrap: wrap;
     font-size: 14px;
   }
-  &__flecha { color: var(--accent); }
+  &__flecha { color: var(--accent-hover); }
   &__meta {
     display: flex;
     flex-wrap: wrap;

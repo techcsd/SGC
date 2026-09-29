@@ -31,11 +31,7 @@
 
   &__card {
     background: var(--sgc-surface); border: 1px solid var(--sgc-border);
-    border-radius: var(--sgc-radius-lg); padding: 20px; border-left: 4px solid var(--sgc-border);
-    &--primary { border-left-color: var(--sgc-primary-mid); }
-    &--info    { border-left-color: var(--sgc-info); }
-    &--success { border-left-color: var(--sgc-success); }
-    &--warning { border-left-color: var(--sgc-warning); }
+    border-radius: var(--sgc-radius-lg); padding: 20px; box-shadow: var(--sgc-shadow-sm);
   }
 
   &__card-value {
