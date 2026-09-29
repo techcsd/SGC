@@ -1,7 +1,7 @@
 # HANDOFF — SGC
 
 ## TL;DR — PROMPT-72 (Ronda CB — rediseño visual v2) — 29/09/2026 — **🧪 EN DEV 1.148.0-dev, NO en prod**
-Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **Inter**, sin tocar ningún flujo (regla 1: cero cambios de rutas/servicios/RPC/SQL/permisos — verificado). Rama `feature/cb-rediseno` → **merge a `dev`** (`e99fe5b`, push). Web **1.148.0** (release-notes + version.ts). **Falta OK de Xaviel en dev → luego PR `dev → main`.**
+Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **Inter**, sin tocar ningún flujo (regla 1: cero cambios de rutas/servicios/RPC/SQL/permisos — verificado). Rama `feature/cb-rediseno` → **merge a `dev`** (`e99fe5b`), + fix de deploy `eaab0d9`. Web **1.148.0** (release-notes + version.ts). **Vercel dev READY en `dev.sgcconstructorasd.com`.** **Falta OK de Xaviel en dev → luego PR `dev → main`.**
 
 ### Done — PROMPT-72 (CB1 fundación + CB2/CB3 shell/componentes)
 - **CB1 tokens v2** (`src/styles/_tokens.scss`): paleta unificada navy `#1e3a5f` + naranja `#f97316` (acción), neutros slate fríos, sombras 1-2 capas, radios en escalera **8/10/16/24**, tokens nuevos (`--accent-hover`, `--text-on-accent`=navy `#14243a`, `--dot-*`, `--glass-*`, `--radius-xl`, `--shadow-pop`, `--font-display`). **Mismos nombres semánticos** → la piel se propaga a TODA la app por los shims `--sgc-*`/`--main`/`--Hub` sin tocar pantallas. `--Hub` (ámbar) = alias de `--accent`. `--sgc-radius*` re-apuntados a la escalera nueva.
@@ -23,6 +23,7 @@ Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **
 - Decidir **CB-P1** (buscador global / Compa en header web) y **CB-P2** (barra inferior app) — DEFAULT §D: no se construyen esta tanda.
 
 ### Gotchas — PROMPT-72 (CB)
+- **🔴 Baseline de guard con rutas del SO = falla solo en Vercel (Linux)**: `verify-no-ai-tropes.mjs` armaba la firma del baseline con la ruta nativa → en Windows `src\app\…` (`\`), en el Linux de Vercel `src/app/…` (`/`). Ninguna firma casaba en CI → los 47 tropos grandfathered salían "nuevos" → `npm run prebuild` moría → **deploy ERROR** (aunque `npm run build` local pasaba). Fix: normalizar la ruta a `/` (`.replace(/\\/g,'/')`) en la firma y regenerar el baseline. **Regla nueva: cualquier guard con baseline DEBE normalizar rutas a `/`** (si no, pasa en local Windows y rompe en CI). Deploys `4e7da0c`/`e99fe5b` quedaron ERROR; `eaab0d9` = READY en `dev.sgcconstructorasd.com`.
 - **Tema oscuro y `--brand`**: un solo token no puede ser AA como fill (texto blanco encima) Y como texto sobre el lienzo oscuro a la vez. `#2e75b6` es el balance (5:1 como fill). No lo pongas en `#9cc0ec` (rompe botones) ni `#2a4a75` (rompe links).
 - **Fuentes**: los `.woff2` latin-ext (83-87KB) solo se descargan si aparece un char latin-ext (unicode-range); en español efectivo cargan ~91KB (latin).
 - **Server orfano**: `npm start &` desde el Bash tool deja el proceso vivo tras "exit 0" (hay que matarlo por puerto 4200). Usar `run_in_background: true` del tool, no `&`.
