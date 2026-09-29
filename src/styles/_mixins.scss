@@ -1,0 +1,39 @@
+// ════════════════════════════════════════════════════════════════════════════
+//  SGC — SCSS mixins (CB / rediseño visual v2)
+//  Side-effect free: emits NO CSS on its own. Import with `@use` where needed:
+//     @use 'src/styles/mixins' as m;   .topbar { @include m.glass; }
+//  or use the global `.glass` utility class (defined in _components.scss).
+// ════════════════════════════════════════════════════════════════════════════
+
+// glass() — the frosted material for the FLOATING layer only (topbar, batch
+// action bar, controls over map/photo/lightbox). NN/g + Apple: never on cards,
+// tables or forms. Self-contained: ships its own solid fallbacks so a consumer
+// can't forget them.
+//   • `@supports not backdrop-filter`  → solid surface
+//   • `prefers-reduced-transparency`   → solid surface (accessibility)
+//   • ancestor `html.no-glass`         → solid surface (low-end / perf flag)
+@mixin glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  :where(html.no-glass) & {
+    background: var(--surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

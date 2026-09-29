@@ -53,26 +53,69 @@ function valueHasRealDark(value) {
 }
 
 const violations = [];
+// CB v2 — texto blanco sobre naranja. `--accent` (naranja) SIEMPRE lleva tinta
+// navy `--text-on-accent` (AA). Blanco sobre naranja = 2.8:1, falla. Detectamos
+// un bloque que ponga `background: var(--accent)` y a la vez `color:` blanco.
+// Solo el naranja como valor PRIMARIO (no como fallback `var(--x, var(--accent))`
+// ni el naranja suave/soft, que lleva tinta oscura).
+const ACCENT_BG = /\bbackground(?:-color|-image)?\s*:\s*var\(\s*--accent(?:-hover)?\s*\)/i;
+const WHITE_COLOR = /\bcolor\s*:\s*(#fff(?:fff)?\b|white\b|var\(--white\)|var\(--text-on-brand\))/i;
+const accentWarnings = [];
+
+// Rango del bloque `{ … }` que contiene la línea idx (heurística por llaves).
+function blockRange(lines, idx) {
+  let start = idx;
+  for (let i = idx; i >= 0 && i > idx - 60; i--) {
+    if (lines[i].includes('{')) { start = i; break; }
+  }
+  let end = idx, depth = 0;
+  for (let i = start; i < lines.length && i < start + 120; i++) {
+    for (const ch of lines[i]) {
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) { end = i; return [start, end]; } }
+    }
+  }
+  return [start, end];
+}
+
 for (const file of walk(SRC_DIR)) {
   const lines = readFileSync(file, 'utf8').split('\n');
   lines.forEach((line, i) => {
     if (ALLOW.test(line)) return;
-    if (!DARK_HEX.test(line)) return; // atajo: la línea no tiene ningún oscuro
-    for (const m of line.matchAll(SURFACE_DECL)) {
-      const value = m[2];
-      if (valueHasRealDark(value)) {
-        violations.push({
-          file: relative(join(__dirname, '..'), file),
-          line: i + 1,
-          text: `${m[1]}: ${value.trim()}`,
-        });
-        break; // una violación por línea basta
+    // (A) fondo/borde oscuro heredado (fingerprint X-Dev)
+    if (DARK_HEX.test(line)) {
+      for (const m of line.matchAll(SURFACE_DECL)) {
+        if (valueHasRealDark(m[2])) {
+          violations.push({
+            file: relative(join(__dirname, '..'), file),
+            line: i + 1,
+            text: `${m[1]}: ${m[2].trim()}`,
+          });
+          break;
+        }
+      }
+    }
+    // (B) blanco sobre naranja
+    if (ACCENT_BG.test(line)) {
+      const [s, e] = blockRange(lines, i);
+      for (let j = s; j <= e; j++) {
+        if (ALLOW.test(lines[j])) continue;
+        if (WHITE_COLOR.test(lines[j])) {
+          accentWarnings.push({
+            file: relative(join(__dirname, '..'), file),
+            line: j + 1,
+            text: lines[j].trim().slice(0, 80),
+          });
+          break;
+        }
       }
     }
   });
 }
 
+let failed = false;
 if (violations.length) {
+  failed = true;
   console.error(
     `\n[verify-tokens] ✗ ${violations.length} fondo/borde oscuro heredado (fingerprint X-Dev) — ` +
       `usa un token semántico (var(--surface|--surface-2|--border)) en vez del hex oscuro.\n` +
@@ -80,7 +123,19 @@ if (violations.length) {
   );
   for (const v of violations) console.error(`  ${v.file}:${v.line}  ${v.text}`);
   console.error('');
-  process.exit(1);
 }
 
-console.log('[verify-tokens] ✓ sin fondos/bordes oscuros heredados (fingerprint X-Dev limpio).');
+if (accentWarnings.length) {
+  failed = true;
+  console.error(
+    `\n[verify-tokens] ✗ ${accentWarnings.length} texto BLANCO sobre naranja (--accent) — ` +
+      `falla AA (2.8:1). Usa \`color: var(--text-on-accent)\` (tinta navy).\n` +
+      `Si es un caso legítimo, añade "// tokens-allow-dark" a la línea.\n`,
+  );
+  for (const v of accentWarnings) console.error(`  ${v.file}:${v.line}  ${v.text}`);
+  console.error('');
+}
+
+if (failed) process.exit(1);
+
+console.log('[verify-tokens] ✓ sin fondos/bordes oscuros heredados ni blanco sobre naranja.');

@@ -16,27 +16,43 @@
   height: 12px;
 }
 
+// CB: punto de estado opcional (Regla 2). El color lo fija cada variante vía --_dot.
+:host(.has-dot)::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--_dot, var(--dot-neutral));
+  flex: none;
+}
+
 :host(.b-success) {
   background: var(--success-bg);
   color: var(--success);
+  --_dot: var(--dot-success);
 }
 :host(.b-danger) {
   background: var(--danger-bg);
   color: var(--danger);
+  --_dot: var(--dot-danger);
 }
 :host(.b-warning) {
   background: var(--warning-bg);
   color: var(--warning);
+  --_dot: var(--dot-warning);
 }
 :host(.b-info) {
   background: var(--info-bg);
   color: var(--info);
+  --_dot: var(--dot-info);
 }
 :host(.b-neutral) {
   background: var(--surface-3);
   color: var(--text-2);
+  --_dot: var(--dot-neutral);
 }
 :host(.b-brand) {
   background: var(--brand-soft);
   color: var(--brand);
+  --_dot: var(--brand);
 }

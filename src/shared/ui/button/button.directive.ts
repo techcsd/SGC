@@ -1,6 +1,6 @@
 import { Directive, input } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+export type ButtonVariant = 'accent' | 'primary' | 'secondary' | 'danger' | 'ghost';
 export type ButtonSize = 'md' | 'sm';
 
 /**
@@ -19,6 +19,7 @@ export type ButtonSize = 'md' | 'sm';
   selector: 'button[appButton], a[appButton]',
   host: {
     '[class.ui-btn]': 'true',
+    '[class.ui-btn--accent]': "variant() === 'accent'",
     '[class.ui-btn--primary]': "variant() === 'primary'",
     '[class.ui-btn--secondary]': "variant() === 'secondary'",
     '[class.ui-btn--danger]': "variant() === 'danger'",

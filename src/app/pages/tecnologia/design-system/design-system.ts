@@ -25,8 +25,9 @@ export class TecDesignSystem {
   readonly colorGroups: { title: string; tokens: string[] }[] = [
     { title: 'Superficies', tokens: ['--bg', '--surface', '--surface-2', '--surface-3', '--border', '--border-strong'] },
     { title: 'Texto', tokens: ['--text', '--text-2', '--text-3'] },
-    { title: 'Marca / acento', tokens: ['--brand', '--brand-hover', '--brand-soft', '--accent', '--accent-soft'] },
+    { title: 'Marca / acento', tokens: ['--brand', '--brand-hover', '--brand-soft', '--accent', '--accent-hover', '--accent-soft', '--text-on-accent'] },
     { title: 'Estados', tokens: ['--success', '--success-bg', '--danger', '--danger-bg', '--warning', '--warning-bg', '--info', '--info-bg'] },
+    { title: 'Puntos de estado', tokens: ['--dot-success', '--dot-warning', '--dot-danger', '--dot-info', '--dot-neutral'] },
     { title: 'Navegación', tokens: ['--nav-bg', '--nav-hover', '--nav-active', '--nav-text', '--nav-text-muted'] },
   ];
 
@@ -51,8 +52,8 @@ export class TecDesignSystem {
 
   readonly iconNames = Object.keys(ICON_PATHS) as IconName[];
 
-  readonly radiusScale: string[] = ['--radius-sm', '--radius', '--radius-lg', '--radius-pill'];
-  readonly shadowScale: string[] = ['--shadow-sm', '--shadow', '--shadow-md', '--shadow-lg'];
+  readonly radiusScale: string[] = ['--radius-sm', '--radius', '--radius-lg', '--radius-xl', '--radius-pill'];
+  readonly shadowScale: string[] = ['--shadow-sm', '--shadow', '--shadow-md', '--shadow-lg', '--shadow-pop'];
 
   toggleTheme(): void {
     this._theme.update((t) => (t === 'dark' ? 'light' : 'dark'));
