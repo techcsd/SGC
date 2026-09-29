@@ -1,10 +1,7 @@
 [
   "card-border-left::src/app/pages/admin/auditoria/auditoria.scss::border-left: 4px solid var(--sgc-border);",
-  "card-border-left::src/app/pages/bitacora/dashboard/dashboard.scss::border-left: 4px solid var(--sgc-primary);",
   "card-border-left::src/app/pages/compras/ordenes/ordenes.scss::border-left: 3px solid var(--sgc-warning);",
   "card-border-left::src/app/pages/compras/reportes/reportes.scss::border-radius: var(--sgc-radius-lg); padding: 20px; border-left: 4px solid var(--sgc-borde",
-  "card-border-left::src/app/pages/dashboard/dashboard.scss::border-left: 4px solid var(--sgc-border);",
-  "card-border-left::src/app/pages/direccion/direccion.scss::border-left: 4px solid var(--sgc-border);",
   "card-border-left::src/app/pages/flota/conductores-estado/conductores-estado.scss::border-left: 4px solid var(--sgc-border);",
   "card-border-left::src/app/pages/flota/conductores/detalle/conductor-detalle.scss::border-left: 4px solid var(--sgc-border);",
   "card-border-left::src/app/pages/flota/panel-dia/panel-dia.scss::border-left: 4px solid var(--sgc-border);",

@@ -60,18 +60,20 @@
   background: var(--sgc-surface);
   border: 1px solid var(--sgc-border);
   border-radius: var(--sgc-radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 16px 18px;
-  border-left: 4px solid var(--sgc-border);
   display: flex;
   flex-direction: column;
   gap: 6px;
 
-  &--primary { border-left-color: var(--sgc-primary-mid); }
-  &--info    { border-left-color: var(--sgc-info); }
-  &--success { border-left-color: var(--sgc-success); }
-  &--warning { border-left-color: var(--sgc-warning); }
-  &--danger  { border-left-color: var(--sgc-danger); }
-  &--purple  { border-left-color: #5B3A8E; }
+  // CB (rule 5): sin borde izquierdo de color en tarjetas. El estado se lee en el
+  // número (color semántico), no en una barrita lateral "hecha por IA".
+  &--primary .kpi-value { color: var(--brand); }
+  &--info    .kpi-value { color: var(--info); }
+  &--success .kpi-value { color: var(--success); }
+  &--warning .kpi-value { color: var(--warning); }
+  &--danger  .kpi-value { color: var(--danger); }
+  &--purple  .kpi-value { color: #6941c6; } // tokens-allow-dark (tinte categoría, no fondo)
 
   // Q3 — KPI clicable: abre su listado filtrado.
   &--link {

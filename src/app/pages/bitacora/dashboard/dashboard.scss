@@ -12,12 +12,13 @@
   border-radius: var(--sgc-radius-lg, 14px);
   background: var(--sgc-surface);
   border: 1px solid var(--sgc-border);
-  border-left: 4px solid var(--sgc-primary);
+  box-shadow: var(--shadow-sm);
 
-  &--info { border-left-color: var(--sgc-primary-mid, #2e75b6); }
-  &--danger { border-left-color: var(--sgc-danger, #c0392b); }
-  &--warning { border-left-color: #b45309; }
-  &--primary { border-left-color: var(--sgc-primary); }
+  // CB (rule 5): sin borde izquierdo de color. El estado se lee en el número.
+  &--info .kpi-value { color: var(--brand); }
+  &--danger .kpi-value { color: var(--danger); }
+  &--warning .kpi-value { color: var(--warning); }
+  &--primary .kpi-value { color: var(--brand); }
 
   // Q3/regla del jefe: KPI clicable que abre el historial filtrado.
   &--link {

@@ -15,7 +15,7 @@
 // Requiere el dev server corriendo (npm start) o una URL de preview de Vercel.
 
 import { chromium } from '@playwright/test';
-import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -40,14 +40,27 @@ const THEMES = ['light', 'dark'];
 // ── Lista de rutas ────────────────────────────────────────────────────────────
 // De un --rutas explícito, o de qa/visual/rutas.json, o extraídas de app.routes.ts.
 function rutasDeCodigo() {
-  const src = readFileSync(join(ROOT, 'src', 'app', 'app.routes.ts'), 'utf8');
   const out = new Set();
-  for (const m of src.matchAll(/path:\s*'([^']*)'/g)) {
-    const p = m[1];
-    if (!p || p === '**' || p.includes(':') || p.startsWith('auth')) continue;
+  const add = (p) => {
+    p = (p || '').replace(/^\/+/, '');
+    if (!p || p === '**' || p.includes(':') || p.startsWith('auth')) return;
     out.add(p);
+  };
+  // 1) rutas de primer nivel (loadComponent) en app.routes.ts
+  const app = readFileSync(join(ROOT, 'src', 'app', 'app.routes.ts'), 'utf8');
+  for (const m of app.matchAll(/path:\s*'([^']*)'/g)) add(m[1]);
+  // 2) hijos lazy: cada pages/<mod>/<mod>.routes.ts (base = carpeta) + su path hijo
+  const pagesDir = join(ROOT, 'src', 'app', 'pages');
+  for (const mod of readdirSync(pagesDir)) {
+    const rf = join(pagesDir, mod, `${mod}.routes.ts`);
+    if (!existsSync(rf)) continue;
+    for (const m of readFileSync(rf, 'utf8').matchAll(/path:\s*'([^']*)'/g)) {
+      const child = m[1];
+      if (child.includes(':') || child === '**') continue;
+      add(child === '' ? mod : `${mod}/${child}`);
+    }
   }
-  return [...out];
+  return [...out].sort();
 }
 function listaRutas() {
   const explicit = flag('rutas');
@@ -75,6 +88,8 @@ async function ensureAuth(browser) {
     await page.fill('input[type="password"]', pass);
     await page.click('button[type="submit"]');
     await page.waitForURL((u) => !u.pathname.startsWith('/auth'), { timeout: 20000 }).catch(() => {});
+    await page.waitForTimeout(1500);
+    await dismissOverlays(page); // sella el idioma (BS4) → no vuelve a bloquear
     await ctx.storageState({ path: AUTH_STATE });
     await page.close();
     return ctx;
@@ -83,15 +98,26 @@ async function ensureAuth(browser) {
   return null;
 }
 
+// Cierra el modal de primer ingreso de idioma (BS4) y cualquier tour, si aparece.
+async function dismissOverlays(page) {
+  const ok = page.locator('.lo-confirm');
+  if (await ok.count().catch(() => 0)) {
+    await ok.first().click({ timeout: 3000 }).catch(() => {});
+    await page.waitForTimeout(600);
+  }
+}
+
 async function shoot(page, ruta, viewport, theme, dir) {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
   // Fija el tema antes de cargar (BE6 lee usuario_preferencias.tema; aquí forzamos
   // el atributo directamente para no depender del backend).
   await page.addInitScript((t) => {
     try { localStorage.setItem('sgc-tema', t); } catch {}
+    try { localStorage.setItem('sgc_onboarding_v1_done', '1'); } catch {} // no tour
   }, theme);
   const url = `${BASE}/${ruta}`.replace(/\/+$/, '') || BASE;
   await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
+  await dismissOverlays(page);
   await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : ''), theme);
   await page.waitForTimeout(500); // asentar fuentes/animaciones
   const safe = (ruta || 'home').replace(/[\/:*?"<>|]+/g, '_') || 'home';
