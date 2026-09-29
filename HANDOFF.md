@@ -13,8 +13,11 @@ Piel nueva (nota #83): look moderno unificado **navy + naranja**, tipografía **
 - **QA visual**: `qa/visual/capturar.mjs` (Playwright, claro+oscuro, 1440+390) + `qa/visual/login.mjs`. **Verificado en dev**: `/auth` claro y oscuro renderizan la piel nueva (Inter, navy+naranja, botón legible en ambos temas — ver captura). Build **verde** con todos los guards.
 - **Fix contraste oscuro**: `--brand` en dark = mid-blue `#2e75b6` (no el tint `#9cc0ec`) para que el fill del botón primario pase AA con texto blanco **y** siga legible como texto.
 
-### Pending — Claude can do (rollout FASE 3-6, otra pasada)
-- El repintado por módulo **ya hereda la piel** por tokens; falta el **barrido de capturas antes/después por pantalla** (FASE 3-6) y arreglar stragglers (SVG con `fill` fijo, imágenes con fondo blanco, charts en oscuro — FASE 7) + tabla AA de contraste + Lighthouse (FASE 7). **Requiere sesión admin en dev** (ver abajo) para recorrer rutas autenticadas.
+### Rollout FASE 3-6 — barrido autenticado hecho (29-sep)
+- **Sweep completo**: `qa/visual/capturar.mjs` recorre las **150 rutas reales** (resuelve los lazy `*.routes.ts` de cada módulo) como **qa_admin en dev**, claro+oscuro, 1440+390 → `qa/visual/cb/cb-despues/` (608 capturas) + índice navegable `qa/visual/cb/index.html` (`indice.mjs`, 30 módulos). Login sin fricción: usa `SGC_QA_EMAIL=qa_admin@constructorasd.com` + `QA_DEV_PASSWORD` (en `.env.local`); el RPC `sgc.usuarios_qa_dev` lista las cuentas QA. El script **descarta el modal de idioma** (BS4) tras login (si no, tapa todas las capturas).
+- **Revisado** (qa_admin, claro+oscuro): dashboards, conduces (tabla+tabs+pills), flota/seguimiento (mapa+controles), bitácora dashboard, matriz notif → la piel nueva se ve **consistente y pulida** en ambos temas. Los mapas de Google quedan en claro (esperado).
+- **Stragglers arreglados**: barrita lateral de color en tarjetas KPI (regla 5) de los **3 dashboards diarios** (Dashboard, Gerencia, Bitácora) → tarjeta limpia + color en el número. Baseline tropos 47→44.
+- **Pendiente (siguiente pasada módulo×módulo)**: quedan ~34 `border-left` de color en páginas secundarias (`flota/{mantenimientos,panel-dia,reportes,reporte-semanal,responsabilidad,rutas,conductores-estado,conductor-detalle,vehiculo-detalle}`, `proyectos/{lista,clima}`, `inventario/{salidas,requisiciones}`, `compras/{ordenes,reportes}`, `obra/{avance,no-conformidades}`, `admin/{auditoria,app-versiones}`). Muchos son **marcadores de lista** legítimos (no la barrita-tarjeta), decidir caso por caso. FASE 7 (SVG con `fill` fijo, charts en oscuro, tabla AA de contraste, Lighthouse) sin empezar.
 - **App = PROMPT-73** (repo `csd-app`): aparte.
 
 ### Pending — Xavier only
