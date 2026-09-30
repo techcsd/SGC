@@ -59,9 +59,6 @@ export interface AuditoriaResumen {
   acciones_comunes: { tabla: string; accion: string; n: number }[];
 }
 
-const SELECT_QUERY =
-  '*, actor:usuarios!auditoria_actor_id_fkey(nombre), impersonador:usuarios!auditoria_impersonado_por_fkey(nombre)';
-
 /** Reads the comprehensive change-audit log (sgc.auditoria). Server-side
  *  filtered + paginated (the log grows unbounded, unlike other SGC lists). */
 @Injectable({ providedIn: 'root' })
@@ -70,41 +67,38 @@ export class AuditoriaService {
 
   readonly pageSize = 40;
 
+  /**
+   * CD2 — la lista va por el RPC definer `auditoria_listar` (gate + cast + total por
+   * window), no por un `.from('auditoria')` bajo RLS con embed. Independiente de RLS,
+   * filtros aplicados en servidor. `total` viene en cada fila (0 si vacío).
+   */
   async list(filtro: AuditoriaFiltro, page: number): Promise<{ rows: AuditoriaRow[]; total: number }> {
-    let q = this.supabase.client
-      .from('auditoria')
-      .select(SELECT_QUERY, { count: 'exact' })
-      .order('creado_en', { ascending: false });
-
-    if (filtro.tabla) q = q.eq('tabla', filtro.tabla);
-    if (filtro.accion) q = q.eq('accion', filtro.accion);
-    if (filtro.actorId) q = q.eq('actor_id', filtro.actorId);
-    if (filtro.desde) q = q.gte('creado_en', filtro.desde);
-    if (filtro.hasta) q = q.lte('creado_en', filtro.hasta + 'T23:59:59');
-    if (filtro.buscar?.trim()) {
-      const s = filtro.buscar.trim();
-      q = q.or(`registro_id.ilike.%${s}%,tabla.ilike.%${s}%`);
-    }
-
-    const from = page * this.pageSize;
-    q = q.range(from, from + this.pageSize - 1);
-
-    const { data, error, count } = await q;
+    const { data, error } = await this.supabase.client.rpc('auditoria_listar', {
+      p_tabla: filtro.tabla || null,
+      p_accion: filtro.accion || null,
+      p_actor: filtro.actorId || null,
+      p_desde: filtro.desde || null,
+      p_hasta: filtro.hasta || null,
+      p_buscar: filtro.buscar?.trim() || null,
+      p_limite: this.pageSize,
+      p_offset: page * this.pageSize,
+    });
     if (error) throw new Error(error.message);
-    return { rows: (data ?? []) as unknown as AuditoriaRow[], total: count ?? 0 };
+    const rows = (data ?? []) as (AuditoriaRow & { total?: number })[];
+    return { rows: rows as AuditoriaRow[], total: rows[0]?.total ?? 0 };
   }
 
-  /** Distinct tables present in the log (for the filter dropdown). */
-  async tablas(): Promise<string[]> {
-    // A cheap distinct: pull recent rows' tables. For a definitive list we could
-    // add an RPC, but the label map covers naming; this keeps the dropdown honest.
-    const { data, error } = await this.supabase.client
-      .from('auditoria')
-      .select('tabla')
-      .order('tabla', { ascending: true })
-      .limit(1000);
+  /** CD2 — opciones de filtro (tablas + actores) en UN solo RPC definer robusto. */
+  async opciones(): Promise<{ tablas: string[]; actores: AuditoriaActor[] }> {
+    const { data, error } = await this.supabase.client.rpc('auditoria_opciones');
     if (error) throw new Error(error.message);
-    return [...new Set((data ?? []).map((r: { tabla: string }) => r.tabla))];
+    const d = (data ?? {}) as { tablas?: string[]; actores?: AuditoriaActor[] };
+    return { tablas: d.tablas ?? [], actores: d.actores ?? [] };
+  }
+
+  /** Distinct tables present in the log (compat; prefer opciones()). */
+  async tablas(): Promise<string[]> {
+    return (await this.opciones()).tablas;
   }
 
   /** AZ10 — lista el log de acciones de administración (audit_log), paginado. */

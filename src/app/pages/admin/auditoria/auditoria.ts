@@ -303,12 +303,16 @@ export class AdminAuditoria implements OnInit {
   }
 
   private async loadFilterOptions() {
+    // CD2 — UN solo RPC (auditoria_opciones) trae tablas + actores. Antes eran dos
+    // llamadas en Promise.all y el fallo de una (auditoria_actores crasheaba por
+    // varchar↔text) vaciaba AMBOS selects, oculto por un catch mudo (regla 16).
     try {
-      const [tablas, actores] = await Promise.all([this.service.tablas(), this.service.actores()]);
+      const { tablas, actores } = await this.service.opciones();
       this.tablas.set(tablas);
       this.actores.set(actores);
-    } catch {
-      /* filters are optional; ignore */
+    } catch (e: unknown) {
+      // No rompe la pantalla, pero deja de ser invisible: el error se ve.
+      this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar los filtros.');
     }
   }
 
