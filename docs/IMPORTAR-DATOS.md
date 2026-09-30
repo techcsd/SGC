@@ -60,3 +60,31 @@ de importar).
 - Entidades v1 del importador genérico: **proveedores, vehículos, artículos**. Conductores,
   personal y proyectos/obras se añaden en tandas siguientes (personal y proveedores ya tienen
   su propio importador; ver AT5/BO3).
+
+## 3. Importar desde Odoo en su módulo (CC4 — #87)
+
+El asistente de importación (`shared/components/importar-odoo`) ahora vive también **dentro de cada módulo**, con la entidad preseleccionada, para que no sea solo de Tecnología:
+
+- **Compras › Proveedores → "Importar desde Odoo"** (`/compras/proveedores/importar`, gate = proveedoresGuard). Para Raykler.
+- **Flota › Vehículos → "Importar desde Odoo"** (`/flota/vehiculos/importar`, gate = flota-elevado).
+- **Inventario › Artículos → "Importar desde Odoo"** (`/inventario/articulos/importar`, gate = módulo inventario).
+- `/admin/importar` (Tecnología) sigue igual: elige entre las tres entidades.
+
+### El archivo tal como sale de Odoo
+El asistente reconoce los encabezados de un export de Odoo **en español, inglés y técnicos** (Odoo 16/17) y transforma los datos:
+
+- **ID externo** (`ID` / `External ID`, `__export__.res_partner_123`) → `odoo_ref`. Es la **clave de idempotencia**: reimportar **actualiza** en vez de duplicar (los 3 RPC `importar_*` emparejan por `odoo_ref` primero y lo guardan).
+- **RNC/cédula** (`vat` / NIF-RNC) → solo dígitos, valida 9 (RNC) u 11 (cédula).
+- **Teléfono** → formato RD.
+- **Relacional** (`categ_id` "Todos / Materiales / Acero") → última hoja ("Acero").
+- **Unidad de medida** ("Unidades", "Litro(s)", "kg"…) → unidad SGC por tabla de equivalencias.
+- **Booleanos** (`is_company`/"Es una compañía", `active`/"Activo").
+- **Filas de continuación** (ID/clave vacíos en exports con líneas hijas) → se funden con la fila anterior.
+- `.xlsx` y `.csv` (coma o punto y coma, UTF-8 o Latin-1).
+
+La vista previa muestra cada transformación ("categ 'Todos / Materiales / Acero' → Acero"). Deshacer 24 h intacto.
+
+### Plantilla / cómo exportar
+El botón dejó de ser una plantilla nuestra: ahora hay **"Cómo exportar desde Odoo"** (pasos en *Acción → Exportar*, marcando "Exportar como ID") + un **ejemplo con los encabezados reales de Odoo**; la **"Plantilla SGC (sin Odoo)"** queda como opción secundaria.
+
+Fixtures de prueba (encabezados reales ES/EN) en `qa/fixtures/odoo/`; spec en `src/shared/services/importador-odoo.service.spec.ts`.
