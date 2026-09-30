@@ -166,8 +166,13 @@ async function seedUsers() {
     const acceso = typeof u.email === 'string' && u.email.endsWith('@acceso.constructorasd.local');
     const c11 = ced11(u.cedula ?? u.id);
     // BZ3: admin/tecnologia/desarrollador (y la lista) mantienen su email real para
-    // poder entrar en dev con sus credenciales (contraseña = QA_DEV_PASSWORD).
-    const real = typeof u.email === 'string' && keepReal.has(u.email.toLowerCase());
+    // poder entrar en dev con sus credenciales.
+    // CC2: NUNCA conservar un correo PERSONAL (gmail/hotmail/…) en dev público —
+    // solo dominios de empresa (@constructorasd.com) o los de `emails_reales`.
+    const emailLc = typeof u.email === 'string' ? u.email.toLowerCase() : '';
+    const esPersonal = /@(gmail|hotmail|outlook|yahoo|icloud|live|proton)\./.test(emailLc);
+    const enLista = keepReal.has(emailLc);
+    const real = !!emailLc && enLista && (!esPersonal || cfg.emails_reales?.some((e) => String(e).toLowerCase() === emailLc));
     const email = real ? u.email
       : (acceso ? `e-${c11}@acceso.constructorasd.local` : `u-${sha(u.id).slice(0, 8)}@dev.constructorasd.local`);
     if (real) reales++;

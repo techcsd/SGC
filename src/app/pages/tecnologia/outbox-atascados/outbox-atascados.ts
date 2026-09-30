@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, JsonPipe } from '@angular/common';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 
@@ -48,9 +48,39 @@ const TIPO_LABEL: Record<string, string> = {
   ficha_personal: 'Ficha de personal',
 };
 
+// CC7 — etiquetas legibles para el payload (nada de uuid crudo salvo en "Detalle técnico").
+const PAYLOAD_LABEL: Record<string, string> = {
+  salida_id: 'Conduce (ID)',
+  bodega_id: 'Almacén (ID)',
+  articulo_id: 'Artículo (ID)',
+  proyecto_id: 'Obra (ID)',
+  cantidad: 'Cantidad',
+  fecha: 'Fecha',
+  client_uuid: 'ID de envío',
+};
+
+interface ConduceRenglon { articulo: string | null; enviado: number | null; recibido: number | null; unidad: string | null; }
+interface ConduceDetalle {
+  id: string; codigo: string; fecha: string | null; estado: string | null;
+  origen: string | null; destino: string | null; chofer: string | null;
+  vehiculo: string | null; receptor: string | null; proyecto: string | null;
+  firma_path: string | null; foto_entrega: string | null; foto_recepcion: string | null; foto_carga: string | null;
+  anulado: boolean; renglones: ConduceRenglon[];
+}
+interface OutboxDetalle {
+  atascado: OutboxItem & {
+    usuario_id: string | null;
+    reintento_solicitado_en: string | null;
+    evidencia_solicitada_en: string | null;
+  };
+  payload: Record<string, unknown> | null;
+  evidencia: { paths: string[]; subido_en: string }[];
+  conduce?: ConduceDetalle;
+}
+
 @Component({
   selector: 'app-tec-outbox-atascados',
-  imports: [DatePipe],
+  imports: [DatePipe, JsonPipe],
   templateUrl: './outbox-atascados.html',
   styleUrl: './outbox-atascados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -125,6 +155,117 @@ export class TecOutboxAtascados implements OnInit {
   }
   togglePendientes() {
     this.soloPendientes.update((v) => !v);
+  }
+
+  // ── CC7 — Ficha del atascado: conduce completo + payload legible + foto ──────
+  detalleOpen = signal(false);
+  detalle = signal<OutboxDetalle | null>(null);
+  detalleLoading = signal(false);
+  detalleError = signal('');
+  fotoUrls = signal<string[]>([]);
+  pidiendo = signal(false);
+
+  /** Pares legibles del payload (uuid → etiqueta; el JSON crudo va en Detalle técnico). */
+  payloadPares = computed(() => {
+    const p = this.detalle()?.payload;
+    if (!p) return [] as { k: string; v: string }[];
+    return Object.entries(p).map(([k, v]) => ({ k: PAYLOAD_LABEL[k] ?? k.replace(/_/g, ' '), v: String(v) }));
+  });
+
+  async abrirDetalle(f: OutboxItem) {
+    this.detalleOpen.set(true);
+    this.detalleLoading.set(true);
+    this.detalleError.set('');
+    this.detalle.set(null);
+    this.fotoUrls.set([]);
+    try {
+      const { data, error } = await this.supabase.client.rpc('outbox_atascado_detalle', { p_id: f.id });
+      if (error) throw error;
+      const det = data as OutboxDetalle;
+      this.detalle.set(det);
+      // Fotos de la evidencia (bucket privado) → URLs firmadas.
+      const paths = (det.evidencia ?? []).flatMap((e) => e.paths ?? []);
+      if (paths.length) {
+        const urls: string[] = [];
+        for (const path of paths) {
+          const { data: signed } = await this.supabase.client.storage
+            .from('outbox-atascados').createSignedUrl(path, 3600);
+          if (signed?.signedUrl) urls.push(signed.signedUrl);
+        }
+        this.fotoUrls.set(urls);
+      }
+    } catch (e) {
+      this.detalleError.set(e instanceof Error ? e.message : 'No se pudo cargar el detalle.');
+    } finally {
+      this.detalleLoading.set(false);
+    }
+  }
+
+  cerrarDetalle() {
+    this.detalleOpen.set(false);
+    this.detalle.set(null);
+    this.fotoUrls.set([]);
+  }
+
+  /** Minutos transcurridos desde un ISO (para "hace N min"). */
+  minutosDesde(iso: string | null | undefined): number | null {
+    if (!iso) return null;
+    const t = Date.parse(iso);
+    if (!Number.isFinite(t)) return null;
+    return Math.max(0, Math.round((Date.now() - t) / 60000));
+  }
+
+  async pedirReintento() {
+    const det = this.detalle();
+    if (!det || this.pidiendo()) return;
+    this.pidiendo.set(true);
+    try {
+      const { data, error } = await this.supabase.client.rpc('outbox_atascado_pedir_reintento', { p_id: det.atascado.id });
+      if (error) throw error;
+      const r = data as { usuario_id: string | null; salida_id: string | null; tipo_op: string | null };
+      if (r?.usuario_id) {
+        await this.supabase.client.functions.invoke('send-push', {
+          body: {
+            user_ids: [r.usuario_id], titulo: 'Reintentar envío',
+            cuerpo: 'Tecnología pidió reintentar un envío atascado.', tipo: 'outbox_reintentar',
+            data: { type: 'outbox_reintentar', atascado_id: det.atascado.id, salida_id: r.salida_id },
+          },
+        }).catch(() => { /* best-effort */ });
+      }
+      // Refleja el sello sin recargar todo.
+      this.detalle.update((d) => d ? { ...d, atascado: { ...d.atascado, reintento_solicitado_en: new Date().toISOString() } } : d);
+      this.toast.success('Reintento solicitado al teléfono');
+    } catch (e) {
+      this.toast.error('No se pudo solicitar el reintento', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.pidiendo.set(false);
+    }
+  }
+
+  async pedirEvidencia() {
+    const det = this.detalle();
+    if (!det || this.pidiendo()) return;
+    this.pidiendo.set(true);
+    try {
+      const { data, error } = await this.supabase.client.rpc('outbox_atascado_pedir_evidencia', { p_id: det.atascado.id });
+      if (error) throw error;
+      const r = data as { usuario_id: string | null; usuario_nombre: string | null; salida_id: string | null };
+      if (r?.usuario_id) {
+        await this.supabase.client.functions.invoke('send-push', {
+          body: {
+            user_ids: [r.usuario_id], titulo: 'Sube la evidencia',
+            cuerpo: 'Tecnología necesita la foto/datos de un envío atascado.', tipo: 'outbox_subir_evidencia',
+            data: { type: 'outbox_subir_evidencia', atascado_id: det.atascado.id, salida_id: r.salida_id },
+          },
+        }).catch(() => { /* best-effort */ });
+      }
+      this.detalle.update((d) => d ? { ...d, atascado: { ...d.atascado, evidencia_solicitada_en: new Date().toISOString() } } : d);
+      this.toast.success('Le pedimos que suba la evidencia');
+    } catch (e) {
+      this.toast.error('No se pudo pedir la evidencia', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.pidiendo.set(false);
+    }
   }
 
   async resolver(f: OutboxItem, resuelto: boolean) {

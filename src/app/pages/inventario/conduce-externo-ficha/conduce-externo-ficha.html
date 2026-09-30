@@ -1,0 +1,97 @@
+<div class="page ce-ficha">
+  <header class="page-header no-print">
+    <div class="page-header__left">
+      <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conduces-externos">← Conduces externos</a>
+    </div>
+    @if (detalle(); as d) {
+      <div class="page-header__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()">Imprimir / PDF</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="compartir()">Compartir</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="compartirWhatsapp()">WhatsApp</button>
+        @if (!d.anulado) {
+          <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="anular()">Anular</button>
+        }
+      </div>
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="sgc-card">Cargando…</div>
+  } @else if (error()) {
+    <div class="page-error" role="alert">{{ error() }}</div>
+  } @else if (detalle(); as d) {
+    <article class="sgc-card ce-doc">
+      <div class="ce-doc__head">
+        <div>
+          <div class="ce-doc__label">Conduce externo</div>
+          <h1 class="ce-doc__code">{{ d.codigo }}</h1>
+        </div>
+        <div class="ce-doc__estado">
+          <span class="sgc-status-pill">{{ estadoLabel(d.estado) }}</span>
+          @if (d.anulado) { <span class="sgc-badge sgc-badge--danger">Anulado</span> }
+          @if (d.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
+        </div>
+      </div>
+
+      @if (d.anulado && d.motivo_anulacion) {
+        <div class="ce-anulado-nota">Anulado: {{ d.motivo_anulacion }}</div>
+      }
+
+      <dl class="ce-kv">
+        <div><dt>Fecha</dt><dd>{{ d.fecha | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+        <div><dt>Transporta</dt><dd>{{ d.transporta || '—' }} @if (!d.es_proveedor_formal && d.transporta) { <span class="ce-otro">«Otro»</span> }</dd></div>
+        <div><dt>Origen</dt><dd>{{ d.origen || d.origen_bodega || d.origen_proyecto || '—' }}</dd></div>
+        <div><dt>Destino</dt><dd>{{ d.destino || d.destino_bodega || d.destino_proyecto || '—' }}</dd></div>
+        <div><dt>Material</dt><dd>{{ d.material || (d.afecta_inventario ? 'Material de catálogo' : '—') }}</dd></div>
+        <div><dt>Emisor</dt><dd>{{ d.emisor || '—' }}</dd></div>
+        <div><dt>Receptor</dt><dd>{{ d.receptor || '—' }}</dd></div>
+        @if (d.recibido_en) { <div><dt>Recibido</dt><dd>{{ d.recibido_en | date: 'dd/MM/yyyy HH:mm' }}</dd></div> }
+        @if (d.notas) { <div><dt>Notas</dt><dd>{{ d.notas }}</dd></div> }
+        @if (d.notas_recepcion) { <div><dt>Notas de recepción</dt><dd>{{ d.notas_recepcion }}</dd></div> }
+      </dl>
+
+      @if (d.renglones?.length) {
+        <h2 class="ce-doc__sub">Renglones</h2>
+        <table class="data-table ce-renglones">
+          <thead><tr><th>Artículo</th><th>Enviado</th><th>Recibido</th><th>Unidad</th></tr></thead>
+          <tbody>
+            @for (r of d.renglones; track $index) {
+              <tr><td>{{ r.articulo || '—' }}</td><td>{{ r.enviado }}</td><td>{{ r.recibido ?? '—' }}</td><td>{{ r.unidad || '' }}</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <!-- Fotos -->
+      <div class="ce-fotos">
+        @if (placaUrl(); as u) { <figure><img [src]="u" alt="Placa" /><figcaption>Placa</figcaption></figure> }
+        @if (cargaUrl(); as u) { <figure><img [src]="u" alt="Carga" /><figcaption>Carga</figcaption></figure> }
+        @if (recepcionUrl(); as u) { <figure><img [src]="u" alt="Recepción" /><figcaption>Recepción</figcaption></figure> }
+      </div>
+
+      <!-- Firmas -->
+      <div class="ce-firmas">
+        <div class="ce-firma">
+          <div class="ce-firma__box">@if (emisorFirmaUrl(); as u) { <img [src]="u" alt="Firma del emisor" /> }</div>
+          <div class="ce-firma__cap">{{ d.emisor || 'Emisor' }}</div>
+        </div>
+        <div class="ce-firma">
+          <div class="ce-firma__box">@if (receptorFirmaUrl(); as u) { <img [src]="u" alt="Firma del receptor" /> }</div>
+          <div class="ce-firma__cap">{{ d.receptor || 'Receptor' }}</div>
+        </div>
+      </div>
+
+      <!-- Historial -->
+      @if (d.historial?.length) {
+        <div class="ce-historial no-print">
+          <h2 class="ce-doc__sub">Historial</h2>
+          <ul>
+            @for (h of d.historial; track $index) {
+              <li><span class="sgc-status-pill">{{ histLabel(h.estado) }}</span> {{ h.at | date: 'dd/MM/yyyy HH:mm' }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </article>
+  }
+</div>

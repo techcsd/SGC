@@ -47,6 +47,8 @@ export interface RegistroCombustible {
   rendimiento_km_gal: number | null;
   costo_por_km: number | null;
   foto_recibo_path: string | null;
+  // CC6 — número del recibo del ticket (para cruzar por recibo en la conciliación).
+  numero_recibo?: string | null;
   foto_tablero_path: string | null;
   // Y4 — 3ª foto: bomba/estación en 0 (app móvil). Aditivo/retrocompatible.
   foto_bomba_path: string | null;

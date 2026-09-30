@@ -308,6 +308,61 @@ for (const file of srcFiles(SRC_DIR)) {
   }
 }
 
+// ── CC8 — Política `to authenticated` ⇒ GRANT del comando (curado) ────────────
+// Bug CC8: bitacora_orden_detalle/firmas nacieron (bn1) con RLS + política
+// `select` para authenticated pero SIN `grant select` → Postgres revisa el GRANT
+// antes que la RLS → "permission denied for table" para TODO usuario de la web.
+// La auditoría AUTORITATIVA (todas las tablas) vive en audit-rls-tablas-nuevas.mjs
+// (necesita DB → on-demand). Aquí, en prebuild (estático), custodiamos las tablas
+// donde el gap YA mordió o se creó este round: cada una debe tener su
+// `grant <cmd> … to authenticated` en algún archivo de sql/. Lista curada (mismo
+// espíritu que REGLAS): baseline vacío, cero falsos positivos.
+const GRANTS_AUTH = [
+  { tabla: 'bitacora_orden_detalle', cmds: ['select'],
+    reason: 'CC8: OT reventaba con "permission denied for table bitacora_orden_detalle" ' +
+      '(política select sin grant). Ver sql/2026-09-29-cc8-grants-orden-trabajo.sql.' },
+  { tabla: 'bitacora_orden_firmas', cmds: ['select'],
+    reason: 'CC8: gemela de la anterior (listar_ordenes_trabajo es SECURITY INVOKER). ' +
+      'Ver sql/2026-09-29-cc8-grants-orden-trabajo.sql.' },
+  { tabla: 'outbox_atascado_evidencia', cmds: ['select'],
+    reason: 'CC7: la ficha del atascado lee la evidencia bajo RLS (es_tecnologia). ' +
+      'Ver sql/2026-09-29-cc7-outbox-evidencia.sql.' },
+];
+
+// ¿Existe `grant <cmd> on … sgc.<tabla> … to … authenticated` en algún sql/?
+function tieneGrantAuth(tabla, cmd) {
+  const tRe = new RegExp(`sgc\\.${tabla}\\b`, 'i');
+  const grantRe = /grant\s+([a-z,\s]+?)\s+on\s+(?:table\s+)?((?:sgc\.\w+\s*,?\s*)+)\s+to\s+([a-z_,\s]+?);/gi;
+  for (const file of sqlFilesSorted()) {
+    const raw = readFileSync(join(SQL_DIR, file), 'utf8');
+    let m;
+    grantRe.lastIndex = 0;
+    while ((m = grantRe.exec(raw)) !== null) {
+      const privs = m[1].toLowerCase();
+      const tables = m[2];
+      const roles = m[3].toLowerCase();
+      if (!/authenticated/.test(roles)) continue;
+      if (!tRe.test(tables)) continue;
+      if (/\ball\b/.test(privs) || new RegExp(`\\b${cmd}\\b`).test(privs)) return true;
+    }
+  }
+  return false;
+}
+
+for (const g of GRANTS_AUTH) {
+  for (const cmd of g.cmds) {
+    if (tieneGrantAuth(g.tabla, cmd)) {
+      console.log(`✓ sgc.${g.tabla} — grant ${cmd} to authenticated presente en sql/.`);
+    } else {
+      fallos.push(
+        `✗ CC8 en sgc.${g.tabla}: falta 'grant ${cmd} … to authenticated' en sql/.\n` +
+          `   Una política 'to authenticated FOR ${cmd}' sin su grant es un 403 latente ` +
+          `(permission denied for table). ${g.reason}`
+      );
+    }
+  }
+}
+
 if (fallos.length) {
   console.error('\n🔴 GUARDA DE REGRESIÓN — build detenido:\n');
   console.error(fallos.join('\n\n'));

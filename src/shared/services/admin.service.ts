@@ -126,6 +126,39 @@ export class AdminService {
     return data as { sent: boolean; actionLink?: string };
   }
 
+  /**
+   * CC3 — el admin ESTABLECE la contraseña (para cuentas sin buzón: qa_/sintéticas/
+   * prueba). `generate:true` → el servidor la genera y la devuelve UNA vez.
+   * Para cuentas reales, el servidor marca `debe_cambiar_password` (la cambian al
+   * entrar). Nunca se guarda la contraseña.
+   */
+  async setPassword(
+    userId: string,
+    opts: { password?: string; generate?: boolean },
+  ): Promise<{ password?: string; debeCambiar?: boolean }> {
+    const { data, error } = await this.supabase.client.functions.invoke('admin-set-password', {
+      body: { userId, password: opts.password, generate: opts.generate === true },
+    });
+    if (error) throw new Error(await edgeFunctionErrorMessage(error));
+    if (data?.error) throw new Error(data.error);
+    return data as { password?: string; debeCambiar?: boolean };
+  }
+
+  // ── CC2 — Lista blanca de acceso a dev (Admin › Usuarios de prueba) ──────────
+  async devAccesoListar(): Promise<{ email: string; nota: string | null; creado_en: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('dev_acceso_listar');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { email: string; nota: string | null; creado_en: string }[];
+  }
+  async devAccesoAgregar(email: string, nota?: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('dev_acceso_agregar', { p_email: email, p_nota: nota ?? null });
+    if (error) throw new Error(error.message);
+  }
+  async devAccesoQuitar(email: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('dev_acceso_quitar', { p_email: email });
+    if (error) throw new Error(error.message);
+  }
+
   /** Regenerates + resends a pending user's invitation link (24h validity),
    *  for when the original one expired before they accepted it. */
   async resendInvite(id: string): Promise<{ sent: boolean; actionLink?: string }> {

@@ -1,0 +1,3 @@
+ID,Nombre,NIF/RNC,Teléfono,Correo electrónico,Calle,Es una compañía,Activo
+__export__.res_partner_42_a1b2c3,Ferretería Acero SRL,1-31-12345-6,(809) 555-1234,ventas@acero.do,Av. Duarte 100,Verdadero,Verdadero
+__export__.res_partner_43_d4e5f6,Suplidora El Martillo,131889763,809-555-9876,info@martillo.do,Calle 3ra 22,Verdadero,Verdadero

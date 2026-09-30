@@ -341,6 +341,13 @@
       </div>
 
       <div class="sgc-field cl-edit__full">
+        <label for="ed-recibo">Nº de recibo</label>
+        <input id="ed-recibo" type="text" formControlName="numero_recibo"
+               placeholder="El número que dice RECIBO en el ticket" />
+        <span class="cl-field-hint">Sirve para cruzar la echada con el informe de la estación.</span>
+      </div>
+
+      <div class="sgc-field cl-edit__full">
         <label for="ed-motivo">Motivo del cambio <span class="cl-req">*</span></label>
         <input id="ed-motivo" type="text" formControlName="motivo" required
                placeholder="Ej: corrección de kilometraje mal digitado" />

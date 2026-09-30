@@ -168,12 +168,28 @@
     } @else if (chequeoBodegaId() && chequeoRows().length === 0) {
       <p class="cn-muted">Este almacén no tiene artículos con stock.</p>
     } @else if (chequeoRows().length > 0) {
+      <!-- CC1 — buscador + solo con diferencia -->
+      <div class="cn-count-tools">
+        <input
+          type="search" class="cn-count-search"
+          placeholder="Buscar por nombre o código…"
+          [value]="chqSearch()"
+          (input)="chqSearch.set($any($event.target).value)"
+          (keydown.escape)="chqSearch.set('')"
+          aria-label="Buscar artículo"
+        />
+        <label class="cn-count-toggle">
+          <input type="checkbox" [checked]="chqSoloDif()" (change)="chqSoloDif.set($any($event.target).checked)" />
+          Solo con diferencia
+        </label>
+        <span class="cn-count-n">{{ chequeoRowsVisibles().length }} de {{ chequeoRows().length }}</span>
+      </div>
       <table class="cn-table">
         <thead>
           <tr><th>Material</th><th>Sistema</th><th>Físico</th></tr>
         </thead>
         <tbody>
-          @for (r of chequeoRows(); track r.articulo_id; let i = $index) {
+          @for (r of chequeoRowsVisibles(); track r.articulo_id) {
             <tr>
               <td>{{ r.articulo?.nombre ?? '—' }}</td>
               <td class="text-muted">{{ r.cantidad }}</td>
@@ -181,12 +197,14 @@
                 <input
                   type="number" min="0" step="0.01"
                   [value]="r.contada"
-                  (input)="updateContada(i, $any($event.target).value)"
+                  (input)="updateContada(r.articulo_id, $any($event.target).value)"
                   [class.cn-diff]="r.contada !== r.cantidad"
                   aria-label="Cantidad física"
                 />
               </td>
             </tr>
+          } @empty {
+            <tr><td colspan="3" class="cn-muted">Ningún artículo coincide con la búsqueda.</td></tr>
           }
         </tbody>
       </table>
@@ -236,31 +254,66 @@
 
     @if (loadingStock()) {
       <app-skeleton variant="table" [rows]="6" />
-    } @else if (cfBodegaId() && cfRows().length === 0) {
-      <p class="cn-muted">Este almacén no tiene artículos con stock.</p>
-    } @else if (cfRows().length > 0) {
-      <table class="cn-table">
-        <thead>
-          <tr><th>Material</th>@if (!cfCiego()) { <th>Sistema</th> }<th>Real contado</th></tr>
-        </thead>
-        <tbody>
-          @for (r of cfRows(); track r.articulo_id; let i = $index) {
-            <tr>
-              <td>{{ r.articulo?.nombre ?? '—' }}</td>
-              @if (!cfCiego()) { <td class="text-muted">{{ r.cantidad }}</td> }
-              <td>
-                <input
-                  type="number" min="0" step="0.01"
-                  [value]="r.contada"
-                  (input)="updateCfContada(i, $any($event.target).value)"
-                  [class.cn-diff]="r.contada != null && r.contada !== r.cantidad"
-                  aria-label="Cantidad real contada"
-                />
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+    } @else if (cfBodegaId()) {
+      <!-- CC1 — buscador, solo con diferencia y agregar artículo del catálogo -->
+      <div class="cn-count-tools">
+        <input
+          type="search" class="cn-count-search"
+          placeholder="Buscar por nombre o código…"
+          [value]="cfSearch()"
+          (input)="cfSearch.set($any($event.target).value)"
+          (keydown.escape)="cfSearch.set('')"
+          aria-label="Buscar artículo"
+        />
+        <label class="cn-count-toggle">
+          <input type="checkbox" [checked]="cfSoloDif()" (change)="cfSoloDif.set($any($event.target).checked)" />
+          Solo con diferencia
+        </label>
+        <span class="cn-count-n">{{ cfRowsVisibles().length }} de {{ cfRows().length }}</span>
+      </div>
+      <div class="cn-agregar">
+        <span class="cn-agregar__label">¿Falta un artículo?</span>
+        <app-articulo-picker
+          [articulos]="cfArticulosDisponibles()"
+          [categorias]="categorias()"
+          [value]="null"
+          [allowOtro]="false"
+          placeholder="+ Agregar artículo del catálogo…"
+          (selectionChange)="cfAgregarArticulo($event)"
+        />
+      </div>
+      @if (cfRows().length === 0) {
+        <p class="cn-muted">Este almacén no tiene artículos con stock. Usa “Agregar artículo” para contar uno del catálogo.</p>
+      } @else {
+        <table class="cn-table">
+          <thead>
+            <tr><th>Material</th>@if (!cfCiego()) { <th>Sistema</th> }<th>Real contado</th></tr>
+          </thead>
+          <tbody>
+            @for (r of cfRowsVisibles(); track r.articulo_id) {
+              <tr>
+                <td>
+                  {{ r.articulo?.nombre ?? '—' }}
+                  @if (r.agregado) { <span class="sgc-badge sgc-badge--info">Agregado</span> }
+                </td>
+                @if (!cfCiego()) { <td class="text-muted">{{ r.cantidad }}</td> }
+                <td>
+                  <input
+                    type="number" min="0" step="0.01"
+                    [attr.data-artid]="r.articulo_id"
+                    [value]="r.contada"
+                    (input)="updateCfContada(r.articulo_id, $any($event.target).value)"
+                    [class.cn-diff]="r.contada != null && r.contada !== r.cantidad"
+                    aria-label="Cantidad real contada"
+                  />
+                </td>
+              </tr>
+            } @empty {
+              <tr><td [attr.colspan]="cfCiego() ? 2 : 3" class="cn-muted">Ningún artículo coincide con la búsqueda.</td></tr>
+            }
+          </tbody>
+        </table>
+      }
     }
 
     @if (cfError()) {

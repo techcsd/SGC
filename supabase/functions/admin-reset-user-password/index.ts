@@ -57,27 +57,34 @@ Deno.serve(async (req: Request) => {
 
     const { data: usuario, error: usuarioError } = await admin
       .from("usuarios")
-      .select("email, nombre")
+      .select("email, nombre, es_prueba")
       .eq("id", userId)
       .single();
     if (usuarioError || !usuario) {
       return json({ error: "Usuario no encontrado." }, 404);
     }
 
-    // BI5 — un email sintético (.local, sin MX) NUNCA recibe correo. GoTrue
-    // devuelve 200 para cualquier dirección (anti-enumeración), así que llamar a
-    // resetPasswordForEmail aquí produciría un "sent: true" que MIENTE. Se rechaza
-    // de entrada: ese usuario entra por cédula + PIN → el admin usa "Fijar PIN".
+    // BI5/CC3 — una cuenta sin buzón real NUNCA recibe el correo: GoTrue devuelve
+    // 200 para cualquier dirección (anti-enumeración) → un "sent: true" que MIENTE
+    // (o un rebote 550, captura de Gmail). Se rechaza de entrada y se apunta a
+    // "Establecer contraseña" (CC3). Cubre: sintéticos `.local` (cédula+PIN → PIN),
+    // cuentas `qa_*` (dominio real pero sin buzón) y cualquier `es_prueba`.
     const SYNTH_DOMAINS = ["@conductores.constructorasd.local", "@personal.constructorasd.local", "@test.constructorasd.local"];
     const email = String(usuario.email ?? "");
-    if (SYNTH_DOMAINS.some((d) => email.toLowerCase().endsWith(d))) {
+    const emailLc = email.toLowerCase();
+    const esSintetico = SYNTH_DOMAINS.some((d) => emailLc.endsWith(d));
+    const esQa = emailLc.startsWith("qa_");
+    if (esSintetico || esQa || usuario.es_prueba) {
       await admin.from("audit_log").insert({
-        actor_id: callerData.user.id, action: "password_reset_rechazado_sintetico",
-        target_user_id: userId, metadata: { email, motivo: "email_sintetico_sin_buzon" },
+        actor_id: callerData.user.id, action: "password_reset_rechazado_sin_buzon",
+        target_user_id: userId,
+        metadata: { email, motivo: esSintetico ? "email_sintetico" : esQa ? "cuenta_qa" : "es_prueba" },
       }).then(() => {}, () => {});
       return json({
-        error: "Este usuario no tiene correo real (entra con cédula + PIN). Usa \"Fijar PIN\" para cambiar su acceso.",
-        sintetico: true,
+        error: esSintetico
+          ? "Este usuario entra con cédula + PIN. Usa \"Fijar PIN\" para cambiar su acceso."
+          : "Esta cuenta no recibe correo (prueba/QA). Usa \"Establecer contraseña\" para darle una.",
+        sinBuzon: true,
       }, 400);
     }
 
