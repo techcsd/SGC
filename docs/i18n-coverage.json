@@ -975,9 +975,9 @@
     },
     {
       "pantalla": "admin/historial-versiones",
-      "total": 43,
+      "total": 46,
       "cubiertos": 0,
-      "sin": 43,
+      "sin": 46,
       "pct": 0,
       "enScope": false,
       "enforce": false,
@@ -1020,11 +1020,14 @@
         "@for (g of gruposCambios(v.cambiosVisibles); track g.modulo) { @if (g.modulo) {",
         "@for (c of g.items; track c.d) {",
         "@if (v.cambiosVisibles.length === 0 && v.notas) {",
-        "} @if (v.plataforma === 'web' && v.url) {",
+        "@if (v.plataforma === 'web' && v.deploy_url && esTecnologia()) {",
         "Abrir esta versión",
-        "} @else if (v.plataforma === 'movil' && v.apk_url) {",
+        "} @if (v.plataforma === 'web' && v.url && esTecnologia()) {",
+        "Ver cambios en el código",
+        "} @if (v.plataforma === 'movil' && v.apk_url) {",
         "Descargar APK v",
-        "Plataforma"
+        "Plataforma",
+        "Versión antigua · datos de dev — no operar sobre prod"
       ]
     },
     {

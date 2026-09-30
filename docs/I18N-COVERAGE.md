@@ -18,7 +18,7 @@
 | admin/auditoria | - | 96 | 0 | 96 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
 | admin/empresa | - | 53 | 0 | 53 | 0% |
-| admin/historial-versiones | - | 43 | 0 | 43 | 0% |
+| admin/historial-versiones | - | 46 | 0 | 46 | 0% |
 | admin/importar | - | 2 | 0 | 2 | 0% |
 | admin/jira | - | 86 | 0 | 86 | 0% |
 | admin/matriz-notificaciones | - | 95 | 0 | 95 | 0% |

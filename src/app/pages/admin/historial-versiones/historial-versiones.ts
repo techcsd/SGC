@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { AppVersionesService } from '../../../../shared/services/app-versiones.service';
+import { UserService } from '../../../core/services/user.service';
 import { AppVersion, CambioItem, CambioTag, CAMBIO_META, Plataforma } from '../../../../shared/models/app-version.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaDisplay, formatFechaHumanaConDia } from '../../../../shared/utils/fecha.util';
@@ -43,6 +44,9 @@ export interface GrupoCambios {
 })
 export class AdminHistorialVersiones implements OnInit {
   private service = inject(AppVersionesService);
+  private user = inject(UserService);
+  // CD6 — "Abrir esta versión" (deploy) y "Ver cambios en el código" (GitHub) solo Tecnología.
+  esTecnologia = this.user.esTecnologia;
 
   formatFecha = formatFechaDisplay;
   formatFechaHora = formatFechaHumanaConDia; // X7 + BL3 — día de semana + fecha + hora
