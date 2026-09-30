@@ -88,6 +88,7 @@
           }
           @if (f.error_msg) { <p class="oba-detalle">{{ f.error_msg }}</p> }
           <div class="oba-actions">
+            <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="abrirDetalle(f)">Ver conduce y foto</button>
             @if (!f.resuelto) {
               <button class="oba-btn oba-btn--sm" (click)="resolver(f, true)">Marcar resuelto</button>
             } @else {
@@ -100,3 +101,103 @@
     </div>
   }
 </div>
+
+<!-- CC7 — Ficha del atascado: conduce completo + payload legible + foto -->
+@if (detalleOpen()) {
+  <div class="oba-drawer-backdrop" (click)="cerrarDetalle()"></div>
+  <aside class="oba-drawer" role="dialog" aria-label="Detalle del envío atascado">
+    <header class="oba-drawer-head">
+      <h2>Envío atascado</h2>
+      <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="cerrarDetalle()" aria-label="Cerrar">✕</button>
+    </header>
+
+    @if (detalleLoading()) {
+      <p class="oba-empty">Cargando…</p>
+    } @else if (detalleError()) {
+      <div class="oba-error">{{ detalleError() }}</div>
+    } @else if (detalle(); as d) {
+      <!-- Error -->
+      <section class="oba-drawer-sec">
+        <div class="oba-meta">
+          <span class="oba-badge oba-badge--{{ d.atascado.categoria }}">{{ categoriaLabel(d.atascado.categoria) }}</span>
+          <span class="oba-tipo">{{ tipoLabel(d.atascado.tipo_op) }}</span>
+          @if (d.atascado.error_code) { <span class="oba-code">{{ d.atascado.error_code }}</span> }
+          <span>Intentos: {{ d.atascado.intentos }}</span>
+        </div>
+        @if (d.atascado.error_msg) { <p class="oba-detalle">{{ d.atascado.error_msg }}</p> }
+      </section>
+
+      <!-- Conduce completo -->
+      @if (d.conduce; as c) {
+        <section class="oba-drawer-sec">
+          <div class="oba-drawer-sec-title">
+            Conduce {{ c.codigo }}
+            @if (c.estado) { <span class="sgc-status-pill">{{ c.estado }}</span> }
+            @if (c.anulado) { <span class="oba-chip-anulado">Anulado</span> }
+          </div>
+          <dl class="oba-kv">
+            @if (c.fecha) { <div><dt>Fecha</dt><dd>{{ c.fecha | date: 'dd/MM/yyyy' }}</dd></div> }
+            <div><dt>Origen → Destino</dt><dd>{{ c.origen || '—' }} → {{ c.destino || '—' }}</dd></div>
+            @if (c.chofer) { <div><dt>Chofer</dt><dd>{{ c.chofer }}</dd></div> }
+            @if (c.vehiculo) { <div><dt>Vehículo</dt><dd>{{ c.vehiculo }}</dd></div> }
+            @if (c.receptor) { <div><dt>Receptor</dt><dd>{{ c.receptor }}</dd></div> }
+            @if (c.proyecto) { <div><dt>Obra</dt><dd>{{ c.proyecto }}</dd></div> }
+          </dl>
+          @if (c.renglones?.length) {
+            <table class="oba-renglones">
+              <thead><tr><th>Artículo</th><th>Enviado</th><th>Recibido</th><th>Unidad</th></tr></thead>
+              <tbody>
+                @for (r of c.renglones; track $index) {
+                  <tr><td>{{ r.articulo || '—' }}</td><td>{{ r.enviado }}</td><td>{{ r.recibido ?? '—' }}</td><td>{{ r.unidad || '' }}</td></tr>
+                }
+              </tbody>
+            </table>
+          }
+        </section>
+      }
+
+      <!-- Payload legible -->
+      @if (payloadPares().length) {
+        <section class="oba-drawer-sec">
+          <div class="oba-drawer-sec-title">Datos del envío</div>
+          <dl class="oba-kv">
+            @for (p of payloadPares(); track p.k) { <div><dt>{{ p.k }}</dt><dd>{{ p.v }}</dd></div> }
+          </dl>
+          <details class="oba-tecnico">
+            <summary>Detalle técnico</summary>
+            <pre>{{ d.payload | json }}</pre>
+          </details>
+        </section>
+      }
+
+      <!-- Foto / evidencia -->
+      <section class="oba-drawer-sec">
+        <div class="oba-drawer-sec-title">Foto</div>
+        @if (fotoUrls().length) {
+          <div class="oba-fotos-grid">
+            @for (u of fotoUrls(); track u) { <img [src]="u" alt="Evidencia" loading="lazy" /> }
+          </div>
+        } @else {
+          <p class="oba-detalle">La foto está solo en el teléfono de {{ d.atascado.usuario_nombre || 'el usuario' }}.</p>
+          @if (minutosDesde(d.atascado.evidencia_solicitada_en); as m) {
+            <span class="oba-resuelto-tag">Evidencia solicitada · hace {{ m }} min</span>
+          } @else {
+            <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirEvidencia()">Pedir que se suba</button>
+          }
+        }
+      </section>
+
+      <!-- Acciones -->
+      <section class="oba-drawer-actions">
+        @if (minutosDesde(d.atascado.reintento_solicitado_en); as m) {
+          <span class="oba-resuelto-tag">Reintento solicitado · hace {{ m }} min</span>
+        } @else {
+          <button class="oba-btn oba-btn--sm" [disabled]="pidiendo()" (click)="pedirReintento()">Reintentar ahora</button>
+        }
+        @if (!d.atascado.resuelto) {
+          <button class="oba-btn oba-btn--sm oba-btn--ghost" (click)="resolver(d.atascado, true); cerrarDetalle()">Marcar resuelto</button>
+        }
+      </section>
+    }
+  </aside>
+}

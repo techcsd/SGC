@@ -194,10 +194,16 @@ export class ConciliacionCombustible implements OnInit {
     return m.total_diferencias + m.total_solo_plataforma + m.total_solo_informe;
   });
 
-  // ── Dashboard: agregados por mes del historial guardado ──────────────
+  // ── Dashboard HONESTO (CC6): 1 factura = 1 (última conciliación por factura) ──
+  // Antes se sumaba TODAS las conciliaciones → una re-subida de la misma factura se
+  // contaba varias veces y hundía el % / inflaba las discrepancias. Ahora sobre la
+  // vista v_conciliacion_factura_vigente. La lista de historial sigue mostrando todo
+  // (las re-subidas son versiones).
+  historialVigente = signal<ConciliacionRegistro[]>([]);
+
   dashboardMeses = computed(() => {
     const map = new Map<string, { mes: string; plataforma: number; informe: number; discrepancias: number }>();
-    for (const c of this.historial()) {
+    for (const c of this.historialVigente()) {
       const mes = (c.fecha_hasta ?? c.created_at).slice(0, 7);
       const g = map.get(mes) ?? { mes, plataforma: 0, informe: 0, discrepancias: 0 };
       g.plataforma += Number(c.monto_plataforma) || 0;
@@ -209,16 +215,79 @@ export class ConciliacionCombustible implements OnInit {
   });
 
   totalDiscrepanciasHist = computed(() =>
-    this.historial().reduce(
+    this.historialVigente().reduce(
       (s, c) => s + (c.total_diferencias || 0) + (c.total_solo_plataforma || 0) + (c.total_solo_informe || 0),
       0,
     ),
   );
   pctMatchHist = computed(() => {
-    const filas = this.historial().reduce((s, c) => s + (c.total_informe_filas || 0), 0);
-    const matches = this.historial().reduce((s, c) => s + (c.total_matches || 0), 0);
+    const filas = this.historialVigente().reduce((s, c) => s + (c.total_informe_filas || 0), 0);
+    const matches = this.historialVigente().reduce((s, c) => s + (c.total_matches || 0), 0);
     return filas > 0 ? Math.round((matches / filas) * 100) : null;
   });
+
+  // ── CC6 — Panel "Cómo subir el % de match" ───────────────────────────────────
+  panelAbierto = signal(false);
+  causas = signal<{ causa: string; filas: number; galones: number; monto: number }[]>([]);
+  matchPorLista = signal<{ entidad_id: string | null; entidad: string; total: number; matches: number; pct: number | null }[]>([]);
+  matchPorTipo = signal<'vehiculo' | 'chofer'>('vehiculo');
+  cargandoPanel = signal(false);
+  recordando = signal(false);
+
+  private readonly CAUSA_LABEL: Record<string, { texto: string; accion: string }> = {
+    chofer_no_registro: { texto: 'Chofer no registró la echada', accion: 'Recordar a los choferes' },
+    tarjeta_sin_vehiculo: { texto: 'Tarjeta sin vehículo asignado', accion: 'Asignar la tarjeta a un vehículo' },
+    galones: { texto: 'Galones fuera de tolerancia', accion: 'Revisar los galones' },
+    fecha: { texto: 'Fecha distinta', accion: 'Revisar la fecha del ticket' },
+    fuera_flota: { texto: 'Fuera de flota — no cuenta', accion: '' },
+    anulacion: { texto: 'Anulaciones — no cuentan', accion: '' },
+    sin_clasificar: { texto: 'Sin clasificar', accion: '' },
+  };
+  causaLabel(c: string) { return this.CAUSA_LABEL[c] ?? { texto: c, accion: '' }; }
+
+  async abrirPanel() {
+    this.panelAbierto.update((v) => !v);
+    if (this.panelAbierto()) await this.cargarPanel();
+  }
+  async cargarPanel() {
+    this.cargandoPanel.set(true);
+    try {
+      const m = this.meta();
+      if (m) this.causas.set(await this.service.causas(this.ultimaConciliacionId() ?? ''));
+      await this.cargarMatchPor();
+    } finally {
+      this.cargandoPanel.set(false);
+    }
+  }
+  async cambiarMatchPorTipo(t: 'vehiculo' | 'chofer') {
+    this.matchPorTipo.set(t);
+    await this.cargarMatchPor();
+  }
+  private async cargarMatchPor() {
+    // Rango: últimos 6 meses (o el de la conciliación actual si existe).
+    const m = this.meta();
+    const desde = m?.fecha_desde ?? null;
+    const hasta = m?.fecha_hasta ?? null;
+    this.matchPorLista.set(await this.service.matchPor(desde, hasta, this.matchPorTipo()));
+  }
+  /** id de la conciliación recién guardada (para leer sus causas). */
+  ultimaConciliacionId = signal<string | null>(null);
+
+  /** CC6 — recuerda a los choferes con echadas sin registrar (push best-effort). */
+  async recordarChoferes() {
+    if (this.recordando()) return;
+    this.recordando.set(true);
+    try {
+      const m = this.meta();
+      const n = await this.service.recordarChoferes(m?.fecha_desde ?? null, m?.fecha_hasta ?? null);
+      if (n > 0) this.toast.success('Recordatorio enviado', `Se notificó a ${n} chofer(es).`);
+      else this.toast.error('No se pudo identificar a los choferes', 'Revisa que las tarjetas estén asignadas a vehículos con conductor.');
+    } catch (e) {
+      this.toast.error('No se pudo enviar el recordatorio', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.recordando.set(false);
+    }
+  }
 
   async ngOnInit() {
     try {
@@ -247,7 +316,13 @@ export class ConciliacionCombustible implements OnInit {
   private async cargarHistorial() {
     this.loadingHist.set(true);
     try {
-      this.historial.set(await this.service.getHistorial());
+      const [todo, vigente] = await Promise.all([
+        this.service.getHistorial(),
+        this.service.getHistorialVigente().catch(() => []),
+      ]);
+      this.historial.set(todo);
+      // CC6 — el dashboard usa la vista vigente (1 factura = 1). Si falla, cae a todo.
+      this.historialVigente.set(vigente.length ? vigente : todo);
     } catch {
       /* no bloquea */
     } finally {
@@ -681,6 +756,13 @@ export class ConciliacionCombustible implements OnInit {
     const hasta = fechas[fechas.length - 1] ?? null;
 
     const registros = await this.service.getRegistrosEnRango(desde, hasta);
+    // CC6 — matcher por niveles: ① recibo exacto ② placa+fecha ③ tarjeta→vehículo+fecha.
+    const tarjetaMap = await this.service.getTarjetaMap().catch(() => []);
+    const cardToVeh = new Map<string, string>();
+    for (const t of tarjetaMap) if (t.codigo_tarjeta && t.vehiculo_id) cardToVeh.set(this.norm(t.codigo_tarjeta), t.vehiculo_id);
+    const porRecibo = new Map<string, typeof registros[number]>();
+    for (const reg of registros) if (reg.numero_recibo) porRecibo.set(this.norm(reg.numero_recibo), reg);
+
     const usados = new Set<string>();
     const detalles: ConciliacionDetalle[] = [];
 
@@ -691,14 +773,29 @@ export class ConciliacionCombustible implements OnInit {
       montoInforme += inf.monto ?? 0;
       galonesInforme += inf.galones ?? 0;
       const idn = this.norm(inf.identificador);
-      // Busca un registro no usado con misma placa y fecha dentro de la tolerancia.
-      const cand = registros.find(
-        (reg) =>
-          !usados.has(reg.id) &&
+      const vehTarjeta = cardToVeh.get(this.norm(inf.numero_tarjeta)) ?? null;
+
+      // ① recibo exacto (transaccion_num o numero_registro ↔ echada.numero_recibo).
+      let cand: typeof registros[number] | undefined;
+      let nivel: 'recibo' | 'placa_fecha' | 'tarjeta_fecha' | null = null;
+      for (const key of [inf.transaccion_num, inf.numero_registro]) {
+        const r = key ? porRecibo.get(this.norm(key)) : undefined;
+        if (r && !usados.has(r.id)) { cand = r; nivel = 'recibo'; break; }
+      }
+      // ② placa + fecha ± tolerancia.
+      if (!cand) {
+        cand = registros.find((reg) => !usados.has(reg.id) && idn !== '' &&
           this.norm(reg.vehiculo?.placa ?? '') === idn &&
-          idn !== '' &&
-          (!inf.fecha || !reg.fecha || this.diasEntre(inf.fecha, reg.fecha) <= diasTol),
-      );
+          (!inf.fecha || !reg.fecha || this.diasEntre(inf.fecha, reg.fecha) <= diasTol));
+        if (cand) nivel = 'placa_fecha';
+      }
+      // ③ tarjeta → vehículo + fecha.
+      if (!cand && vehTarjeta) {
+        cand = registros.find((reg) => !usados.has(reg.id) && reg.vehiculo_id === vehTarjeta &&
+          (!inf.fecha || !reg.fecha || this.diasEntre(inf.fecha, reg.fecha) <= diasTol));
+        if (cand) nivel = 'tarjeta_fecha';
+      }
+
       if (cand) {
         usados.add(cand.id);
         const gp = Number(cand.galones) || 0;
@@ -719,13 +816,22 @@ export class ConciliacionCombustible implements OnInit {
           monto_informe: inf.monto,
           diferencia_galones: dg,
           diferencia_monto: dm,
+          nivel_match: nivel,
         });
       } else {
         soloInforme++;
+        // CC6 — causa de que NO cruzó (para el panel "Cómo subir el %").
+        const vehResuelto = vehTarjeta ?? registros.find((r) => idn !== '' && this.norm(r.vehiculo?.placa ?? '') === idn)?.vehiculo_id ?? null;
+        const hayRegVeh = !!vehResuelto && registros.some((r) => r.vehiculo_id === vehResuelto);
+        let causa: ConciliacionDetalle['causa_sin_match'];
+        if ((inf.galones ?? 0) < 0) causa = 'anulacion';
+        else if (!vehResuelto) causa = 'tarjeta_sin_vehiculo';
+        else if (hayRegVeh) causa = 'fecha';           // hay echada del vehículo, pero fuera de fecha/tolerancia
+        else causa = 'chofer_no_registro';             // vehículo conocido, sin echada
         detalles.push({
           tipo: 'solo_informe',
           registro_id: null,
-          vehiculo_id: null,
+          vehiculo_id: vehResuelto,
           identificador: inf.identificador || null,
           fecha: inf.fecha,
           galones_plataforma: null,
@@ -741,6 +847,7 @@ export class ConciliacionCombustible implements OnInit {
           titular: inf.titular || null,
           titular_es_persona: inf.titular_es_persona,
           kilometraje: inf.kilometraje ?? null,
+          causa_sin_match: causa,
         });
       }
     }
@@ -867,6 +974,9 @@ export class ConciliacionCombustible implements OnInit {
       }
       const id = await this.service.guardar(meta, this.detalles());
       if (this.facturaId()) await this.service.vincularFactura(this.facturaId()!, id).catch(() => { /* no crítico */ });
+      // CC6 — deja la conciliación guardada disponible para el panel "Cómo subir el %".
+      this.ultimaConciliacionId.set(id);
+      this.causas.set(await this.service.causas(id).catch(() => []));
       this.toast.success(
         'Conciliación guardada',
         this.discrepancias() > 0

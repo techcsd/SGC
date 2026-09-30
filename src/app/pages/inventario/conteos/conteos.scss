@@ -181,3 +181,30 @@
   color: var(--sgc-text-muted); margin: 4px 0 8px;
   input { margin: 0; }
 }
+
+// CC1 — buscador + "solo con diferencia" + agregar artículo en los drawers de conteo.
+.cn-count-tools {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: 4px 0 10px;
+}
+.cn-count-search {
+  flex: 1 1 200px; min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+  color: var(--sgc-text);
+  font-size: 13px;
+}
+.cn-count-toggle {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--sgc-text-muted); white-space: nowrap;
+  input { margin: 0; }
+}
+.cn-count-n { font-size: 12px; color: var(--sgc-text-muted); white-space: nowrap; }
+.cn-agregar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 0 0 12px;
+  &__label { font-size: 13px; color: var(--sgc-text-muted); white-space: nowrap; }
+  app-articulo-picker { flex: 1 1 240px; min-width: 0; }
+}

@@ -25,5 +25,10 @@ export const authGuard: CanActivateFn = async () => {
     return router.createUrlTree(['/auth']);
   }
 
+  // CC3 — si un admin le fijó la contraseña, no deja entrar a la app hasta cambiarla.
+  if (profile.debe_cambiar_password) {
+    return router.createUrlTree(['/auth/set-password']);
+  }
+
   return true;
 };

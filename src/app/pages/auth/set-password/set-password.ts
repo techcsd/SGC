@@ -102,6 +102,9 @@ export class SetPassword implements OnInit, OnDestroy {
       return;
     }
 
+    // CC3 — limpia la marca "debe cambiar contraseña" (si la tenía) para no volver aquí.
+    try { await this.supabase.client.rpc('limpiar_debe_cambiar_password'); } catch { /* best-effort */ }
+
     const user = await this.authService.getUser();
     if (user) {
       await this.userService.loadProfile(user.id);

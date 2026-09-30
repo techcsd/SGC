@@ -2,8 +2,13 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormsModule } from '@angular/forms';
 import { ConteosService, Conteo, StockBodegaRow } from '../../../../shared/services/conteos.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
+import { ArticulosService } from '../../../../shared/services/articulos.service';
+import { CategoriasService } from '../../../../shared/services/categorias.service';
+import { Articulo } from '../../../../shared/models/articulo.model';
+import { Categoria } from '../../../../shared/models/categoria.model';
 import { Bodega } from '../../../../shared/models/bodega.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
@@ -16,12 +21,14 @@ import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 
 interface ChequeoRow extends StockBodegaRow {
   contada: number;
+  /** CC1 — fila añadida a mano desde el catálogo (no venía con stock). */
+  agregado?: boolean;
 }
 
 /** Conteo / ajuste history + registro de chequeo semanal de almacén (A5). */
 @Component({
   selector: 'app-inventario-conteos',
-  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon],
+  imports: [FormsModule, FormDrawer, Skeleton, DateRangeFilter, Paginator, Icon, ArticuloPicker],
   templateUrl: './conteos.html',
   styleUrl: './conteos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +36,8 @@ interface ChequeoRow extends StockBodegaRow {
 export class Conteos implements OnInit {
   private service = inject(ConteosService);
   private bodegasService = inject(BodegasService);
+  private articulosService = inject(ArticulosService);
+  private categoriasService = inject(CategoriasService);
   private toast = inject(ToastService);
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
   private datosPrueba = inject(DatosPruebaService);
@@ -42,6 +51,9 @@ export class Conteos implements OnInit {
 
   conteos = signal<Conteo[]>([]);
   bodegas = signal<Bodega[]>([]);
+  // CC1 — catálogo oficial para "Agregar artículo" en los drawers de conteo.
+  catalogoArticulos = signal<Articulo[]>([]);
+  categorias = signal<Categoria[]>([]);
   // AT14/AT26 — datos de prueba fuera de los selectores de almacén para no-admin.
   bodegasVisibles = computed(() => this.datosPruebaViewSvc.visibles(this.bodegas()));
   loading = signal(true);
@@ -71,6 +83,27 @@ export class Conteos implements OnInit {
   chequeoObs = signal<string>('');
   loadingStock = signal(false);
   chequeoRows = signal<ChequeoRow[]>([]);
+  // CC1 — buscador + "solo con diferencia" del chequeo semanal.
+  chqSearch = signal('');
+  chqSoloDif = signal(false);
+  chequeoRowsVisibles = computed(() => this.filtrarFilas(this.chequeoRows(), this.chqSearch(), this.chqSoloDif()));
+
+  /** CC1 — normaliza (minúsculas, sin acentos) para búsqueda amigable. */
+  private norm(s: string | null | undefined): string {
+    return (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+  /** CC1 — filtra por nombre/código (NFD) y, opcionalmente, solo filas con diferencia. */
+  private filtrarFilas(rows: ChequeoRow[], search: string, soloDif: boolean): ChequeoRow[] {
+    const q = this.norm(search);
+    return rows.filter((r) => {
+      if (q) {
+        const t = `${this.norm(r.articulo?.nombre)} ${this.norm(r.articulo?.codigo)}`;
+        if (!t.includes(q)) return false;
+      }
+      if (soloDif && (r.contada == null || Number(r.contada) === Number(r.cantidad))) return false;
+      return true;
+    });
+  }
 
   filtered = computed(() => {
     const q = this.search().toLowerCase().trim();
@@ -98,9 +131,16 @@ export class Conteos implements OnInit {
   async ngOnInit() {
     this.loading.set(true);
     try {
-      const [conteos, bodegas] = await Promise.all([this.service.getAll(), this.bodegasService.getAll()]);
+      const [conteos, bodegas, articulos, categorias] = await Promise.all([
+        this.service.getAll(),
+        this.bodegasService.getAll(),
+        this.articulosService.getAll(),
+        this.categoriasService.getAll(),
+      ]);
       this.conteos.set(conteos);
       this.bodegas.set(bodegas.filter((b) => b.activo));
+      this.catalogoArticulos.set(articulos);
+      this.categorias.set(categorias);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar.');
     } finally {
@@ -175,6 +215,8 @@ export class Conteos implements OnInit {
     this.chequeoBodegaId.set('');
     this.chequeoObs.set('');
     this.chequeoRows.set([]);
+    this.chqSearch.set('');
+    this.chqSoloDif.set(false);
     this.drawerOpen.set(true);
   }
 
@@ -198,9 +240,9 @@ export class Conteos implements OnInit {
     }
   }
 
-  updateContada(index: number, value: string) {
+  updateContada(articuloId: string, value: string) {
     this.chequeoRows.update((rows) =>
-      rows.map((r, i) => (i === index ? { ...r, contada: Number(value) } : r)),
+      rows.map((r) => (r.articulo_id === articuloId ? { ...r, contada: Number(value) } : r)),
     );
   }
 
@@ -212,6 +254,15 @@ export class Conteos implements OnInit {
   cfRows = signal<ChequeoRow[]>([]);
   cfSaving = signal(false);
   cfError = signal('');
+  // CC1 — buscador, "solo con diferencia" y "agregar artículo" del conteo físico.
+  cfSearch = signal('');
+  cfSoloDif = signal(false);
+  cfRowsVisibles = computed(() => this.filtrarFilas(this.cfRows(), this.cfSearch(), this.cfSoloDif()));
+  /** CC1 — catálogo oficial (activos) sin los que ya están en la hoja. */
+  cfArticulosDisponibles = computed(() => {
+    const ya = new Set(this.cfRows().map((r) => r.articulo_id));
+    return this.catalogoArticulos().filter((a) => a.activo && !ya.has(a.id));
+  });
 
   openConteoFisico() {
     this.cfError.set('');
@@ -219,7 +270,33 @@ export class Conteos implements OnInit {
     this.cfCiego.set(false);
     this.cfConteoId.set('');
     this.cfRows.set([]);
+    this.cfSearch.set('');
+    this.cfSoloDif.set(false);
     this.cfDrawerOpen.set(true);
+  }
+
+  /** CC1 — agrega un artículo del catálogo a la hoja (Sistema = 0), lo enfoca. */
+  cfAgregarArticulo(sel: ArticuloPickerSelection) {
+    if (!sel.articuloId) return;
+    const a = this.catalogoArticulos().find((x) => x.id === sel.articuloId);
+    if (!a) return;
+    if (this.cfRows().some((r) => r.articulo_id === a.id)) return;
+    const row: ChequeoRow = {
+      articulo_id: a.id,
+      cantidad: 0,
+      articulo: { nombre: a.nombre, codigo: a.codigo },
+      contada: null as unknown as number,
+      agregado: true,
+    };
+    this.cfRows.update((rows) => [row, ...rows]);
+    this.focusFila(a.id);
+  }
+
+  private focusFila(articuloId: string) {
+    setTimeout(() => {
+      const el = document.querySelector(`input[data-artid="${articuloId}"]`) as HTMLInputElement | null;
+      el?.focus();
+    }, 30);
   }
   closeCfDrawer() { this.cfDrawerOpen.set(false); }
 
@@ -239,14 +316,28 @@ export class Conteos implements OnInit {
       ]);
       this.cfCiego.set(det.ciego); // reanudar respeta cómo se abrió
       const saved = new Map(det.items.map((i) => [i.articulo_id, i.cantidad_contada]));
-      this.cfRows.set(
-        stock.map((s) => ({
-          ...s,
-          contada: saved.has(s.articulo_id)
-            ? (saved.get(s.articulo_id) ?? (null as unknown as number))
-            : (det.ciego ? (null as unknown as number) : Number(s.cantidad)),
-        })),
-      );
+      const rows: ChequeoRow[] = stock.map((s) => ({
+        ...s,
+        contada: saved.has(s.articulo_id)
+          ? (saved.get(s.articulo_id) ?? (null as unknown as number))
+          : (det.ciego ? (null as unknown as number) : Number(s.cantidad)),
+      }));
+      // CC1 — los ítems del borrador que ya no están en el stock (artículos
+      // agregados a mano, Sistema 0) se reincorporan a la hoja al reabrir.
+      const stockIds = new Set(stock.map((s) => s.articulo_id));
+      const extra: ChequeoRow[] = det.items
+        .filter((i) => !stockIds.has(i.articulo_id))
+        .map((i) => {
+          const a = this.catalogoArticulos().find((x) => x.id === i.articulo_id);
+          return {
+            articulo_id: i.articulo_id,
+            cantidad: 0,
+            articulo: { nombre: a?.nombre ?? '—', codigo: a?.codigo ?? '' },
+            contada: (i.cantidad_contada ?? (null as unknown as number)) as number,
+            agregado: true,
+          };
+        });
+      this.cfRows.set([...extra, ...rows]);
     } catch (e: unknown) {
       this.cfError.set(e instanceof Error ? e.message : 'Error al abrir el conteo.');
     } finally {
@@ -254,9 +345,9 @@ export class Conteos implements OnInit {
     }
   }
 
-  updateCfContada(index: number, value: string) {
+  updateCfContada(articuloId: string, value: string) {
     this.cfRows.update((rows) =>
-      rows.map((r, i) => (i === index ? { ...r, contada: value === '' ? (null as unknown as number) : Number(value) } : r)),
+      rows.map((r) => (r.articulo_id === articuloId ? { ...r, contada: value === '' ? (null as unknown as number) : Number(value) } : r)),
     );
   }
 

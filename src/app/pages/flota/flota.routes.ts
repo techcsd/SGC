@@ -20,6 +20,15 @@ export const flotaRoutes: Routes = [
     title: 'Vehículos — Flota',
   },
   {
+    // CC4 (#87) — Importar vehículos desde Odoo (gate flota-elevado, como el RPC).
+    // Antes de `vehiculos/:id` para que no lo capture la ruta con parámetro.
+    path: 'vehiculos/importar',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./importar-vehiculos/importar-vehiculos').then((m) => m.FlotaImportarVehiculos),
+    title: 'Importar vehículos — Flota',
+  },
+  {
     path: 'vehiculos/:id',
     canActivate: [submoduloGuard('flota.vehiculos')],
     loadComponent: () =>

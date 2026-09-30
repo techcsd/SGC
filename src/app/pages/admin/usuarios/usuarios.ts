@@ -231,6 +231,95 @@ export class AdminUsuarios implements OnInit {
     } catch { /* clipboard no disponible */ }
   }
 
+  // ── CC3 — Establecer contraseña (cuentas sin buzón: qa_/sintéticas/prueba) ──
+  pwDrawerOpen = signal(false);
+  pwUser = signal<UsuarioAdmin | null>(null);
+  pwSaving = signal(false);
+  pwError = signal('');
+  pwResult = signal<string | null>(null); // contraseña generada, se muestra una sola vez
+  pwCopied = signal(false);
+  pwNote = signal('');
+  pwForm = new FormGroup({
+    password: new FormControl('', [Validators.required, Validators.minLength(10)]),
+  });
+
+  /** BI5/CC3 — ¿la cuenta NO recibe correo? (para deshabilitar "Restablecer contraseña"). */
+  correoNoRecibe(u: UsuarioAdmin): boolean {
+    return this.esSintetico(u) || (u.email?.toLowerCase().startsWith('qa_') ?? false) || !!u.es_prueba;
+  }
+
+  abrirEstablecerPassword(u: UsuarioAdmin) {
+    this.closeMenu();
+    this.pwUser.set(u);
+    this.pwError.set('');
+    this.pwResult.set(null);
+    this.pwNote.set('');
+    this.pwCopied.set(false);
+    this.pwForm.reset({ password: '' });
+    this.pwDrawerOpen.set(true);
+  }
+
+  cerrarEstablecerPassword() {
+    this.pwDrawerOpen.set(false);
+    this.pwUser.set(null);
+  }
+
+  /** Espejo cliente de la fuerza mínima del servidor: ≥10 caracteres con un número. */
+  private passwordFuerte(pw: string): boolean {
+    return typeof pw === 'string' && pw.length >= 10 && /[0-9]/.test(pw);
+  }
+
+  /** El admin teclea una contraseña. */
+  async guardarPassword() {
+    const u = this.pwUser();
+    if (!u) return;
+    this.pwForm.markAllAsTouched();
+    const pw = this.pwForm.value.password ?? '';
+    if (!this.passwordFuerte(pw)) {
+      this.pwError.set('La contraseña debe tener al menos 10 caracteres e incluir un número.');
+      return;
+    }
+    this.pwSaving.set(true);
+    this.pwError.set('');
+    try {
+      const res = await this.adminService.setPassword(u.id, { password: pw });
+      this.pwNote.set(res.debeCambiar ? 'La cuenta deberá cambiarla al entrar.' : 'Contraseña actualizada.');
+      this.pwResult.set(null); // no se muestra la que tecleó el admin
+      this.pwForm.reset({ password: '' });
+    } catch (e: unknown) {
+      this.pwError.set(e instanceof Error ? e.message : 'No se pudo establecer la contraseña.');
+    } finally {
+      this.pwSaving.set(false);
+    }
+  }
+
+  /** El sistema genera la contraseña y la muestra una sola vez. */
+  async generarPassword() {
+    const u = this.pwUser();
+    if (!u) return;
+    this.pwSaving.set(true);
+    this.pwError.set('');
+    try {
+      const res = await this.adminService.setPassword(u.id, { generate: true });
+      this.pwResult.set(res.password ?? null);
+      this.pwNote.set(res.debeCambiar ? 'La cuenta deberá cambiarla al entrar.' : 'Contraseña actualizada.');
+      this.pwCopied.set(false);
+    } catch (e: unknown) {
+      this.pwError.set(e instanceof Error ? e.message : 'No se pudo generar la contraseña.');
+    } finally {
+      this.pwSaving.set(false);
+    }
+  }
+
+  async copiarPassword() {
+    const pw = this.pwResult();
+    if (!pw) return;
+    try {
+      await navigator.clipboard.writeText(pw);
+      this.pwCopied.set(true);
+    } catch { /* clipboard no disponible */ }
+  }
+
   // ── Delete ───────────────────────────────────────────────
   deletingId = signal<string | null>(null);
 

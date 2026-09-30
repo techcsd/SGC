@@ -22,6 +22,8 @@ export interface ProveedorTransporte {
 
 export interface ConduceExternoRow {
   id: string;
+  numero: number | null;
+  codigo: string | null;
   transporta: string | null;
   es_proveedor_formal: boolean;
   estado: 'emitido' | 'recibido' | 'anulado';
@@ -38,6 +40,24 @@ export interface ConduceExternoRow {
   created_at: string;
   es_prueba: boolean;
   requisicion_id: string | null;
+}
+
+/** CC5 — ficha completa del conduce externo (RPC conduce_externo_detalle). */
+export interface ConduceExternoRenglon { articulo: string | null; enviado: number | null; recibido: number | null; unidad: string | null; }
+export interface ConduceExternoHistorial { estado: string; at: string; }
+export interface ConduceExternoDetalle {
+  id: string; numero: number | null; codigo: string; estado: string; fecha: string;
+  transporta: string | null; es_proveedor_formal: boolean; material: string | null;
+  afecta_inventario: boolean; salida_id: string | null; entrada_id: string | null;
+  origen: string | null; destino: string | null;
+  origen_proyecto: string | null; origen_bodega: string | null;
+  destino_proyecto: string | null; destino_bodega: string | null;
+  emisor: string | null; emisor_firma_path: string | null;
+  receptor: string | null; receptor_firma_path: string | null; recibido_en: string | null;
+  notas: string | null; notas_recepcion: string | null;
+  placa_foto_path: string | null; carga_foto_path: string | null; recepcion_foto_path: string | null;
+  requisicion_id: string | null; anulado: boolean; motivo_anulacion: string | null; es_prueba: boolean;
+  renglones: ConduceExternoRenglon[]; historial: ConduceExternoHistorial[];
 }
 
 export interface ViajeProveedor {
@@ -188,6 +208,13 @@ export class TransporteV3Service {
       p_notas: notas ?? null,
     });
     if (error) throw new Error(error.message);
+  }
+
+  /** CC5 — ficha (detalle completo) del conduce externo. */
+  async conduceExternoDetalle(id: string): Promise<ConduceExternoDetalle> {
+    const { data, error } = await this.supabase.client.rpc('conduce_externo_detalle', { p_id: id });
+    if (error) throw new Error(error.message);
+    return data as ConduceExternoDetalle;
   }
 
   async anularConduceExterno(id: string, motivo: string): Promise<void> {

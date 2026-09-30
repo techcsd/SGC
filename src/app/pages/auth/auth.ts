@@ -32,28 +32,22 @@ export class Auth {
   forgotSent = signal(false);
   forgotLoading = signal(false);
 
-  // BZ3 — panel "usuarios de prueba" solo en dev (no prod). Lista las cuentas QA por
-  // rol; "Entrar como…" rellena el email (la contraseña QA se escribe a mano — nunca
-  // va en el bundle).
+  // CC2 — el panel "usuarios de prueba" se quitó del login (enumeración de cuentas +
+  // dev es público). En dev queda solo un enlace mágico: escribes tu correo (real, de
+  // la lista blanca) y te llega el link. El hook niega el token a quien no esté autorizado.
   esDev = this.authService.esDev;
-  qaUsers = signal<{ email: string; nombre: string; rol: string }[]>([]);
-  qaOpen = signal(false);
+  magicSent = signal(false);
+  magicLoading = signal(false);
 
-  constructor() {
-    if (this.esDev) void this.cargarQa();
-  }
-
-  private async cargarQa() {
-    try { this.qaUsers.set(await this.authService.usuariosQaDev()); } catch { /* best-effort */ }
-  }
-
-  toggleQa() { this.qaOpen.update((v) => !v); }
-
-  /** Rellena el email con una cuenta QA (contraseña QA a mano). */
-  entrarComo(email: string) {
-    this.setMode('empleado');
-    this.form.patchValue({ email });
-    this.password.reset('');
+  /** CC2 — envía el enlace mágico de dev al correo escrito en el formulario. */
+  async enviarEnlaceMagico() {
+    if (this.email.invalid || this.magicLoading()) { this.email.markAsTouched(); return; }
+    this.magicLoading.set(true);
+    this.errorMessage.set('');
+    const { error } = await this.authService.sendMagicLink(this.email.value!);
+    this.magicLoading.set(false);
+    if (error) { this.errorMessage.set('No se pudo enviar el enlace. Intenta de nuevo.'); return; }
+    this.magicSent.set(true);
   }
 
   form = new FormGroup({
@@ -166,6 +160,13 @@ export class Auth {
       await this.authService.signOut();
       this.loading.set(false);
       this.errorMessage.set('Tu cuenta está desactivada. Contacta al administrador.');
+      return;
+    }
+
+    // CC3 — si un admin le fijó la contraseña, debe cambiarla antes de entrar.
+    if (profile.debe_cambiar_password) {
+      this.loading.set(false);
+      this.router.navigate(['/auth/set-password']);
       return;
     }
 

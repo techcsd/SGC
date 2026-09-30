@@ -38,21 +38,22 @@ export class AuthService {
     return { user: data.user, error };
   }
 
-  /** BZ3 — ¿estamos en un entorno de desarrollo (no prod)? Gatea el panel del login. */
+  /** ¿Entorno de desarrollo (no prod)? Gatea el enlace mágico de dev en el login. */
   get esDev(): boolean {
     return environment.entorno !== 'prod';
   }
 
   /**
-   * BZ3 — cuentas QA por rol para el panel "usuarios de prueba" del login de dev.
-   * El RPC `usuarios_qa_dev` solo devuelve datos cuando config_entorno.entorno='dev'
-   * (en prod, vacío). No expone contraseñas: la QA se escribe a mano.
+   * CC2 — Login de dev por enlace mágico. Solo en dev y solo para correos reales
+   * de la lista blanca (el Custom Access Token hook `dev_token_hook` niega el token
+   * a quien no esté autorizado). El correo llega por el SMTP verificado de dev.
    */
-  async usuariosQaDev(): Promise<{ email: string; nombre: string; rol: string }[]> {
-    if (!this.esDev) return [];
-    const { data, error } = await this.supabase.client.rpc('usuarios_qa_dev');
-    if (error) return [];
-    return (data ?? []) as { email: string; nombre: string; rol: string }[];
+  async sendMagicLink(email: string): Promise<{ error: string | null }> {
+    const { error } = await this.supabase.client.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${environment.appUrl || window.location.origin}/dashboard` },
+    });
+    return { error: error?.message ?? null };
   }
 
   /**

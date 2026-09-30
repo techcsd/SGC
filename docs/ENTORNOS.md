@@ -17,22 +17,39 @@ Desde PROMPT-58 (BU1) el sistema tiene **dos entornos**. La regla madre (18) es:
 
 Los refs, URLs y keys de ambos viven en `.env.local` (gitignored): `SUPABASE_{PROJECT_REF,URL,ANON_KEY,SERVICE_ROLE_KEY}_{DEV,PROD}`, `SUPABASE_DB_PASSWORD_DEV`, `INFRA/WEATHER/CRONOGRAMA_SYNC_SECRET_DEV`, `QA_DEV_PASSWORD`.
 
-## Cómo entrar a dev (BZ3)
+## Cómo entrar a dev (CC2 — candado de acceso)
+
+> **dev es público en internet**, con datos clonados de prod (anonimizados). Por eso el acceso está
+> cerrado con dos capas: (1) un **Custom Access Token hook** (`sgc.dev_token_hook`) que **niega el
+> token** a quien no esté autorizado — aunque tenga una contraseña, no obtiene sesión; y (2) la
+> **Vercel Deployment Protection** del dominio (👤 la activa Xaviel, ver abajo). El panel del login que
+> listaba las cuentas (enumeración) **se quitó**.
 
 - **Web dev:** https://dev.sgcconstructorasd.com · **App dev:** https://app-dev.sgcconstructorasd.com
-- **Con tu correo real (Tecnología/admin/desarrollador):** el seed **conserva el email real** para
-  todo usuario con rol `admin`/`desarrollador` o módulo `tecnologia`/`admin`, y para cualquiera listado
-  en `scripts/seed-dev.tablas.json → emails_reales`. Entras con **tu correo real** + la contraseña
-  **`QA_DEV_PASSWORD`** (`.env.local`). Ej.: `tecnologia@constructorasd.com` + QA.
-- **Cuentas QA por rol:** el resto de usuarios va **anonimizado** (`u-<8hex>@dev.constructorasd.local`),
-  con el **nombre real conservado** y la misma contraseña QA. En el login de dev, el panel
-  **"Entorno de desarrollo — usuarios de prueba"** las lista por rol con botón **Entrar como…**
-  (rellena el email; la contraseña QA se escribe a mano — nunca va en el bundle). Ese panel se alimenta
-  del RPC `sgc.usuarios_qa_dev()`, que **solo devuelve datos en dev** (en prod, vacío → no se pinta).
-- **Choferes de prueba:** entran por **Soy conductor** con **cédula + PIN**. En dev la cédula está
-  hasheada (`e-<cédula-hash>@acceso.constructorasd.local`); usa la cédula/PIN de QA que te dé Tecnología.
-- **Refrescar solo los usuarios** (emails reales + Auth, sin recopiar la operación):
-  `npm run seed:dev -- --solo-usuarios`.
+- **Tú (Tecnología):** tu correo `tecnologia@constructorasd.com` está en la **lista blanca** (`sgc.dev_acceso`).
+  1. Pídete una **contraseña de dev**: `node scripts/dev-set-password.mjs --env dev --email tecnologia@constructorasd.com` (la imprime una vez).
+  2. O usa **"Enviarme un enlace mágico"** en el login de dev (tu buzón es real → te llega el link).
+- **Autorizar a alguien más:** Admin › Usuarios de prueba › **Acceso a dev** (añade/quita correos), o
+  `insert into sgc.dev_acceso(email) values ('correo@constructorasd.com')`. Sin estar en la lista, el
+  hook responde **403 "Este entorno es solo para el equipo de Tecnología."**.
+- **Cuentas QA (`qa_*`) y choferes de prueba (`.local`)** entran siempre (el hook las permite por patrón):
+  los QA por **Establecer contraseña** (Admin › Usuarios) o **Entrar como…** (Admin › Usuarios de prueba,
+  rota la contraseña); los choferes por **Soy conductor** (cédula + PIN de QA).
+- **Emails personales (gmail/…) NUNCA se conservan en dev** (CC2): aunque el usuario tenga rol admin, el
+  seed los anonimiza. Solo `@constructorasd.com` o los de `emails_reales`.
+- **Activar/reaplicar el hook** (solo dev): `node scripts/aplicar-hook-dev.mjs --env dev`.
+- **Refrescar solo los usuarios:** `npm run seed:dev -- --solo-usuarios`.
+
+### 👤 Vercel Deployment Protection para `dev.` (solo Xaviel)
+`dev.sgcconstructorasd.com` sirve del **mismo proyecto Vercel `sgc`** que prod (es un dominio de rama), así
+que hay que proteger **solo** los deployments de dev sin tocar el dominio de producción:
+1. Vercel → proyecto **sgc** → **Settings → Deployment Protection**.
+2. **Vercel Authentication** → **Standard Protection** (protege Preview + deployments de rama; el
+   deployment de **Production** con dominio `sgcconstructorasd.com` sigue público). *No* elijas "All Deployments"
+   (eso protegería también prod).
+3. Guarda y verifica: `curl -I https://dev.sgcconstructorasd.com` debe responder **401/redirect** (sin cookie),
+   y `curl -I https://sgcconstructorasd.com` debe seguir **200**.
+> Aunque esto quede pendiente, el hook ya impide que un extraño obtenga sesión en dev.
 - Para listar emails por rol (contra dev):
   ```sql
   select u.nombre, u.email, r.nombre as rol
