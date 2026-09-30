@@ -1,5 +1,33 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-76 (Ronda CD — IDs CD1-CD10) — 30/09/2026 — **🧪 EN DEV 1.150.0, pendiente OK de Xaviel para prod.**
+Rama `feature/cd-ronda` (desde `dev`) → **merge a `dev` `025f6e9` + push** (Vercel dev). **8 migraciones en ledger dev** (cd0, cd2, cd3, cd4, cd5, cd6, cd7, cd8). `npm run build` + los ~15 guards VERDES. Matriz `COBERTURA-NOTAS.md` filas 92-101 → 🧪. **PARADO antes de prod** (regla 18 + regla 19).
+
+- **CD3 🔴 (Edward/MT 03, nota #94):** causa = migración OFF-LEDGER `2026-08-29-alinear-asignaciones-a-uso.sql` (corrida desde scratchpad) convirtió cada uso abierto en asignación AUTO. Edward tenía un uso de MT 03 abierto desde el 14-ago (prueba nunca cerrada). `sql/cd3`: cierra usos huérfanos >24h, retira las **4** asignaciones AUTO (nota "Alineada…", sin borrar), limpia `responsable_id` sin respaldo, cron `sgc-cerrar-usos-huerfanos` diario. **Afectados (prod): POLIN RAMIREZ/L441660, ing.Misael Encarnacion/L478815, MANOLO DURAN/L473027, EDWARD MOTA/MT 03.** 🔴 **cd3 va a prod SOLO con esta lista revisada por Xaviel/Raykler** (Raykler confirma el responsable real de MT 03).
+- **CD4 (mantenimientos timeout, nota #95):** NO reproducible al volumen actual (3-50 ms; el timeout fue transitorio/plan frío). Fix arquitectónico igual: `puede_ver_vehiculo(v,u)` predicado único + RPC `listar_mantenimientos` definer paginado + 3 índices; lint predicado único extendido a mantenimientos. `mantenimientos.service.getAll` → RPC.
+- **CD5 (Edward combustible, nota #96):** **MT 03 tiene 0 echadas** → la ficha (0/0/0) es honesta, no un bloqueo (root cause = falsa premisa en parte). Regla de negocio: el chofer ve las echadas del vehículo asignado (`puede_ver_echada(...,vehiculo_id)` reutiliza `puede_ver_vehiculo`); la vista invoker `v_vehiculo_stats` hereda. ROLES.md. **Smoke real pendiente: un chofer con echadas en su vehículo.**
+- **CD7 (requisición cubierto, nota #98):** divergencia (regla 14): `requisicion_avance` ignoraba la cobertura mientras la fase la restaba. Escalar único `requisicion_item_pendiente` (solicitado−despachado−cubierto) usado por ambas + columna «Cubierto» + chip verde. **Probado read-only en prod: la requisición de la captura (7ab8f71c) tenía items OLD 2000/1500/20 → NEW 700/0/0.**
+- **CD2 (auditoría, nota #93):** causa = `auditoria_actores()` crasheaba (RETURNS text vs `usuarios.nombre` varchar(150)); `Promise.all` vaciaba ambos selects; catch mudo lo ocultaba. Fix: `auditoria_opciones`/`auditoria_listar` definer+gate+cast, error visible (regla 16), `date-range-filter` z-index 120 + hoja inferior móvil.
+- **CD1 (tarjetas flota, nota #92):** pie fijo (margin-top:auto), foto uniforme 160px cover, zona alertas min-height, Ver perfil/Editar mismo ancho gap 8, switch «Activo» etiquetado + confirmación, responsive 1-5 col. **Pendiente físico: capturas antes/después `qa/visual/cd/vehiculos/` (login dev-server).**
+- **CD6 (historial versiones, nota #97):** `deploy_url` (columna aditiva) + registrar-version-web la puebla (VERCEL_URL); «Abrir esta versión»→deploy_url (solo Tecnología), GitHub→«Ver cambios en el código». **Diferido (spec en la migración): galería de capturas por versión + preview antiguo contra dev.**
+- **CD8 (combustible, nota #99):** `docs/REVISION-COMBUSTIBLE-2026-09.md` (8 hallazgos). Herramienta *Posibles duplicados* (`echadas_posibles_duplicados` + `resolver_duplicado_echada`, invalida sin borrar) + índice único parcial por recibo. Hallazgos clave: **numero_recibo 0% poblado** (CC6 sin datos → dedup por recibo no opera), **25 pares candidatos** (mayoría importada↔importada). **Pendiente: panel «Posibles duplicados» en Echadas (log); idempotencia en el importador; Excel de Raykler a `adjuntos/`.**
+- **CD9 (seguridad):** escaneo de secretos del historial (gitleaks no instalado → manual) = **limpio** (solo anon keys, públicas por diseño; 0 service_role/Google/Firebase/otros). 🔴 **Xaviel: poner repos privados** (Settings › Danger Zone; gh no instalado aquí para verificar por API).
+- **CD10 (gobernanza):** regla 19 en CLAUDE.md; guard `verify-regresiones` verifica que todo `sql/*.sql` citado existe (228 citas); 2 migraciones off-ledger reconstruidas a `sql/_recuperadas/`; ledger prod↔repo = 0 desajustes; fix cita bx1b.
+
+### Para promover a prod (tras OK de Xaviel)
+1. **Revisar la lista AUTO de CD3** (arriba) y el responsable de MT 03 (Raykler) → luego `apply-migration … --env prod --yes` en orden: **cd0, cd4, cd5, cd7, cd2, cd6, cd8, y cd3 (con la lista revisada)**. (cd3 hace DML de corrección — es el único sensible.)
+2. PR `dev → main` (verify-ledger-dev en CI), prod 1.150.0. La app = **PROMPT-77**.
+3. Matriz filas 92-101 → ✅.
+
+### Gotchas — CD
+- **Dollar-quoting en Management API**: mezclar `do $$…$$` con `$function$…$function$` — CUIDADO de cerrar cada bloque con SU tag (un `end $$` cerrando un `$function$` = "unterminated dollar-quoted string"). Usar tags únicos (`$partA$`, `$function$`, `$cron$`).
+- **`begin;`/`rollback;` NO abarcan varias llamadas `dbQuery`** (cada una es su propio HTTP/transacción). Para smoke transaccional, todo en UN statement (`do $$ … raise exception 'rollback' … $$`).
+- **dev sin datos de requisición-items** (43 req, 0 items) → CD7 se smokea estructuralmente en dev y con datos read-only en prod.
+- **`recalcular_estados_combustible()` no toma args.** `mis_vehiculo_ids()` = solo `responsable_id` (no asignación/uso) — por eso CD4 lo amplía con `puede_ver_vehiculo`.
+- **audit-buckets** falla en base por `outbox-atascados` sin política UPDATE (la app CC7/PROMPT-75 sube con upsert) → arreglado en `sql/cd0`.
+
+---
+
 ## TL;DR — PROMPT-74 (Ronda CC — IDs CC1-CC8) — 29/09/2026 — **🧪 EN DEV 1.149.0-dev, pendiente OK de Xaviel para prod.**
 Rama `feature/cc-ronda` (desde `dev`) → `dev`. **8 migraciones aplicadas a dev** (ledger dev): cc8, cc3, cc2 (solo-dev), cc4/cc4b, cc5, cc6/cc6b, cc7. `npm run build` + los ~15 guards VERDES. 2 edges nuevas/actualizadas desplegadas a dev (admin-set-password, admin-reset-user-password). Matriz `COBERTURA-NOTAS.md` filas 84-91 → 🧪.
 
