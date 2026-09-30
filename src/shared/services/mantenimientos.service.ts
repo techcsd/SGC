@@ -17,12 +17,19 @@ export class MantenimientosService {
   private supabase = inject(SupabaseService);
   private cache = inject(SignedUrlCache);
 
-  async getAll(): Promise<Mantenimiento[]> {
-    const { data, error } = await this.supabase.client
-      .from('mantenimientos')
-      .select('*, vehiculo:vehiculos(placa,marca,modelo), creado_por_usuario:usuarios(nombre)')
-      .order('fecha', { ascending: false });
-
+  /**
+   * CD4 — lee por el RPC definer `listar_mantenimientos` (predicado único
+   * `puede_ver_vehiculo`, paginado en servidor) en vez de un `select` bajo RLS que
+   * hace seq scan con funciones por fila (causa del timeout como Edward). Cada fila ya
+   * viene con el embed `vehiculo` y `creado_por_usuario`. `p_limite` topa en 200 server-side.
+   */
+  async getAll(vehiculoId: string | null = null, limite = 200): Promise<Mantenimiento[]> {
+    const { data, error } = await this.supabase.client.rpc('listar_mantenimientos', {
+      p_vehiculo: vehiculoId,
+      p_limite: limite,
+      p_cursor_fecha: null,
+      p_cursor_id: null,
+    });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as Mantenimiento[];
   }

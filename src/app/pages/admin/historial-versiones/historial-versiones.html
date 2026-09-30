@@ -128,11 +128,21 @@
               <p class="hv-notas">{{ v.notas }}</p>
             }
 
-            @if (v.plataforma === 'web' && v.url) {
-              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.url" target="_blank" rel="noopener">
+            <!-- CD6 — "Abrir esta versión" = deploy inmutable (solo Tecnología, apunta a
+                 dev). El enlace a GitHub se relabela "Ver cambios en el código" (solo
+                 Tecnología). Antes "Abrir esta versión" mandaba al commit de GitHub. -->
+            @if (v.plataforma === 'web' && v.deploy_url && esTecnologia()) {
+              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.deploy_url" target="_blank" rel="noopener"
+                 title="Versión antigua · datos de dev — no operar sobre prod">
                 <app-icon name="link" [size]="16" /> Abrir esta versión
               </a>
-            } @else if (v.plataforma === 'movil' && v.apk_url) {
+            }
+            @if (v.plataforma === 'web' && v.url && esTecnologia()) {
+              <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.url" target="_blank" rel="noopener">
+                <app-icon name="link" [size]="16" /> Ver cambios en el código
+              </a>
+            }
+            @if (v.plataforma === 'movil' && v.apk_url) {
               <a class="sgc-btn sgc-btn--ghost sgc-btn--sm hv-action" [href]="v.apk_url" target="_blank" rel="noopener">
                 <app-icon name="download" [size]="16" /> Descargar APK v{{ v.version }}
               </a>

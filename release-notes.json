@@ -4435,6 +4435,56 @@
           "d": "La bandeja de requisiciones del ingeniero (Solicitud de material) ahora también arranca en Activas (por entrega más cercana) con su Historial aparte, igual que la de Inventario."
         }
       ]
+    },
+    "1.150.0": {
+      "titulo": "Vehículo pegado de Edward arreglado, requisiciones que descuentan lo ya llegado, Auditoría con filtros, y tarjetas de flota alineadas",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El vehículo MT 03 aparecía como «Mi vehículo» de Edward Mota por una asignación automática errónea; se retira sin borrar y se cierran los usos que quedaron abiertos por descuido (un aviso al chofer). Además, un uso sin cerrar más de 24 h ahora se cierra solo."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "«Mantenimientos» podía tardar y dar un error de tiempo agotado para el chofer; ahora carga por una vía más rápida y consistente."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "El chofer ahora ve las echadas de combustible del vehículo que tiene asignado (no solo las suyas) mientras lo tenga."
+        },
+        {
+          "t": "arreglo",
+          "m": "Requisiciones",
+          "d": "En «Avance de despacho», el material que ya llegó a la obra ahora se marca como «Cubierto» y descuenta del pendiente de verdad (antes seguía mostrando el pendiente completo aunque estuviera cubierto)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Auditoría",
+          "d": "Los filtros de usuario y área no cargaban (un error interno los vaciaba en silencio) y el selector de fecha se salía de la pantalla. Ya funcionan y el calendario respeta el borde y en móvil abre como hoja inferior."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "La pantalla «Flota de Vehículos» quedó con las tarjetas alineadas: botones «Ver perfil»/«Editar» del mismo ancho, interruptor «Activo» etiquetado y con confirmación, y fotos del mismo tamaño."
+        },
+        {
+          "t": "mejora",
+          "m": "Combustible",
+          "d": "Nueva herramienta para revisar posibles echadas duplicadas (par a par: «son la misma» invalida una sin borrar, «son distintas» no la vuelve a sugerir)."
+        },
+        {
+          "t": "mejora",
+          "m": "Tecnología",
+          "d": "En «Historial de versiones», «Abrir esta versión» ya no manda al código en GitHub; el enlace al código queda como «Ver cambios en el código» solo para Tecnología."
+        },
+        {
+          "t": "seguridad",
+          "m": "Tecnología",
+          "d": "Se reforzó la trazabilidad: toda corrección de datos en producción queda registrada en el repositorio (regla nueva), verificado por una guarda de build."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
