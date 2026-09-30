@@ -45,7 +45,11 @@ Rama `feature/cc-ronda` (desde `dev`) → `dev`. **8 migraciones aplicadas a dev
 - **CC8 auditoría estática es inviable** (289 falsos positivos: la mayoría de grants viven en el esquema base clonado, invisibles a un scan de sql/). La red autoritativa es la DB (`audit-rls-tablas-nuevas.mjs`); el guard estático es una lista curada.
 - **CC2 = 2 archivos** a propósito: `cc2-dev-acceso.sql` (SOLO dev, con guard que aborta en prod) y `cc3-set-password.sql` (dev+prod). A prod va cc3, NUNCA cc2.
 
-**Pendientes de Xaviel (CC):** probar en dev con la contraseña nueva/enlace mágico; **activar Vercel Deployment Protection** en `dev.` (proyecto `sgc`, Standard Protection — pasos en ENTORNOS.md; el hook ya bloquea el daño real); OK a CC8 (puede ir antes) y a 1.149.0; Raykler manda un export real de Odoo + prueba importar; Jonathan/Guilamo a app 2.35.0 para reintentar los outbox.
+**✅ Cerrado tras el ship (30-sep):**
+- **Vercel Deployment Protection en `dev.` ACTIVA** (Xaviel: "haz todo") — `ssoProtection deploymentType:preview` por API (solo Preview → prod intacto). Verificado: `dev.` → **302 vercel.com/sso-api**, `sgcconstructorasd.com` → **200**. ⚠️ Esto **revierte** la decisión histórica de línea 315 (dev abierto para testers): ahora nota #85 manda cerrarlo. Testers no-Vercel quedan fuera del shell (el hook ya los bloqueaba en la sesión); para que prueben en dev: Viewer en Vercel / bypass token / *Entrar como*. `docs/ENTORNOS.md`.
+- **Verificación por usuario en PROD** (equivalente a *Entrar como* a nivel de datos: rol authenticated + su JWT): **Guilamo/Jonathan/Ocsena** (ingenieros) → `listar_ordenes_trabajo` OK **sin permission-denied** (CC8 confirmado para usuarios reales); **Raykler** → `conciliacion_match_por` = 6 vehículos con datos reales (CC6). El bug de la nota #91 ya no le pasa a nadie en prod.
+
+**Pendientes físicos/externos (no de código):** Raykler manda un export real de Odoo → `qa/fixtures/odoo/` + prueba importar desde Compras; Jonathan/Guilamo actualizan la app a 2.35.0 (PROMPT-75) para reintentar sus 5 conduces atascados.
 **Follow-ups menores de código:** CC6 "Ya registrada" chip en el preview (la lógica `recibosRegistrados()` existe; falta pintarlo); CC6 pasar `factura_id` en `p_meta` al guardar (para el dedup 1-factura-1); app = PROMPT-75.
 
 ---
