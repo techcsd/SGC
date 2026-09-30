@@ -20,7 +20,7 @@
 --   (A) Añadir 'desarrollador' a es_tecnologia()  ← recomendado, mínimo y directo.
 --   (B) O que las RLS/RPC de errores/versiones acepten es_tecnologia() OR es_desarrollador().
 --
--- Apply: node scripts/apply-migration.mjs sql/2026-09-23-bx1b-es-tecnologia-desarrollador.sql --env dev  →  --env prod
+-- Apply: node scripts/apply-migration.mjs sql/2026-09-23-bx1b-es-tecnologia-incluye-desarrollador.sql --env dev  →  --env prod
 -- ============================================================================
 begin;
 

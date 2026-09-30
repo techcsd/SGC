@@ -177,6 +177,10 @@ const PREDICADO_UNICO = [
   { tabla: 'registros_combustible', policy: 'registros_combustible: select', rpc: 'sgc.echada_detalle',    fn: 'puede_ver_echada',
     reason: 'BZ1/CA2: la política "registros_combustible: select" y echada_detalle deben usar ' +
       'sgc.puede_ver_echada (regla 14). Ver sql/2026-09-27-ca2-proyectos-visibilidad-unica.sql.' },
+  { tabla: 'mantenimientos',        policy: 'mantenimientos: select',        rpc: 'sgc.listar_mantenimientos', fn: 'puede_ver_vehiculo',
+    reason: 'CD4: la política "mantenimientos: select" y listar_mantenimientos deben usar ' +
+      'sgc.puede_ver_vehiculo (regla 14) — evita el patrón de dos predicados que causó el ' +
+      'timeout como Edward. Ver sql/2026-09-30-cd4-visibilidad-vehiculo.sql.' },
 ];
 
 // Texto VIVO de una `create policy "<nombre>"` (última definición por fecha), sin comentarios.
@@ -363,6 +367,67 @@ for (const g of GRANTS_AUTH) {
   }
 }
 
+// ── CD10 (regla 19): todo `sql/*.sql` citado en comentarios/docs existe en el repo ──
+// Una escritura en prod solo es legítima si su archivo vive en `sql/` (o
+// `sql/_recuperadas/` para las reconstruidas). Una cita `sql/…sql` que no resuelve a
+// un archivo = migración corrida desde el scratchpad (regla 19 rota) o cita obsoleta.
+let citasRevisadas = 0;
+const ROOT = join(__dirname, '..');
+const sqlEnRepo = new Set([
+  ...readdirSync(SQL_DIR).filter((f) => f.endsWith('.sql')),
+  ...(readdirSync(join(SQL_DIR, '_recuperadas'), { withFileTypes: true })
+    .filter((d) => d.isFile() && d.name.endsWith('.sql'))
+    .map((d) => d.name)),
+]);
+// Cita en forma `sql/<archivo>.sql` (no `csd-app/sql/…`, que es del repo hermano).
+const CITA_RE = /(?<![\w/])sql\/(\d{4}-\d{2}-\d{2}-[a-z0-9._-]+\.sql)/gi;
+function* archivosParaEscanear(dir) {
+  for (const d of readdirSync(dir, { withFileTypes: true })) {
+    if (d.name === 'node_modules' || d.name === '.git' || d.name === 'dist') continue;
+    const p = join(dir, d.name);
+    if (d.isDirectory()) { yield* archivosParaEscanear(p); continue; }
+    if (/\.(sql|md|mjs|ts)$/.test(d.name)) yield p;
+  }
+}
+const citasFaltantes = new Map(); // basename → [archivos que la citan]
+for (const dir of [SQL_DIR, join(ROOT, 'scripts'), join(ROOT, 'docs')]) {
+  try {
+    for (const file of archivosParaEscanear(dir)) {
+      const txt = readFileSync(file, 'utf8');
+      for (const m of txt.matchAll(CITA_RE)) {
+        citasRevisadas++;
+        const base = m[1];
+        if (!sqlEnRepo.has(base)) {
+          const rel = file.replace(ROOT, '').replace(/\\/g, '/');
+          if (!citasFaltantes.has(base)) citasFaltantes.set(base, new Set());
+          citasFaltantes.get(base).add(rel);
+        }
+      }
+    }
+  } catch { /* dir opcional */ }
+}
+// root *.md
+for (const f of readdirSync(ROOT).filter((n) => n.endsWith('.md'))) {
+  const txt = readFileSync(join(ROOT, f), 'utf8');
+  for (const m of txt.matchAll(CITA_RE)) {
+    citasRevisadas++;
+    if (!sqlEnRepo.has(m[1])) {
+      if (!citasFaltantes.has(m[1])) citasFaltantes.set(m[1], new Set());
+      citasFaltantes.get(m[1]).add('/' + f);
+    }
+  }
+}
+if (citasFaltantes.size) {
+  for (const [base, files] of citasFaltantes) {
+    fallos.push(
+      `✗ CD10 (regla 19): se cita 'sql/${base}' pero no existe en sql/ ni sql/_recuperadas/.\n` +
+        `   Citada en: ${[...files].join(', ')}\n` +
+        `   Toda migración/corrección de datos en prod vive en sql/ y el ledger — nada desde el scratchpad.\n` +
+        `   Si se aplicó históricamente sin archivo, reconstrúyela en sql/_recuperadas/.`
+    );
+  }
+}
+
 if (fallos.length) {
   console.error('\n🔴 GUARDA DE REGRESIÓN — build detenido:\n');
   console.error(fallos.join('\n\n'));
@@ -370,4 +435,4 @@ if (fallos.length) {
   process.exit(1);
 }
 
-console.log(`\n✓ Guarda de regresión OK (${REGLAS.length} regla(s) SQL + ${controlesRevisados} control(es) controlado(s) con su valor).`);
+console.log(`\n✓ Guarda de regresión OK (${REGLAS.length} regla(s) SQL + ${controlesRevisados} control(es) + ${citasRevisadas} cita(s) sql/ verificada(s)).`);
