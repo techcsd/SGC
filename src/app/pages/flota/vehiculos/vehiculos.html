@@ -110,7 +110,7 @@
         <div class="flota-vehiculos__card" [class.inactive]="!v.activo">
           <div class="flota-vehiculos__photo">
             @if (fotoDe(v); as url) {
-              <app-img [src]="url" [alt]="'Foto de ' + v.placa" [height]="130" [rounded]="false" fit="contain" />
+              <app-img [src]="url" [alt]="'Foto de ' + v.placa" [height]="160" [rounded]="false" fit="cover" />
             } @else {
               <span class="flota-vehiculos__photo-ph" aria-hidden="true"><app-icon name="truck" [size]="40" /></span>
             }
@@ -187,9 +187,11 @@
             }
           </div>
 
+          <!-- CD1 — pie fijo abajo (margin-top:auto en scss): Ver perfil / Editar con
+               ancho igual y gap 8; switch etiquetado "Activo" a la derecha. -->
           <div class="flota-vehiculos__card-actions">
             <a
-              class="sgc-btn sgc-btn--ghost"
+              class="sgc-btn sgc-btn--secondary flota-vehiculos__action-btn"
               [routerLink]="['/flota/vehiculos', v.id]"
               [attr.aria-label]="'Ver perfil de ' + v.placa"
             >
@@ -200,7 +202,7 @@
             </a>
             @if (puedeGestionar()) {
               <button
-                class="sgc-btn sgc-btn--ghost"
+                class="sgc-btn sgc-btn--ghost flota-vehiculos__action-btn"
                 type="button"
                 (click)="openEdit(v)"
                 [attr.aria-label]="'Editar ' + v.placa"
@@ -211,16 +213,19 @@
                 </svg>
                 Editar
               </button>
-              <button
-                class="flota-vehiculos__toggle"
-                type="button"
-                [class.active]="v.activo"
-                (click)="toggleActivo(v)"
-                [attr.aria-label]="(v.activo ? 'Desactivar ' : 'Activar ') + v.placa"
-                [attr.aria-pressed]="v.activo"
-              >
-                <span class="flota-vehiculos__toggle-knob"></span>
-              </button>
+              <label class="flota-vehiculos__activo-switch">
+                <span class="flota-vehiculos__activo-label">{{ v.activo ? 'Activo' : 'Inactivo' }}</span>
+                <button
+                  class="flota-vehiculos__toggle"
+                  type="button"
+                  [class.active]="v.activo"
+                  (click)="toggleActivo(v)"
+                  [attr.aria-label]="(v.activo ? 'Desactivar ' : 'Activar ') + v.placa"
+                  [attr.aria-pressed]="v.activo"
+                >
+                  <span class="flota-vehiculos__toggle-knob"></span>
+                </button>
+              </label>
             }
             @if (esAdmin() && v.es_prueba) {
               <button

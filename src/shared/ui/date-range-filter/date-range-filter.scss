@@ -47,7 +47,9 @@
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
-    z-index: 40;
+    // CD2 — sobre la tabla (cabeceras sticky suelen quedar en ~10-50); antes
+    // z-index:40 dejaba que la cabecera "Registro" tapara el popover.
+    z-index: 120;
     width: 280px;
     max-width: calc(100vw - 16px);
     padding: 12px;
@@ -63,6 +65,23 @@
     &--right {
       left: auto;
       right: 0;
+    }
+  }
+
+  // CD2 — en móvil el popover se vuelve hoja inferior (no se sale por la derecha
+  // ni tapa la tabla): fijo abajo, ancho completo, esquinas superiores redondeadas.
+  @media (max-width: 480px) {
+    &__pop {
+      position: fixed;
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 100%;
+      border-radius: 16px 16px 0 0;
+      z-index: 1000;
+      &--right { left: 0; right: 0; }
     }
   }
 

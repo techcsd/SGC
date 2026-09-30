@@ -3,14 +3,14 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 3%** (18/554 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 3%** (18/559 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 18 | 0 | 18 | 0% |
 | inventario/conduce | scope | 191 | 0 | 191 | 0% |
 | inventario/conduce-externo-form | scope | 56 | 0 | 56 | 0% |
-| inventario/requisiciones | scope | 219 | 0 | 219 | 0% |
+| inventario/requisiciones | scope | 224 | 0 | 224 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | configuracion | scope | 35 | 18 | 17 | 51% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
@@ -18,7 +18,7 @@
 | admin/auditoria | - | 96 | 0 | 96 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
 | admin/empresa | - | 53 | 0 | 53 | 0% |
-| admin/historial-versiones | - | 43 | 0 | 43 | 0% |
+| admin/historial-versiones | - | 46 | 0 | 46 | 0% |
 | admin/importar | - | 2 | 0 | 2 | 0% |
 | admin/jira | - | 86 | 0 | 86 | 0% |
 | admin/matriz-notificaciones | - | 95 | 0 | 95 | 0% |

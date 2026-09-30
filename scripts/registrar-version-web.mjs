@@ -77,6 +77,28 @@ try {
     process.exit(0); // nunca romper el build por el registro
   }
   console.log(`[registrar-version-web] v${version} registrada en el historial (${cambios.length} cambios).`);
+
+  // CD6 — guarda la URL INMUTABLE del deployment (Vercel) de esta versión, distinta del
+  // commit de GitHub. Solo la puebla si aún está vacía (no pisa un valor ya fijado).
+  const rawDeploy = process.env.VERCEL_BRANCH_URL || process.env.VERCEL_URL || null;
+  const deployUrl = rawDeploy ? (rawDeploy.startsWith('http') ? rawDeploy : `https://${rawDeploy}`) : null;
+  if (deployUrl) {
+    try {
+      const patch = await fetch(
+        `${url.replace(/\/$/, '')}/rest/v1/app_versiones?plataforma=eq.web&version=eq.${encodeURIComponent(version)}&deploy_url=is.null`,
+        {
+          method: 'PATCH',
+          headers: {
+            apikey: key, Authorization: `Bearer ${key}`,
+            'Content-Type': 'application/json', 'Content-Profile': 'sgc', Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({ deploy_url: deployUrl }),
+        },
+      );
+      if (patch.ok) console.log(`[registrar-version-web] deploy_url fijada: ${deployUrl}`);
+      else console.warn(`[registrar-version-web] no se pudo fijar deploy_url (${patch.status}).`);
+    } catch (e) { console.warn(`[registrar-version-web] error al fijar deploy_url:`, e?.message ?? e); }
+  }
 } catch (e) {
   console.warn(`[registrar-version-web] error de red al registrar v${version}:`, e?.message ?? e);
   process.exit(0);

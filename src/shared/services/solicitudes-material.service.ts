@@ -316,6 +316,7 @@ export interface RequisicionAvanceItem {
   talla: string | null;
   solicitado: number;
   despachado: number;
+  cubierto: number; // CD7 — cubierto por material llegado a la obra (baja el pendiente)
   pendiente: number;
   estado: 'pendiente' | 'despachada' | 'cancelada'; // BJ4 — estado por línea
   item_id: string; // BJ4 — para quitar la línea

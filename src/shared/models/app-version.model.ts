@@ -26,6 +26,9 @@ export interface AppVersion {
   titulo: string | null;
   cambios: CambioItem[];
   url: string | null;
+  /** CD6 — URL inmutable del deployment (Vercel) de esa versión; distinta de `url`
+   *  (commit de GitHub). Solo Tecnología la abre, y apunta a dev. */
+  deploy_url: string | null;
   notas: string | null;
   apk_url: string | null;
   /** Código numérico comparable (semver → entero). Derivado en BD si no se fija. */
