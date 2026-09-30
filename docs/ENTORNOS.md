@@ -40,16 +40,18 @@ Los refs, URLs y keys de ambos viven en `.env.local` (gitignored): `SUPABASE_{PR
 - **Activar/reaplicar el hook** (solo dev): `node scripts/aplicar-hook-dev.mjs --env dev`.
 - **Refrescar solo los usuarios:** `npm run seed:dev -- --solo-usuarios`.
 
-### 👤 Vercel Deployment Protection para `dev.` (solo Xaviel)
-`dev.sgcconstructorasd.com` sirve del **mismo proyecto Vercel `sgc`** que prod (es un dominio de rama), así
-que hay que proteger **solo** los deployments de dev sin tocar el dominio de producción:
-1. Vercel → proyecto **sgc** → **Settings → Deployment Protection**.
-2. **Vercel Authentication** → **Standard Protection** (protege Preview + deployments de rama; el
-   deployment de **Production** con dominio `sgcconstructorasd.com` sigue público). *No* elijas "All Deployments"
-   (eso protegería también prod).
-3. Guarda y verifica: `curl -I https://dev.sgcconstructorasd.com` debe responder **401/redirect** (sin cookie),
-   y `curl -I https://sgcconstructorasd.com` debe seguir **200**.
-> Aunque esto quede pendiente, el hook ya impide que un extraño obtenga sesión en dev.
+### Vercel Deployment Protection para `dev.` — ✅ ACTIVA (CC2)
+`dev.sgcconstructorasd.com` sirve del **mismo proyecto Vercel `sgc`** que prod (es un dominio de rama
+`gitBranch=dev`), así que se protegió **solo Preview** sin tocar el dominio de producción:
+- **Vercel Authentication (SSO) `deploymentType: preview`** activada por API. Verificado:
+  `dev.` → **302 → vercel.com/sso-api** · `sgcconstructorasd.com` → **200** (prod intacto).
+- **Cómo entrar a dev ahora:** primero inicia sesión en **Vercel** (eres el dueño del equipo → tu navegador
+  ya te deja pasar el SSO), y luego el login de la app (tu contraseña de dev / enlace mágico).
+- **Testers que NO son del equipo Vercel** (p.ej. Raykler en su equipo): el SSO los bloquea antes del login.
+  Opciones si necesitan probar en dev: (a) agrégalos como **Viewer** al equipo Vercel; (b) usa un
+  **Protection Bypass for Automation** (token en la query/header); o (c) que prueben vía *Entrar como* desde
+  tu sesión. El **hook `dev_token_hook`** ya impide que un extraño obtenga sesión aunque cargue la página.
+- Cambiar/quitar: Vercel → proyecto **sgc** → Settings → Deployment Protection (o `ssoProtection: null` por API).
 - Para listar emails por rol (contra dev):
   ```sql
   select u.nombre, u.email, r.nombre as rol
