@@ -120,6 +120,9 @@ export interface ConciliacionDetalle {
   titular?: string | null;
   titular_es_persona?: boolean;
   kilometraje?: number | null;
+  // CC6 — cómo cruzó (recibo|placa_fecha|tarjeta_fecha) y, si no, por qué.
+  nivel_match?: 'recibo' | 'placa_fecha' | 'tarjeta_fecha' | null;
+  causa_sin_match?: 'chofer_no_registro' | 'tarjeta_sin_vehiculo' | 'galones' | 'fecha' | 'fuera_flota' | 'anulacion' | null;
 }
 
 /** T4 — conciliación de combustible: registros de la plataforma + persistencia. */
@@ -131,7 +134,7 @@ export class CombustibleConciliacionService {
   async getRegistrosEnRango(desde: string | null, hasta: string | null) {
     let q = this.supabase.client
       .from('registros_combustible')
-      .select('id, vehiculo_id, fecha, galones, monto, estacion, vehiculo:vehiculos(placa)')
+      .select('id, vehiculo_id, fecha, galones, monto, estacion, numero_recibo, vehiculo:vehiculos(placa)')
       // AC11 — las echadas de depósito en obra (garrafón) son consumo interno:
       // no tienen contraparte en el reporte de la estación, no se concilian.
       .neq('origen', 'deposito_obra')
@@ -148,8 +151,52 @@ export class CombustibleConciliacionService {
       galones: number | null;
       monto: number | null;
       estacion: string | null;
+      numero_recibo: string | null;
       vehiculo?: { placa: string } | null;
     }[];
+  }
+
+  /** CC6 — cuáles de estos nº de recibo ya tienen una echada registrada (para el
+   *  chip "Ya registrada": no se importan ni cuentan como discrepancia). Devuelve un
+   *  mapa recibo(normalizado)→id de echada. */
+  async recibosRegistrados(nums: string[]): Promise<Record<string, string>> {
+    const limpios = [...new Set(nums.map((n) => (n ?? '').trim()).filter(Boolean))];
+    if (!limpios.length) return {};
+    const { data, error } = await this.supabase.client
+      .from('registros_combustible')
+      .select('id, numero_recibo')
+      .in('numero_recibo', limpios);
+    if (error) return {};
+    const map: Record<string, string> = {};
+    for (const r of (data ?? []) as { id: string; numero_recibo: string | null }[]) {
+      if (r.numero_recibo) map[r.numero_recibo.trim().toLowerCase()] = r.id;
+    }
+    return map;
+  }
+
+  /** CC6 — historial "honesto": una fila por factura (última conciliación) + las que
+   *  no tienen factura. Evita contar dos veces una re-subida (dashboard % y discrepancias). */
+  async getHistorialVigente(): Promise<ConciliacionRegistro[]> {
+    const { data, error } = await this.supabase.client
+      .from('v_conciliacion_factura_vigente')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as ConciliacionRegistro[];
+  }
+
+  /** CC6 — desglose de las filas sin match de una conciliación por causa. */
+  async causas(conciliacionId: string): Promise<{ causa: string; filas: number; galones: number; monto: number }[]> {
+    const { data, error } = await this.supabase.client.rpc('conciliacion_causas', { p_conciliacion: conciliacionId });
+    if (error) return [];
+    return (data ?? []) as { causa: string; filas: number; galones: number; monto: number }[];
+  }
+
+  /** CC6 — % de match por chofer o por vehículo en un rango (peor primero). */
+  async matchPor(desde: string | null, hasta: string | null, por: 'vehiculo' | 'chofer'): Promise<{ entidad_id: string | null; entidad: string; total: number; matches: number; pct: number | null }[]> {
+    const { data, error } = await this.supabase.client.rpc('conciliacion_match_por', { p_desde: desde, p_hasta: hasta, p_por: por });
+    if (error) return [];
+    return (data ?? []) as { entidad_id: string | null; entidad: string; total: number; matches: number; pct: number | null }[];
   }
 
   /** BV12 — reporta a Tecnología (report_app_error) una factura de TotalEnergies que
@@ -360,6 +407,25 @@ export class CombustibleConciliacionService {
       p_notas: p.notas ?? null,
     });
     if (error) throw new Error(error.message);
+  }
+
+  /** CC6 — recuerda a los choferes con filas sin echada (peor % de match). Resuelve
+   *  conductor→usuario y envía un push best-effort. Devuelve a cuántos se notificó
+   *  (0 = no se pudo identificar → la UI lo dice, no finge). */
+  async recordarChoferes(desde: string | null, hasta: string | null): Promise<number> {
+    const lista = await this.matchPor(desde, hasta, 'chofer');
+    const ids = [...new Set(lista.filter((x) => x.entidad_id && (x.pct ?? 0) < 100).map((x) => x.entidad_id as string))];
+    if (!ids.length) return 0;
+    let userIds: string[] = [];
+    try {
+      const { data } = await this.supabase.client.from('conductores').select('usuario_id').in('id', ids);
+      userIds = [...new Set(((data ?? []) as { usuario_id: string | null }[]).map((c) => c.usuario_id).filter((u): u is string => !!u))];
+    } catch { userIds = []; }
+    if (!userIds.length) return 0;
+    await this.supabase.client.functions.invoke('send-push', {
+      body: { user_ids: userIds, titulo: 'Registra tu echada', cuerpo: 'Tienes cargas de combustible sin registrar.', tipo: 'combustible_recordatorio', data: { type: 'combustible_recordatorio' } },
+    }).catch(() => { /* best-effort */ });
+    return userIds.length;
   }
 
   async getDetalle(conciliacionId: string): Promise<ConciliacionDetalle[]> {

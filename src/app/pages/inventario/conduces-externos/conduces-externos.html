@@ -28,6 +28,7 @@
         <table class="data-table">
           <thead>
             <tr>
+              <th>Código</th>
               <th>Transporta</th>
               <th>Origen → Destino</th>
               <th>Material</th>
@@ -38,7 +39,8 @@
           </thead>
           <tbody>
             @for (c of filtradas(); track c.id) {
-              <tr>
+              <tr class="row-clickable" [routerLink]="['/inventario/conduces-externos', c.id]">
+                <td><strong>{{ c.codigo || '—' }}</strong></td>
                 <td>
                   {{ c.transporta || '—' }}
                   @if (!c.es_proveedor_formal && c.transporta) { <span class="ce-otro">«Otro»</span> }

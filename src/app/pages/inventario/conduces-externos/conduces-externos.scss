@@ -12,3 +12,6 @@
 }
 
 .sgc-badge--neutral { margin-left: 6px; }
+
+.row-clickable { cursor: pointer; }
+.row-clickable:hover td { background: var(--sgc-surface-2, rgba(0,0,0,0.03)); }

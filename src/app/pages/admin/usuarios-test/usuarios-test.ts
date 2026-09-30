@@ -37,8 +37,56 @@ export class AdminUsuariosTest implements OnInit {
   entrando = signal<string | null>(null);
   eliminando = signal<string | null>(null);
 
+  // ── CC2 — Acceso a dev (lista blanca de correos, solo en dev) ──────────────
+  esDev = this.auth.esDev;
+  devAcceso = signal<{ email: string; nota: string | null; creado_en: string }[]>([]);
+  devEmail = signal('');
+  devNota = signal('');
+  devSaving = signal(false);
+  devError = signal('');
+
   async ngOnInit() {
     await this.cargar();
+    if (this.esDev) await this.cargarDevAcceso();
+  }
+
+  private async cargarDevAcceso() {
+    try {
+      this.devAcceso.set(await this.admin.devAccesoListar());
+    } catch (e: unknown) {
+      this.devError.set(e instanceof Error ? e.message : 'No se pudo cargar la lista de acceso a dev.');
+    }
+  }
+
+  async agregarDevAcceso() {
+    const email = this.devEmail().trim();
+    if (!email || this.devSaving()) return;
+    this.devSaving.set(true);
+    this.devError.set('');
+    try {
+      await this.admin.devAccesoAgregar(email, this.devNota().trim() || undefined);
+      this.devEmail.set('');
+      this.devNota.set('');
+      await this.cargarDevAcceso();
+    } catch (e: unknown) {
+      this.devError.set(e instanceof Error ? e.message : 'No se pudo agregar el correo.');
+    } finally {
+      this.devSaving.set(false);
+    }
+  }
+
+  async quitarDevAcceso(email: string) {
+    if (this.devSaving()) return;
+    this.devSaving.set(true);
+    this.devError.set('');
+    try {
+      await this.admin.devAccesoQuitar(email);
+      await this.cargarDevAcceso();
+    } catch (e: unknown) {
+      this.devError.set(e instanceof Error ? e.message : 'No se pudo quitar el correo.');
+    } finally {
+      this.devSaving.set(false);
+    }
   }
 
   private async cargar() {

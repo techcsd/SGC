@@ -283,6 +283,19 @@ export class CombustibleService {
     return data as unknown as RegistroCombustible;
   }
 
+  /**
+   * CC6 — fija/actualiza el Nº de recibo del ticket (para cruzar por recibo en la
+   * conciliación). Es una anotación (no afecta cálculos derivados) → update directo
+   * (permitido en este servicio por el lint BZ1; RLS deja escribir a flota-elevado/dueño).
+   */
+  async setNumeroRecibo(id: string, numeroRecibo: string | null): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('registros_combustible')
+      .update({ numero_recibo: (numeroRecibo ?? '').trim() || null })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
   /** BQ5 — historial de ediciones de una echada (más reciente primero). */
   async historialEchada(id: string): Promise<RegistroCombustibleHistorial[]> {
     const { data, error } = await this.supabase.client

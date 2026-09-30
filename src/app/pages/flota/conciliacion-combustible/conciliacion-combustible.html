@@ -387,6 +387,91 @@
   </div>
 }
 
+<!-- ── CC6 — Cómo subir el % de match (para Raykler) ── -->
+<h2 class="cc-section">
+  <button type="button" class="cc-toggle" (click)="abrirPanel()">
+    <app-icon [name]="panelAbierto() ? 'chevron-down' : 'chevron-right'" [size]="16" />
+    Cómo subir el % de match
+  </button>
+</h2>
+@if (panelAbierto()) {
+  <div class="sgc-card cc-panel">
+    <p class="cc-panel__hint">
+      Cada fila del informe que no cruza baja el %. Aquí ves <strong>por qué</strong> no cruzan y qué hacer.
+      El % del dashboard cuenta <strong>una factura una sola vez</strong> (las re-subidas son versiones).
+    </p>
+
+    @if (cargandoPanel()) {
+      <app-skeleton variant="list" [rows]="3" />
+    } @else {
+      <!-- Causas de la conciliación más reciente -->
+      @if (causas().length) {
+        <h3 class="cc-subtitle">Filas sin cruzar, por causa</h3>
+        <div class="table-wrapper">
+          <table class="data-table" aria-label="Causas sin match">
+            <thead><tr><th>Causa</th><th class="text-right">Filas</th><th>Qué hacer</th></tr></thead>
+            <tbody>
+              @for (c of causas(); track c.causa) {
+                <tr>
+                  <td>{{ causaLabel(c.causa).texto }}</td>
+                  <td class="text-right">{{ c.filas }}</td>
+                  <td>
+                    @if (c.causa === 'chofer_no_registro') {
+                      <button type="button" class="sgc-btn sgc-btn--sm" [disabled]="recordando()" (click)="recordarChoferes()">
+                        {{ recordando() ? 'Enviando…' : 'Recordar a los choferes' }}
+                      </button>
+                    } @else {
+                      <span class="cc-muted">{{ causaLabel(c.causa).accion || '—' }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="cc-muted">Concilia una factura para ver el desglose de causas.</p>
+      }
+
+      <!-- % de match por chofer / vehículo -->
+      <h3 class="cc-subtitle">% de match por {{ matchPorTipo() === 'chofer' ? 'chofer' : 'vehículo' }}</h3>
+      <div class="cc-seg" role="tablist">
+        <button type="button" class="cc-seg__btn" [class.cc-seg__btn--active]="matchPorTipo() === 'vehiculo'" (click)="cambiarMatchPorTipo('vehiculo')">Por vehículo</button>
+        <button type="button" class="cc-seg__btn" [class.cc-seg__btn--active]="matchPorTipo() === 'chofer'" (click)="cambiarMatchPorTipo('chofer')">Por chofer</button>
+      </div>
+      @if (matchPorLista().length) {
+        <div class="table-wrapper">
+          <table class="data-table" aria-label="% match por entidad">
+            <thead><tr><th>{{ matchPorTipo() === 'chofer' ? 'Chofer' : 'Vehículo' }}</th><th class="text-right">Cruzan</th><th class="text-right">Total</th><th class="text-right">% match</th></tr></thead>
+            <tbody>
+              @for (r of matchPorLista(); track r.entidad_id) {
+                <tr>
+                  <td>{{ r.entidad }}</td>
+                  <td class="text-right">{{ r.matches }}</td>
+                  <td class="text-right">{{ r.total }}</td>
+                  <td class="text-right" [class.cc-neg]="(r.pct ?? 0) < 90">{{ r.pct === null ? '—' : r.pct + '%' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="cc-muted">Sin datos en el rango.</p>
+      }
+
+      <details class="cc-guia">
+        <summary>Cómo funciona (guía)</summary>
+        <p>El sistema cruza cada carga del informe con la echada que registró el chofer, en 3 niveles:
+          ① por <strong>número de recibo</strong> (lo más seguro — pídeles que lo anoten),
+          ② por <strong>placa + fecha + galones</strong>, y ③ por <strong>tarjeta → vehículo + fecha</strong>.</p>
+        <p>Para subir el %: que los choferes <strong>registren la echada</strong> y anoten el <strong>Nº de recibo</strong>;
+          <strong>asigna cada tarjeta</strong> a su vehículo; revisa <strong>galones/fecha</strong> cuando difieran.
+          Ver <code>docs/CONCILIACION-COMO-MEJORAR.md</code>.</p>
+      </details>
+    }
+  </div>
+}
+
 <!-- ── BX4 — Facturas subidas (guardadas al subir, aunque el parse falle) ── -->
 <h2 class="cc-section">
   <button type="button" class="cc-toggle" (click)="toggleFacturas()">

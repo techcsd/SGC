@@ -29,4 +29,6 @@ export interface Usuario {
   ultima_actividad_app?: string | null;
   /** AY7 — usuario de prueba (banner + exclusión de lo real). Inmutable. */
   es_prueba?: boolean;
+  /** CC3 — un admin fijó la contraseña; el usuario debe cambiarla al entrar. */
+  debe_cambiar_password?: boolean;
 }

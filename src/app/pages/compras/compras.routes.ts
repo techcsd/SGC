@@ -13,6 +13,14 @@ export const comprasRoutes: Routes = [
     title: 'Proveedores — Compras',
   },
   {
+    // CC4 (#87) — Importar proveedores desde Odoo (mismo gate que Proveedores).
+    path: 'proveedores/importar',
+    canActivate: [proveedoresGuard],
+    loadComponent: () =>
+      import('./importar-proveedores/importar-proveedores').then((m) => m.ComprasImportarProveedores),
+    title: 'Importar proveedores — Compras',
+  },
+  {
     path: 'ordenes',
     canActivate: [submoduloGuard('compras.ordenes')], // AN2 — módulo o submódulo granular
     loadComponent: () => import('./ordenes/ordenes').then((m) => m.Ordenes),

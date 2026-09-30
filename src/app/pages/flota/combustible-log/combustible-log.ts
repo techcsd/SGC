@@ -377,6 +377,7 @@ export class CombustibleLog implements OnInit {
     monto: [null as number | null],
     kilometraje: [null as number | null],
     producto: [''],
+    numero_recibo: [''],   // CC6 — anotación para cruzar por recibo (no pasa por editar_echada)
     motivo: ['', [Validators.required, Validators.minLength(3)]],
   });
 
@@ -393,6 +394,7 @@ export class CombustibleLog implements OnInit {
       monto: r.monto,
       kilometraje: r.kilometraje,
       producto: r.producto ?? '',
+      numero_recibo: r.numero_recibo ?? '',
       motivo: '',
     });
     this.editOpen.set(true);
@@ -415,7 +417,6 @@ export class CombustibleLog implements OnInit {
     const id = this.editId();
     const original = this.detail();
     if (!id || !original) return;
-    if (this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
 
     const v = this.editForm.getRawValue();
     const propuesto: Record<CampoEditable, unknown> = {
@@ -436,22 +437,36 @@ export class CombustibleLog implements OnInit {
       if (String(antes) !== String(despues)) cambios[k] = despues;
     });
 
-    if (Object.keys(cambios).length === 0) {
+    // CC6 — el Nº de recibo es una anotación aparte (no pasa por editar_echada).
+    const reciboDespues = (v.numero_recibo ?? '').trim();
+    const reciboChanged = ((original as unknown as { numero_recibo?: string | null }).numero_recibo ?? '') !== reciboDespues;
+    const soloRecibo = Object.keys(cambios).length === 0 && reciboChanged;
+
+    if (Object.keys(cambios).length === 0 && !reciboChanged) {
       this.toast.warning('Sin cambios', 'No modificaste ningún campo.');
       return;
     }
+    // El motivo solo es obligatorio si hay cambios que pasan por editar_echada.
+    if (!soloRecibo && this.editForm.invalid) { this.editForm.markAllAsTouched(); return; }
 
     this.editSaving.set(true);
     this.editError.set('');
     try {
-      if (this.modoAprobar()) {
-        // BY1 — aprobar con corrección: aplica los cambios y da el visto bueno en un paso.
-        await this.combustibleService.aprobarEchada(id, v.motivo!.trim(), cambios);
-        this.toast.success('Echada aprobada con corrección', 'Ya cuenta en los tableros y se avisó al chofer.');
-        void this.cargarPorAprobar();
-      } else {
-        await this.combustibleService.editarEchada(id, cambios, v.motivo!.trim());
-        this.toast.success('Echada actualizada', 'Se recalcularon los derivados y se guardó la traza.');
+      if (Object.keys(cambios).length > 0) {
+        if (this.modoAprobar()) {
+          // BY1 — aprobar con corrección: aplica los cambios y da el visto bueno en un paso.
+          await this.combustibleService.aprobarEchada(id, v.motivo!.trim(), cambios);
+          this.toast.success('Echada aprobada con corrección', 'Ya cuenta en los tableros y se avisó al chofer.');
+          void this.cargarPorAprobar();
+        } else {
+          await this.combustibleService.editarEchada(id, cambios, v.motivo!.trim());
+          this.toast.success('Echada actualizada', 'Se recalcularon los derivados y se guardó la traza.');
+        }
+      }
+      // CC6 — persiste el Nº de recibo si cambió.
+      if (reciboChanged) {
+        await this.combustibleService.setNumeroRecibo(id, reciboDespues || null);
+        if (soloRecibo) this.toast.success('Nº de recibo guardado');
       }
       this.editForm.markAsPristine();
       this.editOpen.set(false);

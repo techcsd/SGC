@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ProveedoresService, ProveedorPayload } from '../../../../shared/services/proveedores.service';
 import { Proveedor, ProveedorTipo, PROVEEDOR_TIPOS } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -28,7 +29,7 @@ const RNC_CEDULA_PATTERN = /^(\d{9}|\d{11}|\d-\d{2}-\d{5}-\d|\d{3}-\d{7}-\d)$/;
 
 @Component({
   selector: 'app-proveedores',
-  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, TelefonoMask, Skeleton, LocationPicker, Icon, RouterLink],
   templateUrl: './proveedores.html',
   styleUrl: './proveedores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

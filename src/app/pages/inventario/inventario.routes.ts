@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { submoduloGuard } from '../../core/guards/submodulo.guard';
+import { moduleGuard } from '../../core/guards/module.guard';
 import { puedeCrearConduceGuard } from '../../core/guards/puede-crear-conduce.guard';
 
 // AN2 — cada ruta hija se gatea por su submódulo granular (Ver = entrar).
@@ -18,6 +19,14 @@ export const inventarioRoutes: Routes = [
     canActivate: [submoduloGuard('inventario.articulos')],
     loadComponent: () => import('./articulos/articulos').then((m) => m.Articulos),
     title: 'Artículos — Inventario',
+  },
+  {
+    // CC4 (#87) — Importar artículos desde Odoo (gate módulo Inventario, como el RPC).
+    path: 'articulos/importar',
+    canActivate: [moduleGuard('inventario')],
+    loadComponent: () =>
+      import('./importar-articulos/importar-articulos').then((m) => m.InventarioImportarArticulos),
+    title: 'Importar artículos — Inventario',
   },
   {
     path: 'activos',
@@ -92,6 +101,14 @@ export const inventarioRoutes: Routes = [
     canActivate: [submoduloGuard('inventario.salidas')],
     loadComponent: () => import('./conduces-externos/conduces-externos').then((m) => m.ConducesExternos),
     title: 'Conduces externos — Inventario',
+  },
+  {
+    // CC5 — ficha (detalle completo) del conduce externo: CE-000123, renglones,
+    // firmas, fotos, historial + PDF/compartir. Mismo gate que el listado.
+    path: 'conduces-externos/:id',
+    canActivate: [submoduloGuard('inventario.salidas')],
+    loadComponent: () => import('./conduce-externo-ficha/conduce-externo-ficha').then((m) => m.ConduceExternoFicha),
+    title: 'Conduce externo',
   },
   {
     // BA/Transporte v3 — alta/emisión de conduce externo (gate real server-side: puede_crear_conduce).
