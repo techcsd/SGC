@@ -621,6 +621,9 @@ export class FlotaVehiculos implements OnInit {
 
   async toggleActivo(vehiculo: Vehiculo) {
     const next = !vehiculo.activo;
+    // CD1 — confirmar el cambio de estado (desactivar/activar) para evitar toques accidentales.
+    const accion = next ? 'activar' : 'desactivar';
+    if (!confirm(`¿Seguro que quieres ${accion} el vehículo ${vehiculo.placa}?`)) return;
     this.vehiculos.update((list) =>
       list.map((v) => (v.id === vehiculo.id ? { ...v, activo: next } : v)),
     );
