@@ -73,6 +73,17 @@ const REGLAS = [
       'no el predicado inline `articulo_vinculado_id is null` (regresó al contar los ' +
       'declinados como pendientes). Ver sql/2026-09-25-bz2-item-libre-pendiente.sql.',
   })),
+  // CD7: el "pendiente" de una requisición se calcula en UN solo lugar
+  // (sgc.requisicion_item_pendiente = solicitado − despachado − cubierto). requisicion_avance
+  // y requisicion_pendiente_items deben LLAMARLO, no recalcular pendiente inline (antes
+  // requisicion_avance ignoraba la cobertura → Avance mostraba Pendiente 100 ya cubierto).
+  ...['sgc.requisicion_avance', 'sgc.requisicion_pendiente_items'].map((fn) => ({
+    fn,
+    require: /requisicion_item_pendiente/i,
+    reason:
+      `CD7: ${fn} debe usar sgc.requisicion_item_pendiente(item) (solicitado − despachado − ` +
+      'cubierto), no un cálculo de pendiente inline. Ver sql/2026-09-30-cd7-requisicion-pendiente.sql.',
+  })),
 ];
 
 // ── Utilidades ───────────────────────────────────────────────────────────────

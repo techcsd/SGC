@@ -194,6 +194,22 @@
 }
 .req-pend { color: var(--accent-hover); font-weight: 600; }
 
+// CD7 — cubierto por material llegado a la obra.
+.req-cubierto-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: var(--success);
+  background: var(--success-bg);
+  svg { flex-shrink: 0; }
+}
+.req-ok-icon { color: var(--success); vertical-align: -2px; margin-right: 2px; }
+.req-line-cubierta { background: color-mix(in srgb, var(--success) 7%, transparent); }
+
 // BJ4 — línea de requisición quitada (cancelada).
 .req-line-cancelada {
   opacity: 0.55;
