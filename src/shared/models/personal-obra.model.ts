@@ -66,8 +66,14 @@ export interface PersonalObra {
   estado: EstadoPersonal;
   es_prueba?: boolean;
   registrado_por?: string | null;
+  registrado_por_nombre?: string | null; // CE2 — nombre resuelto por el RPC definer
+  tiene_contrato?: boolean; // CE1 — hay al menos una firma/contrato
+  tiene_foto_persona?: boolean; // CE1/CE4 — foto de la persona cargada
   lote_import?: string | null; // AT5/AV4 — presente si vino de una importación
   documento_numero_norm?: string | null; // BL5 — dígitos del documento (dedupe)
+  // CE9/CE16 — borrado lógico (papelera 30 días / descartado al fusionar).
+  eliminado_at?: string | null;
+  eliminado_motivo?: string | null;
   // AX2 — usuario del sistema enlazado (acceso por cédula del capataz).
   usuario_id?: string | null;
   created_at: string;
@@ -76,6 +82,24 @@ export interface PersonalObra {
   cargo?: Cargo | null;
   proyecto?: { nombre: string; codigo?: string | null } | null;
   registrador?: { nombre: string } | null; // BL5 — quién lo registró
+}
+
+/** CE16 — un grupo de posibles duplicados (mismo documento normalizado). */
+export interface DuplicadoGrupo {
+  documento: string;
+  registros: {
+    id: string;
+    nombre: string;
+    documento_numero: string | null;
+    tipo_documento: string;
+    proyecto_id: string;
+    proyecto: string | null;
+    importado: boolean;
+    registrado_por: string | null;
+    created_at: string;
+    fotos: number;
+    firmas: number;
+  }[];
 }
 
 export interface PersonalConteos {

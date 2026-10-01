@@ -1,5 +1,36 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-78 (Ronda CE — IDs CE1-CE16) — 01/10/2026 — **🧪 EN DEV web 1.151.0, pendiente OK de Xaviel para prod.**
+Rama `feature/ce-ronda` (desde `dev`) → `dev`. `npm run build` + ~15 guards **VERDES** a 1.151.0 (12 cambios estructurados en release-notes). **9 migraciones aplicadas al ledger de dev** (ce10, ce15, ce13, ce2-ce16, ce9, ce5, ce1-extra, ce12, ce16b). Matriz filas 102-117 → 🧪 (repo `docs/COBERTURA-NOTAS.md` sincronizada). Mitad app = PROMPT-79.
+
+- **CE10 🔴 (avisos de requisición a todos los ingenieros) — causa REAL hallada, NO la de CA2:** el rol `ingeniero_campo` (15 usuarios) tiene los módulos `inventario` **y** `bitacora`, así que todo `notificar_modulo('inventario'|'bitacora', …)` de un aviso **por obra** llegaba a los 15 ingenieros (+5 gerente_proyectos). `puede_ver_proyecto` NO lo usa ningún emisor (descartado por SELECT en prod). Fix `sql/…ce10`: `es_miembro_obra()` + `notificar_obra()` (miembros de ESA obra + roles de gestión explícitos) reemplazan a `notificar_modulo` en 9 emisores por obra (requisición vencida/fecha, conduce por confirmar, material no catalogado, retiro, equipo dañado, molde, cartilla, OT). **Smoke dev: audiencia 31 → 16** (quita 15 ingenieros/QA no-miembros).
+- **CE15 🔴 (Saneamiento «column m does not exist»):** prod == repo, ambos rotos — `array_agg(m) from unnest(...)` sin aliasar `m`. Fix `sql/…ce15` = `unnest(...) m`. Smoke dev como logística = 19 filas, sin error.
+- **CE13 (Raykler controla Umbrales):** logística YA tenía módulo flota (podía guardar por RPC); lo bloqueaba la UI (botón admin-only). `sql/…ce13`: `guardar_flota_config` (batch, gate `is_admin()/es_flota_elevado()`), historial (`flota_config_historial`), `restaurar_flota_config`, `flota_config_historial_listar`, aviso a Tecnología. Front: botón/panel a `esFlotaElevado()`, sección «Historial de cambios» con Restaurar. **CE14 (app): contrato confirmado — `aprobar_echada`/`rechazar_echada` ya aceptan `es_flota_elevado()`.**
+- **CE2 (Sonia no veía «Registró»):** embed a usuarios bajo RLS. Fix = RPC definer `listar_personal_obra()` (mismo predicado `puede_ver_personal_obra`) con `registrado_por_nombre` + backfill del único nulo desde auditoría + trigger ya existente. CE11 fecha cruda → `formatFechaHoraDisplay` + `formatFechaDisplay` defensiva (si trae `T` delega). CE16 duplicados: `doc_normalizado`, `personal_obra_duplicados`, `fusionar_personal_obra` (conserva fotos/firmas), aviso al registrar; índice único `ce16b` **tras fusionar** (en prod lo revisa Xaviel). **Edward Mota fusionado en dev; 0 duplicados.**
+- **CE6 (foto negra):** `comprimir-imagen.util.ts` reescrito — fondo blanco antes de JPEG, HEIC vía `heic2any`, rechazo de resultado monocromo. CE4: 5 fotos opcionales + chip «Falta foto». **Paridad: csd-app camera.service (PROMPT-79 F3.2).**
+- **CE8 (firmas no aparecían):** el documento se renderiza con la firma incrustada (URL firmada → `<img>`) al ver e imprimir. **CE7: la edición de plantillas YA está gated al módulo `plantillas` que abogado/admin tienen (Sonia puede editar). Versionado/preview/auditoría del editor = diferido (nota).**
+- **CE3/CE5 (carnet):** logo blanco generado 2× (`csd-no-bg-logo-white.png`), impresión CR80 real frente/dorso con marcas de corte, hoja con foto o iniciales, QR → `/verificar/<carnet>` (página pública mínima, RPC `verificar_carnet` anon), reimpresión registrada. **A4-con-8 desde selección múltiple = diferido (nota).**
+- **CE9 (admin prueba/eliminar):** `marcar_personal_prueba`, `eliminar_personal_obra` (lógico), `restaurar_personal_obra`, `papelera_personal_obra` (30 días). UI: expediente (marcar prueba + eliminar con confirmación por nombre) + lista (Papelera). **CE1: «Mi personal hoy» + tarjetas útiles (sin carnet/asegurar/contrato) + duplicados/papelera.**
+- **CE12 (rendimiento por vehículo):** `sql/…ce12` cols aditivas + `spec_combustible(v)` (herencia vehículo→clase→global con origen), `rango_rendimiento_vehiculo` (fuente única regla 14), `vehiculo_baseline_sugerido`, `guardar_spec_combustible` (recalc), `importar_specs_combustible` (Excel). `clasificar_rendimiento` y `registrar_combustible_app` recreados para usar el rango por vehículo (las banderas BY1 ya lo respetan). Front: ficha del vehículo «Especificación de combustible» + carga masiva por Excel. Smoke dev: spec resuelve con origen, h/gal para `horas`, guardar OK.
+
+### Para promover a prod (tras OK de Xaviel)
+1. **Revisar duplicados** (herramienta «Posibles duplicados») y **fotos negras** antes de prod; Sonia prueba plantillas/firmas; Raykler prueba umbrales/saneamiento/spec por vehículo y aprobar desde el teléfono.
+2. `apply-migration … --env prod --yes` en orden: ce10, ce15, ce13, ce2-ce16, ce9, ce5, ce1-extra, ce12, **ce16b al final** (tras fusionar los duplicados de prod). PR `dev → main`, prod 1.151.0. App = PROMPT-79.
+3. Matriz filas 102-117 → ✅.
+
+### Diferidos (follow-up honestos)
+- CE5: hoja A4 con 8 carnets desde selección múltiple (la impresión individual CR80 frente/dorso sí está).
+- CE7: versionado + vista previa con trabajador de ejemplo del editor de plantillas (la edición por legal/admin ya funciona vía módulo `plantillas`).
+
+### Gotchas — CE
+- **Causa raíz de CE10 ≠ la del contexto:** no fue la regresión de CA2 (ningún emisor usa `puede_ver_proyecto`); fue que `ingeniero_campo` tiene los módulos inventario+bitacora. Verificado por SELECT en prod (lección recurrente: verificar la premisa).
+- **`min(uuid)` no existe** en este PG → usar `(array_agg(x))[1]`.
+- **`auditoria.registro_id` es `text`** → castear `po.id::text` al cruzar.
+- **Índice único por documento** no se puede crear mientras haya duplicados activos → `ce16b` va **después** de fusionar (dev ya fusionado; prod pendiente de Xaviel).
+- **`doc_normalizado` es IMMUTABLE** para poder indexar por expresión.
+
+---
+
 ## TL;DR — PROMPT-76 (Ronda CD — IDs CD1-CD10) — 30/09/2026 — **✅ SHIPPED A PROD web 1.150.0** (Xaviel: "ok, do all the stuff").
 `feature/cd-ronda` → `dev` → **`main` `aae49d3` + push** (Vercel prod building/READY). **8 migraciones en el ledger de PROD** (cd0, cd4, cd5, cd7, cd2, cd6, cd8, cd3) — **verificadas por objeto**: `puede_ver_vehiculo`, `listar_mantenimientos`, `puede_ver_echada` (2+3-arg), `cerrar_usos_huerfanos`, `requisicion_item_pendiente`, `auditoria_opciones/listar/actores` (sin crash: 39 actores), `echadas_posibles_duplicados`, `app_versiones.deploy_url`, ambas políticas en el predicado único ✓. `npm run build` + ~15 guards verdes. Matriz filas 92-101 → ✅.
 - **CD3 aplicado y verificado en prod:** 5 usos huérfanos cerrados, **4 asignaciones AUTO retiradas** (Misael/L478815, MANOLO/L473027, POLIN/L441660, EDWARD/MT 03), **MT 03.responsable_id → null**, **Edward = 0 asignaciones activas** (MT 03 ya NO le aparece), cron `sgc-cerrar-usos-huerfanos` activo. El bug de la nota #94 está resuelto en prod.

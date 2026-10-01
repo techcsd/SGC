@@ -6,9 +6,9 @@
     <span class="page-count">{{ filtered().length }} registro{{ filtered().length !== 1 ? 's' : '' }}</span>
   </div>
   <div class="page-header__actions">
-    @if (esAdmin()) {
+    @if (esFlotaElevado()) {
       <button class="sgc-btn sgc-btn--ghost" type="button" (click)="toggleConfig()"
-              title="Umbrales de rendimiento (admin)">
+              title="Umbrales de rendimiento de combustible">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
@@ -44,8 +44,8 @@
   </div>
 </div>
 
-<!-- ── AD7 · Umbrales de rendimiento (admin, Hard-rule #2) ── -->
-@if (esAdmin() && configPanelOpen()) {
+<!-- ── AD7/CE13 · Umbrales de rendimiento (admin o flota elevado = Raykler) ── -->
+@if (esFlotaElevado() && configPanelOpen()) {
   <form class="combustible__config-panel sgc-card" [formGroup]="configForm" (ngSubmit)="saveConfig()">
     <h3 class="combustible__config-title">Calibración del rendimiento de combustible</h3>
     <p class="combustible__config-hint">
@@ -92,6 +92,30 @@
         {{ savingConfig() ? 'Guardando…' : 'Guardar y recalcular' }}
       </button>
     </div>
+
+    <!-- CE13 — Auditoría: historial de versiones con restaurar -->
+    @if (umbralHistorial().length > 0) {
+      <h4 class="combustible__config-subtitle">Historial de cambios</h4>
+      <p class="combustible__config-hint">Cada guardado es una versión. Puedes restaurar la anterior.</p>
+      <ul class="combustible__config-hist">
+        @for (v of umbralHistorial(); track v.lote) {
+          <li class="combustible__config-hist-row">
+            <div class="combustible__config-hist-meta">
+              <strong>{{ v.cambiado_por_nombre || 'Alguien' }}</strong>
+              <span>{{ formatFechaHora(v.cambiado_at) }}</span>
+              @if (v.motivo) { <em>{{ v.motivo }}</em> }
+            </div>
+            <div class="combustible__config-hist-cambios">
+              @for (c of v.cambios; track c.clave) {
+                <span class="combustible__config-hist-chip">{{ c.clave }}: {{ c.antes }} → {{ c.despues }}</span>
+              }
+            </div>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm"
+                    [disabled]="savingConfig()" (click)="restaurarUmbral(v.lote)">Restaurar</button>
+          </li>
+        }
+      </ul>
+    }
   </form>
 }
 

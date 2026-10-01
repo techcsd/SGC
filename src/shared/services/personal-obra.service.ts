@@ -4,6 +4,7 @@ import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   Cargo,
+  DuplicadoGrupo,
   FotoTipo,
   PersonalConteos,
   PersonalFirma,
@@ -80,18 +81,38 @@ export class PersonalObraService {
 
   // ── Listado por obra (RLS filtra la visibilidad por obra) ───────────────────
   async listar(proyectoId?: string): Promise<PersonalObra[]> {
-    // BB5 — desambiguar el embed: `proyectos` tiene una FK inversa hacia `personal_obra`
-    // (proyectos.maestro_personal_id, AZ9), así que hay que nombrar la FK de origen
-    // (personal_obra.proyecto_id) o PostgREST no sabe cuál relación usar.
-    let q = this.client
-      .from('personal_obra')
-      // BL5 — trae "quién registró" (nombre) para mostrar la procedencia.
-      .select('*, cargo:cargos(id, codigo, nombre), proyecto:proyectos!proyecto_id(nombre, codigo), registrador:usuarios!registrado_por(nombre)')
-      .order('created_at', { ascending: false });
-    if (proyectoId) q = q.eq('proyecto_id', proyectoId);
-    const { data, error } = await q;
+    // CE2 — el nombre de "quién registró" venía por un embed a usuarios bajo RLS que
+    // Sonia (abogado) no puede leer → "—". Ahora lo trae un RPC definer con el mismo
+    // predicado de visibilidad (puede_ver_personal_obra) + registrado_por_nombre resuelto.
+    const { data, error } = await this.client.rpc('listar_personal_obra', {
+      p_proyecto: proyectoId ?? null,
+    });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as PersonalObra[];
+  }
+
+  /** CE16 — grupos de posibles duplicados (mismo documento, activos). */
+  async duplicados(): Promise<DuplicadoGrupo[]> {
+    const { data, error } = await this.client.rpc('personal_obra_duplicados');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown as DuplicadoGrupo[];
+  }
+
+  /** CE16 — ¿ya existe un trabajador con este documento? (aviso al registrar). */
+  async docExiste(tipo: string, numero: string, excluir?: string): Promise<{ id: string; nombre: string; proyecto: string | null }[]> {
+    const { data, error } = await this.client.rpc('personal_obra_doc_existe', {
+      p_tipo: tipo, p_numero: numero, p_exclude: excluir ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { id: string; nombre: string; proyecto: string | null }[];
+  }
+
+  /** CE16 — fusiona dos registros conservando fotos/firmas; descarta el otro en lógico. */
+  async fusionar(keep: string, drop: string, motivo?: string): Promise<void> {
+    const { error } = await this.client.rpc('fusionar_personal_obra', {
+      p_keep: keep, p_drop: drop, p_motivo: motivo ?? null,
+    });
+    if (error) throw new Error(error.message);
   }
 
   async getById(id: string): Promise<PersonalObra | null> {
@@ -239,6 +260,35 @@ export class PersonalObraService {
 
   async fotoUrl(path: string, thumb = false): Promise<string> {
     return this.signedUrls.signed(BUCKET, path, thumb ? { width: 320, quality: 70 } : undefined);
+  }
+
+  /** CE8 — URL firmada de una firma (mismo bucket que las fotos). */
+  async firmaUrl(path: string): Promise<string> {
+    return this.signedUrls.signed(BUCKET, path);
+  }
+
+  // ── CE9 — admin: marcar prueba / eliminar lógico / restaurar / papelera ──────
+  async marcarPrueba(id: string, esPrueba: boolean): Promise<void> {
+    const { error } = await this.client.rpc('marcar_personal_prueba', { p_id: id, p_es_prueba: esPrueba });
+    if (error) throw new Error(error.message);
+  }
+  async eliminar(id: string, motivo?: string): Promise<void> {
+    const { error } = await this.client.rpc('eliminar_personal_obra', { p_id: id, p_motivo: motivo ?? null });
+    if (error) throw new Error(error.message);
+  }
+  async restaurar(id: string): Promise<void> {
+    const { error } = await this.client.rpc('restaurar_personal_obra', { p_id: id });
+    if (error) throw new Error(error.message);
+  }
+  async papelera(): Promise<unknown[]> {
+    const { data, error } = await this.client.rpc('papelera_personal_obra');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as unknown[];
+  }
+  /** CE5 — registra la reimpresión del carnet. */
+  async registrarReimpresion(id: string): Promise<void> {
+    const { error } = await this.client.rpc('registrar_reimpresion_carnet', { p_id: id });
+    if (error) throw new Error(error.message);
   }
 
   // ── Firma de documento(s) ──────────────────────────────────────────────────

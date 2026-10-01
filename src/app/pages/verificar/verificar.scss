@@ -1,0 +1,66 @@
+.verificar {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--main, #121212);
+
+  &__card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--surface, #161616);
+    border: 1px solid var(--border, #2d2d2d);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+  }
+
+  &__brand {
+    background: #1e3a5f;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    img { height: 32px; max-width: 100%; }
+  }
+
+  &__estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+
+    &--ok { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+    &--off { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+  }
+
+  &__nombre {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 20px;
+  }
+
+  &__datos {
+    display: grid;
+    gap: 10px;
+    text-align: left;
+    margin: 0;
+
+    div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border, #2d2d2d); padding-bottom: 8px; }
+    dt { color: var(--main-ultra-light, #929090); font-size: 13px; }
+    dd { color: #fff; font-size: 14px; font-weight: 600; margin: 0; text-align: right; }
+  }
+
+  &__msg { color: var(--main-ultra-light, #929090); font-size: 14px; }
+
+  &__pie {
+    margin-top: 24px;
+    color: #6b6b6b;
+    font-size: 12px;
+  }
+}

@@ -68,8 +68,36 @@
         <button type="button" class="sgc-btn sgc-btn--secondary" (click)="toggleEstado()" [disabled]="saving()">
           {{ p.estado === 'activo' ? 'Marcar inactivo' : 'Reactivar' }}
         </button>
+        <!-- CE9 — solo admin: marcar como prueba / eliminar -->
+        @if (esAdmin()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="saving()" (click)="togglePrueba()">
+            {{ p.es_prueba ? 'Quitar marca de prueba' : 'Marcar como prueba' }}
+          </button>
+          <button type="button" class="sgc-btn sgc-btn--ghost pob-exp__danger" (click)="confirmarEliminar.set(true)">
+            Eliminar
+          </button>
+        }
       </div>
+      @if (p.es_prueba) {
+        <p class="pob-exp__prueba-aviso">Este registro está marcado como prueba (no cuenta en KPIs ni listados normales).</p>
+      }
     </section>
+
+    <!-- CE9 — confirmación de eliminación escribiendo el nombre -->
+    @if (confirmarEliminar()) {
+      <div class="pob-docmodal" (click)="confirmarEliminar.set(false)">
+        <div class="pob-docmodal__box pob-exp__confirm" (click)="$event.stopPropagation()">
+          <h3>Eliminar a {{ p.nombre }} {{ p.apellido }}</h3>
+          <p class="text-muted">Se mueve a la papelera (recuperable 30 días). Escribe el nombre completo para confirmar.</p>
+          <input type="text" class="sgc-input" placeholder="{{ p.nombre }} {{ p.apellido }}"
+                 [value]="nombreConfirmacion()" (input)="nombreConfirmacion.set($any($event.target).value)" />
+          <div class="pob-docmodal__actions">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="confirmarEliminar.set(false)">Cancelar</button>
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm pob-exp__danger" [disabled]="saving()" (click)="eliminar()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- AX2 — Acceso a la app por cédula (solo capataces) -->
     @if (esCapataz()) {
@@ -167,7 +195,8 @@
             <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="docVer.set(null)">Cerrar</button>
           </div>
         </div>
-        <div class="pob-docmodal__body" [innerHTML]="f.documento_html"></div>
+        <!-- CE8 — el documento ahora se muestra con la(s) firma(s) incrustada(s). -->
+        <div class="pob-docmodal__body" [innerHTML]="docVerHtml()"></div>
       </div>
     </div>
   }

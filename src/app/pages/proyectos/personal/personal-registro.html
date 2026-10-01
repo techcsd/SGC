@@ -82,6 +82,15 @@
         <input id="notas" class="sgc-input" formControlName="notas" />
       </div>
     </div>
+    <!-- CE16 — aviso de posible duplicado por documento -->
+    @if (dupAviso().length > 0) {
+      <div class="pob-form__dup" role="alert">
+        <strong>Ya existe un trabajador con este documento:</strong>
+        <ul>@for (n of dupAviso(); track n) { <li>{{ n }}</li> }</ul>
+        <p class="text-muted">Verifica que no sea la misma persona. Si estás seguro, puedes registrarlo igual.</p>
+        <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="registrarDeTodosModos()">Registrar de todos modos</button>
+      </div>
+    }
     <div class="pob-form__foot">
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         {{ saving() ? 'Guardando…' : 'Guardar y continuar' }}
@@ -121,11 +130,16 @@
     </div>
     <div class="pob-form__foot pob-form__foot--split">
       <button type="button" class="sgc-btn sgc-btn--secondary" (click)="paso.set(1)">Atrás</button>
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(3)" [disabled]="!fotosCompletas()">
+      <!-- CE4 — las fotos son opcionales: se puede continuar sin subirlas. -->
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="paso.set(3)">
         Continuar
       </button>
     </div>
-    @if (!fotosCompletas()) { <p class="pob-form__nota text-muted">Faltan fotos por capturar.</p> }
+    @if (!fotosCompletas()) {
+      <p class="pob-form__nota text-muted">
+        Puedes continuar sin todas las fotos; podrás agregarlas después desde el expediente.
+      </p>
+    }
   </section>
 }
 

@@ -17,6 +17,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/set-password/set-password').then((m) => m.SetPassword),
   },
   {
+    // CE5 — verificación pública del carnet por QR (sin login, datos mínimos).
+    path: 'verificar/:carnet',
+    loadComponent: () => import('./pages/verificar/verificar').then((m) => m.Verificar),
+  },
+  {
     path: '',
     loadComponent: () => import('../shared/components/shell/shell').then((m) => m.Shell),
     canActivate: [authGuard],
