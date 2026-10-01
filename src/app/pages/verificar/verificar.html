@@ -1,0 +1,40 @@
+<div class="verificar">
+  <div class="verificar__card">
+    <div class="verificar__brand">
+      <img src="assets/imgs/logos/csd-no-bg-logo-white.png" alt="Constructora SD" />
+    </div>
+
+    @if (loading()) {
+      <p class="verificar__msg">Verificando…</p>
+    } @else if (data(); as d) {
+      @if (d.encontrado) {
+        <div class="verificar__estado" [class.verificar__estado--ok]="d.estado === 'activo'"
+             [class.verificar__estado--off]="d.estado !== 'activo'">
+          @if (d.estado === 'activo') {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 6 9 17l-5-5"/></svg>
+            Carnet activo
+          } @else {
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Carnet inactivo
+          }
+        </div>
+        <h1 class="verificar__nombre">{{ d.nombre }}</h1>
+        <dl class="verificar__datos">
+          <div><dt>Cargo</dt><dd>{{ d.cargo ?? '—' }}</dd></div>
+          <div><dt>Obra</dt><dd>{{ d.obra ?? '—' }}</dd></div>
+          <div><dt>Carnet</dt><dd>{{ d.carnet ?? '—' }}</dd></div>
+        </dl>
+      } @else {
+        <div class="verificar__estado verificar__estado--off">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Carnet no encontrado
+        </div>
+        <p class="verificar__msg">Este código no corresponde a ningún carnet vigente de Constructora SD.</p>
+      }
+    }
+    <p class="verificar__pie">Constructora SD · verificación de personal de obra</p>
+  </div>
+</div>

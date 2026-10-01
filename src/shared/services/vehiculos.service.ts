@@ -20,6 +20,8 @@ const VEHICULO_FIELDS = [
   'vencimiento_matricula', 'vencimiento_seguro', 'km_ultimo_mantenimiento',
   'intervalo_mantenimiento_km', 'intervalo_mantenimiento_horas',
   'rendimiento_esperado_km_gal', 'foto_portada', 'es_prueba',
+  // CE12 — especificación de combustible por vehículo.
+  'rendimiento_min_km_gal', 'rendimiento_max_km_gal', 'rendimiento_tolerancia_pct', 'combustible_tipo',
 ] as const satisfies readonly (keyof VehiculoFormData)[];
 
 function pickVehiculoFields(input: Partial<VehiculoFormData>): Partial<VehiculoFormData> {
@@ -602,6 +604,68 @@ export class VehiculosService {
     });
     if (error) throw new Error(error.message);
   }
+
+  // ── CE12 — Especificación de combustible por vehículo ─────────────────────────
+  /** Valores resueltos (vehículo → clase → global) con el origen de cada uno. */
+  async specCombustible(vehiculoId: string): Promise<SpecCombustible> {
+    const { data, error } = await this.supabase.client.rpc('spec_combustible', { p_vehiculo: vehiculoId });
+    if (error) throw new Error(error.message);
+    return (data ?? {}) as SpecCombustible;
+  }
+
+  /** Baseline aprendido (mediana de las últimas echadas válidas) o null. */
+  async baselineSugerido(vehiculoId: string): Promise<number | null> {
+    const { data, error } = await this.supabase.client.rpc('vehiculo_baseline_sugerido', { p_vehiculo: vehiculoId });
+    if (error) throw new Error(error.message);
+    return (data as number | null) ?? null;
+  }
+
+  /** Guarda la spec del vehículo y recalcula su histórico. Devuelve nº recalculado. */
+  async guardarSpecCombustible(vehiculoId: string, spec: SpecCombustiblePayload): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('guardar_spec_combustible', {
+      p_vehiculo: vehiculoId, p_spec: spec,
+    });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
+  /** Carga masiva de specs por placa (Excel). */
+  async importarSpecs(filas: SpecImportRow[]): Promise<{ ok: number; errores: { placa: string; motivo: string }[] }> {
+    const { data, error } = await this.supabase.client.rpc('importar_specs_combustible', { p_filas: filas });
+    if (error) throw new Error(error.message);
+    return (data ?? { ok: 0, errores: [] }) as { ok: number; errores: { placa: string; motivo: string }[] };
+  }
+}
+
+/** CE12 — un valor resuelto con su procedencia. */
+export interface SpecValor {
+  valor: number | null;
+  origen: 'vehiculo' | 'clase' | 'global' | 'sin_definir';
+}
+export interface SpecCombustible {
+  unidad: 'km_gal' | 'h_gal';
+  medida_uso: 'km' | 'horas';
+  combustible_tipo: string | null;
+  esperado: SpecValor;
+  min: SpecValor;
+  max: SpecValor;
+  tolerancia_pct: SpecValor;
+  capacidad: SpecValor;
+}
+export interface SpecCombustiblePayload {
+  combustible_tipo?: string | null;
+  capacidad?: number | null;
+  esperado?: number | null;
+  min?: number | null;
+  max?: number | null;
+  tolerancia_pct?: number | null;
+}
+export interface SpecImportRow {
+  placa: string;
+  esperado?: number | null;
+  min?: number | null;
+  max?: number | null;
+  unidad?: string | null;
 }
 
 // ── AG8 — tipos de placas provisionales ───────────────────────────────────────

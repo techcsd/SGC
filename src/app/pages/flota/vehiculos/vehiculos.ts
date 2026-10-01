@@ -89,6 +89,49 @@ export class FlotaVehiculos implements OnInit {
   puedeGestionar = this.userService.esFlotaElevado;
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
+  // CE12 — carga masiva de especificación de combustible por placa (Excel).
+  importandoSpecs = signal(false);
+
+  async onImportSpecs(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || this.importandoSpecs()) return;
+    this.importandoSpecs.set(true);
+    try {
+      const XLSX = await import('xlsx');
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[wb.SheetNames[0]]);
+      const get = (r: Record<string, unknown>, ...keys: string[]) => {
+        for (const k of Object.keys(r)) {
+          const kn = k.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+          if (keys.some((kk) => kn.includes(kk))) return r[k];
+        }
+        return undefined;
+      };
+      const num = (x: unknown) => { const n = Number(x); return Number.isFinite(n) ? n : null; };
+      const filas = rows
+        .map((r) => ({
+          placa: String(get(r, 'placa', 'ficha', 'matricula') ?? '').trim(),
+          esperado: num(get(r, 'esperado', 'rendimiento')),
+          min: num(get(r, 'min')),
+          max: num(get(r, 'max')),
+          unidad: String(get(r, 'unidad') ?? '').trim() || null,
+        }))
+        .filter((f) => f.placa);
+      if (filas.length === 0) { this.toast.warning('Sin filas', 'No se encontró ninguna placa en el archivo.'); return; }
+      const res = await this.vehiculosService.importarSpecs(filas) as { ok?: number; errores?: unknown[] };
+      const ok = res.ok ?? 0;
+      const errores = res.errores ?? [];
+      this.toast.success('Rendimientos importados', `${ok} vehículo(s) actualizado(s)${errores.length ? `, ${errores.length} con error` : ''}.`);
+      await this.loadAll();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo importar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.importandoSpecs.set(false);
+      input.value = '';
+    }
+  }
 
   // ── Drawer photos ────────────────────────────────────────
   fotoPaths = signal<string[]>([]); // existing persisted photo paths

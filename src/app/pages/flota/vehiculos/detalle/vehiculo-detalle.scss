@@ -198,3 +198,33 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
   &__subtitle { margin: 12px 0 6px; font-size: 14px; }
   &__empty { margin: 6px 0 10px; color: var(--sgc-text-muted); }
 }
+
+// CE12 — formulario de especificación de combustible
+.vd-spec-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.82rem;
+    color: var(--sgc-text-muted, #929090);
+    input {
+      padding: 8px 10px;
+      border: 1px solid var(--sgc-border, #2d2d2d);
+      border-radius: 8px;
+      background: var(--sgc-surface, #161616);
+      color: var(--sgc-text, #e8e8e8);
+      font-size: 0.95rem;
+    }
+  }
+  .vd-spec-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 480px) {
+  .vd-spec-form { grid-template-columns: 1fr; }
+}

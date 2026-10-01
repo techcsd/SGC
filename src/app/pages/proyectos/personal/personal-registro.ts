@@ -44,6 +44,9 @@ export class PersonalRegistro implements OnInit {
   carnet = viewChild(PersonalCarnet);
 
   paso = signal(1);
+  // CE16 — aviso de posible duplicado por documento al registrar uno nuevo.
+  dupAviso = signal<string[]>([]);
+  dupConfirmado = signal(false);
   readonly totalPasos = 5;
 
   obras = signal<ObraRef[]>([]);
@@ -96,7 +99,8 @@ export class PersonalRegistro implements OnInit {
 
   get verifyUrl(): string {
     const p = this.personal();
-    return p ? `${window.location.origin}/proyectos/personal/${p.id}` : '';
+    // CE5 — el QR del carnet apunta a la verificación pública por número de carnet.
+    return p?.carnet_numero ? `${window.location.origin}/verificar/${p.carnet_numero}` : '';
   }
 
   fotosCompletas = computed(() => {
@@ -160,8 +164,18 @@ export class PersonalRegistro implements OnInit {
         cargo_id: v.cargo_id || null, telefono: v.telefono?.trim() || null, notas: v.notas?.trim() || null,
       };
       const actual = this.personal();
+      // CE16 — al registrar uno NUEVO: avisa si ya existe otro con el mismo documento.
+      if (!actual && !this.dupConfirmado() && payload.documento_numero) {
+        const existentes = await this.service.docExiste(payload.tipo_documento!, payload.documento_numero, undefined);
+        if (existentes.length > 0) {
+          this.dupAviso.set(existentes.map((e) => `${e.nombre} (${e.proyecto ?? 'sin obra'})`));
+          this.saving.set(false);
+          return;
+        }
+      }
       const saved = actual ? await this.service.actualizar(actual.id, payload) : await this.service.crear(payload);
       this.personal.set(saved);
+      this.dupAviso.set([]);
       this.paso.set(2);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudieron guardar los datos.');
@@ -309,6 +323,9 @@ export class PersonalRegistro implements OnInit {
       });
     } catch { return null; }
   }
+
+  // CE16 — el usuario confirma registrar pese al duplicado.
+  registrarDeTodosModos() { this.dupConfirmado.set(true); void this.guardarDatos(); }
 
   irPaso(n: number) { if (n >= 1 && n <= this.totalPasos && this.personal()) this.paso.set(n); }
   saltarFirma() { this.paso.set(4); }
