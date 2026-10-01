@@ -68,6 +68,11 @@ export interface Vehiculo {
   intervalo_mantenimiento_horas: number | null;
   // S20 — rendimiento de referencia (km/gal) para comparar contra el promedio real.
   rendimiento_esperado_km_gal: number | null;
+  // CE12 — especificación de combustible POR VEHÍCULO (unidad = medida_uso).
+  rendimiento_min_km_gal: number | null;
+  rendimiento_max_km_gal: number | null;
+  rendimiento_tolerancia_pct: number | null;
+  combustible_tipo: string | null;
   // AA19 — path de la foto de portada (fallback: fotos[0]).
   foto_portada: string | null;
   activo: boolean;
@@ -106,6 +111,11 @@ export interface VehiculoFormData {
   intervalo_mantenimiento_km: number;
   intervalo_mantenimiento_horas: number | null;
   rendimiento_esperado_km_gal: number | null;
+  // CE12 — especificación de combustible por vehículo.
+  rendimiento_min_km_gal: number | null;
+  rendimiento_max_km_gal: number | null;
+  rendimiento_tolerancia_pct: number | null;
+  combustible_tipo: string | null;
   foto_portada: string | null;
   // T2 — marca de dato de prueba (opcional; solo lo escribe un admin).
   es_prueba?: boolean;

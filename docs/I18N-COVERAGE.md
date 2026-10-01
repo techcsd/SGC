@@ -57,7 +57,7 @@
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
-| flota/combustible | - | 271 | 0 | 271 | 0% |
+| flota/combustible | - | 277 | 0 | 277 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 192 | 0 | 192 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
@@ -72,7 +72,7 @@
 | flota/rutas | - | 202 | 0 | 202 | 0% |
 | flota/rutas-activas | - | 69 | 0 | 69 | 0% |
 | flota/seguimiento | - | 43 | 0 | 43 | 0% |
-| flota/vehiculos | - | 441 | 0 | 441 | 0% |
+| flota/vehiculos | - | 463 | 0 | 463 | 0% |
 | forbidden | - | 4 | 0 | 4 | 0% |
 | incentivos | - | 226 | 0 | 226 | 0% |
 | inventario/activos | - | 117 | 0 | 117 | 0% |
@@ -121,7 +121,7 @@
 | proyectos/historial | - | 24 | 0 | 24 | 0% |
 | proyectos/kpi | - | 32 | 0 | 32 | 0% |
 | proyectos/lista | - | 321 | 0 | 321 | 0% |
-| proyectos/personal | - | 288 | 0 | 288 | 0% |
+| proyectos/personal | - | 342 | 0 | 342 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
 | rrhh/empleados | - | 220 | 0 | 220 | 0% |
@@ -146,5 +146,6 @@
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
+| verificar | - | 13 | 0 | 13 | 0% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
 | auth | - | 68 | 15 | 53 | 22% |

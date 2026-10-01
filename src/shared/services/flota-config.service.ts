@@ -49,6 +49,12 @@ export class FlotaConfigService {
   }
 
   /** Lee todas las filas una sola vez y setea los signals (ignora NaN). */
+  /** CE13 — fuerza un recargado de los umbrales (tras guardar/restaurar). */
+  async recargar(): Promise<void> {
+    this.loaded = false;
+    await this.load();
+  }
+
   async load(): Promise<void> {
     if (this.loaded) return;
     this.loaded = true;
@@ -132,10 +138,40 @@ export class FlotaConfigService {
     if (error) throw new Error(error.message);
   }
 
+  /** CE13 — guarda varios umbrales de una sola vez (una versión + un aviso a Tecnología). */
+  async guardarConfig(cambios: Record<string, number>): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('guardar_flota_config', { p_cambios: cambios });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
+  /** CE13 — historial de versiones de umbrales (admin/flota elevado). */
+  async historialUmbrales(limit = 30): Promise<FlotaConfigVersion[]> {
+    const { data, error } = await this.supabase.client.rpc('flota_config_historial_listar', { p_limit: limit });
+    if (error) throw new Error(error.message);
+    return (data as FlotaConfigVersion[]) ?? [];
+  }
+
+  /** CE13 — restaura una versión anterior de umbrales. */
+  async restaurarUmbrales(lote: string): Promise<number> {
+    const { data, error } = await this.supabase.client.rpc('restaurar_flota_config', { p_lote: lote });
+    if (error) throw new Error(error.message);
+    return (data as number) ?? 0;
+  }
+
   /** AD7 — recalcula el estado del histórico con las reglas/umbrales vigentes (admin). */
   async recalcularEstados(): Promise<number> {
     const { data, error } = await this.supabase.client.rpc('recalcular_estados_combustible');
     if (error) throw new Error(error.message);
     return (data as number) ?? 0;
   }
+}
+
+/** CE13 — una versión del historial de umbrales de combustible. */
+export interface FlotaConfigVersion {
+  lote: string;
+  cambiado_at: string;
+  cambiado_por_nombre: string | null;
+  motivo: string | null;
+  cambios: { clave: string; antes: number | null; despues: number | null }[];
 }

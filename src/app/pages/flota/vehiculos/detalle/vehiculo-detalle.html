@@ -260,6 +260,69 @@
       </div>
     </div>
 
+    <!-- ── CE12 · Especificación de combustible por vehículo (admin/flota elevado) ── -->
+    @if (esElevado() && spec(); as sp) {
+      <div class="sgc-card vd-card">
+        <div class="vd-section-head">
+          <h2 class="vd-section-title">Especificación de combustible</h2>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleSpec()">
+            {{ specOpen() ? 'Cancelar' : 'Editar' }}
+          </button>
+        </div>
+        <p class="vd-muted" style="margin:0 0 10px">
+          Cada valor viene del vehículo, de su clase o del global. El rango se usa para
+          las banderas de rendimiento ({{ unidadSpec() }}).
+        </p>
+
+        @if (!specOpen()) {
+          <dl class="vd-venc">
+            <div><dt>Tipo</dt><dd>{{ sp.combustible_tipo || '—' }}</dd></div>
+            <div><dt>Capacidad de tanque</dt><dd>
+              {{ sp.capacidad.valor != null ? (sp.capacidad.valor | number:'1.0-0') + ' gal' : '—' }}
+              <span class="sgc-badge sgc-badge--neutral">{{ sp.capacidad.origen }}</span></dd></div>
+            <div><dt>Rendimiento esperado</dt><dd>
+              {{ sp.esperado.valor != null ? (sp.esperado.valor | number:'1.0-1') + ' ' + unidadSpec() : 'sin definir' }}
+              <span class="sgc-badge sgc-badge--neutral">{{ sp.esperado.origen }}</span></dd></div>
+            <div><dt>Mínimo coherente</dt><dd>
+              {{ sp.min.valor | number:'1.0-2' }} {{ unidadSpec() }}
+              <span class="sgc-badge sgc-badge--neutral">{{ sp.min.origen }}</span></dd></div>
+            <div><dt>Máximo coherente</dt><dd>
+              {{ sp.max.valor | number:'1.0-2' }} {{ unidadSpec() }}
+              <span class="sgc-badge sgc-badge--neutral">{{ sp.max.origen }}</span></dd></div>
+            <div><dt>Tolerancia</dt><dd>
+              {{ sp.tolerancia_pct.valor | number:'1.0-0' }}%
+              <span class="sgc-badge sgc-badge--neutral">{{ sp.tolerancia_pct.origen }}</span></dd></div>
+          </dl>
+        } @else {
+          <form class="vd-spec-form" [formGroup]="specForm" (ngSubmit)="guardarSpec()">
+            <label>Tipo de combustible
+              <input type="text" formControlName="combustible_tipo" placeholder="gasolina / gasoil…" /></label>
+            <label>Capacidad de tanque (gal)
+              <input type="number" step="0.1" formControlName="capacidad" /></label>
+            <label>Rendimiento esperado ({{ unidadSpec() }})
+              <input type="number" step="0.1" formControlName="esperado" /></label>
+            @if (baselineSpec() != null) {
+              <p class="vd-muted" style="grid-column:1/-1;margin:2px 0">
+                Baseline aprendido: <strong>{{ baselineSpec() | number:'1.0-2' }} {{ unidadSpec() }}</strong>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarBaseline()">Usar este valor</button>
+              </p>
+            }
+            <label>Mínimo coherente ({{ unidadSpec() }})
+              <input type="number" step="0.1" formControlName="min" /></label>
+            <label>Máximo coherente ({{ unidadSpec() }})
+              <input type="number" step="0.1" formControlName="max" /></label>
+            <label>Tolerancia (%)
+              <input type="number" step="1" formControlName="tolerancia_pct" /></label>
+            <div class="vd-spec-actions">
+              <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="savingSpec()">
+                {{ savingSpec() ? 'Guardando…' : 'Guardar y recalcular' }}
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    }
+
     <!-- ── 3. Matrícula y seguro (V2) ── -->
     <div class="sgc-card vd-card">
       <h2 class="vd-section-title">Matrícula y seguro</h2>

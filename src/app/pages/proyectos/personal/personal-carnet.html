@@ -11,7 +11,7 @@
       @if (fotoDataUrl()) {
         <img class="carnet__foto" [src]="fotoDataUrl()" alt="Foto" />
       } @else {
-        <div class="carnet__foto carnet__foto--empty">Sin foto</div>
+        <div class="carnet__foto carnet__foto--ini">{{ iniciales(p) }}</div>
       }
       <div class="carnet__info">
         <div class="carnet__nom">{{ p.nombre }} {{ p.apellido }}</div>

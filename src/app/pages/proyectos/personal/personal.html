@@ -4,6 +4,12 @@
     <p class="page-subtitle">Registro del personal que trabaja en las obras: expediente, evidencia y carnet.</p>
   </div>
   <div class="page-header__actions">
+    @if (esLegalOAdmin()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirDuplicados()">Posibles duplicados</button>
+    }
+    @if (esAdmin()) {
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirPapelera()">Papelera</button>
+    }
     <a class="sgc-btn sgc-btn--secondary" routerLink="/proyectos/personal/importar">Importar Excel</a>
     <button type="button" class="sgc-btn sgc-btn--primary" (click)="registrar()">+ Registrar personal</button>
   </div>
@@ -34,13 +40,34 @@
 @if (loading()) {
   <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
 } @else {
-  <!-- AY6 — contadores de resumen -->
+  <!-- CE1 — contadores útiles al ingeniero (sin carnet / sin asegurar / sin contrato) -->
   <div class="pob-tiles">
     <div class="pob-tile"><span class="pob-tile__num">{{ totalVisibles() }}</span><span class="pob-tile__lbl">En la vista</span></div>
-    <div class="pob-tile"><span class="pob-tile__num">{{ importados() }}</span><span class="pob-tile__lbl">Importados</span></div>
-    <div class="pob-tile"><span class="pob-tile__num">{{ manuales() }}</span><span class="pob-tile__lbl">Manuales</span></div>
-    <div class="pob-tile"><span class="pob-tile__num">{{ obrasDistintas() }}</span><span class="pob-tile__lbl">Obras</span></div>
+    <div class="pob-tile" [class.pob-tile--warn]="sinCarnet() > 0"><span class="pob-tile__num">{{ sinCarnet() }}</span><span class="pob-tile__lbl">Sin carnet</span></div>
+    <div class="pob-tile" [class.pob-tile--warn]="sinAsegurar() > 0"><span class="pob-tile__num">{{ sinAsegurar() }}</span><span class="pob-tile__lbl">Sin asegurar</span></div>
+    <div class="pob-tile" [class.pob-tile--warn]="sinContrato() > 0"><span class="pob-tile__num">{{ sinContrato() }}</span><span class="pob-tile__lbl">Sin contrato</span></div>
   </div>
+
+  <!-- CE1 — "Mi personal hoy": pendientes de tu obra con acción rápida -->
+  @if (miPersonalHoy().length > 0) {
+    <section class="sgc-card pob-hoy">
+      <h3 class="pob-hoy__title">Mi personal hoy — {{ miPersonalHoy().length }} con pendientes</h3>
+      <p class="pob-hoy__hint">Sin carnet, sin asegurar, sin contrato firmado o sin foto.</p>
+      <ul class="pob-hoy__list">
+        @for (p of miPersonalHoy().slice(0, 8); track p.id) {
+          <li class="pob-hoy__row" (click)="abrir(p)">
+            <span class="pob-hoy__nombre">{{ p.nombre }} {{ p.apellido }}</span>
+            <span class="pob-hoy__chips">
+              @if (!p.carnet_numero) { <span class="sgc-badge sgc-badge--warning">Sin carnet</span> }
+              @if (p.aseguramiento_estado !== 'asegurado') { <span class="sgc-badge sgc-badge--warning">Sin asegurar</span> }
+              @if (!p.tiene_contrato) { <span class="sgc-badge sgc-badge--warning">Sin contrato</span> }
+              @if (!p.tiene_foto_persona) { <span class="sgc-badge sgc-badge--warning">Sin foto</span> }
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
 
   <!-- BO6 / regla 8 — el aviso de ocultos sale SIEMPRE que haya registros de
        prueba escondidos, no sólo cuando la lista queda vacía. Antes, con otros
@@ -111,8 +138,8 @@
                   } @else {
                     <span class="sgc-badge sgc-badge--neutral">Manual</span>
                   }
-                  <div class="pob-reg">{{ p.registrador?.nombre ?? '—' }}</div>
-                  <div class="text-muted pob-reg-fecha">{{ formatFecha(p.created_at) }}</div>
+                  <div class="pob-reg">{{ p.registrado_por_nombre ?? p.registrador?.nombre ?? '—' }}</div>
+                  <div class="text-muted pob-reg-fecha">{{ formatFechaHora(p.created_at) }}</div>
                 </td>
                 <td>
                   @switch (p.aseguramiento_estado) {
@@ -124,6 +151,10 @@
                 <td>
                   @if (p.carnet_numero) { <span class="sgc-badge sgc-badge--success">{{ p.carnet_numero }}</span> }
                   @else { <span class="text-muted">Sin carnet</span> }
+                  <!-- CE4 — aviso de foto faltante -->
+                  @if (p.tiene_foto_persona === false) {
+                    <span class="sgc-badge sgc-badge--warning" title="Falta la foto de la persona">Falta foto</span>
+                  }
                 </td>
                 <td>
                   @if (p.estado === 'activo') { <span class="sgc-badge sgc-badge--success">Activo</span> }
@@ -136,4 +167,72 @@
       </div>
     </div>
   }
+}
+
+<!-- CE16 — Posibles duplicados -->
+@if (dupOpen()) {
+  <div class="pob-docmodal" (click)="dupOpen.set(false)">
+    <div class="pob-docmodal__box pob-dup" (click)="$event.stopPropagation()">
+      <div class="pob-docmodal__head">
+        <h3>Posibles duplicados</h3>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="dupOpen.set(false)">Cerrar</button>
+      </div>
+      <div class="pob-docmodal__body">
+        @if (dupBusy()) { <p class="text-muted">Buscando…</p> }
+        @else if (duplicados().length === 0) { <p class="text-muted">No se encontraron duplicados por documento.</p> }
+        @else {
+          @for (g of duplicados(); track g.documento) {
+            <div class="pob-dup__grupo">
+              <div class="pob-dup__doc">Documento: <strong>{{ g.documento }}</strong></div>
+              @for (r of g.registros; track r.id; let i = $index) {
+                <div class="pob-dup__reg">
+                  <div class="pob-dup__info">
+                    <strong>{{ r.nombre }}</strong>
+                    <span class="text-muted">{{ r.documento_numero }} · {{ r.proyecto ?? '—' }}</span>
+                    <span class="text-muted">{{ r.importado ? 'Import' : 'Manual' }} · {{ r.fotos }} foto(s) · {{ r.firmas }} firma(s)</span>
+                  </div>
+                  @if (i > 0) {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="dupBusy()"
+                            (click)="fusionar(g.registros[0].id, r.id)"
+                            title="Conservar el primero y fusionar este en él">
+                      Fusionar en el primero
+                    </button>
+                  } @else {
+                    <span class="sgc-badge sgc-badge--success">Se conserva</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- CE9 — Papelera (admin) -->
+@if (papeleraOpen()) {
+  <div class="pob-docmodal" (click)="papeleraOpen.set(false)">
+    <div class="pob-docmodal__box pob-dup" (click)="$event.stopPropagation()">
+      <div class="pob-docmodal__head">
+        <h3>Papelera (30 días)</h3>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="papeleraOpen.set(false)">Cerrar</button>
+      </div>
+      <div class="pob-docmodal__body">
+        @if (papelera().length === 0) { <p class="text-muted">La papelera está vacía.</p> }
+        @else {
+          @for (r of papelera(); track r.id) {
+            <div class="pob-dup__reg">
+              <div class="pob-dup__info">
+                <strong>{{ r.nombre }}</strong>
+                <span class="text-muted">{{ r.proyecto ?? '—' }} · eliminado {{ formatFechaHora(r.eliminado_at) }}</span>
+                @if (r.eliminado_motivo) { <span class="text-muted">{{ r.eliminado_motivo }}</span> }
+              </div>
+              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(r.id)">Restaurar</button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
 }

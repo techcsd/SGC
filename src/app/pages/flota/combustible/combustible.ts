@@ -19,7 +19,7 @@ import { VehiculosService } from '../../../../shared/services/vehiculos.service'
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { ConductoresService } from '../../../../shared/services/conductores.service';
-import { FlotaConfigService } from '../../../../shared/services/flota-config.service';
+import { FlotaConfigService, type FlotaConfigVersion } from '../../../../shared/services/flota-config.service';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
@@ -40,7 +40,7 @@ import { Conductor } from '../../../../shared/models/conductor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
-import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { IconName } from '../../../../shared/ui/icon/icons';
@@ -238,9 +238,10 @@ export class Combustible implements OnInit {
     }
   }
 
-  // ── AD7 — panel de umbrales (admin, Hard-rule #2) ─────────
+  // ── AD7/CE13 — panel de umbrales (admin o flota elevado) ─────────
   configPanelOpen = signal(false);
   savingConfig = signal(false);
+  umbralHistorial = signal<FlotaConfigVersion[]>([]);
   configForm = new FormGroup({
     dist_min_km: new FormControl(50, [Validators.required, Validators.min(1)]),
     rendimiento_minimo_km_gal: new FormControl(10, [Validators.required, Validators.min(0.01)]),
@@ -262,7 +263,13 @@ export class Combustible implements OnInit {
     const open = !this.configPanelOpen();
     this.configPanelOpen.set(open);
     if (open) {
-      this.configForm.reset({
+      this.resetConfigForm();
+      void this.cargarHistorialUmbrales();
+    }
+  }
+
+  private resetConfigForm() {
+    this.configForm.reset({
         dist_min_km: this.flotaConfig.distMinKm(),
         rendimiento_minimo_km_gal: this.flotaConfig.rendimientoMinimoKmGal(),
         rendimiento_maximo_km_gal: this.flotaConfig.rendimientoMaximoKmGal(),
@@ -277,6 +284,35 @@ export class Combustible implements OnInit {
         precio_gal_min: this.flotaConfig.precioGalMin(),
         precio_gal_max: this.flotaConfig.precioGalMax(),
       });
+  }
+
+  // CE13 — historial de versiones de umbrales + restaurar.
+  async cargarHistorialUmbrales() {
+    try {
+      this.umbralHistorial.set(await this.flotaConfig.historialUmbrales(20));
+    } catch {
+      this.umbralHistorial.set([]);
+    }
+  }
+
+  formatFechaHora(ts: string): string {
+    return formatFechaHoraDisplay(ts);
+  }
+
+  async restaurarUmbral(lote: string) {
+    if (this.savingConfig()) return;
+    this.savingConfig.set(true);
+    try {
+      const n = await this.flotaConfig.restaurarUmbrales(lote);
+      await this.flotaConfig.recargar();
+      this.resetConfigForm();
+      await this.cargarHistorialUmbrales();
+      this.toast.success('Versión restaurada', `Se restauraron ${n} umbral(es).`);
+      await this.loadAll();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo restaurar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.savingConfig.set(false);
     }
   }
 
@@ -300,7 +336,8 @@ export class Combustible implements OnInit {
         ['precio_gal_min', v.precio_gal_min!],
         ['precio_gal_max', v.precio_gal_max!],
       ];
-      for (const [k, val] of entries) await this.flotaConfig.setConfig(k, val);
+      // CE13 — una sola llamada: una versión en el historial + un aviso a Tecnología.
+      await this.flotaConfig.guardarConfig(Object.fromEntries(entries));
       // Refleja en los signals + recalcula el histórico con los nuevos umbrales.
       this.flotaConfig.distMinKm.set(v.dist_min_km!);
       this.flotaConfig.rendimientoMinimoKmGal.set(v.rendimiento_minimo_km_gal!);

@@ -31,9 +31,14 @@ export function todayIso(): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Formats a `YYYY-MM-DD` string for display, e.g. `2026-07-02` → `02/07/2026`. */
+/** Formats a `YYYY-MM-DD` string for display, e.g. `2026-07-02` → `02/07/2026`.
+ * CE11 — defensive: if a full ISO timestamp (carries `T`) is passed by mistake, delegate to
+ * formatTimestampDisplay instead of splitting on `-` and producing garbage like
+ * `31T17:21:11.058+00:00/08/2026`. The correct fix is still to call the timestamp-aware
+ * formatter directly, but this guard prevents raw timestamps leaking into the UI. */
 export function formatFechaDisplay(fecha: string | null | undefined): string {
   if (!fecha) return '—';
+  if (fecha.includes('T')) return formatTimestampDisplay(fecha);
   const [y, m, d] = fecha.split('-');
   if (!y || !m || !d) return fecha;
   return `${d}/${m}/${y}`;

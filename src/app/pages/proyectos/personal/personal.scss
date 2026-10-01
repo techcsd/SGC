@@ -102,3 +102,33 @@
   &__title { font-size: 1rem; font-weight: 600; color: #f0f0f0; margin: 0; }
   &__hint { margin: 0 0 8px; max-width: 380px; font-size: 0.85rem; }
 }
+
+// CE1 — tile de alerta cuando hay pendientes.
+.pob-tile--warn { border-color: var(--Hub, #ffb300); }
+
+// CE1 — "Mi personal hoy".
+.pob-hoy {
+  margin-bottom: 16px;
+  &__title { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
+  &__hint { font-size: 12px; color: var(--main-ultra-light, #929090); margin: 0 0 10px; }
+  &__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  &__row {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 8px 10px; border: 1px solid var(--border, #2d2d2d); border-radius: 10px; cursor: pointer;
+    transition: all .15s ease;
+    &:hover { border-color: var(--Hub, #ffb300); }
+  }
+  &__nombre { font-weight: 600; }
+  &__chips { display: flex; gap: 4px; flex-wrap: wrap; }
+}
+
+// CE16/CE9 — modal de duplicados / papelera.
+.pob-dup {
+  &__grupo { border: 1px solid var(--border, #2d2d2d); border-radius: 12px; padding: 10px; margin-bottom: 12px; }
+  &__doc { font-size: 13px; margin-bottom: 8px; }
+  &__reg {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 8px 0; border-top: 1px solid #222;
+  }
+  &__info { display: flex; flex-direction: column; gap: 2px; font-size: 13px; min-width: 0; }
+}

@@ -5,12 +5,23 @@ import { PersonalObraService } from '../../../../shared/services/personal-obra.s
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { Cargo, PersonalObra, NACIONALIDAD_LABEL } from '../../../../shared/models/personal-obra.model';
+import { Cargo, DuplicadoGrupo, PersonalObra, NACIONALIDAD_LABEL } from '../../../../shared/models/personal-obra.model';
+import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../../shared/services/toast.service';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
-import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
 import { TelemetryService } from '../../../../shared/services/telemetry.service';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { Icon } from '../../../../shared/ui/icon/icon';
+
+interface PapeleraRow {
+  id: string;
+  nombre: string;
+  proyecto: string | null;
+  eliminado_at: string;
+  eliminado_por: string | null;
+  eliminado_motivo: string | null;
+}
 
 /** BO6 — normaliza para búsqueda: minúsculas, sin acentos (NFD), espacios colapsados. */
 function norm(s: string | null | undefined): string {
@@ -31,8 +42,28 @@ export class PersonalObraLista implements OnInit {
   private datosPrueba = inject(DatosPruebaViewService);
   private telemetry = inject(TelemetryService);
   private router = inject(Router);
+  private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
+  esAdmin = computed(() => this.userService.hasRole('admin'));
+  esLegalOAdmin = computed(() => this.esAdmin() || this.userService.hasRole('legal') || this.userService.hasRole('abogado'));
+
+  // CE16 — panel de posibles duplicados.
+  dupOpen = signal(false);
+  duplicados = signal<DuplicadoGrupo[]>([]);
+  dupBusy = signal(false);
+
+  // CE9 — papelera (admin).
+  papeleraOpen = signal(false);
+  papelera = signal<PapeleraRow[]>([]);
+
+  // CE1 — "Mi personal hoy": pendientes de la obra del ingeniero (sin carnet/asegurar/contrato/foto).
+  miPersonalHoy = computed(() =>
+    this.datosPrueba.visibles(this.personal()).filter(
+      (p) => p.estado === 'activo' && (!p.carnet_numero || p.aseguramiento_estado !== 'asegurado' || !p.tiene_contrato || !p.tiene_foto_persona),
+    ),
+  );
 
   personal = signal<PersonalObra[]>([]);
   obras = signal<ObraRef[]>([]);
@@ -107,10 +138,15 @@ export class PersonalObraLista implements OnInit {
   // AY6/BL5 — contadores para los tiles de resumen. Se quita "Activos" (redundante
   // con "En la vista" bajo el filtro por defecto) y se añade procedencia.
   formatFecha = formatFechaDisplay;
+  formatFechaHora = formatFechaHoraDisplay; // CE11 — timestamps (created_at) con fecha y hora
   totalVisibles = computed(() => this.filtrados().length);
   obrasDistintas = computed(() => new Set(this.filtrados().map((p) => p.proyecto_id).filter(Boolean)).size);
   importados = computed(() => this.filtrados().filter((p) => !!p.lote_import).length);
   manuales = computed(() => this.filtrados().filter((p) => !p.lote_import).length);
+  // CE1 — contadores útiles al ingeniero (sobre lo filtrado/activo).
+  sinCarnet = computed(() => this.filtrados().filter((p) => !p.carnet_numero).length);
+  sinAsegurar = computed(() => this.filtrados().filter((p) => p.aseguramiento_estado !== 'asegurado').length);
+  sinContrato = computed(() => this.filtrados().filter((p) => !p.tiene_contrato).length);
 
   // AZ3 — vacío ≠ oculto ≠ error: el estado vacío debe decir la verdad.
   // Cuántos registros existen pero están ocultos SOLO por el filtro de datos de prueba.
@@ -178,5 +214,60 @@ export class PersonalObraLista implements OnInit {
 
   abrir(p: PersonalObra) {
     this.router.navigate(['/proyectos/personal', p.id]);
+  }
+
+  // ── CE16 — posibles duplicados ──────────────────────────────────────────────
+  async abrirDuplicados() {
+    this.dupOpen.set(true);
+    this.dupBusy.set(true);
+    try {
+      this.duplicados.set(await this.service.duplicados());
+    } catch (e: unknown) {
+      this.toast.error('No se pudieron cargar los duplicados', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.dupBusy.set(false);
+    }
+  }
+
+  async fusionar(keep: string, drop: string) {
+    if (this.dupBusy()) return;
+    this.dupBusy.set(true);
+    try {
+      await this.service.fusionar(keep, drop, 'Fusión de duplicados desde la lista');
+      this.toast.success('Registros fusionados', 'Se conservaron las fotos y firmas de ambos.');
+      this.duplicados.set(await this.service.duplicados());
+      await this.recargar();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo fusionar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.dupBusy.set(false);
+    }
+  }
+
+  // ── CE9 — papelera (admin) ──────────────────────────────────────────────────
+  async abrirPapelera() {
+    this.papeleraOpen.set(true);
+    try {
+      this.papelera.set((await this.service.papelera()) as PapeleraRow[]);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cargar la papelera', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  async restaurar(id: string) {
+    try {
+      await this.service.restaurar(id);
+      this.toast.success('Registro restaurado');
+      this.papelera.set((await this.service.papelera()) as PapeleraRow[]);
+      await this.recargar();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo restaurar', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  private async recargar() {
+    try {
+      this.personal.set(await this.service.listar());
+    } catch { /* el error ya se muestra en carga inicial */ }
   }
 }

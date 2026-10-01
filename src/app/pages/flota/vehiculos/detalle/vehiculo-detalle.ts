@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion, VehiculoPlacaPP, VehiculoPlacaPPExtension } from '../../../../../shared/services/vehiculos.service';
+import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion, VehiculoPlacaPP, VehiculoPlacaPPExtension, type SpecCombustible } from '../../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../../shared/services/conductores.service';
 import { ChecklistsVehiculoService } from '../../../../../shared/services/checklists-vehiculo.service';
 import { MantenimientosService } from '../../../../../shared/services/mantenimientos.service';
@@ -107,6 +107,20 @@ export class VehiculoDetalle implements OnInit {
 
   vehiculo = signal<Vehiculo | null>(null);
   stats = signal<VehiculoStats | null>(null);
+  // CE12 — especificación de combustible por vehículo.
+  spec = signal<SpecCombustible | null>(null);
+  baselineSpec = signal<number | null>(null);
+  specOpen = signal(false);
+  savingSpec = signal(false);
+  specForm = this.fb.group({
+    combustible_tipo: this.fb.control<string | null>(null),
+    capacidad: this.fb.control<number | null>(null),
+    esperado: this.fb.control<number | null>(null),
+    min: this.fb.control<number | null>(null),
+    max: this.fb.control<number | null>(null),
+    tolerancia_pct: this.fb.control<number | null>(null),
+  });
+  unidadSpec = computed(() => (this.spec()?.unidad === 'h_gal' ? 'h/gal' : 'km/gal'));
   asignaciones = signal<VehiculoAsignacion[]>([]);
   checklists = signal<ChecklistVehiculo[]>([]);
   mantenimientos = signal<Mantenimiento[]>([]);
@@ -257,6 +271,60 @@ export class VehiculoDetalle implements OnInit {
     origen: ['desconocido' as DanoOrigen, Validators.required],
   });
 
+  // ── CE12 — especificación de combustible ───────────────────────────────────
+  async cargarSpec() {
+    if (!this.vehiculoId) return;
+    try {
+      const [spec, base] = await Promise.all([
+        this.vehiculosService.specCombustible(this.vehiculoId),
+        this.vehiculosService.baselineSugerido(this.vehiculoId),
+      ]);
+      this.spec.set(spec);
+      this.baselineSpec.set(base);
+    } catch {
+      this.spec.set(null);
+    }
+  }
+
+  toggleSpec() {
+    const open = !this.specOpen();
+    this.specOpen.set(open);
+    if (open) {
+      const v = this.vehiculo();
+      this.specForm.reset({
+        combustible_tipo: v?.combustible_tipo ?? null,
+        capacidad: v?.capacidad_tanque_gal ?? null,
+        esperado: v?.rendimiento_esperado_km_gal ?? null,
+        min: v?.rendimiento_min_km_gal ?? null,
+        max: v?.rendimiento_max_km_gal ?? null,
+        tolerancia_pct: v?.rendimiento_tolerancia_pct ?? null,
+      });
+    }
+  }
+
+  usarBaseline() {
+    const b = this.baselineSpec();
+    if (b != null) this.specForm.controls.esperado.setValue(b);
+  }
+
+  async guardarSpec() {
+    if (!this.vehiculoId || this.savingSpec()) return;
+    this.savingSpec.set(true);
+    try {
+      const n = await this.vehiculosService.guardarSpecCombustible(this.vehiculoId, this.specForm.value);
+      // Refresca la ficha + la spec resuelta.
+      const v = await this.vehiculosService.getById(this.vehiculoId);
+      this.vehiculo.set(v);
+      await this.cargarSpec();
+      this.specOpen.set(false);
+      this.toast.success('Especificación guardada', `Se recalcularon ${n} echadas de este vehículo.`);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.savingSpec.set(false);
+    }
+  }
+
   async ngOnInit() {
     if (!this.vehiculoId) {
       this.loading.set(false);
@@ -296,6 +364,8 @@ export class VehiculoDetalle implements OnInit {
       this.cargarLlaves();
       // AG8 — placa provisional (best-effort).
       this.cargarPlacaPP();
+      // CE12 — especificación de combustible (best-effort).
+      void this.cargarSpec();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el vehículo.');
     } finally {
