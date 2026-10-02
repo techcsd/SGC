@@ -82,6 +82,7 @@
   display: flex; flex-direction: column; gap: 14px;
   &__metodo { display: flex; gap: 18px; flex-wrap: wrap;
     label { display: flex; align-items: center; gap: 6px; cursor: pointer; } }
+  &__frec { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 }
 
 // AV4 — bloque de aseguramiento

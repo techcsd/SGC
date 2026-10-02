@@ -19,6 +19,7 @@ import {
   AseguramientoEstado,
 } from '../../../../shared/models/personal-obra.model';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { EmpresaService, TestigoFrecuente } from '../../../../shared/services/empresa.service';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { UserService } from '../../../core/services/user.service';
 
@@ -35,6 +36,9 @@ export class PersonalExpediente implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private userService = inject(UserService);
+  private empresaSvc = inject(EmpresaService);
+  testigosFrecuentes = signal<TestigoFrecuente[]>([]); // CF7 — quick-pick al firmar testigos
+  usarTestigo(t: TestigoFrecuente) { this.firmanteNombre.set(t.nombre); this.firmanteCedula.set(t.cedula); }
 
   readonly fotosGuia = FOTOS_GUIA;
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
@@ -294,6 +298,10 @@ export class PersonalExpediente implements OnInit {
     this.firmanteCedula.set('');
     this.firmarFile.set(null);
     this.firmarError.set('');
+    // CF7 — carga perezosa de los testigos frecuentes (quick-pick).
+    if (this.esTestigo(rol) && !this.testigosFrecuentes().length) {
+      void this.empresaSvc.get().then((e) => this.testigosFrecuentes.set(e?.testigos_frecuentes ?? [])).catch(() => {});
+    }
   }
   cerrarFirmarLinea() { this.firmarCtx.set(null); }
 
