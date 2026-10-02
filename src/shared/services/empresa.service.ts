@@ -8,6 +8,7 @@ export interface Empresa {
   nombre_comercial: string | null;
   rnc: string | null;
   representante: string | null; // AZ1 — representante legal (fuente de {{representante_empresa}})
+  gerente_general: string | null; // CF7 — gerente general (contrato)
   direccion: string | null;
   ciudad: string | null;
   pais: string | null;

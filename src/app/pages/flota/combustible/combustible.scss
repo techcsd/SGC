@@ -275,3 +275,16 @@ textarea { resize: vertical; min-height: 72px; }
 }
 .cmb-borrador__txt em { color: var(--text-2); font-style: italic; }
 .cmb-borrador__acc { display: flex; gap: 6px; flex-shrink: 0; }
+
+// CF4 — lectura automática del recibo.
+.lectura-banner {
+  display: flex; align-items: center; gap: 8px; margin: 4px 0 12px;
+  padding: 9px 12px; border-radius: 10px; font-size: 13px;
+  background: var(--sgc-surface-2); border: 1px solid var(--sgc-border);
+  &--ok { border-color: var(--brand, #2e75b6); }
+  &--muted { color: var(--sgc-text-muted); }
+}
+.lectura-sug {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; font-size: 12.5px;
+  &__chip { padding: 2px 10px; border-radius: 999px; background: var(--sgc-surface-2); border: 1px solid var(--sgc-border); }
+}

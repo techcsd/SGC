@@ -528,6 +528,25 @@
       </div>
     </div>
 
+    <!-- CF4 — lectura automática del recibo -->
+    @if (leyendoRecibo()) {
+      <div class="lectura-banner"><span class="spinner" aria-hidden="true"></span> Leyendo el recibo…</div>
+    } @else if (leidoCampos().length) {
+      <div class="lectura-banner lectura-banner--ok">
+        <strong>Leído del recibo:</strong> {{ leidoCampos().join(' · ') }}. Revisa y confirma antes de guardar.
+      </div>
+    } @else if (lecturaError()) {
+      <div class="lectura-banner lectura-banner--muted">{{ lecturaError() }} Escribe los datos a mano.</div>
+    }
+    @if (lecturaSugerencias().length) {
+      <div class="lectura-sug">
+        <span class="text-muted">Sugerencias (confirma tú, confianza baja):</span>
+        @for (s of lecturaSugerencias(); track s.campo) {
+          <span class="lectura-sug__chip">{{ s.etiqueta }}: {{ s.valor }}</span>
+        }
+      </div>
+    }
+
     <div class="form-row">
       @if (!esDepositoObra()) {
         <div class="sgc-field">

@@ -40,21 +40,36 @@
 @if (loading()) {
   <div class="sgc-card"><app-skeleton variant="list" [rows]="6" /></div>
 } @else {
-  <!-- CE1 — contadores útiles al ingeniero (sin carnet / sin asegurar / sin contrato) -->
+  <!-- CF2 — KPI navy clicables como filtro rápido (punto de color solo si hay pendientes) -->
   <div class="pob-tiles">
-    <div class="pob-tile"><span class="pob-tile__num">{{ totalVisibles() }}</span><span class="pob-tile__lbl">En la vista</span></div>
-    <div class="pob-tile" [class.pob-tile--warn]="sinCarnet() > 0"><span class="pob-tile__num">{{ sinCarnet() }}</span><span class="pob-tile__lbl">Sin carnet</span></div>
-    <div class="pob-tile" [class.pob-tile--warn]="sinAsegurar() > 0"><span class="pob-tile__num">{{ sinAsegurar() }}</span><span class="pob-tile__lbl">Sin asegurar</span></div>
-    <div class="pob-tile" [class.pob-tile--warn]="sinContrato() > 0"><span class="pob-tile__num">{{ sinContrato() }}</span><span class="pob-tile__lbl">Sin contrato</span></div>
+    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === ''" (click)="filPendiente.set('')">
+      <span class="pob-tile__num">{{ totalVisibles() }}</span><span class="pob-tile__lbl">En la vista</span>
+    </button>
+    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_carnet'" [class.pob-tile--pend]="sinCarnet() > 0" (click)="setPendiente('sin_carnet')">
+      <span class="pob-tile__num">{{ sinCarnet() }}</span><span class="pob-tile__lbl">Sin carnet</span>
+    </button>
+    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_asegurar'" [class.pob-tile--pend]="sinAsegurar() > 0" (click)="setPendiente('sin_asegurar')">
+      <span class="pob-tile__num">{{ sinAsegurar() }}</span><span class="pob-tile__lbl">Sin asegurar</span>
+    </button>
+    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_contrato'" [class.pob-tile--pend]="sinContrato() > 0" (click)="setPendiente('sin_contrato')">
+      <span class="pob-tile__num">{{ sinContrato() }}</span><span class="pob-tile__lbl">Sin contrato</span>
+    </button>
+    <button type="button" class="pob-tile" [class.pob-tile--on]="filPendiente() === 'sin_foto'" [class.pob-tile--pend]="sinFoto() > 0" (click)="setPendiente('sin_foto')">
+      <span class="pob-tile__num">{{ sinFoto() }}</span><span class="pob-tile__lbl">Sin foto</span>
+    </button>
   </div>
 
-  <!-- CE1 — "Mi personal hoy": pendientes de tu obra con acción rápida -->
+  <!-- CF2 — Pendientes del personal: plegable (5 + ver todos), por tipo con acciones -->
   @if (miPersonalHoy().length > 0) {
     <section class="sgc-card pob-hoy">
-      <h3 class="pob-hoy__title">Mi personal hoy — {{ miPersonalHoy().length }} con pendientes</h3>
-      <p class="pob-hoy__hint">Sin carnet, sin asegurar, sin contrato firmado o sin foto.</p>
+      <div class="pob-hoy__head">
+        <div>
+          <h3 class="pob-hoy__title">{{ hoyTitulo() }}</h3>
+          <p class="pob-hoy__hint">{{ miPersonalHoy().length }} con pendientes · sin carnet, sin asegurar, sin contrato o sin foto.</p>
+        </div>
+      </div>
       <ul class="pob-hoy__list">
-        @for (p of miPersonalHoy().slice(0, 8); track p.id) {
+        @for (p of hoyVisibles(); track p.id) {
           <li class="pob-hoy__row" (click)="abrir(p)">
             <span class="pob-hoy__nombre">{{ p.nombre }} {{ p.apellido }}</span>
             <span class="pob-hoy__chips">
@@ -66,6 +81,11 @@
           </li>
         }
       </ul>
+      @if (miPersonalHoy().length > HOY_PREVIEW) {
+        <button type="button" class="pob-hoy__more" (click)="hoyOpen.set(!hoyOpen())">
+          {{ hoyOpen() ? 'Ver menos' : 'Ver los ' + miPersonalHoy().length }}
+        </button>
+      }
     </section>
   }
 
@@ -125,7 +145,7 @@
                   @if (p.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
                 </td>
                 <td>
-                  @if (p.cargo?.nombre) { <span class="pob-chip pob-chip--cargo">{{ p.cargo?.nombre }}</span> }
+                  @if (p.cargo?.nombre) { <span class="pob-chip pob-chip--cargo" [title]="p.cargo?.nombre">{{ p.cargo?.nombre }}</span> }
                   @else { <span class="text-muted">—</span> }
                 </td>
                 <td><span class="pob-chip pob-chip--nac pob-chip--nac-{{ p.nacionalidad }}">{{ nacionalidadLabel[p.nacionalidad] ?? p.nacionalidad }}</span></td>
@@ -143,9 +163,9 @@
                 </td>
                 <td>
                   @switch (p.aseguramiento_estado) {
-                    @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Asegurado</span> }
+                    @case ('asegurado') { <span class="sgc-badge sgc-badge--success">Sí</span> }
                     @case ('no_asegurado') { <span class="sgc-badge sgc-badge--danger">No</span> }
-                    @default { <span class="text-muted">—</span> }
+                    @default { <span class="sgc-badge sgc-badge--neutral">Sin dato</span> }
                   }
                 </td>
                 <td>
@@ -169,70 +189,54 @@
   }
 }
 
-<!-- CE16 — Posibles duplicados -->
-@if (dupOpen()) {
-  <div class="pob-docmodal" (click)="dupOpen.set(false)">
-    <div class="pob-docmodal__box pob-dup" (click)="$event.stopPropagation()">
-      <div class="pob-docmodal__head">
-        <h3>Posibles duplicados</h3>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="dupOpen.set(false)">Cerrar</button>
-      </div>
-      <div class="pob-docmodal__body">
-        @if (dupBusy()) { <p class="text-muted">Buscando…</p> }
-        @else if (duplicados().length === 0) { <p class="text-muted">No se encontraron duplicados por documento.</p> }
-        @else {
-          @for (g of duplicados(); track g.documento) {
-            <div class="pob-dup__grupo">
-              <div class="pob-dup__doc">Documento: <strong>{{ g.documento }}</strong></div>
-              @for (r of g.registros; track r.id; let i = $index) {
-                <div class="pob-dup__reg">
-                  <div class="pob-dup__info">
-                    <strong>{{ r.nombre }}</strong>
-                    <span class="text-muted">{{ r.documento_numero }} · {{ r.proyecto ?? '—' }}</span>
-                    <span class="text-muted">{{ r.importado ? 'Import' : 'Manual' }} · {{ r.fotos }} foto(s) · {{ r.firmas }} firma(s)</span>
-                  </div>
-                  @if (i > 0) {
-                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="dupBusy()"
-                            (click)="fusionar(g.registros[0].id, r.id)"
-                            title="Conservar el primero y fusionar este en él">
-                      Fusionar en el primero
-                    </button>
-                  } @else {
-                    <span class="sgc-badge sgc-badge--success">Se conserva</span>
-                  }
-                </div>
-              }
-            </div>
-          }
-        }
-      </div>
-    </div>
-  </div>
-}
-
-<!-- CE9 — Papelera (admin) -->
-@if (papeleraOpen()) {
-  <div class="pob-docmodal" (click)="papeleraOpen.set(false)">
-    <div class="pob-docmodal__box pob-dup" (click)="$event.stopPropagation()">
-      <div class="pob-docmodal__head">
-        <h3>Papelera (30 días)</h3>
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="papeleraOpen.set(false)">Cerrar</button>
-      </div>
-      <div class="pob-docmodal__body">
-        @if (papelera().length === 0) { <p class="text-muted">La papelera está vacía.</p> }
-        @else {
-          @for (r of papelera(); track r.id) {
+<!-- CE16 — Posibles duplicados (CF3: componente compartido form-drawer) -->
+<app-form-drawer title="Posibles duplicados" [open]="dupOpen()" (closed)="dupOpen.set(false)">
+  <div class="pob-dup">
+    @if (dupBusy()) { <p class="text-muted">Buscando…</p> }
+    @else if (duplicados().length === 0) { <p class="text-muted">No se encontraron duplicados por documento.</p> }
+    @else {
+      @for (g of duplicados(); track g.documento) {
+        <div class="pob-dup__grupo">
+          <div class="pob-dup__doc">Documento: <strong>{{ g.documento }}</strong></div>
+          @for (r of g.registros; track r.id; let i = $index) {
             <div class="pob-dup__reg">
               <div class="pob-dup__info">
                 <strong>{{ r.nombre }}</strong>
-                <span class="text-muted">{{ r.proyecto ?? '—' }} · eliminado {{ formatFechaHora(r.eliminado_at) }}</span>
-                @if (r.eliminado_motivo) { <span class="text-muted">{{ r.eliminado_motivo }}</span> }
+                <span class="text-muted">{{ r.documento_numero }} · {{ r.proyecto ?? '—' }}</span>
+                <span class="text-muted">{{ r.importado ? 'Import' : 'Manual' }} · {{ r.fotos }} foto(s) · {{ r.firmas }} firma(s)</span>
               </div>
-              <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(r.id)">Restaurar</button>
+              @if (i > 0) {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="dupBusy()"
+                        (click)="fusionar(g.registros[0].id, r.id)"
+                        title="Conservar el primero y fusionar este en él">
+                  Fusionar en el primero
+                </button>
+              } @else {
+                <span class="sgc-badge sgc-badge--success">Se conserva</span>
+              }
             </div>
           }
-        }
-      </div>
-    </div>
+        </div>
+      }
+    }
   </div>
-}
+</app-form-drawer>
+
+<!-- CE9 — Papelera (admin) (CF3: componente compartido form-drawer) -->
+<app-form-drawer title="Papelera (30 días)" [open]="papeleraOpen()" (closed)="papeleraOpen.set(false)">
+  <div class="pob-dup">
+    @if (papelera().length === 0) { <p class="text-muted">La papelera está vacía.</p> }
+    @else {
+      @for (r of papelera(); track r.id) {
+        <div class="pob-dup__reg">
+          <div class="pob-dup__info">
+            <strong>{{ r.nombre }}</strong>
+            <span class="text-muted">{{ r.proyecto ?? '—' }} · eliminado {{ formatFechaHora(r.eliminado_at) }}</span>
+            @if (r.eliminado_motivo) { <span class="text-muted">{{ r.eliminado_motivo }}</span> }
+          </div>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="restaurar(r.id)">Restaurar</button>
+        </div>
+      }
+    }
+  </div>
+</app-form-drawer>

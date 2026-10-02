@@ -14,7 +14,7 @@ import { PersonalCarnet } from './personal-carnet';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import {
   Cargo, PersonalObra, FOTOS_GUIA, FotoTipo,
-  NACIONALIDADES, TIPOS_DOCUMENTO,
+  NACIONALIDADES, TIPOS_DOCUMENTO, NACIONALIDAD_LABEL,
 } from '../../../../shared/models/personal-obra.model';
 
 /** AR1 — Wizard de registro de personal: datos → fotos guiadas → firma → carnet → resumen. */
@@ -224,10 +224,15 @@ export class PersonalRegistro implements OnInit {
     if (!p) return {};
     const cargo = this.cargos().find((c) => c.id === p.cargo_id)?.nombre ?? null;
     const obra = this.obras().find((o) => o.id === p.proyecto_id)?.nombre ?? p.proyecto?.nombre ?? null;
+    const obraRef = this.obras().find((o) => o.id === p.proyecto_id);
     return construirValoresAuto({
       empresa: this.empresa(),
-      persona: { nombre: p.nombre, apellido: p.apellido, documento_numero: p.documento_numero, cargo, telefono: p.telefono },
-      obra: { nombre: obra },
+      persona: {
+        nombre: p.nombre, apellido: p.apellido, documento_numero: p.documento_numero, cargo, telefono: p.telefono,
+        nacionalidad: NACIONALIDAD_LABEL[p.nacionalidad] ?? p.nacionalidad, // CF7
+        domicilio: p.domicilio, tarifa_hora: p.tarifa_hora,
+      },
+      obra: { nombre: obra, cliente: (obraRef as { cliente?: string | null } | undefined)?.cliente ?? null },
       hoyIso: new Date().toISOString().slice(0, 10),
     });
   });
@@ -276,12 +281,16 @@ export class PersonalRegistro implements OnInit {
     this.error.set('');
     try {
       const pl = this.plantillaActual();
+      // CF1 — un contrato pide empleador + 2 testigos; otros documentos sólo el empleador.
+      const roles: ('empleador' | 'testigo_1' | 'testigo_2')[] =
+        pl?.categoria === 'contrato' ? ['empleador', 'testigo_1', 'testigo_2'] : ['empleador'];
       await this.service.registrarFirma(p, this.documentoNombre().trim() || 'Documento', blob, {
         plantillaId: this.plantillaSel() || null,
         metodo: 'pad',
         // AZ1 (c) — snapshot: congela valores + HTML final resuelto al momento de firmar.
         valores: pl ? this.valores() : undefined,
         documentoHtml: pl ? this.plantillaHtml() : undefined,
+        rolesFirma: roles,
       });
       this.firmaGuardada.set(true);
       this.paso.set(4);

@@ -23,4 +23,28 @@
 | 116 | *(hallazgo en captura, no nota)* *Saneamiento* como Raykler → `column "m" does not exist` | **01-oct** | **CE15** | CONTEXTO-38 §C · **PROMPT-78 F2.2** | ✅ 1.151.0 |
 | 117 | *(hallazgo en captura, no nota)* Edward Mota registrado dos veces en Personal de obra (misma cédula, distinto formato) | **01-oct** | **CE16** | CONTEXTO-38 §A · **PROMPT-78 F3.3** · PROMPT-79 F3.5 | ✅ 1.151.0 · 👤 revisar la lista de duplicados antes de fusionar en prod |
 
-**Pendientes físicos de Xaviel:** imprimir carnet de prueba (CR80 y A4) · revisar duplicados y fotos negras antes de prod · Sonia prueba plantillas y firmas · Raykler prueba umbrales, saneamiento, spec por vehículo y aprobar desde el teléfono · OK a 1.151.0 / 2.38.0.
+| 118 | *"the signature of the "trabajador" appears now, but... the process never ask to the "empleador" for the signature, it can be optional, in order to let the "empleador" can signature later or do the signature on the physic paper."* | **02-oct** | **CF1** | CONTEXTO-39 §A · **PROMPT-80 F2** · PROMPT-81 F3.1 | 🧪 |
+| 119 | *"the screen on "Personal de obra" has ui issues, lets fix it. u can see the referenced image."* | **02-oct** | **CF2** | CONTEXTO-39 §A · **PROMPT-80 F4** · PROMPT-81 F4 | 🧪 |
+| 120 | *"in that screen, the buttons of "posibles duplicados" and "papelera" when i click on it, nothing happens."* | **02-oct** | **CF3** | CONTEXTO-39 §A · **PROMPT-80 F1.2** (🔴) | 🧪 |
+| 121 | *"lets get the info and data from the "Recibo" automatically in combustible, when the user upload the photo of the receipt, the app must read the content and use it to fill the information, in order to make the process easy to do it. for example, when the user take the Receipt photo, the system must take automatically the amount, galons of fuel, type of fuel if available in the receipt, and all that stuff. if another information can be taked from the other image that the user take and upload lets read and take it."* | **02-oct** | **CF4** | CONTEXTO-39 §B · **PROMPT-80 F6** · **PROMPT-81 F1** | 🧪 · 👤 Raykler: 20 recibos reales |
+| 122 | *"En solicitud de movimiento, poner que se pueda seleccionar el alamcen central tambien no solo las obras, por aue por ejemplo puedo mover material de almacen hacia una obra. Y en "que se mueve" seleccionar los items del catalogo, osea los arriculos. No solo un texto suelto."* | **02-oct** | **CF5** | CONTEXTO-39 §C · **PROMPT-80 F5** · **PROMPT-81 F2** | 🧪 |
+| 123 | *"in "Aprobaciones legales" Sonia see that error on "Revisar solicitud" lets find out why and fix it."* | **02-oct** | **CF6** | CONTEXTO-39 §A · **PROMPT-80 F1.1** (🔴) | 🧪 |
+| 124 | *"Sonia give me the real "CONTRATOS PERSONAL OBRA CSD 2026" because she want to have the real documents that she use, so lets make she able to upload too their real documents. or edit the actuall ones that the system have, because she want to use these modules. u can check the file that i give u. if there's no a way to edit it or change the actual documentation generated lets make the ways, and all that stuff. u can ask me whatever u want. Sonia must be independent, so she must be able to do everything related to her functions without need me to change or do something."* (Word en `adjuntos\`) | **02-oct** | **CF7** | CONTEXTO-39 §A · **PROMPT-80 F3** · PROMPT-81 F3.2-3 | 🧪 · 👤 Sonia prueba en dev |
+
+**Pendientes físicos de Xaviel:** Tanda CF: Sonia prueba su Word, firmas del empleador y aprobaciones en dev · Raykler: 20 recibos para la lectura automática · OK a 1.152.0/2.39.0 · imprimir carnet de prueba (CR80 y A4) · revisar duplicados y fotos negras antes de prod · Sonia prueba plantillas y firmas · Raykler prueba umbrales, saneamiento, spec por vehículo y aprobar desde el teléfono · OK a 1.151.0 / 2.38.0.
+
+## Mitad APP (PROMPT-79) — ✅ app **2.38.0 PUBLICADA a prod** (02-oct)
+> Salió a dev → OK de Xaviel → **release + PUBLICADA**: `dev→main` (`061243d`) → Vercel PWA prod + APK prod 2.38.0 firmado/publicado/registrado (regla 18 OK) + **publicada=true** vía **data-fix versionado** `scripts/data-fixes/2026-10-02-ce-publicar-2.38.0.mjs` (regla 19: commiteado antes de aplicar). `version_publicada()` = 2.38.0. **Mínima = 2.35.0** (sin cambios → update no forzado). Consume contratos de PROMPT-78 (vivos en prod: `aprobar_echada`/`rechazar_echada` aceptan a `logistica`=Raykler, `spec_combustible`, `listar_personal_obra`, `personal_obra_doc_existe`, `es_miembro_obra`, `emitir_carnet_personal`/`verificar_carnet`/`registrar_reimpresion_carnet`).
+
+| Nota | App 2.38.0-dev |
+|---|---|
+| **CE14** | 🧪 *Por aprobar*: fotos en tira de miniaturas 80 px (toque→visor), pie de acciones siempre visible. Causa real = Safari no honraba `aspect-ratio` (no el gate; Raykler es `logistica`). |
+| **CE12/CE13** | 🧪 alerta de echada usa `spec_combustible` (rango vehículo→clase→global + procedencia) + unidad h/gal; umbrales se editan en la web. Detrás de capacidad. |
+| **CE2** | 🧪 lista/expediente usan `listar_personal_obra()` → "Registró" visible para cualquier rol. |
+| **CE4** | 🧪 registrar sin foto; chip *Falta foto*; añadir foto después desde el expediente. |
+| **CE6** | 🧪 `comprimir-imagen`: HEIC (`heic2any`) + fondo blanco + validación de monocromo. |
+| **CE11** | 🧪 `formatFechaHumana` en filas; `formatFecha` defensiva ante timestamps. |
+| **CE16** | 🧪 aviso "Ya existe un trabajador con este documento" (`personal_obra_doc_existe`). |
+| **CE1** | 🧪 chips de pendientes *Sin carnet / Sin asegurar* con filtro rápido (recorrido lean). |
+| **CE3/CE5** | 🧪 logo blanco en el carnet; **Compartir / Imprimir carnet** = PDF CR80 frente/dorso (jsPDF) + share-sheet; QR a `/verificar/<carnet>`. A4-con-8 diferido (igual que web). |
+| **CE10** | ✅ servidor (padre) `es_miembro_obra` verificado vivo en dev; la app solo recibe. |

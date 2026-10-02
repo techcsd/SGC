@@ -2,7 +2,6 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
-import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { DocumentoGenerado } from '../../../../shared/models/plantilla-documento.model';
 import { UserService } from '../../../core/services/user.service';
 import { AprobacionLegal, APROBACION_MODULOS } from '../../../../shared/models/legal.model';
@@ -20,7 +19,6 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 })
 export class Aprobaciones implements OnInit {
   private legalService = inject(LegalService);
-  private plantillasSvc = inject(PlantillasDocumentoService);
   private userService = inject(UserService);
 
   readonly MODULOS = APROBACION_MODULOS;
@@ -82,15 +80,22 @@ export class Aprobaciones implements OnInit {
     void this.cargarDocumento(a);
   }
 
-  /** AZ4 — carga la vista previa del documento referenciado, si lo hay. */
+  // CF6 — "Cannot coerce the result to a single JSON object": el revisor legal no veía
+  // el documento (RLS) y .single() reventaba. Ahora se carga por RPC definer, que
+  // devuelve null si el documento fue eliminado (mensaje humano, no error técnico).
+  docEliminado = signal(false);
+
+  /** AZ4/CF6 — carga la vista previa del documento referenciado, si lo hay. */
   private async cargarDocumento(a: AprobacionLegal) {
     this.docPreview.set(null);
     this.docError.set('');
+    this.docEliminado.set(false);
     if (a.referencia_tipo !== 'documento_generado' || !a.referencia_id) return;
     this.docLoading.set(true);
     try {
-      const doc = await this.plantillasSvc.getGeneradoById(a.referencia_id);
-      this.docPreview.set(doc);
+      const doc = await this.legalService.getDocumentoParaRevision(a.id);
+      if (doc) this.docPreview.set(doc);
+      else this.docEliminado.set(true);
     } catch (e: unknown) {
       this.docError.set(e instanceof Error ? e.message : 'No se pudo cargar el documento.');
     } finally {

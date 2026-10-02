@@ -53,6 +53,7 @@
   margin-bottom: 16px;
 }
 .pob-tile {
+  position: relative;
   background: var(--sgc-surface);
   border: 1px solid var(--sgc-border);
   border-radius: 14px;
@@ -60,8 +61,20 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  &__num { font-size: 1.5rem; font-weight: 700; color: var(--accent-hover); font-variant-numeric: tabular-nums; }
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+  // CF2 — número navy (no naranja); el naranja se reserva a una sola acción (CB).
+  &__num { font-size: 1.5rem; font-weight: 700; color: var(--sgc-text); font-variant-numeric: tabular-nums; }
   &__lbl { font-size: 0.78rem; color: var(--text-2); }
+  &:hover { border-color: var(--brand, #2e75b6); }
+  // CF2 — punto de color SOLO si hay pendientes (no toda la tarjeta en alerta).
+  &--pend::after {
+    content: ''; position: absolute; top: 12px; right: 12px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--Hub, #ffb300);
+  }
+  // Activo (filtro aplicado).
+  &--on { border-color: var(--brand, #2e75b6); box-shadow: inset 0 0 0 1px var(--brand, #2e75b6); }
 }
 
 .pob-avatar-cell { width: 44px; }
@@ -103,24 +116,33 @@
   &__hint { margin: 0 0 8px; max-width: 380px; font-size: 0.85rem; }
 }
 
-// CE1 — tile de alerta cuando hay pendientes.
-.pob-tile--warn { border-color: var(--Hub, #ffb300); }
-
-// CE1 — "Mi personal hoy".
+// CE1/CF2 — "Mi personal hoy" / "Pendientes del personal" (plegable).
 .pob-hoy {
   margin-bottom: 16px;
+  &__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
   &__title { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
-  &__hint { font-size: 12px; color: var(--main-ultra-light, #929090); margin: 0 0 10px; }
+  &__hint { font-size: 12px; color: var(--main-ultra-light, #929090); margin: 0; }
   &__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
   &__row {
     display: flex; justify-content: space-between; align-items: center; gap: 10px;
     padding: 8px 10px; border: 1px solid var(--border, #2d2d2d); border-radius: 10px; cursor: pointer;
     transition: all .15s ease;
-    &:hover { border-color: var(--Hub, #ffb300); }
+    &:hover { border-color: var(--brand, #2e75b6); }
   }
   &__nombre { font-weight: 600; }
-  &__chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  &__chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+  &__more {
+    margin-top: 10px; border: none; background: none; cursor: pointer;
+    color: var(--brand, #2e75b6); font-size: 13px; font-weight: 600; padding: 4px 0;
+    &:hover { text-decoration: underline; }
+  }
 }
+
+// CF2 — "Registró": nombre + fecha/hora en UNA línea cada uno (no partir "4:23 p. m.").
+.pob-reg { font-size: 13px; }
+.pob-reg-fecha { white-space: nowrap; font-size: 12px; }
+// CF2 — chip de cargo en una sola línea con elipsis (título completo al pasar el cursor).
+.pob-chip--cargo { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 
 // CE16/CE9 — modal de duplicados / papelera.
 .pob-dup {

@@ -42,6 +42,42 @@ export interface PersonalFirma {
   firmado_at: string;
 }
 
+// CF1 — líneas de firma por rol de un documento (empleador/testigos además del trabajador).
+export type FirmaRol = 'trabajador' | 'empleador' | 'testigo_1' | 'testigo_2';
+export type FirmaLineaEstado = 'pendiente' | 'firmado' | 'papel';
+
+export interface FirmaLinea {
+  id: string;
+  firma_id: string;
+  rol: FirmaRol;
+  estado: FirmaLineaEstado;
+  metodo: 'pad' | 'foto' | 'fisico' | null;
+  firma_path: string | null;
+  firmante_nombre: string | null;
+  firmante_cedula: string | null;
+  firmado_por: string | null;
+  firmado_at: string | null;
+}
+
+export const FIRMA_ROL_LABEL: Record<FirmaRol, string> = {
+  trabajador: 'El trabajador',
+  empleador: 'El empleador',
+  testigo_1: 'Testigo 1',
+  testigo_2: 'Testigo 2',
+};
+
+export interface FirmaPendienteBandeja {
+  firma_id: string;
+  personal_id: string;
+  trabajador: string;
+  documento_nombre: string;
+  proyecto: string | null;
+  proyecto_id: string | null;
+  firmado_trabajador_at: string;
+  roles_pendientes: FirmaRol[] | null;
+  dias: number;
+}
+
 export interface PersonalObra {
   id: string;
   proyecto_id: string;
@@ -69,6 +105,8 @@ export interface PersonalObra {
   registrado_por_nombre?: string | null; // CE2 — nombre resuelto por el RPC definer
   tiene_contrato?: boolean; // CE1 — hay al menos una firma/contrato
   tiene_foto_persona?: boolean; // CE1/CE4 — foto de la persona cargada
+  domicilio?: string | null; // CF7 — domicilio del trabajador (contrato)
+  tarifa_hora?: number | null; // CF7 — salario por hora (contrato)
   lote_import?: string | null; // AT5/AV4 — presente si vino de una importación
   documento_numero_norm?: string | null; // BL5 — dígitos del documento (dedupe)
   // CE9/CE16 — borrado lógico (papelera 30 días / descartado al fusionar).

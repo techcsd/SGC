@@ -64,6 +64,103 @@ export class PlantillasDocumentoService {
     return (data ?? []) as unknown as PlantillaDocumento[];
   }
 
+  // ── CF7 — Word de Sonia: convertir conservando formato + detectar espacios ────
+  /**
+   * Convierte el .docx a HTML (conserva títulos/negritas/listas), reemplaza cada
+   * `____` (y `( ____ )`) por un token numerado `{{__hueco_N__}}`, y devuelve los
+   * huecos con su contexto para el asistente de espacios. También respeta los
+   * `{{token}}` que el documento ya tuviera.
+   */
+  async analizarWord(file: File): Promise<{ html: string; huecos: { n: number; contexto: string }[] }> {
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+      throw new Error('Solo se admiten archivos .docx (Word). Guarda el documento en ese formato.');
+    }
+    const buffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({ arrayBuffer: buffer });
+    let html = result.value;
+
+    // Reemplaza secuencias de 3+ guiones bajos por un token numerado, en orden.
+    const huecos: { n: number; contexto: string }[] = [];
+    let n = 0;
+    html = html.replace(/_{3,}/g, (_m, offset: number) => {
+      // Contexto: ~60 chars de texto plano alrededor del hueco.
+      const plano = html.replace(/<[^>]+>/g, ' ');
+      const planoOffset = html.slice(0, offset).replace(/<[^>]+>/g, ' ').length;
+      const ini = Math.max(0, planoOffset - 45);
+      const ctx = plano.slice(ini, planoOffset + 45).replace(/\s+/g, ' ').trim();
+      huecos.push({ n, contexto: '…' + ctx + '…' });
+      return `{{__hueco_${n++}__}}`;
+    });
+    return { html, huecos };
+  }
+
+  /**
+   * Crea la plantilla a partir del Word analizado: `mapeo` indica a qué variable
+   * (o "a mano") va cada hueco. Reemplaza `{{__hueco_N__}}` por `{{clave}}`, guarda
+   * el .docx original y arma `campos`/`variables`.
+   */
+  async crearPlantillaDesdeWord(payload: {
+    nombre: string;
+    categoria: PlantillaCategoria;
+    html: string;
+    file: File;
+    mapeo: { n: number; key: string; label: string }[];
+    creadoPor: string | null;
+  }): Promise<PlantillaDocumento> {
+    let html = payload.html;
+    const campos: CampoPlantilla[] = [];
+    const vistos = new Set<string>();
+    for (const m of payload.mapeo) {
+      const key = m.key || `campo_${m.n + 1}`;
+      html = html.split(`{{__hueco_${m.n}__}}`).join(`{{${key}}}`);
+      if (!vistos.has(key)) {
+        vistos.add(key);
+        campos.push({ key, label: m.label || humanizeKey(key), tipo: 'texto' });
+      }
+    }
+    // Huecos sin mapear → campo_N a mano.
+    html = html.replace(/\{\{__hueco_(\d+)__\}\}/g, (_m, idx: string) => {
+      const key = `campo_${Number(idx) + 1}`;
+      if (!vistos.has(key)) { vistos.add(key); campos.push({ key, label: `Campo ${Number(idx) + 1}`, tipo: 'texto' }); }
+      return `{{${key}}}`;
+    });
+
+    // Guarda el .docx original (referencia + descarga).
+    let docxPath: string | null = null;
+    try {
+      docxPath = `${crypto.randomUUID()}-${payload.file.name}`;
+      const { error: upErr } = await this.supabase.client.storage.from('plantillas-docx').upload(docxPath, payload.file);
+      if (upErr) docxPath = null;
+    } catch { docxPath = null; }
+
+    const { data, error } = await this.supabase.client
+      .from('plantillas_documento')
+      .insert({
+        nombre: payload.nombre,
+        categoria: payload.categoria,
+        contenido_html: html,
+        campos,
+        variables: payload.mapeo.map((m) => ({ key: m.key, label: m.label })),
+        docx_path: docxPath,
+        origen: 'usuario',
+        creado_por: payload.creadoPor,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as unknown as PlantillaDocumento;
+  }
+
+  /** CF7 — marca una plantilla como la predeterminada de su categoría. */
+  async marcarDefault(plantillaId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_plantilla_default', { p_plantilla: plantillaId });
+    if (error) throw new Error(error.message);
+  }
+
+  // NOTA (CF7 follow-up): el versionado de plantillas (guardar/listar/restaurar versión)
+  // ya tiene sus RPCs en la BD (guardar_plantilla_version, plantilla_versiones_listar,
+  // restaurar_plantilla_version); el editor de plantillas que los consume queda pendiente.
+
   /** Parses an uploaded .docx and auto-detects {{token}} placeholders as form fields. */
   async subirPlantillaPersonalizada(
     nombre: string,
