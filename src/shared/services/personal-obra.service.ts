@@ -5,6 +5,9 @@ import { comprimirImagen } from '../utils/comprimir-imagen.util';
 import {
   Cargo,
   DuplicadoGrupo,
+  FirmaLinea,
+  FirmaPendienteBandeja,
+  FirmaRol,
   FotoTipo,
   PersonalConteos,
   PersonalFirma,
@@ -314,6 +317,8 @@ export class PersonalObraService {
       // AZ1 — snapshot congelado del documento al firmar.
       valores?: Record<string, string>;
       documentoHtml?: string;
+      // CF1 — roles de firma a sembrar además del trabajador.
+      rolesFirma?: FirmaRol[];
     } = {},
   ): Promise<PersonalFirma> {
     const ext = opts.ext ?? 'png';
@@ -336,7 +341,56 @@ export class PersonalObraService {
       .select('*')
       .single();
     if (error) throw new Error(error.message);
-    return data as PersonalFirma;
+    const nuevaFirma = data as PersonalFirma;
+    // CF1 — sembrar las líneas de firma por rol (empleador siempre; testigos si es contrato).
+    const roles = opts.rolesFirma ?? ['empleador'];
+    try {
+      await this.client.rpc('sembrar_lineas_firma', { p_firma_id: nuevaFirma.id, p_roles: roles });
+    } catch { /* no bloquear la firma del trabajador si falla el sembrado */ }
+    return nuevaFirma;
+  }
+
+  // ── CF1 — líneas de firma por rol (empleador / testigos) ───────────────────
+  async lineasFirma(firmaId: string): Promise<FirmaLinea[]> {
+    const { data, error } = await this.client.rpc('lineas_firma_documento', { p_firma_id: firmaId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as FirmaLinea[];
+  }
+
+  /** Registra la firma de una línea (empleador/testigo): pad/foto = digital, fisico = en papel. */
+  async firmarLinea(
+    firma: PersonalFirma,
+    personal: PersonalObra,
+    rol: FirmaRol,
+    metodo: 'pad' | 'foto' | 'fisico',
+    opts: { firma?: Blob | null; nombre?: string | null; cedula?: string | null } = {},
+  ): Promise<FirmaLinea> {
+    let path: string | null = null;
+    if (opts.firma) {
+      const ext = metodo === 'fisico' ? (opts.firma.type.includes('pdf') ? 'pdf' : 'jpg') : 'png';
+      path = `${personal.proyecto_id}/${personal.id}/firma-${rol}-${Date.now()}.${ext}`;
+      const { error: upErr } = await this.client.storage
+        .from(BUCKET)
+        .upload(path, opts.firma, { upsert: true, contentType: opts.firma.type || 'image/png' });
+      if (upErr) throw new Error(upErr.message);
+    }
+    const { data, error } = await this.client.rpc('firmar_linea_documento', {
+      p_firma_id: firma.id,
+      p_rol: rol,
+      p_metodo: metodo,
+      p_firma_path: path,
+      p_firmante_nombre: opts.nombre ?? null,
+      p_firmante_cedula: opts.cedula ?? null,
+    });
+    if (error) throw new Error(error.message);
+    return data as FirmaLinea;
+  }
+
+  /** CF1 — bandeja de firmas pendientes (Legal). */
+  async firmasPendientes(): Promise<FirmaPendienteBandeja[]> {
+    const { data, error } = await this.client.rpc('firmas_pendientes_legal');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as FirmaPendienteBandeja[];
   }
 
   // ── Conteos por obra (para la vista del proyecto) ──────────────────────────

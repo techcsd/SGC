@@ -12,6 +12,7 @@ import {
   ExpedienteLegal,
   ExpedienteNota,
 } from '../models/legal.model';
+import { DocumentoGenerado } from '../models/plantilla-documento.model';
 
 // expedientes_legales / contratos each have TWO fks to usuarios (responsable_id
 // + creado_por), so the usuarios embed must name the fk explicitly or PostgREST
@@ -220,14 +221,24 @@ export class LegalService {
   }
 
   // ── Aprobaciones legales ─────────────────────────────────
+  // CF6: RPC definer para resolver solicitante/revisor sin depender del embed a
+  // usuarios (bajo RLS Sonia no lo lee → "Solicitado por —", patrón CE2).
   async getAprobaciones(): Promise<AprobacionLegal[]> {
-    const { data, error } = await this.supabase.client
-      .from('aprobaciones_legales')
-      .select(APROBACION_SELECT)
-      .order('fecha_solicitud', { ascending: false });
-
+    const { data, error } = await this.supabase.client.rpc('listar_aprobaciones_legales');
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as AprobacionLegal[];
+  }
+
+  /**
+   * CF6: documento de una solicitud de aprobación, vía RPC definer (el revisor legal
+   * debe poder leer lo que aprueba). Devuelve `null` si el documento ya fue eliminado.
+   */
+  async getDocumentoParaRevision(solicitudId: string): Promise<DocumentoGenerado | null> {
+    const { data, error } = await this.supabase.client.rpc('documento_para_revision', {
+      p_solicitud: solicitudId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? null) as DocumentoGenerado | null;
   }
 
   async solicitarAprobacion(payload: {

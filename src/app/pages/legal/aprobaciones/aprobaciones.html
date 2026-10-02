@@ -129,6 +129,8 @@
           <div class="save-error" role="alert">{{ docError() }}</div>
         } @else if (docPreview(); as doc) {
           <div class="apro-doc__body" [innerHTML]="doc.contenido_html_final"></div>
+        } @else if (docEliminado()) {
+          <p class="text-muted">El documento de esta solicitud fue eliminado — rechaza o archiva la solicitud.</p>
         } @else if (a.referencia_tipo === 'documento_generado') {
           <p class="text-muted">No se encontró el documento referenciado.</p>
         } @else {

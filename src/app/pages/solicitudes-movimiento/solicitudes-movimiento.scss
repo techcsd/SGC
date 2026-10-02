@@ -66,6 +66,18 @@
 .sm-form__row { display: flex; gap: 12px; flex-wrap: wrap; }
 .sm-form__row .sgc-field { flex: 1; min-width: 130px; }
 
+// CF5 — editor de renglones del catálogo.
+.sm-items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+.sm-item {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  &__art { flex: 1 1 200px; min-width: 160px; }
+  &__desc { flex: 1 1 180px; min-width: 140px; }
+  &__cant { width: 80px; }
+  &__und { width: 96px; }
+  &__del { flex: 0 0 auto; }
+}
+.sm-hint { font-size: 12px; color: var(--sgc-text-muted); margin: 4px 0 0; }
+
 .sm-plan__src {
   margin: 0 0 14px;
   padding: 10px 12px;

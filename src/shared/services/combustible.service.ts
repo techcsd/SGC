@@ -103,10 +103,53 @@ export interface PermisoRetro {
   created_at: string;
 }
 
+// CF4 — campos que la edge `leer-recibo` extrae de la(s) foto(s).
+export interface LecturaRecibo {
+  monto: number | null;
+  galones: number | null;
+  precio_galon: number | null;
+  producto: string | null;
+  numero_recibo: string | null;
+  fecha: string | null;
+  hora: string | null;
+  estacion: string | null;
+  ncf: string | null;
+  bomba: string | null;
+  tarjeta_ult4: string | null;
+  km: number | null;
+  horas: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CombustibleService {
   private supabase = inject(SupabaseService);
   private cache = inject(SignedUrlCache);
+
+  /**
+   * CF4 — lee una o más fotos (recibo/tablero/bomba) con visión y devuelve los campos
+   * leídos + confianza por campo. El usuario confirma antes de enviar (nunca se envía solo).
+   */
+  async leerRecibo(imagenes: { tipo: 'recibo' | 'tablero' | 'bomba'; data: string; mime: string }[]): Promise<{
+    ok: boolean;
+    error?: string;
+    lectura?: LecturaRecibo;
+    confianza?: Record<string, number>;
+    modelo?: string;
+  }> {
+    const { data, error } = await this.supabase.client.functions.invoke('leer-recibo', { body: { imagenes } });
+    if (error) {
+      // La edge devuelve un cuerpo JSON incluso en 4xx/5xx; intenta leerlo.
+      const ctx = (error as { context?: { body?: unknown } }).context;
+      if (ctx?.body) {
+        try {
+          const parsed = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+          if (parsed?.error) return { ok: false, error: parsed.error };
+        } catch { /* ignore */ }
+      }
+      return { ok: false, error: 'No se pudo leer el recibo.' };
+    }
+    return data as { ok: boolean; lectura?: LecturaRecibo; confianza?: Record<string, number>; modelo?: string };
+  }
 
   async getAll(): Promise<RegistroCombustible[]> {
     const { data, error } = await this.supabase.client

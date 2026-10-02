@@ -13,6 +13,7 @@ import { formatFechaDisplay, formatFechaHoraDisplay } from '../../../../shared/u
 import { TelemetryService } from '../../../../shared/services/telemetry.service';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 
 interface PapeleraRow {
   id: string;
@@ -31,7 +32,7 @@ function norm(s: string | null | undefined): string {
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
   selector: 'app-personal-obra',
-  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon],
+  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon, FormDrawer],
   templateUrl: './personal.html',
   styleUrl: './personal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +65,18 @@ export class PersonalObraLista implements OnInit {
       (p) => p.estado === 'activo' && (!p.carnet_numero || p.aseguramiento_estado !== 'asegurado' || !p.tiene_contrato || !p.tiene_foto_persona),
     ),
   );
+
+  // CF2 — bloque de pendientes plegable (5 + ver todos) y filtro rápido por tipo de pendiente.
+  hoyOpen = signal(false);
+  readonly HOY_PREVIEW = 5;
+  hoyVisibles = computed(() => this.hoyOpen() ? this.miPersonalHoy() : this.miPersonalHoy().slice(0, this.HOY_PREVIEW));
+  // Título según rol: el ingeniero ve "su" personal; admin/legal ven el de todos.
+  hoyTitulo = computed(() => this.esLegalOAdmin() ? 'Pendientes del personal' : 'Mi personal hoy');
+  // Filtro rápido por tipo de pendiente (lo activan los KPI y los chips del bloque).
+  filPendiente = signal<'' | 'sin_carnet' | 'sin_asegurar' | 'sin_contrato' | 'sin_foto'>('');
+  setPendiente(tipo: '' | 'sin_carnet' | 'sin_asegurar' | 'sin_contrato' | 'sin_foto') {
+    this.filPendiente.set(this.filPendiente() === tipo ? '' : tipo);
+  }
 
   personal = signal<PersonalObra[]>([]);
   obras = signal<ObraRef[]>([]);
@@ -104,7 +117,7 @@ export class PersonalObraLista implements OnInit {
   ];
   // Nº de filtros activos (para el botón "Limpiar (N)").
   filtrosActivos = computed(() =>
-    [this.filObra(), this.filCargo(), this.filNacionalidad(), this.filEstado(), this.filAsegurado(), this.filCuadrilla()]
+    [this.filObra(), this.filCargo(), this.filNacionalidad(), this.filEstado(), this.filAsegurado(), this.filCuadrilla(), this.filPendiente()]
       .filter(Boolean).length,
   );
 
@@ -116,6 +129,7 @@ export class PersonalObraLista implements OnInit {
     const obra = this.filObra();
     const aseg = this.filAsegurado();
     const cuad = this.filCuadrilla();
+    const pend = this.filPendiente();
     // BO6 — búsqueda insensible a acentos (NFD) y por tokens: "sacalo papolo"
     // encuentra a "Papolo Sacalo" (antes era substring del concatenado en orden y
     // sensible a acentos, así que no lo hallaba).
@@ -127,6 +141,11 @@ export class PersonalObraLista implements OnInit {
       if (est && p.estado !== est) return false;
       if (aseg && (p.aseguramiento_estado ?? 'desconocido') !== aseg) return false;
       if (cuad && (p.cuadrilla ?? '') !== cuad) return false;
+      // CF2 — filtro rápido por tipo de pendiente (KPI/chips clicables).
+      if (pend === 'sin_carnet' && p.carnet_numero) return false;
+      if (pend === 'sin_asegurar' && p.aseguramiento_estado === 'asegurado') return false;
+      if (pend === 'sin_contrato' && p.tiene_contrato) return false;
+      if (pend === 'sin_foto' && p.tiene_foto_persona) return false;
       if (tokens.length) {
         const hay = norm(`${p.nombre} ${p.apellido ?? ''} ${p.documento_numero ?? ''} ${p.cargo?.nombre ?? ''} ${p.carnet_numero ?? ''}`);
         if (!tokens.every((t) => hay.includes(t))) return false;
@@ -147,6 +166,7 @@ export class PersonalObraLista implements OnInit {
   sinCarnet = computed(() => this.filtrados().filter((p) => !p.carnet_numero).length);
   sinAsegurar = computed(() => this.filtrados().filter((p) => p.aseguramiento_estado !== 'asegurado').length);
   sinContrato = computed(() => this.filtrados().filter((p) => !p.tiene_contrato).length);
+  sinFoto = computed(() => this.filtrados().filter((p) => !p.tiene_foto_persona).length);
 
   // AZ3 — vacío ≠ oculto ≠ error: el estado vacío debe decir la verdad.
   // Cuántos registros existen pero están ocultos SOLO por el filtro de datos de prueba.
@@ -175,6 +195,7 @@ export class PersonalObraLista implements OnInit {
     this.filEstado.set('');
     this.filAsegurado.set('');
     this.filCuadrilla.set('');
+    this.filPendiente.set('');
     this.busqueda.set('');
   }
 
