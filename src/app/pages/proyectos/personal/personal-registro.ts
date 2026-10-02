@@ -87,6 +87,8 @@ export class PersonalRegistro implements OnInit {
     documento_numero: [''],
     cargo_id: [''],
     telefono: [''],
+    domicilio: [''],            // CF7 — para el contrato
+    tarifa_hora: [null as number | null], // CF7 — salario por hora
     notas: [''],
   });
 
@@ -140,7 +142,8 @@ export class PersonalRegistro implements OnInit {
       proyecto_id: p.proyecto_id, nombre: p.nombre, apellido: p.apellido ?? '',
       nacionalidad: p.nacionalidad, tipo_documento: p.tipo_documento,
       documento_numero: p.documento_numero ?? '', cargo_id: p.cargo_id ?? '',
-      telefono: p.telefono ?? '', notas: p.notas ?? '',
+      telefono: p.telefono ?? '', domicilio: p.domicilio ?? '', tarifa_hora: p.tarifa_hora ?? null,
+      notas: p.notas ?? '',
     });
     const fotos = await this.service.getFotos(id);
     const prev: Record<string, string> = {};
@@ -162,6 +165,8 @@ export class PersonalRegistro implements OnInit {
         tipo_documento: v.tipo_documento as PersonalObra['tipo_documento'],
         documento_numero: v.documento_numero?.trim() || null,
         cargo_id: v.cargo_id || null, telefono: v.telefono?.trim() || null, notas: v.notas?.trim() || null,
+        domicilio: v.domicilio?.trim() || null,
+        tarifa_hora: v.tarifa_hora != null && Number.isFinite(Number(v.tarifa_hora)) ? Number(v.tarifa_hora) : null,
       };
       const actual = this.personal();
       // CE16 — al registrar uno NUEVO: avisa si ya existe otro con el mismo documento.

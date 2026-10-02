@@ -714,6 +714,7 @@ export class Combustible implements OnInit {
   lecturaError = signal('');
   leidoCampos = signal<string[]>([]);       // campos auto-rellenados (chip "Leído del recibo")
   lecturaSugerencias = signal<{ campo: string; etiqueta: string; valor: string; conf: number }[]>([]);
+  lecturaCruda = signal<LecturaRecibo | null>(null); // CF4 — lo leído, para comparar al guardar
 
   /** Reduce una imagen a ~1600 px de lado mayor y devuelve base64 (sin el prefijo data:). */
   private async imagenBase64(file: File, max = 1600): Promise<{ data: string; mime: string }> {
@@ -727,6 +728,24 @@ export class Combustible implements OnInit {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     return { data: dataUrl.split(',')[1] ?? '', mime: 'image/jpeg' };
   }
+
+  // CF4 — bandera "No coincide con el recibo": lo confirmado difiere > 2% de lo leído.
+  private formTick = toSignal(this.form.valueChanges, { initialValue: null });
+  discrepanciaRecibo = computed(() => {
+    this.formTick(); // recomputa al editar galones/monto
+    const l = this.lecturaCruda();
+    if (!l) return '';
+    const dif: string[] = [];
+    const chk = (leido: number | null, actual: number | null, etq: string) => {
+      if (leido == null || actual == null || leido === 0) return;
+      if (Math.abs(actual - leido) / Math.abs(leido) > 0.02) dif.push(`${etq} (recibo ${leido}, tú ${actual})`);
+    };
+    const g = this.form.controls.galones.value;
+    const m = this.form.controls.monto.value;
+    chk(l.galones, g ?? null, 'galones');
+    chk(l.monto, m ?? null, 'monto');
+    return dif.length ? 'No coincide con el recibo: ' + dif.join(' · ') : '';
+  });
 
   async leerReciboAuto() {
     const recibo = this.reciboFile();
@@ -751,6 +770,7 @@ export class Combustible implements OnInit {
 
   /** Rellena los campos con confianza ≥ 0.9; los de confianza menor se ofrecen como sugerencia. */
   private aplicarLectura(l: LecturaRecibo, conf: Record<string, number>) {
+    this.lecturaCruda.set(l);
     const UMBRAL = 0.9;
     const llenados: string[] = [];
     const sugerencias: { campo: string; etiqueta: string; valor: string; conf: number }[] = [];

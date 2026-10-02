@@ -546,6 +546,9 @@
         }
       </div>
     }
+    @if (discrepanciaRecibo()) {
+      <div class="lectura-banner lectura-banner--warn">{{ discrepanciaRecibo() }}</div>
+    }
 
     <div class="form-row">
       @if (!esDepositoObra()) {

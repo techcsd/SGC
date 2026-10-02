@@ -288,3 +288,4 @@ textarea { resize: vertical; min-height: 72px; }
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 12px; font-size: 12.5px;
   &__chip { padding: 2px 10px; border-radius: 999px; background: var(--sgc-surface-2); border: 1px solid var(--sgc-border); }
 }
+.lectura-banner--warn { border-color: var(--Hub, #ffb300); background: rgba(255,179,0,.08); }

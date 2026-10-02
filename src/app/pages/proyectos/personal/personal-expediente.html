@@ -221,6 +221,14 @@
         <p class="text-muted">Documento: {{ ctx.firma.documento_nombre }}</p>
 
         @if (esTestigo(ctx.rol)) {
+          @if (testigosFrecuentes().length) {
+            <div class="pob-firmar__frec">
+              <span class="text-muted">Testigos frecuentes:</span>
+              @for (t of testigosFrecuentes(); track t.cedula) {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarTestigo(t)">{{ t.nombre }}</button>
+              }
+            </div>
+          }
           <div class="sgc-field">
             <label>Nombre del testigo</label>
             <input type="text" class="sgc-input" [value]="firmanteNombre()" (input)="firmanteNombre.set($any($event.target).value)" placeholder="Nombre completo" />

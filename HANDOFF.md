@@ -1,7 +1,13 @@
 # HANDOFF — SGC
 
 ## TL;DR — PROMPT-80 (Ronda CF — IDs CF1-CF7) — 02/10/2026 — 🧪 EN DEV 1.152.0, pendiente OK de Xaviel para prod.
-`feature/cf-ronda` (desde `dev`). **5 migraciones aplicadas al ledger de DEV** (cf6, cf1, cf5, cf4, cf7) + **edge `leer-recibo` desplegada a dev**. `npm run build` + ~16 guards verdes. Matriz filas 118-124 → 🧪 (copiada al repo). Mitad app = PROMPT-81. **NADA en prod aún** (regla 18: para tras OK).
+`feature/cf-ronda` (desde `dev`). **7 migraciones en el ledger de DEV** (cf6, cf1, cf5, cf4, cf7, **cf7b** config-legal RPC, **cf1b** cron firmas) + **edge `leer-recibo` desplegada a dev**. `npm run build` + ~16 guards verdes. Matriz filas 118-124 → 🧪 (copiada al repo). Mitad app = PROMPT-81. **NADA en prod aún** (regla 18: para tras OK).
+
+### Follow-ups hechos (02/10, tras "si, sigue")
+- **CF7 — Sonia independiente completa:** campos **domicilio / salario por hora** en el form de personal (poblan el contrato) · **Legal › Configuración** (empresa: razón social/RNC/domicilio/ciudad/representante/gerente general + **testigos frecuentes**, vía RPC definer `guardar_config_legal` gate legal/admin — **smoke como Sonia OK**) · testigos frecuentes como **quick-pick** al firmar un testigo · «Marcar predeterminada» por tipo. Ruta `/legal/configuracion` + entrada en shell.
+- **CF1 — cron real:** `sgc-recordar-firmas-pendientes` 09:00 RD diario (verificado en `cron.job` de dev).
+- **CF4 — bandera >2%:** banner «No coincide con el recibo» (galones/monto confirmados vs leídos) visible al guardar.
+- Pendientes aún: editor/versionado UI de plantillas (RPCs listos), salida .docx real/PDF-servidor (hoy HTML→print), conduce-auto CF5, capturas CF2, y las pruebas físicas de Sonia/Raykler.
 
 - **CF6 🔴 (aprobaciones legales «Cannot coerce… single JSON object»):** `getGeneradoById` hacía `.single()` sobre `documentos_generados` bajo RLS → 0 filas para Sonia (no generó el doc) → error. Fix `sql/…cf6`: RPC definer `documento_para_revision(p_solicitud)` (gate legal/admin, `maybeSingle`→null si el doc fue eliminado + mensaje humano) + `listar_aprobaciones_legales()` (resuelve solicitante/revisor sin embed, arregla «Solicitado por —») + política de `documentos_generados` ampliada a legal. **Smoke dev como Sonia: devuelve el doc + «Xaviel Terrero».**
 - **CF3 🔴 (botones «Posibles duplicados»/«Papelera» no hacían nada):** usaban `.pob-docmodal*`, clases que solo existen en `personal-expediente.scss` → el modal salía sin overlay (bloque suelto al final). Fix: ambos (+ el visor de doc y el confirm de borrado del expediente) migrados a `<app-form-drawer>`; `.pob-docmodal` eliminado. Guard nuevo `verify-modal-compartido.mjs` (clase de overlay debe estar en el scss del propio componente).
@@ -12,7 +18,7 @@
 - **CF7 (Word de Sonia + independencia):** `sql/…cf7` campos aditivos (`personal_obra.domicilio/tarifa_hora`, `empresa.gerente_general/testigos_frecuentes`; `proyectos.cliente` ya existía) + `plantillas_documento.docx_path/variables/es_default/version` + bucket `plantillas-docx` + tabla `plantillas_documento_versiones` + RPCs versión/restaurar/default. **Subir Word**: `analizarWord` (mammoth→HTML + detecta `____`→tokens) + **asistente de espacios** (cada hueco → variable o «a mano») + `crearPlantillaDesdeWord` (guarda el .docx, arma campos). Variables auto-resueltas en `plantilla-merge.util` (empresa/trabajador/obra + **número y fecha en letras** `numero-a-letras.util`). «Marcar predeterminada» en la lista. Guía `docs/LEGAL-GUIA-SONIA.md`. ⚠️ **Follow-ups:** editor+versionado UI (RPCs listos), pantalla Legal › Configuración (backend listo), campos domicilio/tarifa en el form de personal, salida .docx real/PDF-servidor (hoy el documento se genera como HTML→print, pipeline existente), y que **Sonia suba su contrato real** (pendiente físico).
 
 ### Para promover a prod (tras OK de Xaviel)
-1. `apply-migration … --env prod --yes` en orden: **cf6, cf1, cf5, cf4, cf7**. Edge `leer-recibo` a prod (`deploy-edge --env prod --slug leer-recibo`). Registrar el cron de `recordar_firmas_pendientes` (3 días).
+1. `apply-migration … --env prod --yes` en orden: **cf6, cf1, cf5, cf4, cf7, cf7b, cf1b**. Edge `leer-recibo` a prod (`deploy-edge --env prod --slug leer-recibo`). (cf1b ya agenda el cron; no hace falta a mano.)
 2. PR `dev → main`, prod 1.152.0. Matriz filas 118-124 → ✅.
 
 ### Gotchas — CF
