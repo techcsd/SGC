@@ -43,6 +43,10 @@
                 @if (!p.es_default) {
                   <button type="button" class="plantilla-card__default" (click)="marcarDefault(p)">Marcar predeterminada</button>
                 }
+                <div class="plantilla-card__acc">
+                  <button type="button" class="plantilla-card__link" (click)="abrirEditor(p)">Editar</button>
+                  <button type="button" class="plantilla-card__link" (click)="abrirVersiones(p)">Versiones</button>
+                </div>
               </div>
               @if (p.origen !== 'sistema') {
                 <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" [attr.aria-label]="'Eliminar plantilla ' + p.nombre" title="Eliminar plantilla"><app-icon name="x" [size]="16" /></button>
@@ -113,4 +117,55 @@
       </button>
     </div>
   </form>
+</app-form-drawer>
+
+<!-- CF7/CE7 — Editor de plantilla -->
+<app-form-drawer title="Editar plantilla" [open]="editOpen()" [wide]="true" (closed)="cerrarEditor()">
+  <div class="pl-editor">
+    <div class="sgc-field">
+      <label>Nombre</label>
+      <input class="sgc-input" [value]="editNombre()" (input)="editNombre.set($any($event.target).value)" />
+    </div>
+    <div class="sgc-field">
+      <label>Categoría</label>
+      <select class="sgc-input" [value]="editCategoria()" (change)="editCategoria.set($any($event.target).value)">
+        @for (c of CATEGORIAS; track c) { <option [value]="c">{{ CATEGORIA_LABELS[c] }}</option> }
+      </select>
+    </div>
+    <div class="sgc-field">
+      <label>Contenido (HTML). Usa <code>{{ '{{variable}}' }}</code> donde va cada dato.</label>
+      <textarea class="sgc-input pl-editor__html" rows="14" [value]="editHtml()" (input)="editHtml.set($any($event.target).value)"></textarea>
+    </div>
+    <div class="sgc-field">
+      <label>Vista previa</label>
+      <div class="pl-editor__preview" [innerHTML]="editHtml()"></div>
+    </div>
+    @if (editError()) { <p class="save-error" role="alert">{{ editError() }}</p> }
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarEditor()">Cancelar</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="editSaving()" (click)="guardarEdicion()">
+        {{ editSaving() ? 'Guardando…' : 'Guardar (nueva versión)' }}
+      </button>
+    </div>
+  </div>
+</app-form-drawer>
+
+<!-- CF7/CE7 — Versiones de una plantilla -->
+<app-form-drawer [title]="'Versiones · ' + (versPlantilla()?.nombre ?? '')" [open]="versOpen()" (closed)="cerrarVersiones()">
+  <div class="pl-vers">
+    @if (versBusy()) { <p class="text-muted">Cargando…</p> }
+    @else if (!versiones().length) { <p class="text-muted">Aún no hay versiones guardadas. Se crean al editar la plantilla.</p> }
+    @else {
+      @for (v of versiones(); track v.id) {
+        <div class="pl-vers__row">
+          <div>
+            <strong>Versión {{ v.version }}</strong>
+            <span class="text-muted"> · {{ v.created_at | date:'dd/MM/yyyy HH:mm' }} · {{ v.creado_por_nombre ?? '—' }}</span>
+            @if (v.motivo) { <div class="text-muted">{{ v.motivo }}</div> }
+          </div>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="versBusy()" (click)="restaurar(v)">Restaurar</button>
+        </div>
+      }
+    }
+  </div>
 </app-form-drawer>

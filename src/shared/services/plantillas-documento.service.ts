@@ -6,6 +6,7 @@ import {
   DocumentoGenerado,
   PlantillaCategoria,
   PlantillaDocumento,
+  PlantillaVersion,
 } from '../models/plantilla-documento.model';
 
 const TOKEN_RE = /\{\{\s*([\w.]+)\s*\}\}/g;
@@ -157,9 +158,38 @@ export class PlantillasDocumentoService {
     if (error) throw new Error(error.message);
   }
 
-  // NOTA (CF7 follow-up): el versionado de plantillas (guardar/listar/restaurar versión)
-  // ya tiene sus RPCs en la BD (guardar_plantilla_version, plantilla_versiones_listar,
-  // restaurar_plantilla_version); el editor de plantillas que los consume queda pendiente.
+  /** CF7/CE7 — edita una plantilla, guardando antes una versión (snapshot) para poder restaurar. */
+  async editarPlantilla(id: string, cambios: { nombre: string; categoria: PlantillaCategoria; contenido_html: string; campos: CampoPlantilla[] }, motivo?: string): Promise<PlantillaDocumento> {
+    // 1) snapshot de la versión actual (auditoría + restaurar).
+    await this.supabase.client.rpc('guardar_plantilla_version', { p_plantilla: id, p_motivo: motivo ?? 'Edición' });
+    // 2) aplica los cambios.
+    const { data, error } = await this.supabase.client
+      .from('plantillas_documento')
+      .update({ nombre: cambios.nombre, categoria: cambios.categoria, contenido_html: cambios.contenido_html, campos: cambios.campos })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as unknown as PlantillaDocumento;
+  }
+
+  async listarVersiones(plantillaId: string): Promise<PlantillaVersion[]> {
+    const { data, error } = await this.supabase.client.rpc('plantilla_versiones_listar', { p_plantilla: plantillaId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as PlantillaVersion[];
+  }
+
+  async restaurarVersion(plantillaId: string, version: number): Promise<void> {
+    const { error } = await this.supabase.client.rpc('restaurar_plantilla_version', { p_plantilla: plantillaId, p_version: version });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Deriva los campos {{clave}} presentes en el HTML (para re-sincronizar al editar). */
+  camposDesdeHtml(html: string): CampoPlantilla[] {
+    const keys = new Set<string>();
+    for (const m of html.matchAll(TOKEN_RE)) keys.add(m[1]);
+    return [...keys].map((key) => ({ key, label: humanizeKey(key), tipo: 'texto' as const }));
+  }
 
   /** Parses an uploaded .docx and auto-detects {{token}} placeholders as form fields. */
   async subirPlantillaPersonalizada(

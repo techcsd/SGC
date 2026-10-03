@@ -113,3 +113,20 @@
   color: var(--brand, #2e75b6); font-size: 12px; font-weight: 600;
   &:hover { text-decoration: underline; }
 }
+
+// CF7/CE7 — editor + versiones.
+.plantilla-card__acc { display: flex; gap: 10px; margin-top: 6px; }
+.plantilla-card__link {
+  border: none; background: none; cursor: pointer; padding: 2px 0;
+  color: var(--brand, #2e75b6); font-size: 12px; font-weight: 600;
+  &:hover { text-decoration: underline; }
+}
+.pl-editor {
+  display: flex; flex-direction: column; gap: 14px;
+  &__html { font-family: var(--font-mono, monospace); font-size: 12.5px; }
+  &__preview { padding: 16px; background: #fff; color: #111; border-radius: 10px; border: 1px solid var(--sgc-border); max-height: 320px; overflow: auto; }
+}
+.pl-vers {
+  display: flex; flex-direction: column; gap: 8px;
+  &__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--sgc-border); border-radius: 10px; }
+}

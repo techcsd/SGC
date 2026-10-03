@@ -122,12 +122,12 @@ export class UserService {
 
   /**
    * AC2 — persona "chofer": el usuario de experiencia reducida que entra por
-   * cédula + PIN (rol `chofer_transportista`). El módulo Tecnología es visible
-   * para todos EXCEPTO este perfil. Debe coincidir con `sgc.es_chofer()`.
-   * Un usuario elevado (admin/tecnología) que además fuera chofer SÍ ve
-   * Tecnología, de ahí el `&& !esTecnologia()` en los gates.
+   * cédula + PIN (rol `chofer_transportista` o `chofer_privado`). El módulo
+   * Tecnología es visible para todos EXCEPTO este perfil. Debe coincidir con
+   * `sgc.es_chofer()`. Un usuario elevado (admin/tecnología) que además fuera
+   * chofer SÍ ve Tecnología, de ahí el `&& !esTecnologia()` en los gates.
    */
-  esChofer = computed(() => this.hasRole('chofer_transportista'));
+  esChofer = computed(() => this.hasRole('chofer_transportista') || this.hasRole('chofer_privado'));
 
   /**
    * AS7 — quién ve TODAS las requisiciones (bandeja global), no solo las propias.

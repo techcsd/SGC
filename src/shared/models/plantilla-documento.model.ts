@@ -79,6 +79,19 @@ export const VARIABLES_CONTRATO: VariableContrato[] = [
   { key: 'testigo_2_cedula', label: 'Testigo 2 — cédula', origen: 'manual' },
 ];
 
+// CF7/CE7 — versión guardada de una plantilla.
+export interface PlantillaVersion {
+  id: string;
+  plantilla_id: string;
+  version: number;
+  nombre: string;
+  contenido_html: string;
+  campos: CampoPlantilla[];
+  motivo: string | null;
+  creado_por_nombre?: string | null;
+  created_at: string;
+}
+
 export const CATEGORIA_LABELS: Record<PlantillaCategoria, string> = {
   contrato: 'Contrato',
   recibo_pago: 'Recibo de Pago',

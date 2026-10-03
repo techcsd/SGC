@@ -28,7 +28,7 @@
 | admin/reportes | - | 49 | 0 | 49 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 212 | 0 | 212 | 0% |
+| admin/usuarios | - | 213 | 0 | 213 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | app-movil | - | 24 | 0 | 24 | 0% |
@@ -51,7 +51,7 @@
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |
 | documentos/historial | - | 15 | 0 | 15 | 0% |
-| documentos/plantillas | - | 41 | 0 | 41 | 0% |
+| documentos/plantillas | - | 61 | 0 | 61 | 0% |
 | documentos/ver | - | 15 | 0 | 15 | 0% |
 | dudas | - | 23 | 0 | 23 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |

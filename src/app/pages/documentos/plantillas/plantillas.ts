@@ -1,16 +1,17 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { UserService } from '../../../core/services/user.service';
-import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS, VARIABLES_CONTRATO } from '../../../../shared/models/plantilla-documento.model';
+import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS, VARIABLES_CONTRATO, PlantillaVersion } from '../../../../shared/models/plantilla-documento.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
 
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, Icon, DatePipe],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -137,6 +138,75 @@ export class Plantillas implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  // ── CF7/CE7 — editor + versiones ───────────────────────────────────────────
+  editOpen = signal(false);
+  editId = signal<string | null>(null);
+  editNombre = signal('');
+  editCategoria = signal<PlantillaCategoria>('otro');
+  editHtml = signal('');
+  editSaving = signal(false);
+  editError = signal('');
+
+  versOpen = signal(false);
+  versiones = signal<PlantillaVersion[]>([]);
+  versPlantilla = signal<PlantillaDocumento | null>(null);
+  versBusy = signal(false);
+
+  abrirEditor(p: PlantillaDocumento) {
+    this.editId.set(p.id);
+    this.editNombre.set(p.nombre);
+    this.editCategoria.set(p.categoria);
+    this.editHtml.set(p.contenido_html);
+    this.editError.set('');
+    this.editOpen.set(true);
+  }
+  cerrarEditor() { this.editOpen.set(false); }
+
+  async guardarEdicion() {
+    const id = this.editId();
+    if (!id || this.editSaving()) return;
+    if (!this.editNombre().trim() || !this.editHtml().trim()) { this.editError.set('El nombre y el contenido son obligatorios.'); return; }
+    this.editSaving.set(true);
+    this.editError.set('');
+    try {
+      const campos = this.plantillasService.camposDesdeHtml(this.editHtml());
+      const upd = await this.plantillasService.editarPlantilla(id, {
+        nombre: this.editNombre().trim(), categoria: this.editCategoria(), contenido_html: this.editHtml(), campos,
+      });
+      this.plantillas.update((list) => list.map((x) => x.id === id ? { ...x, ...upd } : x));
+      this.editOpen.set(false);
+    } catch (e: unknown) {
+      this.editError.set(e instanceof Error ? e.message : 'No se pudo guardar.');
+    } finally {
+      this.editSaving.set(false);
+    }
+  }
+
+  async abrirVersiones(p: PlantillaDocumento) {
+    this.versPlantilla.set(p);
+    this.versiones.set([]);
+    this.versOpen.set(true);
+    this.versBusy.set(true);
+    try { this.versiones.set(await this.plantillasService.listarVersiones(p.id)); }
+    catch (e: unknown) { this.error.set(e instanceof Error ? e.message : 'No se pudieron cargar las versiones.'); }
+    finally { this.versBusy.set(false); }
+  }
+  cerrarVersiones() { this.versOpen.set(false); }
+
+  async restaurar(v: PlantillaVersion) {
+    const p = this.versPlantilla();
+    if (!p || this.versBusy()) return;
+    if (!confirm(`¿Restaurar la versión ${v.version} de "${p.nombre}"? La versión actual se guarda antes de restaurar.`)) return;
+    this.versBusy.set(true);
+    try {
+      await this.plantillasService.restaurarVersion(p.id, v.version);
+      await this.load();
+      this.versOpen.set(false);
+    } catch (e: unknown) {
+      this.error.set(e instanceof Error ? e.message : 'No se pudo restaurar.');
+    } finally { this.versBusy.set(false); }
   }
 
   // CF7 — marcar como predeterminada de su categoría.
