@@ -1,5 +1,19 @@
 {
   "web": {
+    "1.152.0": {
+      "titulo": "Aprobaciones legales y firmas del empleador/testigos, documentos de Word de Sonia, lectura automática del recibo de combustible, y solicitud de movimiento con almacenes y catálogo",
+      "cambios": [
+        { "t": "arreglo", "m": "Legal", "d": "Aprobaciones legales: al revisar una solicitud ya no sale el error técnico; Sonia ve el documento y quién lo solicitó, y si el documento fue eliminado se avisa con un mensaje claro." },
+        { "t": "arreglo", "m": "Personal de obra", "d": "Los botones de «Posibles duplicados» y «Papelera» ya abren su ventana correctamente (antes no pasaba nada)." },
+        { "t": "nuevo", "m": "Legal", "d": "Firma del empleador y de los testigos: después de la firma del trabajador puedes firmar ahora, firmar después o marcar como firmado en papel (con foto/escaneo). Bandeja «Firmas pendientes» en Legal y recordatorio a los 3 días." },
+        { "t": "nuevo", "m": "Documentos", "d": "Sube tu documento de Word tal cual: el sistema conserva el formato, detecta los espacios en blanco y te deja elegir qué dato va en cada uno. Variables de empresa/trabajador/obra, montos y fechas en letras, y versionado de plantillas." },
+        { "t": "mejora", "m": "Personal de obra", "d": "Pantalla rediseñada: tarjetas de KPI que filtran al tocarlas, pendientes plegables por tipo, fecha y hora en una línea, y «Asegurado» con etiqueta clara." },
+        { "t": "nuevo", "m": "Flota", "d": "Combustible: al subir la foto del recibo, el sistema lee el monto, los galones, la estación y más, y rellena los campos para que el chofer solo confirme." },
+        { "t": "mejora", "m": "Logística", "d": "Solicitud de movimiento: ahora puedes elegir el Almacén Central (y cualquier almacén u obra) como origen o destino, y seleccionar los artículos del catálogo en vez de un texto suelto." },
+        { "t": "nuevo", "m": "Administración", "d": "Nuevo rol «Chofer privado» para los choferes personales de la gerencia: usan la app con acceso a Vehículos, Combustible, Rutas, Checklists e Inspección de su propio vehículo, fuera de la rotación operativa de flota. Se registran con cédula y PIN como los demás choferes." },
+        { "t": "nuevo", "m": "Legal", "d": "Configuración legal (datos del empleador, gerente general y testigos frecuentes) y editor de plantillas con versiones (editar, guardar versión y restaurar una anterior)." }
+      ]
+    },
     "1.149.0": {
       "titulo": "Órdenes de trabajo arregladas, conteos con buscador, ficha del conduce externo, y más control en Tecnología",
       "cambios": [

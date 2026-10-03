@@ -14,7 +14,7 @@ import { PersonalCarnet } from './personal-carnet';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import {
   Cargo, PersonalObra, FOTOS_GUIA, FotoTipo,
-  NACIONALIDADES, TIPOS_DOCUMENTO,
+  NACIONALIDADES, TIPOS_DOCUMENTO, NACIONALIDAD_LABEL,
 } from '../../../../shared/models/personal-obra.model';
 
 /** AR1 — Wizard de registro de personal: datos → fotos guiadas → firma → carnet → resumen. */
@@ -87,6 +87,8 @@ export class PersonalRegistro implements OnInit {
     documento_numero: [''],
     cargo_id: [''],
     telefono: [''],
+    domicilio: [''],            // CF7 — para el contrato
+    tarifa_hora: [null as number | null], // CF7 — salario por hora
     notas: [''],
   });
 
@@ -140,7 +142,8 @@ export class PersonalRegistro implements OnInit {
       proyecto_id: p.proyecto_id, nombre: p.nombre, apellido: p.apellido ?? '',
       nacionalidad: p.nacionalidad, tipo_documento: p.tipo_documento,
       documento_numero: p.documento_numero ?? '', cargo_id: p.cargo_id ?? '',
-      telefono: p.telefono ?? '', notas: p.notas ?? '',
+      telefono: p.telefono ?? '', domicilio: p.domicilio ?? '', tarifa_hora: p.tarifa_hora ?? null,
+      notas: p.notas ?? '',
     });
     const fotos = await this.service.getFotos(id);
     const prev: Record<string, string> = {};
@@ -162,6 +165,8 @@ export class PersonalRegistro implements OnInit {
         tipo_documento: v.tipo_documento as PersonalObra['tipo_documento'],
         documento_numero: v.documento_numero?.trim() || null,
         cargo_id: v.cargo_id || null, telefono: v.telefono?.trim() || null, notas: v.notas?.trim() || null,
+        domicilio: v.domicilio?.trim() || null,
+        tarifa_hora: v.tarifa_hora != null && Number.isFinite(Number(v.tarifa_hora)) ? Number(v.tarifa_hora) : null,
       };
       const actual = this.personal();
       // CE16 — al registrar uno NUEVO: avisa si ya existe otro con el mismo documento.
@@ -224,10 +229,15 @@ export class PersonalRegistro implements OnInit {
     if (!p) return {};
     const cargo = this.cargos().find((c) => c.id === p.cargo_id)?.nombre ?? null;
     const obra = this.obras().find((o) => o.id === p.proyecto_id)?.nombre ?? p.proyecto?.nombre ?? null;
+    const obraRef = this.obras().find((o) => o.id === p.proyecto_id);
     return construirValoresAuto({
       empresa: this.empresa(),
-      persona: { nombre: p.nombre, apellido: p.apellido, documento_numero: p.documento_numero, cargo, telefono: p.telefono },
-      obra: { nombre: obra },
+      persona: {
+        nombre: p.nombre, apellido: p.apellido, documento_numero: p.documento_numero, cargo, telefono: p.telefono,
+        nacionalidad: NACIONALIDAD_LABEL[p.nacionalidad] ?? p.nacionalidad, // CF7
+        domicilio: p.domicilio, tarifa_hora: p.tarifa_hora,
+      },
+      obra: { nombre: obra, cliente: (obraRef as { cliente?: string | null } | undefined)?.cliente ?? null },
       hoyIso: new Date().toISOString().slice(0, 10),
     });
   });
@@ -276,12 +286,16 @@ export class PersonalRegistro implements OnInit {
     this.error.set('');
     try {
       const pl = this.plantillaActual();
+      // CF1 — un contrato pide empleador + 2 testigos; otros documentos sólo el empleador.
+      const roles: ('empleador' | 'testigo_1' | 'testigo_2')[] =
+        pl?.categoria === 'contrato' ? ['empleador', 'testigo_1', 'testigo_2'] : ['empleador'];
       await this.service.registrarFirma(p, this.documentoNombre().trim() || 'Documento', blob, {
         plantillaId: this.plantillaSel() || null,
         metodo: 'pad',
         // AZ1 (c) — snapshot: congela valores + HTML final resuelto al momento de firmar.
         valores: pl ? this.valores() : undefined,
         documentoHtml: pl ? this.plantillaHtml() : undefined,
+        rolesFirma: roles,
       });
       this.firmaGuardada.set(true);
       this.paso.set(4);

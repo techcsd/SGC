@@ -78,6 +78,16 @@
         <input id="tel" class="sgc-input" formControlName="telefono" />
       </div>
       <div class="sgc-field sgc-field--grow">
+        <label for="dom">Domicilio</label>
+        <input id="dom" class="sgc-input" formControlName="domicilio" placeholder="Dirección del trabajador (para el contrato)" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="tarifa">Salario por hora (RD$)</label>
+        <input id="tarifa" type="number" min="0" step="any" class="sgc-input" formControlName="tarifa_hora" placeholder="Opcional" />
+      </div>
+      <div class="sgc-field sgc-field--grow">
         <label for="notas">Notas</label>
         <input id="notas" class="sgc-input" formControlName="notas" />
       </div>

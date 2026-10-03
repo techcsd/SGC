@@ -102,9 +102,33 @@
 <!-- Nueva solicitud -->
 <app-form-drawer title="Nueva solicitud de movimiento" [open]="crearOpen()" (closed)="crearOpen.set(false)">
   <form [formGroup]="form" class="sm-form" (ngSubmit)="guardarCrear()">
+    <!-- CF5 — renglones del catálogo (o "no catalogado") -->
     <div class="sgc-field">
-      <label for="que">¿Qué se va a mover? *</label>
-      <textarea id="que" formControlName="que_se_mueve" rows="2" placeholder="Ej: 20 sacos de cemento, andamios, herramienta menor…"></textarea>
+      <label>¿Qué se va a mover? *</label>
+      <div class="sm-items">
+        @for (r of renglones(); track $index) {
+          <div class="sm-item">
+            <app-articulo-picker
+              class="sm-item__art"
+              [articulos]="articulosActivos()"
+              [value]="r.articulo_id"
+              [esOtro]="!r.articulo_id && !!r.descripcion"
+              (selectionChange)="setRenglonArticulo($index, $event)" />
+            @if (!r.articulo_id) {
+              <input type="text" class="sgc-input sm-item__desc" placeholder="Describe el artículo (no catalogado)"
+                     [value]="r.descripcion" (input)="setRenglonCampo($index, 'descripcion', $any($event.target).value)" />
+            }
+            <input type="number" class="sgc-input sm-item__cant" placeholder="Cant." min="0" step="any"
+                   [value]="r.cantidad" (input)="setRenglonCantidad($index, $any($event.target).value)" />
+            <input type="text" class="sgc-input sm-item__und" placeholder="Unidad"
+                   [value]="r.unidad" (input)="setRenglonCampo($index, 'unidad', $any($event.target).value)" />
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm sm-item__del" (click)="quitarRenglon($index)" aria-label="Quitar renglón">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        }
+      </div>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="agregarRenglon()">+ Agregar renglón</button>
     </div>
     <div class="sm-form__row">
       <div class="sgc-field">
@@ -132,10 +156,11 @@
         @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
       </select>
     </div>
+    <!-- CF5 — origen: almacén (Central primero) / obra / proveedor-otro (texto) -->
     <div class="sm-form__row">
       <div class="sgc-field">
         <label for="ori-tipo">Origen</label>
-        <select id="ori-tipo" formControlName="origen_tipo">
+        <select id="ori-tipo" formControlName="origen_tipo" (change)="origenTipo.set($any($event.target).value)">
           <option value="almacen">Almacén</option>
           <option value="obra">Obra</option>
           <option value="proveedor">Proveedor</option>
@@ -143,14 +168,33 @@
         </select>
       </div>
       <div class="sgc-field">
-        <label for="ori-txt">Detalle del origen</label>
-        <input id="ori-txt" type="text" formControlName="origen_texto" placeholder="Ej: Bodega Central" />
+        @switch (origenTipo()) {
+          @case ('almacen') {
+            <label for="ori-bod">Almacén de origen</label>
+            <select id="ori-bod" formControlName="origen_bodega_id">
+              <option [ngValue]="null">— Selecciona almacén —</option>
+              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? 'Central — ' : '' }}{{ b.nombre }}</option> }
+            </select>
+          }
+          @case ('obra') {
+            <label for="ori-proy">Obra de origen</label>
+            <select id="ori-proy" formControlName="origen_proyecto_id">
+              <option [ngValue]="null">— Selecciona obra —</option>
+              @for (p of proyectosVisibles(); track p.id) { <option [ngValue]="p.id">{{ p.nombre }}</option> }
+            </select>
+          }
+          @default {
+            <label for="ori-txt">Detalle del origen</label>
+            <input id="ori-txt" type="text" formControlName="origen_texto" placeholder="Ej: Proveedor X" />
+          }
+        }
       </div>
     </div>
+    <!-- CF5 — destino: obra (la de arriba) / almacén (Central primero) / proveedor-otro (texto) -->
     <div class="sm-form__row">
       <div class="sgc-field">
         <label for="des-tipo">Destino</label>
-        <select id="des-tipo" formControlName="destino_tipo">
+        <select id="des-tipo" formControlName="destino_tipo" (change)="destinoTipo.set($any($event.target).value)">
           <option value="obra">Obra</option>
           <option value="almacen">Almacén</option>
           <option value="proveedor">Proveedor</option>
@@ -158,8 +202,23 @@
         </select>
       </div>
       <div class="sgc-field">
-        <label for="des-txt">Detalle del destino</label>
-        <input id="des-txt" type="text" formControlName="destino_texto" placeholder="Ej: Torre 2, nivel 3" />
+        @switch (destinoTipo()) {
+          @case ('almacen') {
+            <label for="des-bod">Almacén de destino</label>
+            <select id="des-bod" formControlName="destino_bodega_id">
+              <option [ngValue]="null">— Selecciona almacén —</option>
+              @for (b of bodegasOrden(); track b.id) { <option [ngValue]="b.id">{{ b.es_central ? 'Central — ' : '' }}{{ b.nombre }}</option> }
+            </select>
+          }
+          @case ('obra') {
+            <label>Obra de destino</label>
+            <p class="sm-hint">Se usa la obra seleccionada arriba.</p>
+          }
+          @default {
+            <label for="des-txt">Detalle del destino</label>
+            <input id="des-txt" type="text" formControlName="destino_texto" placeholder="Ej: Torre 2, nivel 3" />
+          }
+        }
       </div>
     </div>
     <div class="sgc-field">

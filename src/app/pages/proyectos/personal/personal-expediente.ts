@@ -4,22 +4,29 @@ import { PersonalObraService } from '../../../../shared/services/personal-obra.s
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { PersonalCarnet } from './personal-carnet';
+import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
 import {
   PersonalObra,
   PersonalFirma,
+  FirmaLinea,
+  FirmaRol,
+  FIRMA_ROL_LABEL,
   FOTOS_GUIA,
   FotoTipo,
   NACIONALIDAD_LABEL,
   ASEGURAMIENTO_ESTADOS,
   AseguramientoEstado,
 } from '../../../../shared/models/personal-obra.model';
+import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { EmpresaService, TestigoFrecuente } from '../../../../shared/services/empresa.service';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { UserService } from '../../../core/services/user.service';
 
 /** AR1 — Expediente completo del personal: datos, galería, carnet e historial. */
 @Component({
   selector: 'app-personal-expediente',
-  imports: [RouterLink, Skeleton, Lightbox, PersonalCarnet],
+  imports: [RouterLink, Skeleton, Lightbox, PersonalCarnet, FormDrawer, SignaturePad],
   templateUrl: './personal-expediente.html',
   styleUrl: './personal-expediente.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +36,9 @@ export class PersonalExpediente implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private userService = inject(UserService);
+  private empresaSvc = inject(EmpresaService);
+  testigosFrecuentes = signal<TestigoFrecuente[]>([]); // CF7 — quick-pick al firmar testigos
+  usarTestigo(t: TestigoFrecuente) { this.firmanteNombre.set(t.nombre); this.firmanteCedula.set(t.cedula); }
 
   readonly fotosGuia = FOTOS_GUIA;
   readonly nacionalidadLabel = NACIONALIDAD_LABEL;
@@ -45,6 +55,21 @@ export class PersonalExpediente implements OnInit {
   personaDataUrl = signal<string | null>(null);
   firmas = signal<PersonalFirma[]>([]);
   firmaUrls = signal<Record<string, string>>({}); // CE8 — firma.id → URL firmada
+  // CF1 — líneas de firma por rol (firma_id → líneas) + URLs firmadas de cada línea.
+  readonly rolLabel = FIRMA_ROL_LABEL;
+  readonly ordenRoles: FirmaRol[] = ['empleador', 'trabajador', 'testigo_1', 'testigo_2'];
+  lineas = signal<Record<string, FirmaLinea[]>>({});
+  lineaUrls = signal<Record<string, string>>({}); // linea.id → URL firmada (pad/foto)
+  esLegalOAdmin = computed(() => this.esAdmin() || this.userService.hasRole('legal') || this.userService.hasRole('abogado'));
+  // Drawer de "firmar línea" (empleador/testigo).
+  firmarCtx = signal<{ firma: PersonalFirma; rol: FirmaRol } | null>(null);
+  firmarMetodo = signal<'pad' | 'fisico'>('pad');
+  firmanteNombre = signal('');
+  firmanteCedula = signal('');
+  firmarFile = signal<File | null>(null);
+  firmarBusy = signal(false);
+  firmarError = signal('');
+  linePad = viewChild<SignaturePad>('linePad');
   // CE9 — acciones de admin (marcar prueba / eliminar).
   esAdmin = computed(() => this.userService.hasRole('admin'));
   confirmarEliminar = signal(false);
@@ -119,6 +144,7 @@ export class PersonalExpediente implements OnInit {
         if (f.firma_path) fUrls[f.id] = await this.service.firmaUrl(f.firma_path);
       }
       this.firmaUrls.set(fUrls);
+      await this.cargarLineas(firmas);
       // Foto de la persona → dataURL para el carnet imprimible.
       const persona = fotos.find((f) => f.tipo === 'persona');
       if (persona) this.personaDataUrl.set(await this.fetchDataUrl(urls['persona']));
@@ -232,6 +258,93 @@ export class PersonalExpediente implements OnInit {
     if (p) this.router.navigate(['/proyectos/personal/registrar'], { queryParams: { id: p.id } });
   }
 
+  // ── CF1 — líneas de firma por rol ──────────────────────────────────────────
+  private async cargarLineas(firmas: PersonalFirma[]) {
+    const map: Record<string, FirmaLinea[]> = {};
+    const urls: Record<string, string> = {};
+    for (const f of firmas) {
+      const ls = await this.service.lineasFirma(f.id);
+      map[f.id] = ls;
+      for (const l of ls) {
+        if (l.firma_path && l.metodo !== 'fisico') {
+          try { urls[l.id] = await this.service.firmaUrl(l.firma_path); } catch { /* opcional */ }
+        }
+      }
+    }
+    this.lineas.set(map);
+    this.lineaUrls.set(urls);
+  }
+
+  lineasDe(firmaId: string): FirmaLinea[] {
+    const ls = this.lineas()[firmaId] ?? [];
+    return [...ls].sort((a, b) => this.ordenRoles.indexOf(a.rol) - this.ordenRoles.indexOf(b.rol));
+  }
+
+  estadoLineaTxt(l: FirmaLinea): string {
+    if (l.estado === 'firmado') return 'Firmada';
+    if (l.estado === 'papel') return 'Firmada en papel';
+    return 'Pendiente';
+  }
+  estadoLineaClase(l: FirmaLinea): string {
+    if (l.estado === 'firmado') return 'sgc-badge sgc-badge--success';
+    if (l.estado === 'papel') return 'sgc-badge sgc-badge--neutral';
+    return 'sgc-badge sgc-badge--warning';
+  }
+
+  abrirFirmarLinea(f: PersonalFirma, rol: FirmaRol) {
+    this.firmarCtx.set({ firma: f, rol });
+    this.firmarMetodo.set('pad');
+    this.firmanteNombre.set('');
+    this.firmanteCedula.set('');
+    this.firmarFile.set(null);
+    this.firmarError.set('');
+    // CF7 — carga perezosa de los testigos frecuentes (quick-pick).
+    if (this.esTestigo(rol) && !this.testigosFrecuentes().length) {
+      void this.empresaSvc.get().then((e) => this.testigosFrecuentes.set(e?.testigos_frecuentes ?? [])).catch(() => {});
+    }
+  }
+  cerrarFirmarLinea() { this.firmarCtx.set(null); }
+
+  onFirmarFile(ev: Event) {
+    const file = (ev.target as HTMLInputElement).files?.[0] ?? null;
+    this.firmarFile.set(file);
+  }
+
+  esTestigo(rol: FirmaRol | undefined): boolean { return rol === 'testigo_1' || rol === 'testigo_2'; }
+
+  async guardarFirmarLinea() {
+    const ctx = this.firmarCtx();
+    const p = this.personal();
+    if (!ctx || !p || this.firmarBusy()) return;
+    const metodo = this.firmarMetodo();
+    let blob: Blob | null = null;
+    if (metodo === 'pad') {
+      const pad = this.linePad();
+      if (!pad || pad.isEmpty()) { this.firmarError.set('Dibuja la firma antes de continuar.'); return; }
+      blob = await pad.toBlob();
+      if (!blob) { this.firmarError.set('No se pudo capturar la firma.'); return; }
+    } else {
+      const file = this.firmarFile();
+      if (!file) { this.firmarError.set('Sube la foto o el PDF de la página firmada.'); return; }
+      blob = file.type.includes('pdf') ? file : await comprimirImagen(file, 'documento');
+    }
+    this.firmarBusy.set(true);
+    this.firmarError.set('');
+    try {
+      await this.service.firmarLinea(ctx.firma, p, ctx.rol, metodo, {
+        firma: blob,
+        nombre: this.esTestigo(ctx.rol) ? this.firmanteNombre().trim() || null : null,
+        cedula: this.esTestigo(ctx.rol) ? this.firmanteCedula().trim() || null : null,
+      });
+      await this.cargarLineas(this.firmas());
+      this.firmarCtx.set(null);
+    } catch (e: unknown) {
+      this.firmarError.set(e instanceof Error ? e.message : 'No se pudo registrar la firma.');
+    } finally {
+      this.firmarBusy.set(false);
+    }
+  }
+
   // AZ1 — abre el documento firmado con los valores congelados al momento de la firma.
   verDoc(f: PersonalFirma) {
     if (f.documento_html) this.docVer.set(f);
@@ -245,16 +358,28 @@ export class PersonalExpediente implements OnInit {
   });
 
   private docConFirma(f: PersonalFirma): string {
-    const url = this.firmaUrls()[f.id];
-    const fecha = this.formatFecha(f.firmado_at);
-    const firmaBloque = url
-      ? `<div style="margin-top:28px;page-break-inside:avoid;">
-           <img src="${url}" alt="Firma" style="max-height:90px;display:block;" />
-           <div style="border-top:1px solid #333;width:240px;margin-top:4px;padding-top:4px;font-size:12px;">
-             ${f.documento_nombre || 'Firma'} · ${fecha}
-           </div>
-         </div>`
-      : '';
+    // CF1 — renderiza TODAS las líneas de firma (empleador/trabajador/testigos) con su estado.
+    const lineas = this.lineasDe(f.id);
+    const celdas = (lineas.length ? lineas : [{ id: f.id, rol: 'trabajador', estado: 'firmado', metodo: f.metodo, firma_path: f.firma_path, firmante_nombre: null, firmante_cedula: null, firmado_por: null, firmado_at: f.firmado_at } as FirmaLinea])
+      .map((l) => {
+        const url = l.rol === 'trabajador' && this.firmaUrls()[f.id] ? this.firmaUrls()[f.id] : this.lineaUrls()[l.id];
+        const img = l.estado !== 'pendiente' && url
+          ? `<img src="${url}" alt="Firma" style="max-height:80px;display:block;margin-bottom:4px;" />`
+          : `<div style="height:80px;"></div>`;
+        const estadoTxt = l.estado === 'firmado' ? (l.firmado_at ? this.formatFecha(l.firmado_at) : 'Firmada')
+          : l.estado === 'papel' ? 'Firmada en papel' : 'Pendiente de firma';
+        const nombre = this.esTestigo(l.rol) && l.firmante_nombre
+          ? `${l.firmante_nombre}${l.firmante_cedula ? ' · ' + l.firmante_cedula : ''}` : '';
+        return `<td style="padding:10px 18px;vertical-align:bottom;text-align:center;">
+            ${img}
+            <div style="border-top:1px solid #333;padding-top:4px;font-size:12px;">
+              <strong>${this.rolLabel[l.rol]}</strong><br/>${nombre ? nombre + '<br/>' : ''}<span style="color:#555;">${estadoTxt}</span>
+            </div>
+          </td>`;
+      }).join('');
+    const firmaBloque = `<div style="margin-top:32px;page-break-inside:avoid;">
+        <table style="width:100%;border-collapse:collapse;"><tr>${celdas}</tr></table>
+      </div>`;
     return `${f.documento_html ?? ''}${firmaBloque}`;
   }
 

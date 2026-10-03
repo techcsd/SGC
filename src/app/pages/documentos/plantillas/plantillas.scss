@@ -94,3 +94,39 @@
   border-top: 1px solid var(--sgc-border);
   margin-top: 4px;
 }
+
+// CF7 — asistente de espacios del Word.
+.pl-huecos {
+  margin: 8px 0 12px; padding: 12px; border: 1px solid var(--sgc-border); border-radius: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+  &__title { margin: 0; font-size: 14px; }
+}
+.pl-hueco {
+  display: grid; grid-template-columns: 1fr 220px; gap: 10px; align-items: center;
+  &__ctx { font-size: 12.5px; color: var(--sgc-text-muted); font-style: italic; overflow: hidden; text-overflow: ellipsis; }
+  @media (max-width: 640px) { grid-template-columns: 1fr; }
+}
+
+// CF7 — acción "marcar predeterminada".
+.plantilla-card__default {
+  border: none; background: none; cursor: pointer; padding: 2px 0;
+  color: var(--brand, #2e75b6); font-size: 12px; font-weight: 600;
+  &:hover { text-decoration: underline; }
+}
+
+// CF7/CE7 — editor + versiones.
+.plantilla-card__acc { display: flex; gap: 10px; margin-top: 6px; }
+.plantilla-card__link {
+  border: none; background: none; cursor: pointer; padding: 2px 0;
+  color: var(--brand, #2e75b6); font-size: 12px; font-weight: 600;
+  &:hover { text-decoration: underline; }
+}
+.pl-editor {
+  display: flex; flex-direction: column; gap: 14px;
+  &__html { font-family: var(--font-mono, monospace); font-size: 12.5px; }
+  &__preview { padding: 16px; background: #fff; color: #111; border-radius: 10px; border: 1px solid var(--sgc-border); max-height: 320px; overflow: auto; }
+}
+.pl-vers {
+  display: flex; flex-direction: column; gap: 8px;
+  &__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--sgc-border); border-radius: 10px; }
+}

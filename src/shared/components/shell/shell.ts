@@ -298,6 +298,8 @@ export class Shell implements OnInit {
         { label: 'Expedientes', route: '/legal/expedientes' },
         { label: 'Contratos', route: '/legal/contratos' },
         { label: 'Aprobaciones', route: '/legal/aprobaciones', badgeKey: 'legal.aprobaciones' },
+        { label: 'Firmas pendientes', route: '/legal/firmas-pendientes' },
+        { label: 'Configuración', route: '/legal/configuracion' },
       ],
     },
     {

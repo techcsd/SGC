@@ -51,7 +51,7 @@ function esPinTrivial(pin: string, cedula = ""): boolean {
 // Añadimos el tipo `encargado` con dominio propio @acceso.constructorasd.local — NO
 // @conductores. — para que el trigger `asegurar_conductor_de_usuario` (regla 13, BP1),
 // cuyo regex solo mira @conductores., NO le fabrique una ficha de conductor.
-type Tipo = "conductor" | "capataz" | "encargado";
+type Tipo = "conductor" | "capataz" | "encargado" | "chofer_privado";
 interface Cfg {
   tabla: string;
   dominio: string;
@@ -67,6 +67,14 @@ const CFG: Record<Tipo, Cfg> = {
     rol: "chofer_transportista",
     cedula: (r) => String(r.cedula ?? ""),
     nombre: (r) => String(r.nombre ?? "Conductor"),
+  },
+  // Chofer privado (personal de gerencia): misma ficha de conductor (@conductores → el
+  // trigger le fabrica su ficha) pero rol chofer_privado (fuera de la rotación de flota).
+  chofer_privado: {
+    tabla: "conductores", dominio: "@conductores.constructorasd.local", prefijo: "c-",
+    rol: "chofer_privado",
+    cedula: (r) => String(r.cedula ?? ""),
+    nombre: (r) => String(r.nombre ?? "Chofer privado"),
   },
   capataz: {
     tabla: "personal_obra", dominio: "@personal.constructorasd.local", prefijo: "cap-",
@@ -164,7 +172,7 @@ Deno.serve(async (req: Request) => {
       return json({ usuarioId, email, rotated: true });
     }
 
-    if (tipo !== "conductor" && tipo !== "capataz" && tipo !== "encargado") return json({ error: "tipo inválido." }, 400);
+    if (tipo !== "conductor" && tipo !== "capataz" && tipo !== "encargado" && tipo !== "chofer_privado") return json({ error: "tipo inválido." }, 400);
     const cfg = CFG[tipo as Tipo];
     // BR8 — los tipos sin tabla de ficha (encargado) solo se dan de alta directa.
     if (cfg.soloAltaDirecta && (typeof entityId === "string" && entityId)) {

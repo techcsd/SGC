@@ -14,7 +14,7 @@ import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { VehiculoPicker } from '../../../../shared/components/vehiculo-picker/vehiculo-picker';
-import { CombustibleService } from '../../../../shared/services/combustible.service';
+import { CombustibleService, LecturaRecibo } from '../../../../shared/services/combustible.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
@@ -705,6 +705,90 @@ export class Combustible implements OnInit {
       this.tableroFile.set(file);
       this.tableroPreview.set(file ? URL.createObjectURL(file) : null);
     }
+    // CF4 — al subir la foto, leer el recibo en segundo plano y rellenar (el usuario confirma).
+    if (file) void this.leerReciboAuto();
+  }
+
+  // ── CF4 — lectura automática del recibo (visión) ───────────────────────────
+  leyendoRecibo = signal(false);
+  lecturaError = signal('');
+  leidoCampos = signal<string[]>([]);       // campos auto-rellenados (chip "Leído del recibo")
+  lecturaSugerencias = signal<{ campo: string; etiqueta: string; valor: string; conf: number }[]>([]);
+  lecturaCruda = signal<LecturaRecibo | null>(null); // CF4 — lo leído, para comparar al guardar
+
+  /** Reduce una imagen a ~1600 px de lado mayor y devuelve base64 (sin el prefijo data:). */
+  private async imagenBase64(file: File, max = 1600): Promise<{ data: string; mime: string }> {
+    const bitmap = await createImageBitmap(file);
+    const escala = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * escala), h = Math.round(bitmap.height * escala);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    return { data: dataUrl.split(',')[1] ?? '', mime: 'image/jpeg' };
+  }
+
+  // CF4 — bandera "No coincide con el recibo": lo confirmado difiere > 2% de lo leído.
+  private formTick = toSignal(this.form.valueChanges, { initialValue: null });
+  discrepanciaRecibo = computed(() => {
+    this.formTick(); // recomputa al editar galones/monto
+    const l = this.lecturaCruda();
+    if (!l) return '';
+    const dif: string[] = [];
+    const chk = (leido: number | null, actual: number | null, etq: string) => {
+      if (leido == null || actual == null || leido === 0) return;
+      if (Math.abs(actual - leido) / Math.abs(leido) > 0.02) dif.push(`${etq} (recibo ${leido}, tú ${actual})`);
+    };
+    const g = this.form.controls.galones.value;
+    const m = this.form.controls.monto.value;
+    chk(l.galones, g ?? null, 'galones');
+    chk(l.monto, m ?? null, 'monto');
+    return dif.length ? 'No coincide con el recibo: ' + dif.join(' · ') : '';
+  });
+
+  async leerReciboAuto() {
+    const recibo = this.reciboFile();
+    if (!recibo || this.leyendoRecibo()) return;
+    this.leyendoRecibo.set(true);
+    this.lecturaError.set('');
+    try {
+      const imgs: { tipo: 'recibo' | 'tablero' | 'bomba'; data: string; mime: string }[] = [];
+      imgs.push({ tipo: 'recibo', ...(await this.imagenBase64(recibo)) });
+      const tablero = this.tableroFile();
+      if (tablero) imgs.push({ tipo: 'tablero', ...(await this.imagenBase64(tablero)) });
+
+      const res = await this.combustibleService.leerRecibo(imgs);
+      if (!res.ok || !res.lectura) { this.lecturaError.set(res.error ?? 'No se pudo leer el recibo.'); return; }
+      this.aplicarLectura(res.lectura, res.confianza ?? {});
+    } catch (e: unknown) {
+      this.lecturaError.set(e instanceof Error ? e.message : 'No se pudo leer el recibo.');
+    } finally {
+      this.leyendoRecibo.set(false);
+    }
+  }
+
+  /** Rellena los campos con confianza ≥ 0.9; los de confianza menor se ofrecen como sugerencia. */
+  private aplicarLectura(l: LecturaRecibo, conf: Record<string, number>) {
+    this.lecturaCruda.set(l);
+    const UMBRAL = 0.9;
+    const llenados: string[] = [];
+    const sugerencias: { campo: string; etiqueta: string; valor: string; conf: number }[] = [];
+    const set = (campo: keyof LecturaRecibo, etiqueta: string, apply: (v: string) => void) => {
+      const val = l[campo];
+      if (val === null || val === undefined || val === '') return;
+      const c = conf[campo as string] ?? 0;
+      if (c >= UMBRAL) { apply(String(val)); llenados.push(etiqueta); }
+      else sugerencias.push({ campo: etiqueta, etiqueta, valor: String(val), conf: c });
+    };
+    set('galones', 'Galones', (v) => this.form.get('galones')?.setValue(Number(v) as never));
+    set('monto', 'Monto', (v) => this.form.get('monto')?.setValue(Number(v) as never));
+    set('km', 'Kilometraje', (v) => this.form.get('kilometraje')?.setValue(Number(v) as never));
+    set('estacion', 'Estación', (v) => { this.form.get('estacionSel')?.setValue('Otro'); this.form.get('estacion')?.setValue(v); });
+    set('fecha', 'Fecha', (v) => this.form.get('fecha')?.setValue(v));
+    set('tarjeta_ult4', 'Tarjeta', (v) => this.form.get('tarjeta')?.setValue(v));
+    this.leidoCampos.set(llenados);
+    this.lecturaSugerencias.set(sugerencias);
   }
 
   async onSave() {

@@ -22,17 +22,14 @@
 }
 .pob-firmas__meta { display: inline-flex; align-items: center; gap: 10px; }
 
-// AZ1 — modal del documento firmado (snapshot)
-.pob-docmodal {
-  position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.55); padding: 20px;
-  &__box { background: var(--sgc-surface); border-radius: 14px; max-width: 820px; width: 100%; max-height: 90vh;
-    display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--sgc-border); }
-  &__head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--sgc-border);
-    flex-wrap: wrap; h3 { margin: 0; font-size: 15px; } }
-  &__actions { margin-left: auto; display: flex; gap: 8px; }
-  &__body { overflow-y: auto; padding: 22px; background: #fff; color: #111; }
+// AZ1/CF3 — documento firmado (snapshot) dentro del form-drawer compartido.
+// El overlay/positioning lo aporta app-form-drawer; aquí solo el contenido.
+.pob-docview {
+  &__actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  &__body { padding: 22px; background: #fff; color: #111; border-radius: 10px; }
 }
+// Botonera inline de la confirmación de borrado (CE9) dentro del form-drawer.
+.pob-docmodal__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
 .pob-exp__obs { margin: 14px 0 0; }
 .pob-exp__obs-lbl { font-weight: 700; color: var(--sgc-text); font-size: 13px; }
@@ -63,6 +60,29 @@
 .pob-firmas {
   list-style: none; margin: 0; padding: 0;
   li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+}
+
+// CF1 — documentos firmados con líneas de firma por rol.
+.pob-firmas2 {
+  display: flex; flex-direction: column; gap: 12px;
+  &__doc { border: 1px solid var(--sgc-border); border-radius: 12px; padding: 12px 14px; }
+  &__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  &__actions { display: flex; align-items: center; gap: 10px; }
+  &__lineas {
+    list-style: none; margin: 10px 0 0; padding: 0;
+    li { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; flex-wrap: wrap;
+      border-top: 1px solid var(--border); }
+    li:first-child { border-top: 0; }
+  }
+  &__rol { font-weight: 600; min-width: 96px; }
+}
+
+// CF1 — drawer de registrar firma.
+.pob-firmar {
+  display: flex; flex-direction: column; gap: 14px;
+  &__metodo { display: flex; gap: 18px; flex-wrap: wrap;
+    label { display: flex; align-items: center; gap: 6px; cursor: pointer; } }
+  &__frec { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 }
 
 // AV4 — bloque de aseguramiento

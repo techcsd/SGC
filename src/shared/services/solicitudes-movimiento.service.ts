@@ -40,6 +40,31 @@ export interface CrearSolicitudMovimiento {
   notas: string | null;
 }
 
+// CF5 — renglón del catálogo (o texto libre) de una solicitud de movimiento.
+export interface MovimientoItem {
+  articulo_id: string | null;
+  descripcion: string;
+  cantidad: number | null;
+  unidad: string | null;
+}
+
+export interface CrearSolicitudMovimientoV2 {
+  proyecto_id: string | null;
+  items: MovimientoItem[];
+  tipo_carga: string;
+  origen_tipo: string;
+  origen_texto: string | null;
+  origen_bodega_id: string | null;
+  origen_proyecto_id: string | null;
+  destino_tipo: string;
+  destino_texto: string | null;
+  destino_bodega_id: string | null;
+  destino_proyecto_id: string | null;
+  prioridad: PrioridadMovimiento;
+  fecha_requerimiento: string | null;
+  notas: string | null;
+}
+
 export interface ChoferCercano {
   usuario_id: string;
   nombre: string;
@@ -90,6 +115,38 @@ export class SolicitudesMovimientoService {
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();
     return data as string;
+  }
+
+  /** CF5 — crear con renglones del catálogo + selectores de almacén/obra. */
+  async crearV2(s: CrearSolicitudMovimientoV2): Promise<string> {
+    const { data, error } = await this.supabase.client.rpc('crear_solicitud_movimiento_v2', {
+      p_proyecto_id: s.proyecto_id,
+      p_items: s.items,
+      p_tipo_carga: s.tipo_carga,
+      p_origen_tipo: s.origen_tipo,
+      p_origen_texto: s.origen_texto,
+      p_origen_bodega_id: s.origen_bodega_id,
+      p_origen_proyecto_id: s.origen_proyecto_id,
+      p_destino_tipo: s.destino_tipo,
+      p_destino_texto: s.destino_texto,
+      p_destino_bodega_id: s.destino_bodega_id,
+      p_destino_proyecto_id: s.destino_proyecto_id,
+      p_prioridad: s.prioridad,
+      p_fecha_requerimiento: s.fecha_requerimiento,
+      p_notas: s.notas,
+      p_que_se_mueve: null,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+    return data as string;
+  }
+
+  async items(solicitudId: string): Promise<MovimientoItem[]> {
+    const { data, error } = await this.supabase.client.rpc('solicitud_movimiento_items_listar', {
+      p_solicitud: solicitudId,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as MovimientoItem[];
   }
 
   async cancelar(id: string, motivo?: string): Promise<void> {

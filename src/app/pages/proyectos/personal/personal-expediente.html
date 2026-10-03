@@ -83,21 +83,19 @@
       }
     </section>
 
-    <!-- CE9 — confirmación de eliminación escribiendo el nombre -->
-    @if (confirmarEliminar()) {
-      <div class="pob-docmodal" (click)="confirmarEliminar.set(false)">
-        <div class="pob-docmodal__box pob-exp__confirm" (click)="$event.stopPropagation()">
-          <h3>Eliminar a {{ p.nombre }} {{ p.apellido }}</h3>
-          <p class="text-muted">Se mueve a la papelera (recuperable 30 días). Escribe el nombre completo para confirmar.</p>
-          <input type="text" class="sgc-input" placeholder="{{ p.nombre }} {{ p.apellido }}"
-                 [value]="nombreConfirmacion()" (input)="nombreConfirmacion.set($any($event.target).value)" />
-          <div class="pob-docmodal__actions">
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="confirmarEliminar.set(false)">Cancelar</button>
-            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm pob-exp__danger" [disabled]="saving()" (click)="eliminar()">Eliminar</button>
-          </div>
+    <!-- CE9 — confirmación de eliminación escribiendo el nombre (CF3: form-drawer) -->
+    <app-form-drawer title="Eliminar registro" [open]="confirmarEliminar()" (closed)="confirmarEliminar.set(false)">
+      <div class="pob-exp__confirm">
+        <h3>Eliminar a {{ p.nombre }} {{ p.apellido }}</h3>
+        <p class="text-muted">Se mueve a la papelera (recuperable 30 días). Escribe el nombre completo para confirmar.</p>
+        <input type="text" class="sgc-input" placeholder="{{ p.nombre }} {{ p.apellido }}"
+               [value]="nombreConfirmacion()" (input)="nombreConfirmacion.set($any($event.target).value)" />
+        <div class="pob-docmodal__actions">
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="confirmarEliminar.set(false)">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm pob-exp__danger" [disabled]="saving()" (click)="eliminar()">Eliminar</button>
         </div>
       </div>
-    }
+    </app-form-drawer>
 
     <!-- AX2 — Acceso a la app por cédula (solo capataces) -->
     @if (esCapataz()) {
@@ -163,19 +161,36 @@
     @if (!firmas().length) {
       <p class="text-muted">Sin documentos firmados.</p>
     } @else {
-      <ul class="pob-firmas">
+      <div class="pob-firmas2">
         @for (f of firmas(); track f.id) {
-          <li>
-            <span>{{ f.documento_nombre }}</span>
-            <span class="pob-firmas__meta">
-              <span class="text-muted">{{ formatFecha(f.firmado_at) }} · {{ f.metodo === 'foto' ? 'Foto' : 'Firma' }}</span>
-              @if (f.documento_html) {
-                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verDoc(f)">Ver documento</button>
+          <div class="pob-firmas2__doc">
+            <div class="pob-firmas2__head">
+              <strong>{{ f.documento_nombre }}</strong>
+              <span class="pob-firmas2__actions">
+                <span class="text-muted">{{ formatFecha(f.firmado_at) }}</span>
+                @if (f.documento_html) {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verDoc(f)">Ver documento</button>
+                }
+              </span>
+            </div>
+            <!-- CF1 — líneas de firma por rol -->
+            <ul class="pob-firmas2__lineas">
+              @for (l of lineasDe(f.id); track l.id) {
+                <li>
+                  <span class="pob-firmas2__rol">{{ rolLabel[l.rol] }}</span>
+                  @if (esTestigo(l.rol) && l.firmante_nombre) {
+                    <span class="text-muted">{{ l.firmante_nombre }}{{ l.firmante_cedula ? ' · ' + l.firmante_cedula : '' }}</span>
+                  }
+                  <span [class]="estadoLineaClase(l)">{{ estadoLineaTxt(l) }}</span>
+                  @if (l.estado === 'pendiente' && l.rol !== 'trabajador' && esLegalOAdmin()) {
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirFirmarLinea(f, l.rol)">Registrar firma</button>
+                  }
+                </li>
               }
-            </span>
-          </li>
+            </ul>
+          </div>
         }
-      </ul>
+      </div>
     }
   </section>
 
@@ -183,21 +198,71 @@
     <app-lightbox [src]="url" alt="Evidencia" (closed)="lightboxUrl.set(null)" />
   }
 
-  <!-- AZ1 — documento firmado (snapshot congelado) -->
-  @if (docVer(); as f) {
-    <div class="pob-docmodal" (click)="docVer.set(null)">
-      <div class="pob-docmodal__box" (click)="$event.stopPropagation()">
-        <div class="pob-docmodal__head">
-          <h3>{{ f.documento_nombre }}</h3>
+  <!-- AZ1 — documento firmado (snapshot congelado) (CF3: form-drawer compartido) -->
+  <app-form-drawer [title]="docVer()?.documento_nombre ?? 'Documento'" [open]="!!docVer()" [wide]="true" (closed)="docVer.set(null)">
+    @if (docVer(); as f) {
+      <div class="pob-docview">
+        <div class="pob-docview__actions">
           <span class="text-muted">Firmado {{ formatFecha(f.firmado_at) }}</span>
-          <div class="pob-docmodal__actions">
-            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="imprimirDoc()">Imprimir / PDF</button>
-            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="docVer.set(null)">Cerrar</button>
-          </div>
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="imprimirDoc()">Imprimir / PDF</button>
         </div>
         <!-- CE8 — el documento ahora se muestra con la(s) firma(s) incrustada(s). -->
-        <div class="pob-docmodal__body" [innerHTML]="docVerHtml()"></div>
+        <div class="pob-docview__body" [innerHTML]="docVerHtml()"></div>
       </div>
-    </div>
-  }
+    }
+  </app-form-drawer>
+
+  <!-- CF1 — registrar la firma del empleador o de un testigo -->
+  <app-form-drawer
+    [title]="firmarCtx() ? 'Firma de ' + rolLabel[firmarCtx()!.rol] : 'Firma'"
+    [open]="!!firmarCtx()" (closed)="cerrarFirmarLinea()">
+    @if (firmarCtx(); as ctx) {
+      <div class="pob-firmar">
+        <p class="text-muted">Documento: {{ ctx.firma.documento_nombre }}</p>
+
+        @if (esTestigo(ctx.rol)) {
+          @if (testigosFrecuentes().length) {
+            <div class="pob-firmar__frec">
+              <span class="text-muted">Testigos frecuentes:</span>
+              @for (t of testigosFrecuentes(); track t.cedula) {
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="usarTestigo(t)">{{ t.nombre }}</button>
+              }
+            </div>
+          }
+          <div class="sgc-field">
+            <label>Nombre del testigo</label>
+            <input type="text" class="sgc-input" [value]="firmanteNombre()" (input)="firmanteNombre.set($any($event.target).value)" placeholder="Nombre completo" />
+          </div>
+          <div class="sgc-field">
+            <label>Cédula del testigo</label>
+            <input type="text" class="sgc-input" [value]="firmanteCedula()" (input)="firmanteCedula.set($any($event.target).value)" placeholder="000-0000000-0" />
+          </div>
+        }
+
+        <div class="pob-firmar__metodo">
+          <label><input type="radio" name="metodo-firma" [checked]="firmarMetodo() === 'pad'" (change)="firmarMetodo.set('pad')" /> Firmar ahora</label>
+          <label><input type="radio" name="metodo-firma" [checked]="firmarMetodo() === 'fisico'" (change)="firmarMetodo.set('fisico')" /> Firmado en papel</label>
+        </div>
+
+        @if (firmarMetodo() === 'pad') {
+          <app-signature-pad #linePad ariaLabel="Área de firma" />
+        } @else {
+          <div class="sgc-field">
+            <label>Foto o PDF de la página firmada</label>
+            <input type="file" accept="image/*,application/pdf" (change)="onFirmarFile($event)" />
+            <p class="text-muted">La firma quedará registrada como «firmada en físico» con el adjunto.</p>
+          </div>
+        }
+
+        @if (firmarError()) { <div class="save-error" role="alert">{{ firmarError() }}</div> }
+
+        <div class="drawer-actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarFirmarLinea()">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="firmarBusy()" (click)="guardarFirmarLinea()">
+            {{ firmarBusy() ? 'Guardando…' : 'Guardar firma' }}
+          </button>
+        </div>
+      </div>
+    }
+  </app-form-drawer>
 }
