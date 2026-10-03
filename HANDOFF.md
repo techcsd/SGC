@@ -1,5 +1,12 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-80 (Ronda CF — IDs CF1-CF7) — 02-03/10/2026 — ✅ SHIPPED A PROD web 1.152.0 (Xaviel: "dale a todo").
+`dev → main` `f8118bc` + push (Vercel prod). **8 migraciones en el ledger de PROD** (cf6, cf1, cf5, cf4, cf7, cf7b, cf1b, rol-chofer-privado) — **verificadas por objeto**: role `chofer_privado`, RPCs (documento_para_revision, firmar_linea_documento, crear_solicitud_movimiento_v2, guardar_config_legal, restaurar_plantilla_version, recordar_firmas_pendientes), `es_chofer()` incluye chofer_privado, tablas (personal_obra_firma_lineas, solicitud_movimiento_items, uso_ia, plantillas_documento_versiones), cron `sgc-recordar-firmas-pendientes`. Edges `leer-recibo` + `acceso-cedula` en prod. Matriz filas 118-124 → ✅.
+- **Rol «Chofer privado»** (pedido de Xaviel): choferes personales de gerencia. `chofer_privado` modulos=[flota], es_operativo=false (fuera de rotación/alarmas; es_operativo solo afecta targeting de notificaciones AV6, NO fuel/checklist), es_chofer()=true (experiencia de app), permisos submódulo flota.vehiculos/combustible/rutas (Vehículos, Combustible, Rutas, Checklists, Inspección — scope por vehículo vía puede_ver_vehiculo; sin transporte ni flota-elevado). Alta por cédula+PIN en Admin › Usuarios (tipo chofer_privado) → ficha de conductor (edge acceso-cedula). Accidentes del propio vehículo = flujo app (PROMPT-81).
+- **Editor/versionado de plantillas** (CF7 follow-up): editar contenido/variables + guardar versión + restaurar (RPCs guardar/listar/restaurar). Pendiente real: salida .docx/PDF-servidor (hoy HTML→print), conduce-auto CF5, capturas CF2.
+- **Pendientes físicos:** Sonia prueba Word/firmas/config en prod · Raykler 20 recibos · registrar algún chofer privado real.
+
+(histórico de la ronda, antes del ship:)
 ## TL;DR — PROMPT-80 (Ronda CF — IDs CF1-CF7) — 02/10/2026 — 🧪 EN DEV 1.152.0, pendiente OK de Xaviel para prod.
 `feature/cf-ronda` (desde `dev`). **7 migraciones en el ledger de DEV** (cf6, cf1, cf5, cf4, cf7, **cf7b** config-legal RPC, **cf1b** cron firmas) + **edge `leer-recibo` desplegada a dev**. `npm run build` + ~16 guards verdes. Matriz filas 118-124 → 🧪 (copiada al repo). Mitad app = PROMPT-81. **NADA en prod aún** (regla 18: para tras OK).
 
