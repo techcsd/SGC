@@ -461,8 +461,9 @@ export class Salidas implements OnInit {
             label: [v.marca, v.modelo, v.placa].filter(Boolean).join(' · ') || v.placa || 'Vehículo',
           })),
       );
-      // Auto-despacho: el chofer que crea el conduce se transporta a sí mismo.
-      if (this.userService.esChofer() && !this.form.controls.conductor_id.value) {
+      // Auto-despacho: el chofer de FLOTA que crea el conduce se transporta a sí mismo.
+      // CG6 — el chofer privado no hace conduces, así que no se autoasigna.
+      if (this.userService.esChoferFlota() && !this.form.controls.conductor_id.value) {
         const yo = this.userService.profile()?.id ?? null;
         if (yo && conductores.some((c) => c.id === yo)) {
           this.form.controls.conductor_id.setValue(yo, { emitEvent: false });
@@ -632,7 +633,8 @@ export class Salidas implements OnInit {
     this.step.set('form');
     this.form.reset({ fecha: this.today });
     // BJ3 — reponer el auto-despacho del chofer tras el reset del form.
-    if (this.wizardConduceOn() && this.userService.esChofer()) {
+    // CG6 — solo chofer de flota (el privado no hace conduces).
+    if (this.wizardConduceOn() && this.userService.esChoferFlota()) {
       const yo = this.userService.profile()?.id ?? null;
       if (yo && this.conductores().some((c) => c.id === yo)) {
         this.form.controls.conductor_id.setValue(yo, { emitEvent: false });

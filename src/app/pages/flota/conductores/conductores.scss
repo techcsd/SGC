@@ -255,6 +255,25 @@
   margin-top: 4px;
 }
 
+// ── CG11 — etiqueta con chip "del perfil" ────────────────
+.cond-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cond-del-perfil {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--sgc-primary-light);
+  color: var(--sgc-primary);
+}
+
 // ── C3 — tags (chips) en el drawer ───────────────────────
 .cond-tags {
   display: flex;
@@ -296,55 +315,16 @@
 }
 
 .cond-doc-slot {
+  // CG10 — ahora apila la etiqueta sobre la zona de subida (<app-file-upload>).
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
 
   &__label {
     font-size: 13px;
     font-weight: 600;
     color: var(--sgc-text);
-    min-width: 150px;
   }
-}
-
-.cond-doc-file {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 100%;
-  padding: 3px 6px 3px 10px;
-  border-radius: var(--sgc-radius-sm);
-  background: var(--sgc-bg);
-  border: 1px solid var(--sgc-border);
-  font-size: 12.5px;
-  color: var(--sgc-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  button {
-    background: none;
-    border: none;
-    color: var(--sgc-danger);
-    cursor: pointer;
-    font-size: 12px;
-    padding: 0 2px;
-  }
-}
-
-.cond-doc-add {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: var(--sgc-radius-sm);
-  border: 1px dashed var(--sgc-border);
-  color: var(--sgc-primary);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:hover { background: var(--sgc-primary-light); }
 }
 
 // ── P5 — Modal de acceso (cédula + PIN) ──────────────────

@@ -79,6 +79,8 @@ export class Dashboard implements OnInit {
   // aplican y disparaban 23 queries sin permiso), el chofer ve SU día. `esChofer`
   // gobierna qué mitad del dashboard se pinta y qué se carga.
   esChofer = this.userService.esChofer;
+  // CG6 — el chofer privado no ve conduces/rendimiento/incentivo (solo su vehículo + tareas).
+  esChoferPrivado = this.userService.esChoferPrivado;
   miVehiculo = signal<{ placa: string; marca: string; modelo: string } | null>(null);
   miPuntaje = signal<MiRendimientoSemana | null>(null);
   misConducesPendientes = signal(0);

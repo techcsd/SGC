@@ -6,10 +6,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { PreferenciasService } from '../../../shared/services/preferencias.service';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
+import { CedulaMask } from '../../../shared/ui/cedula-mask.directive';
+import { normalizarCedula } from '../../../shared/utils/cedula.util';
 
 @Component({
   selector: 'app-auth',
-  imports: [ReactiveFormsModule, NgOptimizedImage, TranslatePipe],
+  imports: [ReactiveFormsModule, NgOptimizedImage, TranslatePipe, CedulaMask],
   templateUrl: './auth.html',
   styleUrl: './auth.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -128,7 +130,9 @@ export class Auth {
     this.errorMessage.set('');
 
     const { cedula, pin } = this.conductorForm.value as { cedula: string; pin: string };
-    const res = await this.authService.conductorLogin(cedula, pin);
+    // CG3 — la máscara escribe la cédula formateada (con guiones); normalizamos a
+    // dígitos antes de enviarla al servidor.
+    const res = await this.authService.conductorLogin(normalizarCedula(cedula), pin);
 
     if (res.error || !res.user) {
       this.loading.set(false);

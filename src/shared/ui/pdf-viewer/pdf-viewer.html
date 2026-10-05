@@ -1,0 +1,21 @@
+@if (open() && safeSrc(); as src) {
+  <div class="pdf-viewer" role="dialog" aria-modal="true" [attr.aria-label]="nombre()" (click)="onBackdrop($event)">
+    <div class="pdf-viewer__panel">
+      <header class="pdf-viewer__bar">
+        <span class="pdf-viewer__title">{{ nombre() }}</span>
+        <div class="pdf-viewer__actions">
+          <a class="pdf-viewer__btn" [href]="this.src()" target="_blank" rel="noopener" title="Abrir en pestaña nueva" aria-label="Abrir en pestaña nueva">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+          </a>
+          <a class="pdf-viewer__btn" [href]="this.src()" [download]="nombre()" title="Descargar" aria-label="Descargar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </a>
+          <button type="button" class="pdf-viewer__btn pdf-viewer__btn--close" (click)="cerrar()" title="Cerrar" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </header>
+      <iframe class="pdf-viewer__frame" [src]="src" [title]="nombre()"></iframe>
+    </div>
+  </div>
+}

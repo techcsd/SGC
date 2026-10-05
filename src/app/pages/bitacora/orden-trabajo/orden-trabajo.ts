@@ -10,6 +10,7 @@ import { UnidadesService } from '../../../../shared/services/unidades.service';
 import { Unidad } from '../../../../shared/models/unidad.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
+import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 import { todayIso } from '../../../../shared/utils/fecha.util';
 
 /**
@@ -21,7 +22,7 @@ import { todayIso } from '../../../../shared/utils/fecha.util';
  */
 @Component({
   selector: 'app-orden-trabajo',
-  imports: [ReactiveFormsModule, RouterLink, SignaturePad],
+  imports: [ReactiveFormsModule, RouterLink, SignaturePad, CedulaMask],
   templateUrl: './orden-trabajo.html',
   styleUrl: './orden-trabajo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

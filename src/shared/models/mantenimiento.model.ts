@@ -9,6 +9,26 @@ export type MantenimientoTipo =
   | 'otros';
 export type MantenimientoEstado = 'pendiente' | 'en_proceso' | 'completado';
 
+// CG13 — adjunto (imagen o PDF) de un mantenimiento, en la tabla
+// `sgc.mantenimiento_adjuntos` (bucket `vehiculos`). Convive con el legacy `fotos[]`.
+export interface MantenimientoAdjunto {
+  id: string;
+  path: string;
+  nombre: string;
+  mime: string;
+  tipo_documento: string;
+}
+
+// CG13 — tipos de documento para los adjuntos del mantenimiento.
+export const MANT_ADJUNTO_TIPOS: { value: string; label: string }[] = [
+  { value: 'factura', label: 'Factura' },
+  { value: 'informe', label: 'Informe del taller' },
+  { value: 'cotizacion', label: 'Cotización' },
+  { value: 'garantia', label: 'Garantía' },
+  { value: 'foto', label: 'Foto' },
+  { value: 'otro', label: 'Otro' },
+];
+
 export interface Mantenimiento {
   id: string;
   vehiculo_id: string;
@@ -22,6 +42,8 @@ export interface Mantenimiento {
   estado: MantenimientoEstado;
   notas: string | null;
   fotos?: string[];
+  // CG13 — adjuntos (imágenes + PDFs) del nuevo esquema `mantenimiento_adjuntos`.
+  adjuntos?: MantenimientoAdjunto[];
   es_prueba?: boolean;
   incluye_preventivo?: boolean;
   accidente_id?: string | null;

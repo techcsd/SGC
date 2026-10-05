@@ -250,6 +250,107 @@ textarea {
   &:hover { border-color: var(--sgc-primary-mid); color: var(--sgc-primary); }
 }
 
+// ── CG13 — Adjuntos (imágenes + PDFs: facturas, informes…) ──
+.adj-add {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &__tipo {
+    max-width: 260px;
+  }
+}
+
+.adj-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adj-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &__open {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: var(--sgc-surface-alt, transparent);
+    color: var(--sgc-text);
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    transition: var(--sgc-transition-fast);
+
+    &:hover { border-color: var(--sgc-primary-mid); color: var(--sgc-primary); }
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__remove {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--sgc-border);
+    border-radius: var(--sgc-radius-sm);
+    background: transparent;
+    color: var(--sgc-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover { border-color: var(--sgc-danger); color: var(--sgc-danger); }
+  }
+
+  // Chip compacto para las filas del listado.
+  &--sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--sgc-border);
+    border-radius: 999px;
+    background: var(--sgc-surface-alt, transparent);
+    color: var(--sgc-text);
+    font-size: 11px;
+    max-width: 180px;
+    cursor: pointer;
+    transition: var(--sgc-transition-fast);
+
+    &:hover { border-color: var(--sgc-primary-mid); color: var(--sgc-primary); }
+
+    .adj-chip__name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.mantenimientos__adjuntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
 // ── AB3 — Detalle (drawer read-only) ─────────────────────
 .detail {
   display: flex;

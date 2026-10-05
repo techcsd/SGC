@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion, VehiculoPlacaPP, VehiculoPlacaPPExtension, type SpecCombustible } from '../../../../../shared/services/vehiculos.service';
+import { VehiculosService, VehiculoLlave, VehiculoLlaveTraspaso, LlaveUbicacion, VehiculoPlacaPP, VehiculoPlacaPPExtension, type SpecCombustible, type VehiculoAutorizacion } from '../../../../../shared/services/vehiculos.service';
 import { ConductoresService } from '../../../../../shared/services/conductores.service';
 import { ChecklistsVehiculoService } from '../../../../../shared/services/checklists-vehiculo.service';
 import { MantenimientosService } from '../../../../../shared/services/mantenimientos.service';
@@ -44,13 +44,16 @@ import {
   ChecklistResultado,
   RESULTADO_META,
 } from '../../../../../shared/models/flota-checklist.model';
-import { Mantenimiento, MANT_TIPOS, MANT_ESTADOS } from '../../../../../shared/models/mantenimiento.model';
+import { Mantenimiento, MantenimientoAdjunto, MANT_TIPOS, MANT_ESTADOS } from '../../../../../shared/models/mantenimiento.model';
 import { RegistroCombustible } from '../../../../../shared/models/combustible.model';
 import { FormDrawer } from '../../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../../shared/components/skeleton/skeleton';
 import { DocumentosFlota } from '../../../../../shared/components/documentos-flota/documentos-flota';
 import { Lightbox } from '../../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../../shared/ui/icon/icon';
+import { UserPicker, UserPickerSelection } from '../../../../../shared/ui/user-picker/user-picker';
+import { PdfViewer } from '../../../../../shared/ui/pdf-viewer/pdf-viewer';
+import { TranslatePipe } from '../../../../../shared/i18n/translate.pipe';
 import { formatFechaDisplay, formatTimestampDisplay, formatFechaHoraDisplay } from '../../../../../shared/utils/fecha.util';
 
 const LLAVE_UBICACION_LABEL: Record<LlaveUbicacion, string> = {
@@ -63,7 +66,7 @@ const HISTORIAL_LIMITE = 15;
 
 @Component({
   selector: 'app-vehiculo-detalle',
-  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle, Lightbox, Icon],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, FormDrawer, Skeleton, DocumentosFlota, MultaDetalle, Lightbox, Icon, UserPicker, PdfViewer, TranslatePipe],
   templateUrl: './vehiculo-detalle.html',
   styleUrl: './vehiculo-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -187,6 +190,22 @@ export class VehiculoDetalle implements OnInit {
     llave1_accion: ['no_cambiar' as 'no_cambiar' | 'chofer_asignado' | 'oficina_central' | 'otro'],
     llave1_detalle: [''],
   });
+
+  // ── CG7 — Autorizaciones de chofer privado sobre el vehículo ──
+  autorizaciones = signal<VehiculoAutorizacion[]>([]);
+  autDrawer = signal(false);
+  autGuardando = signal(false);
+  autForm = this.fb.group({
+    usuario_id: [null as string | null, Validators.required],
+    desde: [new Date().toISOString().slice(0, 10)],
+    hasta: [''],
+    nota: [''],
+  });
+
+  // ── CG13 — visor de PDF de adjuntos de mantenimiento (desde el historial) ──
+  pdfOpen = signal(false);
+  pdfSrc = signal<string | null>(null);
+  pdfNombre = signal('Documento');
 
   // ── Derivados ──
   asignacionesActivas = computed(() => this.asignaciones().filter((a) => a.activa));
@@ -366,6 +385,8 @@ export class VehiculoDetalle implements OnInit {
       this.cargarPlacaPP();
       // CE12 — especificación de combustible (best-effort).
       void this.cargarSpec();
+      // CG7 — autorizaciones de chofer privado (best-effort, solo admin/flota elevado).
+      void this.cargarAutorizaciones();
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el vehículo.');
     } finally {
@@ -521,6 +542,83 @@ export class VehiculoDetalle implements OnInit {
 
   toggleHistorialAsig() {
     this.mostrarHistorialAsig.update((v) => !v);
+  }
+
+  // ── CG7 — Autorizaciones de chofer privado ───────────────────
+  private async cargarAutorizaciones() {
+    if (!this.esElevado()) return;
+    try {
+      this.autorizaciones.set(await this.vehiculosService.listarAutorizaciones(this.vehiculoId));
+    } catch {
+      /* sin autorizaciones aún / sin permiso; no bloquea el perfil */
+    }
+  }
+
+  openAutorizar() {
+    this.autForm.reset({ usuario_id: null, desde: new Date().toISOString().slice(0, 10), hasta: '', nota: '' });
+    this.autDrawer.set(true);
+  }
+  closeAutorizar() {
+    this.autDrawer.set(false);
+  }
+
+  onAutUserSelected(sel: UserPickerSelection) {
+    this.autForm.controls.usuario_id.setValue(sel.usuario_id);
+  }
+
+  async guardarAutorizacion() {
+    if (this.autGuardando()) return;
+    if (this.autForm.invalid) {
+      this.autForm.markAllAsTouched();
+      return;
+    }
+    const { usuario_id, desde, hasta, nota } = this.autForm.getRawValue();
+    if (!usuario_id) return;
+    this.autGuardando.set(true);
+    try {
+      await this.vehiculosService.autorizarVehiculoPrivado({
+        usuario_id,
+        vehiculo_id: this.vehiculoId,
+        desde: desde || null,
+        hasta: hasta || null,
+        nota: nota?.trim() || null,
+      });
+      await this.cargarAutorizaciones();
+      this.autDrawer.set(false);
+      this.toast.success('Chofer autorizado', 'La autorización se registró correctamente.');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo autorizar al chofer.');
+    } finally {
+      this.autGuardando.set(false);
+    }
+  }
+
+  async retirarAutorizacion(a: VehiculoAutorizacion) {
+    if (!confirm(`¿Retirar la autorización de ${a.usuario_nombre}?`)) return;
+    try {
+      await this.vehiculosService.retirarVehiculoPrivado(a.id);
+      await this.cargarAutorizaciones();
+      this.toast.success('Autorización retirada', 'El chofer ya no está autorizado para este vehículo.');
+    } catch (e: unknown) {
+      this.toast.error('Error', e instanceof Error ? e.message : 'No se pudo retirar la autorización.');
+    }
+  }
+
+  // ── CG13 — abrir un adjunto de mantenimiento (PDF en visor, imagen en lightbox) ──
+  async abrirAdjunto(adj: MantenimientoAdjunto) {
+    const url = await this.mantenimientosService.getAdjuntoUrl(adj.path);
+    if (!url) {
+      this.toast.error('No se pudo abrir el adjunto', 'Vuelve a intentarlo.');
+      return;
+    }
+    const esPdf = adj.mime === 'application/pdf' || adj.nombre.toLowerCase().endsWith('.pdf');
+    if (esPdf) {
+      this.pdfNombre.set(adj.nombre);
+      this.pdfSrc.set(url);
+      this.pdfOpen.set(true);
+    } else {
+      this.lightboxUrl.set(url);
+    }
   }
 
   // ── AF4 — galería de fotos ───────────────────────────────────

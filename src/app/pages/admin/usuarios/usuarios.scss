@@ -460,6 +460,19 @@
     padding-top: 20px;
     border-top: 1px solid var(--sgc-border);
   }
+
+  // CG8 — botones de elección de tipo de chofer (apilados)
+  &__conductor-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0 4px;
+
+    .sgc-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 }
 
 .sr-only {

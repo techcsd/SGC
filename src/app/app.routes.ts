@@ -104,7 +104,8 @@ export const routes: Routes = [
         canActivate: [
           moduloOSubmoduloGuard(
             'inventario',
-            (u) => u.puedeVerTodasRequisiciones() || u.esChofer(),
+            // CG6 — el chofer de flota entra a salidas (crea conduces); el privado NO.
+            (u) => u.puedeVerTodasRequisiciones() || u.esChoferFlota(),
           ),
         ],
         loadChildren: () =>

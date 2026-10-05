@@ -1,0 +1,85 @@
+<section class="page">
+  <header class="page__head">
+    <div>
+      <a routerLink="/proyectos/personal" class="page__back">← Personal de obra</a>
+      <h1 class="page__title">Cargos y alias</h1>
+      <p class="page__sub">Catálogo de cargos de obra y los textos (alias) que el importador de personal reconoce. Si un listado trae un cargo escrito de otra forma, agrégalo aquí o déjalo que se aprenda solo al importar.</p>
+    </div>
+  </header>
+
+  @if (error()) { <div class="save-error" role="alert">{{ error() }}</div> }
+
+  @if (cargando()) {
+    <p class="text-muted">Cargando…</p>
+  } @else {
+    <!-- Catálogo de cargos -->
+    <h2 class="cg-h">Catálogo de cargos</h2>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr><th>Código</th><th>Cargo</th><th>Alias</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          @for (c of cargos(); track c.id) {
+            <tr>
+              <td><code class="cg-code">{{ c.codigo }}</code></td>
+              <td>{{ c.nombre }}</td>
+              <td class="text-muted">{{ aliasPorCargo().get(c.id) ?? 0 }}</td>
+              <td>
+                @if (c.activo) { <span class="cg-pill cg-pill--ok">Activo</span> }
+                @else { <span class="cg-pill cg-pill--off">Inactivo</span> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Gestor de alias -->
+    <h2 class="cg-h">Alias reconocidos ({{ aliases().length }})</h2>
+    <p class="page__sub">Un alias es un texto tal como aparece en el Excel que se traduce a un cargo del catálogo.</p>
+
+    <form class="cg-add" (submit)="$event.preventDefault(); agregarAlias()">
+      <label class="cg-field">
+        <span>Texto del Excel</span>
+        <input type="text" [value]="nuevoAlias()" (input)="nuevoAlias.set($any($event.target).value)"
+               placeholder="Ej: AYUDANTE DE CARPINTERO" />
+      </label>
+      <label class="cg-field">
+        <span>Se mapea al cargo</span>
+        <select [value]="nuevoCargoId()" (change)="nuevoCargoId.set($any($event.target).value)">
+          <option value="">Elige un cargo…</option>
+          @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
+        </select>
+      </label>
+      <button type="submit" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="guardando() || !nuevoAlias().trim() || !nuevoCargoId()">
+        <app-icon name="plus" [size]="15" /> {{ guardando() ? 'Guardando…' : 'Agregar alias' }}
+      </button>
+    </form>
+
+    @if (aliases().length) {
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Texto (alias)</th><th>Cargo</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (a of aliases(); track a.id) {
+              <tr>
+                <td>{{ a.alias_normalizado }}</td>
+                <td class="text-muted">{{ a.cargo_nombre || '—' }}</td>
+                <td class="cg-actions">
+                  <button type="button" class="cg-del" title="Eliminar alias" (click)="eliminarAlias(a)">
+                    <app-icon name="trash" [size]="15" />
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="text-muted">Aún no hay alias. El importador aprenderá los que corrijas a mano.</p>
+    }
+  }
+</section>

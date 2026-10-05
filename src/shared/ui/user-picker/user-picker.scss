@@ -81,6 +81,28 @@
     &:hover { background: var(--surface-2); }
     &-rol { font-size: 0.72rem; color: var(--main-ultra-light); }
     &--otro { color: var(--sgc-accent, var(--primary)); font-weight: 600; }
+
+    // CG9 — línea de cédula/correo bajo el nombre.
+    &-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.1rem 0.6rem;
+      font-size: 0.72rem;
+      color: var(--main-ultra-light);
+    }
+    &-ced { font-variant-numeric: tabular-nums; }
+
+    // CG9 — opción deshabilitada (usuario ya vinculado a otra ficha).
+    &--vinculado {
+      opacity: 0.6;
+      cursor: not-allowed;
+      &:hover { background: none; }
+    }
+    &-vinc {
+      font-size: 0.72rem;
+      color: var(--sgc-warning, var(--main-ultra-light));
+      font-weight: 600;
+    }
   }
 
   &__muted {

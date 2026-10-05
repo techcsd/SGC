@@ -28,7 +28,7 @@
 | admin/reportes | - | 49 | 0 | 49 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 213 | 0 | 213 | 0% |
+| admin/usuarios | - | 226 | 0 | 226 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | app-movil | - | 24 | 0 | 24 | 0% |
@@ -47,7 +47,7 @@
 | compras/ordenes | - | 143 | 0 | 143 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
-| dashboard | - | 138 | 0 | 138 | 0% |
+| dashboard | - | 141 | 0 | 141 | 0% |
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |
 | documentos/historial | - | 15 | 0 | 15 | 0% |
@@ -61,9 +61,8 @@
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 192 | 0 | 192 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
-| flota/conductores | - | 284 | 0 | 284 | 0% |
+| flota/conductores | - | 282 | 0 | 282 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
-| flota/mantenimientos | - | 140 | 0 | 140 | 0% |
 | flota/panel-dia | - | 36 | 0 | 36 | 0% |
 | flota/recorrido-diario | - | 32 | 0 | 32 | 0% |
 | flota/reporte-semanal | - | 94 | 0 | 94 | 0% |
@@ -72,7 +71,6 @@
 | flota/rutas | - | 202 | 0 | 202 | 0% |
 | flota/rutas-activas | - | 69 | 0 | 69 | 0% |
 | flota/seguimiento | - | 43 | 0 | 43 | 0% |
-| flota/vehiculos | - | 463 | 0 | 463 | 0% |
 | forbidden | - | 4 | 0 | 4 | 0% |
 | incentivos | - | 226 | 0 | 226 | 0% |
 | inventario/activos | - | 117 | 0 | 117 | 0% |
@@ -102,7 +100,6 @@
 | legal/aprobaciones | - | 60 | 0 | 60 | 0% |
 | legal/configuracion | - | 22 | 0 | 22 | 0% |
 | legal/contratos | - | 70 | 0 | 70 | 0% |
-| legal/expedientes | - | 94 | 0 | 94 | 0% |
 | legal/firmas-pendientes | - | 18 | 0 | 18 | 0% |
 | mensajes/grupo-info | - | 55 | 0 | 55 | 0% |
 | mensajes | - | 118 | 0 | 118 | 0% |
@@ -115,6 +112,7 @@
 | obra/no-conformidades | - | 149 | 0 | 149 | 0% |
 | obra/plan-dia | - | 55 | 0 | 55 | 0% |
 | obra/subcontratistas | - | 104 | 0 | 104 | 0% |
+| proyectos/cargos | - | 31 | 0 | 31 | 0% |
 | proyectos/clima | - | 54 | 0 | 54 | 0% |
 | proyectos/compras | - | 40 | 0 | 40 | 0% |
 | proyectos/costos | - | 22 | 0 | 22 | 0% |
@@ -123,10 +121,10 @@
 | proyectos/historial | - | 24 | 0 | 24 | 0% |
 | proyectos/kpi | - | 32 | 0 | 32 | 0% |
 | proyectos/lista | - | 321 | 0 | 321 | 0% |
-| proyectos/personal | - | 365 | 0 | 365 | 0% |
+| proyectos/personal | - | 379 | 0 | 379 | 0% |
 | rrhh/asistencia | - | 57 | 0 | 57 | 0% |
 | rrhh/ausencias | - | 65 | 0 | 65 | 0% |
-| rrhh/empleados | - | 220 | 0 | 220 | 0% |
+| rrhh/empleados | - | 219 | 0 | 219 | 0% |
 | rrhh/reportes | - | 29 | 0 | 29 | 0% |
 | solicitudes-movimiento | - | 122 | 0 | 122 | 0% |
 | soporte | - | 51 | 0 | 51 | 0% |
@@ -149,5 +147,8 @@
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
 | verificar | - | 13 | 0 | 13 | 0% |
+| legal/expedientes | - | 100 | 3 | 97 | 3% |
+| flota/vehiculos | - | 494 | 19 | 475 | 4% |
+| flota/mantenimientos | - | 148 | 7 | 141 | 5% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
 | auth | - | 68 | 15 | 53 | 22% |

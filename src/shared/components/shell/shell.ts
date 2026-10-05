@@ -228,6 +228,7 @@ export class Shell implements OnInit {
       children: [
         { label: 'Proyectos', route: '/proyectos', submodulo: 'proyectos.obras' },
         { label: 'Personal de obra', route: '/proyectos/personal', submodulo: 'proyectos.personal' },
+        { label: 'Cargos y alias', route: '/proyectos/cargos', submodulo: 'proyectos.personal' },
         { label: 'Ranking de Encargados', route: '/proyectos/kpi', submodulo: 'proyectos.ranking' },
         { label: 'Reportes de clima', route: '/proyectos/clima', submodulo: 'proyectos.obras' },
         { label: 'Historial', route: '/proyectos/historial', submodulo: 'proyectos.obras' },

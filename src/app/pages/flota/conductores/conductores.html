@@ -337,13 +337,34 @@
 >
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
+    <!-- CG9/CG11 — Usuario de la app PRIMERO: al vincular, autocompleta el resto. -->
+    <div class="sgc-field">
+      <label>Usuario de la app (CSD App)</label>
+      <app-user-picker
+        [items]="pickerUsuarios()"
+        [value]="f.usuario_id.value"
+        [allowOtro]="false"
+        placeholder="Buscar por nombre, correo o cédula…"
+        (selected)="onPickerSelect($event)"
+      />
+      <small class="sgc-field__hint">
+        Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo.
+        Al vincular, se autocompletan nombre, cédula y teléfono desde su perfil (puedes editarlos).
+        Sin vincular, llena los datos a mano.
+      </small>
+    </div>
+
     <div class="form-row">
       <div class="sgc-field">
-        <label for="nombre">Nombre completo <span class="required">*</span></label>
+        <label for="nombre" class="cond-label">
+          <span>Nombre completo <span class="required">*</span></span>
+          @if (camposDelPerfil().has('nombre')) { <span class="cond-del-perfil">del perfil</span> }
+        </label>
         <input
           id="nombre"
           type="text"
           formControlName="nombre"
+          (input)="marcarManual('nombre')"
           placeholder="Nombre del conductor"
           [class.invalid]="f.nombre.invalid && f.nombre.touched"
         />
@@ -353,11 +374,17 @@
       </div>
 
       <div class="sgc-field">
-        <label for="cedula">Cédula <span class="required">*</span></label>
+        <label for="cedula" class="cond-label">
+          <span>Cédula <span class="required">*</span></span>
+          @if (camposDelPerfil().has('cedula')) { <span class="cond-del-perfil">del perfil</span> }
+        </label>
         <input
           id="cedula"
           type="text"
+          appCedula
           formControlName="cedula"
+          (input)="marcarManual('cedula')"
+          inputmode="numeric"
           placeholder="000-0000000-0"
           [class.invalid]="f.cedula.invalid && f.cedula.touched"
         />
@@ -371,8 +398,11 @@
     </div>
 
     <div class="sgc-field">
-      <label for="telefono">Teléfono</label>
-      <input id="telefono" type="tel" appTelefono formControlName="telefono" placeholder="(809) 000-0000" />
+      <label for="telefono" class="cond-label">
+        <span>Teléfono</span>
+        @if (camposDelPerfil().has('telefono')) { <span class="cond-del-perfil">del perfil</span> }
+      </label>
+      <input id="telefono" type="tel" appTelefono formControlName="telefono" (input)="marcarManual('telefono')" placeholder="(809) 000-0000" />
     </div>
 
     <div class="form-row">
@@ -410,21 +440,6 @@
       <select id="tipo_vehiculo_autorizado" formControlName="tipo_vehiculo_autorizado">
         @for (t of TIPOS_AUTORIZADOS; track t) { <option [value]="t">{{ t }}</option> }
       </select>
-    </div>
-
-    <div class="sgc-field">
-      <label for="usuario_id">Usuario de la app (CSD App)</label>
-      <select id="usuario_id" formControlName="usuario_id"
-              (change)="onUsuarioChange($any($event.target).value)">
-        <option [value]="null">Sin vincular</option>
-        @for (u of usuarios(); track u.id) {
-          <option [value]="u.id">{{ u.nombre }}</option>
-        }
-      </select>
-      <small class="sgc-field__hint">
-        Vincula al conductor con su cuenta para que vea sus conduces y rutas en la app de campo.
-        Al vincular, se autocompleta lo que su perfil ya tenga.
-      </small>
     </div>
 
     <!-- U2 — vehículos que este usuario ya usa (asignaciones activas) -->
@@ -481,36 +496,31 @@
       <small class="sgc-field__hint">Ej. Chofer, Encargado de Logística, Chofer Telehandler.</small>
     </div>
 
-    <!-- C4 — Documentos opcionales (cédula / licencia) -->
+    <!-- C4/CG10 — Documentos opcionales (cédula / licencia): arrastrar, pegar o adjuntar -->
     <div class="sgc-field">
       <label>Documentos (opcional)</label>
       <div class="cond-docs-alta">
         <div class="cond-doc-slot">
           <span class="cond-doc-slot__label">Cédula</span>
-          @if (docsAlta().cedula; as f) {
-            <span class="cond-doc-file">
-              {{ f.name }}
-              <button type="button" (click)="removeDocAlta('cedula')" aria-label="Quitar cédula"><app-icon name="x" [size]="14" /></button>
-            </span>
-          } @else {
-            <label class="cond-doc-add">
-              + Adjuntar
-              <input type="file" hidden accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onDocPick('cedula', $event)" />
-            </label>
-          }
+          <app-file-upload
+            [files]="cedulaFiles()"
+            [max]="1"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
+            label="Arrastra, pega o toca para subir la cédula"
+            (add)="onCedulaAdd($event)"
+            (removeAt)="onCedulaRemove()"
+          />
         </div>
         <div class="cond-doc-slot">
           <span class="cond-doc-slot__label">Licencia (frente y dorso)</span>
-          @for (f of docsAlta().licencia; track f.name; let i = $index) {
-            <span class="cond-doc-file">
-              {{ f.name }}
-              <button type="button" (click)="removeDocAlta('licencia', i)" [attr.aria-label]="'Quitar ' + f.name"><app-icon name="x" [size]="14" /></button>
-            </span>
-          }
-          <label class="cond-doc-add">
-            + Adjuntar
-            <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,.webp" (change)="onDocPick('licencia', $event)" />
-          </label>
+          <app-file-upload
+            [files]="licenciaFiles()"
+            [max]="2"
+            accept=".pdf,.jpg,.jpeg,.png,.webp"
+            label="Arrastra, pega o toca para subir la licencia"
+            (add)="onLicenciaAdd($event)"
+            (removeAt)="onLicenciaRemove($event)"
+          />
         </div>
       </div>
       <small class="sgc-field__hint">Se suben al guardar. No es obligatorio; también puedes agregarlos luego desde el perfil.</small>

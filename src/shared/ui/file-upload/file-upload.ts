@@ -2,10 +2,11 @@ import { Component, ChangeDetectionStrategy, input, output, signal, computed } f
 import { Icon } from '../icon/icon';
 
 /**
- * R6 — Zona de subida de archivos consistente (design system).
+ * R6 / CG10 — Zona de subida de archivos consistente (design system).
  * Presentacional/controlado: el padre mantiene la lista (`files`) y reacciona a
- * `add`/`removeAt`. Soporta arrastrar-soltar o tocar, contador n/max y
- * miniaturas de imágenes (con quitar). Reemplaza el `<input type="file">` nativo.
+ * `add`/`removeAt`. Soporta arrastrar-soltar, tocar (botón) Y pegar del portapapeles
+ * (CG10), contador n/max y miniaturas de imágenes (con quitar). Reemplaza el
+ * `<input type="file">` nativo. `accept` puede incluir PDF ("image/*,application/pdf").
  */
 @Component({
   selector: 'app-file-upload',
@@ -48,6 +49,24 @@ export class FileUpload {
   }
   onDragLeave() {
     this.dragging.set(false);
+  }
+
+  /** CG10 — pegar una imagen/archivo del portapapeles (Ctrl/Cmd+V sobre la zona). */
+  onPaste(event: ClipboardEvent) {
+    if (this.lleno()) return;
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    const archivos: File[] = [];
+    for (const it of Array.from(items)) {
+      if (it.kind === 'file') {
+        const f = it.getAsFile();
+        if (f) archivos.push(f);
+      }
+    }
+    if (archivos.length) {
+      event.preventDefault();
+      this.emit(archivos);
+    }
   }
 
   private emit(selected: File[]) {
