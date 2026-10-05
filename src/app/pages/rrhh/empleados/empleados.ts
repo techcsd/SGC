@@ -27,6 +27,7 @@ import {
 } from '../../../../shared/models/empleado.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
+import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { formatAntiguedad, formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.util';
@@ -41,7 +42,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-empleados',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, ExportExcel],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, CedulaMask, ExportExcel],
   templateUrl: './empleados.html',
   styleUrl: './empleados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

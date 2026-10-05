@@ -66,6 +66,18 @@ export interface VehiculoAsignado {
   motivo: 'custodia' | 'asignacion';
 }
 
+/** CG7 — autorización de un chofer privado sobre un vehículo (con vigencia). */
+export interface VehiculoAutorizacion {
+  id: string;
+  usuario_id: string;
+  usuario_nombre: string;
+  desde: string;
+  hasta: string | null;
+  nota: string | null;
+  autorizado_por_nombre: string | null;
+  created_at: string;
+}
+
 /** A vehicle custody handoff captured from the CSD field app. */
 export interface VehiculoEntrega {
   id: string;
@@ -246,6 +258,31 @@ export class VehiculosService {
       .from('vehiculo_asignaciones')
       .update({ activa: false, hasta: new Date().toISOString() })
       .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  // ── CG7 — Autorizaciones de chofer privado sobre un vehículo ──────────────────
+  /** Lista las autorizaciones activas de un vehículo (admin/flota-elevado). */
+  async listarAutorizaciones(vehiculoId: string): Promise<VehiculoAutorizacion[]> {
+    const { data, error } = await this.supabase.client.rpc('listar_autorizaciones_vehiculo', { p_vehiculo: vehiculoId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as VehiculoAutorizacion[];
+  }
+
+  /** Autoriza (o re-autoriza) a un usuario sobre un vehículo. */
+  async autorizarVehiculoPrivado(payload: {
+    usuario_id: string; vehiculo_id: string; desde?: string | null; hasta?: string | null; nota?: string | null;
+  }): Promise<void> {
+    const { error } = await this.supabase.client.rpc('autorizar_vehiculo_privado', {
+      p_usuario: payload.usuario_id, p_vehiculo: payload.vehiculo_id,
+      p_desde: payload.desde ?? null, p_hasta: payload.hasta ?? null, p_nota: payload.nota ?? null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Retira una autorización de chofer privado. */
+  async retirarVehiculoPrivado(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('retirar_vehiculo_privado', { p_id: id });
     if (error) throw new Error(error.message);
   }
 

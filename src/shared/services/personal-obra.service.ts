@@ -26,7 +26,21 @@ export interface ImportPersonalRow {
   documento_numero: string | null;
   cargo_id: string | null;
   cuadrilla?: string | null; // AV4 — eje TECNICO
+  // CG2 — texto crudo del cargo (TECNICO/OCUPACION): el servidor resuelve/aprende si cargo_id viene null.
+  cargo_texto?: string | null;
+  // CG2 — vencimiento del permiso de trabajo (haitianos), parseado de OBSERVACION (ISO yyyy-mm-dd).
+  permiso_vencimiento?: string | null;
   notas: string | null;
+}
+
+/** CG2 — alias de cargo aprendido (texto sucio → cargo del catálogo). */
+export interface CargoAlias {
+  id: string;
+  alias_normalizado: string;
+  cargo_id: string;
+  cargo_codigo: string | null;
+  cargo_nombre: string | null;
+  created_at: string;
 }
 
 export interface ImportPersonalResultado {
@@ -80,6 +94,28 @@ export class PersonalObraService {
       .order('orden');
     if (error) throw new Error(error.message);
     return (data ?? []) as Cargo[];
+  }
+
+  // ── CG2 — Alias de cargo (resolución confiable + auto-aprendizaje) ──────────
+  /** Lista todos los alias de cargo registrados (texto sucio → cargo del catálogo). */
+  async listarCargoAlias(): Promise<CargoAlias[]> {
+    const { data, error } = await this.client.rpc('listar_cargo_alias');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as CargoAlias[];
+  }
+
+  /** Registra (o actualiza) un alias: el importador "aprende" el texto resuelto a mano. */
+  async registrarCargoAlias(alias: string, cargoId: string): Promise<void> {
+    const { error } = await this.client.rpc('registrar_cargo_alias', {
+      p_alias: alias, p_cargo_id: cargoId,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  /** Elimina un alias del catálogo (gestión en Proyectos › Cargos). */
+  async eliminarCargoAlias(id: string): Promise<void> {
+    const { error } = await this.client.rpc('eliminar_cargo_alias', { p_id: id });
+    if (error) throw new Error(error.message);
   }
 
   // ── Listado por obra (RLS filtra la visibilidad por obra) ───────────────────

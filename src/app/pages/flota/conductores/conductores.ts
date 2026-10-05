@@ -35,15 +35,19 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { TelefonoMask } from '../../../../shared/ui/telefono-mask.directive';
+import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
+import { UserPicker, UserPickerSelection, DirectorioUsuario } from '../../../../shared/ui/user-picker/user-picker';
+import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { daysUntil, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
+import { formatearCedula } from '../../../../shared/utils/cedula.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
 
 @Component({
   selector: 'app-conductores',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, Skeleton, ExportExcel, Icon, FilterSelect],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -116,6 +120,14 @@ export class Conductores implements OnInit {
 
   // C4 — documentos opcionales elegidos en el alta (se suben tras crear).
   docsAlta = signal<{ cedula: File | null; licencia: File[] }>({ cedula: null, licencia: [] });
+
+  // CG10 — vistas de los dos slots de documento como File[] para <app-file-upload>.
+  cedulaFiles = computed(() => { const f = this.docsAlta().cedula; return f ? [f] : []; });
+  licenciaFiles = computed(() => this.docsAlta().licencia);
+
+  // CG11 — campos autocompletados desde el perfil del usuario vinculado (muestra chip
+  // "del perfil"; se quita al editar el campo a mano). Editables en todo momento.
+  camposDelPerfil = signal<Set<'nombre' | 'cedula' | 'telefono'>>(new Set());
 
   // P5 — acceso del conductor (cédula + PIN). Gated a admin o módulo flota.
   puedeGestionarAcceso = computed(
@@ -291,6 +303,27 @@ export class Conductores implements OnInit {
   // si el usuario no tuviera vehículo.
   asignacionesUsuario = signal<VehiculoAsignacion[]>([]);
 
+  /**
+   * CG9 — opciones del <app-user-picker>: los usuarios vinculables (con cédula/correo)
+   * marcando como `yaVinculado` los que OTRA ficha de conductor ya ocupa (excluye la
+   * que se está editando), para no asignar el mismo usuario a dos conductores.
+   */
+  pickerUsuarios = computed<DirectorioUsuario[]>(() => {
+    const editId = this.editingId();
+    const tomados = new Set<string>();
+    for (const c of this.conductores()) {
+      if (c.usuario_id && c.id !== editId) tomados.add(c.usuario_id);
+    }
+    return this.usuarios().map((u) => ({
+      id: u.id,
+      nombre: u.nombre,
+      cedula: u.cedula,
+      email: u.email,
+      yaVinculado: tomados.has(u.id),
+      motivoVinculo: tomados.has(u.id) ? 'Ya vinculado a otra ficha' : undefined,
+    }));
+  });
+
   async ngOnInit() {
     await this.loadAll();
   }
@@ -369,6 +402,7 @@ export class Conductores implements OnInit {
     this.tags.set([]);
     this.tagInput.set('');
     this.docsAlta.set({ cedula: null, licencia: [] });
+    this.camposDelPerfil.set(new Set());
     // C1 — default '02' (vehículos livianos), la categoría RD más común.
     this.form.reset({ activo: true, licencia_tipo: '02', tipo_vehiculo_autorizado: 'Ambos' });
     this.drawerOpen.set(true);
@@ -380,6 +414,8 @@ export class Conductores implements OnInit {
     this.tags.set([...(c.tags ?? [])]);
     this.tagInput.set('');
     this.docsAlta.set({ cedula: null, licencia: [] });
+    // CG11 — en edición, los valores guardados NO se marcan "del perfil".
+    this.camposDelPerfil.set(new Set());
     this.form.reset({
       cedula: c.cedula,
       nombre: c.nombre,
@@ -421,25 +457,67 @@ export class Conductores implements OnInit {
   }
 
   /**
-   * B4/U3 — al vincular un usuario existente, autollena lo que su ficha ya tiene
-   * (nombre, cédula, teléfono) sin pisar lo que el usuario ya escribió (editable).
-   * U2 — carga sus asignaciones activas para reflejarlas en el form.
+   * CG9/CG11 — el <app-user-picker> emite el usuario elegido (o limpiado). Al vincular,
+   * autollena nombre/cédula/teléfono desde la ficha del usuario (B4/U3) marcándolos
+   * "del perfil" (editables). Si ya había datos escritos a mano que se pisarían, pide
+   * confirmación antes de reemplazarlos. U2 — carga sus asignaciones activas.
    */
-  onUsuarioChange(usuarioId: string) {
-    // C2 — un <select> nativo con [value]="null" entrega el string "null" al
-    // desvincular. cleanUuid lo normaliza a null real (ver onSave y el servicio).
-    const id = this.cleanUuid(usuarioId);
+  onPickerSelect(sel: UserPickerSelection) {
+    const id = this.cleanUuid(sel.usuario_id);
     this.form.controls.usuario_id.setValue(id);
-    if (id) {
-      const u = this.usuarios().find((x) => x.id === id);
-      if (u) {
-        const c = this.form.controls;
-        if (!c.nombre.value?.trim()) c.nombre.setValue(u.nombre);
-        if (u.cedula && !c.cedula.value?.trim()) c.cedula.setValue(u.cedula);
-        if (u.telefono && !c.telefono.value?.trim()) c.telefono.setValue(u.telefono);
-      }
+    if (!id) {
+      // Desvinculado: los chips "del perfil" dejan de aplicar (los valores quedan editables).
+      this.camposDelPerfil.set(new Set());
+      void this.cargarAsignacionesUsuario(null);
+      return;
     }
+    const u = this.usuarios().find((x) => x.id === id);
+    if (u) this.aplicarPerfil(u);
     void this.cargarAsignacionesUsuario(id);
+  }
+
+  /** CG11 — vuelca los datos del perfil del usuario al form (con confirmación si pisa texto). */
+  private aplicarPerfil(u: UsuarioVinculable) {
+    const c = this.form.controls;
+    const del = this.camposDelPerfil();
+    const cedulaFmt = u.cedula ? formatearCedula(u.cedula) : '';
+    const telFmt = u.telefono ? formatearTelefono(u.telefono) : '';
+
+    // Detecta campos con texto escrito a mano (no "del perfil") que un volcado pisaría.
+    const pisaria =
+      (!!u.nombre && !!c.nombre.value?.trim() && !del.has('nombre') && c.nombre.value!.trim() !== u.nombre) ||
+      (!!cedulaFmt && !!c.cedula.value?.trim() && !del.has('cedula') && c.cedula.value!.trim() !== cedulaFmt) ||
+      (!!telFmt && !!c.telefono.value?.trim() && !del.has('telefono') && c.telefono.value!.trim() !== telFmt);
+
+    if (
+      pisaria &&
+      !confirm('Ya escribiste datos en el formulario. ¿Reemplazarlos con los del perfil del usuario seleccionado?')
+    ) {
+      // El usuario prefiere conservar lo escrito: solo rellena los campos vacíos.
+      const nuevos = new Set(del);
+      if (u.nombre && !c.nombre.value?.trim()) { c.nombre.setValue(u.nombre); nuevos.add('nombre'); }
+      if (cedulaFmt && !c.cedula.value?.trim()) { c.cedula.setValue(cedulaFmt); nuevos.add('cedula'); }
+      if (telFmt && !c.telefono.value?.trim()) { c.telefono.setValue(telFmt); nuevos.add('telefono'); }
+      this.camposDelPerfil.set(nuevos);
+      return;
+    }
+
+    // Volcado completo: rellena lo que el perfil tenga y marca esos campos "del perfil".
+    const nuevos = new Set<'nombre' | 'cedula' | 'telefono'>();
+    if (u.nombre) { c.nombre.setValue(u.nombre); nuevos.add('nombre'); }
+    if (cedulaFmt) { c.cedula.setValue(cedulaFmt); nuevos.add('cedula'); }
+    if (telFmt) { c.telefono.setValue(telFmt); nuevos.add('telefono'); }
+    this.camposDelPerfil.set(nuevos);
+  }
+
+  /** CG11 — al editar un campo a mano, deja de considerarse "del perfil". */
+  marcarManual(campo: 'nombre' | 'cedula' | 'telefono') {
+    if (!this.camposDelPerfil().has(campo)) return;
+    this.camposDelPerfil.update((s) => {
+      const n = new Set(s);
+      n.delete(campo);
+      return n;
+    });
   }
 
   private async cargarAsignacionesUsuario(usuarioId: string | null) {
@@ -541,25 +619,18 @@ export class Conductores implements OnInit {
     return (cedula ?? '').replace(/\D/g, '');
   }
 
-  // ── C4 — documentos opcionales en el alta ─────────────────
-  onDocPick(tipo: 'cedula' | 'licencia', event: Event) {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    input.value = '';
-    if (files.length === 0) return;
-    if (tipo === 'cedula') {
-      this.docsAlta.update((d) => ({ ...d, cedula: files[0] }));
-    } else {
-      this.docsAlta.update((d) => ({ ...d, licencia: [...d.licencia, ...files] }));
-    }
+  // ── C4/CG10 — documentos opcionales en el alta (arrastrar/pegar/adjuntar) ──
+  onCedulaAdd(files: File[]) {
+    if (files[0]) this.docsAlta.update((d) => ({ ...d, cedula: files[0] }));
   }
-
-  removeDocAlta(tipo: 'cedula' | 'licencia', index?: number) {
-    if (tipo === 'cedula') {
-      this.docsAlta.update((d) => ({ ...d, cedula: null }));
-    } else {
-      this.docsAlta.update((d) => ({ ...d, licencia: d.licencia.filter((_, i) => i !== index) }));
-    }
+  onCedulaRemove() {
+    this.docsAlta.update((d) => ({ ...d, cedula: null }));
+  }
+  onLicenciaAdd(files: File[]) {
+    this.docsAlta.update((d) => ({ ...d, licencia: [...d.licencia, ...files].slice(0, 2) }));
+  }
+  onLicenciaRemove(index: number) {
+    this.docsAlta.update((d) => ({ ...d, licencia: d.licencia.filter((_, i) => i !== index) }));
   }
 
   /**

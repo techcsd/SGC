@@ -34,7 +34,23 @@
   th, td { font-size: 12.5px; }
   .pi-status { white-space: nowrap; }
   .pi-cargo { padding: 4px 6px; border: 1px solid var(--sgc-border); border-radius: 6px; font-size: 12.5px; max-width: 160px; }
-  .pi-cargo-src { display: block; font-size: 10.5px; color: var(--sgc-warning); }
+  .pi-cargo-src { display: block; font-size: 10.5px; color: var(--sgc-text-muted);
+    &--warn { color: var(--sgc-warning); } }
+  .pi-permiso { white-space: nowrap; }
+}
+// CG2 — "Aplicar a los N «TEXTO»"
+.pi-aplicar {
+  display: inline-block; margin-top: 3px; padding: 0; border: 0; background: none;
+  font-size: 10.5px; color: var(--sgc-primary); cursor: pointer; text-align: left;
+  text-decoration: underline; text-underline-offset: 2px;
+  &:hover { color: var(--sgc-text); }
+}
+// CG2 — descarga de plantilla en el paso "subir"
+.pi-tpl {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+  &__hint { margin: 0; font-size: 12.5px; color: var(--sgc-text-muted); max-width: 440px; }
+  &__link { font-size: 12px; color: var(--sgc-primary); text-decoration: none;
+    &:hover { text-decoration: underline; } }
 }
 .pi-row--err { background: #fef4f4; }
 .pi-row--warn { background: #fffaf0; }

@@ -6,7 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminService, UsuarioAdmin } from '../../../../shared/services/admin.service';
 import { SolicitudesMaterialService, MaterialACargo } from '../../../../shared/services/solicitudes-material.service';
@@ -21,12 +21,13 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
 
 type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, ExportExcel, Icon],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Paginator, ExportExcel, Icon, CedulaMask],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -448,6 +449,43 @@ export class AdminUsuarios implements OnInit {
   irAConductor(id: string) {
     this.closeDetail();
     void this.router.navigate(['/flota/conductores', id]);
+  }
+
+  // ── CG8 — Hacer conductor (crear/vincular ficha de conductor desde el usuario) ──
+  conductorDrawerOpen = signal(false);
+  conductorUser = signal<UsuarioAdmin | null>(null);
+  conductorSaving = signal(false);
+  conductorError = signal('');
+
+  abrirHacerConductor(usuario: UsuarioAdmin) {
+    this.closeMenu();
+    this.conductorUser.set(usuario);
+    this.conductorError.set('');
+    this.conductorDrawerOpen.set(true);
+  }
+
+  cerrarHacerConductor() {
+    this.conductorDrawerOpen.set(false);
+    this.conductorUser.set(null);
+  }
+
+  /** Crea (o reutiliza) la ficha de conductor, refresca la lista y navega al perfil. */
+  async hacerConductor(rol: 'chofer_transportista' | 'chofer_privado') {
+    const u = this.conductorUser();
+    if (!u || this.conductorSaving()) return;
+    this.conductorSaving.set(true);
+    this.conductorError.set('');
+    try {
+      const res = await this.adminService.hacerConductor(u.id, rol);
+      this.usuarios.set(await this.adminService.getAllUsuarios());
+      this.conductorDrawerOpen.set(false);
+      this.conductorUser.set(null);
+      void this.router.navigate(['/flota/conductores', res.conductor_id]);
+    } catch (e: unknown) {
+      this.conductorError.set(e instanceof Error ? e.message : 'No se pudo convertir en conductor.');
+    } finally {
+      this.conductorSaving.set(false);
+    }
   }
 
   /** AN4 — abre la página de Roles enfocada en los accesos efectivos de este usuario. */

@@ -228,3 +228,35 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
 @media (max-width: 480px) {
   .vd-spec-form { grid-template-columns: 1fr; }
 }
+
+// ── CG13 — chips de adjuntos de mantenimiento en el historial ──
+.vd-adjuntos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.vd-adj-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 160px;
+  padding: 2px 8px;
+  border: 1px solid var(--sgc-border, #2d2d2d);
+  border-radius: 999px;
+  background: var(--sgc-surface, #161616);
+  color: var(--sgc-text, #e8e8e8);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: var(--sgc-primary-mid, var(--sgc-primary, #f97316));
+    color: var(--sgc-primary, #f97316);
+  }
+
+  &__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

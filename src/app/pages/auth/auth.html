@@ -30,7 +30,7 @@
           role="tab"
           (click)="setMode('empleado')"
         >
-          {{ 'Empleado' | t }}
+          {{ 'Con correo' | t }}
         </button>
         <button
           type="button"
@@ -40,7 +40,7 @@
           role="tab"
           (click)="setMode('conductor')"
         >
-          {{ 'Soy conductor' | t }}
+          {{ 'Con cédula' | t }}
         </button>
       </div>
     }
@@ -54,6 +54,7 @@
             id="cedula"
             type="text"
             inputmode="numeric"
+            appCedula
             formControlName="cedula"
             placeholder="000-0000000-0"
             autocomplete="username"
@@ -274,7 +275,7 @@
             @if (magicLoading()) { Enviando… } @else { Enviarme un enlace mágico }
           </button>
           <p class="auth-dev__hint auth-dev__hint--sm">
-            Escribe tu correo arriba. Choferes de prueba: entran por <strong>Soy conductor</strong> (cédula + PIN).
+            Escribe tu correo arriba. Choferes de prueba: entran por <strong>Con cédula</strong> (cédula + PIN).
           </p>
         }
       </div>

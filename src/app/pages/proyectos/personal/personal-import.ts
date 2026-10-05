@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { PersonalObraService, ImportPersonalRow, ImportPersonalResultado, ImportPreview } from '../../../../shared/services/personal-obra.service';
+import { PersonalObraService, ImportPersonalRow, ImportPersonalResultado, ImportPreview, CargoAlias } from '../../../../shared/services/personal-obra.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { Cargo } from '../../../../shared/models/personal-obra.model';
 import { ToastService } from '../../../../shared/services/toast.service';
@@ -14,8 +14,9 @@ interface FilaPrev {
   nacionalidad: string;
   tipo_documento: string;
   cargo_id: string | null;
-  cargo_origen: string;     // texto crudo del Excel (OCUPACION / TECNICO)
+  cargo_origen: string;     // texto crudo del Excel (TECNICO / OCUPACION) usado para resolver/aprender
   cuadrilla: string | null; // AV4 — eje TECNICO (cuadrilla) crudo, título
+  permiso_vencimiento: string | null; // CG2 — ISO yyyy-mm-dd parseado de OBSERVACION
   notas: string | null;
   estado: 'ok' | 'warning' | 'error';
   motivo: string;           // por qué warning/error
@@ -24,13 +25,15 @@ interface FilaPrev {
 
 // AT5 — normaliza texto sucio (mayúsculas, acentos, espacios al final).
 function norm(s: unknown): string {
-  return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+  return String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
 }
 function titleCase(s: string): string {
   return s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()).trim();
 }
 
-// Diccionario cuadrilla/ocupación → código de cargo AR1.
+// CG2 — Diccionario base (red de seguridad offline). La fuente autoritativa y
+// editable es la tabla `cargo_alias` (Proyectos › Cargos); estos solo evitan una
+// regresión si el servidor aún no tiene el alias registrado.
 const CARGO_DICT: Record<string, string> = {
   INGENIERO: 'ING', MAESTRO: 'MAE', CAPATAZ: 'CAP', 'CAPATAZ CSD': 'CAP',
   VARILLERO: 'VAR', FERRALLERO: 'FERR', CARPINTERO: 'CARP', ALBANIL: 'ALB',
@@ -40,6 +43,24 @@ const CARGO_DICT: Record<string, string> = {
 
 // Formato de cédula dominicana 000-0000000-0.
 const CEDULA_RE = /^\d{3}-?\d{7}-?\d$/;
+
+// CG2 — extrae una fecha DD/MM/YYYY del texto de OBSERVACION (permiso de trabajo).
+// Acepta separadores / - . y años de 2 o 4 dígitos. Devuelve ISO yyyy-mm-dd o null.
+function parsePermiso(obs: string | null): string | null {
+  if (!obs) return null;
+  const m = String(obs).match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (!m) return null;
+  const dd = +m[1], mm = +m[2];
+  let yy = +m[3];
+  if (yy < 100) yy += 2000;
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  const iso = `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+  const dt = new Date(iso + 'T00:00:00');
+  // rechaza fechas imposibles (p. ej. 31/02) y años absurdos
+  if (isNaN(dt.getTime()) || dt.getMonth() + 1 !== mm || dt.getDate() !== dd) return null;
+  if (yy < 2000 || yy > 2100) return null;
+  return iso;
+}
 
 @Component({
   selector: 'app-personal-import',
@@ -55,8 +76,31 @@ export class PersonalImport implements OnInit {
 
   paso = signal<'subir' | 'previsualizar' | 'diff' | 'resultado'>('subir');
   cargos = signal<Cargo[]>([]);
+  aliasList = signal<CargoAlias[]>([]); // CG2 — alias aprendidos (texto sucio → cargo)
   obras = signal<ObraRef[]>([]);
   cargoById = computed(() => new Map(this.cargos().map((c) => [c.id, c] as const)));
+
+  // CG2 — mapa resolutor: norm(texto) → cargo_id. Capas (la última gana):
+  // 1) diccionario base offline, 2) código y nombre del catálogo, 3) alias curados en BD.
+  resolverMap = computed(() => {
+    const m = new Map<string, string>();
+    const byCode = new Map(this.cargos().map((c) => [c.codigo, c.id] as const));
+    for (const [txt, code] of Object.entries(CARGO_DICT)) {
+      const id = byCode.get(code);
+      if (id) m.set(norm(txt), id);
+    }
+    for (const c of this.cargos()) {
+      m.set(norm(c.codigo), c.id);
+      m.set(norm(c.nombre), c.id);
+    }
+    for (const a of this.aliasList()) {
+      if (a.cargo_id) m.set(norm(a.alias_normalizado), a.cargo_id);
+    }
+    return m;
+  });
+
+  // CG2 — alias ya aprendidos en esta sesión (para no repetir la llamada al RPC).
+  private aprendidos = new Set<string>();
 
   // Encabezado detectado del archivo.
   proyectoDetectado = signal<string>('');
@@ -89,6 +133,17 @@ export class PersonalImport implements OnInit {
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo cargar catálogos.');
     }
+    // CG2 — los alias no bloquean la carga; si fallan, el diccionario base cubre.
+    try {
+      this.aliasList.set(await this.svc.listarCargoAlias());
+    } catch { /* red de seguridad: resolverMap sigue con catálogo + diccionario base */ }
+  }
+
+  /** CG2 — resuelve un texto crudo a cargo_id (alias → código → nombre → diccionario). */
+  private resolverCargo(raw: unknown): string | null {
+    const key = norm(raw);
+    if (!key) return null;
+    return this.resolverMap().get(key) ?? null;
   }
 
   async onFile(event: Event) {
@@ -135,7 +190,6 @@ export class PersonalImport implements OnInit {
     const iTec = col(['TECNICO']);
     const iObs = col(['OBSERVACION', 'OBSERVACION.']);
 
-    const codigoToId = new Map(this.cargos().map((c) => [c.codigo, c.id] as const));
     const filas: FilaPrev[] = [];
     const vistos = new Set<string>();
 
@@ -145,20 +199,27 @@ export class PersonalImport implements OnInit {
       if (!nombreRaw) continue;               // fila vacía
       if (norm(nombreRaw) === 'NOMBRE') continue; // re-header
 
-      const ocup = norm(r[iOcup]);
-      const tec = norm(r[iTec]);
+      const tecRaw = String(r[iTec] ?? '').trim();
+      const ocupRaw = String(r[iOcup] ?? '').trim();
       const doc = String(r[iDoc] ?? '').trim() || null;
       const nacRaw = norm(r[iNac]);
       const obs = String(r[iObs] ?? '').trim() || null;
 
-      // Nacionalidad.
+      // Nacionalidad ("DOMINICANO Y HTI" → haitiano; cualquier mención HT/HAIT → haitiano).
       let nacionalidad = 'otro';
-      if (nacRaw.startsWith('DOM')) nacionalidad = 'dominicano';
-      else if (nacRaw.startsWith('HT') || nacRaw.startsWith('HAIT')) nacionalidad = 'haitiano';
+      if (nacRaw.includes('HT') || nacRaw.includes('HAIT')) nacionalidad = 'haitiano';
+      else if (nacRaw.startsWith('DOM')) nacionalidad = 'dominicano';
 
-      // Cargo: cuadrilla (TECNICO) primero, luego nivel (OCUPACION).
-      const cargoCod = CARGO_DICT[tec] ?? CARGO_DICT[ocup] ?? null;
-      const cargoId = cargoCod ? (codigoToId.get(cargoCod) ?? null) : null;
+      // CG2 — Cargo confiable: TECNICO primero, luego OCUPACION, vía mapa resolutor
+      // (alias curados + catálogo + diccionario base). `cargo_origen` = texto que se
+      // intentó resolver (para aprender un alias si el usuario lo corrige a mano).
+      let cargoId = this.resolverCargo(tecRaw);
+      let origen = tecRaw;
+      if (!cargoId) { cargoId = this.resolverCargo(ocupRaw); if (cargoId) origen = ocupRaw; }
+      if (!origen) origen = ocupRaw || tecRaw;
+
+      // CG2 — vencimiento del permiso de trabajo (parseado de OBSERVACION).
+      const permiso = parsePermiso(obs);
 
       // Tipo de documento: cédula DR vs pasaporte/otro.
       const tipoDoc = doc && CEDULA_RE.test(doc) ? 'cedula' : doc ? 'pasaporte' : 'ninguno';
@@ -166,7 +227,7 @@ export class PersonalImport implements OnInit {
       // Estado de la fila.
       let estado: FilaPrev['estado'] = 'ok';
       const motivos: string[] = [];
-      if (!cargoId) { estado = 'warning'; motivos.push(`Cargo no reconocido («${(r[iTec] ?? r[iOcup] ?? '—')}») — elige uno`); }
+      if (!cargoId) { estado = 'warning'; motivos.push(`Cargo no reconocido («${origen || '—'}») — elige uno`); }
       if (!doc) { estado = estado === 'ok' ? 'warning' : estado; motivos.push('Sin documento'); }
       if (doc && vistos.has(doc)) { estado = 'error'; motivos.push('Documento repetido en el archivo'); }
       if (doc) vistos.add(doc);
@@ -177,8 +238,9 @@ export class PersonalImport implements OnInit {
         nacionalidad,
         tipo_documento: tipoDoc,
         cargo_id: cargoId,
-        cargo_origen: String(r[iTec] ?? r[iOcup] ?? '').trim() || '—',
-        cuadrilla: (r[iTec] != null && String(r[iTec]).trim()) ? titleCase(String(r[iTec])) : null,
+        cargo_origen: origen || '—',
+        cuadrilla: tecRaw ? titleCase(tecRaw) : null,
+        permiso_vencimiento: permiso,
         notas: obs,
         estado,
         motivo: motivos.join(' · '),
@@ -212,21 +274,78 @@ export class PersonalImport implements OnInit {
     } catch { /* no bloquea */ }
   }
 
+  /** Aplica un cargo a una fila, limpia el aviso y aprende el alias si era desconocido. */
+  private aplicarCargo(f: FilaPrev, cargoId: string | null): FilaPrev {
+    const nf = { ...f, cargo_id: cargoId };
+    if (nf.cargo_id && nf.motivo.includes('Cargo no reconocido')) {
+      nf.motivo = nf.motivo.split(' · ').filter((m) => !m.includes('Cargo no reconocido')).join(' · ');
+      if (nf.estado === 'warning' && !nf.motivo && !!nf.documento) nf.estado = 'ok';
+    }
+    return nf;
+  }
+
   setCargo(index: number, cargoId: string) {
-    this.filas.update((fs) => fs.map((f, i) => {
-      if (i !== index) return f;
-      const nf = { ...f, cargo_id: cargoId || null };
-      // Recalcula estado si ya no falta el cargo.
-      if (nf.cargo_id && nf.estado === 'warning' && nf.motivo.includes('Cargo no reconocido')) {
-        nf.motivo = nf.motivo.split(' · ').filter((m) => !m.includes('Cargo no reconocido')).join(' · ');
-        if (!nf.motivo && !!nf.documento) nf.estado = 'ok';
-      }
-      return nf;
-    }));
+    const id = cargoId || null;
+    const row = this.filas()[index];
+    this.filas.update((fs) => fs.map((f, i) => (i === index ? this.aplicarCargo(f, id) : f)));
+    // CG2 — aprende el alias: el texto crudo que no resolvía ahora tiene un cargo.
+    if (id && row) this.aprenderAlias(row.cargo_origen, id);
+  }
+
+  /** CG2 — "Aplicar a los N «TEXTO»": propaga el cargo elegido a todas las filas
+   *  con el mismo texto de origen (y aprende el alias una sola vez). */
+  aplicarATodosIguales(index: number) {
+    const row = this.filas()[index];
+    if (!row?.cargo_id || row.cargo_origen === '—') return;
+    const origen = row.cargo_origen;
+    const id = row.cargo_id;
+    const n = this.igualesCount(index);
+    this.filas.update((fs) => fs.map((f) => (f.cargo_origen === origen ? this.aplicarCargo(f, id) : f)));
+    this.aprenderAlias(origen, id);
+    this.toast.success('Aplicado', `${n} filas con «${origen}» quedaron como ${this.cargoNombre(id)}.`);
+  }
+
+  /** Nº de otras filas con el mismo texto de origen que la fila dada (para el botón). */
+  igualesCount(index: number): number {
+    const origen = this.filas()[index]?.cargo_origen;
+    if (!origen || origen === '—') return 0;
+    return this.filas().filter((f, i) => i !== index && f.cargo_origen === origen).length;
+  }
+
+  /** CG2 — registra el alias en el servidor (una vez por texto) y lo refleja localmente. */
+  private aprenderAlias(origen: string, cargoId: string) {
+    const key = norm(origen);
+    if (!key || origen === '—' || this.aprendidos.has(key)) return;
+    // Ya resuelve a ESE cargo sin ayuda → no hace falta aprenderlo.
+    if (this.resolverMap().get(key) === cargoId) return;
+    this.aprendidos.add(key);
+    this.svc.registrarCargoAlias(origen, cargoId)
+      .then(() => this.aliasList.update((xs) => [
+        ...xs.filter((a) => norm(a.alias_normalizado) !== key),
+        { id: crypto.randomUUID(), alias_normalizado: origen, cargo_id: cargoId, cargo_codigo: null, cargo_nombre: this.cargoNombre(cargoId), created_at: new Date().toISOString() },
+      ]))
+      .catch(() => this.aprendidos.delete(key)); // reintentable si falló
   }
 
   cargoNombre(id: string | null): string {
     return id ? (this.cargoById().get(id)?.nombre ?? '—') : '—';
+  }
+
+  /** CG2 — cargo elegido para un documento (para pintarlo en el diff; el preview
+   *  RPC no devuelve el cargo, así que lo tomamos de la fila importada). */
+  cargoDeDocumento(doc: string | null): string {
+    if (!doc) return '—';
+    const f = this.filas().find((x) => x.documento === doc);
+    return f ? this.cargoNombre(f.cargo_id) : '—';
+  }
+
+  /** CG2 — estado del permiso de trabajo frente a hoy (para el chip). */
+  permisoEstado(iso: string | null): 'vigente' | 'vencido' | null {
+    if (!iso) return null;
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const venc = new Date(iso + 'T00:00:00');
+    if (isNaN(venc.getTime())) return null;
+    return venc.getTime() >= hoy.getTime() ? 'vigente' : 'vencido';
   }
 
   /** Filas importables (sin error) → contrato del RPC. */
@@ -238,9 +357,44 @@ export class PersonalImport implements OnInit {
       tipo_documento: f.tipo_documento,
       documento_numero: f.documento,
       cargo_id: f.cargo_id,
+      cargo_texto: f.cargo_origen && f.cargo_origen !== '—' ? f.cargo_origen : null, // CG2 — el servidor resuelve/aprende si cargo_id es null
       cuadrilla: f.cuadrilla,
+      permiso_vencimiento: f.permiso_vencimiento, // CG2
       notas: f.notas,
     }));
+  }
+
+  /** CG2 — descarga una plantilla .xlsx con el formato real + los cargos/alias válidos. */
+  async descargarPlantilla() {
+    try {
+      const XLSX = await import('xlsx');
+      const aoa: unknown[][] = [
+        [null, 'PROYECTO', 'ALPHA'],
+        [null, 'UBICACIÓN', 'Santo Domingo'],
+        [null, 'ENC. OBRA', 'Nombre del encargado de obra'],
+        [],
+        ['NOMBRE', 'OCUPACION', '# DE DOCUMENTO', 'NACIONALIDAD', 'TECNICO', 'OBSERVACION'],
+        ['Juan Pérez', 'INGENIERO', '001-0000000-1', 'DOMINICANO', 'INGENIERO', ''],
+        ['Pierre Louis', 'OBRERO', 'ID-1234567', 'HTI', 'AYUDANTE', 'Permiso vigente hasta el 11/03/2027'],
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = [{ wch: 24 }, { wch: 16 }, { wch: 18 }, { wch: 16 }, { wch: 18 }, { wch: 40 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'LISTADO');
+
+      // Hoja 2 — cargos válidos del catálogo + alias conocidos (guía para quien llena).
+      const cat: unknown[][] = [['Código', 'Cargo']];
+      for (const c of this.cargos()) cat.push([c.codigo, c.nombre]);
+      cat.push([], ['Texto aceptado (alias)', 'Se mapea a']);
+      for (const a of this.aliasList()) cat.push([a.alias_normalizado, a.cargo_nombre ?? this.cargoNombre(a.cargo_id)]);
+      const ws2 = XLSX.utils.aoa_to_sheet(cat);
+      ws2['!cols'] = [{ wch: 26 }, { wch: 26 }];
+      XLSX.utils.book_append_sheet(wb, ws2, 'Cargos válidos');
+
+      XLSX.writeFile(wb, 'plantilla-personal-obra.xlsx');
+    } catch (e) {
+      this.toast.error('No se pudo generar la plantilla', e instanceof Error ? e.message : undefined);
+    }
   }
 
   /** AV4 — paso 1: calcula el diff contra el estado actual y muestra altas/actualizaciones/bajas. */

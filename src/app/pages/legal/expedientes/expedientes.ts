@@ -21,6 +21,9 @@ import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.uti
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { I18nService } from '../../../../shared/i18n/i18n.service';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -31,7 +34,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +44,7 @@ export class Expedientes implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private i18n = inject(I18nService);
 
   readonly TIPOS = EXPEDIENTE_TIPOS;
   readonly ESTADOS = EXPEDIENTE_ESTADOS;
@@ -60,6 +64,14 @@ export class Expedientes implements OnInit {
 
   drawerOpen = signal(false);
   editingId = signal<string | null>(null);
+
+  // CG1 — adjuntar archivos MIENTRAS se crea el expediente (staging antes de tener id).
+  nuevosArchivos = signal<File[]>([]);
+  subiendoArchivos = signal(false);
+  archivoProgreso = signal('');
+  archivosFallidos = signal<File[]>([]);
+  // Id del expediente ya creado (para reintentar la subida de los que fallaron).
+  private archivoExpedienteId = signal<string | null>(null);
 
   detailOpen = signal(false);
   detailExpediente = signal<ExpedienteLegal | null>(null);
@@ -153,13 +165,30 @@ export class Expedientes implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
+    this.resetArchivosStaging();
     this.form.reset({ tipo: 'otro', prioridad: 'media' });
     this.drawerOpen.set(true);
+  }
+
+  /** CG1 — limpia el staging de archivos (al abrir/cerrar el drawer de creación). */
+  private resetArchivosStaging() {
+    this.nuevosArchivos.set([]);
+    this.archivosFallidos.set([]);
+    this.archivoProgreso.set('');
+    this.archivoExpedienteId.set(null);
+  }
+
+  onNuevoArchivoAdd(files: File[]) {
+    this.nuevosArchivos.update((l) => [...l, ...files]);
+  }
+  onNuevoArchivoRemove(i: number) {
+    this.nuevosArchivos.update((l) => l.filter((_, idx) => idx !== i));
   }
 
   openEdit(e: ExpedienteLegal) {
     this.editingId.set(e.id);
     this.saveError.set('');
+    this.resetArchivosStaging();
     this.form.reset({
       titulo: e.titulo,
       tipo: e.tipo,
@@ -175,6 +204,7 @@ export class Expedientes implements OnInit {
 
   closeDrawer() {
     this.drawerOpen.set(false);
+    this.resetArchivosStaging();
   }
 
   async onSave() {
@@ -206,12 +236,86 @@ export class Expedientes implements OnInit {
         payload.responsable_id = this.userService.profile()?.id ?? null;
         const created = await this.legalService.createExpediente(payload);
         this.expedientes.update((list) => [created, ...list]);
+
+        // CG1 — subir los archivos preparados. El expediente ya quedó creado;
+        // una falla de subida NO lo revierte: se recolectan para reintentar.
+        const staged = this.nuevosArchivos();
+        if (staged.length > 0) {
+          this.archivoExpedienteId.set(created.id);
+          this.nuevosArchivos.set([]);
+          const fallidos = await this.subirArchivos(created.id, staged);
+          if (fallidos.length > 0) {
+            this.archivosFallidos.set(fallidos);
+            // Pasamos a modo edición del expediente creado para evitar un alta
+            // duplicada si el usuario vuelve a enviar; el drawer sigue abierto
+            // mostrando los fallidos con "Reintentar" (no se bloquea el cierre).
+            this.editingId.set(created.id);
+            this.toast.warning(
+              this.i18n.t('Expediente creado. {fail} de {total} archivos no se subieron.', {
+                fail: fallidos.length,
+                total: staged.length,
+              }),
+            );
+            return;
+          }
+          this.toast.success(
+            this.i18n.t('Expediente creado con {n} archivo(s) adjunto(s).', { n: staged.length }),
+          );
+        }
       }
       this.drawerOpen.set(false);
+      this.resetArchivosStaging();
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  /**
+   * CG1 — sube cada archivo al expediente indicado, mostrando progreso
+   * ("Subiendo 2/5…"). Devuelve los que fallaron (para reintentar), sin abortar
+   * el resto si uno falla.
+   */
+  private async subirArchivos(expedienteId: string, files: File[]): Promise<File[]> {
+    const profileId = this.userService.profile()?.id ?? null;
+    const fallidos: File[] = [];
+    this.subiendoArchivos.set(true);
+    try {
+      let hechos = 0;
+      for (const file of files) {
+        this.archivoProgreso.set(
+          this.i18n.t('Subiendo {n}/{total}…', { n: hechos + 1, total: files.length }),
+        );
+        try {
+          await this.legalService.subirArchivo(expedienteId, file, profileId);
+        } catch {
+          fallidos.push(file);
+        }
+        hechos++;
+      }
+    } finally {
+      this.subiendoArchivos.set(false);
+      this.archivoProgreso.set('');
+    }
+    return fallidos;
+  }
+
+  /** CG1 — reintenta solo los archivos que fallaron en la subida inicial. */
+  async reintentarArchivos() {
+    const expedienteId = this.archivoExpedienteId();
+    const fallidos = this.archivosFallidos();
+    if (!expedienteId || fallidos.length === 0 || this.subiendoArchivos()) return;
+
+    this.archivosFallidos.set([]);
+    const nuevosFallidos = await this.subirArchivos(expedienteId, fallidos);
+    if (nuevosFallidos.length > 0) {
+      this.archivosFallidos.set(nuevosFallidos);
+      this.toast.warning(
+        this.i18n.t('Aún no se pudieron subir {n} archivo(s).', { n: nuevosFallidos.length }),
+      );
+    } else {
+      this.toast.success(this.i18n.t('Archivos subidos correctamente.'));
     }
   }
 

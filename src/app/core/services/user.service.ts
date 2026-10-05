@@ -130,6 +130,16 @@ export class UserService {
   esChofer = computed(() => this.hasRole('chofer_transportista') || this.hasRole('chofer_privado'));
 
   /**
+   * CG6 — distinción dentro de "chofer": el chofer de FLOTA (transportista) hace conduces,
+   * rutas de entrega de la empresa, entra a incentivo/desempeño. El chofer PRIVADO (personal
+   * de gerencia) usa la app para SU vehículo (combustible, inspección, mantenimiento) pero
+   * NO ve conduces, despachos, rutas, incentivo ni desempeño. Ambos comparten la piel de app
+   * (esChofer) pero la experiencia operativa difiere.
+   */
+  esChoferFlota = computed(() => this.hasRole('chofer_transportista'));
+  esChoferPrivado = computed(() => this.hasRole('chofer_privado'));
+
+  /**
    * AS7 — quién ve TODAS las requisiciones (bandeja global), no solo las propias.
    * Espejo exacto de la función SQL `sgc.puede_ver_todas_requisiciones()` (fuente
    * de verdad en la RLS de `solicitudes_material`): admin, módulo inventario, o los

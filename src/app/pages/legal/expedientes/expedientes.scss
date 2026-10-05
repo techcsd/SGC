@@ -97,6 +97,39 @@ textarea {
   font-size: 13px;
 }
 
+// CG1 — progreso y fallidos de la subida de archivos al crear el expediente
+.archivos-progreso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sgc-text-muted);
+}
+
+.archivos-fallidos {
+  padding: 10px 12px;
+  background: var(--sgc-danger-light);
+  border: 1px solid rgba(192, 57, 43, 0.2);
+  border-radius: var(--sgc-radius);
+  color: var(--sgc-danger);
+  font-size: 13px;
+
+  &__title {
+    margin: 0 0 6px;
+    font-weight: 600;
+  }
+
+  &__list {
+    list-style: disc;
+    margin: 0 0 10px;
+    padding-left: 18px;
+
+    li {
+      margin: 2px 0;
+    }
+  }
+}
+
 .drawer-actions {
   display: flex;
   justify-content: flex-end;
