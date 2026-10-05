@@ -61,6 +61,13 @@ export const proyectosRoutes: Routes = [
     title: 'Importar personal',
   },
   {
+    // CG2 — Cargos y alias (catálogo + gestor de alias del importador). Antes del ':id'.
+    path: 'cargos',
+    canActivate: [submoduloGuard('proyectos.personal')],
+    loadComponent: () => import('./cargos/cargos').then((m) => m.ProyectosCargos),
+    title: 'Cargos y alias — Proyectos',
+  },
+  {
     path: 'personal/:id',
     canActivate: [submoduloGuard('proyectos.personal')],
     loadComponent: () => import('./personal/personal-expediente').then((m) => m.PersonalExpediente),

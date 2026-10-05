@@ -14,7 +14,13 @@ import { SupabaseService } from '../../../app/core/services/supabase.service';
 export interface DirectorioUsuario {
   id: string;
   nombre: string;
-  roles: string[] | null;
+  roles?: string[] | null;
+  /** CG9 — cédula/correo mostrados y buscables cuando el padre pasa `items`. */
+  cedula?: string | null;
+  email?: string | null;
+  /** CG9 — ya enlazado a otra ficha: se muestra deshabilitado con el motivo. */
+  yaVinculado?: boolean;
+  motivoVinculo?: string | null;
 }
 
 /** BR2 — emitido al elegir un usuario o escribir un nombre libre ("Otro"). */
@@ -50,10 +56,18 @@ export class UserPicker implements OnInit {
   allowOtro = input<boolean>(true);
   placeholder = input<string>('Buscar por nombre o rol…');
   disabled = input<boolean>(false);
+  /**
+   * CG9 — lista provista por el padre (p. ej. `usuarios_vinculables`, con cédula/correo
+   * y bandera `yaVinculado`). Si viene con elementos, el picker la usa en vez del RPC
+   * `directorio_usuarios_detalle` y busca por nombre/correo/cédula/rol. Vacío = RPC legacy.
+   */
+  items = input<DirectorioUsuario[]>([]);
 
   selected = output<UserPickerSelection>();
 
-  usuarios = signal<DirectorioUsuario[]>([]);
+  private usuariosRpc = signal<DirectorioUsuario[]>([]);
+  /** Fuente efectiva: `items` del padre (CG9) o el directorio del RPC (legacy). */
+  usuarios = computed(() => (this.items().length ? this.items() : this.usuariosRpc()));
   query = signal('');
   open = signal(false);
   loading = signal(false);
@@ -67,6 +81,8 @@ export class UserPicker implements OnInit {
 
   async ngOnInit() {
     this.otroNombre.set(this.nombreLibre());
+    // CG9 — si el padre provee `items`, no se consulta el RPC (esa es la fuente).
+    if (this.items().length) return;
     this.loading.set(true);
     try {
       const { data, error } = await this.supabase.client.rpc('directorio_usuarios_detalle');
@@ -77,7 +93,7 @@ export class UserPicker implements OnInit {
         list = list.filter((u) => (u.roles ?? []).some((r) => roles.includes(r)));
       }
       list.sort((a, b) => a.nombre.localeCompare(b.nombre));
-      this.usuarios.set(list);
+      this.usuariosRpc.set(list);
     } catch {
       /* el picker degrada a "Otro" si el directorio falla */
     } finally {
@@ -93,8 +109,15 @@ export class UserPicker implements OnInit {
   filtered = computed(() => {
     const q = this.norm(this.query());
     if (!q) return this.usuarios().slice(0, 30);
+    // CG9 — busca por nombre, rol, correo y cédula (NFD, sin acentos).
     return this.usuarios()
-      .filter((u) => this.norm(u.nombre).includes(q) || (u.roles ?? []).some((r) => this.norm(r).includes(q)))
+      .filter(
+        (u) =>
+          this.norm(u.nombre).includes(q) ||
+          (u.roles ?? []).some((r) => this.norm(r).includes(q)) ||
+          this.norm(u.email ?? '').includes(q) ||
+          this.norm(u.cedula ?? '').includes(q),
+      )
       .slice(0, 30);
   });
 
@@ -104,6 +127,7 @@ export class UserPicker implements OnInit {
   }
 
   elegir(u: DirectorioUsuario) {
+    if (u.yaVinculado) return; // CG9 — no se puede elegir un usuario ya enlazado a otra ficha.
     this.otroMode.set(false);
     this.open.set(false);
     this.query.set('');

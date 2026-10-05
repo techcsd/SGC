@@ -202,6 +202,43 @@
       <textarea id="descripcion" formControlName="descripcion" rows="4" placeholder="Detalle del caso…"></textarea>
     </div>
 
+    <!-- CG1 — adjuntar archivos mientras se crea el expediente (solo en alta nueva) -->
+    @if (!editingId()) {
+      <div class="sgc-field">
+        <label>{{ 'Archivos (opcional)' | t }}</label>
+        <app-file-upload
+          [files]="nuevosArchivos()"
+          [max]="20"
+          accept="image/*,application/pdf,.doc,.docx"
+          [label]="'Arrastra, pega o toca para adjuntar' | t"
+          [hint]="'Imágenes, PDF o Word. Se suben al crear el expediente.' | t"
+          (add)="onNuevoArchivoAdd($event)"
+          (removeAt)="onNuevoArchivoRemove($event)"
+        />
+      </div>
+    }
+
+    @if (subiendoArchivos()) {
+      <div class="archivos-progreso" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        {{ archivoProgreso() }}
+      </div>
+    }
+
+    @if (archivosFallidos().length > 0) {
+      <div class="archivos-fallidos" role="alert">
+        <p class="archivos-fallidos__title">{{ 'Estos archivos no se subieron:' | t }}</p>
+        <ul class="archivos-fallidos__list">
+          @for (f of archivosFallidos(); track f.name + f.size) {
+            <li>{{ f.name }}</li>
+          }
+        </ul>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="reintentarArchivos()" [disabled]="subiendoArchivos()">
+          {{ 'Reintentar' | t }}
+        </button>
+      </div>
+    }
+
     @if (saveError()) {
       <div class="save-error" role="alert">{{ saveError() }}</div>
     }

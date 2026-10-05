@@ -17,9 +17,11 @@ import { ProveedoresService } from '../../../../shared/services/proveedores.serv
 import {
   Mantenimiento,
   MantenimientoFormData,
+  MantenimientoAdjunto,
   MANT_TIPOS,
   MANT_TIPO_BADGE,
   MANT_ESTADOS,
+  MANT_ADJUNTO_TIPOS,
 } from '../../../../shared/models/mantenimiento.model';
 import { Vehiculo, kmFaltanMantenimiento, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -32,15 +34,24 @@ import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { AudioNotas } from '../../../../shared/components/audio-notas/audio-notas';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
+import { PdfViewer } from '../../../../shared/ui/pdf-viewer/pdf-viewer';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 
 interface PendingFoto {
   file: File;
   preview: string;
 }
 
+// CG13 — adjunto pendiente de subir (archivo + tipo de documento capturado al agregar).
+interface PendingAdjunto {
+  file: File;
+  tipo: string;
+}
+
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -79,6 +90,84 @@ export class Mantenimientos implements OnInit {
       this.mantenimientosService.getFotoUrl(path).then((url) => {
         if (url) this.rowFotoUrls.update((m) => ({ ...m, [path]: url }));
       });
+    }
+  }
+
+  // ── CG13 — Adjuntos (imágenes + PDFs) ────────────────────
+  readonly MANT_ADJUNTO_TIPOS = MANT_ADJUNTO_TIPOS;
+  /** Nuevos adjuntos pendientes de subir (con el tipo elegido al agregarlos). */
+  adjPending = signal<PendingAdjunto[]>([]);
+  /** Lista de File[] para el control <app-file-upload> (derivada de adjPending). */
+  adjFiles = computed(() => this.adjPending().map((a) => a.file));
+  /** Tipo de documento activo en el selector; se aplica a lo que se agregue. */
+  adjTipo = signal<string>('factura');
+  /** Adjuntos ya guardados del registro en edición (para listar/eliminar). */
+  editingAdjuntos = signal<MantenimientoAdjunto[]>([]);
+
+  // Visor de PDF embebido.
+  pdfOpen = signal(false);
+  pdfSrc = signal<string | null>(null);
+  pdfNombre = signal('Documento');
+
+  adjTipoLabel(tipo: string): string {
+    return MANT_ADJUNTO_TIPOS.find((t) => t.value === tipo)?.label ?? tipo;
+  }
+
+  private esPdf(adj: MantenimientoAdjunto): boolean {
+    return adj.mime === 'application/pdf' || adj.nombre.toLowerCase().endsWith('.pdf');
+  }
+
+  /** Abre un adjunto: PDF en el visor embebido, imagen en pestaña nueva. */
+  async abrirAdjunto(adj: MantenimientoAdjunto) {
+    const url = await this.mantenimientosService.getAdjuntoUrl(adj.path);
+    if (!url) {
+      this.toast.error('No se pudo abrir el adjunto', 'Vuelve a intentarlo.');
+      return;
+    }
+    if (this.esPdf(adj)) {
+      this.pdfNombre.set(adj.nombre);
+      this.pdfSrc.set(url);
+      this.pdfOpen.set(true);
+    } else {
+      window.open(url, '_blank', 'noopener');
+    }
+  }
+
+  /** Recibe archivos del <app-file-upload>: admite imágenes y PDF, rechaza el resto. */
+  onAdjAdd(files: File[]) {
+    const tipo = this.adjTipo();
+    const aceptados: PendingAdjunto[] = [];
+    let rechazados = 0;
+    for (const f of files) {
+      const ok = f.type.startsWith('image/') || f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
+      if (ok) aceptados.push({ file: f, tipo });
+      else rechazados++;
+    }
+    if (rechazados) {
+      this.toast.warning('Archivo no admitido', 'Solo se aceptan imágenes y PDF.');
+    }
+    if (aceptados.length) this.adjPending.update((l) => [...l, ...aceptados]);
+  }
+
+  onAdjRemove(index: number) {
+    this.adjPending.update((l) => l.filter((_, i) => i !== index));
+  }
+
+  /** Elimina un adjunto ya guardado del registro en edición. */
+  async eliminarAdjunto(adj: MantenimientoAdjunto) {
+    if (!confirm(`¿Eliminar el adjunto "${adj.nombre}"?`)) return;
+    try {
+      await this.mantenimientosService.deleteAdjunto(adj.id, adj.path);
+      this.editingAdjuntos.update((l) => l.filter((a) => a.id !== adj.id));
+      const id = this.editingId();
+      if (id) {
+        this.mantenimientos.update((list) =>
+          list.map((m) => (m.id === id ? { ...m, adjuntos: (m.adjuntos ?? []).filter((a) => a.id !== adj.id) } : m)),
+        );
+      }
+      this.toast.success('Adjunto eliminado');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo eliminar', e instanceof Error ? e.message : undefined);
     }
   }
 
@@ -374,8 +463,16 @@ export class Mantenimientos implements OnInit {
     this.editingEsPrueba.set(false);
     this.saveError.set('');
     this.resetFotos([]);
+    this.resetAdjuntos([]);
     this.form.reset({ tipo: 'preventivo', estado: 'pendiente' });
     this.drawerOpen.set(true);
+  }
+
+  /** CG13 — reinicia el estado de adjuntos del drawer. */
+  private resetAdjuntos(existentes: MantenimientoAdjunto[]) {
+    this.adjPending.set([]);
+    this.adjTipo.set('factura');
+    this.editingAdjuntos.set([...existentes]);
   }
 
   completandoId = signal<string | null>(null);
@@ -431,6 +528,7 @@ export class Mantenimientos implements OnInit {
     this.editingEsPrueba.set(m.es_prueba ?? false);
     this.saveError.set('');
     this.resetFotos(m.fotos ?? []);
+    this.resetAdjuntos(m.adjuntos ?? []);
     this.form.reset({
       vehiculo_id: m.vehiculo_id,
       tipo: m.tipo,
@@ -562,6 +660,17 @@ export class Mantenimientos implements OnInit {
         saved = { ...saved, fotos: finalFotos };
       }
 
+      // CG13 — nuevos adjuntos (imágenes + PDFs) → tabla mantenimiento_adjuntos.
+      // Un adjunto que falle no bloquea el guardado del registro.
+      const adjuntos = this.adjPending();
+      for (const p of adjuntos) {
+        try {
+          await this.mantenimientosService.uploadAdjunto(saved.id, p.file, p.tipo);
+        } catch (e: unknown) {
+          this.toast.warning('Adjunto no subido', `No se pudo subir "${p.file.name}".`);
+        }
+      }
+
       if (id) {
         this.mantenimientos.update((list) => list.map((m) => (m.id === id ? saved : m)));
       } else {
@@ -570,6 +679,9 @@ export class Mantenimientos implements OnInit {
       this.resolveListaFotos([saved]);
       this.revokePreviews();
       this.drawerOpen.set(false);
+      // Si se subieron adjuntos, recarga para traer el array `adjuntos` del servidor
+      // (listar_mantenimientos lo devuelve) y mostrarlos en la fila recién guardada.
+      if (adjuntos.length) await this.loadAll();
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {

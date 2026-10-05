@@ -101,4 +101,71 @@ export class MantenimientosService {
       .eq('id', mantenimientoId);
     if (error) throw new Error(error.message);
   }
+
+  // ── CG13 — Adjuntos (imágenes + PDFs) en `mantenimiento_adjuntos` ───────────────
+
+  /** Tamaño máximo por adjunto (20 MB). */
+  private readonly MAX_ADJUNTO_BYTES = 20 * 1024 * 1024;
+
+  /**
+   * CG13 — sube un adjunto (imagen o PDF) del mantenimiento al bucket `vehiculos`
+   * conservando la extensión/mime real (los PDFs NO se comprimen ni se fuerzan a
+   * `.jpg`; las imágenes sí se comprimen pero quedan como `.jpg`). Luego inserta la
+   * fila en `mantenimiento_adjuntos`. Lanza un error amigable si pasa de 20 MB.
+   */
+  async uploadAdjunto(mantenimientoId: string, file: File, tipoDocumento: string): Promise<void> {
+    if (file.size > this.MAX_ADJUNTO_BYTES) {
+      throw new Error('El archivo supera el límite de 20 MB. Comprime o divide el documento.');
+    }
+    const nombre = file.name || 'adjunto';
+    const esImagen = file.type.startsWith('image/');
+    // Las imágenes se recomprimen (perfil documento = legibilidad); los PDFs tal cual.
+    const subida = esImagen ? await comprimirImagen(file, 'documento') : file;
+    const mime = subida.type || file.type || 'application/octet-stream';
+
+    // Extensión real: jpg para imágenes (ya recomprimidas), la del nombre/mime si no.
+    const extNombre = (nombre.match(/\.([a-zA-Z0-9]+)$/)?.[1] ?? '').toLowerCase();
+    let ext = esImagen ? 'jpg' : extNombre;
+    if (!ext) ext = mime === 'application/pdf' ? 'pdf' : 'bin';
+
+    const base = nombre
+      .replace(/\.[^.]+$/, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+      .slice(0, 40) || 'adjunto';
+    const path = `mantenimiento/${mantenimientoId}/${crypto.randomUUID()}-${base}.${ext}`;
+
+    const { error: upErr } = await this.supabase.client.storage
+      .from('vehiculos')
+      .upload(path, subida, { upsert: true, contentType: mime });
+    if (upErr) throw new Error(upErr.message);
+
+    // subido_por: id del usuario autenticado (= usuarios.id en esta app) si está.
+    const { data: auth } = await this.supabase.client.auth.getUser();
+    const { error: insErr } = await this.supabase.client
+      .from('mantenimiento_adjuntos')
+      .insert({
+        mantenimiento_id: mantenimientoId,
+        path,
+        nombre,
+        mime,
+        tipo_documento: tipoDocumento,
+        subido_por: auth?.user?.id ?? null,
+      });
+    if (insErr) throw new Error(insErr.message);
+  }
+
+  /** Resuelve el path de un adjunto a una URL firmada (null si falla). */
+  async getAdjuntoUrl(path: string): Promise<string | null> {
+    return this.cache.signed('vehiculos', path);
+  }
+
+  /** Elimina un adjunto: borra el objeto del storage y la fila. */
+  async deleteAdjunto(id: string, path: string): Promise<void> {
+    await this.supabase.client.storage.from('vehiculos').remove([path]);
+    const { error } = await this.supabase.client
+      .from('mantenimiento_adjuntos')
+      .delete()
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
 }

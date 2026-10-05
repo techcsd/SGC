@@ -298,8 +298,9 @@
         <input
           id="cedula"
           type="text"
+          appCedula
           formControlName="cedula"
-          placeholder="Ej: 001-1234567-8"
+          placeholder="001-1234567-8"
           [class.invalid]="f.cedula.invalid && f.cedula.touched"
         />
         @if (f.cedula.invalid && f.cedula.touched) {

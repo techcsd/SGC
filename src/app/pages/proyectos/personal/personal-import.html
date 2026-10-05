@@ -21,6 +21,13 @@
         <span class="pi-drop__hint">.xlsx con columnas Nombre · Ocupación · # Documento · Nacionalidad · Técnico</span>
       </label>
     </div>
+    <div class="pi-tpl">
+      <p class="pi-tpl__hint">¿No tienes el formato? Descarga la plantilla con el encabezado, las columnas y la lista de cargos válidos.</p>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarPlantilla()">
+        <app-icon name="download" [size]="15" /> Descargar plantilla
+      </button>
+      <a routerLink="/proyectos/cargos" class="pi-tpl__link">Gestionar cargos y alias</a>
+    </div>
   }
 
   <!-- Paso 2 — previsualizar -->
@@ -60,7 +67,7 @@
     <div class="table-scroll">
       <table class="data-table pi-table">
         <thead>
-          <tr><th></th><th>Nombre</th><th>Documento</th><th>Nacionalidad</th><th>Cargo</th><th>Observación</th></tr>
+          <tr><th></th><th>Nombre</th><th>Documento</th><th>Nacionalidad</th><th>Cargo</th><th>Permiso</th><th>Observación</th></tr>
         </thead>
         <tbody>
           @for (f of filas(); track $index) {
@@ -81,7 +88,20 @@
                   <option value="">Sin cargo</option>
                   @for (c of cargos(); track c.id) { <option [value]="c.id">{{ c.nombre }}</option> }
                 </select>
-                @if (!f.cargo_id) { <small class="pi-cargo-src">del archivo: {{ f.cargo_origen }}</small> }
+                @if (f.cargo_origen !== '—') { <small class="pi-cargo-src" [class.pi-cargo-src--warn]="!f.cargo_id">del archivo: {{ f.cargo_origen }}</small> }
+                @if (f.cargo_id && igualesCount($index) > 0) {
+                  <button type="button" class="pi-aplicar" (click)="aplicarATodosIguales($index)" [title]="'Poner este cargo a todas las filas con «' + f.cargo_origen + '»'">
+                    Aplicar a los {{ igualesCount($index) + 1 }} «{{ f.cargo_origen }}»
+                  </button>
+                }
+              </td>
+              <td class="pi-permiso">
+                @if (f.permiso_vencimiento; as pv) {
+                  @switch (permisoEstado(pv)) {
+                    @case ('vigente') { <span class="pi-chip pi-chip--ok" [title]="'Vence el ' + pv">Vigente</span> }
+                    @case ('vencido') { <span class="pi-chip pi-chip--err" [title]="'Venció el ' + pv">Vencido</span> }
+                  }
+                } @else { <span class="text-muted">—</span> }
               </td>
               <td class="text-muted">{{ f.notas || '' }}</td>
             </tr>
@@ -116,7 +136,7 @@
         <ul class="pi-diff__list">
           @for (a of pv.altas; track a.documento_numero || a.nombre) {
             <li><span class="pi-diff__nom">{{ a.nombre }}</span>
-              <span class="pi-diff__meta">{{ a.documento_numero || 'sin documento' }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
+              <span class="pi-diff__meta">{{ a.documento_numero || 'sin documento' }} · cargo: {{ cargoDeDocumento(a.documento_numero) }}{{ a.cuadrilla ? ' · ' + a.cuadrilla : '' }}</span></li>
           }
         </ul>
       }
@@ -127,7 +147,7 @@
           @for (u of pv.actualizaciones; track u.id) {
             <li><span class="pi-diff__nom">{{ u.despues.nombre }}</span>
               <span class="pi-diff__meta">
-                {{ u.documento_numero }}
+                {{ u.documento_numero }} · cargo: {{ cargoDeDocumento(u.documento_numero) }}
                 @if (u.antes.nombre !== u.despues.nombre) { · nombre: {{ u.antes.nombre }} → {{ u.despues.nombre }} }
                 @if (u.despues.cuadrilla && u.antes.cuadrilla !== u.despues.cuadrilla) { · cuadrilla: {{ u.antes.cuadrilla || '—' }} → {{ u.despues.cuadrilla }} }
                 @if (!u.antes.activo_en_obra) { · reactiva (volvió al listado) }

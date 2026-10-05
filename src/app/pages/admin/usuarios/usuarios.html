@@ -5,6 +5,13 @@
     <p>Administra los accesos y roles del sistema</p>
   </div>
   <div class="admin-usuarios__header-actions">
+    <a class="sgc-btn sgc-btn--ghost" routerLink="/admin/usuarios-duplicados"
+      title="Detectar y fusionar usuarios duplicados">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      Usuarios duplicados
+    </a>
     <app-export-excel filenameBase="usuarios" [rows]="filtered()" [allRows]="usuarios()"
       [columns]="exportCols" [sections]="exportSecciones" />
     <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
@@ -180,6 +187,15 @@
     <button type="button" role="menuitem" (click)="openEdit(u); closeMenu()">Editar</button>
     <button type="button" role="menuitem" (click)="verAccesos(u); closeMenu()"
       title="Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.">Ver accesos efectivos</button>
+    <!-- CG8 — crear/vincular ficha de conductor desde el usuario -->
+    <button type="button" role="menuitem" (click)="abrirHacerConductor(u)"
+      title="Crea (o reutiliza) una ficha de conductor para este usuario y le asigna un rol de chofer.">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
+        <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
+      </svg>
+      {{ u.conductores?.length ? 'Ver/convertir en conductor' : 'Hacer conductor' }}
+    </button>
     @if (u.pendiente) {
       <button type="button" role="menuitem" (click)="resendInvite(u); closeMenu()"
         [disabled]="resettingId() === u.id"><app-icon name="mail" [size]="16" /> Reenviar invitación</button>
@@ -480,7 +496,7 @@
         </div>
         <div class="sgc-field">
           <label for="ced-cedula">Cédula <span class="required" aria-hidden="true">*</span></label>
-          <input id="ced-cedula" type="text" inputmode="numeric" formControlName="cedula" autocomplete="off" aria-required="true"
+          <input id="ced-cedula" type="text" inputmode="numeric" appCedula formControlName="cedula" autocomplete="off" aria-required="true"
             placeholder="000-0000000-0" [class.invalid]="cedulaForm.controls.cedula.invalid && cedulaForm.controls.cedula.touched" />
           @if (cedulaForm.controls.cedula.invalid && cedulaForm.controls.cedula.touched) {
             <span class="field-error" role="alert">Ingresa la cédula (solo dígitos y guiones).</span>
@@ -678,5 +694,42 @@
         </div>
       </form>
     }
+  }
+</app-form-drawer>
+
+<!-- CG8 — Hacer conductor (elegir tipo de chofer) -->
+<app-form-drawer
+  title="Hacer conductor"
+  [open]="conductorDrawerOpen()"
+  (closed)="cerrarHacerConductor()"
+>
+  @if (conductorUser(); as u) {
+    <p class="admin-usuarios__create-hint">
+      Se creará (o reutilizará) una ficha de conductor para <strong>{{ u.nombre }}</strong>, sin vehículo asignado,
+      y se le asignará el rol de chofer que elijas. Luego podrás asignarle vehículos desde Flota.
+    </p>
+    @if (u.conductores?.length) {
+      <p class="admin-usuarios__create-hint">
+        Este usuario ya tiene una ficha de conductor; se reutilizará esa misma ficha.
+      </p>
+    }
+    @if (conductorError()) {
+      <p class="admin-usuarios__save-error" role="alert">{{ conductorError() }}</p>
+    }
+    <div class="admin-usuarios__conductor-choices">
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="conductorSaving()"
+        (click)="hacerConductor('chofer_transportista')">
+        Chofer de flota (transportista)
+      </button>
+      <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="conductorSaving()"
+        (click)="hacerConductor('chofer_privado')">
+        Chofer privado (gerencia)
+      </button>
+    </div>
+    <div class="admin-usuarios__drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarHacerConductor()" [disabled]="conductorSaving()">
+        Cancelar
+      </button>
+    </div>
   }
 </app-form-drawer>

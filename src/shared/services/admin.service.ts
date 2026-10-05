@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { FunctionsHttpError } from '@supabase/supabase-js';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { environment } from '../../environments/environment';
 import { Usuario, Rol } from '../models/usuario.model';
+import { edgeErrorMessage, invokeEdge } from '../utils/edge.util';
 
 /** Where auth-email links (invite / reset) should land. Uses the configured
  *  canonical app URL so links always point at the live site, falling back to
@@ -29,19 +29,9 @@ export interface FusionResultado {
   tablas_reapuntadas: string[]; conflictos: string[];
 }
 
-/** Edge Functions return {error: "..."} in the body on failure, but functions.invoke()
- *  only gives a generic FunctionsHttpError — this pulls the real message back out. */
-async function edgeFunctionErrorMessage(error: unknown): Promise<string> {
-  if (error instanceof FunctionsHttpError) {
-    try {
-      const body = await error.context.json();
-      if (body?.error) return body.error as string;
-    } catch {
-      // fall through to the generic message below
-    }
-  }
-  return error instanceof Error ? error.message : 'Error inesperado.';
-}
+/** CG5 — delega en el helper compartido: traduce error_code → mensaje humano (regla 16)
+ *  y nunca filtra el texto técnico de transporte ("Failed to send a request…"). */
+const edgeFunctionErrorMessage = edgeErrorMessage;
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -204,6 +194,19 @@ export class AdminService {
     if (error) throw new Error(error.message);
   }
 
+  /**
+   * CG8 — crea (o reutiliza) una ficha de conductor a partir de un usuario, SIN vehículo,
+   * y le asigna el rol de chofer elegido. Devuelve el id de la ficha y si fue recién creada.
+   */
+  async hacerConductor(
+    usuarioId: string,
+    rol: 'chofer_transportista' | 'chofer_privado',
+  ): Promise<{ conductor_id: string; creada: boolean; rol: string }> {
+    const { data, error } = await this.supabase.client.rpc('hacer_conductor', { p_usuario: usuarioId, p_rol: rol });
+    if (error) throw new Error(error.message);
+    return data as { conductor_id: string; creada: boolean; rol: string };
+  }
+
   async crearUsuarioTest(nombre: string, roleIds: number[]): Promise<TestCredenciales> {
     const { data, error } = await this.supabase.client.functions.invoke('admin-crear-usuario-test', {
       body: { nombre, roleIds },
@@ -224,12 +227,12 @@ export class AdminService {
     cedula: string;
     pin: string;
   }): Promise<{ email: string; usuarioId: string; cedula: string }> {
-    const { data, error } = await this.supabase.client.functions.invoke('acceso-cedula', {
-      body: { tipo: payload.tipo, nombre: payload.nombre, cedula: payload.cedula, pin: payload.pin },
-    });
-    if (error) throw new Error(await edgeFunctionErrorMessage(error));
-    if (data?.error) throw new Error(data.error);
-    return data as { email: string; usuarioId: string; cedula: string };
+    // CG5 — invokeEdge: ante un fallo de transporte refresca la sesión y reintenta una vez;
+    // todo error sale ya como mensaje humano (regla 16), nunca "Failed to send a request…".
+    return await invokeEdge<{ email: string; usuarioId: string; cedula: string }>(
+      this.supabase.client, 'acceso-cedula',
+      { tipo: payload.tipo, nombre: payload.nombre, cedula: payload.cedula, pin: payload.pin },
+    );
   }
 
   /**
@@ -239,12 +242,7 @@ export class AdminService {
    * audit_log. Devuelve el email sintético. Lanza si el usuario usa correo real.
    */
   async fijarPinUsuario(usuarioId: string, pin: string): Promise<{ email: string }> {
-    const { data, error } = await this.supabase.client.functions.invoke('acceso-cedula', {
-      body: { usuarioId, pin },
-    });
-    if (error) throw new Error(await edgeFunctionErrorMessage(error));
-    if (data?.error) throw new Error(data.error);
-    return data as { email: string };
+    return await invokeEdge<{ email: string }>(this.supabase.client, 'acceso-cedula', { usuarioId, pin });
   }
 
   // ── BI6 / AU18 — Detección y fusión de usuarios duplicados ─────────────────

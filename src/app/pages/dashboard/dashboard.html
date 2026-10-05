@@ -28,16 +28,18 @@
     <!-- AU17 — Dashboard del chofer: "Mi día" (su vehículo, su puntaje, sus pendientes),
          en vez de la pared de KPIs de gestión que no le aplican. -->
     <div class="kpi-grid">
-      <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/mi-rendimiento">
-        <span class="kpi-label">Mi rendimiento (esta semana)</span>
-        @if (miPuntaje()) {
-          <span class="kpi-value">{{ miPuntaje()!.puntaje }} / {{ miPuntaje()!.minimo }}</span>
-          <span class="kpi-sub">{{ miPuntajePct() }}% del mínimo · {{ miPuntaje()!.cumplio ? 'cumples ✓' : 'aún no llegas al mínimo' }}</span>
-        } @else {
-          <span class="kpi-value">—</span>
-          <span class="kpi-sub">Sin informe de esta semana todavía</span>
-        }
-      </a>
+      @if (!esChoferPrivado()) {
+        <a class="kpi-card kpi-card--primary kpi-card--link" routerLink="/mi-rendimiento">
+          <span class="kpi-label">Mi rendimiento (esta semana)</span>
+          @if (miPuntaje()) {
+            <span class="kpi-value">{{ miPuntaje()!.puntaje }} / {{ miPuntaje()!.minimo }}</span>
+            <span class="kpi-sub">{{ miPuntajePct() }}% del mínimo · {{ miPuntaje()!.cumplio ? 'cumples ✓' : 'aún no llegas al mínimo' }}</span>
+          } @else {
+            <span class="kpi-value">—</span>
+            <span class="kpi-sub">Sin informe de esta semana todavía</span>
+          }
+        </a>
+      }
 
       <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/vehiculos">
         <span class="kpi-label">Mi vehículo</span>
@@ -48,11 +50,13 @@
         }
       </a>
 
-      <div class="kpi-card kpi-card--warning">
-        <span class="kpi-label">Conduces pendientes de entrega</span>
-        <span class="kpi-value">{{ misConducesPendientes() }}</span>
-        <span class="kpi-sub">Entrégalos desde la app CSD</span>
-      </div>
+      @if (!esChoferPrivado()) {
+        <div class="kpi-card kpi-card--warning">
+          <span class="kpi-label">Conduces pendientes de entrega</span>
+          <span class="kpi-value">{{ misConducesPendientes() }}</span>
+          <span class="kpi-sub">Entrégalos desde la app CSD</span>
+        </div>
+      }
 
       <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
         <span class="kpi-label">Mis tareas pendientes</span>
@@ -63,7 +67,9 @@
     <!-- Accesos rápidos del chofer -->
     <div class="chofer-quick">
       <a class="chofer-quick__btn" routerLink="/flota">Flota</a>
-      <a class="chofer-quick__btn" routerLink="/mi-rendimiento">Mi rendimiento</a>
+      @if (!esChoferPrivado()) {
+        <a class="chofer-quick__btn" routerLink="/mi-rendimiento">Mi rendimiento</a>
+      }
       <a class="chofer-quick__btn" routerLink="/mensajes">Mensajes</a>
       <a class="chofer-quick__btn" routerLink="/app-movil">CSD App (móvil)</a>
     </div>

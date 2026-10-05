@@ -68,8 +68,12 @@ verify_jwt = true
 verify_jwt = true
 [functions.snap-to-roads]
 verify_jwt = true
+# CG5 — acceso-cedula se auto-autentica (getUser + gate is_admin/es_tecnologia dentro de
+# la función, como conductor-crear-acceso). verify_jwt=false elimina el rechazo del gateway
+# sin cabeceras CORS (el "Failed to send a request…" ante un token borde). Seguridad igual:
+# la función sigue devolviendo 401/403 con CORS a quien no esté autenticado/autorizado.
 [functions.acceso-cedula]
-verify_jwt = true
+verify_jwt = false
 [functions.admin-crear-usuario-test]
 verify_jwt = true
 [functions.admin-usuario-test-login]

@@ -31,9 +31,21 @@
         } @else {
           @for (u of filtered(); track u.id) {
             <li>
-              <button type="button" class="user-picker__opt" (click)="elegir(u)">
+              <button type="button" class="user-picker__opt"
+                [class.user-picker__opt--vinculado]="u.yaVinculado"
+                [disabled]="u.yaVinculado" (click)="elegir(u)">
                 <span class="user-picker__opt-name">{{ u.nombre }}</span>
-                @if (u.roles?.length) { <span class="user-picker__opt-rol">{{ u.roles?.join(', ') }}</span> }
+                @if (u.cedula || u.email) {
+                  <span class="user-picker__opt-meta">
+                    @if (u.cedula) { <span class="user-picker__opt-ced">{{ u.cedula }}</span> }
+                    @if (u.email) { <span class="user-picker__opt-mail">{{ u.email }}</span> }
+                  </span>
+                }
+                @if (u.yaVinculado) {
+                  <span class="user-picker__opt-vinc">{{ u.motivoVinculo || 'Ya vinculado a otra ficha' }}</span>
+                } @else if (u.roles?.length) {
+                  <span class="user-picker__opt-rol">{{ u.roles?.join(', ') }}</span>
+                }
               </button>
             </li>
           } @empty {
