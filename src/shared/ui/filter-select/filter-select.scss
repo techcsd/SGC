@@ -68,6 +68,16 @@
     &:hover { background: var(--sgc-surface-2, #f0f1f4); }
     input { accent-color: var(--Hub, #ffb300); }
   }
+  &__group {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--sgc-text-muted, #6b7280);
+    padding: 8px 8px 3px;
+    margin: 0;
+    &:not(:first-child) { border-top: 1px solid var(--sgc-border, #e2e5ea); margin-top: 4px; }
+  }
   &__empty { color: var(--sgc-text-muted, #6b7280); font-size: 12.5px; padding: 6px 8px; }
   &__clear {
     width: 100%;

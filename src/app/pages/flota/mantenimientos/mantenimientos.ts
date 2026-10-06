@@ -4,25 +4,29 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
 } from '@angular/core';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
+import { combineLatest, of, from, startWith, debounceTime, switchMap, catchError } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { MantenimientosService } from '../../../../shared/services/mantenimientos.service';
+import { MantenimientosService, ValidacionKm } from '../../../../shared/services/mantenimientos.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
 import {
   Mantenimiento,
   MantenimientoFormData,
   MantenimientoAdjunto,
+  ProveedorFlota,
   MANT_TIPOS,
   MANT_TIPO_BADGE,
   MANT_ESTADOS,
   MANT_ADJUNTO_TIPOS,
 } from '../../../../shared/models/mantenimiento.model';
+import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 import { Vehiculo, kmFaltanMantenimiento, identificacionVehiculo } from '../../../../shared/models/vehiculo.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -43,15 +47,33 @@ interface PendingFoto {
   preview: string;
 }
 
-// CG13 — adjunto pendiente de subir (archivo + tipo de documento capturado al agregar).
+// CG13/CH3 — adjunto pendiente de subir (archivo + tipo de documento POR archivo,
+// editable en la lista; `descripcion` cuando el tipo es "otro").
 interface PendingAdjunto {
   file: File;
   tipo: string;
+  descripcion?: string;
+}
+
+/** CH3 — infiere el tipo de documento inicial por nombre/mime del archivo. */
+function inferirTipoAdjunto(file: File): string {
+  if (file.type.startsWith('image/')) return 'foto';
+  const n = (file.name || '').toLowerCase();
+  if (/fact|fac|invoice|ncf/.test(n)) return 'factura';
+  if (/cot/.test(n)) return 'cotizacion';
+  if (/inf|reporte/.test(n)) return 'informe';
+  return 'factura';
+}
+
+/** CH2 — normaliza un nombre (sin acentos, espacios colapsados, minúsculas) para
+ *  comparar proveedores escritos a mano con el maestro. */
+function normNombre(s: string): string {
+  return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe, FilterSelect],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -93,16 +115,68 @@ export class Mantenimientos implements OnInit {
     }
   }
 
-  // ── CG13 — Adjuntos (imágenes + PDFs) ────────────────────
+  // ── CG13/CH3 — Adjuntos (imágenes + PDFs), tipo POR archivo ───────────────
   readonly MANT_ADJUNTO_TIPOS = MANT_ADJUNTO_TIPOS;
-  /** Nuevos adjuntos pendientes de subir (con el tipo elegido al agregarlos). */
+  /** Nuevos adjuntos pendientes de subir (cada uno con su tipo editable). */
   adjPending = signal<PendingAdjunto[]>([]);
   /** Lista de File[] para el control <app-file-upload> (derivada de adjPending). */
   adjFiles = computed(() => this.adjPending().map((a) => a.file));
-  /** Tipo de documento activo en el selector; se aplica a lo que se agregue. */
-  adjTipo = signal<string>('factura');
-  /** Adjuntos ya guardados del registro en edición (para listar/eliminar). */
+  /** Adjuntos ya guardados del registro en edición (para listar/editar/eliminar). */
   editingAdjuntos = signal<MantenimientoAdjunto[]>([]);
+  /** CH3 — object URLs memoizados para las miniaturas de los pendientes (imágenes). */
+  private adjPreviews = new Map<File, string>();
+
+  adjPreviewUrl(file: File): string | null {
+    if (!file.type.startsWith('image/')) return null;
+    let url = this.adjPreviews.get(file);
+    if (!url) { url = URL.createObjectURL(file); this.adjPreviews.set(file, url); }
+    return url;
+  }
+
+  /** Tamaño legible de un archivo (KB/MB). */
+  formatBytes(n: number): string {
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+    return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  /** CH3 — cambia el tipo de un adjunto pendiente. */
+  setAdjTipo(index: number, tipo: string) {
+    this.adjPending.update((l) => l.map((a, i) => (i === index ? { ...a, tipo, descripcion: tipo === 'otro' ? a.descripcion : undefined } : a)));
+  }
+  /** CH3 — detalle del adjunto pendiente cuando el tipo es "otro". */
+  setAdjDescripcion(index: number, descripcion: string) {
+    this.adjPending.update((l) => l.map((a, i) => (i === index ? { ...a, descripcion } : a)));
+  }
+
+  /** CH3 — cambia el tipo de un adjunto YA guardado (update en servidor). */
+  async cambiarTipoAdjuntoGuardado(adj: MantenimientoAdjunto, tipo: string) {
+    const previo = adj.tipo_documento;
+    if (tipo === previo) return;
+    this.editingAdjuntos.update((l) => l.map((a) => (a.id === adj.id ? { ...a, tipo_documento: tipo } : a)));
+    try {
+      await this.mantenimientosService.updateAdjuntoTipo(adj.id, tipo, adj.descripcion ?? null);
+      const id = this.editingId();
+      if (id) {
+        this.mantenimientos.update((list) =>
+          list.map((m) => (m.id === id ? { ...m, adjuntos: (m.adjuntos ?? []).map((a) => (a.id === adj.id ? { ...a, tipo_documento: tipo } : a)) } : m)),
+        );
+      }
+    } catch (e: unknown) {
+      this.editingAdjuntos.update((l) => l.map((a) => (a.id === adj.id ? { ...a, tipo_documento: previo } : a)));
+      this.toast.error('No se pudo cambiar el tipo', e instanceof Error ? e.message : undefined);
+    }
+  }
+
+  /** CH3 — adjuntos de un registro agrupados por tipo (para el detalle/historial). */
+  adjuntosPorTipo(m: Mantenimiento): { tipo: string; label: string; items: MantenimientoAdjunto[] }[] {
+    const by = new Map<string, MantenimientoAdjunto[]>();
+    for (const a of m.adjuntos ?? []) {
+      const k = a.tipo_documento || 'otro';
+      (by.get(k) ?? by.set(k, []).get(k)!).push(a);
+    }
+    return [...by.entries()].map(([tipo, items]) => ({ tipo, label: this.adjTipoLabel(tipo), items }));
+  }
 
   // Visor de PDF embebido.
   pdfOpen = signal(false);
@@ -133,14 +207,14 @@ export class Mantenimientos implements OnInit {
     }
   }
 
-  /** Recibe archivos del <app-file-upload>: admite imágenes y PDF, rechaza el resto. */
+  /** Recibe archivos del <app-file-upload>: admite imágenes y PDF, rechaza el resto.
+   *  CH3 — cada archivo entra con su tipo inferido (editable luego en la lista). */
   onAdjAdd(files: File[]) {
-    const tipo = this.adjTipo();
     const aceptados: PendingAdjunto[] = [];
     let rechazados = 0;
     for (const f of files) {
       const ok = f.type.startsWith('image/') || f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
-      if (ok) aceptados.push({ file: f, tipo });
+      if (ok) aceptados.push({ file: f, tipo: inferirTipoAdjunto(f) });
       else rechazados++;
     }
     if (rechazados) {
@@ -150,6 +224,11 @@ export class Mantenimientos implements OnInit {
   }
 
   onAdjRemove(index: number) {
+    const target = this.adjPending()[index];
+    if (target) {
+      const url = this.adjPreviews.get(target.file);
+      if (url) { URL.revokeObjectURL(url); this.adjPreviews.delete(target.file); }
+    }
     this.adjPending.update((l) => l.filter((_, i) => i !== index));
   }
 
@@ -176,8 +255,58 @@ export class Mantenimientos implements OnInit {
   /** AT17 — fecha + hora (12h) homologada, ej. `17/08/2026 8:04 p.m.`. */
   readonly fechaHora = formatFechaHoraDisplay;
 
-  // Existing supplier names → datalist so "taller" spellings stay consistent.
-  proveedorNombres = signal<string[]>([]);
+  // ── CH2 — Proveedor / Taller: combobox del maestro + "Otro" ───────────────
+  /** Solo admin/flota elevado puede dar de alta un taller al catálogo (AF32). */
+  esFlotaElevado = this.userService.esFlotaElevado;
+  /** Talleres + proveedores visibles para flota (talleres primero, RLS-safe). */
+  proveedoresFlota = signal<ProveedorFlota[]>([]);
+  /** Valor del combobox: '' (sin selección), id del proveedor, o '__otro__'. */
+  proveedorSel = signal<string>('');
+  /** Alta al catálogo como taller (solo se ofrece a flota elevado al escribir "Otro"). */
+  proveedorAltaTaller = signal(false);
+
+  readonly OTRO = '__otro__';
+
+  /** Opciones del combobox: grupo Talleres, grupo Otros proveedores, y "Otro…". */
+  proveedorOpciones = computed<FilterOption[]>(() => {
+    const opts: FilterOption[] = [];
+    for (const p of this.proveedoresFlota()) {
+      opts.push({ value: p.id, label: p.nombre, group: p.es_taller ? 'Talleres' : 'Otros proveedores' });
+    }
+    opts.push({ value: this.OTRO, label: 'Otro…' });
+    return opts;
+  });
+
+  /** Elección en el combobox de proveedor/taller. */
+  onProveedorPick(value: string) {
+    if (value === this.OTRO) {
+      this.proveedorSel.set(this.OTRO);
+      this.form.patchValue({ proveedor_id: null, proveedor: this.form.value.proveedor ?? '' });
+      return;
+    }
+    if (!value) { // limpiar
+      this.proveedorSel.set('');
+      this.proveedorAltaTaller.set(false);
+      this.form.patchValue({ proveedor_id: null, proveedor: null });
+      return;
+    }
+    const p = this.proveedoresFlota().find((x) => x.id === value);
+    this.proveedorSel.set(value);
+    this.proveedorAltaTaller.set(false);
+    this.form.patchValue({ proveedor_id: value, proveedor: p?.nombre ?? null });
+  }
+
+  /** Texto del proveedor "Otro" escrito a mano (bind al control `proveedor`). */
+  onProveedorOtroTexto(value: string) {
+    this.form.patchValue({ proveedor: value, proveedor_id: null });
+  }
+
+  /** Nombre del proveedor seleccionado del catálogo (para la etiqueta del chip). */
+  proveedorSelLabel = computed<string>(() => {
+    const v = this.proveedorSel();
+    if (v === this.OTRO) return 'Otro…';
+    return this.proveedoresFlota().find((p) => p.id === v)?.nombre ?? '';
+  });
 
   // ── Data state ──────────────────────────────────────────
   mantenimientos = signal<Mantenimiento[]>([]);
@@ -250,6 +379,7 @@ export class Mantenimientos implements OnInit {
     costo: new FormControl<number | null>(null, [Validators.min(0)]),
     kilometraje_al_mantenimiento: new FormControl<number | null>(null, [Validators.min(0)]),
     proveedor: new FormControl<string | null>(null),
+    proveedor_id: new FormControl<string | null>(null),
     notas: new FormControl<string | null>(null),
     incluye_preventivo: new FormControl<boolean>(false),
   });
@@ -260,23 +390,44 @@ export class Mantenimientos implements OnInit {
   });
   esNoPreventivo = computed(() => this.tipoActual() !== 'preventivo');
 
-  // Y9 3.1 — avisar si el km del mantenimiento supera el odómetro del vehículo.
+  // CH1 — unidad del vehículo seleccionado (km | horas) para etiquetas/pistas.
   private vehiculoSelId = toSignal(this.form.controls.vehiculo_id.valueChanges, {
     initialValue: this.form.controls.vehiculo_id.value,
   });
-  private kmMantVal = toSignal(this.form.controls.kilometraje_al_mantenimiento.valueChanges, {
-    initialValue: this.form.controls.kilometraje_al_mantenimiento.value,
-  });
-  odometroSeleccionado = computed<number | null>(() => {
-    const id = this.vehiculoSelId();
-    if (!id) return null;
-    return this.vehiculos().find((v) => v.id === id)?.kilometraje ?? null;
-  });
-  kmMantExcedeOdometro = computed<boolean>(() => {
-    const odo = this.odometroSeleccionado();
-    const km = this.kmMantVal();
-    return odo != null && km != null && Number(km) > Number(odo);
-  });
+  vehiculoSel = computed(() => this.vehiculos().find((v) => v.id === this.vehiculoSelId()) ?? null);
+  esHorometro = computed(() => this.vehiculoSel()?.medida_uso === 'horas');
+  unidadUso = computed(() => (this.esHorometro() ? 'h' : 'km'));
+  odometroSeleccionado = computed<number | null>(() => this.vehiculoSel()?.kilometraje ?? null);
+
+  // CH1 — validación del km contra TODAS las lecturas con fecha del vehículo
+  // (echadas, inspecciones, entregas, mantenimientos), con debounce. Reemplaza el
+  // falso positivo "km > odómetro" (subir respecto al odómetro es lo normal).
+  private kmValidacion$ = combineLatest([
+    this.form.controls.vehiculo_id.valueChanges.pipe(startWith(this.form.controls.vehiculo_id.value)),
+    this.form.controls.fecha.valueChanges.pipe(startWith(this.form.controls.fecha.value)),
+    this.form.controls.kilometraje_al_mantenimiento.valueChanges.pipe(
+      startWith(this.form.controls.kilometraje_al_mantenimiento.value),
+    ),
+  ]).pipe(
+    debounceTime(350),
+    switchMap(([veh, fecha, km]) => {
+      if (!veh || !fecha || km == null || Number.isNaN(Number(km))) return of<ValidacionKm | null>(null);
+      return from(this.mantenimientosService.validarKm(veh, Number(km), fecha, this.editingId())).pipe(
+        catchError(() => of<ValidacionKm | null>(null)),
+      );
+    }),
+  );
+  kmValidacion = toSignal(this.kmValidacion$, { initialValue: null as ValidacionKm | null });
+  /** Confirmación del usuario ante un salto inverosímil (aviso ámbar). */
+  kmConfirmado = signal(false);
+
+  constructor() {
+    // Cada vez que cambia el veredicto del km, se exige volver a confirmar el salto.
+    effect(() => {
+      this.kmValidacion();
+      this.kmConfirmado.set(false);
+    });
+  }
 
   // ── Computed ─────────────────────────────────────────────
   filtered = computed(() => {
@@ -389,11 +540,11 @@ export class Mantenimientos implements OnInit {
       const [mantenimientos, vehiculos, proveedores] = await Promise.all([
         this.mantenimientosService.getAll(),
         this.vehiculosService.getAll(),
-        this.proveedoresService.getAll(),
+        this.mantenimientosService.getProveedoresFlota(),
       ]);
       this.mantenimientos.set(mantenimientos);
       this.vehiculos.set(vehiculos);
-      this.proveedorNombres.set(proveedores.filter((p) => p.activo).map((p) => p.nombre));
+      this.proveedoresFlota.set(proveedores);
       this.resolveListaFotos(mantenimientos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los datos.');
@@ -464,14 +615,18 @@ export class Mantenimientos implements OnInit {
     this.saveError.set('');
     this.resetFotos([]);
     this.resetAdjuntos([]);
+    this.proveedorSel.set('');
+    this.proveedorAltaTaller.set(false);
+    this.kmConfirmado.set(false);
     this.form.reset({ tipo: 'preventivo', estado: 'pendiente' });
     this.drawerOpen.set(true);
   }
 
-  /** CG13 — reinicia el estado de adjuntos del drawer. */
+  /** CG13/CH3 — reinicia el estado de adjuntos del drawer. */
   private resetAdjuntos(existentes: MantenimientoAdjunto[]) {
+    for (const url of this.adjPreviews.values()) URL.revokeObjectURL(url);
+    this.adjPreviews.clear();
     this.adjPending.set([]);
-    this.adjTipo.set('factura');
     this.editingAdjuntos.set([...existentes]);
   }
 
@@ -538,15 +693,34 @@ export class Mantenimientos implements OnInit {
       costo: m.costo,
       kilometraje_al_mantenimiento: m.kilometraje_al_mantenimiento,
       proveedor: m.proveedor,
+      proveedor_id: m.proveedor_id ?? null,
       notas: m.notas,
       incluye_preventivo: m.incluye_preventivo ?? false,
     });
+    // CH2 — preselecciona del maestro por id; si no, por nombre normalizado; si no, "Otro".
+    this.proveedorAltaTaller.set(false);
+    this.kmConfirmado.set(false);
+    if (m.proveedor_id && this.proveedoresFlota().some((p) => p.id === m.proveedor_id)) {
+      this.proveedorSel.set(m.proveedor_id);
+    } else if (m.proveedor) {
+      const match = this.proveedoresFlota().find((p) => normNombre(p.nombre) === normNombre(m.proveedor!));
+      if (match) {
+        this.proveedorSel.set(match.id);
+        this.form.patchValue({ proveedor_id: match.id, proveedor: match.nombre });
+      } else {
+        this.proveedorSel.set(this.OTRO);
+      }
+    } else {
+      this.proveedorSel.set('');
+    }
     this.drawerOpen.set(true);
   }
 
   closeDrawer() {
     this.drawerOpen.set(false);
     this.revokePreviews();
+    for (const url of this.adjPreviews.values()) URL.revokeObjectURL(url);
+    this.adjPreviews.clear();
   }
 
   // ── AB3 — Detalle read-only ──────────────────────────────
@@ -610,6 +784,17 @@ export class Mantenimientos implements OnInit {
     this.form.markAllAsTouched();
     if (this.form.invalid || this.saving()) return;
 
+    // CH1 — bloquea retroceso/exceso; exige confirmar un salto inverosímil (ámbar).
+    const km = this.kmValidacion();
+    if (km?.nivel === 'error') {
+      this.saveError.set(km.mensaje ?? 'El kilometraje no es coherente con las lecturas del vehículo.');
+      return;
+    }
+    if (km?.nivel === 'aviso' && !this.kmConfirmado()) {
+      this.saveError.set('Marca "Sí, es correcto" para confirmar el kilometraje, o corrígelo.');
+      return;
+    }
+
     const payload = this.form.value as MantenimientoFormData;
     // X6 — el flag "incluyó preventivo" solo aplica a visitas no-preventivas.
     if (payload.tipo === 'preventivo') payload.incluye_preventivo = false;
@@ -626,6 +811,25 @@ export class Mantenimientos implements OnInit {
     this.saveError.set('');
 
     try {
+      // CH2 — "Otro" + alta al catálogo como taller (solo flota elevado). Si ya hay
+      // uno con nombre parecido, se reutiliza en vez de duplicar.
+      if (this.proveedorSel() === this.OTRO && this.proveedorAltaTaller() && this.esFlotaElevado()) {
+        const nombre = (payload.proveedor ?? '').trim();
+        if (nombre) {
+          const existente = this.proveedoresFlota().find((p) => normNombre(p.nombre) === normNombre(nombre));
+          if (existente) {
+            payload.proveedor_id = existente.id;
+            payload.proveedor = existente.nombre;
+          } else {
+            const creado = await this.proveedoresService.create({ nombre, tipos: ['taller'], activo: true });
+            this.proveedoresFlota.update((l) => [{ id: creado.id, nombre: creado.nombre, tipos: creado.tipos ?? ['taller'], es_taller: true }, ...l]);
+            payload.proveedor_id = creado.id;
+            payload.proveedor = creado.nombre;
+            this.proveedorSel.set(creado.id);
+          }
+        }
+      }
+
       const id = this.editingId();
       let saved: Mantenimiento;
       if (id) {
@@ -665,7 +869,7 @@ export class Mantenimientos implements OnInit {
       const adjuntos = this.adjPending();
       for (const p of adjuntos) {
         try {
-          await this.mantenimientosService.uploadAdjunto(saved.id, p.file, p.tipo);
+          await this.mantenimientosService.uploadAdjunto(saved.id, p.file, p.tipo, p.descripcion ?? null);
         } catch (e: unknown) {
           this.toast.warning('Adjunto no subido', `No se pudo subir "${p.file.name}".`);
         }

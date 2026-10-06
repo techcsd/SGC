@@ -23,7 +23,7 @@
     <p class="file-upload__hint">{{ hint() }}</p>
   }
 
-  @if (files().length > 0) {
+  @if (showList() && files().length > 0) {
     <ul class="file-upload__list">
       @for (f of files(); track f.name + f.size; let i = $index) {
         <li class="file-upload__item">

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { Icon } from '../icon/icon';
 
-export interface FilterOption { value: string; label: string; }
+export interface FilterOption { value: string; label: string; group?: string; }
 
 /**
  * BP6 — Filtro tipo chip + popover con búsqueda. Reemplaza los `<select>` planos.
@@ -55,6 +55,21 @@ export class FilterSelect {
     const q = this.query().trim().toLowerCase();
     return q ? this.options().filter((o) => o.label.toLowerCase().includes(q)) : this.options();
   });
+
+  /** Opciones filtradas agrupadas por `group` (orden de primera aparición). Las
+   *  opciones sin `group` caen en un grupo sin encabezado (clave ''). */
+  grouped = computed(() => {
+    const out: { group: string; options: FilterOption[] }[] = [];
+    const idx = new Map<string, number>();
+    for (const o of this.filtered()) {
+      const g = o.group ?? '';
+      let i = idx.get(g);
+      if (i === undefined) { i = out.length; idx.set(g, i); out.push({ group: g, options: [] }); }
+      out[i].options.push(o);
+    }
+    return out;
+  });
+  hasGroups = computed(() => this.options().some((o) => !!o.group));
 
   toggle() {
     this.open.update((v) => !v);

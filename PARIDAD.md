@@ -345,3 +345,35 @@ lógico de captura; el layout puede diferir).
   `activa=false`, la app no debe programar la alarma local de ese tipo.
 - **`sgc.notif_permitida(u,tipo)`** ahora respeta el silencio fijado por un admin aunque el usuario no
   pueda silenciarse solo (columna "Silenciada para" de la Matriz, backing `notif_pref_usuario.definida_por`).
+
+## Ronda CH (06/10/2026) — contratos para la app (PROMPT-85)
+
+### CH1 — Validación de kilometraje (una sola regla, web = app)
+- **`sgc.validar_km_vehiculo(p_vehiculo uuid, p_km numeric, p_fecha timestamptz, p_excluir_mant uuid default null)`**
+  (DEFINER, gate `tiene_modulo('flota') or is_admin()`). Devuelve jsonb:
+  `{ ok, nivel('ok'|'aviso'|'error'), unidad('km'|'h'), medida_uso, km_antes, fecha_antes, fuente_antes,
+  km_despues, fecha_despues, fuente_despues, mensaje }`. La app debe **reemplazar** su bloqueo
+  `km < odómetro` (rompía retroactivos válidos): llamar al RPC al cambiar vehículo/fecha/km y actuar por
+  `nivel` — `error` bloquea Guardar (retroceso vs. lectura anterior, o exceso vs. lectura posterior),
+  `aviso` pide confirmar (salto inverosímil), `ok` sin fricción. Usa `km_antes/fuente_antes/fecha_antes`
+  como pista "Última lectura: X". Umbrales editables: `flota_config.km_dia_max` (800) / `horas_dia_max` (24).
+- **Odómetro:** un trigger en `mantenimientos` (`tg_mant_avanzar_odometro`) ya avanza el odómetro al
+  crear/editar (solo si el km es el más reciente; retroactivo no retrocede). La app no necesita avanzarlo
+  aparte; `crear_mantenimiento_app` lo sigue llamando (idempotente).
+
+### CH2 — Proveedor / Taller del maestro
+- **`sgc.listar_proveedores_para_flota()`** (DEFINER, gate flota/admin/elevado/compras/inventario) →
+  `table(id uuid, nombre text, tipos text[], es_taller boolean)`, solo activos, **talleres primero**.
+  La app debe listar talleres/proveedores con este RPC (NO `select proveedores` directo: la RLS exige
+  compras/inventario, que un chofer/flota no tiene). Agrupar Talleres / Otros proveedores + "Otro…".
+- **`taller`** es un tipo válido de `proveedores.tipos` (multiselección; comment actualizado).
+- **`crear_mantenimiento_app(... , p_proveedor_id uuid default null, p_proveedor text default null)`** —
+  2 params opcionales al final (retrocompatible; el overload de 10-arg fue reemplazado por el de 12-arg).
+  Guarda `proveedor_id` del maestro + copia el nombre a `proveedor` (historial/export). "Otro" = solo texto
+  en `p_proveedor`, `p_proveedor_id = null`.
+
+### CH3 — Tipo de documento por archivo
+- **`sgc.mantenimiento_adjuntos.descripcion text`** (aditiva, nullable) — detalle libre cuando
+  `tipo_documento = 'otro'`. La app ya elige el tipo por documento; añadir **editar el tipo** antes de
+  guardar, la **inferencia** inicial (imagen→foto; PDF por nombre: fact/ncf→factura, cot→cotización,
+  inf/reporte→informe; si no, factura) y **agrupar por tipo** en detalle/historial.

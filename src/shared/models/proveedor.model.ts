@@ -1,10 +1,11 @@
-/** BF2 — tipos de proveedor (multiselección). */
-export type ProveedorTipo = 'ferreteria' | 'suministros' | 'transportista' | 'otro';
+/** BF2 — tipos de proveedor (multiselección). CH2 añade 'taller'. */
+export type ProveedorTipo = 'ferreteria' | 'suministros' | 'transportista' | 'taller' | 'otro';
 
 export const PROVEEDOR_TIPOS: { key: ProveedorTipo; label: string }[] = [
   { key: 'ferreteria', label: 'Ferretería' },
   { key: 'suministros', label: 'Suministros' },
   { key: 'transportista', label: 'Transportista' },
+  { key: 'taller', label: 'Taller' },
   { key: 'otro', label: 'Otro' },
 ];
 
