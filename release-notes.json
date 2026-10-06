@@ -4650,6 +4650,26 @@
           "d": "Al crear un conductor, el usuario de la app va arriba con buscador (por nombre, correo o cédula) y autocompleta nombre, cédula y teléfono del perfil; las fotos se pueden arrastrar, pegar o adjuntar."
         }
       ]
+    },
+    "1.154.0": {
+      "titulo": "Mantenimientos: el aviso de kilometraje ya no molesta sin razón, el taller se elige de una lista real y cada documento lleva su propio tipo",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El kilometraje del mantenimiento ya no marca error solo por ser mayor al último registrado (llegar al taller con más km es lo normal). Ahora solo bloquea si el km es menor a una lectura anterior o mayor a una posterior (retroactivo imposible); un salto enorme pide confirmación, y debajo del campo se ve la última lectura real del vehículo (echada, inspección, entrega o mantenimiento)."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Proveedor / Taller ahora es un buscador real con los talleres primero y los demás proveedores debajo; elige «Otro…» para escribir uno que no esté en la lista, y (si eres Flota) agregarlo al catálogo como taller al guardar."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al registrar un mantenimiento puedes subir varios documentos de distinto tipo a la vez (factura, informe, cotización, garantía, foto u otro): cada archivo lleva su propio tipo, editable también después, y en el detalle se agrupan por tipo con su conteo."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
