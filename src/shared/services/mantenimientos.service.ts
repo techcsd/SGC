@@ -2,15 +2,30 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { SignedUrlCache } from './signed-url-cache.service';
 import { comprimirImagen } from '../utils/comprimir-imagen.util';
-import { Mantenimiento, MantenimientoFormData } from '../models/mantenimiento.model';
+import { Mantenimiento, MantenimientoFormData, ProveedorFlota } from '../models/mantenimiento.model';
 import { pickColumns } from '../utils/pick-columns.util';
 
 /** BN3 (regla 10) — columnas reales de `sgc.mantenimientos` (verificadas en prod). */
 const MANTENIMIENTO_COLS = new Set<string>([
   'vehiculo_id', 'tipo', 'descripcion', 'fecha', 'costo',
-  'kilometraje_al_mantenimiento', 'proveedor', 'estado', 'notas', 'fotos',
+  'kilometraje_al_mantenimiento', 'proveedor', 'proveedor_id', 'estado', 'notas', 'fotos',
   'es_prueba', 'incluye_preventivo', 'accidente_id', 'creado_por',
 ]);
+
+/** CH1 — resultado de validar el km del mantenimiento contra las lecturas del vehículo. */
+export interface ValidacionKm {
+  ok: boolean;
+  nivel: 'ok' | 'aviso' | 'error';
+  unidad: string;
+  medida_uso: string;
+  km_antes: number | null;
+  fecha_antes: string | null;
+  fuente_antes: string | null;
+  km_despues: number | null;
+  fecha_despues: string | null;
+  fuente_despues: string | null;
+  mensaje: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class MantenimientosService {
@@ -71,6 +86,44 @@ export class MantenimientosService {
     if (error) throw new Error(error.message);
   }
 
+  /**
+   * CH1 — valida el km del mantenimiento contra TODAS las lecturas con fecha del
+   * vehículo (echadas, inspecciones, entregas, mantenimientos). Devuelve nivel
+   * ok|aviso|error + la lectura que choca. `excluir` = id del registro en edición
+   * (para no compararse contra sí mismo).
+   */
+  async validarKm(
+    vehiculoId: string,
+    km: number,
+    fecha: string,
+    excluir: string | null = null,
+  ): Promise<ValidacionKm | null> {
+    const { data, error } = await this.supabase.client.rpc('validar_km_vehiculo', {
+      p_vehiculo: vehiculoId,
+      p_km: km,
+      p_fecha: fecha,
+      p_excluir_mant: excluir,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? null) as ValidacionKm | null;
+  }
+
+  /** CH2 — talleres + proveedores visibles para flota (RLS-safe, talleres primero). */
+  async getProveedoresFlota(): Promise<ProveedorFlota[]> {
+    const { data, error } = await this.supabase.client.rpc('listar_proveedores_para_flota');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ProveedorFlota[];
+  }
+
+  /** CH3 — cambia el tipo de documento de un adjunto ya guardado. */
+  async updateAdjuntoTipo(id: string, tipoDocumento: string, descripcion: string | null = null): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('mantenimiento_adjuntos')
+      .update({ tipo_documento: tipoDocumento, descripcion })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
   // ── Maintenance photos (sgc.mantenimientos.fotos text[] + `vehiculos` bucket) ──
 
   /** Uploads one photo for a maintenance record and returns its storage path. */
@@ -113,7 +166,7 @@ export class MantenimientosService {
    * `.jpg`; las imágenes sí se comprimen pero quedan como `.jpg`). Luego inserta la
    * fila en `mantenimiento_adjuntos`. Lanza un error amigable si pasa de 20 MB.
    */
-  async uploadAdjunto(mantenimientoId: string, file: File, tipoDocumento: string): Promise<void> {
+  async uploadAdjunto(mantenimientoId: string, file: File, tipoDocumento: string, descripcion: string | null = null): Promise<void> {
     if (file.size > this.MAX_ADJUNTO_BYTES) {
       throw new Error('El archivo supera el límite de 20 MB. Comprime o divide el documento.');
     }
@@ -149,6 +202,7 @@ export class MantenimientosService {
         nombre,
         mime,
         tipo_documento: tipoDocumento,
+        descripcion: tipoDocumento === 'otro' ? descripcion : null,
         subido_por: auth?.user?.id ?? null,
       });
     if (insErr) throw new Error(insErr.message);

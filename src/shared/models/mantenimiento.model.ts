@@ -17,6 +17,16 @@ export interface MantenimientoAdjunto {
   nombre: string;
   mime: string;
   tipo_documento: string;
+  // CH3 — detalle libre cuando tipo_documento = 'otro'.
+  descripcion?: string | null;
+}
+
+/** CH2 — taller/proveedor del maestro para la pantalla de mantenimientos (RPC listar_proveedores_para_flota). */
+export interface ProveedorFlota {
+  id: string;
+  nombre: string;
+  tipos: string[];
+  es_taller: boolean;
 }
 
 // CG13 — tipos de documento para los adjuntos del mantenimiento.
@@ -39,6 +49,8 @@ export interface Mantenimiento {
   costo: number | null;
   kilometraje_al_mantenimiento: number | null;
   proveedor: string | null;
+  // CH2 — taller/proveedor del maestro (opcional; null = texto libre "Otro").
+  proveedor_id?: string | null;
   estado: MantenimientoEstado;
   notas: string | null;
   fotos?: string[];
@@ -61,6 +73,7 @@ export interface MantenimientoFormData {
   costo: number | null;
   kilometraje_al_mantenimiento: number | null;
   proveedor: string | null;
+  proveedor_id?: string | null;
   estado: MantenimientoEstado;
   notas: string | null;
   incluye_preventivo?: boolean;

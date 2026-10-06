@@ -16,14 +16,29 @@
         </div>
       }
       <div class="filter-select__opts">
-        @for (o of filtered(); track o.value) {
-          <label class="filter-select__opt">
-            <input [type]="multiple() ? 'checkbox' : 'radio'" [checked]="isChecked(o.value)"
-              (change)="pick(o.value)" (click)="$event.stopPropagation()" />
-            <span>{{ o.label }}</span>
-          </label>
-        } @empty {
-          <p class="filter-select__empty">Sin opciones</p>
+        @if (hasGroups()) {
+          @for (g of grouped(); track g.group) {
+            @if (g.group) { <p class="filter-select__group">{{ g.group }}</p> }
+            @for (o of g.options; track o.value) {
+              <label class="filter-select__opt">
+                <input [type]="multiple() ? 'checkbox' : 'radio'" [checked]="isChecked(o.value)"
+                  (change)="pick(o.value)" (click)="$event.stopPropagation()" />
+                <span>{{ o.label }}</span>
+              </label>
+            }
+          } @empty {
+            <p class="filter-select__empty">Sin opciones</p>
+          }
+        } @else {
+          @for (o of filtered(); track o.value) {
+            <label class="filter-select__opt">
+              <input [type]="multiple() ? 'checkbox' : 'radio'" [checked]="isChecked(o.value)"
+                (change)="pick(o.value)" (click)="$event.stopPropagation()" />
+              <span>{{ o.label }}</span>
+            </label>
+          } @empty {
+            <p class="filter-select__empty">Sin opciones</p>
+          }
         }
       </div>
       @if (activa()) {

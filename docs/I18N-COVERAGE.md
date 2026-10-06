@@ -149,6 +149,6 @@
 | verificar | - | 13 | 0 | 13 | 0% |
 | legal/expedientes | - | 100 | 3 | 97 | 3% |
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
-| flota/mantenimientos | - | 148 | 7 | 141 | 5% |
+| flota/mantenimientos | - | 163 | 9 | 154 | 6% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
 | auth | - | 68 | 15 | 53 | 22% |

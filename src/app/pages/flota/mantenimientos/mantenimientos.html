@@ -424,25 +424,52 @@
       </div>
 
       <div class="sgc-field">
-        <label for="kilometraje_al_mantenimiento">Kilometraje</label>
-        <input id="kilometraje_al_mantenimiento" type="number" formControlName="kilometraje_al_mantenimiento" min="0" placeholder="km" />
-        @if (odometroSeleccionado() !== null) {
-          <span class="field-hint">Odómetro actual: {{ odometroSeleccionado() | number:'1.0-0' }} km.</span>
+        <label for="kilometraje_al_mantenimiento">{{ esHorometro() ? 'Horómetro (h)' : 'Kilometraje' }}</label>
+        <input id="kilometraje_al_mantenimiento" type="number" formControlName="kilometraje_al_mantenimiento" min="0" [placeholder]="unidadUso()" />
+        <!-- CH1 — pista gris de la última lectura (nunca roja si no hay error). -->
+        @if (kmValidacion()?.km_antes != null) {
+          <span class="field-hint">Última lectura: {{ kmValidacion()!.km_antes | number:'1.0-0' }} {{ kmValidacion()!.unidad }} ({{ kmValidacion()!.fuente_antes }}, {{ formatFecha(kmValidacion()!.fecha_antes!) }}).</span>
+        } @else if (odometroSeleccionado() !== null) {
+          <span class="field-hint">{{ esHorometro() ? 'Horómetro' : 'Odómetro' }} actual: {{ odometroSeleccionado() | number:'1.0-0' }} {{ unidadUso() }}.</span>
         }
-        @if (kmMantExcedeOdometro()) {
-          <span class="field-error">El km del mantenimiento supera el odómetro del vehículo — verifica la cifra.</span>
+        <!-- CH1 — error (bloquea Guardar): retroceso vs. lectura anterior o exceso retroactivo. -->
+        @if (kmValidacion()?.nivel === 'error') {
+          <span class="field-error">{{ kmValidacion()!.mensaje }}</span>
+        }
+        <!-- CH1 — aviso ámbar (no bloquea; pide confirmar) por salto inverosímil. -->
+        @if (kmValidacion()?.nivel === 'aviso') {
+          <div class="km-aviso">
+            <span class="km-aviso__msg">{{ kmValidacion()!.mensaje }}</span>
+            <label class="mant-check">
+              <input type="checkbox" [checked]="kmConfirmado()" (change)="kmConfirmado.set($any($event.target).checked)" />
+              Sí, es correcto
+            </label>
+          </div>
         }
       </div>
     </div>
 
+    <!-- CH2 — Proveedor / Taller: combobox del maestro (talleres primero) + "Otro". -->
     <div class="sgc-field">
-      <label for="proveedor">Proveedor / Taller</label>
-      <input id="proveedor" type="text" formControlName="proveedor" list="proveedores-list" placeholder="Selecciona o escribe el taller/proveedor" />
-      <datalist id="proveedores-list">
-        @for (p of proveedorNombres(); track p) {
-          <option [value]="p"></option>
+      <label>Proveedor / Taller</label>
+      <app-filter-select
+        label="Proveedor / Taller"
+        placeholder="Selecciona el taller/proveedor"
+        [options]="proveedorOpciones()"
+        [value]="proveedorSel()"
+        (valueChange)="onProveedorPick($event)"
+      />
+      @if (proveedorSel() === OTRO) {
+        <input class="mant-otro-input" type="text" [value]="form.value.proveedor ?? ''"
+          (input)="onProveedorOtroTexto($any($event.target).value)"
+          placeholder="Nombre del taller / proveedor" />
+        @if (esFlotaElevado()) {
+          <label class="mant-check">
+            <input type="checkbox" [checked]="proveedorAltaTaller()" (change)="proveedorAltaTaller.set($any($event.target).checked)" />
+            Agregar al catálogo como taller
+          </label>
         }
-      </datalist>
+      }
     </div>
 
     <div class="sgc-field">
@@ -471,7 +498,7 @@
         </div>
       }
 
-      <!-- Adjuntos ya guardados (al editar): abrir o eliminar -->
+      <!-- Adjuntos ya guardados (al editar): cambiar tipo, abrir o eliminar -->
       @if (editingAdjuntos().length) {
         <ul class="adj-list">
           @for (adj of editingAdjuntos(); track adj.id) {
@@ -479,8 +506,14 @@
               <button type="button" class="adj-chip__open" (click)="abrirAdjunto(adj)" [title]="'Abrir adjunto' | t">
                 <app-icon name="file" [size]="16" />
                 <span class="adj-chip__name">{{ adj.nombre }}</span>
-                <span class="sgc-badge sgc-badge--neutral">{{ adjTipoLabel(adj.tipo_documento) }}</span>
               </button>
+              <select class="adj-chip__tipo" [value]="adj.tipo_documento"
+                (change)="cambiarTipoAdjuntoGuardado(adj, $any($event.target).value)"
+                [attr.aria-label]="'Tipo de documento' | t">
+                @for (t of MANT_ADJUNTO_TIPOS; track t.value) {
+                  <option [value]="t.value">{{ t.label | t }}</option>
+                }
+              </select>
               <button type="button" class="adj-chip__remove" (click)="eliminarAdjunto(adj)" [attr.aria-label]="'Eliminar adjunto' | t">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
@@ -489,26 +522,47 @@
         </ul>
       }
 
-      <!-- Tipo de documento + zona de subida (imágenes y PDF) -->
-      <div class="adj-add">
-        <div class="sgc-field adj-add__tipo">
-          <label for="adj_tipo">{{ 'Tipo de documento' | t }}</label>
-          <select id="adj_tipo" [value]="adjTipo()" (change)="adjTipo.set($any($event.target).value)">
-            @for (t of MANT_ADJUNTO_TIPOS; track t.value) {
-              <option [value]="t.value">{{ t.label | t }}</option>
-            }
-          </select>
-        </div>
-        <app-file-upload
-          [files]="adjFiles()"
-          [accept]="'image/*,application/pdf'"
-          [max]="20"
-          [label]="'Arrastra, pega o toca para subir (imágenes o PDF)' | t"
-          [hint]="'Facturas, informes del taller, cotizaciones, garantías… Máx. 20 MB por archivo.' | t"
-          (add)="onAdjAdd($event)"
-          (removeAt)="onAdjRemove($event)"
-        />
-      </div>
+      <!-- CH3 — zona de subida; el tipo se elige POR archivo en la lista de abajo -->
+      <app-file-upload
+        [files]="adjFiles()"
+        [accept]="'image/*,application/pdf'"
+        [max]="20"
+        [showList]="false"
+        [label]="'Arrastra, pega o toca para subir (imágenes o PDF)' | t"
+        [hint]="'Facturas, informes del taller, cotizaciones, garantías… Máx. 20 MB por archivo.' | t"
+        (add)="onAdjAdd($event)"
+        (removeAt)="onAdjRemove($event)"
+      />
+      @if (adjPending().length) {
+        <ul class="adj-pending">
+          @for (a of adjPending(); track a.file.name + a.file.size; let i = $index) {
+            <li class="adj-pending__row">
+              @if (adjPreviewUrl(a.file); as url) {
+                <img class="adj-pending__thumb" [src]="url" [alt]="a.file.name" />
+              } @else {
+                <span class="adj-pending__thumb adj-pending__thumb--file" aria-hidden="true"><app-icon name="file" [size]="22" /></span>
+              }
+              <div class="adj-pending__info">
+                <span class="adj-pending__name" [title]="a.file.name">{{ a.file.name }}</span>
+                <span class="adj-pending__size">{{ formatBytes(a.file.size) }}</span>
+              </div>
+              <select class="adj-pending__tipo" [value]="a.tipo" (change)="setAdjTipo(i, $any($event.target).value)" [attr.aria-label]="'Tipo de documento' | t">
+                @for (t of MANT_ADJUNTO_TIPOS; track t.value) {
+                  <option [value]="t.value">{{ t.label | t }}</option>
+                }
+              </select>
+              @if (a.tipo === 'otro') {
+                <input class="adj-pending__desc" type="text" [value]="a.descripcion ?? ''"
+                  (input)="setAdjDescripcion(i, $any($event.target).value)"
+                  [placeholder]="'¿Qué documento es?' | t" />
+              }
+              <button type="button" class="adj-pending__remove" (click)="onAdjRemove(i)" [attr.aria-label]="'Quitar ' + a.file.name">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </button>
+            </li>
+          }
+        </ul>
+      }
     </div>
 
     <!-- Z23c — notas de voz (solo en edición: requiere un registro existente) -->
@@ -633,21 +687,25 @@
         </div>
       }
 
-      <!-- CG13 — documentos y facturas (imágenes + PDFs) -->
+      <!-- CG13/CH3 — documentos y facturas agrupados por tipo (con conteo) -->
       @if (m.adjuntos?.length) {
         <div class="detail__item detail__item--full">
           <span class="detail__label">{{ 'Documentos y facturas' | t }}</span>
-          <ul class="adj-list">
-            @for (adj of m.adjuntos; track adj.id) {
-              <li class="adj-chip">
-                <button type="button" class="adj-chip__open" (click)="abrirAdjunto(adj)" [title]="'Abrir adjunto' | t">
-                  <app-icon name="file" [size]="16" />
-                  <span class="adj-chip__name">{{ adj.nombre }}</span>
-                  <span class="sgc-badge sgc-badge--neutral">{{ adjTipoLabel(adj.tipo_documento) }}</span>
-                </button>
-              </li>
-            }
-          </ul>
+          @for (g of adjuntosPorTipo(m); track g.tipo) {
+            <div class="adj-group">
+              <span class="adj-group__title">{{ g.label | t }} ({{ g.items.length }})</span>
+              <ul class="adj-list">
+                @for (adj of g.items; track adj.id) {
+                  <li class="adj-chip">
+                    <button type="button" class="adj-chip__open" (click)="abrirAdjunto(adj)" [title]="'Abrir adjunto' | t">
+                      <app-icon name="file" [size]="16" />
+                      <span class="adj-chip__name">{{ adj.nombre }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
         </div>
       }
 

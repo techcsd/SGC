@@ -21,6 +21,9 @@ export class FileUpload {
   accept = input<string>('image/*');
   label = input<string>('Arrastra o toca para subir');
   hint = input<string>('');
+  /** CH3 — ocultar la lista interna de miniaturas cuando el padre renderiza la
+   *  suya (p. ej. fila por archivo con select de tipo). Sigue contando n/max. */
+  showList = input<boolean>(true);
 
   add = output<File[]>();
   removeAt = output<number>();
