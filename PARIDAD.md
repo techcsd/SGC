@@ -367,10 +367,12 @@ lógico de captura; el layout puede diferir).
   La app debe listar talleres/proveedores con este RPC (NO `select proveedores` directo: la RLS exige
   compras/inventario, que un chofer/flota no tiene). Agrupar Talleres / Otros proveedores + "Otro…".
 - **`taller`** es un tipo válido de `proveedores.tipos` (multiselección; comment actualizado).
-- **`crear_mantenimiento_app(... , p_proveedor_id uuid default null, p_proveedor text default null)`** —
-  2 params opcionales al final (retrocompatible; el overload de 10-arg fue reemplazado por el de 12-arg).
-  Guarda `proveedor_id` del maestro + copia el nombre a `proveedor` (historial/export). "Otro" = solo texto
-  en `p_proveedor`, `p_proveedor_id = null`.
+- **`crear_mantenimiento_app(..., p_costo, p_proveedor, p_notas, p_proveedor_id uuid default null)`** —
+  canónica de **14-arg** = la versión rica que YA tenían dev y prod (13-arg: lógica AL7, tipos extendidos,
+  aviso al jefe de flota) + `p_proveedor_id` al final (retrocompatible por default). **Regla 19:** se
+  dropearon TODOS los overloads previos (10/12/13-arg) para dejar una sola función idéntica en ambos
+  entornos. Guarda `proveedor_id` del maestro + copia el nombre a `proveedor` (historial/export). "Otro" =
+  solo texto en `p_proveedor`, `p_proveedor_id = null`.
 
 ### CH3 — Tipo de documento por archivo
 - **`sgc.mantenimiento_adjuntos.descripcion text`** (aditiva, nullable) — detalle libre cuando

@@ -51,32 +51,37 @@ as $function$
 $function$;
 grant execute on function sgc.listar_proveedores_para_flota() to authenticated, service_role;
 
--- ── (4) crear_mantenimiento_app: + p_proveedor_id/p_proveedor opcionales ──────
--- Se agregan 2 params con DEFAULT al final. Hay que DROPEAR el overload de 10-arg
--- para no dejar la función AMBIGUA (una llamada de 10-arg casaría con ambas). El
--- nuevo (12-arg) acepta las llamadas de 10-arg de la app (2 defaults). Guarda
--- proveedor_id + copia el nombre a `proveedor` (historial/export).
-drop function if exists sgc.crear_mantenimiento_app(
-  uuid, uuid, text, text, date, numeric, jsonb, timestamp with time zone, boolean, uuid);
+-- ── (4) crear_mantenimiento_app: canónica con p_proveedor_id (reconcilia dev/prod) ──
+-- REGLA 19: dev y prod YA tenían la versión de 13-arg (p_costo/p_proveedor/p_notas +
+-- lógica AL7: un no-elevado solo registra su vehículo en uso, tipos extendidos, aviso
+-- al jefe de flota). Una 1ª versión de esta migración añadió por error un overload de
+-- 12-arg SIMPLIFICADO en dev (quedó AMBIGUO y habría regresado la lógica de prod).
+-- Aquí dropeamos TODOS los overloads conocidos y dejamos UNA sola función canónica =
+-- la de 13-arg íntegra + `p_proveedor_id` (CH2), idéntica en ambos entornos.
+drop function if exists sgc.crear_mantenimiento_app(uuid,uuid,text,text,date,numeric,jsonb,timestamp with time zone,boolean,uuid);                   -- 10-arg legacy (si existiera)
+drop function if exists sgc.crear_mantenimiento_app(uuid,uuid,text,text,date,numeric,jsonb,timestamp with time zone,boolean,uuid,uuid,text);         -- 12-arg (bug de la 1ª versión en dev)
+drop function if exists sgc.crear_mantenimiento_app(uuid,uuid,text,text,date,numeric,jsonb,timestamp with time zone,boolean,uuid,numeric,text,text);  -- 13-arg actual (dev + prod)
 
 create or replace function sgc.crear_mantenimiento_app(
   p_id uuid, p_vehiculo_id uuid, p_tipo text, p_descripcion text, p_fecha date,
   p_km numeric, p_fotos jsonb, p_capturado_en timestamp with time zone,
   p_incluye_preventivo boolean default false, p_accidente_id uuid default null,
-  p_proveedor_id uuid default null, p_proveedor text default null
+  p_costo numeric default null, p_proveedor text default null, p_notas text default null,
+  p_proveedor_id uuid default null
 )
  returns uuid
  language plpgsql
  security definer
  set search_path to 'sgc', 'pg_temp'
 as $function$
-declare v_uid uuid := auth.uid(); v_tipo text; v_prov text;
+declare
+  v_uid uuid := auth.uid();
+  v_tipo text; v_elevado boolean; v_en_uso boolean; v_resp boolean;
+  v_veh_nombre text; v_yo text; v_r record; v_prov text;
 begin
   if v_uid is null then raise exception 'No autenticado'; end if;
-  if not (sgc.is_admin() or sgc.tiene_modulo('flota')
-          or exists (select 1 from sgc.conductores c where c.usuario_id = v_uid)) then
-    raise exception 'Tu usuario no tiene el módulo Flota';
-  end if;
+  v_elevado := sgc.is_admin() or sgc.tiene_modulo('flota');
+
   if exists (select 1 from sgc.mantenimientos where id = p_id) then
     return p_id;  -- idempotente
   end if;
@@ -84,12 +89,26 @@ begin
     raise exception 'Vehículo no encontrado o inactivo';
   end if;
 
-  v_tipo := lower(coalesce(nullif(p_tipo,''),'preventivo'));
-  if v_tipo not in ('preventivo','falla','accidente_dano','cambio_pieza','engrase','hidraulico','otros') then
-    v_tipo := 'preventivo';
+  -- AL7: un no-elevado solo registra sobre su vehículo EN USO (AK20) o del que es
+  -- responsable actual (bridge vehiculos.responsable_id).
+  if not v_elevado then
+    v_en_uso := exists (select 1 from sgc.vehiculo_usos vu
+                        where vu.vehiculo_id = p_vehiculo_id and vu.usuario_id = v_uid and vu.fin_at is null);
+    v_resp   := exists (select 1 from sgc.vehiculos v
+                        where v.id = p_vehiculo_id and v.responsable_id = v_uid);
+    if not (v_en_uso or v_resp) then
+      raise exception 'Solo puedes registrar mantenimientos del vehículo que tienes en uso.';
+    end if;
   end if;
 
-  -- Nombre a persistir: el escrito, o el del maestro si vino proveedor_id.
+  v_tipo := lower(coalesce(nullif(p_tipo,''),'preventivo'));
+  if v_tipo not in ('preventivo','falla','accidente_dano','cambio_pieza','engrase',
+                    'hidraulico','reparacion','tintado','bombillo','neumatico',
+                    'bateria','lavado','otros') then
+    v_tipo := 'otros';
+  end if;
+
+  -- CH2 — nombre del proveedor: el escrito, o el del maestro si vino proveedor_id.
   v_prov := nullif(p_proveedor,'');
   if v_prov is null and p_proveedor_id is not null then
     select nombre into v_prov from sgc.proveedores where id = p_proveedor_id;
@@ -97,23 +116,42 @@ begin
 
   insert into sgc.mantenimientos (id, vehiculo_id, tipo, descripcion, fecha,
     kilometraje_al_mantenimiento, estado, fotos, incluye_preventivo, accidente_id,
-    proveedor_id, proveedor)
+    costo, proveedor, proveedor_id, notas, creado_por)
   values (
     p_id, p_vehiculo_id, v_tipo, p_descripcion,
     coalesce(p_fecha, current_date), p_km, 'pendiente',
     coalesce((select array_agg(f->>'storage_path') from jsonb_array_elements(coalesce(p_fotos,'[]'::jsonb)) f
               where nullif(f->>'storage_path','') is not null), '{}'),
     coalesce(p_incluye_preventivo, false), p_accidente_id,
-    p_proveedor_id, v_prov
+    p_costo, v_prov, p_proveedor_id, nullif(p_notas,''), v_uid
   );
 
   perform sgc.avanzar_odometro(p_vehiculo_id, p_km);
+
+  -- AL7: aviso al jefe de flota cuando lo registra un chofer (no elevado).
+  if not v_elevado then
+    select nombre into v_veh_nombre from sgc.vehiculos where id = p_vehiculo_id;
+    select nombre into v_yo from sgc.usuarios where id = v_uid;
+    for v_r in
+      select distinct ur.usuario_id
+        from sgc.usuarios_roles ur join sgc.roles r on r.id = ur.rol_id
+        where r.codigo in (select unnest(sgc.param_csv('mantenimiento_aviso_roles','jefe_flota,logistica,admin')))
+          and ur.usuario_id is distinct from v_uid
+    loop
+      perform sgc.notificar(v_r.usuario_id, 'flota',
+        'Mantenimiento registrado por un chofer',
+        format('%s registró un mantenimiento (%s) del vehículo %s.',
+               coalesce(v_yo,'Un chofer'), v_tipo, coalesce(v_veh_nombre,'—')),
+        '/flota/mantenimientos');
+    end loop;
+  end if;
+
   return p_id;
 end;
 $function$;
 grant execute on function sgc.crear_mantenimiento_app(
   uuid, uuid, text, text, date, numeric, jsonb, timestamp with time zone,
-  boolean, uuid, uuid, text
+  boolean, uuid, numeric, text, text, uuid
 ) to authenticated, service_role;
 
 commit;
