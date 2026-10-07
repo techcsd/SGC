@@ -1,0 +1,46 @@
+<div class="se">
+  <header class="se__head">
+    <h1>Solicitudes de eliminación de cuenta</h1>
+    <p class="se__muted">
+      Procesar anonimiza el perfil (nombre, correo, teléfono, cédula, foto), borra los tokens de notificación
+      y cierra el acceso. Los registros operativos/contables se conservan con la identidad anonimizada.
+    </p>
+  </header>
+
+  @if (cargando()) {
+    <p class="se__muted">Cargando…</p>
+  } @else if (!solicitudes().length) {
+    <p class="se__muted">No hay solicitudes.</p>
+  } @else {
+    <div class="se__list">
+      @for (s of solicitudes(); track s.id) {
+        <div class="se__card" [class.se__card--done]="s.estado !== 'pendiente'">
+          <div class="se__info">
+            <div class="se__nombre">
+              {{ s.usuario?.nombre || s.identificador || 'Usuario desconocido' }}
+              <span class="se__pill se__pill--{{ s.estado }}">{{ s.estado }}</span>
+              <span class="se__origen">{{ s.origen }}</span>
+            </div>
+            <div class="se__meta">
+              @if (s.usuario?.email) { <span>{{ s.usuario?.email }}</span> }
+              @if (s.identificador && s.identificador !== s.usuario?.email) { <span>{{ s.identificador }}</span> }
+              <span>{{ s.creada_at | date:'short' }}</span>
+            </div>
+            @if (s.motivo) { <p class="se__motivo">"{{ s.motivo }}"</p> }
+            @if (s.nota_admin) { <p class="se__nota">Nota: {{ s.nota_admin }}</p> }
+          </div>
+          @if (s.estado === 'pendiente') {
+            <div class="se__actions">
+              <button type="button" class="se__btn" [disabled]="procesandoId() === s.id"
+                      (click)="procesar(s, 'rechazar')">Rechazar</button>
+              <button type="button" class="se__btn se__btn--danger" [disabled]="procesandoId() === s.id"
+                      (click)="procesar(s, 'procesar')">
+                {{ procesandoId() === s.id ? 'Procesando…' : 'Procesar' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

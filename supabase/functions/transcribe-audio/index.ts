@@ -76,12 +76,22 @@ Deno.serve(async (req: Request) => {
 
   let ok = 0, fail = 0;
 
-  // audio_notas
-  const { data: ans } = await admin.from("audio_notas")
-    .select("id, bucket, path, transcripcion_intentos")
-    .in("transcripcion_estado", ["pendiente", "fallida"])
-    .lt("transcripcion_intentos", MAX_INTENTOS)
-    .limit(BATCH);
+  // CI10 — las notas de voz personales (audio_notas) solo se transcriben si su
+  // autor otorgó el consentimiento de IA. Las de usuarios sin consentimiento
+  // quedan intactas (pendiente = "sin transcribir", no se marcan fallidas).
+  const { data: cons } = await admin.from("consentimientos")
+    .select("usuario_id").eq("tipo", "ia").eq("otorgado", true);
+  const consentIds = (cons ?? []).map((c: { usuario_id: string }) => c.usuario_id);
+
+  // audio_notas — solo de autores con consentimiento.
+  const ans = consentIds.length
+    ? (await admin.from("audio_notas")
+        .select("id, bucket, path, transcripcion_intentos")
+        .in("transcripcion_estado", ["pendiente", "fallida"])
+        .in("creado_por", consentIds)
+        .lt("transcripcion_intentos", MAX_INTENTOS)
+        .limit(BATCH)).data
+    : [];
   for (const r of ans ?? []) {
     await admin.from("audio_notas").update({ transcripcion_estado: "procesando" }).eq("id", r.id);
     try {

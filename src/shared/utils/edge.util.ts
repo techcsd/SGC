@@ -42,6 +42,8 @@ const EDGE_ERROR_MESSAGES: Record<string, string> = {
   ficha_sin_cedula: 'La ficha no tiene una cédula/documento válido.',
   ya_correo_real: 'Esa persona ya inicia sesión con su correo.',
   enlace_fallo: 'No se pudo enlazar la ficha con su usuario. Inténtalo de nuevo.',
+  // CI10 — consentimiento de IA no otorgado (asistente, transcripción, leer recibo).
+  sin_consentimiento_ia: 'Para usar las funciones con inteligencia artificial, primero actívalas en Perfil › Privacidad.',
   // Transporte / servidor (sin respuesta con CORS, o 500 interno).
   transporte: 'No se pudo contactar el servicio (conexión o servidor ocupado). Inténtalo de nuevo en unos segundos.',
   interno: 'Ocurrió un error en el servidor. Si el problema persiste, avísale a Tecnología.',

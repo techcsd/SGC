@@ -88,6 +88,16 @@ Deno.serve(async (req) => {
   const userId = userData?.user?.id;
   if (!userId) return json({ ok: false, error: "Sesión inválida" }, 401);
 
+  // ── CI10 — consentimiento de IA explícito (Anthropic). Verificado en servidor. ──
+  const { data: consentOk } = await userClient.schema("sgc").rpc("mi_consentimiento", { p_tipo: "ia" });
+  if (!consentOk) {
+    return json({
+      ok: false,
+      error: "Para leer recibos con inteligencia artificial, primero actívalo en Perfil › Privacidad.",
+      error_code: "sin_consentimiento_ia",
+    }, 403);
+  }
+
   let payload: Any;
   try { payload = await req.json(); } catch { return json({ ok: false, error: "Cuerpo inválido" }, 400); }
   const imagenes: Any[] = Array.isArray(payload?.imagenes) ? payload.imagenes : [];

@@ -114,11 +114,75 @@
         }
 
         @case ('privacidad') {
+          @if (esChofer()) {
+            <div class="cfg__card">
+              <h2>{{ 'Ubicación' | t }}</h2>
+              <p class="cfg__muted">
+                {{ 'Como chofer, la app comparte tu ubicación durante tus rutas (mientras tu estado sea de trabajo) para el seguimiento de logística. Se apaga cuando marcas Inactivo o cierras sesión. Puedes gestionar el permiso de ubicación desde tu teléfono.' | t }}
+              </p>
+            </div>
+          }
+
+          <!-- CI10 — consentimiento de IA -->
           <div class="cfg__card">
-            <h2>{{ 'Privacidad' | t }}</h2>
+            <h2>{{ 'Inteligencia artificial' | t }}</h2>
             <p class="cfg__muted">
-              {{ 'Como chofer, la app comparte tu ubicación durante tus rutas para el seguimiento de logística. Puedes gestionar el permiso de ubicación desde tu teléfono.' | t }}
+              {{ 'Las funciones de IA (asistente, transcripción de voz, lectura de recibos) envían datos a Anthropic (Claude) y Groq/OpenAI. No se usa para publicidad.' | t }}
             </p>
+            @if (consentIA()) {
+              <p class="cfg__muted"><strong>{{ 'Estado: activado' | t }}</strong></p>
+              <button type="button" class="cfg__btn cfg__btn--danger"
+                      [disabled]="guardandoConsent()" (click)="toggleConsentIA(false)">
+                {{ (guardandoConsent() ? 'Guardando…' : 'Desactivar funciones de IA') | t }}
+              </button>
+            } @else {
+              <p class="cfg__muted"><strong>{{ 'Estado: desactivado' | t }}</strong></p>
+              <button type="button" class="cfg__btn"
+                      [disabled]="guardandoConsent()" (click)="toggleConsentIA(true)">
+                {{ (guardandoConsent() ? 'Guardando…' : 'Activar funciones de IA') | t }}
+              </button>
+            }
+          </div>
+
+          <!-- CI2 — enlaces legales -->
+          <div class="cfg__card">
+            <h2>{{ 'Documentos legales' | t }}</h2>
+            <p class="cfg__muted">
+              <a href="/politicas/privacidad" target="_blank" rel="noopener">{{ 'Política de Privacidad' | t }}</a>
+              · <a href="/politicas/terminos" target="_blank" rel="noopener">{{ 'Términos de Uso' | t }}</a>
+              · <a href="/politicas/soporte" target="_blank" rel="noopener">{{ 'Soporte' | t }}</a>
+            </p>
+          </div>
+
+          <!-- CI4 — eliminación de cuenta -->
+          <div class="cfg__card">
+            <h2>{{ 'Eliminar mi cuenta' | t }}</h2>
+            @if (eliminacionEnviada()) {
+              <p class="cfg__muted">{{ 'Recibimos tu solicitud. La procesaremos en un máximo de 30 días.' | t }}</p>
+            } @else if (confirmandoEliminacion()) {
+              <p class="cfg__muted">
+                {{ 'Se anonimiza tu perfil (nombre, correo, teléfono, cédula y foto) y se cierran tus sesiones. Los registros operativos/contables se conservan por obligación legal, con tu identidad anonimizada.' | t }}
+              </p>
+              <textarea class="cfg__textarea" rows="3" [value]="motivoEliminacion()"
+                        (input)="motivoEliminacion.set($any($event.target).value)"
+                        [placeholder]="'Motivo (opcional)' | t"></textarea>
+              <div class="cfg__row">
+                <button type="button" class="cfg__btn" (click)="confirmandoEliminacion.set(false)">
+                  {{ 'Cancelar' | t }}
+                </button>
+                <button type="button" class="cfg__btn cfg__btn--danger"
+                        [disabled]="solicitandoEliminacion()" (click)="solicitarEliminacion()">
+                  {{ (solicitandoEliminacion() ? 'Enviando…' : 'Confirmar solicitud') | t }}
+                </button>
+              </div>
+            } @else {
+              <p class="cfg__muted">
+                {{ 'Puedes solicitar la eliminación de tu cuenta. Administración la revisa y procesa.' | t }}
+              </p>
+              <button type="button" class="cfg__btn cfg__btn--danger" (click)="confirmandoEliminacion.set(true)">
+                {{ 'Solicitar eliminación de mi cuenta' | t }}
+              </button>
+            }
           </div>
         }
 
