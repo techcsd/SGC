@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 3%** (18/559 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 6%** (33/579 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,7 +12,7 @@
 | inventario/conduce-externo-form | scope | 56 | 0 | 56 | 0% |
 | inventario/requisiciones | scope | 224 | 0 | 224 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
-| configuracion | scope | 35 | 18 | 17 | 51% |
+| configuracion | scope | 55 | 33 | 22 | 60% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/app-versiones | - | 125 | 0 | 125 | 0% |
 | admin/auditoria | - | 96 | 0 | 96 | 0% |
@@ -27,11 +27,12 @@
 | admin/parametros | - | 20 | 0 | 20 | 0% |
 | admin/reportes | - | 49 | 0 | 49 | 0% |
 | admin/roles | - | 260 | 0 | 260 | 0% |
+| admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
 | admin/usuarios | - | 226 | 0 | 226 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
-| app-movil | - | 24 | 0 | 24 | 0% |
+| app-movil | - | 41 | 0 | 41 | 0% |
 | asistente | - | 23 | 0 | 23 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
 | bitacora/cartillas | - | 116 | 0 | 116 | 0% |
@@ -112,6 +113,8 @@
 | obra/no-conformidades | - | 149 | 0 | 149 | 0% |
 | obra/plan-dia | - | 55 | 0 | 55 | 0% |
 | obra/subcontratistas | - | 104 | 0 | 104 | 0% |
+| politicas/eliminar-cuenta | - | 13 | 0 | 13 | 0% |
+| politicas | - | 21 | 0 | 21 | 0% |
 | proyectos/cargos | - | 31 | 0 | 31 | 0% |
 | proyectos/clima | - | 54 | 0 | 54 | 0% |
 | proyectos/compras | - | 40 | 0 | 40 | 0% |
@@ -150,5 +153,5 @@
 | legal/expedientes | - | 100 | 3 | 97 | 3% |
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |
+| auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |
-| auth | - | 68 | 15 | 53 | 22% |

@@ -134,6 +134,8 @@ export const PARAM_CATALOGO: Record<string, ParamMeta> = {
   bitacora_max_fotos: { descripcion: 'Máximo de fotos por registro de bitácora', tipo: 'entero', grupo: 'Otros', fuente: 'parametros', min: 1, max: 100 },
   google_maps_api_key: { descripcion: 'Google Maps — key de SERVIDOR (edge). Sensible.', tipo: 'texto', grupo: 'Integraciones', fuente: 'parametros' },
   google_maps_browser_key: { descripcion: 'Google Maps — key de NAVEGADOR (restringida por dominio)', tipo: 'texto', grupo: 'Integraciones', fuente: 'parametros' },
+  play_store_url: { descripcion: 'CI1 — URL de la ficha de Google Play de la CSD App (pégala cuando exista). Vacío = oculta la insignia.', tipo: 'texto', grupo: 'Integraciones', fuente: 'parametros' },
+  app_store_url: { descripcion: 'CI1 — URL de la ficha del App Store de la CSD App (pégala cuando exista). Vacío = oculta la insignia.', tipo: 'texto', grupo: 'Integraciones', fuente: 'parametros' },
   despachante_test_user_id: { descripcion: 'Usuario de prueba para despacho (UUID). Vacío en prod.', tipo: 'texto', grupo: 'Otros', fuente: 'parametros' },
 };
 

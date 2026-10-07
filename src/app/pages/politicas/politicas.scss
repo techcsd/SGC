@@ -1,0 +1,187 @@
+.pol {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--main, #121212);
+
+  &__card {
+    width: 100%;
+    max-width: 760px;
+    background: var(--surface, #161616);
+    border: 1px solid var(--border, #2d2d2d);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  &__head {
+    text-align: center;
+    border-bottom: 1px solid var(--border, #2d2d2d);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+  }
+
+  &__brand {
+    background: #1e3a5f;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+    img { height: 30px; max-width: 100%; }
+  }
+
+  &__titulo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px;
+  }
+
+  &__sub {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    color: var(--main-ultra-light, #929090);
+    font-size: 13px;
+  }
+
+  &__borrador {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+  }
+
+  &__msg {
+    color: var(--main-ultra-light, #929090);
+    font-size: 14px;
+    text-align: center;
+    a { color: var(--brand, #f97316); }
+  }
+
+  // Cuerpo renderizado desde Markdown — usa tokens, nada hardcodeado de marca.
+  &__body {
+    color: #e6e6e6;
+    font-size: 15px;
+    line-height: 1.7;
+
+    :is(h1, h2, h3) { color: #fff; font-weight: 700; margin: 28px 0 10px; line-height: 1.3; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 19px; }
+    h3 { font-size: 16px; }
+    p { margin: 0 0 14px; }
+    a { color: var(--brand, #f97316); word-break: break-word; }
+    ul, ol { margin: 0 0 14px; padding-left: 22px; }
+    li { margin-bottom: 6px; }
+    strong { color: #fff; }
+    hr { border: none; border-top: 1px solid var(--border, #2d2d2d); margin: 22px 0; }
+    code {
+      background: var(--secondary, #212121);
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    blockquote {
+      border-left: 3px solid var(--brand, #f97316);
+      margin: 0 0 14px;
+      padding: 4px 0 4px 14px;
+      color: var(--main-ultra-light, #929090);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 0 16px;
+      font-size: 14px;
+      display: block;
+      overflow-x: auto;
+    }
+    th, td { border: 1px solid var(--border, #2d2d2d); padding: 8px 10px; text-align: left; }
+    th { background: var(--secondary, #212121); color: #fff; }
+  }
+
+  &__acciones {
+    margin-top: 24px;
+    text-align: center;
+  }
+
+  &__print {
+    background: var(--secondary, #212121);
+    color: #e6e6e6;
+    border: 1px solid var(--border, #2d2d2d);
+    border-radius: 10px;
+    padding: 9px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    &:hover { border-color: var(--brand, #f97316); }
+  }
+
+  &__form {
+    display: grid;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  &__label {
+    color: var(--main-ultra-light, #929090);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  &__input {
+    width: 100%;
+    background: var(--secondary, #212121);
+    color: #e6e6e6;
+    border: 1px solid var(--border, #2d2d2d);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    &:focus { outline: none; border-color: var(--brand, #f97316); }
+  }
+
+  // Honeypot: fuera de la vista y del foco, sin usar display:none (los bots lo evitan).
+  &__hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  &__pie {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border, #2d2d2d);
+    text-align: center;
+    color: #6b6b6b;
+    font-size: 12px;
+    a { color: var(--main-ultra-light, #929090); }
+  }
+
+  &__links {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 10px;
+    a { color: var(--brand, #f97316); font-size: 13px; font-weight: 600; }
+  }
+}
+
+// Impresión limpia (las tiendas/revisores a veces imprimen a PDF).
+@media print {
+  .pol { background: #fff; padding: 0; }
+  .pol__card { border: none; background: #fff; max-width: none; }
+  .pol__brand { background: #1e3a5f; }
+  .pol__titulo, .pol__body :is(h1, h2, h3), .pol__body strong { color: #000; }
+  .pol__body { color: #222; }
+  .pol__acciones, .pol__links { display: none; }
+}

@@ -1,5 +1,40 @@
 {
   "web": {
+    "1.155.0": {
+      "titulo": "Listos para las tiendas: política de privacidad y términos públicos, consentimiento de IA, eliminación de cuenta, y el rastreo del chofer respeta su estado",
+      "cambios": [
+        {
+          "t": "seguridad",
+          "m": "Privacidad",
+          "d": "Nuevas páginas públicas de Política de Privacidad, Términos de Uso y Soporte. Al iniciar sesión se pide aceptar las políticas (una sola vez por versión)."
+        },
+        {
+          "t": "nuevo",
+          "m": "Privacidad",
+          "d": "Consentimiento para las funciones de inteligencia artificial (asistente, transcripción de voz, lectura de recibos). Se pide la primera vez y se puede activar o desactivar en Configuración › Privacidad."
+        },
+        {
+          "t": "nuevo",
+          "m": "Cuenta",
+          "d": "Puedes solicitar la eliminación de tu cuenta desde Configuración › Privacidad o desde la página pública. Administración tiene una bandeja para procesarla (anonimiza tus datos y conserva los registros contables)."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "El rastreo de ubicación respeta el estado del chofer: cuando marca «Inactivo» (o cierra sesión) deja de registrar posiciones."
+        },
+        {
+          "t": "nuevo",
+          "m": "Administración",
+          "d": "Rol «Revisor de tiendas» con una obra de demostración, para que Google y Apple revisen la app sin ver datos reales."
+        },
+        {
+          "t": "nuevo",
+          "m": "CSD App",
+          "d": "La página de la app móvil mostrará las insignias oficiales de Google Play y App Store cuando las fichas estén publicadas."
+        }
+      ]
+    },
     "1.152.0": {
       "titulo": "Aprobaciones legales y firmas del empleador/testigos, documentos de Word de Sonia, lectura automática del recibo de combustible, y solicitud de movimiento con almacenes y catálogo",
       "cambios": [

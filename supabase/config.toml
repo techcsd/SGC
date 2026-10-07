@@ -88,3 +88,10 @@ verify_jwt = true
 verify_jwt = true
 [functions.auth-signout-others]
 verify_jwt = true
+# CI4 — procesar solicitud de eliminación (admin): re-verifica is_admin con el token.
+[functions.admin-procesar-eliminacion]
+verify_jwt = true
+# CI4 — solicitud pública de eliminación (sin login, desde /politicas/eliminar-cuenta).
+# Se auto-protege (honeypot + throttle); crea la solicitud con service role.
+[functions.solicitar-eliminacion]
+verify_jwt = false

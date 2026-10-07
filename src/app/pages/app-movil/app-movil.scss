@@ -68,3 +68,38 @@
   color: var(--sgc-text-secondary);
   padding: 20px 0;
 }
+
+// CI1/CI7 — insignia de tienda (texto, hasta tener el asset oficial de Google/Apple).
+.am-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  background: var(--sgc-text, #121212);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+
+  &:hover { transform: translateY(-2px); }
+
+  span { display: flex; flex-direction: column; line-height: 1.1; text-align: left; }
+  small { font-size: 10px; opacity: 0.85; }
+  strong { font-size: 16px; font-weight: 700; }
+}
+
+.am-sub {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sgc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 4px 0 10px;
+}
+
+.am-apk--secondary {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sgc-border, #e2e5ea);
+}

@@ -1,0 +1,29 @@
+@if (visible()) {
+  <div class="cia__backdrop" role="dialog" aria-modal="true" aria-labelledby="cia-title">
+    <div class="cia__card">
+      <div class="cia__icon" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 3a4 4 0 0 1 4 4c0 1.2-.5 2.3-1.4 3 .9.7 1.4 1.8 1.4 3a4 4 0 0 1-8 0c0-1.2.5-2.3 1.4-3A3.98 3.98 0 0 1 8 7a4 4 0 0 1 4-4z"/>
+          <path d="M12 17v4M9 21h6"/></svg>
+      </div>
+      <h2 id="cia-title" class="cia__title">{{ 'Asistente con inteligencia artificial' | t }}</h2>
+      <p class="cia__text">
+        {{ 'Algunas funciones (el asistente, la transcripción de notas de voz y la lectura de recibos) envían lo que escribes o dictas, la foto del recibo y los datos de la empresa necesarios para responder a proveedores de inteligencia artificial: Anthropic (Claude), Groq y OpenAI.' | t }}
+      </p>
+      <p class="cia__text">
+        {{ 'No se usa para publicidad. Puedes revocar este permiso cuando quieras en Perfil › Privacidad. Si eliges “Ahora no”, el resto de la app funciona igual (las notas de voz se guardan sin transcribir).' | t }}
+      </p>
+      <div class="cia__actions">
+        <button type="button" class="cia__btn cia__btn--ghost" (click)="ahoraNo()" [disabled]="guardando()">
+          {{ 'Ahora no' | t }}
+        </button>
+        <button type="button" class="cia__btn cia__btn--primary" (click)="permitir()" [disabled]="guardando()">
+          {{ guardando() ? ('Guardando…' | t) : ('Permitir' | t) }}
+        </button>
+      </div>
+      <a class="cia__link" href="/politicas/privacidad" target="_blank" rel="noopener">
+        {{ 'Ver la Política de Privacidad' | t }}
+      </a>
+    </div>
+  </div>
+}

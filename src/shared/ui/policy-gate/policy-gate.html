@@ -1,0 +1,36 @@
+@if (visible()) {
+  <div class="pg-overlay" role="dialog" aria-modal="true" aria-labelledby="pg-title">
+    <div class="pg-card">
+      <h2 id="pg-title" class="pg-title">Antes de continuar</h2>
+      <p class="pg-text">
+        Actualizamos nuestros documentos legales. Para seguir usando el sistema, por favor
+        revisa y acepta:
+      </p>
+      <ul class="pg-links">
+        @for (p of pendientes(); track p.documento) {
+          <li>
+            @if (p.documento === 'privacidad') {
+              <a href="/politicas/privacidad" target="_blank" rel="noopener">Política de Privacidad</a>
+            } @else if (p.documento === 'terminos') {
+              <a href="/politicas/terminos" target="_blank" rel="noopener">Términos de Uso</a>
+            } @else {
+              <a [href]="'/politicas/' + p.documento" target="_blank" rel="noopener">{{ p.documento }}</a>
+            }
+            <span class="pg-ver">v{{ p.version }}</span>
+          </li>
+        }
+      </ul>
+      <p class="pg-text pg-text--muted">
+        Al continuar, confirmas que leíste y aceptas los documentos anteriores.
+      </p>
+      <div class="pg-actions">
+        <button type="button" class="pg-btn pg-btn--ghost" (click)="cerrarSesion()" [disabled]="guardando()">
+          Cerrar sesión
+        </button>
+        <button type="button" class="pg-btn pg-btn--primary" (click)="aceptar()" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : 'Acepto' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

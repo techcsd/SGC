@@ -16,6 +16,7 @@ import { AjustesNotificaciones } from '../ajustes-notificaciones/ajustes-notific
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { PreferenciasService } from '../../../shared/services/preferencias.service';
+import { PrivacidadService } from '../../../shared/services/privacidad.service';
 import { ThemeService, TemaPreferencia } from '../../../shared/services/theme.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { aplicarDensidad, aplicarTamanoLetra, Densidad, TamanoLetra } from '../../../shared/utils/apariencia.util';
@@ -46,6 +47,7 @@ export class Configuracion implements OnInit {
   private users = inject(UserService);
   private supabase = inject(SupabaseService);
   private prefsService = inject(PreferenciasService);
+  private privacidad = inject(PrivacidadService);
   private theme = inject(ThemeService);
   private toast = inject(ToastService);
 
@@ -58,7 +60,15 @@ export class Configuracion implements OnInit {
 
   cerrandoSesiones = signal(false);
 
-  /** Secciones de la navegación lateral (Privacidad solo para choferes). */
+  // CI10 — consentimiento de IA. CI4 — solicitud de eliminación de cuenta.
+  consentIA = signal<boolean>(false);
+  guardandoConsent = signal(false);
+  confirmandoEliminacion = signal(false);
+  solicitandoEliminacion = signal(false);
+  eliminacionEnviada = signal(false);
+  motivoEliminacion = signal('');
+
+  /** Secciones de la navegación lateral. Privacidad disponible para todos (CI). */
   secciones = computed<{ id: Seccion; label: string; icon: IconName }[]>(() => {
     const base: { id: Seccion; label: string; icon: IconName }[] = [
       { id: 'cuenta', label: 'Cuenta', icon: 'user' },
@@ -67,8 +77,8 @@ export class Configuracion implements OnInit {
       { id: 'notificaciones', label: 'Notificaciones', icon: 'bell' },
       { id: 'inicio', label: 'Inicio', icon: 'home' },
       { id: 'sesion', label: 'Sesión y dispositivos', icon: 'log-out' },
+      { id: 'privacidad', label: 'Privacidad', icon: 'map-pin' },
     ];
-    if (this.esChofer()) base.push({ id: 'privacidad', label: 'Privacidad', icon: 'map-pin' });
     base.push({ id: 'acerca', label: 'Acerca de', icon: 'info' });
     return base;
   });
@@ -116,6 +126,41 @@ export class Configuracion implements OnInit {
       await this.prefsService.cargar();
     } catch {
       /* best-effort: la UI usa defaults */
+    }
+    // CI10 — estado del consentimiento de IA.
+    try {
+      this.consentIA.set(await this.privacidad.miConsentimiento('ia'));
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  /** CI10 — otorga/revoca el consentimiento de IA. */
+  async toggleConsentIA(otorgar: boolean) {
+    this.guardandoConsent.set(true);
+    try {
+      await this.privacidad.setConsentimiento('ia', otorgar);
+      this.consentIA.set(otorgar);
+      this.toast.success('Guardado', otorgar ? 'Activaste las funciones de IA.' : 'Desactivaste las funciones de IA.');
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo guardar');
+    } finally {
+      this.guardandoConsent.set(false);
+    }
+  }
+
+  /** CI4 — envía la solicitud de eliminación de cuenta. */
+  async solicitarEliminacion() {
+    this.solicitandoEliminacion.set(true);
+    try {
+      await this.privacidad.solicitarEliminacion(this.motivoEliminacion().trim());
+      this.eliminacionEnviada.set(true);
+      this.confirmandoEliminacion.set(false);
+      this.toast.success('Solicitud enviada', 'La procesaremos en un máximo de 30 días.');
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo enviar la solicitud');
+    } finally {
+      this.solicitandoEliminacion.set(false);
     }
   }
 
