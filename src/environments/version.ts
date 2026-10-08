@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.158.0';
-export const APP_VERSION_TITULO: string | null = "Animación al crear un conduce";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Inventario","d":"Al crear un conduce aparece una breve animación de confirmación (la hoja con el sello «Emitido» y un check) con el destino y un botón «Ver conduce». No interrumpe: se puede saltar tocando, y respeta el ajuste de Animaciones."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/a1ad7b5";
+export const APP_VERSION = '1.159.1';
+export const APP_VERSION_TITULO: string | null = "Arreglado el error al transferir un conduce y ahora sí puedes autorizar choferes privados a un vehículo";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Conduces","d":"Transferir o asignar un conduce a un chofer ya no da el error «invalid input syntax for type uuid: undefined». El selector de choferes ahora toma la lista correcta (la misma que usa la app) y, si por error no eliges a nadie, te pide «Elige un chofer de la lista» en vez de fallar. Igual al crear una salida con chofer."},{"t":"arreglo","m":"Flota","d":"Al autorizar un vehículo a un «chofer privado», el buscador ya lista a los choferes privados (antes decía «Sin resultados» aunque existieran). Si no hay ninguno, te dice dónde crearlos (Flota › Conductores › Choferes privados)."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/cb5ae42";

@@ -236,6 +236,8 @@
   "Retirar": "Remove",
   "Chofer privado": "Private driver",
   "Buscar chofer privado por nombre…": "Search private driver by name…",
+  "Buscar chofer privado…": "Search private driver…",
+  "No hay choferes privados. Créalos en Flota › Conductores › Choferes privados.": "No private drivers yet. Create them in Fleet › Drivers › Private drivers.",
   "Selecciona un chofer privado.": "Select a private driver.",
   "Hasta (opcional)": "Until (optional)",
   "Nota (opcional)": "Note (optional)",

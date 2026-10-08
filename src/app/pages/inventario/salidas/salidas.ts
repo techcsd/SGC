@@ -40,6 +40,7 @@ import { formatFechaDisplay, todayIso } from '../../../../shared/utils/fecha.uti
 import { RequisicionItemsMapper, ReqItemMap } from '../../../../shared/ui/requisicion-items-mapper/requisicion-items-mapper';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { esUuid } from '../../../../shared/utils/uuid.util';
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
@@ -869,6 +870,12 @@ export class Salidas implements OnInit {
       return;
     }
 
+    // CK6 — si se eligió chofer, debe ser un id válido (no el string "undefined"/vacío).
+    if (this.wizardConduceOn() && v.conductor_id && !esUuid(v.conductor_id)) {
+      this.saveError.set('Elige un chofer de la lista.');
+      return;
+    }
+
     this.saveError.set('');
     this.step.set('resumen');
   }
@@ -902,7 +909,7 @@ export class Salidas implements OnInit {
           observaciones: v.observaciones ?? null,
           // BJ3 — chofer/vehículo (cuando el flujo de conduce está activo): al
           // pasar chofer, el servidor crea la ruta del día sola (auto-ruta BH3).
-          conductor_id: this.wizardConduceOn() ? (v.conductor_id ?? null) : null,
+          conductor_id: this.wizardConduceOn() && esUuid(v.conductor_id) ? v.conductor_id : null,
           vehiculo_id: this.wizardConduceOn() ? (v.vehiculo_id ?? null) : null,
           items,
         },
