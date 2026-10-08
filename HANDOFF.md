@@ -1,9 +1,11 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-86 (Ronda CI — tiendas, mitad padre) — 07/10/2026 — 🧪 EN DEV web **1.155.0** (NADA en prod).
-Rama `feature/ci-tiendas` → `dev` (push **`d063592`**). Flujo: `dev → para → Xaviel prueba en dev.sgcconstructorasd.com → OK → prod`. **Build + guards verdes.** Mitad app = **PROMPT-87** (hijo, lo hace Xaviel en otra ventana).
+## TL;DR — PROMPT-86 (Ronda CI — tiendas, mitad padre) — 07-08/10/2026 — ✅ **SHIPPED A PROD web 1.155.0**.
+`dev → main` (**`f9fe397`**, push → Vercel prod live). **Verificado en vivo**: `https://sgcconstructorasd.com/politicas/{privacidad,terminos,soporte,eliminar-cuenta}` responden 200 públicos con el `.md` real (text/markdown, tamaños distintos; banner BORRADOR en privacidad/términos, soporte=vigente). **Build + guards verdes.** Mitad app = **PROMPT-87** (hijo) — estaba "esperando al padre"; ya desbloqueado.
 
-**Aplicado a DEV (ledger) — 7 migraciones:** `ci3-aceptaciones-politicas`, `ci10-consentimientos`, `ci4-solicitudes-eliminacion`, `ci5-tracking-por-estado`, `ci11-revisor-tiendas`, `ci11b-es-prueba-escape-testuser`, `ci8-store-urls-param`. **6 edges desplegadas a dev:** `assistant`, `leer-recibo`, `transcribe-now`, `transcribe-audio`, `solicitar-eliminacion` (nueva, pública), `admin-procesar-eliminacion` (nueva).
+**En el ledger de PROD — 7 migraciones** (`ci3`, `ci10`, `ci4`, `ci5`, `ci11`, `ci11b`, `ci8`) verificadas **por objeto** (3 tablas, 8 RPCs, `mi_config_tracking` +estado/+rastrear, `registrar_posiciones` con gate Inactivo, rol `revisor_tiendas` + `revisor_solo_demo` en 51 tablas, 5 params). **6 edges en prod** (`assistant` v24, `leer-recibo`, `transcribe-now`, `transcribe-audio`, `solicitar-eliminacion` v1, `admin-procesar-eliminacion` v1). **Data-fix OBRA DEMO corrido en prod** — aislamiento verificado: el revisor ve **0 datos reales** (0 proyectos/vehículos/conductores reales). Credenciales en `.env.local` (`STORE_REVIEW_*_PROD`). (Todo pasó primero por dev, regla 18.)
+
+**URLs de política para las consolas de tienda** (Play Console / App Store Connect): las 4 de arriba, públicas.
 
 **Hecho (todas las fases del PROMPT-86):**
 - **CI13** `docs/DATOS-Y-TERCEROS.md` (inventario vivo) + regla 14 en `CLAUDE.md` + `docs/PARIDAD.md`. Hallé **Resend** y **Google Maps Platform** no listados en el CONTEXTO → añadidos. Región prod/dev = **us-east-1 (EE.UU.)**.
@@ -16,7 +18,7 @@ Rama `feature/ci-tiendas` → `dev` (push **`d063592`**). Flujo: `dev → para �
 - **CI1/7/8** params `play_store_url`/`app_store_url` + insignias en `/app-movil` (badge texto, 👤 falta asset oficial) + entradas en `parametros-catalogo` (grupo Integraciones). `app-movil.ts` ahora toma el host de `environment.supabaseUrl` (quitado ref prod hardcodeado).
 - **CI15** web ya migrada a Google Maps (0 teselas OSM) → **no-op**; higiene OSM solo app (PROMPT-87).
 
-**👤 Pendientes de Xaviel:** (1) probar en dev → promover a prod (PR `dev→main`; migraciones `--env prod` ya gateadas por ledger dev; **correr el data-fix `--env prod`** para generar la obra demo + creds `*_PROD`). (2) **Sonia** revisa privacidad/términos → `estado: vigente`. (3) Rellenar `[[COMPLETAR: RNC]]` / `[[COMPLETAR: dirección]]` en los .md. (4) D-U-N-S + cuentas de tienda; pegar URLs en Admin › Parámetros; dar creds del revisor a las consolas. (5) Video ≤30 s de ubicación en 2.º plano para Play.
+**👤 Pendientes de Xaviel (ya en prod):** (1) **Sonia** revisa privacidad/términos → `estado: vigente` en los `.md` + rellenar `[[COMPLETAR: RNC]]` / `[[COMPLETAR: dirección]]`. (2) D-U-N-S + cuentas de tienda; pegar las URLs de las fichas en Admin › Parámetros (`play_store_url`/`app_store_url`); dar las creds del revisor (`.env.local` `STORE_REVIEW_*_PROD`) a las consolas. (3) Video ≤30 s de ubicación en 2.º plano para Play. (4) Mitad app = **PROMPT-87** (ya desbloqueada).
 
 **Gotchas de esta ronda:** un *fork* de `app-movil` se desvió a CI10/3/4 (una sesión previa YA había dejado `privacidad.service.ts`+`consentimiento-ia`+wiring, commiteados) → lo paré, borré mis duplicados (`cumplimiento.service`/`ia-consent`), repunté `policy-gate` a `PrivacidadService`. **Lección: al reanudar, grep de servicios/componentes existentes ANTES de crear.** El guard `verify-no-ai-tropes` bloquea `©`/`👤` en HTML (usar `&copy;`/texto). `conductores`/`personal_obra` tienen muchas cols NOT NULL (el data-fix usa `where-not-exists`, no `on-conflict` en conductores).
 
