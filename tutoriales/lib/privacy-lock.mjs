@@ -6,15 +6,15 @@
 const REF_PROD = 'jeeqhgccqefbqilntcpu';
 const HOSTS_PROD = ['sgcconstructorasd.com', 'sgc-ashen.vercel.app'];
 
-/** Aborta si la URL/ref apunta a producción. */
+/** Aborta si la URL/ref apunta a producción. Dev reconocido primero (dev.* no es prod). */
 export function assertDev(url) {
   const u = String(url || '').toLowerCase();
+  const esDev = u.includes('dev.sgcconstructorasd.com') || u.includes('app-dev') || u.includes('localhost');
+  if (esDev) return; // entorno dev explícito → OK
   if (u.includes(REF_PROD) || HOSTS_PROD.some((h) => u.includes(h))) {
     throw new Error(`🔴 CANDADO: la URL parece de PRODUCCIÓN (${url}). Los videos se graban SOLO en dev.`);
   }
-  if (!u.includes('dev.sgcconstructorasd.com') && !u.includes('app-dev') && !u.includes('localhost')) {
-    throw new Error(`🔴 CANDADO: la URL no es un entorno dev reconocido (${url}).`);
-  }
+  throw new Error(`🔴 CANDADO: la URL no es un entorno dev reconocido (${url}).`);
 }
 
 /** Aborta si el usuario logueado no es demo (rol revisor_tiendas o flag tutorial_demo). */
