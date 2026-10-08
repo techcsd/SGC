@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto, RequisicionCoberturaItem } from '../../../../shared/services/solicitudes-material.service';
+import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto, ConduceExternoSuelto, RequisicionCoberturaItem } from '../../../../shared/services/solicitudes-material.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -190,6 +190,10 @@ export class Requisiciones implements OnInit {
   mostrarVincular = signal(false);
   conducesSueltos = signal<ConduceSuelto[]>([]);
   cargandoSueltos = signal(false);
+  // CJ5 — vincular/crear un conduce EXTERNO desde la requisición.
+  mostrarVincularExterno = signal(false);
+  conducesExternosSueltos = signal<ConduceExternoSuelto[]>([]);
+  cargandoExternos = signal(false);
   // Mirror (parcial) de sgc.puede_gestionar_requisicion: roles del set aprobado.
   // El autor/responsable también pueden (lo valida el servidor); el ingeniero de
   // campo común no ve estos botones.
@@ -765,6 +769,40 @@ export class Requisiciones implements OnInit {
       await this.service.vincularConduce(s.id, salidaId);
       this.toast.success('Conduce vinculado', 'El avance ya cuenta este despacho.');
       this.mostrarVincular.set(false);
+      await this.cargarAvance(s.id);
+      await this.loadAll();
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudo vincular.');
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  // ── CJ5 — conduce externo desde la requisición ──────────────────────────────
+  async abrirVincularExterno() {
+    const s = this.selected();
+    if (!s) return;
+    this.mostrarVincularExterno.set(true);
+    this.cargandoExternos.set(true);
+    this.conducesExternosSueltos.set([]);
+    try {
+      this.conducesExternosSueltos.set(await this.service.conducesExternosSinVincular(s.proyecto_id));
+    } catch (e) {
+      this.actionError.set(e instanceof Error ? e.message : 'No se pudieron cargar los conduces externos.');
+    } finally {
+      this.cargandoExternos.set(false);
+    }
+  }
+
+  async vincularExterno(conduceExternoId: string) {
+    const s = this.selected();
+    if (!s || this.saving()) return;
+    this.saving.set(true);
+    this.actionError.set('');
+    try {
+      await this.service.vincularConduceExterno(s.id, conduceExternoId);
+      this.toast.success('Conduce externo vinculado', 'El avance ya cuenta este despacho.');
+      this.mostrarVincularExterno.set(false);
       await this.cargarAvance(s.id);
       await this.loadAll();
     } catch (e) {

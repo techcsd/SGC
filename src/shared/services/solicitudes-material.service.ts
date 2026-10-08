@@ -261,6 +261,22 @@ export class SolicitudesMaterialService {
     return (data ?? []) as ConduceSuelto[];
   }
 
+  /** CJ5 — conduces EXTERNOS emitidos sin requisición (primero los de la obra). */
+  async conducesExternosSinVincular(proyectoId?: string | null): Promise<ConduceExternoSuelto[]> {
+    const { data, error } = await this.supabase.client.rpc('conduces_externos_sin_vincular', { p_proyecto_id: proyectoId ?? null });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConduceExternoSuelto[];
+  }
+
+  /** CJ5 — vincula un conduce externo emitido a esta requisición. */
+  async vincularConduceExterno(solicitudId: string, conduceExternoId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('requisicion_vincular_conduce_externo', {
+      p_solicitud_id: solicitudId, p_conduce_externo_id: conduceExternoId,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   /** BV4 — cobertura IMPLÍCITA: movimientos (no ligados) cuyo material matcheó renglones
    *  de esta requisición y por eso bajan su pendiente. AT11: se muestra en el detalle. */
   async cobertura(id: string): Promise<RequisicionCoberturaItem[]> {
@@ -306,6 +322,18 @@ export interface ConduceSuelto {
   estado: string | null;
   despachante_nombre: string | null;
   creado_en: string;
+}
+
+/** CJ5 — un conduce EXTERNO emitido sin requisición. */
+export interface ConduceExternoSuelto {
+  id: string;
+  numero: number | null;
+  estado: string;
+  destino: string | null;
+  origen: string | null;
+  transporta: string | null;
+  created_at: string;
+  es_de_la_obra: boolean;
 }
 
 /** BA — un renglón del avance de despacho de una requisición. */
