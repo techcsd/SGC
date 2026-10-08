@@ -141,7 +141,7 @@ export class SolicitudesMaterialService {
       /** BR2 — usuario responsable enlazado (además del snapshot de texto). */
       responsable_id?: string | null;
       observaciones: string | null;
-      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number; talla?: string | null }[];
+      items: { articulo_id: string | null; descripcion: string; unidad?: string | null; cantidad: number; talla?: string | null; item_id?: string | null }[];
     },
   ): Promise<AprobacionRequisicionResultado> {
     const { data, error } = await this.supabase.client.rpc('aprobar_requisicion', {
