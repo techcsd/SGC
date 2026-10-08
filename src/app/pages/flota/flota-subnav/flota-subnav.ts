@@ -27,6 +27,7 @@ const GRUPOS: Record<Grupo, Tab[]> = {
   conductores: [
     { label: 'Conductores', route: '/flota/conductores' },
     { label: 'Estado', route: '/flota/conductores-estado' },
+    { label: 'Choferes privados', route: '/flota/choferes-privados' },
   ],
 };
 

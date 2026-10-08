@@ -22,6 +22,12 @@ export class FormDrawer {
   /** Z33 — panel ancho para drawers con tablas de ítems (OC, salidas). */
   wide = input<boolean>(false);
   /**
+   * CJ9 — `drawer` (default) = panel lateral; `modal` = ventana centrada con fondo
+   * desenfocado (para pantallas de mucho contenido como Requisición). No cambia nada
+   * en las 59 pantallas que no lo pasan.
+   */
+  variant = input<'drawer' | 'modal'>('drawer');
+  /**
    * U4 — evita perder datos: si el form tiene cambios sin guardar, cerrar por
    * click-afuera o Escape pide confirmación. Se auto-detecta cualquier
    * `<form class="ng-dirty">` proyectado (cubre todo el sistema sin tocar cada

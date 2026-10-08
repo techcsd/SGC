@@ -1,13 +1,15 @@
 @if (open()) {
   <div
     class="drawer-backdrop"
+    [class.drawer-backdrop--modal]="variant() === 'modal'"
     role="dialog"
     [attr.aria-label]="title()"
     aria-modal="true"
     (click)="onBackdropClick($event)"
     (keydown)="onKeydown($event)"
   >
-    <aside class="drawer-panel" [class.drawer-panel--wide]="wide()" #panel tabindex="-1">
+    <aside class="drawer-panel" [class.drawer-panel--wide]="wide()"
+           [class.drawer-panel--modal]="variant() === 'modal'" #panel tabindex="-1">
 
       <header class="drawer-header">
         <h2 class="drawer-title">{{ title() }}</h2>

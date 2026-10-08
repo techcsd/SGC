@@ -1,6 +1,40 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-86 (Ronda CI — tiendas, mitad padre) — 07-08/10/2026 — ✅ **SHIPPED A PROD web 1.155.0**.
+## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — 🧪 backend urgente EN DEV, resto PENDIENTE.
+Rama `feature/cj-ronda` (desde `dev`, push `cc94429`). **main/dev ya están en 1.155.0 en prod** (la "excepción de orden" del CONTEXTO-43 §0 sobre esperar a CI es MOOT: CI ya shippeó). Esta ronda apunta a **1.156.0**. App = **PROMPT-89**.
+
+### ✅ HECHO y probado en DEV (3 migraciones + 2 data-fixes), listo para tu OK a prod:
+- **CJ7** `sql/2026-10-08-cj7-renglon-despacho.sql` — renglones LIBRE nunca contaban como despachados. Columnas `solicitud_material_items.articulo_despacho_id` + `detalle_salidas.origen_item_id`; fn escalar `requisicion_item_despachado` (por origen_item_id; datos viejos por `coalesce(articulo_despacho_id,articulo_id)`); reescritas `requisicion_avance/item_pendiente/pendiente_items/aprobar_requisicion/registrar_salida_inventario` sobre la **def viva en prod** (regla 19). Smoke: `requisicion_avance` corre OK.
+- **CJ6** `sql/2026-10-08-cj6-recepcion-unificada.sql` — helper `_aplicar_recepcion_salida` (estado Entregado + entrada al almacén de la obra, **idempotente**) usado por `confirmar_recepcion_salida` Y `conduce_externo_confirmar_receptor`; `crear_conduce_externo` + `p_salida_id` (enlaza salida existente, no crea otra → sin doble descuento; dropea el overload de 18-arg, gotcha CH2). Smoke: estado→entregado, 1 entrada tras 2 llamadas (idempotente ✓).
+- **CJ11** `sql/2026-10-08-cj11-privado-uso-vehiculo.sql` — `es_conductor_ampliado`+`chofer_privado`; `es_chofer_privado()` helper; `iniciar_uso_vehiculo` exige `autorizacion_vehiculo_vigente` al privado (no flota/admin). `soltar_vehiculo` NO se gatea a propósito (siempre puedes soltar lo que tienes). Smoke: autorizado funciona ✓, no-autorizado bloquea con el mensaje exacto ✓.
+- **Data-fixes** (dry-run por defecto, dev da 0 = su data está en prod): `scripts/data-fixes/2026-10-08-cj6-aplicar-recepciones.mjs` (salidas despachado+recibido→helper; duplicadas SOLO reporte) y `…cj7-conciliar-renglones.mjs` (solo matches sin ambigüedad por cantidad única; lo ambiguo a la ventana).
+
+### ✅ APLICADO A PROD (08/10, "u have all the access") — SOLO EL ESQUEMA:
+Las 4 migraciones **CJ6/CJ7/CJ11/CJ12 están en el ledger de PROD** (verificadas por objeto: requisicion_item_despachado, _aplicar_recepcion_salida, detalle_salidas.origen_item_id, es_chofer_privado, listar_choferes_privados, crear_conduce_externo 19-arg). **El FRONT sigue en 1.155.0** (CJ7 item_id + página CJ12 están en feature/cj-ronda, sin mergear) → las NUEVAS aprobaciones LIBRE enlazarán cuando salga 1.156.0; Flota autoriza a Mendez/Carlos por ahora desde la **ficha del vehículo** (UI que ya está en prod).
+**Data-fixes NO aplicados:** CJ6 dry-run prod = 0 candidatas. CJ7 dry-run prod = **8 matches por cantidad** (coincidencia de cantidad, riesgo de mal-enlace) + 10 ambiguos (la mayoría matches=0 = nunca despachados, correcto). 👤 Raykler/Xaviel revisan los 8 antes de `--apply`, o usan la conciliación manual (UI pendiente). Requisiciones ambiguas: `2e44f8a7…`, `840d55ba…`, `b6995290…`, `d69a37fa…`.
+
+### (histórico del plan previo a aplicar) Para aplicar a PROD:
+1. Las 3 migraciones (gateadas por ledger dev): aplicar con `apply-migration.mjs … --env prod --yes` los archivos `cj7-renglon-despacho`, `cj6-recepcion-unificada`, `cj11-privado-uso-vehiculo` (y CJ12 si ya está listo).
+2. **CJ11 ANTES/junto**: Mendez (`63ab6be8-2638-4788-bbe9-739f19dce36a`) y Carlos (`90181490-6cc8-4147-878e-61ad9253b6db`) tienen **CERO autorizaciones** hoy. Al aplicar CJ11 quedarán **BLOQUEADOS** hasta que Flota les autorice vehículos (ficha del vehículo o CJ12). Hoy pasan el gate (ficha conductor + módulo flota) y toman cualquier vehículo → esto lo CORRIGE pero los bloquea si no tienen auth. **Autorizarles vehículos primero.**
+3. Data-fixes a prod: `--env prod` (DRY-RUN) → revisar el reporte (muestra las salidas despachado+recibido a reparar + renglones LIBRE a conciliar + duplicadas) → `--apply --yes`.
+
+### ✅ CJ7 front — HECHO (commit `e0843d2`): `ReqItemMap`+`item_id` (poblado del renglón), service type +item_id, `SalidaItemFormData`+`origen_item_id`, `crearConduceDesdeReq` pasa origen_item_id. Smoke e2e (auto_conduce on, rollback): aprobar renglón LIBRE → articulo_despacho_id guardado, **despachado=5, pendiente=0, estado despachada, 1 línea con origen_item_id**. CJ7 COMPLETO (SQL+front+data-fix+verificado).
+
+### ✅ CJ12 — HECHO (commit `e42c34f`, EN DEV): `sql/2026-10-08-cj12-choferes-privados.sql` (RPCs `listar_choferes_privados`+`autorizar_vehiculos_privado_lote`, aplicado dev) + pantalla `pages/flota/choferes-privados` (ruta+tab subnav conductores, autorizar lote/retirar/agregar). Build verde, smoke: make privado→autorizar lote 2→listar n=2. **Esto permite a Flota autorizar a Mendez/Carlos (desbloqueo de CJ11).**
+
+### ✅ CJ8/CJ9 — HECHO (commit `84bb617`): articulo-picker nombre 2 líneas 15px semibold + lista ≥560px + title; `app-form-drawer` `variant='modal'` (ventana centrada min(1040px,94vw)/88vh, blur 6px); requisiciones usa `variant="modal"`. Las otras 59 pantallas sin cambio. Build verde.
+### 🟡 CJ10 — PARCIAL (commit `16167dd`): "Por asignar" + tooltip Despachado hechos. **Falta**: resolución de nombres por DEFINER (`s.creado?.nombre` vacío por RLS — patrón CE2), responsable obligatorio en aprobación, columna Entrega "En tránsito · CE-xxxx" (requiere embed conduces_externos.salida_id en salidas.service).
+
+### ⬜ NO EMPEZADAS:
+- **CJ5** (conduce externo desde requisición): RPCs `conduces_externos_sin_vincular` + `requisicion_vincular_conduce_externo`; botón "Asignar conduce externo…" en la ventana modal (Nuevo prellenado con `p_salida_id` ya listo en crear_conduce_externo / Vincular existente). `crear_conduce_externo` ya acepta `p_salida_id` (CJ6) → la parte SQL es menor.
+- **CJ1-CJ4** (movimiento/animaciones): tokens motion (`--motion-base` ya referenciado en form-drawer modal), View Transitions crossfade, `app-celebracion`+`MotionService`, `docs/MOVIMIENTO.md`. Mocks `movimiento-mock/CJ1/CJ2/CJ3-*.dc.html`. Ajuste "Animaciones: completas/reducidas" en Config.
+- **FASE 8**: matriz 157-169, `PARIDAD.md` (contratos CJ5/CJ6/CJ7, variant modal, MotionService), bump **1.156.0** + release-notes, merge dev→main (el front CJ7/CJ8/CJ9/CJ10/CJ12 ya está listo en feature/cj-ronda, build verde).
+
+### Research disponible (no re-explorar): los 2 agentes de esta sesión dejaron TODAS las defs vivas de prod (requisición/conduce: aprobar_requisicion, requisicion_avance/item_pendiente/pendiente_items/estado_despacho, registrar_salida_inventario, confirmar_recepcion_salida, conduce_externo_confirmar_receptor, crear_conduce_externo, despacho_marcar + columnas; vehículos: es_conductor_ampliado, iniciar_uso_vehiculo, soltar_vehiculo, estado_uso, autorizacion_vehiculo_vigente, hacer_conductor + diagnóstico Mendez/Carlos). Si se perdieron, re-pull con `pg_get_functiondef` vía Management API (read-only).
+
+---
+
+## [HISTORIAL] PROMPT-86 (Ronda CI — tiendas, mitad padre) — 07-08/10/2026 — ✅ **SHIPPED A PROD web 1.155.0**.
 `dev → main` (**`f9fe397`**, push → Vercel prod live). **Verificado en vivo**: `https://sgcconstructorasd.com/politicas/{privacidad,terminos,soporte,eliminar-cuenta}` responden 200 públicos con el `.md` real (text/markdown, tamaños distintos; banner BORRADOR en privacidad/términos, soporte=vigente). **Build + guards verdes.** Mitad app = **PROMPT-87** (hijo) — estaba "esperando al padre"; ya desbloqueado.
 
 **En el ledger de PROD — 7 migraciones** (`ci3`, `ci10`, `ci4`, `ci5`, `ci11`, `ci11b`, `ci8`) verificadas **por objeto** (3 tablas, 8 RPCs, `mi_config_tracking` +estado/+rastrear, `registrar_posiciones` con gate Inactivo, rol `revisor_tiendas` + `revisor_solo_demo` en 51 tablas, 5 params). **6 edges en prod** (`assistant` v24, `leer-recibo`, `transcribe-now`, `transcribe-audio`, `solicitar-eliminacion` v1, `admin-procesar-eliminacion` v1). **Data-fix OBRA DEMO corrido en prod** — aislamiento verificado: el revisor ve **0 datos reales** (0 proyectos/vehículos/conductores reales). Credenciales en `.env.local` (`STORE_REVIEW_*_PROD`). (Todo pasó primero por dev, regla 18.)

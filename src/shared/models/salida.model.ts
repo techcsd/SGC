@@ -102,6 +102,8 @@ export interface SalidaItemFormData {
   /** BM5 — unidad capturada (ej. 'atado') + su factor; para mostrar "2 atados (240 PZA)". */
   unidad_capturada?: string | null;
   factor_aplicado?: number | null;
+  /** CJ7 — de qué renglón de la requisición sale esta línea (despacho por renglón). */
+  origen_item_id?: string | null;
 }
 
 export interface SalidaFormData {

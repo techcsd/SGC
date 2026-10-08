@@ -58,6 +58,7 @@
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
+| flota/choferes-privados | - | 36 | 0 | 36 | 0% |
 | flota/combustible | - | 288 | 0 | 288 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 192 | 0 | 192 | 0% |

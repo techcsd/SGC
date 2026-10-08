@@ -418,7 +418,7 @@ export class Salidas implements OnInit {
       const avance = await this.solicitudesMaterialService.avance(s.id);
       const pendientes = avance
         .filter((a) => a.articulo_id && a.estado !== 'cancelada' && a.pendiente > 0)
-        .map((a) => ({ articulo_id: a.articulo_id as string, cantidad: a.pendiente, talla: a.talla ?? null }));
+        .map((a) => ({ articulo_id: a.articulo_id as string, cantidad: a.pendiente, talla: a.talla ?? null, origen_item_id: a.item_id ?? null }));
       this.formItems.set(pendientes.length ? pendientes : [{ articulo_id: '', cantidad: 1 }]);
     } catch {
       this.formItems.set([{ articulo_id: '', cantidad: 1 }]);
