@@ -1,5 +1,31 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — 🧪 **EN DEV (no prod)**: hotfix **1.159.1** + **1.160.0**
+Rama `feature/ck-ronda` → `dev` (merge `46520d2`). `main`/prod sigue en **1.159.0**. **Espera que Xaviel pruebe en dev y diga "sube".**
+
+**Hotfix 1.159.1** (rama `hotfix/ck6-transferir`, ya en dev): **CK6** transferir/asignar conduce ya no da `invalid input syntax for type uuid: "undefined"` (`getConductoresPicker` pasó de `conductores_para_multa` a `choferes_activos` con mapeo `conductor_id→id` + guard `esUuid`; tests 9/9); **CK8** autorizar chofer privado ya lista choferes (`directorio_usuarios_detalle` devuelve `roles_codigos text[]`; user-picker filtra por código, sin "Otro", empty-state). OK de Xaviel al hotfix ya dado → tras probar en dev, promover a prod + merge main→dev.
+
+**1.160.0**: **CK4** "Entregar a" (asignar/cambiar receptor del conduce después de crearlo — RPC `conduce_asignar_receptor` DEFINER + bloque en ficha + tabla auditoría `conduce_receptor_cambios`; smoke 9/9 permisos×estado×forzar); **CK10** notificaciones que suenan (edge `send-push` v6 **solo dev**: canal `avisos_csd_v2`+sonido+prioridad+apns time-sensitive; RPCs `probar_notificacion`/`mis_notif_entregas`/`notif_entregas_de_usuario`; botón "Probar notificación" en Ajustes › Notificaciones); **CK9** filtro por rol en Usuarios (multi, URL `?rol=`, Excel filtrado, clic en chip); **CK7** "Ver ficha de conductor" si ya es conductor (+ chip); **CK3** `registros_combustible.foto_origen` + `registrar_combustible_app` 22-arg (trailing `p_foto_origen`, dropeada la 21-arg) + `log_combustible` devuelve foto_origen + chip "Foto de galería" (smoke OK).
+
+**Migraciones en ledger DEV** (NO prod): `ck8-directorio-roles-codigos`, `ck4-conduce-asignar-receptor`, `ck10-probar-notificacion`, `ck3-foto-origen`, `ck3b-log-foto-origen`. Edge `send-push` **v6 solo dev** (prod con 1.160.0).
+
+**🔴 Diagnósticos (prod, read-only):**
+- **CK10 (Misael):** servidor **SANO** — 974 push "enviada"/30d, 0 fallas reales, token vivo; equipo **Samsung SM-A346M** (no ITEL). El fallo es 100% canal/dispositivo → lo arregla la app con el canal `avisos_csd_v2` (PROMPT-91) + la edge ya corregida.
+- **CK1:** Mendez/Carlos/Dallin/Felix = **0 autorizaciones vigentes en prod → todos bloqueados**. CK8 es lo que destraba poder autorizarlos. 👤 Flota los autoriza (Flota › Conductores › Choferes privados, o ficha del vehículo).
+
+**👤 Pendientes de Xaviel:** (1) probar hotfix 1.159.1 en dev → "sube" → prod + merge main→dev; (2) probar 1.160.0 en dev → OK; (3) Flota autoriza a Mendez/Carlos (hoy bloqueados); (4) teléfono ITEL/gama-baja (o Samsung) para probar el sonido real de CK10; (5) **decir cómo terminaba la nota #181** ("The chofer must be able to change the status of his work, for example when…").
+
+**NO hecho — próxima sesión (1.161.0):** **Apoyo de transporte** CK11-CK16 (unificar solicitud-movimiento + retiro en un módulo: tipo_apoyo/día/foto, estados ampliados, tickets de Misael + "Mis choferes", el chofer reporta estado) — FASE 5D/5E/5F; **CK5 videos** (ffmpeg+Playwright, datos demo) — FASE 6; **CK1/CK2 cierres** (cadena de responsabilidad del privado + ficha completa con fotos); **CK4 §5** chip "Sin receptor" + filtro en la lista de Salidas; filtro "Entregas por usuario" dedicado (RPC `notif_entregas_de_usuario` ya listo). App = **PROMPT-91**.
+
+---
+
+## [HISTORIAL CK] diagnóstico y herramientas
+- Diagnóstico read-only de prod/dev vía `scratchpad/q.mjs` (Management API, `SUPABASE_ACCESS_TOKEN` + refs de `.env.local`). Smokes CK4 con `set local role authenticated` + `request.jwt.claims` en tx rollback.
+- Seed dev: Chofer Demo (`52097861`) → rol `chofer_privado` (36) para el smoke del picker CK8.
+- Gotcha repetido evitado: al recrear `registrar_combustible_app` con +1 param, se DROPeó la firma 21-arg para no dejar overload ambiguo (como CH2/BW2). `uuid.util.ts` ya existía (`cleanUuid`) — añadí `esUuid` sin pisarlo.
+
+---
+
 ## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — ✅ **SHIPPED PROD 1.158.0** (ronda casi completa). Falta solo CJ3 (app) + CJ10-completo (menor).
 **1.158.0** (dev→main `bf4b2f5`) añade **CJ2** (animación "conduce creado": app-celebracion + MotionService, mock exacto, se dispara en salidas.ts al crear conduce). Antes: 1.157.0 (CJ5+CJ1 movimiento), 1.156.0 (CJ6/7/8/9/10-parcial/11/12 + esquema en prod).
 **Resumen CJ:** CJ5✅ CJ6✅ CJ7✅ CJ8✅ CJ9✅ CJ10🟡(parcial) CJ11✅ CJ12✅ CJ1✅ CJ2✅ CJ4✅ · **CJ3** = app (PROMPT-89) · **CJ10-completo** (nombres DEFINER + columna "En tránsito · CE-xxxx") y niveles mediano/appStagger pendientes (mapa en `docs/MOVIMIENTO.md`).
