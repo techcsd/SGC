@@ -4242,6 +4242,53 @@
       ]
     },
     {
+      "pantalla": "flota/choferes-privados",
+      "total": 36,
+      "cubiertos": 0,
+      "sin": 36,
+      "pct": 0,
+      "enScope": false,
+      "enforce": false,
+      "faltantes": [
+        "Choferes privados",
+        "chofer",
+        "Agregar chofer privado",
+        "@if (cargando()) {",
+        "} @else if (!choferes().length) {",
+        "No hay choferes privados todavía. Usa «Agregar chofer privado» para asignar el rol a un usuario.",
+        "} @else {",
+        "@for (ch of choferes(); track ch.usuario_id) {",
+        "@if (ch.cedula) {",
+        "} @if (ch.telefono) {",
+        "@if (ch.en_uso; as u) {",
+        "En uso:",
+        "} @else {",
+        "Sin vehículo en uso",
+        "@if (!ch.autorizadas.length) {",
+        "Sin vehículos autorizados — por eso no puede tomar ninguno.",
+        "} @for (a of ch.autorizadas; track a.autorizacion_id) {",
+        "@if (ch.ultimo_uso_at) { Último uso: } @else { Sin usos registrados }",
+        "Autorizar vehículos",
+        "Elige los vehículos que este chofer podrá tomar. La vigencia es opcional.",
+        "@for (v of vehiculosDisponibles(); track v.id) {",
+        "} @empty {",
+        "No hay vehículos activos disponibles para autorizar.",
+        "Desde",
+        "Hasta (opcional)",
+        "Nota (opcional)",
+        "Cancelar",
+        "Elige un usuario existente. Se le asigna el rol «Chofer privado» (y su ficha de conductor si hace falta). Luego autorízale vehículos.",
+        "Cancelar",
+        "Retirar autorización",
+        "Ej: asignación temporal",
+        "Busca por nombre o cédula",
+        "En uso desde",
+        "Hasta",
+        "Autorizar vehículos",
+        "Agregar chofer privado"
+      ]
+    },
+    {
       "pantalla": "flota/combustible",
       "total": 288,
       "cubiertos": 0,
@@ -8503,7 +8550,7 @@
         "Ver firma",
         "Firma de quien recibe",
         "Foto de evidencia de la salida",
-        "Confirmado por"
+        "despachado"
       ]
     },
     {
