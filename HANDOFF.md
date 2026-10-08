@@ -1,10 +1,10 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — ✅ **SHIPPED PROD 1.156.0** (esquema + front CJ6/7/8/9/10-parcial/11/12). Falta CJ5-front + CJ1-4.
-**Web 1.156.0 en prod** (dev→main `179354d`, Vercel READY). Esquema CJ6/CJ7/CJ11/CJ12 en ledger prod (verif. por objeto); front CJ7(item_id)/CJ8(picker 2 líneas)/CJ9(form-drawer variant modal)/CJ10-parcial/CJ12(pantalla Flota›Choferes privados) en prod.
-**👤 Flota debe autorizar vehículos a Mendez/Carlos** en Flota›Conductores›Choferes privados (server CJ11 ya lo exige). **Data-fix CJ7** (8 matches por cantidad) NO aplicado — revisar o reaprobar.
-**CJ5 SQL** (`sql/2026-10-08-cj5-conduce-externo-requisicion.sql`) aplicado en **dev** (ledger dev), smoke OK (listar=2). **Falta su frontend** (botón "Asignar conduce externo…" en la ventana modal + hoja Nuevo/Vincular) y **CJ1-CJ4** (animaciones). Esos van en una tanda 1.157.0.
-Rama `feature/cj-ronda` (push `2f28d1d`). App = **PROMPT-89**.
+## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — ✅ **SHIPPED PROD 1.157.0** (casi toda la ronda). Falta solo CJ2/CJ3 + CJ10-completo.
+**Web 1.157.0 en prod** (dev→main `b5ca177`). **Esquema en ledger prod:** CJ6/CJ7/CJ11/CJ12 + **CJ5** (`conduces_externos_sin_vincular`/`requisicion_vincular_conduce_externo`). **Front en prod:** CJ7(item_id)/CJ8(picker 2 líneas)/CJ9(form-drawer modal)/CJ10-parcial/CJ12(pantalla Choferes privados)/**CJ5**(botón Asignar conduce externo en la ventana)/**CJ1**(movimiento: tokens, crossfade entre pantallas, reduce-motion + ajuste Config › Apariencia › Animaciones). CJ4 = `docs/MOVIMIENTO.md` + regla 15 CLAUDE.md.
+**👤 Flota autoriza vehículos a Mendez/Carlos** (Flota › Conductores › Choferes privados; server CJ11 ya lo exige). **Data-fix CJ7** (8 matches por cantidad) NO aplicado — revisar o reaprobar.
+**FALTA (próxima tanda):** **CJ2/CJ3** (animaciones grandes: `app-celebracion` + `MotionService`, mocks `CJ2-conduce-creado`/`CJ3-ruta-creada` — CJ3 es app/PROMPT-89); **CJ10 completo** (nombres por DEFINER + columna "En tránsito · CE-xxxx"); niveles mediano (recepción/requisición/combustible); directiva `appStagger`. Todo mapeado en `docs/MOVIMIENTO.md`.
+Rama `feature/cj-ronda` (push `08f2d7e`+). App = **PROMPT-89**.
 
 ## [HISTORIAL] PROMPT-88 (Ronda CJ) — detalle de construcción:
 Rama `feature/cj-ronda` (desde `dev`, push `cc94429`). **main/dev ya están en 1.155.0 en prod** (la "excepción de orden" del CONTEXTO-43 §0 sobre esperar a CI es MOOT: CI ya shippeó). Esta ronda apunta a **1.156.0**. App = **PROMPT-89**.
