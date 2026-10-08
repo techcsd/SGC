@@ -21,6 +21,7 @@ import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos
 import { SolicitudesMaterialService } from '../../../../shared/services/solicitudes-material.service';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { DatosPruebaService, TablaPrueba } from '../../../../shared/services/datos-prueba.service';
 import { UserService } from '../../../core/services/user.service';
 import { SalidaInventario, SalidaItemFormData, MOTIVOS_SALIDA, SALIDA_ESTADO_LABELS, conduceNumero } from '../../../../shared/models/salida.model';
@@ -61,6 +62,7 @@ export class Salidas implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private stockService = inject(StockService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
   private userService = inject(UserService);
   private destroyRef = inject(DestroyRef);
@@ -958,6 +960,11 @@ export class Salidas implements OnInit {
       this.salidas.update((list) => [created, ...list]);
       this.creado.set(created);
       this.step.set('exito');
+      // CJ2 — celebración "conduce creado" (no bloquea; se salta tocando).
+      this.motion.celebrar('conduce', {
+        destino: created.proyecto?.nombre ?? null,
+        verUrl: `/inventario/salidas/${created.id}/conduce`,
+      });
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {
