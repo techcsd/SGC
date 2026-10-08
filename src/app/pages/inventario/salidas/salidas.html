@@ -155,7 +155,8 @@
               <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
               <!-- CJ10 — responsable vacío = "Por asignar" (no un guion mudo). -->
               <td class="text-muted">{{ s.responsable || 'Por asignar' }}</td>
-              <td class="text-muted">{{ s.creado?.nombre ?? '—' }}</td>
+              <!-- CJ10 — nombre de quien registró (resuelto por DEFINER si el embed vino vacío por RLS). -->
+              <td class="text-muted">{{ nombreRegistrador(s) }}</td>
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
               <td class="text-center">
                 @if (s.foto_path) {
@@ -712,7 +713,7 @@
         @if (s.vehiculo?.placa) { <div><dt>Vehículo</dt><dd>{{ idVehiculo(s.vehiculo) }}</dd></div> }
         <div><dt>Estado</dt><dd>{{ ESTADO_LABELS[s.estado] }}</dd></div>
         @if (s.recibido?.nombre) { <div><dt>Recibido por</dt><dd>{{ s.recibido?.nombre }}</dd></div> }
-        <div><dt>Registrado por</dt><dd>{{ s.creado?.nombre ?? '—' }}</dd></div>
+        <div><dt>Registrado por</dt><dd>{{ nombreRegistrador(s) }}</dd></div>
       </dl>
 
       @if (s.observaciones) { <p class="salida-detalle__obs"><strong>Observaciones:</strong> {{ s.observaciones }}</p> }

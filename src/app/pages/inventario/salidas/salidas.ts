@@ -74,6 +74,8 @@ export class Salidas implements OnInit {
 
   // ── Data state ──────────────────────────────────────────
   salidas = signal<SalidaInventario[]>([]);
+  // CJ10 — nombres resueltos por DEFINER (cuando el embed a usuarios vuelve vacío por RLS).
+  nombresResueltos = signal<Record<string, string>>({});
   articulos = signal<Articulo[]>([]);
   categorias = signal<Categoria[]>([]);
   bodegas = signal<Bodega[]>([]);
@@ -512,6 +514,27 @@ export class Salidas implements OnInit {
     }
   }
 
+  /** CJ10 — resuelve los nombres de "registrado por" que el embed dejó vacíos (RLS). */
+  private async resolverNombresFaltantes(salidas: SalidaInventario[]) {
+    const faltan = salidas
+      .filter((s) => !s.creado?.nombre && s.creado_por)
+      .map((s) => s.creado_por as string);
+    if (!faltan.length) return;
+    try {
+      const map = await this.salidasService.resolverNombres(faltan);
+      if (Object.keys(map).length) {
+        this.nombresResueltos.update((prev) => ({ ...prev, ...map }));
+      }
+    } catch {
+      /* best-effort: queda el "—" */
+    }
+  }
+
+  /** Nombre de quien registró la salida (embed o, si RLS lo ocultó, el resuelto por DEFINER). */
+  nombreRegistrador(s: SalidaInventario): string {
+    return s.creado?.nombre || (s.creado_por ? this.nombresResueltos()[s.creado_por] : '') || '—';
+  }
+
   private async loadAll() {
     this.loading.set(true);
     this.error.set('');
@@ -534,6 +557,7 @@ export class Salidas implements OnInit {
       }
       this.salidas.set(salidas);
       this.resolverThumbs(salidas); // W11
+      void this.resolverNombresFaltantes(salidas); // CJ10
       this.articulos.set(arts);
       this.categorias.set(cats);
       this.bodegas.set(bods.filter((b) => b.activo !== false)); // AR3 — sin almacenes inactivos
