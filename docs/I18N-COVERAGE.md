@@ -61,7 +61,7 @@
 | flota/choferes-privados | - | 36 | 0 | 36 | 0% |
 | flota/combustible | - | 288 | 0 | 288 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
-| flota/combustible-log | - | 192 | 0 | 192 | 0% |
+| flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
 | flota/conductores | - | 282 | 0 | 282 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |

@@ -87,6 +87,9 @@ export interface RegistroCombustible {
   sin_asignacion?: boolean;
   retroactiva?: boolean;
   importada?: boolean;
+  /** CK3 — la foto se tomó con la cámara ('camara') o se subió de la galería ('galeria',
+   *  último recurso tras 2 fallos de cámara). Raykler la revisa con el chip "Foto de galería". */
+  foto_origen?: 'camara' | 'galeria' | string;
 
   created_at: string;
 }
