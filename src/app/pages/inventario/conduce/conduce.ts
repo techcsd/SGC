@@ -24,6 +24,7 @@ import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad'
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { esUuid } from '../../../../shared/utils/uuid.util';
 
 interface ItemCierre {
   detalle_id: string;
@@ -339,7 +340,8 @@ export class Conduce implements OnInit {
     const s = this.salida();
     const cond = this.selConductor();
     if (!s || this.transporteBusy()) return;
-    if (!cond) { this.toast.error('Elige un chofer', 'Selecciona a quién transferir el conduce.'); return; }
+    // CK6 — nunca mandar "undefined"/vacío a un parámetro uuid: pedir que elija de la lista.
+    if (!esUuid(cond)) { this.toast.error('Elige un chofer de la lista', 'Selecciona a quién transferir el conduce.'); return; }
     this.transporteBusy.set(true);
     try {
       await this.salidasService.ofrecerTransferencia(s.id, cond, this.transferirNotas().trim() || null);

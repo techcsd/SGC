@@ -30,3 +30,14 @@ export function sanitizeUuidFields<T extends object>(
   }
   return out;
 }
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * CK6 — true si `v` es un UUID canónico (no null, no "undefined"/"null", no vacío).
+ * Para validar la elección de un <select> ANTES de mandarla a un parámetro uuid del
+ * servidor y dar un mensaje humano en vez del error técnico de Postgres.
+ */
+export function esUuid(v: unknown): v is string {
+  return typeof v === 'string' && UUID_RE.test(v.trim());
+}

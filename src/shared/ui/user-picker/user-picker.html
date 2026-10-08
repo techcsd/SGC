@@ -49,7 +49,7 @@
               </button>
             </li>
           } @empty {
-            <li class="user-picker__muted">Sin resultados</li>
+            <li class="user-picker__muted">{{ emptyHint() }}</li>
           }
           @if (allowOtro()) {
             <li><button type="button" class="user-picker__opt user-picker__opt--otro" (click)="usarOtro()">+ Otro (nombre libre)</button></li>
