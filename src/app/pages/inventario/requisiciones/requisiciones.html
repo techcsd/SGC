@@ -302,7 +302,7 @@
 </div>
 
 <!-- ── Detalle / gestión ── -->
-<app-form-drawer [open]="drawerOpen()" [title]="'Requisición'" (closed)="cerrar()">
+<app-form-drawer [open]="drawerOpen()" [title]="'Requisición'" variant="modal" (closed)="cerrar()">
   @if (selected(); as s) {
     <div class="req-detail">
       <!-- Cabecera -->

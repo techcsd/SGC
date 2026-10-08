@@ -46,6 +46,7 @@
                 type="button"
                 class="apk__opt"
                 role="option"
+                [attr.title]="a.nombre"
                 [class.apk__opt--active]="value() === a.id"
                 [class.apk__opt--hl]="highlighted() === indexDe(a)"
                 [attr.aria-selected]="value() === a.id"
@@ -76,7 +77,7 @@
           } @else if (sugerencias().length > 0) {
             <div class="apk__group-label apk__group-label--sug">¿Quisiste decir…?</div>
             @for (a of sugerencias(); track a.id) {
-              <button type="button" class="apk__opt" role="option" (click)="elegir(a)">
+              <button type="button" class="apk__opt" role="option" [attr.title]="a.nombre" (click)="elegir(a)">
                 <span class="apk__opt-main">
                   <span class="apk__opt-name">
                     {{ a.subgrupo ? '[' + a.subgrupo + '] ' : '' }}{{ a.nombre }}

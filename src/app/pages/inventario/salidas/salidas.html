@@ -153,7 +153,8 @@
                 </span>
               </td>
               <td class="text-muted">{{ s.proyecto?.nombre ?? '—' }}</td>
-              <td class="text-muted">{{ s.responsable || '—' }}</td>
+              <!-- CJ10 — responsable vacío = "Por asignar" (no un guion mudo). -->
+              <td class="text-muted">{{ s.responsable || 'Por asignar' }}</td>
               <td class="text-muted">{{ s.creado?.nombre ?? '—' }}</td>
               <td class="text-right">{{ (s.detalle_salidas ?? []).length }}</td>
               <td class="text-center">
@@ -188,7 +189,9 @@
                   [class.sgc-badge--warning]="s.estado === 'despachado'"
                   [class.sgc-badge--success]="s.estado === 'entregado'"
                   [class.sgc-badge--danger]="s.estado === 'entregado_incompleto'"
-                  [attr.title]="s.recibido?.nombre ? ('Confirmado por ' + s.recibido?.nombre) : null"
+                  [attr.title]="s.estado === 'despachado'
+                    ? 'Falta que la obra confirme la recepción (foto y firma).'
+                    : (s.recibido?.nombre ? ('Confirmado por ' + s.recibido?.nombre) : null)"
                 >{{ ESTADO_LABELS[s.estado] }}</span>
               </td>
               <td class="salidas__actions">

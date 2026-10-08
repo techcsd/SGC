@@ -20,6 +20,10 @@ export interface ReqItemMap {
   talla: string | null;
   match_source: 'origen' | 'sugerido' | 'manual' | 'agregado' | null;
   score: number;
+  // CJ7 — id del renglón de la requisición (solicitud_material_items). Permite que
+  // aprobar_requisicion guarde articulo_despacho_id y origen_item_id (renglones LIBRE).
+  // null en renglones que agrega el aprobador (aún no existen en la requisición).
+  item_id?: string | null;
 }
 
 /** AT7 — mapea los renglones de una requisición al catálogo, con preselección del
@@ -71,7 +75,7 @@ export class RequisicionItemsMapper {
     const activos = arts.filter((a) => a.activo);
     const byId = new Map(activos.map((a) => [a.id, a] as const));
     return (s.items ?? []).map((i) => {
-      const base = { descripcion: i.descripcion, unidad: i.unidad ?? null, cantidad: i.cantidad, talla: i.talla ?? null };
+      const base = { descripcion: i.descripcion, unidad: i.unidad ?? null, cantidad: i.cantidad, talla: i.talla ?? null, item_id: i.id ?? null };
       // 1) el renglón ya trae el artículo del catálogo desde el origen (lo eligió
       //    quien creó la requisición en la app): se preselecciona tal cual.
       if (i.articulo_id && byId.has(i.articulo_id)) {

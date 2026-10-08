@@ -69,6 +69,14 @@ export const flotaRoutes: Routes = [
     title: 'Perfil de conductor — Flota',
   },
   {
+    // CJ12 — gestión de choferes privados (autorizar vehículos en lote, historial).
+    path: 'choferes-privados',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./choferes-privados/choferes-privados').then((m) => m.ChoferesPrivados),
+    title: 'Choferes privados — Flota',
+  },
+  {
     path: 'accidentes',
     canActivate: [flotaElevadoGuard],
     loadComponent: () => import('./accidentes/accidentes').then((m) => m.Accidentes),
