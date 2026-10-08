@@ -15,6 +15,8 @@ export interface DirectorioUsuario {
   id: string;
   nombre: string;
   roles?: string[] | null;
+  /** CK8 — códigos de rol (p. ej. `chofer_privado`), para filtrar por código y no por nombre. */
+  roles_codigos?: string[] | null;
   /** CG9 — cédula/correo mostrados y buscables cuando el padre pasa `items`. */
   cedula?: string | null;
   email?: string | null;
@@ -27,6 +29,22 @@ export interface DirectorioUsuario {
 export interface UserPickerSelection {
   usuario_id: string | null;
   nombre: string;
+}
+
+const normRol = (s: string): string =>
+  (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().replace(/\s+/g, '_');
+
+/**
+ * CK8 — ¿el usuario tiene al menos uno de los roles pedidos? Compara contra los
+ * CÓDIGOS (`roles_codigos`); si el RPC es viejo y no los trae, respaldo por nombre
+ * normalizado (`chofer_privado` ↔ "Chofer privado"). Exportado para test unitario.
+ */
+export function usuarioTieneRol(u: DirectorioUsuario, roles: string[]): boolean {
+  if (!roles.length) return true;
+  const codigos = u.roles_codigos;
+  if (codigos && codigos.length) return codigos.some((c) => roles.includes(c));
+  const quiere = new Set(roles.map(normRol));
+  return (u.roles ?? []).some((n) => quiere.has(normRol(n)));
 }
 
 /**
@@ -54,6 +72,8 @@ export class UserPicker implements OnInit {
   /** roles a los que restringir el listado (codigos). Vacío = todos. */
   filterRoles = input<string[]>([]);
   allowOtro = input<boolean>(true);
+  /** CK8 — mensaje cuando la lista queda vacía (p. ej. "No hay choferes privados…"). */
+  emptyHint = input<string>('Sin resultados');
   placeholder = input<string>('Buscar por nombre o rol…');
   disabled = input<boolean>(false);
   /**
@@ -90,7 +110,7 @@ export class UserPicker implements OnInit {
       const roles = this.filterRoles();
       let list = ((data ?? []) as DirectorioUsuario[]).filter((u) => u.id);
       if (roles.length) {
-        list = list.filter((u) => (u.roles ?? []).some((r) => roles.includes(r)));
+        list = list.filter((u) => usuarioTieneRol(u, roles));
       }
       list.sort((a, b) => a.nombre.localeCompare(b.nombre));
       this.usuariosRpc.set(list);

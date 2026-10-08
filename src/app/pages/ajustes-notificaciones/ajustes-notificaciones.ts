@@ -63,6 +63,40 @@ export class AjustesNotificaciones implements OnInit {
     }
   }
 
+  // ── CK10 — "Probar notificación" ──
+  probando = signal(false);
+  resultadoPrueba = signal<string | null>(null);
+
+  async probarNotificacion() {
+    if (this.probando()) return;
+    this.probando.set(true);
+    this.resultadoPrueba.set(null);
+    try {
+      const { dispositivos } = await this.centro.probarNotificacion();
+      if (dispositivos === 0) {
+        this.resultadoPrueba.set('No tienes dispositivos con la app instalada. Entra a la app con tu cuenta y vuelve a probar.');
+        return;
+      }
+      this.toast.success('Enviada', 'Si no sonó ni apareció, revisa los permisos y el sonido de la app.');
+      // El envío es asíncrono: esperamos un momento y leemos el resultado real.
+      await new Promise((r) => setTimeout(r, 2500));
+      const [ultima] = await this.centro.misEntregas(3);
+      if (ultima) {
+        this.resultadoPrueba.set(
+          ultima.estado === 'enviada'
+            ? 'Entregada al teléfono. Si no la viste, activa el sonido/los permisos de la app.'
+            : `No se entregó (${ultima.motivo ?? 'motivo desconocido'}).`,
+        );
+      } else {
+        this.resultadoPrueba.set(`Enviada a ${dispositivos} dispositivo(s). Revisa tu teléfono.`);
+      }
+    } catch (e) {
+      this.toast.error('No se pudo probar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.probando.set(false);
+    }
+  }
+
   /** BT6 — apaga/enciende una alarma operativa silenciable (activa=recibir). */
   async toggleOperativa(tipo: string) {
     if (this.guardando()) return;

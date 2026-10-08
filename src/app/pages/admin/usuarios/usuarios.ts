@@ -6,7 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AdminService, UsuarioAdmin } from '../../../../shared/services/admin.service';
 import { SolicitudesMaterialService, MaterialACargo } from '../../../../shared/services/solicitudes-material.service';
@@ -22,12 +22,13 @@ import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { ExportExcel, ExportColumn, ExportSection } from '../../../../shared/components/export-excel/export-excel';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { CedulaMask } from '../../../../shared/ui/cedula-mask.directive';
+import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 
 type SortKey = 'nombre' | 'web' | 'app';
 
 @Component({
   selector: 'app-admin-usuarios',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Paginator, ExportExcel, Icon, CedulaMask],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, Paginator, ExportExcel, Icon, CedulaMask, FilterSelect],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,7 @@ export class AdminUsuarios implements OnInit {
   private supabase = inject(SupabaseService);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   // AZ10 — "Entrar como" (impersonación de soporte).
   entrandoComoId = signal<string | null>(null);
@@ -94,6 +96,9 @@ export class AdminUsuarios implements OnInit {
   // ── Filters ──────────────────────────────────────────────
   searchQuery = signal('');
   selectedStatus = signal<'all' | 'active' | 'inactive'>('all');
+  // CK9 — filtro por rol (multi): valores = códigos de rol; '__sin_rol__' = usuarios sin rol.
+  selectedRoles = signal<string[]>([]);
+  readonly SIN_ROL = '__sin_rol__';
 
   // ── Pagination ───────────────────────────────────────────
   page = signal(1);
@@ -375,15 +380,45 @@ export class AdminUsuarios implements OnInit {
   }
 
   // ── Computed ─────────────────────────────────────────────
+  /** CK9 — códigos de rol de un usuario. */
+  private codigosDe(u: UsuarioAdmin): string[] {
+    return (u.roles ?? []).map((ur) => ur.rol.codigo).filter(Boolean) as string[];
+  }
+
+  /** CK9 — opciones del filtro Rol: catálogo con conteo + "Sin rol". */
+  rolOptions = computed<FilterOption[]>(() => {
+    const conteo = new Map<string, number>();
+    let sinRol = 0;
+    for (const u of this.usuarios()) {
+      const cods = this.codigosDe(u);
+      if (!cods.length) sinRol++;
+      for (const c of cods) conteo.set(c, (conteo.get(c) ?? 0) + 1);
+    }
+    const opts: FilterOption[] = this.roles()
+      .filter((r) => (conteo.get(r.codigo) ?? 0) > 0)
+      .map((r) => ({ value: r.codigo, label: `${r.nombre} (${conteo.get(r.codigo) ?? 0})` }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    if (sinRol > 0) opts.push({ value: this.SIN_ROL, label: `Sin rol (${sinRol})` });
+    return opts;
+  });
+
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     const status = this.selectedStatus();
+    const roles = this.selectedRoles();
     const list = this.usuarios().filter((u) => {
       if (q && !u.nombre.toLowerCase().includes(q) && !(u.email ?? '').toLowerCase().includes(q) && !(u.cedula ?? '').includes(q)) {
         return false;
       }
       if (status === 'active' && !u.activo) return false;
       if (status === 'inactive' && u.activo) return false;
+      // CK9 — al menos uno de los roles elegidos (o "Sin rol").
+      if (roles.length) {
+        const cods = this.codigosDe(u);
+        const quiereSinRol = roles.includes(this.SIN_ROL) && cods.length === 0;
+        const match = cods.some((c) => roles.includes(c));
+        if (!quiereSinRol && !match) return false;
+      }
       return true;
     });
     // W12 — orden por columna (nombre / última actividad web / app).
@@ -510,6 +545,9 @@ export class AdminUsuarios implements OnInit {
   });
 
   async ngOnInit() {
+    // CK9 — restaurar el filtro de rol desde la URL (?rol=a,b) al entrar.
+    const rol = this.route.snapshot.queryParamMap.get('rol');
+    if (rol) this.selectedRoles.set(rol.split(',').map((s) => s.trim()).filter(Boolean));
     await this.loadAll();
   }
 
@@ -538,6 +576,32 @@ export class AdminUsuarios implements OnInit {
   onStatusChange(value: string) {
     this.selectedStatus.set(value as 'all' | 'active' | 'inactive');
     this.page.set(1);
+  }
+
+  /** CK9 — cambia el filtro de roles, reinicia el paginado y lo refleja en la URL. */
+  onRolesChange(valores: string[]) {
+    this.selectedRoles.set(valores);
+    this.page.set(1);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { rol: valores.length ? valores.join(',') : null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  /** CK9 — atajo: clic en un chip de rol de la tabla filtra por ese rol. */
+  filtrarPorRol(codigo: string | null | undefined, ev?: Event) {
+    ev?.stopPropagation();
+    if (!codigo) return;
+    this.onRolesChange([codigo]);
+  }
+
+  /** CK7 — tipo de chofer según el rol (privado vs flota), para el chip "Ya es conductor · {tipo}". */
+  tipoConductorLabel(u: UsuarioAdmin): string {
+    const cods = this.codigosDe(u);
+    if (cods.includes('chofer_privado')) return 'privado';
+    if (cods.includes('chofer_transportista')) return 'flota';
+    return 'conductor';
   }
 
   openEdit(usuario: UsuarioAdmin) {

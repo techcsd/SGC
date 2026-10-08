@@ -24,6 +24,8 @@ import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad'
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
+import { esUuid } from '../../../../shared/utils/uuid.util';
+import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-picker/user-picker';
 
 interface ItemCierre {
   detalle_id: string;
@@ -37,7 +39,7 @@ type FirmaConUrl = SalidaFirma & { url: string | null };
 
 @Component({
   selector: 'app-conduce',
-  imports: [Skeleton, SignaturePad, RouterLink, Lightbox, Icon],
+  imports: [Skeleton, SignaturePad, RouterLink, Lightbox, Icon, UserPicker],
   templateUrl: './conduce.html',
   styleUrl: './conduce.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -184,6 +186,28 @@ export class Conduce implements OnInit {
   selConductor = signal<string | null>(null);
   transferirNotas = signal('');
   transporteBusy = signal(false);
+
+  // ── CK4 — "Entregar a": asignar/cambiar quién recibe después de crear el conduce ──
+  /** Puede asignar/cambiar receptor: flota elevada o el creador, mientras no se haya
+   *  confirmado la recepción ni anulado (mismo predicado que el servidor). */
+  puedeAsignarReceptor = computed(() => {
+    const s = this.salida();
+    return !!s && !s.recibido_en && s.estado !== 'anulado'
+      && (this.userService.esFlotaElevado() || s.creado_por === this.userService.profile()?.id);
+  });
+  /** Nombre del receptor actual (firma pendiente o receptor ya firmado), o null. */
+  receptorActual = computed(() => {
+    const s = this.salida();
+    return s?.firma_pendiente_nombre || s?.entrega_receptor || null;
+  });
+  receptorOpen = signal(false);
+  receptoresPicker = signal<{ id: string; nombre: string; detalle: string | null; vinculado: boolean }[]>([]);
+  selReceptor = signal<string | null>(null);
+  receptorOtroMode = signal(false); // elevados: buscar un usuario fuera de la obra (forzar)
+  receptorOtroId = signal<string | null>(null);
+  receptorBusy = signal(false);
+  /** CK4 — flota elevada (para ofrecer "Buscar otro usuario" fuera de la obra). */
+  esElevado = computed(() => this.userService.esFlotaElevado());
 
   constructor() {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -339,7 +363,8 @@ export class Conduce implements OnInit {
     const s = this.salida();
     const cond = this.selConductor();
     if (!s || this.transporteBusy()) return;
-    if (!cond) { this.toast.error('Elige un chofer', 'Selecciona a quién transferir el conduce.'); return; }
+    // CK6 — nunca mandar "undefined"/vacío a un parámetro uuid: pedir que elija de la lista.
+    if (!esUuid(cond)) { this.toast.error('Elige un chofer de la lista', 'Selecciona a quién transferir el conduce.'); return; }
     this.transporteBusy.set(true);
     try {
       await this.salidasService.ofrecerTransferencia(s.id, cond, this.transferirNotas().trim() || null);
@@ -353,6 +378,47 @@ export class Conduce implements OnInit {
     }
   }
 
+  // ── CK4 — asignar/cambiar receptor ──
+  async abrirAsignarReceptor() {
+    const s = this.salida();
+    if (!s) return;
+    this.selReceptor.set(s.firma_pendiente_usuario_id ?? null);
+    this.receptorOtroMode.set(false);
+    this.receptorOtroId.set(null);
+    this.receptorOpen.set(true);
+    if (this.receptoresPicker().length === 0) {
+      try {
+        this.receptoresPicker.set(
+          await this.salidasService.getReceptoresDisponibles(s.proyecto_id ?? null, s.bodega_id ?? null),
+        );
+      } catch { /* opcional */ }
+    }
+  }
+
+  onReceptorOtro(sel: UserPickerSelection) {
+    this.receptorOtroId.set(sel.usuario_id);
+  }
+
+  async confirmarAsignarReceptor() {
+    const s = this.salida();
+    if (!s || this.receptorBusy()) return;
+    const otro = this.receptorOtroMode();
+    const id = otro ? this.receptorOtroId() : this.selReceptor();
+    if (!esUuid(id)) { this.toast.error('Elige a quién recibe', 'Selecciona un usuario de la lista.'); return; }
+    this.receptorBusy.set(true);
+    try {
+      // "otro" = usuario fuera de la obra → forzar (el servidor solo lo permite a elevados).
+      await this.salidasService.asignarReceptor(s.id, id!, otro);
+      this.toast.success('Receptor asignado', 'Se avisó a quien debe confirmar la entrega.');
+      this.receptorOpen.set(false);
+      await this.recargarSalida();
+    } catch (e: unknown) {
+      this.toast.error('No se pudo asignar', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.receptorBusy.set(false);
+    }
+  }
+
   // ── Cierre de conduce ──
   abrirCierre() {
     const s = this.salida();
@@ -361,7 +427,9 @@ export class Conduce implements OnInit {
     this.emisorNombre.set(this.userService.profile()?.nombre ?? '');
     this.emisorCedula.set('');
     this.emisorRolDesc.set('');
-    this.receptor.set(s.responsable ?? '');
+    // CK4 — si hay receptor designado ("Entregar a"), precarga su nombre (editable si
+    // firma otra persona en su nombre). Si no, cae al responsable de la obra como antes.
+    this.receptor.set(s.firma_pendiente_nombre || s.responsable || '');
     this.receptorCedula.set('');
     this.notasCierre.set('');
     this.quitarFotoCierre();

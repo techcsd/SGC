@@ -200,6 +200,25 @@
     gap: 4px;
   }
 
+  // CK9 — chip de rol clicable en la tabla (botón con apariencia de badge).
+  &__rol-chip {
+    cursor: pointer;
+    border: none;
+    font: inherit;
+    transition: filter 0.15s ease;
+
+    &:hover { filter: brightness(1.08); }
+    &:focus-visible { outline: 2px solid var(--sgc-accent, var(--Hub)); outline-offset: 1px; }
+  }
+
+  // CK7 — línea gris bajo "Ver ficha de conductor" en el menú.
+  &__menu-hint {
+    display: block;
+    padding: 2px 12px 6px;
+    font-size: 12px;
+    color: var(--sgc-text-muted);
+  }
+
   &__date {
     color: var(--sgc-text-muted);
     font-size: 13px;

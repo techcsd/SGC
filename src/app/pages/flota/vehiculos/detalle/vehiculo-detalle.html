@@ -860,8 +860,10 @@
       <label>{{ 'Chofer privado' | t }} <span class="required">*</span></label>
       <app-user-picker
         [filterRoles]="['chofer_privado']"
+        [allowOtro]="false"
         [value]="autForm.controls.usuario_id.value"
-        [placeholder]="'Buscar chofer privado por nombre…' | t"
+        [placeholder]="'Buscar chofer privado…' | t"
+        [emptyHint]="'No hay choferes privados. Créalos en Flota › Conductores › Choferes privados.' | t"
         (selected)="onAutUserSelected($event)"
       />
       @if (autForm.controls.usuario_id.invalid && autForm.controls.usuario_id.touched) {

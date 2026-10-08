@@ -100,6 +100,21 @@ export class NotificacionesCentroService {
     await this.cargar(); // re-filtra la bandeja + badge con la nueva preferencia
   }
 
+  /** CK10 — manda un push de prueba al propio usuario (ignora la matriz de silencios).
+   *  Devuelve cuántos dispositivos activos tiene; el resultado real se lee después. */
+  async probarNotificacion(): Promise<{ dispositivos: number }> {
+    const { data, error } = await this.supabase.client.rpc('probar_notificacion');
+    if (error) throw new Error(error.message);
+    return (data ?? { dispositivos: 0 }) as { dispositivos: number };
+  }
+
+  /** CK10 — últimas entregas del propio usuario (para ver el resultado de la prueba). */
+  async misEntregas(limite = 5): Promise<{ estado: string; motivo: string | null; titulo: string | null; created_at: string }[]> {
+    const { data, error } = await this.supabase.client.rpc('mis_notif_entregas', { p_limite: limite });
+    if (error) return [];
+    return (data ?? []) as { estado: string; motivo: string | null; titulo: string | null; created_at: string }[];
+  }
+
   /** Loads the 30 most recent notifications for the current user. RLS scopes
    *  the result to usuario_id = auth.uid(), so no explicit filter is needed.
    *  AT23 — oculta los tipos que el usuario silenció. */

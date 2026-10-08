@@ -271,11 +271,29 @@ export class SalidasService {
     this.notificaciones.refresh();
   }
 
-  /** Choferes elegibles para transferir/asignar (reusa el picker de conductores). */
+  /** Choferes elegibles para transferir/asignar/alta de salida.
+   *  CK6 — usa `choferes_activos` (misma fuente que la app) y mapea `conductor_id → id`.
+   *  Antes usaba `conductores_para_multa`, que devuelve `conductor_id` y NO `id`: el casteo
+   *  dejaba `id` en `undefined`, el `<option [value]>` valía "undefined" y ese texto llegaba
+   *  a un parámetro uuid → "invalid input syntax for type uuid: undefined" al transferir. */
   async getConductoresPicker(): Promise<{ id: string; nombre: string }[]> {
-    const { data, error } = await this.supabase.client.rpc('conductores_para_multa');
+    const { data, error } = await this.supabase.client.rpc('choferes_activos');
     if (error) return [];
-    return (data ?? []) as { id: string; nombre: string }[];
+    return ((data ?? []) as { conductor_id: string; nombre: string }[])
+      .filter((c) => !!c.conductor_id)
+      .map((c) => ({ id: c.conductor_id, nombre: c.nombre }));
+  }
+
+  /** CK4 — asigna/cambia quién recibe (receptor) después de crear el conduce.
+   *  p_forzar solo lo respeta el servidor para elevados con un receptor fuera de la obra. */
+  async asignarReceptor(salidaId: string, usuarioId: string, forzar = false): Promise<void> {
+    const { error } = await this.supabase.client.rpc('conduce_asignar_receptor', {
+      p_salida_id: salidaId,
+      p_usuario_id: usuarioId,
+      p_forzar: forzar,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
   }
 
   /** AT16 — receptores elegibles para confirmar la entrega en una obra (rol/vínculo).
