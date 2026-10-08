@@ -144,6 +144,22 @@
       &:hover { border-color: var(--sgc-danger, #b91c1c); background: color-mix(in srgb, var(--sgc-danger, #b91c1c) 10%, var(--sgc-surface, #fff)); }
     }
   }
+
+  &__textarea {
+    width: 100%;
+    margin: 4px 0 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--sgc-border, #e2e5ea);
+    border-radius: var(--sgc-radius-md, 10px);
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text, inherit);
+    font: inherit;
+    font-size: 13.5px;
+    resize: vertical;
+    &:focus { outline: none; border-color: var(--Hub, #ffb300); }
+  }
+
+  &__row { display: flex; gap: 10px; flex-wrap: wrap; }
 }
 
 @media (max-width: 768px) {

@@ -22,6 +22,20 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/verificar/verificar').then((m) => m.Verificar),
   },
   {
+    // CI4 — eliminación de cuenta pública (con formulario). Debe ir ANTES de
+    // 'politicas/:doc' para ganar el match del path estático.
+    path: 'politicas/eliminar-cuenta',
+    loadComponent: () =>
+      import('./pages/politicas/eliminar-cuenta/eliminar-cuenta').then((m) => m.EliminarCuenta),
+    title: 'Eliminar cuenta · Constructora SD',
+  },
+  {
+    // CI2 — páginas legales públicas (sin login): privacidad, términos, soporte.
+    // Renderizan assets/politicas/<doc>.md. Patrón: fuera del Shell (como verificar).
+    path: 'politicas/:doc',
+    loadComponent: () => import('./pages/politicas/politicas').then((m) => m.Politicas),
+  },
+  {
     path: '',
     loadComponent: () => import('../shared/components/shell/shell').then((m) => m.Shell),
     canActivate: [authGuard],

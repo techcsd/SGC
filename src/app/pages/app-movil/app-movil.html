@@ -13,37 +13,69 @@
   <!-- Android -->
   <section class="am-card">
     <h2 class="am-card__title"><app-icon name="smartphone" [size]="18" /> Android</h2>
-    @if (loading()) {
-      <app-skeleton variant="list" [rows]="3" />
-    } @else if (info(); as v) {
-      <p class="am-version">Versión {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} MB</p>
-      <p class="am-changelog">{{ v.changelog }}</p>
-      <a class="sgc-btn sgc-btn--primary am-download" [href]="v.url" download><app-icon name="download" [size]="16" /> Descargar APK</a>
-      <img class="am-qr" [src]="apkQr()" alt="QR para descargar el APK" />
-      <p class="am-hint">Escanea el código con el teléfono para descargar e instalar.</p>
-      <ol class="am-steps">
-        <li>Abre el archivo descargado.</li>
-        <li>Si te lo pide, permite “instalar de orígenes desconocidos”.</li>
-        <li>Instala y abre CSD App. Entra con tu usuario del sistema.</li>
-      </ol>
-    } @else {
-      <p class="am-muted">Aún no hay un APK publicado.</p>
+
+    <!-- CI1/CI7 — canal oficial: Google Play (cuando exista la ficha). -->
+    @if (playStoreUrl(); as play) {
+      <!-- Xaviel: reemplazar por el badge oficial de Google Play cuando suba la ficha (asset oficial, sin modificar). -->
+      <a class="am-badge" [href]="play" target="_blank" rel="noopener" aria-label="Disponible en Google Play">
+        <app-icon name="smartphone" [size]="20" />
+        <span><small>Disponible en</small><strong>Google Play</strong></span>
+      </a>
+      <img class="am-qr" [src]="playQr()" alt="QR de Google Play" />
+      <p class="am-hint">Escanea para abrir la ficha en Google Play.</p>
     }
+
+    <!-- Canal APK (teléfonos sin Google Play). Secundario cuando Play existe. -->
+    <div class="am-apk" [class.am-apk--secondary]="playStoreUrl()">
+      @if (playStoreUrl()) {
+        <h3 class="am-sub">Teléfonos sin Google Play</h3>
+      }
+      @if (loading()) {
+        <app-skeleton variant="list" [rows]="3" />
+      } @else if (info(); as v) {
+        <p class="am-version">Versión {{ v.versionName }} · {{ sizeMb | number: '1.1-1' }} MB</p>
+        @if (!playStoreUrl()) { <p class="am-changelog">{{ v.changelog }}</p> }
+        <a class="sgc-btn sgc-btn--primary am-download" [href]="v.url" download><app-icon name="download" [size]="16" /> Descargar APK</a>
+        @if (!playStoreUrl()) {
+          <img class="am-qr" [src]="apkQr()" alt="QR para descargar el APK" />
+          <p class="am-hint">Escanea el código con el teléfono para descargar e instalar.</p>
+        }
+        <ol class="am-steps">
+          <li>Abre el archivo descargado.</li>
+          <li>Si te lo pide, permite “instalar de orígenes desconocidos”.</li>
+          <li>Instala y abre CSD App. Entra con tu usuario del sistema.</li>
+        </ol>
+      } @else {
+        <p class="am-muted">Aún no hay un APK publicado.</p>
+      }
+    </div>
   </section>
 
   <!-- iPhone -->
   <section class="am-card">
-    <h2 class="am-card__title"> iPhone / iPad</h2>
-    <p class="am-changelog">En iPhone se instala como app web (PWA), sin App Store.</p>
-    <a class="sgc-btn sgc-btn--primary am-download" [href]="pwaUrl" target="_blank" rel="noopener">
-      Abrir app web
-    </a>
-    <img class="am-qr" [src]="pwaQr()" alt="QR para abrir la app web" />
-    <p class="am-hint">Escanea con el iPhone, o abre <b>{{ pwaUrl }}</b> en Safari.</p>
-    <ol class="am-steps">
-      <li>Abre el enlace en <b>Safari</b>.</li>
-      <li>Toca “Compartir” → “Añadir a pantalla de inicio”.</li>
-      <li>Ábrela desde el ícono. Entra con tu usuario del sistema.</li>
-    </ol>
+    <h2 class="am-card__title"><app-icon name="smartphone" [size]="18" /> iPhone</h2>
+
+    @if (appStoreUrl(); as store) {
+      <!-- CI1/CI7 — canal oficial: App Store. Xaviel: reemplazar por el badge oficial de Apple cuando suba la ficha. -->
+      <a class="am-badge" [href]="store" target="_blank" rel="noopener" aria-label="Descárgala en el App Store">
+        <app-icon name="smartphone" [size]="20" />
+        <span><small>Descárgala en el</small><strong>App Store</strong></span>
+      </a>
+      <img class="am-qr" [src]="appStoreQr()" alt="QR del App Store" />
+      <p class="am-hint">Escanea con el iPhone para abrir la ficha en el App Store.</p>
+    } @else {
+      <!-- Fallback PWA (mientras no exista la ficha del App Store). -->
+      <p class="am-changelog">En iPhone se instala como app web (PWA), sin App Store.</p>
+      <a class="sgc-btn sgc-btn--primary am-download" [href]="pwaUrl" target="_blank" rel="noopener">
+        Abrir app web
+      </a>
+      <img class="am-qr" [src]="pwaQr()" alt="QR para abrir la app web" />
+      <p class="am-hint">Escanea con el iPhone, o abre <b>{{ pwaUrl }}</b> en Safari.</p>
+      <ol class="am-steps">
+        <li>Abre el enlace en <b>Safari</b>.</li>
+        <li>Toca “Compartir” → “Añadir a pantalla de inicio”.</li>
+        <li>Ábrela desde el ícono. Entra con tu usuario del sistema.</li>
+      </ol>
+    }
   </section>
 </div>

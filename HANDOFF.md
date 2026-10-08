@@ -1,6 +1,28 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-84 (Ronda CH — IDs CH1-CH3) — 06/10/2026 — ✅ SHIPPED A PROD web 1.154.0 (Xaviel: "promote to prod").
+## TL;DR — PROMPT-86 (Ronda CI — tiendas, mitad padre) — 07/10/2026 — 🧪 EN DEV web **1.155.0** (NADA en prod).
+Rama `feature/ci-tiendas` → `dev` (push **`d063592`**). Flujo: `dev → para → Xaviel prueba en dev.sgcconstructorasd.com → OK → prod`. **Build + guards verdes.** Mitad app = **PROMPT-87** (hijo, lo hace Xaviel en otra ventana).
+
+**Aplicado a DEV (ledger) — 7 migraciones:** `ci3-aceptaciones-politicas`, `ci10-consentimientos`, `ci4-solicitudes-eliminacion`, `ci5-tracking-por-estado`, `ci11-revisor-tiendas`, `ci11b-es-prueba-escape-testuser`, `ci8-store-urls-param`. **6 edges desplegadas a dev:** `assistant`, `leer-recibo`, `transcribe-now`, `transcribe-audio`, `solicitar-eliminacion` (nueva, pública), `admin-procesar-eliminacion` (nueva).
+
+**Hecho (todas las fases del PROMPT-86):**
+- **CI13** `docs/DATOS-Y-TERCEROS.md` (inventario vivo) + regla 14 en `CLAUDE.md` + `docs/PARIDAD.md`. Hallé **Resend** y **Google Maps Platform** no listados en el CONTEXTO → añadidos. Región prod/dev = **us-east-1 (EE.UU.)**.
+- **CI2** `/politicas/{privacidad,terminos,soporte,eliminar-cuenta}` públicas (md en `src/assets/politicas/*.md`, front-matter `version`/`estado`, banda **BORRADOR** hasta OK de Sonia).
+- **CI3** `sgc.aceptaciones_politicas` + `politicas_pendientes()`/`aceptar_politica()` + `<app-policy-gate>` post-login + enlaces pie login/Config. Smoke OK.
+- **CI4** `sgc.solicitudes_eliminacion_cuenta` + RPCs + edge pública (honeypot/throttle) + edge admin (anonimiza+banea+borra foto) + bandeja `admin/solicitudes-eliminacion` + botón en Config › Privacidad. Smoke edge pública OK.
+- **CI10** `sgc.consentimientos` + RPCs + `tiene_consentimiento`; 4 edges IA → **403 `sin_consentimiento_ia`** (assistant exento por WhatsApp); `transcribe-audio` salta no-consentidos. Hoja `consentimiento-ia` en asistente + toggle Config. Smoke RPCs OK.
+- **CI5 (servidor)** `registrar_posiciones` descarta lote si chofer **explícitamente** Inactivo (`gps_ingesta_log.desc_inactivo`; ausencia de fila NO bloquea → no regresiona chofer_privado/nuevos); `mi_config_tracking` +`estado` +`rastrear`; param `tracking_auto_inactivo_hora` (null) + cron `auto-inactivar-choferes`. Smoke OK.
+- **CI11** rol `revisor_tiendas` + `es_revisor_tiendas()` + **política RESTRICTIVA `revisor_solo_demo` `(not es_revisor) or es_prueba` en toda tabla con `es_prueba`** (DO-loop); **ci11b** unifica el escape `usuario_actual_es_prueba()` en las 29 políticas es_prueba que solo escapaban para admin. Data-fix `scripts/data-fixes/2026-10-07-ci11-obra-demo.mjs` (OBRA DEMO + vehículo/conductor/5 personal/3 bitácoras; conduces omitidos por check-constraint). **Verificado: revisor ve 0 datos reales; usuario normal sigue sin ver prueba.** Credenciales en `.env.local` (`STORE_REVIEW_*_DEV`, no impresas).
+- **CI1/7/8** params `play_store_url`/`app_store_url` + insignias en `/app-movil` (badge texto, 👤 falta asset oficial) + entradas en `parametros-catalogo` (grupo Integraciones). `app-movil.ts` ahora toma el host de `environment.supabaseUrl` (quitado ref prod hardcodeado).
+- **CI15** web ya migrada a Google Maps (0 teselas OSM) → **no-op**; higiene OSM solo app (PROMPT-87).
+
+**👤 Pendientes de Xaviel:** (1) probar en dev → promover a prod (PR `dev→main`; migraciones `--env prod` ya gateadas por ledger dev; **correr el data-fix `--env prod`** para generar la obra demo + creds `*_PROD`). (2) **Sonia** revisa privacidad/términos → `estado: vigente`. (3) Rellenar `[[COMPLETAR: RNC]]` / `[[COMPLETAR: dirección]]` en los .md. (4) D-U-N-S + cuentas de tienda; pegar URLs en Admin › Parámetros; dar creds del revisor a las consolas. (5) Video ≤30 s de ubicación en 2.º plano para Play.
+
+**Gotchas de esta ronda:** un *fork* de `app-movil` se desvió a CI10/3/4 (una sesión previa YA había dejado `privacidad.service.ts`+`consentimiento-ia`+wiring, commiteados) → lo paré, borré mis duplicados (`cumplimiento.service`/`ia-consent`), repunté `policy-gate` a `PrivacidadService`. **Lección: al reanudar, grep de servicios/componentes existentes ANTES de crear.** El guard `verify-no-ai-tropes` bloquea `©`/`👤` en HTML (usar `&copy;`/texto). `conductores`/`personal_obra` tienen muchas cols NOT NULL (el data-fix usa `where-not-exists`, no `on-conflict` en conductores).
+
+---
+
+## [HISTORIAL] PROMPT-84 (Ronda CH — IDs CH1-CH3) — 06/10/2026 — ✅ SHIPPED A PROD web 1.154.0 (Xaviel: "promote to prod").
 `dev → main` `e722732` + push (Vercel prod deploy disparado). **Build + guards verdes.** **3 migraciones en el ledger de PROD** (ch1, ch2, ch3) — **verificadas por objeto**: `validar_km_vehiculo` + `listar_proveedores_para_flota` + trigger `trg_mant_avanzar_odometro`, `mantenimientos.proveedor_id`, `mantenimiento_adjuntos.descripcion`, umbrales `km_dia_max`/`horas_dia_max`, y **`crear_mantenimiento_app` con 1 solo overload (14-arg canónica)**. (Todo pasó primero por dev, regla 18.) Matriz filas **138-140 → ✅**. Mitad app = PROMPT-85.
 
 > **⚠️ REGLA 19 — hallazgo clave durante la promoción:** prod **y dev** ya tenían `crear_mantenimiento_app` en **13-arg** (versión rica AL7: no-elevado solo registra su vehículo en uso, tipos extendidos, aviso al jefe de flota) — NO el 10-arg que supuse. La 1ª versión de ch2 añadió por error un overload **12-arg simplificado** en dev (ambiguo + habría regresado la lógica de prod si llegaba a reemplazarla). **Reconciliado:** ch2 ahora dropea TODOS los overloads (10/12/13) y deja UNA sola canónica = 13-arg íntegra + `p_proveedor_id` (14-arg), idéntica en ambos entornos. Verificado por objeto en prod (1 overload) + smoke dev (resuelve nombre por proveedor_id, persiste costo/notas/tipo). **Lección repetida: verificar prod POR OBJETO antes de dropear/reemplazar funciones.**

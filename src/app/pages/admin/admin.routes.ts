@@ -102,4 +102,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./usuarios-duplicados/usuarios-duplicados').then((m) => m.AdminUsuariosDuplicados),
     title: 'Usuarios duplicados — Administración',
   },
+  {
+    // CI4 — bandeja de solicitudes de eliminación de cuenta (admin procesa/anonimiza).
+    path: 'solicitudes-eliminacion',
+    loadComponent: () => import('./solicitudes-eliminacion/solicitudes-eliminacion').then((m) => m.AdminSolicitudesEliminacion),
+    title: 'Solicitudes de eliminación — Administración',
+  },
 ];

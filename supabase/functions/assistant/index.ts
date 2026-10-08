@@ -838,6 +838,7 @@ Deno.serve(async (req: Request) => {
   try { payload = await req.json(); } catch { return json({ error: "Body inválido" }, 400); }
 
   let authHeader = req.headers.get("Authorization");
+  let viaWhatsapp = false;
 
   // ── BJ2 — Modo WhatsApp: el puente n8n llama con un secreto compartido + el
   // teléfono del remitente. Resolvemos el teléfono a un usuario SGC (lista blanca)
@@ -867,6 +868,7 @@ Deno.serve(async (req: Request) => {
     const vj = await vres.json().catch(() => null);
     if (!vj?.access_token) return json({ reply: "No pude abrir tu sesión de Compa. Reinténtalo." });
     authHeader = `Bearer ${vj.access_token}`;
+    viaWhatsapp = true;
     // Conversación efímera por mensaje (Q&A). El resto del flujo es idéntico.
     payload = { mensaje: mensajeWa };
   }
@@ -883,6 +885,18 @@ Deno.serve(async (req: Request) => {
   const modulos: string[] = Array.isArray(cap.modulos) ? cap.modulos : [];
   const roles: string[] = Array.isArray(cap.roles) ? cap.roles : [];
   const capObj: Cap = { usuario_id: cap.usuario_id, nombre: cap.nombre ?? "Usuario", es_admin: !!cap.es_admin, modulos, roles };
+
+  // ── CI10 — consentimiento de IA explícito (Anthropic). Verificado en servidor.
+  // No aplica al puente WhatsApp (canal fuera de tiendas, sin hoja de consentimiento).
+  if (!viaWhatsapp) {
+    const { data: consentOk } = await supabase.rpc("mi_consentimiento", { p_tipo: "ia" });
+    if (!consentOk) {
+      return json({
+        error: "Para usar el asistente con inteligencia artificial, primero actívalo en Perfil › Privacidad.",
+        error_code: "sin_consentimiento_ia",
+      }, 403);
+    }
+  }
 
   // ── Branch CONFIRMAR: ejecuta la acción preparada (mismo RPC del flujo normal) ──
   if (payload.ejecutar) {

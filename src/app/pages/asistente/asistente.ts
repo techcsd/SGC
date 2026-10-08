@@ -1,6 +1,8 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, ElementRef, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AsistenteService, AsistenteMensaje, AsistenteConversacion, AsistentePropuesta } from '../../../shared/services/asistente.service';
+import { ConsentimientoIA } from '../../../shared/ui/consentimiento-ia/consentimiento-ia';
+import { PrivacidadService } from '../../../shared/services/privacidad.service';
 
 /**
  * AW4 — "Compa", el asistente conversacional de SGC (v1 solo-lectura). La UI es
@@ -9,13 +11,18 @@ import { AsistenteService, AsistenteMensaje, AsistenteConversacion, AsistentePro
  */
 @Component({
   selector: 'app-asistente',
-  imports: [FormsModule],
+  imports: [FormsModule, ConsentimientoIA],
   templateUrl: './asistente.html',
   styleUrl: './asistente.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Asistente implements OnInit {
   private service = inject(AsistenteService);
+  private privacidad = inject(PrivacidadService);
+
+  // CI10 — consentimiento de IA: null = aún sin saber, false = debe decidir.
+  consentIA = signal<boolean | null>(null);
+  mostrarConsentimiento = signal(false);
 
   private scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('anchor');
   private composer = viewChild<ElementRef<HTMLTextAreaElement>>('composer');
@@ -45,6 +52,11 @@ export class Asistente implements OnInit {
   subtitulo = signal('Tu asistente de SGC — responde con datos reales, según lo que tú puedes ver.');
 
   async ngOnInit() {
+    // CI10 — consentimiento de IA: si no lo otorgó, muestra la hoja antes del primer uso.
+    void this.privacidad.miConsentimiento('ia').then((ok) => {
+      this.consentIA.set(ok);
+      if (!ok) this.mostrarConsentimiento.set(true);
+    }).catch(() => this.consentIA.set(null));
     // BA3 — carga los chips/saludo del rol; no bloquea el resto si falla.
     void this.service.sugerenciasPorRol().then((s) => {
       if (s.chips.length) this.sugerencias.set(s.chips);
@@ -116,9 +128,20 @@ export class Asistente implements OnInit {
     void this.enviar();
   }
 
+  /** CI10 — decisión de la hoja de consentimiento de IA. */
+  onConsentDecidido(ok: boolean) {
+    this.consentIA.set(ok);
+    this.mostrarConsentimiento.set(false);
+  }
+
   async enviar() {
     const texto = this.input().trim();
     if (!texto || this.enviando()) return;
+    // CI10 — sin consentimiento de IA no se envía; se ofrece la hoja.
+    if (this.consentIA() === false) {
+      this.mostrarConsentimiento.set(true);
+      return;
+    }
     const convKeyAntes = this.conversacionId();
     this.error.set('');
     this.propuesta.set(null);

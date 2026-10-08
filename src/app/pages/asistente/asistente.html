@@ -131,4 +131,7 @@
       </button>
     </form>
   </section>
+
+  <!-- CI10 — hoja de consentimiento de IA (antes del primer uso). -->
+  <app-consentimiento-ia [visible]="mostrarConsentimiento()" (decidido)="onConsentDecidido($event)" />
 </div>

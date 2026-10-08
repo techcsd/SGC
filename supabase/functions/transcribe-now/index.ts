@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // AZ5 — Transcripción SÍNCRONA de una nota de voz (para Compa en la app móvil).
 //
@@ -57,6 +58,25 @@ Deno.serve(async (req: Request) => {
       { error: "stt_not_configured", message: "El dictado por voz aún no está configurado. Avísale a Tecnología." },
       503,
     );
+  }
+
+  // CI10 — consentimiento de IA explícito (Groq/OpenAI). Verificado en servidor.
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (authHeader) {
+    const uc = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: u } = await uc.auth.getUser();
+    if (u?.user) {
+      const { data: consentOk } = await uc.schema("sgc").rpc("mi_consentimiento", { p_tipo: "ia" });
+      if (!consentOk) {
+        return json({
+          error: "sin_consentimiento_ia",
+          error_code: "sin_consentimiento_ia",
+          message: "Para transcribir notas de voz con inteligencia artificial, primero actívalo en Perfil › Privacidad.",
+        }, 403);
+      }
+    }
   }
 
   // Lee el audio del multipart. Aceptamos `file` (nuestro estándar) o `audio`

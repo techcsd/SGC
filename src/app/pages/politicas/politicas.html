@@ -1,0 +1,48 @@
+<div class="pol">
+  <div class="pol__card">
+    <header class="pol__head">
+      <div class="pol__brand">
+        <img src="assets/imgs/logos/csd-no-bg-logo-white.png" alt="Constructora SD" />
+      </div>
+
+      @if (meta(); as m) {
+        <h1 class="pol__titulo">{{ m.titulo }}</h1>
+        <div class="pol__sub">
+          @if (m.version) { <span>Versión {{ m.version }}</span> }
+          @if (m.vigencia) { <span>·</span><span>Vigencia: {{ m.vigencia }}</span> }
+        </div>
+        @if (m.estado === 'borrador') {
+          <div class="pol__borrador" role="status">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 9v4"/><path d="M12 17h.01"/>
+              <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+            BORRADOR — pendiente de revisión legal
+          </div>
+        }
+      }
+    </header>
+
+    @if (loading()) {
+      <p class="pol__msg">Cargando…</p>
+    } @else if (notFound()) {
+      <p class="pol__msg">Este documento no existe. Visita
+        <a href="/politicas/privacidad">privacidad</a>,
+        <a href="/politicas/terminos">términos</a> o
+        <a href="/politicas/soporte">soporte</a>.</p>
+    } @else {
+      <article class="pol__body" [innerHTML]="html()"></article>
+      <div class="pol__acciones">
+        <button type="button" class="pol__print" (click)="imprimir()">Imprimir</button>
+      </div>
+    }
+
+    <footer class="pol__pie">
+      <nav class="pol__links">
+        <a href="/politicas/privacidad">Privacidad</a>
+        <a href="/politicas/terminos">Términos</a>
+        <a href="/politicas/soporte">Soporte</a>
+      </nav>
+      <p>&copy; Constructora SD · <a href="https://sgcconstructorasd.com">sgcconstructorasd.com</a></p>
+    </footer>
+  </div>
+</div>
