@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.157.0';
-export const APP_VERSION_TITULO: string | null = "Asignar un conduce externo desde la requisición, y movimiento más fluido (transiciones entre pantallas)";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Inventario","d":"Desde la ventana de una requisición puedes «Asignar conduce externo»: crear uno nuevo con transportista externo (prellenado) o vincular uno ya emitido. Cuenta en el avance sin descontar dos veces."},{"t":"mejora","m":"General","d":"La app se siente más fluida: las pantallas cambian con una transición suave. Se puede ajustar en Configuración › Apariencia › Animaciones (Completas / Reducidas), y respeta la preferencia de «menos movimiento» del dispositivo."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/08f2d7e";
+export const APP_VERSION = '1.158.0';
+export const APP_VERSION_TITULO: string | null = "Animación al crear un conduce";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"Inventario","d":"Al crear un conduce aparece una breve animación de confirmación (la hoja con el sello «Emitido» y un check) con el destino y un botón «Ver conduce». No interrumpe: se puede saltar tocando, y respeta el ajuste de Animaciones."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/62c1fe3";

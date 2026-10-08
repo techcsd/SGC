@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.158.0": {
+      "titulo": "Animación al crear un conduce",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Al crear un conduce aparece una breve animación de confirmación (la hoja con el sello «Emitido» y un check) con el destino y un botón «Ver conduce». No interrumpe: se puede saltar tocando, y respeta el ajuste de Animaciones."
+        }
+      ]
+    },
     "1.157.0": {
       "titulo": "Asignar un conduce externo desde la requisición, y movimiento más fluido (transiciones entre pantallas)",
       "cambios": [
