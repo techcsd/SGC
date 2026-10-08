@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.159.0": {
+      "titulo": "Salidas: ya se ve quién registró cada salida",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Inventario",
+          "d": "En Salidas, la columna «Registrado por» ya muestra el nombre aunque quien registró sea un conductor que tu rol normalmente no ve (antes salía un guion)."
+        }
+      ]
+    },
     "1.158.0": {
       "titulo": "Animación al crear un conduce",
       "cambios": [
