@@ -29,7 +29,7 @@
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 226 | 0 | 226 | 0% |
+| admin/usuarios | - | 234 | 0 | 234 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | app-movil | - | 41 | 0 | 41 | 0% |

@@ -43,6 +43,14 @@
     <option value="active">Activos</option>
     <option value="inactive">Inactivos</option>
   </select>
+  <!-- CK9 — filtro por rol (multi, con búsqueda y conteo) -->
+  <app-filter-select
+    label="Rol"
+    [multiple]="true"
+    [options]="rolOptions()"
+    [values]="selectedRoles()"
+    (valuesChange)="onRolesChange($event)"
+  />
 </div>
 
 <!-- Loading -->
@@ -111,7 +119,9 @@
             <td>
               <div class="admin-usuarios__roles">
                 @for (ur of usuario.roles.slice(0, 2); track ur.rol.id) {
-                  <span class="sgc-badge sgc-badge--info">{{ ur.rol.nombre }}</span>
+                  <button type="button" class="sgc-badge sgc-badge--info admin-usuarios__rol-chip"
+                    (click)="filtrarPorRol(ur.rol.codigo, $event)"
+                    [title]="'Filtrar por ' + ur.rol.nombre">{{ ur.rol.nombre }}</button>
                 } @empty {
                   <span class="sgc-badge sgc-badge--neutral">Sin rol</span>
                 }
@@ -187,15 +197,27 @@
     <button type="button" role="menuitem" (click)="openEdit(u); closeMenu()">Editar</button>
     <button type="button" role="menuitem" (click)="verAccesos(u); closeMenu()"
       title="Suma real de accesos (módulos/submódulos/nivel) de todos los roles del usuario.">Ver accesos efectivos</button>
-    <!-- CG8 — crear/vincular ficha de conductor desde el usuario -->
-    <button type="button" role="menuitem" (click)="abrirHacerConductor(u)"
-      title="Crea (o reutiliza) una ficha de conductor para este usuario y le asigna un rol de chofer.">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
-        <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
-      </svg>
-      {{ u.conductores?.length ? 'Ver/convertir en conductor' : 'Hacer conductor' }}
-    </button>
+    <!-- CG8/CK7 — ya es conductor: ver ficha; si no, crear/vincular ficha de conductor -->
+    @if (conductorDe(u); as c) {
+      <button type="button" role="menuitem" (click)="irAConductor(c.id); closeMenu()"
+        title="Este usuario ya es conductor — abre su ficha.">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
+          <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
+        </svg>
+        Ver ficha de conductor
+      </button>
+      <span class="admin-usuarios__menu-hint">Este usuario ya es conductor</span>
+    } @else {
+      <button type="button" role="menuitem" (click)="abrirHacerConductor(u)"
+        title="Crea (o reutiliza) una ficha de conductor para este usuario y le asigna un rol de chofer.">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.4"/>
+          <line x1="12" y1="14.4" x2="12" y2="22"/><line x1="10" y1="11" x2="3" y2="8.5"/><line x1="14" y1="11" x2="21" y2="8.5"/>
+        </svg>
+        Hacer conductor
+      </button>
+    }
     @if (u.pendiente) {
       <button type="button" role="menuitem" (click)="resendInvite(u); closeMenu()"
         [disabled]="resettingId() === u.id"><app-icon name="mail" [size]="16" /> Reenviar invitación</button>
@@ -307,7 +329,11 @@
       <!-- Vínculo a perfil de conductor -->
       @if (conductorDe(u); as c) {
         <div class="admin-usuarios__detail-section">
-          <span class="admin-usuarios__detail-label">Perfil de conductor</span>
+          <span class="admin-usuarios__detail-label">
+            Perfil de conductor
+            <!-- CK7 — ya es conductor: chip con el tipo (privado/flota) -->
+            <span class="sgc-badge sgc-badge--success">Ya es conductor · {{ tipoConductorLabel(u) }}</span>
+          </span>
           <button type="button" class="sgc-btn sgc-btn--ghost" (click)="irAConductor(c.id)">
             <app-icon name="truck" [size]="16" /> Ver perfil de {{ c.nombre }}
           </button>
