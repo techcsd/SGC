@@ -284,6 +284,18 @@ export class SalidasService {
       .map((c) => ({ id: c.conductor_id, nombre: c.nombre }));
   }
 
+  /** CK4 — asigna/cambia quién recibe (receptor) después de crear el conduce.
+   *  p_forzar solo lo respeta el servidor para elevados con un receptor fuera de la obra. */
+  async asignarReceptor(salidaId: string, usuarioId: string, forzar = false): Promise<void> {
+    const { error } = await this.supabase.client.rpc('conduce_asignar_receptor', {
+      p_salida_id: salidaId,
+      p_usuario_id: usuarioId,
+      p_forzar: forzar,
+    });
+    if (error) throw new Error(error.message);
+    this.notificaciones.refresh();
+  }
+
   /** AT16 — receptores elegibles para confirmar la entrega en una obra (rol/vínculo).
    *  Paridad con la app: al emitir el conduce se puede designar quién lo recibirá. */
   async getReceptoresDisponibles(

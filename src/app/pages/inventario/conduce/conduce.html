@@ -89,6 +89,43 @@
   </div>
 }
 
+<!-- CK4 — Asignar / Cambiar "Entregar a" (receptor) -->
+@if (receptorOpen()) {
+  <div class="conduce-modal no-print" (click)="receptorOpen.set(false)">
+    <div class="conduce-modal__panel" (click)="$event.stopPropagation()">
+      <h2>Entregar a</h2>
+      <p class="conduce-modal__sub">Elige quién confirmará la entrega del conduce {{ numeroConduce }} en la obra.</p>
+      @if (!receptorOtroMode()) {
+        <div class="sgc-field">
+          <label for="rc-receptor">Receptor de la obra</label>
+          <select id="rc-receptor" [value]="selReceptor()" (change)="selReceptor.set($any($event.target).value || null)">
+            <option value="">— Selecciona receptor —</option>
+            @for (r of receptoresPicker(); track r.id) {
+              <option [value]="r.id">{{ r.nombre }}@if (r.detalle) { — {{ r.detalle }} }</option>
+            }
+          </select>
+        </div>
+        @if (esElevado()) {
+          <button type="button" class="conduce-modal__link" (click)="receptorOtroMode.set(true)">Buscar otro usuario…</button>
+        }
+      } @else {
+        <div class="sgc-field">
+          <label>Otro usuario (fuera de la obra)</label>
+          <app-user-picker [allowOtro]="false" [value]="receptorOtroId()" (selected)="onReceptorOtro($event)" placeholder="Buscar usuario…" />
+          <p class="conduce-modal__warn">Este usuario no está vinculado a la obra del conduce. Se asignará igual (queda auditado).</p>
+        </div>
+        <button type="button" class="conduce-modal__link" (click)="receptorOtroMode.set(false); receptorOtroId.set(null)">Volver a la lista de la obra</button>
+      }
+      <div class="conduce-modal__foot">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="receptorOpen.set(false)" [disabled]="receptorBusy()">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarAsignarReceptor()" [disabled]="receptorBusy()">
+          {{ receptorBusy() ? 'Asignando…' : 'Asignar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 <!-- AY4 — banner de dato de prueba (visible solo a admin; el resto no ve estas filas) -->
 @if (salida()?.es_prueba) {
   <div class="conduce-prueba-banner no-print" role="note">
@@ -191,7 +228,7 @@
         <div class="sgc-field">
           <label>Firma de quien entrega <span class="required">*</span></label>
           <app-signature-pad #firmaEmisorPad ariaLabel="Firma de quien entrega" />
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaEmisorPad.clear()">Limpiar firma</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="firmaEmisorPad.clear()">Limpiar firma</button>
         </div>
       }
     </fieldset>
@@ -212,7 +249,7 @@
       <div class="sgc-field">
         <label>Firma de quien recibe <span class="required">*</span></label>
         <app-signature-pad #firmaPad ariaLabel="Firma de quien recibe" />
-        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="firmaPad.clear()">Limpiar firma</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="firmaPad.clear()">Limpiar firma</button>
       </div>
     </fieldset>
 
@@ -233,7 +270,7 @@
       @if (fotoCierrePreview(); as prev) {
         <div class="conduce-cierre__foto">
           <img [src]="prev" alt="Foto de entrega" />
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarFotoCierre()">Quitar</button>
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="quitarFotoCierre()">Quitar</button>
         </div>
       } @else {
         <label class="sgc-btn sgc-btn--secondary sgc-btn--sm conduce-cierre__foto-pick">
@@ -306,6 +343,22 @@
       <div>
         <span class="conduce__label">Responsable que recibe</span>
         <span>{{ s.responsable ?? '—' }}</span>
+      </div>
+      <!-- CK4 — "Entregar a": quién confirma la recepción en obra (asignable después) -->
+      <div class="no-print">
+        <span class="conduce__label">Entregar a</span>
+        <span class="conduce__entregar-a">
+          @if (receptorActual(); as r) {
+            {{ r }}
+          } @else {
+            <span class="sgc-badge sgc-badge--warning">Sin asignar</span>
+          }
+          @if (puedeAsignarReceptor()) {
+            <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirAsignarReceptor()">
+              {{ receptorActual() ? 'Cambiar' : 'Asignar' }}
+            </button>
+          }
+        </span>
       </div>
       @if (despachanteNombre() || s.despachante_usuario_id) {
         <div>

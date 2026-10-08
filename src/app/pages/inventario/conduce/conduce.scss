@@ -420,4 +420,18 @@
   }
   &__sub { margin: 0 0 16px; color: var(--text-2); font-size: 0.85rem; }
   &__foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+  // CK4 — enlace de texto dentro del modal ("Buscar otro usuario…") + aviso de forzar.
+  &__link {
+    background: none; border: none; cursor: pointer; font: inherit; padding: 4px 0;
+    color: var(--sgc-accent, var(--Hub)); text-decoration: underline;
+  }
+  &__warn { margin: 6px 0 0; font-size: 0.78rem; color: var(--text-2); }
+}
+
+// CK4 — fila "Entregar a" en la ficha del conduce.
+.conduce__entregar-a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
