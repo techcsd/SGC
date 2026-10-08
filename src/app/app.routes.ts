@@ -221,12 +221,18 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/mi-rendimiento/mi-rendimiento').then((m) => m.MiRendimiento),
       },
       {
-        // AY11 — Solicitud de movimiento: sin gate de módulo (todo usuario autenticado
-        // puede crear/ver las suyas; la RLS + es_referente_movimiento gobiernan el resto).
-        path: 'solicitudes-movimiento',
-        title: 'Solicitud de movimiento',
+        // CK12 — "Apoyo de transporte" (evoluciona AY11): sin gate de módulo (todo usuario
+        // autenticado; RLS + es_referente_movimiento gobiernan el resto).
+        path: 'transporte/apoyo',
+        title: 'Apoyo de transporte',
         loadComponent: () =>
-          import('./pages/solicitudes-movimiento/solicitudes-movimiento').then((m) => m.SolicitudesMovimiento),
+          import('./pages/apoyo-transporte/apoyo-transporte').then((m) => m.ApoyoTransporte),
+      },
+      {
+        // La ruta vieja redirige al módulo nuevo (apps/enlaces guardados siguen).
+        path: 'solicitudes-movimiento',
+        redirectTo: 'transporte/apoyo',
+        pathMatch: 'full',
       },
       {
         // Personal + shared notes — no module gate, every authenticated user.

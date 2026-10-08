@@ -328,7 +328,7 @@ export class Shell implements OnInit {
       icon: 'ingenieria',
       showIfAnyChild: true,
       children: [
-        { label: 'Solicitud de movimiento', route: '/solicitudes-movimiento', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
+        { label: 'Apoyo de transporte', route: '/transporte/apoyo', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
         // Bitácora (módulo `bitacora`)
         { label: 'Nueva bitácora', route: '/bitacora/nueva', modulo: 'bitacora' },
         { label: 'Mis bitácoras', route: '/bitacora/historial', modulo: 'bitacora' },
