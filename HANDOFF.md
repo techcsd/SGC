@@ -1,7 +1,11 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — 🧪 **EN DEV (no prod)**: hotfix **1.159.1** + **1.160.0**
-Rama `feature/ck-ronda` → `dev` (merge `46520d2`). `main`/prod sigue en **1.159.0**. **Espera que Xaviel pruebe en dev y diga "sube".**
+## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — ✅ **SHIPPED PROD: 1.159.1 + 1.160.0** · 🧪 Apoyo de transporte (servidor) WIP en `feature/ck-apoyo`
+**Prod al día:** `main`=`dev`=`47be36c`, Vercel READY (sgcconstructorasd.com). 5 migraciones en ledger **prod** verificadas por objeto (ck8/ck4/ck10/ck3/ck3b) + edge `send-push` **v14** en prod + versiones 1.159.1 y 1.160.0 en `app_versiones`. (OK de Xaviel: "sube todo a produccion".)
+
+**🧪 WIP — Apoyo de transporte (CK11/12/13) SOLO SERVIDOR en `feature/ck-apoyo` (NO shippable: falta UI):** 3 migraciones en ledger **dev** (`ck12` esquema + `ck12b` RPCs + `ck12c` alinear planificar/trigger). Evoluciona `solicitudes_movimiento` (+`tipo_apoyo`/`dia`/`descripcion`/`retiro_material_id`; estados `pendiente/asignada/en_proceso/por_confirmar/completada/cancelada`; tablas `apoyo_transporte_fotos`/`_eventos`; bucket privado `apoyo-transporte`; RPCs `apoyo_transporte_crear/_agregar_foto/_cambiar_estado/_detalle/_listado`; helper `puede_ver_apoyo`). Smokes OK. **Falta para 1.161.0:** web del módulo (`pages/apoyo-transporte`), **CK14/15/16** (chofer reporta estado, tickets de Misael, "Mis choferes"), **videos CK5**, cierres CK1/CK2, chip "Sin receptor" (CK4 §5), enlace bg4 del retiro dañado. Nota #181 = CK14 default (Xaviel la completó: el chofer marca en camino/llegué/cargando/terminé).
+
+### [HISTORIAL CK — estado "en dev" previo al ship]
 
 **Hotfix 1.159.1** (rama `hotfix/ck6-transferir`, ya en dev): **CK6** transferir/asignar conduce ya no da `invalid input syntax for type uuid: "undefined"` (`getConductoresPicker` pasó de `conductores_para_multa` a `choferes_activos` con mapeo `conductor_id→id` + guard `esUuid`; tests 9/9); **CK8** autorizar chofer privado ya lista choferes (`directorio_usuarios_detalle` devuelve `roles_codigos text[]`; user-picker filtra por código, sin "Otro", empty-state). OK de Xaviel al hotfix ya dado → tras probar en dev, promover a prod + merge main→dev.
 

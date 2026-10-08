@@ -1,0 +1,59 @@
+// CK15 — bandeja de trabajos de transporte (kanban).
+.tt-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: var(--text-2); }
+}
+
+.tt-board {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.tt-col {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+
+  &__head {
+    padding: 10px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  &__count {
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 0.78rem;
+    color: var(--text-2);
+  }
+  &__body { padding: 10px; display: flex; flex-direction: column; gap: 10px; min-height: 60px; }
+  &__empty { color: var(--text-2); text-align: center; margin: 8px 0; }
+}
+
+.tt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__chips { display: flex; gap: 6px; }
+  &__desc { margin: 0; font-size: 0.88rem; }
+  &__meta { margin: 0; font-size: 0.76rem; color: var(--text-2); }
+  &__chofer { margin: 0; font-size: 0.78rem; }
+}
+
+.tt-form { display: flex; flex-direction: column; gap: 14px; }

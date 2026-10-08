@@ -32,6 +32,7 @@
 | admin/usuarios | - | 234 | 0 | 234 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
+| apoyo-transporte | - | 55 | 0 | 55 | 0% |
 | app-movil | - | 41 | 0 | 41 | 0% |
 | asistente | - | 23 | 0 | 23 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
@@ -106,6 +107,7 @@
 | mensajes/grupo-info | - | 55 | 0 | 55 | 0% |
 | mensajes | - | 118 | 0 | 118 | 0% |
 | mi-rendimiento | - | 34 | 0 | 34 | 0% |
+| mis-choferes | - | 16 | 0 | 16 | 0% |
 | notas/editor | - | 76 | 0 | 76 | 0% |
 | notas | - | 61 | 0 | 61 | 0% |
 | obra/avance | - | 108 | 0 | 108 | 0% |
@@ -150,6 +152,7 @@
 | tecnologia/qa | - | 114 | 0 | 114 | 0% |
 | tecnologia/reportes-errores | - | 89 | 0 | 89 | 0% |
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
+| trabajos-transporte | - | 31 | 0 | 31 | 0% |
 | verificar | - | 13 | 0 | 13 | 0% |
 | legal/expedientes | - | 100 | 3 | 97 | 3% |
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
