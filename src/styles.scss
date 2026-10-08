@@ -756,3 +756,20 @@ tr.row--link {
   }
   .no-print, .cl-report__actions, .cl-atender { display: none !important; }
 }
+
+// ── CJ1 — Movimiento: crossfade entre pantallas (View Transitions) ──────────────
+// El contenido entra con un fundido + subida de 8px (220ms). El menú lateral tiene
+// su propio view-transition-name para que NO parpadee en cada navegación.
+::view-transition-old(root) { animation: mv-out var(--motion-base, 220ms) var(--ease-out, ease) both; }
+::view-transition-new(root) { animation: mv-in var(--motion-base, 220ms) var(--ease-out, ease) both; }
+@keyframes mv-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes mv-out { from { opacity: 1; } to { opacity: 0; } }
+.shell-sidebar { view-transition-name: shell-sidebar; }
+
+// Respeto a "menos movimiento": sin crossfade entre pantallas.
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}
+html.motion-reduced {
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
+}

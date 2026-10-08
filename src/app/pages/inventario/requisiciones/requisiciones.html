@@ -511,8 +511,41 @@
                    [routerLink]="['/inventario/conduce-externo/nuevo']"
                    [queryParams]="{ requisicion: s.id, proyecto: s.proyecto_id, destino: s.proyecto?.nombre }">Comprar en ferretería</a>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincular()">Vincular conduce suelto…</button>
+                <!-- CJ5 — asignar un conduce EXTERNO (transportista de tercero) a esta requisición. -->
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVincularExterno()">Asignar conduce externo…</button>
                 <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarCancelar.set(true)">Cancelar…</button>
               </div>
+
+              @if (mostrarVincularExterno()) {
+                <div class="req-detail__vincular">
+                  <p class="req-detail__hint">Envía el material con un transportista externo o vincula un conduce externo ya emitido. Cuenta en el avance sin descontar dos veces.</p>
+                  <a class="sgc-btn sgc-btn--secondary sgc-btn--sm"
+                     [routerLink]="['/inventario/conduce-externo/nuevo']"
+                     [queryParams]="{ requisicion: s.id, proyecto: s.proyecto_id, destino: s.proyecto?.nombre }">
+                    Nuevo conduce externo…
+                  </a>
+                  @if (cargandoExternos()) {
+                    <p class="req-detail__hint">Cargando conduces externos…</p>
+                  } @else if (conducesExternosSueltos().length === 0) {
+                    <p class="req-detail__hint">No hay conduces externos emitidos sin requisición.</p>
+                  } @else {
+                    <p class="req-detail__hint">O vincula uno ya emitido:</p>
+                    <ul class="req-sueltos">
+                      @for (c of conducesExternosSueltos(); track c.id) {
+                        <li>
+                          <span class="req-sueltos__info">
+                            CE-{{ (c.numero ?? 0).toString().padStart(6, '0') }} · {{ c.estado }}
+                            @if (c.destino) { · → {{ c.destino }} }
+                            @if (c.es_de_la_obra) { · <strong>de esta obra</strong> }
+                          </span>
+                          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="saving()" (click)="vincularExterno(c.id)">Vincular</button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="mostrarVincularExterno.set(false)">Cerrar</button>
+                </div>
+              }
 
               @if (mostrarVincular()) {
                 <div class="req-detail__vincular">

@@ -26,3 +26,32 @@ export function aplicarTamanoLetra(t: TamanoLetra | null | undefined): void {
     /* SSR/entorno sin DOM */
   }
 }
+
+// CJ1 — "Animaciones: completas / reducidas". Preferencia POR DISPOSITIVO (localStorage),
+// no por cuenta: añade/quita `html.motion-reduced` (styles.scss anula transiciones).
+const MOTION_KEY = 'sgc_motion_reduced';
+
+export function aplicarMovimiento(reducido: boolean): void {
+  try {
+    document.documentElement.classList.toggle('motion-reduced', !!reducido);
+  } catch {
+    /* SSR/entorno sin DOM */
+  }
+}
+
+export function leerMovimientoReducido(): boolean {
+  try {
+    return localStorage.getItem(MOTION_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function guardarMovimientoReducido(reducido: boolean): void {
+  try {
+    localStorage.setItem(MOTION_KEY, reducido ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+  aplicarMovimiento(reducido);
+}

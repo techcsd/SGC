@@ -19,7 +19,7 @@ import { PreferenciasService } from '../../../shared/services/preferencias.servi
 import { PrivacidadService } from '../../../shared/services/privacidad.service';
 import { ThemeService, TemaPreferencia } from '../../../shared/services/theme.service';
 import { ToastService } from '../../../shared/services/toast.service';
-import { aplicarDensidad, aplicarTamanoLetra, Densidad, TamanoLetra } from '../../../shared/utils/apariencia.util';
+import { aplicarDensidad, aplicarTamanoLetra, guardarMovimientoReducido, leerMovimientoReducido, Densidad, TamanoLetra } from '../../../shared/utils/apariencia.util';
 import { MODULOS_DISPONIBLES } from '../../../shared/services/roles.service';
 import { APP_VERSION } from '../../../environments/version';
 
@@ -188,6 +188,13 @@ export class Configuracion implements OnInit {
     } catch (e) {
       this.toast.errorFrom(e, 'No se pudo guardar');
     }
+  }
+
+  // CJ1 — preferencia de movimiento (por dispositivo; localStorage).
+  movimientoReducido = signal(leerMovimientoReducido());
+  setMovimientoReducido(reducido: boolean) {
+    guardarMovimientoReducido(reducido);
+    this.movimientoReducido.set(reducido);
   }
 
   async setModuloInicio(route: string) {

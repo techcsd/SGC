@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.157.0": {
+      "titulo": "Asignar un conduce externo desde la requisición, y movimiento más fluido (transiciones entre pantallas)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Inventario",
+          "d": "Desde la ventana de una requisición puedes «Asignar conduce externo»: crear uno nuevo con transportista externo (prellenado) o vincular uno ya emitido. Cuenta en el avance sin descontar dos veces."
+        },
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "La app se siente más fluida: las pantallas cambian con una transición suave. Se puede ajustar en Configuración › Apariencia › Animaciones (Completas / Reducidas), y respeta la preferencia de «menos movimiento» del dispositivo."
+        }
+      ]
+    },
     "1.156.0": {
       "titulo": "Los conduces se aplican a la requisición e inventario, choferes privados con vehículos autorizados, y la requisición en ventana grande con nombres legibles",
       "cambios": [

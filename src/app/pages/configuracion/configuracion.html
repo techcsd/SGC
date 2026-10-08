@@ -73,6 +73,15 @@
                         (click)="setTamano(tl.value)">{{ tl.label | t }}</button>
               }
             </div>
+
+            <!-- CJ1 — preferencia de movimiento (por dispositivo). -->
+            <label class="cfg__label">{{ 'Animaciones' | t }}</label>
+            <div class="cfg__seg">
+              <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="!movimientoReducido()"
+                      (click)="setMovimientoReducido(false)">{{ 'Completas' | t }}</button>
+              <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="movimientoReducido()"
+                      (click)="setMovimientoReducido(true)">{{ 'Reducidas' | t }}</button>
+            </div>
           </div>
         }
 

@@ -1,7 +1,7 @@
 import { ApplicationConfig, ErrorHandler, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeEsDO from '@angular/common/locales/es-DO';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { routes } from './app.routes';
 
 // AT22 — locale República Dominicana para que DatePipe y demás formatos nativos
@@ -16,7 +16,9 @@ import { OpenMeteoAirProvider } from '../shared/context/open-meteo-air.provider'
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withComponentInputBinding()),
+    // CJ1 — crossfade entre pantallas (View Transitions). Navegadores sin soporte:
+    // sin animación (nada se rompe). skipInitialTransition = no animar la 1ª carga.
+    provideRouter(routes, withComponentInputBinding(), withViewTransitions({ skipInitialTransition: true })),
     { provide: ErrorHandler, useClass: AppErrorHandler },
     { provide: LOCALE_ID, useValue: 'es-DO' },
     // Intelligent Context System — swap these bindings to change providers.
