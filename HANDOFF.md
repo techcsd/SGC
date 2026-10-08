@@ -1,6 +1,11 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — ✅ **SHIPPED PROD 1.158.0** (ronda casi completa). Falta solo CJ3 (app) + CJ10-completo (menor).
+## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — ✅ **COMPLETA EN PROD (1.159.0)**. Lo único fuera = CJ3 (es de la app, PROMPT-89).
+**1.159.0** (dev→main `cb5ae42`) cierra **CJ10** (RPC DEFINER `resolver_nombres_usuarios` aplicado dev+prod; "Registrado por" ya muestra el nombre que la RLS ocultaba — diagnóstico confirmó creado_por presente + usuario existe). **Toda la mitad web de la ronda CJ está en prod.** Versiones de la sesión: 1.156→1.157→1.158→1.159.
+**Resumen CJ (web):** CJ5✅ CJ6✅ CJ7✅ CJ8✅ CJ9✅ CJ10✅ CJ11✅ CJ12✅ CJ1✅ CJ2✅ CJ4✅. **CJ3** = camión al crear ruta = **app (PROMPT-89)**. Refinamientos opcionales (no pedidos): niveles mediano de animación + `appStagger` + columna "En tránsito · CE-xxxx" (mapa en `docs/MOVIMIENTO.md`).
+
+## [HISTORIAL CJ — detalle previo]
+### TL;DR — 1.158.0
 **1.158.0** (dev→main `bf4b2f5`) añade **CJ2** (animación "conduce creado": app-celebracion + MotionService, mock exacto, se dispara en salidas.ts al crear conduce). Antes: 1.157.0 (CJ5+CJ1 movimiento), 1.156.0 (CJ6/7/8/9/10-parcial/11/12 + esquema en prod).
 **Resumen CJ:** CJ5✅ CJ6✅ CJ7✅ CJ8✅ CJ9✅ CJ10🟡(parcial) CJ11✅ CJ12✅ CJ1✅ CJ2✅ CJ4✅ · **CJ3** = app (PROMPT-89) · **CJ10-completo** (nombres DEFINER + columna "En tránsito · CE-xxxx") y niveles mediano/appStagger pendientes (mapa en `docs/MOVIMIENTO.md`).
 
