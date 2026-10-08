@@ -4,15 +4,18 @@
   "filas": [
     {
       "pantalla": "ajustes-notificaciones",
-      "total": 18,
+      "total": 21,
       "cubiertos": 0,
-      "sin": 18,
+      "sin": 21,
       "pct": 0,
       "enScope": true,
       "enforce": false,
       "faltantes": [
         "Notificaciones",
         "Elige qué avisos quieres recibir. Silenciar un tipo detiene ese aviso en todos tus canales: la campana, el push y el correo (no cambia a quién más le llega).",
+        "¿Te suenan las notificaciones?",
+        "Envía una notificación de prueba a tu teléfono. Si no suena ni aparece, revisa el sonido y los permisos de la app.",
+        "@if (resultadoPrueba(); as r) {",
         "@if (loading()) {",
         "} @else {",
         "@for (c of categorias(); track c.tipo) {",

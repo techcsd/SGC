@@ -5,6 +5,18 @@
   </div>
 </div>
 
+<!-- CK10 — probar que las notificaciones suenan y llegan al teléfono -->
+<div class="ajustes-notif sgc-card ck-probar">
+  <div class="ck-probar__info">
+    <span class="ck-probar__label">¿Te suenan las notificaciones?</span>
+    <span class="ck-probar__desc">Envía una notificación de prueba a tu teléfono. Si no suena ni aparece, revisa el sonido y los permisos de la app.</span>
+    @if (resultadoPrueba(); as r) { <span class="ck-probar__result">{{ r }}</span> }
+  </div>
+  <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="probando()" (click)="probarNotificacion()">
+    {{ probando() ? 'Enviando…' : 'Probar notificación' }}
+  </button>
+</div>
+
 <div class="ajustes-notif sgc-card">
   @if (loading()) {
     <app-skeleton [rows]="6" />

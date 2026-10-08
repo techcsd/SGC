@@ -115,3 +115,18 @@
   border-radius: 999px;
   white-space: nowrap;
 }
+
+// CK10 — tarjeta "Probar notificación".
+.ck-probar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+
+  &__info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  &__label { font-weight: 600; }
+  &__desc { color: var(--sgc-text-muted, var(--text-2)); font-size: 0.85rem; }
+  &__result { margin-top: 4px; font-size: 0.85rem; color: var(--sgc-accent, var(--Hub)); }
+}
