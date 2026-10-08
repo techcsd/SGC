@@ -68,6 +68,18 @@ export class SalidasService {
   private cache = inject(SignedUrlCache);
   private notificaciones = inject(NotificacionesService);
 
+  /** CJ10 — resuelve id→nombre de usuarios por RPC DEFINER (el embed a usuarios puede
+   *  volver vacío por RLS; p. ej. un logístico no "ve" al conductor que registró). */
+  async resolverNombres(ids: string[]): Promise<Record<string, string>> {
+    const unicos = [...new Set(ids.filter(Boolean))];
+    if (!unicos.length) return {};
+    const { data, error } = await this.supabase.client.rpc('resolver_nombres_usuarios', { p_ids: unicos });
+    if (error) return {};
+    const map: Record<string, string> = {};
+    for (const r of (data ?? []) as { id: string; nombre: string }[]) map[r.id] = r.nombre;
+    return map;
+  }
+
   async getAll(): Promise<SalidaInventario[]> {
     const { data, error } = await this.supabase.client
       .from('salidas_inventario')
