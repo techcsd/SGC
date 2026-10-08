@@ -10,7 +10,7 @@ Rama `feature/cj-ronda` (desde `dev`, push `cc94429`). **main/dev ya están en 1
 - **Data-fixes** (dry-run por defecto, dev da 0 = su data está en prod): `scripts/data-fixes/2026-10-08-cj6-aplicar-recepciones.mjs` (salidas despachado+recibido→helper; duplicadas SOLO reporte) y `…cj7-conciliar-renglones.mjs` (solo matches sin ambigüedad por cantidad única; lo ambiguo a la ventana).
 
 ### 🔴 Para aplicar a PROD (tras tu OK — CONTEXTO §0: estas migraciones van sin esperar el front):
-1. Las 3 migraciones (gateadas por ledger dev): `node scripts/apply-migration.mjs sql/2026-10-08-cjX.sql --env prod --yes`.
+1. Las 3 migraciones (gateadas por ledger dev): aplicar con `apply-migration.mjs … --env prod --yes` los archivos `cj7-renglon-despacho`, `cj6-recepcion-unificada`, `cj11-privado-uso-vehiculo` (y CJ12 si ya está listo).
 2. **CJ11 ANTES/junto**: Mendez (`63ab6be8-2638-4788-bbe9-739f19dce36a`) y Carlos (`90181490-6cc8-4147-878e-61ad9253b6db`) tienen **CERO autorizaciones** hoy. Al aplicar CJ11 quedarán **BLOQUEADOS** hasta que Flota les autorice vehículos (ficha del vehículo o CJ12). Hoy pasan el gate (ficha conductor + módulo flota) y toman cualquier vehículo → esto lo CORRIGE pero los bloquea si no tienen auth. **Autorizarles vehículos primero.**
 3. Data-fixes a prod: `--env prod` (DRY-RUN) → revisar el reporte (muestra las salidas despachado+recibido a reparar + renglones LIBRE a conciliar + duplicadas) → `--apply --yes`.
 
