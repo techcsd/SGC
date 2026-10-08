@@ -1,7 +1,15 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — 🧪 **EN DEV (no prod)**: hotfix **1.159.1** + **1.160.0**
-Rama `feature/ck-ronda` → `dev` (merge `46520d2`). `main`/prod sigue en **1.159.0**. **Espera que Xaviel pruebe en dev y diga "sube".**
+## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — ✅ **SHIPPED PROD: 1.159.1 + 1.160.0** · 🧪 Apoyo de transporte (servidor) WIP en `feature/ck-apoyo`
+**Prod al día:** `main`=`dev`=`47be36c`, Vercel READY (sgcconstructorasd.com). 5 migraciones en ledger **prod** verificadas por objeto (ck8/ck4/ck10/ck3/ck3b) + edge `send-push` **v14** en prod + versiones 1.159.1 y 1.160.0 en `app_versiones`. (OK de Xaviel: "sube todo a produccion".)
+
+**🧪 EN DEV 1.161.0 — Apoyo de transporte COMPLETO (CK11-CK16), servidor + web** (`feature/ck-apoyo` → `dev` `7631519`, NO prod todavía). 4 migraciones en ledger **dev**: `ck12` (esquema) + `ck12b` (RPCs) + `ck12c` (planificar/trigger) + `ck15` (trabajos/eventos/panel). Evoluciona `solicitudes_movimiento` (`tipo_apoyo`/`dia`/`descripcion`/`retiro_material_id`; estados `pendiente/asignada/en_proceso/por_confirmar/completada/cancelada`; `apoyo_transporte_fotos`/`_eventos`; bucket privado `apoyo-transporte`). RPCs `apoyo_transporte_*`, `trabajos_transporte_listado`, `actividad_crear`, `trabajo_asignar`, `trabajo_evento_chofer`, `mis_choferes_panel`. **Web:** `pages/apoyo-transporte` (ruta `/transporte/apoyo`; `/solicitudes-movimiento` redirige), `pages/trabajos-transporte` (kanban, Misael), `pages/mis-choferes` (monitoreo); menú actualizado. Smokes todos verdes.
+
+**👤 Para subir 1.161.0 a prod** (cuando Xaviel pruebe en dev y dé OK): aplicar `ck12`/`ck12b`/`ck12c`/`ck15` con `--env prod --yes` (crean también el bucket `apoyo-transporte`), merge `dev`→`main`, registrar versión. Avisar a ingenieros/choferes.
+
+**Falta de la tanda CK:** **CK5 videos** (FASE 6 — ffmpeg+Playwright; gatillado físico: grabar necesita login en dev + revisión de Xaviel antes de prod; falta tooling `tutoriales/`, demo users, bucket `tutoriales` + campos de video en `ayuda_contenido`, player en Dudas). Cierres CK1/CK2 (ficha del privado con fotos), chip "Sin receptor" (CK4 §5), enlace bg4 del retiro dañado. Nota #181 = CK14 (Xaviel la completó).
+
+### [HISTORIAL CK — estado "en dev" previo al ship]
 
 **Hotfix 1.159.1** (rama `hotfix/ck6-transferir`, ya en dev): **CK6** transferir/asignar conduce ya no da `invalid input syntax for type uuid: "undefined"` (`getConductoresPicker` pasó de `conductores_para_multa` a `choferes_activos` con mapeo `conductor_id→id` + guard `esUuid`; tests 9/9); **CK8** autorizar chofer privado ya lista choferes (`directorio_usuarios_detalle` devuelve `roles_codigos text[]`; user-picker filtra por código, sin "Otro", empty-state). OK de Xaviel al hotfix ya dado → tras probar en dev, promover a prod + merge main→dev.
 

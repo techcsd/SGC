@@ -253,6 +253,9 @@ export class Shell implements OnInit {
         { label: 'Conductores', route: '/flota/conductores', flotaElevado: true },
         // P3 — Seguimiento agrupa Mapa/Rutas activas/Recorrido diario en pestañas (app-flota-subnav).
         { label: 'Seguimiento', route: '/flota/seguimiento', flotaElevado: true },
+        // CK15/CK16 — bandeja de trabajos de transporte + monitoreo de choferes (Misael).
+        { label: 'Trabajos de transporte', route: '/transporte/trabajos', flotaElevado: true },
+        { label: 'Mis choferes', route: '/transporte/mis-choferes', flotaElevado: true },
         // P3 — Combustible agrupa Registro/Echadas/Dashboards/Conciliación en pestañas.
         { label: 'Combustible', route: '/flota/combustible', badgeKey: 'flota.combustible', submodulo: 'flota.combustible' },
         // Conciliación queda también como ítem propio por su badge de pendientes (auditoría).
@@ -328,7 +331,7 @@ export class Shell implements OnInit {
       icon: 'ingenieria',
       showIfAnyChild: true,
       children: [
-        { label: 'Solicitud de movimiento', route: '/solicitudes-movimiento', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
+        { label: 'Apoyo de transporte', route: '/transporte/apoyo', badgeKey: 'solicitudes_movimiento', modulo: 'ingenieria' },
         // Bitácora (módulo `bitacora`)
         { label: 'Nueva bitácora', route: '/bitacora/nueva', modulo: 'bitacora' },
         { label: 'Mis bitácoras', route: '/bitacora/historial', modulo: 'bitacora' },

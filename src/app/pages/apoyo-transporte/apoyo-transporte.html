@@ -1,0 +1,184 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Apoyo de transporte</h1>
+    <p class="page-subtitle">Pide mover material entre obras, retirar lo que sobra o botar escombros. Solo obra, día y foto.</p>
+  </div>
+  <div class="page-header__right">
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirCrear()">+ Nuevo apoyo</button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="apoyo-filtros">
+  <app-filter-select label="Tipo" [options]="tipoOptions" [value]="filtroTipo()" (valueChange)="filtroTipo.set($event)" />
+  <app-filter-select label="Estado" [options]="estadoOptions" [value]="filtroEstado()" (valueChange)="filtroEstado.set($event)" />
+  <app-filter-select label="Obra" [options]="obraOptions()" [value]="filtroObra()" (valueChange)="filtroObra.set($event)" />
+</div>
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else if (filtrados().length === 0) {
+  <p class="apoyo-vacio">No hay apoyos de transporte que coincidan.</p>
+} @else {
+  <div class="apoyo-grid">
+    @for (r of filtrados(); track r.id) {
+      <button type="button" class="apoyo-card" (click)="abrirDetalle(r)">
+        <div class="apoyo-card__thumb">
+          @if (thumbs()[r.id]; as url) {
+            <img [src]="url" alt="Foto del apoyo" loading="lazy" />
+          } @else {
+            <span class="apoyo-card__noimg"><app-icon name="truck" [size]="22" /></span>
+          }
+        </div>
+        <div class="apoyo-card__body">
+          <div class="apoyo-card__chips">
+            <span class="sgc-badge sgc-badge--info">{{ tipoLabel(r.tipo_apoyo) }}</span>
+            <span class="sgc-badge" [class.sgc-badge--warning]="r.estado === 'pendiente' || r.estado === 'por_confirmar'"
+              [class.sgc-badge--success]="r.estado === 'completada'"
+              [class.sgc-badge--neutral]="r.estado === 'cancelada'">{{ estadoLabel(r.estado) }}</span>
+          </div>
+          <p class="apoyo-card__desc">{{ r.descripcion || '—' }}</p>
+          <p class="apoyo-card__meta">{{ r.proyecto ?? 'Sin obra' }} · {{ r.dia ? fFecha(r.dia) : '—' }}</p>
+        </div>
+      </button>
+    }
+  </div>
+}
+
+<!-- ── Crear apoyo ── -->
+<app-form-drawer title="Nuevo apoyo de transporte" [open]="crearOpen()" (closed)="crearOpen.set(false)">
+  <form class="apoyo-form" [formGroup]="form" (ngSubmit)="guardar()">
+    <!-- Tipo -->
+    <div class="sgc-field">
+      <label>Tipo <span class="required">*</span></label>
+      <div class="apoyo-tipos">
+        @for (t of TIPOS; track t.value) {
+          <button type="button" class="apoyo-tipo" [class.apoyo-tipo--on]="tipoSel() === t.value" (click)="setTipo(t.value)">
+            <span class="apoyo-tipo__label">{{ t.label }}</span>
+            <span class="apoyo-tipo__glosa">{{ t.glosa }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Obra -->
+    <div class="sgc-field">
+      <label for="ap-obra">Obra <span class="required">*</span></label>
+      <select id="ap-obra" formControlName="proyecto_id">
+        <option [ngValue]="null">— Elige la obra —</option>
+        @for (o of obras(); track o.id) { <option [ngValue]="o.id">{{ o.nombre }}</option> }
+      </select>
+    </div>
+
+    <!-- Día -->
+    <div class="sgc-field">
+      <label for="ap-dia">Día <span class="required">*</span></label>
+      <input id="ap-dia" type="date" formControlName="dia" />
+    </div>
+
+    <!-- Qué hay que mover -->
+    <div class="sgc-field">
+      <label for="ap-desc">¿Qué hay que mover? <span class="required">*</span></label>
+      <textarea id="ap-desc" rows="3" formControlName="descripcion" placeholder="Ej.: 20 sacos de cemento sobrante del 3er nivel…"></textarea>
+    </div>
+
+    <!-- Fotos -->
+    <div class="sgc-field">
+      <label>Foto(s) <span class="required">*</span></label>
+      <app-file-upload [files]="fotos()" [max]="4" accept="image/*"
+        label="Toma o arrastra una foto de lo que se va a mover"
+        hint="Hasta 4 fotos." (add)="addFotos($event)" (removeAt)="quitarFoto($event)" />
+    </div>
+
+    <!-- Destino (solo movimiento interno) -->
+    @if (tipoSel() === 'movimiento_interno') {
+      <div class="sgc-field">
+        <label for="ap-dest">Destino (opcional)</label>
+        <input id="ap-dest" type="text" formControlName="destino_texto" placeholder="Otra obra / almacén / donde lo define Misael" />
+      </div>
+    }
+
+    <!-- Material dañado (solo retiro) -->
+    @if (tipoSel() === 'retiro_material') {
+      <label class="apoyo-check">
+        <input type="checkbox" formControlName="es_danado" />
+        <span>Es material dañado que vuelve al almacén (cuarentena)</span>
+      </label>
+    }
+
+    <div class="drawer-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="crearOpen.set(false)" [disabled]="guardando()">Cancelar</button>
+      <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="guardando()">{{ guardando() ? 'Creando…' : 'Crear apoyo' }}</button>
+    </div>
+  </form>
+</app-form-drawer>
+
+<!-- ── Detalle ── -->
+<app-form-drawer [title]="detalle() ? (tipoLabel(detalle()!.tipo_apoyo) + ' · ' + estadoLabel(detalle()!.estado)) : 'Apoyo de transporte'"
+  [open]="detalleOpen()" (closed)="detalleOpen.set(false)">
+  @if (detalle(); as d) {
+    <div class="apoyo-detalle">
+      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Obra</span><span>{{ d.proyecto ?? '—' }}</span></div>
+      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Día</span><span>{{ d.dia ? fFecha(d.dia) : '—' }}</span></div>
+      <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Solicitante</span><span>{{ d.solicitante ?? '—' }}</span></div>
+      @if (d.destino_texto) { <div class="apoyo-detalle__row"><span class="apoyo-detalle__label">Destino</span><span>{{ d.destino_texto }}</span></div> }
+      <div class="apoyo-detalle__block">
+        <span class="apoyo-detalle__label">¿Qué hay que mover?</span>
+        <p>{{ d.descripcion || '—' }}</p>
+      </div>
+
+      <!-- Fotos -->
+      @if (detalleFotos().length) {
+        <div class="apoyo-detalle__fotos">
+          @for (u of detalleFotos(); track u) { <img [src]="u" alt="Foto del apoyo" (click)="lightbox.set(u)" /> }
+        </div>
+      }
+
+      <!-- Acciones del solicitante / referente (CK13) -->
+      @if (puedoGestionar() && d.estado !== 'completada' && d.estado !== 'cancelada') {
+        <div class="apoyo-acciones">
+          @if (pidiendoNota(); as pn) {
+            <textarea rows="2" [value]="notaAccion()" (input)="notaAccion.set($any($event.target).value)"
+              [placeholder]="pn === 'cancelar' ? 'Motivo de la cancelación…' : 'Explica por qué aún no se ha hecho…'"></textarea>
+            <div class="apoyo-acciones__row">
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set(null)" [disabled]="accionBusy()">Volver</button>
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="confirmarConNota(pn)" [disabled]="accionBusy()">Confirmar</button>
+            </div>
+          } @else {
+            @if (d.estado === 'pendiente' || d.estado === 'asignada') {
+              <button type="button" class="sgc-btn sgc-btn--danger" (click)="pidiendoNota.set('cancelar')" [disabled]="accionBusy()">Cancelar</button>
+            }
+            @if (d.estado === 'asignada' || d.estado === 'en_proceso') {
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="cambiar('completada')" [disabled]="accionBusy()">Ya se hizo — Completar</button>
+            }
+            @if (d.estado === 'por_confirmar') {
+              <button type="button" class="sgc-btn sgc-btn--primary" (click)="cambiar('completada')" [disabled]="accionBusy()">Confirmar que se hizo</button>
+              <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set('reabrir')" [disabled]="accionBusy()">No se ha hecho</button>
+            }
+          }
+        </div>
+      }
+
+      <!-- Línea de tiempo -->
+      <div class="apoyo-timeline">
+        <span class="apoyo-detalle__label">Línea de tiempo</span>
+        @for (e of d.eventos; track e.created_at) {
+          <div class="apoyo-timeline__item">
+            <span class="apoyo-timeline__dot"></span>
+            <div>
+              <span class="apoyo-timeline__estado">{{ e.a ? estadoLabel($any(e.a)) : '—' }}</span>
+              @if (e.nota) { <span class="apoyo-timeline__nota">{{ e.nota }}</span> }
+              <span class="apoyo-timeline__meta">{{ e.por ?? '—' }} · {{ fHora(e.created_at) }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <app-skeleton [rows]="5" />
+  }
+</app-form-drawer>
+
+@if (lightbox(); as url) {
+  <app-lightbox [src]="url" alt="Foto del apoyo" (closed)="lightbox.set(null)" />
+}
