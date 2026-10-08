@@ -1,0 +1,122 @@
+// CJ2 — copia del mock CJ2-conduce-creado.dc.html (keyframes y tiempos exactos).
+@keyframes cel-dim { from { opacity: 0 } to { opacity: 1 } }
+@keyframes cel-paper-in { 0% { transform: translateY(560px) rotate(-8deg); opacity: 0 } 60% { opacity: 1 } 100% { transform: translateY(0) rotate(-2deg); opacity: 1 } }
+@keyframes cel-lines { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+@keyframes cel-stamp { 0% { transform: scale(2.4) rotate(-14deg); opacity: 0 } 70% { transform: scale(.94) rotate(-12deg); opacity: 1 } 100% { transform: scale(1) rotate(-12deg); opacity: 1 } }
+@keyframes cel-paper-out { 0% { transform: translate(0,0) rotate(-2deg) scale(1); opacity: 1 } 100% { transform: translate(150px,-250px) rotate(10deg) scale(.32); opacity: 0 } }
+@keyframes cel-folder-pop { 0% { transform: scale(1) } 40% { transform: scale(1.14) } 100% { transform: scale(1) } }
+@keyframes cel-check { from { stroke-dashoffset: 40 } to { stroke-dashoffset: 0 } }
+@keyframes cel-rise { from { transform: translateY(14px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+.cel {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  overflow: hidden;
+  cursor: pointer;
+
+  &__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  &__dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 36, 58, 0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    animation: cel-dim 0.2s ease-out both;
+  }
+
+  &__folder {
+    position: absolute;
+    right: 42px;
+    top: 96px;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e3a5f;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+    animation: cel-folder-pop 0.3s ease-out 1.38s both;
+  }
+
+  &__paper {
+    position: absolute;
+    left: 50%;
+    margin-left: -120px;
+    top: 250px;
+    width: 240px;
+    height: 310px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.28);
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: #101828;
+    animation: cel-paper-in 0.46s cubic-bezier(.2, .8, .2, 1) both,
+               cel-paper-out 0.38s cubic-bezier(.5, 0, .75, 0) 1.05s both;
+  }
+  &__paper-head { display: flex; justify-content: space-between; align-items: center; }
+  &__paper-title { font: 700 13px 'Inter Tight', sans-serif; color: #1e3a5f; letter-spacing: 0.02em; }
+  &__paper-num { font-size: 11px; font-weight: 600; color: #5b6b80; }
+  &__paper-rule { height: 3px; width: 44px; border-radius: 2px; background: #f97316; }
+  &__line { height: 8px; border-radius: 4px; background: #e4e7ec; transform-origin: left center; animation: cel-lines 0.28s ease-out both; }
+  &__paper-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+  &__sign { width: 90px; border-top: 1px solid #98a2b3; padding-top: 4px; font-size: 9px; color: #5b6b80; }
+  &__stamp {
+    position: absolute;
+    right: 18px;
+    top: 120px;
+    padding: 6px 12px;
+    border: 3px solid #f97316;
+    border-radius: 8px;
+    color: #c2410c;
+    font: 800 18px 'Inter Tight', sans-serif;
+    letter-spacing: 0.08em;
+    animation: cel-stamp 0.24s cubic-bezier(.3, 1.4, .5, 1) 0.5s both;
+  }
+
+  &__msg {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 44%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    color: #fff;
+    text-align: center;
+    padding: 0 24px;
+    animation: cel-rise 0.3s ease-out 1.5s both;
+  }
+  &__check {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #12b76a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    path { stroke-dasharray: 40; animation: cel-check 0.3s ease-out 1.45s both; }
+  }
+  &__title { font: 700 22px 'Inter Tight', sans-serif; }
+  &__sub { font-size: 15px; color: #d5e0ec; }
+  &__ver {
+    margin-top: 8px;
+    height: 44px;
+    padding: 0 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: transparent;
+    color: #fff;
+    font: 600 15px Inter, sans-serif;
+    cursor: pointer;
+    &:hover { background: rgba(255, 255, 255, 0.1); }
+  }
+}
