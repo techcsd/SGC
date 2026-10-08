@@ -14,6 +14,12 @@ function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
 
+// CK10 — canal de Android por defecto para avisos y mensajes. HIGH + sonido +
+// vibración + pantalla bloqueada (lo crea la app, PROMPT-91). Constante única: el
+// mismo id tiene que estar en el manifiesto/MainActivity de la app. NO cambiar el
+// nombre sin migrar el canal de la app (un canal no sube de importancia tras crearse).
+const CANAL_AVISOS = "avisos_csd_v2";
+
 // ── OAuth2 access token desde el service account (FCM HTTP v1) ───────────────
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem.replace(/-----BEGIN PRIVATE KEY-----/, "")
@@ -131,18 +137,34 @@ Deno.serve(async (req: Request) => {
   const channelId = dataStr["channel_id"] || (dataStr["alarma"] === "true" ? "alarma_inspeccion" : "");
   const esAlarma = channelId === "alarma_inspeccion" || dataStr["alarma"] === "true";
 
+  // CK10 — los mensajes y los trabajos de chofer deben SONAR y ser "time-sensitive"
+  // (iOS atraviesa el modo concentración). El resto suena igual, prioridad alta.
+  const timeSensitive = tipo === "mensaje" ||
+    /(^|_)(trabajo|apoyo|conduce_firma|transferencia|chofer)/.test(String(tipo ?? ""));
+
   let sent = 0, failed = 0;
   const dead: string[] = [];
   for (const t of tokens) {
     // BU1 F2.3 — en dev el push está apagado salvo tokens en PUSH_ALLOWLIST.
     if (!puedeEnviarPush(t.token)) { logEntrega(t.usuario_id, short(t.token), "omitida", "dev_push_off"); continue; }
-    const androidNotification = channelId
+    // CK10 — push normal: SIEMPRE fija canal (avisos_csd_v2) + sonido + vibración +
+    // prioridad alta + visible en pantalla bloqueada. Antes solo se ponía channel_id si
+    // venía en data → Android caía a un canal por defecto que, si quedó en importancia
+    // baja (fábricas Transsion/Samsung, o el usuario lo silenció), dejaba el aviso MUDO.
+    const androidNotification = esAlarma
       ? {
-          channel_id: channelId,
+          channel_id: channelId || "alarma_inspeccion",
           notification_priority: "PRIORITY_MAX",
-          ...(esAlarma ? { default_sound: true, visibility: "PUBLIC" } : {}),
+          default_sound: true,
+          visibility: "PUBLIC",
         }
-      : undefined;
+      : {
+          channel_id: channelId || CANAL_AVISOS,
+          notification_priority: "PRIORITY_HIGH",
+          sound: "default",
+          default_vibrate_timings: true,
+          visibility: "PUBLIC",
+        };
     // AL6-fix — la ALARMA dominical va DATA-ONLY (sin `notification`): así la app
     // (CsdMessagingService) la recibe en background y dispara la alarma full-screen
     // NATIVA (despertador) aunque esté cerrada. Con `notification` el sistema la
@@ -159,8 +181,22 @@ Deno.serve(async (req: Request) => {
         data: dataPayload,
         android: {
           priority: "high",
-          ...(!esAlarma && androidNotification ? { notification: androidNotification } : {}),
+          // La alarma va data-only (la pinta la app); el resto lleva su canal/sonido.
+          ...(esAlarma ? {} : { notification: androidNotification }),
         },
+        // CK10 — iOS: sonido por defecto siempre; "time-sensitive" para mensajes y
+        // trabajos de chofer (atraviesa el modo concentración). La alarma mantiene lo suyo.
+        ...(esAlarma ? {} : {
+          apns: {
+            headers: timeSensitive ? { "apns-priority": "10" } : {},
+            payload: {
+              aps: {
+                sound: "default",
+                ...(timeSensitive ? { "interruption-level": "time-sensitive" } : {}),
+              },
+            },
+          },
+        }),
       },
     };
     const res = await fetch(endpoint, {

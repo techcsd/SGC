@@ -379,3 +379,43 @@ lógico de captura; el layout puede diferir).
   `tipo_documento = 'otro'`. La app ya elige el tipo por documento; añadir **editar el tipo** antes de
   guardar, la **inferencia** inicial (imagen→foto; PDF por nombre: fact/ncf→factura, cot→cotización,
   inf/reporte→informe; si no, factura) y **agrupar por tipo** en detalle/historial.
+
+## CK (08/10/2026) — contratos para la app (PROMPT-91)
+
+### CK6 — choferes para transferir/asignar
+- La web dejó de usar `conductores_para_multa` para el picker de transferir/asignar conduce.
+  Fuente única (web **y** app): **`sgc.choferes_activos()`** → `(conductor_id, nombre)`, mapeado a
+  `{id: conductor_id, nombre}`. Validar UUID antes de llamar a `ofrecer_transferencia_conduce`/
+  `asignar_chofer_conduce` (nunca mandar "undefined" a un uuid).
+
+### CK8 — directorio con códigos de rol
+- **`sgc.directorio_usuarios_detalle()`** ahora devuelve además **`roles_codigos text[]`** (códigos, no
+  nombres). Filtrar por rol se hace por CÓDIGO (`chofer_privado`), con respaldo por nombre normalizado si
+  el RPC es viejo. (Un campo nuevo; consumidores existentes intactos.)
+
+### CK4 — "Entregar a" (receptor asignable después)
+- **`sgc.conduce_asignar_receptor(p_salida_id uuid, p_usuario_id uuid, p_forzar boolean default false)`**
+  (DEFINER): permiso `es_flota_elevado()` o creador; solo mientras no haya recepción confirmada ni
+  anulación; receptor activo y confirmador válido de la obra (`receptores_disponibles`), o `p_forzar`
+  solo elevados (fuera de obra, auditado en `conduce_receptor_cambios`); regla de alto valor (no
+  auto-recepción); reemplazo avisa al anterior y al nuevo. `asignar_firma_pendiente` sigue para el alta.
+  La app debe añadir el mismo bloque "Entregar a" (offline por outbox, idempotente).
+
+### CK3 — origen de la foto de la echada
+- **`registros_combustible.foto_origen`** `('camara'|'galeria')`, default `'camara'`.
+- **`registrar_combustible_app(...)`** ahora acepta un trailing **`p_foto_origen text default 'camara'`**
+  (22-arg; se dropeó la firma 21-arg para no dejar overload). La app pasa `'galeria'` cuando la echada
+  usa la foto subida de galería (último recurso tras 2 fallos de cámara). `log_combustible` devuelve
+  `foto_origen`. Retrocompatible: no mandarlo = `'camara'`.
+
+### CK10 — notificaciones que suenan
+- **Canal Android: constante única `avisos_csd_v2`** (debe coincidir con el canal creado por la app:
+  `IMPORTANCE_HIGH`, sonido + vibración + `VISIBILITY_PUBLIC`; borrar el viejo `avisos_csd`). La edge
+  `send-push` ya fija en todo push normal: `android.notification.channel_id='avisos_csd_v2'`,
+  `notification_priority='PRIORITY_HIGH'`, `sound='default'`, `default_vibrate_timings`,
+  `visibility='PUBLIC'`; iOS `apns.payload.aps.sound='default'` + `interruption-level='time-sensitive'`
+  para mensajes y trabajos de chofer. Alarma (`alarma_inspeccion`) intacta, data-only. Retrocompatible
+  con APKs sin el canal v2 (Android cae al por defecto).
+- **"Probar notificación":** RPC **`sgc.probar_notificacion()`** (push a sí mismo, ignora la matriz) →
+  `{dispositivos}`; leer el resultado con **`sgc.mis_notif_entregas(p_limite)`**. La app expone el botón
+  en Perfil › Notificaciones. Diagnóstico admin: **`sgc.notif_entregas_de_usuario(p_usuario_id, p_limite)`**.

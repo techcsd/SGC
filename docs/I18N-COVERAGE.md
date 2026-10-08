@@ -3,12 +3,12 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 6%** (36/597 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 6%** (36/620 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
-| ajustes-notificaciones | scope | 18 | 0 | 18 | 0% |
-| inventario/conduce | scope | 191 | 0 | 191 | 0% |
+| ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
+| inventario/conduce | scope | 211 | 0 | 211 | 0% |
 | inventario/conduce-externo-form | scope | 56 | 0 | 56 | 0% |
 | inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
@@ -29,7 +29,7 @@
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 226 | 0 | 226 | 0% |
+| admin/usuarios | - | 234 | 0 | 234 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | app-movil | - | 41 | 0 | 41 | 0% |
@@ -61,7 +61,7 @@
 | flota/choferes-privados | - | 36 | 0 | 36 | 0% |
 | flota/combustible | - | 288 | 0 | 288 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
-| flota/combustible-log | - | 192 | 0 | 192 | 0% |
+| flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
 | flota/conductores | - | 282 | 0 | 282 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |

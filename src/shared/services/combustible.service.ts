@@ -28,6 +28,8 @@ export interface LogCombustibleRow {
   subtipo: string | null;
   estado: string | null;
   km_alerta: boolean;
+  /** CK3 — origen de la foto del recibo ('camara' | 'galeria'). */
+  foto_origen?: 'camara' | 'galeria' | string;
   /** BR1 — echada aceptada sin coincidir con la asignación del vehículo (AF18). */
   sin_asignacion: boolean;
   alerta_consumo: boolean;
