@@ -1,6 +1,12 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — 🧪 backend urgente EN DEV, resto PENDIENTE.
+## TL;DR — PROMPT-88 (Ronda CJ) — 08/10/2026 — ✅ **SHIPPED PROD 1.156.0** (esquema + front CJ6/7/8/9/10-parcial/11/12). Falta CJ5-front + CJ1-4.
+**Web 1.156.0 en prod** (dev→main `179354d`, Vercel READY). Esquema CJ6/CJ7/CJ11/CJ12 en ledger prod (verif. por objeto); front CJ7(item_id)/CJ8(picker 2 líneas)/CJ9(form-drawer variant modal)/CJ10-parcial/CJ12(pantalla Flota›Choferes privados) en prod.
+**👤 Flota debe autorizar vehículos a Mendez/Carlos** en Flota›Conductores›Choferes privados (server CJ11 ya lo exige). **Data-fix CJ7** (8 matches por cantidad) NO aplicado — revisar o reaprobar.
+**CJ5 SQL** (`sql/2026-10-08-cj5-conduce-externo-requisicion.sql`) aplicado en **dev** (ledger dev), smoke OK (listar=2). **Falta su frontend** (botón "Asignar conduce externo…" en la ventana modal + hoja Nuevo/Vincular) y **CJ1-CJ4** (animaciones). Esos van en una tanda 1.157.0.
+Rama `feature/cj-ronda` (push `2f28d1d`). App = **PROMPT-89**.
+
+## [HISTORIAL] PROMPT-88 (Ronda CJ) — detalle de construcción:
 Rama `feature/cj-ronda` (desde `dev`, push `cc94429`). **main/dev ya están en 1.155.0 en prod** (la "excepción de orden" del CONTEXTO-43 §0 sobre esperar a CI es MOOT: CI ya shippeó). Esta ronda apunta a **1.156.0**. App = **PROMPT-89**.
 
 ### ✅ HECHO y probado en DEV (3 migraciones + 2 data-fixes), listo para tu OK a prod:
