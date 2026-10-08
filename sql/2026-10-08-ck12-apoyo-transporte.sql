@@ -26,11 +26,11 @@ update sgc.solicitudes_movimiento
        descripcion = coalesce(descripcion, que_se_mueve)
  where dia is null or descripcion is null;
 
--- ── 3) Estados ampliados: remap ANTES de cambiar el check ────────────────────────
+-- ── 3) Estados ampliados: DROP del check viejo ANTES del remap (si no, el UPDATE a
+--       'asignada' viola el check aún activo — lo descubrió el 1 row 'planificada' de prod). ─
+alter table sgc.solicitudes_movimiento drop constraint if exists solicitudes_movimiento_estado_check;
 update sgc.solicitudes_movimiento set estado = 'asignada'   where estado = 'planificada';
 update sgc.solicitudes_movimiento set estado = 'en_proceso' where estado = 'en_curso';
-
-alter table sgc.solicitudes_movimiento drop constraint if exists solicitudes_movimiento_estado_check;
 alter table sgc.solicitudes_movimiento add constraint solicitudes_movimiento_estado_check
   check (estado = any (array['pendiente','asignada','en_proceso','por_confirmar','completada','cancelada']));
 
