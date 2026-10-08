@@ -1,0 +1,40 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <h1 class="page-title">Mis choferes</h1>
+    <p class="page-subtitle">Estado de cada chofer, su trabajo de hoy y su última señal.</p>
+  </div>
+  <div class="page-header__right">
+    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="recargar()">Actualizar</button>
+    <a class="sgc-btn sgc-btn--secondary" routerLink="/flota/seguimiento">Ver en el mapa</a>
+  </div>
+</div>
+
+@if (loading()) {
+  <app-skeleton variant="table" [rows]="6" />
+} @else if (choferes().length === 0) {
+  <p class="mc-vacio">No hay choferes activos.</p>
+} @else {
+  <div class="mc-grid">
+    @for (c of choferes(); track c.conductor_id) {
+      <div class="mc-card">
+        <div class="mc-card__top">
+          <span class="mc-card__nombre">{{ c.nombre }}</span>
+          <span class="mc-estado mc-estado--{{ c.estado }}">{{ estadoLabel(c.estado) }}</span>
+        </div>
+        <div class="mc-card__row">
+          <span class="mc-senal mc-senal--{{ senal(c) }}"></span>
+          <span class="mc-card__meta">{{ senalTexto(c) }}</span>
+          @if (c.bateria != null) { <span class="mc-card__meta">· {{ c.bateria }}%</span> }
+        </div>
+        <div class="mc-card__row">
+          <span class="mc-card__meta">Hoy: {{ c.trabajos_hoy }} trabajo(s)</span>
+          @if (c.en_proceso > 0) { <span class="sgc-badge sgc-badge--info">{{ c.en_proceso }} en proceso</span> }
+        </div>
+        @if (c.vehiculo_en_uso) { <div class="mc-card__meta">Vehículo: {{ c.vehiculo_en_uso }}</div> }
+        <div class="mc-card__actions">
+          @if (c.telefono) { <a class="sgc-btn sgc-btn--ghost" [href]="'tel:' + c.telefono">Llamar</a> }
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -235,6 +235,20 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
       {
+        // CK15 — bandeja de trabajos de transporte (Misael/flota elevada). El RPC gatea por rol.
+        path: 'transporte/trabajos',
+        title: 'Trabajos de transporte',
+        loadComponent: () =>
+          import('./pages/trabajos-transporte/trabajos-transporte').then((m) => m.TrabajosTransporte),
+      },
+      {
+        // CK16 — monitoreo de choferes (flota elevada). El RPC gatea por rol.
+        path: 'transporte/mis-choferes',
+        title: 'Mis choferes',
+        loadComponent: () =>
+          import('./pages/mis-choferes/mis-choferes').then((m) => m.MisChoferes),
+      },
+      {
         // Personal + shared notes — no module gate, every authenticated user.
         path: 'notas',
         loadComponent: () => import('./pages/notas/notas').then((m) => m.Notas),
