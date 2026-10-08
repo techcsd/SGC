@@ -5,7 +5,7 @@ import { UserService } from './core/services/user.service';
 import { ToastService } from '../shared/services/toast.service';
 import { ThemeService } from '../shared/services/theme.service';
 import { PreferenciasService } from '../shared/services/preferencias.service';
-import { aplicarDensidad, aplicarTamanoLetra } from '../shared/utils/apariencia.util';
+import { aplicarDensidad, aplicarTamanoLetra, aplicarMovimiento, leerMovimientoReducido } from '../shared/utils/apariencia.util';
 import { ToastComponent } from '../shared/components/toast/toast';
 import { EntornoBadge } from '../shared/ui/entorno-badge/entorno-badge';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
@@ -27,6 +27,8 @@ export class App implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   ngOnInit() {
+    // CJ1 — aplica la preferencia de movimiento (por dispositivo) lo antes posible.
+    aplicarMovimiento(leerMovimientoReducido());
     // Recuperación ante "chunk viejo tras un deploy" (index.html apunta a chunks
     // nuevos; una pestaña vieja intenta cargar los que ya no existen).
     // 1) Fallo al lazy-load de una ruta → NavigationError (caso del login).

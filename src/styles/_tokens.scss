@@ -170,6 +170,31 @@
   // ── Motion ──────────────────────────────────────────────────────────────
   --transition: all 0.2s ease;
   --transition-fast: all 0.15s ease;
+  // CJ1 — sistema de movimiento (duraciones + curvas). Úsalos en vez de números sueltos.
+  --motion-fast: 150ms;
+  --motion-base: 220ms;
+  --motion-slow: 320ms;
+  --motion-hero: 1600ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+}
+
+// CJ1 — respeto a "menos movimiento": por preferencia del SO o por el ajuste del
+// usuario (html.motion-reduced, Configuración › Apariencia). Anula transiciones y
+// animaciones (deja fundidos cortísimos, nada se rompe).
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+html.motion-reduced {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 // ── SEMANTIC — DARK ([data-theme="dark"]) ───────────────────────────────────
