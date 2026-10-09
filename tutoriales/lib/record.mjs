@@ -106,7 +106,7 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
   assertDev(web);
   if (!email || !pass) throw new Error('Faltan STORE_REVIEW_SUPERVISOR_*_DEV en ../.env.local');
 
-  const dbg = `${outDir}/debug`;
+  const dbg = `${outDir}/debug/${guion.id}`;
   mkdirSync(dbg, { recursive: true });
   const viewport = guion.viewport || { width: 1920, height: 1080 };
 
