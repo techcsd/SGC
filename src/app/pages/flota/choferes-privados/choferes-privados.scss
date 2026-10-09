@@ -143,3 +143,10 @@
   justify-content: flex-end;
   margin-top: 6px;
 }
+
+// CK2 — nombre clicable (abre la ficha del chofer privado)
+.cp-card__link {
+  color: inherit;
+  text-decoration: none;
+  &:hover { color: var(--Hub); text-decoration: underline; }
+}

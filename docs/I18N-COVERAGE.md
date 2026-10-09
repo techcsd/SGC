@@ -55,11 +55,11 @@
 | documentos/historial | - | 15 | 0 | 15 | 0% |
 | documentos/plantillas | - | 61 | 0 | 61 | 0% |
 | documentos/ver | - | 15 | 0 | 15 | 0% |
-| dudas | - | 23 | 0 | 23 | 0% |
+| dudas | - | 28 | 0 | 28 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
-| flota/choferes-privados | - | 36 | 0 | 36 | 0% |
+| flota/choferes-privados | - | 103 | 0 | 103 | 0% |
 | flota/combustible | - | 288 | 0 | 288 | 0% |
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 195 | 0 | 195 | 0% |
@@ -99,7 +99,7 @@
 | inventario/reportes | - | 70 | 0 | 70 | 0% |
 | inventario/reposicion | - | 44 | 0 | 44 | 0% |
 | inventario/retiros | - | 141 | 0 | 141 | 0% |
-| inventario/salidas | - | 231 | 0 | 231 | 0% |
+| inventario/salidas | - | 235 | 0 | 235 | 0% |
 | legal/aprobaciones | - | 60 | 0 | 60 | 0% |
 | legal/configuracion | - | 22 | 0 | 22 | 0% |
 | legal/contratos | - | 70 | 0 | 70 | 0% |

@@ -1,13 +1,52 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-90 (Ronda CK) — 08-09/10/2026 — ✅ **1.162.0: TODO EL PROMPT CERRADO, SERVIDOR EN PROD** (Xaviel: "haz todo y envíalo a producción, no pares")
+**Lo que quedaba del prompt ya está hecho y verificado.** 4 migraciones en el **ledger de PROD** (verificadas por objeto): `ck2-chofer-privado-detalle`, `ck12d-apoyo-retiro-danado`, `ck5-tutoriales` (bucket), `ck5b-guias-tutoriales` (7 guías). Video de apoyo de transporte **subido a prod** (bucket `tutoriales` + guía con campos de video). Falta solo el **push del front** `dev→main` (deploy Vercel) — se hace al cerrar esta sesión.
+
+**✅ CK1/CK2 — ficha del chofer privado (COMPLETA):** RPC definer `chofer_privado_detalle(p_usuario_id)` (vigencias + usos tomó/soltó/recibió + entregas con fotos + echadas con foto/origen + inspecciones), gate is_admin/flota-elevado — **en prod**. Front: `pages/flota/choferes-privados/detalle/*` (ruta `choferes-privados/:id`), nombre clicable en la lista, y enlace desde la ficha del vehículo (`vehiculo-detalle` nombre→ficha). Smoke dev OK (6 llaves, chofer resuelto). Seed dev: 2 vehículos autorizados al Chofer Demo (52097861) para que la ficha muestre datos.
+**✅ bg4 — retiro dañado (COMPLETO):** `solicitudes_movimiento.es_danado` persiste; `apoyo_transporte_crear` lo guarda; `apoyo_transporte_agregar_foto` genera un **borrador de retiro bg4** (`crear_retiro_material`, estado `pendiente`, NO toca cuarentena) con la 1.ª foto y lo enlaza en `retiro_material_id`. Idempotente + mejor-esfuerzo (si falla no tumba la foto). Smoke dev OK (apoyo→retiro pendiente enlazado, rollback). **En prod.** Regla 19: defs de prod verificadas == repo antes de reemplazar.
+**✅ CK4 §5 — chip «Sin receptor» + filtro en Salidas** (1.162.0 front).
+
+**🎬 CK5 videos — 1 en prod, 7 BLOQUEADOS por privacidad (decisión consciente):**
+- **apoyo-transporte** (flujo real, grabado como el revisor puro → solo OBRA DEMO, candado limpio) → **subido a prod y dev**. Bien.
+- Los **otros 7 (gated)** NO se pueden grabar seguros todavía: para ver Inventario/Flota/Transporte el usuario necesita rol (logística), pero entonces las **listas y selectores (obras, vehículos, choferes, artículos) salen por RPCs DEFINER que ignoran el filtro `es_prueba`** → mostrarían datos reales, y el candado de texto solo atrapa cédulas/placas, no nombres/obras. Grabarlos y subirlos a prod **filtraría datos reales** (viola la regla dura de privacidad / nota #171). Por eso NO se subieron.
+- **Siguiente paso para los 7:** demo-aislar cada fuente de datos para usuarios demo (DEFINER RPCs con filtro demo + selectores de obra/catálogo) y/o endurecer el candado a nombres; recién ahí grabar como un usuario demo con roles. Las 7 guías de texto ya están en Dudas (prod) — los videos se agregan después, sin bloquear.
+- Tooling 100% listo: `tutoriales/lib/record.mjs` (portada+barra pasos CB+cierre+VTT), 8 guiones, `run.mjs`, `scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs` (acepta filtro por id: `… web-apoyo-transporte`).
+
+### [estado previo — CK4§5 + CK5 tooling, ya integrado arriba]
+**Estado prod base:** `main` = `2084149` = **1.161.0**. Esta ronda sube a **1.162.0**.
+
+**✅ Hecho y verificado esta sesión (en `dev`, sin commit a main):**
+- **CK4 §5 — chip «Sin receptor» + filtro en Salidas.** `salidas.ts/html/scss`: helper `sinReceptor(s)` (despachado + uso_proyecto + sin `firma_pendiente_nombre`/`entrega_receptor`/`recibido`), filtro-toggle con contador, chip ámbar apilado bajo el estado. `npm run build` verde. (El bloque «Entregar a» del conduce ya estaba en 1.160.0.)
+- **CK5 — videos «cómo hacer» COMPLETO (web).** Tooling funcional de verdad:
+  - `tutoriales/lib/record.mjs` — motor: login + descarta onboarding + **PORTADA (2 s) + BARRA DE PASOS (colores CB) + CIERRE (2 s) horneados en el video** + **`.vtt`** con tiempos reales por paso + candado de texto por paso. ffmpeg webm→mp4+póster.
+  - `tutoriales/guiones/*.mjs` — **8 guiones web** (apoyo-transporte = flujo real verificado; los otros 7 demostrativos: navegan y resaltan, no envían). `tutoriales/run.mjs` = cargador (`<id>` o `--all`).
+  - **8 videos grabados** contra localhost:4200→Supabase dev (login demo = prueba de que es dev), 21-27 s, mp4+jpg+vtt, **sin candado disparado** (RLS demo → solo OBRA DEMO). En `tutoriales/salida/` (gitignored).
+  - `sql/2026-10-08-ck5b-guias-tutoriales.sql` — 7 guías nuevas en `ayuda_contenido` (apoyo-transporte/requisicion/conduce-externo/transferir-conduce/mantenimiento/chofer-privado/mis-choferes; 'conduce' reusa la existente). **Aplicada a dev** (ledger). Idempotente, preserva campos de video.
+  - `scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs` — sube al bucket `tutoriales` + escribe campos de video en `ayuda_contenido` (**DRY-RUN por defecto**; dry-run dev verificado: los 8 mapean a su guía ✓).
+
+**👤 Pendiente físico de Xaviel (CK5):** ver los 8 videos (le mandé el de apoyo como muestra) → `node scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs --env dev --apply` → revisar en Dudas dev → `--env prod --apply`. Los 7 demostrativos quizá necesiten ajuste de selectores o volverse flujo completo si hay datos demo (molde en `tutoriales/README.md`).
+
+**⏳ Menor, NO hecho esta sesión (server-touching → siguiente tanda, con su ciclo dev→prueba→prod):**
+- **CK1/CK2 — ficha del chofer privado.** Hoy `pages/flota/choferes-privados` es SOLO lista (tarjeta con autorizados+vigencia+último uso). FALTA: vista detalle por chofer con historial de usos (tomó/soltó/recibió) **con fotos**, echadas, inspecciones, vigencias, y enlace desde la ficha del vehículo (`vehiculo-detalle.html:427` el nombre es texto, no link). Necesita RPC aditivo de lectura (`chofer_privado_detalle`) + componente detalle + ruta `:id`.
+- **CK4 §5 / bg4 — retiro dañado.** `apoyo_transporte_crear` acepta `p_es_danado` pero NO crea el borrador bg4 (`sql/2026-10-08-ck12b-apoyo-rpcs.sql:89` lo deja como follow-up). FALTA: con `es_danado=true` + tipo `retiro_material`, crear borrador bg4 enlazado (reusar el RPC de retiro `sql/2026-09-01-bg4-*`; si exige renglones, borrador con `motivo_dano='otro'` + detalle=descripción). Verificar que la cuarentena no cambia.
+
+**Versión:** bump **1.162.0** + `release-notes.json web.1.162.0` (chip Sin receptor + guías Dudas). `verify-version-notes` ✓.
+**Flujo a prod:** commit en `dev` → Xaviel prueba (chip Sin receptor + guías en Dudas + videos) → aplicar `ck5b` a prod + subir videos → PR `dev → main` → 1.162.0. **Nota #181 (CK14) ya la cerró Xaviel.** App = PROMPT-91.
+
+---
+
 ## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — ✅ **SHIPPED PROD: 1.159.1 + 1.160.0** · 🧪 Apoyo de transporte (servidor) WIP en `feature/ck-apoyo`
 **Prod al día:** `main`=`dev`=`47be36c`, Vercel READY (sgcconstructorasd.com). 5 migraciones en ledger **prod** verificadas por objeto (ck8/ck4/ck10/ck3/ck3b) + edge `send-push` **v14** en prod + versiones 1.159.1 y 1.160.0 en `app_versiones`. (OK de Xaviel: "sube todo a produccion".)
 
-**🧪 EN DEV 1.161.0 — Apoyo de transporte COMPLETO (CK11-CK16), servidor + web** (`feature/ck-apoyo` → `dev` `7631519`, NO prod todavía). 4 migraciones en ledger **dev**: `ck12` (esquema) + `ck12b` (RPCs) + `ck12c` (planificar/trigger) + `ck15` (trabajos/eventos/panel). Evoluciona `solicitudes_movimiento` (`tipo_apoyo`/`dia`/`descripcion`/`retiro_material_id`; estados `pendiente/asignada/en_proceso/por_confirmar/completada/cancelada`; `apoyo_transporte_fotos`/`_eventos`; bucket privado `apoyo-transporte`). RPCs `apoyo_transporte_*`, `trabajos_transporte_listado`, `actividad_crear`, `trabajo_asignar`, `trabajo_evento_chofer`, `mis_choferes_panel`. **Web:** `pages/apoyo-transporte` (ruta `/transporte/apoyo`; `/solicitudes-movimiento` redirige), `pages/trabajos-transporte` (kanban, Misael), `pages/mis-choferes` (monitoreo); menú actualizado. Smokes todos verdes.
+**✅ 1.161.0 — Apoyo de transporte (CK11-CK16) SHIPPED A PROD** (merge `dev`→`main` `2084149`, Vercel READY, versión registrada). `ck12`/`ck12b`/`ck12c`/`ck15` en ledger **prod** verificados por objeto + bucket `apoyo-transporte` en prod. Web: `pages/apoyo-transporte` (`/transporte/apoyo`; `/solicitudes-movimiento` redirige), `pages/trabajos-transporte` (kanban de Misael), `pages/mis-choferes`. 👤 avisar a ingenieros/choferes del módulo nuevo.
+> 🔴 **Gotcha ck12 (regla 19):** el 1er apply a prod falló (23514) — el remap de estado corría con el check viejo aún activo y el único row `planificada` de prod no podía pasar a `asignada` (dev no tenía ese caso). Fix: drop del check ANTES del remap + idempotente; `ck12c` ya se había aplicado (dejó `planificar` roto un instante) → reconciliado aplicando `ck12`/`ck12b`/`ck15`. Verificado por objeto.
 
-**👤 Para subir 1.161.0 a prod** (cuando Xaviel pruebe en dev y dé OK): aplicar `ck12`/`ck12b`/`ck12c`/`ck15` con `--env prod --yes` (crean también el bucket `apoyo-transporte`), merge `dev`→`main`, registrar versión. Avisar a ingenieros/choferes.
+**🧪 CK5 videos — GRABADOR FUNCIONAL + 1er video grabado (en dev; `dev` adelante de `main`):** reproductor en Dudas + filtro "Con video" (campos en `ayuda_contenido.contenido`), bucket privado `tutoriales` (ledger dev), helper `es_usuario_demo()`, y **`tutoriales/run.mjs` YA GRABA de punta a punta**. El primer video (`web-apoyo-transporte`, 17.8s, flujo "crear apoyo") salió OK y se le mandó a Xaviel para revisión.
+> **Cómo reanudar la grabación (próxima sesión):** 1) `npm run env:dev` + `npm start` (ng serve en localhost:4200, apunta a Supabase dev). 2) `cd tutoriales && node run.mjs web-apoyo-transporte`. Requisitos ya resueltos en dev: usuarios demo `revision.tiendas@`/`revision.chofer@` (creds en `.env.local` `STORE_REVIEW_*_DEV`) están en `sgc.dev_acceso` (pasan el candado dev) y tienen rol `revisor_tiendas` (RLS → solo OBRA DEMO). Playwright 1.6x + chromium-headless-shell + ffmpeg-static ya instalados. `run.mjs` maneja login, gate de políticas CI3, onboarding idioma/tour, y graba webm→mp4+póster; capturas por paso en `salida/debug`.
+> **Falta (polish + escala):** barra de pasos + subtítulos VTT en el render (ahora es grabación limpia sin overlay); los otros 15 guiones (mismo molde, cambiar navegación/acciones); `scripts/data-fixes/…-subir-tutoriales.mjs` para subir al bucket `tutoriales` (dev → revisión de Xaviel → prod) y escribir los campos de video en `ayuda_contenido`. **El server `ng serve` quedó corriendo en esta sesión; se cierra al terminar la sesión.**
 
-**Falta de la tanda CK:** **CK5 videos** (FASE 6 — ffmpeg+Playwright; gatillado físico: grabar necesita login en dev + revisión de Xaviel antes de prod; falta tooling `tutoriales/`, demo users, bucket `tutoriales` + campos de video en `ayuda_contenido`, player en Dudas). Cierres CK1/CK2 (ficha del privado con fotos), chip "Sin receptor" (CK4 §5), enlace bg4 del retiro dañado. Nota #181 = CK14 (Xaviel la completó).
+**Resto de la tanda CK (menor):** cierres CK1/CK2 (ficha del privado con fotos), chip "Sin receptor" (CK4 §5), enlace bg4 del retiro dañado. Nota #181 = CK14 (Xaviel la completó).
 
 ### [HISTORIAL CK — estado "en dev" previo al ship]
 

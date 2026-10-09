@@ -22,6 +22,13 @@ export interface GuiaVisual {
   modulo?: string;
   /** Ordered, one-line steps. */
   pasos: string[];
+  /** CK5 — video corto "cómo hacer" (bucket privado `tutoriales`, URL firmada). */
+  video_path?: string | null;
+  poster_path?: string | null;
+  vtt_path?: string | null;
+  duracion_s?: number | null;
+  /** 'web' | 'app' — por si la guía tiene video por plataforma. */
+  plataforma?: 'web' | 'app' | null;
 }
 
 export const GUIAS_VISUALES: GuiaVisual[] = [

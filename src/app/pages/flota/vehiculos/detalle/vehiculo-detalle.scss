@@ -260,3 +260,10 @@ textarea { resize: vertical; min-height: 72px; width: 100%; }
     white-space: nowrap;
   }
 }
+
+// CK2 — nombre del chofer privado como enlace a su ficha
+a.vd-asig__nombre {
+  color: inherit;
+  text-decoration: none;
+  &:hover { color: var(--Hub); text-decoration: underline; }
+}

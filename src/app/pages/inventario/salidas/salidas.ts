@@ -107,6 +107,8 @@ export class Salidas implements OnInit {
   selectedMotivo = signal<string>('');
   dateFrom = signal<string>('');
   dateTo = signal<string>('');
+  // CK4 §5 — solo despachos a obra sin receptor designado (nadie confirmará la entrega).
+  soloSinReceptor = signal(false);
   // T2 — mostrar datos de prueba (solo admin; por defecto ocultos).
   /** W7 — visibilidad GLOBAL de datos de prueba (compartida con el shell). */
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
@@ -323,6 +325,8 @@ export class Salidas implements OnInit {
     // T2 — no-admin nunca ve datos de prueba (RLS ya los oculta); admin los oculta salvo toggle.
     const verPrueba = this.esAdmin() && this.mostrarPrueba();
 
+    const sinRecep = this.soloSinReceptor();
+
     return this.salidas().filter((s) => {
       if (s.es_prueba && !verPrueba) return false;
       if (
@@ -336,8 +340,32 @@ export class Salidas implements OnInit {
       if (motivo && s.motivo !== motivo) return false;
       if (from && s.fecha < from) return false;
       if (to && s.fecha > to) return false;
+      if (sinRecep && !this.sinReceptor(s)) return false;
       return true;
     });
+  });
+
+  /**
+   * CK4 §5 — un conduce a obra (uso en proyecto) que ya se despachó pero no tiene
+   * receptor designado: nadie firmará la recepción. Se resuelve asignando el
+   * receptor desde el conduce ("Entregar a"). Los traslados/ventas/mermas no van a
+   * una obra, así que no aplican.
+   */
+  sinReceptor(s: SalidaInventario): boolean {
+    return (
+      s.estado === 'despachado' &&
+      s.motivo === 'uso_proyecto' &&
+      !s.firma_pendiente_nombre &&
+      !s.entrega_receptor &&
+      !s.recibido_por &&
+      !s.recibido_en
+    );
+  }
+
+  /** CK4 §5 — cuántos despachos quedan sin receptor (para el badge del filtro). */
+  sinReceptorCount = computed(() => {
+    const verPrueba = this.esAdmin() && this.mostrarPrueba();
+    return this.salidas().filter((s) => (verPrueba || !s.es_prueba) && this.sinReceptor(s)).length;
   });
 
   paginated = computed(() => {
@@ -363,7 +391,8 @@ export class Salidas implements OnInit {
       !!this.selectedBodega() ||
       !!this.selectedMotivo() ||
       !!this.dateFrom() ||
-      !!this.dateTo(),
+      !!this.dateTo() ||
+      this.soloSinReceptor(),
   );
 
   async ngOnInit() {
@@ -610,12 +639,18 @@ export class Salidas implements OnInit {
     this.currentPage.set(1);
   }
 
+  onSinReceptorToggle(value: boolean) {
+    this.soloSinReceptor.set(value);
+    this.currentPage.set(1);
+  }
+
   clearFilters() {
     this.searchQuery.set('');
     this.selectedBodega.set('');
     this.selectedMotivo.set('');
     this.dateFrom.set('');
     this.dateTo.set('');
+    this.soloSinReceptor.set(false);
     this.currentPage.set(1);
   }
 

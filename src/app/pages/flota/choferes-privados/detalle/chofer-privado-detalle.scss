@@ -1,0 +1,92 @@
+.cpd-back {
+  display: inline-block;
+  margin-bottom: 6px;
+  color: var(--main-ultra-light);
+  font-size: 0.85rem;
+  text-decoration: none;
+  &:hover { color: var(--Hub); }
+}
+
+.cpd-meta {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  color: var(--main-ultra-light);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.cpd-card {
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.cpd-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+.cpd-muted {
+  color: var(--main-ultra-light);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.cpd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cpd-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cpd-row {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+
+  &__main {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+  &__sub {
+    color: var(--main-ultra-light);
+    font-size: 0.82rem;
+    margin-top: 3px;
+  }
+}
+
+.cpd-fotos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.cpd-thumb {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--main-ultra-light);
+  transition: border-color 0.15s ease;
+
+  &:hover { border-color: var(--Hub); }
+  img { width: 100%; height: 100%; object-fit: cover; }
+}

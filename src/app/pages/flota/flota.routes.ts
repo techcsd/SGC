@@ -77,6 +77,14 @@ export const flotaRoutes: Routes = [
     title: 'Choferes privados — Flota',
   },
   {
+    // CK1/CK2 — ficha del chofer privado (usos con fotos, echadas, inspecciones, vigencias).
+    path: 'choferes-privados/:id',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./choferes-privados/detalle/chofer-privado-detalle').then((m) => m.ChoferPrivadoDetalle),
+    title: 'Ficha de chofer privado — Flota',
+  },
+  {
     path: 'accidentes',
     canActivate: [flotaElevadoGuard],
     loadComponent: () => import('./accidentes/accidentes').then((m) => m.Accidentes),

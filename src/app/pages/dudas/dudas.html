@@ -11,7 +11,13 @@
   <!-- Guías rápidas (visual guides) -->
   @if (guias().length) {
     <section class="dudas__guias">
-      <h2 class="dudas__guias-title">Guías rápidas</h2>
+      <div class="dudas__guias-head">
+        <h2 class="dudas__guias-title">Guías rápidas</h2>
+        @if (hayVideos()) {
+          <button type="button" class="dudas__video-filtro" [class.dudas__video-filtro--on]="soloConVideo()"
+            (click)="toggleSoloConVideo()">Con video</button>
+        }
+      </div>
       <div class="dudas__guias-grid">
         @for (g of guias(); track g.id) {
           <article class="dudas__guia sgc-card">
@@ -61,6 +67,16 @@
               </span>
               <h3 class="dudas__guia-titulo">{{ g.titulo }}</h3>
             </div>
+            <!-- CK5 — video "cómo hacer" (sin autoplay, con subtítulos y duración) -->
+            @if (videoUrls()[g.id]; as v) {
+              <div class="dudas__guia-video">
+                <video controls preload="none" [poster]="v.poster || ''" playsinline>
+                  <source [src]="v.video" type="video/mp4" />
+                  @if (v.vtt) { <track kind="subtitles" srclang="es" label="Español" [src]="v.vtt" default /> }
+                </video>
+                @if (v.duracion) { <span class="dudas__guia-video-dur">{{ formatDuracion(v.duracion) }}</span> }
+              </div>
+            }
             <ol class="dudas__guia-pasos">
               @for (paso of g.pasos; track paso) {
                 <li>{{ paso }}</li>
