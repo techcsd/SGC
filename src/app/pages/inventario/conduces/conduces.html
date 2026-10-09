@@ -119,7 +119,7 @@
     @if (puedeAsignarChofer() && seleccionados().size > 0) {
       <div class="conduces__lote">
         <span>{{ seleccionados().size }} conduce(s) seleccionado(s)</span>
-        <select class="sgc-field" [value]="choferLote()" (change)="choferLote.set($any($event.target).value)">
+        <select class="sgc-select" [value]="choferLote()" (change)="choferLote.set($any($event.target).value)">
           <option value="">Elegir chofer…</option>
           @for (c of choferesDisponibles(); track c.conductor_id) {
             <option [value]="c.conductor_id">{{ c.nombre }}</option>
@@ -168,7 +168,7 @@
                   @if (asignandoId() === r.id) {
                     <!-- BV7 — picker inline para asignar chofer (no navega la fila) -->
                     <div class="conduces__asignar" (click)="$event.stopPropagation()">
-                      <select class="sgc-field sgc-field--sm" [value]="choferSel()" (change)="choferSel.set($any($event.target).value)">
+                      <select class="sgc-select sgc-select--sm" [value]="choferSel()" (change)="choferSel.set($any($event.target).value)">
                         <option value="">Elegir chofer…</option>
                         @for (c of choferesDisponibles(); track c.conductor_id) {
                           <option [value]="c.conductor_id">{{ c.nombre }}</option>

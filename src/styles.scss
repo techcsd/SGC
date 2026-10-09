@@ -387,6 +387,30 @@ select.sgc-select {
   &:focus { border-color: var(--brand); box-shadow: var(--focus-ring); }
 }
 
+// CL1 — Control SUELTO del design system (input/textarea fuera de un `.sgc-field`
+// contenedor). Paralelo a `select.sgc-select`: mismo alto (~40px), borde, radio y
+// foco que los controles dentro de `.sgc-field`, pero aplicable directo al control.
+// REGLA: `sgc-field` es el CONTENEDOR (label + control); nunca va en el control.
+// El control suelto usa `sgc-input` / `select.sgc-select` (guard: verify-campos-sgc-field.mjs).
+.sgc-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  font-size: 14px;
+  color: var(--sgc-text);
+  background: var(--sgc-surface);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus { border-color: var(--brand); box-shadow: var(--focus-ring); }
+  &.invalid { border-color: var(--sgc-danger); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &::placeholder { color: var(--sgc-text-muted); }
+}
+textarea.sgc-input { min-height: 84px; resize: vertical; line-height: 1.5; }
+.sgc-input--sm, select.sgc-select.sgc-select--sm { padding-top: 7px; padding-bottom: 7px; font-size: 13px; }
+
 // ── Print ─────────────────────────────────────────────────
 // When printing / "Guardar como PDF", strip the app shell (sidebar + header)
 // so the output is only the routed document — a conduce or generated document,

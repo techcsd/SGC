@@ -572,7 +572,7 @@
               }
             } @else {
               <div class="req-detail__cancelar">
-                <input class="sgc-field" placeholder="Motivo de cancelación (obligatorio)"
+                <input class="sgc-input" placeholder="Motivo de cancelación (obligatorio)"
                        [value]="cancelarMotivo()" (input)="cancelarMotivo.set($any($event.target).value)" />
                 <div class="req-detail__actions">
                   <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" [disabled]="saving()" (click)="confirmarCancelar()">Confirmar cancelación</button>
@@ -717,7 +717,7 @@
               <button type="button" class="sgc-btn sgc-btn--danger" (click)="mostrarCancelar.set(true)">Cancelar requisición…</button>
             </div>
           } @else {
-            <input class="sgc-field" placeholder="Motivo de cancelación (obligatorio)"
+            <input class="sgc-input" placeholder="Motivo de cancelación (obligatorio)"
                    [value]="cancelarMotivo()" (input)="cancelarMotivo.set($any($event.target).value)" />
             <div class="req-detail__actions">
               <button type="button" class="sgc-btn sgc-btn--danger" [disabled]="saving()" (click)="confirmarCancelar()">Confirmar cancelación</button>

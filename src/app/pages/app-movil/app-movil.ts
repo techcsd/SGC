@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { environment } from '../../../environments/environment';
 
 interface VersionInfo {
@@ -26,7 +27,7 @@ const VERSION_URL = `${environment.supabaseUrl}/storage/v1/object/public/app-rel
  */
 @Component({
   selector: 'app-app-movil',
-  imports: [DecimalPipe, Skeleton, Icon],
+  imports: [DecimalPipe, Skeleton, Icon, TranslatePipe],
   templateUrl: './app-movil.html',
   styleUrl: './app-movil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

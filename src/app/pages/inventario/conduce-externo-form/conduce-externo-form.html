@@ -24,7 +24,7 @@
       @if (!usarTexto()) {
         <div class="cef-field">
           <label class="cef-label">Proveedor de transporte</label>
-          <select class="sgc-field" [value]="proveedorId() ?? ''" (change)="proveedorId.set($any($event.target).value || null)">
+          <select class="sgc-select" [value]="proveedorId() ?? ''" (change)="proveedorId.set($any($event.target).value || null)">
             <option value="">— Selecciona —</option>
             @for (p of proveedores(); track p.id) {
               <option [value]="p.id">{{ p.nombre }}@if (p.estado === 'sin_ratificar') { (sin ratificar) }</option>
@@ -37,15 +37,15 @@
         </div>
         @if (nuevoAbierto()) {
           <div class="cef-inline">
-            <input class="sgc-field" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
-            <input class="sgc-field" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
+            <input class="sgc-input" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+            <input class="sgc-input" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
             <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="crearProveedorRapido()">Crear</button>
           </div>
         }
       } @else {
         <div class="cef-field">
           <label class="cef-label">Transporta (texto «Otro»)</label>
-          <input class="sgc-field" placeholder="Nombre del transportista" [value]="transportaTexto()" (input)="transportaTexto.set($any($event.target).value)" />
+          <input class="sgc-input" placeholder="Nombre del transportista" [value]="transportaTexto()" (input)="transportaTexto.set($any($event.target).value)" />
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleTexto()">Elegir del catálogo</button>
         </div>
       }
@@ -71,7 +71,7 @@
     <!-- Material -->
     <section class="cef-section">
       <h2 class="cef-h">¿Qué mueve?</h2>
-      <input class="sgc-field" placeholder="Descripción del material (ej. una nevera, 20 sacos de cemento…)"
+      <input class="sgc-input" placeholder="Descripción del material (ej. una nevera, 20 sacos de cemento…)"
              [value]="material()" (input)="material.set($any($event.target).value)" />
     </section>
 
@@ -80,7 +80,7 @@
       <h2 class="cef-h">Origen → destino</h2>
       <div class="cef-field cef-lugar">
         <label class="cef-label">Origen</label>
-        <input class="sgc-field" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
+        <input class="sgc-input" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
                [value]="origenQuery()" (input)="buscarOrigen($any($event.target).value)" />
         @if (origenResultados().length) {
           <ul class="cef-results">
@@ -92,7 +92,7 @@
       </div>
       <div class="cef-field cef-lugar">
         <label class="cef-label">Destino</label>
-        <input class="sgc-field" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
+        <input class="sgc-input" placeholder="Buscar obra / almacén / lugar, o escribe «Otros»"
                [value]="destinoQuery()" (input)="buscarDestino($any($event.target).value)" />
         @if (destinoResultados().length) {
           <ul class="cef-results">
@@ -139,7 +139,7 @@
             [allowOtro]="false"
             placeholder="Elegir artículo…"
             (selectionChange)="onArticuloElegido($index, $event)" />
-          <input class="sgc-field cef-item__qty" type="number" min="0" step="any"
+          <input class="sgc-input cef-item__qty" type="number" min="0" step="any"
                  [value]="it.cantidad" (input)="setCantidad($index, $any($event.target).value)" />
           <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarItem($index)">Quitar</button>
         </div>

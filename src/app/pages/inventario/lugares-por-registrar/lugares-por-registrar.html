@@ -36,9 +36,9 @@
 
           @if (promoviendo() === l.id) {
             <div class="lpr-form">
-              <input class="sgc-field" placeholder="Nombre del lugar" [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
-              <input class="sgc-field lpr-coord" placeholder="Lat (opcional)" [value]="lat()" (input)="lat.set($any($event.target).value)" />
-              <input class="sgc-field lpr-coord" placeholder="Lng (opcional)" [value]="lng()" (input)="lng.set($any($event.target).value)" />
+              <input class="sgc-input" placeholder="Nombre del lugar" [value]="nombre()" (input)="nombre.set($any($event.target).value)" />
+              <input class="sgc-input lpr-coord" placeholder="Lat (opcional)" [value]="lat()" (input)="lat.set($any($event.target).value)" />
+              <input class="sgc-input lpr-coord" placeholder="Lng (opcional)" [value]="lng()" (input)="lng.set($any($event.target).value)" />
               <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="promover(l)">Guardar</button>
               <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="promoviendo.set(null)">Cancelar</button>
             </div>
