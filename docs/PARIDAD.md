@@ -44,3 +44,8 @@ Copiar al `CLAUDE.md` de `csd-app`:
 
 ## 6. Rol revisor de tiendas
 - Rol `revisor_tiendas` (`es_operativo=false`), alcance **OBRA DEMO** (datos ficticios). La app debe tratarlo como un usuario normal de solo lectura; nunca ve datos reales (lo garantiza la RLS del servidor). Credenciales en `docs/TIENDAS-REVISION.md` (hijo).
+
+## 7. CK (PROMPT-90) — ficha chofer privado, retiro dañado, videos
+- **`sgc.chofer_privado_detalle(p_usuario_id uuid) returns jsonb`** (DEFINER, gate `is_admin()/es_flota_elevado()`): `{ chofer, vigencias[], usos[], entregas[] (con fotos[]), echadas[] (foto_recibo_path/foto_tablero_path/foto_origen), inspecciones[] }`. Combustible/checklists enlazan por `conductores.id` (no usuario_id). Fotos en bucket `vehiculos`. La app puede reusar este RPC para la ficha del chofer privado.
+- **bg4 retiro dañado:** `solicitudes_movimiento.es_danado boolean` (nuevo). `apoyo_transporte_crear(...)` lo guarda; **`apoyo_transporte_agregar_foto(...)`** ahora, en la 1.ª foto de un apoyo `retiro_material + es_danado`, genera un **borrador de retiro bg4** (`crear_retiro_material`, estado `pendiente`, motivo `'otro'`, NO toca cuarentena) y lo enlaza en `solicitudes_movimiento.retiro_material_id`. Idempotente; mejor esfuerzo (si falla no bloquea la foto). La app no cambia su llamada; el borrador se crea solo.
+- **CK5 videos:** campos de video en `ayuda_contenido.contenido` (`video_path/poster_path/vtt_path/duracion_s/plataforma`), bucket privado `tutoriales` (lectura authenticated por URL firmada). La app (Soporte y ayuda) lee los mismos campos. **Solo videos de datos demo**: los gated (Inventario/Flota/Transporte) requieren demo-aislar las fuentes DEFINER antes de grabarse seguros.
