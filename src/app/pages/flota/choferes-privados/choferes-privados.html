@@ -24,7 +24,9 @@
       <div class="cp-card">
         <div class="cp-card__head">
           <div>
-            <h3 class="cp-card__nombre">{{ ch.nombre }}</h3>
+            <h3 class="cp-card__nombre">
+              <a [routerLink]="[ch.usuario_id]" class="cp-card__link">{{ ch.nombre }}</a>
+            </h3>
             <div class="cp-card__meta">
               @if (ch.cedula) { <span>{{ fmtCedula(ch.cedula) }}</span> }
               @if (ch.telefono) { <span>{{ fmtTelefono(ch.telefono) }}</span> }

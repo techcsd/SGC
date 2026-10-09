@@ -83,8 +83,11 @@ async function subir(localPath, destPath) {
 const Q = (s) => `'${String(s).replace(/'/g, "''")}'`;
 
 async function main() {
-  const items = recolectar();
-  if (!items.length) { console.error('No hay videos en tutoriales/salida/ (*.mp4 con sufijo -v{n}).'); process.exit(1); }
+  let items = recolectar();
+  // Filtro opcional por id de guion (p.ej. `web-apoyo-transporte`): sube solo esos.
+  const soloIds = process.argv.filter((a) => /^(web|app)-/.test(a));
+  if (soloIds.length) items = items.filter((it) => soloIds.includes(it.guion));
+  if (!items.length) { console.error('No hay videos que subir (revisa tutoriales/salida/ o el filtro de ids).'); process.exit(1); }
 
   console.log(`\n═══ CK5 subir tutoriales — ${env.entorno} — ${APPLY ? 'APLICAR' : 'DRY-RUN'} ═══\n`);
   const plan = [];

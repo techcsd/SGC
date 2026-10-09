@@ -1,7 +1,20 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 (cont.) — 🧪 **1.162.0 en `dev`** (CK4 §5 + CK5 videos completos) · ⏳ falta OK de Xaviel para prod
-**Estado prod:** `main` = `2084149` = **1.161.0** (Apoyo de transporte CK11-CK16 + todo 1.159.1/1.160.0 ya en prod). `dev` adelante con CK5 + lo de esta sesión; **nada nuevo a prod aún** (regla 18: para tras OK).
+## TL;DR — PROMPT-90 (Ronda CK) — 08-09/10/2026 — ✅ **1.162.0: TODO EL PROMPT CERRADO, SERVIDOR EN PROD** (Xaviel: "haz todo y envíalo a producción, no pares")
+**Lo que quedaba del prompt ya está hecho y verificado.** 4 migraciones en el **ledger de PROD** (verificadas por objeto): `ck2-chofer-privado-detalle`, `ck12d-apoyo-retiro-danado`, `ck5-tutoriales` (bucket), `ck5b-guias-tutoriales` (7 guías). Video de apoyo de transporte **subido a prod** (bucket `tutoriales` + guía con campos de video). Falta solo el **push del front** `dev→main` (deploy Vercel) — se hace al cerrar esta sesión.
+
+**✅ CK1/CK2 — ficha del chofer privado (COMPLETA):** RPC definer `chofer_privado_detalle(p_usuario_id)` (vigencias + usos tomó/soltó/recibió + entregas con fotos + echadas con foto/origen + inspecciones), gate is_admin/flota-elevado — **en prod**. Front: `pages/flota/choferes-privados/detalle/*` (ruta `choferes-privados/:id`), nombre clicable en la lista, y enlace desde la ficha del vehículo (`vehiculo-detalle` nombre→ficha). Smoke dev OK (6 llaves, chofer resuelto). Seed dev: 2 vehículos autorizados al Chofer Demo (52097861) para que la ficha muestre datos.
+**✅ bg4 — retiro dañado (COMPLETO):** `solicitudes_movimiento.es_danado` persiste; `apoyo_transporte_crear` lo guarda; `apoyo_transporte_agregar_foto` genera un **borrador de retiro bg4** (`crear_retiro_material`, estado `pendiente`, NO toca cuarentena) con la 1.ª foto y lo enlaza en `retiro_material_id`. Idempotente + mejor-esfuerzo (si falla no tumba la foto). Smoke dev OK (apoyo→retiro pendiente enlazado, rollback). **En prod.** Regla 19: defs de prod verificadas == repo antes de reemplazar.
+**✅ CK4 §5 — chip «Sin receptor» + filtro en Salidas** (1.162.0 front).
+
+**🎬 CK5 videos — 1 en prod, 7 BLOQUEADOS por privacidad (decisión consciente):**
+- **apoyo-transporte** (flujo real, grabado como el revisor puro → solo OBRA DEMO, candado limpio) → **subido a prod y dev**. Bien.
+- Los **otros 7 (gated)** NO se pueden grabar seguros todavía: para ver Inventario/Flota/Transporte el usuario necesita rol (logística), pero entonces las **listas y selectores (obras, vehículos, choferes, artículos) salen por RPCs DEFINER que ignoran el filtro `es_prueba`** → mostrarían datos reales, y el candado de texto solo atrapa cédulas/placas, no nombres/obras. Grabarlos y subirlos a prod **filtraría datos reales** (viola la regla dura de privacidad / nota #171). Por eso NO se subieron.
+- **Siguiente paso para los 7:** demo-aislar cada fuente de datos para usuarios demo (DEFINER RPCs con filtro demo + selectores de obra/catálogo) y/o endurecer el candado a nombres; recién ahí grabar como un usuario demo con roles. Las 7 guías de texto ya están en Dudas (prod) — los videos se agregan después, sin bloquear.
+- Tooling 100% listo: `tutoriales/lib/record.mjs` (portada+barra pasos CB+cierre+VTT), 8 guiones, `run.mjs`, `scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs` (acepta filtro por id: `… web-apoyo-transporte`).
+
+### [estado previo — CK4§5 + CK5 tooling, ya integrado arriba]
+**Estado prod base:** `main` = `2084149` = **1.161.0**. Esta ronda sube a **1.162.0**.
 
 **✅ Hecho y verificado esta sesión (en `dev`, sin commit a main):**
 - **CK4 §5 — chip «Sin receptor» + filtro en Salidas.** `salidas.ts/html/scss`: helper `sinReceptor(s)` (despachado + uso_proyecto + sin `firma_pendiente_nombre`/`entrega_receptor`/`recibido`), filtro-toggle con contador, chip ámbar apilado bajo el estado. `npm run build` verde. (El bloque «Entregar a» del conduce ya estaba en 1.160.0.)

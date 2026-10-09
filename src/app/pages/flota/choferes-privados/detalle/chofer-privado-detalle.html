@@ -1,0 +1,163 @@
+<div class="page-header">
+  <div class="page-header__left">
+    <a routerLink="/flota/choferes-privados" class="cpd-back">← Choferes privados</a>
+    <h1 class="page-title">{{ data()?.chofer?.nombre || 'Chofer privado' }}</h1>
+    @if (data()?.chofer; as c) {
+      <div class="cpd-meta">
+        @if (c.cedula) { <span>{{ fmtCedula(c.cedula) }}</span> }
+        @if (c.telefono) { <span>{{ fmtTelefono(c.telefono) }}</span> }
+      </div>
+    }
+  </div>
+</div>
+
+@if (cargando()) {
+  <app-skeleton variant="list" [rows]="5" />
+} @else if (error()) {
+  <div class="page-error" role="alert">{{ error() }}</div>
+} @else if (data(); as d) {
+
+  <!-- Vehículos autorizados (vigencias) -->
+  <div class="sgc-card cpd-card">
+    <h2 class="cpd-title">Vehículos autorizados ({{ d.vigencias.length }})</h2>
+    @if (!d.vigencias.length) {
+      <p class="cpd-muted">Sin vehículos autorizados — por eso no puede tomar ninguno. Autorízale desde la lista.</p>
+    } @else {
+      <div class="cpd-chips">
+        @for (v of d.vigencias; track v.autorizacion_id) {
+          <span class="sgc-badge" [class.sgc-badge--success]="v.vigente" [class.sgc-badge--neutral]="!v.vigente"
+                [attr.title]="v.hasta ? ('Hasta ' + fmtFecha(v.hasta)) : 'Sin vencimiento'">
+            {{ vehiculoLabel(v.placa, v.marca, v.modelo) }}
+            @if (!v.vigente) { · {{ v.activa ? 'por iniciar' : 'retirada' }} }
+          </span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Historial de usos (tomó / soltó / recibió) -->
+  <div class="sgc-card cpd-card">
+    <h2 class="cpd-title">Historial de usos ({{ d.usos.length }})</h2>
+    @if (!d.usos.length) {
+      <p class="cpd-muted">Sin usos registrados.</p>
+    } @else {
+      <div class="cpd-rows">
+        @for (u of d.usos; track u.id) {
+          <div class="cpd-row">
+            <div class="cpd-row__main">
+              <strong>{{ vehiculoLabel(u.placa, u.marca, u.modelo) }}</strong>
+              @if (u.activa) { <span class="sgc-badge sgc-badge--warning">En uso</span> }
+              @if (u.recibido_de) { <span class="cpd-muted">· recibido de {{ u.recibido_de }}</span> }
+            </div>
+            <div class="cpd-row__sub">
+              {{ fmtFechaHora(u.inicio_at) }} → {{ u.fin_at ? fmtFechaHora(u.fin_at) : '—' }}
+              @if (u.km_inicio != null) { · {{ u.km_inicio | number:'1.0-0' }}@if (u.km_fin != null) { → {{ u.km_fin | number:'1.0-0' }} } km }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Entregas / recepciones (con fotos) -->
+  <div class="sgc-card cpd-card">
+    <h2 class="cpd-title">Entregas y recepciones ({{ d.entregas.length }})</h2>
+    @if (!d.entregas.length) {
+      <p class="cpd-muted">Sin entregas registradas.</p>
+    } @else {
+      <div class="cpd-rows">
+        @for (e of d.entregas; track e.id) {
+          <div class="cpd-row">
+            <div class="cpd-row__main">
+              <strong>{{ e.tipo === 'recepcion' ? 'Recepción' : 'Devolución' }}</strong>
+              · {{ vehiculoLabel(e.placa) }}
+              <span class="sgc-badge" [class.sgc-badge--success]="e.estado === 'cerrada'" [class.sgc-badge--warning]="e.estado !== 'cerrada'">{{ e.estado }}</span>
+              @if (e.tiene_danos) { <span class="sgc-badge sgc-badge--danger">Con daños</span> }
+            </div>
+            <div class="cpd-row__sub">
+              {{ fmtFechaHora(e.capturado_en) }}
+              @if (e.km != null) { · {{ e.km | number:'1.0-0' }} km }
+              @if (e.observacion) { · {{ e.observacion }} }
+            </div>
+            @if (e.fotos?.length) {
+              <div class="cpd-fotos">
+                @for (p of e.fotos; track p) {
+                  <button type="button" class="cpd-thumb" (click)="abrirFoto(p)" title="Ver foto">
+                    @if (thumb(p); as t) { <img [src]="t" alt="Foto de entrega" loading="lazy" /> }
+                    @else { <app-icon name="camera" [size]="16" /> }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Echadas de combustible -->
+  <div class="sgc-card cpd-card">
+    <h2 class="cpd-title">Echadas de combustible ({{ d.echadas.length }})</h2>
+    @if (!d.echadas.length) {
+      <p class="cpd-muted">Sin echadas registradas.</p>
+    } @else {
+      <div class="cpd-rows">
+        @for (r of d.echadas; track r.id) {
+          <div class="cpd-row">
+            <div class="cpd-row__main">
+              <strong>{{ vehiculoLabel(r.placa) }}</strong>
+              @if (r.galones != null) { · {{ r.galones | number:'1.0-2' }} gal }
+              @if (r.monto != null) { · RD$ {{ r.monto | number:'1.0-2' }} }
+              @if (r.foto_origen === 'galeria') { <span class="sgc-badge sgc-badge--warning">Foto de galería</span> }
+            </div>
+            <div class="cpd-row__sub">
+              {{ fmtFecha(r.fecha) }}
+              @if (r.kilometraje != null) { · {{ r.kilometraje | number:'1.0-0' }} km }
+            </div>
+            <div class="cpd-fotos">
+              @if (r.foto_recibo_path) {
+                <button type="button" class="cpd-thumb" (click)="abrirFoto(r.foto_recibo_path)" title="Ver recibo">
+                  @if (thumb(r.foto_recibo_path); as t) { <img [src]="t" alt="Recibo" loading="lazy" /> } @else { <app-icon name="camera" [size]="16" /> }
+                </button>
+              }
+              @if (r.foto_tablero_path) {
+                <button type="button" class="cpd-thumb" (click)="abrirFoto(r.foto_tablero_path)" title="Ver tablero">
+                  @if (thumb(r.foto_tablero_path); as t) { <img [src]="t" alt="Tablero" loading="lazy" /> } @else { <app-icon name="camera" [size]="16" /> }
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Inspecciones / checklists -->
+  <div class="sgc-card cpd-card">
+    <h2 class="cpd-title">Inspecciones ({{ d.inspecciones.length }})</h2>
+    @if (!d.inspecciones.length) {
+      <p class="cpd-muted">Sin inspecciones registradas.</p>
+    } @else {
+      <div class="cpd-rows">
+        @for (i of d.inspecciones; track i.id) {
+          <div class="cpd-row">
+            <div class="cpd-row__main">
+              <strong>{{ i.tipo === 'pre_uso' ? 'Pre-uso' : 'Inspección' }}</strong>
+              · {{ vehiculoLabel(i.placa) }}
+              @if (i.tiene_criticos) { <span class="sgc-badge sgc-badge--danger">Con críticos</span> }
+              @else { <span class="sgc-badge sgc-badge--success">OK</span> }
+            </div>
+            <div class="cpd-row__sub">
+              {{ fmtFecha(i.fecha) }}
+              @if (i.kilometraje != null) { · {{ i.kilometraje | number:'1.0-0' }} km }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+@if (lightbox(); as foto) {
+  <app-lightbox [src]="foto" alt="Foto de flota" (closed)="lightbox.set(null)" />
+}

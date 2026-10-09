@@ -424,7 +424,7 @@
             @for (a of autorizaciones(); track a.id) {
               <li class="vd-asig">
                 <div class="vd-asig__info">
-                  <span class="vd-asig__nombre">{{ a.usuario_nombre }}</span>
+                  <a class="vd-asig__nombre" [routerLink]="['/flota/choferes-privados', a.usuario_id]">{{ a.usuario_nombre }}</a>
                   <span class="vd-muted">
                     @if (a.hasta) {
                       {{ fecha(a.desde) }} → {{ fecha(a.hasta) }}
