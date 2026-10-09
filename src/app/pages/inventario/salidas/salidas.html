@@ -69,6 +69,19 @@
 
   <app-date-range-filter [desde]="dateFrom()" [hasta]="dateTo()" (rangeChange)="onRango($event)" />
 
+  <!-- CK4 §5 — despachos a obra sin receptor designado -->
+  <label class="filters-bar__prueba-toggle">
+    <input
+      type="checkbox"
+      [checked]="soloSinReceptor()"
+      (change)="onSinReceptorToggle($any($event.target).checked)"
+    />
+    Sin receptor
+    @if (sinReceptorCount()) {
+      <span class="sgc-badge sgc-badge--warning">{{ sinReceptorCount() }}</span>
+    }
+  </label>
+
   @if (esAdmin()) {
     <label class="filters-bar__prueba-toggle">
       <input
@@ -194,6 +207,11 @@
                     ? 'Falta que la obra confirme la recepción (foto y firma).'
                     : (s.recibido?.nombre ? ('Confirmado por ' + s.recibido?.nombre) : null)"
                 >{{ ESTADO_LABELS[s.estado] }}</span>
+                <!-- CK4 §5 — despachado a obra sin nadie que confirme la entrega -->
+                @if (sinReceptor(s)) {
+                  <span class="sgc-badge sgc-badge--warning salidas__sin-receptor"
+                    title="Despachado a la obra sin receptor designado. Asígnalo en el conduce («Entregar a»).">Sin receptor</span>
+                }
               </td>
               <td class="salidas__actions">
                 <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="$event.stopPropagation()" [routerLink]="['/inventario/salidas', s.id, 'conduce']">Conduce</a>

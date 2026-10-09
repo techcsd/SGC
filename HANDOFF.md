@@ -1,5 +1,28 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 (cont.) — 🧪 **1.162.0 en `dev`** (CK4 §5 + CK5 videos completos) · ⏳ falta OK de Xaviel para prod
+**Estado prod:** `main` = `2084149` = **1.161.0** (Apoyo de transporte CK11-CK16 + todo 1.159.1/1.160.0 ya en prod). `dev` adelante con CK5 + lo de esta sesión; **nada nuevo a prod aún** (regla 18: para tras OK).
+
+**✅ Hecho y verificado esta sesión (en `dev`, sin commit a main):**
+- **CK4 §5 — chip «Sin receptor» + filtro en Salidas.** `salidas.ts/html/scss`: helper `sinReceptor(s)` (despachado + uso_proyecto + sin `firma_pendiente_nombre`/`entrega_receptor`/`recibido`), filtro-toggle con contador, chip ámbar apilado bajo el estado. `npm run build` verde. (El bloque «Entregar a» del conduce ya estaba en 1.160.0.)
+- **CK5 — videos «cómo hacer» COMPLETO (web).** Tooling funcional de verdad:
+  - `tutoriales/lib/record.mjs` — motor: login + descarta onboarding + **PORTADA (2 s) + BARRA DE PASOS (colores CB) + CIERRE (2 s) horneados en el video** + **`.vtt`** con tiempos reales por paso + candado de texto por paso. ffmpeg webm→mp4+póster.
+  - `tutoriales/guiones/*.mjs` — **8 guiones web** (apoyo-transporte = flujo real verificado; los otros 7 demostrativos: navegan y resaltan, no envían). `tutoriales/run.mjs` = cargador (`<id>` o `--all`).
+  - **8 videos grabados** contra localhost:4200→Supabase dev (login demo = prueba de que es dev), 21-27 s, mp4+jpg+vtt, **sin candado disparado** (RLS demo → solo OBRA DEMO). En `tutoriales/salida/` (gitignored).
+  - `sql/2026-10-08-ck5b-guias-tutoriales.sql` — 7 guías nuevas en `ayuda_contenido` (apoyo-transporte/requisicion/conduce-externo/transferir-conduce/mantenimiento/chofer-privado/mis-choferes; 'conduce' reusa la existente). **Aplicada a dev** (ledger). Idempotente, preserva campos de video.
+  - `scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs` — sube al bucket `tutoriales` + escribe campos de video en `ayuda_contenido` (**DRY-RUN por defecto**; dry-run dev verificado: los 8 mapean a su guía ✓).
+
+**👤 Pendiente físico de Xaviel (CK5):** ver los 8 videos (le mandé el de apoyo como muestra) → `node scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs --env dev --apply` → revisar en Dudas dev → `--env prod --apply`. Los 7 demostrativos quizá necesiten ajuste de selectores o volverse flujo completo si hay datos demo (molde en `tutoriales/README.md`).
+
+**⏳ Menor, NO hecho esta sesión (server-touching → siguiente tanda, con su ciclo dev→prueba→prod):**
+- **CK1/CK2 — ficha del chofer privado.** Hoy `pages/flota/choferes-privados` es SOLO lista (tarjeta con autorizados+vigencia+último uso). FALTA: vista detalle por chofer con historial de usos (tomó/soltó/recibió) **con fotos**, echadas, inspecciones, vigencias, y enlace desde la ficha del vehículo (`vehiculo-detalle.html:427` el nombre es texto, no link). Necesita RPC aditivo de lectura (`chofer_privado_detalle`) + componente detalle + ruta `:id`.
+- **CK4 §5 / bg4 — retiro dañado.** `apoyo_transporte_crear` acepta `p_es_danado` pero NO crea el borrador bg4 (`sql/2026-10-08-ck12b-apoyo-rpcs.sql:89` lo deja como follow-up). FALTA: con `es_danado=true` + tipo `retiro_material`, crear borrador bg4 enlazado (reusar el RPC de retiro `sql/2026-09-01-bg4-*`; si exige renglones, borrador con `motivo_dano='otro'` + detalle=descripción). Verificar que la cuarentena no cambia.
+
+**Versión:** bump **1.162.0** + `release-notes.json web.1.162.0` (chip Sin receptor + guías Dudas). `verify-version-notes` ✓.
+**Flujo a prod:** commit en `dev` → Xaviel prueba (chip Sin receptor + guías en Dudas + videos) → aplicar `ck5b` a prod + subir videos → PR `dev → main` → 1.162.0. **Nota #181 (CK14) ya la cerró Xaviel.** App = PROMPT-91.
+
+---
+
 ## TL;DR — PROMPT-90 (Ronda CK) — 08/10/2026 — ✅ **SHIPPED PROD: 1.159.1 + 1.160.0** · 🧪 Apoyo de transporte (servidor) WIP en `feature/ck-apoyo`
 **Prod al día:** `main`=`dev`=`47be36c`, Vercel READY (sgcconstructorasd.com). 5 migraciones en ledger **prod** verificadas por objeto (ck8/ck4/ck10/ck3/ck3b) + edge `send-push` **v14** en prod + versiones 1.159.1 y 1.160.0 en `app_versiones`. (OK de Xaviel: "sube todo a produccion".)
 

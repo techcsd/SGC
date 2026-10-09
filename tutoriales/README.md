@@ -12,17 +12,30 @@ con **Playwright + ffmpeg-static** y los sube al bucket privado `tutoriales`.
 - **Candado de texto** antes de exportar: aborta si ve una cédula/placa/nombre real.
 - 👤 Xaviel revisa cada video antes de subir a prod.
 
-## Estado del scaffold
-Hecho: `lib/privacy-lock.mjs` (el candado), estructura y `package.json`. 
-**Pendiente (sesión dedicada, requiere login en dev):** `run.mjs` (grabar con Playwright),
-`render/` (portada + barra de pasos + cierre + VTT con ffmpeg), `guiones/*.mjs` (un archivo por
-video) y `scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs` (subida).
+## Estado del tooling
+- `lib/privacy-lock.mjs` — el candado (prod / usuario no-demo / texto con datos reales).
+- `lib/record.mjs` — **motor de grabación**: login, descarta onboarding, PORTADA (2 s) +
+  BARRA DE PASOS (colores CB) + CIERRE (2 s) horneados en el propio video, y genera el
+  `.vtt` con los tiempos reales de cada paso. ffmpeg: webm → mp4 + póster.
+- `guiones/*.mjs` — un archivo declarativo por video (`web-*` = web, `app-*` = app). Cada
+  paso tiene `texto` (sale en la barra y como subtítulo) y un `run(ctx)` opcional.
+- `run.mjs` — cargador (`node run.mjs <id>` o `--all`).
+- `../scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs` — subida al bucket `tutoriales`
+  + escribe los campos de video en `sgc.ayuda_contenido` (DRY-RUN por defecto, regla 19).
 
-## Puesta en marcha (cuando se retome)
+## Uso
 ```
-cd tutoriales
-npm install
-# credenciales demo de dev en tutoriales/.env.local (nunca en el repo)
-npm run video -- web-apoyo-transporte     # un video
-npm run videos                            # todos
+cd tutoriales && npm install            # (una vez; credenciales demo en ../.env.local)
+# arrancar la web en dev en otra terminal, en la raíz del repo:
+#   npm run env:dev && npm start        # ng serve → localhost:4200 contra Supabase dev
+node run.mjs web-apoyo-transporte       # un video → salida/{id}-v1.mp4 + .jpg + .vtt
+node run.mjs --all                      # todos los guiones web
+# subir (tras ver cada video):
+node ../scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs --env dev           # dry-run
+node ../scripts/data-fixes/2026-10-08-ck5-subir-tutoriales.mjs --env dev --apply   # sube a dev
 ```
+
+## Molde de un guion nuevo
+Copia `guiones/web-apoyo-transporte.mjs` (flujo verificado). Los `web-*` restantes son
+**demostrativos** (navegan y resaltan; no envían, para no crear datos): al grabarlos, ajusta
+los selectores si cambió la pantalla y, si hay datos demo, conviértelos en flujo completo.

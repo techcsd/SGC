@@ -99,7 +99,7 @@
 | inventario/reportes | - | 70 | 0 | 70 | 0% |
 | inventario/reposicion | - | 44 | 0 | 44 | 0% |
 | inventario/retiros | - | 141 | 0 | 141 | 0% |
-| inventario/salidas | - | 231 | 0 | 231 | 0% |
+| inventario/salidas | - | 235 | 0 | 235 | 0% |
 | legal/aprobaciones | - | 60 | 0 | 60 | 0% |
 | legal/configuracion | - | 22 | 0 | 22 | 0% |
 | legal/contratos | - | 70 | 0 | 70 | 0% |

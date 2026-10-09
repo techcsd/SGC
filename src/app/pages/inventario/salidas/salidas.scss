@@ -497,6 +497,12 @@ textarea {
   align-items: center;
 }
 
+// CK4 §5 — chip "Sin receptor" apilado bajo el estado del conduce
+.salidas__sin-receptor {
+  display: inline-block;
+  margin-top: 4px;
+}
+
 // W11 — thumbnail de foto en la celda (reemplaza el emoji 📷)
 .salidas__foto-thumb {
   border: none;
