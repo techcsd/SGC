@@ -78,6 +78,7 @@ export class AdminAnimaciones implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.origReducida = document.documentElement.classList.contains('motion-reduced');
+    this.verReducida.set(this.origReducida); // el conmutador refleja el estado real al entrar
     try {
       const { data, error } = await this.supabase.client
         .from('movimiento_catalogo')

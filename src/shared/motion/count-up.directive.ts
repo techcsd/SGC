@@ -1,4 +1,4 @@
-import { Directive, ElementRef, inject, Input, OnChanges } from '@angular/core';
+import { Directive, ElementRef, inject, Input, OnChanges, OnDestroy } from '@angular/core';
 import { MOTION_IDS } from './catalogo-movimiento';
 import { movimientoReducido } from './reduced-motion';
 
@@ -9,7 +9,7 @@ import { movimientoReducido } from './reduced-motion';
  *   <span [appCountUp]="total()"></span>
  */
 @Directive({ selector: '[appCountUp]' })
-export class CountUpDirective implements OnChanges {
+export class CountUpDirective implements OnChanges, OnDestroy {
   readonly motionId = MOTION_IDS.baseCountUp;
   @Input('appCountUp') value = 0;
   /** Decimales a mostrar. */
@@ -36,6 +36,10 @@ export class CountUpDirective implements OnChanges {
       if (t < 1) this.raf = requestAnimationFrame(tick);
     };
     this.raf = requestAnimationFrame(tick);
+  }
+
+  ngOnDestroy(): void {
+    if (this.raf) cancelAnimationFrame(this.raf);
   }
 
   private render(n: number): void {
