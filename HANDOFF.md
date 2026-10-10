@@ -21,7 +21,14 @@ Rama `feature/cl-ronda` desde `dev` (CK ya mergeado a dev; `feature/ck-apoyo` es
 - Web: toggle «Marcar como prueba · SOLO ADMIN» + banda en form; banda + botón marcar/desmarcar en ficha; toggle «Mostrar datos de prueba» en listado. `transporte-v3.service` esPrueba, `TablaPrueba`+=conduces_externos. **Build verde (prebuild+ng build).**
 - **PENDIENTE prod:** aplicar `cl0` ya está; `cl6` a prod tras OK Xaviel. Paridad app (toggle en `transporte/conduce-externo`) → PROMPT-93.
 
+**✅ FASE 4/5 — CL2 BASE (sistema de movimiento) — HECHO + build + unit test verdes:**
+- `src/shared/motion/catalogo-movimiento.ts` — registro único (`MOTION_IDS` + `CATALOGO_MOVIMIENTO`), prueba unitaria `catalogo-movimiento.spec.ts` (vitest 4/4: id usado⇔registrado). Lo consume CL5.
+- Directivas `src/shared/motion/`: `appStagger` (listas/tablas 30ms máx.8), `appCountUp` (KPI 600ms), `appEstadoPulse` (chip late al cambiar) + `reduced-motion.ts`. Solo transform/opacity, respetan reduce-motion.
+- `MotionService.momento(tipo,datos)` + `<app-momento>` (montado en shell): mediano ~0.8s sin velo, aria-live, 9 tipos. Keyframes en styles.scss. **Sin celebración** en accidente/multa/rechazo/eliminar/error/retiro dañado.
+- Demo aplicada: `inventario/conduces-externos` tbody `appStagger`. docs/MOVIMIENTO.md actualizado (sección CL2).
+
 **⏳ PENDIENTE (continuación CL, por orden):**
+- **FASE 4.3/5.2 — CL2 ROLLOUT** (incremental, opt-in): aplicar `appStagger`/`appCountUp`/`appEstadoPulse` + disparadores `momento(...)` a cada módulo de la nota #187 (tabla §C de CONTEXTO-45), por grupos con commit por grupo; completar la fila por módulo en MOVIMIENTO.md. La base ya existe → es mecánico.
 - **FASE 2.2 — CL1 rediseño de "Nuevo conduce externo"** (mock `mock-cl/CL1-conduce-externo.dc.html`): 2 columnas, 5 tarjetas numeradas, vista previa fija a la derecha (N/4 listos), fotos drag-drop, línea de ruta animada, top-3 proveedores, entrada escalonada. **Mismos campos/RPCs** (incluido el toggle CL6 ya presente). Ficha + listado a la misma piel.
 - **FASE 4/5 — CL2 (movimiento en TODOS los módulos).** Base: `src/shared/motion/` directivas (`appStagger`, `appCountUp`, skeleton→fundido, tabs deslizante, `appEstadoPulse`, pasos/temblor, elevación, flotación vacíos) + registro `catalogo-movimiento.ts` + prueba unitaria (id usado⇔registrado). Medianos: `MotionService.momento(tipo,datos)` + `app-momento` (10 tipos del mock CL2) + disparadores (tabla §C de CONTEXTO-45). Mapa completo en `docs/MOVIMIENTO.md` (una fila por módulo de #187). **Sin celebración** en accidente/multa/rechazo/eliminar/error/retiro dañado. Medir INP/CLS.
 - **FASE 6 — CL3 (bienvenida web).** Migración por crear (`cl3-bienvenida`, en `sql/`): flags `bienvenida_web_v1_vista`/`bienvenida_app_v2_vista` en prefs + RPC `marcar_bienvenida_vista`; existentes = vistos. Ventana + tour con foco (`data-tour`) por rol en `docs/BIENVENIDA.md`. "Ver otra vez" en Soporte/Dudas, `?bienvenida=1` fuerza en dev.
