@@ -42,6 +42,7 @@ import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { PdfViewer } from '../../../../shared/ui/pdf-viewer/pdf-viewer';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { MotionService } from '../../../../shared/services/motion.service';
 
 interface PendingFoto {
   file: File;
@@ -84,6 +85,7 @@ export class Mantenimientos implements OnInit {
   private vehiculosService = inject(VehiculosService);
   private proveedoresService = inject(ProveedoresService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private route = inject(ActivatedRoute);
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
@@ -640,6 +642,7 @@ export class Mantenimientos implements OnInit {
     try {
       await this.mantenimientosService.completar(m.id, m.kilometraje_al_mantenimiento ?? null);
       await this.loadAll();
+      this.motion.momento('mantenimiento'); // CL2 — la llave gira
       this.toast.success('Mantenimiento completado', 'Se actualizó el próximo mantenimiento del vehículo.');
     } catch (e: unknown) {
       this.toast.error('No se pudo completar', e instanceof Error ? e.message : undefined);

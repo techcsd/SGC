@@ -19,6 +19,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { MotionService } from '../../../../shared/services/motion.service';
 
 /** BQ5 — campos editables (whitelist alineada con el RPC editar_echada). */
 type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' | 'kilometraje' | 'producto';
@@ -43,6 +44,7 @@ export class CombustibleLog implements OnInit {
   private datosPruebaView = inject(DatosPruebaViewService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private fb = inject(FormBuilder);
 
   formatFecha = formatFechaDisplay;
@@ -250,6 +252,7 @@ export class CombustibleLog implements OnInit {
     this.aprobandoId.set(id);
     try {
       await this.combustibleService.aprobarEchada(id);
+      this.motion.momento('combustible'); // CL2 — gota que se llena
       this.toast.success('Echada aprobada', 'Ya cuenta en los tableros y se avisó al chofer.');
       await Promise.all([this.cargarPorAprobar(), this.cargar()]);
       if (this.detail()?.id === id) this.cerrarDetalle();

@@ -51,6 +51,12 @@ Todas respetan `html.motion-reduced` + `prefers-reduced-motion` (`movimientoRedu
 ### Momentos medianos — `MotionService.momento(tipo, datos)` + `<app-momento>` (shell)
 Badge inferior-centro, ~0.8s, SIN velo, no bloquea, `aria-live`. Tipos: `entrada` (caja entra), `salida` (caja sale), `aprobado` (sello+check), `firma` (trazo), `combustible` (gota), `checklist` (tachado), `mantenimiento` (llave), `mensaje` (avión), `documento` (hoja). **Sin celebración** en accidente/multa/rechazo/eliminar/error/retiro dañado.
 
-### Rollout (incremental, opt-in — no rompe pantallas existentes)
-- ✅ Base construida + montada (shell) + 1.ª demo: `inventario/conduces-externos` (tbody `appStagger`).
-- ⬜ Pendiente: aplicar `appStagger`/`appCountUp`/`appEstadoPulse` y los disparadores de `momento(...)` módulo por módulo (tabla §C de CONTEXTO-45 / nota #187), por grupos con commit por grupo, y completar la fila por módulo aquí.
+### Rollout
+- ✅ Base construida + montada (shell).
+- ✅ `appStagger` en **35 listados** (conduces-externos + 34 del sweep CL2: inventario/flota/bitácora/compras/rrhh/proyectos/legal/documentos).
+- ✅ Disparadores de `momento(...)` (medianos) en los éxitos clave:
+  - `inventario/salidas` despacho → `momento('salida')`
+  - `flota/mantenimientos` completar → `momento('mantenimiento')`
+  - `flota/combustible-log` aprobar echada → `momento('combustible')`
+  - conduce externo emitido → celebración grande (CJ2) en `conduce-externo-form`.
+- ⬜ Pendiente (mecánico, mismo patrón): más disparadores `momento(...)` (entrada, aprobado de requisición/OC/ausencia, firma, checklist, mensaje/nota, documento) y `appCountUp`/`appEstadoPulse` donde aporten, módulo por módulo.

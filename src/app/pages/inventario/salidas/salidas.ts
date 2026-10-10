@@ -1093,6 +1093,9 @@ export class Salidas implements OnInit {
         this.toast.success('Requisición aprobada', 'Se despachó completa desde el almacén. Genera el conduce para la entrega.');
       }
 
+      // CL2 — momento mediano "caja sale" cuando hubo despacho real.
+      if (res.despachado_total > 0) this.motion.momento('salida');
+
       // Refrescar la lista de salidas es secundario; si falla, se repone al recargar.
       if (res.salida_id) {
         try {
