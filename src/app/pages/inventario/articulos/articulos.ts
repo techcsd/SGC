@@ -34,10 +34,11 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-articulos',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink, Icon],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, HighlightItemDirective, ExportExcel, RouterLink, Icon, StaggerDirective],
   templateUrl: './articulos.html',
   styleUrl: './articulos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

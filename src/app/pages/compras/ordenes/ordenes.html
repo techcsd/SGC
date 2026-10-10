@@ -130,7 +130,7 @@
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (orden of filtered(); track orden.id) {
             <tr class="row--link" (click)="openDetail(orden)" role="button" tabindex="0"
                 (keydown.enter)="openDetail(orden)" aria-label="Ver detalle de la orden">

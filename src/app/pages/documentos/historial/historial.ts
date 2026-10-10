@@ -4,10 +4,11 @@ import { PlantillasDocumentoService } from '../../../../shared/services/plantill
 import { DocumentoGenerado, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
 import { formatFechaDisplay, formatTimestampDisplay } from '../../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-documentos-historial',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, StaggerDirective],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

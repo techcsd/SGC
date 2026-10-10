@@ -145,7 +145,7 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (r of paginated(); track r.id) {
             <tr class="row--link" [routerLink]="['/inventario/salidas', r.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
               <td class="conduces__numero">

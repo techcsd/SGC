@@ -41,6 +41,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { PdfViewer } from '../../../../shared/ui/pdf-viewer/pdf-viewer';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 interface PendingFoto {
   file: File;
@@ -73,7 +74,7 @@ function normNombre(s: string): string {
 
 @Component({
   selector: 'app-mantenimientos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe, FilterSelect],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, AudioNotas, ExportExcel, Icon, FileUpload, PdfViewer, TranslatePipe, FilterSelect, StaggerDirective],
   templateUrl: './mantenimientos.html',
   styleUrl: './mantenimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

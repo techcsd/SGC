@@ -18,6 +18,7 @@ import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /** BQ5 — campos editables (whitelist alineada con el RPC editar_echada). */
 type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' | 'kilometraje' | 'producto';
@@ -29,7 +30,7 @@ type CampoEditable = 'vehiculo_id' | 'estacion' | 'fecha' | 'galones' | 'monto' 
  */
 @Component({
   selector: 'app-combustible-log',
-  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon],
+  imports: [FlotaSubnav, DecimalPipe, ReactiveFormsModule, RouterLink, Skeleton, DateRangeFilter, FormDrawer, Lightbox, Icon, StaggerDirective],
   templateUrl: './combustible-log.html',
   styleUrl: './combustible-log.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

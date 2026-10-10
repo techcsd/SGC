@@ -32,7 +32,7 @@
     @if (porCategoria(cat).length > 0) {
       <div class="plantillas-grupo">
         <h2 class="plantillas-grupo__title">{{ CATEGORIA_LABELS[cat] }}</h2>
-        <div class="plantillas-grupo__list">
+        <div class="plantillas-grupo__list" appStagger>
           @for (p of porCategoria(cat); track p.id) {
             <div class="sgc-card plantilla-card">
               <div>

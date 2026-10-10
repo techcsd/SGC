@@ -85,7 +85,7 @@
           <th></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody appStagger>
         @for (item of recepcionItems(); track item.detalle_id; let i = $index) {
           <tr [class.entregas__row--short]="item.cantidad_recibida < item.cantidad_enviada">
             <td>{{ item.articulo_nombre }}</td>

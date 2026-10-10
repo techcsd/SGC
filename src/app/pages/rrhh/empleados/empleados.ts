@@ -39,10 +39,11 @@ import { EmpleadoAsignacionesService, EmpleadoAsignacion, AsignacionEstado } fro
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-empleados',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, CedulaMask, ExportExcel],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, TelefonoMask, CedulaMask, ExportExcel, StaggerDirective],
   templateUrl: './empleados.html',
   styleUrl: './empleados.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -19,6 +19,7 @@ import { UserPicker, UserPickerSelection } from '../../../../shared/ui/user-pick
 import { formatFechaDisplay, formatFechaHoraDisplay, daysUntil, todayIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 const ESTADO_BADGE: Record<string, string> = {
   pendiente: 'warning',
@@ -58,7 +59,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
  */
 @Component({
   selector: 'app-inventario-requisiciones',
-  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker],
+  imports: [RouterLink, FormDrawer, Skeleton, RequisicionItemsMapper, FilterSelect, UserPicker, StaggerDirective],
   templateUrl: './requisiciones.html',
   styleUrl: './requisiciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -109,7 +109,7 @@
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (p of filtered(); track p.id) {
             <tr [class.row--inactive]="!p.activo">
               <td>

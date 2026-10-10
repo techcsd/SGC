@@ -136,7 +136,7 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (f of filtered(); track f.id) {
             <tr class="row--link" [routerLink]="['/inventario/salidas', f.id, 'conduce']" role="button" tabindex="0" aria-label="Ver conduce">
               <td class="confirmaciones__numero">{{ numero(f.id) }}</td>

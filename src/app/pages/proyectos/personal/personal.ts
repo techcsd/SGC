@@ -14,6 +14,7 @@ import { TelemetryService } from '../../../../shared/services/telemetry.service'
 import { FilterSelect } from '../../../../shared/ui/filter-select/filter-select';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 interface PapeleraRow {
   id: string;
@@ -32,7 +33,7 @@ function norm(s: string | null | undefined): string {
 /** AR1 — Listado de Personal de obra (filtros por obra/cargo/nacionalidad/estado). */
 @Component({
   selector: 'app-personal-obra',
-  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon, FormDrawer],
+  imports: [FormsModule, Skeleton, RouterLink, FilterSelect, Icon, FormDrawer, StaggerDirective],
   templateUrl: './personal.html',
   styleUrl: './personal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

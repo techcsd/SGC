@@ -12,7 +12,7 @@
   } @else if (filas().length === 0) {
     <div class="sgc-card table-empty">No hay lugares pendientes. 🎉</div>
   } @else {
-    <div class="lpr-list">
+    <div class="lpr-list" appStagger>
       @for (l of filas(); track l.id) {
         <div class="sgc-card lpr-item">
           <div class="lpr-head">

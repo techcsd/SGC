@@ -23,6 +23,7 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 interface FormItem {
   articulo_id: string;
@@ -65,7 +66,7 @@ const DISPOSICION_LABEL: Record<Disposicion, string> = {
 
 @Component({
   selector: 'app-inventario-retiros',
-  imports: [DatePipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper],
+  imports: [DatePipe, RouterLink, FormDrawer, Skeleton, ArticuloPicker, QtyStepper, StaggerDirective],
   templateUrl: './retiros.html',
   styleUrl: './retiros.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -249,7 +249,7 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (r of ordenadas(); track r.id) {
             <tr class="row--link" (click)="abrir(r)" role="button" tabindex="0"
                 (keydown.enter)="abrir(r)" (keydown.space)="abrir(r); $event.preventDefault()"

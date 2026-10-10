@@ -24,6 +24,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { FileUpload } from '../../../../shared/ui/file-upload/file-upload';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
   abierto: ['en_proceso', 'en_espera', 'cerrado'],
@@ -34,7 +35,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe, StaggerDirective],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

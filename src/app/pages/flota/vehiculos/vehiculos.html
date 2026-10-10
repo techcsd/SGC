@@ -110,7 +110,7 @@
       }
     </div>
   } @else {
-    <div class="flota-vehiculos__grid">
+    <div class="flota-vehiculos__grid" appStagger>
       @for (v of filtered(); track v.id) {
         <div class="flota-vehiculos__card" [class.inactive]="!v.activo">
           <div class="flota-vehiculos__photo">

@@ -18,10 +18,11 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-asistencia',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Icon, StaggerDirective],
   templateUrl: './asistencia.html',
   styleUrl: './asistencia.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

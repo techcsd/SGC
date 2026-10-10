@@ -41,7 +41,7 @@
               <th class="text-right">Lesionados</th><th>Acta AMET</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody appStagger>
             @for (a of paginated(); track a.id) {
               <tr class="ac-row" (click)="openDetail(a)" role="button" tabindex="0"
                 (keyup.enter)="openDetail(a)">

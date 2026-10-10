@@ -57,7 +57,7 @@
               } @else {
                 <table class="data-table">
                   <thead><tr><th>Fecha</th><th>Origen → Destino</th><th>Material</th><th>Pago</th></tr></thead>
-                  <tbody>
+                  <tbody appStagger>
                     @for (v of viajes(); track v.viaje_id) {
                       <tr>
                         <td>{{ v.fecha | date: 'dd/MM/yyyy' }}</td>

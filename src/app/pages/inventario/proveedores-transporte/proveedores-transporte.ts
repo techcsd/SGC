@@ -4,6 +4,7 @@ import { TransporteV3Service, ProveedorTransporte, ViajeProveedor } from '../../
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /**
  * BA / Transporte v3 — catálogo de proveedores de transporte + bandeja de
@@ -11,7 +12,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
  */
 @Component({
   selector: 'app-proveedores-transporte',
-  imports: [DatePipe, Skeleton],
+  imports: [DatePipe, Skeleton, StaggerDirective],
   templateUrl: './proveedores-transporte.html',
   styleUrl: './proveedores-transporte.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
