@@ -14,6 +14,7 @@
 | inventario/conduce-externo-form | scope | 61 | 2 | 59 | 3% |
 | configuracion | scope | 58 | 36 | 22 | 62% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
+| admin/animaciones | - | 46 | 0 | 46 | 0% |
 | admin/app-versiones | - | 125 | 0 | 125 | 0% |
 | admin/auditoria | - | 96 | 0 | 96 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
