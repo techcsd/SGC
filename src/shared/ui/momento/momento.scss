@@ -1,0 +1,62 @@
+// CL2 — momento mediano: badge inferior-centro, sin velo, no bloquea (pointer-events:none).
+.mv-momento {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--sgc-surface, #fff);
+  border: 1px solid var(--sgc-border, #e4e7ec);
+  border-left: 4px solid var(--success, #16a34a);
+  border-radius: 12px;
+  box-shadow: var(--sgc-shadow-md, 0 8px 24px rgb(16 24 40 / 0.14));
+  color: var(--sgc-text, #121212);
+  font-weight: 600;
+  font-size: 14px;
+  pointer-events: none;
+  animation: mv-momento-in var(--motion-base, 220ms) var(--ease-out, ease) both;
+}
+
+.mv-momento__icon {
+  display: inline-flex;
+  color: var(--brand, #1e3a5f);
+  svg { width: 26px; height: 26px; }
+}
+
+// ── Micro-animaciones por tipo (solo transform/opacity/stroke) ──────────────────
+.mv-box--in { animation: mv-boxin 0.8s var(--ease-out, ease) both; }
+.mv-box--out { animation: mv-boxout 0.8s var(--ease-in, ease) both; }
+.mv-stamp { animation: mv-stampk 0.8s var(--ease-out, ease) both; transform-origin: center; }
+.mv-check { stroke-dasharray: 40; stroke-dashoffset: 40; animation: mv-ck 0.8s var(--ease-out, ease) 0.15s forwards; }
+.mv-sign { stroke-dasharray: 60; stroke-dashoffset: 60; animation: mv-ck 0.8s ease-out forwards; }
+.mv-drop { transform-origin: center bottom; animation: mv-drop-in 0.8s var(--ease-out, ease) both; }
+.mv-wrench { transform-origin: 70% 30%; animation: mv-wrench 0.8s var(--ease-out, ease) both; }
+.mv-plane { animation: mv-plane 0.8s var(--ease-in, ease) both; }
+.mv-sheet { animation: mv-print 0.8s var(--ease-out, ease) both; }
+
+@keyframes mv-momento-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes mv-boxin { 0% { transform: translateX(-10px); opacity: 0; } 55% { transform: translateX(0); opacity: 1; } }
+@keyframes mv-boxout { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(10px); opacity: 0.4; } }
+@keyframes mv-stampk { 0% { transform: scale(2) rotate(-12deg); opacity: 0; } 45% { transform: scale(0.95); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes mv-ck { to { stroke-dashoffset: 0; } }
+@keyframes mv-drop-in { 0% { transform: scaleY(0.2); opacity: 0.3; } 70% { transform: scaleY(1.05); opacity: 1; } 100% { transform: scaleY(1); } }
+@keyframes mv-wrench { 0% { transform: rotate(0); } 45% { transform: rotate(-40deg); } 100% { transform: rotate(0); } }
+@keyframes mv-plane { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(10px, -8px) rotate(-12deg); opacity: 0.6; } }
+@keyframes mv-print { 0% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+
+// reduce-motion: sin movimiento, aparece directo.
+:global(html.motion-reduced) .mv-momento,
+:global(html.motion-reduced) .mv-momento * {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-momento, .mv-momento * { animation: none !important; }
+  .mv-check, .mv-sign { stroke-dashoffset: 0; }
+}

@@ -5,11 +5,12 @@ import { TransporteV3Service, ConduceExternoRow } from '../../../../shared/servi
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { UserService } from '../../../core/services/user.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /** BA / Transporte v3 — historial de conduces externos (tipo visible, AU15). */
 @Component({
   selector: 'app-conduces-externos',
-  imports: [RouterLink, Skeleton, DatePipe, TranslatePipe],
+  imports: [RouterLink, Skeleton, DatePipe, TranslatePipe, StaggerDirective],
   templateUrl: './conduces-externos.html',
   styleUrl: './conduces-externos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

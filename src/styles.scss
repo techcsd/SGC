@@ -797,3 +797,15 @@ tr.row--link {
 html.motion-reduced {
   ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; }
 }
+
+// ── CL2 — base de movimiento (directivas appStagger / appEstadoPulse) ────────────
+// Entrada escalonada de filas/tarjetas (la directiva pone el delay por hijo).
+@keyframes mv-stagger-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+// Pulso corto del chip de estado al cambiar.
+@keyframes mv-estado-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.mv-estado-pulse { animation: mv-estado-pulse var(--motion-slow, 320ms) var(--ease-out, ease) 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mv-estado-pulse { animation: none !important; }
+}
+html.motion-reduced .mv-estado-pulse { animation: none !important; }

@@ -1,0 +1,36 @@
+@if (motion.momentoVisible()) {
+  <div class="mv-momento" role="status" aria-live="polite" [attr.data-tipo]="motion.momentoTipo()">
+    <span class="mv-momento__icon" aria-hidden="true">
+      @switch (motion.momentoTipo()) {
+        @case ('entrada') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect class="mv-box mv-box--in" x="3" y="8" width="10" height="9" rx="1"/><path d="M21 12h-7M17 8l4 4-4 4"/></svg>
+        }
+        @case ('salida') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect class="mv-box mv-box--out" x="11" y="8" width="10" height="9" rx="1"/><path d="M3 12h7M7 8l-4 4 4 4"/></svg>
+        }
+        @case ('aprobado') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle class="mv-stamp" cx="12" cy="12" r="9"/><path class="mv-check" d="M8 12l3 3 5-6"/></svg>
+        }
+        @case ('firma') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="mv-sign" d="M3 17c3-1 4-9 6-9s2 7 4 7 3-5 5-5"/><path d="M3 20h18" opacity=".4"/></svg>
+        }
+        @case ('combustible') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="mv-drop" d="M12 3s5 6 5 10a5 5 0 0 1-10 0c0-4 5-10 5-10z"/></svg>
+        }
+        @case ('checklist') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="mv-check" d="M4 7l2 2 3-4M4 15l2 2 3-4"/><path d="M13 6h7M13 14h7" opacity=".6"/></svg>
+        }
+        @case ('mantenimiento') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="mv-wrench" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>
+        }
+        @case ('mensaje') {
+          <svg viewBox="0 0 24 24" fill="currentColor"><path class="mv-plane" d="M2 12 22 3l-6 18-4-7-10-2z"/></svg>
+        }
+        @case ('documento') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="mv-sheet" d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4" opacity=".5"/><path d="M9 12h6M9 16h4" opacity=".6"/></svg>
+        }
+      }
+    </span>
+    <span class="mv-momento__txt">{{ texto() }}</span>
+  </div>
+}
