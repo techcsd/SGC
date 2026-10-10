@@ -1,6 +1,11 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — 🧪 `feature/cl-ronda` @ **1.163.0**, NO dev/prod (salvo CL0 ya en prod)
+## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — ✅ **EN PROD** (`main`=`dev`, web **1.164.0**)
+**Ronda CL COMPLETA y desplegada a producción** (merge dev→main, Vercel). CL0/CL1(raíz+rediseño)/CL4/CL6/CL2(base+rollout+momentos)/CL5/CL3 — todo en prod. Migraciones en el ledger de PROD: cl0 (apoyo UPDATE), cl6 (conduce prueba), cl5 (movimiento_catalogo), cl3 (bienvenida) + data-fixes prod (catálogo 14 filas, backfill bienvenida 59 usuarios). **1.164.0** = más momentos medianos (entrada/checklist/aprobado/mensaje). **App (sesión hermana): CK14+CK15 en dev+PROD** (mis_trabajos_chofer etc.) → app 100%.
+**Pendiente físico Xaviel:** (1) la sesión del app publica 2.45.x → entonces correr `scripts/data-fixes/2026-10-08-cl4-rescate-actualizacion.mjs --env prod --apply` (push a los 8 atascados) + mandar el WhatsApp. (2) probar en vivo. **Diferido (menor):** más disparadores momento; 2 polish CK (trabajos_transporte_listado order-by-orden + mis_trabajos_chofer nota_chofer — dev/prod divergen por `es_usuario_demo`, listos a pedido del app).
+
+### [histórico de la ronda — detalle]
+## TL;DR — PROMPT-92 (Ronda CL) — build inicial @ **1.163.0**
 **TODO el CL hecho + verificado** (feature/cl-ronda, 1.163.0): CL0 (apoyo UPDATE **dev+PROD**), CL1 raíz + **CL1 rediseño FASE 2.2** (mock CL1, 2 columnas + vista previa + drag-drop + ruta animada + celebración CJ2), CL4 (rescate web), **CL6 (server+web, dev+PROD**, smokes), **CL2 base + rollout** (directivas + `momento()` + `<app-momento>` + registro + unit test; `appStagger` en 35 listados; momento en salidas/mantenimientos/combustible), **CL5** (admin/animaciones + tabla + script, dev), **CL3** (bienvenida web: ventana por rol + tour foco + flag servidor + backfill + "ver otra vez"). Bump 1.163.0 + release-notes (6) + PARIDAD + matriz + MOVIMIENTO/BIENVENIDA.md. Build + guards + unit test verdes.
 **App (sesión hermana):** apliqué **CK14+CK15 a dev+PROD** (mis_trabajos_chofer, puede_ver_apoyo+chofer, trabajo_ordenar, trabajo_asignar 6-arg) → el CSD app 100%.
 **Falta (menor):** más disparadores `momento()` (mecánico), 2 polish CK diferidos (listado ordenar por `orden` + nota_chofer en apoyo). Promoción a prod del front: `feature/cl-ronda`→dev→prueba Xaviel→prod (CL5/CL3 migr a prod en esa promoción; CL0/CL6/CK14/CK15 ya en prod).
