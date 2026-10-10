@@ -130,7 +130,7 @@
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (art of paginated(); track art.id) {
             <tr class="row--link" [class.row--inactive]="!art.activo" [appHighlightItem]="art.id"
                 (click)="abrirDetalle(art)" role="button" tabindex="0"

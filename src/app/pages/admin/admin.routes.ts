@@ -108,4 +108,10 @@ export const adminRoutes: Routes = [
     loadComponent: () => import('./solicitudes-eliminacion/solicitudes-eliminacion').then((m) => m.AdminSolicitudesEliminacion),
     title: 'Solicitudes de eliminación — Administración',
   },
+  {
+    // CL5 — catálogo de animaciones/movimiento (solo consulta; admin + tecnología).
+    path: 'animaciones',
+    loadComponent: () => import('./animaciones/animaciones').then((m) => m.AdminAnimaciones),
+    title: 'Animaciones — Administración',
+  },
 ];

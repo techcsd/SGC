@@ -114,6 +114,8 @@ export interface CrearConduceExternoInput {
   /** BV6 — renglones del catálogo que mueve el conduce (afecta inventario:
    *  salida si el origen es un almacén nuestro, entrada pendiente si el destino lo es). */
   items?: { articulo_id: string; cantidad: number }[] | null;
+  /** CL6 — solo admin: nace como dato de prueba (sin stock real, avisos ni KPIs). */
+  esPrueba?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -194,6 +196,7 @@ export class TransporteV3Service {
       p_destino_bodega_id: i.destinoBodegaId ?? null,
       p_emisor_firma_path: i.emisorFirmaPath ?? null,
       p_origen_requisicion_id: i.origenRequisicionId ?? null,
+      p_es_prueba: i.esPrueba ?? false,
     });
     if (error) throw new Error(error.message);
     this.notificaciones.refresh();

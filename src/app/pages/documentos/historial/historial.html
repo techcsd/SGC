@@ -29,7 +29,7 @@
           <th>Proyecto</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody appStagger>
         @for (d of documentos(); track d.id) {
           <tr class="clickable-row" [routerLink]="['/documentos/ver', d.id]">
             <td>{{ formatTimestamp(d.created_at) }}</td>

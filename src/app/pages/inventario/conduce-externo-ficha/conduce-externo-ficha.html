@@ -8,6 +8,11 @@
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="imprimir()">Imprimir / PDF</button>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="compartir()">Compartir</button>
         <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="compartirWhatsapp()">WhatsApp</button>
+        @if (esAdmin()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="marcandoPrueba()" (click)="marcarPrueba(!d.es_prueba)">
+            {{ 'Marcar / desmarcar como prueba' | t }}
+          </button>
+        }
         @if (!d.anulado) {
           <button type="button" class="sgc-btn sgc-btn--danger sgc-btn--sm" (click)="anular()">Anular</button>
         }
@@ -32,6 +37,10 @@
           @if (d.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
         </div>
       </div>
+
+      @if (d.es_prueba) {
+        <div class="ce-prueba-band" role="note">{{ 'Dato de prueba: no cuenta en inventario, KPIs ni avisos.' | t }}</div>
+      }
 
       @if (d.anulado && d.motivo_anulacion) {
         <div class="ce-anulado-nota">Anulado: {{ d.motivo_anulacion }}</div>

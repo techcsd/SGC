@@ -8,10 +8,11 @@ import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS, VARIABLES_CON
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, Icon, DatePipe],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, Icon, DatePipe, StaggerDirective],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

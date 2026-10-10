@@ -9,10 +9,11 @@ import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawe
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-aprobaciones',
-  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator],
+  imports: [FormDrawer, DatePipe, ReactiveFormsModule, Skeleton, HighlightItemDirective, Paginator, StaggerDirective],
   templateUrl: './aprobaciones.html',
   styleUrl: './aprobaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

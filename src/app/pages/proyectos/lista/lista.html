@@ -860,7 +860,7 @@
       @if (filtered().length === 0) {
         <div class="proyectos__empty">No se encontraron proyectos.</div>
       } @else {
-        <div class="proyectos__grid">
+        <div class="proyectos__grid" appStagger>
           @for (p of filtered(); track p.id) {
             <article
               class="proyectos__card"

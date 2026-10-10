@@ -120,7 +120,7 @@
           }
         </tr>
       </thead>
-      <tbody>
+      <tbody appStagger>
         @for (b of paginated(); track b.id) {
           <tr class="clickable-row" (click)="openDetail(b)">
             <td>

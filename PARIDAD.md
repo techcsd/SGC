@@ -419,3 +419,35 @@ lógico de captura; el layout puede diferir).
 - **"Probar notificación":** RPC **`sgc.probar_notificacion()`** (push a sí mismo, ignora la matriz) →
   `{dispositivos}`; leer el resultado con **`sgc.mis_notif_entregas(p_limite)`**. La app expone el botón
   en Perfil › Notificaciones. Diagnóstico admin: **`sgc.notif_entregas_de_usuario(p_usuario_id, p_limite)`**.
+
+## Tanda CL (PROMPT-92 web → PROMPT-93 app) — 1.163.0
+
+### CL6 — marcar conduce externo como prueba (solo admin)
+- **`crear_conduce_externo(...)`** gana un trailing **`p_es_prueba boolean default false`** (ahora 20-arg;
+  se dropeó la 19-arg para no dejar overload). No-admin + `true` → error *"Solo un administrador puede
+  marcar datos de prueba."* Con `true` el conduce nace `es_prueba` y su salida/entrada salen `es_prueba`
+  (el trigger de stock NO mueve existencias). La app añade el mismo interruptor en `transporte/conduce-externo`.
+- **`registrar_salida_inventario(...)`** gana trailing **`p_es_prueba boolean default false`** (10-arg; se
+  dropeó la 9-arg): un movimiento de prueba no valida existencia ni mueve stock.
+- **`marcar_prueba_cascada('conduces_externos', id, valor)`** soporta ahora el conduce externo: revierte /
+  re-aplica el stock de la salida/entrada enlazada (vía `marcar_movimiento_inventario_prueba`) + el viaje.
+- **Fix:** `marcar_movimiento_inventario_prueba` ya NO pone `NULL` en `es_prueba_origen` (NOT NULL) al
+  desmarcar (antes "volver a real" fallaba). La app que use ese RPC ya hereda el arreglo.
+
+### CL2 — sistema de movimiento (paridad conceptual)
+- La app replica en su repo: directivas `appStagger`/`appCountUp`/`appEstadoPulse` (o equivalentes),
+  `MotionService.momento(tipo, datos)` + componente de momento mediano (0.8s, sin velo, haptics corta),
+  y su registro `src/app/core/motion/catalogo-movimiento.ts` con los MISMOS campos (id, nombre, nivel,
+  sistema='app', pantallas, duracionMs, curva, reducido, desdeVersion, previewKey, estado). Tipos de
+  momento compartidos: entrada, salida, aprobado, firma, combustible, checklist, mantenimiento, mensaje,
+  documento. **Sin celebración** en accidente/multa/rechazo/eliminar/error/retiro dañado.
+
+### CL5 — catálogo de animaciones
+- Tabla **`sgc.movimiento_catalogo`** (PK `sistema,id`; RLS lectura admin+tecnología; escritura service_role).
+- La app sube SUS filas con su propio `scripts/data-fixes/…-cl5-movimiento-catalogo.mjs --env dev|prod`
+  (`sistema='app'`), leyendo su registro. Se corre en cada release. La pantalla web `admin/animaciones`
+  ya muestra las filas `app` como "vista de la app".
+
+### CL3 — bienvenida (pendiente ambos lados)
+- Flags por usuario (web `bienvenida_web_v1_vista`, app `bienvenida_app_v2_vista`) + RPC
+  `marcar_bienvenida_vista(p_canal)`; existentes = vistos. Mismos pasos por rol (docs/BIENVENIDA.md).

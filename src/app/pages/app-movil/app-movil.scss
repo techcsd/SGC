@@ -4,6 +4,51 @@
   margin: 0 0 20px;
 }
 
+// CL4 — callout de rescate para quienes están atascados en 2.44/2.45.
+.am-rescue {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  background: var(--accent-soft, #fff4ec);
+  border: 1px solid var(--accent, #f97316);
+  border-left-width: 4px;
+  border-radius: var(--sgc-radius);
+  padding: 20px 22px;
+  margin: 0 0 24px;
+}
+
+.am-rescue__icon {
+  flex: 0 0 auto;
+  color: var(--accent, #f97316);
+  line-height: 0;
+  margin-top: 2px;
+}
+
+.am-rescue__body { flex: 1 1 auto; min-width: 0; }
+
+.am-rescue__title {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--sgc-text);
+}
+
+.am-rescue__text {
+  color: var(--sgc-text);
+  margin: 0 0 14px;
+  max-width: 70ch;
+}
+
+.am-rescue__btn { display: inline-flex; margin-bottom: 14px; }
+
+.am-rescue__steps { max-width: 70ch; }
+
+.am-rescue__hint {
+  font-size: 13px;
+  color: var(--sgc-text-secondary);
+  margin: 10px 0 0;
+}
+
 .am-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

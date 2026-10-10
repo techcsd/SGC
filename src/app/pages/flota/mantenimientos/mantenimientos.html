@@ -158,7 +158,7 @@
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (m of paginated(); track m.id) {
             <tr class="mantenimientos__row" role="button" tabindex="0"
                 (click)="openDetail(m)"

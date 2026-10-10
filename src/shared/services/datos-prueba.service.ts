@@ -25,7 +25,10 @@ export type TablaPrueba =
   | 'articulos'
   | 'activos_fijos'
   | 'conteos_inventario'
-  | 'ordenes_compra';
+  | 'ordenes_compra'
+  // CL6 — el conduce externo mueve inventario: su marcado revierte/re-aplica el
+  // stock de la salida/entrada enlazada (server: marcar_prueba_cascada).
+  | 'conduces_externos';
 
 /**
  * T2 — helper compartido para marcar/eliminar datos de prueba (solo admin).

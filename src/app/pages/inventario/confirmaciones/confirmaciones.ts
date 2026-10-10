@@ -6,11 +6,12 @@ import { conduceNumero } from '../../../../shared/models/salida.model';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /** AK1 — Historial de confirmaciones de entrega. Vive dentro de Inventario, junto a Conduces. */
 @Component({
   selector: 'app-confirmaciones',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, StaggerDirective],
   templateUrl: './confirmaciones.html',
   styleUrl: './confirmaciones.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

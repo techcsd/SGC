@@ -23,6 +23,7 @@ import { QtyStepper } from '../../../../shared/ui/qty-stepper/qty-stepper';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay, formatTimestampDisplay, todayIso, daysUntil } from '../../../../shared/utils/fecha.util';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /**
  * Renglón de la requisición. Si articulo_id está vacío → es un "Otro" (texto
@@ -81,7 +82,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 
 @Component({
   selector: 'app-bitacora-solicitudes-material',
-  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe],
+  imports: [ReactiveFormsModule, RouterLink, FormDrawer, Skeleton, QtyStepper, HighlightItemDirective, ArticuloPicker, Icon, DecimalPipe, StaggerDirective],
   templateUrl: './solicitudes-material.html',
   styleUrl: './solicitudes-material.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

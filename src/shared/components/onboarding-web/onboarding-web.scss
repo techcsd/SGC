@@ -76,6 +76,7 @@
   justify-content: center;
   font-size: 38px;
   line-height: 1;
+  color: var(--brand, #1e3a5f); // CL3 — el icono ahora es SVG (app-icon), hereda este color
 }
 
 .tour__title {
@@ -142,4 +143,70 @@
 }
 .tour__btn--ghost:hover {
   background: var(--sgc-surface-hover);
+}
+
+// ── CL3 — Ventana de bienvenida (saludo por rol) ────────────────────────────────
+.bw {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.bw__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 31 51 / 0.55);
+  backdrop-filter: blur(6px);
+}
+.bw__window {
+  position: relative;
+  width: min(460px, 100%);
+  background: var(--sgc-surface, #fff);
+  border-radius: 20px;
+  box-shadow: var(--sgc-shadow-lg, 0 24px 64px rgb(16 24 40 / 0.28));
+  padding: 28px 26px 22px;
+  text-align: center;
+  animation: tour-pop-center var(--motion-slow, 320ms) var(--ease-out, ease) both;
+}
+.bw__rol {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-hover, #ea580c);
+  background: var(--accent-soft, #fff4ec);
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.bw__title { margin: 0 0 8px; font-size: 22px; font-weight: 800; color: var(--sgc-text); font-family: var(--font-heading, sans-serif); }
+.bw__text { margin: 0 0 18px; color: var(--sgc-text-secondary); font-size: 14px; }
+
+// Tarjetas de módulos en abanico.
+.bw__cards { display: flex; justify-content: center; gap: 14px; margin: 0 0 22px; }
+.bw__card {
+  width: 54px; height: 54px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 14px;
+  background: var(--sgc-surface-2, #f2f4f7);
+  border: 1px solid var(--sgc-border);
+  color: var(--brand, #1e3a5f);
+  animation: bw-fan var(--motion-slow, 320ms) var(--ease-out, ease) both;
+  &--a { transform: rotate(-8deg); animation-delay: 60ms; }
+  &--b { transform: translateY(-6px); animation-delay: 120ms; }
+  &--c { transform: rotate(8deg); animation-delay: 180ms; }
+}
+@keyframes bw-fan { from { opacity: 0; transform: translateY(10px); } }
+
+.bw__actions { display: flex; gap: 10px; justify-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bw__window, .bw__card { animation: none; }
+  .bw__backdrop { backdrop-filter: none; }
+}
+:global(html.motion-reduced) {
+  .bw__window, .bw__card { animation: none; }
 }

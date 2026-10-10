@@ -13,8 +13,8 @@
 
   <!-- Alta rápida -->
   <div class="sgc-card pt-alta">
-    <input class="sgc-field" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
-    <input class="sgc-field" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
+    <input class="sgc-input" placeholder="Nombre del proveedor" [value]="nuevoNombre()" (input)="nuevoNombre.set($any($event.target).value)" />
+    <input class="sgc-input" placeholder="Teléfono (opcional)" [value]="nuevoTel()" (input)="nuevoTel.set($any($event.target).value)" />
     <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="crear()">Agregar</button>
   </div>
 
@@ -57,7 +57,7 @@
               } @else {
                 <table class="data-table">
                   <thead><tr><th>Fecha</th><th>Origen → Destino</th><th>Material</th><th>Pago</th></tr></thead>
-                  <tbody>
+                  <tbody appStagger>
                     @for (v of viajes(); track v.viaje_id) {
                       <tr>
                         <td>{{ v.fecha | date: 'dd/MM/yyyy' }}</td>

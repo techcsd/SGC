@@ -48,7 +48,7 @@
         <thead>
           <tr><th>Fecha</th><th>Tipo</th><th>Almacén</th><th>Concepto / referencia</th><th class="text-right">Artículos</th><th>Responsable</th><th></th></tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (m of paginated(); track m.tipo + m.referencia_id) {
             <tr class="row--link" (click)="abrir(m)" role="button" tabindex="0" (keydown.enter)="abrir(m)"
                 aria-label="Ver detalle del movimiento">

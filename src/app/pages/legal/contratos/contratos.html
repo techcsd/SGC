@@ -82,7 +82,7 @@
             <th class="text-center">Ver</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (c of filtered(); track c.id) {
             <tr class="row--link" (click)="openDetail(c)" role="button" tabindex="0"
                 (keydown.enter)="openDetail(c)" aria-label="Ver detalle del contrato">
