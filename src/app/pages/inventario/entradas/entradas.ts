@@ -37,6 +37,7 @@ import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util'
 import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { MotionService } from '../../../../shared/services/motion.service';
 
 @Component({
   selector: 'app-entradas',
@@ -55,6 +56,7 @@ export class Entradas implements OnInit {
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
 
   // T2 — solo admin ve/gestiona datos de prueba.
@@ -286,6 +288,7 @@ export class Entradas implements OnInit {
         notas: this.confirmNotas().trim() || null,
         modo: this.confirmModo(),
       });
+      this.motion.momento('entrada'); // CL2 — caja entra al almacén
       this.toast.success('Recepción confirmada', 'Se registró la evidencia y se actualizó el stock.');
       this.confirmOpen.set(false);
       this.clearConfirmFotos();

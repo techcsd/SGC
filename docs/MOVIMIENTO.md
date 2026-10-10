@@ -56,7 +56,11 @@ Badge inferior-centro, ~0.8s, SIN velo, no bloquea, `aria-live`. Tipos: `entrada
 - ✅ `appStagger` en **35 listados** (conduces-externos + 34 del sweep CL2: inventario/flota/bitácora/compras/rrhh/proyectos/legal/documentos).
 - ✅ Disparadores de `momento(...)` (medianos) en los éxitos clave:
   - `inventario/salidas` despacho → `momento('salida')`
+  - `inventario/entradas` recepción confirmada → `momento('entrada')`
   - `flota/mantenimientos` completar → `momento('mantenimiento')`
   - `flota/combustible-log` aprobar echada → `momento('combustible')`
+  - `flota/checklists` aprobar → `momento('checklist')`
+  - `rrhh/ausencias` aprobar → `momento('aprobado')`
+  - `notas` compartir → `momento('mensaje')`
   - conduce externo emitido → celebración grande (CJ2) en `conduce-externo-form`.
 - ⬜ Pendiente (mecánico, mismo patrón): más disparadores `momento(...)` (entrada, aprobado de requisición/OC/ausencia, firma, checklist, mensaje/nota, documento) y `appCountUp`/`appEstadoPulse` donde aporten, módulo por módulo.
