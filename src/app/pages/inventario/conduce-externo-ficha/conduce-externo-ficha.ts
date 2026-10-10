@@ -6,6 +6,7 @@ import { ToastService } from '../../../../shared/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
 import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/services/transporte-v3.service';
 
 /**
@@ -16,7 +17,7 @@ import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/s
  */
 @Component({
   selector: 'app-conduce-externo-ficha',
-  imports: [DatePipe, RouterLink, TranslatePipe],
+  imports: [DatePipe, RouterLink, TranslatePipe, EstadoPulseDirective],
   templateUrl: './conduce-externo-ficha.html',
   styleUrl: './conduce-externo-ficha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

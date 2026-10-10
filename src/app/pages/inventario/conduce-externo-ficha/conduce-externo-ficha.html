@@ -32,7 +32,7 @@
           <h1 class="ce-doc__code">{{ d.codigo }}</h1>
         </div>
         <div class="ce-doc__estado">
-          <span class="sgc-status-pill">{{ estadoLabel(d.estado) }}</span>
+          <span class="sgc-status-pill" [appEstadoPulse]="d.estado">{{ estadoLabel(d.estado) }}</span>
           @if (d.anulado) { <span class="sgc-badge sgc-badge--danger">Anulado</span> }
           @if (d.es_prueba) { <span class="sgc-badge sgc-badge--neutral">PRUEBA</span> }
         </div>
