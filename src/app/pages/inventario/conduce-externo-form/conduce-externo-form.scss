@@ -1,131 +1,176 @@
+// CL1 — "Nuevo conduce externo" en dos columnas (tarjetas + vista previa fija).
+.cef-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .cef-layout { grid-template-columns: 1fr; }
+  .cef-preview { order: 2; }
+}
+
+.cef-cards { display: flex; flex-direction: column; gap: 16px; }
+
 .cef-card {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: 20px;
-  max-width: 720px;
+  gap: 12px;
+  padding: 18px 20px;
 }
 
-.cef-section {
+// Entrada escalonada de las tarjetas (220ms + 30ms por tarjeta vía --d).
+.cef-mv { animation: mv-stagger-in var(--motion-base, 220ms) var(--ease-out, ease) var(--d, 0ms) both; }
+@media (prefers-reduced-motion: reduce) { .cef-mv { animation: none; } }
+:global(html.motion-reduced) .cef-mv { animation: none; }
+
+.cef-card__head {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
-
-  &:last-of-type { border-bottom: none; padding-bottom: 0; }
-}
-
-.cef-h {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-2);
-}
-
-.cef-field { display: flex; flex-direction: column; gap: 6px; }
-.cef-label { font-size: 0.85rem; color: var(--text-2); }
-
-.cef-row { display: flex; gap: 8px; flex-wrap: wrap; }
-
-.cef-inline {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
   align-items: center;
-}
+  gap: 10px;
+  margin: 0;
 
-.cef-fotos { display: flex; gap: 16px; flex-wrap: wrap; }
-.cef-foto { display: flex; flex-direction: column; gap: 8px; }
-.cef-preview {
-  width: 140px;
-  height: 105px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-}
-
-.cef-lugar { position: relative; }
-.cef-results {
-  list-style: none;
-  margin: 2px 0 0;
-  padding: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: var(--shadow-md);
-  max-height: 220px;
-  overflow-y: auto;
-
-  li {
-    padding: 8px 10px;
-    border-radius: 8px;
+  &--toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
     cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--text);
-    &:hover { background: var(--surface-2); }
+    text-align: left;
+    color: inherit;
+    app-icon { margin-left: auto; color: var(--sgc-text-secondary); }
   }
 }
-.cef-tag {
-  display: inline-block;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: var(--accent-hover);
-  margin-right: 6px;
+.cef-num {
+  flex: 0 0 auto;
+  width: 24px; height: 24px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  background: var(--brand, #1e3a5f);
+  color: #fff;
+  font: 700 13px var(--font-heading, sans-serif);
+}
+.cef-h { font-size: 1rem; font-weight: 700; margin: 0; color: var(--sgc-text); }
+.cef-opt { font-size: 0.8rem; font-weight: 400; color: var(--sgc-text-secondary); }
+
+// Quick-pick de proveedores (top 3).
+.cef-quick { display: flex; gap: 8px; flex-wrap: wrap; }
+.cef-quick__chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: 999px;
+  background: var(--sgc-surface);
+  font-size: 0.85rem; font-weight: 600; color: var(--sgc-text);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+  &:hover { transform: translateY(-1px); }
+  &--on { border-color: var(--accent, #f97316); background: var(--accent-soft, #fff4ec); color: var(--accent-hover, #ea580c); }
 }
 
-.cef-hint {
-  font-size: 0.8rem;
-  color: var(--text-2);
-  margin: 4px 0 0;
+.cef-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cef-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+// Fotos en casillas grandes con vista previa + arrastrar/soltar.
+.cef-fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .cef-fotos { grid-template-columns: 1fr; } }
+.cef-foto { position: relative; }
+.cef-foto__drop {
+  width: 100%;
+  min-height: 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding: 16px;
+  border: 1.5px dashed var(--sgc-border);
+  border-radius: 12px;
+  background: var(--sgc-bg, #f8f9fb);
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+  &:hover { border-color: var(--brand, #1e3a5f); }
+  strong { font-size: 0.85rem; color: var(--sgc-text); }
+  small { font-size: 0.75rem; }
+}
+.cef-foto--req .cef-foto__drop { border-color: var(--accent, #f97316); }
+.cef-foto__img {
+  width: 100%; height: 120px; object-fit: cover;
+  border-radius: 12px; border: 1px solid var(--sgc-border); display: block;
+}
+.cef-foto__change {
+  position: absolute; right: 8px; bottom: 8px;
+  padding: 4px 10px; border-radius: 8px; border: none;
+  background: rgb(0 0 0 / 0.6); color: #fff; font-size: 0.75rem; font-weight: 600; cursor: pointer;
 }
 
-.cef-actions { display: flex; justify-content: flex-end; }
+// Origen → destino con línea de ruta animada.
+.cef-ruta { display: flex; flex-direction: column; gap: 8px; }
+.cef-lugar { position: relative; }
+.cef-route-line {
+  height: 18px; margin-left: 10px;
+  border-left: 2px dashed var(--sgc-border);
+  position: relative;
+  &__dash {
+    position: absolute; left: -2px; top: 0; bottom: 0; width: 2px;
+    background: repeating-linear-gradient(var(--accent, #f97316) 0 4px, transparent 4px 8px);
+    animation: cef-dash 1.2s linear infinite;
+  }
+}
+@keyframes cef-dash { to { transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .cef-route-line__dash { animation: none; } }
 
-// BV6 — renglones de material del catálogo.
+.cef-results {
+  list-style: none; margin: 2px 0 0; padding: 4px;
+  background: var(--sgc-surface); border: 1px solid var(--sgc-border);
+  border-radius: 10px; box-shadow: var(--sgc-shadow-md);
+  max-height: 220px; overflow-y: auto; position: absolute; z-index: 5; left: 0; right: 0;
+  li { padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; color: var(--sgc-text);
+    &:hover { background: var(--sgc-surface-2); } }
+}
+.cef-tag { display: inline-block; font-size: 0.7rem; text-transform: uppercase; color: var(--accent-hover); margin-right: 6px; }
+
+.cef-hint { font-size: 0.8rem; color: var(--sgc-text-secondary); margin: 4px 0 0; }
 .cef-hint--info { color: var(--accent-hover); }
-.cef-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
+
+.cef-material { display: flex; flex-direction: column; gap: 10px; }
+.cef-item { display: flex; align-items: center; gap: 8px; }
 .cef-item__art { flex: 1 1 auto; min-width: 0; }
 .cef-item__qty { width: 96px; flex: 0 0 auto; }
 
-// BV4 — aviso de requisiciones activas en la obra destino.
 .cef-reqaviso {
-  margin: 8px 0 4px;
-  padding: 10px 12px;
-  border: 1px solid var(--accent, #ff5f00);
-  background: color-mix(in srgb, var(--accent, #ff5f00) 10%, transparent);
-  border-radius: 10px;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  margin: 8px 0 4px; padding: 10px 12px;
+  border: 1px solid var(--accent, #f97316);
+  background: var(--accent-soft, #fff4ec);
+  border-radius: 10px; font-size: 0.85rem; line-height: 1.4; color: var(--sgc-text);
 }
+
+// ── Columna derecha: vista previa fija ──
+.cef-preview { position: sticky; top: 16px; }
+.cef-preview__card { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.cef-preview__title { font-size: 1rem; font-weight: 700; margin: 0; color: var(--sgc-text); }
+.cef-preview__kv {
+  margin: 0; display: flex; flex-direction: column; gap: 8px;
+  div { display: grid; grid-template-columns: 78px 1fr; gap: 8px; }
+  dt { font-size: 0.75rem; color: var(--sgc-text-secondary); font-weight: 600; }
+  dd { margin: 0; font-size: 0.85rem; color: var(--sgc-text); overflow: hidden; text-overflow: ellipsis; }
+}
+.cef-progress { display: flex; align-items: center; gap: 10px; }
+.cef-progress__bar {
+  flex: 1 1 auto; height: 6px; border-radius: 6px; background: var(--sgc-border); overflow: hidden;
+  span { display: block; height: 100%; background: var(--accent, #f97316); border-radius: 6px; transition: width .3s var(--ease-out, ease); }
+}
+.cef-progress__txt { font-size: 0.8rem; font-weight: 700; color: var(--sgc-text-secondary); white-space: nowrap; }
+.cef-progress__falta { margin: -4px 0 0; font-size: 0.8rem; color: var(--accent-hover, #ea580c); }
+.cef-emitir { width: 100%; justify-content: center; }
 
 // CL6 — interruptor y banda de "dato de prueba" (solo admin).
 .cef-prueba-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--accent, #f97316);
-  cursor: pointer;
-  user-select: none;
-
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.8rem; font-weight: 600; color: var(--accent, #f97316);
+  cursor: pointer; user-select: none;
   input { width: 16px; height: 16px; accent-color: var(--accent, #f97316); cursor: pointer; }
 }
-
 .cef-prueba-band {
-  margin: 0 0 16px;
-  padding: 10px 14px;
+  margin: 0 0 16px; padding: 10px 14px;
   background: var(--accent-soft, #fff4ec);
-  border: 1px solid var(--accent, #f97316);
-  border-left-width: 4px;
-  border-radius: 10px;
-  color: var(--sgc-text);
-  font-size: 0.85rem;
-  font-weight: 600;
+  border: 1px solid var(--accent, #f97316); border-left-width: 4px;
+  border-radius: 10px; color: var(--sgc-text); font-size: 0.85rem; font-weight: 600;
 }
