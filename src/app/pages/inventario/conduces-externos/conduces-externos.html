@@ -14,6 +14,12 @@
       <button type="button" class="sgc-btn sgc-btn--sm" [class.sgc-btn--primary]="filtroEstado() === f" [class.sgc-btn--ghost]="filtroEstado() !== f"
               (click)="filtroEstado.set($any(f))">{{ f === 'todos' ? 'Todos' : estadoLabel(f) }}</button>
     }
+    @if (esAdmin() && hayPrueba()) {
+      <label class="ce-prueba-check">
+        <input type="checkbox" [checked]="mostrarPrueba()" (change)="mostrarPrueba.set($any($event.target).checked)" />
+        <span>{{ 'Mostrar datos de prueba' | t }}</span>
+      </label>
+    }
   </div>
 
   @if (loading()) {

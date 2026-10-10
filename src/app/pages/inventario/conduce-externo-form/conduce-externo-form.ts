@@ -7,7 +7,9 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 
@@ -34,7 +36,7 @@ interface LugarSel {
  */
 @Component({
   selector: 'app-conduce-externo-form',
-  imports: [RouterLink, ArticuloPicker],
+  imports: [RouterLink, ArticuloPicker, TranslatePipe],
   templateUrl: './conduce-externo-form.html',
   styleUrl: './conduce-externo-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,8 +47,14 @@ export class ConduceExternoForm {
   private articulosSvc = inject(ArticulosService);
   private categoriasSvc = inject(CategoriasService);
   private toast = inject(ToastService);
+  private user = inject(UserService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  // CL6 — solo un admin puede marcar un conduce nuevo como dato de prueba (el servidor
+  // lo re-valida: crear_conduce_externo rechaza p_es_prueba=true a no-admin).
+  esAdmin = computed(() => this.user.hasRole('admin'));
+  esPrueba = signal(false);
 
   // BR5 — cuando se abre desde una requisición ("Comprar en ferretería"): queda
   // enlazado (origen_requisicion_id) y cuenta en el avance al confirmarse la compra.
@@ -269,6 +277,7 @@ export class ConduceExternoForm {
         destinoProyectoId: d?.proyectoId ?? null, destinoBodegaId: d?.bodegaId ?? null,
         origenRequisicionId: this.origenRequisicionId(),
         items: itemsPayload.length ? itemsPayload : null,
+        esPrueba: this.esAdmin() && this.esPrueba(),
       });
       this.toast.success('Conduce externo emitido', 'El viaje quedó registrado (pendiente de pago).');
       this.router.navigate(['/inventario/conduces-externos'], { queryParams: { nuevo: id } });

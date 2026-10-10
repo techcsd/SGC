@@ -103,3 +103,29 @@
   font-size: 0.85rem;
   line-height: 1.4;
 }
+
+// CL6 — interruptor y banda de "dato de prueba" (solo admin).
+.cef-prueba-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent, #f97316);
+  cursor: pointer;
+  user-select: none;
+
+  input { width: 16px; height: 16px; accent-color: var(--accent, #f97316); cursor: pointer; }
+}
+
+.cef-prueba-band {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: var(--accent-soft, #fff4ec);
+  border: 1px solid var(--accent, #f97316);
+  border-left-width: 4px;
+  border-radius: 10px;
+  color: var(--sgc-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}

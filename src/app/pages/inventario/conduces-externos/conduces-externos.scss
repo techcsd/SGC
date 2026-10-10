@@ -15,3 +15,18 @@
 
 .row-clickable { cursor: pointer; }
 .row-clickable:hover td { background: var(--sgc-surface-2, rgba(0,0,0,0.03)); }
+
+// CL6 — toggle admin "Mostrar datos de prueba".
+.ce-prueba-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sgc-text-secondary);
+  cursor: pointer;
+  user-select: none;
+
+  input { width: 15px; height: 15px; accent-color: var(--accent, #f97316); cursor: pointer; }
+}

@@ -3,15 +3,15 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 6%** (36/620 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 6%** (38/625 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
 | inventario/conduce | scope | 211 | 0 | 211 | 0% |
-| inventario/conduce-externo-form | scope | 56 | 0 | 56 | 0% |
 | inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
+| inventario/conduce-externo-form | scope | 61 | 2 | 59 | 3% |
 | configuracion | scope | 58 | 36 | 22 | 62% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/app-versiones | - | 125 | 0 | 125 | 0% |
@@ -33,7 +33,6 @@
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
 | apoyo-transporte | - | 55 | 0 | 55 | 0% |
-| app-movil | - | 41 | 0 | 41 | 0% |
 | asistente | - | 23 | 0 | 23 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
 | bitacora/cartillas | - | 116 | 0 | 116 | 0% |
@@ -83,9 +82,7 @@
 | inventario/articulos | - | 168 | 0 | 168 | 0% |
 | inventario/bodegas | - | 116 | 0 | 116 | 0% |
 | inventario/categorias | - | 34 | 0 | 34 | 0% |
-| inventario/conduce-externo-ficha | - | 55 | 0 | 55 | 0% |
 | inventario/conduces | - | 66 | 0 | 66 | 0% |
-| inventario/conduces-externos | - | 23 | 0 | 23 | 0% |
 | inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
 | inventario/confirmaciones | - | 44 | 0 | 44 | 0% |
 | inventario/conteos | - | 110 | 0 | 110 | 0% |
@@ -154,8 +151,11 @@
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
 | trabajos-transporte | - | 31 | 0 | 31 | 0% |
 | verificar | - | 13 | 0 | 13 | 0% |
+| inventario/conduce-externo-ficha | - | 59 | 2 | 57 | 3% |
 | legal/expedientes | - | 100 | 3 | 97 | 3% |
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
+| inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |
+| app-movil | - | 50 | 8 | 42 | 16% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |

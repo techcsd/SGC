@@ -5,9 +5,22 @@
       <p class="page-sub">Un proveedor mueve material con su camión. Se registra el viaje automáticamente.</p>
     </div>
     <div class="page-header__actions">
+      @if (esAdmin()) {
+        <!-- CL6 — solo admin: marca el conduce nuevo como dato de prueba. -->
+        <label class="cef-prueba-toggle" title="No cuenta en inventario, KPIs ni avisos">
+          <input type="checkbox" [checked]="esPrueba()" (change)="esPrueba.set($any($event.target).checked)" />
+          <span>{{ 'Marcar como prueba · SOLO ADMIN' | t }}</span>
+        </label>
+      }
       <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/inventario/conduces-externos">Ver historial</a>
     </div>
   </header>
+
+  @if (esAdmin() && esPrueba()) {
+    <div class="cef-prueba-band" role="note">
+      {{ 'Dato de prueba: no cuenta en inventario, KPIs ni avisos.' | t }}
+    </div>
+  }
 
   @if (origenRequisicionId()) {
     <div class="sgc-badge sgc-badge--info">Procede de {{ reqCodigo() }} — compra en ferretería (cuenta en el avance al confirmarse)</div>
