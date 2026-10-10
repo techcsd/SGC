@@ -15,6 +15,7 @@ import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { MotionService } from '../../../../shared/services/motion.service';
 
 @Component({
   selector: 'app-ausencias',
@@ -29,6 +30,7 @@ export class Ausencias implements OnInit {
   private userService = inject(UserService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private datosPruebaSvc = inject(DatosPruebaViewService);
 
   readonly TIPOS = AUSENCIA_TIPOS;
@@ -210,6 +212,7 @@ export class Ausencias implements OnInit {
       this.solicitudes.update((list) => list.map((item) => (item.id === s.id ? updated : item)));
       this.resolveOpen.set(false);
       this.notificaciones.refresh();
+      if (estado === 'aprobada') this.motion.momento('aprobado'); // CL2 — sello APROBADA
 
       // QA-032 — al aprobar, genera la asistencia por cada día de la ausencia (fire-and-forget).
       if (estado === 'aprobada') {

@@ -10,6 +10,7 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../../shared/services/toast.service';
+import { MotionService } from '../../../shared/services/motion.service';
 import { NotasService, DirectorioUsuario } from '../../../shared/services/notas.service';
 import { Nota, NotaCompartido, NotaPermiso, NOTA_COLORES } from '../../../shared/models/nota.model';
 import { FormDrawer } from '../../../shared/components/form-drawer/form-drawer';
@@ -39,6 +40,7 @@ export class Notas implements OnInit {
   private notasSvc = inject(NotasService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private router = inject(Router);
 
   miId = this.userService.profile()?.id ?? '';
@@ -373,6 +375,7 @@ export class Notas implements OnInit {
       await this.notasSvc.compartir(this.currentId(), usuario.id, permiso);
       this.shareBuscar.set('');
       await this.cargarCompartidos(this.currentId());
+      this.motion.momento('mensaje'); // CL2 — avión de papel
       this.toast.success('Nota compartida', `Con ${usuario.nombre} (${permiso})`);
     } catch (e: unknown) {
       this.toast.error('No se pudo compartir', e instanceof Error ? e.message : undefined);

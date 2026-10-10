@@ -16,6 +16,7 @@ import { VehiculosService } from '../../../../shared/services/vehiculos.service'
 import { ConductoresService } from '../../../../shared/services/conductores.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import { Vehiculo } from '../../../../shared/models/vehiculo.model';
 import { Conductor } from '../../../../shared/models/conductor.model';
@@ -69,6 +70,7 @@ export class Checklists implements OnInit {
   private conductoresService = inject(ConductoresService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private motion = inject(MotionService);
   private datosPrueba = inject(DatosPruebaService);
   private route = inject(ActivatedRoute);
 
@@ -577,6 +579,7 @@ export class Checklists implements OnInit {
           'Hay ítems no críticos en NO. Coordinar corrección.',
         );
       } else {
+        this.motion.momento('checklist'); // CL2 — puntos tachados en cascada
         this.toast.success('Checklist aprobado', 'El vehículo puede operar.');
       }
     } catch (e: unknown) {
