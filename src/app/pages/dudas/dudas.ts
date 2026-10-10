@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SignedUrlCache } from '../../../shared/services/signed-url-cache.service';
+import { BienvenidaService } from '../../../shared/services/bienvenida.service';
 import { DudaCategoria, GuiaVisual } from './dudas-content';
 
 /** CK5 — URLs firmadas del video de una guía (bucket privado `tutoriales`). */
@@ -22,7 +23,11 @@ export class Dudas {
   private userService = inject(UserService);
   private supabase = inject(SupabaseService);
   private signedUrls = inject(SignedUrlCache);
+  private bienvenida = inject(BienvenidaService);
   private readonly BUCKET_TUTORIALES = 'tutoriales';
+
+  /** CL3 — "Ver la bienvenida otra vez". */
+  verBienvenida() { this.bienvenida.verOtraVez(); }
 
   searchQuery = signal('');
   expandedKey = signal<string | null>(null);

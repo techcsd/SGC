@@ -51,3 +51,16 @@
   .no-print { display: none !important; }
   .ce-doc { box-shadow: none; border: none; }
 }
+
+// CL6 — banda de "dato de prueba".
+.ce-prueba-band {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: var(--accent-soft, #fff4ec);
+  border: 1px solid var(--accent, #f97316);
+  border-left-width: 4px;
+  border-radius: 10px;
+  color: var(--sgc-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}

@@ -259,5 +259,19 @@
   "Garantía": "Warranty",
   "Foto": "Photo",
   "Otro": "Other",
-  "¿Qué documento es?": "What document is it?"
+  "¿Qué documento es?": "What document is it?",
+  "App de campo para choferes, encargados, ingenieros y bodegueros. Bitácora, transporte con responsabilidad de vehículos, inventario de almacén y solicitudes — funciona sin señal.": "Field app for drivers, foremen, engineers and warehouse staff. Work log, transport with vehicle responsibility, warehouse inventory and requests — works offline.",
+  "¿El botón Actualizar de la app no hace nada?": "Does the app's Update button do nothing?",
+  "Si estás en la versión 2.44 o 2.45 de Android, la actualización desde la app no funciona (carga y no pasa nada). Descarga aquí la última versión e instálala encima: no se borra nada ni pierdes tu sesión.": "If you're on Android version 2.44 or 2.45, updating from inside the app doesn't work (it spins and nothing happens). Download the latest version here and install it over the top: nothing is deleted and you won't lose your session.",
+  "Descargar e instalar encima (no se borra nada)": "Download and install over the top (nothing is deleted)",
+  "Toca el botón de arriba y espera a que baje el archivo.": "Tap the button above and wait for the file to download.",
+  "Abre el archivo descargado. Si te lo pide, permite «instalar de orígenes desconocidos».": "Open the downloaded file. If prompted, allow \"install from unknown sources\".",
+  "Instala encima de la que ya tienes y abre CSD App. Tu usuario y tus datos siguen ahí.": "Install over the one you already have and open CSD App. Your account and data are still there.",
+  "Solo hace falta una vez: después de esta instalación, el botón Actualizar vuelve a funcionar normal.": "You only need to do this once: after this install, the Update button works normally again.",
+  "Marcar como prueba · SOLO ADMIN": "Mark as test · ADMIN ONLY",
+  "Dato de prueba: no cuenta en inventario, KPIs ni avisos.": "Test data: it doesn't count toward inventory, KPIs or alerts.",
+  "Marcar / desmarcar como prueba": "Mark / unmark as test",
+  "Dato de prueba": "Test data",
+  "Mostrar datos de prueba": "Show test data",
+  "Animaciones": "Animations"
 }

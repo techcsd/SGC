@@ -4,11 +4,12 @@ import { PersonalObraService } from '../../../../shared/services/personal-obra.s
 import { FirmaPendienteBandeja, FIRMA_ROL_LABEL, FirmaRol } from '../../../../shared/models/personal-obra.model';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { formatFechaHumana } from '../../../../shared/utils/fecha.util';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /** CF1 — Bandeja de documentos de personal con firmas (empleador/testigos) pendientes. */
 @Component({
   selector: 'app-firmas-pendientes',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, StaggerDirective],
   templateUrl: './firmas-pendientes.html',
   styleUrl: './firmas-pendientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

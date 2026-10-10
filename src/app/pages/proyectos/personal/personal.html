@@ -136,7 +136,7 @@
           <thead>
             <tr><th></th><th>Nombre</th><th>Cargo</th><th>Nacionalidad</th><th>Documento</th><th>Obra</th><th>Registró</th><th>Asegurado</th><th>Carnet</th><th>Estado</th></tr>
           </thead>
-          <tbody>
+          <tbody appStagger>
             @for (p of filtrados(); track p.id) {
               <tr class="pob-fila" (click)="abrir(p)">
                 <td class="pob-avatar-cell"><span class="pob-avatar">{{ iniciales(p) }}</span></td>

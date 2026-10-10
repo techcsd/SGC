@@ -16,10 +16,11 @@ import { interpretarCodigoTiempo } from '../../../../shared/context/weather.mode
 import { DateRangeFilter, RangoFecha } from '../../../../shared/ui/date-range-filter/date-range-filter';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { MoldeEsquema } from '../../../../shared/ui/molde-esquema/molde-esquema';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-bitacora-historial',
-  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema],
+  imports: [Skeleton, RouterLink, FormDrawer, DecimalPipe, DateRangeFilter, Icon, MoldeEsquema, StaggerDirective],
   templateUrl: './historial.html',
   styleUrl: './historial.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

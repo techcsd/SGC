@@ -1,8 +1,11 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
+import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
 import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/services/transporte-v3.service';
 
 /**
@@ -13,7 +16,7 @@ import { TransporteV3Service, ConduceExternoDetalle } from '../../../../shared/s
  */
 @Component({
   selector: 'app-conduce-externo-ficha',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, TranslatePipe],
   templateUrl: './conduce-externo-ficha.html',
   styleUrl: './conduce-externo-ficha.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,6 +26,11 @@ export class ConduceExternoFicha implements OnInit {
   private supabase = inject(SupabaseService);
   private svc = inject(TransporteV3Service);
   private toast = inject(ToastService);
+  private user = inject(UserService);
+  private datosPrueba = inject(DatosPruebaService);
+
+  esAdmin = computed(() => this.user.hasRole('admin'));
+  marcandoPrueba = signal(false);
 
   loading = signal(true);
   error = signal('');
@@ -89,6 +97,24 @@ export class ConduceExternoFicha implements OnInit {
     if (!d) return;
     const msg = encodeURIComponent(`Conduce externo ${d.codigo}\n${window.location.href}`);
     window.open(`https://wa.me/?text=${msg}`, '_blank');
+  }
+
+  /** CL6 — marca/desmarca este conduce externo como prueba (solo admin). El servidor
+   *  revierte/re-aplica el stock de la salida/entrada enlazada (como AT10). */
+  async marcarPrueba(valor: boolean) {
+    const d = this.detalle();
+    if (!d || this.marcandoPrueba()) return;
+    if (valor && !confirm('¿Marcar este conduce externo como dato de prueba? Se revertirá su movimiento de stock y dejará de contar en inventario, KPIs y avisos (salvo con el toggle de datos de prueba).')) return;
+    this.marcandoPrueba.set(true);
+    try {
+      await this.datosPrueba.marcar('conduces_externos', d.id, valor);
+      this.detalle.set({ ...d, es_prueba: valor });
+      this.toast.success(valor ? 'Marcado como prueba' : 'Vuelto a real', valor ? 'Se revirtió su movimiento de stock.' : 'Se re-aplicó su movimiento de stock.');
+    } catch (e) {
+      this.toast.error('No se pudo cambiar el estado de prueba', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.marcandoPrueba.set(false);
+    }
   }
 
   async anular() {

@@ -44,10 +44,11 @@ import { daysUntil, formatFechaDisplay } from '../../../../shared/utils/fecha.ut
 import { formatearTelefono } from '../../../../shared/utils/telefono.util';
 import { formatearCedula } from '../../../../shared/utils/cedula.util';
 import { cleanUuid } from '../../../../shared/utils/uuid.util';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-conductores',
-  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload],
+  imports: [FlotaSubnav, ReactiveFormsModule, FormDrawer, RouterLink, TelefonoMask, CedulaMask, Skeleton, ExportExcel, Icon, FilterSelect, UserPicker, FileUpload, StaggerDirective],
   templateUrl: './conductores.html',
   styleUrl: './conductores.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

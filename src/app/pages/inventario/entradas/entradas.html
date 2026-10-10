@@ -108,7 +108,7 @@
             <th class="text-right">Total</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (e of paginated(); track e.id) {
             <tr class="row--link" [appHighlightItem]="e.id" (click)="openDetail(e)" role="button" tabindex="0"
                 (keydown.enter)="openDetail(e)" aria-label="Ver detalle de la entrada">

@@ -10,6 +10,7 @@ import { formatFechaHumana } from '../../../shared/utils/fecha.util';
 import { comprimirImagen } from '../../../shared/utils/comprimir-imagen.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
+import { BienvenidaService } from '../../../shared/services/bienvenida.service';
 
 @Component({
   selector: 'app-soporte',
@@ -21,6 +22,7 @@ import { Icon } from '../../../shared/ui/icon/icon';
 export class Soporte implements OnInit {
   private reportesService = inject(ReportesUsuarioService);
   private userService = inject(UserService);
+  private bienvenida = inject(BienvenidaService);
 
   formatFechaHora = formatFechaHumana; // U9
 
@@ -67,8 +69,8 @@ export class Soporte implements OnInit {
   /** Replays the first-run guided tour: clear the flag and reload into the
    *  dashboard so the shell re-triggers it. */
   verGuia(): void {
-    localStorage.removeItem('sgc_onboarding_v1_done');
-    window.location.assign('/dashboard');
+    // CL3 — re-muestra la bienvenida (ventana + tour) sobre la página actual.
+    this.bienvenida.verOtraVez();
   }
 
   async ngOnInit() {

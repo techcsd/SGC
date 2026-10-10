@@ -5,9 +5,33 @@
 </div>
 
 <p class="am-lead">
-  App de campo para choferes, encargados, ingenieros y bodegueros. Bitácora, transporte con
-  responsabilidad de vehículos, inventario de almacén y solicitudes — funciona sin señal.
+  {{ 'App de campo para choferes, encargados, ingenieros y bodegueros. Bitácora, transporte con responsabilidad de vehículos, inventario de almacén y solicitudes — funciona sin señal.' | t }}
 </p>
+
+<!-- CL4 — Rescate: Android 2.44/2.45 no puede actualizar desde la app (el updater recarga como
+     PWA y no pasa nada). La salida es instalar el APK nuevo ENCIMA, una sola vez: no borra datos. -->
+@if (info(); as v) {
+  <section class="am-rescue" role="note" aria-label="Rescate de actualización para Android">
+    <div class="am-rescue__icon"><app-icon name="alert-triangle" [size]="22" /></div>
+    <div class="am-rescue__body">
+      <h2 class="am-rescue__title">{{ '¿El botón Actualizar de la app no hace nada?' | t }}</h2>
+      <p class="am-rescue__text">
+        {{ 'Si estás en la versión 2.44 o 2.45 de Android, la actualización desde la app no funciona (carga y no pasa nada). Descarga aquí la última versión e instálala encima: no se borra nada ni pierdes tu sesión.' | t }}
+      </p>
+      <a class="sgc-btn sgc-btn--primary am-rescue__btn" [href]="v.url" download>
+        <app-icon name="download" [size]="16" /> {{ 'Descargar e instalar encima (no se borra nada)' | t }}
+      </a>
+      <ol class="am-steps am-rescue__steps">
+        <li>{{ 'Toca el botón de arriba y espera a que baje el archivo.' | t }}</li>
+        <li>{{ 'Abre el archivo descargado. Si te lo pide, permite «instalar de orígenes desconocidos».' | t }}</li>
+        <li>{{ 'Instala encima de la que ya tienes y abre CSD App. Tu usuario y tus datos siguen ahí.' | t }}</li>
+      </ol>
+      <p class="am-rescue__hint">
+        {{ 'Solo hace falta una vez: después de esta instalación, el botón Actualizar vuelve a funcionar normal.' | t }}
+      </p>
+    </div>
+  </section>
+}
 
 <div class="am-grid">
   <!-- Android -->

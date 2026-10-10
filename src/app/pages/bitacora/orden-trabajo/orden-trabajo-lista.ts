@@ -8,6 +8,7 @@ import { OrdenTrabajoResumen } from '../../../../shared/models/bitacora.model';
 import { FilterSelect, FilterOption } from '../../../../shared/ui/filter-select/filter-select';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /**
  * BW1 — Lista propia de órdenes de trabajo: buscador (nº/obra/responsable),
@@ -16,7 +17,7 @@ import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
  */
 @Component({
   selector: 'app-orden-trabajo-lista',
-  imports: [DatePipe, FormsModule, RouterLink, FilterSelect, Skeleton, TranslatePipe],
+  imports: [DatePipe, FormsModule, RouterLink, FilterSelect, Skeleton, TranslatePipe, StaggerDirective],
   templateUrl: './orden-trabajo-lista.html',
   styleUrl: './orden-trabajo-lista.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -7,7 +7,11 @@ import { CategoriasService } from '../../../../shared/services/categorias.servic
 import { Articulo } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+import { TranslatePipe } from '../../../../shared/i18n/translate.pipe';
+import { Icon } from '../../../../shared/ui/icon/icon';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { UserService } from '../../../core/services/user.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { comprimirImagen } from '../../../../shared/utils/comprimir-imagen.util';
 import { humanizeError } from '../../../../shared/utils/friendly-error.util';
 
@@ -34,7 +38,7 @@ interface LugarSel {
  */
 @Component({
   selector: 'app-conduce-externo-form',
-  imports: [RouterLink, ArticuloPicker],
+  imports: [RouterLink, ArticuloPicker, TranslatePipe, Icon],
   templateUrl: './conduce-externo-form.html',
   styleUrl: './conduce-externo-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,8 +49,38 @@ export class ConduceExternoForm {
   private articulosSvc = inject(ArticulosService);
   private categoriasSvc = inject(CategoriasService);
   private toast = inject(ToastService);
+  private user = inject(UserService);
+  private motion = inject(MotionService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+
+  // CL1 — los 3 proveedores más a mano (quick-pick en la tarjeta 1).
+  top3Proveedores = computed(() => this.proveedores().slice(0, 3));
+  // CL1 — material del catálogo plegado por defecto.
+  materialAbierto = signal(false);
+
+  // CL1 — vista previa / progreso: 4 obligatorios (placa, transporta, origen, destino).
+  private tieneTransporta = computed(() =>
+    this.usarTexto() ? this.transportaTexto().trim().length > 0 : !!this.proveedorId());
+  private tieneOrigen = computed(() => !!this.origenSel() || this.origenQuery().trim().length > 0);
+  private tieneDestino = computed(() => !!this.destinoSel() || this.destinoQuery().trim().length > 0);
+  listos = computed(() =>
+    [!!this.placaFile(), this.tieneTransporta(), this.tieneOrigen(), this.tieneDestino()]
+      .filter(Boolean).length);
+  faltan = computed(() => {
+    const f: string[] = [];
+    if (!this.placaFile()) f.push('foto de la placa');
+    if (!this.tieneTransporta()) f.push('quién transporta');
+    if (!this.tieneOrigen()) f.push('origen');
+    if (!this.tieneDestino()) f.push('destino');
+    return f;
+  });
+  puedeEmitir = computed(() => this.listos() === 4 && !this.guardando());
+
+  // CL6 — solo un admin puede marcar un conduce nuevo como dato de prueba (el servidor
+  // lo re-valida: crear_conduce_externo rechaza p_es_prueba=true a no-admin).
+  esAdmin = computed(() => this.user.hasRole('admin'));
+  esPrueba = signal(false);
 
   // BR5 — cuando se abre desde una requisición ("Comprar en ferretería"): queda
   // enlazado (origen_requisicion_id) y cuenta en el avance al confirmarse la compra.
@@ -133,6 +167,13 @@ export class ConduceExternoForm {
   }
 
   // ── Proveedor ─────────────────────────────────────────────────────────────
+  /** CL1 — elegir un proveedor de los "más a mano". */
+  elegirProveedor(id: string) {
+    this.usarTexto.set(false);
+    this.nuevoAbierto.set(false);
+    this.proveedorId.set(id);
+  }
+
   toggleTexto() {
     this.usarTexto.update((v) => !v);
     this.proveedorId.set(null);
@@ -161,7 +202,17 @@ export class ConduceExternoForm {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
-    if (!file) return;
+    if (file) await this.setFoto(kind, file);
+  }
+
+  /** CL1 — arrastrar y soltar una imagen en la casilla. */
+  async onDropFoto(kind: 'placa' | 'carga', event: DragEvent) {
+    event.preventDefault();
+    const file = event.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) await this.setFoto(kind, file);
+  }
+
+  private async setFoto(kind: 'placa' | 'carga', file: File) {
     const c = await comprimirImagen(file);
     const url = URL.createObjectURL(c);
     if (kind === 'placa') {
@@ -269,6 +320,12 @@ export class ConduceExternoForm {
         destinoProyectoId: d?.proyectoId ?? null, destinoBodegaId: d?.bodegaId ?? null,
         origenRequisicionId: this.origenRequisicionId(),
         items: itemsPayload.length ? itemsPayload : null,
+        esPrueba: this.esAdmin() && this.esPrueba(),
+      });
+      // CJ2 — celebración grande (overlay global del shell), con enlace a la ficha.
+      this.motion.celebrar('conduce', {
+        numero: 'CE', destino: d?.texto ?? null,
+        verUrl: `/inventario/conduces-externos/${id}`, verLabel: 'Ver conduce',
       });
       this.toast.success('Conduce externo emitido', 'El viaje quedó registrado (pendiente de pago).');
       this.router.navigate(['/inventario/conduces-externos'], { queryParams: { nuevo: id } });

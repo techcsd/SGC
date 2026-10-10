@@ -115,7 +115,7 @@
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody appStagger>
           @for (c of paginated(); track c.id) {
             <tr class="row--link" [class.row--inactive]="!c.activo" [routerLink]="['/flota/conductores', c.id]" role="button" tabindex="0" [attr.aria-label]="'Ver perfil de ' + c.nombre">
               <td>

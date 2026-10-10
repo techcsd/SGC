@@ -1,5 +1,52 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — 🧪 `feature/cl-ronda` @ **1.163.0**, NO dev/prod (salvo CL0 ya en prod)
+**TODO el CL hecho + verificado** (feature/cl-ronda, 1.163.0): CL0 (apoyo UPDATE **dev+PROD**), CL1 raíz + **CL1 rediseño FASE 2.2** (mock CL1, 2 columnas + vista previa + drag-drop + ruta animada + celebración CJ2), CL4 (rescate web), **CL6 (server+web, dev+PROD**, smokes), **CL2 base + rollout** (directivas + `momento()` + `<app-momento>` + registro + unit test; `appStagger` en 35 listados; momento en salidas/mantenimientos/combustible), **CL5** (admin/animaciones + tabla + script, dev), **CL3** (bienvenida web: ventana por rol + tour foco + flag servidor + backfill + "ver otra vez"). Bump 1.163.0 + release-notes (6) + PARIDAD + matriz + MOVIMIENTO/BIENVENIDA.md. Build + guards + unit test verdes.
+**App (sesión hermana):** apliqué **CK14+CK15 a dev+PROD** (mis_trabajos_chofer, puede_ver_apoyo+chofer, trabajo_ordenar, trabajo_asignar 6-arg) → el CSD app 100%.
+**Falta (menor):** más disparadores `momento()` (mecánico), 2 polish CK diferidos (listado ordenar por `orden` + nota_chofer en apoyo). Promoción a prod del front: `feature/cl-ronda`→dev→prueba Xaviel→prod (CL5/CL3 migr a prod en esa promoción; CL0/CL6/CK14/CK15 ya en prod).
+Commits: 13aa4a5 · 289be26 · bf83cf1 · 6047c3b · b8d9ad3 · 4c4b2c5 · 92a3e35 · f306ffe · 10eb2e3 · (momento) · bump/docs.
+
+---
+
+### Detalle (CL) — 09/10
+Rama `feature/cl-ronda` desde `dev` (CK ya mergeado a dev; `feature/ck-apoyo` es ancestro). Prod real = **1.162.0** (`main` tiene el código 1.162.0; los 4 commits que dev lleva de más son videos CK5/lockdown/docs). Esta ronda será **1.163.0** (siguiente minor libre). **El bump + release-notes aún NO están hechos** (FASE 8). Build Angular verde.
+
+**✅ FASE 1 — CL4 (rescate web del hotfix de la app) — HECHO + verificado:**
+- **Diagnóstico prod (solo lectura, CD10):** afectados Android en 2.44.x/2.45.0 = **8 usuarios / 9 dispositivos** (fuente `sgc.usuario_dispositivos.app_version`): Dallin, Eduardo NG, FELIX DELGADO (2.44.1), Misael, Juan Ocsena, Miguel Polanco, Ramon Cabrera, Xaviel (2 equipos). APK vigente = `csd-app-2.45.0.apk` (el roto).
+- **`/app-movil`:** callout naranja «¿El botón Actualizar no hace nada?» + botón **"Descargar e instalar encima (no se borra nada)"** (→ `version.json.url`, se actualiza solo cuando se publique 2.45.1) + 3 pasos. i18n `en.json`.
+- **`scripts/data-fixes/2026-10-08-cl4-rescate-actualizacion.mjs`** (`--dry-run` por defecto): avisa in-app + push (`sgc.notificar_usuarios`) **solo** a los afectados (lista calculada en vivo). Dry-run dev (0) y prod (8) verificados. **A prod SOLO con OK de Xaviel y DESPUÉS de publicar 2.45.1 (PROMPT-93 F1).**
+- **Verificado con el hijo:** en 2.44.x/2.45.0 el toque en la push **solo abre la app** (`csd-app .../push.service.ts:146` → `deepLinkFromData`, rutas in-app; no abre URL externa). Por eso el texto es autosuficiente y el enlace real va por **WhatsApp** (mensaje en el reporte) + `/app-movil`.
+
+**✅ FASE 2.1 — CL1 raíz (campos «cavernícola») — HECHO + verificado:**
+- 17 controles de 5 pantallas tenían `class="sgc-field"` **en el control** (es el contenedor) → nativos sin estilo. Fix: `styles.scss` gana `.sgc-input` + `.sgc-input--sm` (parejas a `select.sgc-select`); renombrados en `conduce-externo-form`, `conduces`, `lugares-por-registrar`, `proveedores-transporte`, `requisiciones`.
+- Guard `scripts/verify-campos-sgc-field.mjs` (en `prebuild`) falla si reaparece. ✓
+
+**✅ CL0 (arreglo pre-CL, regla 5) — bucket `apoyo-transporte` política UPDATE — EN DEV **y PROD**:** `sql/2026-10-09-cl0-apoyo-transporte-update-policy.sql`. Desbloquea el push del CSD app a prod (reintento de evidencia upsert). Verificado por objeto: prod tiene SELECT+INSERT+UPDATE. (Los otros 2 pendientes dev — `ck-demo-visibilidad`, `ck5-usuarios-demo` — son DEV-ONLY, NO van a prod.)
+
+**✅ FASE 3 — CL6 (marcar conduce externo como prueba, solo admin) — HECHO + smoke dev:**
+- `sql/2026-10-08-cl6-conduce-externo-prueba.sql` (aplicada dev + ledger): `crear_conduce_externo` +`p_es_prueba` (no-admin+true→error; propaga es_prueba a salida/entrada→trigger no mueve stock), `registrar_salida_inventario` +`p_es_prueba` (prueba no valida ni mueve), `marcar_prueba_cascada` soporta `conduces_externos` (revierte/re-aplica stock vía `marcar_movimiento_inventario_prueba` + viaje). **Fix pre-existente:** `marcar_movimiento_inventario_prueba` ya NO pone NULL en `es_prueba_origen` (NOT NULL) al desmarcar → antes AT10 "volver a real" fallaba.
+- Smokes dev: crear prueba→stock 2000=2000; desmarcar→1998; remarcar→2000; no-admin+true→error; conduce normal→mueve stock (regresión OK).
+- Web: toggle «Marcar como prueba · SOLO ADMIN» + banda en form; banda + botón marcar/desmarcar en ficha; toggle «Mostrar datos de prueba» en listado. `transporte-v3.service` esPrueba, `TablaPrueba`+=conduces_externos. **Build verde (prebuild+ng build).**
+- **PENDIENTE prod:** aplicar `cl0` ya está; `cl6` a prod tras OK Xaviel. Paridad app (toggle en `transporte/conduce-externo`) → PROMPT-93.
+
+**✅ FASE 4/5 — CL2 BASE (sistema de movimiento) — HECHO + build + unit test verdes:**
+- `src/shared/motion/catalogo-movimiento.ts` — registro único (`MOTION_IDS` + `CATALOGO_MOVIMIENTO`), prueba unitaria `catalogo-movimiento.spec.ts` (vitest 4/4: id usado⇔registrado). Lo consume CL5.
+- Directivas `src/shared/motion/`: `appStagger` (listas/tablas 30ms máx.8), `appCountUp` (KPI 600ms), `appEstadoPulse` (chip late al cambiar) + `reduced-motion.ts`. Solo transform/opacity, respetan reduce-motion.
+- `MotionService.momento(tipo,datos)` + `<app-momento>` (montado en shell): mediano ~0.8s sin velo, aria-live, 9 tipos. Keyframes en styles.scss. **Sin celebración** en accidente/multa/rechazo/eliminar/error/retiro dañado.
+- Demo aplicada: `inventario/conduces-externos` tbody `appStagger`. docs/MOVIMIENTO.md actualizado (sección CL2).
+
+**⏳ PENDIENTE (continuación CL, por orden):**
+- **FASE 4.3/5.2 — CL2 ROLLOUT** (incremental, opt-in): aplicar `appStagger`/`appCountUp`/`appEstadoPulse` + disparadores `momento(...)` a cada módulo de la nota #187 (tabla §C de CONTEXTO-45), por grupos con commit por grupo; completar la fila por módulo en MOVIMIENTO.md. La base ya existe → es mecánico.
+- **FASE 2.2 — CL1 rediseño de "Nuevo conduce externo"** (mock `mock-cl/CL1-conduce-externo.dc.html`): 2 columnas, 5 tarjetas numeradas, vista previa fija a la derecha (N/4 listos), fotos drag-drop, línea de ruta animada, top-3 proveedores, entrada escalonada. **Mismos campos/RPCs** (incluido el toggle CL6 ya presente). Ficha + listado a la misma piel.
+- **FASE 4/5 — CL2 (movimiento en TODOS los módulos).** Base: `src/shared/motion/` directivas (`appStagger`, `appCountUp`, skeleton→fundido, tabs deslizante, `appEstadoPulse`, pasos/temblor, elevación, flotación vacíos) + registro `catalogo-movimiento.ts` + prueba unitaria (id usado⇔registrado). Medianos: `MotionService.momento(tipo,datos)` + `app-momento` (10 tipos del mock CL2) + disparadores (tabla §C de CONTEXTO-45). Mapa completo en `docs/MOVIMIENTO.md` (una fila por módulo de #187). **Sin celebración** en accidente/multa/rechazo/eliminar/error/retiro dañado. Medir INP/CLS.
+- **FASE 6 — CL3 (bienvenida web).** Migración por crear (`cl3-bienvenida`, en `sql/`): flags `bienvenida_web_v1_vista`/`bienvenida_app_v2_vista` en prefs + RPC `marcar_bienvenida_vista`; existentes = vistos. Ventana + tour con foco (`data-tour`) por rol en `docs/BIENVENIDA.md`. "Ver otra vez" en Soporte/Dudas, `?bienvenida=1` fuerza en dev.
+- **FASE 7 — CL5 (Administración › Animaciones).** Migración por crear (`cl5-movimiento-catalogo`, en `sql/`): tabla `sgc.movimiento_catalogo`, RLS admin+tecnología lectura + script data-fix `cl5-movimiento-catalogo` (upsert desde el registro) + pantalla `admin/animaciones` (consulta + vista previa en vivo). Depende de FASE 4 (registro lleno).
+- **FASE 8** — bump 1.163.0 + release-notes + matriz 185-192 + PARIDAD + `feature/cl-ronda`→dev→**para**→Xaviel→prod.
+
+**⚠️ BLOQUEADOR PRE-EXISTENTE (no es de CL):** `npm run build` (prebuild) **falla localmente** en `audit-buckets-upsert-policy.mjs`: el bucket **`apoyo-transporte`** (CK/PROMPT-91, usado por `dev2/csd-app/.../apoyo.service.ts` con `upsert:true`) **no tiene política UPDATE** en `storage.objects` → un reintento de subida de evidencia RLS-fallaría (regla 5). Es local-only (Vercel no tiene el repo hijo al lado → ahí pasa), pero es un bug real. **Arreglar en SGC sql/** (política UPDATE para `apoyo-transporte`) y aplicar dev→prod. Mientras tanto verifiqué mi trabajo con `npx ng build` (verde).
+
+---
+
 ## TL;DR — PROMPT-90 (Ronda CK) — 08-09/10/2026 — ✅ **1.162.0 COMPLETO EN PROD + los 8 videos CK5 en prod** (Xaviel: "haz todo y envíalo a producción, no pares")
 **TODO el prompt cerrado y desplegado.** Front `dev→main` (`ef4a98c`/`a621b48`) en Vercel prod READY. 5 migraciones en el **ledger de PROD** (verificadas por objeto): `ck2-chofer-privado-detalle`, `ck12d-apoyo-retiro-danado`, `ck5-tutoriales` (bucket), `ck5b-guias-tutoriales` (7 guías), + `ck-demo-visibilidad` es **SOLO DEV**. **Los 8 videos CK5 subidos a prod** (8 guías con `video_path` + 8 mp4 en el bucket `tutoriales`, verificado). Falta solo mergear a main los commits de tooling CK5 de esta tanda (ver abajo).
 

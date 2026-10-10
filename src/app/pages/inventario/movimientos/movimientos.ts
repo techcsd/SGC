@@ -12,11 +12,12 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 /** U16 — Movimientos de inventario: entradas y salidas, con su conduce vinculado. */
 @Component({
   selector: 'app-inventario-movimientos',
-  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator, Icon],
+  imports: [Skeleton, RouterLink, DateRangeFilter, Paginator, Icon, StaggerDirective],
   templateUrl: './movimientos.html',
   styleUrl: './movimientos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

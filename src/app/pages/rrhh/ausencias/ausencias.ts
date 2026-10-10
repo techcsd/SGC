@@ -14,10 +14,11 @@ import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { formatFechaDisplay } from '../../../../shared/utils/fecha.util';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 
 @Component({
   selector: 'app-ausencias',
-  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, Icon],
+  imports: [ReactiveFormsModule, FormDrawer, Skeleton, Paginator, Icon, StaggerDirective],
   templateUrl: './ausencias.html',
   styleUrl: './ausencias.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
