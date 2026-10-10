@@ -1,28 +1,48 @@
-@if (visible()) {
+<!-- CL3 — Ventana de bienvenida (saludo por rol) -->
+@if (fase() === 'ventana') {
+  <div class="bw" role="dialog" aria-modal="true" aria-labelledby="bw-title">
+    <div class="bw__backdrop"></div>
+    <div class="bw__window">
+      <span class="bw__rol">{{ rolLabel() }}</span>
+      <h2 class="bw__title" id="bw-title">
+        Hola{{ nombre() ? ', ' + nombre() : '' }}. Este es tu SGC.
+      </h2>
+      <p class="bw__text">Te muestro lo esencial en 3 pasos — menos de un minuto. Puedes saltarlo cuando quieras.</p>
+
+      <div class="bw__cards" aria-hidden="true">
+        <span class="bw__card bw__card--a"><app-icon name="map" [size]="20" /></span>
+        <span class="bw__card bw__card--b"><app-icon name="alert-circle" [size]="20" /></span>
+        <span class="bw__card bw__card--c"><app-icon name="check-circle" [size]="20" /></span>
+      </div>
+
+      <div class="bw__actions">
+        <button type="button" class="tour__btn tour__btn--ghost" (click)="ahoraNo()">Ahora no</button>
+        <button type="button" class="tour__btn tour__btn--primary" (click)="mostrarme()">Mostrarme (3 pasos)</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- CL3 — Tour con foco sobre los elementos reales -->
+@if (fase() === 'tour') {
   <div class="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
-    <!-- Dim + spotlight -->
     @if (rect(); as r) {
       <div class="tour__spot" [style]="spotStyle()"></div>
     } @else {
       <div class="tour__dim"></div>
     }
 
-    <!-- Callout -->
-    <div
-      class="tour__pop"
-      [class.tour__pop--center]="!rect()"
-      [style]="rect() ? popStyle() : null"
-    >
+    <div class="tour__pop" [class.tour__pop--center]="!rect()" [style]="rect() ? popStyle() : null">
       <button type="button" class="tour__skip" (click)="skip()">Saltar</button>
 
       @if (current().icon; as ic) {
-        <div class="tour__icon">{{ ic }}</div>
+        <div class="tour__icon"><app-icon [name]="$any(ic)" [size]="26" /></div>
       }
       <h2 class="tour__title" id="tour-title">{{ current().title }}</h2>
       <p class="tour__text">{{ current().text }}</p>
 
       <div class="tour__dots">
-        @for (s of steps; track $index) {
+        @for (s of steps(); track $index) {
           <span class="tour__dot" [class.tour__dot--on]="$index === index()"></span>
         }
       </div>
@@ -32,7 +52,7 @@
           <button type="button" class="tour__btn tour__btn--ghost" (click)="prev()">Atrás</button>
         }
         <button type="button" class="tour__btn tour__btn--primary" (click)="next()">
-          {{ isLast() ? 'Empezar' : 'Siguiente' }}
+          {{ isLast() ? 'Listo' : 'Siguiente' }}
         </button>
       </div>
     </div>

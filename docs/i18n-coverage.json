@@ -3982,15 +3982,16 @@
     },
     {
       "pantalla": "dudas",
-      "total": 28,
+      "total": 29,
       "cubiertos": 0,
-      "sin": 28,
+      "sin": 29,
       "pct": 0,
       "enScope": false,
       "enforce": false,
       "faltantes": [
         "Dudas y Ayuda",
         "Encuentra cómo usar cada sección del sistema, o busca una pregunta frecuente.",
+        "Ver la bienvenida otra vez",
         "@if (guias().length) {",
         "Guías rápidas",
         "@if (hayVideos()) {",

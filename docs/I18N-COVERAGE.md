@@ -55,7 +55,7 @@
 | documentos/historial | - | 15 | 0 | 15 | 0% |
 | documentos/plantillas | - | 61 | 0 | 61 | 0% |
 | documentos/ver | - | 15 | 0 | 15 | 0% |
-| dudas | - | 28 | 0 | 28 | 0% |
+| dudas | - | 29 | 0 | 29 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
