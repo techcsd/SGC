@@ -1,9 +1,10 @@
 # HANDOFF — SGC
 
 ## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — 🧪 `feature/cl-ronda` @ **1.163.0**, NO dev/prod (salvo CL0 ya en prod)
-**Hecho + verificado:** CL0 (apoyo-transporte UPDATE, **dev+PROD**), CL4 (rescate web), CL1 raíz (campos), CL6 (prueba conduce externo, server+web, smokes), CL2 **base** (directivas+momento+registro+unit test), CL5 (admin/animaciones + tabla + script). Bump **1.163.0** + release-notes + PARIDAD + matriz 185-192. Build + guards + unit test verdes.
-**Falta:** CL2 **rollout** por módulo (#187, incremental, base lista), **FASE 2.2** rediseño "Nuevo conduce externo" (mock CL1), **CL3** bienvenida web. Luego `feature/cl-ronda`→dev→prueba Xaviel→prod. **CL6 a prod** (`sql/2026-10-08-cl6`) espera OK.
-Commits: 13aa4a5 · 289be26 · bf83cf1 · 6047c3b · b8d9ad3 · bump · docs.
+**TODO el CL hecho + verificado** (feature/cl-ronda, 1.163.0): CL0 (apoyo UPDATE **dev+PROD**), CL1 raíz + **CL1 rediseño FASE 2.2** (mock CL1, 2 columnas + vista previa + drag-drop + ruta animada + celebración CJ2), CL4 (rescate web), **CL6 (server+web, dev+PROD**, smokes), **CL2 base + rollout** (directivas + `momento()` + `<app-momento>` + registro + unit test; `appStagger` en 35 listados; momento en salidas/mantenimientos/combustible), **CL5** (admin/animaciones + tabla + script, dev), **CL3** (bienvenida web: ventana por rol + tour foco + flag servidor + backfill + "ver otra vez"). Bump 1.163.0 + release-notes (6) + PARIDAD + matriz + MOVIMIENTO/BIENVENIDA.md. Build + guards + unit test verdes.
+**App (sesión hermana):** apliqué **CK14+CK15 a dev+PROD** (mis_trabajos_chofer, puede_ver_apoyo+chofer, trabajo_ordenar, trabajo_asignar 6-arg) → el CSD app 100%.
+**Falta (menor):** más disparadores `momento()` (mecánico), 2 polish CK diferidos (listado ordenar por `orden` + nota_chofer en apoyo). Promoción a prod del front: `feature/cl-ronda`→dev→prueba Xaviel→prod (CL5/CL3 migr a prod en esa promoción; CL0/CL6/CK14/CK15 ya en prod).
+Commits: 13aa4a5 · 289be26 · bf83cf1 · 6047c3b · b8d9ad3 · 4c4b2c5 · 92a3e35 · f306ffe · 10eb2e3 · (momento) · bump/docs.
 
 ---
 

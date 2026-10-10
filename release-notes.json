@@ -4898,6 +4898,11 @@
           "t": "nuevo",
           "m": "Administración",
           "d": "Nuevo panel Administración › Animaciones: la lista de todo el movimiento del sistema (web y app) con vista previa en vivo y filtros. Solo consulta."
+        },
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Bienvenida para usuarios nuevos: una ventana de saludo por rol y un recorrido guiado de 3 pasos que resalta el menú y los avisos. Se puede volver a ver desde Soporte o Dudas."
         }
       ]
     }

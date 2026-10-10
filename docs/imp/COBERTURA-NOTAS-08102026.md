@@ -41,8 +41,8 @@
 |---|---|---|
 | 185 | CL1 | ✅ **raíz** (17 controles/5 pantallas → `.sgc-input`/`.sgc-select` + guard). 🧪 **rediseño** del formulario (mock CL1) pendiente. |
 | 186 | CL6 | ✅ **server + web** (migración dev + 4 smokes OK: crear prueba no mueve stock, desmarcar aplica, remarcar revierte, no-admin error). A prod tras OK. |
-| 187 | CL2 | 🧪 **base lista** (registro + directivas appStagger/appCountUp/appEstadoPulse + `momento()` + `<app-momento>` + unit test). ⏳ rollout por módulo (incremental). |
-| 188 | CL3 | ⏳ pendiente (bienvenida web). |
+| 187 | CL2 | ✅ **base + rollout**: registro + directivas + `momento()` + `<app-momento>` + unit test; `appStagger` en 35 listados; momento en salidas/mantenimientos/combustible; celebración CJ2 en conduce externo. ⏳ más disparadores momento (mecánico). |
+| 188 | CL3 | ✅ **bienvenida web** (ventana por rol + tour con foco, flag en servidor + backfill, "ver otra vez" en Soporte/Dudas, `?bienvenida=1`). |
 | 189 | CL4 | ✅ **web** (callout `/app-movil` + script rescate dry-run a los 8 afectados). App hotfix 2.45.1 = PROMPT-93. |
 | 190 | CL5 | ✅ **en dev** (tabla `movimiento_catalogo` + script upsert + pantalla `admin/animaciones` con vista previa). |
 | 191 | CL1 (diag) | ✅ resuelto (los 17 controles corregidos + guard CI). |
