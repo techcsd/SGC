@@ -4925,6 +4925,16 @@
           "d": "Los indicadores del inicio (conduces y tareas pendientes, stock crítico, empleados, ausencias, proyectos, flota, solicitudes, bitácoras, entregas, legal…) suben animados hasta su número. Respeta el ajuste «Animaciones: reducidas»."
         }
       ]
+    },
+    "1.166.0": {
+      "titulo": "El estado del conduce externo late al cambiar",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "En la ficha del conduce externo, el chip de estado da un pequeño latido cuando cambia (al anular o marcar/desmarcar como prueba), para que el cambio se note. Respeta «Animaciones: reducidas»."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
