@@ -77,7 +77,9 @@
             } @else if (r.nivel === 'base') {
               @switch (r.id) {
                 @case ('base-stagger') {
-                  @if (demoNonce() >= 0) {
+                  <!-- @for sobre [demoNonce()] fuerza re-montar la lista al tocar Reproducir
+                       (la directiva stagger anima en ngAfterViewInit). -->
+                  @for (n of [demoNonce()]; track n) {
                     <ul class="an-demo-list" appStagger>
                       @for (f of demoFilas; track f; let i = $index) {
                         <li>Fila de ejemplo {{ i + 1 }}</li>
