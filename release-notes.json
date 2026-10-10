@@ -4935,6 +4935,16 @@
           "d": "En la ficha del conduce externo, el chip de estado da un pequeño latido cuando cambia (al anular o marcar/desmarcar como prueba), para que el cambio se note. Respeta «Animaciones: reducidas»."
         }
       ]
+    },
+    "1.167.0": {
+      "titulo": "Correcciones del catálogo de animaciones",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Administración",
+          "d": "En Administración › Animaciones, la vista previa de «Lista escalonada» ahora se reproduce cada vez que tocas Reproducir, y el conmutador «Ver reducida» refleja tu ajuste real al entrar."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
