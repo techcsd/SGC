@@ -1,6 +1,13 @@
 # HANDOFF — SGC
 
-## TL;DR — PROMPT-92 (Ronda CL) — 09/10/2026 — 🧪 EN `feature/cl-ronda` (commit `13aa4a5`), NO dev/prod
+## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — 🧪 `feature/cl-ronda` @ **1.163.0**, NO dev/prod (salvo CL0 ya en prod)
+**Hecho + verificado:** CL0 (apoyo-transporte UPDATE, **dev+PROD**), CL4 (rescate web), CL1 raíz (campos), CL6 (prueba conduce externo, server+web, smokes), CL2 **base** (directivas+momento+registro+unit test), CL5 (admin/animaciones + tabla + script). Bump **1.163.0** + release-notes + PARIDAD + matriz 185-192. Build + guards + unit test verdes.
+**Falta:** CL2 **rollout** por módulo (#187, incremental, base lista), **FASE 2.2** rediseño "Nuevo conduce externo" (mock CL1), **CL3** bienvenida web. Luego `feature/cl-ronda`→dev→prueba Xaviel→prod. **CL6 a prod** (`sql/2026-10-08-cl6`) espera OK.
+Commits: 13aa4a5 · 289be26 · bf83cf1 · 6047c3b · b8d9ad3 · bump · docs.
+
+---
+
+### Detalle (CL) — 09/10
 Rama `feature/cl-ronda` desde `dev` (CK ya mergeado a dev; `feature/ck-apoyo` es ancestro). Prod real = **1.162.0** (`main` tiene el código 1.162.0; los 4 commits que dev lleva de más son videos CK5/lockdown/docs). Esta ronda será **1.163.0** (siguiente minor libre). **El bump + release-notes aún NO están hechos** (FASE 8). Build Angular verde.
 
 **✅ FASE 1 — CL4 (rescate web del hotfix de la app) — HECHO + verificado:**
