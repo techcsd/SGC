@@ -53,14 +53,14 @@
       @if (!esChoferPrivado()) {
         <div class="kpi-card kpi-card--warning">
           <span class="kpi-label">Conduces pendientes de entrega</span>
-          <span class="kpi-value">{{ misConducesPendientes() }}</span>
+          <span class="kpi-value" [appCountUp]="misConducesPendientes()"></span>
           <span class="kpi-sub">Entrégalos desde la app CSD</span>
         </div>
       }
 
       <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
         <span class="kpi-label">Mis tareas pendientes</span>
-        <span class="kpi-value">{{ misTareasPendientes() }}</span>
+        <span class="kpi-value" [appCountUp]="misTareasPendientes()"></span>
       </a>
     </div>
 
@@ -85,7 +85,7 @@
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/inventario/articulos" [queryParams]="{ stock: 'critico' }">
           <span class="kpi-label">Artículos en stock crítico</span>
-          <span class="kpi-value">{{ stockCritico() }}</span>
+          <span class="kpi-value" [appCountUp]="stockCritico()"></span>
         </a>
       }
       @if (canSee('compras')) {
@@ -97,72 +97,72 @@
       @if (canSee('rrhh')) {
         <a class="kpi-card kpi-card--success kpi-card--link" routerLink="/rrhh/empleados">
           <span class="kpi-label">Empleados activos</span>
-          <span class="kpi-value">{{ empleadosActivos() }}</span>
+          <span class="kpi-value" [appCountUp]="empleadosActivos()"></span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/rrhh/ausencias">
           <span class="kpi-label">Ausencias pendientes</span>
-          <span class="kpi-value">{{ ausenciasPendientes() }}</span>
+          <span class="kpi-value" [appCountUp]="ausenciasPendientes()"></span>
         </a>
       }
       @if (canSee('proyectos')) {
         <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/proyectos" [queryParams]="{ estado: 'en_progreso' }">
           <span class="kpi-label">Proyectos en progreso</span>
-          <span class="kpi-value">{{ proyectosActivos() }}</span>
+          <span class="kpi-value" [appCountUp]="proyectosActivos()"></span>
         </a>
       }
       @if (canSee('flota')) {
         <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/flota/avisos">
           <span class="kpi-label">Alertas de flota activas</span>
-          <span class="kpi-value">{{ flotaAvisosActivos() }}</span>
+          <span class="kpi-value" [appCountUp]="flotaAvisosActivos()"></span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/flota/avisos">
           <span class="kpi-label">Documentos de flota por vencer</span>
-          <span class="kpi-value">{{ flotaDocsPorVencer() }}</span>
+          <span class="kpi-value" [appCountUp]="flotaDocsPorVencer()"></span>
         </a>
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/flota/checklists">
           <span class="kpi-label">Checklists de hoy</span>
-          <span class="kpi-value">{{ checklistsHoy() }}</span>
+          <span class="kpi-value" [appCountUp]="checklistsHoy()"></span>
         </a>
         <a class="kpi-card kpi-card--link" routerLink="/flota/vehiculos">
           <span class="kpi-label">Vehículos activos</span>
-          <span class="kpi-value">{{ vehiculosActivos() }}</span>
+          <span class="kpi-value" [appCountUp]="vehiculosActivos()"></span>
         </a>
       }
       @if (canSeeSolicitudes()) {
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/inventario/salidas">
           <span class="kpi-label">Solicitudes pendientes</span>
-          <span class="kpi-value">{{ solicitudesPendientesTotal() }}</span>
+          <span class="kpi-value" [appCountUp]="solicitudesPendientesTotal()"></span>
         </a>
       }
       @if (canSeeBitacora()) {
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/bitacora/historial">
           <span class="kpi-label">Bitácoras esta semana</span>
-          <span class="kpi-value">{{ bitacorasSemana() }}</span>
+          <span class="kpi-value" [appCountUp]="bitacorasSemana()"></span>
         </a>
       }
       @if (canSeeEntregas()) {
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/bitacora/entregas">
           <span class="kpi-label">Entregas por confirmar</span>
-          <span class="kpi-value">{{ entregasPendientesCount() }}</span>
+          <span class="kpi-value" [appCountUp]="entregasPendientesCount()"></span>
         </a>
         <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/bitacora/entregas">
           <span class="kpi-label">Entregas incompletas (30 días)</span>
-          <span class="kpi-value">{{ entregasIncompletasCount() }}</span>
+          <span class="kpi-value" [appCountUp]="entregasIncompletasCount()"></span>
         </a>
       }
       @if (canAccess('legal') || isAdmin()) {
         <a class="kpi-card kpi-card--info kpi-card--link" routerLink="/legal/expedientes">
           <span class="kpi-label">Expedientes legales abiertos</span>
-          <span class="kpi-value">{{ expedientesLegalesAbiertos() }}</span>
+          <span class="kpi-value" [appCountUp]="expedientesLegalesAbiertos()"></span>
         </a>
         <a class="kpi-card kpi-card--warning kpi-card--link" routerLink="/legal/contratos">
           <span class="kpi-label">Contratos por vencer (30 días)</span>
-          <span class="kpi-value">{{ contratosPorVencer() }}</span>
+          <span class="kpi-value" [appCountUp]="contratosPorVencer()"></span>
         </a>
       }
       <a class="kpi-card kpi-card--purple kpi-card--link" routerLink="/tareas/mis-tareas">
         <span class="kpi-label">Mis tareas pendientes</span>
-        <span class="kpi-value">{{ misTareasPendientes() }}</span>
+        <span class="kpi-value" [appCountUp]="misTareasPendientes()"></span>
       </a>
       @if (esTecnologia()) {
         <a class="kpi-card kpi-card--danger kpi-card--link" routerLink="/tecnologia/reportes-errores">
