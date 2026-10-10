@@ -10,6 +10,7 @@ import { VehiculosService } from '../../../shared/services/vehiculos.service';
 import { SalidasService } from '../../../shared/services/salidas.service';
 import { daysAgoIso, daysFromNowIso, todayIso, formatFechaDisplay } from '../../../shared/utils/fecha.util';
 import { Skeleton } from '../../../shared/components/skeleton/skeleton';
+import { CountUpDirective } from '../../../shared/motion/count-up.directive';
 import { identificacionVehiculo } from '../../../shared/models/vehiculo.model';
 
 interface ModuleCard {
@@ -43,7 +44,7 @@ interface BarItem {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton],
+  imports: [RouterLink, NgTemplateOutlet, DecimalPipe, Skeleton, CountUpDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

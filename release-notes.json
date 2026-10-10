@@ -4915,6 +4915,16 @@
           "d": "Pequeñas confirmaciones animadas al completar acciones clave: registrar una entrada o despacho, aprobar una echada o un checklist, aprobar una ausencia/vacación y compartir una nota. Respetan el ajuste «Animaciones: reducidas»."
         }
       ]
+    },
+    "1.165.0": {
+      "titulo": "Los KPIs del inicio cuentan hacia su valor",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Dashboard",
+          "d": "Los indicadores del inicio (conduces y tareas pendientes, stock crítico, empleados, ausencias, proyectos, flota, solicitudes, bitácoras, entregas, legal…) suben animados hasta su número. Respeta el ajuste «Animaciones: reducidas»."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
