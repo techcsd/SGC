@@ -16,6 +16,30 @@ export interface Penalizacion {
   aplica: (r: RespuestaPractica) => boolean;
 }
 
+/** CM7 7b — tipos de campo del formulario simulado (render genérico, datos de mentira). */
+export type CampoTipo = 'select' | 'materiales' | 'conteo' | 'fecha' | 'texto' | 'numero';
+
+export interface OpcionCampo {
+  id: string;
+  nombre: string;
+  stock?: number;  // materiales: stock disponible · conteo: cantidad esperada (sistema)
+  sub?: string;    // línea secundaria (ej. "pide 100 sacos")
+}
+
+export interface CampoPractica {
+  id: string;            // clave en RespuestaPractica
+  tipo: CampoTipo;
+  label: string;
+  ayuda?: string;        // texto de apoyo bajo el campo
+  placeholder?: string;
+  opciones?: OpcionCampo[]; // select (lista) · materiales (catálogo) · conteo (renglones fijos)
+}
+
+/** Fila de materiales que el usuario arma (tipo 'materiales'). */
+export interface FilaMaterial { id: string; nombre: string; stock: number; cantidad: number; }
+/** Fila de conteo (tipo 'conteo'): esperado del sistema vs. contado por el usuario. */
+export interface FilaConteo { id: string; nombre: string; esperado: number; contado: number | null; }
+
 export interface MisionPractica {
   id: string;
   plataforma: 'web' | 'app';
@@ -23,6 +47,8 @@ export interface MisionPractica {
   titulo: string;
   intro: string;
   version: number;
+  /** CM7 7b — campos del simulador. Si falta, la misión no tiene formulario (legacy). */
+  campos?: CampoPractica[];
   objetivos: Objetivo[];
   penalizaciones: Penalizacion[];
 }

@@ -36,41 +36,65 @@
     <div class="pr-run">
       <section class="sgc-card pr-form">
         <h2 class="pr-form__title">{{ practica.mision()?.titulo }}</h2>
+        <p class="pr-form__intro">{{ practica.mision()?.intro }}</p>
 
-        <div class="sgc-field">
-          <label>Obra</label>
-          <select class="sgc-select" [value]="obraId()" (change)="obraId.set($any($event.target).value)">
-            <option value="">— Elige la obra —</option>
-            @for (o of obras; track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
-          </select>
-        </div>
+        @for (c of campos(); track c.id) {
+          <div class="sgc-field">
+            <label>{{ c.label }}</label>
 
-        <div class="sgc-field">
-          <label>Materiales</label>
-          <div class="pr-additem">
-            <select class="sgc-select" [value]="nuevoArt()" (change)="nuevoArt.set($any($event.target).value)">
-              <option value="">— Elige un material —</option>
-              @for (a of articulos; track a.id) { <option [value]="a.id">{{ a.nombre }} (stock {{ a.stock }})</option> }
-            </select>
-            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarItem()">+ Agregar</button>
+            @switch (c.tipo) {
+              @case ('select') {
+                <select class="sgc-select" [value]="valorStr(c.id)" (change)="setValor(c.id, $any($event.target).value)">
+                  <option value="">{{ c.placeholder || '— Elige —' }}</option>
+                  @for (o of c.opciones; track trackOpcion($index, o)) {
+                    <option [value]="o.id">{{ o.nombre }}{{ o.sub ? ' · ' + o.sub : '' }}</option>
+                  }
+                </select>
+              }
+              @case ('materiales') {
+                <div class="pr-additem">
+                  <select class="sgc-select" [value]="nuevoArtDe(c.id)" (change)="setNuevoArt(c.id, $any($event.target).value)">
+                    <option value="">— Elige un material —</option>
+                    @for (a of c.opciones; track trackOpcion($index, a)) { <option [value]="a.id">{{ a.nombre }} (stock {{ a.stock }})</option> }
+                  </select>
+                  <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarMaterial(c)">+ Agregar</button>
+                </div>
+                @for (it of materialesDe(c.id); track it.id) {
+                  <div class="pr-item">
+                    <span class="pr-item__n">{{ it.nombre }}</span>
+                    <input class="sgc-input pr-item__q" type="number" min="0" [value]="it.cantidad" (input)="setCantidadMat(c.id, it.id, $any($event.target).value)" />
+                    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarMaterial(c.id, it.id)">Quitar</button>
+                  </div>
+                }
+              }
+              @case ('conteo') {
+                <div class="pr-conteo">
+                  <div class="pr-conteo__head">
+                    <span>Material</span><span>Sistema</span><span>Contado</span>
+                  </div>
+                  @for (it of conteoDe(c.id); track it.id) {
+                    <div class="pr-conteo__row">
+                      <span class="pr-conteo__n">{{ it.nombre }}</span>
+                      <span class="pr-conteo__exp">{{ it.esperado }}</span>
+                      <input class="sgc-input pr-conteo__in" type="number" min="0" [value]="it.contado ?? ''" (input)="setContado(c.id, it.id, $any($event.target).value)" placeholder="—" />
+                    </div>
+                  }
+                </div>
+              }
+              @case ('fecha') {
+                <input class="sgc-input" type="date" [value]="valorStr(c.id)" (input)="setValor(c.id, $any($event.target).value)" />
+              }
+              @case ('numero') {
+                <input class="sgc-input" type="number" min="0" [value]="valorStr(c.id)" (input)="setValor(c.id, $any($event.target).value)" [placeholder]="c.placeholder || ''" />
+              }
+              @default {
+                <textarea class="sgc-input" rows="2" [value]="valorStr(c.id)" (input)="setValor(c.id, $any($event.target).value)" [placeholder]="c.placeholder || ''"></textarea>
+              }
+            }
+
+            @if (c.ayuda) { <small class="pr-field__ayuda">{{ c.ayuda }}</small> }
           </div>
-          @for (it of items(); track it.id) {
-            <div class="pr-item">
-              <span class="pr-item__n">{{ it.nombre }}</span>
-              <input class="sgc-input pr-item__q" type="number" min="0" [value]="it.cantidad" (input)="setCantidad(it.id, $any($event.target).value)" />
-              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarItem(it.id)">Quitar</button>
-            </div>
-          }
-        </div>
-
-        <div class="sgc-field">
-          <label>Fecha de necesidad</label>
-          <input class="sgc-input" type="date" [value]="fechaNecesidad()" (input)="fechaNecesidad.set($any($event.target).value)" />
-        </div>
-        <div class="sgc-field">
-          <label>¿Para qué? (motivo)</label>
-          <textarea class="sgc-input" rows="2" [value]="motivo()" (input)="motivo.set($any($event.target).value)" placeholder="Ej. fundición de la losa del nivel 3…"></textarea>
-        </div>
+        }
 
         <button type="button" class="sgc-btn sgc-btn--primary pr-form__done" (click)="terminar()">Terminar práctica</button>
       </section>

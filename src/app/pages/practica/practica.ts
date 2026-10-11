@@ -1,15 +1,17 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { PracticaService } from '../../core/practica/practica.service';
 import { UserService } from '../../core/services/user.service';
-import { MISIONES_PILOTO, OBRAS_DEMO, ARTICULOS_DEMO } from '../../core/practica/practica.data';
-import { MisionPractica, ResultadoPractica, ResultadoEquipoFila, ResultadoPersonaFila } from '../../core/practica/practica.model';
-
-interface ItemReq { id: string; nombre: string; stock: number; cantidad: number; }
+import { MISIONES_PILOTO } from '../../core/practica/practica.data';
+import {
+  MisionPractica, ResultadoPractica, ResultadoEquipoFila, ResultadoPersonaFila,
+  CampoPractica, OpcionCampo, FilaMaterial, FilaConteo,
+} from '../../core/practica/practica.model';
 
 /**
- * CM7 — Modo práctica (web, piloto): simulador local con nota tipo examen. Datos de mentira,
- * nada sale a la red salvo la nota (practica_guardar_intento). Banda naranja + cronómetro +
- * objetivos en vivo; al terminar, pantalla de resultado con anillo, estrellas y consejos.
+ * CM7 — Modo práctica (web): simulador local con nota tipo examen. Datos de mentira,
+ * nada sale a la red salvo la nota (practica_guardar_intento). El formulario de cada
+ * misión se dibuja a partir de su esquema de campos (7b). Banda naranja + cronómetro +
+ * objetivos en vivo; al terminar, resultado con anillo, estrellas y consejos.
  */
 @Component({
   selector: 'app-practica',
@@ -22,11 +24,10 @@ export class Practica implements OnInit {
   practica = inject(PracticaService);
   private user = inject(UserService);
 
-  readonly obras = OBRAS_DEMO;
-  readonly articulos = ARTICULOS_DEMO;
-
   fase = signal<'lista' | 'corre' | 'resultado' | 'equipo'>('lista');
   resultado = signal<ResultadoPractica | null>(null);
+  cronometro = signal('0:00');
+  private cronoTimer: ReturnType<typeof setInterval> | null = null;
 
   // CM7 7c — panel de equipo (jefe/RRHH/admin).
   puedeVerEquipo = signal(false);
@@ -34,15 +35,11 @@ export class Practica implements OnInit {
   equipoCargando = signal(false);
   personaSel = signal<ResultadoEquipoFila | null>(null);
   personaDetalle = signal<ResultadoPersonaFila[]>([]);
-  cronometro = signal('0:00');
-  private cronoTimer: ReturnType<typeof setInterval> | null = null;
 
-  // Formulario de la misión "crear requisición" (en memoria).
-  obraId = signal<string>('');
-  items = signal<ItemReq[]>([]);
-  fechaNecesidad = signal<string>('');
-  motivo = signal<string>('');
-  nuevoArt = signal<string>('');
+  // 7b — valores del formulario (clave = id del campo). Única fuente de verdad del intento.
+  valores = signal<Record<string, unknown>>({});
+  // Selección del picker "agregar material" por cada campo de tipo 'materiales'.
+  private nuevoArt = signal<Record<string, string>>({});
 
   misiones = computed(() => {
     const roles = this.user.roles();
@@ -50,29 +47,67 @@ export class Practica implements OnInit {
     return MISIONES_PILOTO.filter((m) => esAdmin || m.roles.length === 0 || m.roles.some((r) => roles.includes(r)));
   });
 
-  /** Respuesta actual (pura, derivada de los signals del formulario). */
-  private respuestaActual = computed(() => ({
-    obraId: this.obraId(),
-    items: this.items(),
-    fechaNecesidad: this.fechaNecesidad(),
-    motivo: this.motivo(),
-  }));
+  campos = computed<CampoPractica[]>(() => this.practica.mision()?.campos ?? []);
 
-  // Objetivos en vivo (se marcan mientras practica) — computed PURO.
+  // Objetivos en vivo (se marcan mientras practica) — computed PURO sobre `valores`.
   objetivosVivo = computed(() => {
     const m = this.practica.mision();
-    const r = this.respuestaActual();
+    const r = this.valores();
     return (m?.objetivos ?? []).map((o) => ({ id: o.id, texto: o.texto, puntos: o.puntos, ok: o.cumple(r), consejo: o.consejo }));
   });
 
-  private sync() {
-    const r = this.respuestaActual();
-    for (const k of Object.keys(r)) this.practica.set(k, (r as Record<string, unknown>)[k]);
+  // ── Lectura/escritura genérica de campos ──
+  valor(id: string): unknown { return this.valores()[id]; }
+  valorStr(id: string): string { const v = this.valores()[id]; return typeof v === 'string' ? v : ''; }
+  materialesDe(id: string): FilaMaterial[] { const v = this.valores()[id]; return Array.isArray(v) ? (v as FilaMaterial[]) : []; }
+  conteoDe(id: string): FilaConteo[] { const v = this.valores()[id]; return Array.isArray(v) ? (v as FilaConteo[]) : []; }
+  nuevoArtDe(id: string): string { return this.nuevoArt()[id] ?? ''; }
+  setNuevoArt(id: string, v: string) { this.nuevoArt.update((x) => ({ ...x, [id]: v })); }
+
+  private push(id: string, v: unknown) {
+    this.valores.update((x) => ({ ...x, [id]: v }));
+    this.practica.set(id, v);
+  }
+  setValor(id: string, v: unknown) { this.push(id, v); }
+
+  // Materiales (agregar / cantidad / quitar).
+  agregarMaterial(campo: CampoPractica) {
+    const sel = this.nuevoArtDe(campo.id);
+    const a = (campo.opciones ?? []).find((x) => x.id === sel);
+    const actuales = this.materialesDe(campo.id);
+    if (!a || actuales.some((i) => i.id === a.id)) return;
+    this.push(campo.id, [...actuales, { id: a.id, nombre: a.nombre, stock: a.stock ?? 0, cantidad: 1 }]);
+    this.setNuevoArt(campo.id, '');
+  }
+  setCantidadMat(campoId: string, itemId: string, v: string) {
+    const n = Number(v) || 0;
+    this.push(campoId, this.materialesDe(campoId).map((i) => (i.id === itemId ? { ...i, cantidad: n } : i)));
+  }
+  quitarMaterial(campoId: string, itemId: string) {
+    this.push(campoId, this.materialesDe(campoId).filter((i) => i.id !== itemId));
+  }
+
+  // Conteo (editar lo contado por renglón).
+  setContado(campoId: string, itemId: string, v: string) {
+    const n = v.trim() === '' ? null : Math.max(0, Number(v) || 0);
+    this.push(campoId, this.conteoDe(campoId).map((i) => (i.id === itemId ? { ...i, contado: n } : i)));
+  }
+
+  /** Valor inicial de un campo según su tipo. */
+  private valorInicial(c: CampoPractica): unknown {
+    if (c.tipo === 'materiales') return [];
+    if (c.tipo === 'conteo') return (c.opciones ?? []).map((o) => ({ id: o.id, nombre: o.nombre, esperado: o.stock ?? 0, contado: null } as FilaConteo));
+    if (c.tipo === 'numero') return null;
+    return ''; // select, fecha, texto
   }
 
   entrar(m: MisionPractica) {
     this.practica.entrar(m);
-    this.obraId.set(''); this.items.set([]); this.fechaNecesidad.set(''); this.motivo.set(''); this.nuevoArt.set('');
+    const init: Record<string, unknown> = {};
+    for (const c of m.campos ?? []) init[c.id] = this.valorInicial(c);
+    this.valores.set(init);
+    this.nuevoArt.set({});
+    for (const [k, v] of Object.entries(init)) this.practica.set(k, v);
     this.resultado.set(null);
     this.fase.set('corre');
     this.cronoTimer = setInterval(() => {
@@ -82,21 +117,7 @@ export class Practica implements OnInit {
     }, 1000);
   }
 
-  agregarItem() {
-    const id = this.nuevoArt();
-    const a = this.articulos.find((x) => x.id === id);
-    if (!a || this.items().some((i) => i.id === id)) return;
-    this.items.update((xs) => [...xs, { id: a.id, nombre: a.nombre, stock: a.stock, cantidad: 1 }]);
-    this.nuevoArt.set('');
-  }
-  setCantidad(id: string, v: string) {
-    const n = Number(v) || 0;
-    this.items.update((xs) => xs.map((i) => (i.id === id ? { ...i, cantidad: n } : i)));
-  }
-  quitarItem(id: string) { this.items.update((xs) => xs.filter((i) => i.id !== id)); }
-
   async terminar() {
-    this.sync();
     const res = this.practica.evaluar();
     this.resultado.set(res);
     this.fase.set('resultado');
@@ -146,4 +167,7 @@ export class Practica implements OnInit {
 
   cerrarPersona() { this.personaSel.set(null); }
   volverLista() { this.fase.set('lista'); this.personaSel.set(null); }
+
+  // trackBy helpers
+  trackOpcion(_i: number, o: OpcionCampo) { return o.id; }
 }
