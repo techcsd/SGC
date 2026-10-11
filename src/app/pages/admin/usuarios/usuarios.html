@@ -104,7 +104,7 @@
             <td class="admin-usuarios__name-cell">
               @if (avatarUrlDe(usuario); as av) {
                 <img class="admin-usuarios__avatar admin-usuarios__avatar--img" [src]="av"
-                     [alt]="usuario.nombre" loading="lazy" />
+                     [alt]="usuario.nombre" loading="lazy" appVerFoto [verFotoNombre]="usuario.nombre" />
               } @else {
                 <div class="admin-usuarios__avatar" aria-hidden="true">
                   {{ usuario.nombre[0]?.toUpperCase() }}
@@ -270,7 +270,7 @@
       <!-- Cabecera: avatar + nombre + estado -->
       <div class="admin-usuarios__detail-head">
         @if (avatarUrlDe(u); as av) {
-          <img class="admin-usuarios__detail-avatar" [src]="av" [alt]="u.nombre" loading="lazy" />
+          <img class="admin-usuarios__detail-avatar" [src]="av" [alt]="u.nombre" loading="lazy" appVerFoto [verFotoNombre]="u.nombre" />
         } @else {
           <div class="admin-usuarios__detail-avatar admin-usuarios__detail-avatar--ph" aria-hidden="true">
             {{ u.nombre[0]?.toUpperCase() }}

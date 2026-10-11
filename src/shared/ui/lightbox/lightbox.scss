@@ -37,6 +37,36 @@
   transition: background 0.15s ease;
   &:hover { background: rgba(255, 255, 255, 0.3); }
 }
+// CM5 — título (nombre) + botón descargar.
+.lightbox__title {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.lightbox__download {
+  position: absolute;
+  top: 16px;
+  right: 68px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  &:hover { background: rgba(255, 255, 255, 0.3); }
+}
 @keyframes lightbox-in {
   from { opacity: 0; }
   to { opacity: 1; }

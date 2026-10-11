@@ -7,7 +7,7 @@
       <div class="grupo-info__head">
         <div class="grupo-info__avatar-wrap">
           @if (avatarUrl(); as url) {
-            <img class="grupo-info__avatar" [src]="url" alt="Foto del grupo" />
+            <img class="grupo-info__avatar" [src]="url" alt="Foto del grupo" appVerFoto [verFotoNombre]="g.nombre ?? ''" />
           } @else {
             <span class="grupo-info__avatar grupo-info__avatar--fallback">{{ iniciales(g.nombre || '?') }}</span>
           }

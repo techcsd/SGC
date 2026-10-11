@@ -356,6 +356,9 @@
   <!-- CJ2 — celebración global al crear un conduce -->
   <app-celebracion />
   <app-momento />
+  @if (lightbox.estado(); as lb) {
+    <app-lightbox [src]="lb.src" [alt]="lb.alt" [title]="lb.title" (closed)="lightbox.cerrar()" />
+  }
 
   <!-- CI3 — aceptación de políticas (bloqueante hasta aceptar o cerrar sesión) -->
   <app-policy-gate />
