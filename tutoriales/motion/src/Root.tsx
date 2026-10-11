@@ -2,6 +2,7 @@ import { Composition } from 'remotion';
 import { Promo } from './Promo';
 import { Demo, DEMO_DUR } from './Demo';
 import { Tutorial, type TimedPaso } from './Tutorial';
+import { PromoPro, PROMOPRO_DUR } from './PromoPro';
 
 const FPS = 30;
 
@@ -56,6 +57,14 @@ export const RemotionRoot = () => {
         const dur = last ? last.at + last.dur + 30 : 300;
         return { durationInFrames: dur };
       }}
+    />
+    <Composition
+      id="PromoPro"
+      component={PromoPro}
+      durationInFrames={PROMOPRO_DUR}
+      fps={FPS}
+      width={1920}
+      height={1080}
     />
     </>
   );
