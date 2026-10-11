@@ -4006,8 +4006,7 @@
         "} @case ('bitacora') {",
         "} @case ('inventario') {",
         "@if (videoUrls()[g.id]; as v) {",
-        "@if (v.vtt) {",
-        "@if (v.duracion) {",
+        "Ver video@if (v.duracion) { · }",
         "@for (paso of g.pasos; track paso) {",
         "@if (!hasResults()) {",
         "No encontramos nada con esa búsqueda. Prueba con otras palabras, o contáctanos.",
@@ -4019,6 +4018,7 @@
         "Soporte",
         "o contacta directamente a",
         "Tecnología CSD",
+        "@if (videoActivo(); as va) {",
         "Buscar, por ejemplo: cómo creo una orden de compra…",
         "Buscar en las preguntas frecuentes"
       ]

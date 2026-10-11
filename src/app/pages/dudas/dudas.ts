@@ -4,7 +4,10 @@ import { UserService } from '../../core/services/user.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { SignedUrlCache } from '../../../shared/services/signed-url-cache.service';
 import { BienvenidaService } from '../../../shared/services/bienvenida.service';
+import { VideoTeatro } from '../../../shared/ui/video-teatro/video-teatro';
 import { DudaCategoria, GuiaVisual } from './dudas-content';
+
+interface VideoActivo { video: string; vtt: string | null; poster: string | null; titulo: string; slug: string; }
 
 /** CK5 — URLs firmadas del video de una guía (bucket privado `tutoriales`). */
 export interface GuiaVideoUrls { video: string; poster: string | null; vtt: string | null; duracion: number | null; }
@@ -14,7 +17,7 @@ export interface GuiaVideoUrls { video: string; poster: string | null; vtt: stri
 // origen de los tipos.
 @Component({
   selector: 'app-dudas',
-  imports: [RouterLink],
+  imports: [RouterLink, VideoTeatro],
   templateUrl: './dudas.html',
   styleUrl: './dudas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +31,12 @@ export class Dudas {
 
   /** CL3 — "Ver la bienvenida otra vez". */
   verBienvenida() { this.bienvenida.verOtraVez(); }
+
+  /** CM3 — abre el reproductor teatro con el video de la guía. */
+  videoActivo = signal<VideoActivo | null>(null);
+  abrirVideo(g: GuiaVisual, v: GuiaVideoUrls) {
+    this.videoActivo.set({ video: v.video, vtt: v.vtt, poster: v.poster, titulo: g.titulo, slug: g.id });
+  }
 
   searchQuery = signal('');
   expandedKey = signal<string | null>(null);

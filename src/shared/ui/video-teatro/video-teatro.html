@@ -1,0 +1,41 @@
+<div class="vt" role="dialog" aria-modal="true" [attr.aria-label]="titulo()" (click)="closed.emit()">
+  <div class="vt__box" (click)="$event.stopPropagation()">
+    <div class="vt__head">
+      <h2 class="vt__title">{{ titulo() }}</h2>
+      <button type="button" class="vt__close" (click)="closed.emit()" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="vt__body">
+      <div class="vt__player">
+        <video #video class="vt__video" controls controlslist="nodownload" [poster]="poster() || ''" [src]="src()" preload="metadata">
+          @if (vtt(); as v) {
+            <track kind="subtitles" srclang="es" label="Español" [src]="v" default />
+          }
+        </video>
+      </div>
+
+      @if (capitulos().length) {
+        <aside class="vt__caps">
+          <h3 class="vt__caps-title">Capítulos</h3>
+          <ul>
+            @for (c of capitulos(); track c.t) {
+              <li><button type="button" (click)="saltarA(c.t)"><span class="vt__caps-t">{{ fmt(c.t) }}</span> {{ c.label }}</button></li>
+            }
+          </ul>
+        </aside>
+      }
+    </div>
+
+    <div class="vt__foot">
+      @if (!feedbackGuardado()) {
+        <span class="vt__fb-q">¿Te sirvió este video?</span>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcar(true)">Sí</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="marcar(false)">No</button>
+      } @else {
+        <span class="vt__fb-ok">¡Gracias por tu respuesta!</span>
+      }
+    </div>
+  </div>
+</div>

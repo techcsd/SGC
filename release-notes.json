@@ -4975,6 +4975,16 @@
           "d": "Al iniciar sesión, el logo de CSD aparece con una breve animación (se dibuja el símbolo, rebota el punto y se descubre el nombre) antes de entrar. Dura menos de 2 segundos, se puede saltar tocando, y respeta el ajuste «Animaciones: reducidas»."
         }
       ]
+    },
+    "1.170.0": {
+      "titulo": "Dudas más ancha y un reproductor de videos en grande",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Dudas",
+          "d": "La sección de Dudas ahora usa todo el ancho de la pantalla (antes quedaba media pantalla vacía). Los videos se abren en un reproductor grande tipo teatro, con capítulos para saltar a cada paso, subtítulos, velocidad y pantalla completa, y un «¿Te sirvió?». Antes se veían diminutos dentro de la tarjeta."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
