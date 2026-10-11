@@ -250,6 +250,36 @@
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="guardarPenalizacion()">Guardar penalización</button>
         </div>
 
+        <!-- CM6 — Topes: cuántas veces cuenta cada actividad + tope total de puntos. -->
+        <h3 class="inc-config__title" style="font-size:15px;margin-top:18px;">Topes</h3>
+        <p class="inc-config__hint">Limita cuántas veces cuenta cada actividad (por día y por semana) y el total de puntos de la semana. Deja un campo <strong>en blanco</strong> para no poner tope. El ayudante cuenta en el mismo tope que lo propio (lo propio primero) y el factor se aplica después del tope. Aplica a los informes que generes/recalcules a partir de ahora.</p>
+        <div class="inc-config__grid">
+          <label class="inc-config__field">
+            <span>Tope total de puntos por semana</span>
+            <input type="number" min="0" step="1" placeholder="Sin tope"
+                   [value]="cfgMaximo() ?? ''" (input)="setMaximo($any($event.target).value)" />
+          </label>
+        </div>
+        <div class="inc-topes" role="table" aria-label="Topes por actividad">
+          <div class="inc-topes__head" role="row">
+            <span role="columnheader">Actividad</span>
+            <span role="columnheader">Veces por día</span>
+            <span role="columnheader">Veces por semana</span>
+          </div>
+          @for (r of renglones; track r) {
+            <div class="inc-topes__row" role="row">
+              <span role="cell">{{ RENGLON_LABELS[r] }}</span>
+              <input type="number" min="0" step="1" placeholder="—" role="cell"
+                     [value]="topeDe(r, 'dia') ?? ''" (input)="setTope(r, 'dia', $any($event.target).value)" />
+              <input type="number" min="0" step="1" placeholder="—" role="cell"
+                     [value]="topeDe(r, 'semana') ?? ''" (input)="setTope(r, 'semana', $any($event.target).value)" />
+            </div>
+          }
+        </div>
+        <div class="inc-config__actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" [disabled]="busy()" (click)="sugerirTopes()">Sugerir topes (según historial)</button>
+        </div>
+
         <div class="inc-config__actions">
           <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="toggleConfig()">Cerrar</button>
           <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [disabled]="busy()" (click)="guardarConfig()">Guardar nueva versión</button>

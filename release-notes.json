@@ -4995,6 +4995,16 @@
           "d": "Nuevo «Modo práctica» (desde Dudas): practica flujos reales con datos de mentira y recibe una nota tipo examen, con objetivos, estrellas y consejos de qué mejorar. Nada de lo que haces ahí cuenta en el sistema. Primera misión: «Crear una requisición»."
         }
       ]
+    },
+    "1.172.0": {
+      "titulo": "Incentivos: topes por actividad y tope semanal",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Incentivos",
+          "d": "Ahora puedes limitar cuántas veces cuenta cada actividad (por día y por semana) y poner un tope total de puntos por semana. El ayudante cuenta en el mismo tope que lo propio (lo propio primero) y el factor del ayudante se aplica después del tope. Se incluye un botón «Sugerir topes» basado en el historial. Los informes ya generados no cambian; aplica al generar o recalcular una semana."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
