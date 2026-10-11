@@ -6,6 +6,8 @@ import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { environment } from '../../../environments/environment';
+import { VideoTeatro } from '../../../shared/ui/video-teatro/video-teatro';
+import { SignedUrlCache } from '../../../shared/services/signed-url-cache.service';
 
 interface VersionInfo {
   versionName: string;
@@ -25,15 +27,25 @@ const VERSION_URL = `${environment.supabaseUrl}/storage/v1/object/public/app-rel
  * install, link + QR) and the installable PWA for iPhone. Reads the published
  * version.json so it always reflects the latest release.
  */
+interface VideoInstala { video: string; poster: string | null; titulo: string; slug: string; }
+
 @Component({
   selector: 'app-app-movil',
-  imports: [DecimalPipe, Skeleton, Icon, TranslatePipe],
+  imports: [DecimalPipe, Skeleton, Icon, TranslatePipe, VideoTeatro],
   templateUrl: './app-movil.html',
   styleUrl: './app-movil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppMovil implements OnInit {
   private supabase = inject(SupabaseService);
+  private signedUrls = inject(SignedUrlCache);
+
+  // Videos de instalación (guías instalar-android / instalar-iphone en ayuda_contenido).
+  private videosInstala = signal<Record<string, VideoInstala>>({});
+  videoActivo = signal<VideoInstala | null>(null);
+  tieneVideo(slug: string): boolean { return !!this.videosInstala()[slug]; }
+  verVideo(slug: string) { const v = this.videosInstala()[slug]; if (v) this.videoActivo.set(v); }
+  cerrarVideo() { this.videoActivo.set(null); }
 
   info = signal<VersionInfo | null>(null);
   apkQr = signal<string>('');
@@ -49,6 +61,7 @@ export class AppMovil implements OnInit {
 
   async ngOnInit() {
     this.pwaQr.set(await QRCode.toDataURL(PWA_URL, { width: 220, margin: 1 }));
+    void this.cargarVideosInstala();
     // CI1 — lee las URLs de tienda (la página está detrás de authGuard → lectura autenticada).
     try {
       const { data } = await this.supabase.client
@@ -78,5 +91,23 @@ export class AppMovil implements OnInit {
 
   get sizeMb(): number {
     return (this.info()?.size_bytes ?? 0) / (1024 * 1024);
+  }
+
+  /** Carga los videos de instalación (bucket privado tutoriales) y los firma. */
+  private async cargarVideosInstala() {
+    try {
+      const { data } = await this.supabase.client
+        .from('ayuda_contenido').select('contenido')
+        .in('slug', ['instalar-android', 'instalar-iphone']).eq('activo', true);
+      const map: Record<string, VideoInstala> = {};
+      for (const row of (data ?? []) as { contenido: { id: string; titulo: string; video_path?: string; poster_path?: string } }[]) {
+        const c = row.contenido;
+        if (!c?.video_path) continue;
+        const video = await this.signedUrls.signed('tutoriales', c.video_path);
+        if (!video) continue;
+        map[c.id] = { video, poster: c.poster_path ? await this.signedUrls.signed('tutoriales', c.poster_path) : null, titulo: c.titulo, slug: c.id };
+      }
+      this.videosInstala.set(map);
+    } catch { /* sin videos → la página funciona igual */ }
   }
 }

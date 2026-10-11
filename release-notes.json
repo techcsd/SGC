@@ -5035,6 +5035,16 @@
           "d": "Ahora puedes descargar los videos de ayuda a tu dispositivo o compartirlos (por ejemplo, por WhatsApp) directamente desde el reproductor en Dudas."
         }
       ]
+    },
+    "1.176.0": {
+      "titulo": "App móvil: video de instalación",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "La página de App móvil ahora tiene un botón «Ver video de instalación» para Android y iPhone, con opción de descargar o compartir el video."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
