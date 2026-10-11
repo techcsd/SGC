@@ -73,7 +73,9 @@ async function main() {
     const jpg = poster(p.mp4, p.jpg);
     await subir(p.mp4, p.destV, 'video/mp4');
     if (jpg) await subir(jpg, p.destP, 'image/jpeg');
-    const patch = { video_path: p.destV, poster_path: jpg ? p.destP : null, plataforma: 'web', estilo: 'v2' };
+    // vtt_path:null → los v2 traen subtítulos HORNEADOS; limpia el VTT viejo (CK5) para
+    // que no se muestren capítulos desfasados con el video nuevo.
+    const patch = { video_path: p.destV, poster_path: jpg ? p.destP : null, vtt_path: null, duracion_s: null, plataforma: 'web', estilo: 'v2' };
     // Idempotente via índice único (tipo, slug): inserta completo si es nuevo; si existe,
     // SOLO agrega los campos de video (conserva titulo/pasos ya escritos).
     const contenido = { id: p.slug, titulo: p.titulo, modulo: p.modulo, icono: p.slug, pasos: [], ...patch };
