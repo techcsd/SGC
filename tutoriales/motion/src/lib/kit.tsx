@@ -212,4 +212,40 @@ export const Drawer: React.FC<{ p: number; titulo: string; children: React.React
   </>
 );
 
+// ── Marco de teléfono (para videos de instalación). Pantalla interior centrada en
+//    el mundo: x 744..1176, y 70..1010 aprox. (centro 960,540). ──
+export const PHONE = { w: 452, h: 936, inner: { x: 744, y: 72, w: 432, h: 912 } };
+export const PhoneFrame: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+  <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', background: `radial-gradient(130% 120% at 25% 0%, ${C.navy} 0%, ${C.deep} 70%)` }}>
+    <div style={{ width: PHONE.w, height: PHONE.h, borderRadius: 56, background: '#0b1420', padding: 12, boxShadow: '0 50px 130px rgba(0,0,0,.6)', border: '2px solid #2a3a4f' }}>
+      <div style={{ width: '100%', height: '100%', borderRadius: 46, overflow: 'hidden', background: '#fff', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 150, height: 28, background: '#0b1420', borderRadius: '0 0 18px 18px', zIndex: 10 }} />
+        {children}
+      </div>
+    </div>
+  </AbsoluteFill>
+);
+
+// ── Indicador de toque (dedo) — ripple por frame ──
+export const TapDot: React.FC<{ beats: Beat[] }> = ({ beats }) => {
+  const frame = useCurrentFrame();
+  const x = kf(frame - 4, beats.map((b) => ({ at: b.at, v: b.x }))) + Math.sin(frame / 13) * 2;
+  const y = kf(frame - 4, beats.map((b) => ({ at: b.at, v: b.y }))) + Math.cos(frame / 15) * 2;
+  const s = kf(frame, beats.map((b) => ({ at: b.at, v: b.s })));
+  const clickBeat = [...beats].reverse().find((b) => b.click && frame >= b.at);
+  const age = clickBeat ? frame - clickBeat.at : 999;
+  const show = age >= 0 && age < 24;
+  const rip = (d: number) => {
+    const a = age - d;
+    return { sc: interpolate(a, [0, 22], [0.3, 2.6], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }), op: interpolate(a, [0, 22], [0.6, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) };
+  };
+  const press = show ? interpolate(age, [0, 6, 12], [1, 0.8, 1], { extrapolateRight: 'clamp' }) : 1;
+  return (
+    <div style={{ position: 'absolute', left: x, top: y, transform: `scale(${1 / s})`, transformOrigin: '50% 50%', zIndex: 55 }}>
+      {show && [0, 7].map((d, i) => { const { sc, op } = rip(d); return <div key={i} style={{ position: 'absolute', left: -30, top: -30, width: 60, height: 60, borderRadius: '50%', border: `3px solid ${C.naranja}`, opacity: op, transform: `scale(${sc})` }} />; })}
+      <div style={{ position: 'absolute', left: -24, top: -24, width: 48, height: 48, borderRadius: '50%', background: `${C.naranja}cc`, border: '3px solid #fff', transform: `scale(${press})`, boxShadow: '0 4px 14px rgba(0,0,0,.4)' }} />
+    </div>
+  );
+};
+
 export { spring, interpolate, useCurrentFrame, useVideoConfig, AbsoluteFill, Easing };

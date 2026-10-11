@@ -3,6 +3,7 @@ import { Promo } from './Promo';
 import { Demo, DEMO_DUR } from './Demo';
 import { Tutorial, type TimedPaso } from './Tutorial';
 import { PromoPro, PROMOPRO_DUR } from './PromoPro';
+import { Instalacion } from './Instalacion';
 
 const FPS = 30;
 
@@ -65,6 +66,20 @@ export const RemotionRoot = () => {
       fps={FPS}
       width={1920}
       height={1080}
+    />
+    <Composition
+      id="Instalacion"
+      component={Instalacion as never}
+      durationInFrames={900}
+      fps={FPS}
+      width={1920}
+      height={1080}
+      defaultProps={{ screen: 'android', pasos: [] as TimedPaso[] }}
+      calculateMetadata={({ props }) => {
+        const pasos = (props as { pasos?: TimedPaso[] }).pasos ?? [];
+        const last = pasos[pasos.length - 1];
+        return { durationInFrames: last ? last.at + last.dur + 30 : 300 };
+      }}
     />
     </>
   );
