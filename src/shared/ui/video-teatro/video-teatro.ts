@@ -33,6 +33,66 @@ export class VideoTeatro implements OnInit {
   capitulos = signal<Capitulo[]>([]);
   feedback = signal<boolean | null>(null);
   feedbackGuardado = signal(false);
+  ocupado = signal(false);
+
+  /** Nombre de archivo amigable para descargar/compartir. */
+  private nombreArchivo(): string {
+    const base = (this.titulo() || 'video').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'video';
+    return `SGC-${base}.mp4`;
+  }
+
+  /** ¿El navegador puede compartir archivos (móvil → WhatsApp, etc.)? */
+  puedeCompartir(): boolean {
+    const nav = navigator as Navigator & { canShare?: (d?: unknown) => boolean };
+    return typeof nav.share === 'function' && typeof nav.canShare === 'function';
+  }
+
+  private async bajarBlob(): Promise<Blob> {
+    const res = await fetch(this.src(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('No se pudo obtener el video');
+    return res.blob();
+  }
+
+  /** Descarga el mp4 al dispositivo. */
+  async descargar() {
+    if (this.ocupado()) return;
+    this.ocupado.set(true);
+    try {
+      const blob = await this.bajarBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = this.nombreArchivo();
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch {
+      // Respaldo: abre el video en otra pestaña para guardarlo manualmente.
+      window.open(this.src(), '_blank');
+    } finally {
+      this.ocupado.set(false);
+    }
+  }
+
+  /** Comparte el video (WhatsApp y demás) usando la hoja de compartir del sistema. */
+  async compartir() {
+    if (this.ocupado()) return;
+    this.ocupado.set(true);
+    try {
+      const nav = navigator as Navigator & { canShare?: (d?: unknown) => boolean; share: (d: unknown) => Promise<void> };
+      const blob = await this.bajarBlob();
+      const file = new File([blob], this.nombreArchivo(), { type: 'video/mp4' });
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({ files: [file], title: this.titulo(), text: `Tutorial: ${this.titulo()} — SGC` });
+      } else {
+        // Sin compartir archivos → comparte el enlace.
+        await nav.share({ title: this.titulo(), text: `Tutorial: ${this.titulo()} — SGC`, url: this.src() });
+      }
+    } catch {
+      /* el usuario canceló o no se pudo compartir */
+    } finally {
+      this.ocupado.set(false);
+    }
+  }
 
   async ngOnInit() {
     const vttUrl = this.vtt();

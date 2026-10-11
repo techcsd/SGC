@@ -5025,6 +5025,16 @@
           "d": "El «Modo práctica» ahora trae 4 misiones más además de «Crear una requisición»: «Aprobar y despachar», «Transferir un conduce», «Registrar una entrada de inventario» y «Hacer un conteo». Cada una simula el flujo real con datos de mentira y te da una nota con objetivos y consejos. Nada cuenta en el sistema."
         }
       ]
+    },
+    "1.175.0": {
+      "titulo": "Videos de ayuda: descargar y compartir",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Ahora puedes descargar los videos de ayuda a tu dispositivo o compartirlos (por ejemplo, por WhatsApp) directamente desde el reproductor en Dudas."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
