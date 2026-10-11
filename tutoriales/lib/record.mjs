@@ -57,43 +57,104 @@ const CB = { navy: '#1e3a5f', naranja: '#f97316', texto: '#ffffff' };
 
 const pausa = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// ── Anillo de clic + barra de pasos + portada/cierre (CSS/JS inyectado) ─────────
+// ── Capa "director": cursor que se desliza, zoom/close-up, spotlight, barra de
+//    pasos animada, portada/cierre con movimiento. Todo se anima en el navegador
+//    (60fps) y lo captura Playwright. app-root se escala para el zoom; los overlays
+//    son hijos de <body> (hermanos de app-root) para no escalarse. ────────────────
 const OVERLAY_CSS = `
+:root{--ckz:1;--ckx:50%;--cky:50%}
+app-root{transition:transform .75s cubic-bezier(.4,.0,.2,1);transform-origin:var(--ckx) var(--cky);will-change:transform}
+html.ck-zoom app-root{transform:scale(var(--ckz))}
+html,body{overflow:hidden !important}
+
+/* Cursor que se desliza hacia el objetivo */
+#ck-cur{position:fixed;left:0;top:0;z-index:2147483646;pointer-events:none;width:30px;height:30px;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.45));transform:translate(-4px,-2px);
+  transition:left .62s cubic-bezier(.22,.61,.36,1),top .62s cubic-bezier(.22,.61,.36,1);opacity:0}
+#ck-cur.on{opacity:1}
+#ck-cur svg{width:100%;height:100%}
+
+/* Pulso de clic */
+.ck-pulse{position:fixed;z-index:2147483645;width:26px;height:26px;border-radius:50%;
+  background:${CB.naranja}66;border:2px solid ${CB.naranja};transform:translate(-50%,-50%);pointer-events:none;animation:ckp .55s ease-out forwards}
+@keyframes ckp{from{opacity:1;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.4)}}
+
+/* Spotlight: oscurece todo menos el rectángulo enfocado */
+#ck-spot{position:fixed;z-index:2147483644;pointer-events:none;border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(14,23,38,.55);border:2px solid ${CB.naranja};
+  opacity:0;transition:left .5s ease,top .5s ease,width .5s ease,height .5s ease,opacity .35s ease}
+#ck-spot.on{opacity:1}
+
+/* Anillo legacy */
 .ck-ring{position:fixed;z-index:2147483646;width:48px;height:48px;border:3px solid ${CB.naranja};border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;animation:ckr .6s ease-out}
 @keyframes ckr{from{opacity:1;transform:translate(-50%,-50%) scale(.4)}to{opacity:0;transform:translate(-50%,-50%) scale(1.3)}}
-#ck-bar{position:fixed;left:0;right:0;bottom:0;z-index:2147483645;background:${CB.navy}f2;color:${CB.texto};
-  font-family:'Inter',system-ui,-apple-system,sans-serif;display:flex;align-items:center;gap:20px;
-  padding:16px 36px;box-shadow:0 -6px 24px rgba(0,0,0,.25);transition:opacity .3s ease}
-#ck-bar .ck-n{flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:${CB.naranja};
-  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px}
-#ck-bar .ck-txt{flex:1 1 auto;font-size:26px;font-weight:600;line-height:1.25}
-#ck-bar .ck-prog{flex:0 0 auto;font-size:16px;opacity:.85;font-variant-numeric:tabular-nums}
-#ck-bar .ck-fill{position:absolute;left:0;top:0;height:4px;background:${CB.naranja};transition:width .4s ease}
-#ck-card{position:fixed;inset:0;z-index:2147483647;background:${CB.navy};color:${CB.texto};
-  font-family:'Inter',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
-#ck-card .ck-brand{font-size:22px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
-#ck-card .ck-k{font-size:20px;color:${CB.naranja};font-weight:700;letter-spacing:.04em}
-#ck-card .ck-h{font-size:52px;font-weight:800;max-width:70%;line-height:1.1}
-#ck-card .ck-sub{font-size:22px;opacity:.85;max-width:60%}
+
+/* Barra de pasos (caption animado) */
+#ck-bar{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:2147483645;
+  background:${CB.navy}f0;color:${CB.texto};backdrop-filter:blur(4px);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;display:flex;align-items:center;gap:18px;
+  padding:16px 30px;border-radius:18px;max-width:min(1200px,86vw);
+  box-shadow:0 14px 48px rgba(0,0,0,.4);transition:opacity .4s ease,transform .4s ease}
+#ck-bar.hide{opacity:0;transform:translateX(-50%) translateY(20px)}
+#ck-bar .ck-n{flex:0 0 auto;width:42px;height:42px;border-radius:50%;background:${CB.naranja};
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;box-shadow:0 4px 14px ${CB.naranja}66}
+#ck-bar .ck-txt{flex:1 1 auto;font-size:27px;font-weight:600;line-height:1.25}
+#ck-bar .ck-txt.swap{animation:cktx .45s cubic-bezier(.22,.61,.36,1)}
+@keyframes cktx{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#ck-bar .ck-prog{flex:0 0 auto;font-size:15px;opacity:.8;font-variant-numeric:tabular-nums}
+#ck-bar .ck-fill{position:absolute;left:14px;right:14px;bottom:8px;height:3px;border-radius:3px;background:#ffffff22;overflow:hidden}
+#ck-bar .ck-fill::after{content:'';position:absolute;left:0;top:0;height:100%;width:var(--p,0%);background:${CB.naranja};transition:width .5s ease;border-radius:3px}
+
+/* Portada / cierre con movimiento */
+#ck-card{position:fixed;inset:0;z-index:2147483647;color:${CB.texto};
+  background:radial-gradient(130% 130% at 20% 0%, #27507f 0%, ${CB.navy} 55%, #122338 100%);
+  font-family:'Inter',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;overflow:hidden}
+#ck-card::before{content:'';position:absolute;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle, ${CB.naranja}33 0%, transparent 70%);top:-160px;right:-120px;animation:ckfloat 6s ease-in-out infinite alternate}
+@keyframes ckfloat{from{transform:translate(0,0)}to{transform:translate(-40px,40px)}}
+#ck-card>*{position:relative;z-index:1;opacity:0;animation:ckup .6s cubic-bezier(.22,.61,.36,1) forwards}
+#ck-card .ck-brand{font-size:20px;letter-spacing:.16em;text-transform:uppercase;opacity:.75;animation-delay:.05s}
+#ck-card .ck-k{display:inline-block;font-size:17px;color:#fff;font-weight:700;letter-spacing:.05em;
+  background:${CB.naranja};padding:6px 16px;border-radius:999px;animation-delay:.18s}
+#ck-card .ck-h{font-size:56px;font-weight:800;max-width:74%;line-height:1.08;animation-delay:.32s}
+#ck-card .ck-sub{font-size:23px;opacity:.85;max-width:62%;animation-delay:.46s}
+@keyframes ckup{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
 `;
 
 const OVERLAY_JS = `
 window.__ck = {
-  bar: null,
+  bar: null, total: 1,
+  ensureCursor(){
+    if(document.getElementById('ck-cur')) return;
+    const c=document.createElement('div'); c.id='ck-cur';
+    c.innerHTML='<svg viewBox="0 0 24 24" fill="#fff" stroke="${CB.navy}" stroke-width="1.5" stroke-linejoin="round"><path d="M5 3l15 9-6 1.6L11 20z"/></svg>';
+    document.body.appendChild(c);
+  },
+  cursorA(x,y){ this.ensureCursor(); const c=document.getElementById('ck-cur'); c.classList.add('on'); c.style.left=x+'px'; c.style.top=y+'px'; },
+  cursorOff(){ const c=document.getElementById('ck-cur'); if(c) c.classList.remove('on'); },
+  pulso(x,y){ const p=document.createElement('div'); p.className='ck-pulse'; p.style.left=x+'px'; p.style.top=y+'px'; document.body.appendChild(p); setTimeout(()=>p.remove(),600); },
+  spot(x,y,w,h,pad){ pad=pad||12; let s=document.getElementById('ck-spot');
+    if(!s){ s=document.createElement('div'); s.id='ck-spot'; document.body.appendChild(s); }
+    s.style.left=(x-pad)+'px'; s.style.top=(y-pad)+'px'; s.style.width=(w+pad*2)+'px'; s.style.height=(h+pad*2)+'px';
+    requestAnimationFrame(()=>s.classList.add('on')); },
+  spotOff(){ const s=document.getElementById('ck-spot'); if(s) s.classList.remove('on'); },
+  zoom(xpct,ypct,scale){ document.documentElement.style.setProperty('--ckx',xpct+'%'); document.documentElement.style.setProperty('--cky',ypct+'%'); document.documentElement.style.setProperty('--ckz',scale); document.documentElement.classList.add('ck-zoom'); },
+  zoomOff(){ document.documentElement.style.setProperty('--ckz',1); document.documentElement.classList.remove('ck-zoom'); },
   mostrarBarra(total){
     if (this.bar) return;
     const b = document.createElement('div'); b.id='ck-bar';
-    b.innerHTML = '<div class="ck-fill"></div><div class="ck-n">1</div><div class="ck-txt"></div><div class="ck-prog"></div>';
+    b.innerHTML = '<div class="ck-n">1</div><div class="ck-txt"></div><div class="ck-prog"></div><div class="ck-fill"></div>';
     document.body.appendChild(b); this.bar=b; this.total=total;
   },
   paso(n, texto){
     if(!this.bar) return;
     this.bar.querySelector('.ck-n').textContent = n;
-    this.bar.querySelector('.ck-txt').textContent = texto;
+    const t=this.bar.querySelector('.ck-txt'); t.textContent = texto;
+    t.classList.remove('swap'); void t.offsetWidth; t.classList.add('swap');
     this.bar.querySelector('.ck-prog').textContent = n + ' / ' + this.total;
-    this.bar.querySelector('.ck-fill').style.width = Math.round((n/this.total)*100) + '%';
+    this.bar.querySelector('.ck-fill').style.setProperty('--p', Math.round((n/this.total)*100) + '%');
   },
-  ocultarBarra(){ if(this.bar){ this.bar.style.opacity='0'; } },
+  ocultarBarra(){ if(this.bar){ this.bar.classList.add('hide'); } },
   card(brand, kicker, titulo, sub){
     let c = document.getElementById('ck-card');
     if(!c){ c=document.createElement('div'); c.id='ck-card'; document.body.appendChild(c); }
@@ -147,6 +208,9 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
   const shot = async (name) =>
     page.screenshot({ path: `${dbg}/${String(++shotN).padStart(2, '0')}-${name}.png` }).catch(() => {});
 
+  const VW = viewport.width, VH = viewport.height;
+  const centro = (b) => [b.x + b.width / 2, b.y + b.height / 2];
+
   const ring = async (locator) => {
     try {
       const box = await locator.boundingBox();
@@ -154,11 +218,63 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
         const d = document.createElement('div'); d.className = 'ck-ring';
         d.style.left = x + 'px'; d.style.top = y + 'px'; document.body.appendChild(d);
         setTimeout(() => d.remove(), 600);
-      }, [box.x + box.width / 2, box.y + box.height / 2]);
+      }, centro(box) ? [box.x + box.width / 2, box.y + box.height / 2] : [0, 0]);
     } catch { /* noop */ }
   };
 
-  const ctx = { page, ring, shot, pausa, demo: DEMO, obraDemo: OBRA_DEMO, web };
+  // Mueve el cursor-director al centro del elemento (se desliza solo).
+  const mover = async (locator) => {
+    try { const b = await locator.first().boundingBox(); if (b) await page.evaluate(([x, y]) => window.__ck.cursorA(x, y), centro(b)); } catch { /* noop */ }
+  };
+
+  // Enfoca un elemento: cursor + spotlight (+ close-up opcional). Deja el foco puesto.
+  const foco = async (locator, { zoom = 1, pad = 12 } = {}) => {
+    try {
+      const l = locator.first();
+      await l.scrollIntoViewIfNeeded().catch(() => {});
+      let b = await l.boundingBox(); if (!b) return;
+      await page.evaluate(([x, y]) => window.__ck.cursorA(x, y), centro(b));
+      if (zoom > 1) {
+        const cx = Math.max(8, Math.min(92, ((b.x + b.width / 2) / VW) * 100));
+        const cy = Math.max(8, Math.min(92, ((b.y + b.height / 2) / VH) * 100));
+        await page.evaluate(([x, y, s]) => window.__ck.zoom(x, y, s), [cx, cy, zoom]);
+        await pausa(820); // deja terminar la transición de zoom
+        b = await l.boundingBox() || b; // recalcula en coords ya escaladas
+        await page.evaluate(([x, y]) => window.__ck.cursorA(x, y), centro(b));
+      }
+      await page.evaluate(([x, y, w, h, p]) => window.__ck.spot(x, y, w, h, p), [b.x, b.y, b.width, b.height, pad]);
+    } catch { /* noop */ }
+  };
+
+  const desfoco = async ({ zoom = true } = {}) => {
+    await page.evaluate((z) => { window.__ck.spotOff(); if (z) window.__ck.zoomOff(); }, zoom).catch(() => {});
+    await pausa(zoom ? 780 : 320);
+  };
+
+  const pulso = async (locator) => {
+    try { const b = await locator.first().boundingBox(); if (b) await page.evaluate(([x, y]) => window.__ck.pulso(x, y), centro(b)); } catch { /* noop */ }
+  };
+
+  // Click "guiado": enfoca, pulso, click real.
+  const click = async (locator, { zoom = 1 } = {}) => {
+    const l = locator.first();
+    await foco(l, { zoom });
+    await pausa(360);
+    await pulso(l);
+    await pausa(160);
+    await l.click({ timeout: 8000 }).catch(() => {});
+  };
+
+  // Escribe con efecto de tecleo (enfoca el campo primero).
+  const escribir = async (locator, texto, { zoom = 1 } = {}) => {
+    const l = locator.first();
+    await foco(l, { zoom });
+    await pausa(300);
+    await l.click({ timeout: 8000 }).catch(() => {});
+    await l.pressSequentially(String(texto), { delay: 55 }).catch(() => { l.fill(String(texto)).catch(() => {}); });
+  };
+
+  const ctx = { page, ring, mover, foco, desfoco, pulso, click, escribir, shot, pausa, demo: DEMO, obraDemo: OBRA_DEMO, web, viewport };
   const cues = []; // { n, texto, inicio_ms, fin_ms }
   const voces = []; // CM3 — { file, durMs, inicio_ms } por paso (o null)
   let borradorVoz = false;
@@ -213,6 +329,9 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
       await pausa(Math.max(400, voiceNeed - elapsed));
       const fin = Date.now() - t0;
       cues.push({ n: i + 1, texto: paso.texto, inicio_ms: inicio, fin_ms: fin });
+      // Suelta el foco/zoom hacia el siguiente paso (transición suave de pull-back).
+      await page.evaluate(() => { window.__ck.spotOff(); window.__ck.zoomOff(); }).catch(() => {});
+      await pausa(260);
     }
 
     // ── Cierre (2 s) ──

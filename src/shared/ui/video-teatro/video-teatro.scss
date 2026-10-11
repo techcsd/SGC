@@ -31,7 +31,9 @@
   padding: 14px 18px;
   border-bottom: 1px solid var(--sgc-border);
 }
-.vt__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--sgc-text); }
+.vt__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--sgc-text); flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vt__actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.vt__actions .sgc-btn svg { margin-right: 4px; }
 .vt__close {
   background: none; border: none; cursor: pointer; color: var(--sgc-text-secondary);
   display: flex; padding: 4px; border-radius: 8px;

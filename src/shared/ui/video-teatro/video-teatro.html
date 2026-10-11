@@ -2,14 +2,26 @@
   <div class="vt__box" (click)="$event.stopPropagation()">
     <div class="vt__head">
       <h2 class="vt__title">{{ titulo() }}</h2>
-      <button type="button" class="vt__close" (click)="closed.emit()" aria-label="Cerrar">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
+      <div class="vt__actions">
+        @if (puedeCompartir()) {
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="compartir()" [disabled]="ocupado()" aria-label="Compartir video">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+            Compartir
+          </button>
+        }
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargar()" [disabled]="ocupado()" aria-label="Descargar video">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          {{ ocupado() ? 'Preparando…' : 'Descargar' }}
+        </button>
+        <button type="button" class="vt__close" (click)="closed.emit()" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="vt__body">
       <div class="vt__player">
-        <video #video class="vt__video" controls controlslist="nodownload" [poster]="poster() || ''" [src]="src()" preload="metadata">
+        <video #video class="vt__video" controls [poster]="poster() || ''" [src]="src()" preload="metadata">
           @if (vtt(); as v) {
             <track kind="subtitles" srclang="es" label="Español" [src]="v" default />
           }
