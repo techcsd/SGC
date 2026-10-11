@@ -2,7 +2,7 @@
 
 ## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — ✅ **EN PROD** (`main`=`dev`, web **1.164.0**)
 **Ronda CL COMPLETA y desplegada a producción** (merge dev→main, Vercel). CL0/CL1(raíz+rediseño)/CL4/CL6/CL2(base+rollout+momentos)/CL5/CL3 — todo en prod. Migraciones en el ledger de PROD: cl0 (apoyo UPDATE), cl6 (conduce prueba), cl5 (movimiento_catalogo), cl3 (bienvenida) + data-fixes prod (catálogo 14 filas, backfill bienvenida 59 usuarios). **1.164.0** = más momentos medianos (entrada/checklist/aprobado/mensaje). **App (sesión hermana): CK14+CK15 en dev+PROD** (mis_trabajos_chofer etc.) → app 100%.
-**Pendiente físico Xaviel:** (1) la sesión del app publica 2.45.x → entonces correr `scripts/data-fixes/2026-10-08-cl4-rescate-actualizacion.mjs --env prod --apply` (push a los 8 atascados) + mandar el WhatsApp. (2) probar en vivo. **Diferido (menor):** más disparadores momento; 2 polish CK (trabajos_transporte_listado order-by-orden + mis_trabajos_chofer nota_chofer — dev/prod divergen por `es_usuario_demo`, listos a pedido del app).
+**✅ CL4 rescate DISPARADO** (app publicó 2.47.0): push + in-app a los 8 atascados en prod (8 notificaciones verificadas). Falta solo que Xaviel mande el WhatsApp. **✅ Diferidos CK CERRADOS:** CK16 (mis_trabajos_chofer lee nota_chofer en apoyo) + CK17/CK17b (trabajos_transporte_listado ordena por `orden`; canónica en prod, overlay demo `es_usuario_demo` solo en dev) — ambos en dev+PROD, verificados por objeto. **Nada pendiente de código.**
 
 ### [histórico de la ronda — detalle]
 ## TL;DR — PROMPT-92 (Ronda CL) — build inicial @ **1.163.0**
