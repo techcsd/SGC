@@ -32,6 +32,30 @@ export interface RespuestaPractica {
   [k: string]: unknown;
 }
 
+/** CM7 7c — resumen de una persona en el panel de equipo (jefe/RRHH/admin). */
+export interface ResultadoEquipoFila {
+  usuario_id: string;
+  nombre: string;
+  intentos: number;
+  misiones: number;
+  mejor_nota: number;
+  ultima_nota: number | null;
+  ultima_fecha: string | null;
+  aprobadas: number;
+  promedio: number | null;
+}
+
+/** CM7 7c — detalle por misión de una persona. */
+export interface ResultadoPersonaFila {
+  mision_id: string;
+  titulo: string;
+  intentos: number;
+  mejor_nota: number;
+  ultima_nota: number | null;
+  ultima_fecha: string | null;
+  aprobada: boolean;
+}
+
 export interface ObjetivoResultado { id: string; texto: string; puntos: number; ok: boolean; consejo?: string; }
 export interface ResultadoPractica {
   nota: number;            // 0-100

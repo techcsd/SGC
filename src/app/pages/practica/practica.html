@@ -6,6 +6,12 @@
         <h1 class="page-title">Modo práctica</h1>
         <p class="page-sub">Practica los flujos reales con datos de mentira. No cuenta en nada — es para aprender sin miedo.</p>
       </div>
+      @if (puedeVerEquipo()) {
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="verEquipo()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Resultados de mi equipo
+        </button>
+      }
     </header>
     <div class="pr-grid">
       @for (m of misiones(); track m.id) {
@@ -74,7 +80,13 @@
         <ul>
           @for (o of objetivosVivo(); track o.id) {
             <li [class.pr-obj--ok]="o.ok">
-              <span class="pr-obj__chk">{{ o.ok ? '✓' : '○' }}</span>
+              <span class="pr-obj__chk" aria-hidden="true">
+                @if (o.ok) {
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/></svg>
+                }
+              </span>
               <span>{{ o.texto }}</span>
               <span class="pr-obj__pts">{{ o.puntos }}</span>
             </li>
@@ -100,7 +112,14 @@
       <ul class="pr-check">
         @for (o of r.objetivos; track o.id) {
           <li [class.pr-check--ok]="o.ok">
-            <span>{{ o.ok ? '✓' : '✗' }} {{ o.texto }}</span>
+            <span class="pr-check__txt">
+              @if (o.ok) {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              } @else {
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              }
+              {{ o.texto }}
+            </span>
             <span class="pr-check__pts">{{ o.ok ? '+' + o.puntos : (o.consejo || '') }}</span>
           </li>
         }
@@ -114,5 +133,65 @@
         <button type="button" class="sgc-btn sgc-btn--ghost" (click)="salir()">Salir</button>
       </div>
     </div>
+  }
+
+  <!-- ── CM7 7c — Resultados del equipo (jefe/RRHH/admin) ── -->
+  @if (fase() === 'equipo') {
+    <header class="page-header">
+      <div class="page-header__left">
+        <h1 class="page-title">Resultados de mi equipo</h1>
+        <p class="page-sub">Cómo va tu gente practicando. Es solo para acompañar y entrenar — no cuenta en evaluaciones ni incentivos.</p>
+      </div>
+      <button type="button" class="sgc-btn sgc-btn--ghost" (click)="volverLista()">Volver</button>
+    </header>
+
+    @if (equipoCargando()) {
+      <div class="sgc-card">Cargando…</div>
+    } @else if (equipo().length === 0) {
+      <div class="sgc-card pr-empty">Todavía nadie de tu equipo ha practicado. En cuanto practiquen, verás aquí su nota.</div>
+    } @else {
+      <div class="pr-team">
+        <div class="pr-team__head" role="row">
+          <span role="columnheader">Persona</span>
+          <span role="columnheader">Intentos</span>
+          <span role="columnheader">Mejor</span>
+          <span role="columnheader">Última</span>
+          <span role="columnheader">Aprobadas</span>
+        </div>
+        @for (f of equipo(); track f.usuario_id) {
+          <button type="button" class="pr-team__row" role="row" (click)="verPersona(f)">
+            <span class="pr-team__name" role="cell">{{ f.nombre }}</span>
+            <span role="cell">{{ f.intentos }}</span>
+            <span role="cell" class="pr-team__nota" [class.pr-team__nota--ok]="f.mejor_nota >= 80">{{ f.mejor_nota }}</span>
+            <span role="cell" class="pr-team__nota" [class.pr-team__nota--ok]="(f.ultima_nota ?? 0) >= 80">{{ f.ultima_nota ?? '—' }}</span>
+            <span role="cell">{{ f.aprobadas }}/{{ f.misiones }}</span>
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Detalle por misión de la persona seleccionada -->
+    @if (personaSel(); as p) {
+      <div class="pr-persona">
+        <div class="pr-persona__head">
+          <h2 class="pr-persona__title">{{ p.nombre }}</h2>
+          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="cerrarPersona()">Cerrar</button>
+        </div>
+        @if (personaDetalle().length === 0) {
+          <p class="pr-persona__empty">Sin detalle por misión.</p>
+        } @else {
+          <div class="pr-persona__list">
+            @for (d of personaDetalle(); track d.mision_id) {
+              <div class="pr-persona__row">
+                <span class="pr-persona__mision">{{ d.titulo }}</span>
+                <span class="pr-persona__meta">{{ d.intentos }} intento(s)</span>
+                <span class="pr-team__nota" [class.pr-team__nota--ok]="d.mejor_nota >= 80">Mejor {{ d.mejor_nota }}</span>
+                <span class="pr-team__nota" [class.pr-team__nota--ok]="(d.ultima_nota ?? 0) >= 80">Última {{ d.ultima_nota ?? '—' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
   }
 </div>

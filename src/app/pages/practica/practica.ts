@@ -1,8 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { PracticaService } from '../../core/practica/practica.service';
 import { UserService } from '../../core/services/user.service';
 import { MISIONES_PILOTO, OBRAS_DEMO, ARTICULOS_DEMO } from '../../core/practica/practica.data';
-import { MisionPractica, ResultadoPractica } from '../../core/practica/practica.model';
+import { MisionPractica, ResultadoPractica, ResultadoEquipoFila, ResultadoPersonaFila } from '../../core/practica/practica.model';
 
 interface ItemReq { id: string; nombre: string; stock: number; cantidad: number; }
 
@@ -18,15 +18,22 @@ interface ItemReq { id: string; nombre: string; stock: number; cantidad: number;
   templateUrl: './practica.html',
   styleUrl: './practica.scss',
 })
-export class Practica {
+export class Practica implements OnInit {
   practica = inject(PracticaService);
   private user = inject(UserService);
 
   readonly obras = OBRAS_DEMO;
   readonly articulos = ARTICULOS_DEMO;
 
-  fase = signal<'lista' | 'corre' | 'resultado'>('lista');
+  fase = signal<'lista' | 'corre' | 'resultado' | 'equipo'>('lista');
   resultado = signal<ResultadoPractica | null>(null);
+
+  // CM7 7c — panel de equipo (jefe/RRHH/admin).
+  puedeVerEquipo = signal(false);
+  equipo = signal<ResultadoEquipoFila[]>([]);
+  equipoCargando = signal(false);
+  personaSel = signal<ResultadoEquipoFila | null>(null);
+  personaDetalle = signal<ResultadoPersonaFila[]>([]);
   cronometro = signal('0:00');
   private cronoTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -108,4 +115,35 @@ export class Practica {
   }
 
   estrellasArr(n: number): boolean[] { return [0, 1, 2].map((i) => i < n); }
+
+  // ── CM7 7c — panel de equipo ──
+  async ngOnInit() {
+    try { this.puedeVerEquipo.set(await this.practica.puedeVerEquipo()); } catch { /* sin panel */ }
+  }
+
+  async verEquipo() {
+    this.fase.set('equipo');
+    this.personaSel.set(null);
+    this.equipoCargando.set(true);
+    try {
+      this.equipo.set(await this.practica.resultadosEquipo());
+    } catch {
+      this.equipo.set([]);
+    } finally {
+      this.equipoCargando.set(false);
+    }
+  }
+
+  async verPersona(f: ResultadoEquipoFila) {
+    this.personaSel.set(f);
+    this.personaDetalle.set([]);
+    try {
+      this.personaDetalle.set(await this.practica.resultadosPersona(f.usuario_id));
+    } catch {
+      this.personaDetalle.set([]);
+    }
+  }
+
+  cerrarPersona() { this.personaSel.set(null); }
+  volverLista() { this.fase.set('lista'); this.personaSel.set(null); }
 }

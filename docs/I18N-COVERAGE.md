@@ -116,7 +116,7 @@
 | obra/subcontratistas | - | 104 | 0 | 104 | 0% |
 | politicas/eliminar-cuenta | - | 13 | 0 | 13 | 0% |
 | politicas | - | 21 | 0 | 21 | 0% |
-| practica | - | 33 | 0 | 33 | 0% |
+| practica | - | 62 | 0 | 62 | 0% |
 | proyectos/cargos | - | 31 | 0 | 31 | 0% |
 | proyectos/clima | - | 54 | 0 | 54 | 0% |
 | proyectos/compras | - | 40 | 0 | 40 | 0% |
