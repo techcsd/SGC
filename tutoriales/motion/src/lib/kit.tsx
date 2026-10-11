@@ -55,22 +55,75 @@ export const Camara: React.FC<{ beats: Beat[]; children: React.ReactNode }> = ({
   );
 };
 
-// ── Cursor: sigue los beats (con leve "humanidad"), contra-escalado a tamaño fijo ──
+// ── Cursor: sigue los beats (con leve "humanidad"), contra-escalado a tamaño fijo.
+//    Ripple de clic ANIMADO por frame (no CSS: Remotion congela el tiempo). ──
 export const Cursor: React.FC<{ beats: Beat[] }> = ({ beats }) => {
   const frame = useCurrentFrame();
   const x = kf(frame - 4, beats.map((b) => ({ at: b.at, v: b.x }))) + Math.sin(frame / 12) * 3;
   const y = kf(frame - 4, beats.map((b) => ({ at: b.at, v: b.y }))) + Math.cos(frame / 14) * 3;
   const s = kf(frame, beats.map((b) => ({ at: b.at, v: b.s })));
-  const clicking = beats.some((b) => b.click && frame >= b.at && frame < b.at + 10);
+  // Pequeño "apretón" al hacer clic (el cursor se encoge un instante).
+  const clickBeat = [...beats].reverse().find((b) => b.click && frame >= b.at);
+  const age = clickBeat ? frame - clickBeat.at : 999;
+  const press = age >= 0 && age < 8 ? interpolate(age, [0, 4, 8], [1, 0.82, 1]) : 1;
+  const ripples = age >= 0 && age < 22;
+  const rk = (delay: number) => {
+    const a = age - delay;
+    const sc = interpolate(a, [0, 22], [0.25, 2.8], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+    const op = interpolate(a, [0, 22], [0.75, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+    return { sc, op };
+  };
   return (
-    <div style={{ position: 'absolute', left: x, top: y, transform: `scale(${1 / s})`, transformOrigin: '0 0', zIndex: 50 }}>
-      {clicking && <div style={{ position: 'absolute', left: 2, top: 4, width: 44, height: 44, marginLeft: -22, marginTop: -22, borderRadius: '50%', border: `3px solid ${C.naranja}`, animation: undefined }} />}
+    <div style={{ position: 'absolute', left: x, top: y, transform: `scale(${(1 / s) * press})`, transformOrigin: '2px 4px', zIndex: 50 }}>
+      {ripples && [0, 6].map((d, i) => {
+        const { sc, op } = rk(d);
+        return <div key={i} style={{ position: 'absolute', left: 2, top: 4, width: 48, height: 48, marginLeft: -24, marginTop: -24, borderRadius: '50%', border: `3px solid ${C.naranja}`, opacity: op, transform: `scale(${sc})` }} />;
+      })}
       <svg width="34" height="34" viewBox="0 0 24 24" fill="#fff" stroke={C.navy} strokeWidth={1.5} strokeLinejoin="round" style={{ filter: 'drop-shadow(0 3px 6px rgba(0,0,0,.5))' }}>
         <path d="M5 3l15 9-6 1.6L11 20z" />
       </svg>
     </div>
   );
 };
+
+// ── Confeti (por frame, determinista) — para cierres/éxitos ──
+const COLORS = ['#f97316', '#1e3a5f', '#2e75b6', '#16a34a', '#fbbf24'];
+export const Confetti: React.FC<{ startFrame: number; n?: number }> = ({ startFrame, n = 90 }) => {
+  const frame = useCurrentFrame();
+  const age = frame - startFrame;
+  if (age < 0 || age > 150) return null;
+  const parts = Array.from({ length: n }, (_, i) => {
+    const seed = (i * 9301 + 49297) % 233280 / 233280;
+    const seed2 = (i * 4096 + 150889) % 714025 / 714025;
+    const x = seed * WORLD.w;
+    const delay = Math.floor(seed2 * 16);
+    const t = age - delay;
+    const y = interpolate(t, [0, 120], [-40, WORLD.h + 60], { extrapolateLeft: 'clamp' });
+    const sway = Math.sin((t + i) / 10) * 40;
+    const rot = t * (4 + seed * 6);
+    const op = interpolate(t, [0, 8, 100, 120], [0, 1, 1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+    const w = 8 + seed2 * 8;
+    return { x: x + sway, y, rot, op, w, color: COLORS[i % COLORS.length], round: i % 3 === 0 };
+  });
+  return (
+    <AbsoluteFill style={{ pointerEvents: 'none', zIndex: 60 }}>
+      {parts.map((p, i) => (
+        <div key={i} style={{ position: 'absolute', left: p.x, top: p.y, width: p.w, height: p.w * 1.4, background: p.color, opacity: p.op, borderRadius: p.round ? '50%' : 2, transform: `rotate(${p.rot}deg)` }} />
+      ))}
+    </AbsoluteFill>
+  );
+};
+
+// ── Puntos de progreso (arriba) ──
+export const ProgressDots: React.FC<{ total: number; current: number }> = ({ total, current }) => (
+  <div style={{ position: 'absolute', top: 26, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 40 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: `${C.deep}cc`, padding: '9px 16px', borderRadius: 999, boxShadow: '0 6px 20px rgba(0,0,0,.3)' }}>
+      {Array.from({ length: total }, (_, i) => (
+        <div key={i} style={{ width: i === current ? 28 : 9, height: 9, borderRadius: 999, background: i === current ? C.naranja : i < current ? '#ffffffdd' : '#ffffff44' }} />
+      ))}
+    </div>
+  </div>
+);
 
 // ── Caption inferior, aparece/desaparece por beat ──
 export const Caption: React.FC<{ beats: Beat[] }> = ({ beats }) => {
