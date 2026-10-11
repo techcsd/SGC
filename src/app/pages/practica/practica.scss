@@ -17,11 +17,22 @@
 @media (max-width: 900px) { .pr-run { grid-template-columns: 1fr; } }
 .pr-form { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .pr-form__title { margin: 0; font-size: 18px; font-weight: 700; }
+.pr-form__intro { margin: -6px 0 2px; font-size: 13px; color: var(--sgc-text-secondary); line-height: 1.5; }
 .pr-form__done { margin-top: 6px; }
+.pr-field__ayuda { display: block; margin-top: 4px; font-size: 12px; color: var(--sgc-text-muted); line-height: 1.4; }
 .pr-additem { display: flex; gap: 8px; }
 .pr-item { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
 .pr-item__n { flex: 1 1 auto; font-size: 14px; }
 .pr-item__q { width: 90px; }
+
+// 7b — widget de conteo (material · sistema · contado).
+.pr-conteo { border: 1px solid var(--sgc-border); border-radius: 8px; overflow: hidden; }
+.pr-conteo__head, .pr-conteo__row { display: grid; grid-template-columns: 1fr 70px 90px; gap: 8px; align-items: center; padding: 8px 10px; }
+.pr-conteo__head { background: var(--sgc-surface-2, #f2f4f7); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sgc-text-secondary); }
+.pr-conteo__row { border-top: 1px solid var(--sgc-border); font-size: 14px; }
+.pr-conteo__n { color: var(--sgc-text); }
+.pr-conteo__exp { font-variant-numeric: tabular-nums; color: var(--sgc-text-secondary); text-align: center; }
+.pr-conteo__in { width: 100%; text-align: center; }
 
 .pr-obj { position: sticky; top: 16px; padding: 16px; }
 .pr-obj__title { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sgc-text-secondary); }

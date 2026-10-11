@@ -5015,6 +5015,16 @@
           "d": "Los jefes, RRHH y administradores ahora pueden ver cómo va su gente en el «Modo práctica»: resumen por persona (intentos, mejor nota, última, aprobadas) y detalle por misión. Es solo para acompañar y entrenar — la práctica no cuenta en evaluaciones ni incentivos."
         }
       ]
+    },
+    "1.174.0": {
+      "titulo": "Modo práctica: 4 misiones nuevas",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "El «Modo práctica» ahora trae 4 misiones más además de «Crear una requisición»: «Aprobar y despachar», «Transferir un conduce», «Registrar una entrada de inventario» y «Hacer un conteo». Cada una simula el flujo real con datos de mentira y te da una nota con objetivos y consejos. Nada cuenta en el sistema."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
