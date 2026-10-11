@@ -68,15 +68,15 @@
               </span>
               <h3 class="dudas__guia-titulo">{{ g.titulo }}</h3>
             </div>
-            <!-- CK5 — video "cómo hacer" (sin autoplay, con subtítulos y duración) -->
+            <!-- CM3 — "Ver video" abre el reproductor teatro (grande, con capítulos/CC). -->
             @if (videoUrls()[g.id]; as v) {
-              <div class="dudas__guia-video">
-                <video controls preload="none" [poster]="v.poster || ''" playsinline>
-                  <source [src]="v.video" type="video/mp4" />
-                  @if (v.vtt) { <track kind="subtitles" srclang="es" label="Español" [src]="v.vtt" default /> }
-                </video>
-                @if (v.duracion) { <span class="dudas__guia-video-dur">{{ formatDuracion(v.duracion) }}</span> }
-              </div>
+              <button type="button" class="dudas__guia-play" (click)="abrirVideo(g, v)"
+                      [style.background-image]="v.poster ? 'url(' + v.poster + ')' : null">
+                <span class="dudas__guia-play-ic" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+                <span class="dudas__guia-play-tx">Ver video@if (v.duracion) { · {{ formatDuracion(v.duracion) }} }</span>
+              </button>
             }
             <ol class="dudas__guia-pasos">
               @for (paso of g.pasos; track paso) {
@@ -146,3 +146,9 @@
   </div>
 
 </div>
+
+<!-- CM3 — reproductor teatro -->
+@if (videoActivo(); as va) {
+  <app-video-teatro [src]="va.video" [vtt]="va.vtt" [poster]="va.poster" [titulo]="va.titulo" [slug]="va.slug"
+                    (closed)="videoActivo.set(null)" />
+}
