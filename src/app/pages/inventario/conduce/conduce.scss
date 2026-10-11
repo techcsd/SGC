@@ -435,3 +435,11 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+
+// CM4 — motivo por el que el botón transferir está apagado.
+.conduce-transfer-motivo {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--sgc-text-secondary);
+  max-width: 44ch;
+}

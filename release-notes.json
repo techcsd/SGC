@@ -4945,6 +4945,16 @@
           "d": "En Administración › Animaciones, la vista previa de «Lista escalonada» ahora se reproduce cada vez que tocas Reproducir, y el conmutador «Ver reducida» refleja tu ajuste real al entrar."
         }
       ]
+    },
+    "1.167.1": {
+      "titulo": "Arreglo: transferir un conduce con receptor designado",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Transporte",
+          "d": "Ya se puede transferir un conduce que tiene a alguien designado para recibir en obra, mientras el material no haya salido o esté en ruta. Antes el sistema lo marcaba «pendiente de firma» antes de tiempo y bloqueaba la transferencia. El botón ahora se apaga con el motivo cuando de verdad no se puede (ya llegó a la obra), y el receptor solo puede firmar cuando el conduce realmente llega."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
