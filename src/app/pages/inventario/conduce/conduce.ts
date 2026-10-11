@@ -178,6 +178,14 @@ export class Conduce implements OnInit {
     const s = this.salida();
     return !!s && this.puedeGestionarTransporte() && s.estado !== 'entregado' && s.estado !== 'anulado';
   });
+  // CM4 — regla única del servidor: si puede=false, el botón sale APAGADO con el motivo
+  // debajo (nunca un toast rojo después de llenar el diálogo).
+  transferChk = signal<{ puede: boolean; motivo: string | null } | null>(null);
+  transferBloqueado = computed(() => this.transferChk()?.puede === false);
+  transferMotivo = computed(() => this.transferChk()?.motivo ?? null);
+  private async cargarTransferChk(id: string) {
+    try { this.transferChk.set(await this.salidasService.puedeTransferir(id)); } catch { /* best-effort */ }
+  }
   vehiculosPicker = signal<Vehiculo[]>([]);
   conductoresPicker = signal<{ id: string; nombre: string }[]>([]);
   iniciarRutaOpen = signal(false);
@@ -233,6 +241,7 @@ export class Conduce implements OnInit {
     try {
       const s = await this.salidasService.getById(id);
       this.salida.set(s);
+      void this.cargarTransferChk(id); // CM4 — estado real del botón transferir
       await this.loadEvidencia(s);
       // AU4 — items libres (no bloqueante).
       this.salidasService.getItemsLibres(id).then((il) => this.itemsLibres.set(il)).catch(() => {});

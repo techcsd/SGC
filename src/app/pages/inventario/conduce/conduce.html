@@ -23,7 +23,10 @@
     <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirIniciarRuta()">Iniciar ruta</button>
   }
   @if (puedeTransferir() && !mostrarCierre()) {
-    <button type="button" class="sgc-btn sgc-btn--ghost" (click)="abrirTransferir()">{{ salida()?.conductor_id ? 'Transferir a…' : 'Asignar a un chofer' }}</button>
+    <button type="button" class="sgc-btn sgc-btn--ghost" [disabled]="transferBloqueado()" (click)="abrirTransferir()">{{ salida()?.conductor_id ? 'Transferir a…' : 'Asignar a un chofer' }}</button>
+    @if (transferBloqueado() && transferMotivo()) {
+      <p class="conduce-transfer-motivo">{{ transferMotivo() }}</p>
+    }
   }
   @if (puedeAnular() && !mostrarCierre()) {
     <button type="button" class="sgc-btn sgc-btn--danger" (click)="abrirAnular()">Eliminar conduce</button>

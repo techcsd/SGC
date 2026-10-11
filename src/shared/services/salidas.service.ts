@@ -261,6 +261,13 @@ export class SalidasService {
   }
 
   /** AM4/AY12 — ofrece la transferencia del conduce a otro chofer (portador). */
+  /** CM4 — ¿se puede transferir este conduce? Misma regla que el RPC (fase + permisos). */
+  async puedeTransferir(salidaId: string): Promise<{ puede: boolean; motivo: string | null }> {
+    const { data, error } = await this.supabase.client.rpc('conduce_puede_transferir', { p_salida_id: salidaId });
+    if (error) return { puede: false, motivo: null };
+    return (data as { puede: boolean; motivo: string | null }) ?? { puede: false, motivo: null };
+  }
+
   async ofrecerTransferencia(salidaId: string, aConductorId: string, notas?: string | null): Promise<void> {
     const { error } = await this.supabase.client.rpc('ofrecer_transferencia_conduce', {
       p_salida_id: salidaId,
