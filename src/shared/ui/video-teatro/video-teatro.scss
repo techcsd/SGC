@@ -1,0 +1,74 @@
+// CM3 — reproductor "teatro" modal.
+.vt {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(10, 18, 30, 0.82);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: vt-in 0.2s ease;
+}
+@keyframes vt-in { from { opacity: 0; } to { opacity: 1; } }
+
+.vt__box {
+  width: min(1100px, 100%);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sgc-surface, #fff);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+.vt__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--sgc-border);
+}
+.vt__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--sgc-text); }
+.vt__close {
+  background: none; border: none; cursor: pointer; color: var(--sgc-text-secondary);
+  display: flex; padding: 4px; border-radius: 8px;
+  &:hover { background: var(--sgc-surface-2); color: var(--sgc-text); }
+}
+
+.vt__body { display: flex; gap: 0; min-height: 0; overflow: hidden; }
+.vt__player { flex: 1 1 auto; background: #000; display: flex; align-items: center; min-width: 0; }
+.vt__video { width: 100%; max-height: 72vh; aspect-ratio: 16 / 9; display: block; background: #000; }
+
+.vt__caps {
+  flex: 0 0 260px;
+  border-left: 1px solid var(--sgc-border);
+  overflow-y: auto;
+  max-height: 72vh;
+  padding: 12px;
+  background: var(--sgc-surface);
+}
+.vt__caps-title { margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--sgc-text-secondary); }
+.vt__caps ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.vt__caps button {
+  width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+  padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--sgc-text); line-height: 1.3;
+  &:hover { background: var(--accent-soft, #fff4ec); }
+}
+.vt__caps-t { font-variant-numeric: tabular-nums; color: var(--accent-hover, #ea580c); font-weight: 600; margin-right: 6px; }
+
+.vt__foot {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border-top: 1px solid var(--sgc-border);
+}
+.vt__fb-q { font-size: 14px; color: var(--sgc-text-secondary); }
+.vt__fb-ok { font-size: 14px; color: var(--success, #16a34a); font-weight: 600; }
+
+@media (max-width: 860px) {
+  .vt__body { flex-direction: column; }
+  .vt__caps { flex-basis: auto; border-left: none; border-top: 1px solid var(--sgc-border); max-height: 180px; }
+  .vt__video { max-height: 50vh; }
+}
+@media (prefers-reduced-motion: reduce) { .vt { animation: none; } }
