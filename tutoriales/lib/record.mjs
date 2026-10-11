@@ -9,13 +9,34 @@
 // acciones del paso. El texto se muestra en la barra y se vuelve un subtítulo.
 
 import { chromium } from 'playwright';
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { assertDev, assertTextoLimpio } from './privacy-lock.mjs';
+import { sintetizar, hayLlaveAzure } from './voz.mjs';
 
 const require = createRequire(import.meta.url);
 const FFMPEG = require('ffmpeg-static');
+
+// CM3 — duración (ms) de un audio, parseando la salida de ffmpeg (-i no produce stdout).
+function audioDurMs(file) {
+  try { execFileSync(FFMPEG, ['-i', file], { stdio: 'pipe' }); } catch (e) {
+    const m = String(e.stderr || '').match(/Duration:\s*(\d+):(\d+):(\d+)\.(\d+)/);
+    if (m) return ((+m[1]) * 3600 + (+m[2]) * 60 + (+m[3])) * 1000 + (+m[4]) * 10;
+  }
+  return 2000;
+}
+// CM3 — una pista de música al azar (determinista por id) de assets/musica/.
+function pistaMusica(seed) {
+  const dir = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'musica');
+  if (!existsSync(dir)) return null;
+  const mp3 = readdirSync(dir).filter((f) => f.toLowerCase().endsWith('.mp3'));
+  if (!mp3.length) return null;
+  let h = 0; for (const c of String(seed)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return resolve(dir, mp3[h % mp3.length]);
+}
 
 // ── Config de entorno (desde ../.env.local) ────────────────────────────────────
 function cargarEnv() {
@@ -139,6 +160,8 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
 
   const ctx = { page, ring, shot, pausa, demo: DEMO, obraDemo: OBRA_DEMO, web };
   const cues = []; // { n, texto, inicio_ms, fin_ms }
+  const voces = []; // CM3 — { file, durMs, inicio_ms } por paso (o null)
+  let borradorVoz = false;
 
   try {
     // ── Login ──
@@ -158,6 +181,17 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
     await pausa(2200);
     await page.evaluate(() => window.__ck.quitarCard());
 
+    // ── CM3 — voz por paso (Azure es-DO), pre-sintetizada para calzar el tiempo ──
+    for (const paso of guion.pasos) {
+      const texto = (paso.voz || paso.texto || '').trim();
+      if (!texto) { voces.push(null); continue; }
+      try {
+        const { file, borrador } = await sintetizar(texto);
+        borradorVoz = borradorVoz || !!borrador;
+        voces.push({ file, durMs: audioDurMs(file), inicio_ms: 0 });
+      } catch (e) { console.error('  voz falló (sigo sin audio en ese paso):', e.message); voces.push(null); }
+    }
+
     // ── Barra de pasos ──
     const total = guion.pasos.length;
     await page.evaluate((n) => window.__ck.mostrarBarra(n), total);
@@ -165,15 +199,20 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
     for (let i = 0; i < guion.pasos.length; i++) {
       const paso = guion.pasos[i];
       const inicio = Date.now() - t0;
+      if (voces[i]) voces[i].inicio_ms = inicio; // la voz entra cuando aparece el paso
       await page.evaluate(([n, txt]) => window.__ck.paso(n, txt), [i + 1, paso.texto]);
+      const pasoStart = Date.now();
       await pausa(500);
       if (paso.run) await paso.run(ctx);
       await shot(`paso-${i + 1}`);
       // Candado de texto en cada paso (aborta si ve datos reales).
       assertTextoLimpio(await page.evaluate(() => document.body.innerText), DEMO);
+      // CM3 — el paso dura al menos lo que dura su voz + 0,4s (la voz nunca se corta).
+      const voiceNeed = voces[i] ? voces[i].durMs + 400 : 0;
+      const elapsed = Date.now() - pasoStart;
+      await pausa(Math.max(400, voiceNeed - elapsed));
       const fin = Date.now() - t0;
       cues.push({ n: i + 1, texto: paso.texto, inicio_ms: inicio, fin_ms: fin });
-      await pausa(400);
     }
 
     // ── Cierre (2 s) ──
@@ -193,15 +232,48 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
     await browser.close();
     const webm = await video.path();
 
-    // ── ffmpeg: webm → mp4 + póster ──
+    // ── ffmpeg: webm → mp4 (video, sin audio aún) ──
     const base = `${outDir}/${guion.id}-v${version}`;
     const mp4 = `${base}.mp4`;
+    const vid = `${base}.vid.mp4`;
     const poster = `${base}.jpg`;
     const vtt = `${base}.vtt`;
     execFileSync(FFMPEG, ['-y', '-i', webm,
       '-vf', `scale=${viewport.width}:${viewport.height}:force_original_aspect_ratio=decrease,pad=${viewport.width}:${viewport.height}:(ow-iw)/2:(oh-ih)/2,fps=30`,
-      '-c:v', 'libx264', '-preset', 'medium', '-crf', '26', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', mp4],
+      '-c:v', 'libx264', '-preset', 'medium', '-crf', '26', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', vid],
       { stdio: 'inherit' });
+
+    // ── CM3 — pista de audio: voz por paso (adelay a su tiempo) + música con ducking ──
+    const conVoz = voces.filter((v) => v && v.file);
+    const musica = pistaMusica(guion.id);
+    if (conVoz.length) {
+      const inputs = [];
+      conVoz.forEach((v) => inputs.push('-i', v.file));
+      if (musica) inputs.push('-i', musica);
+      const fc = [];
+      // input 0 = vídeo (sin audio); las voces son inputs 1..N; la música es N+1.
+      conVoz.forEach((v, k) => fc.push(`[${k + 1}:a]adelay=${v.inicio_ms}|${v.inicio_ms}[v${k}]`));
+      const vlabels = conVoz.map((_, k) => `[v${k}]`).join('');
+      fc.push(`${vlabels}amix=inputs=${conVoz.length}:dropout_transition=0:normalize=0[vozraw]`);
+      let outLabel = '[vozraw]';
+      if (musica) {
+        const mIdx = conVoz.length + 1;
+        // [vozraw] se usa 2 veces (como key del ducking y en la mezcla) → asplit.
+        fc.push(`[vozraw]asplit=2[vozA][vozB]`);
+        fc.push(`[${mIdx}:a]aloop=loop=-1:size=2e9,volume=0.20[mus0]`);
+        fc.push(`[mus0][vozB]sidechaincompress=threshold=0.015:ratio=12:attack=20:release=400[musd]`);
+        fc.push(`[vozA][musd]amix=inputs=2:dropout_transition=0:normalize=0[mix]`);
+        outLabel = '[mix]';
+      }
+      fc.push(`${outLabel}loudnorm=I=-16:TP=-1.5:LRA=11[aout]`);
+      execFileSync(FFMPEG, ['-y', '-i', vid, ...inputs,
+        '-filter_complex', fc.join(';'),
+        '-map', '0:v', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '160k',
+        '-shortest', '-movflags', '+faststart', mp4], { stdio: 'inherit' });
+    } else {
+      execFileSync(FFMPEG, ['-y', '-i', vid, '-c', 'copy', mp4], { stdio: 'inherit' });
+    }
+    try { require('node:fs').unlinkSync(vid); } catch { /* noop */ }
     execFileSync(FFMPEG, ['-y', '-i', mp4, '-frames:v', '1', '-update', '1', poster], { stdio: 'inherit' });
 
     // ── VTT (subtítulos = texto de cada paso) ──
@@ -217,7 +289,9 @@ export async function grabarGuion(guion, { outDir = 'salida', version = 1 } = {}
     console.log(`✓ ${mp4}`);
     console.log(`✓ ${poster}`);
     console.log(`✓ ${vtt}  (${duracion_s}s)`);
-    grabarGuion._ultimo = { mp4, poster, vtt, duracion_s };
+    if (borradorVoz) console.log('  ⚠️ VOZ BORRADOR (edge-tts): NO subir a prod — falta la llave de Azure.');
+    else if (voces.some((v) => v)) console.log(`  🎙️ voz es-DO + ${pistaMusica(guion.id) ? 'música' : 'sin música'}`);
+    grabarGuion._ultimo = { mp4, poster, vtt, duracion_s, borradorVoz };
   }
   return grabarGuion._ultimo;
 }
