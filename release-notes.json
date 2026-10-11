@@ -4965,6 +4965,16 @@
           "d": "Ahora puedes tocar la foto de perfil de un usuario o conductor (en Usuarios, ficha del conductor, tu perfil y la info del grupo de chat) para verla en grande, con el nombre y un botón para descargar. Las fotos nuevas se guardan a mayor resolución (1080px)."
         }
       ]
+    },
+    "1.169.0": {
+      "titulo": "Logo animado al iniciar sesión",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Al iniciar sesión, el logo de CSD aparece con una breve animación (se dibuja el símbolo, rebota el punto y se descubre el nombre) antes de entrar. Dura menos de 2 segundos, se puede saltar tocando, y respeta el ajuste «Animaciones: reducidas»."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

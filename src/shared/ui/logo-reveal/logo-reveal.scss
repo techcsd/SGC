@@ -1,0 +1,81 @@
+// CM2 — Logo reveal variante A (Trazo). Velo navy, acento naranja. Solo transform/
+// opacity/stroke-dashoffset/clip-path. Keyframes = mock Logo.dc.html.
+.lr {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: #0f1f33;
+  animation: lr-veil-out 0.3s ease 1.6s forwards; // el velo se desvanece al final
+}
+
+.lr__stage { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+
+.lr__symbol { width: 150px; height: auto; }
+.lr__path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: lr-draw 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.lr__dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0);
+  animation: lr-pop 0.32s 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.lr__text { position: relative; display: inline-flex; flex-direction: column; align-items: center; }
+.lr__wipe {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  clip-path: inset(0 100% 0 0);
+  animation: lr-wipe 0.45s 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.lr__brand { font: 700 24px var(--font-display, 'Inter Tight', sans-serif); color: #fff; letter-spacing: 0.01em; }
+.lr__sub { font: 600 12px var(--font-body, 'Inter', sans-serif); color: #cbd5e1; letter-spacing: 0.32em; margin-top: 2px; }
+.lr__ul {
+  display: block;
+  height: 3px;
+  width: 100%;
+  margin-top: 8px;
+  background: #f97316;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: lr-ul 0.32s 1.05s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.lr__skip {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0;
+  animation: lr-fade 0.3s 0.9s ease forwards;
+}
+
+@keyframes lr-draw { to { stroke-dashoffset: 0; } }
+@keyframes lr-pop { to { transform: scale(1); } }
+@keyframes lr-wipe { to { clip-path: inset(0 0 0 0); } }
+@keyframes lr-ul { to { transform: scaleX(1); } }
+@keyframes lr-fade { to { opacity: 1; } }
+@keyframes lr-veil-out { to { opacity: 0; } }
+
+// reduce-motion: estático + fundido 200ms (sin trazo/rebote/wipe).
+.lr--reducido {
+  animation: lr-fade 0.2s ease forwards;
+  .lr__path { stroke-dashoffset: 0; animation: none; }
+  .lr__dot { transform: scale(1); animation: none; }
+  .lr__wipe { clip-path: inset(0 0 0 0); animation: none; }
+  .lr__ul { transform: scaleX(1); animation: none; }
+  .lr__skip { opacity: 1; animation: none; }
+  animation-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lr, .lr * { animation-duration: 0.2s !important; animation-delay: 0s !important; }
+}
