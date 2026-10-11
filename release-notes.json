@@ -4985,6 +4985,16 @@
           "d": "La sección de Dudas ahora usa todo el ancho de la pantalla (antes quedaba media pantalla vacía). Los videos se abren en un reproductor grande tipo teatro, con capítulos para saltar a cada paso, subtítulos, velocidad y pantalla completa, y un «¿Te sirvió?». Antes se veían diminutos dentro de la tarjeta."
         }
       ]
+    },
+    "1.171.0": {
+      "titulo": "Modo práctica (piloto): aprende haciendo, con nota",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Nuevo «Modo práctica» (desde Dudas): practica flujos reales con datos de mentira y recibe una nota tipo examen, con objetivos, estrellas y consejos de qué mejorar. Nada de lo que haces ahí cuenta en el sistema. Primera misión: «Crear una requisición»."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

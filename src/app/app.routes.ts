@@ -64,6 +64,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dudas/dudas').then((m) => m.Dudas),
       },
       {
+        // CM7 — modo práctica (sin gate de módulo: para todos, como Dudas).
+        path: 'practica',
+        loadComponent: () => import('./pages/practica/practica').then((m) => m.Practica),
+        title: 'Modo práctica',
+      },
+      {
         // BS3 — módulo "Configuración" (general, sin gate de módulo: como Notas/Mensajes).
         path: 'configuracion',
         loadComponent: () =>

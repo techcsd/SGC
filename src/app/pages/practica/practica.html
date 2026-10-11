@@ -1,0 +1,118 @@
+<div class="page pr-page">
+  <!-- ── Lista de misiones ── -->
+  @if (fase() === 'lista') {
+    <header class="page-header">
+      <div class="page-header__left">
+        <h1 class="page-title">Modo práctica</h1>
+        <p class="page-sub">Practica los flujos reales con datos de mentira. No cuenta en nada — es para aprender sin miedo.</p>
+      </div>
+    </header>
+    <div class="pr-grid">
+      @for (m of misiones(); track m.id) {
+        <article class="sgc-card pr-card">
+          <h2 class="pr-card__title">{{ m.titulo }}</h2>
+          <p class="pr-card__intro">{{ m.intro }}</p>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="entrar(m)">Practicar</button>
+        </article>
+      }
+      @if (misiones().length === 0) { <div class="sgc-card">No hay misiones para tu rol todavía.</div> }
+    </div>
+  }
+
+  <!-- ── Corriendo la misión ── -->
+  @if (fase() === 'corre') {
+    <div class="pr-band" role="status">
+      <span class="pr-band__tag">MODO PRÁCTICA · nada de esto es real</span>
+      <span class="pr-band__crono">{{ cronometro() }}</span>
+      <button type="button" class="pr-band__salir" (click)="salir()">Salir</button>
+    </div>
+
+    <div class="pr-run">
+      <section class="sgc-card pr-form">
+        <h2 class="pr-form__title">{{ practica.mision()?.titulo }}</h2>
+
+        <div class="sgc-field">
+          <label>Obra</label>
+          <select class="sgc-select" [value]="obraId()" (change)="obraId.set($any($event.target).value)">
+            <option value="">— Elige la obra —</option>
+            @for (o of obras; track o.id) { <option [value]="o.id">{{ o.nombre }}</option> }
+          </select>
+        </div>
+
+        <div class="sgc-field">
+          <label>Materiales</label>
+          <div class="pr-additem">
+            <select class="sgc-select" [value]="nuevoArt()" (change)="nuevoArt.set($any($event.target).value)">
+              <option value="">— Elige un material —</option>
+              @for (a of articulos; track a.id) { <option [value]="a.id">{{ a.nombre }} (stock {{ a.stock }})</option> }
+            </select>
+            <button type="button" class="sgc-btn sgc-btn--secondary sgc-btn--sm" (click)="agregarItem()">+ Agregar</button>
+          </div>
+          @for (it of items(); track it.id) {
+            <div class="pr-item">
+              <span class="pr-item__n">{{ it.nombre }}</span>
+              <input class="sgc-input pr-item__q" type="number" min="0" [value]="it.cantidad" (input)="setCantidad(it.id, $any($event.target).value)" />
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarItem(it.id)">Quitar</button>
+            </div>
+          }
+        </div>
+
+        <div class="sgc-field">
+          <label>Fecha de necesidad</label>
+          <input class="sgc-input" type="date" [value]="fechaNecesidad()" (input)="fechaNecesidad.set($any($event.target).value)" />
+        </div>
+        <div class="sgc-field">
+          <label>¿Para qué? (motivo)</label>
+          <textarea class="sgc-input" rows="2" [value]="motivo()" (input)="motivo.set($any($event.target).value)" placeholder="Ej. fundición de la losa del nivel 3…"></textarea>
+        </div>
+
+        <button type="button" class="sgc-btn sgc-btn--primary pr-form__done" (click)="terminar()">Terminar práctica</button>
+      </section>
+
+      <aside class="sgc-card pr-obj">
+        <h3 class="pr-obj__title">Objetivos</h3>
+        <ul>
+          @for (o of objetivosVivo(); track o.id) {
+            <li [class.pr-obj--ok]="o.ok">
+              <span class="pr-obj__chk">{{ o.ok ? '✓' : '○' }}</span>
+              <span>{{ o.texto }}</span>
+              <span class="pr-obj__pts">{{ o.puntos }}</span>
+            </li>
+          }
+        </ul>
+      </aside>
+    </div>
+  }
+
+  <!-- ── Resultado ── -->
+  @if (fase() === 'resultado' && resultado(); as r) {
+    <div class="pr-result">
+      <div class="pr-ring" [class.pr-ring--ok]="r.aprobada" [style.--pct]="r.nota">
+        <span class="pr-ring__num">{{ r.nota }}</span>
+      </div>
+      <div class="pr-stars" aria-label="estrellas">
+        @for (on of estrellasArr(r.estrellas); track $index) {
+          <svg viewBox="0 0 24 24" [class.pr-star--on]="on" class="pr-star" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z"/></svg>
+        }
+      </div>
+      <h2 class="pr-result__title">{{ r.aprobada ? '¡Aprobaste!' : 'Casi — repite para subir la nota' }}</h2>
+
+      <ul class="pr-check">
+        @for (o of r.objetivos; track o.id) {
+          <li [class.pr-check--ok]="o.ok">
+            <span>{{ o.ok ? '✓' : '✗' }} {{ o.texto }}</span>
+            <span class="pr-check__pts">{{ o.ok ? '+' + o.puntos : (o.consejo || '') }}</span>
+          </li>
+        }
+        @for (p of r.penalizaciones; track p.texto) {
+          <li class="pr-check--pen"><span>− {{ p.texto }}</span><span class="pr-check__pts">−{{ p.puntos }}</span></li>
+        }
+      </ul>
+
+      <div class="pr-result__actions">
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="repetir()">Repetir para subir la nota</button>
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="salir()">Salir</button>
+      </div>
+    </div>
+  }
+</div>

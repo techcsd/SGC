@@ -6,7 +6,10 @@
       <h1>Dudas y Ayuda</h1>
       <p>Encuentra cómo usar cada sección del sistema, o busca una pregunta frecuente.</p>
     </div>
-    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verBienvenida()">Ver la bienvenida otra vez</button>
+    <div class="dudas__header-actions">
+      <a class="sgc-btn sgc-btn--secondary sgc-btn--sm" routerLink="/practica">Modo práctica</a>
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="verBienvenida()">Ver la bienvenida otra vez</button>
+    </div>
   </div>
 
   <!-- Guías rápidas (visual guides) -->
