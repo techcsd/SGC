@@ -62,4 +62,34 @@
 .pr-check__pts { white-space: nowrap; font-size: 12px; }
 .pr-result__actions { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
 
+.pr-obj__chk { display: inline-flex; align-items: center; justify-content: center; width: 18px; color: var(--sgc-text-muted); }
+.pr-check__txt { display: inline-flex; align-items: center; gap: 6px; svg { flex: none; } }
+
+// CM7 7c — panel de equipo.
+.pr-empty { color: var(--sgc-text-secondary); }
+.pr-team {
+  border: 1px solid var(--sgc-border); border-radius: 12px; overflow: hidden; background: var(--sgc-surface);
+  &__head, &__row { display: grid; grid-template-columns: 1fr 90px 80px 80px 100px; gap: 10px; align-items: center; padding: 10px 14px; }
+  &__head { background: var(--sgc-surface-2, #f2f4f7); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sgc-text-secondary); }
+  &__row { width: 100%; border: none; border-top: 1px solid var(--sgc-border); background: transparent; cursor: pointer; text-align: left; font: inherit; color: var(--sgc-text); font-size: 14px;
+    &:hover { background: var(--sgc-surface-2, #f2f4f7); } }
+  &__name { font-weight: 600; min-width: 0; }
+  &__nota { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--sgc-text-secondary); }
+  &__nota--ok { color: var(--success, #16a34a); }
+  @media (max-width: 768px) {
+    &__head { display: none; }
+    &__row { grid-template-columns: 1fr auto; row-gap: 4px; }
+  }
+}
+.pr-persona {
+  margin-top: 16px; border: 1px solid var(--sgc-border); border-radius: 12px; padding: 14px 16px; background: var(--sgc-surface);
+  &__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  &__title { margin: 0; font-size: 16px; font-weight: 700; color: var(--sgc-text); }
+  &__empty { color: var(--sgc-text-secondary); font-size: 14px; margin: 8px 0 0; }
+  &__list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  &__row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 8px 10px; border-radius: 8px; background: var(--sgc-surface-2, #f2f4f7); font-size: 13px; }
+  &__mision { flex: 1 1 180px; font-weight: 600; color: var(--sgc-text); }
+  &__meta { color: var(--sgc-text-secondary); }
+}
+
 @media (prefers-reduced-motion: reduce) { .pr-star, .pr-ring { animation: none; transition: none; } }

@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from '../services/supabase.service';
-import { MisionPractica, RespuestaPractica, ResultadoPractica } from './practica.model';
+import { MisionPractica, RespuestaPractica, ResultadoPractica, ResultadoEquipoFila, ResultadoPersonaFila } from './practica.model';
 
 /**
  * CM7 — modo práctica. Mantiene el estado del intento EN MEMORIA (nunca sale a la red,
@@ -53,5 +53,27 @@ export class PracticaService {
         p_detalle: { objetivos: res.objetivos.map((o) => ({ id: o.id, ok: o.ok })) }, p_plataforma: 'web',
       });
     } catch { /* práctica: si falla el guardado, no pasa nada grave */ }
+  }
+
+  // ── CM7 7c — panel de resultados del equipo (jefe/RRHH/admin) ──
+  /** ¿El usuario actual puede ver el panel de equipo? */
+  async puedeVerEquipo(): Promise<boolean> {
+    const { data, error } = await this.supabase.client.rpc('practica_puede_ver_equipo');
+    if (error) return false;
+    return !!data;
+  }
+
+  /** Resumen por persona de la gente que el usuario actual puede ver. */
+  async resultadosEquipo(): Promise<ResultadoEquipoFila[]> {
+    const { data, error } = await this.supabase.client.rpc('practica_resultados_equipo');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ResultadoEquipoFila[];
+  }
+
+  /** Detalle por misión de una persona (si el que pregunta puede verla). */
+  async resultadosPersona(usuarioId: string): Promise<ResultadoPersonaFila[]> {
+    const { data, error } = await this.supabase.client.rpc('practica_resultados_persona', { p_usuario_id: usuarioId });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ResultadoPersonaFila[];
   }
 }

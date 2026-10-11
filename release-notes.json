@@ -5005,6 +5005,16 @@
           "d": "Ahora puedes limitar cuántas veces cuenta cada actividad (por día y por semana) y poner un tope total de puntos por semana. El ayudante cuenta en el mismo tope que lo propio (lo propio primero) y el factor del ayudante se aplica después del tope. Se incluye un botón «Sugerir topes» basado en el historial. Los informes ya generados no cambian; aplica al generar o recalcular una semana."
         }
       ]
+    },
+    "1.173.0": {
+      "titulo": "Modo práctica: panel de resultados del equipo",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Los jefes, RRHH y administradores ahora pueden ver cómo va su gente en el «Modo práctica»: resumen por persona (intentos, mejor nota, última, aprobadas) y detalle por misión. Es solo para acompañar y entrenar — la práctica no cuenta en evaluaciones ni incentivos."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
