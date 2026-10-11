@@ -55,7 +55,7 @@
 | documentos/historial | - | 15 | 0 | 15 | 0% |
 | documentos/plantillas | - | 61 | 0 | 61 | 0% |
 | documentos/ver | - | 15 | 0 | 15 | 0% |
-| dudas | - | 29 | 0 | 29 | 0% |
+| dudas | - | 30 | 0 | 30 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
 | flota/checklists | - | 165 | 0 | 165 | 0% |
@@ -116,6 +116,7 @@
 | obra/subcontratistas | - | 104 | 0 | 104 | 0% |
 | politicas/eliminar-cuenta | - | 13 | 0 | 13 | 0% |
 | politicas | - | 21 | 0 | 21 | 0% |
+| practica | - | 33 | 0 | 33 | 0% |
 | proyectos/cargos | - | 31 | 0 | 31 | 0% |
 | proyectos/clima | - | 54 | 0 | 54 | 0% |
 | proyectos/compras | - | 40 | 0 | 40 | 0% |

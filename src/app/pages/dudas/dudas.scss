@@ -9,6 +9,12 @@
 }
 
 .dudas__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+
   h1 {
     margin: 0 0 4px;
     font-size: 22px;
@@ -295,3 +301,6 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
   text-align: left;
 }
+
+// CM7 — acciones del header de Dudas (Modo práctica + bienvenida).
+.dudas__header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
