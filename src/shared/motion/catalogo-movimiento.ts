@@ -32,9 +32,10 @@ export interface MovimientoEntry {
 
 /** Ids canónicos — ÚNICA forma de referenciar una animación en el código. */
 export const MOTION_IDS = {
-  // Grandes (overlay) — CJ2/CJ3
+  // Grandes (overlay) — CJ2/CJ3/CM2
   celebracionConduce: 'celebracion-conduce',
   celebracionRuta: 'celebracion-ruta',
+  loginReveal: 'login-reveal',
   // Medianos (0.8s, sin velo) — CL2/CL5
   momentoEntrada: 'momento-entrada',
   momentoSalida: 'momento-salida',
@@ -67,6 +68,12 @@ export const CATALOGO_MOVIMIENTO: MovimientoEntry[] = [
     donde: 'Al crear una ruta', pantallas: ['flota/rutas'],
     duracionMs: 1600, curva: 'var(--ease-out)', reducido: 'Solo el check + el texto', desdeVersion: '1.159.0',
     previewKey: 'celebracion-ruta', estado: 'en_uso',
+  },
+  {
+    id: MOTION_IDS.loginReveal, nombre: 'Logo al entrar', nivel: 'grande', sistema: 'web',
+    donde: 'Después de iniciar sesión (variante A · Trazo)', pantallas: ['auth'],
+    duracionMs: 1800, curva: 'cubic-bezier(.65,0,.35,1)', reducido: 'Logo estático + fundido 200ms',
+    desdeVersion: '1.168.0', previewKey: 'login-reveal', estado: 'en_uso',
   },
   {
     id: MOTION_IDS.momentoEntrada, nombre: 'Entrada registrada', nivel: 'mediano', sistema: 'web',

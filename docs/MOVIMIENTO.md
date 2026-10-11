@@ -64,3 +64,6 @@ Badge inferior-centro, ~0.8s, SIN velo, no bloquea, `aria-live`. Tipos: `entrada
   - `notas` compartir → `momento('mensaje')`
   - conduce externo emitido → celebración grande (CJ2) en `conduce-externo-form`.
 - ⬜ Pendiente (mecánico, mismo patrón): más disparadores `momento(...)` (entrada, aprobado de requisición/OC/ausencia, firma, checklist, mensaje/nota, documento) y `appCountUp`/`appEstadoPulse` donde aporten, módulo por módulo.
+
+## CM2 — Logo reveal al entrar (1.169.0)
+`src/shared/ui/logo-reveal/` (variante A · Trazo): tras un login OK, `auth.ts` llama `LogoRevealService.reproducir()` y navega a la vez; el componente montado en el root (`app.html`) muestra el velo navy, dibuja el símbolo SD (stroke-dashoffset), rebota el punto, descubre el texto (clip-path wipe) y crece el subrayado. Se va a ~1,8s (rango 1,2-2,2s) o al tocar/tecla; una vez por sesión (`sessionStorage`); no sale en cambio de contraseña obligatorio. reduce-motion = estático + fundido 200ms. Registro `login-reveal` (nivel grande). Símbolo estático: `assets/imgs/logos/csd-logo-simbolo.svg` (geometría del mock §D.2), usado también en la pantalla de login. Vector pendiente de comparación PNG vs SVG por Xaviel.
