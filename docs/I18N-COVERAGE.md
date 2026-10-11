@@ -158,6 +158,6 @@
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |
-| app-movil | - | 50 | 8 | 42 | 16% |
+| app-movil | - | 55 | 8 | 47 | 15% |
 | auth | - | 71 | 15 | 56 | 21% |
 | bitacora/orden-trabajo | - | 130 | 27 | 103 | 21% |

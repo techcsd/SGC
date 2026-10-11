@@ -72,6 +72,12 @@
       } @else {
         <p class="am-muted">Aún no hay un APK publicado.</p>
       }
+      @if (tieneVideo('instalar-android')) {
+        <button type="button" class="sgc-btn sgc-btn--secondary am-vervideo" (click)="verVideo('instalar-android')">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          Ver video de instalación
+        </button>
+      }
     </div>
   </section>
 
@@ -101,5 +107,15 @@
         <li>Ábrela desde el ícono. Entra con tu usuario del sistema.</li>
       </ol>
     }
+    @if (tieneVideo('instalar-iphone')) {
+      <button type="button" class="sgc-btn sgc-btn--secondary am-vervideo" (click)="verVideo('instalar-iphone')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        Ver video de instalación
+      </button>
+    }
   </section>
 </div>
+
+@if (videoActivo(); as v) {
+  <app-video-teatro [src]="v.video" [poster]="v.poster" [titulo]="v.titulo" [slug]="v.slug" (closed)="cerrarVideo()" />
+}
