@@ -5,6 +5,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { PreferenciasService } from '../../../shared/services/preferencias.service';
+import { LogoRevealService } from '../../../shared/ui/logo-reveal/logo-reveal.service';
 import { TranslatePipe } from '../../../shared/i18n/translate.pipe';
 import { CedulaMask } from '../../../shared/ui/cedula-mask.directive';
 import { normalizarCedula } from '../../../shared/utils/cedula.util';
@@ -20,6 +21,7 @@ export class Auth {
   private authService = inject(AuthService);
   private userService = inject(UserService);
   private preferencias = inject(PreferenciasService);
+  private logoReveal = inject(LogoRevealService);
   private router = inject(Router);
 
   loading = signal(false);
@@ -184,6 +186,8 @@ export class Auth {
     } catch {
       /* best-effort */
     }
+    // CM2 — logo reveal al entrar (una vez por sesión); no bloquea la navegación.
+    this.logoReveal.reproducir();
     this.router.navigate([destino]);
   }
 

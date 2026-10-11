@@ -8,11 +8,12 @@ import { PreferenciasService } from '../shared/services/preferencias.service';
 import { aplicarDensidad, aplicarTamanoLetra, aplicarMovimiento, leerMovimientoReducido } from '../shared/utils/apariencia.util';
 import { ToastComponent } from '../shared/components/toast/toast';
 import { EntornoBadge } from '../shared/ui/entorno-badge/entorno-badge';
+import { LogoReveal } from '../shared/ui/logo-reveal/logo-reveal';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ToastComponent, EntornoBadge],
+  imports: [RouterOutlet, ToastComponent, EntornoBadge, LogoReveal],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
