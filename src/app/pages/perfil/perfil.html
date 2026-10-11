@@ -11,7 +11,7 @@
       <div class="perfil-avatar">
         @if (avatarUrl() && !avatarFailed(); as url) {
           <!-- BT3 — si la foto no carga (path sin archivo, URL vencida), cae a la inicial. -->
-          <img [src]="avatarUrl()" alt="Foto de perfil" class="perfil-avatar__img" (error)="avatarFailed.set(true)" />
+          <img [src]="avatarUrl()" alt="Foto de perfil" class="perfil-avatar__img" (error)="avatarFailed.set(true)" appVerFoto [verFotoNombre]="p.nombre" />
         } @else {
           <span class="perfil-avatar__initials">{{ iniciales() }}</span>
         }

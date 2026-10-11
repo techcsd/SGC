@@ -35,6 +35,7 @@ import {
   MultaEstado,
 } from '../../../../../shared/models/flota-incidencias.model';
 import { FormDrawer } from '../../../../../shared/components/form-drawer/form-drawer';
+import { VerFotoDirective } from '../../../../../shared/ui/lightbox/ver-foto.directive';
 import {
   ConductorStats,
   ConductorStatsPeriodo,
@@ -59,7 +60,7 @@ const MAX_HIST = 15;
 
 @Component({
   selector: 'app-conductor-detalle',
-  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle],
+  imports: [HumanizarEnumPipe, DecimalPipe, RouterLink, ReactiveFormsModule, Skeleton, DocumentosFlota, FormDrawer, MultaDetalle, VerFotoDirective],
   templateUrl: './conductor-detalle.html',
   styleUrl: './conductor-detalle.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

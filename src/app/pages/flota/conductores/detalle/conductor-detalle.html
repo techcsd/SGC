@@ -15,7 +15,8 @@
     <!-- AS2 — avatar del conductor (foto del usuario vinculado o iniciales) -->
     @if (avatarUrl()) {
       <img class="cd-avatar cd-avatar--img" [src]="avatarUrl()!"
-           [alt]="'Foto de ' + conductor()!.nombre" width="60" height="60" />
+           [alt]="'Foto de ' + conductor()!.nombre" width="60" height="60"
+           appVerFoto [verFotoNombre]="conductor()!.nombre" />
     } @else {
       <div class="cd-avatar" aria-hidden="true">{{ iniciales() }}</div>
     }

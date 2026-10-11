@@ -15,6 +15,7 @@ import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { Icon } from '../../../shared/ui/icon/icon';
 import { IconName } from '../../../shared/ui/icon/icons';
 import { ThemeService } from '../../../shared/services/theme.service';
+import { VerFotoDirective } from '../../../shared/ui/lightbox/ver-foto.directive';
 
 interface ActividadItem {
   fecha: string;
@@ -25,7 +26,7 @@ interface ActividadItem {
 
 @Component({
   selector: 'app-perfil',
-  imports: [DatePipe, RouterLink, DonutChart, BarChart, Skeleton, Icon],
+  imports: [DatePipe, RouterLink, DonutChart, BarChart, Skeleton, Icon, VerFotoDirective],
   templateUrl: './perfil.html',
   styleUrl: './perfil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

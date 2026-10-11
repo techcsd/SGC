@@ -24,7 +24,7 @@ interface PerfilConfig {
 const PERFILES: Record<PerfilCompresion, PerfilConfig> = {
   evidencia: { maxLado: 1280, calidad: 0.72 }, // fotos de obra/conduce/checklist
   documento: { maxLado: 2000, calidad: 0.8 },  // legibilidad de documentos escaneados
-  avatar:    { maxLado: 512,  calidad: 0.8 },  // foto de perfil
+  avatar:    { maxLado: 1080, calidad: 0.8 },  // foto de perfil (CM5: 512→1080 para verla en grande)
   sticker:   { maxLado: 512,  calidad: 0.8 },  // stickers propios
 };
 
