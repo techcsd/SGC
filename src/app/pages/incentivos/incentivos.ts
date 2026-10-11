@@ -89,6 +89,9 @@ export class Incentivos implements OnInit {
   cfgPenalGracia = signal(2);
   cfgPenalPts = signal(0);
   cfgPenalTope = signal(4);
+  // CM6 — tope TOTAL de puntos por semana (null = sin tope) + topes por actividad (nº de veces).
+  cfgMaximo = signal<number | null>(null);
+  cfgTopes = signal<Record<string, { dia: number | null; semana: number | null }>>({});
 
   busy = signal(false);
 
@@ -273,6 +276,8 @@ export class Incentivos implements OnInit {
         this.cfgPenalGracia.set(Number(cfg.pesos['_penal_gracia_dias'] ?? 2));
         this.cfgPenalPts.set(Number(cfg.pesos['_penal_pts_dia'] ?? 0));
         this.cfgPenalTope.set(Number(cfg.pesos['_penal_tope'] ?? 4));
+        this.cfgMaximo.set(cfg.maximo_semanal ?? null);
+        this.cfgTopes.set({ ...(cfg.topes ?? {}) });
       }
 
       // Deep-link desde el email: /incentivos?anio=&semana=
@@ -705,13 +710,56 @@ export class Incentivos implements OnInit {
   setPeso(renglon: string, value: string) {
     this.cfgPesos.update((p) => ({ ...p, [renglon]: Number(value) }));
   }
+
+  // CM6 — tope por actividad (nº de veces). Campo vacío = sin tope (null).
+  setTope(renglon: string, campo: 'dia' | 'semana', value: string) {
+    const n = value.trim() === '' ? null : Math.max(0, Math.floor(Number(value) || 0));
+    this.cfgTopes.update((t) => {
+      const prev = t[renglon] ?? { dia: null, semana: null };
+      return { ...t, [renglon]: { ...prev, [campo]: n } };
+    });
+  }
+  topeDe(renglon: string, campo: 'dia' | 'semana'): number | null {
+    return this.cfgTopes()[renglon]?.[campo] ?? null;
+  }
+  setMaximo(value: string) {
+    this.cfgMaximo.set(value.trim() === '' ? null : Math.max(0, Number(value) || 0));
+  }
+
+  // CM6 — sugiere topes (p90 de las últimas ~8 semanas) y los precarga en el formulario.
+  async sugerirTopes() {
+    if (this.busy()) return;
+    this.busy.set(true);
+    try {
+      const sug = await this.service.sugerirTopes();
+      if (!Object.keys(sug).length) {
+        this.toast.info('Sin datos suficientes', 'Aún no hay semanas generadas para sugerir topes.');
+        return;
+      }
+      this.cfgTopes.set({ ...sug });
+      this.toast.success('Topes sugeridos', 'Revísalos y guarda una nueva versión para aplicarlos.');
+    } catch (e) {
+      this.toast.error('No se pudo sugerir', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   async guardarConfig() {
     if (this.busy()) return;
     this.busy.set(true);
     try {
-      await this.service.setConfig(this.cfgMinimo(), this.cfgPesos(), this.cfgFactor(), 'Editado desde Incentivos');
+      // Limpia topes vacíos (ambos null) para no guardar ruido.
+      const topes: Record<string, { dia: number | null; semana: number | null }> = {};
+      for (const [r, t] of Object.entries(this.cfgTopes())) {
+        if (t && (t.dia != null || t.semana != null)) topes[r] = { dia: t.dia ?? null, semana: t.semana ?? null };
+      }
+      await this.service.setConfig(
+        this.cfgMinimo(), this.cfgPesos(), this.cfgFactor(), 'Editado desde Incentivos',
+        this.cfgMaximo(), topes,
+      );
       this.config.set(await this.service.configActual());
-      this.toast.success('Configuración guardada', 'Los informes futuros usarán estos pesos; los anteriores conservan los suyos.');
+      this.toast.success('Configuración guardada', 'Los informes futuros usarán estos pesos y topes; los anteriores conservan los suyos. Recalcula una semana para aplicarlos.');
       this.mostrarConfig.set(false);
     } catch (e) {
       this.toast.error('No se pudo guardar', e instanceof Error ? e.message : undefined);

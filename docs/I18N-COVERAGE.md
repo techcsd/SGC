@@ -75,7 +75,7 @@
 | flota/rutas-activas | - | 69 | 0 | 69 | 0% |
 | flota/seguimiento | - | 43 | 0 | 43 | 0% |
 | forbidden | - | 4 | 0 | 4 | 0% |
-| incentivos | - | 226 | 0 | 226 | 0% |
+| incentivos | - | 238 | 0 | 238 | 0% |
 | inventario/activos | - | 117 | 0 | 117 | 0% |
 | inventario/ajuste-real | - | 39 | 0 | 39 | 0% |
 | inventario/almacen-inventario | - | 68 | 0 | 68 | 0% |

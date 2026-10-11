@@ -53,6 +53,41 @@
   &__actions { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4); }
 }
 
+// CM6 — tabla de topes por actividad (actividad · veces/día · veces/semana).
+.inc-topes {
+  margin-top: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+
+  &__head, &__row {
+    display: grid;
+    grid-template-columns: 1fr 120px 120px;
+    gap: var(--space-2);
+    align-items: center;
+    padding: var(--space-2) var(--space-3);
+  }
+  &__head {
+    background: var(--surface-2);
+    font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-2);
+  }
+  &__row {
+    border-top: 1px solid var(--border);
+    font-size: var(--fs-sm); color: var(--text);
+    input {
+      width: 100%; padding: 6px var(--space-2);
+      border: 1px solid var(--border-strong); border-radius: var(--radius);
+      font-size: var(--fs-base); background: var(--surface); color: var(--text); text-align: center;
+      &:focus { outline: none; border-color: var(--brand); box-shadow: var(--focus-ring); }
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__head { display: none; }
+    &__row { grid-template-columns: 1fr; gap: var(--space-1); }
+  }
+}
+
 .inc-toolbar {
   display: flex;
   flex-wrap: wrap;

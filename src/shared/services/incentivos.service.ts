@@ -59,6 +59,9 @@ export interface IncentivoDecision {
   decidido_en: string;
 }
 
+/** CM6 — tope por actividad: número de veces que cuenta (por día / por semana). null = sin tope. */
+export interface IncentivoTope { dia: number | null; semana: number | null; }
+
 export interface IncentivoConfig {
   version: number;
   minimo_semanal: number;
@@ -66,6 +69,9 @@ export interface IncentivoConfig {
   ayudante_factor: number;
   activo: boolean;
   nota: string | null;
+  // CM6 — tope TOTAL de puntos por semana (null = sin tope) + topes por actividad.
+  maximo_semanal: number | null;
+  topes: Record<string, IncentivoTope>;
 }
 
 export interface MiRendimientoSemana {
@@ -205,12 +211,24 @@ export class IncentivosService {
     return (data ?? null) as IncentivoConfig | null;
   }
 
-  async setConfig(minimo: number, pesos: Record<string, number>, ayudanteFactor: number, nota: string | null): Promise<number> {
+  /** CM6 — crea versión nueva. `maximo`/`topes` opcionales (null/{} = sin tope → se comporta igual que antes). */
+  async setConfig(
+    minimo: number, pesos: Record<string, number>, ayudanteFactor: number, nota: string | null,
+    maximo: number | null = null, topes: Record<string, IncentivoTope> = {},
+  ): Promise<number> {
     const { data, error } = await this.supabase.client.rpc('incentivo_set_config', {
       p_minimo: minimo, p_pesos: pesos, p_ayudante_factor: ayudanteFactor, p_nota: nota,
+      p_maximo: maximo, p_topes: topes,
     });
     if (error) throw new Error(error.message);
     return (data ?? 0) as number;
+  }
+
+  /** CM6 — sugiere topes por actividad (p90 de las últimas ~8 semanas) → {renglon: {dia, semana}}. */
+  async sugerirTopes(): Promise<Record<string, IncentivoTope>> {
+    const { data, error } = await this.supabase.client.rpc('incentivo_sugerir_topes');
+    if (error) throw new Error(error.message);
+    return (data ?? {}) as Record<string, IncentivoTope>;
   }
 
   /** AX4 — configura la penalización por estancamiento sobre la config activa

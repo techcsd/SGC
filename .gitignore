@@ -81,3 +81,5 @@ qa/pdf/*.pdf
 qa/visual/cb/
 qa/visual/.auth.json
 qa/visual/rutas.json
+tutoriales/.voz-cache/
+tutoriales/assets/musica/
