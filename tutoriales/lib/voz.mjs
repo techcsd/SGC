@@ -7,23 +7,29 @@
 //   const { file, borrador } = await sintetizar('Hola, vamos a crear un conduce.');
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 
-// Carga .env.local (AZURE_SPEECH_KEY / AZURE_SPEECH_REGION) sin dependencias.
+const AQUI = dirname(fileURLToPath(import.meta.url)); // tutoriales/lib
+
+// Carga .env.local (AZURE_SPEECH_KEY / AZURE_SPEECH_REGION) sin dependencias. Robusto al
+// cwd: busca en la raíz del repo (lib/../../.env.local) y en el cwd como respaldo.
 function cargarEnv() {
-  const f = resolve(process.cwd(), '.env.local');
-  if (!existsSync(f)) return;
-  for (const line of readFileSync(f, 'utf8').split('\n')) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+  for (const f of [resolve(AQUI, '..', '..', '.env.local'), resolve(process.cwd(), '.env.local'), resolve(process.cwd(), '..', '.env.local')]) {
+    if (!existsSync(f)) continue;
+    for (const line of readFileSync(f, 'utf8').split(/\r?\n/)) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+      if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
+    break;
   }
 }
 cargarEnv();
 
 export const VOZ_DEFAULT = 'es-DO-RamonaNeural';
 export const VOZ_ALT = 'es-DO-EmilioNeural';
-const CACHE = resolve('tutoriales', '.voz-cache');
+const CACHE = resolve(AQUI, '..', '.voz-cache'); // tutoriales/.voz-cache
 const KEY = process.env.AZURE_SPEECH_KEY;
 const REGION = process.env.AZURE_SPEECH_REGION || 'eastus';
 
