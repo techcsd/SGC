@@ -4955,6 +4955,16 @@
           "d": "Ya se puede transferir un conduce que tiene a alguien designado para recibir en obra, mientras el material no haya salido o esté en ruta. Antes el sistema lo marcaba «pendiente de firma» antes de tiempo y bloqueaba la transferencia. El botón ahora se apaga con el motivo cuando de verdad no se puede (ya llegó a la obra), y el receptor solo puede firmar cuando el conduce realmente llega."
         }
       ]
+    },
+    "1.168.0": {
+      "titulo": "Ver la foto de perfil en grande",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "Ahora puedes tocar la foto de perfil de un usuario o conductor (en Usuarios, ficha del conductor, tu perfil y la info del grupo de chat) para verla en grande, con el nombre y un botón para descargar. Las fotos nuevas se guardan a mayor resolución (1080px)."
+        }
+      ]
     }
   },
   "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."

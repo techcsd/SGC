@@ -22,6 +22,8 @@ export class Lightbox {
   /** URL (ya firmada) de la imagen a mostrar. */
   src = input.required<string>();
   alt = input<string>('Imagen');
+  /** CM5 — título opcional (p. ej. el nombre de la persona). */
+  title = input<string>('');
   /** Emite cuando el usuario cierra (✕, Esc o clic fuera). */
   closed = output<void>();
 }

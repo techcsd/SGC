@@ -14,6 +14,7 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { GrupoInfo, GrupoParticipante } from '../../../../shared/models/mensaje.model';
+import { VerFotoDirective } from '../../../../shared/ui/lightbox/ver-foto.directive';
 
 interface UsuarioDir {
   id: string;
@@ -26,7 +27,7 @@ interface UsuarioDir {
 
 @Component({
   selector: 'app-grupo-info',
-  imports: [ReactiveFormsModule, FormDrawer],
+  imports: [ReactiveFormsModule, FormDrawer, VerFotoDirective],
   templateUrl: './grupo-info.html',
   styleUrl: './grupo-info.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
