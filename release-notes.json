@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.182.0": {
+      "titulo": "Vista previa de Animaciones muestra las escenas a pantalla completa",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Administración",
+          "d": "En Administración › Animaciones, la vista previa de cada momento ahora reproduce su escena real a pantalla completa (antes mostraba siempre la del conduce). Se agregó también la vista previa del logo al entrar."
+        }
+      ]
+    },
     "1.181.0": {
       "titulo": "Más acciones con su animación de confirmación a pantalla completa",
       "cambios": [
