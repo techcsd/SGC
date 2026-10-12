@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { PracticaService } from '../../core/practica/practica.service';
 import { UserService } from '../../core/services/user.service';
 import { MISIONES_PILOTO } from '../../core/practica/practica.data';
@@ -23,6 +24,7 @@ import {
 export class Practica implements OnInit {
   practica = inject(PracticaService);
   private user = inject(UserService);
+  private router = inject(Router);
 
   fase = signal<'lista' | 'corre' | 'resultado' | 'equipo'>('lista');
   resultado = signal<ResultadoPractica | null>(null);
@@ -102,6 +104,13 @@ export class Practica implements OnInit {
   }
 
   entrar(m: MisionPractica) {
+    // CM7 7b — misión con pantalla REAL: activa el cliente de práctica y navega a la
+    // pantalla real; la banda global (app-practica-banda) maneja objetivos y resultado.
+    if (m.rutaReal) {
+      this.practica.entrar(m);
+      void this.router.navigate([m.rutaReal]);
+      return;
+    }
     this.practica.entrar(m);
     const init: Record<string, unknown> = {};
     for (const c of m.campos ?? []) init[c.id] = this.valorInicial(c);

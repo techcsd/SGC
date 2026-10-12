@@ -1,0 +1,47 @@
+@if (visible()) {
+  <!-- Banda naranja fija -->
+  <div class="pb" role="status" aria-live="polite">
+    <div class="pb__bar">
+      <span class="pb__dot" aria-hidden="true"></span>
+      <strong class="pb__modo">MODO PRÁCTICA</strong>
+      <span class="pb__sep">·</span>
+      <span class="pb__hint">datos de mentira — nada de esto es real</span>
+      <span class="pb__mision">{{ titulo() }}</span>
+      <span class="pb__crono" aria-label="Tiempo">{{ cronometro() }}</span>
+      <span class="pb__meta">{{ cumplidos() }}/{{ objetivos().length }} objetivos</span>
+      <button type="button" class="pb__btn pb__btn--ghost" (click)="terminar()">Ya terminé</button>
+      <button type="button" class="pb__btn" (click)="salir()">Salir</button>
+    </div>
+  </div>
+
+  <!-- Resultado -->
+  @if (resultado(); as r) {
+    <div class="pb-res" role="dialog" aria-modal="true" aria-label="Resultado de la práctica">
+      <div class="pb-res__card">
+        <div class="pb-res__ring" [class.pb-res__ring--ok]="r.aprobada" [style.--pct]="r.nota">
+          <span class="pb-res__nota">{{ r.nota }}</span>
+        </div>
+        <div class="pb-res__stars" aria-label="Estrellas">
+          @for (s of estrellasArr(r.estrellas); track $index) {
+            <span class="pb-res__star" [class.pb-res__star--on]="s">★</span>
+          }
+        </div>
+        <h2 class="pb-res__title">{{ r.aprobada ? '¡Aprobaste!' : 'Puedes mejorar' }}</h2>
+        <ul class="pb-res__list">
+          @for (o of r.objetivos; track o.id) {
+            <li [class.pb-res__li--ok]="o.ok" [class.pb-res__li--no]="!o.ok">
+              <span class="pb-res__mark">{{ o.ok ? '✓' : '✗' }}</span>
+              <span class="pb-res__txt">{{ o.texto }} <small>({{ o.puntos }} pts)</small>
+                @if (!o.ok && o.consejo) { <em class="pb-res__tip">{{ o.consejo }}</em> }
+              </span>
+            </li>
+          }
+        </ul>
+        <div class="pb-res__actions">
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="repetir()">Repetir</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="salir()">Terminar</button>
+        </div>
+      </div>
+    </div>
+  }
+}
