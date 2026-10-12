@@ -756,9 +756,12 @@
     z-index: 200;
   }
 
-  // While the drawer is open, force full labels regardless of desktop `collapsed`.
+  // While the drawer is open, force full width + labels regardless of the desktop
+  // `collapsed` rule (CN3 — en Android abría como riel de iconos sin nombres).
   .shell.mobile-open .shell-sidebar {
     transform: translateX(0);
+    width: var(--sgc-sidebar-width);
+    min-width: var(--sgc-sidebar-width);
 
     .sidebar-brand-text,
     .nav-label,
@@ -809,7 +812,8 @@
 
 @media (max-width: 380px) {
   // On very small screens the drawer shouldn't cover the whole viewport.
-  .shell-sidebar {
+  .shell-sidebar,
+  .shell.mobile-open .shell-sidebar {
     width: 86vw;
     min-width: 86vw;
   }

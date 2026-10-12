@@ -5,6 +5,7 @@ import {
   input,
   output,
   signal,
+  computed,
   effect,
   viewChild,
   ElementRef,
@@ -42,7 +43,22 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
 
   latitud = input<number | null>(null);
   longitud = input<number | null>(null);
+  /** CN1 — con un punto elegido, el selector se pliega a una fila (icono + nombre + ✓ +
+   *  "Cambiar") para sacar el mapa de la vista. `false` lo deja siempre abierto. */
+  plegable = input<boolean>(true);
   ubicacionChange = output<UbicacionSeleccionada>();
+
+  /** CN1 — ¿plegado ahora mismo? */
+  colapsado = signal(false);
+  /** ¿Hay un punto elegido (para mostrar la fila plegada)? */
+  tienePunto = computed(() => !!this.direccion() || (this.latitud() != null && this.longitud() != null));
+  /** Etiqueta de la fila plegada: la dirección o las coordenadas. */
+  etiquetaPunto = computed(() => {
+    const d = this.direccion();
+    if (d) return d;
+    const la = this.latitud(); const lo = this.longitud();
+    return la != null && lo != null ? `${la.toFixed(5)}, ${lo.toFixed(5)}` : '';
+  });
 
   private mapEl = viewChild.required<ElementRef<HTMLDivElement>>('map');
   private searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
@@ -76,8 +92,22 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
         this.map.setCenter({ lat, lng });
         this.map.setZoom(15);
         void this.setMarker(lat, lng, false);
+        // CN1 — un punto fijado por el padre (obra/almacén, "usar mi ubicación", edición)
+        // también pliega el selector.
+        if (this.plegable()) this.colapsado.set(true);
       }
     });
+  }
+
+  /** CN1 — pliega el selector si está activo el modo plegable. */
+  private colapsarSiElegido() {
+    if (this.plegable()) this.colapsado.set(true);
+  }
+
+  /** CN1 — "Cambiar": vuelve a abrir el mapa y recalcula su tamaño tras la transición. */
+  cambiar() {
+    this.colapsado.set(false);
+    setTimeout(() => this.refrescar(), 240);
   }
 
   async ngAfterViewInit() {
@@ -102,7 +132,11 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       clickableIcons: false,
     });
 
-    if (lat != null && lng != null) void this.setMarker(lat, lng, false);
+    if (lat != null && lng != null) {
+      void this.setMarker(lat, lng, false);
+      // CN1 — editar con un punto ya elegido arranca plegado.
+      if (this.plegable()) this.colapsado.set(true);
+    }
 
     this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
       if (e.latLng) void this.setMarker(e.latLng.lat(), e.latLng.lng(), true);
@@ -143,6 +177,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       const dir = await this.geocoding.reverse({ latitud: lat, longitud: lng });
       this.direccion.set(dir);
       this.ubicacionChange.emit({ latitud: lat, longitud: lng, direccion: dir });
+      this.colapsarSiElegido();
     }
   }
 
@@ -213,6 +248,7 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
       this.map?.setZoom(16);
       void this.setMarker(lat, lng, false);
       this.ubicacionChange.emit({ latitud: lat, longitud: lng, direccion: dir });
+      this.colapsarSiElegido();
     } catch {
       this.linkError.set('No se pudo resolver el link ahora. Reintenta o marca el punto en el mapa.');
     } finally {
@@ -234,5 +270,6 @@ export class LocationPicker implements AfterViewInit, OnDestroy {
     this.map?.setZoom(16);
     void this.setMarker(detalle.lat, detalle.lng, false);
     this.ubicacionChange.emit({ latitud: detalle.lat, longitud: detalle.lng, direccion: dir });
+    this.colapsarSiElegido();
   }
 }
