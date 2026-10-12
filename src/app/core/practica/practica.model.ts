@@ -1,4 +1,17 @@
 /** CM7 — modo práctica (simulador local, datos de mentira, nota tipo examen). */
+import { EscenarioPractica, EscrituraPractica } from './practica-cliente.service';
+export type { EscenarioPractica, EscrituraPractica };
+
+/** CM7 7b — objetivo de una misión con PANTALLA REAL: se evalúa sobre lo que el usuario
+ *  escribió (capturado en memoria por el cliente de práctica), no sobre un formulario. */
+export interface ObjetivoReal {
+  id: string;
+  texto: string;
+  puntos: number;
+  /** ¿Cumplido? Recibe las escrituras que hizo el usuario en la pantalla real. */
+  cumple: (escrituras: EscrituraPractica[]) => boolean;
+  consejo?: string;
+}
 
 export interface Objetivo {
   id: string;
@@ -51,6 +64,17 @@ export interface MisionPractica {
   campos?: CampoPractica[];
   objetivos: Objetivo[];
   penalizaciones: Penalizacion[];
+  /** CM7 7b — pantalla REAL a la que lleva la misión (ruta del router). Si está, la práctica
+   *  activa el cliente de práctica con `escenario` y navega aquí en vez de usar el formulario
+   *  simplificado. */
+  rutaReal?: string;
+  /** CM7 7a — datos de mentira que sirve el cliente de práctica para la pantalla real. */
+  escenario?: EscenarioPractica;
+  /** CM7 7b — objetivos evaluados sobre las escrituras (misiones con pantalla real). */
+  objetivosReales?: ObjetivoReal[];
+  /** CM7 7b — clave de escritura que marca la tarea COMPLETADA (ej. 'rpc:crear_solicitud_material').
+   *  Cuando aparece, la práctica muestra el resultado automáticamente. */
+  metaWrite?: string;
 }
 
 /** Lo que el usuario fue armando durante la práctica (en memoria, nunca a la red). */

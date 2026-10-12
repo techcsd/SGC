@@ -1,0 +1,92 @@
+// CM7 7b — banda de práctica (pantalla real) + resultado.
+.pb {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 12000;
+  pointer-events: none;
+
+  &__bar {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: linear-gradient(90deg, #f97316, #fb923c);
+    color: #fff;
+    font-size: 13px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    flex-wrap: wrap;
+  }
+  &__dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; animation: pb-pulse 1.4s ease-in-out infinite; }
+  &__modo { font-weight: 800; letter-spacing: 0.04em; }
+  &__sep { opacity: 0.7; }
+  &__hint { opacity: 0.92; }
+  &__mision { font-weight: 700; margin-left: 8px; }
+  &__crono { margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 700; }
+  &__meta { background: rgba(255, 255, 255, 0.22); padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  &__btn {
+    pointer-events: auto;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: #fff;
+    color: #c2410c;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    &--ghost { background: transparent; color: #fff; }
+  }
+}
+@keyframes pb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.pb-res {
+  position: fixed;
+  inset: 0;
+  z-index: 12001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 31, 51, 0.6);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  padding: 20px;
+
+  &__card {
+    width: min(460px, 94vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--sgc-surface, #fff);
+    color: var(--sgc-text, #101828);
+    border-radius: 18px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    animation: pb-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  &__ring {
+    --pct: 0;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: conic-gradient(#f97316 calc(var(--pct) * 1%), var(--sgc-border, #e4e7ec) 0);
+    &--ok { background: conic-gradient(#12b76a calc(var(--pct) * 1%), var(--sgc-border, #e4e7ec) 0); }
+  }
+  &__nota { width: 92px; height: 92px; border-radius: 50%; background: var(--sgc-surface, #fff); display: grid; place-items: center; font: 800 30px 'Inter Tight', sans-serif; }
+  &__stars { font-size: 26px; letter-spacing: 4px; color: var(--sgc-border, #cbd5e1); }
+  &__star--on { color: #f59e0b; }
+  &__title { margin: 6px 0 12px; font: 700 20px 'Inter Tight', sans-serif; }
+  &__list { list-style: none; margin: 0 0 16px; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+  &__list li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+  &__mark { flex: 0 0 auto; font-weight: 800; }
+  &__li--ok .pb-res__mark { color: #12b76a; }
+  &__li--no .pb-res__mark { color: #ef4444; }
+  &__txt small { color: var(--sgc-text-muted, #667085); }
+  &__tip { display: block; color: #b45309; font-style: normal; font-size: 13px; margin-top: 2px; }
+  &__actions { display: flex; gap: 10px; justify-content: center; }
+}
+@keyframes pb-in { from { transform: translateY(12px) scale(0.97); opacity: 0; } to { transform: none; opacity: 1; } }

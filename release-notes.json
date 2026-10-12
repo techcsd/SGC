@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.184.0": {
+      "titulo": "Modo práctica con pantallas reales (piloto: crear una requisición)",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "En Dudas › Modo práctica, la misión «Crear una requisición» ahora se practica en la PANTALLA REAL con datos de mentira: una banda naranja marca que es práctica, ves tus objetivos en vivo y al enviar recibes tu nota con consejos. Nada de lo que haces en práctica es real ni sale del dispositivo (salvo tu nota)."
+        }
+      ]
+    },
     "1.183.0": {
       "titulo": "Animación al firmar un conduce",
       "cambios": [

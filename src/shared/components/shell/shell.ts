@@ -26,6 +26,7 @@ import { LanguageOnboarding } from '../../ui/language-onboarding/language-onboar
 import { PolicyGate } from '../../ui/policy-gate/policy-gate';
 import { Celebracion } from '../../ui/celebracion/celebracion';
 import { Momento } from '../../ui/momento/momento';
+import { PracticaBanda } from '../../ui/practica-banda/practica-banda';
 import { Lightbox } from '../../ui/lightbox/lightbox';
 import { LightboxService } from '../../ui/lightbox/lightbox.service';
 import { TranslatePipe } from '../../i18n/translate.pipe';
@@ -91,7 +92,7 @@ interface NavSubItem {
 
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, ConfirmDialog, LanguageOnboarding, PolicyGate, Celebracion, Momento, Lightbox, TranslatePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgOptimizedImage, NgTemplateOutlet, OnboardingWeb, ConfirmDialog, LanguageOnboarding, PolicyGate, Celebracion, Momento, PracticaBanda, Lightbox, TranslatePipe],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
