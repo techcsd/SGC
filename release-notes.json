@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.185.0": {
+      "titulo": "Modo práctica: «Registrar una entrada» ahora en la pantalla real",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "La misión «Registrar una entrada de inventario» del modo práctica ahora se practica en la pantalla real con datos de mentira, como «Crear una requisición». Nada sale del dispositivo salvo tu nota."
+        }
+      ]
+    },
     "1.184.0": {
       "titulo": "Modo práctica con pantallas reales (piloto: crear una requisición)",
       "cambios": [
