@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SolicitudesMaterialService, RequisicionAvanceItem, ConduceSuelto, ConduceExternoSuelto, RequisicionCoberturaItem } from '../../../../shared/services/solicitudes-material.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -66,6 +67,7 @@ const hoy = () => new Date().toISOString().slice(0, 10);
 })
 export class Requisiciones implements OnInit {
   private service = inject(SolicitudesMaterialService);
+  private motion = inject(MotionService);
   private bodegasService = inject(BodegasService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
@@ -892,6 +894,7 @@ export class Requisiciones implements OnInit {
         'Requisición aprobada',
         partes.length ? partes.join(' + ') : undefined,
       );
+      this.motion.momento('aprobado');
       this.drawerOpen.set(false);
       await this.loadAll();
     } catch (e: unknown) {

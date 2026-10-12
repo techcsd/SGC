@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators, ValidatorFn } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { CronogramaService } from '../../../../shared/services/cronograma.service';
 import { ProyectoEstructurasService } from '../../../../shared/services/proyecto-estructuras.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -149,6 +150,7 @@ interface Draft {
 })
 export class Nueva implements OnInit {
   private bitacoraService = inject(BitacoraService);
+  private motion = inject(MotionService);
   private cronogramaService = inject(CronogramaService);
   private estructurasService = inject(ProyectoEstructurasService);
   // Y15 — tareas del cronograma del proyecto elegido (para enlazar la bitácora).
@@ -1496,6 +1498,7 @@ export class Nueva implements OnInit {
 
       // X13 — al enviar con éxito, quita el borrador en proceso.
       this.borradores.remove(this.MODULO_BORRADOR, this.draftId);
+      if (this.form.controls.tipo.value !== 'incidente') this.motion.momento('documento');
       this.router.navigate(['/bitacora/historial']);
     } catch (e: unknown) {
       // BC7/AU5(d) — nunca mostrar el error crudo de Postgres. El borrador (texto
