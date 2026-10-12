@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.186.0": {
+      "titulo": "Modo práctica: «Hacer un conteo» en la pantalla real",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "La misión «Hacer un conteo» del modo práctica ahora se practica en la pantalla real de conteo físico con datos de mentira."
+        }
+      ]
+    },
     "1.185.0": {
       "titulo": "Modo práctica: «Registrar una entrada» ahora en la pantalla real",
       "cambios": [

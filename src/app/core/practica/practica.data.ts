@@ -50,7 +50,7 @@ const ESCENARIO_REQUISICION = {
       requiere_talla: false, unidad_paquete: null, factor_paquete: null, stock_minimo: 0, stock_maximo: null, nota: null,
     })),
     categorias_inventario: [{ id: 1, nombre: 'Materiales de construcción (demo)', activo: true }],
-    bodegas: [{ id: 'alm-central', nombre: 'Almacén Central (demo)', es_central: true, es_prueba: false, proyecto_id: 'obra-norte' }],
+    bodegas: [{ id: 'alm-central', nombre: 'Almacén Central (demo)', es_central: true, es_prueba: false, proyecto_id: 'obra-norte', activo: true }],
     solicitudes_material: [] as unknown[],
   },
   rpc: {
@@ -77,6 +77,29 @@ const ESCENARIO_ENTRADA = {
   },
   rpc: {
     registrar_entrada_inventario: 'practica-entrada-0001',
+    directorio_usuarios_detalle: [] as unknown[],
+  },
+};
+
+// CM7 7b — "Hacer un conteo": stock demo por bodega + flujo abrir→guardar→cerrar→aplicar.
+const tieneWrite = (esc: EscrituraPractica[], clave: string) => esc.some((e) => e.tabla === clave);
+const guardarItems = (esc: EscrituraPractica[]): unknown[] => {
+  const b = esc.find((e) => e.tabla === 'rpc:conteo_fisico_guardar')?.body as { p_items?: unknown[] } | undefined;
+  return Array.isArray(b?.p_items) ? b!.p_items! : [];
+};
+const ESCENARIO_CONTEO = {
+  tablas: {
+    bodegas: ESCENARIO_REQUISICION.tablas.bodegas,
+    articulos: ESCENARIO_REQUISICION.tablas.articulos,
+    categorias_inventario: ESCENARIO_REQUISICION.tablas.categorias_inventario,
+    conteos: [] as unknown[],
+    stock_por_bodega: ARTICULOS_DEMO.map((a) => ({ articulo_id: a.id, cantidad: a.stock, articulo: { nombre: a.nombre, codigo: 'DEMO' } })),
+  },
+  rpc: {
+    conteo_fisico_abrir: 'practica-conteo-0001',
+    conteo_fisico_guardar: { ok: true },
+    conteo_fisico_cerrar: { ok: true },
+    conteo_fisico_aplicar: { ok: true, ajustados: 0 },
     directorio_usuarios_detalle: [] as unknown[],
   },
 };
@@ -248,6 +271,18 @@ export const MISION_CONTEO: MisionPractica = {
       consejo: 'Si lo contado no cuadra con el sistema, escribe por qué.' },
   ],
   penalizaciones: [],
+  // CM7 7b — PANTALLA REAL del conteo físico.
+  rutaReal: '/inventario/conteos',
+  escenario: ESCENARIO_CONTEO,
+  metaWrite: 'rpc:conteo_fisico_aplicar',
+  objetivosReales: [
+    { id: 'abrir', texto: 'Abriste el conteo del almacén', puntos: 20, cumple: (esc) => tieneWrite(esc, 'rpc:conteo_fisico_abrir'),
+      consejo: 'Elige el almacén y abre el conteo físico.' },
+    { id: 'guardar', texto: 'Guardaste las cantidades contadas', puntos: 50, cumple: (esc) => guardarItems(esc).length >= 1,
+      consejo: 'Escribe lo que contaste de cada material y guarda.' },
+    { id: 'aplicar', texto: 'Aplicaste el stock real', puntos: 30, cumple: (esc) => tieneWrite(esc, 'rpc:conteo_fisico_aplicar'),
+      consejo: 'Cierra y aplica para ajustar el inventario.' },
+  ],
 };
 
 export const MISIONES_PILOTO: MisionPractica[] = [
