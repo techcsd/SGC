@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.179.0": {
+      "titulo": "Las confirmaciones de acción ahora son animaciones a pantalla completa",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "Cuando completas una acción importante (registrar entrada/salida, aprobar, firmar, combustible, inspección, mantenimiento, enviar, generar documento, tomar un vehículo) sale una animación a pantalla completa con el ícono de la acción, un check y el detalle — ya no un pequeño aviso abajo que pasaba desapercibido."
+        },
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "Si haces varias acciones seguidas (en menos de 10 segundos) las siguientes salen como una tarjeta corta, para no repetir la animación completa cada vez. Respeta el modo de animaciones reducidas."
+        }
+      ]
+    },
     "1.178.0": {
       "titulo": "Animaciones en la web: «ruta creada» (camión y calle) y «combustible registrado»",
       "cambios": [

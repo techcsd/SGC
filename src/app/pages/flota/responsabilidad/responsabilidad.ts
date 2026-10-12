@@ -13,6 +13,7 @@ import { Img } from '../../../../shared/components/img/img';
 import { RegistrarEntrega } from './registrar-entrega/registrar-entrega';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { Vehiculo, identificacionVehiculo, unidadUso } from '../../../../shared/models/vehiculo.model';
 import { VehiculoStats } from '../../../../shared/models/vehiculo-asignacion.model';
 import { formatFechaHoraDisplay } from '../../../../shared/utils/fecha.util';
@@ -81,6 +82,7 @@ export class Responsabilidad implements OnInit {
   // homologado del shell que ya usan Salidas/Conteos). Antes el admin los veía
   // siempre, por eso el Amarok de prueba aparecía "en uso por Misael".
   private datosPruebaViewSvc = inject(DatosPruebaViewService);
+  private motion = inject(MotionService);
   mostrarPrueba = this.datosPruebaViewSvc.ver;
 
   /** Flota mostrable en la rejilla: sin bajas y sin datos de prueba (salvo admin con el toggle). */
@@ -212,6 +214,8 @@ export class Responsabilidad implements OnInit {
   async onCreada() {
     this.drawerOpen.set(false);
     await this.load();
+    // CN4/CN5 — "Vehículo tomado": escena a pantalla completa (o tarjeta corta en ráfaga).
+    this.motion.momento('uso');
   }
 
   toggleRevision() {
