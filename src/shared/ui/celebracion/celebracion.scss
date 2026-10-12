@@ -7,6 +7,14 @@
 @keyframes cel-folder-pop { 0% { transform: scale(1) } 40% { transform: scale(1.14) } 100% { transform: scale(1) } }
 @keyframes cel-check { from { stroke-dashoffset: 40 } to { stroke-dashoffset: 0 } }
 @keyframes cel-rise { from { transform: translateY(14px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+// CJ3 — ruta (portado de la app, mismos keyframes/tiempos).
+@keyframes cel-rt-road { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+@keyframes cel-rt-dash { from { transform: translateX(0) } to { transform: translateX(-64px) } }
+@keyframes cel-rt-drive { 0% { transform: translateX(-200px) } 100% { transform: translateX(calc(100vw + 120px)) } }
+@keyframes cel-rt-bounce { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-2px) } }
+@keyframes cel-rt-wheel { to { transform: rotate(360deg) } }
+@keyframes cel-rt-puff { 0% { transform: translate(0,0) scale(.4); opacity: .7 } 100% { transform: translate(-26px,-10px) scale(1.4); opacity: 0 } }
+@keyframes cel-rt-pin { 0% { transform: translateY(-18px) scale(.6); opacity: 0 } 70% { transform: translateY(2px) scale(1.05); opacity: 1 } 100% { transform: translateY(0) scale(1); opacity: 1 } }
 
 .cel {
   position: fixed;
@@ -118,5 +126,54 @@
     font: 600 15px Inter, sans-serif;
     cursor: pointer;
     &:hover { background: rgba(255, 255, 255, 0.1); }
+  }
+  &__msg--ruta { top: 60%; }
+
+  // ── CJ3 — ruta (carretera + camión + pines) ───────────────────────────────
+  &__roadwrap { position: absolute; top: 34%; left: 0; right: 0; height: 150px; }
+  &__road {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 104px;
+    height: 26px;
+    background: #2a3a50;
+    overflow: hidden;
+    transform-origin: left center;
+    animation: cel-rt-road 0.3s ease-out 0.05s both;
+  }
+  &__dashes {
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 900px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.75) 0 32px, transparent 32px 64px);
+    opacity: 0.7;
+    animation: cel-rt-dash 0.35s linear infinite;
+  }
+  &__pin { position: absolute; top: 0; color: #fdba74; }
+  &__pin--1 { left: 18%; animation: cel-rt-pin 0.3s ease-out 0.45s both; }
+  &__pin--2 { left: 47%; animation: cel-rt-pin 0.3s ease-out 0.75s both; }
+  &__pin--3 { left: 76%; animation: cel-rt-pin 0.3s ease-out 1.05s both; }
+  &__truck {
+    position: absolute;
+    left: 0;
+    top: 36px;
+    width: 150px;
+    height: 76px;
+    animation: cel-rt-drive 1.35s cubic-bezier(0.45, 0.05, 0.4, 1) 0.2s both;
+  }
+  &__truck-body { animation: cel-rt-bounce 0.18s ease-in-out infinite; }
+  &__wheel { transform-box: fill-box; transform-origin: center; animation: cel-rt-wheel 0.4s linear infinite; }
+  &__puff {
+    position: absolute;
+    left: -6px;
+    top: 50px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    animation: cel-rt-puff 0.5s ease-out infinite;
   }
 }

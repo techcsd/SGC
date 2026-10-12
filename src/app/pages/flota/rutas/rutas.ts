@@ -40,6 +40,7 @@ import { TrayectoriaModal } from '../../../../shared/components/trayectoria-moda
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { HighlightItemDirective } from '../../../../shared/directives/highlight-item.directive';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { MotionService } from '../../../../shared/services/motion.service';
 
 type ObraDestino = Pick<Proyecto, 'id' | 'codigo' | 'nombre' | 'latitud' | 'longitud'>;
 
@@ -78,6 +79,7 @@ export class Rutas implements OnInit {
   private userService = inject(UserService);
   private toast = inject(ToastService);
   private datosPrueba = inject(DatosPruebaService);
+  private motion = inject(MotionService);
 
   // T2 — solo admin ve/gestiona datos de prueba.
   esAdmin = computed(() => this.userService.hasRole('admin'));
@@ -746,6 +748,15 @@ export class Rutas implements OnInit {
       this.drawerOpen.set(false);
       this.limpiarFotos();
       void this.cargarClimaRutas();
+
+      // CN4 (Nota #204) — celebración "ruta creada" (camión + calle, CJ3) solo al CREAR.
+      if (!id) {
+        this.motion.celebrar('ruta', {
+          destino: payload.destino || null,
+          verUrl: '/flota/rutas',
+          verLabel: 'Ir a mis rutas',
+        });
+      }
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');
     } finally {

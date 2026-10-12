@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MotionService } from '../../services/motion.service';
 
@@ -19,6 +19,18 @@ import { MotionService } from '../../services/motion.service';
 export class Celebracion {
   motion = inject(MotionService);
   private router = inject(Router);
+
+  /** Título de la tarjeta según el tipo de celebración. */
+  tituloCel = computed(() => (this.motion.tipo() === 'ruta' ? 'Ruta creada' : 'Conduce creado'));
+
+  /** Texto para lectores de pantalla (incluye número/destino si hay). */
+  tituloSr = computed(() => {
+    const d = this.motion.datos();
+    const base = this.tituloCel();
+    const num = d.numero ? ' ' + d.numero : '';
+    const dest = d.destino ? ', destino ' + d.destino : '';
+    return `${base}${num}${dest}.`;
+  });
 
   ver() {
     const url = this.motion.datos().verUrl;
