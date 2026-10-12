@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { SupabaseService } from '../../../core/services/supabase.service';
-import { MotionService, MomentoTipo, CelebracionTipo } from '../../../../shared/services/motion.service';
+import { MotionService, CelebracionTipo } from '../../../../shared/services/motion.service';
+import { LogoRevealService } from '../../../../shared/ui/logo-reveal/logo-reveal.service';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { CountUpDirective } from '../../../../shared/motion/count-up.directive';
 import { EstadoPulseDirective } from '../../../../shared/motion/estado-pulse.directive';
@@ -37,6 +38,7 @@ interface CatRow {
 export class AdminAnimaciones implements OnInit, OnDestroy {
   private supabase = inject(SupabaseService);
   motion = inject(MotionService);
+  private logoReveal = inject(LogoRevealService);
   /** Estado real de reduce-motion del usuario (para restaurarlo al salir). */
   private origReducida = false;
 
@@ -120,12 +122,17 @@ export class AdminAnimaciones implements OnInit, OnDestroy {
   reproducir() {
     const r = this.seleccion();
     if (!r || r.sistema !== 'web') return;
-    if (r.nivel === 'grande') {
-      const tipo: CelebracionTipo = r.id === 'celebracion-ruta' ? 'ruta' : 'conduce';
-      this.motion.celebrar(tipo, { numero: 'DEMO-0001', destino: 'Vista previa', verUrl: null });
-    } else if (r.nivel === 'mediano') {
-      const tipo = r.id.replace('momento-', '') as MomentoTipo;
-      this.motion.momento(tipo, {});
+    if (r.id === 'login-reveal') {
+      this.logoReveal.reproducir({ forzar: true });
+    } else if (r.id.startsWith('momento-')) {
+      // CN5 — escena de momento a pantalla completa. `celebrar` evita la ráfaga →
+      // en la vista previa siempre se ve la escena completa.
+      const tipo = r.id.replace('momento-', '') as CelebracionTipo;
+      this.motion.celebrar(tipo, { texto: r.nombre, sub: 'Vista previa' });
+    } else if (r.id === 'celebracion-ruta') {
+      this.motion.celebrar('ruta', { destino: 'Vista previa', verUrl: null });
+    } else if (r.id === 'celebracion-conduce') {
+      this.motion.celebrar('conduce', { numero: 'DEMO-0001', destino: 'Vista previa', verUrl: null });
     } else {
       // base: re-monta la demo y alterna el chip de estado.
       this.estadoDemo.update((e) => (e === 'Pendiente' ? 'Aprobada' : 'Pendiente'));
