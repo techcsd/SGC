@@ -1,7 +1,7 @@
 @if (motion.visible()) {
   <div class="cel" (click)="motion.cerrar()" role="status" aria-live="polite">
-    <!-- aria-live: el texto para lectores de pantalla -->
-    <span class="cel__sr">Conduce creado{{ motion.datos().numero ? ' ' + motion.datos().numero : '' }}{{ motion.datos().destino ? ', destino ' + motion.datos().destino : '' }}.</span>
+    <!-- aria-live: el texto para lectores de pantalla (CN — varía por tipo). -->
+    <span class="cel__sr">{{ tituloSr() }}</span>
 
     <div class="cel__dim"></div>
 
@@ -27,19 +27,40 @@
         </div>
         <div class="cel__stamp">EMITIDO</div>
       </div>
+    } @else if (motion.tipo() === 'ruta') {
+      <!-- CJ3 — ruta creada: carretera + camión + pines (portado de la app). -->
+      <div class="cel__roadwrap">
+        <div class="cel__pin cel__pin--1"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fdba74"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></div>
+        <div class="cel__pin cel__pin--2"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fdba74"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></div>
+        <div class="cel__pin cel__pin--3"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fdba74"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></div>
+        <div class="cel__road"><div class="cel__dashes"></div></div>
+        <div class="cel__truck">
+          <span class="cel__puff"></span>
+          <svg class="cel__truck-body" width="150" height="76" viewBox="0 0 150 76" fill="none">
+            <rect x="4" y="8" width="90" height="48" rx="6" fill="#ffffff"/>
+            <rect x="4" y="40" width="90" height="6" fill="#f97316"/>
+            <text x="16" y="32" fill="#1e3a5f" font-family="Inter Tight, Inter, sans-serif" font-weight="700" font-size="15">CSD</text>
+            <path d="M96 20h26l18 18v18H96z" fill="#1e3a5f"/>
+            <path d="M103 26h17l11 11h-28z" fill="#9cc0ec"/>
+            <rect x="138" y="44" width="6" height="6" rx="1" fill="#fdba74"/>
+            <g class="cel__wheel"><circle cx="28" cy="60" r="11" fill="#14243a"/><circle cx="28" cy="60" r="4" fill="#98a2b3"/><rect x="27" y="51" width="2" height="5" fill="#98a2b3"/></g>
+            <g class="cel__wheel"><circle cx="118" cy="60" r="11" fill="#14243a"/><circle cx="118" cy="60" r="4" fill="#98a2b3"/><rect x="117" y="51" width="2" height="5" fill="#98a2b3"/></g>
+          </svg>
+        </div>
+      </div>
     }
 
     <!-- Mensaje + check -->
-    <div class="cel__msg">
+    <div class="cel__msg" [class.cel__msg--ruta]="motion.tipo() === 'ruta'">
       <span class="cel__check">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
       </span>
-      <span class="cel__title">{{ motion.tipo() === 'ruta' ? 'Ruta creada' : 'Conduce creado' }}</span>
+      <span class="cel__title">{{ tituloCel() }}</span>
       @if (motion.datos().numero || motion.datos().destino) {
         <span class="cel__sub">{{ motion.datos().numero }}{{ motion.datos().numero && motion.datos().destino ? ' · ' : '' }}{{ motion.datos().destino }}</span>
       }
       @if (motion.datos().verUrl) {
-        <button type="button" class="cel__ver" (click)="$event.stopPropagation(); ver()">{{ motion.datos().verLabel || 'Ver conduce' }}</button>
+        <button type="button" class="cel__ver" (click)="$event.stopPropagation(); ver()">{{ motion.datos().verLabel || 'Ver' }}</button>
       }
     </div>
   </div>

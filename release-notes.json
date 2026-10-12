@@ -1,5 +1,20 @@
 {
   "web": {
+    "1.178.0": {
+      "titulo": "Animaciones en la web: «ruta creada» (camión y calle) y «combustible registrado»",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al crear una ruta ahora sale la animación a pantalla completa del camión recorriendo la calle (la misma de la app), con el destino y un botón para ir a tus rutas."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al registrar combustible sale una animación de confirmación, igual que en el resto de Flota (antes no mostraba nada)."
+        }
+      ]
+    },
     "1.177.0": {
       "titulo": "El logo animado ahora también sale al refrescar la página",
       "cambios": [
