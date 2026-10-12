@@ -44,6 +44,11 @@ const log = (...a) => console.log('·', ...a);
     if (page.url().includes('/auth')) { log('sesión vencida → login programático'); await login(); await page.goto(`${BASE}/practica`, { waitUntil: 'networkidle', timeout: 60000 }); }
     log('en /practica. title:', await page.title(), 'url:', page.url());
     if (page.url().includes('/auth')) { console.error('🔴 login falló'); await page.screenshot({ path: `${OUT}-login-fail.png` }); await browser.close(); process.exit(2); }
+    // Aceptar el gate de políticas si aparece (usuario QA sin aceptar).
+    for (let i = 0; i < 6; i++) {
+      const acepto = page.getByRole('button', { name: /^Acepto$/ }).first();
+      if (await acepto.isVisible().catch(() => false)) { await acepto.click(); await page.waitForTimeout(900); } else break;
+    }
     await page.screenshot({ path: `${OUT}-1-lista.png` });
 
     // Botón "Practicar" de la misión "Crear una requisición".
@@ -75,6 +80,29 @@ const log = (...a) => console.log('·', ...a);
       const obraSelect = page.locator('select#proyecto_id');
       const opts = await obraSelect.locator('option').allTextContents().catch(() => []);
       log('opciones de obra:', JSON.stringify(opts));
+
+      // ── Completar y enviar la requisición ──
+      await obraSelect.selectOption({ label: 'OBRA DEMO — Torre Norte' }).catch(() => {});
+      const add = page.getByRole('button', { name: /\+ Agregar|Agregar/ }).first();
+      if (await add.isVisible().catch(() => false)) { await add.click(); await page.waitForTimeout(400); }
+      // abrir el picker de artículo y elegir cemento
+      await page.locator('.apk__trigger').first().click().catch(() => {});
+      await page.waitForTimeout(400);
+      await page.locator('.apk__search input, input[placeholder*="Buscar"]').first().fill('Cemento').catch(() => {});
+      await page.waitForTimeout(600);
+      await page.getByText('Cemento gris 42.5 (saco)').first().click().catch(() => {});
+      await page.waitForTimeout(400);
+      await page.locator('input.item-row__cantidad').first().fill('100').catch(() => {});
+      await page.screenshot({ path: `${OUT}-3b-lleno.png` });
+      // enviar (2 pasos: Revisar → Enviar requisición)
+      await page.getByRole('button', { name: /Revisar/i }).first().click().catch(() => {});
+      await page.waitForTimeout(900);
+      await page.getByRole('button', { name: /Enviar requisición/i }).first().click().catch(() => {});
+      await page.waitForTimeout(3500);
+      const resVisible = await page.locator('.pb-res').isVisible().catch(() => false);
+      const nota = await page.locator('.pb-res__nota').textContent().catch(() => null);
+      log('resultado visible:', resVisible, '· nota:', nota);
+      await page.screenshot({ path: `${OUT}-4-resultado.png` });
     } else {
       log('no encontré el botón de nueva requisición (revisar screenshot 2)');
     }
