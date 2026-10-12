@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.177.0": {
+      "titulo": "El logo animado ahora también sale al refrescar la página",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Apariencia",
+          "d": "Al recargar la página (F5 / Ctrl-R) se reproduce de nuevo el logo animado, para que la web se sienta más dinámica. Solo ocurre en recargas reales, nunca al moverte entre secciones. Se puede apagar en Configuración › Apariencia › «Logo al refrescar» (ajuste por dispositivo). Respeta el modo de animaciones reducidas."
+        }
+      ]
+    },
     "1.161.0": {
       "titulo": "Nuevo módulo «Apoyo de transporte» (reemplaza Solicitud de movimiento) + bandeja de trabajos y monitoreo de choferes para Misael",
       "cambios": [

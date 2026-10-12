@@ -5,10 +5,11 @@ import { UserService } from './core/services/user.service';
 import { ToastService } from '../shared/services/toast.service';
 import { ThemeService } from '../shared/services/theme.service';
 import { PreferenciasService } from '../shared/services/preferencias.service';
-import { aplicarDensidad, aplicarTamanoLetra, aplicarMovimiento, leerMovimientoReducido } from '../shared/utils/apariencia.util';
+import { aplicarDensidad, aplicarTamanoLetra, aplicarMovimiento, leerMovimientoReducido, esRecargaDePagina, leerLogoAlRefrescar } from '../shared/utils/apariencia.util';
 import { ToastComponent } from '../shared/components/toast/toast';
 import { EntornoBadge } from '../shared/ui/entorno-badge/entorno-badge';
 import { LogoReveal } from '../shared/ui/logo-reveal/logo-reveal';
+import { LogoRevealService } from '../shared/ui/logo-reveal/logo-reveal.service';
 import { isChunkLoadError, reloadForNewVersion } from '../shared/utils/chunk-reload.util';
 
 @Component({
@@ -26,10 +27,23 @@ export class App implements OnInit {
   private preferencias = inject(PreferenciasService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private logoReveal = inject(LogoRevealService);
 
   ngOnInit() {
     // CJ1 — aplica la preferencia de movimiento (por dispositivo) lo antes posible.
     aplicarMovimiento(leerMovimientoReducido());
+
+    // CN — logo-reveal en cada RECARGA de página (no en navegación interna del SPA),
+    // si el usuario no lo apagó (Apariencia). Se salta en las pantallas de auth /
+    // cambio de contraseña (allí ya sale tras el login). El componente honra
+    // reduce-motion. `forzar` ignora el candado "una vez por sesión" del login.
+    try {
+      const ruta = location.pathname || '';
+      const enAuth = ruta.startsWith('/auth') || ruta.startsWith('/set-password');
+      if (esRecargaDePagina() && leerLogoAlRefrescar() && !enAuth) {
+        this.logoReveal.reproducir({ forzar: true });
+      }
+    } catch { /* entorno sin location/performance */ }
     // Recuperación ante "chunk viejo tras un deploy" (index.html apunta a chunks
     // nuevos; una pestaña vieja intenta cargar los que ya no existen).
     // 1) Fallo al lazy-load de una ruta → NavigationError (caso del login).
