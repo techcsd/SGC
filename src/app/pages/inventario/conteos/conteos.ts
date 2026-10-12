@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConteosService, Conteo, StockBodegaRow } from '../../../../shared/services/conteos.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { BodegasService } from '../../../../shared/services/bodegas.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
@@ -35,6 +36,7 @@ interface ChequeoRow extends StockBodegaRow {
 })
 export class Conteos implements OnInit {
   private service = inject(ConteosService);
+  private motion = inject(MotionService);
   private bodegasService = inject(BodegasService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
@@ -383,6 +385,7 @@ export class Conteos implements OnInit {
       await this.service.conteoFisicoCerrar(this.cfConteoId());
       const r = await this.service.conteoFisicoAplicar(this.cfConteoId(), motivo.trim());
       this.toast.success('Stock real aplicado', `${r.ajustados} artículo(s) ajustado(s), sin mover el kardex.`);
+      this.motion.momento('checklist');
       this.conteos.set(await this.service.getAll());
       this.cfDrawerOpen.set(false);
     } catch (e: unknown) {
