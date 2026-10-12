@@ -6,6 +6,7 @@ import { UpperCasePipe } from '@angular/common';
 import {
   SalidasService, ConducePorFirmarRow, ConduceDetalleApp,
 } from '../../../../shared/services/salidas.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { NotificacionesService } from '../../../../shared/services/notificaciones.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { SignaturePad } from '../../../../shared/ui/signature-pad/signature-pad';
@@ -27,6 +28,7 @@ import { formatFechaMedia, formatHoraTimestamp } from '../../../../shared/utils/
 })
 export class ConducesPorFirmar implements OnInit {
   private svc = inject(SalidasService);
+  private motion = inject(MotionService);
   private notificaciones = inject(NotificacionesService);
   private toast = inject(ToastService);
   readonly fechaMedia = formatFechaMedia;
@@ -100,6 +102,7 @@ export class ConducesPorFirmar implements OnInit {
         this.toast.info('Este conduce ya estaba firmado.');
       } else {
         this.toast.success('Conduce firmado. El chofer ya puede entregar.');
+        this.motion.momento('firma');
       }
       this.seleccion.set(null);
       await this.cargar();
