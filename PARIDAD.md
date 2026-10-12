@@ -451,3 +451,47 @@ lógico de captura; el layout puede diferir).
 ### CL3 — bienvenida (pendiente ambos lados)
 - Flags por usuario (web `bienvenida_web_v1_vista`, app `bienvenida_app_v2_vista`) + RPC
   `marcar_bienvenida_vista(p_canal)`; existentes = vistos. Mismos pasos por rol (docs/BIENVENIDA.md).
+
+## Tanda CM — cierre de huecos del padre (PROMPT-94/96 → app PROMPT-95/97)
+> Aplicado **dev + prod** el 2026-10-12 (ledger + verificado por objeto). Desbloquea F3/F6 del app (2.48.0).
+
+### CM6 (F3) — incentivos con tope: la lectura ya trae los campos
+- `sql/2026-10-11-cm6b-incentivo-lectura-tope.sql`. `cm6-incentivo-topes` añadió columnas pero no recreó
+  los RPC de **lectura**; ya recreados (cuerpo vivo + columnas al final, retrocompatible):
+  - **`incentivo_listado(p_anio,p_semana,p_incluir_prueba)`** → `+ maximo numeric, puntaje_bruto numeric, topes jsonb`.
+  - **`incentivo_mi_rendimiento()`** → `+ maximo numeric, puntaje_bruto numeric, topes jsonb` (tope semanal,
+    bruto antes de recorte, y el snapshot `topes` que se aplicó esa semana → para el diario).
+  - **`incentivo_semanas()`** → `+ maximo_semanal numeric` (`max(maximo)` del grupo = tope de la semana).
+  - `contados`/`excedente` ya viajan **dentro de `conteos[renglon]`** (los puso `generar_semana`); no son columnas.
+- **Valores `null` hasta que exista una versión de config CON tope y se regenere la semana** (las semanas ya
+  generadas NO se recalculan, por diseño). La app muestra la barra de tope / chip "N sobre tope" sólo cuando
+  `maximo != null`. 👤 Misael/Raykler ponen los números en *Incentivos › Configuración*.
+
+### CK15b — "Ordenar el día" de Misael: el listado ya devuelve `orden`
+- `sql/2026-10-10-ck15b-listado-orden.sql`. **`trabajos_transporte_listado(p_dia,p_estado,p_conductor_id)`**
+  gana **`orden int`** al final del `TABLE(...)` (ya ordenaba por él internamente). La app ya puede cablear el
+  botón "ordenar" (flechas) detrás de su capability-check. `trabajo_ordenar(origen,id,orden)` ya estaba vivo.
+- Nota dev/prod: en **dev** la función lleva además el overlay demo `es_usuario_demo()` (revisor de tiendas,
+  SOLO-dev, `2026-10-11-ck15b-dev-demo-overlay.sql`). Transparente para el app (mismo retorno con `orden`).
+
+### CM7 (F6) — modo práctica: contrato del cliente
+- **RPCs vivos en dev + prod** (grant `authenticated`):
+  - **`practica_guardar_intento(p_mision_id text, p_version int, p_nota numeric, p_estrellas int, p_aprobada boolean, p_duracion_s int, p_detalle jsonb default '{}', p_plataforma text default 'web')` → `uuid`**.
+    Valida `auth.uid()` y `nota 0-100`; recorta estrellas a 0-3. (El 404 que vio el app era previo a aplicar
+    `cm7-practica`; ya está. La app lo llama con `p_plataforma:'app'`.)
+  - `practica_puede_ver_equipo()` → bool · `practica_resultados_equipo()` → filas · `practica_resultados_persona(p_usuario_id uuid)`.
+- **Diseño del cliente (realizado en web, la app lo copia):** simulador **100 % en memoria**, NO un fetch
+  que intercepta Supabase. Las **misiones se definen en el cliente** (`practica.model.ts`: `MisionPractica`
+  con `objetivos[]`/`penalizaciones[]`, cada objetivo con `cumple(r)` y puntos; campos simulados opcionales).
+  El estado (`RespuestaPractica`) vive en señales, **nunca sale a la red**. `evaluar()` → `nota = max(0, Σobjetivos − Σpenalizaciones)`,
+  estrellas 1/2/3 en `≥60/≥80/≥95`, aprobada `≥80`. Al cerrar, **lo único real** es `practica_guardar_intento`
+  (detalle = `{objetivos:[{id,ok}]}`). No toca KPIs/incentivos/avisos. La app define sus propias misiones
+  `app-*` (p. ej. `app-combustible`, `app-preuso`, `app-uso-vehiculo`) client-side; `mision_id` es texto libre
+  (sin FK), así que no depende de semillas en `practica_misiones`.
+- Panel de jefes: el jefe es `empleados.jefe_id`; si no hay relación, lo ven `admin`/`rrhh` (RLS de `practica_intentos`).
+
+### CM2 (F4) — SVG del texto del logo
+- **`src/assets/imgs/logos/csd-logo-texto.svg`** (trazo blanco de "Scheker & Dominguez / CONSTRUCTORA",
+  `viewBox="205 0 235 108"`, pensado para colocarse a la derecha de `csd-logo-simbolo.svg` `0 0 206 108`).
+  La app usa **este mismo archivo** en su logo-reveal en vez del texto "CSD APP". (La web renderiza hoy el
+  texto con la tipografía de marca en el reveal; el SVG queda disponible para unificar si Xaviel lo aprueba.)
