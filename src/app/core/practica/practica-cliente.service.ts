@@ -41,6 +41,8 @@ export class PracticaClienteService {
   private escenario: EscenarioPractica = {};
   /** Escrituras hechas durante la práctica (para evaluar la misión). */
   readonly escrituras: EscrituraPractica[] = [];
+  /** Se incrementa con cada escritura — para que la UI de práctica reaccione en vivo. */
+  readonly cambios = signal(0);
   /** Candado: nombres de peticiones que SÍ salieron a la red (debe ser solo guardar_intento). */
   readonly salidasReales: string[] = [];
 
@@ -98,6 +100,7 @@ export class PracticaClienteService {
         let body: unknown;
         try { body = JSON.parse(init.body as string); } catch { body = undefined; }
         this.escrituras.push({ tabla: `rpc:${name}`, metodo: method, body });
+        this.cambios.update((n) => n + 1);
       }
       return this.json(this.escenario.rpc?.[name] ?? []);
     }
@@ -115,12 +118,16 @@ export class PracticaClienteService {
     if (mTab) {
       const tabla = mTab[1];
       if (method === 'GET' || method === 'HEAD') {
-        return this.json(this.escenario.tablas?.[tabla] ?? []);
+        const filas = this.escenario.tablas?.[tabla] ?? [];
+        // `.single()`/`.maybeSingle()` piden un objeto (Accept pgrst.object), no un arreglo.
+        if (this.pideObjeto(init)) return this.json(filas[0] ?? { id: `practica-${tabla}` });
+        return this.json(filas);
       }
       // Escritura: guárdala en memoria y devuelve una fila simulada.
       let body: unknown;
       try { body = init?.body ? JSON.parse(init.body as string) : undefined; } catch { body = undefined; }
       this.escrituras.push({ tabla, metodo: method, body });
+      this.cambios.update((n) => n + 1);
       const filas = Array.isArray(body) ? body : [body ?? {}];
       const rows = filas.map((r, i) => ({ id: `practica-${tabla}-${i}`, ...(r as object) }));
       return this.json(rows, method === 'POST' ? 201 : 200);
@@ -128,6 +135,16 @@ export class PracticaClienteService {
 
     // ── Cualquier otra cosa: no sale a la red ──
     return this.json({ error: 'No disponible en práctica' });
+  }
+
+  /** ¿La petición pide un objeto único (`.single()` → Accept pgrst.object)? */
+  private pideObjeto(init?: RequestInit): boolean {
+    const h = init?.headers;
+    let accept = '';
+    if (h instanceof Headers) accept = h.get('Accept') ?? '';
+    else if (Array.isArray(h)) accept = (h.find(([k]) => k.toLowerCase() === 'accept')?.[1]) ?? '';
+    else if (h) { const o = h as Record<string, string>; accept = o['Accept'] ?? o['accept'] ?? ''; }
+    return accept.includes('pgrst.object');
   }
 
   private json(data: unknown, status = 200): Response {

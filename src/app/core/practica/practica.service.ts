@@ -51,6 +51,30 @@ export class PracticaService {
     return { nota, estrellas, aprobada: nota >= 80, objetivos, penalizaciones: penal, duracionS: dur };
   }
 
+  /** CM7 7b — evalúa una misión con PANTALLA REAL sobre lo que el usuario escribió
+   *  (capturado en memoria por el cliente de práctica). Sin penalizaciones. */
+  evaluarReal(): ResultadoPractica {
+    const m = this.mision();
+    const esc = this.practicaCliente.escrituras;
+    const objetivos = (m?.objetivosReales ?? []).map((o) => ({
+      id: o.id, texto: o.texto, puntos: o.puntos, ok: o.cumple(esc), consejo: o.consejo,
+    }));
+    const bruto = objetivos.filter((o) => o.ok).reduce((s, o) => s + o.puntos, 0);
+    const nota = Math.max(0, Math.min(100, bruto));
+    const estrellas = nota >= 95 ? 3 : nota >= 80 ? 2 : nota >= 60 ? 1 : 0;
+    const ahora = typeof performance !== 'undefined' ? performance.now() : 0;
+    const dur = this.inicioMs ? Math.round((ahora - this.inicioMs) / 1000) : 0;
+    return { nota, estrellas, aprobada: nota >= 80, objetivos, penalizaciones: [], duracionS: dur };
+  }
+
+  /** ¿Ya apareció la escritura que marca la misión como completada? */
+  metaCumplida(): boolean {
+    const clave = this.mision()?.metaWrite;
+    if (!clave) return false;
+    this.practicaCliente.cambios(); // reactividad
+    return this.practicaCliente.escrituras.some((e) => e.tabla === clave);
+  }
+
   /** Guarda SOLO la nota (único dato real). No cuenta en KPIs/incentivos/avisos. */
   async guardar(res: ResultadoPractica): Promise<void> {
     const m = this.mision();

@@ -1,4 +1,4 @@
-import { MisionPractica, FilaMaterial, FilaConteo } from './practica.model';
+import { MisionPractica, FilaMaterial, FilaConteo, EscrituraPractica } from './practica.model';
 
 /** CM7 — escenarios de mentira + objetivos por misión. Datos que NO existen de verdad. */
 export const OBRAS_DEMO = [
@@ -28,6 +28,37 @@ const mats = (v: unknown): FilaMaterial[] => (Array.isArray(v) ? (v as FilaMater
 const conteo = (v: unknown): FilaConteo[] => (Array.isArray(v) ? (v as FilaConteo[]) : []);
 const txt = (v: unknown): string => (typeof v === 'string' ? v : '');
 
+// CM7 7b — lee lo que el usuario escribió en la PANTALLA REAL (capturado en memoria).
+interface ReqBody { p_proyecto_id?: string | null; p_urgencia?: string | null; p_items?: { cantidad?: number }[]; }
+const reqBody = (esc: EscrituraPractica[]): ReqBody =>
+  (esc.find((e) => e.tabla === 'rpc:crear_solicitud_material')?.body as ReqBody) ?? {};
+const reqItems = (esc: EscrituraPractica[]): { cantidad?: number }[] => {
+  const its = reqBody(esc).p_items;
+  return Array.isArray(its) ? its : [];
+};
+
+/** CM7 7a — escenario de "Crear una requisición": obras/materiales/categorías/bodegas de
+ *  mentira para que la pantalla real renderice. El create (crear_solicitud_material) se
+ *  captura y evalúa; nada sale a la red. */
+const ESCENARIO_REQUISICION = {
+  tablas: {
+    proyectos: OBRAS_DEMO.map((o) => ({
+      id: o.id, nombre: o.nombre, codigo: 'DEMO', activo: true, estado: 'en_ejecucion', es_prueba: false,
+    })),
+    articulos: ARTICULOS_DEMO.map((a) => ({
+      id: a.id, nombre: a.nombre, unidad: 'ud', stock_total: a.stock, categoria_id: 'cat-demo', activo: true, es_prueba: false,
+    })),
+    categorias_inventario: [{ id: 'cat-demo', nombre: 'Materiales de construcción (demo)' }],
+    bodegas: [{ id: 'alm-central', nombre: 'Almacén Central (demo)', es_central: true, es_prueba: false }],
+    solicitudes_material: [] as unknown[],
+  },
+  rpc: {
+    crear_solicitud_material: 'practica-req-0001',
+    directorio_usuarios_detalle: [] as unknown[],
+    editar_requisicion: { ok: true },
+  },
+};
+
 /** Piloto: "Crear una requisición". Objetivos que suman 100. */
 export const MISION_CREAR_REQUISICION: MisionPractica = {
   id: 'web-crear-requisicion',
@@ -53,6 +84,22 @@ export const MISION_CREAR_REQUISICION: MisionPractica = {
   penalizaciones: [
     { id: 'sobre-stock', texto: 'Pediste más de lo que hay en stock de algún material', puntos: 10,
       aplica: (r) => mats(r['items']).some((i) => i.cantidad > i.stock) },
+  ],
+  // CM7 7b — PANTALLA REAL: la práctica navega a la pantalla real de requisiciones; los
+  // objetivos se evalúan sobre lo que el usuario envió (capturado en memoria).
+  rutaReal: '/bitacora/solicitudes-material',
+  escenario: ESCENARIO_REQUISICION,
+  metaWrite: 'rpc:crear_solicitud_material',
+  objetivosReales: [
+    { id: 'obra', texto: 'Elegiste una obra', puntos: 30, cumple: (esc) => !!reqBody(esc).p_proyecto_id,
+      consejo: 'Arriba, elige la obra para la que pides el material.' },
+    { id: 'items', texto: 'Agregaste al menos un material', puntos: 40, cumple: (esc) => reqItems(esc).length >= 1,
+      consejo: 'Agrega al menos un artículo a la lista.' },
+    { id: 'cant', texto: 'Las cantidades son mayores a 0', puntos: 20,
+      cumple: (esc) => reqItems(esc).length > 0 && reqItems(esc).every((i) => Number(i.cantidad) > 0),
+      consejo: 'Cada material necesita una cantidad mayor a 0.' },
+    { id: 'urg', texto: 'Indicaste la urgencia', puntos: 10, cumple: (esc) => !!reqBody(esc).p_urgencia,
+      consejo: 'Elige qué tan urgente es la requisición.' },
   ],
 };
 
