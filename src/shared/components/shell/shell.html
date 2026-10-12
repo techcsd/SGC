@@ -1,4 +1,4 @@
-<div class="shell" [class.collapsed]="collapsed()" [class.mobile-open]="mobileNavOpen()">
+<div class="shell" [class.collapsed]="collapsedEfectivo()" [class.mobile-open]="mobileNavOpen()">
 
   <!-- Mobile drawer backdrop -->
   <div class="shell-backdrop" (click)="closeMobileNav()" aria-hidden="true"></div>
@@ -35,7 +35,7 @@
             routerLinkActive="active"
             [class.disabled]="!!item.phase"
             [attr.aria-disabled]="!!item.phase"
-            [attr.title]="collapsed() ? item.label : null"
+            [attr.title]="collapsedEfectivo() ? item.label : null"
             [attr.data-tour]="tourKey(item)"
           >
             <span class="nav-icon" aria-hidden="true">
@@ -56,7 +56,7 @@
           <!-- Phase-locked item -->
           <div
             class="nav-item disabled"
-            [attr.title]="collapsed() ? item.label : null"
+            [attr.title]="collapsedEfectivo() ? item.label : null"
           >
             <span class="nav-icon" aria-hidden="true">
               <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: item.icon }" />
@@ -72,7 +72,7 @@
               type="button"
               (click)="toggleSection(item.label)"
               [attr.aria-expanded]="isSectionExpanded(item.label)"
-              [attr.title]="collapsed() ? item.label : null"
+              [attr.title]="collapsedEfectivo() ? item.label : null"
             >
               <span class="nav-icon" aria-hidden="true">
                 <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: item.icon }" />
@@ -91,7 +91,7 @@
               </span>
             </button>
 
-            @if (isSectionExpanded(item.label) && (!collapsed() || mobileNavOpen())) {
+            @if (isSectionExpanded(item.label) && (!collapsedEfectivo() || mobileNavOpen())) {
               <div class="nav-children">
                 @for (child of item.children; track child.route) {
                   @if (canAccessChild(child)) {
@@ -123,7 +123,7 @@
             type="button"
             (click)="toggleSection('admin')"
             [attr.aria-expanded]="isSectionExpanded('admin')"
-            [attr.title]="collapsed() ? 'Administración' : null"
+            [attr.title]="collapsedEfectivo() ? 'Administración' : null"
           >
             <span class="nav-icon" aria-hidden="true">
               <ng-container [ngTemplateOutlet]="icons" [ngTemplateOutletContext]="{ icon: 'admin' }" />
@@ -136,7 +136,7 @@
             </span>
           </button>
 
-          @if (isSectionExpanded('admin') && (!collapsed() || mobileNavOpen())) {
+          @if (isSectionExpanded('admin') && (!collapsedEfectivo() || mobileNavOpen())) {
             <div class="nav-children">
               @for (child of adminNavItem.children!; track child.route) {
                 <a
@@ -156,7 +156,7 @@
     <!-- Collapse toggle -->
     <button class="sidebar-toggle" type="button" (click)="toggleCollapsed()" aria-label="Colapsar menú">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        @if (collapsed()) {
+        @if (collapsedEfectivo()) {
           <polyline points="9 18 15 12 9 6"/>
         } @else {
           <polyline points="15 18 9 12 15 6"/>

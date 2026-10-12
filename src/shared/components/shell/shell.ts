@@ -147,6 +147,13 @@ export class Shell implements OnInit {
     window.location.assign(eraReal ? '/admin/usuarios' : '/admin/usuarios-test');
   }
   collapsed = signal(false);
+  /** CN3 — ¿viewport de teléfono (≤768px)? Reactivo (matchMedia). */
+  esMovil = signal(
+    typeof window !== 'undefined' && window.matchMedia?.('(max-width: 768px)').matches === true,
+  );
+  /** CN3 — colapso EFECTIVO: en móvil el cajón es off-canvas con nombres, nunca riel de
+   *  iconos, aunque haya una preferencia de colapso guardada del escritorio. */
+  collapsedEfectivo = computed(() => this.collapsed() && !this.esMovil());
   /** Mobile off-canvas drawer (≤768px); independent of the desktop `collapsed`. */
   mobileNavOpen = signal(false);
   expandedSection = signal<string | null>('inventario');
@@ -534,11 +541,18 @@ export class Shell implements OnInit {
     const saved = localStorage.getItem('sgc-sidebar-collapsed');
     if (saved !== null) {
       this.collapsed.set(saved === 'true');
-    } else if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
+    } else if (typeof window !== 'undefined' && window.innerWidth > 768 && window.innerWidth <= 1024) {
       // Z33 — en laptops/tablets (769–1024px) el sidebar arranca colapsado a
       // riel de iconos para dar más ancho al contenido; solo si el usuario no
       // fijó una preferencia (≤768px ya es drawer off-canvas, no aplica).
       this.collapsed.set(true);
+    }
+    // CN3 — mantener `esMovil` reactivo al rotar/redimensionar el teléfono.
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mq = window.matchMedia('(max-width: 768px)');
+      const onMq = (e: MediaQueryListEvent) => this.esMovil.set(e.matches);
+      mq.addEventListener('change', onMq);
+      this.destroyRef.onDestroy(() => mq.removeEventListener('change', onMq));
     }
     this.notificaciones.refresh();
     this.realtimeNotificaciones.start();

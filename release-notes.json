@@ -1,5 +1,25 @@
 {
   "web": {
+    "1.180.0": {
+      "titulo": "Menú con nombres en el teléfono, bienvenida correcta por rol y selector de ubicación que se pliega",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "General",
+          "d": "En el teléfono (Android), al abrir el menú ahora se ven los NOMBRES de las secciones, no solo los íconos. El cajón abre a ancho completo aunque en la computadora tengas el menú colapsado."
+        },
+        {
+          "t": "arreglo",
+          "m": "General",
+          "d": "La bienvenida saluda según tu rol real y con la prioridad correcta (un administrador ya no es saludado como «ingeniero»). Se completaron todos los roles de la empresa."
+        },
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al elegir una ubicación (origen, destino o paradas de una ruta, y en proveedores, bodegas y proyectos) el mapa se recoge a una fila con el lugar y un botón «Cambiar», para no ocupar la pantalla cuando ya está elegido."
+        }
+      ]
+    },
     "1.179.0": {
       "titulo": "Las confirmaciones de acción ahora son animaciones a pantalla completa",
       "cambios": [

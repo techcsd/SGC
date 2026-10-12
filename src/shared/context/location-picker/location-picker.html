@@ -1,62 +1,74 @@
 <div class="location-picker">
-  <div class="location-picker__search">
-    <input
-      #searchInput
-      type="search"
-      placeholder="Buscar dirección o lugar…"
-      (input)="onBuscar($any($event.target).value)"
-      aria-label="Buscar ubicación"
-    />
-    @if (buscando()) {
-      <p class="location-picker__msg">Buscando…</p>
-    } @else if (busquedaError()) {
-      <p class="location-picker__msg location-picker__msg--error">{{ busquedaError() }}</p>
-    }
-    @if (resultados().length > 0) {
-      <ul class="location-picker__results">
-        @for (r of resultados(); track r.placeId) {
-          <li>
-            <button type="button" (click)="seleccionarResultado(r)">
-              <strong>{{ r.primary }}</strong>
-              @if (r.secondary) { <span class="location-picker__result-sec">{{ r.secondary }}</span> }
-            </button>
-          </li>
-        }
-      </ul>
-    }
-  </div>
-
-  <!-- AM7 — pegar link de Google Maps (incl. maps.app.goo.gl) o coordenadas -->
-  <div class="location-picker__link">
-    <input
-      #linkInput
-      type="text"
-      placeholder="Pega link de Google Maps o coordenadas (18.56, -68.37)…"
-      aria-label="Pegar link de Google Maps o coordenadas"
-      (keydown.enter)="resolverLink(linkInput.value); $event.preventDefault()"
-    />
-    <button
-      type="button"
-      class="location-picker__link-btn"
-      [disabled]="resolviendoLink()"
-      (click)="resolverLink(linkInput.value)"
-    >
-      {{ resolviendoLink() ? 'Resolviendo…' : 'Fijar pin' }}
-    </button>
-    @if (linkError()) {
-      <p class="location-picker__msg location-picker__msg--error">{{ linkError() }}</p>
-    }
-  </div>
-
-  <div #map class="location-picker__map"></div>
-  @if (mapError()) {
-    <p class="location-picker__msg location-picker__msg--error">{{ mapError() }} Puedes pegar el link/coordenadas arriba.</p>
+  <!-- CN1 — fila plegada: con un punto elegido, el mapa se recoge. -->
+  @if (plegable() && colapsado() && tienePunto()) {
+    <div class="location-picker__chip">
+      <svg class="location-picker__chip-pin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      <span class="location-picker__chip-txt">{{ etiquetaPunto() }}</span>
+      <svg class="location-picker__chip-ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      <button type="button" class="location-picker__chip-btn" (click)="cambiar()" aria-expanded="false">Cambiar</button>
+    </div>
   }
 
-  <p class="location-picker__hint">
-    Haz clic en el mapa para fijar la ubicación de la obra.
-    @if (direccion()) {
-      <br /><strong>{{ direccion() }}</strong>
+  <div class="location-picker__full" [class.is-colapsado]="plegable() && colapsado() && tienePunto()">
+    <div class="location-picker__search">
+      <input
+        #searchInput
+        type="search"
+        placeholder="Buscar dirección o lugar…"
+        (input)="onBuscar($any($event.target).value)"
+        aria-label="Buscar ubicación"
+      />
+      @if (buscando()) {
+        <p class="location-picker__msg">Buscando…</p>
+      } @else if (busquedaError()) {
+        <p class="location-picker__msg location-picker__msg--error">{{ busquedaError() }}</p>
+      }
+      @if (resultados().length > 0) {
+        <ul class="location-picker__results">
+          @for (r of resultados(); track r.placeId) {
+            <li>
+              <button type="button" (click)="seleccionarResultado(r)">
+                <strong>{{ r.primary }}</strong>
+                @if (r.secondary) { <span class="location-picker__result-sec">{{ r.secondary }}</span> }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- AM7 — pegar link de Google Maps (incl. maps.app.goo.gl) o coordenadas -->
+    <div class="location-picker__link">
+      <input
+        #linkInput
+        type="text"
+        placeholder="Pega link de Google Maps o coordenadas (18.56, -68.37)…"
+        aria-label="Pegar link de Google Maps o coordenadas"
+        (keydown.enter)="resolverLink(linkInput.value); $event.preventDefault()"
+      />
+      <button
+        type="button"
+        class="location-picker__link-btn"
+        [disabled]="resolviendoLink()"
+        (click)="resolverLink(linkInput.value)"
+      >
+        {{ resolviendoLink() ? 'Resolviendo…' : 'Fijar pin' }}
+      </button>
+      @if (linkError()) {
+        <p class="location-picker__msg location-picker__msg--error">{{ linkError() }}</p>
+      }
+    </div>
+
+    <div #map class="location-picker__map"></div>
+    @if (mapError()) {
+      <p class="location-picker__msg location-picker__msg--error">{{ mapError() }} Puedes pegar el link/coordenadas arriba.</p>
     }
-  </p>
+
+    <p class="location-picker__hint">
+      Haz clic en el mapa para fijar la ubicación de la obra.
+      @if (direccion()) {
+        <br /><strong>{{ direccion() }}</strong>
+      }
+    </p>
+  </div>
 </div>

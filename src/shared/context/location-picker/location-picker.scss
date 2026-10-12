@@ -105,3 +105,47 @@
 .location-picker__msg--error {
   color: var(--sgc-danger, #c0392b);
 }
+
+// ── CN1 — plegado al elegir ────────────────────────────────────────────────
+.location-picker__full {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 680px;
+  overflow: hidden;
+  transition: max-height 0.22s ease, opacity 0.22s ease;
+
+  &.is-colapsado {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+// "Animaciones reducidas" / prefers-reduced-motion: el estilo global de
+// `html.motion-reduced` (styles.scss) ya anula estas transiciones.
+
+.location-picker__chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--sgc-border);
+  border-radius: var(--sgc-radius);
+  background: var(--sgc-surface);
+
+  &-pin { flex: 0 0 auto; color: var(--sgc-primary, #f97316); }
+  &-txt { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--sgc-text); }
+  &-ok { flex: 0 0 auto; color: #12b76a; }
+  &-btn {
+    flex: 0 0 auto;
+    border: 1px solid var(--sgc-border);
+    background: transparent;
+    color: var(--sgc-text);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: var(--sgc-radius);
+    cursor: pointer;
+    &:hover { background: var(--sgc-surface-2, rgba(0, 0, 0, 0.04)); }
+  }
+}

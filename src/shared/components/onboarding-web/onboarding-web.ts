@@ -9,6 +9,7 @@ import {
 import { UserService } from '../../../app/core/services/user.service';
 import { BienvenidaService } from '../../services/bienvenida.service';
 import { Icon } from '../../ui/icon/icon';
+import { Perfil, resolverPerfil } from './perfiles';
 
 interface Step {
   /** Nombre de icono SVG (app-icon). AW12 — nunca emoji. */
@@ -20,21 +21,6 @@ interface Step {
 }
 
 interface Rect { top: number; left: number; width: number; height: number; }
-
-/** CL3 — perfil por rol: saludo + qué resaltar en el 1.er paso del tour. */
-interface Perfil { modulo: string; que: string; }
-const PERFILES: { codigos: string[]; p: Perfil }[] = [
-  { codigos: ['admin'], p: { modulo: 'Administración', que: 'todo el sistema: usuarios, roles y configuración' } },
-  { codigos: ['direccion', 'gerencia'], p: { modulo: 'Dirección', que: 'los indicadores y el avance de los proyectos' } },
-  { codigos: ['jefe_flota'], p: { modulo: 'Flota', que: 'tus vehículos, rutas, combustible y mantenimientos' } },
-  { codigos: ['logistica'], p: { modulo: 'Transporte', que: 'conduces, requisiciones y el apoyo de transporte' } },
-  { codigos: ['abogado'], p: { modulo: 'Legal', que: 'expedientes, contratos, aprobaciones y firmas' } },
-  { codigos: ['rrhh'], p: { modulo: 'RRHH', que: 'empleados, asistencia y ausencias' } },
-  { codigos: ['ingeniero_campo', 'ingeniero_oficina'], p: { modulo: 'Obra', que: 'tu bitácora, requisiciones y personal de obra' } },
-  { codigos: ['encargado_almacen', 'bodeguero', 'encargado_patio'], p: { modulo: 'Inventario', que: 'entradas, salidas, conduces y conteos' } },
-  { codigos: ['chofer', 'chofer_privado'], p: { modulo: 'Transporte', que: 'tus rutas, conduces y combustible' } },
-];
-const PERFIL_DEFAULT: Perfil = { modulo: 'tu módulo', que: 'tu trabajo del día a día' };
 
 /**
  * CL3 — Bienvenida web: ventana central con saludo por ROL → tour con foco sobre los
@@ -63,11 +49,7 @@ export class OnboardingWeb {
   private arrancada = false;
 
   nombre = computed(() => (this.userService.profile()?.nombre ?? '').split(' ')[0] || '');
-  perfil = computed<Perfil>(() => {
-    const roles = this.userService.roles();
-    for (const { codigos, p } of PERFILES) if (codigos.some((c) => roles.includes(c))) return p;
-    return PERFIL_DEFAULT;
-  });
+  perfil = computed<Perfil>(() => resolverPerfil(this.userService.roles()));
   rolLabel = computed(() => this.perfil().modulo.toUpperCase());
 
   steps = computed<Step[]>(() => [

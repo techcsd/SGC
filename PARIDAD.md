@@ -495,3 +495,36 @@ lógico de captura; el layout puede diferir).
   `viewBox="205 0 235 108"`, pensado para colocarse a la derecha de `csd-logo-simbolo.svg` `0 0 206 108`).
   La app usa **este mismo archivo** en su logo-reveal en vez del texto "CSD APP". (La web renderiza hoy el
   texto con la tipografía de marca en el reveal; el SVG queda disponible para unificar si Xaviel lo aprueba.)
+
+## Ronda CN (PROMPT-96 web → PROMPT-97 app) — 1.177.0-1.180.0
+
+### CN4 — perfiles de bienvenida (contrato: la app lo copia idéntico)
+El saludo del onboarding se resuelve por el **primer rol que coincida en ESTE orden** (prioridad);
+con varios roles, gana el de arriba. La app (csd-app) debe usar la MISMA tabla y el MISMO orden
+(su bug era saludar a un admin como "ingeniero"). Código real de `sgc.roles`. Fuente:
+`src/shared/components/onboarding-web/onboarding-web.ts` (`PERFILES`/`resolverPerfil`), test `*.perfil.spec.ts`.
+
+| # | Códigos de rol | Módulo (saludo) |
+|---|---|---|
+| 1 | `admin` | Administración |
+| 2 | `direccion`, `gerencia` | Dirección |
+| 3 | `desarrollador`, `encargado_tecnologia`, `tecnologia` | Tecnología |
+| 4 | `abogado` | Legal |
+| 5 | `jefe_rrhh` | RRHH |
+| 6 | `coord_compras` | Compras |
+| 7 | `jefe_flota` | Flota |
+| 8 | `logistica` | Transporte |
+| 9 | `gerente_proyectos`, `jefe_ingenieros` | Proyectos |
+| 10 | `gerente_produccion`, `ingeniero_campo`, `ingeniero_oficina`, `capataz` | Obra |
+| 11 | `encargado_patio`, `guarda_almacen` | Inventario |
+| 12 | `chofer_transportista`, `chofer_privado` | Transporte |
+| 13 | `revisor_tiendas` | Ayuda (demo) |
+| — | (sin match) | genérico: "tu módulo / tu trabajo del día a día" |
+
+### CN5 — momentos a pantalla completa (escenas)
+La web elevó `momento(tipo)` a **escena a pantalla completa** (velo navy 92 %, halo+onda, escena,
+check naranja 1,1s, título+dato, "Toca para continuar"; 1,8s). **Ráfaga:** un momento dentro de los
+10s del overlay anterior sale como **tarjeta corta** (la mediana de siempre), hasta 10s de calma.
+Reducido = velo+check+texto. Tipos: entrada, salida, aprobado, firma, combustible, checklist,
+mantenimiento, mensaje, documento, **uso** (+ conduce CJ2 y ruta CJ3). La app replica el mismo
+set de escenas y la misma lógica de ráfaga en su `celebracion`/`momento`.
