@@ -10,6 +10,7 @@ import {
   TarjetaMap,
   CombustibleFactura,
 } from '../../../../shared/services/combustible-conciliacion.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { parseTotalEnergiesPdfFull, TotalEnergiesCard, ALERTA_CHIP } from '../../../../shared/utils/parse-pdf-totalenergies.util';
 import { generarMiniaturaPdf } from '../../../../shared/utils/pdf-thumbnail.util';
 import { VehiculosService } from '../../../../shared/services/vehiculos.service';
@@ -37,6 +38,7 @@ import { Icon } from '../../../../shared/ui/icon/icon';
 })
 export class ConciliacionCombustible implements OnInit {
   private service = inject(CombustibleConciliacionService);
+  private motion = inject(MotionService);
   private estacionesService = inject(EstacionesCombustibleService);
   private vehiculosService = inject(VehiculosService);
   private toast = inject(ToastService);
@@ -951,6 +953,7 @@ export class ConciliacionCombustible implements OnInit {
         `Registradas ${r.creadas} echada(s) de la factura`,
         r.con_km_pendiente ? `${r.con_km_pendiente} sin kilometraje — complétalo en el registro de combustible.` : undefined,
       );
+      this.motion.momento('combustible', { sub: String(r.creadas) });
       this.detalles.set([]);
       this.meta.set(null);
       this.nombreArchivo.set(null);

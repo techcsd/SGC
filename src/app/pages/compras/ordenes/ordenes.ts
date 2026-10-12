@@ -10,6 +10,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
 import { CategoriasService } from '../../../../shared/services/categorias.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
@@ -77,6 +78,7 @@ interface ReconciliacionRow {
 })
 export class Ordenes implements OnInit {
   private ordenesService = inject(OrdenesCompraService);
+  private motion = inject(MotionService);
   private articulosService = inject(ArticulosService);
   private categoriasService = inject(CategoriasService);
   private proveedoresService = inject(ProveedoresService);
@@ -527,6 +529,7 @@ export class Ordenes implements OnInit {
         created = await this.ordenesService.create(payload, itemPayloads, creadoPor);
       }
       this.ordenes.update((list) => [created, ...list]);
+      this.motion.momento('documento');
 
       this.createDrawerOpen.set(false);
     } catch (e: unknown) {

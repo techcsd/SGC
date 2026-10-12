@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SolicitudesMaterialService, MaterialACargo } from '../../../../shared/services/solicitudes-material.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { ArticulosService } from '../../../../shared/services/articulos.service';
@@ -89,6 +90,7 @@ const NUEVO_ITEM: () => ItemRow = () => ({
 })
 export class SolicitudesMaterial implements OnInit {
   private solicitudesService = inject(SolicitudesMaterialService);
+  private motion = inject(MotionService);
   private proyectosService = inject(ProyectosService);
   private datosPruebaView = inject(DatosPruebaViewService);
   private articulosService = inject(ArticulosService);
@@ -584,6 +586,7 @@ export class SolicitudesMaterial implements OnInit {
       }
 
       this.solicitudes.update((list) => [created, ...list]);
+      this.motion.momento('documento', { texto: 'Requisición enviada' });
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.saveError.set(e instanceof Error ? e.message : 'Error al guardar.');

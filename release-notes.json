@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.181.0": {
+      "titulo": "Más acciones con su animación de confirmación a pantalla completa",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "General",
+          "d": "Ahora también salen las animaciones de confirmación al enviar y aprobar una requisición, crear una orden de compra, aplicar un conteo, registrar una orden de trabajo, generar un documento, enviar una bitácora, dar de alta personal de obra y aprobar en Legal. Al importar las echadas de una factura, una sola animación con el total."
+        }
+      ]
+    },
     "1.180.0": {
       "titulo": "Menú con nombres en el teléfono, bienvenida correcta por rol y selector de ubicación que se pliega",
       "cambios": [

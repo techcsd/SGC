@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, v
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { BitacoraService } from '../../../../shared/services/bitacora.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { DatosPruebaViewService } from '../../../../shared/services/datos-prueba-view.service';
 import { UserService } from '../../../core/services/user.service';
@@ -29,6 +30,7 @@ import { todayIso } from '../../../../shared/utils/fecha.util';
 })
 export class OrdenTrabajo implements OnInit {
   private bitacoraService = inject(BitacoraService);
+  private motion = inject(MotionService);
   private proyectosService = inject(ProyectosService);
   private datosPruebaView = inject(DatosPruebaViewService);
   private unidadesService = inject(UnidadesService);
@@ -143,6 +145,7 @@ export class OrdenTrabajo implements OnInit {
       });
 
       this.toast.success('Orden de trabajo registrada.', 'Con las dos firmas capturadas.');
+      this.motion.momento('firma');
       this.router.navigate(['/bitacora/orden-trabajo', id]);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudo registrar la orden de trabajo.');

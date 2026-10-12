@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } 
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { DocumentoGenerado } from '../../../../shared/models/plantilla-documento.model';
 import { UserService } from '../../../core/services/user.service';
 import { AprobacionLegal, APROBACION_MODULOS } from '../../../../shared/models/legal.model';
@@ -20,6 +21,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 })
 export class Aprobaciones implements OnInit {
   private legalService = inject(LegalService);
+  private motion = inject(MotionService);
   private userService = inject(UserService);
 
   readonly MODULOS = APROBACION_MODULOS;
@@ -118,6 +120,7 @@ export class Aprobaciones implements OnInit {
     try {
       const updated = await this.legalService.resolverAprobacion(a.id, estado, userId, this.comentario.value || null);
       this.aprobaciones.update((list) => list.map((item) => (item.id === a.id ? updated : item)));
+      if (estado === 'aprobado') this.motion.momento('firma');
       this.drawerOpen.set(false);
     } catch (e: unknown) {
       this.resolveError.set(e instanceof Error ? e.message : 'Error al resolver la solicitud.');

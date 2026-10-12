@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, SecurityContext, inject, signal, co
 import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { UserService } from '../../../core/services/user.service';
 import { PlantillaDocumento, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
@@ -18,6 +19,7 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 })
 export class Generar implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
+  private motion = inject(MotionService);
   private proyectosService = inject(ProyectosService);
   private userService = inject(UserService);
   private sanitizer = inject(DomSanitizer);
@@ -118,6 +120,7 @@ export class Generar implements OnInit {
         contenidoHtmlFinal: safeHtml,
         generadoPor,
       });
+      this.motion.momento('documento');
       this.router.navigate(['/documentos/ver', doc.id]);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al guardar el documento.');

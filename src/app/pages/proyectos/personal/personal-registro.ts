@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PersonalObraService } from '../../../../shared/services/personal-obra.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { ProyectosService, ObraRef } from '../../../../shared/services/proyectos.service';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { PlantillaDocumento, CampoPlantilla } from '../../../../shared/models/plantilla-documento.model';
@@ -27,6 +28,7 @@ import {
 })
 export class PersonalRegistro implements OnInit {
   private service = inject(PersonalObraService);
+  private motion = inject(MotionService);
   private proyectos = inject(ProyectosService);
   private plantillasSvc = inject(PlantillasDocumentoService);
   private empresaSvc = inject(EmpresaService);
@@ -181,6 +183,7 @@ export class PersonalRegistro implements OnInit {
       const saved = actual ? await this.service.actualizar(actual.id, payload) : await this.service.crear(payload);
       this.personal.set(saved);
       this.dupAviso.set([]);
+      if (!actual) this.motion.momento('entrada');
       this.paso.set(2);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'No se pudieron guardar los datos.');
