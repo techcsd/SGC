@@ -1,7 +1,7 @@
 @if (motion.visible()) {
-  <div class="cel" (click)="motion.cerrar()" role="status" aria-live="polite">
-    <!-- aria-live: el texto para lectores de pantalla -->
-    <span class="cel__sr">Conduce creado{{ motion.datos().numero ? ' ' + motion.datos().numero : '' }}{{ motion.datos().destino ? ', destino ' + motion.datos().destino : '' }}.</span>
+  <div class="cel" [class.cel--escena]="esEscena()" [class.cel--reducido]="reducido()" (click)="motion.cerrar()" role="status" aria-live="polite">
+    <!-- aria-live: el texto para lectores de pantalla (varía por tipo). -->
+    <span class="cel__sr">{{ tituloSr() }}</span>
 
     <div class="cel__dim"></div>
 
@@ -27,20 +27,158 @@
         </div>
         <div class="cel__stamp">EMITIDO</div>
       </div>
+    } @else if (motion.tipo() === 'ruta') {
+      <!-- CJ3 — ruta creada: carretera + camión + pines (portado de la app). -->
+      <div class="cel__roadwrap">
+        <div class="cel__pin cel__pin--1"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fdba74"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></div>
+        <div class="cel__pin cel__pin--2"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fdba74"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></div>
+        <div class="cel__pin cel__pin--3"><svg width="26" height="26" viewBox="0 0 24 24" fill="#fdba74"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zm0-9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg></div>
+        <div class="cel__road"><div class="cel__dashes"></div></div>
+        <div class="cel__truck">
+          <span class="cel__puff"></span>
+          <svg class="cel__truck-body" width="150" height="76" viewBox="0 0 150 76" fill="none">
+            <rect x="4" y="8" width="90" height="48" rx="6" fill="#ffffff"/>
+            <rect x="4" y="40" width="90" height="6" fill="#f97316"/>
+            <text x="16" y="32" fill="#1e3a5f" font-family="Inter Tight, Inter, sans-serif" font-weight="700" font-size="15">CSD</text>
+            <path d="M96 20h26l18 18v18H96z" fill="#1e3a5f"/>
+            <path d="M103 26h17l11 11h-28z" fill="#9cc0ec"/>
+            <rect x="138" y="44" width="6" height="6" rx="1" fill="#fdba74"/>
+            <g class="cel__wheel"><circle cx="28" cy="60" r="11" fill="#14243a"/><circle cx="28" cy="60" r="4" fill="#98a2b3"/><rect x="27" y="51" width="2" height="5" fill="#98a2b3"/></g>
+            <g class="cel__wheel"><circle cx="118" cy="60" r="11" fill="#14243a"/><circle cx="118" cy="60" r="4" fill="#98a2b3"/><rect x="117" y="51" width="2" height="5" fill="#98a2b3"/></g>
+          </svg>
+        </div>
+      </div>
+    } @else {
+      <!-- CN5 — escena de momento a pantalla completa (mock Escena.dc.html). -->
+      <div class="cel__stage">
+        <div class="es-halo"></div>
+        <div class="es-burst"></div>
+        <div class="cel__scene">
+          @switch (motion.tipo()) {
+            @case ('entrada') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <path d="M40 92 L110 50 L180 92" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="52" y="92" width="116" height="84" rx="6" fill="none" stroke="#ffffff" stroke-width="7"/>
+                <rect x="86" y="118" width="48" height="58" fill="rgb(255 255 255 / .08)" stroke="#ffffff" stroke-width="4"/>
+                <g class="es-drop"><rect x="92" y="122" width="36" height="30" rx="4" fill="#f97316"/><rect x="107" y="122" width="6" height="30" fill="#fdba74"/></g>
+                <rect class="es-door" x="86" y="118" width="48" height="58" fill="#1e3a5f" stroke="#ffffff" stroke-width="4"/>
+              </svg>
+            }
+            @case ('salida') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <path d="M14 96 L60 66 L106 96" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="22" y="96" width="76" height="76" rx="5" fill="none" stroke="#ffffff" stroke-width="6"/>
+                <g class="es-truck">
+                  <rect x="112" y="128" width="70" height="36" rx="4" fill="none" stroke="#ffffff" stroke-width="5"/>
+                  <path d="M182 138 H200 L210 152 V164 H182 Z" fill="none" stroke="#ffffff" stroke-width="5" stroke-linejoin="round"/>
+                  <circle cx="130" cy="170" r="8" fill="#0f1f33" stroke="#ffffff" stroke-width="4"/>
+                  <circle cx="196" cy="170" r="8" fill="#0f1f33" stroke="#ffffff" stroke-width="4"/>
+                  <g class="es-slide"><rect x="42" y="118" width="34" height="28" rx="4" fill="#f97316"/><rect x="56" y="118" width="6" height="28" fill="#fdba74"/></g>
+                </g>
+              </svg>
+            }
+            @case ('aprobado') {
+              <div class="es-shake cel__shakewrap">
+                <div class="cel__doc">
+                  <div style="height:8px;width:70%;background:#cbd5e1;border-radius:4px"></div>
+                  <div style="height:6px;width:92%;background:#e2e8f0;border-radius:3px"></div>
+                  <div style="height:6px;width:80%;background:#e2e8f0;border-radius:3px"></div>
+                  <div style="height:6px;width:88%;background:#e2e8f0;border-radius:3px"></div>
+                  <div style="height:6px;width:60%;background:#e2e8f0;border-radius:3px"></div>
+                </div>
+                <div class="es-stamp cel__stamptxt">APROBADO</div>
+              </div>
+            }
+            @case ('firma') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <rect x="30" y="20" width="160" height="160" rx="10" fill="#ffffff"/>
+                <line x1="54" y1="140" x2="166" y2="140" stroke="#cbd5e1" stroke-width="3"/>
+                <path class="es-draw" pathLength="1" d="M58 128 C70 92 82 92 84 118 C86 140 98 100 108 104 C118 108 112 132 124 126 C134 120 138 98 150 112 C156 120 160 124 168 116" fill="none" stroke="#1e3a5f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            }
+            @case ('combustible') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <defs><clipPath id="celDropClip"><path d="M110 18 C110 18 64 74 64 104 C64 130 85 150 110 150 C135 150 156 130 156 104 C156 74 110 18 110 18 Z"/></clipPath></defs>
+                <g clip-path="url(#celDropClip)"><rect class="es-fill" x="60" y="14" width="100" height="140" fill="#f97316"/></g>
+                <path d="M110 18 C110 18 64 74 64 104 C64 130 85 150 110 150 C135 150 156 130 156 104 C156 74 110 18 110 18 Z" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>
+                <path d="M70 182 A40 40 0 0 1 150 182" fill="none" stroke="rgb(255 255 255 / .35)" stroke-width="5" stroke-linecap="round"/>
+                <line class="es-needle" x1="110" y1="182" x2="110" y2="152" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+              </svg>
+            }
+            @case ('checklist') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <rect x="46" y="16" width="128" height="170" rx="10" fill="#ffffff"/>
+                <rect x="84" y="8" width="52" height="18" rx="5" fill="#1e3a5f"/>
+                <rect x="62" y="46" width="20" height="20" rx="4" fill="none" stroke="#94a3b8" stroke-width="3"/>
+                <path class="es-tick" style="animation-delay:.2s" pathLength="1" d="M66 56 L71 61 L79 50" fill="none" stroke="#f97316" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="92" y="53" width="62" height="7" rx="3" fill="#cbd5e1"/>
+                <rect x="62" y="80" width="20" height="20" rx="4" fill="none" stroke="#94a3b8" stroke-width="3"/>
+                <path class="es-tick" style="animation-delay:.36s" pathLength="1" d="M66 90 L71 95 L79 84" fill="none" stroke="#f97316" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="92" y="87" width="62" height="7" rx="3" fill="#cbd5e1"/>
+                <rect x="62" y="114" width="20" height="20" rx="4" fill="none" stroke="#94a3b8" stroke-width="3"/>
+                <path class="es-tick" style="animation-delay:.52s" pathLength="1" d="M66 124 L71 129 L79 118" fill="none" stroke="#f97316" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="92" y="121" width="62" height="7" rx="3" fill="#cbd5e1"/>
+                <rect x="62" y="148" width="20" height="20" rx="4" fill="none" stroke="#94a3b8" stroke-width="3"/>
+                <path class="es-tick" style="animation-delay:.68s" pathLength="1" d="M66 158 L71 163 L79 152" fill="none" stroke="#f97316" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="92" y="155" width="62" height="7" rx="3" fill="#cbd5e1"/>
+              </svg>
+            }
+            @case ('mantenimiento') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <g class="es-gear"><circle cx="150" cy="140" r="26" fill="none" stroke="rgb(255 255 255 / .55)" stroke-width="10" stroke-dasharray="10 7"/><circle cx="150" cy="140" r="10" fill="rgb(255 255 255 / .55)"/></g>
+                <g class="es-wrench"><path d="M110 100 L60 150" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/><circle cx="118" cy="92" r="22" fill="none" stroke="#ffffff" stroke-width="12"/><rect x="116" y="70" width="16" height="16" fill="#0f1f33" transform="rotate(45 124 78)"/></g>
+                <circle cx="110" cy="100" r="6" fill="#f97316"/>
+              </svg>
+            }
+            @case ('mensaje') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <path class="es-draw" pathLength="1" d="M20 170 C70 160 100 130 130 90" fill="none" stroke="rgb(255 255 255 / .45)" stroke-width="3" stroke-dasharray="6 7"/>
+                <g class="es-plane"><path d="M80 100 L150 76 L120 136 L110 112 Z" fill="#ffffff"/><path d="M110 112 L150 76" stroke="#f97316" stroke-width="3"/></g>
+              </svg>
+            }
+            @case ('documento') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <g class="es-paper"><rect x="70" y="60" width="80" height="96" rx="4" fill="#ffffff"/><rect x="82" y="76" width="50" height="6" rx="3" fill="#cbd5e1"/><rect x="82" y="90" width="56" height="5" rx="2" fill="#e2e8f0"/><rect x="82" y="102" width="44" height="5" rx="2" fill="#e2e8f0"/></g>
+                <rect x="40" y="110" width="140" height="56" rx="10" fill="#1e3a5f" stroke="#ffffff" stroke-width="5"/>
+                <rect x="64" y="110" width="92" height="8" fill="#0f1f33"/>
+                <circle cx="160" cy="138" r="6" fill="#f97316"/>
+              </svg>
+            }
+            @case ('uso') {
+              <svg width="220" height="200" viewBox="0 0 220 200" aria-hidden="true">
+                <circle cx="46" cy="120" r="30" fill="rgb(255 255 255 / .08)" stroke="#ffffff" stroke-width="4"/>
+                <circle cx="174" cy="120" r="30" fill="rgb(249 115 22 / .18)" stroke="#f97316" stroke-width="4"/>
+                <g class="es-key" style="transform-box:view-box"><circle cx="110" cy="112" r="14" fill="none" stroke="#ffffff" stroke-width="6"/><path d="M124 112 H152 M142 112 V122 M150 112 V120" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/></g>
+              </svg>
+            }
+          }
+        </div>
+
+        <div class="es-check">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <div class="cel__etexto">
+          <span class="es-txt">{{ tituloCel() }}</span>
+          @if (subCel()) { <span class="es-txt2">{{ subCel() }}</span> }
+          <span class="es-hint">Toca para continuar</span>
+        </div>
+      </div>
     }
 
-    <!-- Mensaje + check -->
-    <div class="cel__msg">
-      <span class="cel__check">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
-      </span>
-      <span class="cel__title">{{ motion.tipo() === 'ruta' ? 'Ruta creada' : 'Conduce creado' }}</span>
-      @if (motion.datos().numero || motion.datos().destino) {
-        <span class="cel__sub">{{ motion.datos().numero }}{{ motion.datos().numero && motion.datos().destino ? ' · ' : '' }}{{ motion.datos().destino }}</span>
-      }
-      @if (motion.datos().verUrl) {
-        <button type="button" class="cel__ver" (click)="$event.stopPropagation(); ver()">{{ motion.datos().verLabel || 'Ver conduce' }}</button>
-      }
-    </div>
+    @if (!esEscena()) {
+      <!-- Mensaje + check para conduce/ruta -->
+      <div class="cel__msg" [class.cel__msg--ruta]="motion.tipo() === 'ruta'">
+        <span class="cel__check">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </span>
+        <span class="cel__title">{{ tituloCel() }}</span>
+        @if (motion.datos().numero || motion.datos().destino) {
+          <span class="cel__sub">{{ motion.datos().numero }}{{ motion.datos().numero && motion.datos().destino ? ' · ' : '' }}{{ motion.datos().destino }}</span>
+        }
+        @if (motion.datos().verUrl) {
+          <button type="button" class="cel__ver" (click)="$event.stopPropagation(); ver()">{{ motion.datos().verLabel || 'Ver' }}</button>
+        }
+      </div>
+    }
   </div>
 }

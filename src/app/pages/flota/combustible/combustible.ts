@@ -22,6 +22,7 @@ import { ConductoresService } from '../../../../shared/services/conductores.serv
 import { FlotaConfigService, type FlotaConfigVersion } from '../../../../shared/services/flota-config.service';
 import { EstacionesCombustibleService, EstacionCombustible } from '../../../../shared/services/estaciones-combustible.service';
 import { ToastService } from '../../../../shared/services/toast.service';
+import { MotionService } from '../../../../shared/services/motion.service';
 import { UserService } from '../../../core/services/user.service';
 import { DatosPruebaService } from '../../../../shared/services/datos-prueba.service';
 import {
@@ -62,6 +63,7 @@ export class Combustible implements OnInit {
   private toast = inject(ToastService);
   private userService = inject(UserService);
   private datosPrueba = inject(DatosPruebaService);
+  private motion = inject(MotionService);
 
   formatFecha = formatFechaDisplay;
   esV2 = esRegistroV2;
@@ -883,6 +885,9 @@ export class Combustible implements OnInit {
       this.drawerOpen.set(false);
       this.clearFiles();
       this.limpiarBorrador(); // BV5 — echada registrada → el borrador ya no aplica
+
+      // CN4 (Nota #204) — momento "combustible" al registrar (como el resto de Flota).
+      this.motion.momento('combustible', { texto: 'Combustible registrado' });
 
       if (derivados.alerta_consumo) {
         // AW2 — anomalía con dirección: alto = error de dato (revisar lectura),
