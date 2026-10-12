@@ -19,7 +19,7 @@ import { PreferenciasService } from '../../../shared/services/preferencias.servi
 import { PrivacidadService } from '../../../shared/services/privacidad.service';
 import { ThemeService, TemaPreferencia } from '../../../shared/services/theme.service';
 import { ToastService } from '../../../shared/services/toast.service';
-import { aplicarDensidad, aplicarTamanoLetra, guardarMovimientoReducido, leerMovimientoReducido, Densidad, TamanoLetra } from '../../../shared/utils/apariencia.util';
+import { aplicarDensidad, aplicarTamanoLetra, guardarMovimientoReducido, leerMovimientoReducido, leerLogoAlRefrescar, guardarLogoAlRefrescar, Densidad, TamanoLetra } from '../../../shared/utils/apariencia.util';
 import { MODULOS_DISPONIBLES } from '../../../shared/services/roles.service';
 import { APP_VERSION } from '../../../environments/version';
 
@@ -195,6 +195,13 @@ export class Configuracion implements OnInit {
   setMovimientoReducido(reducido: boolean) {
     guardarMovimientoReducido(reducido);
     this.movimientoReducido.set(reducido);
+  }
+
+  // CN — "Mostrar el logo al refrescar" (por dispositivo; localStorage; por defecto sí).
+  logoAlRefrescar = signal(leerLogoAlRefrescar());
+  setLogoAlRefrescar(mostrar: boolean) {
+    guardarLogoAlRefrescar(mostrar);
+    this.logoAlRefrescar.set(mostrar);
   }
 
   async setModuloInicio(route: string) {
