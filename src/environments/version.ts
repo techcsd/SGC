@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.178.0';
-export const APP_VERSION_TITULO: string | null = "Animaciones en la web: «ruta creada» (camión y calle) y «combustible registrado»";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"mejora","m":"Flota","d":"Al crear una ruta ahora sale la animación a pantalla completa del camión recorriendo la calle (la misma de la app), con el destino y un botón para ir a tus rutas."},{"t":"mejora","m":"Flota","d":"Al registrar combustible sale una animación de confirmación, igual que en el resto de Flota (antes no mostraba nada)."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/63e8ad8";
+export const APP_VERSION = '1.180.0';
+export const APP_VERSION_TITULO: string | null = "Menú con nombres en el teléfono, bienvenida correcta por rol y selector de ubicación que se pliega";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"General","d":"En el teléfono (Android), al abrir el menú ahora se ven los NOMBRES de las secciones, no solo los íconos. El cajón abre a ancho completo aunque en la computadora tengas el menú colapsado."},{"t":"arreglo","m":"General","d":"La bienvenida saluda según tu rol real y con la prioridad correcta (un administrador ya no es saludado como «ingeniero»). Se completaron todos los roles de la empresa."},{"t":"mejora","m":"Flota","d":"Al elegir una ubicación (origen, destino o paradas de una ruta, y en proveedores, bodegas y proyectos) el mapa se recoge a una fila con el lugar y un botón «Cambiar», para no ocupar la pantalla cuando ya está elegido."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/e1af90b";
