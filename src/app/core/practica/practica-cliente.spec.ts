@@ -55,6 +55,19 @@ describe('PracticaClienteService — candado de red', () => {
     expect(svc.escrituras[0]).toMatchObject({ tabla: 'solicitudes_material', metodo: 'POST' });
   });
 
+  it('un RPC de escritura (crear_...) se guarda en memoria y NO sale a la red', async () => {
+    svc.entrar({ rpc: { crear_solicitud_material: 'practica-req-0001' } });
+    const res = await call('/rest/v1/rpc/crear_solicitud_material', {
+      method: 'POST',
+      body: JSON.stringify({ p_proyecto_id: 'obra-norte', p_items: [{ articulo_id: 'a1', cantidad: 5 }] }),
+    });
+    expect(realSpy).not.toHaveBeenCalled();
+    expect(await res.json()).toBe('practica-req-0001');
+    const w = svc.escrituras.find((e) => e.tabla === 'rpc:crear_solicitud_material');
+    expect(w).toBeTruthy();
+    expect((w!.body as { p_proyecto_id: string }).p_proyecto_id).toBe('obra-norte');
+  });
+
   it('una edge function desconocida devuelve "No disponible", NO sale a la red', async () => {
     const res = await call('/functions/v1/edge-que-no-existe', { method: 'POST', body: '{}' });
     expect(realSpy).not.toHaveBeenCalled();

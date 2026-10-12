@@ -91,8 +91,15 @@ export class PracticaClienteService {
     // ── RPC: respuesta del escenario (o vacío) ──
     const mRpc = path.match(/\/rest\/v1\/rpc\/([^/?]+)/);
     if (mRpc) {
-      const data = this.escenario.rpc?.[mRpc[1]];
-      return this.json(data ?? []);
+      const name = mRpc[1];
+      // Un RPC con cuerpo (POST) suele ser una ESCRITURA (crear/aprobar/despachar…):
+      // guárdala también en memoria para poder evaluar la misión por lo que el usuario hizo.
+      if ((method === 'POST' || method === 'PATCH') && init?.body) {
+        let body: unknown;
+        try { body = JSON.parse(init.body as string); } catch { body = undefined; }
+        this.escrituras.push({ tabla: `rpc:${name}`, metodo: method, body });
+      }
+      return this.json(this.escenario.rpc?.[name] ?? []);
     }
 
     // ── Edge functions: escenario o "No disponible en práctica" ──
