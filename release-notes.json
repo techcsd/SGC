@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.183.0": {
+      "titulo": "Animación al firmar un conduce",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Inventario",
+          "d": "Al firmar un conduce (confirmar la recepción) sale la animación de firma a pantalla completa."
+        }
+      ]
+    },
     "1.182.0": {
       "titulo": "Vista previa de Animaciones muestra las escenas a pantalla completa",
       "cambios": [
@@ -5126,6 +5136,5 @@
         }
       ]
     }
-  },
-  "_doc": "Notas de versión estructuradas por plataforma/versión (Y1). La versión web actual sale de package.json; el hook de build (gen-version.mjs) y el registro post-build (registrar-version-web.mjs) leen la entrada correspondiente. Cada cambio: { t: nuevo|mejora|arreglo|seguridad, d: texto }."
+  }
 }
