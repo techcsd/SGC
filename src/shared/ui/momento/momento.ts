@@ -28,6 +28,7 @@ export class Momento {
     mantenimiento: 'Mantenimiento cerrado',
     mensaje: 'Enviado',
     documento: 'Documento generado',
+    uso: 'Vehículo tomado',
   };
 
   texto = computed(() => this.motion.momentoDatos().texto || this.labels[this.motion.momentoTipo()]);
