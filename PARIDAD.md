@@ -528,3 +528,18 @@ check naranja 1,1s, título+dato, "Toca para continuar"; 1,8s). **Ráfaga:** un 
 Reducido = velo+check+texto. Tipos: entrada, salida, aprobado, firma, combustible, checklist,
 mantenimiento, mensaje, documento, **uso** (+ conduce CJ2 y ruta CJ3). La app replica el mismo
 set de escenas y la misma lógica de ráfaga en su `celebracion`/`momento`.
+
+### CM7 (F7a) — cliente de práctica (contrato para la app)
+El modo práctica con **pantallas reales** usa un **cliente supabase-js con `fetch` propio** que
+no sale a la red. La app replica el mismo diseño (`PracticaClienteService` en SGC):
+- **Lecturas** (`GET /rest/v1/<tabla>`, `/rest/v1/rpc/<name>`) → salen del **escenario** de la
+  misión (`{ tablas, rpc, funciones }`), datos de mentira; lo no definido = `[]`.
+- **Escrituras** (POST/PATCH/DELETE) → se guardan **en memoria** (`escrituras[]`), devuelven una
+  fila simulada; nunca viajan.
+- **Edge functions** desconocidas → `{ error: 'No disponible en práctica' }`.
+- **Realtime apagado.**
+- **Candado de red:** la ÚNICA petición que sale de verdad es `practica_guardar_intento` (la nota).
+  Hay una prueba (`practica-cliente.spec.ts`) que falla si sale cualquier otra cosa.
+- `SupabaseService.client` devuelve este cliente mientras `practica.activa()` es true (getter),
+  así la **pantalla real funciona sin cambios**. La misión declara `rutaReal` + `escenario`.
+- La evaluación de la misión lee `escrituras[]` (lo que el usuario creó) contra los objetivos.

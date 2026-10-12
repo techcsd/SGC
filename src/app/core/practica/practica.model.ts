@@ -1,4 +1,6 @@
 /** CM7 — modo práctica (simulador local, datos de mentira, nota tipo examen). */
+import { EscenarioPractica } from './practica-cliente.service';
+export type { EscenarioPractica };
 
 export interface Objetivo {
   id: string;
@@ -51,6 +53,12 @@ export interface MisionPractica {
   campos?: CampoPractica[];
   objetivos: Objetivo[];
   penalizaciones: Penalizacion[];
+  /** CM7 7b — pantalla REAL a la que lleva la misión (ruta del router). Si está, la práctica
+   *  activa el cliente de práctica con `escenario` y navega aquí en vez de usar el formulario
+   *  simplificado. */
+  rutaReal?: string;
+  /** CM7 7a — datos de mentira que sirve el cliente de práctica para la pantalla real. */
+  escenario?: EscenarioPractica;
 }
 
 /** Lo que el usuario fue armando durante la práctica (en memoria, nunca a la red). */

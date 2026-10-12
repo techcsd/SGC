@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from '../services/supabase.service';
+import { PracticaClienteService } from './practica-cliente.service';
 import { MisionPractica, RespuestaPractica, ResultadoPractica, ResultadoEquipoFila, ResultadoPersonaFila } from './practica.model';
 
 /**
@@ -10,6 +11,7 @@ import { MisionPractica, RespuestaPractica, ResultadoPractica, ResultadoEquipoFi
 @Injectable({ providedIn: 'root' })
 export class PracticaService {
   private supabase = inject(SupabaseService);
+  private practicaCliente = inject(PracticaClienteService);
 
   activa = signal(false);
   mision = signal<MisionPractica | null>(null);
@@ -20,9 +22,16 @@ export class PracticaService {
     this.mision.set(m);
     this.respuesta.set({});
     this.inicioMs = typeof performance !== 'undefined' ? performance.now() : 0;
+    // CM7 7b — misión con pantalla real: activa el cliente de práctica con su escenario.
+    if (m.escenario || m.rutaReal) this.practicaCliente.entrar(m.escenario ?? {});
     this.activa.set(true);
   }
-  salir() { this.activa.set(false); this.mision.set(null); this.respuesta.set({}); }
+  salir() {
+    this.practicaCliente.salir();
+    this.activa.set(false);
+    this.mision.set(null);
+    this.respuesta.set({});
+  }
 
   set<T>(k: string, v: T) { this.respuesta.update((r) => ({ ...r, [k]: v })); }
 
