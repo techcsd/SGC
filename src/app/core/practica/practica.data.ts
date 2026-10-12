@@ -46,10 +46,11 @@ const ESCENARIO_REQUISICION = {
       id: o.id, nombre: o.nombre, codigo: 'DEMO', activo: true, estado: 'en_ejecucion', es_prueba: false,
     })),
     articulos: ARTICULOS_DEMO.map((a) => ({
-      id: a.id, nombre: a.nombre, unidad: 'ud', stock_total: a.stock, categoria_id: 'cat-demo', activo: true, es_prueba: false,
+      id: a.id, nombre: a.nombre, unidad: 'ud', categoria_id: 1, activo: true, es_prueba: false,
+      requiere_talla: false, unidad_paquete: null, factor_paquete: null, stock_minimo: 0, stock_maximo: null, nota: null,
     })),
-    categorias_inventario: [{ id: 'cat-demo', nombre: 'Materiales de construcción (demo)' }],
-    bodegas: [{ id: 'alm-central', nombre: 'Almacén Central (demo)', es_central: true, es_prueba: false }],
+    categorias_inventario: [{ id: 1, nombre: 'Materiales de construcción (demo)', activo: true }],
+    bodegas: [{ id: 'alm-central', nombre: 'Almacén Central (demo)', es_central: true, es_prueba: false, proyecto_id: 'obra-norte' }],
     solicitudes_material: [] as unknown[],
   },
   rpc: {
