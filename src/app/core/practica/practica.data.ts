@@ -60,6 +60,27 @@ const ESCENARIO_REQUISICION = {
   },
 };
 
+// CM7 7b — "Registrar una entrada de inventario": mismo set demo + proveedor/órdenes.
+interface EntradaBody { p_bodega_id?: string | null; p_origen_tipo?: string | null; p_items?: { cantidad?: number }[]; }
+const entradaBody = (esc: EscrituraPractica[]): EntradaBody =>
+  (esc.find((e) => e.tabla === 'rpc:registrar_entrada_inventario')?.body as EntradaBody) ?? {};
+const entradaItems = (esc: EscrituraPractica[]): { cantidad?: number }[] => {
+  const its = entradaBody(esc).p_items;
+  return Array.isArray(its) ? its : [];
+};
+const ESCENARIO_ENTRADA = {
+  tablas: {
+    ...ESCENARIO_REQUISICION.tablas,
+    proveedores: [{ id: 'prov-demo', nombre: 'Ferretería Demo S.R.L.', activo: true, es_prueba: false }],
+    ordenes_compra: [] as unknown[],
+    movimientos_inventario: [] as unknown[],
+  },
+  rpc: {
+    registrar_entrada_inventario: 'practica-entrada-0001',
+    directorio_usuarios_detalle: [] as unknown[],
+  },
+};
+
 /** Piloto: "Crear una requisición". Objetivos que suman 100. */
 export const MISION_CREAR_REQUISICION: MisionPractica = {
   id: 'web-crear-requisicion',
@@ -182,6 +203,21 @@ export const MISION_ENTRADA_INVENTARIO: MisionPractica = {
     { id: 'fecha', texto: 'Pusiste la fecha de recepción', puntos: 10, cumple: (r) => !!r['fecha'] },
   ],
   penalizaciones: [],
+  // CM7 7b — PANTALLA REAL de entradas de inventario.
+  rutaReal: '/inventario/entradas',
+  escenario: ESCENARIO_ENTRADA,
+  metaWrite: 'rpc:registrar_entrada_inventario',
+  objetivosReales: [
+    { id: 'bodega', texto: 'Elegiste el almacén destino', puntos: 30, cumple: (esc) => !!entradaBody(esc).p_bodega_id,
+      consejo: 'El material entra a un almacén concreto.' },
+    { id: 'items', texto: 'Registraste al menos un material', puntos: 40, cumple: (esc) => entradaItems(esc).length >= 1,
+      consejo: 'Agrega lo que recibiste, con su cantidad.' },
+    { id: 'cant', texto: 'Las cantidades son mayores a 0', puntos: 20,
+      cumple: (esc) => entradaItems(esc).length > 0 && entradaItems(esc).every((i) => Number(i.cantidad) > 0),
+      consejo: 'Una entrada en 0 no suma al inventario.' },
+    { id: 'origen', texto: 'Indicaste el origen de la entrada', puntos: 10, cumple: (esc) => !!entradaBody(esc).p_origen_tipo,
+      consejo: 'Di si vino por compra o por conduce externo.' },
+  ],
 };
 
 /** 7b — "Hacer un conteo" físico de inventario. */
