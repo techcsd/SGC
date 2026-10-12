@@ -643,10 +643,10 @@
     },
     {
       "pantalla": "configuracion",
-      "total": 58,
-      "cubiertos": 36,
+      "total": 62,
+      "cubiertos": 40,
       "sin": 22,
-      "pct": 62,
+      "pct": 65,
       "enScope": true,
       "enforce": false,
       "faltantes": [

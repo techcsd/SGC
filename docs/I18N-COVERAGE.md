@@ -3,7 +3,7 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 6%** (38/644 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 6%** (42/648 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
@@ -12,7 +12,7 @@
 | inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
-| configuracion | scope | 58 | 36 | 22 | 62% |
+| configuracion | scope | 62 | 40 | 22 | 65% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
 | admin/app-versiones | - | 125 | 0 | 125 | 0% |

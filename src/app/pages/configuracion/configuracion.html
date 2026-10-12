@@ -82,6 +82,16 @@
               <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="movimientoReducido()"
                       (click)="setMovimientoReducido(true)">{{ 'Reducidas' | t }}</button>
             </div>
+
+            <!-- CN — reproducir el logo animado en cada recarga de página (por dispositivo). -->
+            <label class="cfg__label">{{ 'Logo al refrescar' | t }}</label>
+            <p class="cfg__muted">{{ 'Reproduce el logo animado cada vez que recargas la página.' | t }}</p>
+            <div class="cfg__seg">
+              <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="logoAlRefrescar()"
+                      (click)="setLogoAlRefrescar(true)">{{ 'Activado' | t }}</button>
+              <button type="button" class="cfg__seg-btn" [class.cfg__seg-btn--on]="!logoAlRefrescar()"
+                      (click)="setLogoAlRefrescar(false)">{{ 'Desactivado' | t }}</button>
+            </div>
           </div>
         }
 

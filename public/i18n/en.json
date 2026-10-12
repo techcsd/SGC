@@ -273,5 +273,9 @@
   "Marcar / desmarcar como prueba": "Mark / unmark as test",
   "Dato de prueba": "Test data",
   "Mostrar datos de prueba": "Show test data",
-  "Animaciones": "Animations"
+  "Animaciones": "Animations",
+  "Logo al refrescar": "Logo on refresh",
+  "Reproduce el logo animado cada vez que recargas la página.": "Plays the animated logo every time you reload the page.",
+  "Activado": "On",
+  "Desactivado": "Off"
 }

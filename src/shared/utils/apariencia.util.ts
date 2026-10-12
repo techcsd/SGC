@@ -55,3 +55,43 @@ export function guardarMovimientoReducido(reducido: boolean): void {
   }
   aplicarMovimiento(reducido);
 }
+
+// CN — "Mostrar el logo al refrescar": reproduce el logo-reveal en cada recarga de
+// página (no en la navegación interna del SPA). Preferencia POR DISPOSITIVO
+// (localStorage), encendida por defecto. El usuario la apaga en Apariencia.
+const LOGO_REFRESH_KEY = 'sgc_logo_al_refrescar';
+
+export function leerLogoAlRefrescar(): boolean {
+  try {
+    // Default ON: solo está apagado si el usuario lo apagó explícitamente ('0').
+    return localStorage.getItem(LOGO_REFRESH_KEY) !== '0';
+  } catch {
+    return true;
+  }
+}
+
+export function guardarLogoAlRefrescar(mostrar: boolean): void {
+  try {
+    localStorage.setItem(LOGO_REFRESH_KEY, mostrar ? '1' : '0');
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * ¿La carga actual del documento fue una RECARGA (F5/Ctrl-R), y no una primera
+ * visita, un enlace o atrás/adelante? Usa la Navigation Timing API (estándar,
+ * se marca una sola vez por carga de documento → nunca se dispara en la
+ * navegación interna del router). Cae al API heredada si hiciera falta.
+ */
+export function esRecargaDePagina(): boolean {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav && typeof nav.type === 'string') return nav.type === 'reload';
+    // Fallback heredado (deprecado pero amplio): performance.navigation.type === 1 (reload).
+    const legacy = (performance as unknown as { navigation?: { type?: number } }).navigation;
+    return legacy?.type === 1;
+  } catch {
+    return false;
+  }
+}
