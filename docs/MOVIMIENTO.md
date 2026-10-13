@@ -76,25 +76,43 @@ Badge inferior-centro, ~0.8s, SIN velo, no bloquea, `aria-live`. Tipos: `entrada
 - ✅ **FASE 6 (Nota #207, 1.179.0):** los `momento(...)` salen como **escenas a pantalla completa** (mock `Escena.dc.html`), absorbidas por `app-celebracion`: velo navy 92 %, halo + onda, la escena, check naranja (1,1s), título + dato y "Toca para continuar"; 1,8s. 10 escenas (entrada, salida, aprobado, firma, combustible, checklist, mantenimiento, mensaje, documento, uso) + conduce (CJ2) y ruta (CJ3). **Ráfaga:** un momento dentro de los 10s del anterior sale en la tarjeta corta mediana (sin velo). Reducido = velo + check + texto. Disparador nuevo: `flota/responsabilidad` → `momento('uso')`.
 - ✅ **Barrido de disparadores (1.181.0):** `momento(...)` cableado en los éxitos de requisición enviada (`solicitudes-material`→documento) y aprobada (`requisiciones`→aprobado), orden de compra (`compras/ordenes`→documento), conteo físico aplicado (`conteos`→checklist), orden de trabajo (`orden-trabajo`→firma), documento generado (`documentos/generar`→documento), bitácora enviada (`bitacora/nueva`→documento, **salvo incidente**), personal de obra alta (`personal-registro`→entrada), aprobación legal (`legal/aprobaciones`→firma **solo aprobado**). **Lote:** importar echadas de factura (`conciliacion-combustible`→combustible con el total en `datos.sub`).
 
-## CN FASE 4.1 — Paridad de disparadores app ↔ web (por tipo de momento)
-La app (csd-app) dispara `momento(tipo)` en ~27 sitios de **9 tipos**; la web tiene el disparador
-equivalente de cada uno (barrido 1.181.0+). Celebraciones grandes: conduce (CJ2) y ruta (CJ3)
-existen en ambos. **Guard `verify-momento-paridad.mjs` (prebuild)** falla el build si un `MomentoTipo`
-no se dispara en la web.
+## CN FASE 4.1 — Paridad EXHAUSTIVA de disparadores app ↔ web
+Tabla 1:1 de **cada** sitio donde se celebra un momento, en ambas plataformas (verificada por
+`grep` de `momento('…')` y `celebrar({tipo:'…'})` el **13/10/2026**). La app (csd-app, `dev2/csd-app`)
+dispara en **30 sitios** (27 `momento` + 3 `celebrar` grandes); la web en **23** (20 `momento` + 3
+`celebrar`). El menor número en la web es correcto: varias pantallas de la app son **solo-campo**
+(obra/ingeniería/liberación/pre-uso) y no tienen pantalla web gemela — pero **su TIPO de momento sí
+se dispara en la web** en otra acción, así que la "sensación" es idéntica entre plataformas.
 
-| Tipo | App (nº) | Web — disparador(es) |
-|---|---|---|
-| entrada | 7 | `inventario/entradas` (recepción) · `proyectos/personal` (alta) |
-| documento | 4 | `documentos/generar` · `bitacora/nueva` (salvo incidente) · `solicitudes-material` (requisición) |
-| aprobado | 4 | `inventario/requisiciones` (aprobar) · `compras/ordenes` |
-| firma | 3 | `bitacora/orden-trabajo` · `legal/aprobaciones` (aprobado) · `inventario/por-firmar` (firmar conduce) |
-| checklist | 3 | `flota/checklists` · `inventario/conteos` (aplicar) |
-| mantenimiento | 2 | `flota/mantenimientos` |
-| combustible | 2 | `flota/combustible` (registrar) · `flota/combustible-log` (aprobar) · `conciliacion` (lote) |
-| uso | 1 | `flota/responsabilidad` |
-| salida | 1 | `inventario/salidas` (despacho) |
-| mensaje | — | `notas` (compartir) — tipo extra de la web |
-| conduce (CJ2) | ✓ | `inventario/conduce-externo-form` (`celebrar('conduce')`) |
-| ruta (CJ3) | ✓ | `flota/rutas` (`celebrar('ruta')`) |
+**Guard `verify-momento-paridad.mjs` (prebuild)** es el que mantiene esto honesto: lee los
+`MomentoTipo` de `motion.service.ts` y **falla el build** si algún tipo no se dispara (`momento('<t>')`)
+en ningún lado de `src/app`. La tabla de abajo es el detalle humano; el guard es la red automática.
 
-**Conclusión:** todos los tipos de momento de la app tienen disparador equivalente en la web.
+> Leyenda: **1:1** = misma acción de negocio en ambas · **≈** = el tipo lo cubre otra acción web ·
+> **solo-campo** = la pantalla existe solo en la app (su tipo igual se dispara en la web).
+> `admin/animaciones` (`celebrar` ×2) es **vista previa**, no cuenta como disparador real.
+
+### Momentos medianos (`momento(tipo, datos)`)
+| Tipo | App — sitio(s) | Web — sitio(s) | Paridad |
+|---|---|---|---|
+| **entrada** | `compras/solicitud-compra` · `inventario/entrada` · `inventario/recibir` ×2 · `proyectos/personal/personal-registro` · `solicitudes/pedir` · `transporte/por-confirmar` | `inventario/entradas` (recepción) · `proyectos/personal/personal-registro` (alta) | personal-registro **1:1**; entrada/recibir/por-confirmar → `inventario/entradas` **≈**; pedir compra/material → su gemelo web es la requisición (fila *documento*) |
+| **salida** | `inventario/salida` (despachar) | `inventario/salidas` (despacho) | **1:1** |
+| **aprobado** | `incentivos` · `ingenieria/cartilla/cartilla-detalle` · `inventario/conteo` · `solicitudes/detalle` | `inventario/requisiciones` (aprobar) · `rrhh/ausencias` (aprobar) | aprobar solicitud **1:1**; incentivos/cartilla **solo-campo** (≈ cubierto); conteo-app usa *aprobado*, la web usa *checklist* en `conteos` |
+| **firma** | `bitacora/cl-detalle` · `bitacora/liberacion` · `bitacora/orden-trabajo` | `bitacora/orden-trabajo` · `legal/aprobaciones` (aprobado) · `inventario/por-firmar` (firmar conduce) | orden-trabajo **1:1**; cl-detalle/liberación **solo-campo** (≈) |
+| **checklist** | `obra/checklists` · `transporte/checklist` · `transporte/preuso` | `flota/checklists` · `inventario/conteos` (aplicar) | transporte/checklist→`flota/checklists` **1:1**; preuso/obra **solo-campo** (≈) |
+| **mantenimiento** | `transporte/mantenimiento` · `transporte/mantenimiento-cierre` | `flota/mantenimientos` (cubre registro y cierre) | **1:1** (web unifica los dos) |
+| **combustible** | `transporte/combustible` ×2 | `flota/combustible` (registrar) · `flota/combustible-log` (aprobar) · `flota/conciliacion-combustible` (lote) | registrar **1:1**; la web dispara en **más** sitios |
+| **uso** | `transporte/uso-vehiculo` | `flota/responsabilidad` | **1:1** |
+| **documento** | `bitacora/parte` · `ingenieria/cartilla/cartilla-nueva` · `obra/charla` · `obra/informe` | `bitacora/nueva` · `bitacora/solicitudes-material` (requisición) · `compras/ordenes` (OC) · `documentos/generar` | parte diario→`bitacora/nueva` **1:1**; charla/informe/cartilla **solo-campo** (≈) |
+| **mensaje** | — | `notas` (compartir) | **tipo extra de la web** (la app no lo usa) |
+
+### Celebraciones grandes (`celebrar({tipo})`, overlay `app-celebracion`)
+| Tipo | App — sitio(s) | Web — sitio(s) | Paridad |
+|---|---|---|---|
+| **conduce** (CJ2) | `transporte/conduce-externo` · `transporte/generar-conduce` | `inventario/conduce-externo-form` · `inventario/salidas` | **paridad** (2 y 2) |
+| **ruta** (CJ3) | `transporte/rutas/crear-ruta` | `flota/rutas` (`onSave`, solo al crear) | **1:1** |
+
+**Conclusión:** los **10 tipos** de momento + las **2 celebraciones grandes** de la app tienen
+disparador equivalente en la web. Lo que la web no replica son pantallas **solo-campo** (su tipo ya
+suena en otra acción web), y añade un tipo propio (`mensaje`, al compartir notas). El guard prebuild
+garantiza que ningún tipo quede mudo en la web.
