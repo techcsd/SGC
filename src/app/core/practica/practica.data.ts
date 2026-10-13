@@ -46,7 +46,7 @@ const ESCENARIO_REQUISICION = {
       id: o.id, nombre: o.nombre, codigo: 'DEMO', activo: true, estado: 'en_ejecucion', es_prueba: false,
     })),
     articulos: ARTICULOS_DEMO.map((a) => ({
-      id: a.id, nombre: a.nombre, unidad: 'ud', categoria_id: 1, activo: true, es_prueba: false,
+      id: a.id, nombre: a.nombre, codigo: a.id.replace('art-', 'DEMO-').toUpperCase(), unidad: 'ud', categoria_id: 1, activo: true, es_prueba: false,
       requiere_talla: false, unidad_paquete: null, factor_paquete: null, stock_minimo: 0, stock_maximo: null, nota: null,
     })),
     categorias_inventario: [{ id: 1, nombre: 'Materiales de construcción (demo)', activo: true }],
@@ -129,6 +129,45 @@ const ESCENARIO_DOCUMENTO = {
     }],
   },
   rpc: { directorio_usuarios_detalle: [] as unknown[] },
+};
+
+// CM7 7b — "Aprobar una requisición" (pantalla real /inventario/requisiciones). Llega un
+// pedido pendiente; se abre el drawer, se elige el almacén de despacho y se aprueba.
+const aprobarBody = (esc: EscrituraPractica[]): { p_bodega_id?: string | null; p_items?: { cantidad?: number }[] } =>
+  (esc.find((e) => e.tabla === 'rpc:aprobar_requisicion')?.body as { p_bodega_id?: string | null; p_items?: { cantidad?: number }[] }) ?? {};
+const aprobarItems = (esc: EscrituraPractica[]): { cantidad?: number }[] => {
+  const its = aprobarBody(esc).p_items;
+  return Array.isArray(its) ? its : [];
+};
+const ESCENARIO_APROBAR = {
+  tablas: {
+    articulos: ESCENARIO_REQUISICION.tablas.articulos,
+    categorias_inventario: ESCENARIO_REQUISICION.tablas.categorias_inventario,
+    bodegas: [
+      { id: 'alm-central', nombre: 'Almacén Central (demo)', es_central: true, es_prueba: false, proyecto_id: null, activo: true, proyecto: null },
+      { id: 'alm-norte', nombre: 'Almacén OBRA DEMO — Torre Norte (demo)', es_central: false, es_prueba: false, proyecto_id: 'obra-norte', activo: true, proyecto: { nombre: 'OBRA DEMO — Torre Norte' } },
+    ],
+    // Un pedido pendiente, pre-formado con su embed (el cliente de práctica devuelve la
+    // fila tal cual; por eso trae proyecto/solicitante/items/fase ya anidados).
+    solicitudes_material: [{
+      id: 'req-demo-apr-1', folio: 9007, proyecto_id: 'obra-norte', proyecto: { nombre: 'OBRA DEMO — Torre Norte' },
+      solicitante_id: 'u-demo-eng',
+      solicitante: { nombre: 'Ingeniero de obra (demo)', roles: [{ rol: { codigo: 'ingeniero_campo', nombre: 'Ingeniero de campo' } }] },
+      estado: 'pendiente', urgencia: 'urgente', fecha_necesidad: null, fase: 'pendiente',
+      notas: 'Para la fundición de la losa del nivel 3.', salida_id: null, solicitud_compra_id: null,
+      bodega_id: null, atendido_por: null, atendido: null, atendido_en: null,
+      created_at: '2026-10-13T08:00:00Z', version: 1, motivo_rechazo: null,
+      cancelada_motivo: null, cerrada_por: null, cerrada_en: null, cerrada: null,
+      items: [{ id: 'it-apr-1', solicitud_id: 'req-demo-apr-1', articulo_id: 'art-cemento', descripcion: 'Cemento gris 42.5 (saco)', cantidad: 100, unidad: 'ud', talla: null }],
+    }],
+  },
+  rpc: {
+    directorio_usuarios_detalle: [{ id: 'u-demo-eng', nombre: 'Ingeniero de obra (demo)', roles: ['ingeniero_campo'] }] as unknown[],
+    aprobar_requisicion: { salida_id: 'practica-salida-apr-1', solicitud_compra_id: null, despachado_total: 100, faltante_total: 0 },
+    requisicion_avance: [] as unknown[],
+    requisicion_cobertura: [] as unknown[],
+    buscar_articulos: ARTICULOS_DEMO.map((a) => ({ id: a.id, nombre: a.nombre, codigo: 'DEMO', unidad: 'ud' })) as unknown[],
+  },
 };
 
 /** CM7 7b — "Generar un documento" (plantilla → rellenar → generar). */
@@ -223,6 +262,21 @@ export const MISION_APROBAR_DESPACHAR: MisionPractica = {
   penalizaciones: [
     { id: 'sobre-stock', texto: 'Despachaste más de lo que hay en stock', puntos: 15,
       aplica: (r) => mats(r['despacho']).some((i) => i.cantidad > i.stock) },
+  ],
+  // CM7 7b — PANTALLA REAL de aprobación (bandeja de requisiciones → drawer → aprobar).
+  rutaReal: '/inventario/requisiciones',
+  escenario: ESCENARIO_APROBAR,
+  metaWrite: 'rpc:aprobar_requisicion',
+  objetivosReales: [
+    { id: 'abrir', texto: 'Abriste el pedido y pulsaste «Aprobar»', puntos: 20, cumple: (esc) => tieneWrite(esc, 'rpc:aprobar_requisicion'),
+      consejo: 'Abre la requisición pendiente y dale a «Aprobar».' },
+    { id: 'bodega', texto: 'Elegiste el almacén de despacho', puntos: 30, cumple: (esc) => !!aprobarBody(esc).p_bodega_id,
+      consejo: 'El material siempre sale de un almacén concreto.' },
+    { id: 'items', texto: 'Despachaste el cemento pedido', puntos: 30, cumple: (esc) => aprobarItems(esc).some((i) => Number(i.cantidad) > 0),
+      consejo: 'Confirma la cantidad a despachar del renglón.' },
+    { id: 'cubre', texto: 'La cantidad cubre lo pedido (100 sacos)', puntos: 20,
+      cumple: (esc) => aprobarItems(esc).reduce((s, i) => s + Number(i.cantidad || 0), 0) >= 100,
+      consejo: 'Despacha al menos los 100 sacos pedidos.' },
   ],
 };
 
