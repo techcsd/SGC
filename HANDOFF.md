@@ -26,7 +26,8 @@
 
 **PENDIENTE (menor, no bloquea nada):**
 - **Práctica — ficha-dependientes** (`aprobar-despachar`, `transferir-conduce`): se quedan como **formulario-simulación a propósito**. La aprobación real vive repartida (requisición → aprobar → `despacho_marcar`) y depende del estado de la ficha → frágil a pantalla real (ya revertí transferir-conduce por esto). El formulario enseña el flujo igual. **Decisión de arquitectura, no deuda.**
-- **FASE 4.1**: tabla de paridad COMPLETA (~30 disparadores app→web) en `docs/MOVIMIENTO.md` + guard prebuild (hoy hay una sección CN resumida, no la tabla exhaustiva).
+
+**✅ FASE 4.1 cerrada (13/10):** `docs/MOVIMIENTO.md` ya tiene la **tabla EXHAUSTIVA 1:1** — los **30 sitios** de la app (27 `momento` + 3 `celebrar`) mapeados a sus **23** gemelos web, tipo por tipo, marcando `1:1`/`≈`/`solo-campo`. El guard `verify-momento-paridad.mjs` (prebuild) sigue siendo la red automática (falla si un `MomentoTipo` queda mudo en la web). **Nada pendiente de la ronda CM/CN.**
 
 ---
 
