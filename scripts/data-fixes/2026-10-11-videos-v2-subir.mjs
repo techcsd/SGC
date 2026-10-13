@@ -36,6 +36,8 @@ const VIDEOS = [
   { file: 'tutorial-autorizar-chofer-v1.mp4',        slug: 'chofer-privado',     titulo: 'Autorizar un chofer privado',       modulo: 'flota',      orden: 17 },
   { file: 'tutorial-apoyo-transporte-v1.mp4',        slug: 'apoyo-transporte',   titulo: 'Pedir apoyo de transporte',         modulo: 'flota',      orden: 18 },
   { file: 'tutorial-mis-choferes-v1.mp4',            slug: 'mis-choferes',       titulo: 'Ver y asignar tus choferes',        modulo: 'flota',      orden: 19 },
+  { file: 'tutorial-registrar-combustible-v1.mp4',   slug: 'combustible',        titulo: 'Registrar combustible',             modulo: 'flota',      orden: 20 },
+  { file: 'tutorial-uso-vehiculo-v1.mp4',            slug: 'uso-vehiculo',       titulo: 'Uso de vehículo: tomar y soltar',   modulo: 'flota',      orden: 21 },
   { file: 'instalacion-android-v1.mp4',              slug: 'instalar-android',   titulo: 'Instalar la CSD App en Android',           modulo: null,         orden: 1 },
   { file: 'instalacion-iphone-v1.mp4',               slug: 'instalar-iphone',    titulo: 'Instalar la CSD App en iPhone',            modulo: null,         orden: 2 },
   { file: 'promo-final.mp4',                         slug: 'conoce-sgc',         titulo: 'Conoce SGC (resumen)',              modulo: null,         orden: 0 },
