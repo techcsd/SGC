@@ -15,6 +15,9 @@ const APPLY = process.argv.includes('--apply');
 const FIX = [
   { slug: 'instalar-android', titulo: 'Instalar la CSD App en Android' },
   { slug: 'instalar-iphone', titulo: 'Instalar la CSD App en iPhone' },
+  // La guía `requisicion` tiene el video de CREAR una requisición, pero quedó con un
+  // título heredado ("Aprobar y despachar…") igual al de `aprobar-despachar` → se corrige.
+  { slug: 'requisicion', titulo: 'Crear una requisición' },
 ];
 
 for (const f of FIX) {
