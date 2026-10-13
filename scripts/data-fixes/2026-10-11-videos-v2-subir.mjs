@@ -38,6 +38,7 @@ const VIDEOS = [
   { file: 'tutorial-mis-choferes-v1.mp4',            slug: 'mis-choferes',       titulo: 'Ver y asignar tus choferes',        modulo: 'flota',      orden: 19 },
   { file: 'tutorial-registrar-combustible-v1.mp4',   slug: 'combustible',        titulo: 'Registrar combustible',             modulo: 'flota',      orden: 20 },
   { file: 'tutorial-uso-vehiculo-v1.mp4',            slug: 'uso-vehiculo',       titulo: 'Uso de vehículo: tomar y soltar',   modulo: 'flota',      orden: 21 },
+  { file: 'instalacion-preuso-v1.mp4',               slug: 'preuso-app',         titulo: 'Pre-uso del vehículo (en la app)',  modulo: 'flota',      orden: 22 },
   { file: 'instalacion-android-v1.mp4',              slug: 'instalar-android',   titulo: 'Instalar la CSD App en Android',           modulo: null,         orden: 1 },
   { file: 'instalacion-iphone-v1.mp4',               slug: 'instalar-iphone',    titulo: 'Instalar la CSD App en iPhone',            modulo: null,         orden: 2 },
   { file: 'promo-final.mp4',                         slug: 'conoce-sgc',         titulo: 'Conoce SGC (resumen)',              modulo: null,         orden: 0 },
