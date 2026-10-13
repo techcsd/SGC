@@ -9,6 +9,8 @@ import { Pantalla as RegistrarMantenimiento } from './registrar-mantenimiento.sc
 import { Pantalla as AutorizarChofer } from './autorizar-chofer.screen';
 import { Pantalla as ApoyoTransporte } from './apoyo-transporte.screen';
 import { Pantalla as MisChoferes } from './mis-choferes.screen';
+import { Pantalla as RegistrarCombustible } from './registrar-combustible.screen';
+import { Pantalla as UsoVehiculo } from './uso-vehiculo.screen';
 
 // id de pantalla → componente mock. Al agregar un tutorial nuevo, regístralo aquí.
 export const SCREENS: Record<string, React.FC<{ fase: number; frame: number; atOf: (f: number) => number }>> = {
@@ -22,4 +24,6 @@ export const SCREENS: Record<string, React.FC<{ fase: number; frame: number; atO
   'autorizar-chofer': AutorizarChofer,
   'apoyo-transporte': ApoyoTransporte,
   'mis-choferes': MisChoferes,
+  'registrar-combustible': RegistrarCombustible,
+  'uso-vehiculo': UsoVehiculo,
 };
