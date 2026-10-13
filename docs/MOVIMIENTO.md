@@ -75,3 +75,26 @@ Badge inferior-centro, ~0.8s, SIN velo, no bloquea, `aria-live`. Tipos: `entrada
 - 1.177.0 — **Logo al refrescar**: `app.ts` reproduce el logo-reveal en cada recarga real de página (Navigation Timing API `type === 'reload'`, nunca en la navegación interna del SPA). Toggle por dispositivo en *Configuración › Apariencia › "Logo al refrescar"* (encendido por defecto); respeta reduce-motion; se salta en /auth y /set-password.
 - ✅ **FASE 6 (Nota #207, 1.179.0):** los `momento(...)` salen como **escenas a pantalla completa** (mock `Escena.dc.html`), absorbidas por `app-celebracion`: velo navy 92 %, halo + onda, la escena, check naranja (1,1s), título + dato y "Toca para continuar"; 1,8s. 10 escenas (entrada, salida, aprobado, firma, combustible, checklist, mantenimiento, mensaje, documento, uso) + conduce (CJ2) y ruta (CJ3). **Ráfaga:** un momento dentro de los 10s del anterior sale en la tarjeta corta mediana (sin velo). Reducido = velo + check + texto. Disparador nuevo: `flota/responsabilidad` → `momento('uso')`.
 - ✅ **Barrido de disparadores (1.181.0):** `momento(...)` cableado en los éxitos de requisición enviada (`solicitudes-material`→documento) y aprobada (`requisiciones`→aprobado), orden de compra (`compras/ordenes`→documento), conteo físico aplicado (`conteos`→checklist), orden de trabajo (`orden-trabajo`→firma), documento generado (`documentos/generar`→documento), bitácora enviada (`bitacora/nueva`→documento, **salvo incidente**), personal de obra alta (`personal-registro`→entrada), aprobación legal (`legal/aprobaciones`→firma **solo aprobado**). **Lote:** importar echadas de factura (`conciliacion-combustible`→combustible con el total en `datos.sub`).
+
+## CN FASE 4.1 — Paridad de disparadores app ↔ web (por tipo de momento)
+La app (csd-app) dispara `momento(tipo)` en ~27 sitios de **9 tipos**; la web tiene el disparador
+equivalente de cada uno (barrido 1.181.0+). Celebraciones grandes: conduce (CJ2) y ruta (CJ3)
+existen en ambos. **Guard `verify-momento-paridad.mjs` (prebuild)** falla el build si un `MomentoTipo`
+no se dispara en la web.
+
+| Tipo | App (nº) | Web — disparador(es) |
+|---|---|---|
+| entrada | 7 | `inventario/entradas` (recepción) · `proyectos/personal` (alta) |
+| documento | 4 | `documentos/generar` · `bitacora/nueva` (salvo incidente) · `solicitudes-material` (requisición) |
+| aprobado | 4 | `inventario/requisiciones` (aprobar) · `compras/ordenes` |
+| firma | 3 | `bitacora/orden-trabajo` · `legal/aprobaciones` (aprobado) · `inventario/por-firmar` (firmar conduce) |
+| checklist | 3 | `flota/checklists` · `inventario/conteos` (aplicar) |
+| mantenimiento | 2 | `flota/mantenimientos` |
+| combustible | 2 | `flota/combustible` (registrar) · `flota/combustible-log` (aprobar) · `conciliacion` (lote) |
+| uso | 1 | `flota/responsabilidad` |
+| salida | 1 | `inventario/salidas` (despacho) |
+| mensaje | — | `notas` (compartir) — tipo extra de la web |
+| conduce (CJ2) | ✓ | `inventario/conduce-externo-form` (`celebrar('conduce')`) |
+| ruta (CJ3) | ✓ | `flota/rutas` (`celebrar('ruta')`) |
+
+**Conclusión:** todos los tipos de momento de la app tienen disparador equivalente en la web.

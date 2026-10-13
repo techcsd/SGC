@@ -2,4 +2,4 @@
 export const APP_VERSION = '1.186.0';
 export const APP_VERSION_TITULO: string | null = "Modo práctica: «Hacer un conteo» en la pantalla real";
 export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"nuevo","m":"General","d":"La misión «Hacer un conteo» del modo práctica ahora se practica en la pantalla real de conteo físico con datos de mentira."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/a3f4607";
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/91d3c39";
