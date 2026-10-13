@@ -19,9 +19,13 @@
 
 **Práctica — patrón pantalla-real (para la próxima misión):** a su `MISION_*` en `practica.data.ts` se le añade `rutaReal` + `escenario` ({tablas, rpc} con shapes correctos) + `objetivosReales` (sobre las escrituras capturadas) + `metaWrite`. `app-practica-banda` (shell) pinta banda naranja + objetivos en vivo + resultado. **Verificación:** `qa/practica-*.smoke.mjs` con `qa_admin@constructorasd.com` / `QA_DEV_PASSWORD` (dev; reseteé su pw vía service role). Contrato del cliente en PARIDAD.md.
 
+**✅ CERRADO en esta tanda (13/10):**
+- **Videos de la APP** — resueltos con **Remotion estilo teléfono** (no la PWA/record.mjs): **`uso-vehiculo`** + **`combustible`** (nota #195) como tutoriales web normales, y **`preuso-app`** como video estilo teléfono (`src/instalaciones/preuso.*` + `INSTALL_SCREENS`). Los 3 con voz real es-DO. Subidos a **dev+prod** (`ayuda_contenido` + bucket). Catálogo final = **17 videos**, 0 títulos "SGC", instalación = "CSD App".
+- **Práctica — "generar documento"**: ya shipped en **1.187.0** (pantalla real `/documentos/generar`, verificada).
+- **Fix título stale**: guía `requisicion` decía "Aprobar y despachar…" (duplicado) → corregida a "Crear una requisición" (`2026-10-12-videos-titulo-csd-app`, dev+prod).
+
 **PENDIENTE (menor, no bloquea nada):**
-- **Videos de la APP** (pre-uso, registrar combustible, uso de vehículo): NO grabados — necesitan la PWA del app en dev con `data-testid` (motor Playwright `tutoriales/lib/record.mjs`), no Remotion.
-- **Práctica**: faltan 2 misiones que pedía PROMPT-96 F1.6 (**aprobar requisición**, **generar documento**) + las 2 de ficha (aprobar-despachar, transferir-conduce) que quedaron en formulario simplificado (la ficha de detalle es muy dependiente del estado → frágil a pantalla real; el formulario enseña el flujo igual).
+- **Práctica — ficha-dependientes** (`aprobar-despachar`, `transferir-conduce`): se quedan como **formulario-simulación a propósito**. La aprobación real vive repartida (requisición → aprobar → `despacho_marcar`) y depende del estado de la ficha → frágil a pantalla real (ya revertí transferir-conduce por esto). El formulario enseña el flujo igual. **Decisión de arquitectura, no deuda.**
 - **FASE 4.1**: tabla de paridad COMPLETA (~30 disparadores app→web) en `docs/MOVIMIENTO.md` + guard prebuild (hoy hay una sección CN resumida, no la tabla exhaustiva).
 
 ---
