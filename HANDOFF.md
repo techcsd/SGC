@@ -24,8 +24,10 @@
 - **Práctica — "generar documento"**: ya shipped en **1.187.0** (pantalla real `/documentos/generar`, verificada).
 - **Fix título stale**: guía `requisicion` decía "Aprobar y despachar…" (duplicado) → corregida a "Crear una requisición" (`2026-10-12-videos-titulo-csd-app`, dev+prod).
 
+**✅ 1.188.0 — "Aprobar una requisición" a PANTALLA REAL (cierra PROMPT-96 F1.6):** resultó que la aprobación de `/inventario/requisiciones` es **drawer-based** (no ficha-inline como transferir), así que SÍ es tratable. `MISION_APROBAR_DESPACHAR` ahora tiene `rutaReal: '/inventario/requisiciones'` + `ESCENARIO_APROBAR` (1 requisición pendiente pre-formada con su embed: proyecto/solicitante/items/fase — el cliente de práctica devuelve la fila tal cual) + `metaWrite: 'rpc:aprobar_requisicion'` + 4 `objetivosReales` (abrir+aprobar, elegir almacén, despachar cemento, cubrir 100). **Verificado e2e** (`qa/practica-aprobar.smoke.mjs`: enReal·banda·pedidoDemo·drawer·selectAlmacen·opcionesDemo todos ✓, 0 errores). Añadí `codigo` a los artículos demo (quita "(undefined)" en el picker, mejora también requisición/entrada).
+
 **PENDIENTE (menor, no bloquea nada):**
-- **Práctica — ficha-dependientes** (`aprobar-despachar`, `transferir-conduce`): se quedan como **formulario-simulación a propósito**. La aprobación real vive repartida (requisición → aprobar → `despacho_marcar`) y depende del estado de la ficha → frágil a pantalla real (ya revertí transferir-conduce por esto). El formulario enseña el flujo igual. **Decisión de arquitectura, no deuda.**
+- **Práctica — `transferir-conduce`**: se queda como **formulario-simulación a propósito** (su ficha de detalle es muy dependiente del estado → frágil a pantalla real; ya la revertí una vez). El formulario enseña el flujo igual. **Decisión de arquitectura, no deuda.**
 
 **✅ FASE 4.1 cerrada (13/10):** `docs/MOVIMIENTO.md` ya tiene la **tabla EXHAUSTIVA 1:1** — los **30 sitios** de la app (27 `momento` + 3 `celebrar`) mapeados a sus **23** gemelos web, tipo por tipo, marcando `1:1`/`≈`/`solo-campo`. El guard `verify-momento-paridad.mjs` (prebuild) sigue siendo la red automática (falla si un `MomentoTipo` queda mudo en la web). **Nada pendiente de la ronda CM/CN.**
 

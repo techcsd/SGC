@@ -1,5 +1,15 @@
 {
   "web": {
+    "1.188.0": {
+      "titulo": "Modo práctica: «Aprobar una requisición» en la pantalla real",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "General",
+          "d": "La misión «Aprobar y despachar» del modo práctica ahora se practica en la bandeja real de requisiciones: abres un pedido de mentira, eliges el almacén de despacho y lo apruebas. Nada de esto toca datos reales."
+        }
+      ]
+    },
     "1.187.0": {
       "titulo": "Modo práctica: «Generar un documento» en la pantalla real",
       "cambios": [
