@@ -104,6 +104,55 @@ const ESCENARIO_CONTEO = {
   },
 };
 
+// CM7 7b — "Generar un documento": una plantilla demo con campos para rellenar.
+const docWriteBody = (esc: EscrituraPractica[]): { valores?: Record<string, unknown> } => {
+  const b = esc.find((e) => e.tabla === 'documentos_generados')?.body;
+  const row = Array.isArray(b) ? b[0] : b;
+  return (row as { valores?: Record<string, unknown> }) ?? {};
+};
+const ESCENARIO_DOCUMENTO = {
+  tablas: {
+    proyectos: ESCENARIO_REQUISICION.tablas.proyectos,
+    documentos_generados: [] as unknown[],
+    plantillas_documento: [{
+      id: 'plantilla-demo',
+      nombre: 'Carta de entrega de materiales (demo)',
+      categoria: 'acta_incidencia',
+      activo: true,
+      es_prueba: false,
+      contenido_html: '<h3>Entrega de materiales</h3><p>Hoy {{fecha}} se entrega a <b>{{receptor}}</b> el siguiente material: {{detalle}}.</p>',
+      campos: [
+        { key: 'receptor', label: 'Nombre de quien recibe', tipo: 'texto' },
+        { key: 'fecha', label: 'Fecha de entrega', tipo: 'fecha' },
+        { key: 'detalle', label: 'Material entregado', tipo: 'textarea' },
+      ],
+    }],
+  },
+  rpc: { directorio_usuarios_detalle: [] as unknown[] },
+};
+
+/** CM7 7b — "Generar un documento" (plantilla → rellenar → generar). */
+export const MISION_GENERAR_DOCUMENTO: MisionPractica = {
+  id: 'web-generar-documento',
+  plataforma: 'web',
+  roles: [],
+  titulo: 'Generar un documento',
+  intro: 'Vas a generar un documento a partir de una plantilla: eliges la plantilla, rellenas sus datos y lo generas. Nada de esto es real.',
+  version: 1,
+  objetivos: [],
+  penalizaciones: [],
+  rutaReal: '/documentos/generar',
+  escenario: ESCENARIO_DOCUMENTO,
+  metaWrite: 'documentos_generados',
+  objetivosReales: [
+    { id: 'gen', texto: 'Generaste el documento', puntos: 50, cumple: (esc) => tieneWrite(esc, 'documentos_generados'),
+      consejo: 'Elige la plantilla, rellena y toca Generar.' },
+    { id: 'campos', texto: 'Rellenaste los datos de la plantilla', puntos: 50,
+      cumple: (esc) => { const v = docWriteBody(esc).valores ?? {}; return Object.values(v).some((x) => !!x && String(x).trim()); },
+      consejo: 'Escribe quién recibe, la fecha y el material.' },
+  ],
+};
+
 /** Piloto: "Crear una requisición". Objetivos que suman 100. */
 export const MISION_CREAR_REQUISICION: MisionPractica = {
   id: 'web-crear-requisicion',
@@ -291,4 +340,5 @@ export const MISIONES_PILOTO: MisionPractica[] = [
   MISION_TRANSFERIR_CONDUCE,
   MISION_ENTRADA_INVENTARIO,
   MISION_CONTEO,
+  MISION_GENERAR_DOCUMENTO,
 ];
