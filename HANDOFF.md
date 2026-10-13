@@ -1,5 +1,31 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-94/96 (Rondas CM + CN) — 10-13/10/2026 — ✅ **EN PROD** (web **1.186.0**, `main`=`dev`)
+
+**Toda la ronda CM (cierre) + CN están en prod.** Versión por versión:
+- **1.177.0** — Cierre CM para el app + **logo al refrescar**. `cm6b` (`incentivo_listado`/`incentivo_mi_rendimiento`/`incentivo_semanas` devuelven `maximo`/`puntaje_bruto`/`topes`; contados/excedente ya viajan en `conteos`), `ck15b` (`trabajos_transporte_listado` devuelve `orden`; canónica dev+prod + overlay demo solo-dev), `practica_guardar_intento` ya vivo (el 404 era previo a cm7-practica), `csd-logo-texto.svg`. Logo-reveal en **cada recarga real** (`esRecargaDePagina` Navigation Timing) + toggle Config › Apariencia.
+- **1.178.0** — CN2/CN4: animación **ruta creada** (escena CJ3 camión portada de la app) + **combustible registrado**.
+- **1.179.0** — CN5: **momentos a pantalla completa** (10 escenas del mock `Escena.dc.html` + ráfaga 10s + reducido). `catalogo-movimiento` momentos→grande/1800 + `momentoUso`; sync `movimiento_catalogo` dev+prod.
+- **1.180.0** — CN3 **menú móvil con nombres** (`esMovil`+`collapsedEfectivo` en shell) + CN4 **bienvenida por rol real** (`perfiles.ts` + test + contrato PARIDAD; arregló códigos stale rrhh/chofer/encargado_almacen) + CN1 **location-picker plegable**.
+- **1.181.0** — **barrido de disparadores `momento()`** en 10 éxitos (requisición enviada/aprobada, OC, conteo, OT, documento, bitácora salvo incidente, personal, legal aprobado; lote conciliación con total en `datos.sub`).
+- **1.182.0** — `admin/animaciones` vista previa reproduce cada escena real (fix bug que introduje al pasar momentos a nivel grande).
+- **1.183.0** — `momento('firma')` al firmar un conduce (`por-firmar`).
+- **1.184.0** — **Práctica 7a** (`PracticaClienteService`: supabase-js con `fetch` propio → lecturas del escenario, escrituras en memoria, realtime off, **solo `practica_guardar_intento` sale real**; candado = 8 tests `practica-cliente.spec`) + **7b piloto "Crear requisición"** a pantalla real (verificado e2e Playwright). `SupabaseService.client` ahora es getter.
+- **1.185.0** — práctica "**Registrar entrada**" a pantalla real (verificada).
+- **1.186.0** — práctica "**Hacer un conteo**" a pantalla real (verificada).
+- **Data (sin bump):** **tope incentivos = 50** (config v2, data-fix `2026-10-12-cm6-tope-semanal-50` impersona admin + `incentivo_set_config`). **13 videos** re-renderizados con **voz REAL de Azure** (es-DO Ramona, `AZURE_SPEECH_KEY`/`REGION` en `.env.local`) + **fix "SGC" → "CSD App"** en los 2 de instalación (reescribí `android/iphone .data.mjs` + `.screen.tsx` a los **8 pasos reales del mock CM1**: Android APK vía WhatsApp + aviso Chrome; iPhone Safari `app.sgcconstructorasd.com`→Compartir→Añadir a inicio) y los **títulos en Dudas** (`2026-10-12-videos-titulo-csd-app`). Subidos a **prod** (bucket `tutoriales` + `ayuda_contenido`) vía `2026-10-11-videos-v2-subir`.
+
+**Ledger prod (CM):** `cm6b`, `ck15b` (ck14/ck15 ya estaban de antes). Verificados por objeto en prod: `mis_trabajos_chofer`, `puede_ver_apoyo`(+chofer), `trabajo_ordenar`, `trabajo_asignar` 6-arg, `trabajos_transporte_listado`(`orden`), `incentivo_*`(maximo/puntaje_bruto/topes), `practica_guardar_intento`, `practica_*`, cm6-topes, cm7-practica, cm7c. **CSD App DESBLOQUEADO** (todo el SQL de CK en prod).
+
+**Práctica — patrón pantalla-real (para la próxima misión):** a su `MISION_*` en `practica.data.ts` se le añade `rutaReal` + `escenario` ({tablas, rpc} con shapes correctos) + `objetivosReales` (sobre las escrituras capturadas) + `metaWrite`. `app-practica-banda` (shell) pinta banda naranja + objetivos en vivo + resultado. **Verificación:** `qa/practica-*.smoke.mjs` con `qa_admin@constructorasd.com` / `QA_DEV_PASSWORD` (dev; reseteé su pw vía service role). Contrato del cliente en PARIDAD.md.
+
+**PENDIENTE (menor, no bloquea nada):**
+- **Videos de la APP** (pre-uso, registrar combustible, uso de vehículo): NO grabados — necesitan la PWA del app en dev con `data-testid` (motor Playwright `tutoriales/lib/record.mjs`), no Remotion.
+- **Práctica**: faltan 2 misiones que pedía PROMPT-96 F1.6 (**aprobar requisición**, **generar documento**) + las 2 de ficha (aprobar-despachar, transferir-conduce) que quedaron en formulario simplificado (la ficha de detalle es muy dependiente del estado → frágil a pantalla real; el formulario enseña el flujo igual).
+- **FASE 4.1**: tabla de paridad COMPLETA (~30 disparadores app→web) en `docs/MOVIMIENTO.md` + guard prebuild (hoy hay una sección CN resumida, no la tabla exhaustiva).
+
+---
+
 ## TL;DR — PROMPT-92 (Ronda CL) — 09-10/10/2026 — ✅ **EN PROD** (`main`=`dev`, web **1.164.0**)
 **Ronda CL COMPLETA y desplegada a producción** (merge dev→main, Vercel). CL0/CL1(raíz+rediseño)/CL4/CL6/CL2(base+rollout+momentos)/CL5/CL3 — todo en prod. Migraciones en el ledger de PROD: cl0 (apoyo UPDATE), cl6 (conduce prueba), cl5 (movimiento_catalogo), cl3 (bienvenida) + data-fixes prod (catálogo 14 filas, backfill bienvenida 59 usuarios). **1.164.0** = más momentos medianos (entrada/checklist/aprobado/mensaje). **App (sesión hermana): CK14+CK15 en dev+PROD** (mis_trabajos_chofer etc.) → app 100%.
 **✅ CL4 rescate DISPARADO** (app publicó 2.47.0): push + in-app a los 8 atascados en prod (8 notificaciones verificadas). Falta solo que Xaviel mande el WhatsApp. **✅ Diferidos CK CERRADOS:** CK16 (mis_trabajos_chofer lee nota_chofer en apoyo) + CK17/CK17b (trabajos_transporte_listado ordena por `orden`; canónica en prod, overlay demo `es_usuario_demo` solo en dev) — ambos en dev+PROD, verificados por objeto. **Nada pendiente de código.**
