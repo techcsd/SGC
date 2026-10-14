@@ -55,6 +55,18 @@ export interface AppVersionFormData {
   minima: boolean;
 }
 
+/** CO1 — fila de sgc.dispositivos_listado() (Sistema › Versiones de la app). */
+export interface DispositivoRow {
+  usuario_id: string;
+  usuario_nombre: string;
+  plataforma: string;
+  modelo: string | null;
+  app_version: string | null;
+  visto_at: string;
+  primer_uso: string;
+  atascado: boolean;
+}
+
 /** Resultado del RPC público sgc.version_publicada(). */
 export interface VersionPublicada {
   version_publicada: string | null;

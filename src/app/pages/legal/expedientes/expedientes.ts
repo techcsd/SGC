@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
@@ -12,12 +13,13 @@ import {
   ExpedienteEstado,
   ExpedienteLegal,
   ExpedienteNota,
+  Contrato,
 } from '../../../../shared/models/legal.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 import { ToastService } from '../../../../shared/services/toast.service';
-import { todayIso, formatFechaDisplay } from '../../../../shared/utils/fecha.util';
+import { todayIso, formatFechaDisplay, daysFromNowIso } from '../../../../shared/utils/fecha.util';
 import { exportarExcel } from '../../../../shared/utils/exportar-excel.util';
 import { Paginator } from '../../../../shared/ui/paginator/paginator';
 import { Icon } from '../../../../shared/ui/icon/icon';
@@ -35,7 +37,7 @@ const ESTADO_TRANSICIONES: Record<ExpedienteEstado, ExpedienteEstado[]> = {
 
 @Component({
   selector: 'app-expedientes',
-  imports: [ReactiveFormsModule, FormDrawer, DatePipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, DatePipe, DecimalPipe, Skeleton, Paginator, Icon, FileUpload, TranslatePipe, StaggerDirective, RouterLink],
   templateUrl: './expedientes.html',
   styleUrl: './expedientes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -92,7 +94,32 @@ export class Expedientes implements OnInit {
     fecha_limite: new FormControl<string | null>(null),
     enlace: new FormControl<string | null>(null),
     descripcion: new FormControl<string | null>(null),
+    monto_reclamado: new FormControl<number | null>(null),
   });
+
+  // CO11 — KPIs del listado (abiertos, vencen en 15 días, monto reclamado, cerrados).
+  kpiAbiertos = computed(() => this.expedientes().filter((e) => e.estado !== 'cerrado').length);
+  kpiVencenPronto = computed(() => {
+    const limite = daysFromNowIso(15);
+    return this.expedientes().filter(
+      (e) => e.estado !== 'cerrado' && e.fecha_limite && e.fecha_limite <= limite && e.fecha_limite >= todayIso(),
+    ).length;
+  });
+  kpiMontoReclamado = computed(() =>
+    this.expedientes().reduce((sum, e) => sum + (e.monto_reclamado ?? 0), 0),
+  );
+  kpiCerrados = computed(() => this.expedientes().filter((e) => e.estado === 'cerrado').length);
+
+  // CO13 — contratos del mismo proyecto/contraparte, en la pestaña Contratos.
+  contratosRelacionados = signal<Contrato[]>([]);
+  contratosLoading = signal(false);
+
+  // CO11 — pestañas del panel + "Ver todo" de descripción/nota larga.
+  detailTab = signal<'resumen' | 'notas' | 'archivos' | 'contratos'>('resumen');
+  descripcionExpandida = signal(false);
+  notaExpandidaId = signal<string | null>(null);
+  fijandoFechaLimite = signal(false);
+  fechaLimiteDraft = new FormControl<string | null>(null);
 
   filtered = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -167,7 +194,7 @@ export class Expedientes implements OnInit {
     this.editingId.set(null);
     this.saveError.set('');
     this.resetArchivosStaging();
-    this.form.reset({ tipo: 'otro', prioridad: 'media' });
+    this.form.reset({ tipo: 'otro', prioridad: 'media', monto_reclamado: null });
     this.drawerOpen.set(true);
   }
 
@@ -199,6 +226,7 @@ export class Expedientes implements OnInit {
       fecha_limite: e.fecha_limite,
       enlace: e.enlace,
       descripcion: e.descripcion,
+      monto_reclamado: e.monto_reclamado,
     });
     this.drawerOpen.set(true);
   }
@@ -225,6 +253,7 @@ export class Expedientes implements OnInit {
       fecha_limite: raw.fecha_limite || null,
       enlace: raw.enlace?.trim() || null,
       descripcion: raw.descripcion || null,
+      monto_reclamado: raw.monto_reclamado ?? null,
     };
 
     try {
@@ -326,6 +355,12 @@ export class Expedientes implements OnInit {
     this.detailOpen.set(true);
     this.detailLoading.set(true);
     this.nuevaNota.reset('');
+    this.detailTab.set('resumen');
+    this.descripcionExpandida.set(false);
+    this.notaExpandidaId.set(null);
+    this.fijandoFechaLimite.set(false);
+    this.fechaLimiteDraft.reset(e.fecha_limite);
+    this.contratosRelacionados.set([]);
     try {
       const [notas, archivos] = await Promise.all([
         this.legalService.getNotas(e.id),
@@ -335,6 +370,18 @@ export class Expedientes implements OnInit {
       this.detailArchivos.set(archivos);
     } finally {
       this.detailLoading.set(false);
+    }
+    // CO13 — contratos del mismo proyecto (best-effort; no bloquea el resto del detalle).
+    if (e.proyecto_id) {
+      this.contratosLoading.set(true);
+      try {
+        const todos = await this.legalService.getContratos();
+        this.contratosRelacionados.set(todos.filter((c) => c.proyecto_id === e.proyecto_id));
+      } catch {
+        /* la pestaña Contratos solo se queda vacía si esto falla */
+      } finally {
+        this.contratosLoading.set(false);
+      }
     }
   }
 
@@ -356,6 +403,20 @@ export class Expedientes implements OnInit {
 
   nextEstados(current: ExpedienteEstado): ExpedienteEstado[] {
     return ESTADO_TRANSICIONES[current];
+  }
+
+  /** CO11 — "Fecha límite: Sin fecha · Fijar" del mock. */
+  async guardarFechaLimite() {
+    const exp = this.detailExpediente();
+    if (!exp) return;
+    try {
+      const updated = await this.legalService.updateExpediente(exp.id, { fecha_limite: this.fechaLimiteDraft.value || null });
+      this.detailExpediente.set(updated);
+      this.expedientes.update((list) => list.map((e) => (e.id === exp.id ? updated : e)));
+      this.fijandoFechaLimite.set(false);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo fijar la fecha límite', e instanceof Error ? e.message : undefined);
+    }
   }
 
   async onAddNota() {

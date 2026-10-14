@@ -18,6 +18,7 @@ import { JiraService } from '../../../../shared/services/jira.service';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { Router } from '@angular/router';
 import { Icon } from '../../../../shared/ui/icon/icon';
+import { APP_VERSION } from '../../../../environments/version';
 
 @Component({
   selector: 'app-tec-reportes-errores',
@@ -149,13 +150,16 @@ export class TecReportesErrores implements OnInit {
   /** AW14 — marca el estado de atención de una firma (en revisión / solucionado / reabrir). */
   async marcar(g: AppErrorGrupo, estado: AppErrorEstado) {
     if (this.marcando()) return;
-    // BI4 — al marcar SOLUCIONADO se pide la nota (qué lo cerró) y la versión del fix
-    // (para que un cliente viejo no reabra el grupo). Ambas son opcionales pero útiles.
+    // BI4/CO7 — al marcar SOLUCIONADO, la nota es opcional pero la VERSIÓN DEL FIX
+    // es OBLIGATORIA (default: la versión actual del SGC) — sin ella, un cliente
+    // viejo nunca deja de reabrir el grupo y Novedades (CO2) no puede avisar "ya
+    // está arreglado" a quien lo reportó.
     let nota: string | null = null;
     let version: string | null = null;
     if (estado === 'solucionado') {
       nota = (prompt('¿Qué lo cerró? (p. ej. la migración o el cambio). Se guarda en el grupo:') ?? '').trim() || null;
-      version = (prompt('¿En qué versión queda arreglado? (opcional; evita que un cliente viejo reabra el grupo)') ?? '').trim() || null;
+      version = (prompt('¿En qué versión queda arreglado? (obligatorio)', APP_VERSION) ?? '').trim() || null;
+      if (!version) return; // canceló o lo dejó vacío — no se marca solucionado sin versión
     }
     this.marcando.set(g.firma);
     this.error.set('');

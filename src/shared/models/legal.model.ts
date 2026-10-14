@@ -1,3 +1,5 @@
+import { PlantillaCategoria } from './plantilla-documento.model';
+
 export type ExpedienteTipo =
   | 'laboral'
   | 'permiso'
@@ -28,6 +30,8 @@ export interface ExpedienteLegal {
   responsable?: { nombre: string } | null;
   creado_por: string | null;
   created_at: string;
+  /** CO11 — monto reclamado (campo propio; antes vivía solo en la descripción). */
+  monto_reclamado: number | null;
 }
 
 export interface ExpedienteNota {
@@ -63,6 +67,8 @@ export interface Contrato {
   proyecto_id: string | null;
   proyecto?: { nombre: string } | null;
   documento_generado_id: string | null;
+  /** CO13 — PDF/foto del contrato ya firmado, subido a mano. */
+  archivo_firmado_path: string | null;
   estado: ContratoEstado;
   monto: number | null;
   fecha_inicio: string | null;
@@ -72,6 +78,20 @@ export interface Contrato {
   responsable?: { nombre: string } | null;
   creado_por: string | null;
   created_at: string;
+}
+
+/** CO13 — ficha del contrato con el documento generado enlazado (sgc.contrato_detalle). */
+export interface ContratoDetalle {
+  contrato: Contrato;
+  proveedor: { nombre: string } | null;
+  proyecto: { nombre: string } | null;
+  documento: {
+    id: string;
+    nombre: string;
+    created_at: string;
+    plantilla_nombre: string | null;
+    plantilla_categoria: PlantillaCategoria | null;
+  } | null;
 }
 
 export type AprobacionModulo = 'compras' | 'rrhh' | 'proyectos' | 'inventario' | 'documentos' | 'flota' | 'otro';

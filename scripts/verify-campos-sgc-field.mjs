@@ -44,9 +44,46 @@ for (const rel of listHtml()) {
   }
 }
 
-if (problemas.length) {
-  console.error('🔴 verify-campos-sgc-field: control(es) con «sgc-field» directo → saldrían sin estilo (CL1):');
-  for (const p of problemas) console.error('  - ' + p);
+// ── CO11 — extensión: control SIN ninguna clase del sistema (ni sgc-input/
+// sgc-select, ni envuelto en <div class="sgc-field">), en pages/legal/** y
+// pages/documentos/** (mismo defecto de CL1, folders nuevos tocados en CO11-14).
+const CARPETAS_EXTENDIDAS = ['src/app/pages/legal/', 'src/app/pages/documentos/'];
+const TIPOS_EXENTOS = new Set(['checkbox', 'radio', 'file', 'hidden', 'submit', 'button']);
+const sinClaseDelSistema = [];
+
+for (const rel of listHtml()) {
+  if (!CARPETAS_EXTENDIDAS.some((c) => rel.startsWith(c))) continue;
+  const html = readFileSync(join(ROOT, rel), 'utf8');
+  for (const m of html.matchAll(TAG_RE)) {
+    const tag = m[0];
+    const tipo = tag.match(/type="([^"]*)"/i)?.[1]?.toLowerCase();
+    if (tipo && TIPOS_EXENTOS.has(tipo)) continue;
+    const cls = tag.match(/class="([^"]*)"/i);
+    const tokens = cls ? cls[1].split(/\s+/) : [];
+    if (tokens.includes('sgc-input') || tokens.includes('sgc-select')) continue;
+    // ¿Envuelto en <div class="sgc-field">? (heurística: el último contenedor
+    // sgc-field abierto antes de este tag, sin un </div> de cierre en medio).
+    const antes = html.slice(0, m.index);
+    const fieldOpenRe = /<div\s+class="sgc-field\b/gi;
+    let ultimoFieldOpen = -1;
+    for (const fm of antes.matchAll(fieldOpenRe)) ultimoFieldOpen = fm.index;
+    const entreMedio = ultimoFieldOpen >= 0 ? antes.slice(ultimoFieldOpen) : '';
+    const envuelto = ultimoFieldOpen >= 0 && (entreMedio.match(/<div\b/gi)?.length ?? 0) > (entreMedio.match(/<\/div>/gi)?.length ?? 0);
+    if (envuelto) continue;
+    const linea = antes.split('\n').length;
+    sinClaseDelSistema.push(`${rel}:${linea}: <${m[1]}> sin «sgc-input»/«sgc-select» ni envoltorio «.sgc-field» → sale sin estilo.`);
+  }
+}
+
+if (problemas.length || sinClaseDelSistema.length) {
+  if (problemas.length) {
+    console.error('🔴 verify-campos-sgc-field: control(es) con «sgc-field» directo → saldrían sin estilo (CL1):');
+    for (const p of problemas) console.error('  - ' + p);
+  }
+  if (sinClaseDelSistema.length) {
+    console.error('🔴 verify-campos-sgc-field: control(es) sin clase del sistema en legal/documentos (CO11):');
+    for (const p of sinClaseDelSistema) console.error('  - ' + p);
+  }
   process.exit(1);
 }
-console.log('✓ verify-campos-sgc-field: ningún control usa «sgc-field» como clase (CL1).');
+console.log('✓ verify-campos-sgc-field: ningún control usa «sgc-field» como clase (CL1), y legal/documentos tienen piel (CO11).');

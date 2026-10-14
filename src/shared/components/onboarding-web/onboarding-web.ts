@@ -81,7 +81,10 @@ export class OnboardingWeb {
       this.arrancada = true;
       const forzar = new URLSearchParams(location.search).get('bienvenida') === '1';
       if (forzar) { this.fase.set('ventana'); return; }
-      void this.bienvenida.yaVistaWeb().then((vista) => { if (!vista) this.fase.set('ventana'); });
+      void this.bienvenida.yaVistaWeb().then((vista) => {
+        if (!vista) this.fase.set('ventana');
+        else this.bienvenida.cerradaEnSesion.set(true); // CO2 — Novedades puede salir ya.
+      });
     });
     // "Ver la bienvenida otra vez" (Soporte/Dudas).
     effect(() => {
@@ -146,6 +149,7 @@ export class OnboardingWeb {
     this.fase.set('cerrado');
     this.rect.set(null);
     void this.bienvenida.marcarVistaWeb();
+    this.bienvenida.cerradaEnSesion.set(true); // CO2 — ya puede salir Novedades.
   }
 
   spotStyle(): Record<string, string> {

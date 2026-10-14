@@ -10,13 +10,28 @@
 
 <p class="page-hint">
   Las plantillas del sistema (Contrato, Recibo de Pago, Orden de Pago, Acta de Incidencia) ya están listas para usar en
-  <a routerLink="/documentos/generar">Generar Documento</a>. Para agregar la tuya: guarda tu documento en Word (.docx) con los
-  espacios a rellenar escritos como <code>{{ '{' + '{campo}' + '}' }}</code> (ej: <code>{{ '{' + '{cliente}' + '}' }}</code>), y súbelo aquí — la página detecta esos campos automáticamente.
+  <a routerLink="/documentos/generar">Generar Documento</a>. Para agregar la tuya: sube tu Word (.docx) tal cual —
+  el sistema detecta solo los espacios a rellenar, sea que los hayas escrito como <code>{{ '{' + '{campo}' + '}' }}</code>
+  o simplemente dejado en blanco con guiones bajos («____»), y te deja elegir qué dato va en cada uno.
 </p>
 
 @if (error()) {
   <div class="page-error" role="alert">{{ error() }}</div>
 }
+
+<!-- CO12 — filtro por tipo con conteo -->
+<div class="pl-filtros">
+  <button type="button" class="pl-filtro" [class.pl-filtro--on]="filtroTipo() === 'all'" (click)="filtroTipo.set('all')">
+    Todas ({{ plantillas().length }})
+  </button>
+  @for (cat of CATEGORIAS; track cat) {
+    @if (conteoPorTipo(cat) > 0) {
+      <button type="button" class="pl-filtro" [class.pl-filtro--on]="filtroTipo() === cat" (click)="filtroTipo.set(cat)">
+        {{ CATEGORIA_LABELS[cat] }} ({{ conteoPorTipo(cat) }})
+      </button>
+    }
+  }
+</div>
 
 @if (loading()) {
   <app-skeleton variant="cards" />
@@ -28,36 +43,44 @@
     </button>
   </div>
 } @else {
-  @for (cat of CATEGORIAS; track cat) {
-    @if (porCategoria(cat).length > 0) {
-      <div class="plantillas-grupo">
-        <h2 class="plantillas-grupo__title">{{ CATEGORIA_LABELS[cat] }}</h2>
-        <div class="plantillas-grupo__list" appStagger>
-          @for (p of porCategoria(cat); track p.id) {
-            <div class="sgc-card plantilla-card">
-              <div>
-                <p class="plantilla-card__nombre">{{ p.nombre }}</p>
-                <span class="sgc-badge sgc-badge--neutral">{{ p.origen === 'sistema' ? 'Del sistema' : 'Personalizada' }}</span>
-                @if (p.es_default) { <span class="sgc-badge sgc-badge--success">Predeterminada</span> }
-                <span class="plantilla-card__campos">{{ p.campos.length }} campo{{ p.campos.length !== 1 ? 's' : '' }}</span>
-                @if (!p.es_default) {
-                  <button type="button" class="plantilla-card__default" (click)="marcarDefault(p)">Marcar predeterminada</button>
-                }
-                <div class="plantilla-card__acc">
-                  <button type="button" class="plantilla-card__link" (click)="abrirEditor(p)">Editar</button>
-                  <button type="button" class="plantilla-card__link" (click)="abrirVersiones(p)">Versiones</button>
+  <div class="plantillas-grupo__list" appStagger>
+    @for (p of plantillasFiltradas(); track p.id) {
+      <div class="sgc-card plantilla-card">
+        <div class="plantilla-card__thumb" [innerHTML]="previewDe(p)"></div>
+        <div class="plantilla-card__body">
+          <div class="plantilla-card__chips">
+            <span class="sgc-badge sgc-badge--neutral">{{ p.origen === 'sistema' ? 'Del sistema' : 'Personalizada' }}</span>
+            @if (p.es_default) { <span class="sgc-badge sgc-badge--success">★ La que se usa</span> }
+          </div>
+          <p class="plantilla-card__nombre">{{ p.nombre }}</p>
+          <p class="plantilla-card__desc">{{ CATEGORIA_LABELS[p.categoria] }} · {{ p.campos.length }} dato{{ p.campos.length !== 1 ? 's' : '' }}</p>
+          <div class="plantilla-card__acc">
+            <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" [routerLink]="['/documentos/generar']" [queryParams]="{ plantilla: p.id }">Usar</button>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirVer(p)">Ver</button>
+            <div class="plantilla-card__menu">
+              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="menuAbiertoId.set(menuAbiertoId() === p.id ? null : p.id)" aria-label="Más acciones">⋯</button>
+              @if (menuAbiertoId() === p.id) {
+                <div class="plantilla-card__menu-lista">
+                  <button type="button" (click)="abrirEditor(p)">{{ p.origen === 'sistema' ? 'Duplicar para editar' : 'Editar' }}</button>
+                  <button type="button" (click)="abrirVersiones(p); menuAbiertoId.set(null)">Versiones</button>
+                  @if (!p.es_default) {
+                    <button type="button" (click)="marcarDefault(p); menuAbiertoId.set(null)">Marcar como la que se usa</button>
+                  }
+                  <button type="button" (click)="duplicar(p)">Duplicar</button>
+                  @if (p.origen !== 'sistema') {
+                    <button type="button" class="plantilla-card__menu-eliminar" (click)="eliminar(p); menuAbiertoId.set(null)">Eliminar</button>
+                  }
                 </div>
-              </div>
-              @if (p.origen !== 'sistema') {
-                <button type="button" class="plantilla-card__remove" (click)="eliminar(p)" [attr.aria-label]="'Eliminar plantilla ' + p.nombre" title="Eliminar plantilla"><app-icon name="x" [size]="16" /></button>
               }
             </div>
-          }
+          </div>
         </div>
       </div>
     }
-  }
+  </div>
 }
+
+<p class="page-hint pl-explicacion">1. Elige · 2. Llena los datos · 3. Descarga PDF o Word</p>
 
 <!-- Upload Drawer -->
 <app-form-drawer title="Subir plantilla personalizada" [open]="drawerOpen()" (closed)="closeDrawer()">
@@ -82,7 +105,7 @@
     <div class="sgc-field">
       <label for="archivo">Archivo Word (.docx) <span class="required">*</span></label>
       <input id="archivo" type="file" accept=".docx" (change)="onFileSelected($event)" />
-      <p class="text-muted">Súbelo tal cual. El sistema detecta los espacios en blanco («____») y te deja elegir qué dato va en cada uno.</p>
+      <p class="text-muted">Súbelo tal cual. Detecta <code>{{ '{' + '{campo}' + '}' }}</code> y «____» por igual.</p>
     </div>
 
     @if (analizando()) {
@@ -119,35 +142,52 @@
   </form>
 </app-form-drawer>
 
-<!-- CF7/CE7 — Editor de plantilla -->
+<!-- CO12/CO14 — Editor de plantilla (TipTap) -->
 <app-form-drawer title="Editar plantilla" [open]="editOpen()" [wide]="true" (closed)="cerrarEditor()">
   <div class="pl-editor">
-    <div class="sgc-field">
-      <label>Nombre</label>
-      <input class="sgc-input" [value]="editNombre()" (input)="editNombre.set($any($event.target).value)" />
+    <div class="form-row">
+      <div class="sgc-field">
+        <label>Nombre</label>
+        <input class="sgc-input" [value]="editNombre()" (input)="editNombre.set($any($event.target).value)" />
+      </div>
+      <div class="sgc-field">
+        <label>Categoría</label>
+        <select class="sgc-select" [value]="editCategoria()" (change)="editCategoria.set($any($event.target).value)">
+          @for (c of CATEGORIAS; track c) { <option [value]="c">{{ CATEGORIA_LABELS[c] }}</option> }
+        </select>
+      </div>
     </div>
-    <div class="sgc-field">
-      <label>Categoría</label>
-      <select class="sgc-input" [value]="editCategoria()" (change)="editCategoria.set($any($event.target).value)">
-        @for (c of CATEGORIAS; track c) { <option [value]="c">{{ CATEGORIA_LABELS[c] }}</option> }
-      </select>
-    </div>
-    <div class="sgc-field">
-      <label>Contenido (HTML). Usa <code>{{ '{{variable}}' }}</code> donde va cada dato.</label>
-      <textarea class="sgc-input pl-editor__html" rows="14" [value]="editHtml()" (input)="editHtml.set($any($event.target).value)"></textarea>
-    </div>
-    <div class="sgc-field">
-      <label>Vista previa</label>
-      <div class="pl-editor__preview" [innerHTML]="editHtml()"></div>
-    </div>
+
+    @if (editOpen()) {
+      @defer (when editOpen()) {
+        <app-editor-plantilla
+          [html]="editHtml()"
+          [campos]="editCampos()"
+          [datosEjemplo]="datosEjemploDe(editCampos())"
+          (htmlChange)="editHtml.set($event)"
+          (camposChange)="editCampos.set($event)"
+        />
+      } @placeholder {
+        <p class="text-muted">Cargando editor…</p>
+      }
+    }
+
     @if (editError()) { <p class="save-error" role="alert">{{ editError() }}</p> }
     <div class="drawer-actions">
       <button type="button" class="sgc-btn sgc-btn--ghost" (click)="cerrarEditor()">Cancelar</button>
       <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="editSaving()" (click)="guardarEdicion()">
-        {{ editSaving() ? 'Guardando…' : 'Guardar (nueva versión)' }}
+        {{ editSaving() ? 'Guardando…' : 'Guardar versión' }}
       </button>
     </div>
   </div>
+</app-form-drawer>
+
+<!-- CO12 — "Ver" grande con datos de ejemplo -->
+<app-form-drawer [title]="'Ver · ' + (verPlantilla()?.nombre ?? '')" [open]="verOpen()" [wide]="true" (closed)="cerrarVer()">
+  @if (verPlantilla(); as p) {
+    <div class="pl-ver__contenido" [innerHTML]="previewDe(p)"></div>
+    <p class="text-muted pl-ver__nota">Vista previa con datos de ejemplo (naranja = lo que se llena solo).</p>
+  }
 </app-form-drawer>
 
 <!-- CF7/CE7 — Versiones de una plantilla -->

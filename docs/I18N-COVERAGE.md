@@ -3,19 +3,19 @@
 > Generado por `scripts/i18n-coverage.mjs`. La unidad es la **pantalla**. El selector
 > ofrece `en` cuando el alcance ≥95 % y `ht` cuando ≥90 % (si no: *beta*/*próximamente*).
 
-**Alcance `en`: 6%** (42/648 literales de 6 pantallas en alcance). **`ht`: 0%**.
+**Alcance `en`: 6%** (42/654 literales de 6 pantallas en alcance). **`ht`: 0%**.
 
 | Pantalla | Alcance | Total | con t() | sin t() | % |
 |---|:---:|---:|---:|---:|---:|
 | ajustes-notificaciones | scope | 21 | 0 | 21 | 0% |
 | inventario/conduce | scope | 212 | 0 | 212 | 0% |
-| inventario/requisiciones | scope | 239 | 0 | 239 | 0% |
+| inventario/requisiciones | scope | 245 | 0 | 245 | 0% |
 | perfil | scope | 35 | 0 | 35 | 0% |
 | inventario/conduce-externo-form | scope | 79 | 2 | 77 | 3% |
 | configuracion | scope | 62 | 40 | 22 | 65% |
 | admin/almacenes-duplicados | - | 15 | 0 | 15 | 0% |
 | admin/animaciones | - | 48 | 0 | 48 | 0% |
-| admin/app-versiones | - | 125 | 0 | 125 | 0% |
+| admin/app-versiones | - | 148 | 0 | 148 | 0% |
 | admin/auditoria | - | 96 | 0 | 96 | 0% |
 | admin/bitacora-catalogos | - | 20 | 0 | 20 | 0% |
 | admin/empresa | - | 53 | 0 | 53 | 0% |
@@ -30,10 +30,10 @@
 | admin/roles | - | 260 | 0 | 260 | 0% |
 | admin/solicitudes-eliminacion | - | 15 | 0 | 15 | 0% |
 | admin/unidades | - | 19 | 0 | 19 | 0% |
-| admin/usuarios | - | 234 | 0 | 234 | 0% |
+| admin/usuarios | - | 236 | 0 | 236 | 0% |
 | admin/usuarios-duplicados | - | 33 | 0 | 33 | 0% |
 | admin/usuarios-test | - | 50 | 0 | 50 | 0% |
-| apoyo-transporte | - | 55 | 0 | 55 | 0% |
+| apoyo-transporte | - | 65 | 0 | 65 | 0% |
 | asistente | - | 23 | 0 | 23 | 0% |
 | auth/set-password | - | 23 | 0 | 23 | 0% |
 | bitacora/cartillas | - | 116 | 0 | 116 | 0% |
@@ -53,8 +53,8 @@
 | direccion | - | 27 | 0 | 27 | 0% |
 | documentos/generar | - | 21 | 0 | 21 | 0% |
 | documentos/historial | - | 15 | 0 | 15 | 0% |
-| documentos/plantillas | - | 61 | 0 | 61 | 0% |
-| documentos/ver | - | 15 | 0 | 15 | 0% |
+| documentos/plantillas | - | 70 | 0 | 70 | 0% |
+| documentos/ver | - | 19 | 0 | 19 | 0% |
 | dudas | - | 30 | 0 | 30 | 0% |
 | flota/accidentes | - | 84 | 0 | 84 | 0% |
 | flota/avisos | - | 83 | 0 | 83 | 0% |
@@ -100,7 +100,7 @@
 | inventario/salidas | - | 235 | 0 | 235 | 0% |
 | legal/aprobaciones | - | 60 | 0 | 60 | 0% |
 | legal/configuracion | - | 22 | 0 | 22 | 0% |
-| legal/contratos | - | 70 | 0 | 70 | 0% |
+| legal/contratos | - | 86 | 0 | 86 | 0% |
 | legal/firmas-pendientes | - | 18 | 0 | 18 | 0% |
 | mensajes/grupo-info | - | 55 | 0 | 55 | 0% |
 | mensajes | - | 118 | 0 | 118 | 0% |
@@ -137,7 +137,7 @@
 | tareas/historial | - | 33 | 0 | 33 | 0% |
 | tareas/mis-tareas | - | 17 | 0 | 17 | 0% |
 | tecnologia/apis-consumo | - | 48 | 0 | 48 | 0% |
-| tecnologia/compras | - | 50 | 0 | 50 | 0% |
+| tecnologia/compras | - | 89 | 0 | 89 | 0% |
 | tecnologia/consultas-compa | - | 33 | 0 | 33 | 0% |
 | tecnologia/design-system | - | 139 | 0 | 139 | 0% |
 | tecnologia/dev-notes | - | 53 | 0 | 53 | 0% |
@@ -153,8 +153,8 @@
 | tecnologia/resumen-operaciones | - | 96 | 0 | 96 | 0% |
 | trabajos-transporte | - | 31 | 0 | 31 | 0% |
 | verificar | - | 13 | 0 | 13 | 0% |
+| legal/expedientes | - | 140 | 3 | 137 | 2% |
 | inventario/conduce-externo-ficha | - | 59 | 2 | 57 | 3% |
-| legal/expedientes | - | 100 | 3 | 97 | 3% |
 | flota/vehiculos | - | 494 | 19 | 475 | 4% |
 | inventario/conduces-externos | - | 25 | 1 | 24 | 4% |
 | flota/mantenimientos | - | 163 | 9 | 154 | 6% |

@@ -1,0 +1,103 @@
+<div class="ep">
+  <!-- Barra -->
+  <div class="ep__toolbar" role="toolbar" aria-label="Formato del documento">
+    <button type="button" class="ep__btn" [class.ep__btn--on]="activo('bold')" (click)="toggleBold()" title="Negrita"><b>N</b></button>
+    <button type="button" class="ep__btn" [class.ep__btn--on]="activo('italic')" (click)="toggleItalic()" title="Cursiva"><i>K</i></button>
+    <button type="button" class="ep__btn" [class.ep__btn--on]="activo('underline')" (click)="toggleUnderline()" title="Subrayado"><u>S</u></button>
+    <button type="button" class="ep__btn" (click)="toggleHeading()" title="Título">T</button>
+    <button type="button" class="ep__btn" (click)="toggleBulletList()" title="Lista">•≡</button>
+    <button type="button" class="ep__btn" (click)="insertarTabla()" title="Tabla">▦</button>
+    <button type="button" class="ep__btn" (click)="insertarFirma()" title="Firma"><app-icon name="pen" [size]="15" /></button>
+    <span class="ep__toolbar-spacer"></span>
+    <div class="ep__insertar">
+      <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="mostrandoInsertar.set(!mostrandoInsertar())">
+        + Insertar dato
+      </button>
+      @if (mostrandoInsertar()) {
+        <div class="ep__insertar-menu">
+          @for (c of campos(); track c.key) {
+            <button type="button" class="ep__insertar-item" (click)="insertarCampo(c.key)">{{ c.label }}</button>
+          }
+          <button type="button" class="ep__insertar-item ep__insertar-item--nuevo" (click)="abrirDatoNuevo(); mostrandoInsertar.set(false)">
+            + Dato nuevo
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Área de edición -->
+  <div class="ep__canvas">
+    <div #editorHost class="ep__editor"></div>
+  </div>
+
+  <!-- Panel "Datos de esta plantilla" -->
+  <div class="ep__panel">
+    <span class="ep__panel-title">Datos de esta plantilla</span>
+    @if (!campos().length) {
+      <p class="ep__panel-empty">Aún no hay datos. Usa "+ Insertar dato" para agregar el primero.</p>
+    } @else {
+      <ul class="ep__panel-lista">
+        @for (c of campos(); track c.key) {
+          <li class="ep__panel-item" (click)="insertarCampo(c.key)">
+            <span class="ep__panel-item-label">{{ c.label }}</span>
+            <span class="ep__panel-item-tipo">{{ c.tipo }}</span>
+          </li>
+        }
+      </ul>
+    }
+    <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="abrirDatoNuevo()">+ Dato nuevo</button>
+
+    <div class="ep__panel-acciones">
+      <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleProbarConDatos()">
+        {{ probandoConDatos() ? 'Ocultar vista previa' : 'Probar con datos' }}
+      </button>
+      @if (esTecnologia()) {
+        <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="toggleAvanzado()">Avanzado</button>
+      }
+    </div>
+  </div>
+
+  <!-- "Dato nuevo" -->
+  @if (mostrandoDatoNuevo()) {
+    <div class="ep__modal">
+      <div class="ep__modal-card">
+        <span class="ep__modal-title">Nuevo dato</span>
+        <div class="sgc-field">
+          <label>Nombre (lo que ve quien llena)</label>
+          <input class="sgc-input" type="text" [value]="nuevoDatoLabel()" (input)="nuevoDatoLabel.set($any($event.target).value)" placeholder="Ej: Nombre del cliente" />
+        </div>
+        <div class="sgc-field">
+          <label>Tipo</label>
+          <select class="sgc-select" [value]="nuevoDatoTipo()" (change)="nuevoDatoTipo.set($any($event.target).value)">
+            @for (t of TIPOS; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+          </select>
+        </div>
+        <div class="ep__modal-acciones">
+          <button type="button" class="sgc-btn sgc-btn--ghost" (click)="mostrandoDatoNuevo.set(false)">Cancelar</button>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="!nuevoDatoLabel().trim()" (click)="confirmarDatoNuevo()">Agregar e insertar</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- "Probar con datos" -->
+  @if (probandoConDatos()) {
+    <div class="ep__preview">
+      <span class="ep__panel-title">Vista previa con datos de ejemplo</span>
+      <div class="ep__preview-contenido" [innerHTML]="previewHtml()"></div>
+    </div>
+  }
+
+  <!-- "Avanzado" — HTML crudo (solo Tecnología) -->
+  @if (modoAvanzado()) {
+    <div class="ep__avanzado">
+      <span class="ep__panel-title">Avanzado — HTML crudo</span>
+      <textarea class="sgc-input ep__avanzado-textarea" rows="10" [value]="avanzadoHtml()" (input)="avanzadoHtml.set($any($event.target).value)"></textarea>
+      <div class="ep__modal-acciones">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="modoAvanzado.set(false)">Cancelar</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="aplicarHtmlAvanzado()">Aplicar al editor</button>
+      </div>
+    </div>
+  }
+</div>

@@ -130,3 +130,67 @@
   display: flex; flex-direction: column; gap: 8px;
   &__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px; border: 1px solid var(--sgc-border); border-radius: 10px; }
 }
+
+// CO12 — filtro por tipo + tarjetas con miniatura + menú ⋯.
+.pl-filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.pl-filtro {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border, #e4e7ec);
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sgc-text-muted);
+  cursor: pointer;
+
+  &--on { border-color: var(--brand, #1e3a5f); color: var(--brand, #1e3a5f); background: var(--surface-2, #eef3f9); }
+}
+
+.plantilla-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.plantilla-card__thumb {
+  height: 110px;
+  overflow: hidden;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.4;
+  background: var(--surface-2, #f8f9fb);
+  border-bottom: 1px solid var(--border, #e4e7ec);
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+
+  ::ng-deep .campo-relleno { color: var(--Hub, #f97316); font-weight: 700; }
+}
+.plantilla-card__body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.plantilla-card__chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.plantilla-card__desc { font-size: 12.5px; color: var(--sgc-text-muted); margin: 0; }
+.plantilla-card__acc { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.plantilla-card__menu { position: relative; margin-left: auto; }
+.plantilla-card__menu-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 200px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e4e7ec);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+
+  button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  button:hover { background: var(--surface-2, #f2f4f7); }
+}
+.plantilla-card__menu-eliminar { color: var(--sgc-danger, #b91c1c); }
+
+.pl-explicacion { margin-top: 18px; text-align: center; }
+
+.pl-ver__contenido { font-size: 14px; line-height: 1.6; }
+.pl-ver__contenido ::ng-deep .campo-relleno { color: var(--Hub, #f97316); font-weight: 700; }
+.pl-ver__nota { margin-top: 12px; }

@@ -220,6 +220,9 @@
                     }
                   }
                   <span class="sgc-badge" [class]="'sgc-badge--' + estadoBadge(r.estado)">{{ estadoLabel(r.estado) }}</span>
+                  @if (r.autoaprobada) {
+                    <span class="sgc-badge sgc-badge--info" title="El autor la aprobó con permiso explícito">Aprobada por su autor</span>
+                  }
                 </div>
               </li>
             }
@@ -315,6 +318,10 @@
         <!-- BB10 — versión (sube en cada edición del autor). -->
         @if ((s.version ?? 1) > 1) {
           <span class="sgc-badge sgc-badge--neutral">v{{ s.version }}</span>
+        }
+        <!-- CO4 — el autor se aprobó a sí mismo con permiso explícito. -->
+        @if (s.autoaprobada) {
+          <span class="sgc-badge sgc-badge--info" title="Aprobada por su propio autor (permiso requisicion_autoaprobar)">Aprobada por su autor</span>
         }
       </div>
 

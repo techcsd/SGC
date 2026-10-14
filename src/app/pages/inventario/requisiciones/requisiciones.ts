@@ -218,12 +218,17 @@ export class Requisiciones implements OnInit {
     return !!id && s.solicitante_id === id;
   }
   /**
-   * "Gestionar" (aprobar / rechazar) = un tercero con módulo/rol, NUNCA el autor.
-   * Espejo exacto de sgc.rechazar_solicitud_material, que lanza
-   * "No puedes rechazar tu propia solicitud" si solicitante = uid y no es admin.
+   * "Gestionar" (aprobar / rechazar) = un tercero con módulo/rol; el autor
+   * SOLO si tiene el permiso puntual requisicion_autoaprobar (CO4). Espejo
+   * exacto de sgc.aprobar_requisicion/rechazar_solicitud_material, que lanzan
+   * "No puedes aprobar/rechazar tu propia solicitud" si no se cumple.
    */
   puedeRechazar(s: SolicitudMaterial): boolean {
-    return this.puedeGestionar() && s.estado === 'pendiente' && (!this.esAutor(s) || this.esAdmin());
+    return (
+      this.puedeGestionar() &&
+      s.estado === 'pendiente' &&
+      (!this.esAutor(s) || this.esAdmin() || this.userService.puedeAutoaprobarRequisicion())
+    );
   }
   /** Estados en los que una requisición todavía se puede cancelar (no cerrada/rechazada/entregada). */
   private readonly ESTADOS_CANCELABLES = ['pendiente', 'aprobada', 'por_despachar', 'parcial'];

@@ -176,6 +176,60 @@
   }
 </div>
 
+<!-- CO1 — Dispositivos: quién está en qué versión + quién quedó "atascado". -->
+<div class="page-header av-dispositivos__header">
+  <h2>Dispositivos</h2>
+  <p>Última versión reportada por cada usuario+plataforma. "Atascado" = Android en 2.44.x/2.45.0 (no se arregla solo), o cualquiera con versión vieja y más de 48h sin verse.</p>
+</div>
+@if (pushWebResumen().length) {
+  <p class="av-dispositivos__push-resumen">
+    Web Push activo:
+    @for (r of pushWebResumen(); track r.plataforma) {
+      <span class="sgc-badge sgc-badge--info">{{ r.plataforma }}: {{ r.activas }} ({{ r.usuarios }} usuarios)</span>
+    }
+  </p>
+}
+<div class="av-dispositivos__filtros">
+  <label class="av-check">
+    <input type="checkbox" [checked]="soloAtascados()" (change)="soloAtascados.set(!soloAtascados())" />
+    <span>Solo atascados</span>
+  </label>
+  <select class="sgc-select" [value]="filtroPlataformaDisp()" (change)="filtroPlataformaDisp.set($any($event.target).value)">
+    <option value="">Todas las plataformas</option>
+    @for (p of plataformasDisponibles(); track p) { <option [value]="p">{{ p }}</option> }
+  </select>
+</div>
+@if (dispositivosLoading()) {
+  <app-skeleton [rows]="4" />
+} @else if (!dispositivosFiltrados().length) {
+  <p class="av-dispositivos__vacio">No hay dispositivos que coincidan.</p>
+} @else {
+  <div class="table-wrapper sgc-card">
+    <table class="sgc-table">
+      <thead>
+        <tr>
+          <th>Usuario</th><th>Plataforma</th><th>Modelo</th><th>Versión</th><th>Visto</th><th>Atascado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of dispositivosFiltrados(); track d.usuario_id + d.plataforma + (d.modelo ?? '')) {
+          <tr [class.av-dispositivos__fila--atascada]="d.atascado">
+            <td>{{ d.usuario_nombre }}</td>
+            <td>{{ d.plataforma }}</td>
+            <td>{{ d.modelo ?? '—' }}</td>
+            <td>{{ d.app_version ?? '—' }}</td>
+            <td>{{ formatFecha(d.visto_at) }}</td>
+            <td>
+              @if (d.atascado) { <span class="sgc-badge sgc-badge--warning">Atascado</span> }
+              @else { <span class="sgc-badge sgc-badge--neutral">Al día</span> }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
 <app-form-drawer [title]="drawerTitle()" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate>
     <div class="sgc-field">

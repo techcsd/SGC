@@ -1,5 +1,34 @@
 # HANDOFF — SGC
 
+## TL;DR — PROMPT-98 (Ronda CO) — 14/10/2026 — 🧪 EN `feature/co-ronda`, build verde @ **1.189.0** — NO dev/prod
+
+**Las 14 FASES del prompt (CO1-CO18) construidas y verificadas en local/dev. NADA commiteado/pusheado/desplegado todavía** (constraint explícito de Xaviel: avisar antes). `npm run build` completo (prebuild + ng build) verde, 38/38 tests unitarios verdes, guards AW12/BS2/CL1/tokens/regresiones/i18n todos en verde.
+
+**Resumen por fase:**
+- **FASE 0-1 — CO3/CO5/CO15/CO16 (anti-duplicados + nº de recibo):** causa real de las echadas de combustible duplicadas (4-5) y conduces duplicados (3) = la app movía su bandera `busy`/`submitting` DESPUÉS del primer `await` (GPS, posible-duplicado), no antes → dos toques rápidos = dos inserts. `registrar_combustible_app` (22 args, ya tenía `p_numero_recibo`) y `registrar_salida_inventario`/`crear_conduce_externo` ganan una ventana anti-dup de 120s por contenido (mismo usuario+datos) — si detecta un posible duplicado devuelve la fila YA creada en vez de insertar otra o fallar. Nuevo guard `verify-envio-unico.mjs` (prebuild) detecta el patrón await-antes-de-bandera en nuevos `.ts`. Data-fix de limpieza de los duplicados históricos: dry-run en prod, **NO aplicado** (pendiente OK de Xaviel).
+- **FASE 2 — CO4 (Raykler autoaprobar requisición):** tabla genérica `usuario_permisos_extra` + permiso `requisicion_autoaprobar`; `aprobar_requisicion` respeta el permiso cuando el autor y el aprobador son la misma persona. Columna `autoaprobada` visible en la requisición.
+- **FASE 3 — CO9 (Apoyo de transporte reabrir):** nuevo flujo para reabrir/cambiar el estado de un apoyo cerrado por error, con quién lo hizo y cuándo.
+- **FASE 4 — CO1 (versión mínima por plataforma):** `version_publicada`/`dispositivos_listado` ahora distinguen plataforma (web vs app) para detectar quién se quedó atascado en una versión vieja sin depender de un solo número global. `docs/ACTUALIZACIONES.md` documenta el bug de actualización Android/PWA.
+- **FASE 5 — CO7 (Outbox atascado + Reportes de errores):** pantallas de Tecnología mejoradas para ver y resolver lo que quedó pendiente de sincronizar.
+- **FASE 6 — CO10/CO17 (Web Push real):** servidor listo (VAPID, `npm:web-push` en edge function, tabla `push_suscripciones_web`, grants a `service_role` corregidos). Cliente (service worker + permiso del navegador) queda para una fase de app/cliente aparte.
+- **FASE 7 — CO2 (Novedades a pantalla completa):** overlay que resume qué cambió desde la última visita del usuario (incluyendo "lo que reportaste ya está arreglado"), con fallback honesto para web (que no usa `publicada=true` como la app).
+- **FASE 8 — CO6 (Compa con herramientas nuevas):** el asistente ahora puede usar búsqueda web (Anthropic `web_search_20250305`) además de sus tools internas.
+- **FASE 9 — CO11 (Expedientes legales rediseño):** pantalla `legal/expedientes` repintada con la piel CB (tarjetas, filtros).
+- **FASE 10 — CO12/CO14/CO18 (Editor de plantillas tipo Word):** editor TipTap vanilla (negrita/tablas/firmas) con "campos" insertables como chips atómicos (`{{campo}}` ↔ nodo ProseMirror), botón "Probar con datos de ejemplo", listado de plantillas rediseñado (tarjetas + miniatura + menú ⋯), gated a `admin`/`tecnologia` para el modo avanzado.
+- **FASE 11 — CO13 (Contratos ↔ Documentos):** un documento generado puede convertirse en contrato ("Crear contrato con este documento") y muestra en qué contrato se usó; `contrato_detalle()` + subir firmado.
+- **FASE 12 — CO8 (Compras tecnológicas con cotización):** `solicitudes_compra`/`solicitud_compra_items` ganan (aditivo) el flujo `borrador → esperando_aprobacion → aprobada|rechazada → comprada` + tabla `solicitud_compra_adjuntos` + bucket privado `compras-cotizaciones` (PDF/foto, 15MB). Pantalla rediseñada: tarjetas con miniatura + total + "Esperando a Eduardo", filtros por estado con conteo, ficha con vista previa de la cotización, elegir entre varias cotizaciones, aprobar/rechazar (motivo obligatorio al rechazar) y línea de tiempo. Aprobador por defecto = Eduardo Ng (parámetro `compras_tec_aprobador`, data-fix aplicado en dev, dry-run verificado en prod, **no aplicado en prod**). Verificado end-to-end con Playwright contra dev: crear borrador → subir cotización → elegir → enviar a aprobación → aprobar → marcar comprada, 0 errores de consola. Contrato para la app documentado en `PARIDAD.md` (pantalla mínima "por aprobar" para quien sea `aprobador_id`).
+- **FASE 13 — Cierre:** build completo + 8 guards + 38 tests unitarios verdes. Bump **1.189.0** + `release-notes.json` (12 cambios, redactados para el usuario, sin jerga técnica). `PARIDAD.md` actualizado (sección CO8). `COBERTURA-NOTAS` pendiente de actualizar filas 211-228 (no se tocó esta sesión — ver pendientes).
+
+**Pendientes físicos/de Xaviel (nada de esto se hizo sin su OK, por diseño):**
+1. Revisar y decidir sobre la promoción `feature/co-ronda → dev → prueba → main` (nada está commiteado todavía).
+2. Data-fix de limpieza de duplicados históricos (CO3/CO5) — dry-run visto en prod, aplicar solo con su OK.
+3. Data-fix `compras_tec_aprobador=Eduardo Ng` — aplicado en dev, dry-run visto en prod, aplicar solo con su OK.
+4. Probar Novedades (CO2), Web Push en su iPhone (CO10/CO17 — el lado cliente/service-worker no se tocó esta ronda), y el nuevo flujo de Compras tecnológicas con un adjunto real.
+5. Matriz `COBERTURA-NOTAS` filas 211-228 — no actualizada esta sesión (quedó para cuando se confirme qué se promueve).
+6. App (PROMPT-99): pantalla mínima "Compras tecnológicas por aprobar" para Eduardo (o quien sea `aprobador_id`) — contrato en PARIDAD.md § CO8.
+
+---
+
 ## TL;DR — PROMPT-94/96 (Rondas CM + CN) — 10-13/10/2026 — ✅ **EN PROD** (web **1.186.0**, `main`=`dev`)
 
 **Toda la ronda CM (cierre) + CN están en prod.** Versión por versión:

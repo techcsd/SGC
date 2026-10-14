@@ -1,0 +1,51 @@
+@if (abierta()) {
+  <div class="novedades__velo">
+    <div class="novedades__tarjeta" role="dialog" aria-modal="true" aria-label="Novedades">
+      <div class="novedades__header">
+        <div class="novedades__header-top">
+          <span class="novedades__eyebrow">NOVEDADES · DESDE TU ÚLTIMA VISITA</span>
+          @if (rango()) { <span class="novedades__rango">{{ rango() }}</span> }
+        </div>
+        <h1 class="novedades__titulo">Esto cambió en el SGC{{ nombre() ? ', ' + nombre() : '' }}</h1>
+      </div>
+
+      <div class="novedades__body">
+        @if (arregladoParaTi().length) {
+          <div class="novedades__arreglado">
+            <div class="novedades__arreglado-head">
+              <span class="novedades__arreglado-icono"><app-icon name="check" [size]="16" /></span>
+              <span class="novedades__arreglado-titulo">Lo que nos reportaste ya está arreglado</span>
+            </div>
+            <div class="novedades__arreglado-lista">
+              @for (f of arregladoParaTi(); track f) {
+                <p class="novedades__arreglado-item">{{ f }}</p>
+              }
+            </div>
+          </div>
+        }
+
+        @for (v of versiones(); track v.version) {
+          <div class="novedades__version">
+            <div class="novedades__version-head">
+              <span class="novedades__version-num">{{ v.version }}</span>
+              <span class="novedades__version-fecha">
+                {{ v.fecha ? fFecha(v.fecha) : '' }}{{ v.titulo ? ' · ' + v.titulo : '' }}
+              </span>
+            </div>
+            @for (c of v.cambios; track $index) {
+              <div class="novedades__cambio">
+                <span [class]="tagBadgeClass(c.t)">{{ tagLabel(c.t) }}</span>
+                <span class="novedades__cambio-texto">{{ c.d }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="novedades__footer">
+        <a routerLink="/tecnologia/historial-versiones" class="novedades__historial">Ver todo el historial</a>
+        <button type="button" class="sgc-btn sgc-btn--primary" (click)="cerrar()">Entendido</button>
+      </div>
+    </div>
+  </div>
+}

@@ -47,6 +47,9 @@
 | **rutas_del_dia** (BE2) | rutas_del_dia | supervisión → TODAS; resto → las suyas | todas | las suyas | las suyas | **todas** (supervisión) | las suyas |
 | **disponibilidad_de_articulo** (BE2) | disponibilidad_de_articulo | **tool sin gate de módulo** (capacidades_asistente no escanea `obra`, así el ingeniero lo vería vacío); el RPC filtra POR BODEGA con puede_ver_inventario_bodega; apodos AU12; ambiguo→candidatos | ✔ | según sus obras (módulo obra) | ofrecido pero sin bodegas visibles → vacío | según inv. | ofrecido, vacío si no ve inventario |
 | reportar_gap (BE2) | registrar_consulta_no_atendida | ninguno (registra el gap, no lee datos) | ✔ | ✔ | ✔ | ✔ | ✔ |
+| **listar_requisiciones** (CO6) | requisiciones_bandeja | módulo inventario/compras **o** rol `gerente_produccion`/`gerente_proyectos`/`jefe_ingenieros`/`ingeniero_oficina` (`puede_ver_todas_requisiciones`) | ✔ todas | ✔ (ingeniero_oficina SÍ, el de campo NO) | oculto | ✔ (tiene compras/inventario) | oculto |
+| **leer_reporte_semanal_operaciones** (CO6) | reporte_semanal_operaciones_compa | tool sin gate de módulo; CADA sección reusa el gate de su RPC individual (inventario/compras/direccion/flota/bitácora/proyectos) y se salta con gracia (`secciones_omitidas`) si el rol no la ve | ✔ todas las secciones | según sus módulos (parcial) | solo lo que su rol vea (normalmente nada → todo en omitidas) | según sus módulos (parcial) | todo en `secciones_omitidas` |
+| **buscar_en_internet** (CO6) | — (server tool nativo de Anthropic, `web_search_20250305`) | sin gate de módulo; apagable por `parametros.compa_web_search` (default `true`); tope de 5 búsquedas por CONVERSACIÓN (`assistant_acciones` donde `tool='web_search'`) además del `max_uses:3` por turno de Anthropic | ✔ | ✔ | ✔ | ✔ | ✔ (si el parámetro está encendido) |
 
 "oculto" = el tool no se ofrece (o el RPC devuelve vacío/raise → el edge traduce a
 "no tengo acceso a eso").

@@ -605,12 +605,43 @@ export class AdminUsuarios implements OnInit {
     return 'conductor';
   }
 
+  // CO4 — permiso puntual "puede aprobar sus propias requisiciones" (independiente de roles).
+  autoaprobarReq = signal(false);
+  autoaprobarReqSaving = signal(false);
+
   openEdit(usuario: UsuarioAdmin) {
     this.editingUser.set(usuario);
     this.saveError.set('');
     this.form.reset({ nombre: usuario.nombre, activo: usuario.activo });
     this.selectedRolIds.set(usuario.roles?.map((ur) => ur.rol.id) ?? []);
+    this.autoaprobarReq.set(false);
+    this.supabase.client
+      .from('usuario_permisos_extra')
+      .select('activo')
+      .eq('usuario_id', usuario.id)
+      .eq('permiso', 'requisicion_autoaprobar')
+      .maybeSingle()
+      .then(({ data }) => this.autoaprobarReq.set(!!data?.activo));
     this.drawerOpen.set(true);
+  }
+
+  async toggleAutoaprobarReq() {
+    const usuario = this.editingUser();
+    if (!usuario || this.autoaprobarReqSaving()) return;
+    this.autoaprobarReqSaving.set(true);
+    const nuevo = !this.autoaprobarReq();
+    try {
+      const rpc = nuevo ? 'otorgar_permiso_extra' : 'revocar_permiso_extra';
+      const params: Record<string, unknown> = { p_usuario_id: usuario.id, p_permiso: 'requisicion_autoaprobar' };
+      if (nuevo) params['p_motivo'] = 'Otorgado desde Admin › Usuarios';
+      const { error } = await this.supabase.client.rpc(rpc, params);
+      if (error) throw new Error(error.message);
+      this.autoaprobarReq.set(nuevo);
+    } catch (e: unknown) {
+      this.saveError.set(e instanceof Error ? e.message : 'No se pudo cambiar el permiso.');
+    } finally {
+      this.autoaprobarReqSaving.set(false);
+    }
   }
 
   closeDrawer() {

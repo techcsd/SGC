@@ -452,6 +452,185 @@ lógico de captura; el layout puede diferir).
 - Flags por usuario (web `bienvenida_web_v1_vista`, app `bienvenida_app_v2_vista`) + RPC
   `marcar_bienvenida_vista(p_canal)`; existentes = vistos. Mismos pasos por rol (docs/BIENVENIDA.md).
 
+## Tanda CO (PROMPT-98 web → PROMPT-99 app) — 1.189.0
+
+### CO1 — `version_publicada` ahora acepta plataforma; mínima real por plataforma
+- **`sgc.version_publicada(p_plataforma text default 'movil')`** (se dropeó la 0-arg para
+  no dejar overload ambiguo). La app debe llamarla con su plataforma real:
+  `p_plataforma: 'movil'` (Android) o **`p_plataforma: 'ios-pwa'`** (PWA instalada en iPhone,
+  `navigator.standalone` o `matchMedia('(display-mode: standalone)')`).
+- **Fallback automático:** si no existe ninguna fila `app_versiones` con esa plataforma
+  exacta, el servidor cae a `'movil'` — cero regresión mientras Admin no haya creado una fila
+  `ios-pwa` separada. El día que Tecnología publique una versión `ios-pwa` distinta (porque el
+  arreglo del updater, PROMPT-99 F1, solo aplica a la PWA), `version_minima`/`version_publicada`
+  empiezan a diferir de Android automáticamente.
+- **La app también debe registrar sus instalaciones con `plataforma='ios-pwa'`** (vía
+  `registrar_version`/`set_mi_plataforma`) en vez de `'movil'` para que
+  `sgc.dispositivos_listado()` (Sistema › Versiones de la app, columna "Atascado") las cuente
+  aparte de Android.
+- Detalle completo de la causa (APK 2.44/2.45 + huecos del Service Worker de la PWA) en
+  [`docs/ACTUALIZACIONES.md`](./docs/ACTUALIZACIONES.md).
+
+### CO13 — Contratos ↔ "Generar Documento"
+- **`contratos.documento_generado_id`** ya existía en prod como columna huérfana (sin FK, sin uso
+  real) — ahora tiene FK a `documentos_generados(id)` (`on delete set null`) + `contratos.archivo_firmado_path`
+  (bucket `sgc-legal`, mismo bucket que expediente-archivos, prefijo `contratos/<id>/…`).
+- **`sgc.contrato_detalle(p_id)`** → `{contrato, proveedor, proyecto, documento}` (el documento trae
+  `plantilla_categoria` para saber si es de tipo Contrato). **`sgc.documento_usado_en_contrato(p_documento_id)`**
+  → `{id, codigo, titulo} | null`, para "Usado en contrato CTR-…" en el Historial.
+- **Generación del PDF hoy: 100% en el navegador**, sin edge ni archivo PDF persistido —
+  `documentos_generados.contenido_html_final` es HTML; `/documentos/ver/:id` lo imprime/exporta
+  del lado del cliente. **No hay edge `generar-documento`** que la app pueda invocar — portar esto
+  a la app requiere replicar el merge (`plantilla-merge.util.ts`, YA existe en csd-app) + un
+  render-a-PDF nativo, o delegar a un WebView de la web. Documentado para que PROMPT-99 decida
+  con esta información.
+- **App — Legal y Documentos completos (tu respuesta: todo menos editar plantillas):**
+  - Legal: Expedientes (lista + ficha con pestañas Resumen/Notas/Archivos/**Contratos** — esta
+    última lista `sgc.contratos` filtrado por `proyecto_id` igual que la web) y Contratos (lista +
+    ficha con `contrato_detalle` + los 3 caminos de creación).
+  - Documentos: Generar (plantilla → formulario → HTML final, mismo merge de texto) + Historial
+    (con el badge "Usado en contrato") + Plantillas **solo ver + vista previa + marcar la que se
+    usa** — "Editar" debe decir "Edita esta plantilla en la web" (el editor TipTap es web-only).
+  - Permisos = los mismos de la web (módulo `legal`). Sonia (abogada) ya tiene el rol para probar.
+
+### CO12/CO14/CO18 — Plantillas: editor TipTap + listado + subida unificada
+- **Sin cambios de servidor/esquema.** `plantillas_documento.contenido_html` sigue siendo HTML con
+  `{{clave}}` — el editor nuevo (TipTap, `shared/ui/editor-plantilla`) solo cambia CÓMO se produce
+  ese HTML en el navegador; el nodo `campo` serializa a `<span class="campo-chip" data-campo-key="x">{{x}}</span>`,
+  que `camposDesdeHtml()` (regex `{{clave}}`) sigue detectando igual que antes. **La app no necesita
+  tocar `plantilla-merge.util.ts`** — el merge final sigue siendo texto-reemplaza-`{{clave}}`.
+- **`duplicarPlantilla`** (nuevo en el service web) es un simple `insert` con `origen:'usuario'` —
+  no hay RPC nueva; la app puede implementar el mismo "Duplicar" con un insert equivalente si
+  decide ofrecerlo (opcional, la app ya era solo-ver para plantillas).
+- **Datos de ejemplo** viven en UN solo lugar: `VARIABLES_CONTRATO[].ejemplo` (modelo compartido
+  conceptualmente; el hijo puede portar la misma tabla si quiere mostrar miniaturas con datos de
+  ejemplo en su propia pantalla de "solo ver" plantillas).
+- **CO13.7 — contrato para la app (Legal/Documentos):** la generación de PDF hoy es
+  **100% en el navegador** (no hay edge `generar-documento`): `DomSanitizer` + merge de texto +
+  impresión/descarga del lado del cliente (`documentos/generar`, `documentos/ver`). La app
+  necesitaría: (a) portar `plantilla-merge.util.ts` (YA existe en csd-app) + un render-a-PDF nativo
+  (librería móvil, ya que no hay edge que la app pueda invocar para esto), o (b) seguir
+  delegando "generar" a abrir la web en un WebView. Documentado aquí para que PROMPT-99 F5-F6
+  decida con esta información, no a ciegas.
+
+### CO2 — Novedades a pantalla completa
+- **`sgc.novedades_pendientes(p_plataforma text)`** (`'web'`|`'app'`) → `jsonb` con
+  `tiene_pendientes, version_vista, versiones[] (máx 5, desc), total_versiones, hay_mas,
+  arreglado_para_ti[]` (frases ya armadas en texto, no requiere ensamblado en el cliente).
+  **`sgc.marcar_novedades_vistas(p_plataforma, p_version)`** marca vista (idempotente).
+- **Gotcha real (verificado en prod):** el web **nunca** marca `app_versiones.publicada=true`
+  — ese flag es solo del rollout por etapas de la app móvil (Admin › Versiones, filtrado a
+  `plataforma='movil'`); cada deploy de Vercel YA es la versión vigente. La RPC NO filtra por
+  `publicada` cuando `p_plataforma='web'` (si lo hiciera, Novedades saldría siempre vacía para
+  la web). Para `'app'` (plataforma `movil`) sí se exige `publicada=true`, igual que
+  `version_publicada()`.
+- **Fuentes de "arreglado para ti"** (las únicas que existen en este repo): reportes de error
+  con `resuelto_en_version` donde el usuario tuvo una ocurrencia (`app_error_reports.user_id`),
+  consultas de Compa que el usuario hizo y ya se resolvieron, y outbox atascado suyo ya resuelto
+  — comparado contra `publicada_at`/`created_at` de la versión que tenía vista. **No existe una
+  tabla de "tickets de Soporte"** en este repo — esa fuente del prompt original se omitió (no
+  hay de dónde leerla); si el hijo tiene su propio sistema de soporte, puede sumar esa fuente
+  del lado de la app sin tocar el contrato de arriba.
+- `app_versiones.cambios[].para` (uuid[]) es opcional y aditivo — hoy no hay UI para fijarlo
+  retroactivamente (backlog); la RPC de arriba no lo usa (no filtra por `para`, es solo para que
+  un admin anote "esto responde a X" a futuro).
+- **App (PROMPT-99 F5):** misma pantalla completa, mismo contrato (`p_plataforma='app'`),
+  después del login/splash y de la bienvenida CL3 del hijo.
+
+### CO10/CO17 — Web Push real (VAPID) — servidor listo, cliente es PROMPT-99 F4
+- **Llave pública VAPID** (no es secreta, puede ir al cliente/environment):
+  `BHNqedpFDYkwzNiOG9s8ukSo6kJiQkYPdmgw0pKCX3YBuxVkdp66rMP6D4pCT1FyKlBBcdSeWETA3zm1JZ3hwFE`.
+  La privada vive SOLO como secreto de Supabase (`VAPID_PRIVATE_KEY`, dev+pendiente prod) — nunca
+  al repo ni al cliente.
+- **`sgc.registrar_suscripcion_web(p_endpoint, p_p256dh, p_auth, p_plataforma, p_user_agent)`**
+  — la app llama esto tras `PushManager.subscribe({ userVisibleOnly: true, applicationServerKey:
+  <llave pública arriba, decodificada de base64url a Uint8Array> })`. `p_plataforma` informativo
+  (`'ios-pwa'`/`'android-pwa'`). Upsert por `endpoint` (reinstalar/resuscribir no duplica).
+  **`sgc.baja_suscripcion_web(p_endpoint)`** al desactivar notificaciones a mano.
+- **`send-push`** (edge) ahora manda por Web Push a TODAS las suscripciones activas del usuario,
+  en paralelo a FCM (no requiere token FCM). Limpia solas las suscripciones que respondan
+  404/410. El payload que le llega al Service Worker de la app: `{ title, body, url }` (`url` =
+  `data.ruta` del aviso original, o `/`). El SW de Angular ya maneja `push` y `notificationclick`
+  (abre `url`) — PROMPT-99 F4 solo necesita el flujo de suscripción + la cinta inteligente.
+- **`sgc.push_web_resumen()`** — gateado `es_tecnologia()`, para el panel admin (ya consumido en
+  Sistema › Versiones de la app).
+
+### CO9 — Apoyo de transporte: quién canceló + reabrir
+- **`apoyo_transporte_listado(...)`** (misma firma) gana 4 columnas al final del `TABLE`:
+  `cancelada_por_nombre, cancelada_at, motivo_cancelacion, completada_por_nombre`. La app debe
+  pintar "Cancelada por X · fecha · «motivo»" / "Completada por X" en la TARJETA del listado
+  (antes solo salía en el detalle/línea de tiempo).
+- **`apoyo_transporte_cambiar_estado(p_id, p_estado, p_nota, p_client_id)`** (misma firma): ahora
+  acepta `p_estado='pendiente'` como destino válido, y permite a `es_referente_movimiento()`
+  (transporte elevado/admin) pasar de `completada`/`cancelada` a **cualquier** estado válido
+  — **siempre con `p_nota` obligatoria** (sin nota, sigue lanzando "El apoyo ya está X"). Queda
+  en `apoyo_transporte_eventos` y avisa al solicitante igual que un cambio normal.
+- La app debe añadir el mismo bloque "Cambiar estado" en `apoyo-transporte-detalle` para
+  `es_referente_movimiento()`, visible solo cuando `estado ∈ {completada, cancelada}`.
+
+### CO15/CO3/CO16 — `registrar_combustible_app` gana `p_numero_recibo` + anti-dup 120s
+- **Firma viva: 22 args** (no 23 — la app ya mandaba `p_numero_recibo`, el último trailing arg
+  nuevo). Orden completo: `p_client_uuid, p_vehiculo_id, p_conductor_id, p_fecha, p_kilometraje,
+  p_galones, p_monto, p_estacion, p_foto_recibo_path, p_foto_tablero_path, p_notas,
+  p_foto_bomba_path, p_producto, p_tarjeta, p_titular, p_titular_es_persona, p_subtipo, p_origen,
+  p_proyecto_id, p_confirmado, p_foto_origen, p_numero_recibo text default null`.
+- `p_numero_recibo` se normaliza a solo dígitos en el servidor (la app no necesita limpiarlo).
+- **Nuevo campo de respuesta:** `duplicado: true` cuando (a) el recibo ya existe para ese
+  vehículo (no invalidada), o (b) mismo vehículo/persona + galones + monto + usuario en <120s
+  (anti-doble-toque, CO16). En ambos casos la RPC **no inserta** — devuelve la fila existente
+  (con su `id` real) en vez de fallar o crear otra. La app debe tratar `duplicado:true` como
+  éxito silencioso (ya está guardada), no como error.
+- **CO16 — la app debe mover su propia bandera `submitting`/`busy` a la PRIMERA línea del
+  método de envío**, antes de cualquier `await` (GPS, posible-duplicado, confirmaciones). La
+  causa real de CO3 (4-5 echadas) y CO5 (3 conduces) fue exactamente este patrón en
+  `combustible.ts:1176-1210` y `generar-conduce.ts:948-1090`. El servidor ya tiene la red de
+  120s como respaldo, pero el arreglo de raíz es del cliente — portar el mismo patrón
+  (`verify-envio-unico.mjs` existe solo en el padre; el hijo debe aplicar la misma regla a mano
+  o portar un guard equivalente).
+
+### CO16 — `registrar_salida_inventario` y `crear_conduce_externo` ganan el mismo anti-dup
+- **Sin cambio de firma** en ninguna de las dos (ni `salidas_inventario` ni `conduces_externos`
+  tienen `client_uuid`; el anti-dup es por CONTENIDO, no por id de operación).
+- `registrar_salida_inventario`: mismo `creado_por` + `bodega_id` + `proyecto_id` + `motivo` +
+  el mismo conjunto de renglones (`articulo_id:cantidad`, normalizado a `numeric(10,2)`) en
+  <120s → devuelve el `id` de la salida ya creada (no crea otra, no mueve stock de nuevo).
+- `crear_conduce_externo`: mismo `auth.uid()` + mismo `origen`/`destino` (texto) + misma
+  `placa_foto_path` en <120s y sin `p_salida_id` (ese caso ya es idempotente por sí solo) →
+  devuelve el `id` del conduce externo ya creado.
+- La app (PROMPT-99 F2.4) debe asumir que un reintento de cualquiera de estos 3 flujos puede
+  devolver el id de una fila que YA existía — no es un bug, es la red de seguridad.
+
+### CO8 — Compras tecnológicas: cotización + flujo de aprobación
+- **Tabla compartida**, cambio aditivo: `solicitudes_compra`/`solicitud_compra_items` siguen
+  siendo las mismas del flujo normal de Compras (requisición → compra); el flujo nuevo
+  (`categoria='tecnologia'`) solo usa los estados nuevos
+  `borrador → esperando_aprobacion → aprobada|rechazada → comprada` y columnas nuevas
+  (`aprobador_id`, `enviada_at`, `decidida_por`, `decidida_at`, `motivo_rechazo`,
+  `solicitud_compra_items.precio_unitario`). El flujo viejo (`pendiente/convertida/rechazada`)
+  queda intacto para filas históricas y para el módulo normal de Compras.
+- **`crear_solicitud_compra_tec` ahora nace en `'borrador'`** (antes quedaba `'pendiente'` y se
+  enviaba sola). La app debe mostrar el borrador como editable/sin enviar hasta que el usuario
+  agregue una cotización y llame `compra_tec_enviar_aprobacion`.
+- **Cotizaciones = tabla nueva `solicitud_compra_adjuntos`** (`id, solicitud_id, tipo
+  cotizacion|factura|otro, proveedor, monto, path, nombre, elegida, subido_por, created_at`) +
+  bucket privado nuevo `compras-cotizaciones` (PDF/imagen, 15 MB). Subida: `storage.upload` al
+  bucket, luego `compra_tec_adjuntar_cotizacion(p_id, p_tipo, p_proveedor, p_monto, p_path,
+  p_nombre)` — la primera cotización de una solicitud queda `elegida=true` automáticamente;
+  `compra_tec_elegir_cotizacion(p_adjunto_id)` cambia cuál es la elegida. Lectura de archivo vía
+  `storage.createSignedUrl` (política: solo solicitante, aprobador o `es_tecnologia()`).
+- **RPCs del flujo** (todas `security definer`, graban auditoría vía columnas propias, no tabla
+  aparte): `compra_tec_enviar_aprobacion(p_id)` fija `aprobador_id` = parámetro
+  `compras_tec_aprobador` (hoy Eduardo Ng) y notifica; `compra_tec_decidir(p_id, p_aprobar,
+  p_motivo)` exige `p_motivo` si `p_aprobar=false` (error `22023` si vacío) y notifica al
+  solicitante; `compra_tec_marcar_comprada(p_id)` solo desde `'aprobada'`.
+- **"Esperando a Eduardo"**: la app debe resolver el nombre del aprobador (embed
+  `aprobador:usuarios!solicitudes_compra_aprobador_id_fkey(nombre)`) para mostrar "Esperando a
+  {nombre}" en vez de solo el estado genérico — así lo pide el mock del padre.
+- **Aprobar desde el teléfono** (punto 4 del prompt original): la app (PROMPT-99) necesita una
+  pantalla mínima de "Compras tecnológicas por aprobar" para quien sea `aprobador_id` —
+  lista + ficha con vista previa de la cotización + botones Aprobar/Rechazar (motivo
+  obligatorio). No requiere pantalla de creación nueva en la app (eso ya existía).
+
 ## Tanda CM — cierre de huecos del padre (PROMPT-94/96 → app PROMPT-95/97)
 > Aplicado **dev + prod** el 2026-10-12 (ledger + verificado por objeto). Desbloquea F3/F6 del app (2.48.0).
 

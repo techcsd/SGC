@@ -15,6 +15,11 @@ export class UserService {
   profile = this._profile.asReadonly();
   private loadedAt: number | null = null;
 
+  // CO4 — permiso puntual (no por rol): el autor puede aprobar/rechazar su
+  // propia requisición. Espejo de `sgc.puede_autoaprobar_requisicion()`.
+  private _puedeAutoaprobarReq = signal(false);
+  puedeAutoaprobarRequisicion = this._puedeAutoaprobarReq.asReadonly();
+
   /** Flat list of role codes the current user has, e.g. ['admin', 'logistica'] */
   roles = computed(() => this._profile()?.roles?.map((ur) => ur.rol.codigo) ?? []);
 
@@ -190,6 +195,12 @@ export class UserService {
     // BS4 — el idioma del servidor (usuarios.idioma) sigue al usuario entre
     // dispositivos y a la app: adoptarlo sin re-escribir el servidor.
     void this.i18n.adoptFromServer((data as { idioma?: string | null }).idioma);
+
+    // CO4 — best-effort; si el RPC no existe aún (entorno viejo) no rompe el login.
+    this.supabase.client.rpc('puede_autoaprobar_requisicion').then(
+      ({ data: auto }) => this._puedeAutoaprobarReq.set(!!auto),
+      () => this._puedeAutoaprobarReq.set(false),
+    );
   }
 
   /** Reloads the profile if missing or older than PROFILE_MAX_AGE_MS, so a role/activo change made elsewhere takes effect without forcing a manual logout. */
@@ -203,6 +214,7 @@ export class UserService {
   clearProfile(): void {
     this._profile.set(null);
     this.loadedAt = null;
+    this._puedeAutoaprobarReq.set(false);
   }
 
   /** Uploads a new avatar for the current user and refreshes the profile.

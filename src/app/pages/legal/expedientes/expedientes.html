@@ -18,6 +18,14 @@
   </div>
 </div>
 
+<!-- ── KPIs (CO11) ── -->
+<div class="exp-kpis">
+  <div class="exp-kpi"><span class="exp-kpi__label">Abiertos</span><span class="exp-kpi__valor">{{ kpiAbiertos() }}</span></div>
+  <div class="exp-kpi"><span class="exp-kpi__label">Vencen en 15 días</span><span class="exp-kpi__valor">{{ kpiVencenPronto() }}</span></div>
+  <div class="exp-kpi"><span class="exp-kpi__label">Monto reclamado</span><span class="exp-kpi__valor">RD$ {{ kpiMontoReclamado() | number:'1.0-0' }}</span></div>
+  <div class="exp-kpi"><span class="exp-kpi__label">Cerrados</span><span class="exp-kpi__valor">{{ kpiCerrados() }}</span></div>
+</div>
+
 <!-- ── Filters ── -->
 <div class="filters-bar">
   <div class="sgc-field filters-bar__search">
@@ -85,11 +93,13 @@
           <tr>
             <th>Código</th>
             <th>Título</th>
-            <th>Tipo</th>
-            <th>Prioridad</th>
-            <th>Proyecto</th>
-            <th>Fecha límite</th>
-            <th>Estado</th>
+            @if (!detailOpen()) {
+              <th>Tipo</th>
+              <th>Prioridad</th>
+              <th>Proyecto</th>
+              <th>Fecha límite</th>
+              <th>Estado</th>
+            }
             <th class="text-center">Ver</th>
           </tr>
         </thead>
@@ -103,17 +113,19 @@
                   <span class="exp-contraparte">{{ e.contraparte }}</span>
                 }
               </td>
-              <td>{{ tipoLabel(e.tipo) }}</td>
-              <td><span [class]="prioridadBadgeClass(e.prioridad)">{{ prioridadLabel(e.prioridad) }}</span></td>
-              <td>{{ e.proyecto?.nombre ?? '—' }}</td>
-              <td>
-                @if (e.fecha_limite) {
-                  <span [class.text-danger]="isVencido(e)">{{ formatFecha(e.fecha_limite) }}</span>
-                } @else {
-                  <span class="text-muted">—</span>
-                }
-              </td>
-              <td><span [class]="estadoBadgeClass(e.estado)">{{ estadoLabel(e.estado) }}</span></td>
+              @if (!detailOpen()) {
+                <td>{{ tipoLabel(e.tipo) }}</td>
+                <td><span [class]="prioridadBadgeClass(e.prioridad)">{{ prioridadLabel(e.prioridad) }}</span></td>
+                <td>{{ e.proyecto?.nombre ?? '—' }}</td>
+                <td>
+                  @if (e.fecha_limite) {
+                    <span [class.text-danger]="isVencido(e)">{{ formatFecha(e.fecha_limite) }}</span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td><span [class]="estadoBadgeClass(e.estado)">{{ estadoLabel(e.estado) }}</span></td>
+              }
               <td>
                 <div class="row-actions">
                   <button type="button" class="action-btn action-btn--view" (click)="openDetail(e)" [attr.aria-label]="'Ver ' + e.titulo" title="Ver detalle">
@@ -187,9 +199,15 @@
       </div>
     </div>
 
-    <div class="sgc-field">
-      <label for="fecha_limite">Fecha límite / próxima audiencia</label>
-      <input id="fecha_limite" type="date" formControlName="fecha_limite" />
+    <div class="form-row">
+      <div class="sgc-field">
+        <label for="fecha_limite">Fecha límite / próxima audiencia</label>
+        <input id="fecha_limite" type="date" formControlName="fecha_limite" />
+      </div>
+      <div class="sgc-field">
+        <label for="monto_reclamado">Monto reclamado (RD$)</label>
+        <input id="monto_reclamado" type="number" min="0" step="0.01" formControlName="monto_reclamado" placeholder="0.00" />
+      </div>
     </div>
 
     <div class="sgc-field">
@@ -257,128 +275,199 @@
   </form>
 </app-form-drawer>
 
-<!-- ── Detail Drawer ── -->
+<!-- ── Detail Drawer (CO11) ── -->
 <app-form-drawer [title]="detailExpediente()?.codigo ?? 'Expediente'" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detailExpediente(); as e) {
     <div class="detail-body">
-      <div class="detail-grid">
-        <div class="detail-field detail-field--full">
-          <span class="detail-field__label">Título</span>
-          <span>{{ e.titulo }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="detail-field__label">Tipo</span>
-          <span>{{ tipoLabel(e.tipo) }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="detail-field__label">Prioridad</span>
-          <span [class]="prioridadBadgeClass(e.prioridad)">{{ prioridadLabel(e.prioridad) }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="detail-field__label">Proyecto</span>
-          <span>{{ e.proyecto?.nombre ?? '—' }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="detail-field__label">Contraparte</span>
-          <span>{{ e.contraparte ?? '—' }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="detail-field__label">Fecha de apertura</span>
-          <span>{{ formatFecha(e.fecha_apertura) }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="detail-field__label">Fecha límite</span>
-          <span [class.text-danger]="isVencido(e)">{{ formatFecha(e.fecha_limite) }}</span>
-        </div>
-        @if (e.enlace) {
-          <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Enlace externo</span>
-            <a class="detail-field__link" [href]="e.enlace" target="_blank" rel="noopener noreferrer">Abrir enlace externo <app-icon name="external-link" [size]="14" /></a>
-          </div>
-        }
-        @if (e.descripcion) {
-          <div class="detail-field detail-field--full">
-            <span class="detail-field__label">Descripción</span>
-            <span>{{ e.descripcion }}</span>
-          </div>
-        }
-      </div>
-
-      <div class="detail-estado">
-        <span class="detail-estado__label">Cambiar estado:</span>
-        @for (estado of nextEstados(e.estado); track estado) {
-          <button type="button" class="sgc-btn sgc-btn--ghost detail-estado__btn" (click)="cambiarEstado(estado)">
-            {{ estadoLabel(estado) }}
-          </button>
-        }
-        @if (nextEstados(e.estado).length === 0) {
+      <!-- Cabecera: código + título + chips -->
+      <div class="exp-detail__head">
+        <h2 class="exp-detail__titulo">{{ e.titulo }}</h2>
+        <div class="exp-detail__chips">
           <span [class]="estadoBadgeClass(e.estado)">{{ estadoLabel(e.estado) }}</span>
-        }
-      </div>
-
-      <!-- ── Archivos ── -->
-      <div class="detail-section">
-        <div class="detail-section__header">
-          <span class="detail-section__title">Archivos</span>
-          <label class="sgc-btn sgc-btn--ghost sgc-btn--sm file-upload-btn">
-            @if (uploadingArchivo()) {
-              <span class="spinner" aria-hidden="true"></span> Subiendo…
-            } @else {
-              Adjuntar archivo
-            }
-            <input type="file" class="sr-only" multiple (change)="onFileSelected($event)" [disabled]="uploadingArchivo()" />
-          </label>
+          <span [class]="prioridadBadgeClass(e.prioridad)">Prioridad {{ prioridadLabel(e.prioridad).toLowerCase() }}</span>
+          <span class="sgc-badge sgc-badge--neutral">{{ tipoLabel(e.tipo) }}</span>
         </div>
-        @if (detailArchivos().length === 0) {
-          <p class="detail-section__empty">Sin archivos adjuntos.</p>
-        } @else {
-          <ul class="archivo-list">
-            @for (a of detailArchivos(); track a.id) {
-              <li class="archivo-item">
-                <button type="button" class="archivo-item__name" (click)="descargarArchivo(a)">{{ a.nombre }}</button>
-                <button type="button" class="archivo-item__remove" (click)="eliminarArchivo(a)" [attr.aria-label]="'Eliminar ' + a.nombre" title="Eliminar">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </button>
-              </li>
-            }
-          </ul>
-        }
       </div>
 
-      <!-- ── Notas / bitácora del caso ── -->
-      <div class="detail-section">
-        <span class="detail-section__title">Notas del caso</span>
-        <div class="nota-form">
-          <textarea [formControl]="nuevaNota" rows="2" placeholder="Agregar una nota…"></textarea>
-          <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm" (click)="onAddNota()" [disabled]="savingNota() || !nuevaNota.value?.trim()">
-            @if (savingNota()) {
-              <span class="spinner" aria-hidden="true"></span>
+      <!-- Pestañas -->
+      <div class="exp-tabs" role="tablist">
+        <button type="button" class="exp-tabs__btn" [class.exp-tabs__btn--on]="detailTab() === 'resumen'" (click)="detailTab.set('resumen')">Resumen</button>
+        <button type="button" class="exp-tabs__btn" [class.exp-tabs__btn--on]="detailTab() === 'notas'" (click)="detailTab.set('notas')">Notas ({{ detailNotas().length }})</button>
+        <button type="button" class="exp-tabs__btn" [class.exp-tabs__btn--on]="detailTab() === 'archivos'" (click)="detailTab.set('archivos')">Archivos ({{ detailArchivos().length }})</button>
+        <button type="button" class="exp-tabs__btn" [class.exp-tabs__btn--on]="detailTab() === 'contratos'" (click)="detailTab.set('contratos')">Contratos</button>
+      </div>
+
+      @if (detailTab() === 'resumen') {
+        <div class="detail-grid">
+          <div class="detail-field">
+            <span class="detail-field__label">Proyecto</span>
+            <span>{{ e.proyecto?.nombre ?? '—' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">Contraparte</span>
+            <span>{{ e.contraparte ?? '—' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">Apertura</span>
+            <span>{{ formatFecha(e.fecha_apertura) }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field__label">Fecha límite</span>
+            @if (fijandoFechaLimite()) {
+              <div class="exp-fecha-limite__editor">
+                <input type="date" class="sgc-input" [formControl]="fechaLimiteDraft" />
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="guardarFechaLimite()">Guardar</button>
+                <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="fijandoFechaLimite.set(false)">Cancelar</button>
+              </div>
+            } @else if (e.fecha_limite) {
+              <span [class.text-danger]="isVencido(e)">
+                {{ formatFecha(e.fecha_limite) }} · <button type="button" class="exp-link-btn" (click)="fijandoFechaLimite.set(true)">Cambiar</button>
+              </span>
             } @else {
-              Agregar
+              <span class="text-muted">Sin fecha · <button type="button" class="exp-link-btn" (click)="fijandoFechaLimite.set(true)">Fijar</button></span>
             }
+          </div>
+          @if (e.monto_reclamado) {
+            <div class="detail-field">
+              <span class="detail-field__label">Monto reclamado</span>
+              <span>RD$ {{ e.monto_reclamado | number:'1.0-2' }}</span>
+            </div>
+          }
+          @if (e.enlace) {
+            <div class="detail-field detail-field--full">
+              <span class="detail-field__label">Enlace externo</span>
+              <a class="detail-field__link" [href]="e.enlace" target="_blank" rel="noopener noreferrer">Abrir enlace externo <app-icon name="external-link" [size]="14" /></a>
+            </div>
+          }
+          @if (e.descripcion) {
+            <div class="detail-field detail-field--full">
+              <span class="detail-field__label">Descripción</span>
+              @if (descripcionExpandida() || e.descripcion.length <= 180) {
+                <span>{{ e.descripcion }}</span>
+              } @else {
+                <span>{{ e.descripcion.slice(0, 180) }}…
+                  <button type="button" class="exp-link-btn" (click)="descripcionExpandida.set(true)">Ver todo</button>
+                </span>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- ── Última nota (resumen) + agregar nota + estado abajo ── -->
+        @if (detailNotas().length > 0) {
+          @let ultimaNota = detailNotas()[0];
+          <div class="detail-section">
+            <span class="detail-section__title">Última nota</span>
+            <div class="exp-nota-card">
+              <span class="exp-nota-card__meta"><b>{{ ultimaNota.usuario?.nombre ?? 'Usuario' }}</b> · {{ ultimaNota.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              @if (notaExpandidaId() === ultimaNota.id || ultimaNota.nota.length <= 140) {
+                <span class="exp-nota-card__texto">{{ ultimaNota.nota }}</span>
+              } @else {
+                <span class="exp-nota-card__texto">{{ ultimaNota.nota.slice(0, 140) }}…
+                  <button type="button" class="exp-link-btn" (click)="notaExpandidaId.set(ultimaNota.id)">Leer completa</button>
+                </span>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="detail-section">
+          <label for="nota-rapida" class="detail-section__title">Agregar una nota</label>
+          <textarea id="nota-rapida" class="sgc-input" [formControl]="nuevaNota" rows="3" placeholder="Escribe lo que pasó o lo que hay que hacer…"></textarea>
+        </div>
+
+        <div class="exp-footer-estado">
+          <label for="estado-sel">Estado</label>
+          <select id="estado-sel" class="sgc-select" [value]="e.estado" (change)="cambiarEstado($any($event.target).value)">
+            <option [value]="e.estado">{{ estadoLabel(e.estado) }}</option>
+            @for (estado of nextEstados(e.estado); track estado) {
+              <option [value]="estado">{{ estadoLabel(estado) }}</option>
+            }
+          </select>
+          <span class="exp-footer-estado__spacer"></span>
+          <button type="button" class="sgc-btn sgc-btn--primary" (click)="onAddNota()" [disabled]="savingNota() || !nuevaNota.value?.trim()">
+            @if (savingNota()) { <span class="spinner" aria-hidden="true"></span> } @else { Guardar nota }
           </button>
         </div>
+      }
 
-        @if (detailLoading()) {
-          <app-skeleton variant="list" [rows]="4" />
-        } @else if (detailNotas().length === 0) {
-          <p class="detail-section__empty">Sin notas todavía.</p>
-        } @else {
-          <ul class="nota-list">
-            @for (n of detailNotas(); track n.id) {
-              <li class="nota-item">
-                <div class="nota-item__meta">
-                  <span class="nota-item__autor">{{ n.usuario?.nombre ?? 'Usuario' }}</span>
-                  <span class="nota-item__fecha">{{ n.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
-                </div>
-                <p class="nota-item__texto">{{ n.nota }}</p>
-              </li>
-            }
-          </ul>
-        }
-      </div>
+      @if (detailTab() === 'notas') {
+        <div class="detail-section">
+          @if (detailLoading()) {
+            <app-skeleton variant="list" [rows]="4" />
+          } @else if (detailNotas().length === 0) {
+            <p class="detail-section__empty">Sin notas todavía.</p>
+          } @else {
+            <ul class="nota-list">
+              @for (n of detailNotas(); track n.id) {
+                <li class="nota-item">
+                  <div class="nota-item__meta">
+                    <span class="nota-item__autor">{{ n.usuario?.nombre ?? 'Usuario' }}</span>
+                    <span class="nota-item__fecha">{{ n.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <p class="nota-item__texto">{{ n.nota }}</p>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      @if (detailTab() === 'archivos') {
+        <div class="detail-section">
+          <div class="detail-section__header">
+            <span class="detail-section__title">Archivos</span>
+            <label class="sgc-btn sgc-btn--ghost sgc-btn--sm file-upload-btn">
+              @if (uploadingArchivo()) {
+                <span class="spinner" aria-hidden="true"></span> Subiendo…
+              } @else {
+                Adjuntar archivo
+              }
+              <input type="file" class="sr-only" multiple (change)="onFileSelected($event)" [disabled]="uploadingArchivo()" />
+            </label>
+          </div>
+          @if (detailArchivos().length === 0) {
+            <p class="detail-section__empty">Sin archivos adjuntos.</p>
+          } @else {
+            <ul class="archivo-list">
+              @for (a of detailArchivos(); track a.id) {
+                <li class="archivo-item">
+                  <button type="button" class="archivo-item__name" (click)="descargarArchivo(a)">{{ a.nombre }}</button>
+                  <button type="button" class="archivo-item__remove" (click)="eliminarArchivo(a)" [attr.aria-label]="'Eliminar ' + a.nombre" title="Eliminar">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      @if (detailTab() === 'contratos') {
+        <div class="detail-section">
+          @if (contratosLoading()) {
+            <app-skeleton variant="list" [rows]="2" />
+          } @else if (!e.proyecto_id) {
+            <p class="detail-section__empty">Este expediente no tiene una obra asignada — no se pueden relacionar contratos por proyecto.</p>
+          } @else if (!contratosRelacionados().length) {
+            <p class="detail-section__empty">Sin contratos de la misma obra.</p>
+          } @else {
+            <ul class="nota-list">
+              @for (c of contratosRelacionados(); track c.id) {
+                <li class="nota-item">
+                  <div class="nota-item__meta">
+                    <span class="nota-item__autor">{{ c.codigo }} — {{ c.titulo }}</span>
+                    <span class="nota-item__fecha">{{ c.contraparte_nombre }}</span>
+                  </div>
+                  <a routerLink="/legal/contratos" [queryParams]="{ ver_contrato: c.id }" class="exp-link-btn">Ver contrato</a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
     </div>
   }
 </app-form-drawer>

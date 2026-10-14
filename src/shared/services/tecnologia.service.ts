@@ -321,14 +321,61 @@ export class TecnologiaService {
   }
 
   // ── Compras tecnológicas (usa solicitudes_compra, categoria='tecnologia') ──
+  // CO8 — dos FKs a usuarios además de solicitante/atendido (aprobador_id,
+  // decidida_por): hay que nombrar el fk o PostgREST da embed ambiguo.
+  private readonly COMPRA_TEC_SELECT =
+    '*, items:solicitud_compra_items(*), adjuntos:solicitud_compra_adjuntos(*), ' +
+    'aprobador:usuarios!solicitudes_compra_aprobador_id_fkey(nombre), ' +
+    'decidida:usuarios!solicitudes_compra_decidida_por_fkey(nombre)';
+
   async getComprasTec(): Promise<SolicitudCompra[]> {
     const { data, error } = await this.supabase.client
       .from('solicitudes_compra')
-      .select('*, items:solicitud_compra_items(*)')
+      .select(this.COMPRA_TEC_SELECT)
       .eq('categoria', 'tecnologia')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as unknown as SolicitudCompra[];
+  }
+
+  // CO8 — flujo borrador → esperando aprobación → aprobada/rechazada → comprada.
+  async enviarAprobacionCompraTec(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compra_tec_enviar_aprobacion', { p_id: id });
+    if (error) throw new Error(error.message);
+  }
+  async decidirCompraTec(id: string, aprobar: boolean, motivo: string | null): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compra_tec_decidir', { p_id: id, p_aprobar: aprobar, p_motivo: motivo });
+    if (error) throw new Error(error.message);
+  }
+  async marcarCompradaCompraTec(id: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compra_tec_marcar_comprada', { p_id: id });
+    if (error) throw new Error(error.message);
+  }
+
+  /** CO8 — sube la cotización (PDF/imagen) al bucket privado y la registra. */
+  async subirCotizacion(
+    solicitudId: string,
+    file: File,
+    datos: { tipo: 'cotizacion' | 'factura' | 'otro'; proveedor: string | null; monto: number | null },
+  ): Promise<string> {
+    const path = `${solicitudId}/${crypto.randomUUID()}-${file.name}`;
+    const { error: upErr } = await this.supabase.client.storage.from('compras-cotizaciones').upload(path, file);
+    if (upErr) throw new Error(upErr.message);
+    const { data, error } = await this.supabase.client.rpc('compra_tec_adjuntar_cotizacion', {
+      p_id: solicitudId, p_tipo: datos.tipo, p_proveedor: datos.proveedor, p_monto: datos.monto,
+      p_path: path, p_nombre: file.name,
+    });
+    if (error) throw new Error(error.message);
+    return data as string;
+  }
+  async elegirCotizacion(adjuntoId: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('compra_tec_elegir_cotizacion', { p_adjunto_id: adjuntoId });
+    if (error) throw new Error(error.message);
+  }
+  async getCotizacionUrl(path: string): Promise<string> {
+    const { data, error } = await this.supabase.client.storage.from('compras-cotizaciones').createSignedUrl(path, 3600);
+    if (error) throw new Error(error.message);
+    return data.signedUrl;
   }
 
   // QA-070 — opciones ligeras para el selector "Origen: compra tecnológica".
@@ -363,7 +410,13 @@ export class TecnologiaService {
 
   async crearCompraTec(
     notas: string | null,
-    items: { descripcion: string; cantidad: number; proveedor_sugerido: string | null; foto_path?: string | null }[],
+    items: {
+      descripcion: string;
+      cantidad: number;
+      proveedor_sugerido: string | null;
+      foto_path?: string | null;
+      precio_unitario?: number | null;
+    }[],
   ): Promise<string> {
     const { data, error } = await this.supabase.client.rpc('crear_solicitud_compra_tec', {
       p_notas: notas,

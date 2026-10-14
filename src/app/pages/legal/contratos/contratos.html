@@ -188,6 +188,18 @@
       <input id="monto" type="number" step="0.01" min="0" formControlName="monto" placeholder="0.00" />
     </div>
 
+    <!-- CO13 — ¿de dónde sale el documento? (opcional: usar uno ya generado en Documentos) -->
+    <div class="sgc-field">
+      <label for="documento_generado_id">Documento ligado (opcional)</label>
+      <select id="documento_generado_id" formControlName="documento_generado_id">
+        <option [value]="null">Sin documento — lo subo firmado después</option>
+        @for (d of documentosDisponibles(); track d.id) {
+          <option [value]="d.id">{{ d.nombre }}</option>
+        }
+      </select>
+      <p class="text-muted">¿Necesitas generarlo ahora? Ve a <a routerLink="/documentos/generar">Generar Documento</a> — al terminar podrás "Crear contrato con este documento".</p>
+    </div>
+
     @if (saveError()) {
       <div class="save-error" role="alert">{{ saveError() }}</div>
     }
@@ -247,6 +259,27 @@
           <span class="detail-field__label">Fecha de firma</span>
           <span>{{ formatFecha(c.fecha_firma) }}</span>
         </div>
+      </div>
+
+      <!-- CO13 — documento ligado -->
+      <div class="detail-section">
+        <span class="detail-section__title">Documento</span>
+        @if (detalleLoading()) {
+          <p class="text-muted">Cargando…</p>
+        } @else if (detalle()?.documento; as doc) {
+          <div class="con-documento">
+            <span class="con-documento__nombre">{{ doc.nombre }}</span>
+            <span class="text-muted">{{ doc.created_at | date:'dd/MM/yyyy' }}</span>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [routerLink]="['/documentos/ver', doc.id]">Ver PDF</a>
+            <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" routerLink="/documentos/generar">Regenerar con cambios</a>
+          </div>
+        } @else {
+          <p class="text-muted">Sin documento generado ligado.</p>
+        }
+        <label class="sgc-btn sgc-btn--ghost sgc-btn--sm file-upload-btn">
+          @if (subiendoFirmado()) { <span class="spinner" aria-hidden="true"></span> Subiendo… } @else { Subir firmado }
+          <input type="file" class="sr-only" accept="application/pdf,image/*" (change)="onFirmadoSelected($event)" [disabled]="subiendoFirmado()" />
+        </label>
       </div>
 
       <div class="detail-estado">

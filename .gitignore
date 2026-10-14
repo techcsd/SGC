@@ -81,5 +81,8 @@ qa/pdf/*.pdf
 qa/visual/cb/
 qa/visual/.auth.json
 qa/visual/rutas.json
+
+# CO — PROMPT-98 F0: diagnóstico de prod con nombres/datos personales
+qa/co-diagnostico-prod.md
 tutoriales/.voz-cache/
 tutoriales/assets/musica/

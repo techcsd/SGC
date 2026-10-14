@@ -9,7 +9,12 @@ export type SolicitudMaterialEstado =
   | 'parcial'
   | 'completada'
   | 'cancelada';
-export type SolicitudCompraEstado = 'pendiente' | 'convertida' | 'rechazada';
+// CO8 — se amplía con los estados del flujo nuevo de Compras tecnológicas
+// (borrador/esperando_aprobacion/aprobada/comprada); el flujo normal de Compras
+// sigue usando solo pendiente/convertida/rechazada.
+export type SolicitudCompraEstado =
+  | 'pendiente' | 'convertida' | 'rechazada'
+  | 'borrador' | 'esperando_aprobacion' | 'aprobada' | 'comprada';
 
 export interface SolicitudMaterialItem {
   id: string;
@@ -63,6 +68,8 @@ export interface SolicitudMaterial {
   cerrada_en?: string | null;
   /** Nombre de quien canceló/cerró — solo si el SELECT hace el join (opcional). */
   cerrada?: { nombre: string } | null;
+  /** CO4 — true cuando el propio autor la aprobó con el permiso requisicion_autoaprobar. */
+  autoaprobada?: boolean | null;
   items?: SolicitudMaterialItem[];
 }
 
@@ -115,6 +122,25 @@ export interface SolicitudCompraItem {
   unidad?: string | null;
   /** BH7 — renglón de la requisición que originó este faltante. */
   origen_item_id?: string | null;
+  /** CO8 — precio unitario (compras tecnológicas). */
+  precio_unitario?: number | null;
+}
+
+/** CO8 — estados del flujo de Compras tecnológicas (categoria='tecnologia'). */
+export type SolicitudCompraTecEstado =
+  | 'borrador' | 'esperando_aprobacion' | 'aprobada' | 'rechazada' | 'comprada';
+
+export interface SolicitudCompraAdjunto {
+  id: string;
+  solicitud_id: string;
+  tipo: 'cotizacion' | 'factura' | 'otro';
+  proveedor: string | null;
+  monto: number | null;
+  path: string;
+  nombre: string;
+  elegida: boolean;
+  subido_por: string | null;
+  created_at: string;
 }
 
 export interface SolicitudCompra {
@@ -138,6 +164,15 @@ export interface SolicitudCompra {
   atendido_en: string | null;
   created_at: string;
   items?: SolicitudCompraItem[];
+  // CO8 — flujo de Compras tecnológicas.
+  aprobador_id?: string | null;
+  aprobador?: { nombre: string } | null;
+  enviada_at?: string | null;
+  decidida_por?: string | null;
+  decidida?: { nombre: string } | null;
+  decidida_at?: string | null;
+  motivo_rechazo?: string | null;
+  adjuntos?: SolicitudCompraAdjunto[];
 }
 
 export interface SolicitudCompraFormData {

@@ -126,6 +126,13 @@ export class PlantillasDocumentoService {
       return `{{${key}}}`;
     });
 
+    // CO18 — el Word puede traer AMBAS convenciones a la vez (huecos «____» Y
+    // marcadores {{campo}} que el usuario ya escribió). Los huecos ya quedaron en
+    // `campos` arriba; aquí se suman los {{campo}} que no vinieron de un hueco.
+    for (const c of this.camposDesdeHtml(html)) {
+      if (!vistos.has(c.key)) { vistos.add(c.key); campos.push(c); }
+    }
+
     // Guarda el .docx original (referencia + descarga).
     let docxPath: string | null = null;
     try {
@@ -167,6 +174,26 @@ export class PlantillasDocumentoService {
       .from('plantillas_documento')
       .update({ nombre: cambios.nombre, categoria: cambios.categoria, contenido_html: cambios.contenido_html, campos: cambios.campos })
       .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as unknown as PlantillaDocumento;
+  }
+
+  /** CO14 — duplica una plantilla (incluidas las del sistema, que no se editan
+   *  directamente) como una nueva plantilla de usuario editable. */
+  async duplicarPlantilla(p: PlantillaDocumento, creadoPor: string | null): Promise<PlantillaDocumento> {
+    const { data, error } = await this.supabase.client
+      .from('plantillas_documento')
+      .insert({
+        nombre: `${p.nombre} (copia)`,
+        categoria: p.categoria,
+        contenido_html: p.contenido_html,
+        campos: p.campos,
+        origen: 'usuario',
+        creado_por: creadoPor,
+        activo: true,
+      })
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -246,6 +273,21 @@ export class PlantillasDocumentoService {
       if (tipo === 'fecha') value = formatFechaLarga(raw);
       else if (tipo === 'numero') value = formatNumero(raw);
       return escapeHtml(value);
+    });
+  }
+
+  /** CO12 — como `renderizar`, pero resalta en naranja lo que se llenó solo
+   *  (para "Ver"/"Probar con datos" — nunca para el documento final real). */
+  renderizarResaltado(contenidoHtml: string, valores: Record<string, string>, campos: CampoPlantilla[] = []): string {
+    const tipoByKey = new Map(campos.map((c) => [c.key, c.tipo]));
+    return contenidoHtml.replace(TOKEN_RE, (_, key) => {
+      const raw = valores[key] ?? '';
+      if (!raw) return '';
+      const tipo = tipoByKey.get(key);
+      let value = raw;
+      if (tipo === 'fecha') value = formatFechaLarga(raw);
+      else if (tipo === 'numero') value = formatNumero(raw);
+      return `<span class="campo-relleno">${escapeHtml(value)}</span>`;
     });
   }
 
