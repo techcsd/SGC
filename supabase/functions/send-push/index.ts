@@ -8,6 +8,7 @@
 // se inserta en paralelo. Web: tokens FCM web opcionales.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 import { puedeEnviarPush } from "../_shared/entorno.ts";
 
 function json(body: unknown, status = 200) {
@@ -64,6 +65,63 @@ async function getAccessToken(sa: { client_email: string; private_key: string })
   return data.access_token as string;
 }
 
+// CO17 — Web Push (VAPID) para PWAs instaladas (iPhone principalmente; también
+// Android Chrome si algún día se instala así). Canal independiente de FCM: corre
+// siempre, tenga o no el usuario tokens FCM. No-op si faltan las llaves VAPID.
+async function enviarWebPush(
+  // deno-lint-ignore no-explicit-any
+  supabase: any,
+  userIds: string[],
+  titulo: string | undefined,
+  cuerpo: string | undefined,
+  dataStr: Record<string, string>,
+  logEntrega: (usuario_id: string | null, destino: string, estado: string, motivo: string | null) => void,
+): Promise<{ sent: number; failed: number }> {
+  const pub = Deno.env.get("VAPID_PUBLIC_KEY");
+  const priv = Deno.env.get("VAPID_PRIVATE_KEY");
+  const subject = Deno.env.get("VAPID_SUBJECT") || "mailto:tecnologia@constructorasd.com";
+  if (!pub || !priv) return { sent: 0, failed: 0 }; // VAPID aún no configurado — no bloquea FCM.
+
+  const { data: subs } = await supabase
+    .from("push_suscripciones_web")
+    .select("id, endpoint, p256dh, auth, usuario_id")
+    .in("usuario_id", userIds)
+    .eq("activa", true);
+  if (!subs || subs.length === 0) return { sent: 0, failed: 0 };
+
+  webpush.setVapidDetails(subject, pub, priv);
+  const payload = JSON.stringify({
+    title: titulo ?? "SGC",
+    body: cuerpo ?? "",
+    url: dataStr["ruta"] || "/",
+  });
+
+  let sent = 0, failed = 0;
+  const muertas: string[] = [];
+  for (const s of subs) {
+    const short = s.endpoint.slice(-16);
+    try {
+      await webpush.sendNotification(
+        { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+        payload,
+      );
+      sent++;
+      logEntrega(s.usuario_id, `webpush:…${short}`, "enviada", null);
+      await supabase.from("push_suscripciones_web").update({ ultimo_ok_at: new Date().toISOString() }).eq("id", s.id);
+    } catch (e) {
+      failed++;
+      const status = (e as { statusCode?: number }).statusCode;
+      const muerta = status === 404 || status === 410;
+      if (muerta) muertas.push(s.id);
+      logEntrega(s.usuario_id, `webpush:…${short}`, "fallida", muerta ? "suscripcion_vencida" : `error:${status ?? "desconocido"}`);
+    }
+  }
+  if (muertas.length) {
+    await supabase.from("push_suscripciones_web").update({ activa: false }).in("id", muertas);
+  }
+  return { sent, failed };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204 });
 
@@ -92,6 +150,13 @@ Deno.serve(async (req: Request) => {
     if (traza.length) { try { await supabase.from("notif_entregas").insert(traza); } catch (_) { /* noop */ } }
   };
 
+  const dataStr: Record<string, string> = {};
+  for (const [k, v] of Object.entries(data ?? {})) dataStr[k] = v == null ? "" : String(v);
+
+  // CO17 — Web Push corre SIEMPRE en paralelo a FCM (canal independiente: un
+  // usuario puede tener solo suscripción Web Push, solo FCM, o ambos).
+  const webPushResultado = await enviarWebPush(supabase, user_ids, titulo, cuerpo, dataStr, logEntrega);
+
   const { data: tokens } = await supabase
     .from("device_tokens")
     .select("token, plataforma, usuario_id")
@@ -100,9 +165,12 @@ Deno.serve(async (req: Request) => {
 
   if (!tokens || tokens.length === 0) {
     // BF4 — cada usuario sin dispositivo deja su traza (diagnóstico "no me llegó").
-    for (const uid of user_ids) logEntrega(uid, "", "omitida", "sin_dispositivo");
+    for (const uid of user_ids) logEntrega(uid, "", "omitida", "sin_dispositivo_fcm");
     await flushTraza();
-    return json({ skipped: true, reason: "Sin device tokens activos." });
+    return json({
+      skipped: true, reason: "Sin device tokens FCM activos.",
+      webpush: webPushResultado,
+    });
   }
 
   const saRaw = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON");
@@ -110,26 +178,27 @@ Deno.serve(async (req: Request) => {
     // Credenciales FCM pendientes de Xaviel — el in-app ya cubre la entrega.
     for (const t of tokens) logEntrega(t.usuario_id, short(t.token), "omitida", "fcm_apagado");
     await flushTraza();
-    return json({ skipped: true, reason: "FCM no configurado (FCM_SERVICE_ACCOUNT_JSON).", tokens: tokens.length });
+    return json({
+      skipped: true, reason: "FCM no configurado (FCM_SERVICE_ACCOUNT_JSON).", tokens: tokens.length,
+      webpush: webPushResultado,
+    });
   }
 
   let sa: { client_email: string; private_key: string; project_id: string };
   try {
     sa = JSON.parse(saRaw);
   } catch {
-    return json({ error: "FCM_SERVICE_ACCOUNT_JSON inválido." }, 500);
+    return json({ error: "FCM_SERVICE_ACCOUNT_JSON inválido.", webpush: webPushResultado }, 500);
   }
 
   let accessToken: string;
   try {
     accessToken = await getAccessToken(sa);
   } catch (e) {
-    return json({ error: `OAuth FCM falló: ${e instanceof Error ? e.message : e}` }, 500);
+    return json({ error: `OAuth FCM falló: ${e instanceof Error ? e.message : e}`, webpush: webPushResultado }, 500);
   }
 
   const endpoint = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
-  const dataStr: Record<string, string> = {};
-  for (const [k, v] of Object.entries(data ?? {})) dataStr[k] = v == null ? "" : String(v);
 
   // AL6 — canal de Android dedicado para alarmas de alta prioridad (despertador).
   // Si el payload trae data.channel_id (p. ej. 'alarma_inspeccion') o data.alarma,
@@ -219,5 +288,11 @@ Deno.serve(async (req: Request) => {
   }
 
   await flushTraza();
-  return json({ ok: true, sent, failed, cleaned: dead.length });
+  return json({
+    ok: true,
+    sent: sent + webPushResultado.sent,
+    failed: failed + webPushResultado.failed,
+    cleaned: dead.length,
+    webpush: webPushResultado,
+  });
 });

@@ -525,6 +525,40 @@ const TOOLS: ToolDef[] = [
       execMap: (p) => ({ p_id: p.__idem_id ?? crypto.randomUUID(), p_conductor_usuario_id: p.conductor_usuario_id, p_vehiculo_id: p.vehiculo_id, p_tipo: p.tipo ?? "material", p_conduce_id: p.conduce_id ?? null, p_proyecto_id: p.proyecto_id ?? null, p_origen: p.origen ?? null, p_destino: p.destino ?? null, p_fecha: p.fecha ?? null }),
     },
   },
+
+  // ── CO6 — consultas pedidas de verdad (#216) ───────────────────────────────
+  {
+    // Hector (ingeniero de oficina) pedía 4 veces "un reporte de las
+    // requisiciones realizadas". puede_ver_todas_requisiciones() ya incluye su
+    // rol (CO6); esta herramienta expone el rango de fechas y el solicitante que
+    // 'requisiciones_pendientes' no tenía.
+    name: "listar_requisiciones",
+    description: "Lista requisiciones de material por rango de fechas, obra, solicitante o estado (a diferencia de 'requisiciones_pendientes', esta SÍ incluye las ya atendidas — para '¿qué requisiciones se han hecho?', 'dame un reporte de requisiciones de este mes', 'las requisiciones de Torre Alpha de octubre'). Resuelve proyecto_id/solicitante_id con 'mis_proyectos'/'buscar_usuarios' si el usuario nombra la obra o la persona. Si pide el resultado 'en PDF' o 'para descargar', dile que puedes generarlo con 'generar_reporte_pdf' tipo 'requisiciones' pasando los mismos filtros. Requiere módulo inventario, compras, o ser ingeniero de oficina/jefe de ingenieros/gerente.",
+    modulos: ["inventario", "compras"],
+    input_schema: { type: "object", properties: {
+      desde: { type: "string", description: "YYYY-MM-DD" }, hasta: { type: "string", description: "YYYY-MM-DD" },
+      proyecto_id: { type: "string" }, solicitante_id: { type: "string" }, estado: { type: "string" },
+      limite: { type: "integer" },
+    }, additionalProperties: false },
+    rpc: "requisiciones_bandeja",
+    map: (i) => ({
+      p_estado: i.estado ?? null, p_proyecto_id: i.proyecto_id ?? null, p_urgencia: null, p_busqueda: null,
+      p_limite: Math.min(Number(i.limite ?? 50), 200), p_desde: i.desde ?? null, p_hasta: i.hasta ?? null,
+      p_solicitante_id: i.solicitante_id ?? null,
+    }),
+  },
+  {
+    // CONTEXTO §F: "ya el sistema genera ese reporte, solo quiero que lo veas" —
+    // las 7 secciones YA eran tools individuales (AU1); esta las junta en una
+    // sola respuesta, igual que el correo del lunes.
+    name: "leer_reporte_semanal_operaciones",
+    description: "Lee el resumen semanal de operaciones completo (requisiciones, rutas, conduces, inventario, flota de carga, bitácoras) — el mismo que se manda por correo los lunes. Úsala para 'háblame del reporte semanal', 'cuéntame sobre el reporte de esta semana', '¿qué dice el resumen de operaciones?'. Por defecto trae la ÚLTIMA semana cerrada; pasa anio+semana (ISO) para otra. Cada sección que tu rol no puede ver sale en 'secciones_omitidas' — dilo con naturalidad, no te disculpes de más.",
+    modulos: null,
+    input_schema: { type: "object", properties: {
+      anio: { type: "integer" }, semana: { type: "integer", description: "semana ISO" },
+    }, additionalProperties: false },
+    rpc: "reporte_semanal_operaciones_compa", map: (i) => ({ p_anio: i.anio ?? null, p_semana: i.semana ?? null }),
+  },
 ];
 
 function toolsParaUsuario(cap: Cap): ToolDef[] {
@@ -550,6 +584,7 @@ const INSTRUCCIONES_ESTATICAS = [
   "- Ver la ACTIVIDAD del día de una persona con 'actividad_de_usuario' (la tuya siempre; la de otro solo si tu rol te lo permite — la herramienta lo controla).",
   "- Ver las RUTAS del día con 'rutas_del_dia' (todas si eres logística/jefe de flota/gerencia/admin; si no, las tuyas).",
   "- Decir DÓNDE hay existencia de un artículo con 'disponibilidad_de_articulo' (resuelve apodos; muestra solo los almacenes que tu rol ve).",
+  "- Si tienes disponible la herramienta de búsqueda en internet (web search), úsala SOLO para información pública del mundo real que NO está en el sistema (precios de mercado, normativas, clima, un dato general) — nunca como sustituto de una herramienta del sistema. Cuando la uses, CITA la fuente (nombre del sitio o URL) en tu respuesta; no la des como si fuera un dato del ERP.",
   "",
   "REGLAS DURAS:",
   "1. Para preparar una acción primero RESUELVE los IDs con las herramientas de lectura (mis_proyectos para la obra, buscar_articulos para cada ítem, listar_almacenes para el almacén, despachantes_disponibles, buscar_usuarios). Jamás inventes un ID.",
@@ -983,12 +1018,30 @@ Deno.serve(async (req: Request) => {
   const disponibles = toolsParaUsuario(capObj);
   // BB4(3) — schemas estrictos: additionalProperties:false en cada tool (Anthropic no
   // tiene flag `strict`, pero esto fuerza la forma exacta y evita parámetros basura).
-  const tools = disponibles.map((t, idx) => ({
+  const tools: Any[] = disponibles.map((t, idx) => ({
     name: t.name,
     description: t.description,
     input_schema: { additionalProperties: false, ...t.input_schema },
     ...(idx === disponibles.length - 1 ? { cache_control: { type: "ephemeral" } } : {}),
   }));
+
+  // CO6/#216 — "buscar_en_internet": el web search NATIVO de Anthropic (server
+  // tool) — Anthropic ejecuta la búsqueda y cita fuentes solo, no hay dispatch
+  // local. Apagable por parámetro (compa_web_search, default encendido) y
+  // limitado por CONVERSACIÓN (no solo por turno) para no disparar el gasto.
+  const MAX_WEB_SEARCH_POR_CONVERSACION = 5;
+  try {
+    const { data: paramRow } = await supabase.from("parametros").select("valor").eq("clave", "compa_web_search").maybeSingle();
+    const webSearchOn = (paramRow?.valor ?? "true") === "true";
+    if (webSearchOn) {
+      const { count } = await supabase.from("assistant_acciones")
+        .select("id", { count: "exact", head: true })
+        .eq("conversacion_id", convId).eq("tool", "web_search");
+      if ((count ?? 0) < MAX_WEB_SEARCH_POR_CONVERSACION) {
+        tools.push({ type: "web_search_20250305", name: "web_search", max_uses: 3 });
+      }
+    }
+  } catch { /* si falla la lectura del parámetro, se omite el tool (falla cerrado) */ }
 
   // AY C4 — inyecta la memoria del usuario (lo que Compa recuerda de él).
   let memText = "";
@@ -1036,6 +1089,18 @@ Deno.serve(async (req: Request) => {
       const forceThis = loop === 0 && forzarPrimera ? { type: "any" } : undefined;
       const resp = await callClaude(system, tools, messages, forceThis);
       const content: Any[] = resp.content ?? [];
+
+      // CO6 — web_search es un server tool: Anthropic lo ejecuta por su cuenta
+      // (puede aparecer con stop_reason "end_turn" si ya cerró el turno con el
+      // resultado incluido). Solo lo auditamos/contamos para el tope por conversación.
+      for (const b of content.filter((x) => x.type === "server_tool_use" && x.name === "web_search")) {
+        herramientasUsadas.push({ tool: "web_search", ok: true });
+        await supabase.from("assistant_acciones").insert({
+          conversacion_id: convId, tool: "web_search", params: { query: b.input?.query ?? null },
+          ok: true, resumen: String(b.input?.query ?? "").slice(0, 200),
+        }).then(() => {}, () => {});
+      }
+
       if (resp.stop_reason === "tool_use") {
         const results: Any[] = [];
         for (const block of content.filter((b) => b.type === "tool_use")) {

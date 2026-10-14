@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { environment } from '../../environments/environment';
 import { APP_VERSION, APP_VERSION_TITULO, APP_VERSION_CAMBIOS, APP_VERSION_URL } from '../../environments/version';
-import { AppVersion, AppVersionFormData, VersionPublicada } from '../models/app-version.model';
+import { AppVersion, AppVersionFormData, VersionPublicada, DispositivoRow } from '../models/app-version.model';
 
 const APK_BUCKET = 'app-releases';
 const WEB_VER_KEY = 'sgc_web_version_registrada';
@@ -122,6 +122,20 @@ export class AppVersionesService {
     const { data, error } = await this.supabase.client.rpc('version_publicada');
     if (error) throw new Error(error.message);
     return (data ?? {}) as VersionPublicada;
+  }
+
+  /** CO1 — Sistema › Versiones de la app: dispositivos reportados + columna "Atascado". */
+  async getDispositivos(): Promise<DispositivoRow[]> {
+    const { data, error } = await this.supabase.client.rpc('dispositivos_listado');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as DispositivoRow[];
+  }
+
+  /** CO10/CO17 — cuántas suscripciones Web Push activas hay, por plataforma. */
+  async getPushWebResumen(): Promise<{ plataforma: string; activas: number; usuarios: number }[]> {
+    const { data, error } = await this.supabase.client.rpc('push_web_resumen');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as { plataforma: string; activas: number; usuarios: number }[];
   }
 
   /**

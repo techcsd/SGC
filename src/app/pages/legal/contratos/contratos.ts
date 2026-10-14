@@ -1,11 +1,14 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LegalService } from '../../../../shared/services/legal.service';
 import { ProyectosService } from '../../../../shared/services/proyectos.service';
 import { ProveedoresService } from '../../../../shared/services/proveedores.service';
+import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { UserService } from '../../../core/services/user.service';
-import { CONTRATO_ESTADOS, CONTRATO_TIPOS, Contrato, ContratoEstado } from '../../../../shared/models/legal.model';
+import { CONTRATO_ESTADOS, CONTRATO_TIPOS, Contrato, ContratoDetalle, ContratoEstado } from '../../../../shared/models/legal.model';
+import { DocumentoGenerado } from '../../../../shared/models/plantilla-documento.model';
 import { Proyecto } from '../../../../shared/models/proyecto.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
@@ -26,7 +29,7 @@ const ESTADO_TRANSICIONES: Record<ContratoEstado, ContratoEstado[]> = {
 
 @Component({
   selector: 'app-contratos',
-  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, Skeleton, Icon, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, DecimalPipe, DatePipe, RouterLink, Skeleton, Icon, StaggerDirective],
   templateUrl: './contratos.html',
   styleUrl: './contratos.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,8 +38,10 @@ export class Contratos implements OnInit {
   private legalService = inject(LegalService);
   private proyectosService = inject(ProyectosService);
   private proveedoresService = inject(ProveedoresService);
+  private plantillasService = inject(PlantillasDocumentoService);
   private userService = inject(UserService);
   private toast = inject(ToastService);
+  private route = inject(ActivatedRoute);
 
   readonly TIPOS = CONTRATO_TIPOS;
   readonly ESTADOS = CONTRATO_ESTADOS;
@@ -58,6 +63,12 @@ export class Contratos implements OnInit {
 
   detailOpen = signal(false);
   detailContrato = signal<Contrato | null>(null);
+  detalle = signal<ContratoDetalle | null>(null);
+  detalleLoading = signal(false);
+  subiendoFirmado = signal(false);
+
+  // CO13 — "¿De dónde sale el documento?" (3 caminos al crear).
+  documentosDisponibles = signal<DocumentoGenerado[]>([]);
 
   form = new FormGroup({
     titulo: new FormControl('', [Validators.required, Validators.maxLength(200)]),
@@ -68,6 +79,7 @@ export class Contratos implements OnInit {
     monto: new FormControl<number | null>(null),
     fecha_inicio: new FormControl<string | null>(null),
     fecha_vencimiento: new FormControl<string | null>(null),
+    documento_generado_id: new FormControl<string | null>(null),
   });
 
   filtered = computed(() => {
@@ -103,20 +115,40 @@ export class Contratos implements OnInit {
 
   async ngOnInit() {
     await this.loadAll();
+
+    // CO13 — llega desde "Crear contrato en Legal con este documento" (Generar/Ver).
+    const crearDesdeDoc = this.route.snapshot.queryParamMap.get('crear_desde_documento');
+    if (crearDesdeDoc) {
+      const doc = this.documentosDisponibles().find((d) => d.id === crearDesdeDoc);
+      this.openCreate();
+      this.form.patchValue({
+        titulo: doc?.nombre ?? '',
+        documento_generado_id: crearDesdeDoc,
+        proyecto_id: doc?.proyecto_id ?? null,
+      });
+    }
+    // CO13 — llega desde "Usado en contrato CTR-…" (Historial de Documentos).
+    const verContrato = this.route.snapshot.queryParamMap.get('ver_contrato');
+    if (verContrato) {
+      const c = this.contratos().find((x) => x.id === verContrato);
+      if (c) this.openDetail(c);
+    }
   }
 
   private async loadAll() {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [contratos, proyectos, proveedores] = await Promise.all([
+      const [contratos, proyectos, proveedores, documentos] = await Promise.all([
         this.legalService.getContratos(),
         this.proyectosService.getAll(),
         this.proveedoresService.getAll(),
+        this.plantillasService.getHistorial(),
       ]);
       this.contratos.set(contratos);
       this.proyectos.set(proyectos);
       this.proveedores.set(proveedores);
+      this.documentosDisponibles.set(documentos);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar los contratos.');
     } finally {
@@ -138,7 +170,7 @@ export class Contratos implements OnInit {
   openCreate() {
     this.editingId.set(null);
     this.saveError.set('');
-    this.form.reset({ tipo: 'otro' });
+    this.form.reset({ tipo: 'otro', documento_generado_id: null });
     this.drawerOpen.set(true);
   }
 
@@ -179,6 +211,7 @@ export class Contratos implements OnInit {
       monto: raw.monto ?? null,
       fecha_inicio: raw.fecha_inicio || null,
       fecha_vencimiento: raw.fecha_vencimiento || null,
+      documento_generado_id: raw.documento_generado_id || null,
     };
 
     try {
@@ -200,13 +233,42 @@ export class Contratos implements OnInit {
     }
   }
 
-  openDetail(c: Contrato) {
+  async openDetail(c: Contrato) {
     this.detailContrato.set(c);
     this.detailOpen.set(true);
+    this.detalle.set(null);
+    this.detalleLoading.set(true);
+    try {
+      this.detalle.set(await this.legalService.contratoDetalle(c.id));
+    } catch (e: unknown) {
+      this.toast.error('No se pudo cargar el detalle', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.detalleLoading.set(false);
+    }
   }
 
   closeDetail() {
     this.detailOpen.set(false);
+  }
+
+  /** CO13 — "Subir firmado": el PDF/foto del contrato ya firmado. */
+  async onFirmadoSelected(event: Event) {
+    const c = this.detailContrato();
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!c || !file || this.subiendoFirmado()) return;
+    this.subiendoFirmado.set(true);
+    try {
+      await this.legalService.subirContratoFirmado(c.id, file);
+      const updated = await this.legalService.getContrato(c.id);
+      this.detailContrato.set(updated);
+      this.contratos.update((list) => list.map((x) => (x.id === c.id ? updated : x)));
+      this.toast.success('Firmado subido', 'El contrato quedó marcado como firmado.');
+    } catch (e: unknown) {
+      this.toast.error('No se pudo subir el archivo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.subiendoFirmado.set(false);
+      (event.target as HTMLInputElement).value = '';
+    }
   }
 
   async cambiarEstado(estado: ContratoEstado) {

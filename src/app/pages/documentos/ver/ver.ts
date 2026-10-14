@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { DocumentoGenerado, CATEGORIA_LABELS } from '../../../../shared/models/plantilla-documento.model';
@@ -18,10 +18,14 @@ import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
 })
 export class Ver implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private plantillasService = inject(PlantillasDocumentoService);
   private sanitizer = inject(DomSanitizer);
   private legalService = inject(LegalService);
   private userService = inject(UserService);
+
+  // CO13 — vínculo con Legal: "Crear contrato con este documento" / "Usado en contrato X".
+  usadoEnContrato = signal<{ id: string; codigo: string; titulo: string } | null>(null);
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
   readonly formatTimestamp = formatTimestampDisplay;
@@ -48,11 +52,20 @@ export class Ver implements OnInit {
       this.contenidoSafe.set(this.sanitizer.bypassSecurityTrustHtml(doc.contenido_html_final));
       const revisiones = await this.legalService.getAprobacionesPorReferencia(id);
       this.revisionLegal.set(revisiones[0] ?? null);
+      // CO13 — best-effort: si falla, simplemente no se muestra el badge.
+      this.usadoEnContrato.set(await this.legalService.documentoUsadoEnContrato(id).catch(() => null));
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar el documento.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /** CO13 — abre Legal › Contratos con este documento pre-enlazado. */
+  crearContratoConEsteDocumento() {
+    const doc = this.documento();
+    if (!doc) return;
+    this.router.navigate(['/legal/contratos'], { queryParams: { crear_desde_documento: doc.id } });
   }
 
   async solicitarRevisionLegal() {

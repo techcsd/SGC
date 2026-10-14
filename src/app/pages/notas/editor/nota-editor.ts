@@ -300,10 +300,11 @@ export class NotaEditor implements OnInit, OnDestroy {
 
   async guardar() {
     if (this.soloLectura() || this.guardando()) return;
-    const id = await this.ensureNota();
-    if (!id) return;
+    // CO16 — la bandera va antes del primer await (ensureNota también es async).
     this.guardando.set(true);
     try {
+      const id = await this.ensureNota();
+      if (!id) return;
       const res = await this.notasSvc.guardarNota(
         {
           id,

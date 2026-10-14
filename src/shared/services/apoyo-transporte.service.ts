@@ -21,6 +21,11 @@ export interface ApoyoRow {
   ruta_id: string | null;
   foto_path: string | null;
   created_at: string;
+  // CO9 — quién canceló/completó, visible en la tarjeta del listado (antes solo en el detalle).
+  cancelada_por_nombre: string | null;
+  cancelada_at: string | null;
+  motivo_cancelacion: string | null;
+  completada_por_nombre: string | null;
 }
 
 export interface ApoyoEvento { de: string | null; a: string | null; nota: string | null; por: string | null; created_at: string; }

@@ -13,8 +13,12 @@
 // `must-revalidate`, así que la recarga siempre obtiene la versión vigente.
 
 /** Mensajes de fallo de carga de módulo/chunk en los distintos navegadores. */
+// CO7 — Firefox reporta esto distinto a Chrome/Safari ("'text/html' is not a
+// valid JavaScript MIME type."), y no lo cubría el patrón original: era el
+// grupo de error abierto más grande (80 ocurrencias/9 usuarios, F0 PROMPT-98)
+// porque nunca se detectaba como chunk viejo → nunca se auto-recargaba.
 const CHUNK_ERROR_RE =
-  /ChunkLoadError|Loading chunk [\d]+ failed|error loading dynamically imported module|Failed to fetch dynamically imported module|Importing a module script failed|disallowed MIME type|Loading module from|error loading dynamically imported/i;
+  /ChunkLoadError|Loading chunk [\d]+ failed|error loading dynamically imported module|Failed to fetch dynamically imported module|Importing a module script failed|disallowed MIME type|Loading module from|error loading dynamically imported|is not a valid JavaScript MIME type/i;
 
 /** ¿Este error es un fallo de carga de un chunk/módulo dinámico (no un bug de lógica)? */
 export function isChunkLoadError(error: unknown): boolean {

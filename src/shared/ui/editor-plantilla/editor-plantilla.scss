@@ -1,0 +1,158 @@
+// CO12/CO14 — editor de plantillas tipo Word (TipTap).
+.ep {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+  min-height: 420px;
+}
+
+.ep__toolbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: var(--surface-2, #f2f4f7);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.ep__btn {
+  min-width: 34px;
+  min-height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sgc-text);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--surface, #fff); }
+  &--on { background: var(--surface, #fff); box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08); color: var(--brand, #1e3a5f); }
+}
+.ep__toolbar-spacer { flex: 1; }
+
+.ep__insertar { position: relative; }
+.ep__insertar-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e4e7ec);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ep__insertar-item {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  cursor: pointer;
+
+  &:hover { background: var(--surface-2, #f2f4f7); }
+  &--nuevo { color: var(--brand, #1e3a5f); font-weight: 600; border-top: 1px solid var(--border, #e4e7ec); margin-top: 4px; padding-top: 10px; }
+}
+
+.ep__canvas { border: 1px solid var(--border, #d0d5dd); border-radius: 10px; overflow: hidden; }
+// ProseMirror inyecta su DOM directamente (fuera del template de Angular), así
+// que estas reglas usan ::ng-deep — la encapsulación emulada de Angular no
+// alcanzaría esos nodos de otro modo.
+.ep__editor {
+  min-height: 360px;
+  padding: 16px 18px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  outline: none;
+
+  ::ng-deep .ProseMirror { outline: none; min-height: 340px; }
+  ::ng-deep .campo-chip {
+    display: inline-block;
+    background: var(--Hub, #f97316);
+    color: #14243a;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    cursor: default;
+    user-select: none;
+  }
+  ::ng-deep table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+  ::ng-deep td, ::ng-deep th { border: 1px solid var(--border, #d0d5dd); padding: 6px 8px; }
+}
+
+.ep__panel {
+  border: 1px solid var(--border, #e4e7ec);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-self: start;
+}
+.ep__panel-title { font: 700 13px 'Inter Tight', Inter, sans-serif; color: var(--sgc-text); }
+.ep__panel-empty { font-size: 12.5px; color: var(--sgc-text-muted); margin: 0; }
+.ep__panel-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ep__panel-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover { background: var(--surface-2, #f2f4f7); }
+}
+.ep__panel-item-tipo { font-size: 11px; color: var(--sgc-text-muted); text-transform: uppercase; }
+.ep__panel-acciones { display: flex; flex-direction: column; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border, #e4e7ec); }
+
+.ep__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(15, 31, 51, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ep__modal-card {
+  width: 360px;
+  background: var(--surface, #fff);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ep__modal-title { font: 700 16px 'Inter Tight', Inter, sans-serif; }
+.ep__modal-acciones { display: flex; justify-content: flex-end; gap: 8px; }
+
+.ep__preview, .ep__avanzado {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border, #e4e7ec);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ep__preview-contenido {
+  font-size: 14px;
+  line-height: 1.6;
+  ::ng-deep .campo-relleno { color: var(--Hub, #f97316); font-weight: 700; }
+}
+.ep__avanzado-textarea { font-family: ui-monospace, monospace; font-size: 12.5px; }
+
+@media (max-width: 768px) {
+  .ep { grid-template-columns: 1fr; }
+}

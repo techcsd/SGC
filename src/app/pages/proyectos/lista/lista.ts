@@ -737,6 +737,9 @@ export class Lista implements OnInit {
       }
       return;
     }
+    // CO16 — la bandera va antes del primer await (el chequeo de derivados de
+    // abajo es async); los `return` tempranos la devuelven a `false`.
+    this.saving.set(true);
 
     // Q1 — Gate del sistema de estrellas: SOLO en la transición hacia
     // 'en_progreso'. Editar datos de un proyecto ya iniciado (o sin cambiar de
@@ -752,12 +755,14 @@ export class Lista implements OnInit {
         this.saveError.set(
           'No se pudo verificar el estado de preparación (estrellas) del proyecto. Intenta recargar antes de iniciar la obra.',
         );
+        this.saving.set(false);
         return;
       }
       if (!this.listoParaIniciar(editId)) {
         this.saveError.set(
           'No se puede iniciar la obra: faltan estrellas (equipo, cuadre, expediente y almacén de obra).',
         );
+        this.saving.set(false);
         return;
       }
     }
@@ -778,11 +783,11 @@ export class Lista implements OnInit {
           `Esto también marcará como prueba ${n} registro(s) relacionado(s) de esta obra. ¿Continuar?`,
         )
       ) {
+        this.saving.set(false);
         return;
       }
     }
 
-    this.saving.set(true);
     this.saveError.set('');
     // AM7 — la ubicación (lat/lng) NO viaja en el payload del update/insert: se
     // persiste aparte con la RPC canónica set_proyecto_ubicacion, que valida el

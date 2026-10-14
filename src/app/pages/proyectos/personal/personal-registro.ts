@@ -275,7 +275,7 @@ export class PersonalRegistro implements OnInit {
 
   async guardarFirma() {
     const p = this.personal();
-    if (!p) return;
+    if (!p || this.saving()) return;
     // AZ1 (d) — nadie firma un contrato con variables sin resolver.
     if (this.plantillaActual() && this.faltanCampos()) {
       this.error.set('Completa los campos pendientes del documento antes de firmar.');
@@ -283,11 +283,12 @@ export class PersonalRegistro implements OnInit {
     }
     const pad = this.pad();
     if (!pad || pad.isEmpty()) { this.error.set('Dibuja la firma antes de continuar.'); return; }
-    const blob = await pad.toBlob();
-    if (!blob) { this.error.set('No se pudo capturar la firma.'); return; }
+    // CO16 — la bandera va antes del primer await (toBlob() también es async).
     this.saving.set(true);
     this.error.set('');
     try {
+      const blob = await pad.toBlob();
+      if (!blob) { this.error.set('No se pudo capturar la firma.'); return; }
       const pl = this.plantillaActual();
       // CF1 — un contrato pide empleador + 2 testigos; otros documentos sólo el empleador.
       const roles: ('empleador' | 'testigo_1' | 'testigo_2')[] =
@@ -312,7 +313,7 @@ export class PersonalRegistro implements OnInit {
   // ── Paso 4: emitir carnet ──────────────────────────────────────────────────
   async emitirCarnet() {
     const p = this.personal();
-    if (!p) return;
+    if (!p || this.saving()) return;
     this.saving.set(true);
     this.error.set('');
     try {

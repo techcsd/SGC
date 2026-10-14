@@ -452,6 +452,22 @@
       </div>
     </div>
 
+    <!-- CO4 — permiso puntual, independiente de roles -->
+    <div class="admin-usuarios__roles-section">
+      <label class="admin-usuarios__role-option" [class.selected]="autoaprobarReq()">
+        <input
+          type="checkbox"
+          [checked]="autoaprobarReq()"
+          [disabled]="autoaprobarReqSaving()"
+          (change)="toggleAutoaprobarReq()"
+        />
+        <div class="admin-usuarios__role-info">
+          <span class="admin-usuarios__role-name">Puede aprobar sus propias requisiciones</span>
+          <span class="admin-usuarios__role-code">Por defecto nadie aprueba lo suyo (control de 4 ojos); este permiso lo levanta solo para este usuario.</span>
+        </div>
+      </label>
+    </div>
+
     <!-- Save error -->
     @if (saveError()) {
       <p class="admin-usuarios__save-error" role="alert">{{ saveError() }}</p>

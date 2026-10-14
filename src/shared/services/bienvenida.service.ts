@@ -13,6 +13,11 @@ export class BienvenidaService {
   /** Se incrementa para forzar que la bienvenida se vuelva a mostrar (Soporte/Dudas). */
   reabrir = signal(0);
 
+  /** CO2 — se pone en true cuando la bienvenida se cerró en ESTA sesión (aunque el
+   *  flag del servidor tarde en reflejarse); Novedades espera esto antes de salir,
+   *  para nunca pisar la bienvenida. */
+  cerradaEnSesion = signal(false);
+
   /** ¿ya vio la bienvenida web? null = aún no (usuario nuevo). */
   async yaVistaWeb(): Promise<boolean> {
     try {

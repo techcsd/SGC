@@ -94,6 +94,12 @@ export class ApoyoTransporte implements OnInit {
   notaAccion = signal<string>('');
   pidiendoNota = signal<null | 'cancelar' | 'reabrir'>(null);
 
+  // CO9 — "Cambiar estado" para transporte elevado/admin cuando el apoyo ya está
+  // completada/cancelada (reabrir a cualquier estado válido, nota obligatoria).
+  readonly REABRIR_DESTINOS: EstadoApoyo[] = ['pendiente', 'asignada', 'en_proceso', 'completada'];
+  reabrirDestino = signal<EstadoApoyo | null>(null);
+  notaReabrir = signal<string>('');
+
   async ngOnInit() {
     try {
       const [obras] = await Promise.all([this.proyectosSvc.getDirectorio('conduce')]);
@@ -163,6 +169,8 @@ export class ApoyoTransporte implements OnInit {
     this.detalleFotos.set([]);
     this.pidiendoNota.set(null);
     this.notaAccion.set('');
+    this.reabrirDestino.set(null);
+    this.notaReabrir.set('');
     try {
       const d = await this.svc.detalle(row.id);
       this.detalle.set(d);
@@ -203,5 +211,14 @@ export class ApoyoTransporte implements OnInit {
     const nota = this.notaAccion().trim();
     if (!nota) { this.toast.error('Escribe el motivo', 'Indica por qué.'); return; }
     this.cambiar(tipo === 'cancelar' ? 'cancelada' : 'en_proceso', nota);
+  }
+
+  /** CO9 — reabrir/cambiar estado desde completada/cancelada (solo transporte elevado/admin). */
+  async confirmarReabrirEstado() {
+    const destino = this.reabrirDestino();
+    const nota = this.notaReabrir().trim();
+    if (!destino) { this.toast.error('Elige el estado', 'Toca a cuál estado quieres volver.'); return; }
+    if (!nota) { this.toast.error('Escribe el motivo', '¿Por qué la reabres?'); return; }
+    await this.cambiar(destino, nota);
   }
 }

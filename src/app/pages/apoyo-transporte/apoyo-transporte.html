@@ -39,6 +39,16 @@
           </div>
           <p class="apoyo-card__desc">{{ r.descripcion || '—' }}</p>
           <p class="apoyo-card__meta">{{ r.proyecto ?? 'Sin obra' }} · {{ r.dia ? fFecha(r.dia) : '—' }}</p>
+          <!-- CO9 — quién canceló/completó, visible sin abrir el detalle. -->
+          @if (r.estado === 'cancelada' && r.cancelada_por_nombre) {
+            <p class="apoyo-card__quien">
+              Cancelada por <b>{{ r.cancelada_por_nombre }}</b>
+              @if (r.cancelada_at) { · {{ fHora(r.cancelada_at) }} }
+              @if (r.motivo_cancelacion) { · «{{ r.motivo_cancelacion }}» }
+            </p>
+          } @else if (r.estado === 'completada' && r.completada_por_nombre) {
+            <p class="apoyo-card__quien">Completada por <b>{{ r.completada_por_nombre }}</b></p>
+          }
         </div>
       </button>
     }
@@ -156,6 +166,27 @@
               <button type="button" class="sgc-btn sgc-btn--secondary" (click)="pidiendoNota.set('reabrir')" [disabled]="accionBusy()">No se ha hecho</button>
             }
           }
+        </div>
+      }
+
+      <!-- CO9 — "Cambiar estado": solo transporte elevado/admin, solo cuando ya está cerrado. -->
+      @if (esElevado() && (d.estado === 'completada' || d.estado === 'cancelada')) {
+        <div class="apoyo-detalle__block apoyo-reabrir">
+          <span class="apoyo-detalle__label">Cambiar estado</span>
+          <div class="apoyo-reabrir__pills">
+            @for (e of REABRIR_DESTINOS; track e) {
+              <button type="button" class="apoyo-reabrir__pill" [class.apoyo-reabrir__pill--on]="reabrirDestino() === e"
+                (click)="reabrirDestino.set(e)">{{ estadoLabel(e) }}</button>
+            }
+          </div>
+          <label for="co9-nota-reabrir">¿Por qué la reabres? (obligatorio)</label>
+          <textarea id="co9-nota-reabrir" class="sgc-input" rows="2" [value]="notaReabrir()"
+            (input)="notaReabrir.set($any($event.target).value)"></textarea>
+          <span class="apoyo-reabrir__hint">Queda en la línea de tiempo y se avisa al solicitante.</span>
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="accionBusy() || !reabrirDestino()"
+            (click)="confirmarReabrirEstado()">
+            {{ reabrirDestino() ? ('Reabrir como ' + estadoLabel(reabrirDestino()!)) : 'Elige un estado' }}
+          </button>
         </div>
       }
 

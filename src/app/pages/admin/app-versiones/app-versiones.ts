@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AppVersionesService } from '../../../../shared/services/app-versiones.service';
 import { UserService } from '../../../core/services/user.service';
-import { AppVersion, semverCode } from '../../../../shared/models/app-version.model';
+import { AppVersion, DispositivoRow, semverCode } from '../../../../shared/models/app-version.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { ToastService } from '../../../../shared/services/toast.service';
 import { formatFechaHumanaConDia } from '../../../../shared/utils/fecha.util';
@@ -89,8 +89,44 @@ export class AdminAppVersiones implements OnInit {
     minima: new FormControl(false, { nonNullable: true }),
   });
 
+  // CO1 — Dispositivos (quién está en qué versión + "Atascado").
+  dispositivos = signal<DispositivoRow[]>([]);
+  dispositivosLoading = signal(true);
+  soloAtascados = signal(false);
+  filtroPlataformaDisp = signal<string>('');
+  dispositivosFiltrados = computed(() => {
+    const soloAtascados = this.soloAtascados();
+    const plat = this.filtroPlataformaDisp();
+    return this.dispositivos().filter(
+      (d) => (!soloAtascados || d.atascado) && (!plat || d.plataforma === plat),
+    );
+  });
+  plataformasDisponibles = computed(() => [...new Set(this.dispositivos().map((d) => d.plataforma))].sort());
+
+  // CO10/CO17 — resumen de suscripciones Web Push activas (iPhone principalmente).
+  pushWebResumen = signal<{ plataforma: string; activas: number; usuarios: number }[]>([]);
+
   async ngOnInit() {
     await this.load();
+    await this.loadDispositivos();
+    try {
+      this.pushWebResumen.set(await this.service.getPushWebResumen());
+    } catch (e: unknown) {
+      console.error('getPushWebResumen error:', e);
+    }
+  }
+
+  private async loadDispositivos() {
+    this.dispositivosLoading.set(true);
+    try {
+      this.dispositivos.set(await this.service.getDispositivos());
+    } catch (e: unknown) {
+      // Silencioso: esta sección es un "plus" de la página, un error aquí no debe
+      // tapar la gestión de versiones (que ya cargó arriba).
+      console.error('getDispositivos error:', e);
+    } finally {
+      this.dispositivosLoading.set(false);
+    }
   }
 
   private async load() {

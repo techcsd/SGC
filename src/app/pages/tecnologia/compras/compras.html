@@ -5,73 +5,81 @@
     <span class="page-count">{{ compras().length }} solicitud{{ compras().length !== 1 ? 'es' : '' }}</span>
   </div>
   <button class="sgc-btn sgc-btn--primary" type="button" (click)="openCreate()">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
+    <app-icon name="plus" [size]="16" />
     Nueva compra
   </button>
 </div>
 
 <div class="compras-intro sgc-card">
   <p>
-    Solicita aquí la compra de equipos, software o servicios tecnológicos. Cada solicitud
-    se envía al módulo de <strong>Compras / Gerencia</strong> para su aprobación; podrás
-    seguir su estado en esta lista.
+    Solicita aquí la compra de equipos, software o servicios tecnológicos. Agrega la cotización
+    en PDF o foto, envíala a aprobación y sigue su estado desde aquí.
   </p>
 </div>
 
 <!-- ── Error ── -->
 @if (error()) {
   <div class="page-error" role="alert">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
+    <app-icon name="info" [size]="16" />
     {{ error() }}
   </div>
 }
 
-<!-- ── Table ── -->
-<div class="table-wrapper sgc-card">
-  @if (loading()) {
-    <app-skeleton variant="table" [rows]="6" />
-  } @else if (compras().length === 0) {
-    <div class="table-empty">
-      <p>No hay solicitudes de compra tecnológica. Crea la primera.</p>
-    </div>
-  } @else {
-    <div class="table-scroll">
-      <table class="data-table" aria-label="Solicitudes de compra tecnológica">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th class="text-right">Renglones</th>
-            <th>Notas</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (c of compras(); track c.id) {
-            <tr class="clickable-row" (click)="openDetail(c)">
-              <td class="compra-fecha">{{ formatTimestamp(c.created_at) }}</td>
-              <td>
-                <span class="sgc-badge" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">
-                  {{ getEstadoLabel(c.estado) }}
-                </span>
-              </td>
-              <td class="text-right">
-                {{ (c.items ?? []).length }}
-                @if (tieneFotos(c)) { <span title="Incluye fotos" aria-label="Incluye fotos"><app-icon name="camera" [size]="14" /></span> }
-              </td>
-              <td class="text-muted cell-clamp">{{ c.notas ?? '—' }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+<!-- ── Filtros por estado (con conteo) ── -->
+<div class="filtros-estado" role="tablist" aria-label="Filtrar por estado">
+  <button
+    type="button"
+    class="filtro-chip"
+    [class.active]="filtroEstado() === 'all'"
+    (click)="filtroEstado.set('all')"
+  >Todas <span class="filtro-chip__count">{{ compras().length }}</span></button>
+  @for (estado of ESTADOS_FILTRO; track estado) {
+    <button
+      type="button"
+      class="filtro-chip"
+      [class.active]="filtroEstado() === estado"
+      (click)="filtroEstado.set(estado)"
+    >{{ getEstadoLabel(estado) }} <span class="filtro-chip__count">{{ conteoPorEstado(estado) }}</span></button>
   }
 </div>
 
-<!-- ── Form Drawer ── -->
+<!-- ── Tarjetas ── -->
+@if (loading()) {
+  <div class="compras-grid">
+    <app-skeleton variant="cards" [rows]="3" />
+  </div>
+} @else if (comprasFiltradas().length === 0) {
+  <div class="table-empty sgc-card">
+    <p>No hay solicitudes en este estado.</p>
+  </div>
+} @else {
+  <div class="compras-grid">
+    @for (c of comprasFiltradas(); track c.id) {
+      <button type="button" class="compra-card" (click)="openDetail(c)">
+        <div class="compra-card__thumb">
+          @if ((c.adjuntos ?? []).length > 0) {
+            <app-icon name="file" [size]="28" />
+            <span class="compra-card__thumb-count">{{ (c.adjuntos ?? []).length }}</span>
+          } @else {
+            <app-icon name="package" [size]="28" />
+          }
+        </div>
+        <div class="compra-card__body">
+          <span class="compra-card__notas">{{ c.notas || ((c.items ?? [])[0]?.descripcion ?? 'Sin descripción') }}</span>
+          <span class="compra-card__meta text-muted">{{ formatTimestamp(c.created_at) }} · {{ (c.items ?? []).length }} renglón{{ (c.items ?? []).length !== 1 ? 'es' : '' }}</span>
+          @if (totalDe(c) > 0) {
+            <span class="compra-card__total">{{ totalDe(c) | number:'1.2-2' }}</span>
+          }
+        </div>
+        <span class="sgc-badge compra-card__estado" [class]="'sgc-badge--' + getEstadoBadge(c.estado)">
+          {{ estadoTarjeta(c) }}
+        </span>
+      </button>
+    }
+  </div>
+}
+
+<!-- ── Form Drawer: crear ── -->
 <app-form-drawer title="Nueva compra tecnológica" [open]="drawerOpen()" (closed)="closeDrawer()">
   <form [formGroup]="form" (ngSubmit)="onSave()" novalidate class="drawer-form">
 
@@ -115,6 +123,16 @@
             aria-label="Cantidad"
           />
           <input
+            class="item-row__precio"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Precio unit."
+            [value]="item.precio_unitario"
+            (input)="updateItemPrecio($index, $any($event.target).value)"
+            aria-label="Precio unitario"
+          />
+          <input
             class="item-row__proveedor"
             type="text"
             placeholder="Proveedor sugerido"
@@ -130,7 +148,6 @@
             aria-label="Eliminar artículo"
           ><app-icon name="x" [size]="16" /></button>
 
-          <!-- U17 — foto opcional del renglón -->
           <div class="item-row__foto">
             @if (item.fotoPreview) {
               <img class="item-foto-thumb" [src]="item.fotoPreview" alt="Vista previa" />
@@ -148,9 +165,7 @@
 
     @if (saveError()) {
       <div class="save-error" role="alert">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
+        <app-icon name="info" [size]="14" />
         {{ saveError() }}
       </div>
     }
@@ -160,9 +175,9 @@
       <button type="submit" class="sgc-btn sgc-btn--primary" [disabled]="saving()">
         @if (saving()) {
           <span class="spinner" aria-hidden="true"></span>
-          Enviando…
+          Guardando…
         } @else {
-          Enviar a Compras
+          Guardar borrador
         }
       </button>
     </div>
@@ -170,8 +185,8 @@
   </form>
 </app-form-drawer>
 
-<!-- ── Detail Drawer (U17 — renglones con foto) ── -->
-<app-form-drawer title="Detalle de la solicitud" [open]="detailOpen()" (closed)="closeDetail()">
+<!-- ── Ficha (detalle) ── -->
+<app-form-drawer title="Detalle de la compra" [open]="detailOpen()" (closed)="closeDetail()">
   @if (detail(); as c) {
     <div class="compra-detail">
       <div class="compra-detail__meta">
@@ -179,6 +194,89 @@
         <span class="text-muted">{{ formatTimestamp(c.created_at) }}</span>
       </div>
       @if (c.notas) { <p class="compra-detail__notas">{{ c.notas }}</p> }
+
+      <!-- Línea de tiempo -->
+      <ol class="timeline">
+        <li class="timeline__step timeline__step--done">
+          <span class="timeline__dot"></span>
+          <span class="timeline__label">Creada</span>
+          <span class="timeline__time text-muted">{{ formatTimestamp(c.created_at) }}</span>
+        </li>
+        <li class="timeline__step" [class.timeline__step--done]="!!c.enviada_at">
+          <span class="timeline__dot"></span>
+          <span class="timeline__label">Enviada a aprobación</span>
+          <span class="timeline__time text-muted">{{ c.enviada_at ? formatTimestamp(c.enviada_at) : '—' }}</span>
+        </li>
+        <li class="timeline__step" [class.timeline__step--done]="!!c.decidida_at" [class.timeline__step--rechazada]="c.estado === 'rechazada'">
+          <span class="timeline__dot"></span>
+          <span class="timeline__label">{{ c.estado === 'rechazada' ? 'Rechazada' : 'Aprobada' }}{{ c.decidida?.nombre ? ' · ' + c.decidida?.nombre : '' }}</span>
+          <span class="timeline__time text-muted">{{ c.decidida_at ? formatTimestamp(c.decidida_at) : '—' }}</span>
+        </li>
+        <li class="timeline__step" [class.timeline__step--done]="c.estado === 'comprada'">
+          <span class="timeline__dot"></span>
+          <span class="timeline__label">Comprada</span>
+        </li>
+      </ol>
+      @if (c.estado === 'rechazada' && c.motivo_rechazo) {
+        <div class="save-error" role="alert"><app-icon name="info" [size]="14" /> {{ c.motivo_rechazo }}</div>
+      }
+
+      <!-- Cotizaciones -->
+      <h3 class="compra-detail__title">Cotizaciones</h3>
+      @if ((c.adjuntos ?? []).length === 0) {
+        <p class="text-muted">Aún no se ha subido ninguna cotización.</p>
+      } @else {
+        <ul class="cotizaciones-list">
+          @for (a of c.adjuntos ?? []; track a.id) {
+            <li class="cotizacion-row" [class.cotizacion-row--elegida]="a.elegida">
+              <app-icon name="file" [size]="20" />
+              <div class="cotizacion-row__body">
+                <span class="cotizacion-row__nombre">{{ a.nombre }}</span>
+                <span class="text-muted">
+                  {{ a.proveedor || 'Sin proveedor' }}
+                  @if (a.monto) { · {{ a.monto | number:'1.2-2' }} }
+                </span>
+              </div>
+              @if (cotizacionUrl(a.id); as url) {
+                <a class="sgc-btn sgc-btn--ghost sgc-btn--sm" [href]="url" target="_blank" rel="noopener">Abrir</a>
+              }
+              @if (c.estado === 'borrador') {
+                @if (a.elegida) {
+                  <span class="sgc-badge sgc-badge--success">Elegida</span>
+                } @else {
+                  <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="elegirCotizacion(a)">Elegir</button>
+                }
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (previewSafeUrl()) {
+        <iframe class="cotizacion-preview" [src]="previewSafeUrl()" title="Vista previa de la cotización"></iframe>
+      }
+
+      @if (c.estado === 'borrador') {
+        <form class="cotizacion-form" [formGroup]="cotizacionForm">
+          <div class="cotizacion-form__row">
+            <select formControlName="tipo" class="sgc-input" aria-label="Tipo de adjunto">
+              <option value="cotizacion">Cotización</option>
+              <option value="factura">Factura</option>
+              <option value="otro">Otro</option>
+            </select>
+            <input class="sgc-input" type="text" placeholder="Proveedor" formControlName="proveedor" />
+            <input class="sgc-input" type="number" min="0" step="0.01" placeholder="Monto" formControlName="monto" />
+          </div>
+          <label class="sgc-btn sgc-btn--ghost foto-picker">
+            @if (subiendoCotizacion()) {
+              <span class="spinner" aria-hidden="true"></span> Subiendo…
+            } @else {
+              <app-icon name="upload" [size]="16" /> {{ (c.adjuntos ?? []).length > 0 ? 'Otra cotización' : 'Agregar cotización' }}
+            }
+            <input type="file" accept="application/pdf,image/*" hidden [disabled]="subiendoCotizacion()" (change)="onCotizacionSelected($event)" />
+          </label>
+        </form>
+      }
 
       <h3 class="compra-detail__title">Artículos ({{ (c.items ?? []).length }})</h3>
       <ul class="compra-detail__items">
@@ -189,18 +287,57 @@
                 <img [src]="url" [alt]="it.descripcion" loading="lazy" />
               </a>
             } @else {
-              <span class="item-foto-thumb item-foto-thumb--empty" aria-hidden="true">📦</span>
+              <span class="item-foto-thumb item-foto-thumb--empty" aria-hidden="true"><app-icon name="package" [size]="20" /></span>
             }
             <div class="compra-detail__item-body">
               <span class="compra-detail__item-desc">{{ it.descripcion }}</span>
               <span class="text-muted">
                 Cantidad: {{ it.cantidad }}
+                @if (it.precio_unitario) { · {{ it.precio_unitario | number:'1.2-2' }} c/u }
                 @if (it.proveedor_sugerido) { · {{ it.proveedor_sugerido }} }
               </span>
             </div>
           </li>
         }
       </ul>
+      @if (totalDe(c) > 0) {
+        <div class="compra-detail__total">Total: <strong>{{ totalDe(c) | number:'1.2-2' }}</strong></div>
+      }
+
+      <!-- Acciones por estado -->
+      <div class="compra-detail__actions">
+        @if (c.estado === 'borrador') {
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo() || (c.adjuntos ?? []).length === 0" (click)="enviarAprobacion()">
+            Enviar a aprobación
+          </button>
+          @if ((c.adjuntos ?? []).length === 0) {
+            <span class="text-muted">Agrega una cotización antes de enviar.</span>
+          }
+        }
+        @if (c.estado === 'esperando_aprobacion' && esAprobador()) {
+          @if (!mostrandoRechazo()) {
+            <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="aprobar()">Aprobar</button>
+            <button type="button" class="sgc-btn sgc-btn--secondary" [disabled]="decidiendo()" (click)="mostrandoRechazo.set(true)">Rechazar</button>
+          } @else {
+            <div class="rechazo-form">
+              <textarea
+                class="sgc-input"
+                rows="2"
+                placeholder="Motivo del rechazo"
+                [value]="rechazoMotivo()"
+                (input)="rechazoMotivo.set($any($event.target).value)"
+              ></textarea>
+              <div class="drawer-actions">
+                <button type="button" class="sgc-btn sgc-btn--secondary" (click)="mostrandoRechazo.set(false)">Cancelar</button>
+                <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="confirmarRechazo()">Confirmar rechazo</button>
+              </div>
+            </div>
+          }
+        }
+        @if (c.estado === 'aprobada') {
+          <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="decidiendo()" (click)="marcarComprada()">Marcar como comprada</button>
+        }
+      </div>
     </div>
   }
 </app-form-drawer>

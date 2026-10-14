@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, SecurityContext, inject, signal, computed, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { MotionService } from '../../../../shared/services/motion.service';
@@ -24,6 +24,7 @@ export class Generar implements OnInit {
   private userService = inject(UserService);
   private sanitizer = inject(DomSanitizer);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
 
@@ -64,6 +65,9 @@ export class Generar implements OnInit {
       ]);
       this.plantillas.set(plantillas);
       this.proyectos.set(proyectos);
+      // CO12 — "Usar" desde Plantillas llega con ?plantilla=<id> (preselección).
+      const idParam = this.route.snapshot.queryParamMap.get('plantilla');
+      if (idParam) this.onPlantillaChange(idParam);
     } catch (e: unknown) {
       this.error.set(e instanceof Error ? e.message : 'Error al cargar las plantillas.');
     } finally {

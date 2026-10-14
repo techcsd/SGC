@@ -6,6 +6,7 @@ import {
   AprobacionLegal,
   AprobacionModulo,
   Contrato,
+  ContratoDetalle,
   ContratoEstado,
   ExpedienteArchivo,
   ExpedienteEstado,
@@ -204,6 +205,34 @@ export class LegalService {
     const payload: Partial<Contrato> = { estado };
     if (estado === 'firmado') payload.fecha_firma = new Date().toISOString().slice(0, 10);
     return this.updateContrato(id, payload);
+  }
+
+  /** CO13 — ficha del contrato con el documento generado enlazado (si tiene uno). */
+  async contratoDetalle(id: string): Promise<ContratoDetalle> {
+    const { data, error } = await this.supabase.client.rpc('contrato_detalle', { p_id: id });
+    if (error) throw new Error(error.message);
+    return data as unknown as ContratoDetalle;
+  }
+
+  /** CO13 — sube el PDF/foto del contrato ya firmado (bucket sgc-legal, igual que expedientes). */
+  async subirContratoFirmado(contratoId: string, file: File): Promise<string> {
+    const comprimido = await comprimirImagen(file, 'documento');
+    const path = `contratos/${contratoId}/${crypto.randomUUID()}-${comprimido.name}`;
+    const { error: uploadError } = await this.supabase.client.storage.from('sgc-legal').upload(path, comprimido);
+    if (uploadError) throw new Error(uploadError.message);
+    const { error } = await this.supabase.client
+      .from('contratos')
+      .update({ archivo_firmado_path: path, estado: 'firmado', fecha_firma: new Date().toISOString().slice(0, 10) })
+      .eq('id', contratoId);
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** CO13 — "Usado en contrato CTR-…" para el Historial de Documentos. */
+  async documentoUsadoEnContrato(documentoId: string): Promise<{ id: string; codigo: string; titulo: string } | null> {
+    const { data, error } = await this.supabase.client.rpc('documento_usado_en_contrato', { p_documento_id: documentoId });
+    if (error) return null;
+    return data as { id: string; codigo: string; titulo: string } | null;
   }
 
   /** Contracts expiring within `dias` days (defaults to 30) and not already closed out. */

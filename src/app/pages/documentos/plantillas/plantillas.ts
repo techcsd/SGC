@@ -4,15 +4,16 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { PlantillasDocumentoService } from '../../../../shared/services/plantillas-documento.service';
 import { UserService } from '../../../core/services/user.service';
-import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS, VARIABLES_CONTRATO, PlantillaVersion } from '../../../../shared/models/plantilla-documento.model';
+import { PlantillaDocumento, PlantillaCategoria, CATEGORIA_LABELS, VARIABLES_CONTRATO, PlantillaVersion, CampoPlantilla, ejemploParaCampo } from '../../../../shared/models/plantilla-documento.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
-import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
+import { EditorPlantilla } from '../../../../shared/ui/editor-plantilla/editor-plantilla';
+import { ToastService } from '../../../../shared/services/toast.service';
 
 @Component({
   selector: 'app-documentos-plantillas',
-  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, Icon, DatePipe, StaggerDirective],
+  imports: [ReactiveFormsModule, FormDrawer, RouterLink, Skeleton, DatePipe, StaggerDirective, EditorPlantilla],
   templateUrl: './plantillas.html',
   styleUrl: './plantillas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +21,7 @@ import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 export class Plantillas implements OnInit {
   private plantillasService = inject(PlantillasDocumentoService);
   private userService = inject(UserService);
+  private toast = inject(ToastService);
 
   readonly CATEGORIA_LABELS = CATEGORIA_LABELS;
   readonly CATEGORIAS = Object.keys(CATEGORIA_LABELS) as PlantillaCategoria[];
@@ -147,8 +149,30 @@ export class Plantillas implements OnInit {
   editNombre = signal('');
   editCategoria = signal<PlantillaCategoria>('otro');
   editHtml = signal('');
+  editCampos = signal<CampoPlantilla[]>([]);
   editSaving = signal(false);
   editError = signal('');
+  editEsSistema = signal(false);
+
+  // CO12 — "Ver" (vista previa con datos de ejemplo) + filtro por tipo + menú ⋯.
+  verOpen = signal(false);
+  verPlantilla = signal<PlantillaDocumento | null>(null);
+  filtroTipo = signal<PlantillaCategoria | 'all'>('all');
+  menuAbiertoId = signal<string | null>(null);
+
+  datosEjemploDe(campos: CampoPlantilla[]): Record<string, string> {
+    return Object.fromEntries(campos.map((c) => [c.key, ejemploParaCampo(c)]));
+  }
+  previewDe(p: PlantillaDocumento): string {
+    return this.plantillasService.renderizarResaltado(p.contenido_html, this.datosEjemploDe(p.campos), p.campos);
+  }
+  conteoPorTipo(cat: PlantillaCategoria): number {
+    return this.plantillas().filter((p) => p.categoria === cat).length;
+  }
+  plantillasFiltradas = computed(() => {
+    const f = this.filtroTipo();
+    return f === 'all' ? this.plantillas() : this.plantillas().filter((p) => p.categoria === f);
+  });
 
   versOpen = signal(false);
   versiones = signal<PlantillaVersion[]>([]);
@@ -156,10 +180,14 @@ export class Plantillas implements OnInit {
   versBusy = signal(false);
 
   abrirEditor(p: PlantillaDocumento) {
+    // CO14 — las plantillas del sistema no se tocan: se ofrece Duplicar en su lugar.
+    if (p.origen === 'sistema') { this.duplicar(p); return; }
     this.editId.set(p.id);
     this.editNombre.set(p.nombre);
     this.editCategoria.set(p.categoria);
     this.editHtml.set(p.contenido_html);
+    this.editCampos.set(p.campos);
+    this.editEsSistema.set(false);
     this.editError.set('');
     this.editOpen.set(true);
   }
@@ -172,9 +200,8 @@ export class Plantillas implements OnInit {
     this.editSaving.set(true);
     this.editError.set('');
     try {
-      const campos = this.plantillasService.camposDesdeHtml(this.editHtml());
       const upd = await this.plantillasService.editarPlantilla(id, {
-        nombre: this.editNombre().trim(), categoria: this.editCategoria(), contenido_html: this.editHtml(), campos,
+        nombre: this.editNombre().trim(), categoria: this.editCategoria(), contenido_html: this.editHtml(), campos: this.editCampos(),
       });
       this.plantillas.update((list) => list.map((x) => x.id === id ? { ...x, ...upd } : x));
       this.editOpen.set(false);
@@ -182,6 +209,28 @@ export class Plantillas implements OnInit {
       this.editError.set(e instanceof Error ? e.message : 'No se pudo guardar.');
     } finally {
       this.editSaving.set(false);
+    }
+  }
+
+  // ── CO12 — "Ver" (vista previa grande con datos de ejemplo) ────────────────
+  abrirVer(p: PlantillaDocumento) {
+    this.verPlantilla.set(p);
+    this.verOpen.set(true);
+    this.menuAbiertoId.set(null);
+  }
+  cerrarVer() { this.verOpen.set(false); }
+
+  // ── CO14 — Duplicar (plantillas del sistema se editan vía copia) ───────────
+  async duplicar(p: PlantillaDocumento) {
+    this.menuAbiertoId.set(null);
+    try {
+      const creadoPor = this.userService.profile()?.id ?? null;
+      const copia = await this.plantillasService.duplicarPlantilla(p, creadoPor);
+      this.plantillas.update((list) => [copia, ...list]);
+      this.toast.success('Plantilla duplicada', `"${copia.nombre}" — ya la puedes editar.`);
+      this.abrirEditor(copia);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo duplicar', e instanceof Error ? e.message : undefined);
     }
   }
 

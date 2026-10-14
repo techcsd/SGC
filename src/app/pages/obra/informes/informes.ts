@@ -138,9 +138,12 @@ export class ObraInformes implements OnInit {
   async enviar() {
     const inf = this.informe();
     if (!inf || this.saving()) return;
-    if (this.esBorrador()) await this.guardar();
+    // CO16 — la bandera va antes del primer await (si no, dos toques mientras
+    // `guardar()` está en vuelo pasan ambos la barrera y envían dos veces).
     this.saving.set(true);
     try {
+      if (this.esBorrador()) await this.guardar();
+      this.saving.set(true); // guardar() interno limpia la bandera en su `finally`
       await this.service.enviarInforme(inf.id);
       this.toast.success('Informe enviado a Gerencia');
       await this.abrirInforme(inf.id);

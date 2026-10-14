@@ -1,0 +1,110 @@
+// CO2 — Novedades a pantalla completa. Mock Main.dc.html (OK Xaviel 14-oct): van tal cual.
+.novedades__velo {
+  position: fixed;
+  inset: 0;
+  z-index: 1200; // encima de la bienvenida CL3 solo si ella ya cerró (secuenciado en TS)
+  background: rgba(15, 31, 51, 0.92);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+
+  html.motion-reduced & { transition: none; }
+}
+
+.novedades__tarjeta {
+  width: 100%;
+  max-width: 760px;
+  max-height: calc(100vh - 80px);
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.novedades__header {
+  padding: 28px 32px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--border, #f2f4f7);
+}
+.novedades__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.novedades__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-hover, #ea580c);
+}
+.novedades__rango { font-size: 13px; color: var(--text-2); }
+.novedades__titulo {
+  margin: 0;
+  font: 700 28px 'Inter Tight', Inter, sans-serif;
+  letter-spacing: -0.03em;
+  color: #0f1f33;
+}
+
+.novedades__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.novedades__arreglado {
+  background: #fff4ec;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.novedades__arreglado-head { display: flex; align-items: center; gap: 10px; }
+.novedades__arreglado-icono {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--Hub, #f97316);
+  color: #14243a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.novedades__arreglado-titulo { font: 700 16px 'Inter Tight', Inter, sans-serif; color: #0f1f33; }
+.novedades__arreglado-lista { display: flex; flex-direction: column; gap: 8px; padding-left: 42px; }
+.novedades__arreglado-item { margin: 0; font-size: 14px; font-weight: 600; color: #101828; }
+
+.novedades__version { display: flex; flex-direction: column; gap: 10px; }
+.novedades__version-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.novedades__version-num { font: 700 15px 'Inter Tight', Inter, sans-serif; color: #0f1f33; }
+.novedades__version-fecha { font-size: 13px; color: var(--text-2); }
+.novedades__cambio { display: flex; gap: 10px; align-items: flex-start; }
+.novedades__cambio-texto { font-size: 14px; color: #344054; }
+
+.novedades__footer {
+  padding: 16px 32px 24px;
+  border-top: 1px solid var(--border, #f2f4f7);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.novedades__historial { font-size: 14px; font-weight: 600; text-decoration: none; color: var(--brand, #1e3a5f); }
+
+@media (max-width: 768px) {
+  .novedades__header, .novedades__body, .novedades__footer { padding-left: 20px; padding-right: 20px; }
+  .novedades__titulo { font-size: 22px; }
+}
