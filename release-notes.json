@@ -5329,6 +5329,16 @@
           "d": "El asistente de «Importar vehículos desde Odoo» a veces no reconocía qué se iba a importar y mostraba el selector completo en vez de ir directo a vehículos."
         }
       ]
+    },
+    "1.192.1": {
+      "titulo": "Importar choferes y vehículos — botón de plantilla más visible",
+      "cambios": [
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El botón para descargar la plantilla de Excel (para choferes y vehículos) quedaba escondido dentro de las instrucciones de Odoo. Ahora está siempre visible como el primer paso, separado de la opción de Odoo (que ahora solo aparece si aplica)."
+        }
+      ]
     }
   }
 }
