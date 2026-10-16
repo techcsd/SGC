@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from '../../app/core/services/supabase.service';
 import { AuthService } from '../../app/core/services/auth.service';
+import { SignedUrlCache } from './signed-url-cache.service';
 import {
   Conductor,
   ConductorFormData,
@@ -11,6 +12,8 @@ import { ConductorStats, ConductorStatsPeriodo, ConductorStatsPeriodoValor } fro
 import { sanitizeUuidFields } from '../utils/uuid.util';
 import { edgeErrorMessage } from '../utils/edge.util';
 import { pickColumns } from '../utils/pick-columns.util';
+
+const CONDUCTOR_FOTO_BUCKET = 'conductores';
 
 /** C2 — uuid opcionales de un payload de conductor a sanear antes de escribir. */
 const CONDUCTOR_UUID_FIELDS = ['usuario_id', 'vehiculo_id'] as const;
@@ -56,6 +59,39 @@ export interface UsuarioVinculable {
 export class ConductoresService {
   private supabase = inject(SupabaseService);
   private auth = inject(AuthService);
+  private cache = inject(SignedUrlCache);
+
+  // ── Foto del conductor (sgc.conductores.foto_path + bucket `conductores`) ──
+  // Independiente del avatar del usuario vinculado (AS2): un conductor no
+  // siempre tiene usuario_id, y esta foto también se puede llenar por import.
+
+  /** Sube la foto de un conductor y devuelve su path en storage. */
+  async uploadFoto(conductorId: string, file: File): Promise<string> {
+    const safeName = (file.name || 'foto')
+      .replace(/\.[^.]+$/, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+      .slice(0, 40) || 'foto';
+    const path = `conductor/${conductorId}/${crypto.randomUUID()}-${safeName}.jpg`;
+    const { error } = await this.supabase.client.storage
+      .from(CONDUCTOR_FOTO_BUCKET)
+      .upload(path, file, { upsert: true });
+    if (error) throw new Error(error.message);
+    return path;
+  }
+
+  /** URL firmada (cacheada) de la foto del conductor. */
+  async getFotoUrl(path: string): Promise<string | null> {
+    return (await this.cache.signed(CONDUCTOR_FOTO_BUCKET, path)) || null;
+  }
+
+  /** Persiste el path de la foto en la ficha del conductor. */
+  async setFoto(conductorId: string, path: string | null): Promise<void> {
+    const { error } = await this.supabase.client
+      .from('conductores')
+      .update({ foto_path: path })
+      .eq('id', conductorId);
+    if (error) throw new Error(error.message);
+  }
 
   /**
    * C1 — catálogo de categorías de licencia RD (`sgc.licencia_categorias`).

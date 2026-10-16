@@ -63,7 +63,7 @@
 | flota/combustible-dashboard | - | 74 | 0 | 74 | 0% |
 | flota/combustible-log | - | 195 | 0 | 195 | 0% |
 | flota/conciliacion-combustible | - | 228 | 0 | 228 | 0% |
-| flota/conductores | - | 282 | 0 | 282 | 0% |
+| flota/conductores | - | 286 | 0 | 286 | 0% |
 | flota/conductores-estado | - | 25 | 0 | 25 | 0% |
 | flota/panel-dia | - | 36 | 0 | 36 | 0% |
 | flota/recorrido-diario | - | 32 | 0 | 32 | 0% |

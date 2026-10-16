@@ -115,14 +115,18 @@ export class ConductorDetalle implements OnInit {
   );
 
   // ── AS2 — avatar del conductor ────────────────────────────────
-  // La foto vive en el usuario vinculado (bucket PÚBLICO sgc-avatars); se
-  // resuelve con getPublicUrl (mismo patrón que el shell / UserService.avatarUrl).
-  // Si no hay usuario vinculado o sin foto → null y se pinta el círculo de
-  // iniciales (fallback obligatorio, nunca un <img> roto).
+  // 1ª opción: avatar del usuario vinculado (bucket PÚBLICO sgc-avatars, sync).
+  // 2ª opción: foto propia del conductor (bucket PRIVADO `conductores`, requiere
+  // URL firmada → se resuelve en ngOnInit y vive en `fotoPropiaUrl`). Un conductor
+  // no siempre tiene usuario_id (p. ej. importado desde Excel sin acceso a la app),
+  // por eso esta foto es independiente del avatar de usuario.
+  // Si ninguna existe → null y se pinta el círculo de iniciales (fallback
+  // obligatorio, nunca un <img> roto).
+  fotoPropiaUrl = signal<string | null>(null);
   avatarUrl = computed(() => {
     const path = this.conductor()?.usuario?.avatar_path;
-    if (!path) return null;
-    return this.supabase.client.storage.from('sgc-avatars').getPublicUrl(path).data.publicUrl;
+    if (path) return this.supabase.client.storage.from('sgc-avatars').getPublicUrl(path).data.publicUrl;
+    return this.fotoPropiaUrl();
   });
   iniciales = computed(() => {
     const nombre = this.conductor()?.nombre ?? '';
@@ -279,6 +283,13 @@ export class ConductorDetalle implements OnInit {
     this.loading.set(false);
     if (!conductor) return;
 
+    // Foto propia del conductor (bucket privado → requiere URL firmada, best-effort).
+    if (conductor.foto_path) {
+      this.conductoresService.getFotoUrl(conductor.foto_path)
+        .then((url) => this.fotoPropiaUrl.set(url))
+        .catch(() => this.fotoPropiaUrl.set(null));
+    }
+
     // Secciones secundarias — cada una tolera su propio fallo.
     this.conductoresService
       .getStats(id)
@@ -331,6 +342,28 @@ export class ConductorDetalle implements OnInit {
       this.multaDocUrls.set(map);
     } catch {
       /* actividad best-effort */
+    }
+  }
+
+  // ── Foto propia del conductor (independiente del avatar del usuario) ──────
+  subiendoFoto = signal(false);
+  async onFotoChange(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const c = this.conductor();
+    if (!file || !c || this.subiendoFoto()) return;
+    this.subiendoFoto.set(true);
+    try {
+      const path = await this.conductoresService.uploadFoto(c.id, file);
+      await this.conductoresService.setFoto(c.id, path);
+      this.conductor.set({ ...c, foto_path: path });
+      this.fotoPropiaUrl.set(await this.conductoresService.getFotoUrl(path));
+      this.toast.success('Foto actualizada');
+    } catch (e) {
+      this.toast.errorFrom(e, 'No se pudo subir la foto');
+    } finally {
+      this.subiendoFoto.set(false);
+      input.value = '';
     }
   }
 
