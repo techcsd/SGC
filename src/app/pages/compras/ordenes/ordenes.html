@@ -497,6 +497,16 @@
             {{ estadoLabel(e) }}
           </button>
         }
+        @if (orden.estado === 'recibida' && reconciliacionIncompleta()) {
+          <button
+            type="button"
+            class="sgc-btn sgc-btn--ghost detail-estado__btn"
+            title="Esta orden se marcó recibida pero algunos renglones todavía no tienen una entrada real registrada — reabrirla la devuelve a Entradas."
+            (click)="reabrirRecepcion(orden)"
+          >
+            Reabrir recepción
+          </button>
+        }
       </div>
 
       <!-- Items table -->

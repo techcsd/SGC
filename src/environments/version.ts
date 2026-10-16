@@ -1,5 +1,5 @@
 // AUTO-GENERADO por scripts/gen-version.mjs (hook prebuild/prestart). No editar a mano.
-export const APP_VERSION = '1.190.0';
-export const APP_VERSION_TITULO: string | null = "Recepción de órdenes con renglones sin catalogar + vínculo al catálogo";
-export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Inventario","d":"Registrar entrada: al elegir la orden de compra, ahora se precargan sus renglones (con la descripción original de la orden como referencia) y se puede buscar el artículo equivalente del catálogo por nombre o código — antes no había forma de recibir una orden cuyos renglones no estuvieran ya catalogados."},{"t":"nuevo","m":"Compras","d":"Órdenes de compra: la reconciliación de recepción ahora deja vincular cada renglón sin artículo a uno ya existente del catálogo (buscándolo) o crear uno nuevo, en vez de quedarse permanentemente «Sin artículo»."},{"t":"arreglo","m":"Legal","d":"Se corrigió un error que impedía volver a subir un contrato firmado cuando ya existía una versión previa del mismo archivo."}];
-export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/742c271";
+export const APP_VERSION = '1.190.1';
+export const APP_VERSION_TITULO: string | null = "Reabrir una orden marcada recibida sin recepción real";
+export const APP_VERSION_CAMBIOS: { t: string; d: string; m?: string }[] = [{"t":"arreglo","m":"Compras","d":"Una orden que se marcó «Recibida» sin que en realidad se hubiera registrado ninguna entrada quedaba bloqueada para siempre (no volvía a aparecer en Inventario › Entradas). Ahora, si le falta algún renglón por recibir de verdad, aparece el botón «Reabrir recepción» para destrabarla."}];
+export const APP_VERSION_URL: string | null = "https://github.com/techcsd/SGC/commit/04e0f39";
