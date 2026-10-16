@@ -32,6 +32,19 @@
 
     <div class="rf__cols">
       <div class="rf__main">
+        @if (d.agenda.length) {
+          <section class="rf__card">
+            <div class="rf__card-head">
+              <span class="rf__card-title">{{ 'Agenda' | t }}</span>
+            </div>
+            <ol class="rf__agenda">
+              @for (item of d.agenda; track item.id) {
+                <li>{{ item.texto }}</li>
+              }
+            </ol>
+          </section>
+        }
+
         <section class="rf__card">
           <div class="rf__card-head">
             <span class="rf__card-title">{{ 'Resumen' | t }}</span>

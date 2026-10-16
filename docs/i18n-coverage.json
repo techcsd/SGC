@@ -14629,10 +14629,10 @@
     },
     {
       "pantalla": "reuniones/reunion-ficha",
-      "total": 47,
-      "cubiertos": 25,
-      "sin": 22,
-      "pct": 53,
+      "total": 50,
+      "cubiertos": 26,
+      "sin": 24,
+      "pct": 52,
       "enScope": false,
       "enforce": false,
       "faltantes": [
@@ -14642,6 +14642,8 @@
         "} @else {",
         "} @if (d.acta?.transcripcion_url) {",
         "} @if (esOrganizadorOAdmin() && d.reunion.estado !== 'acta_aprobada' && d.reunion.estado !== 'cancelada') {",
+        "@if (d.agenda.length) {",
+        "@for (item of d.agenda; track item.id) {",
         "@if (d.reunion.fireflies_id) {",
         "@if (esOrganizadorOAdmin()) {",
         "} @else {",

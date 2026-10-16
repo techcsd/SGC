@@ -163,4 +163,4 @@
 | asistente | - | 54 | 26 | 28 | 48% |
 | admin/compa-conversaciones | - | 39 | 19 | 20 | 49% |
 | reuniones/reuniones-lista | - | 75 | 37 | 38 | 49% |
-| reuniones/reunion-ficha | - | 47 | 25 | 22 | 53% |
+| reuniones/reunion-ficha | - | 50 | 26 | 24 | 52% |
