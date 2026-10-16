@@ -556,10 +556,11 @@
                   <th class="text-right">Ordenado</th>
                   <th class="text-right">Recibido</th>
                   <th class="text-center">Estado</th>
+                  <th class="text-center">Acción</th>
                 </tr>
               </thead>
               <tbody>
-                @for (r of reconciliacion(); track $index) {
+                @for (r of reconciliacion(); track r.itemId) {
                   <tr>
                     <td>{{ r.descripcion }}</td>
                     <td class="text-right">{{ r.ordenada | number:'1.0-2' }}</td>
@@ -567,12 +568,82 @@
                     <td class="text-center">
                       <span [class]="reconEstadoClass(r.estado)">{{ reconEstadoLabel(r.estado) }}</span>
                     </td>
+                    <td class="text-center">
+                      @if (r.estado === 'sin_articulo') {
+                        @if (vincularItemId() !== r.itemId) {
+                          <button type="button" class="oc-inline-link" (click)="abrirVincularArticulo(r)">Vincular artículo</button>
+                        } @else {
+                          <span class="text-muted">↓ abajo</span>
+                        }
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
                   </tr>
+                  @if (vincularItemId() === r.itemId) {
+                    <tr class="recon-vincular-row">
+                      <td colspan="5">
+                        <div class="oc-nuevo-prov">
+                          <p class="text-muted" style="margin:0 0 .5rem">
+                            Vincular <b>{{ r.descripcion }}</b> a un artículo del catálogo (habilita recibirlo en Inventario › Entradas).
+                          </p>
+                          <div class="form-row">
+                            <button type="button" class="oc-destino__opt" [class.active]="vincularModo() === 'existente'"
+                                    (click)="vincularModo.set('existente')">Buscar existente</button>
+                            <button type="button" class="oc-destino__opt" [class.active]="vincularModo() === 'nuevo'"
+                                    (click)="vincularModo.set('nuevo')">Crear nuevo</button>
+                          </div>
+
+                          @if (vincularModo() === 'existente') {
+                            <p class="text-muted" style="margin:.5rem 0">Búscalo por nombre o código — evita crear un artículo duplicado si ya existe con otro nombre.</p>
+                            <app-articulo-picker
+                              [articulos]="articulos()"
+                              [categorias]="categorias()"
+                              [value]="vincularArticuloExistenteId()"
+                              [allowOtro]="false"
+                              placeholder="Buscar artículo del catálogo…"
+                              (selectionChange)="onVincularExistenteSelect($event)"
+                            />
+                            <div class="form-row">
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">Cancelar</button>
+                              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                                      [disabled]="vinculandoArticulo() || !vincularArticuloExistenteId()"
+                                      (click)="confirmarVincularExistente(r)">
+                                {{ vinculandoArticulo() ? 'Vinculando…' : 'Vincular' }}
+                              </button>
+                            </div>
+                          } @else {
+                            <div class="form-row">
+                              <select [ngModel]="vincularCategoriaId()" (ngModelChange)="vincularCategoriaId.set($event)">
+                                <option [ngValue]="null">Categoría…</option>
+                                @for (c of categorias(); track c.id) {
+                                  <option [ngValue]="c.id">{{ c.nombre }}</option>
+                                }
+                              </select>
+                              <select [ngModel]="vincularUnidad()" (ngModelChange)="vincularUnidad.set($event)">
+                                @for (u of unidadesArticulo; track u.value) {
+                                  <option [value]="u.value">{{ u.label }}</option>
+                                }
+                              </select>
+                            </div>
+                            <div class="form-row">
+                              <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" [disabled]="vinculandoArticulo()" (click)="cancelarVincularArticulo()">Cancelar</button>
+                              <button type="button" class="sgc-btn sgc-btn--primary sgc-btn--sm"
+                                      [disabled]="vinculandoArticulo() || !vincularCategoriaId()"
+                                      (click)="confirmarVincularArticulo(r)">
+                                {{ vinculandoArticulo() ? 'Creando…' : 'Crear y vincular' }}
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
           </div>
-          <p class="text-muted recon-note">Los renglones sin artículo del catálogo no se pueden reconciliar automáticamente.</p>
+          <p class="text-muted recon-note">Los renglones sin artículo del catálogo se pueden recibir en Inventario › Entradas eligiendo el artículo equivalente, pero no se reconcilian automáticamente aquí hasta vincularlos a uno.</p>
         </div>
       }
 

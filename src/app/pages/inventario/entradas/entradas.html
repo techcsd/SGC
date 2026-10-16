@@ -323,12 +323,19 @@
       <!-- Orden de compra -->
       <div class="sgc-field">
         <label for="orden_compra_id">Orden de compra (opcional)</label>
-        <select id="orden_compra_id" formControlName="orden_compra_id">
+        <select
+          id="orden_compra_id"
+          formControlName="orden_compra_id"
+          (change)="onOrdenCompraChange($any($event.target).value)"
+        >
           <option [value]="null">Sin orden asociada</option>
           @for (o of ordenesRecibibles(); track o.id) {
             <option [value]="o.id">{{ o.numero }} — {{ o.proveedor?.nombre ?? '—' }}</option>
           }
         </select>
+        @if (f.orden_compra_id.value) {
+          <small class="sgc-field__hint">Se precargaron los renglones de la orden abajo; busca y elige el artículo equivalente del catálogo en cada uno.</small>
+        }
       </div>
     }
 
@@ -392,20 +399,19 @@
 
       @for (item of formItems(); track $index) {
         <div class="item-row">
-          <select
-            class="item-row__articulo"
-            [value]="item.articulo_id"
-            (change)="updateItemArticulo($index, $any($event.target).value)"
-          >
-            <option value="">Seleccionar artículo…</option>
-            @for (g of articulosAgrupados(); track g.categoria) {
-              <optgroup [label]="g.categoria">
-                @for (a of g.articulos; track a.id) {
-                  <option [value]="a.id">{{ a.nombre }} ({{ a.codigo }})</option>
-                }
-              </optgroup>
+          <div class="item-row__articulo">
+            <app-articulo-picker
+              [articulos]="articulos()"
+              [categorias]="categorias()"
+              [value]="item.articulo_id || null"
+              [allowOtro]="false"
+              placeholder="Seleccionar artículo…"
+              (selectionChange)="onItemArticuloSelect($index, $event)"
+            />
+            @if (item.ocDescripcion) {
+              <small class="item-row__oc-hint">De la orden: «{{ item.ocDescripcion }}»</small>
             }
-          </select>
+          </div>
           <app-qty-stepper
             class="item-row__cantidad"
             [value]="item.cantidad"

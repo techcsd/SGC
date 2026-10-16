@@ -46,7 +46,7 @@
 | bitacora/nueva | - | 271 | 0 | 271 | 0% |
 | bitacora/solicitudes-compra | - | 56 | 0 | 56 | 0% |
 | bitacora/solicitudes-material | - | 117 | 0 | 117 | 0% |
-| compras/ordenes | - | 143 | 0 | 143 | 0% |
+| compras/ordenes | - | 163 | 0 | 163 | 0% |
 | compras/proveedores | - | 115 | 0 | 115 | 0% |
 | compras/reportes | - | 35 | 0 | 35 | 0% |
 | dashboard | - | 141 | 0 | 141 | 0% |
@@ -87,7 +87,7 @@
 | inventario/conduces-por-implementar | - | 20 | 0 | 20 | 0% |
 | inventario/confirmaciones | - | 44 | 0 | 44 | 0% |
 | inventario/conteos | - | 110 | 0 | 110 | 0% |
-| inventario/entradas | - | 227 | 0 | 227 | 0% |
+| inventario/entradas | - | 229 | 0 | 229 | 0% |
 | inventario/kardex-modal | - | 47 | 0 | 47 | 0% |
 | inventario/lugares-por-registrar | - | 20 | 0 | 20 | 0% |
 | inventario/material-no-catalogado | - | 56 | 0 | 56 | 0% |

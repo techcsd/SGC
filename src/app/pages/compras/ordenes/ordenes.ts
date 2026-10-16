@@ -6,7 +6,7 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrdenesCompraService, OrdenCompraPayload } from '../../../../shared/services/ordenes-compra.service';
@@ -21,7 +21,7 @@ import { OrdenCompra, OrdenCompraItem, OrdenEstado } from '../../../../shared/mo
 import { EntradaInventario } from '../../../../shared/models/entrada.model';
 import { Proveedor } from '../../../../shared/models/proveedor.model';
 import { SolicitudCompra } from '../../../../shared/models/solicitud.model';
-import { Articulo } from '../../../../shared/models/articulo.model';
+import { Articulo, UNIDADES } from '../../../../shared/models/articulo.model';
 import { Categoria } from '../../../../shared/models/categoria.model';
 import { FormDrawer } from '../../../../shared/components/form-drawer/form-drawer';
 import { Skeleton } from '../../../../shared/components/skeleton/skeleton';
@@ -63,6 +63,7 @@ const NUEVO_OC_ITEM: () => ItemRow = () => ({
 type ReconciliacionEstado = 'completo' | 'parcial' | 'pendiente' | 'sin_articulo';
 
 interface ReconciliacionRow {
+  itemId: string;
   descripcion: string;
   ordenada: number;
   recibida: number | null;
@@ -71,7 +72,7 @@ interface ReconciliacionRow {
 
 @Component({
   selector: 'app-ordenes',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, Icon, RouterLink, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormsModule, FormDrawer, DecimalPipe, DateRangeFilter, ArticuloPicker, Icon, RouterLink, StaggerDirective],
   templateUrl: './ordenes.html',
   styleUrl: './ordenes.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -208,18 +209,104 @@ export class Ordenes implements OnInit {
       }
     }
 
+    // item.id is optional on OrdenCompraItem only for the create-drawer payload shape;
+    // items here always come from OrdenesCompraService.getById (DB rows, id always set).
     return orden.items.map((item) => {
       if (item.articulo_id == null) {
-        return { descripcion: item.descripcion, ordenada: item.cantidad, recibida: null, estado: 'sin_articulo' as const };
+        return { itemId: item.id!, descripcion: item.descripcion, ordenada: item.cantidad, recibida: null, estado: 'sin_articulo' as const };
       }
       const recibida = recibidoPorArticulo.get(item.articulo_id) ?? 0;
       let estado: ReconciliacionEstado;
       if (recibida >= item.cantidad) estado = 'completo';
       else if (recibida > 0) estado = 'parcial';
       else estado = 'pendiente';
-      return { descripcion: item.descripcion, ordenada: item.cantidad, recibida, estado };
+      return { itemId: item.id!, descripcion: item.descripcion, ordenada: item.cantidad, recibida, estado };
     });
   });
+
+  // ── QA-076b — vincular un renglón "sin artículo" a uno del catálogo ───────
+  // Dos modos: "existente" (buscar y linkear — evita duplicar el catálogo cuando
+  // el artículo ya existe con otro nombre, p.ej. "BOTA DE GOMA # 44" (texto libre
+  // de la OC) ↔ "BOTA de SEGURIDAD...#44" (catálogo real); caso de Raykler en
+  // OC-202610-0006) o "nuevo" (crearlo desde la descripción libre, cuando de
+  // verdad no existe todavía).
+  readonly unidadesArticulo = UNIDADES;
+  vincularItemId = signal<string | null>(null);
+  vincularModo = signal<'existente' | 'nuevo'>('existente');
+  vincularArticuloExistenteId = signal<string | null>(null);
+  vincularCategoriaId = signal<number | null>(null);
+  vincularUnidad = signal('unidad');
+  vinculandoArticulo = signal(false);
+
+  abrirVincularArticulo(row: ReconciliacionRow) {
+    this.vincularItemId.set(row.itemId);
+    this.vincularModo.set('existente');
+    this.vincularArticuloExistenteId.set(null);
+    this.vincularCategoriaId.set(null);
+    this.vincularUnidad.set('unidad');
+  }
+
+  cancelarVincularArticulo() {
+    this.vincularItemId.set(null);
+  }
+
+  onVincularExistenteSelect(sel: ArticuloPickerSelection) {
+    this.vincularArticuloExistenteId.set(sel.articuloId);
+  }
+
+  /** Enlaza el renglón a un artículo del catálogo ya elegido con el picker buscable. */
+  async confirmarVincularExistente(row: ReconciliacionRow) {
+    const articuloId = this.vincularArticuloExistenteId();
+    if (!articuloId || this.vinculandoArticulo()) return;
+    this.vinculandoArticulo.set(true);
+    try {
+      await this.ordenesService.vincularArticulo(row.itemId, articuloId);
+      await this.refrescarTrasVincular();
+      const articulo = this.articulos().find((a) => a.id === articuloId);
+      this.toast.success('Artículo vinculado', articulo ? `${articulo.codigo} — ${articulo.nombre}` : undefined);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo vincular el artículo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.vinculandoArticulo.set(false);
+    }
+  }
+
+  /** Crea un artículo nuevo desde la descripción libre del renglón y lo vincula. */
+  async confirmarVincularArticulo(row: ReconciliacionRow) {
+    const categoriaId = this.vincularCategoriaId();
+    if (!categoriaId || this.vinculandoArticulo()) return;
+    this.vinculandoArticulo.set(true);
+    try {
+      const articulo = await this.articulosService.create({
+        nombre: row.descripcion,
+        descripcion: null,
+        categoria_id: categoriaId,
+        unidad: this.vincularUnidad(),
+        stock_minimo: 0,
+        stock_maximo: null,
+        precio_estimado: null,
+        activo: true,
+      });
+      await this.ordenesService.vincularArticulo(row.itemId, articulo.id);
+      this.articulos.update((list) => [...list, articulo]);
+      await this.refrescarTrasVincular();
+      this.toast.success('Artículo creado y vinculado', `${articulo.codigo} — ${articulo.nombre}`);
+    } catch (e: unknown) {
+      this.toast.error('No se pudo crear/vincular el artículo', e instanceof Error ? e.message : undefined);
+    } finally {
+      this.vinculandoArticulo.set(false);
+    }
+  }
+
+  /** Recarga el detalle de la orden (reconciliación) y cierra el panel de vínculo. */
+  private async refrescarTrasVincular() {
+    const orden = this.detailOrden();
+    if (orden) {
+      const full = await this.ordenesService.getById(orden.id);
+      this.detailOrden.set(full);
+    }
+    this.vincularItemId.set(null);
+  }
 
   reconEstadoClass(estado: ReconciliacionEstado): string {
     switch (estado) {
