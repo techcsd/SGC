@@ -18,31 +18,56 @@
   @if (paso() === 2 && entidad(); as e) {
     <h2 class="imp__step">{{ bloqueada() ? '' : '2 · ' }}{{ 'Sube el archivo de {label}' | t:{ label: e.label } }}</h2>
 
-    <!-- Plantilla propia SGC — acción principal: así la llena el usuario a mano, sin Odoo. -->
-    <div class="imp__plantilla">
-      <p class="imp__plantilla-hint">{{ '¿Primera vez? Descarga la plantilla en blanco, llénala y súbela abajo.' | t }}</p>
-      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descargarPlantillaSgc(e)">
-        {{ 'Descargar plantilla de {label}' | t:{ label: e.label } }}
-      </button>
-    </div>
-
     @if (e.odoo) {
-      <details class="imp__odoo-help">
-        <summary>{{ '¿Tus datos vienen de Odoo? Cómo exportarlos' | t }}</summary>
-        <ol>
-          <li>Abre la lista de <strong>{{ e.label }}</strong> en Odoo (modelo <code>{{ e.odoo }}</code>).</li>
-          <li>Selecciona los registros → menú <strong>Acción → Exportar</strong>.</li>
-          <li>Marca <strong>“Exportar como ID”</strong> (para el ID externo) y elige los campos:
-            @if (e.key === 'proveedores') { Nombre, NIF/RNC, Teléfono, Correo electrónico, Calle, Es una compañía, Activo. }
-            @else if (e.key === 'vehiculos') { Matrícula, Marca, Modelo, Color, Tipo de vehículo. }
-            @else { Nombre, Referencia interna, Categoría de producto, Unidad de medida. }
-          </li>
-          <li>Descarga el <code>.xlsx</code> o <code>.csv</code> y súbelo aquí tal cual — el asistente reconoce las etiquetas de Odoo (ES/EN) y transforma los datos.</li>
-        </ol>
-        <div class="imp__odoo-help-actions">
-          <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarEjemploOdoo(e)">{{ 'Ejemplo con encabezados de Odoo' | t }}</button>
+      <!-- Dos orígenes posibles: la plantilla propia (llenada a mano) o un export de Odoo. -->
+      <div class="imp__fuentes">
+        <button type="button" class="imp__fuente" [class.imp__fuente--activa]="fuente() === 'plantilla'" (click)="fuente.set('plantilla')">
+          <svg class="imp__fuente-ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M9 13h6" /><path d="M9 17h6" />
+          </svg>
+          <span class="imp__fuente-title">{{ 'Plantilla SGC' | t }}</span>
+          <span class="imp__fuente-tag">{{ 'Recomendado' | t }}</span>
+        </button>
+        <button type="button" class="imp__fuente" [class.imp__fuente--activa]="fuente() === 'odoo'" (click)="fuente.set('odoo')">
+          <svg class="imp__fuente-ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" />
+          </svg>
+          <span class="imp__fuente-title">{{ 'Archivo de Odoo' | t }}</span>
+        </button>
+      </div>
+
+      @if (fuente() === 'plantilla') {
+        <div class="imp__plantilla">
+          <p class="imp__plantilla-hint">{{ '¿Primera vez? Descarga la plantilla en blanco, llénala y súbela abajo.' | t }}</p>
+          <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descargarPlantillaSgc(e)">
+            {{ 'Descargar plantilla de {label}' | t:{ label: e.label } }}
+          </button>
         </div>
-      </details>
+      } @else {
+        <div class="imp__odoo-help">
+          <ol>
+            <li>Abre la lista de <strong>{{ e.label }}</strong> en Odoo (modelo <code>{{ e.odoo }}</code>).</li>
+            <li>Selecciona los registros → menú <strong>Acción → Exportar</strong>.</li>
+            <li>Marca <strong>“Exportar como ID”</strong> (para el ID externo) y elige los campos:
+              @if (e.key === 'proveedores') { Nombre, NIF/RNC, Teléfono, Correo electrónico, Calle, Es una compañía, Activo. }
+              @else if (e.key === 'vehiculos') { Matrícula, Marca, Modelo, Color, Tipo de vehículo. }
+              @else { Nombre, Referencia interna, Categoría de producto, Unidad de medida. }
+            </li>
+            <li>Descarga el <code>.xlsx</code> o <code>.csv</code> y súbelo aquí tal cual — el asistente reconoce las etiquetas de Odoo (ES/EN) y transforma los datos.</li>
+          </ol>
+          <div class="imp__odoo-help-actions">
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="descargarEjemploOdoo(e)">{{ 'Ejemplo con encabezados de Odoo' | t }}</button>
+          </div>
+        </div>
+      }
+    } @else {
+      <!-- Sin perfil Odoo (p. ej. choferes) — un solo camino, sin elección. -->
+      <div class="imp__plantilla">
+        <p class="imp__plantilla-hint">{{ '¿Primera vez? Descarga la plantilla en blanco, llénala y súbela abajo.' | t }}</p>
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="descargarPlantillaSgc(e)">
+          {{ 'Descargar plantilla de {label}' | t:{ label: e.label } }}
+        </button>
+      </div>
     }
 
     <label class="sgc-btn sgc-btn--primary imp__file">

@@ -473,5 +473,8 @@
   "Volver": "Back",
   "← Vehículos": "← Vehicles",
   "Importar vehículos": "Import vehicles",
-  "Descarga la plantilla, llénala y súbela — o sube un archivo exportado de Odoo. Reimportar actualiza, no duplica.": "Download the template, fill it in, and upload it — or upload a file exported from Odoo. Re-importing updates, it doesn't duplicate."
+  "Descarga la plantilla, llénala y súbela — o sube un archivo exportado de Odoo. Reimportar actualiza, no duplica.": "Download the template, fill it in, and upload it — or upload a file exported from Odoo. Re-importing updates, it doesn't duplicate.",
+  "Plantilla SGC": "SGC template",
+  "Recomendado": "Recommended",
+  "Archivo de Odoo": "Odoo file"
 }
