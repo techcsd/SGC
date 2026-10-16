@@ -11,6 +11,15 @@ export interface CampoEntidad {
   requerido?: boolean;
   transform?: TransformOdoo; // CC4 — transformación al importar un archivo de Odoo
 }
+/** Foto por fila vía .zip (xlsx/SheetJS no lee imágenes embebidas en celdas): la
+ *  plantilla trae una columna con el nombre exacto del archivo dentro del .zip que
+ *  el usuario sube junto al Excel; se empareja por nombre y se sube al bucket. */
+export interface FotoImportable {
+  bucket: string;
+  campoArchivo: string;   // 't' del CampoEntidad que trae el nombre de archivo
+  campoDestino: string;   // columna de la tabla a actualizar con el path subido
+  ruta: (id: string, filename: string) => string;
+}
 export interface EntidadImportable {
   key: string;
   label: string;
@@ -18,6 +27,7 @@ export interface EntidadImportable {
   odoo?: string;        // modelo de Odoo del que suele venir
   soportaDeshacer: boolean;
   campos: CampoEntidad[];
+  foto?: FotoImportable;
 }
 
 // CC4 — la columna del ID externo de Odoo (idempotencia). Reconoce las variantes
@@ -25,6 +35,12 @@ export interface EntidadImportable {
 const CAMPO_ODOO_REF: CampoEntidad = {
   t: 'odoo_ref', label: 'ID externo (Odoo)',
   alias: ['id', 'external id', 'external_id', 'id_externo', 'id externo', '__export__', 'xml id', 'xml_id', 'database id', 'database_id'],
+};
+
+// Columna de la plantilla SGC que trae el nombre del archivo dentro del .zip de fotos.
+const CAMPO_ARCHIVO_FOTO: CampoEntidad = {
+  t: 'archivo_foto', label: 'Archivo de foto (nombre exacto dentro del .zip, opcional)',
+  alias: ['archivo_foto', 'foto', 'photo', 'picture', 'imagen'],
 };
 
 export const ENTIDADES: EntidadImportable[] = [
@@ -49,10 +65,35 @@ export const ENTIDADES: EntidadImportable[] = [
       { t: 'placa', label: 'Placa', alias: ['license_plate', 'license plate', 'placa', 'matricula', 'matrícula', 'name'], requerido: true },
       { t: 'marca', label: 'Marca', alias: ['brand', 'brand_id', 'make', 'marca', 'model_id', 'modelo/marca'], transform: 'hoja' },
       { t: 'modelo', label: 'Modelo', alias: ['model', 'model_id', 'modelo'], transform: 'hoja' },
+      { t: 'anio', label: 'Año (si no se indica, usa el año actual)', alias: ['year', 'anio', 'año', 'model_year'] },
       { t: 'color', label: 'Color', alias: ['color'] },
       { t: 'tipo', label: 'Tipo', alias: ['vehicle_type', 'vehicle type', 'tipo', 'tipo de vehículo', 'tipo de vehiculo'] },
       CAMPO_ODOO_REF,
+      CAMPO_ARCHIVO_FOTO,
     ],
+    foto: {
+      bucket: 'vehiculos', campoArchivo: 'archivo_foto', campoDestino: 'foto_portada',
+      ruta: (id, filename) => `vehiculo/${id}/import-${Date.now()}-${filename}`,
+    },
+  },
+  {
+    key: 'conductores', label: 'Choferes', rpc: 'importar_conductores',
+    soportaDeshacer: true,
+    campos: [
+      { t: 'cedula', label: 'Cédula', alias: ['cedula', 'cédula', 'id', 'identificacion', 'identificación'], requerido: true },
+      { t: 'nombre', label: 'Nombre', alias: ['nombre', 'name', 'chofer'], requerido: true },
+      { t: 'telefono', label: 'Teléfono', alias: ['telefono', 'teléfono', 'phone', 'celular', 'movil', 'móvil'], transform: 'telefono' },
+      { t: 'licencia_tipo', label: 'Categoría de licencia (código, ej. 02)', alias: ['licencia_tipo', 'categoria_licencia', 'categoría de licencia', 'cat_licencia'] },
+      { t: 'licencia_numero', label: 'N° de licencia', alias: ['licencia_numero', 'numero_licencia', 'n° de licencia', 'no_licencia'] },
+      { t: 'licencia_vencimiento', label: 'Vencimiento de licencia (AAAA-MM-DD)', alias: ['licencia_vencimiento', 'vencimiento_licencia', 'vencimiento'] },
+      { t: 'tipo_vehiculo_autorizado', label: 'Vehículo autorizado (Liviano/Pesado/Ambos)', alias: ['tipo_vehiculo_autorizado', 'vehiculo_autorizado'] },
+      { t: 'nota', label: 'Nota', alias: ['nota', 'notas', 'observacion', 'observación'] },
+      CAMPO_ARCHIVO_FOTO,
+    ],
+    foto: {
+      bucket: 'conductores', campoArchivo: 'archivo_foto', campoDestino: 'foto_path',
+      ruta: (id, filename) => `conductor/${id}/import-${Date.now()}-${filename}`,
+    },
   },
   {
     key: 'articulos', label: 'Artículos', rpc: 'importar_articulos', odoo: 'product.template',
@@ -84,6 +125,9 @@ export interface ResultadoImport {
   nuevos: number;
   actualizados: number;
   errores: { i: number; motivo: string }[];
+  // Id real por fila (índice 1-based, igual al de `errores[].i`) — para emparejar
+  // la foto del .zip con el registro ya creado/actualizado.
+  filas: { i: number; id: string }[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -212,12 +256,27 @@ export class ImportadorService {
     else params['p_importacion_id'] = importacionId;
     const { data, error } = await this.supabase.client.rpc(entidad.rpc, params);
     if (error) throw new Error(error.message);
-    const d = (data ?? {}) as { nuevos?: number; actualizados?: number; insertados?: number; errores?: { i: number; motivo: string }[] };
+    const d = (data ?? {}) as {
+      nuevos?: number; actualizados?: number; insertados?: number;
+      errores?: { i: number; motivo: string }[]; filas?: { i: number; id: string }[];
+    };
     return {
       nuevos: d.nuevos ?? d.insertados ?? 0,
       actualizados: d.actualizados ?? 0,
       errores: d.errores ?? [],
+      filas: d.filas ?? [],
     };
+  }
+
+  /** Sube la foto emparejada del .zip al bucket de la entidad y la enlaza a la fila. */
+  async subirFoto(entidad: EntidadImportable, id: string, filename: string, blob: Blob): Promise<void> {
+    const foto = entidad.foto;
+    if (!foto) throw new Error(`${entidad.label} no admite foto por importación.`);
+    const path = foto.ruta(id, filename);
+    const { error: upErr } = await this.supabase.client.storage.from(foto.bucket).upload(path, blob, { upsert: true });
+    if (upErr) throw new Error(upErr.message);
+    const { error: dbErr } = await this.supabase.client.from(entidad.key).update({ [foto.campoDestino]: path }).eq('id', id);
+    if (dbErr) throw new Error(dbErr.message);
   }
 
   async registrarResultado(id: string, r: ResultadoImport): Promise<void> {

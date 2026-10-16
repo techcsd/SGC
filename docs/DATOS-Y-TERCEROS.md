@@ -28,7 +28,7 @@
 | Contraseña / PIN (hash) | Supabase Auth · `sgc.usuarios` (PIN hash) | Inicio de sesión | Sí |
 | **Ubicación precisa** (también en 2.º plano, choferes que comparten) | `sgc.chofer_posiciones`, `sgc.chofer_ultima_posicion`, `sgc.recorridos_diarios` | Seguimiento de flota y registro de rutas | Sí |
 | Estado del chofer (disponible/en ruta/…/inactivo) | `sgc.chofer_estado`, `sgc.chofer_estado_historial` | Jornada; **controla el encendido del GPS** (CI5) | Sí |
-| Fotos (cámara/galería), firmas, PDFs | Buckets `sgc-bitacora`, `sgc-documentos`, `sgc-rrhh`, `sgc-avatars`, `mantenimiento_adjuntos`, etc. | Evidencias de obra, inventario, flota, RRHH | Sí |
+| Fotos (cámara/galería), firmas, PDFs | Buckets `sgc-bitacora`, `sgc-documentos`, `sgc-rrhh`, `sgc-avatars`, `vehiculos`, `conductores`, `mantenimiento_adjuntos`, etc. | Evidencias de obra, inventario, flota, RRHH | Sí |
 | **Audio** (notas de voz) | Bucket de audio · `sgc.audio_notas` | Incidentes/notas; se transcribe (ver §2 IA) | Sí |
 | Identificadores del dispositivo, **token de push**, plataforma, versión de app | `sgc.device_tokens`, `sgc.platform_reports` | Notificaciones, soporte | Sí |
 | Registros de error / diagnóstico | `sgc.reportes_error` (y afines) | Soporte técnico | Sí |

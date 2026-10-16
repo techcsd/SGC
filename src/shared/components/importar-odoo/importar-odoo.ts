@@ -5,6 +5,13 @@ import { ImportadorService, ENTIDADES, EntidadImportable, ResultadoImport } from
 import { ToastService } from '../../services/toast.service';
 import { exportarExcel } from '../../utils/exportar-excel.util';
 import { humanizeError } from '../../utils/friendly-error.util';
+import { TranslatePipe } from '../../i18n/translate.pipe';
+
+/** Resumen de fotos emparejadas/sin emparejar tras un import (.zip opcional). */
+export interface ResultadoFotos {
+  subidas: number;
+  sinMatch: string[]; // nombres de archivo del Excel que no aparecieron en el .zip
+}
 
 /**
  * CC4 (#87) — Asistente "Importar desde Odoo", reutilizable en su módulo.
@@ -15,7 +22,7 @@ import { humanizeError } from '../../utils/friendly-error.util';
  */
 @Component({
   selector: 'app-importar-odoo',
-  imports: [DatePipe],
+  imports: [DatePipe, TranslatePipe],
   templateUrl: './importar-odoo.html',
   styleUrl: './importar-odoo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,8 +31,9 @@ export class ImportarOdoo implements OnInit {
   private svc = inject(ImportadorService);
   private toast = inject(ToastService);
 
-  /** CC4 — entidad fija ('proveedores'|'vehiculos'|'articulos') o null (elige todas). */
-  entidadFija = input<string | null>(null);
+  /** CC4 — entidad fija ('proveedores'|'vehiculos'|'articulos'|'conductores') o null (elige
+   *  todas). Alias 'entidad' — las páginas que embeben el componente usan `entidad="..."`. */
+  entidadFija = input<string | null>(null, { alias: 'entidad' });
 
   entidades = ENTIDADES;
   bloqueada = computed(() => !!this.entidadFija());
@@ -37,6 +45,10 @@ export class ImportarOdoo implements OnInit {
   nombreArchivo = signal('');
   procesando = signal(false);
   resultado = signal<ResultadoImport | null>(null);
+  // Fotos por .zip (opcional) — solo si la entidad lo admite (entidad().foto).
+  zipFotos = signal<Map<string, Blob> | null>(null);
+  nombreZip = signal('');
+  resultadoFotos = signal<ResultadoFotos | null>(null);
   historial = signal<{ id: string; entidad: string; nuevos: number; actualizados: number; errores: unknown[]; deshecha_at: string | null; created_at: string }[]>([]);
 
   preview = computed(() => this.rows().slice(0, 8));
@@ -138,6 +150,63 @@ export class ImportarOdoo implements OnInit {
 
   setMapeo(campo: string, col: string) { this.mapeo.update((m) => ({ ...m, [campo]: col })); }
 
+  /** Lee el .zip de fotos (opcional) y lo deja listo para emparejar por nombre al importar. */
+  async onZip(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.nombreZip.set(file.name);
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = await JSZip.loadAsync(file);
+      const mapa = new Map<string, Blob>();
+      for (const [path, entry] of Object.entries(zip.files)) {
+        if (entry.dir) continue;
+        const nombre = path.split('/').pop() ?? path;
+        mapa.set(nombre, await entry.async('blob'));
+      }
+      this.zipFotos.set(mapa);
+      if (mapa.size === 0) this.toast.warning('El .zip no tiene archivos de imagen');
+    } catch (e) {
+      this.toast.error('No se pudo leer el .zip', e instanceof Error ? e.message : undefined);
+      this.zipFotos.set(null);
+      this.nombreZip.set('');
+    } finally {
+      input.value = '';
+    }
+  }
+
+  quitarZip() {
+    this.zipFotos.set(null);
+    this.nombreZip.set('');
+  }
+
+  /** Sube las fotos del .zip emparejadas por `archivo_foto` ↔ nombre de archivo, usando
+   *  el id real que devolvió el RPC para cada fila. Best-effort: un fallo por foto no
+   *  revierte el import de datos, solo queda listado en "sin emparejar". */
+  private async subirFotosImportadas(e: EntidadImportable, filas: Record<string, unknown>[], r: ResultadoImport): Promise<ResultadoFotos | null> {
+    const foto = e.foto;
+    const zip = this.zipFotos();
+    if (!foto || !zip || zip.size === 0) return null;
+    const idPorFila = new Map(r.filas.map((f) => [f.i, f.id]));
+    let subidas = 0;
+    const sinMatch: string[] = [];
+    for (let i = 0; i < filas.length; i++) {
+      const nombreArchivo = String(filas[i][foto.campoArchivo] ?? '').trim();
+      if (!nombreArchivo) continue;
+      const id = idPorFila.get(i + 1);
+      const blob = zip.get(nombreArchivo);
+      if (!id || !blob) { sinMatch.push(nombreArchivo); continue; }
+      try {
+        await this.svc.subirFoto(e, id, nombreArchivo, blob);
+        subidas++;
+      } catch {
+        sinMatch.push(nombreArchivo);
+      }
+    }
+    return { subidas, sinMatch };
+  }
+
   irAPreview() {
     if (this.camposRequeridosFaltan().length) {
       this.toast.warning('Faltan columnas', 'Mapea: ' + this.camposRequeridosFaltan().join(', '));
@@ -167,7 +236,13 @@ export class ImportarOdoo implements OnInit {
       await this.svc.registrarResultado(id, r);
       await this.svc.guardarMapeo(e.key, this.mapeo());
       this.resultado.set(r);
-      this.toast.success(`Importadas ${r.nuevos} nueva(s)`, r.errores.length ? `${r.errores.length} con error.` : undefined);
+      const fotos = await this.subirFotosImportadas(e, filas, r);
+      this.resultadoFotos.set(fotos);
+      const detalle = [
+        r.errores.length ? `${r.errores.length} con error.` : '',
+        fotos ? `${fotos.subidas} foto(s) subida(s)${fotos.sinMatch.length ? `, ${fotos.sinMatch.length} sin emparejar` : ''}.` : '',
+      ].filter(Boolean).join(' ');
+      this.toast.success(`Importadas ${r.nuevos} nueva(s)`, detalle || undefined);
       await this.cargarHistorial();
     } catch (e2) {
       this.toast.errorFrom(e2, 'No se pudo importar');
@@ -180,6 +255,7 @@ export class ImportarOdoo implements OnInit {
     // Bloqueada → vuelve a subir archivo (paso 2), no al selector de entidad.
     this.headers.set([]); this.rows.set([]); this.mapeo.set({});
     this.nombreArchivo.set(''); this.resultado.set(null);
+    this.zipFotos.set(null); this.nombreZip.set(''); this.resultadoFotos.set(null);
     if (this.bloqueada()) { this.paso.set(2); void this.elegirEntidad(this.entidad()!); }
     else { this.paso.set(1); this.entidad.set(null); }
   }

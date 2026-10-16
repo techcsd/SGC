@@ -41,6 +41,10 @@ export interface Conductor {
   // C3 — nota libre + tags descriptivos (Chofer, Encargado de Logística…).
   nota: string | null;
   tags: string[] | null;
+  // Foto propia del conductor (bucket `conductores`), independiente del avatar del
+  // usuario vinculado — un conductor no siempre tiene usuario_id. Se puede llenar
+  // desde la ficha o por importación masiva (columna archivo_foto + .zip).
+  foto_path: string | null;
   activo: boolean;
   created_at: string;
   // T2 — dato de prueba (oculto a no-admin vía RLS; solo admin lo marca/elimina).

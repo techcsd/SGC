@@ -5309,6 +5309,26 @@
           "d": "Se corrigieron 2 vistas internas de Supabase que, por una configuración por defecto de Postgres, podían saltarse las reglas de acceso de quien consultaba — reportado por el propio escáner de seguridad de Supabase. No se detectó que esto haya expuesto datos; se corrigió por precaución."
         }
       ]
+    },
+    "1.192.0": {
+      "titulo": "Importar choferes y vehículos desde Excel",
+      "cambios": [
+        {
+          "t": "nuevo",
+          "m": "Flota",
+          "d": "Nueva forma de dar de alta choferes y vehículos en lote: descarga una plantilla de Excel, llénala y súbela para importarlos todos de una vez — incluyendo sus fotos (se suben junto con un archivo .zip)."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "Al importar vehículos, una fila sin el año del vehículo hacía fallar esa fila; ahora se completa automáticamente con el año actual."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "El asistente de «Importar vehículos desde Odoo» a veces no reconocía qué se iba a importar y mostraba el selector completo en vez de ir directo a vehículos."
+        }
+      ]
     }
   }
 }

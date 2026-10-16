@@ -13,13 +13,23 @@
   <!-- ── 1. Header ── -->
   <section class="sgc-card cd-header">
     <!-- AS2 — avatar del conductor (foto del usuario vinculado o iniciales) -->
-    @if (avatarUrl()) {
-      <img class="cd-avatar cd-avatar--img" [src]="avatarUrl()!"
-           [alt]="'Foto de ' + conductor()!.nombre" width="60" height="60"
-           appVerFoto [verFotoNombre]="conductor()!.nombre" />
-    } @else {
-      <div class="cd-avatar" aria-hidden="true">{{ iniciales() }}</div>
-    }
+    <div class="cd-avatar-wrap">
+      @if (avatarUrl()) {
+        <img class="cd-avatar cd-avatar--img" [src]="avatarUrl()!"
+             [alt]="'Foto de ' + conductor()!.nombre" width="60" height="60"
+             appVerFoto [verFotoNombre]="conductor()!.nombre" />
+      } @else {
+        <div class="cd-avatar" aria-hidden="true">{{ iniciales() }}</div>
+      }
+      @if (esElevado()) {
+        <label class="cd-avatar-edit" [class.cd-avatar-edit--busy]="subiendoFoto()" title="Cambiar foto del chofer">
+          <input type="file" class="sr-only" accept="image/*" [disabled]="subiendoFoto()" (change)="onFotoChange($event)" />
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </label>
+      }
+    </div>
     <div class="cd-header__main">
       <h1 class="cd-header__nombre">{{ conductor()!.nombre }}</h1>
       <div class="cd-header__meta">

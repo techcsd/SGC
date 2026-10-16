@@ -55,6 +55,15 @@ export const flotaRoutes: Routes = [
     title: 'Conductores — Flota',
   },
   {
+    // Importar choferes desde Excel (plantilla SGC + fotos por .zip). Antes de
+    // `conductores/:id` para que no lo capture la ruta con parámetro.
+    path: 'conductores/importar',
+    canActivate: [flotaElevadoGuard],
+    loadComponent: () =>
+      import('./conductores/importar/importar-conductores').then((m) => m.FlotaImportarConductores),
+    title: 'Importar choferes — Flota',
+  },
+  {
     path: 'conductores-estado',
     canActivate: [flotaElevadoGuard],
     loadComponent: () =>

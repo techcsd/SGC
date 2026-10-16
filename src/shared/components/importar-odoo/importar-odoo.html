@@ -90,27 +90,58 @@
         </table>
       </div>
       @if (rows().length > 8) { <p class="imp__muted">… y {{ rows().length - 8 }} filas más.</p> }
-      <div class="imp__actions">
-        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="paso.set(3)">Volver al mapeo</button>
-        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando()" (click)="importar()">
-          {{ procesando() ? 'Importando…' : 'Importar ' + rows().length + ' fila(s)' }}
-        </button>
-      </div>
-    } @else {
-      <h2 class="imp__step">Resultado</h2>
-      <p class="imp__result">
-        <strong>{{ resultado()!.nuevos }}</strong> nuevas ·
-        <strong>{{ resultado()!.actualizados }}</strong> actualizadas ·
-        <strong>{{ resultado()!.errores.length }}</strong> con error
-      </p>
-      @if (resultado()!.errores.length) {
-        <div class="imp__errores">
-          @for (err of resultado()!.errores; track $index) {
-            <div class="imp__error">Fila {{ err.i }}: {{ err.motivo }}</div>
+
+      @if (e.foto; as f) {
+        <div class="imp__fotos">
+          <p class="imp__fotos-hint">{{ 'Fotos (opcional): sube un .zip con las fotos nombradas igual que en la columna "{col}".' | t:{ col: f.campoArchivo } }}</p>
+          @if (!nombreZip()) {
+            <label class="sgc-btn sgc-btn--ghost sgc-btn--sm imp__file">
+              {{ 'Elegir .zip de fotos' | t }}
+              <input type="file" class="sr-only" accept=".zip" (change)="onZip($event)" />
+            </label>
+          } @else {
+            <span class="imp__zip-nombre">{{ nombreZip() }} ({{ zipFotos()?.size ?? 0 }} {{ 'archivo(s)' | t }})</span>
+            <button type="button" class="sgc-btn sgc-btn--ghost sgc-btn--sm" (click)="quitarZip()">{{ 'Quitar' | t }}</button>
           }
         </div>
       }
-      <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">Importar otro archivo</button>
+
+      <div class="imp__actions">
+        <button type="button" class="sgc-btn sgc-btn--ghost" (click)="paso.set(3)">{{ 'Volver al mapeo' | t }}</button>
+        <button type="button" class="sgc-btn sgc-btn--primary" [disabled]="procesando()" (click)="importar()">
+          {{ procesando() ? ('Importando…' | t) : ('Importar {n} fila(s)' | t:{ n: rows().length }) }}
+        </button>
+      </div>
+    } @else {
+      <h2 class="imp__step">{{ 'Resultado' | t }}</h2>
+      <p class="imp__result">
+        <strong>{{ resultado()!.nuevos }}</strong> {{ 'nuevas' | t }} ·
+        <strong>{{ resultado()!.actualizados }}</strong> {{ 'actualizadas' | t }} ·
+        <strong>{{ resultado()!.errores.length }}</strong> {{ 'con error' | t }}
+      </p>
+      @if (resultadoFotos(); as rf) {
+        <p class="imp__result imp__result--fotos">
+          <strong>{{ rf.subidas }}</strong> {{ 'foto(s) subida(s)' | t }}
+          @if (rf.sinMatch.length) {
+            · <strong>{{ rf.sinMatch.length }}</strong> {{ 'sin emparejar en el .zip' | t }}
+          }
+        </p>
+        @if (rf.sinMatch.length) {
+          <div class="imp__errores">
+            @for (nombre of rf.sinMatch; track nombre) {
+              <div class="imp__error">{{ 'No se encontró en el .zip:' | t }} {{ nombre }}</div>
+            }
+          </div>
+        }
+      }
+      @if (resultado()!.errores.length) {
+        <div class="imp__errores">
+          @for (err of resultado()!.errores; track $index) {
+            <div class="imp__error">{{ 'Fila' | t }} {{ err.i }}: {{ err.motivo }}</div>
+          }
+        </div>
+      }
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="reiniciar()">{{ 'Importar otro archivo' | t }}</button>
     }
   }
 </div>
