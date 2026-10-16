@@ -83,6 +83,7 @@ export const MODULOS_DISPONIBLES: ModuloInfo[] = [
   { key: 'incentivos', label: 'Incentivos (choferes)', desc: 'AT1 — Informe semanal de desempeño por chofer con puntaje y badge de cumplimiento, aprobar/declinar el incentivo con historial y export para nómina. Lo gestionan Logística y Transportación, Gerencia y Administración. (El chofer ve solo su propio rendimiento, sin este módulo.)' },
   { key: 'direccion', label: 'Gerencia (vista ejecutiva)', desc: 'Vista ejecutiva: KPIs y dashboards consolidados de gerencia. (Clave interna: direccion.)', sensible: true },
   { key: 'plataforma', label: 'Plataforma (app)', desc: 'Personalización de la app: orden y tamaño de los módulos del launcher. Permiso delegable, no requiere ser administrador.' },
+  { key: 'reuniones', label: 'Reuniones', desc: 'CP8 — Programar reuniones, agenda, notas, acuerdos → tareas y actas. Por defecto: gerencia/dirección, ingenieros, logística, legal y RRHH.' },
   { key: 'admin', label: 'Administración', desc: 'Usuarios, roles y permisos, versiones de la app, auditoría y reportes. Acceso máximo — asignar con cuidado.', sensible: true },
 ];
 

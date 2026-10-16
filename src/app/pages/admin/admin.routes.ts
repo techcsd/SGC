@@ -103,6 +103,14 @@ export const adminRoutes: Routes = [
     title: 'Usuarios duplicados — Administración',
   },
   {
+    // CP2 — "Conversaciones de Compa": revisión de admin (contradicción/promesa
+    // sin acción/error de herramienta), compartir, casos de prueba.
+    path: 'compa-conversaciones',
+    loadComponent: () =>
+      import('./compa-conversaciones/compa-conversaciones').then((m) => m.AdminCompaConversaciones),
+    title: 'Conversaciones de Compa — Administración',
+  },
+  {
     // CI4 — bandeja de solicitudes de eliminación de cuenta (admin procesa/anonimiza).
     path: 'solicitudes-eliminacion',
     loadComponent: () => import('./solicitudes-eliminacion/solicitudes-eliminacion').then((m) => m.AdminSolicitudesEliminacion),

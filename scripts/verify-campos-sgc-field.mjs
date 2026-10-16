@@ -47,7 +47,11 @@ for (const rel of listHtml()) {
 // ── CO11 — extensión: control SIN ninguna clase del sistema (ni sgc-input/
 // sgc-select, ni envuelto en <div class="sgc-field">), en pages/legal/** y
 // pages/documentos/** (mismo defecto de CL1, folders nuevos tocados en CO11-14).
-const CARPETAS_EXTENDIDAS = ['src/app/pages/legal/', 'src/app/pages/documentos/'];
+// CP — sumado pages/proyectos/personal/** (ronda de rediseño de "Personal de
+// obra"): NO todo `pages/proyectos/**` a propósito — esa carpeta tiene otras
+// pantallas (compras, cargos, ranking…) sin auditar; extender el guard a ciegas
+// ahí rompería el build por controles de pantallas que esta ronda no tocó.
+const CARPETAS_EXTENDIDAS = ['src/app/pages/legal/', 'src/app/pages/documentos/', 'src/app/pages/proyectos/personal/', 'src/app/pages/reuniones/'];
 const TIPOS_EXENTOS = new Set(['checkbox', 'radio', 'file', 'hidden', 'submit', 'button']);
 const sinClaseDelSistema = [];
 

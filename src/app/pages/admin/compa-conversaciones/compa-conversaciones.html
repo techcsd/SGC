@@ -1,0 +1,103 @@
+<div class="ccv">
+  <header class="ccv__head">
+    <h1 class="ccv__title">{{ 'Conversaciones de Compa' | t }}</h1>
+    <p class="ccv__subtitle">{{ 'Sistema · solo admin · cada vez que abres una queda en la auditoría' | t }}</p>
+  </header>
+
+  @if (error()) {
+    <div class="ccv-error">{{ error() }}</div>
+  }
+
+  <div class="ccv__kpis">
+    <div class="ccv__kpi">
+      <span class="ccv__kpi-label">{{ 'Conversaciones (7 días)' | t }}</span>
+      <div class="ccv__kpi-value">{{ conteos().total7d }}</div>
+    </div>
+    <div class="ccv__kpi">
+      <span class="ccv__kpi-label">{{ 'Con contradicción' | t }}</span>
+      <div class="ccv__kpi-value ccv__kpi-value--danger">{{ conteos().contradicciones }}</div>
+    </div>
+    <div class="ccv__kpi">
+      <span class="ccv__kpi-label">{{ 'Prometió y no hizo' | t }}</span>
+      <div class="ccv__kpi-value ccv__kpi-value--warning">{{ conteos().promesas }}</div>
+    </div>
+    <div class="ccv__kpi">
+      <span class="ccv__kpi-label">{{ 'Herramienta con error' | t }}</span>
+      <div class="ccv__kpi-value">{{ conteos().errores }}</div>
+    </div>
+  </div>
+
+  <div class="ccv__body">
+    <div class="ccv__list-panel">
+      <div class="ccv__filters">
+        <input class="sgc-input ccv__filter-usuario" type="search" placeholder="Usuario…"
+          [ngModel]="filtroUsuario()" (ngModelChange)="filtroUsuario.set($event)" name="filtroUsuario" />
+        <button type="button" class="ccv__chip" [class.ccv__chip--active]="soloConProblemas()" (click)="toggleConProblemas()">
+          {{ 'Con problemas' | t }} @if (soloConProblemas()) { ✕ }
+        </button>
+      </div>
+
+      @if (loading()) {
+        <p class="ccv__empty">{{ 'Cargando…' | t }}</p>
+      } @else if (!listaVisible().length) {
+        <p class="ccv__empty">{{ 'No hay conversaciones con ese filtro.' | t }}</p>
+      } @else {
+        <div class="ccv__list">
+          @for (c of listaVisible(); track c.conversacion_id) {
+            <button type="button" class="ccv__item" [class.ccv__item--active]="seleccion()?.conversacion_id === c.conversacion_id"
+              [class.ccv__item--problema]="c.contradicciones || c.promesas_sin_accion || c.errores_tool" (click)="abrir(c)">
+              <span class="ccv__item-head">
+                <b>{{ c.usuario_nombre }}</b>
+                <span class="ccv__item-fecha">{{ c.updated_at | date: 'short' }}</span>
+              </span>
+              <span class="ccv__item-titulo">«{{ c.titulo || 'Conversación' }}»</span>
+              @if (c.contradicciones || c.promesas_sin_accion || c.errores_tool) {
+                <span class="ccv__item-badges">
+                  @if (c.contradicciones) { <span class="ccv__badge ccv__badge--danger">{{ 'Contradicción' | t }}</span> }
+                  @if (c.promesas_sin_accion) { <span class="ccv__badge ccv__badge--warning">{{ 'Prometió y no hizo' | t }} @if (c.promesas_sin_accion > 1) { ×{{ c.promesas_sin_accion }} }</span> }
+                  @if (c.errores_tool) { <span class="ccv__badge">{{ 'Error de herramienta' | t }}</span> }
+                </span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="ccv__detail-panel">
+      @if (!seleccion()) {
+        <p class="ccv__empty">{{ 'Elige una conversación de la lista.' | t }}</p>
+      } @else if (cargandoDetalle()) {
+        <p class="ccv__empty">{{ 'Cargando…' | t }}</p>
+      } @else {
+        <span class="ccv__detail-head">{{ seleccion()?.usuario_nombre }} · {{ mensajes().length }} {{ 'mensajes' | t }} · {{ 'modelo y herramientas por mensaje' | t }}</span>
+        <div class="ccv__detail-msgs">
+          @for (m of mensajes(); track m.mensaje_id) {
+            <div class="ccv__dmsg ccv__dmsg--{{ m.rol }}" [class.ccv__dmsg--flag]="m.es_contradiccion || m.es_promesa_sin_accion">
+              <span class="ccv__dmsg-text">«{{ m.contenido }}»</span>
+              @if (m.herramientas && m.herramientas.length) {
+                <div class="ccv__dmsg-tools">
+                  @for (h of m.herramientas; track $index) {
+                    <span class="ccv__tool-chip" [class.ccv__tool-chip--fail]="!h.ok">{{ h.tool }}</span>
+                  }
+                </div>
+              }
+              @if (m.es_contradiccion) {
+                <span class="ccv__dmsg-warn ccv__dmsg-warn--danger">⚠ {{ 'Dijo que no tenía una herramienta que sí tenía (o anunció algo que no verificó)' | t }}</span>
+              }
+              @if (m.es_promesa_sin_accion) {
+                <span class="ccv__dmsg-warn ccv__dmsg-warn--warning">⚠ {{ 'Anunció una acción y terminó el turno sin ejecutarla' | t }}</span>
+              }
+              @if (m.rol === 'assistant' && (m.es_contradiccion || m.es_promesa_sin_accion)) {
+                <div class="ccv__dmsg-actions">
+                  <button type="button" class="sgc-btn sgc-btn--secondary" (click)="guardarComoCaso(m)">{{ 'Guardar como caso de prueba' | t }}</button>
+                  <button type="button" class="sgc-btn sgc-btn--secondary" (click)="enviarAConsultas(m)">{{ 'Enviar a Consultas de Compa' | t }}</button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

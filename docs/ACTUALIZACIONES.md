@@ -96,4 +96,28 @@ es de la **app** (chunk de csd-app), no del SGC — ver CO7.
 Columna **"Atascado"** nueva en Dispositivos (`sgc.dispositivos_listado()`):
 Android siempre atascado si sigue en &lt;2.46.0; cualquier plataforma, si su
 versión es vieja y lleva &gt;48h sin reportarse. Filtro por plataforma y por
-"solo atascados".
+"solo atascados". **Botón "Copiar mensaje de WhatsApp"** (CP4, 16-oct) en cada
+fila Android atascada: copia al portapapeles el mensaje de arriba, personalizado
+con el nombre, listo para pegar junto con el enlace de `/app-movil`.
+
+## CP4 (16-oct) — sigue el mismo problema, #232 es #211 otra vez
+
+Re-corrido el diagnóstico de CO1 dos días después (`scripts/diagnosticos/2026-10-14-co-diagnostico.mjs
+--env prod`, solo lectura): **nada cambió**. Los mismos **7 equipos Android** de
+la lista de arriba siguen en 2.45.0 (FELIX DELGADO, Eduardo NG, Miguel Polanco,
+Juan Ocsena, Ramon Cabrera, Dallin Joel Vido Gutierrez, Xaviel Terrero) — el
+WhatsApp pendiente desde el 08-oct (CL4) todavía no se mandó. Snapshot completo
+en `qa/cp4-dispositivos-prod.md`.
+
+**El bloqueador real no es un bug nuevo, es un paso pendiente:** el arreglo de
+PWA de iPhone (auto-reparación del Service Worker, ver arriba) está en la app
+**2.51.0**, que lleva en `dev` desde el 15-oct **sin publicar** — prod sigue en
+2.50.0. Mientras 2.51.0 no suba, ningún iPhone puede recibir el arreglo, y los
+7 Android de la lista solo se arreglan con el mensaje + instalar encima a mano.
+**Orden correcto (ver CONTEXTO-ACTUALIZACION-49 §D):** 1) publicar 2.51.0 con
+las 2 pruebas de teléfono (Samsung 2.50→2.51, iPhone 2.50→2.51) → 2) revisar
+"Atascados" a las 24h y 48h de publicar → 3) recién ahí, si siguen quedando
+iPhone atascados, activar el plan de rescate del service worker (`ngsw-real.js`
++ `safety-worker.js`, preparado pero NO activado todavía — solo hace falta si
+el paso 1-2 no basta). 👤 Pendiente físico de Xaviel: mandar el WhatsApp a los
+7 Android y probar 2.51.0 para poder publicarla.

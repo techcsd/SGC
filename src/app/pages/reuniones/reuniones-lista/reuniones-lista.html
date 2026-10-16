@@ -1,0 +1,190 @@
+<div class="rl">
+  <header class="rl__head">
+    <div>
+      <h1 class="rl__title">{{ 'Reuniones' | t }}</h1>
+      <p class="rl__subtitle">{{ 'Agenda, notas y acuerdos de todas tus reuniones' | t }}</p>
+    </div>
+    <button type="button" class="sgc-btn sgc-btn--primary" (click)="abrirDrawer()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      {{ 'Programar reunión' | t }}
+    </button>
+  </header>
+
+  <div class="rl__filters">
+    <div class="rl__chips">
+      <button type="button" class="rl__chip" [class.rl__chip--active]="filtro() === 'proximas'" (click)="setFiltro('proximas')">{{ 'Próximas' | t }}</button>
+      <button type="button" class="rl__chip" [class.rl__chip--active]="filtro() === 'acta_pendiente'" (click)="setFiltro('acta_pendiente')">{{ 'Acta pendiente' | t }}</button>
+      <button type="button" class="rl__chip" [class.rl__chip--active]="filtro() === 'pasadas'" (click)="setFiltro('pasadas')">{{ 'Pasadas' | t }}</button>
+      <button type="button" class="rl__chip" [class.rl__chip--active]="soloMias()" (click)="toggleMias()">{{ 'Mis reuniones' | t }}</button>
+    </div>
+    <div class="rl__selects">
+      <select class="sgc-input sgc-select" [ngModel]="filtroTipo() ?? ''" (ngModelChange)="onFiltroTipo($event)" aria-label="Filtrar por tipo">
+        <option value="">{{ 'Todos los tipos' | t }}</option>
+        @for (t of tipos(); track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
+      </select>
+      <select class="sgc-input sgc-select" [ngModel]="filtroProyecto() ?? ''" (ngModelChange)="onFiltroProyecto($event)" aria-label="Filtrar por obra">
+        <option value="">{{ 'Todas las obras' | t }}</option>
+        @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+      </select>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <p class="rl__empty">{{ 'Cargando…' | t }}</p>
+  } @else if (!reuniones().length) {
+    <p class="rl__empty">{{ 'No hay reuniones con ese filtro.' | t }}</p>
+  } @else {
+    <div class="rl__list">
+      @if (conGrupos().hoy.length) {
+        <span class="rl__group-label">{{ 'Hoy' | t }}</span>
+        @for (r of conGrupos().hoy; track r.id) {
+          <button type="button" class="rl__item" (click)="abrir(r)">
+            <span class="rl__item-dot" [style.background]="r.tipo_color"></span>
+            <span class="rl__item-body">
+              <span class="rl__item-top">
+                <b>{{ hora(r.inicio) }}</b>
+                <span class="rl__item-titulo">{{ r.titulo }}</span>
+                @if (r.fireflies_id) {
+                  <span class="rl__item-fireflies" title="Fireflies entra">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/>
+                    </svg>
+                  </span>
+                }
+              </span>
+              <span class="rl__item-meta">{{ r.tipo_nombre }} @if (r.proyecto_nombre) { · {{ r.proyecto_nombre }} } · {{ duracion(r.inicio, r.fin) }} · {{ r.participantes_n }} {{ 'participantes' | t }}</span>
+            </span>
+            @if (r.estado === 'acta_borrador') { <span class="sgc-badge sgc-badge--warning">{{ 'Acta pendiente' | t }}</span> }
+            @if (r.estado === 'acta_aprobada') { <span class="sgc-badge sgc-badge--success">{{ 'Acta aprobada' | t }}</span> }
+          </button>
+        }
+      }
+      @if (conGrupos().resto.length) {
+        <span class="rl__group-label">{{ filtro() === 'pasadas' ? ('Anteriores' | t) : ('Próximos días' | t) }}</span>
+        @for (r of conGrupos().resto; track r.id) {
+          <button type="button" class="rl__item" (click)="abrir(r)">
+            <span class="rl__item-dot" [style.background]="r.tipo_color"></span>
+            <span class="rl__item-body">
+              <span class="rl__item-top">
+                <b>{{ fechaCorta(r.inicio) }} · {{ hora(r.inicio) }}</b>
+                <span class="rl__item-titulo">{{ r.titulo }}</span>
+                @if (r.fireflies_id) {
+                  <span class="rl__item-fireflies" title="Fireflies entra">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/>
+                    </svg>
+                  </span>
+                }
+              </span>
+              <span class="rl__item-meta">{{ r.tipo_nombre }} @if (r.proyecto_nombre) { · {{ r.proyecto_nombre }} } · {{ duracion(r.inicio, r.fin) }} · {{ r.participantes_n }} {{ 'participantes' | t }}</span>
+            </span>
+            @if (r.estado === 'acta_borrador') { <span class="sgc-badge sgc-badge--warning">{{ 'Acta pendiente' | t }}</span> }
+            @if (r.estado === 'acta_aprobada') { <span class="sgc-badge sgc-badge--success">{{ 'Acta aprobada' | t }}</span> }
+          </button>
+        }
+      }
+    </div>
+  }
+</div>
+
+<app-form-drawer [title]="'Programar reunión' | t" [open]="drawerOpen()" (closed)="cerrarDrawer()">
+  <div class="rl__form">
+    <label class="sgc-field">
+      <span class="sgc-field__label">{{ 'Tipo de reunión' | t }}</span>
+      <select class="sgc-input sgc-select" [ngModel]="nuevoTipoId() ?? ''" (ngModelChange)="onTipoChange($event)">
+        @for (t of tipos(); track t.id) { <option [value]="t.id">{{ t.nombre }}</option> }
+      </select>
+    </label>
+    <label class="sgc-field">
+      <span class="sgc-field__label">{{ 'Título' | t }}</span>
+      <input class="sgc-input" type="text" [ngModel]="nuevoTitulo()" (ngModelChange)="nuevoTitulo.set($event)" placeholder="Coordinación semanal Torre Alpha" />
+    </label>
+    <div class="rl__form-row">
+      <label class="sgc-field">
+        <span class="sgc-field__label">{{ 'Fecha' | t }}</span>
+        <input class="sgc-input" type="date" [ngModel]="nuevoFecha()" (ngModelChange)="nuevoFecha.set($event)" />
+      </label>
+      <label class="sgc-field">
+        <span class="sgc-field__label">{{ 'Inicio' | t }}</span>
+        <input class="sgc-input" type="time" [ngModel]="nuevoHoraInicio()" (ngModelChange)="nuevoHoraInicio.set($event)" />
+      </label>
+      <label class="sgc-field">
+        <span class="sgc-field__label">{{ 'Fin' | t }}</span>
+        <input class="sgc-input" type="time" [ngModel]="nuevoHoraFin()" (ngModelChange)="nuevoHoraFin.set($event)" />
+      </label>
+    </div>
+    <label class="sgc-field">
+      <span class="sgc-field__label">{{ 'Modalidad' | t }}</span>
+      <select class="sgc-input sgc-select" [ngModel]="nuevoModalidad()" (ngModelChange)="nuevoModalidad.set($event)">
+        <option value="meet">{{ 'Meet (videollamada)' | t }}</option>
+        <option value="presencial">{{ 'Presencial' | t }}</option>
+        <option value="mixta">{{ 'Mixta' | t }}</option>
+      </select>
+    </label>
+    @if (nuevoModalidad() !== 'meet') {
+      <label class="sgc-field">
+        <span class="sgc-field__label">{{ 'Lugar' | t }}</span>
+        <input class="sgc-input" type="text" [ngModel]="nuevoLugar()" (ngModelChange)="nuevoLugar.set($event)" placeholder="Oficina central, 2do piso" />
+      </label>
+    }
+    <label class="sgc-field">
+      <span class="sgc-field__label">{{ 'Obra (opcional)' | t }}</span>
+      <select class="sgc-input sgc-select" [ngModel]="nuevoProyectoId() ?? ''" (ngModelChange)="nuevoProyectoId.set($event || null)">
+        <option value="">{{ 'Sin obra' | t }}</option>
+        @for (p of proyectos(); track p.id) { <option [value]="p.id">{{ p.nombre }}</option> }
+      </select>
+    </label>
+
+    <div class="sgc-field">
+      <span class="sgc-field__label">{{ 'Participantes' | t }}</span>
+      <app-user-picker [value]="null" [allowOtro]="false" (selected)="onParticipanteElegido($event)" />
+      @if (nuevosParticipantes().length) {
+        <div class="rl__tags">
+          @for (p of nuevosParticipantes(); track p.id) {
+            <span class="rl__tag">{{ p.nombre }} <button type="button" (click)="quitarParticipante(p.id)" aria-label="Quitar">✕</button></span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <span class="sgc-field__label">{{ 'Invitados externos (opcional)' | t }}</span>
+      <div class="rl__form-row">
+        <input class="sgc-input" type="email" [ngModel]="nuevoExternoCorreo()" (ngModelChange)="nuevoExternoCorreo.set($event)" placeholder="correo@proveedor.com" />
+        <input class="sgc-input" type="text" [ngModel]="nuevoExternoNombre()" (ngModelChange)="nuevoExternoNombre.set($event)" placeholder="Nombre (opcional)" />
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="agregarExterno()">{{ 'Agregar' | t }}</button>
+      </div>
+      @if (nuevosExternos().length) {
+        <div class="rl__tags">
+          @for (e of nuevosExternos(); track $index; let i = $index) {
+            <span class="rl__tag">{{ e.nombre }} <button type="button" (click)="quitarExterno(i)" aria-label="Quitar">✕</button></span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="sgc-field">
+      <span class="sgc-field__label">{{ 'Agenda' | t }}</span>
+      @if (nuevaAgenda().length) {
+        <ul class="rl__agenda-list">
+          @for (a of nuevaAgenda(); track $index; let i = $index) {
+            <li>{{ a }} <button type="button" (click)="quitarAgendaItem(i)" aria-label="Quitar">✕</button></li>
+          }
+        </ul>
+      }
+      <div class="rl__form-row">
+        <input class="sgc-input" type="text" [ngModel]="nuevoAgendaTexto()" (ngModelChange)="nuevoAgendaTexto.set($event)" placeholder="Punto de agenda…" (keydown.enter)="agregarAgendaItem()" />
+        <button type="button" class="sgc-btn sgc-btn--secondary" (click)="agregarAgendaItem()">{{ 'Agregar' | t }}</button>
+      </div>
+    </div>
+
+    <div class="rl__form-actions">
+      <button type="button" class="sgc-btn sgc-btn--secondary" (click)="cerrarDrawer()" [disabled]="guardando()">{{ 'Cancelar' | t }}</button>
+      <button type="button" class="sgc-btn sgc-btn--primary" (click)="crear()" [disabled]="guardando()">
+        {{ guardando() ? ('Programando…' | t) : ('Programar' | t) }}
+      </button>
+    </div>
+  </div>
+</app-form-drawer>
