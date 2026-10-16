@@ -31,26 +31,25 @@
 
 **Importante — estado real de versiones (corrige al `HANDOFF.md` anterior, que decía "nada en dev/prod"):** `main` = `9c45dbe` → **web 1.190.1 en prod** (CO completo 1.189.0 + 1.190.0 recepción de OC sin catalogar + 1.190.1 reabrir OC recibida sin recepción real — estos 2 últimos son fixes posteriores a CO, fuera de esta ronda). `dev` = igual a `main`. **App: 2.51.0 en `dev`, sin publicar a prod** (prod sigue 2.50.0) — es el bloqueador real de CO1/CP4.
 
-## CP (filas 229-239) — tanda nueva, 16-oct
+## CP (filas 229-239) — tanda nueva, 16-oct — ✅ **TODO EN PROD** (web 1.191.0, 16-oct)
 
 | # | Nota (literal) | ID | Dónde vive | Estado |
 |---|---|---|---|---|
-| 229 | *"Lets improve the way "personal de obra" module look, it is missing some styles, and have some ui/ux issues."* | **CP1** | CONTEXTO-49 §A · mock `Main` · **PROMPT-100 F6** | 🆕 |
-| 230 | *"lets add on "Compa" a way to share a conversation with a user, and me as an admin must be able to see the conversations of the users with compa."* | **CP2** | CONTEXTO-49 §B · mocks `Compa-compartir`/`Compa-admin` · **PROMPT-100 F5** | 🆕 |
-| 231 | *"Hector reports that compa has issues with the real tools that he has... that's a missing tool or reasoning from compa."* | **CP3** | CONTEXTO-49 §C · **PROMPT-100 F4** | 🆕 |
-| 232 | *"lets find out why the users when i upload a new version of the app cant update the app."* | **CP4** | CONTEXTO-49 §D · **PROMPT-100 F8 / PROMPT-101 F1** | 🆕 · mismo problema de fondo que #211/CO1 |
-| 233 | *"why we doesn't have a stagging? or the dev environment do the same thing?"* | **CP5** | CONTEXTO-49 §E · **PROMPT-100 F7** | 🆕 |
-| 234 | *"in the app inside the "por despachar" module, these rows need to show the date to."* | **CP6** | CONTEXTO-49 §F · mock `Por-despachar-app` · **PROMPT-100 F3 / PROMPT-101 F2** | 🆕 |
-| 235 | *"supabase report these issues [Security Definer View x2], let fix them."* | **CP7** | CONTEXTO-49 §G · **PROMPT-100 F2** | 🆕 |
-| 236 | *"Lets implement the "reuniones" module, and the notes that the users takes from that meets, lets see too how we can link the fireflies notes with the system."* | **CP8** | CONTEXTO-49 §H · mocks `Reuniones-lista`/`Reunion-ficha`/`Reunion-app` · **PROMPT-100 F9 / PROMPT-101 F5** | 🆕 |
-| 237 | *(hallazgo)* Compa corre con modelo pequeño, un archivo por turno, anuncia acciones que no hace, y ensucia Consultas con faltas falsas | **CP9** | CONTEXTO-49 §C · PROMPT-100 F4 | 🆕 |
-| 238 | *(hallazgo)* La ronda CO quedó a medias: app 2.51.0 sin publicar, docs desactualizados, data-fixes sin confirmar aplicados | **CP10** | CONTEXTO-49 §I · PROMPT-100 F0 | 🆕 · **resuelto parcialmente hoy**: los 3 data-fixes SÍ estaban aplicados (ver tabla CO arriba); docs corregidos en esta misma entrega. |
-| 239 | *(hallazgo)* 3 huecos de permisos que dejó CO (aprobador de compras, PDF firmado de contratos, Legal sin límite por obra) | **CP11** | CONTEXTO-49 §I · PROMPT-100 F1 | 🆕 · el 2.º (política UPDATE `sgc-legal`) **ya estaba aplicado en dev+prod** antes de esta sesión (verificado); quedan el 1.º y documentar el 3.º. |
+| 229 | *"Lets improve the way "personal de obra" module look, it is missing some styles, and have some ui/ux issues."* | **CP1** | CONTEXTO-49 §A · mock `Main` · **PROMPT-100 F6** | ✅ En prod. Verificado visualmente con Playwright contra dev antes de promover. |
+| 230 | *"lets add on "Compa" a way to share a conversation with a user, and me as an admin must be able to see the conversations of the users with compa."* | **CP2** | CONTEXTO-49 §B · mocks `Compa-compartir`/`Compa-admin` · **PROMPT-100 F5** | ✅ En prod. Compartir, "Compartidas conmigo", aviso fijo, Admin › Conversaciones de Compa — todo probado contra dev antes de promover. |
+| 231 | *"Hector reports that compa has issues with the real tools that he has... that's a missing tool or reasoning from compa."* | **CP3** | CONTEXTO-49 §C · **PROMPT-100 F4** | ✅ En prod (edge `assistant` v26 + secreto `ASSISTANT_MODEL=claude-sonnet-5`). El caso real de Hector (listar_almacenes) ya no falla — 12/12 evals, verificado también con una llamada real en prod. |
+| 232 | *"lets find out why the users when i upload a new version of the app cant update the app."* | **CP4** | CONTEXTO-49 §D · **PROMPT-100 F8 / PROMPT-101 F1** | 🟡 Parte web (diagnóstico + botón "Copiar WhatsApp") ✅ en prod. El arreglo real para Android 2.44/2.45 es físico (instalar encima) — 👤 Xaviel, sigue pendiente. |
+| 233 | *"why we doesn't have a stagging? or the dev environment do the same thing?"* | **CP5** | CONTEXTO-49 §E · **PROMPT-100 F7** | ✅ En prod (`docs/STAGING.md`, `scripts/release-check.mjs`, cinta "Staging (dev)"). |
+| 234 | *"in the app inside the "por despachar" module, these rows need to show the date to."* | **CP6** | CONTEXTO-49 §F · mock `Por-despachar-app` · **PROMPT-100 F3 / PROMPT-101 F2** | 🟡 Backend ✅ en prod. Tarjeta de la app sigue pendiente (PROMPT-101 F2, repo csd-app). |
+| 235 | *"supabase report these issues [Security Definer View x2], let fix them."* | **CP7** | CONTEXTO-49 §G · **PROMPT-100 F2** | ✅ En prod. Las 2 vistas corregidas; verificado que admin/flota ven igual y un usuario sin acceso ahora ve 0 filas (antes veía todo). |
+| 236 | *"Lets implement the "reuniones" module, and the notes that the users takes from that meets, lets see too how we can link the fireflies notes with the system."* | **CP8** | CONTEXTO-49 §H · mocks `Reuniones-lista`/`Reunion-ficha`/`Reunion-app` · **PROMPT-100 F9 / PROMPT-101 F5** | ✅ En prod (módulo completo: agenda, participantes, notas, acuerdos→tareas, actas, 3 tools de Compa). Probado de punta a punta con Playwright contra dev antes de promover. Fireflies/Calendar reales siguen pendientes de que Xaviel haga el setup físico (`docs/REUNIONES.md`). |
+| 237 | *(hallazgo)* Compa corre con modelo pequeño, un archivo por turno, anuncia acciones que no hace, y ensucia Consultas con faltas falsas | **CP9** | CONTEXTO-49 §C · PROMPT-100 F4 | ✅ En prod — ver CP3. |
+| 238 | *(hallazgo)* La ronda CO quedó a medias: app 2.51.0 sin publicar, docs desactualizados, data-fixes sin confirmar aplicados | **CP10** | CONTEXTO-49 §I · PROMPT-100 F0 | ✅ Resuelto — los 3 data-fixes de CO ya estaban aplicados (verificado), docs corregidos. La publicación de la app 2.51.0 es de `csd-app` (otro repo), no de esta ronda. |
+| 239 | *(hallazgo)* 3 huecos de permisos que dejó CO (aprobador de compras, PDF firmado de contratos, Legal sin límite por obra) | **CP11** | CONTEXTO-49 §I · PROMPT-100 F1 | ✅ En prod. RLS de `solicitudes_compra` corregida (verificada con el usuario real de Eduardo Ng). Política `sgc-legal` ya estaba aplicada. Legal sin límite por obra: documentado como decisión en PARIDAD.md, 👤 confirmar con Sonia. |
 
-**Pendientes físicos de Xaviel (tanda CP, acumulado):**
-1. WhatsApp a los 7 Android en 2.45 (pendiente desde el 08-oct) + reinstalar tu Samsung + Eduardo en persona.
-2. Probar app 2.51.0 (Samsung + iPhone) y dar OK para publicar a prod.
-3. Fireflies: crear `minutas@constructorasd.com`, asiento en el equipo Pro de la empresa, API key, webhook+secreto, pasar a Felipe al equipo.
-4. Google Admin: permiso `calendar.events` a la cuenta de servicio (delegación de dominio).
-5. Confirmar con Sonia si Legal debe limitarse por obra (hoy ve todas, es RLS sin límite — decisión documentada en PARIDAD.md, no aplicada aún como restricción).
-6. OK a cada versión de esta ronda antes de prod.
+**Pendientes físicos de Xaviel (tanda CP, los únicos que quedan — nada de código):**
+1. WhatsApp a los 7 Android en 2.45 (pendiente desde el 08-oct) + reinstalar tu Samsung + Eduardo en persona — ya hay un botón "Copiar mensaje de WhatsApp" en `Admin › Versiones de la app` para esto.
+2. Fireflies: crear `minutas@constructorasd.com`, asiento en el equipo Pro de la empresa, API key, webhook+secreto, pasar a Felipe al equipo.
+3. Google Admin: permiso `calendar.events` a la cuenta de servicio (delegación de dominio).
+4. Confirmar con Sonia si Legal debe limitarse por obra (hoy ve todas, es RLS sin límite — decisión documentada en PARIDAD.md, no aplicada aún como restricción).
+5. App `csd-app`: publicar 2.51.0 a prod, y construir la tarjeta de "Por despachar" con fecha (CP6, PROMPT-101 F2) — trabajo de otro repo/sesión.
