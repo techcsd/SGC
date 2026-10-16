@@ -11,13 +11,15 @@ export interface CampoEntidad {
   requerido?: boolean;
   transform?: TransformOdoo; // CC4 — transformación al importar un archivo de Odoo
 }
-/** Foto por fila vía .zip (xlsx/SheetJS no lee imágenes embebidas en celdas): la
- *  plantilla trae una columna con el nombre exacto del archivo dentro del .zip que
- *  el usuario sube junto al Excel; se empareja por nombre y se sube al bucket. */
+/** Foto por fila vía .zip (xlsx/SheetJS no lee imágenes embebidas en celdas): en vez de
+ *  pedir una columna extra en la plantilla, el usuario nombra cada foto con el mismo
+ *  dato que ya identifica la fila (cédula del chofer, placa del vehículo) y sube un
+ *  .zip con todas — se empareja por ese valor, normalizado igual que el servidor. */
 export interface FotoImportable {
   bucket: string;
-  campoArchivo: string;   // 't' del CampoEntidad que trae el nombre de archivo
+  campoClave: string;     // 't' del CampoEntidad que identifica la fila (cedula/placa)
   campoDestino: string;   // columna de la tabla a actualizar con el path subido
+  normalizar: (raw: string) => string; // mismo criterio de normalización que el RPC
   ruta: (id: string, filename: string) => string;
 }
 export interface EntidadImportable {
@@ -35,12 +37,6 @@ export interface EntidadImportable {
 const CAMPO_ODOO_REF: CampoEntidad = {
   t: 'odoo_ref', label: 'ID externo (Odoo)',
   alias: ['id', 'external id', 'external_id', 'id_externo', 'id externo', '__export__', 'xml id', 'xml_id', 'database id', 'database_id'],
-};
-
-// Columna de la plantilla SGC que trae el nombre del archivo dentro del .zip de fotos.
-const CAMPO_ARCHIVO_FOTO: CampoEntidad = {
-  t: 'archivo_foto', label: 'Archivo de foto (nombre exacto dentro del .zip, opcional)',
-  alias: ['archivo_foto', 'foto', 'photo', 'picture', 'imagen'],
 };
 
 export const ENTIDADES: EntidadImportable[] = [
@@ -69,10 +65,10 @@ export const ENTIDADES: EntidadImportable[] = [
       { t: 'color', label: 'Color', alias: ['color'] },
       { t: 'tipo', label: 'Tipo', alias: ['vehicle_type', 'vehicle type', 'tipo', 'tipo de vehículo', 'tipo de vehiculo'] },
       CAMPO_ODOO_REF,
-      CAMPO_ARCHIVO_FOTO,
     ],
     foto: {
-      bucket: 'vehiculos', campoArchivo: 'archivo_foto', campoDestino: 'foto_portada',
+      bucket: 'vehiculos', campoClave: 'placa', campoDestino: 'foto_portada',
+      normalizar: (s) => s.toUpperCase().replace(/[^A-Z0-9]/g, ''),
       ruta: (id, filename) => `vehiculo/${id}/import-${Date.now()}-${filename}`,
     },
   },
@@ -88,10 +84,10 @@ export const ENTIDADES: EntidadImportable[] = [
       { t: 'licencia_vencimiento', label: 'Vencimiento de licencia (AAAA-MM-DD)', alias: ['licencia_vencimiento', 'vencimiento_licencia', 'vencimiento'] },
       { t: 'tipo_vehiculo_autorizado', label: 'Vehículo autorizado (Liviano/Pesado/Ambos)', alias: ['tipo_vehiculo_autorizado', 'vehiculo_autorizado'] },
       { t: 'nota', label: 'Nota', alias: ['nota', 'notas', 'observacion', 'observación'] },
-      CAMPO_ARCHIVO_FOTO,
     ],
     foto: {
-      bucket: 'conductores', campoArchivo: 'archivo_foto', campoDestino: 'foto_path',
+      bucket: 'conductores', campoClave: 'cedula', campoDestino: 'foto_path',
+      normalizar: (s) => s.replace(/\D/g, ''),
       ruta: (id, filename) => `conductor/${id}/import-${Date.now()}-${filename}`,
     },
   },

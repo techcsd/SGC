@@ -7,10 +7,12 @@ import { exportarExcel } from '../../utils/exportar-excel.util';
 import { humanizeError } from '../../utils/friendly-error.util';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 
-/** Resumen de fotos emparejadas/sin emparejar tras un import (.zip opcional). */
+/** Resumen de fotos subidas tras un import (.zip opcional). `sinUsar` son archivos
+ *  del .zip que no coincidieron con ninguna fila — señal real de un nombre mal
+ *  escrito (no "le faltó foto a una fila", que es normal y no se reporta como error). */
 export interface ResultadoFotos {
   subidas: number;
-  sinMatch: string[]; // nombres de archivo del Excel que no aparecieron en el .zip
+  sinUsar: string[];
 }
 
 /**
@@ -155,6 +157,20 @@ export class ImportarOdoo implements OnInit {
 
   setMapeo(campo: string, col: string) { this.mapeo.update((m) => ({ ...m, [campo]: col })); }
 
+  /** Label del campo clave usado para emparejar fotos (p.ej. "Cédula", "Placa"). */
+  claveLabel(e: EntidadImportable): string {
+    const campo = e.foto?.campoClave;
+    return e.campos.find((c) => c.t === campo)?.label ?? campo ?? '';
+  }
+  /** Ejemplo de nombre de archivo para la ayuda del .zip, según el campo clave. */
+  claveEjemplo(e: EntidadImportable): string {
+    switch (e.foto?.campoClave) {
+      case 'cedula': return '00112345678';
+      case 'placa': return 'G675571';
+      default: return 'archivo';
+    }
+  }
+
   /** Lee el .zip de fotos (opcional) y lo deja listo para emparejar por nombre al importar. */
   async onZip(ev: Event) {
     const input = ev.target as HTMLInputElement;
@@ -186,30 +202,34 @@ export class ImportarOdoo implements OnInit {
     this.nombreZip.set('');
   }
 
-  /** Sube las fotos del .zip emparejadas por `archivo_foto` ↔ nombre de archivo, usando
-   *  el id real que devolvió el RPC para cada fila. Best-effort: un fallo por foto no
-   *  revierte el import de datos, solo queda listado en "sin emparejar". */
+  /** Empareja cada foto del .zip con su fila por el campo clave (cédula/placa, ya
+   *  normalizado igual que el servidor) — no hace falta una columna aparte en el
+   *  Excel. Solo reporta como "sin usar" los archivos del .zip que NO encontraron
+   *  fila (típico: nombre mal escrito); que una fila no tenga foto es normal. */
   private async subirFotosImportadas(e: EntidadImportable, filas: Record<string, unknown>[], r: ResultadoImport): Promise<ResultadoFotos | null> {
     const foto = e.foto;
     const zip = this.zipFotos();
     if (!foto || !zip || zip.size === 0) return null;
     const idPorFila = new Map(r.filas.map((f) => [f.i, f.id]));
+    const usados = new Set<string>();
     let subidas = 0;
-    const sinMatch: string[] = [];
     for (let i = 0; i < filas.length; i++) {
-      const nombreArchivo = String(filas[i][foto.campoArchivo] ?? '').trim();
-      if (!nombreArchivo) continue;
+      const claveRaw = String(filas[i][foto.campoClave] ?? '').trim();
       const id = idPorFila.get(i + 1);
-      const blob = zip.get(nombreArchivo);
-      if (!id || !blob) { sinMatch.push(nombreArchivo); continue; }
+      if (!claveRaw || !id) continue;
+      const clave = foto.normalizar(claveRaw);
+      if (!clave) continue;
+      const match = [...zip.entries()].find(([nombre]) => !usados.has(nombre) && foto.normalizar(nombre.replace(/\.[^.]+$/, '')) === clave);
+      if (!match) continue;
+      const [nombreArchivo, blob] = match;
       try {
         await this.svc.subirFoto(e, id, nombreArchivo, blob);
         subidas++;
-      } catch {
-        sinMatch.push(nombreArchivo);
-      }
+        usados.add(nombreArchivo);
+      } catch { /* best-effort — la fila ya se importó igual */ }
     }
-    return { subidas, sinMatch };
+    const sinUsar = [...zip.keys()].filter((n) => !usados.has(n));
+    return { subidas, sinUsar };
   }
 
   irAPreview() {
@@ -245,7 +265,7 @@ export class ImportarOdoo implements OnInit {
       this.resultadoFotos.set(fotos);
       const detalle = [
         r.errores.length ? `${r.errores.length} con error.` : '',
-        fotos ? `${fotos.subidas} foto(s) subida(s)${fotos.sinMatch.length ? `, ${fotos.sinMatch.length} sin emparejar` : ''}.` : '',
+        fotos ? `${fotos.subidas} foto(s) subida(s)${fotos.sinUsar.length ? `, ${fotos.sinUsar.length} del .zip sin usar` : ''}.` : '',
       ].filter(Boolean).join(' ');
       this.toast.success(`Importadas ${r.nuevos} nueva(s)`, detalle || undefined);
       await this.cargarHistorial();
@@ -268,9 +288,11 @@ export class ImportarOdoo implements OnInit {
 
   /** Plantilla SGC (sin Odoo): encabezados propios + ejemplo. */
   async descargarPlantillaSgc(e: EntidadImportable) {
-    const ejemplo: Record<string, string> = {};
-    for (const c of e.campos) if (c.t !== 'odoo_ref') ejemplo[c.label] = c.requerido ? '(obligatorio)' : '';
-    await exportarExcel(`plantilla-sgc-${e.key}`, [ejemplo, { ...ejemplo }]);
+    const fila: Record<string, string> = {};
+    for (const c of e.campos) if (c.t !== 'odoo_ref') fila[c.label] = c.requerido ? '(obligatorio)' : '';
+    // Una sola fila de ejemplo — el usuario la sobrescribe con su primer registro y
+    // añade las que necesite debajo (antes salían 2 filas idénticas, confuso).
+    await exportarExcel(`plantilla-sgc-${e.key}`, [fila]);
   }
 
   /** Ejemplo con encabezados REALES de Odoo (para ver el formato que llega). */

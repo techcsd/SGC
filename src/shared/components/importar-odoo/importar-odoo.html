@@ -127,7 +127,7 @@
 
       @if (e.foto; as f) {
         <div class="imp__fotos">
-          <p class="imp__fotos-hint">{{ 'Fotos (opcional): sube un .zip con las fotos nombradas igual que en la columna "{col}".' | t:{ col: f.campoArchivo } }}</p>
+          <p class="imp__fotos-hint">{{ 'Fotos (opcional): nombra cada archivo con el mismo valor de «{campo}» de su fila (ej. {ejemplo}.jpg) y sube un .zip con todas.' | t:{ campo: claveLabel(e), ejemplo: claveEjemplo(e) } }}</p>
           @if (!nombreZip()) {
             <label class="sgc-btn sgc-btn--ghost sgc-btn--sm imp__file">
               {{ 'Elegir .zip de fotos' | t }}
@@ -156,14 +156,14 @@
       @if (resultadoFotos(); as rf) {
         <p class="imp__result imp__result--fotos">
           <strong>{{ rf.subidas }}</strong> {{ 'foto(s) subida(s)' | t }}
-          @if (rf.sinMatch.length) {
-            · <strong>{{ rf.sinMatch.length }}</strong> {{ 'sin emparejar en el .zip' | t }}
+          @if (rf.sinUsar.length) {
+            · <strong>{{ rf.sinUsar.length }}</strong> {{ 'archivo(s) del .zip sin usar' | t }}
           }
         </p>
-        @if (rf.sinMatch.length) {
+        @if (rf.sinUsar.length) {
           <div class="imp__errores">
-            @for (nombre of rf.sinMatch; track nombre) {
-              <div class="imp__error">{{ 'No se encontró en el .zip:' | t }} {{ nombre }}</div>
+            @for (nombre of rf.sinUsar; track nombre) {
+              <div class="imp__error">{{ 'No coincide con ninguna fila (revisa el nombre):' | t }} {{ nombre }}</div>
             }
           </div>
         }
