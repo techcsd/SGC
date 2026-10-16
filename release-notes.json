@@ -5339,6 +5339,16 @@
           "d": "El botón para descargar la plantilla de Excel (para choferes y vehículos) quedaba escondido dentro de las instrucciones de Odoo. Ahora está siempre visible como el primer paso, separado de la opción de Odoo (que ahora solo aparece si aplica)."
         }
       ]
+    },
+    "1.192.2": {
+      "titulo": "Importar vehículos — elegir origen con dos tarjetas",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "Al importar vehículos, ahora eliges claramente entre «Plantilla SGC» (recomendado, para llenar a mano) o «Archivo de Odoo», con dos tarjetas en la misma pantalla — en vez de tener que abrir una sección para encontrar la opción que necesitas."
+        }
+      ]
     }
   }
 }

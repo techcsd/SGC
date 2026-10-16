@@ -43,6 +43,10 @@ export class ImportarOdoo implements OnInit {
   rows = signal<Record<string, unknown>[]>([]);
   mapeo = signal<Record<string, string>>({});
   nombreArchivo = signal('');
+  // Solo aplica a entidades con perfil Odoo (e.odoo) — cuál tarjeta de origen
+  // está activa en el paso "Sube el archivo". Entidades sin Odoo (choferes)
+  // no muestran la elección: van directo a la plantilla propia.
+  fuente = signal<'plantilla' | 'odoo'>('plantilla');
   procesando = signal(false);
   resultado = signal<ResultadoImport | null>(null);
   // Fotos por .zip (opcional) — solo si la entidad lo admite (entidad().foto).
@@ -73,6 +77,7 @@ export class ImportarOdoo implements OnInit {
   async elegirEntidad(e: EntidadImportable) {
     this.entidad.set(e);
     this.paso.set(2);
+    this.fuente.set('plantilla');
     try { this.mapeo.set(await this.svc.mapeoRecordado(e.key)); } catch { /* nuevo */ }
   }
 
@@ -256,6 +261,7 @@ export class ImportarOdoo implements OnInit {
     this.headers.set([]); this.rows.set([]); this.mapeo.set({});
     this.nombreArchivo.set(''); this.resultado.set(null);
     this.zipFotos.set(null); this.nombreZip.set(''); this.resultadoFotos.set(null);
+    this.fuente.set('plantilla');
     if (this.bloqueada()) { this.paso.set(2); void this.elegirEntidad(this.entidad()!); }
     else { this.paso.set(1); this.entidad.set(null); }
   }
