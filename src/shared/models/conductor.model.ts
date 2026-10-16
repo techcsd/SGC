@@ -43,7 +43,7 @@ export interface Conductor {
   tags: string[] | null;
   // Foto propia del conductor (bucket `conductores`), independiente del avatar del
   // usuario vinculado — un conductor no siempre tiene usuario_id. Se puede llenar
-  // desde la ficha o por importación masiva (columna archivo_foto + .zip).
+  // desde la ficha o por importación masiva (archivo nombrado con la cédula + .zip).
   foto_path: string | null;
   activo: boolean;
   created_at: string;

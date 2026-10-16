@@ -5349,6 +5349,21 @@
           "d": "Al importar vehículos, ahora eliges claramente entre «Plantilla SGC» (recomendado, para llenar a mano) o «Archivo de Odoo», con dos tarjetas en la misma pantalla — en vez de tener que abrir una sección para encontrar la opción que necesitas."
         }
       ]
+    },
+    "1.192.3": {
+      "titulo": "Importar choferes y vehículos — plantilla más simple",
+      "cambios": [
+        {
+          "t": "mejora",
+          "m": "Flota",
+          "d": "La plantilla de Excel para importar choferes y vehículos ya no pide una columna extra para la foto: ahora basta con nombrar cada foto igual a la cédula del chofer o la placa del vehículo y subirlas en un .zip — el sistema las relaciona solo."
+        },
+        {
+          "t": "arreglo",
+          "m": "Flota",
+          "d": "La plantilla descargable traía dos filas idénticas marcadas «(obligatorio)», lo que confundía. Ahora trae una sola fila de ejemplo."
+        }
+      ]
     }
   }
 }
