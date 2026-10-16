@@ -38,10 +38,20 @@ import { Lightbox } from '../../../../shared/ui/lightbox/lightbox';
 import { Icon } from '../../../../shared/ui/icon/icon';
 import { StaggerDirective } from '../../../../shared/motion/stagger.directive';
 import { MotionService } from '../../../../shared/services/motion.service';
+import { ArticuloPicker, ArticuloPickerSelection } from '../../../../shared/ui/articulo-picker/articulo-picker';
+
+/**
+ * QA-OC6 — fila del formulario de "Registrar entrada". `ocDescripcion` es solo
+ * una ayuda visual (el renglón libre de la OC que originó esta fila); nunca se
+ * envía como tal al servidor más allá de viajar como propiedad extra ignorada.
+ */
+interface EntradaItemRow extends EntradaItemFormData {
+  ocDescripcion?: string;
+}
 
 @Component({
   selector: 'app-entradas',
-  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective],
+  imports: [Skeleton, ReactiveFormsModule, FormDrawer, DecimalPipe, QtyStepper, DateRangeFilter, HighlightItemDirective, Lightbox, Icon, StaggerDirective, ArticuloPicker],
   templateUrl: './entradas.html',
   styleUrl: './entradas.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -334,7 +344,7 @@ export class Entradas implements OnInit {
 
   // ── Drawer ───────────────────────────────────────────────
   drawerOpen = signal(false);
-  formItems = signal<EntradaItemFormData[]>([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
+  formItems = signal<EntradaItemRow[]>([{ articulo_id: '', cantidad: 1, precio_unit: null }]);
   // Foto de evidencia opcional (paridad con la app de campo).
   fotoFile = signal<File | null>(null);
   fotoPreview = signal<string | null>(null);
@@ -457,37 +467,6 @@ export class Entradas implements OnInit {
 
   // ── Computed ─────────────────────────────────────────────
   activeProveedores = computed(() => this.proveedores().filter((p) => p.activo));
-
-  /**
-   * Artículos agrupados por categoría para los <select> (R16). Se itera categorias()
-   * — que ya viene destacada-first + orden — emitiendo un grupo por categoría con
-   * artículos; los artículos sin categoría activa caen en un grupo final "Otros".
-   */
-  articulosAgrupados = computed<{ categoria: string; destacada: boolean; articulos: Articulo[] }[]>(() => {
-    // Solo artículos activos son seleccionables (los desactivados quedan en "(Revisión)").
-    const arts = this.articulos().filter((a) => a.activo);
-    const cats = this.categorias();
-    const byCat = new Map<number, Articulo[]>();
-    for (const a of arts) {
-      const list = byCat.get(a.categoria_id);
-      if (list) list.push(a);
-      else byCat.set(a.categoria_id, [a]);
-    }
-    const grupos: { categoria: string; destacada: boolean; articulos: Articulo[] }[] = [];
-    const catIds = new Set<number>();
-    for (const c of cats) {
-      catIds.add(c.id);
-      const list = byCat.get(c.id);
-      if (list && list.length) {
-        grupos.push({ categoria: c.nombre, destacada: c.destacada, articulos: list });
-      }
-    }
-    const otros = arts.filter((a) => !catIds.has(a.categoria_id));
-    if (otros.length) {
-      grupos.push({ categoria: 'Otros', destacada: false, articulos: otros });
-    }
-    return grupos;
-  });
 
   // Only orders still awaiting (full or partial) delivery are valid link targets —
   // matches sgc.registrar_entrada_inventario()'s own check server-side.
@@ -714,6 +693,46 @@ export class Entradas implements OnInit {
     this.formItems.update((items) =>
       items.map((item, i) => (i === index ? { ...item, articulo_id: value } : item)),
     );
+  }
+
+  /** QA-OC6 — selección desde el picker buscable (reemplaza el <select> plano). */
+  onItemArticuloSelect(index: number, sel: ArticuloPickerSelection) {
+    this.updateItemArticulo(index, sel.articuloId ?? '');
+  }
+
+  /**
+   * QA-OC6 — Raykler reportó que no tenía forma de recibir OC-202610-0006: sus
+   * renglones son texto libre ("BOTA DE GOMA # 44"), sin articulo_id, y el
+   * formulario no mostraba qué pedía la orden ni ayudaba a ubicar el artículo
+   * equivalente del catálogo (sí existía: "BOTA de SEGURIDAD... #44"). Al elegir
+   * la OC: precarga un renglón por ítem (cantidad + descripción de referencia)
+   * y el proveedor, para que el usuario solo tenga que buscar+elegir el artículo
+   * del catálogo en cada fila. No pisa renglones que el usuario ya haya tocado.
+   */
+  async onOrdenCompraChange(value: string) {
+    const id = value || null;
+    this.form.controls.orden_compra_id.setValue(id);
+    if (!id) return;
+    try {
+      const full = await this.ordenesCompraService.getById(id);
+      if (full.proveedor_id && !this.form.controls.proveedor_id.value) {
+        this.form.controls.proveedor_id.setValue(full.proveedor_id);
+      }
+      const current = this.formItems();
+      const sinTocar = current.length === 1 && !current[0].articulo_id && current[0].precio_unit === null;
+      if (sinTocar && full.items?.length) {
+        this.formItems.set(
+          full.items.map((i) => ({
+            articulo_id: i.articulo_id ?? '',
+            cantidad: i.cantidad,
+            precio_unit: null,
+            ocDescripcion: i.descripcion,
+          })),
+        );
+      }
+    } catch {
+      // La precarga es solo una ayuda; si falla, el usuario sigue registrando a mano.
+    }
   }
 
   updateItemCantidad(index: number, value: number | string) {

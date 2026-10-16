@@ -79,4 +79,22 @@ export class OrdenesCompraService {
 
     if (error) throw new Error(error.message);
   }
+
+  /**
+   * QA-076b — vincula un renglón capturado a mano (articulo_id null, p.ej. una OC
+   * nacida de una requisición con texto libre) a un artículo del catálogo. Sin esto
+   * el renglón nunca entra al select de Inventario > Entradas (solo lista catálogo)
+   * y la orden queda permanentemente "sin forma de recibirse" (reporte de Raykler,
+   * OC-202610-0006 — "BOTA DE GOMA # 44/45" nunca tuvieron artículo). Update directo:
+   * la RLS de orden_compra_items ya permite UPDATE a tiene_modulo('compras').
+   */
+  async vincularArticulo(itemId: string, articuloId: string): Promise<void> {
+    const { error } = await this.supabase.client
+      .schema('sgc')
+      .from('orden_compra_items')
+      .update({ articulo_id: articuloId })
+      .eq('id', itemId);
+
+    if (error) throw new Error(error.message);
+  }
 }
